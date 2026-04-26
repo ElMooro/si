@@ -1,7 +1,7 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** PLAN, not yet executed.
-**Pending decision:** new product name (see ask_user_input).
+**Status:** Phase 1 SHIPPED 2026-04-26. Phases 2-8 pending.
+**Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
 ## Why this is a multi-step migration, not a sed
@@ -19,23 +19,23 @@ If we change pieces in the wrong order, the system is in a broken state for the 
 
 ## Naming convention
 
-For this doc, replace `[NEW]` and `[new]` with the chosen name.
-Examples below assume `[NEW]` = `Plumbing` and `[new]` = `plumbing` for illustration.
+For this doc, replace `KA` and `ka` with the chosen name.
+Examples below assume `KA` = `Plumbing` and `ka` = `plumbing` for illustration.
 
-## Phase 1 — Frontend cosmetic rename (zero risk)
+## Phase 1 — Frontend cosmetic rename ✅ SHIPPED b750453 (2026-04-26)
 
 User-facing strings only. Backend untouched. Page reads still use `khalid_*` field names.
 
 **Files (15):**
 - `index.html` — strip-cell label, meta description
 - `intelligence.html` — score card label, regime consensus block
-- `desk.html` — "Khalid strategy" → "[NEW] strategy"
+- `desk.html` — "Khalid strategy" → "KA strategy"
 - `desk-v2.html` — strip-cell label
 - `investor.html` — `khalid_score` display label
-- `reports.html` — chart label "Khalid Index" → "[NEW] Index", page subtitle
+- `reports.html` — chart label "Khalid Index" → "KA Index", page subtitle
 - `khalid/index.html` — page title, logo, all body copy (page route stays `/khalid/` until phase 4)
 - `euro/index.html` — logo, localStorage key (rename localStorage key with migration shim)
-- `bot/index.html` — `/khalid` slash command stays for now (the Telegram bot also accepts `/[new]` as alias in phase 2), command description text changes
+- `bot/index.html` — `/khalid` slash command stays for now (the Telegram bot also accepts `/ka` as alias in phase 2), command description text changes
 - `_partials/sidebar.html` — link label
 - `archive/pro.html` — leave (it's archived, label change not worth touching)
 - `index-old.html` — leave (archived)
@@ -43,7 +43,7 @@ User-facing strings only. Backend untouched. Page reads still use `khalid_*` fie
 - `system.html`, `volatility.html`, `dxy.html`, `bonds.html`, `macro-data.html`, `sentiment.html`, `repo.html` — none of these mention Khalid yet
 - `flow.html` — none
 
-**Strategy:** display label is decoupled from data field name. Pages can show "[NEW] Index" while still reading `obj.khalid_index` from JSON. This is the cheapest part.
+**Strategy:** display label is decoupled from data field name. Pages can show "KA Index" while still reading `obj.khalid_index` from JSON. This is the cheapest part.
 
 **Rollback:** revert single commit.
 
@@ -55,23 +55,23 @@ Producers (Lambdas) write BOTH old and new keys. Consumers (pages) read either, 
 
 | Lambda | What changes |
 |---|---|
-| `justhodl-khalid-metrics` | Output JSON gets `[new]_index`, `[new]_score`, etc. AS NEW KEYS, alongside existing `khalid_index`, `khalid_score`. Both written each run. |
+| `justhodl-khalid-metrics` | Output JSON gets `ka_index`, `ka_score`, etc. AS NEW KEYS, alongside existing `khalid_index`, `khalid_score`. Both written each run. |
 | `justhodl-daily-report-v3` | Same — duplicate fields in `data/report.json` |
 | `justhodl-intelligence` | Duplicate fields |
-| `justhodl-pnl-tracker` | If it writes `khalid_strategy` PnL, duplicate as `[new]_strategy` |
+| `justhodl-pnl-tracker` | If it writes `khalid_strategy` PnL, duplicate as `ka_strategy` |
 | `justhodl-asymmetric-scorer` | Reads regime — accept either field on input |
 | `justhodl-investor-agents` | Already accepts macro context; update to read either field |
 | `justhodl-morning-intelligence` | Update prompt + output to use new names; keep old as alias for 30 days |
-| `justhodl-telegram-bot` | Add `/[new]` alias to existing `/khalid` command |
+| `justhodl-telegram-bot` | Add `/ka` alias to existing `/khalid` command |
 
 **S3 dual-write:**
 - Keep writing `data/khalid-metrics.json` (existing path)
-- Also write to `data/[new]-metrics.json` (new path, identical content)
-- Same for `data/khalid-config.json` → `data/[new]-config.json`
-- Same for `data/khalid-analysis.json` → `data/[new]-analysis.json`
+- Also write to `data/ka-metrics.json` (new path, identical content)
+- Same for `data/khalid-config.json` → `data/ka-config.json`
+- Same for `data/khalid-analysis.json` → `data/ka-analysis.json`
 
 **DynamoDB:**
-- New writes use `signal_type='[new]_index'`
+- New writes use `signal_type='ka_index'`
 - Existing items with `signal_type='khalid_index'` are NOT migrated (they're historical) — calibrator reads both via OR query
 - `justhodl-calibrator` updated to merge both signal_type families when computing weights
 
@@ -79,7 +79,7 @@ Producers (Lambdas) write BOTH old and new keys. Consumers (pages) read either, 
 
 ## Phase 3 — Frontend cuts over to new field names
 
-**Files:** every page that currently reads `data.khalid_*` switches to `data.[new]_*`. Since phase 2 dual-writes both, this is safe.
+**Files:** every page that currently reads `data.khalid_*` switches to `data.ka_*`. Since phase 2 dual-writes both, this is safe.
 
 **Order matters:** frontend cuts over BEFORE Lambdas drop the old keys, otherwise the page goes blank.
 
@@ -87,15 +87,15 @@ Producers (Lambdas) write BOTH old and new keys. Consumers (pages) read either, 
 
 ## Phase 4 — Migrate Lambda function name (most disruptive single op)
 
-`justhodl-khalid-metrics` → `justhodl-[new]-metrics`
+`justhodl-khalid-metrics` → `justhodl-ka-metrics`
 
 AWS Lambda doesn't support rename. The procedure:
 
-1. **Create** new Lambda `justhodl-[new]-metrics` from a copy of the old code
+1. **Create** new Lambda `justhodl-ka-metrics` from a copy of the old code
 2. **Test invoke** the new one, verify output identical
 3. **Move EventBridge** target from old → new
 4. **Move Function URL** — actually, Function URLs are tied to the function name. The new Lambda gets a NEW Function URL. Update Cloudflare Worker `AGENT_LAMBDAS` map (we don't have one for khalid currently, but `/khalid/` page reads its Function URL directly — update that page to use the new URL).
-5. **Update** `justhodl-khalid-metrics/source/lambda_function.py` in repo → moved to `justhodl-[new]-metrics/source/lambda_function.py` via `git mv`
+5. **Update** `justhodl-khalid-metrics/source/lambda_function.py` in repo → moved to `justhodl-ka-metrics/source/lambda_function.py` via `git mv`
 6. **Verify** new Lambda runs on schedule, writes to new + old S3 keys
 7. **Wait 7 days** observing both work
 8. **Delete** old Lambda `justhodl-khalid-metrics` (preserve via S3 backup of source)
@@ -104,13 +104,13 @@ AWS Lambda doesn't support rename. The procedure:
 
 ## Phase 5 — Frontend route rename
 
-`/khalid/index.html` → `/[new]/index.html`
+`/khalid/index.html` → `/ka/index.html`
 
-1. **Copy** (don't move) `khalid/index.html` to `[new]/index.html`
+1. **Copy** (don't move) `khalid/index.html` to `ka/index.html`
 2. **Update internal links** in topbar, launcher, sidebar
-3. **Add 301 redirect** at `khalid/index.html` → `/[new]/` (HTML meta refresh, since GitHub Pages doesn't do real redirects):
+3. **Add 301 redirect** at `khalid/index.html` → `/ka/` (HTML meta refresh, since GitHub Pages doesn't do real redirects):
    ```html
-   <meta http-equiv="refresh" content="0; url=/[new]/">
+   <meta http-equiv="refresh" content="0; url=/ka/">
    ```
    This handles bookmarks, shared links, search engine results.
 4. **Update sitemap** if any
@@ -139,8 +139,8 @@ Once production is fully migrated:
 If user wants the ENTIRE git log scrubbed of `Khalid` (currently 200+ commits mention it), that's a separate destructive operation:
 
 ```bash
-git filter-repo --replace-text <(echo "Khalid==>[NEW]")
-git filter-repo --replace-text <(echo "khalid==>[new]")
+git filter-repo --replace-text <(echo "Khalid==>KA")
+git filter-repo --replace-text <(echo "khalid==>ka")
 git push --force origin main
 ```
 
