@@ -24,6 +24,7 @@
 
 const LAMBDA_AI_CHAT     = 'https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/';
 const LAMBDA_AI_RESEARCH = 'https://obcsgkzlvicwc6htdmj5wg6yae0tfmya.lambda-url.us-east-1.on.aws/';
+const LAMBDA_INVESTOR_AGENTS = 'https://7qufoauxzhqwnrsmdjjwt46wy40zzdyp.lambda-url.us-east-1.on.aws/';
 
 const ALLOWED_ORIGINS = new Set([
   'https://justhodl.ai',
@@ -121,6 +122,42 @@ async function handleAiResearch(request, env, origin) {
   });
 }
 
+async function handleInvestorAgents(request, env, origin) {
+  // Lambda requires POST with {"ticker": "AAPL"} body
+  if (request.method !== 'POST') {
+    return json(405, { error: 'Method not allowed (use POST with {ticker})' }, origin);
+  }
+  const cl = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (cl > MAX_BODY_BYTES) {
+    return json(413, { error: 'Request body too large' }, origin);
+  }
+  const body = await request.text();
+  if (body.length > MAX_BODY_BYTES) {
+    return json(413, { error: 'Request body too large' }, origin);
+  }
+  let upstream;
+  try {
+    upstream = await fetch(LAMBDA_INVESTOR_AGENTS, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://justhodl.ai',
+      },
+      body,
+    });
+  } catch (e) {
+    return json(502, { error: 'Upstream unreachable', detail: String(e) }, origin);
+  }
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: {
+      ...corsHeaders(origin),
+      'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
+    },
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
@@ -140,6 +177,9 @@ export default {
     // Path-based routing
     if (path === '/research') {
       return handleAiResearch(request, env, origin);
+    }
+    if (path === '/investor') {
+      return handleInvestorAgents(request, env, origin);
     }
     if (path === '/' || path === '/chat') {
       return handleAiChat(request, env, origin);

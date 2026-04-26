@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Legendary Investor Panel · JustHodl.AI</title>
+<meta name="description" content="6 legendary investor personas (Buffett, Munger, Burry, Druckenmiller, Lynch, Wood) analyze any S&P 500 stock — thesis, bull case, bear case, conviction, signal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-serif:'IBM Plex Serif',ui-serif,Georgia,serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+input{font-family:inherit;background:none;border:none;color:inherit;outline:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-sunken)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(56,255,168,.06);border:1px solid var(--green-dim);border-radius:3px;color:var(--green);font-weight:600}
+.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+
+.page{max-width:1620px;margin:0 auto;padding:24px}
+.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
+.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+
+/* TICKER INPUT */
+.input-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;position:relative}
+.input-card::before,.input-card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.input-card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.input-card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.input-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.input-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;flex-shrink:0}
+.input-ticker{font-family:var(--font-mono);font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:10px 16px;color:var(--fg-1);min-width:180px}
+.input-ticker:focus{border-color:var(--cyan);background:var(--bg-glow)}
+.btn{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 22px;border:1px solid var(--cyan);border-radius:3px;color:var(--cyan);background:rgba(0,212,255,.06);transition:all .15s;font-weight:600}
+.btn:hover{background:var(--cyan);color:var(--bg-base)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.sug-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;padding:5px 11px;border:1px solid var(--border);border-radius:3px;color:var(--fg-3);transition:all .15s;background:transparent}
+.sug-btn:hover{color:var(--fg-1);border-color:var(--cyan-dim);background:var(--bg-glow)}
+
+/* CONSENSUS HEADER */
+.consensus{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:24px;position:relative;display:none}
+.consensus::before,.consensus::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.consensus::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.consensus::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.consensus.show{display:block}
+.consensus-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+.consensus-cell{flex:1;min-width:140px}
+.consensus-cell .label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:6px}
+.consensus-cell .val{font-family:var(--font-mono);font-size:34px;font-weight:600;line-height:1}
+.consensus-cell .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:4px}
+.signal-strong-buy{color:var(--green)}.signal-buy{color:var(--green-dim)}.signal-hold{color:var(--amber)}.signal-sell{color:var(--red)}.signal-strong-sell{color:var(--red);font-weight:700}
+.consensus-summary{font-size:13px;color:var(--fg-2);line-height:1.6;border-top:1px solid var(--border);padding-top:14px;font-style:italic}
+
+/* PERSONA GRID */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:18px;margin-bottom:24px}
+.persona-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;transition:border-color .2s}
+.persona-card::before,.persona-card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.persona-card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.persona-card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.persona-card:hover{border-color:var(--border-hover)}
+.persona-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.persona-id{display:flex;gap:14px;align-items:center}
+.persona-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:24px;font-weight:600;color:#fff;flex-shrink:0}
+.persona-name{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:1.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:3px}
+.persona-title{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase}
+.persona-signal{text-align:right;flex-shrink:0}
+.persona-signal .lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+.persona-signal .val{font-family:var(--font-mono);font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:3px}
+.persona-conviction{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);margin-top:4px;letter-spacing:.5px}
+.conviction-bar{height:3px;background:var(--bg-sunken);border-radius:2px;margin-top:4px;overflow:hidden;width:60px;margin-left:auto}
+.conviction-fill{height:100%;transition:width .6s ease}
+.persona-thesis{font-size:13px;color:var(--fg-1);line-height:1.55;margin-bottom:14px;font-style:italic}
+.persona-cases{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.case{padding:11px;background:var(--bg-elevated);border-radius:3px;border-left:2px solid}
+.case.bull{border-left-color:var(--green)}
+.case.bear{border-left-color:var(--red)}
+.case .lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-weight:700}
+.case.bull .lbl{color:var(--green)}
+.case.bear .lbl{color:var(--red)}
+.case .body{font-size:12px;color:var(--fg-2);line-height:1.5}
+.persona-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px;padding-top:10px;border-top:1px solid var(--border)}
+.persona-meta .key{color:var(--fg-4);text-transform:uppercase;letter-spacing:1px;font-size:9px}
+
+/* METRICS PANEL */
+.metrics-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;position:relative;display:none}
+.metrics-card::before,.metrics-card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.metrics-card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.metrics-card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.metrics-card.show{display:block}
+.metrics-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
+.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.metric{font-family:var(--font-mono);padding:10px 12px;background:var(--bg-elevated);border-radius:3px}
+.metric .key{font-size:9px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase;margin-bottom:4px}
+.metric .val{font-size:14px;font-weight:600;color:var(--fg-1)}
+.metric .val.g{color:var(--green)}
+.metric .val.r{color:var(--red)}
+
+.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:8px}
+
+.loading-state{text-align:center;padding:60px 24px;font-family:var(--font-mono)}
+.loading-state .label{font-size:14px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;animation:pulse 1.6s ease-in-out infinite}
+.loading-state .sub{font-size:11px;color:var(--fg-3);letter-spacing:1px}
+
+.err{color:var(--red);font-family:var(--font-mono);font-size:13px;letter-spacing:.5px;padding:24px;background:rgba(255,92,122,.04);border:1px solid var(--red-dim);border-radius:3px;margin-bottom:24px}
+
+.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/stock/">STOCK</a>
+    <a href="/screener/">SCREENER</a>
+    <a href="/edge.html">EDGE</a>
+    <a href="/intelligence.html">INTEL</a>
+    <a href="/liquidity.html">LIQUIDITY</a>
+    <a href="/flow.html">FLOW</a>
+    <a href="/crypto/">CRYPTO</a>
+    <a href="/positioning/">COT</a>
+    <a href="/risk.html">RISK</a>
+    <a href="/system.html">SYSTEM</a>
+    <a href="/investor.html" class="active">INVESTORS</a>
+  </nav>
+  <div class="topbar-meta">
+    <span id="clock">—</span>
+    <span class="status-pill">OPERATIONAL</span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>LEGENDARY INVESTOR PANEL</h1>
+    <div class="sub">6 personas analyze any S&amp;P 500 stock · Buffett · Munger · Burry · Druckenmiller · Lynch · Wood · ~7s per analysis</div>
+  </div>
+
+  <!-- TICKER INPUT -->
+  <section class="input-card">
+    <div class="input-row">
+      <span class="input-label">TICKER</span>
+      <input class="input-ticker" id="tickerInput" type="text" maxlength="10" placeholder="AAPL" autocomplete="off" autocapitalize="characters">
+      <button class="btn" id="analyzeBtn">⚡ ANALYZE</button>
+    </div>
+    <div class="suggestions">
+      <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;color:var(--fg-4);text-transform:uppercase;margin-right:6px">SUGGESTIONS:</span>
+      <button class="sug-btn" data-sym="AAPL">AAPL</button>
+      <button class="sug-btn" data-sym="NVDA">NVDA</button>
+      <button class="sug-btn" data-sym="TSLA">TSLA</button>
+      <button class="sug-btn" data-sym="MSFT">MSFT</button>
+      <button class="sug-btn" data-sym="GOOGL">GOOGL</button>
+      <button class="sug-btn" data-sym="META">META</button>
+      <button class="sug-btn" data-sym="AMZN">AMZN</button>
+      <button class="sug-btn" data-sym="BRK.B">BRK.B</button>
+      <button class="sug-btn" data-sym="JPM">JPM</button>
+      <button class="sug-btn" data-sym="V">V</button>
+      <button class="sug-btn" data-sym="UNH">UNH</button>
+      <button class="sug-btn" data-sym="XOM">XOM</button>
+    </div>
+  </section>
+
+  <!-- LOADING / ERROR / RESULTS -->
+  <div id="contentHost"></div>
+
+</main>
+
+<footer class="footer">
+  <div>JUSTHODL · AI · LEGENDARY INVESTOR PANEL</div>
+  <div style="margin-top:8px;color:var(--fg-4)">
+    Powered by justhodl-investor-agents · 6 LLM-driven personas · FMP fundamentals
+  </div>
+</footer>
+
+<script>
+const URL_INVESTOR = 'https://api.justhodl.ai/investor';
+
+function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtPct(n,d=1){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d)+'%'}
+function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
+
+function signalCss(sig){
+  if(!sig) return '';
+  const s = sig.toUpperCase().replace(/\s+/g,'-').toLowerCase();
+  return 'signal-' + s;
+}
+function signalBg(sig){
+  const s = (sig||'').toUpperCase();
+  if(s === 'STRONG BUY') return {bg:'rgba(56,255,168,.12)', color:'var(--green)', border:'var(--green)'};
+  if(s === 'BUY')        return {bg:'rgba(56,255,168,.08)', color:'var(--green-dim)', border:'var(--green-dim)'};
+  if(s === 'HOLD')       return {bg:'rgba(255,177,61,.08)', color:'var(--amber)', border:'var(--amber-dim)'};
+  if(s === 'SELL')       return {bg:'rgba(255,92,122,.08)', color:'var(--red)', border:'var(--red-dim)'};
+  if(s === 'STRONG SELL')return {bg:'rgba(255,92,122,.15)', color:'var(--red)', border:'var(--red)'};
+  return {bg:'var(--bg-elevated)', color:'var(--fg-2)', border:'var(--border)'};
+}
+
+async function analyze(ticker){
+  ticker = (ticker || '').toUpperCase().trim();
+  if(!ticker){ alert('Enter a ticker'); return; }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('tickerInput').value = ticker;
+
+  // Update URL hash
+  history.replaceState(null, '', '#' + encodeURIComponent(ticker));
+
+  const host = document.getElementById('contentHost');
+  host.innerHTML = `
+    <div class="loading-state">
+      <div class="label">⚡ CONVENING THE LEGENDS · ${escHtml(ticker)}</div>
+      <div class="sub">6 personas in parallel · usually completes in 5-8s · first request may be slower (cold start)</div>
+    </div>`;
+
+  try{
+    const t0 = Date.now();
+    const r = await fetch(URL_INVESTOR, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ticker}),
+    });
+    if(!r.ok){
+      let errMsg = 'HTTP ' + r.status;
+      try{ const e = await r.json(); if(e.error) errMsg = e.error; }catch(_){}
+      throw new Error(errMsg);
+    }
+    const data = await r.json();
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    render(data, elapsed);
+  }catch(e){
+    host.innerHTML = `<div class="err">⚠ Analysis failed: ${escHtml(e.message)}<br><br>If this persists, the upstream Lambda may be cold or rate-limited. Try again in a moment, or pick a different ticker.</div>`;
+  }finally{
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+}
+
+function render(d, elapsed){
+  if(!d || !d.agents){
+    document.getElementById('contentHost').innerHTML = `<div class="err">⚠ Unexpected response shape — no 'agents' field</div>`;
+    return;
+  }
+
+  const cons = d.consensus || {};
+  const signal = (cons.signal || '—');
+  const sigStyle = signalBg(signal);
+
+  // Consensus header
+  const consensusHtml = `
+    <section class="consensus show">
+      <div class="consensus-row">
+        <div class="consensus-cell">
+          <div class="label">${escHtml(d.ticker || '?')} · ${escHtml(d.sector || '')}</div>
+          <div class="val" style="font-size:32px;color:var(--fg-1)">${escHtml(d.name || '—')}</div>
+          <div class="sub">$${(d.price != null ? d.price.toFixed(2) : '—')} · generated ${elapsed}s ago</div>
+        </div>
+        <div class="consensus-cell">
+          <div class="label">CONSENSUS</div>
+          <div class="val" style="color:${sigStyle.color}">${escHtml(signal)}</div>
+          <div class="sub">conviction ${cons.conviction != null ? cons.conviction : '—'}/10 · score ${cons.score != null ? cons.score.toFixed(2) : '—'}</div>
+        </div>
+        <div class="consensus-cell">
+          <div class="label">VOTES</div>
+          <div class="val" style="color:var(--fg-1)"><span style="color:var(--green)">${cons.bulls||0}</span> · <span style="color:var(--amber)">${cons.holds||0}</span> · <span style="color:var(--red)">${cons.bears||0}</span></div>
+          <div class="sub">bulls · holds · bears</div>
+        </div>
+        <div class="consensus-cell">
+          <div class="label">REGIME</div>
+          <div class="val" style="font-size:24px;color:var(--cyan)">${escHtml(d.macro?.regime || '—')}</div>
+          <div class="sub">Khalid ${d.macro?.khalid_score != null ? d.macro.khalid_score : '—'}/100</div>
+        </div>
+      </div>
+      ${cons.summary ? `<div class="consensus-summary">${escHtml(cons.summary)}</div>` : ''}
+    </section>`;
+
+  // Persona cards
+  const sortedAgents = [...d.agents].sort((a,b) => {
+    // Sort: STRONG BUY → BUY → HOLD → SELL → STRONG SELL
+    const order = {'STRONG BUY':0, 'BUY':1, 'HOLD':2, 'SELL':3, 'STRONG SELL':4};
+    const ao = order[(a.signal||'').toUpperCase()] ?? 5;
+    const bo = order[(b.signal||'').toUpperCase()] ?? 5;
+    if(ao !== bo) return ao - bo;
+    return (b.conviction||0) - (a.conviction||0);
+  });
+
+  let agentsHtml = '<div class="persona-grid">';
+  for(const a of sortedAgents){
+    const sigStyle = signalBg(a.signal);
+    const convPct = ((a.conviction||0) / 10) * 100;
+    const convColor = a.conviction >= 7 ? 'var(--cyan)' : a.conviction >= 5 ? 'var(--amber)' : 'var(--fg-3)';
+    agentsHtml += `
+      <div class="persona-card">
+        <div class="persona-head">
+          <div class="persona-id">
+            <div class="persona-icon" style="background:${escHtml(a.color || 'var(--bg-elevated)')}">${escHtml(a.icon || '?')}</div>
+            <div>
+              <div class="persona-name">${escHtml(a.name || a.agent || '?')}</div>
+              <div class="persona-title">${escHtml(a.title || '')}</div>
+            </div>
+          </div>
+          <div class="persona-signal">
+            <div class="lbl">SIGNAL</div>
+            <div class="val" style="background:${sigStyle.bg};color:${sigStyle.color};border:1px solid ${sigStyle.border}">${escHtml(a.signal || '?')}</div>
+            <div class="conviction-bar"><div class="conviction-fill" style="width:${convPct}%;background:${convColor}"></div></div>
+            <div class="persona-conviction">CONV ${a.conviction||0}/10</div>
+          </div>
+        </div>
+        ${a.thesis ? `<div class="persona-thesis">${escHtml(a.thesis)}</div>` : ''}
+        <div class="persona-cases">
+          <div class="case bull"><div class="lbl">▲ BULL</div><div class="body">${escHtml(a.bull_case || '—')}</div></div>
+          <div class="case bear"><div class="lbl">▼ BEAR</div><div class="body">${escHtml(a.bear_case || '—')}</div></div>
+        </div>
+        ${a.key_metric ? `<div class="persona-meta"><span class="key">KEY METRIC ▸</span> ${escHtml(a.key_metric)}</div>` : ''}
+      </div>`;
+  }
+  agentsHtml += '</div>';
+
+  // Metrics card
+  const m = d.metrics || {};
+  const metricsHtml = `
+    <section class="metrics-card show">
+      <div class="metrics-head">
+        <div>
+          <div class="card-title">FUNDAMENTAL METRICS</div>
+          <div class="card-subtitle">FMP TTM data fed to all 6 personas</div>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        ${metricCell('PRICE', m.price, '$', 2)}
+        ${metricCell('P/E', m.pe, '', 1)}
+        ${metricCell('P/B', m.pb, '', 1)}
+        ${metricCell('P/S', m.priceToSales, '', 2)}
+        ${metricCell('DCF UPSIDE', m.dcfUpside, '%', 1, true)}
+        ${metricCell('ANALYST UPSIDE', m.analystUpside, '%', 1, true)}
+        ${metricCell('BUY %', m.buyPct, '%', 0)}
+        ${metricCell('NET MARGIN', m.netMargin, '%', 1)}
+        ${metricCell('GROSS MARGIN', m.grossMargin, '%', 1)}
+        ${metricCell('OWNER EARN YIELD', m.ownerEarningsYield, '%', 2)}
+        ${metricCell('REV GROWTH', m.revenueGrowth, '%', 1, true)}
+        ${metricCell('1Y RETURN', m.priceChange1Y, '%', 1, true)}
+        ${metricCell('3M RETURN', m.priceChange3M, '%', 1, true)}
+        ${metricCell('1M RETURN', m.priceChange1M, '%', 1, true)}
+      </div>
+    </section>`;
+
+  document.getElementById('contentHost').innerHTML = consensusHtml + agentsHtml + metricsHtml;
+}
+
+function metricCell(label, val, unit='', decimals=2, signed=false){
+  if(val == null || isNaN(val)) {
+    return `<div class="metric"><div class="key">${escHtml(label)}</div><div class="val">—</div></div>`;
+  }
+  const num = Number(val);
+  const cls = signed ? (num >= 0 ? 'g' : 'r') : '';
+  const sign = signed && num >= 0 ? '+' : '';
+  const display = unit === '$' ? '$' + num.toFixed(decimals) :
+                  unit === '%' ? sign + num.toFixed(decimals) + '%' :
+                  num.toFixed(decimals);
+  return `<div class="metric"><div class="key">${escHtml(label)}</div><div class="val ${cls}">${display}</div></div>`;
+}
+
+// Wire input + button
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  analyze(document.getElementById('tickerInput').value);
+});
+document.getElementById('tickerInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') analyze(document.getElementById('tickerInput').value);
+});
+document.querySelectorAll('.sug-btn').forEach(b => {
+  b.addEventListener('click', () => analyze(b.dataset.sym));
+});
+
+// Initial: read URL hash for ticker
+const initial = decodeURIComponent((location.hash || '').replace(/^#/, '')).toUpperCase();
+if(initial) {
+  document.getElementById('tickerInput').value = initial;
+  analyze(initial);
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
