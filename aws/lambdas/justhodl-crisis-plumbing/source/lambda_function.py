@@ -251,20 +251,22 @@ FUNDING_CREDIT_SIGNALS = {
     "SOFR": {"name": "SOFR (Secured Overnight Financing Rate)", "fred_id": "SOFR"},
     "IORB": {"name": "Interest On Reserve Balances",            "fred_id": "IORB"},
     # HY OAS — ICE BofA US High Yield Index Option-Adjusted Spread
+    # Note: FRED BAMLH0A0HYM2 publishes this as PERCENT (3.0 = 3% = 300bps).
+    # Thresholds expressed in same percent units. Frontend converts × 100 for bps display.
     "HY_OAS": {
         "name": "HY Credit Spread (ICE BofA US HY OAS)",
         "fred_id": "BAMLH0A0HYM2",
-        "unit": "bps",
+        "unit": "pct",
         "stress_direction": "higher",
-        "thresholds": {"watch": 450, "elevated": 600, "crisis": 1000},
+        "thresholds": {"watch": 4.5, "elevated": 6.0, "crisis": 10.0},
     },
-    # IG (BBB) OAS — secondary credit fear gauge
+    # IG (BBB) OAS — secondary credit fear gauge — also published in PERCENT
     "IG_BBB_OAS": {
         "name": "IG BBB Credit Spread",
-        "fred_id": "BAMLC0A4CMTRIV",  # alt: BAMLC0A4CBBB level
-        "unit": "bps",
+        "fred_id": "BAMLC0A4CMTRIV",
+        "unit": "pct",
         "stress_direction": "higher",
-        "thresholds": {"watch": 175, "elevated": 250, "crisis": 400},
+        "thresholds": {"watch": 1.75, "elevated": 2.5, "crisis": 4.0},
     },
     # 10Y Breakeven Inflation
     "T10YIE": {

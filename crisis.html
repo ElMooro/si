@@ -453,13 +453,15 @@ function renderFundingCredit(fcs) {
       line3 = data.interpretation || '';
       threshLine = `STRESS thresholds: < −3 watch · < −7 elevated · < −15 crisis`;
     } else if (key === 'HY_OAS' || key === 'IG_BBB_OAS') {
-      valDisplay = `${Math.round(data.latest_value)} bps`;
+      // Backend stores value in % (FRED native unit); display in bps for readability
+      valDisplay = `${Math.round(data.latest_value * 100)} bps`;
       const d30 = data.delta_30d;
-      const d30Txt = d30 == null ? '—' : (d30 > 0 ? '+' : '') + d30 + 'bps';
+      const d30Txt = d30 == null ? '—' : (d30 > 0 ? '+' : '') + Math.round(d30 * 100) + 'bps';
       line2 = `30d: ${d30Txt}`;
       line3 = data.latest_date || '';
       const t = data.thresholds || {};
-      threshLine = `${t.watch || '?'} watch · ${t.elevated || '?'} elevated · ${t.crisis || '?'} crisis (bps)`;
+      // Thresholds also in %, convert to bps for display
+      threshLine = `${t.watch ? Math.round(t.watch * 100) : '?'} watch · ${t.elevated ? Math.round(t.elevated * 100) : '?'} elevated · ${t.crisis ? Math.round(t.crisis * 100) : '?'} crisis (bps)`;
     } else if (key === 'T10YIE' || key === 'DFII10') {
       valDisplay = `${data.latest_value?.toFixed(2)}%`;
       const d30 = data.delta_30d;
@@ -571,7 +573,7 @@ function buildWatchlist(data) {
     if (v.signal && v.signal !== 'NORMAL') {
       let valStr;
       if (k === 'SOFR_IORB_SPREAD') valStr = `${v.spread_bps > 0 ? '+' : ''}${v.spread_bps}bps`;
-      else if (k === 'HY_OAS' || k === 'IG_BBB_OAS') valStr = `${Math.round(v.latest_value)}bps`;
+      else if (k === 'HY_OAS' || k === 'IG_BBB_OAS') valStr = `${Math.round(v.latest_value * 100)}bps`;
       else valStr = `${v.latest_value?.toFixed(2)}${v.unit === 'pct' ? '%' : ''}`;
       flagged.push({label: labelByKey[k] || k, value: valStr, signal: v.signal,
                     desc: v.interpretation || ''});
