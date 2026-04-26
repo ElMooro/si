@@ -1,6 +1,6 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** Phase 1 SHIPPED 2026-04-26. Phases 2-8 pending.
+**Status:** Phases 1+2 SHIPPED 2026-04-26. Phases 3-8 pending.
 **Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
@@ -47,7 +47,7 @@ User-facing strings only. Backend untouched. Page reads still use `khalid_*` fie
 
 **Rollback:** revert single commit.
 
-## Phase 2 — Add aliases in data layer (dual-write)
+## Phase 2 — Add aliases in data layer (dual-write) ✅ SHIPPED 56acd0f (2026-04-26)
 
 Producers (Lambdas) write BOTH old and new keys. Consumers (pages) read either, preferring new with old fallback.
 
