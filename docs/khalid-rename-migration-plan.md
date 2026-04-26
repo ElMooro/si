@@ -1,6 +1,6 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** Phases 1+2+3 SHIPPED 2026-04-26. Phases 4-8 pending.
+**Status:** Phases 1+2+3+4+5 SHIPPED 2026-04-26. Phase 4b (delete OLD Lambda) due 2026-05-03 after 7-day grace. Phases 6-8 pending.
 **Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
@@ -102,7 +102,7 @@ AWS Lambda doesn't support rename. The procedure:
 
 **Rollback in this phase:** EventBridge target can be flipped back to old Lambda within seconds.
 
-## Phase 5 — Frontend route rename
+## Phase 5 — Frontend route rename ✅ SHIPPED abaa2d7 (2026-04-26)
 
 `/khalid/index.html` → `/ka/index.html`
 
