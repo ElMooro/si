@@ -1,0 +1,9 @@
+{
+  "function_name": "justhodl-regime-anomaly",
+  "runtime": "python3.12",
+  "memory_size": 1024,
+  "timeout": 240,
+  "handler": "lambda_function.lambda_handler",
+  "schedule": "rate(1 day)",
+  "description": "Phase 9.2 — HMM regime detector + Mahalanobis anomaly detection"
+}
