@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Crisis & Plumbing · JustHodl.AI</title>
-<meta name="description" content="Official Fed crisis indices · MMF flows · cross-currency basis · yield curve stress · 6h refresh">
+<meta name="description" content="Official Fed crisis indices · SOFR-IORB & HY/IG OAS · TIPS breakeven · MMF gov/prime split · cross-currency rate diff · 6h refresh">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -111,6 +111,30 @@ tr:hover{background:var(--bg-glow)}
 
 .error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
 
+/* Phase 9.3 signal pills (NORMAL / WATCH / ELEVATED / CRISIS) */
+.signal-pill{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.2px;padding:3px 9px;border-radius:11px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border);font-weight:600;text-transform:uppercase}
+.signal-pill.NORMAL{color:var(--green);border-color:var(--green-dim)}
+.signal-pill.WATCH{color:var(--amber);border-color:var(--amber-dim)}
+.signal-pill.ELEVATED{color:var(--amber);border-color:var(--amber);background:rgba(255,177,61,.08)}
+.signal-pill.CRISIS{color:var(--red);border-color:var(--red);background:rgba(255,92,122,.12);animation:pillBlink 2.5s ease-in-out infinite}
+@keyframes pillBlink{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* Phase 9.3 — watch-list highlight + threshold meta */
+.threshold-meta{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-4);margin-top:6px;letter-spacing:.4px;line-height:1.5}
+.z-badge{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:3px;margin-left:8px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border)}
+.z-badge.high{color:var(--amber);border-color:var(--amber-dim)}
+.z-badge.extreme{color:var(--red);border-color:var(--red-dim)}
+.card.elevated{border-color:var(--amber);background:linear-gradient(135deg,var(--bg-raised),rgba(255,177,61,.06))}
+
+#watchlist-section{margin-bottom:8px}
+#watchlist-section .section-hdr h3{color:var(--amber)}
+.watchlist-card{padding:14px 16px;background:linear-gradient(135deg,rgba(255,177,61,.08),rgba(255,92,122,.04));border:1px solid var(--amber);border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.watchlist-card.crisis{border-color:var(--red);background:linear-gradient(135deg,rgba(255,92,122,.12),rgba(255,92,122,.04))}
+.watchlist-card .left{display:flex;flex-direction:column;gap:4px}
+.watchlist-card .label{font-family:var(--font-mono);font-size:11px;color:var(--fg-1);letter-spacing:.6px;font-weight:600}
+.watchlist-card .desc{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.4px}
+.watchlist-card .right{font-family:var(--font-mono);font-size:14px;color:var(--fg-1);font-weight:600;white-space:nowrap;text-align:right}
+
 footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
 footer a{margin:0 10px}
 </style>
@@ -164,12 +188,28 @@ footer a{margin:0 10px}
     </div>
   </div>
 
+  <!-- Watch list (only renders when 1+ flagged signals exist) -->
+  <div id="watchlist-section" style="display:none">
+    <div class="section-hdr">
+      <h3>⚠ ACTIVE WATCH LIST</h3>
+      <div class="sub">signals currently above WATCH threshold across all sections</div>
+    </div>
+    <div id="watchlist-grid" class="grid grid-2"></div>
+  </div>
+
   <!-- Crisis indices grid -->
   <div class="section-hdr">
     <h3>OFFICIAL CRISIS INDICES</h3>
     <div class="sub">10Y percentile rank — higher = more stress</div>
   </div>
   <div id="crisis-grid" class="grid grid-3"></div>
+
+  <!-- Funding & Credit Signals (NEW Phase 9.3b) -->
+  <div class="section-hdr">
+    <h3>FUNDING &amp; CREDIT SIGNALS</h3>
+    <div class="sub">SOFR–IORB · HY/IG OAS · TIPS breakeven · real rates · SLOOS bank lending</div>
+  </div>
+  <div id="funding-credit-grid" class="grid grid-3"></div>
 
   <!-- Plumbing tier 2 -->
   <div class="section-hdr">
@@ -181,7 +221,7 @@ footer a{margin:0 10px}
   <!-- MMF composition -->
   <div class="section-hdr">
     <h3>MONEY MARKET FUND COMPOSITION</h3>
-    <div class="sub">institutional flight to safety = leading bank stress signal</div>
+    <div class="sub">prime → government rotation = leading dollar-funding stress signal</div>
   </div>
   <div id="mmf-row"></div>
 
@@ -192,16 +232,17 @@ footer a{margin:0 10px}
   </div>
   <div id="yc-grid" class="grid grid-2"></div>
 
-  <!-- XCC basis proxy -->
+  <!-- Cross-currency / offshore dollar funding (revamped Phase 9.3c) -->
   <div class="section-hdr">
-    <h3>OFFSHORE DOLLAR FUNDING (PROXY)</h3>
-    <div class="sub">3M USD basis vs JPY/EUR · directional only · BIS data needed for precise basis</div>
+    <h3>OFFSHORE DOLLAR FUNDING</h3>
+    <div class="sub">USD–foreign rate differentials · broad dollar index · OBFR–IORB unsecured spread</div>
   </div>
-  <div id="xcc-row"></div>
+  <div id="xcc-grid" class="grid grid-2"></div>
 
   <footer>
     <a href="https://fred.stlouisfed.org/">FRED</a> ·
     <a href="https://www.financialresearch.gov/financial-stress-index/">OFR</a> ·
+    <a href="/regime.html">Regime &amp; Anomaly</a> ·
     <a href="/">JustHodl.AI</a>
     <div style="margin-top:6px">data refresh every 6h · last fetch: <span id="footer-ts">—</span></div>
   </footer>
@@ -311,26 +352,28 @@ function renderPlumbing(plumb) {
   const grid = document.getElementById('plumbing-grid');
   if (!plumb) { grid.innerHTML = ''; return; }
   let html = '';
+  // Updated labels — Phase 9.3a swapped legacy series for current ones
   const labels = {
-    WMMFNS:           {label: 'Total MMF AUM',           scale: 1, fmt: 'money'},
-    WIMFSL:           {label: 'Institutional MMF',       scale: 1, fmt: 'money'},
-    DPSACBW027SBOG:   {label: 'Bank Deposits',           scale: 1, fmt: 'money'},
-    'H8B1058NCBCMG':  {label: 'C&I Lending (H.8)',       scale: 1, fmt: 'money'},
-    RRPONTSYD:        {label: 'Reverse Repo Facility',   scale: 1, fmt: 'money'},
+    WGMMNS:           {label: 'Government MMF',         scale: 1, fmt: 'money'},
+    WPMMNS:           {label: 'Prime MMF',              scale: 1, fmt: 'money'},
+    WTMMNS:           {label: 'Tax-Exempt MMF',         scale: 1, fmt: 'money'},
+    DPSACBW027SBOG:   {label: 'Bank Deposits',          scale: 1, fmt: 'money'},
+    BUSLOANS:         {label: 'C&I Lending (absolute)', scale: 1, fmt: 'money'},
+    RRPONTSYD:        {label: 'Reverse Repo Facility',  scale: 1, fmt: 'money'},
     TGA:              {label: 'Treasury General Account', scale: 1, fmt: 'money'},
   };
   for (const [sid, data] of Object.entries(plumb)) {
     if (!data.available) continue;
-    const lbl = labels[sid] || {label: sid, fmt: 'num'};
+    const lbl = labels[sid] || {label: data.name || sid, fmt: 'num'};
     const val = lbl.fmt === 'money' ? fmtMoney(data.latest_value, lbl.scale) : fmtNum(data.latest_value);
     const d30 = data.delta_30d_pct;
     const d90 = data.delta_90d_pct;
-    const d30Cls = d30 == null ? 'flat' : d30 > 0 ? 'down' : 'up'; // for deposits, decline is bad
     const d30Txt = d30 == null ? '—' : fmtPct(d30);
+    const d90Txt = d90 == null ? '—' : fmtPct(d90);
     html += `<div class="card">
       <div class="name">${lbl.label}</div>
       <div class="value">${val}</div>
-      <div class="delta">30d: ${d30Txt} · 90d: ${d90 == null ? '—' : fmtPct(d90)}</div>
+      <div class="delta">30d: ${d30Txt} · 90d: ${d90Txt}</div>
       <div class="meta">${data.latest_date || '—'}</div>
     </div>`;
   }
@@ -339,68 +382,250 @@ function renderPlumbing(plumb) {
 
 function renderMMF(mmf) {
   const row = document.getElementById('mmf-row');
-  if (!mmf) { row.innerHTML = ''; return; }
-  const total = mmf.total_aum_billions;
-  const inst = mmf.institutional_billions;
-  const retail = mmf.retail_billions;
-  const instPct = mmf.institutional_share_pct;
-  const flagged = inst / total > 0.65;
-  row.innerHTML = `<div class="card ${flagged ? 'flagged' : ''}" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+  if (!mmf || typeof mmf !== 'object') { row.innerHTML = ''; return; }
+  const flagged = !!mmf.flight_to_quality;
+  const pchg = mmf.prime_share_change_30d_pp;
+  const pchgTxt = pchg == null ? '—' :
+    (pchg > 0 ? '+' : '') + pchg.toFixed(2) + 'pp';
+  const pchgCls = pchg == null ? 'flat' : pchg < 0 ? 'down' : 'up';
+  row.innerHTML = `<div class="card ${flagged ? 'crisis' : ''}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:18px">
     <div>
       <div class="name">Total MMF AUM</div>
-      <div class="value">${fmtMoney(total)}</div>
+      <div class="value">${fmtMoney(mmf.total_aum_billions)}</div>
+      <div class="meta">gov + prime + tax-exempt</div>
     </div>
     <div>
-      <div class="name">Institutional Share</div>
-      <div class="value">${instPct != null ? instPct.toFixed(1) + '%' : '—'}</div>
-      <div class="meta">${fmtMoney(inst)} of ${fmtMoney(total)}</div>
+      <div class="name">Government Share</div>
+      <div class="value">${mmf.gov_share_pct != null ? mmf.gov_share_pct.toFixed(1) + '%' : '—'}</div>
+      <div class="meta">${fmtMoney(mmf.gov_billions)}</div>
     </div>
     <div>
-      <div class="name">Retail</div>
-      <div class="value">${fmtMoney(retail)}</div>
-      <div class="meta">${mmf.interpretation || ''}</div>
+      <div class="name">Prime Share</div>
+      <div class="value">${mmf.prime_share_pct != null ? mmf.prime_share_pct.toFixed(1) + '%' : '—'}</div>
+      <div class="delta ${pchgCls}">30d: ${pchgTxt}</div>
+      <div class="meta">${fmtMoney(mmf.prime_billions)}</div>
+    </div>
+    <div>
+      <div class="name">${flagged ? '⚠ FLIGHT TO QUALITY' : 'Composition'}</div>
+      <div class="value" style="font-size:13px;line-height:1.4;color:${flagged ? 'var(--red)' : 'var(--fg-2)'}">${mmf.interpretation || '—'}</div>
     </div>
   </div>`;
 }
 
-function renderYieldCurve(yc) {
-  const grid = document.getElementById('yc-grid');
-  if (!yc) { grid.innerHTML = ''; return; }
+function renderFundingCredit(fcs) {
+  const grid = document.getElementById('funding-credit-grid');
+  if (!fcs) { grid.innerHTML = ''; return; }
+  // Display order is meaningful — most-actionable first
+  const order = ['SOFR_IORB_SPREAD', 'HY_OAS', 'IG_BBB_OAS', 'DFII10', 'T10YIE', 'SLOOS_TIGHTEN'];
   let html = '';
-  const labels = {T10Y2Y: '10Y minus 2Y', T10Y3M: '10Y minus 3M (Estrella)'};
-  for (const [sid, data] of Object.entries(yc)) {
-    if (!data.available) continue;
-    const inverted = data.is_inverted;
-    const cls = inverted ? 'flagged' : '';
-    const delta = data.delta_30d;
-    const deltaCls = delta == null ? 'flat' : delta > 0 ? 'down' : 'up';
-    html += `<div class="card ${cls}">
-      <div class="name">${sid} · ${labels[sid] || sid}</div>
-      <div class="value" style="color:${inverted ? 'var(--red)' : 'var(--green)'}">${fmtNum(data.latest_value, 3)}%</div>
-      <div class="delta ${deltaCls}">30d Δ ${delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(3)}</div>
-      <div class="meta">${inverted ? '⚠️ INVERTED — recession indicator' : 'Normal'} · as of ${data.latest_date || '—'}</div>
+  for (const key of order) {
+    const data = fcs[key];
+    if (!data) continue;
+    if (!data.available) {
+      html += `<div class="card" style="opacity:.4">
+        <div class="name">${data.name || key}</div>
+        <div class="value">—</div>
+        <div class="meta">unavailable</div>
+      </div>`;
+      continue;
+    }
+    const sig = data.signal || 'NORMAL';
+    const cardCls = sig === 'CRISIS' ? 'crisis' : sig === 'ELEVATED' ? 'elevated' : sig === 'WATCH' ? 'flagged' : '';
+    let valDisplay, line2, line3, threshLine;
+    const z = data.z_score_1y;
+    const zCls = z == null ? '' : Math.abs(z) >= 3 ? 'extreme' : Math.abs(z) >= 2 ? 'high' : '';
+    const zBadge = z != null ? `<span class="z-badge ${zCls}">z=${z > 0 ? '+' : ''}${z}</span>` : '';
+
+    if (key === 'SOFR_IORB_SPREAD') {
+      valDisplay = `${data.spread_bps > 0 ? '+' : ''}${data.spread_bps} bps`;
+      line2 = `SOFR ${data.sofr_pct?.toFixed(2)}% · IORB ${data.iorb_pct?.toFixed(2)}%`;
+      line3 = data.interpretation || '';
+      threshLine = `STRESS thresholds: < −3 watch · < −7 elevated · < −15 crisis`;
+    } else if (key === 'HY_OAS' || key === 'IG_BBB_OAS') {
+      valDisplay = `${Math.round(data.latest_value)} bps`;
+      const d30 = data.delta_30d;
+      const d30Txt = d30 == null ? '—' : (d30 > 0 ? '+' : '') + d30 + 'bps';
+      line2 = `30d: ${d30Txt}`;
+      line3 = data.latest_date || '';
+      const t = data.thresholds || {};
+      threshLine = `${t.watch || '?'} watch · ${t.elevated || '?'} elevated · ${t.crisis || '?'} crisis (bps)`;
+    } else if (key === 'T10YIE' || key === 'DFII10') {
+      valDisplay = `${data.latest_value?.toFixed(2)}%`;
+      const d30 = data.delta_30d;
+      line2 = `30d: ${d30 == null ? '—' : (d30 > 0 ? '+' : '') + d30.toFixed(2) + 'pp'}`;
+      line3 = data.latest_date || '';
+      const t = data.thresholds || {};
+      threshLine = key === 'DFII10'
+        ? `${t.watch}% watch · ${t.elevated}% elevated · ${t.crisis}% crisis`
+        : `extremes flagged (deflation < 1.5% · unanchored > 3%)`;
+    } else if (key === 'SLOOS_TIGHTEN') {
+      valDisplay = `${data.latest_value > 0 ? '+' : ''}${data.latest_value?.toFixed(1)}%`;
+      line2 = `quarterly · ${data.latest_date || ''}`;
+      line3 = 'net % of banks tightening C&I standards';
+      const t = data.thresholds || {};
+      threshLine = `${t.watch}% watch · ${t.elevated}% elevated · ${t.crisis}% crisis`;
+    }
+
+    html += `<div class="card ${cardCls}">
+      <div class="name">${data.name}</div>
+      <div class="value">${valDisplay} ${zBadge}</div>
+      <div class="delta">${line2 || ''}</div>
+      <div class="meta">${line3 || ''}</div>
+      <div class="threshold-meta">${threshLine}</div>
+      <div style="margin-top:10px"><span class="signal-pill ${sig}">${sig}</span></div>
     </div>`;
   }
-  grid.innerHTML = html;
+  grid.innerHTML = html || '<div class="card">No funding/credit signals</div>';
 }
 
 function renderXCC(xcc) {
-  const row = document.getElementById('xcc-row');
-  if (!xcc || (!xcc.xcc_proxy_jpy_3m && !xcc.xcc_proxy_eur_3m)) { row.innerHTML = ''; return; }
-  let html = '<div class="grid grid-2">';
-  for (const [key, data] of Object.entries(xcc)) {
-    if (!data) continue;
-    const intp = data.interpretation || '—';
-    const cls = intp === 'STRESSED' ? 'crisis' : intp === 'ELEVATED' ? 'flagged' : '';
-    html += `<div class="card ${cls}">
-      <div class="name">${key.replace('xcc_proxy_', '').toUpperCase()}</div>
-      <div class="value">${data.current_pct != null ? data.current_pct.toFixed(2) + '%' : '—'}</div>
-      <div class="delta">1Y z-score: ${data.z_score_1y != null ? (data.z_score_1y > 0 ? '+' : '') + data.z_score_1y : '—'}</div>
-      <div class="meta">${intp} · ${data.note || ''}</div>
+  const grid = document.getElementById('xcc-grid');
+  if (!xcc) { grid.innerHTML = ''; return; }
+  let html = '';
+
+  // Rate differentials
+  for (const [key, label] of [['rate_diff_jpy_3m', 'USD–JPY 3M Rate Differential'],
+                              ['rate_diff_eur_3m', 'USD–EUR 3M Rate Differential']]) {
+    const d = xcc[key];
+    if (!d || !d.available) continue;
+    const sig = d.signal || 'NORMAL';
+    const cardCls = sig === 'CRISIS' ? 'crisis' : sig === 'ELEVATED' ? 'elevated' : sig === 'WATCH' ? 'flagged' : '';
+    const z = d.z_score_1y;
+    const zCls = z == null ? '' : Math.abs(z) >= 3 ? 'extreme' : Math.abs(z) >= 2 ? 'high' : '';
+    const zBadge = z != null ? `<span class="z-badge ${zCls}">z=${z > 0 ? '+' : ''}${z}</span>` : '';
+    const chg = d.delta_30d;
+    const chgTxt = chg == null ? '—' : (chg > 0 ? '+' : '') + chg + 'pp';
+    html += `<div class="card ${cardCls}">
+      <div class="name">${label}</div>
+      <div class="value">${d.current_pct?.toFixed(2)}% ${zBadge}</div>
+      <div class="delta">30d: ${chgTxt} · 1Y σ: ${d.std_1y_pct?.toFixed(2)}pp</div>
+      <div class="meta">${d.interpretation || ''}</div>
+      <div class="threshold-meta">${d.method || ''}<br/>${d.caveat || ''}</div>
+      <div style="margin-top:10px"><span class="signal-pill ${sig}">${sig}</span></div>
     </div>`;
   }
-  html += '</div>';
-  row.innerHTML = html;
+
+  // Broad dollar
+  const bd = xcc.broad_dollar_index;
+  if (bd && bd.available) {
+    const sig = bd.signal || 'NORMAL';
+    const cardCls = sig === 'CRISIS' ? 'crisis' : sig === 'ELEVATED' ? 'elevated' : sig === 'WATCH' ? 'flagged' : '';
+    const z = bd.z_score_1y;
+    const zCls = z == null ? '' : Math.abs(z) >= 3 ? 'extreme' : Math.abs(z) >= 2 ? 'high' : '';
+    const zBadge = z != null ? `<span class="z-badge ${zCls}">z=${z > 0 ? '+' : ''}${z}</span>` : '';
+    html += `<div class="card ${cardCls}">
+      <div class="name">Broad Trade-Weighted USD Index</div>
+      <div class="value">${bd.level?.toFixed(2)} ${zBadge}</div>
+      <div class="delta">30d: ${bd.delta_30d_pct == null ? '—' : fmtPct(bd.delta_30d_pct)}</div>
+      <div class="meta">${bd.interpretation || ''}</div>
+      <div class="threshold-meta">FRED: DTWEXBGS — single best 'global USD stress' gauge</div>
+      <div style="margin-top:10px"><span class="signal-pill ${sig}">${sig}</span></div>
+    </div>`;
+  }
+
+  // OBFR-IORB
+  const ob = xcc.obfr_iorb_spread;
+  if (ob && ob.available) {
+    const sig = ob.signal || 'NORMAL';
+    const cardCls = sig === 'CRISIS' ? 'crisis' : sig === 'ELEVATED' ? 'elevated' : sig === 'WATCH' ? 'flagged' : '';
+    const z = ob.z_score_1y;
+    const zCls = z == null ? '' : Math.abs(z) >= 3 ? 'extreme' : Math.abs(z) >= 2 ? 'high' : '';
+    const zBadge = z != null ? `<span class="z-badge ${zCls}">z=${z > 0 ? '+' : ''}${z}</span>` : '';
+    html += `<div class="card ${cardCls}">
+      <div class="name">OBFR – IORB Spread</div>
+      <div class="value">${ob.spread_bps > 0 ? '+' : ''}${ob.spread_bps} bps ${zBadge}</div>
+      <div class="delta">OBFR ${ob.obfr_pct?.toFixed(2)}% · IORB ${ob.iorb_pct?.toFixed(2)}%</div>
+      <div class="meta">${ob.interpretation || ''}</div>
+      <div class="threshold-meta">${ob.note || ''}</div>
+      <div style="margin-top:10px"><span class="signal-pill ${sig}">${sig}</span></div>
+    </div>`;
+  }
+
+  grid.innerHTML = html || '<div class="card">No cross-currency data</div>';
+}
+
+function buildWatchlist(data) {
+  // Aggregate all signal-bearing items where signal !== 'NORMAL'
+  const flagged = [];
+  const fcs = data.funding_credit_signals || {};
+  const labelByKey = {
+    SOFR_IORB_SPREAD: 'SOFR–IORB Spread',
+    HY_OAS: 'HY Credit Spread',
+    IG_BBB_OAS: 'IG BBB Credit Spread',
+    T10YIE: '10Y Breakeven Inflation',
+    DFII10: '10Y Real Rate',
+    SLOOS_TIGHTEN: 'SLOOS Bank Tightening',
+  };
+  for (const [k, v] of Object.entries(fcs)) {
+    if (v.signal && v.signal !== 'NORMAL') {
+      let valStr;
+      if (k === 'SOFR_IORB_SPREAD') valStr = `${v.spread_bps > 0 ? '+' : ''}${v.spread_bps}bps`;
+      else if (k === 'HY_OAS' || k === 'IG_BBB_OAS') valStr = `${Math.round(v.latest_value)}bps`;
+      else valStr = `${v.latest_value?.toFixed(2)}${v.unit === 'pct' ? '%' : ''}`;
+      flagged.push({label: labelByKey[k] || k, value: valStr, signal: v.signal,
+                    desc: v.interpretation || ''});
+    }
+  }
+  const xcc = data.xcc_basis_proxy || {};
+  for (const [k, label] of [['rate_diff_jpy_3m', 'USD–JPY Rate Diff'],
+                            ['rate_diff_eur_3m', 'USD–EUR Rate Diff'],
+                            ['broad_dollar_index', 'Broad USD Index'],
+                            ['obfr_iorb_spread', 'OBFR–IORB Spread']]) {
+    const v = xcc[k];
+    if (v && v.signal && v.signal !== 'NORMAL') {
+      let valStr;
+      if (k === 'broad_dollar_index') valStr = v.level?.toFixed(2);
+      else if (k === 'obfr_iorb_spread') valStr = `${v.spread_bps > 0 ? '+' : ''}${v.spread_bps}bps`;
+      else valStr = `${v.current_pct?.toFixed(2)}% (z=${v.z_score_1y})`;
+      flagged.push({label, value: valStr, signal: v.signal, desc: v.interpretation || ''});
+    }
+  }
+  // MMF flight to quality
+  const mmf = data.mmf_composition;
+  if (mmf && mmf.flight_to_quality) {
+    flagged.push({
+      label: 'MMF Flight to Quality',
+      value: `prime ${mmf.prime_share_change_30d_pp}pp/30d`,
+      signal: 'ELEVATED',
+      desc: mmf.interpretation || 'Prime → government rotation',
+    });
+  }
+  // Crisis indices flagged
+  const ci = data.crisis_indices || {};
+  for (const [sid, v] of Object.entries(ci)) {
+    if (v.is_stressed) {
+      flagged.push({
+        label: sid + ' · ' + (v.name || ''),
+        value: `${fmtNum(v.latest_value, 3)} (pct=${v.pct_rank})`,
+        signal: v.pct_rank >= 90 ? 'CRISIS' : 'ELEVATED',
+        desc: 'Above stress threshold (75th pct)',
+      });
+    }
+  }
+
+  const section = document.getElementById('watchlist-section');
+  const grid = document.getElementById('watchlist-grid');
+  if (!flagged.length) {
+    section.style.display = 'none';
+    return;
+  }
+  // Sort by severity: CRISIS > ELEVATED > WATCH
+  const order = {CRISIS: 0, ELEVATED: 1, WATCH: 2};
+  flagged.sort((a, b) => (order[a.signal] || 3) - (order[b.signal] || 3));
+
+  let html = '';
+  for (const f of flagged) {
+    const cls = f.signal === 'CRISIS' ? 'watchlist-card crisis' : 'watchlist-card';
+    html += `<div class="${cls}">
+      <div class="left">
+        <div class="label">${f.label} <span class="signal-pill ${f.signal}">${f.signal}</span></div>
+        <div class="desc">${f.desc}</div>
+      </div>
+      <div class="right">${f.value}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+  section.style.display = 'block';
 }
 
 async function loadData() {
@@ -412,8 +637,10 @@ async function loadData() {
     document.getElementById('updated').textContent = fmtAge(data.generated_at);
     document.getElementById('footer-ts').textContent = data.generated_at || '—';
 
+    buildWatchlist(data);
     renderComposite(data.composite);
     renderCrisisIndices(data.crisis_indices);
+    renderFundingCredit(data.funding_credit_signals);
     renderPlumbing(data.plumbing_tier2);
     renderMMF(data.mmf_composition);
     renderYieldCurve(data.yield_curve);
