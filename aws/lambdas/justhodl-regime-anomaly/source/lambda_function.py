@@ -427,15 +427,20 @@ def load_ka_index_history(days_back=365):
     Strategy:
       1. List archive/intelligence/ keys
       2. Read each, extract ka_index/khalid_index from scores
-      3. Sort by date
+      3. Drop entries where score == 0 (these are the result of a
+         producer Lambda bug Mar 9 → Apr 24 that wrote 0 on every
+         downstream computation failure; including them poisons HMM
+         training with a fake bimodal 0/N distribution)
+      4. Sort by date
 
     Falls back to single latest file + DynamoDB if archive is sparse.
     """
     series = []  # list of (date_str, ka_index_score)
+    n_zero_filtered = 0
+    n_no_score = 0
 
     # List recent archive files
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
-    cutoff_prefix = cutoff_date.strftime("archive/intelligence/%Y/%m")
 
     paginator = s3.get_paginator("list_objects_v2")
     keys = []
@@ -456,11 +461,25 @@ def load_ka_index_history(days_back=365):
             scores = data.get("scores", {})
             score = scores.get("ka_index") or scores.get("khalid_index")
             generated = data.get("generated_at") or data.get("date")
-            if score is not None and generated:
-                series.append((generated, float(score)))
+            if score is None:
+                n_no_score += 1
+                continue
+            score_f = float(score)
+            # Drop fake-zero records from the producing-Lambda bug period
+            # (real KA Index has never been exactly 0 in normal operation;
+            # the floor is around 10-15 even in deepest expansion regimes).
+            # Keeping a small absolute threshold is safer than == 0 in
+            # case future low-stress regimes legitimately approach zero.
+            if score_f == 0:
+                n_zero_filtered += 1
+                continue
+            if generated:
+                series.append((generated, score_f))
         except Exception as e:
             print(f"[load] {key}: {e}")
             continue
+
+    print(f"[regime-anomaly] loader filtered: {n_zero_filtered} zeros, {n_no_score} missing")
 
     # Also include current intelligence-report.json (latest snapshot)
     try:
@@ -469,7 +488,7 @@ def load_ka_index_history(days_back=365):
         scores = data.get("scores", {})
         score = scores.get("ka_index") or scores.get("khalid_index")
         generated = data.get("generated_at")
-        if score is not None and generated:
+        if score is not None and float(score) != 0 and generated:
             series.append((generated, float(score)))
     except Exception as e:
         print(f"[load] latest report: {e}")
