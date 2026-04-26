@@ -53,7 +53,7 @@ tr:hover{background:rgba(255,255,255,.02)}
   <div class="logo">🏆 JustHodl ATH Tracker <span>All-Time High Monitor</span></div>
   <div style="display:flex;align-items:center;gap:12px">
     <span class="updated" id="updatedAt">Loading...</span>
-    <a href="https://justhodl-dashboard-live.s3.amazonaws.com" class="back-btn">← Back to Terminal</a>
+    <a href="/" class="back-btn">← Back to Terminal</a>
   </div>
 </div>
 
@@ -241,7 +241,8 @@ function filterTable() {
 
 async function load() {
   try {
-    const resp = await fetch('data/report.json?t=' + Date.now());
+    const resp = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json?t=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     D = await resp.json();
     render();
   } catch(e) {
