@@ -10,6 +10,14 @@ Real-time data aggregation from 10+ sources
 Author: JustHodl.AI
 """
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 import json
 import os
 import boto3
@@ -570,6 +578,8 @@ def lambda_handler(event, context):
 
     # Save to S3
     try:
+        # Phase 2 dual-write — duplicate khalid_index → ka_index in payload
+        payload = add_ka_aliases(payload)
         s3.put_object(
             Bucket=S3_BUCKET,
             Key='data/report.json',

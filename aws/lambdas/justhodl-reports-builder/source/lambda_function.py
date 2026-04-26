@@ -13,6 +13,14 @@ import json
 import os
 import re
 from collections import defaultdict, OrderedDict
+
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
@@ -382,6 +390,8 @@ def lambda_handler(event, context):
     }
 
     # 6. Write to S3
+    # Phase 2 dual-write — duplicate khalid_* keys (khalid_score, khalid_timeline) as ka_*
+    out = add_ka_aliases(out)
     s3.put_object(
         Bucket=S3_BUCKET,
         Key=SCORECARD_KEY,

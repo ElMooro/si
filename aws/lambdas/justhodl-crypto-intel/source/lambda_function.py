@@ -36,6 +36,14 @@ from datetime import datetime, timezone
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 
 
 
@@ -3691,7 +3699,10 @@ def lambda_handler(event, context):
 
 
 
-    try:s3.put_object(Bucket=S3_BUCKET,Key='crypto-intel.json',Body=json.dumps(out,default=str),ContentType='application/json',CacheControl='max-age=60')
+    try:
+        # Phase 2 dual-write — duplicate khalid_* keys as ka_*
+        out = add_ka_aliases(out)
+        s3.put_object(Bucket=S3_BUCKET,Key='crypto-intel.json',Body=json.dumps(out,default=str),ContentType='application/json',CacheControl='max-age=60')
 
 
 

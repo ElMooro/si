@@ -9,6 +9,14 @@ import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 FRED_KEY = os.environ.get('FRED_API_KEY', '2f057499936072679d8843d7fce99989')
 POLY_KEY = os.environ.get('POLYGON_API_KEY', 'zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d')
 S3_BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -1773,6 +1781,8 @@ def lambda_handler(event, context):
     }
 
     try:
+        # Phase 2 dual-write — duplicate every khalid_* key as ka_*
+        report = add_ka_aliases(report)
         rj = json.dumps(report, default=str)
         s3.put_object(Bucket=S3_BUCKET, Key='data/report.json', Body=rj, ContentType='application/json', CacheControl='max-age=60')
         ts = datetime.utcnow().strftime('%Y%m%d_%H%M')

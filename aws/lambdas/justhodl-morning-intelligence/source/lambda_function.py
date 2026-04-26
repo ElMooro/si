@@ -5,6 +5,14 @@ from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 # Calibration helper — Loop 1: weight signals by historical accuracy
 try:
     from calibration import blend_score, get_calibration
@@ -430,8 +438,13 @@ def lambda_handler(event,context):
         imp=fs3(IMPROVEMENTS_KEY)
         v=len(imp) if isinstance(imp,list) else 0
         stg(chat_id,"System Self-Improved (v"+str(v)+")\n\n"+str(err_analysis)+"\n\nPrompt updated. Log: S3/learning/improvement_log.json")
+    # Phase 2 dual-write — duplicate khalid:* → ka:* aliases in run log + return body
+    run_log = {"run_at":datetime.now(timezone.utc).isoformat(),"outcomes":len(outcomes),"wrong":wrong_count,"improved":err_analysis is not None,"weights":len(weights),"khalid":m["khalid_raw"],"regime":m["khalid_regime"]}
+    run_log = add_ka_aliases(run_log)
     s3.put_object(Bucket=S3_BUCKET,Key="learning/morning_run_log.json",
-        Body=json.dumps({"run_at":datetime.now(timezone.utc).isoformat(),"outcomes":len(outcomes),"wrong":wrong_count,"improved":err_analysis is not None,"weights":len(weights),"khalid":m["khalid_raw"],"regime":m["khalid_regime"]}),
+        Body=json.dumps(run_log),
         ContentType="application/json")
     print("[DONE] Sent. Khalid="+str(m["khalid_raw"])+" BTC="+str(m["btc_price"])+" outcomes="+str(len(outcomes)))
-    return {"statusCode":200,"body":json.dumps({"success":True,"khalid":m["khalid_raw"],"khalid_adj":m["khalid_adj"],"regime":m["khalid_regime"],"btc":m["btc_price"],"outcomes":len(outcomes),"improved":err_analysis is not None,"weights_active":len(weights)})}
+    return_body = {"success":True,"khalid":m["khalid_raw"],"khalid_adj":m["khalid_adj"],"regime":m["khalid_regime"],"btc":m["btc_price"],"outcomes":len(outcomes),"improved":err_analysis is not None,"weights_active":len(weights)}
+    return_body = add_ka_aliases(return_body)
+    return {"statusCode":200,"body":json.dumps(return_body)}

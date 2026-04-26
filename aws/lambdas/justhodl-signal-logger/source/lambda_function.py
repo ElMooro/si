@@ -3,6 +3,14 @@ import json,boto3,uuid,time,urllib.request,urllib.error
 from datetime import datetime,timezone,timedelta
 from decimal import Decimal
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 dynamodb=boto3.resource("dynamodb",region_name="us-east-1")
 s3=boto3.client("s3",region_name="us-east-1")
 SIGNALS_TABLE="justhodl-signals"
@@ -154,6 +162,8 @@ def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None,
           "rationale":str(rationale) if rationale else None,
           "supporting_signals":list(supporting) if supporting else None,
           }
+    # Phase 2 dual-write — add ka_score_at_log alongside khalid_score_at_log
+    item = add_ka_aliases(item)
     table.put_item(Item=item)
     bp_str=f" baseline=${price:.2f}" if price else " baseline=None"
     print(f"[LOG] {stype}={val} {pred} conf={conf:.2f}{bp_str}")

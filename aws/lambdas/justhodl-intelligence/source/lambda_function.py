@@ -2,6 +2,16 @@ import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+# Producer Lambdas wrap output dicts before serialization so consumers
+# can read either field family. Soft-fallback to no-op if module missing.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 # Calibration helper — Loop 1: weight signals by historical accuracy.
 # Falls back to uniform weighting when calibrator data is sparse.
 try:
@@ -927,7 +937,11 @@ def lambda_handler(event, context):
         
         print("Generating cross-system intelligence...")
         report = generate_full_intelligence(main, repo, pred)
-        
+
+        # Phase 2 dual-write — duplicate every khalid_* key as ka_* in
+        # the published JSON so consumers can be migrated independently.
+        report = add_ka_aliases(report)
+
         print(f"Publishing to {BUCKET}/intelligence-report.json")
         body = json.dumps(report, default=str)
         s3.put_object(Bucket=BUCKET, Key='intelligence-report.json', Body=body, ContentType='application/json', CacheControl='max-age=120')

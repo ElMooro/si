@@ -13,6 +13,14 @@ from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 ssm      = boto3.client("ssm",       region_name="us-east-1")
 s3       = boto3.client("s3",        region_name="us-east-1")
@@ -347,6 +355,10 @@ def run_calibration():
         Type="String",
         Overwrite=True
     )
+    # Phase 2 dual-write — duplicate khalid_component_weights, khalid_new_weights,
+    # khalid_index keys throughout the report dict as ka_* aliases. All
+    # downstream serializations (SSM_REPORT_PATH + 2 S3 writes) inherit them.
+    report = add_ka_aliases(report)
     ssm.put_parameter(
         Name=SSM_REPORT_PATH,
         Value=json.dumps(report),

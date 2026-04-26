@@ -18,6 +18,14 @@ import ssl
 from datetime import datetime, timezone, timedelta
 import boto3
 
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
@@ -57,6 +65,8 @@ def get_s3_json(key):
 
 
 def put_s3_json(key, body, cache="public, max-age=300"):
+    # Phase 2 dual-write — duplicate khalid_* keys as ka_* in payload
+    body = add_ka_aliases(body)
     s3.put_object(
         Bucket=BUCKET, Key=key,
         Body=json.dumps(body, default=str).encode("utf-8"),

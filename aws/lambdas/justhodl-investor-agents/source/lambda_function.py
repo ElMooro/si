@@ -2,6 +2,15 @@ import os
 import json,urllib3,boto3,os,time
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import datetime
+
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
 http=urllib3.PoolManager()
 s3_client=boto3.client("s3",region_name="us-east-1")
 FMP_KEY=os.environ.get("FMP_KEY","wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
@@ -184,6 +193,8 @@ def lambda_handler(event,context):
         verdicts.sort(key=lambda x:x.get("conviction",0),reverse=True)
         consensus=build_consensus(verdicts,metrics,macro)
         result={"ticker":ticker,"name":metrics["name"],"sector":metrics["sector"],"price":metrics["price"],"metrics":metrics,"macro":macro,"agents":verdicts,"consensus":consensus,"generated":datetime.utcnow().isoformat()+"Z","elapsed":round(time.time()-start,1)}
+        # Phase 2 dual-write — duplicate khalid_score → ka_score in macro context
+        result = add_ka_aliases(result)
         try:
             s3_client.put_object(Bucket=BUCKET,Key="investor-analysis/"+ticker+".json",Body=json.dumps(result).encode("utf-8"),ContentType="application/json",CacheControl="max-age=3600")
         except Exception as e:
