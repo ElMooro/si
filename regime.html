@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Regime &amp; Anomaly · JustHodl.AI</title>
+<meta name="description" content="HMM regime detector · probabilistic state machine · Mahalanobis anomaly detection · daily refit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.page-hdr{margin-bottom:28px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px}
+.page-hdr .meta{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
+
+.warmup-banner{background:linear-gradient(135deg,rgba(255,177,61,.08),rgba(255,177,61,.02));border:1px solid var(--amber);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-size:12px;margin-bottom:20px;display:none;line-height:1.6}
+.warmup-banner.show{display:block}
+.warmup-banner strong{color:var(--amber);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;font-size:11px}
+
+.regime-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.regime-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px;text-align:center;position:relative;overflow:hidden;transition:all .2s}
+.regime-card.active{border-width:2px;background:var(--bg-elevated);transform:translateY(-2px)}
+.regime-card.active.expansion{border-color:var(--green);box-shadow:0 0 25px rgba(56,255,168,.15)}
+.regime-card.active.late_cycle{border-color:var(--cyan);box-shadow:0 0 25px rgba(0,212,255,.15)}
+.regime-card.active.contraction{border-color:var(--amber);box-shadow:0 0 25px rgba(255,177,61,.15)}
+.regime-card.active.crisis{border-color:var(--red);box-shadow:0 0 25px rgba(255,92,122,.18)}
+.regime-card .label{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;margin-bottom:8px}
+.regime-card .prob{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1;color:var(--fg-1)}
+.regime-card .pct{font-size:14px;color:var(--fg-2);margin-top:4px}
+.regime-card .bar{height:4px;background:var(--bg-sunken);margin-top:14px;border-radius:2px;overflow:hidden}
+.regime-card .bar .fill{height:100%;border-radius:2px;transition:width .6s ease}
+.regime-card.expansion .bar .fill{background:var(--green)}
+.regime-card.late_cycle .bar .fill{background:var(--cyan)}
+.regime-card.contraction .bar .fill{background:var(--amber)}
+.regime-card.crisis .bar .fill{background:var(--red)}
+
+.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px}
+.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
+.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
+
+.transition-matrix{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;overflow-x:auto}
+.transition-matrix table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px}
+.transition-matrix th,.transition-matrix td{padding:10px 14px;text-align:center;border:1px solid var(--border)}
+.transition-matrix th{background:var(--bg-sunken);color:var(--fg-3);font-size:10px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
+.transition-matrix th.diag,.transition-matrix td.diag{background:var(--bg-elevated)}
+.transition-matrix tbody td:first-child{background:var(--bg-sunken);color:var(--fg-3);font-size:10px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
+.heat-0{color:var(--fg-4)}
+.heat-1{color:var(--fg-3)}
+.heat-2{color:var(--fg-2)}
+.heat-3{color:var(--cyan)}
+.heat-4{color:var(--fg-1);font-weight:700}
+
+.fit-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);line-height:1.8}
+.fit-card div{display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:6px 0}
+.fit-card div:last-child{border-bottom:none}
+.fit-card span:first-child{color:var(--fg-3);letter-spacing:1px}
+.fit-card span:last-child{color:var(--fg-1);font-weight:600}
+
+.anomaly-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.anomaly-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px;transition:border-color .15s}
+.anomaly-card.anomaly{border-color:var(--amber)}
+.anomaly-card.extreme{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
+.anomaly-card .name{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.anomaly-card .z{font-family:var(--font-mono);font-size:20px;font-weight:600}
+.anomaly-card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:6px}
+.anomaly-card.anomaly .z{color:var(--amber)}
+.anomaly-card.extreme .z{color:var(--red)}
+
+.composite-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:center}
+.composite-banner.crisis{border-color:var(--red)}
+.composite-banner.elevated{border-color:var(--amber)}
+.composite-banner.normal{border-color:var(--green-dim)}
+
+.score-circle{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-sunken);border:3px solid var(--cyan-dim)}
+.score-circle.crisis{border-color:var(--red)}
+.score-circle.elevated{border-color:var(--amber)}
+.score-circle.normal{border-color:var(--green)}
+.score-circle .num{font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1}
+.score-circle .lbl{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1.5px;margin-top:4px}
+
+.composite-info h2{font-family:var(--font-mono);font-size:14px;font-weight:600;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:6px}
+.composite-info .signal-text{font-size:24px;font-weight:600;line-height:1.2;margin-bottom:8px;font-family:var(--font-mono);letter-spacing:1px}
+.composite-info .desc{color:var(--fg-2);max-width:600px;line-height:1.6}
+
+.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
+
+footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
+footer a{margin:0 10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
+  <nav class="nav-links">
+    <a href="/">Desk</a>
+    <a href="/intelligence.html">Intel</a>
+    <a href="/desk-v2.html">Desk v2</a>
+    <a href="/ka/">KA Index</a>
+    <a href="/crisis.html">Crisis</a>
+    <a href="/regime.html" class="active">Regime</a>
+    <a href="/macro-data.html">Macro</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/repo.html">Repo</a>
+    <a href="/sentiment.html">Sentiment</a>
+    <a href="/volatility.html">Vol</a>
+    <a href="/reports.html">Reports</a>
+  </nav>
+</div>
+
+<main class="container">
+  <div class="page-hdr">
+    <h1>REGIME &amp; ANOMALY</h1>
+    <p>Hidden Markov Model 4-state regime detector · Mahalanobis anomaly layer · daily refit</p>
+    <div class="meta">
+      <span>🧠 model: HMM (Baum-Welch EM, 4-state Gaussian)</span>
+      <span>🔄 refit: daily 14:00 UTC</span>
+      <span>🕒 last: <span id="updated">—</span></span>
+      <span>📊 training: <span id="training-n">—</span> obs</span>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner">⚠️ Failed to load data — please retry shortly</div>
+
+  <div id="warmupBanner" class="warmup-banner">
+    <strong>⏳ Model warming up</strong>
+    <div style="margin-top:6px">The HMM is fitted on whatever historical data is available so far. With fewer than 60 observations, regime calls are directional but not yet calibrated to your specific signal characteristics. The model will improve over time as more data accumulates. Calibration target: 60+ daily observations.</div>
+  </div>
+
+  <!-- Composite anomaly banner -->
+  <div id="composite-banner" class="composite-banner normal">
+    <div id="score-circle" class="score-circle normal">
+      <div class="num" id="anomaly-score">—</div>
+      <div class="lbl">ANOMALY</div>
+    </div>
+    <div class="composite-info">
+      <h2>COMPOSITE ANOMALY SIGNAL</h2>
+      <div class="signal-text" id="anomaly-signal" style="color:var(--green)">LOADING…</div>
+      <div class="desc" id="anomaly-desc">Per-signal Mahalanobis distance vs 90-day rolling distribution. Anomalies are |z|&gt;2 deviations; extreme readings are |z|&gt;3. Catches structural breaks the threshold detectors miss.</div>
+    </div>
+  </div>
+
+  <!-- 4-state regime probabilities -->
+  <div class="section-hdr">
+    <h3>HMM REGIME PROBABILITIES</h3>
+    <div class="sub">probabilistic state membership · current observation</div>
+  </div>
+  <div id="regime-strip" class="regime-strip"></div>
+
+  <!-- Transition matrix -->
+  <div class="section-hdr">
+    <h3>TRANSITION PROBABILITIES</h3>
+    <div class="sub">P(next state | current state) · diagonal = stay-in-state probability</div>
+  </div>
+  <div id="transition-matrix" class="transition-matrix"></div>
+
+  <!-- Fit quality -->
+  <div class="section-hdr">
+    <h3>FIT QUALITY</h3>
+    <div class="sub">model diagnostics · how confident is the HMM in its parameters</div>
+  </div>
+  <div id="fit-card" class="fit-card"></div>
+
+  <!-- Anomalies -->
+  <div class="section-hdr">
+    <h3>SIGNAL ANOMALIES</h3>
+    <div class="sub">per-signal Mahalanobis z-score vs 90d rolling distribution</div>
+  </div>
+  <div id="anomaly-grid" class="anomaly-grid"></div>
+
+  <footer>
+    <a href="/crisis.html">Crisis & Plumbing</a> ·
+    <a href="/intelligence.html">Intelligence</a> ·
+    <a href="/">JustHodl.AI</a>
+    <div style="margin-top:6px">model: pure-python Baum-Welch EM · 4-state Gaussian HMM · last refit: <span id="footer-ts">—</span></div>
+  </footer>
+</main>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-anomaly.json?t=' + Date.now();
+
+const REGIMES = ['EXPANSION', 'LATE_CYCLE', 'CONTRACTION', 'CRISIS'];
+
+function fmtAge(iso) {
+  if (!iso) return '—';
+  const ageMin = (Date.now() - new Date(iso).getTime()) / 60000;
+  if (ageMin < 60) return Math.round(ageMin) + 'm ago';
+  const h = ageMin / 60;
+  if (h < 24) return h.toFixed(1) + 'h ago';
+  return (h / 24).toFixed(1) + 'd ago';
+}
+
+function setError(msg) {
+  const eb = document.getElementById('errorBanner');
+  eb.textContent = '⚠️ ' + msg;
+  eb.style.display = 'block';
+}
+
+function renderRegimes(hmm) {
+  const strip = document.getElementById('regime-strip');
+  if (!hmm || !hmm.state_probabilities) {
+    strip.innerHTML = '<div class="regime-card"><div class="label">No model output yet</div></div>';
+    return;
+  }
+  const probs = hmm.state_probabilities;
+  const current = hmm.state_label;
+  let html = '';
+  for (const r of REGIMES) {
+    const p = probs[r] || 0;
+    const isActive = r === current;
+    const lower = r.toLowerCase();
+    html += `<div class="regime-card ${lower} ${isActive ? 'active' : ''}">
+      <div class="label">${r.replace('_', ' ')}</div>
+      <div class="prob">${(p * 100).toFixed(1)}<span class="pct">%</span></div>
+      <div class="bar"><div class="fill" style="width:${p * 100}%"></div></div>
+      ${isActive ? '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:1px;margin-top:8px">▸ CURRENT</div>' : ''}
+    </div>`;
+  }
+  strip.innerHTML = html;
+}
+
+function renderTransitionMatrix(hmm) {
+  const div = document.getElementById('transition-matrix');
+  if (!hmm || !hmm.transition_matrix) { div.innerHTML = ''; return; }
+  const M = hmm.transition_matrix;
+  let html = '<table><thead><tr><th>From → To</th>';
+  for (const to of REGIMES) html += `<th>${to.replace('_', ' ')}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const from of REGIMES) {
+    html += `<tr><td>${from.replace('_', ' ')}</td>`;
+    for (const to of REGIMES) {
+      const p = (M[from] && M[from][to]) || 0;
+      const isDiag = from === to;
+      const heat = Math.min(4, Math.floor(p * 5));
+      html += `<td class="${isDiag ? 'diag' : ''} heat-${heat}">${p.toFixed(3)}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+function renderFitCard(hmm) {
+  const div = document.getElementById('fit-card');
+  if (!hmm) { div.innerHTML = ''; return; }
+  const rows = [
+    ['Training observations', hmm.training_n ?? '—'],
+    ['Log-likelihood', hmm.fit_log_likelihood ?? '—'],
+    ['Avg log-lik per obs', hmm.fit_avg_loglik_per_obs ?? '—'],
+    ['Expected duration in current state', hmm.expected_regime_duration_obs != null ? hmm.expected_regime_duration_obs + ' obs' : '—'],
+    ['Warming up', hmm.is_warming_up ? 'YES' : 'NO'],
+  ];
+  if (hmm.state_means) {
+    rows.push(['', '']);
+    for (const [r, m] of Object.entries(hmm.state_means)) {
+      rows.push(['μ ' + r.replace('_', ' '), m]);
+    }
+  }
+  let html = '';
+  for (const [k, v] of rows) {
+    if (k === '') { html += '<div style="border:none;height:6px"></div>'; continue; }
+    html += `<div><span>${k}</span><span>${v}</span></div>`;
+  }
+  div.innerHTML = html;
+}
+
+function renderAnomalies(anomaly) {
+  const grid = document.getElementById('anomaly-grid');
+  if (!anomaly || !anomaly.per_signal || Object.keys(anomaly.per_signal).length === 0) {
+    grid.innerHTML = '<div class="anomaly-card"><div class="name">No signals analyzed</div><div class="z">—</div><div class="meta">Anomaly engine warming up — needs 90d signal history</div></div>';
+    return;
+  }
+  let html = '';
+  // Sort by abs z-score descending
+  const entries = Object.entries(anomaly.per_signal).sort((a, b) => Math.abs(b[1].z_score || 0) - Math.abs(a[1].z_score || 0));
+  for (const [name, data] of entries) {
+    const cls = data.is_extreme ? 'extreme' : data.is_anomaly ? 'anomaly' : '';
+    const z = data.z_score;
+    const sign = z > 0 ? '+' : '';
+    html += `<div class="anomaly-card ${cls}">
+      <div class="name">${name}</div>
+      <div class="z">${sign}${z != null ? z.toFixed(2) : '—'}σ</div>
+      <div class="meta">latest=${data.latest != null ? data.latest.toFixed(2) : '—'} · μ=${data.mean_90d ?? '—'} · n=${data.n_samples ?? 0}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderComposite(anomaly) {
+  if (!anomaly) return;
+  const score = anomaly.composite_anomaly_score ?? 0;
+  const banner = document.getElementById('composite-banner');
+  const circle = document.getElementById('score-circle');
+  const sigEl = document.getElementById('anomaly-signal');
+  const descEl = document.getElementById('anomaly-desc');
+
+  let cls, label, desc;
+  if (score >= 50) {
+    cls = 'crisis';
+    label = 'CRISIS-LIKE';
+    desc = 'Multiple signals showing extreme deviations from their 90d distributions. This often precedes regime breaks.';
+  } else if (score >= 25) {
+    cls = 'elevated';
+    label = 'ELEVATED';
+    desc = 'Several signals showing anomalous behavior. Worth investigating which signals are firing and why.';
+  } else {
+    cls = 'normal';
+    label = 'NORMAL';
+    desc = 'No anomalous signal behavior detected. All signals within their typical 90-day distributions.';
+  }
+
+  banner.className = 'composite-banner ' + cls;
+  circle.className = 'score-circle ' + cls;
+  document.getElementById('anomaly-score').textContent = Math.round(score);
+  sigEl.textContent = label;
+  sigEl.style.color = cls === 'crisis' ? 'var(--red)' : cls === 'elevated' ? 'var(--amber)' : 'var(--green)';
+  descEl.textContent = desc;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    document.getElementById('updated').textContent = fmtAge(data.generated_at);
+    document.getElementById('footer-ts').textContent = data.generated_at || '—';
+    document.getElementById('training-n').textContent = data.hmm?.training_n ?? '—';
+
+    if (data.hmm?.is_warming_up) {
+      document.getElementById('warmupBanner').classList.add('show');
+    }
+
+    renderRegimes(data.hmm);
+    renderTransitionMatrix(data.hmm);
+    renderFitCard(data.hmm);
+    renderComposite(data.anomaly);
+    renderAnomalies(data.anomaly);
+  } catch (e) {
+    console.error(e);
+    setError('Failed to load: ' + e.message);
+  }
+}
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
