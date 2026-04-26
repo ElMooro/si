@@ -46,6 +46,7 @@ import time
 import math
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from boto3.dynamodb.conditions import Attr
 
@@ -433,55 +434,70 @@ def load_ka_index_history(days_back=365):
          training with a fake bimodal 0/N distribution)
       4. Sort by date
 
-    Falls back to single latest file + DynamoDB if archive is sparse.
+    Phase 9.4: parallelize S3 reads (was sequential, capped at 200) and
+    bump cap to 2000 to accumulate training data faster. With 16 worker
+    threads, reading 2000 archives takes ~6s on Lambda. 240s timeout
+    leaves plenty of margin.
     """
     series = []  # list of (date_str, ka_index_score)
     n_zero_filtered = 0
     n_no_score = 0
+    n_read_errors = 0
 
-    # List recent archive files
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
+    # 1. List recent keys
     paginator = s3.get_paginator("list_objects_v2")
     keys = []
     for page in paginator.paginate(Bucket=S3_BUCKET, Prefix="archive/intelligence/"):
         for obj in page.get("Contents", []):
             key = obj["Key"]
-            # Filter to recent
             if obj["LastModified"].replace(tzinfo=timezone.utc) >= cutoff_date:
                 keys.append(key)
 
     print(f"[regime-anomaly] found {len(keys)} archive keys in last {days_back}d")
 
-    # Read each (cap at 200 to avoid overwhelming Lambda timeout)
-    for key in keys[-200:]:
+    # 2. Read in parallel (Phase 9.4: was sequential cap=200, now parallel cap=2000)
+    READ_CAP = 2000
+    keys_to_read = keys[-READ_CAP:]
+
+    def read_archive(key):
         try:
             obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
             data = json.loads(obj["Body"].read())
             scores = data.get("scores", {})
             score = scores.get("ka_index") or scores.get("khalid_index")
             generated = data.get("generated_at") or data.get("date")
+            return key, score, generated, None
+        except Exception as e:
+            return key, None, None, str(e)
+
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        futures = [ex.submit(read_archive, k) for k in keys_to_read]
+        for fut in as_completed(futures):
+            key, score, generated, err = fut.result()
+            if err:
+                n_read_errors += 1
+                continue
             if score is None:
                 n_no_score += 1
                 continue
             score_f = float(score)
-            # Drop fake-zero records from the producing-Lambda bug period
-            # (real KA Index has never been exactly 0 in normal operation;
-            # the floor is around 10-15 even in deepest expansion regimes).
-            # Keeping a small absolute threshold is safer than == 0 in
-            # case future low-stress regimes legitimately approach zero.
             if score_f == 0:
                 n_zero_filtered += 1
                 continue
             if generated:
                 series.append((generated, score_f))
-        except Exception as e:
-            print(f"[load] {key}: {e}")
-            continue
 
-    print(f"[regime-anomaly] loader filtered: {n_zero_filtered} zeros, {n_no_score} missing")
+    print(
+        f"[regime-anomaly] loader: read={len(keys_to_read)} "
+        f"zeros_filtered={n_zero_filtered} "
+        f"no_score={n_no_score} "
+        f"errors={n_read_errors} "
+        f"valid={len(series)}"
+    )
 
-    # Also include current intelligence-report.json (latest snapshot)
+    # 3. Also include current intelligence-report.json (latest snapshot)
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY_HISTORICAL)
         data = json.loads(obj["Body"].read())
@@ -493,7 +509,7 @@ def load_ka_index_history(days_back=365):
     except Exception as e:
         print(f"[load] latest report: {e}")
 
-    # Dedupe and sort
+    # 4. Dedupe and sort
     series_dict = {}
     for date_str, score in series:
         try:
@@ -593,8 +609,34 @@ def lambda_handler(event, context):
     composite_anomaly = min(100, n_anomalies * 15 + n_extremes * 25)
 
     # 5. Build report
+    # Phase 9.4 — training_window now includes per-day observation count
+    # + ETA to "live" status (60 obs threshold), so the frontend can
+    # show progress instead of just a binary warming_up flag.
+    obs_per_day = {}
+    for t, _ in history:
+        d = t.date().isoformat()
+        obs_per_day[d] = obs_per_day.get(d, 0) + 1
+    obs_count_history = sorted(obs_per_day.items())
+    n_obs = len(observations)
+    target = 60
+    # Median obs/day from the last 7 days (fallback to overall average)
+    recent_daily = [c for _, c in obs_count_history[-7:]]
+    if recent_daily:
+        recent_daily.sort()
+        median_per_day = recent_daily[len(recent_daily) // 2]
+    else:
+        median_per_day = 0
+    days_to_live = (
+        max(0, math.ceil((target - n_obs) / median_per_day))
+        if median_per_day > 0 and n_obs < target
+        else 0
+    )
+    eta_iso = None
+    if days_to_live > 0:
+        eta_iso = (datetime.now(timezone.utc) + timedelta(days=days_to_live)).isoformat()
+
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",  # bumped: added training_progress
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
         "hmm": hmm_result,
@@ -609,6 +651,17 @@ def lambda_handler(event, context):
             "signal_count": len(signal_history),
             "earliest": history[0][0].isoformat() if history else None,
             "latest": history[-1][0].isoformat() if history else None,
+        },
+        # Phase 9.4 — training progress (visible on regime.html)
+        "training_progress": {
+            "n_obs": n_obs,
+            "target_n_obs": target,
+            "pct_complete": round(100.0 * n_obs / target, 1) if target else None,
+            "is_warming_up": n_obs < target,
+            "median_obs_per_day_7d": median_per_day,
+            "days_to_target": days_to_live,
+            "eta_live_iso": eta_iso,
+            "obs_per_day": obs_count_history[-30:],  # last 30 days for chart
         },
         "fit_method": "Baum-Welch EM (4-state Gaussian HMM, pure-python)",
     }

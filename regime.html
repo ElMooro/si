@@ -160,6 +160,20 @@ footer a{margin:0 10px}
       Current sample: <strong id="warmup-n">—</strong> observations.
       <span id="warmup-detail"></span>
     </div>
+    <!-- Phase 9.4 — training progress bar + ETA -->
+    <div id="warmup-progress" style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,177,61,.18);display:none">
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;margin-bottom:6px">
+        <span id="warmup-pct">0%</span>
+        <span id="warmup-eta">—</span>
+      </div>
+      <div style="height:8px;background:rgba(255,177,61,.08);border-radius:4px;overflow:hidden;border:1px solid rgba(255,177,61,.18)">
+        <div id="warmup-bar" style="height:100%;background:linear-gradient(90deg,var(--amber),var(--green));width:0%;transition:width .6s ease"></div>
+      </div>
+      <div style="margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);display:flex;justify-content:space-between;letter-spacing:.5px">
+        <span>Median <span id="warmup-rate">—</span> obs/day (last 7d)</span>
+        <span><span id="warmup-needed">—</span> more obs needed</span>
+      </div>
+    </div>
     <div style="margin-top:6px;color:var(--fg-3);font-size:11px">
       Note: archive entries with score = 0 (the Mar 9 → Apr 24 producer-bug period) are filtered from training. As more daily data accumulates from the post-fix Apr 25 baseline, the model retrains and improves automatically.
     </div>
@@ -374,6 +388,31 @@ async function loadData() {
         detailEl.textContent = ` ↳ Below 12-observation minimum — HMM has not fit yet. Showing all-zero state probabilities; this is expected.`;
       } else if (n < 60) {
         detailEl.textContent = ` ↳ HMM has fit but is below the 60-observation calibration target. Probabilities are directional, not authoritative.`;
+      }
+      // Phase 9.4 — populate training-progress bar from new training_progress field
+      const prog = data.training_progress;
+      if (prog) {
+        const progEl = document.getElementById('warmup-progress');
+        progEl.style.display = 'block';
+        const pct = Math.min(100, prog.pct_complete || 0);
+        document.getElementById('warmup-bar').style.width = pct + '%';
+        document.getElementById('warmup-pct').textContent =
+          `${prog.n_obs} / ${prog.target_n_obs} obs (${pct.toFixed(1)}%)`;
+        document.getElementById('warmup-rate').textContent = prog.median_obs_per_day_7d ?? '—';
+        document.getElementById('warmup-needed').textContent =
+          Math.max(0, (prog.target_n_obs || 0) - (prog.n_obs || 0));
+        if (prog.eta_live_iso) {
+          const eta = new Date(prog.eta_live_iso);
+          const days = prog.days_to_target;
+          document.getElementById('warmup-eta').textContent =
+            `ETA fully-calibrated: ${eta.toISOString().slice(0, 10)} (${days}d)`;
+        } else if (prog.n_obs >= prog.target_n_obs) {
+          document.getElementById('warmup-eta').textContent = 'Target reached';
+        } else if (prog.median_obs_per_day_7d === 0) {
+          document.getElementById('warmup-eta').textContent = 'ETA: no recent observations';
+        } else {
+          document.getElementById('warmup-eta').textContent = '—';
+        }
       }
     } else {
       document.getElementById('warmupBanner').classList.remove('show');
