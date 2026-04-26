@@ -219,12 +219,14 @@ footer a{margin:0 10px}
   </div>
   <div id="plumbing-grid" class="grid grid-3"></div>
 
-  <!-- MMF composition -->
-  <div class="section-hdr">
-    <h3>MONEY MARKET FUND COMPOSITION</h3>
-    <div class="sub">prime → government rotation = leading dollar-funding stress signal</div>
+  <!-- MMF composition (hidden when data unavailable) -->
+  <div id="mmf-section">
+    <div class="section-hdr">
+      <h3>MONEY MARKET FUND COMPOSITION</h3>
+      <div class="sub">prime → government rotation = leading dollar-funding stress signal</div>
+    </div>
+    <div id="mmf-row"></div>
   </div>
-  <div id="mmf-row"></div>
 
   <!-- Yield curve -->
   <div class="section-hdr">
@@ -382,8 +384,16 @@ function renderPlumbing(plumb) {
 }
 
 function renderMMF(mmf) {
+  const section = document.getElementById('mmf-section');
   const row = document.getElementById('mmf-row');
-  if (!mmf || typeof mmf !== 'object') { row.innerHTML = ''; return; }
+  if (!mmf || typeof mmf !== 'object') {
+    // Hide entire section when MMF data not available (current state — modern
+    // ICI gov/prime/tax-exempt FRED IDs not yet identified)
+    if (section) section.style.display = 'none';
+    if (row) row.innerHTML = '';
+    return;
+  }
+  if (section) section.style.display = '';
   const flagged = !!mmf.flight_to_quality;
   const pchg = mmf.prime_share_change_30d_pp;
   const pchgTxt = pchg == null ? '—' :
