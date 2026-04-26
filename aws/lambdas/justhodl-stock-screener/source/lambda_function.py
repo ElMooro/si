@@ -169,7 +169,7 @@ def get_stock_data(symbol):
     km      = fmp("key-metrics-ttm",  f"&symbol={symbol}")
     ratios  = fmp("ratios-ttm",       f"&symbol={symbol}")
     growth  = fmp("financial-growth", f"&symbol={symbol}&limit=1")
-    scores  = fmp("scores",           f"&symbol={symbol}")  # Altman Z + Piotroski
+    scores  = fmp("financial-scores", f"&symbol={symbol}")  # confirmed Apr 26 — has altmanZScore + piotroskiScore
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -181,12 +181,8 @@ def get_stock_data(symbol):
     g = growth[0]  if isinstance(growth, list)  and growth  else {}
     sc = scores[0] if isinstance(scores, list)  and scores  else {}
 
-    # FMP-computed Altman Z-Score (handles different field names across FMP versions)
-    altman_z = sf(
-        sc.get("altmanZScore") or
-        sc.get("altmanZ") or
-        sc.get("altman_z_score")
-    )
+    # FMP-computed Altman Z-Score from /stable/financial-scores
+    altman_z = sf(sc.get("altmanZScore"))
 
     # Compute simplified Piotroski from available data
     score = 0
