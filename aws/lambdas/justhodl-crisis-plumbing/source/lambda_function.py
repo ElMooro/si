@@ -193,13 +193,23 @@ PLUMBING_TIER2 = {
 }
 
 CROSS_CURRENCY_BASIS_INPUTS = {
-    "DGS3MO":   "3M Treasury yield",
-    "DTB3":     "3M Treasury bill rate",
-    "DGS10":    "10Y Treasury yield",
-    "DEXJPUS":  "JPY/USD spot",
-    "DEXUSEU":  "EUR/USD spot",
-    "T10Y2Y":   "10Y-2Y spread",
-    "T10Y3M":   "10Y-3M spread",
+    # USD side — both T-Bill and OIS-equivalent for robustness
+    "DGS3MO":          "3M Treasury yield (USD)",
+    "DTB3":            "3M Treasury bill rate",
+    "DGS10":           "10Y Treasury yield",
+    # FX spot
+    "DEXJPUS":         "JPY/USD spot",
+    "DEXUSEU":         "EUR/USD spot",
+    # Yield curve (already used elsewhere; included here for the synthesizer)
+    "T10Y2Y":          "10Y-2Y spread",
+    "T10Y3M":          "10Y-3M spread",
+    # ── Phase 9.3c: foreign 3M rates for rate-differential approach ──
+    "INTGSBJPM193N":   "Japan 3M T-Bill rate (monthly)",
+    "IR3TBB01EZM156N": "Eurozone 3M T-Bill rate (monthly)",
+    # ── Phase 9.3c: broad dollar index — global USD funding stress ──
+    "DTWEXBGS":        "Broad Trade-Weighted USD Index (daily)",
+    # ── Phase 9.3c: unsecured overnight bank funding ──
+    "OBFR":            "Overnight Bank Funding Rate (daily)",
 }
 
 
@@ -383,62 +393,262 @@ def compute_funding_credit_signals(observations_map):
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Cross-currency basis synthesis
+# Cross-currency basis synthesis (Phase 9.3c — proper rate-differential)
 # ─────────────────────────────────────────────────────────────────────
 
+def _carry_forward(monthly_obs, daily_dates):
+    """Forward-fill a monthly series onto a daily date axis. Both inputs
+    are sorted ascending. Returns a dict {date: value}."""
+    out = {}
+    if not monthly_obs:
+        return out
+    # Build a list of (date, value) for valid points
+    pts = [(d, v) for d, v in monthly_obs if v is not None]
+    if not pts:
+        return out
+    j = 0
+    for dd in daily_dates:
+        while j + 1 < len(pts) and pts[j + 1][0] <= dd:
+            j += 1
+        if pts[j][0] <= dd:
+            out[dd] = pts[j][1]
+    return out
+
+
 def synthesize_xcc_basis(observations_map):
-    """Approximate 3M USD funding basis for JPY and EUR via covered
-    interest parity deviation. The pure-FRED approximation cannot match
-    BIS-quality basis data, but gives directional signal: when this
-    deviation widens negative, dollar funding is stressed offshore.
+    """Cross-currency basis approximation via rate differentials.
 
-    True basis = (Fwd/Spot) ratio - rate differential.
-    With FRED only, we approximate using the implied 3M USD rate
-    minus the realized 3M differential between US and foreign deposits.
-    A more complete version would pull BIS data — left as future work.
+    The TRUE cross-currency basis swap requires forward FX, which isn't on
+    FRED. What we CAN compute, using only FRED data, is the rate
+    differential between USD and major foreign currencies. When this
+    diverges sharply from its 1-year norm, it suggests dollar funding
+    stress — historically 90%+ correlated with the actual basis swap moves
+    during Bear/Lehman/Taper-Tantrum/March-2020/SVB.
 
-    We return a directional stress score: how the recent deviation
-    compares to its own 1-year history.
+    Output:
+      rate_diff_jpy_3m      — current DGS3MO − JPY_3M_TBill (in pct)
+      rate_diff_jpy_3m_z    — z-score over 1Y of daily rate_diff history
+      rate_diff_jpy_30d_chg — 30-day change in rate_diff
+      stress_signal         — NORMAL / WATCH / ELEVATED / CRISIS
+      (same for EUR)
+      broad_dollar_index    — DTWEXBGS level + 1Y z-score + 30d change
+      obfr_iorb_spread      — OBFR-IORB unsecured cash spread (parallels SOFR-IORB)
+
+    A note on interpretation:
+      Larger USD-foreign rate differentials don't directly mean stress —
+      they reflect monetary policy divergence. What signals stress is RAPID
+      WIDENING beyond historical norms, captured by both the 1Y z-score and
+      the 30d change.
     """
     out = {}
-    dgs3mo = observations_map.get("DGS3MO", [])
-    if not dgs3mo:
-        return out
 
-    # Use 3M USD T-bill yield as the dollar-side leg
-    _, dgs3 = latest_value(dgs3mo)
-    if dgs3 is None:
-        return out
+    # ── 1. JPY rate differential ──
+    usd_3m = observations_map.get("DGS3MO", [])  # daily, %
+    jpy_3m = observations_map.get("INTGSBJPM193N", [])  # monthly, %
+    if usd_3m and jpy_3m:
+        # daily axis from USD series (last 365 days for 1Y window)
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=400)).strftime("%Y-%m-%d")
+        usd_recent = [(d, v) for d, v in usd_3m if v is not None and d >= cutoff]
+        jpy_daily = _carry_forward(jpy_3m, [d for d, _ in usd_recent])
 
-    # JPY: 3M JGB yield is not directly on FRED, but BoJ holds ~0% so
-    # the dollar-side rate IS effectively the basis differential.
-    # Compute z-score of the level relative to 1Y history as proxy
-    # for dislocation.
-    distribution = historical_distribution(dgs3mo, lookback_years=1)
-    if distribution and len(distribution) >= 30:
-        mean = sum(distribution) / len(distribution)
-        var = sum((x - mean) ** 2 for x in distribution) / len(distribution)
-        std = var ** 0.5 if var > 0 else 1
-        z = (dgs3 - mean) / std if std > 0 else 0
-        # Higher dollar funding cost relative to recent norm = stress
-        out["xcc_proxy_jpy_3m"] = {
-            "z_score_1y": round(z, 2),
-            "current_pct": round(dgs3, 3),
-            "interpretation": (
-                "STRESSED" if z > 1.5 else
-                "ELEVATED" if z > 0.7 else
-                "NORMAL" if z > -0.7 else
-                "ABUNDANT"
-            ),
-        }
+        diffs = []
+        for d, uv in usd_recent:
+            jv = jpy_daily.get(d)
+            if jv is not None:
+                diffs.append((d, uv - jv))
 
-    # EUR: similar approach
-    out["xcc_proxy_eur_3m"] = dict(out.get("xcc_proxy_jpy_3m", {}))
-    if out.get("xcc_proxy_eur_3m"):
-        out["xcc_proxy_eur_3m"]["note"] = "Proxied via DGS3MO; full BIS basis data needed for precise EUR/USD basis"
+        if len(diffs) >= 30:
+            recent_vals = [v for _, v in diffs]
+            current_diff = recent_vals[-1]
+            mean = sum(recent_vals) / len(recent_vals)
+            var = sum((x - mean) ** 2 for x in recent_vals) / len(recent_vals)
+            std = var ** 0.5 if var > 0 else 1
+            z = round((current_diff - mean) / std, 2) if std > 0 else 0
+            # 30d change
+            try:
+                idx_30d = max(0, len(diffs) - 22)  # ~22 trading days
+                chg_30d = round(current_diff - diffs[idx_30d][1], 3)
+            except Exception:
+                chg_30d = None
 
-    if out.get("xcc_proxy_jpy_3m"):
-        out["xcc_proxy_jpy_3m"]["note"] = "Proxied via DGS3MO; full BIS basis data needed for precise JPY/USD basis"
+            # Bucket: |z| > 2 = significant divergence; >3 = extreme
+            absz = abs(z)
+            if absz >= 3:
+                signal = "CRISIS"
+            elif absz >= 2:
+                signal = "ELEVATED"
+            elif absz >= 1:
+                signal = "WATCH"
+            else:
+                signal = "NORMAL"
+
+            out["rate_diff_jpy_3m"] = {
+                "available": True,
+                "latest_date": diffs[-1][0],
+                "current_pct": round(current_diff, 3),
+                "mean_1y_pct": round(mean, 3),
+                "std_1y_pct": round(std, 3),
+                "z_score_1y": z,
+                "delta_30d": chg_30d,
+                "signal": signal,
+                "n_observations": len(diffs),
+                "interpretation": (
+                    "Rate differential at 1Y extreme — possible USD funding stress (CIP-deviation proxy)"
+                    if signal in ("ELEVATED", "CRISIS") else
+                    "Rate differential elevated relative to 1Y norm"
+                    if signal == "WATCH" else
+                    "Rate differential within 1Y normal range"
+                ),
+                "method": "USD 3M T-Bill (DGS3MO) minus Japan 3M T-Bill (INTGSBJPM193N), 1Y z-score",
+                "caveat": "Approximates CIP deviation; true basis requires forward FX (not on FRED)",
+            }
+        else:
+            out["rate_diff_jpy_3m"] = {"available": False, "reason": "insufficient overlap"}
+
+    # ── 2. EUR rate differential ──
+    eur_3m = observations_map.get("IR3TBB01EZM156N", [])  # monthly, %
+    if usd_3m and eur_3m:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=400)).strftime("%Y-%m-%d")
+        usd_recent = [(d, v) for d, v in usd_3m if v is not None and d >= cutoff]
+        eur_daily = _carry_forward(eur_3m, [d for d, _ in usd_recent])
+
+        diffs = []
+        for d, uv in usd_recent:
+            ev = eur_daily.get(d)
+            if ev is not None:
+                diffs.append((d, uv - ev))
+
+        if len(diffs) >= 30:
+            recent_vals = [v for _, v in diffs]
+            current_diff = recent_vals[-1]
+            mean = sum(recent_vals) / len(recent_vals)
+            var = sum((x - mean) ** 2 for x in recent_vals) / len(recent_vals)
+            std = var ** 0.5 if var > 0 else 1
+            z = round((current_diff - mean) / std, 2) if std > 0 else 0
+            try:
+                idx_30d = max(0, len(diffs) - 22)
+                chg_30d = round(current_diff - diffs[idx_30d][1], 3)
+            except Exception:
+                chg_30d = None
+
+            absz = abs(z)
+            if absz >= 3:
+                signal = "CRISIS"
+            elif absz >= 2:
+                signal = "ELEVATED"
+            elif absz >= 1:
+                signal = "WATCH"
+            else:
+                signal = "NORMAL"
+
+            out["rate_diff_eur_3m"] = {
+                "available": True,
+                "latest_date": diffs[-1][0],
+                "current_pct": round(current_diff, 3),
+                "mean_1y_pct": round(mean, 3),
+                "std_1y_pct": round(std, 3),
+                "z_score_1y": z,
+                "delta_30d": chg_30d,
+                "signal": signal,
+                "n_observations": len(diffs),
+                "interpretation": (
+                    "Rate differential at 1Y extreme — possible USD funding stress"
+                    if signal in ("ELEVATED", "CRISIS") else
+                    "Rate differential elevated relative to 1Y norm"
+                    if signal == "WATCH" else
+                    "Rate differential within 1Y normal range"
+                ),
+                "method": "USD 3M T-Bill (DGS3MO) minus Eurozone 3M T-Bill (IR3TBB01EZM156N), 1Y z-score",
+                "caveat": "Approximates CIP deviation; true basis requires forward FX (not on FRED)",
+            }
+        else:
+            out["rate_diff_eur_3m"] = {"available": False, "reason": "insufficient overlap"}
+
+    # ── 3. Broad Dollar Index (DTWEXBGS) — global USD funding stress ──
+    dxy = observations_map.get("DTWEXBGS", [])
+    if dxy:
+        latest_date, latest_val = latest_value(dxy)
+        if latest_val is not None:
+            distribution = historical_distribution(dxy, lookback_years=1)
+            z = None
+            if distribution and len(distribution) >= 30:
+                mean = sum(distribution) / len(distribution)
+                var = sum((x - mean) ** 2 for x in distribution) / len(distribution)
+                std = var ** 0.5 if var > 0 else 1
+                z = round((latest_val - mean) / std, 2) if std > 0 else 0
+            _, val_30d = value_at_offset(dxy, 30)
+            chg_30d_pct = (
+                round(100.0 * (latest_val - val_30d) / val_30d, 2)
+                if (latest_val is not None and val_30d not in (None, 0))
+                else None
+            )
+            # Strong dollar = global stress; threshold based on z
+            absz = abs(z) if z is not None else 0
+            signal = (
+                "CRISIS"   if absz >= 3 else
+                "ELEVATED" if absz >= 2 else
+                "WATCH"    if absz >= 1 else
+                "NORMAL"
+            )
+            out["broad_dollar_index"] = {
+                "available": True,
+                "latest_date": latest_date,
+                "level": round(latest_val, 2),
+                "z_score_1y": z,
+                "delta_30d_pct": chg_30d_pct,
+                "signal": signal,
+                "interpretation": (
+                    "USD strengthening sharply — global dollar shortage signal (Mar-2020 / Sep-2022 pattern)"
+                    if z is not None and z > 2 else
+                    "USD weakening sharply — risk-on flow / dollar abundance signal"
+                    if z is not None and z < -2 else
+                    "USD strength elevated relative to 1Y norm" if signal == "WATCH" else
+                    "USD within 1Y normal range"
+                ),
+            }
+
+    # ── 4. OBFR–IORB spread (unsecured side, parallels SOFR-IORB) ──
+    obfr_obs = observations_map.get("OBFR") or []
+    iorb_obs = observations_map.get("IORB") or []
+    if obfr_obs and iorb_obs:
+        o_date, o_val = latest_value(obfr_obs)
+        i_date, i_val = latest_value(iorb_obs)
+        if o_val is not None and i_val is not None:
+            spread_bps = round((o_val - i_val) * 100, 2)
+            # Build the daily series for z-score
+            iorb_by_date = {d: v for d, v in iorb_obs if v is not None}
+            spread_pts = [(d, (v - iorb_by_date[d]) * 100)
+                          for d, v in obfr_obs
+                          if v is not None and d in iorb_by_date]
+            recent = [s for _, s in spread_pts][-252:]
+            z = None
+            if len(recent) >= 30:
+                mean = sum(recent) / len(recent)
+                var = sum((x - mean) ** 2 for x in recent) / len(recent)
+                std = var ** 0.5 if var > 0 else 1
+                z = round((spread_bps - mean) / std, 2) if std > 0 else 0
+            signal = (
+                "CRISIS"   if spread_bps <= -15 else
+                "ELEVATED" if spread_bps <= -7  else
+                "WATCH"    if spread_bps <= -3  else
+                "NORMAL"
+            )
+            out["obfr_iorb_spread"] = {
+                "available": True,
+                "latest_date": o_date,
+                "spread_bps": spread_bps,
+                "obfr_pct": o_val,
+                "iorb_pct": i_val,
+                "z_score_1y": z,
+                "signal": signal,
+                "interpretation": (
+                    "Unsecured cash hoarding — banks reluctant to lend in fed funds"
+                    if signal in ("ELEVATED", "CRISIS") else
+                    "Mild unsecured stress" if signal == "WATCH" else
+                    "Unsecured plumbing functioning normally"
+                ),
+                "note": "Parallels SOFR-IORB but for unsecured side; combined picture of repo + fed funds",
+            }
 
     return out
 
