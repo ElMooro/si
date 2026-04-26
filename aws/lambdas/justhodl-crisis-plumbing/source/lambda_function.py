@@ -52,6 +52,7 @@ import os
 import time
 import urllib.request
 import urllib.parse
+import urllib.error
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
@@ -87,17 +88,34 @@ def fred_observations(series_id, observation_start=None, limit=1000):
     if observation_start:
         params["observation_start"] = observation_start
     url = "https://api.stlouisfed.org/fred/series/observations?" + urllib.parse.urlencode(params)
-    try:
-        with urllib.request.urlopen(url, timeout=20) as r:
-            data = json.loads(r.read())
-        out = []
-        for obs in data.get("observations", []):
-            v = obs["value"]
-            out.append((obs["date"], float(v) if v != "." else None))
-        return out
-    except Exception as e:
-        print(f"[FRED] {series_id} error: {e}")
-        return []
+    # Phase 9.3-fix: FRED rate-limits aggressive parallel requests. Retry on
+    # 429 with exponential backoff. Don't retry on 400 (bad series ID).
+    last_err = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(url, timeout=20) as r:
+                data = json.loads(r.read())
+            out = []
+            for obs in data.get("observations", []):
+                v = obs["value"]
+                out.append((obs["date"], float(v) if v != "." else None))
+            return out
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429:
+                wait = 1.5 * (2 ** attempt)  # 1.5, 3, 6, 12s
+                print(f"[FRED] {series_id} 429 — sleep {wait}s (attempt {attempt+1}/4)")
+                time.sleep(wait)
+                continue
+            # 400 = bad series ID; 404 = not found; 5xx = FRED outage. Don't retry.
+            print(f"[FRED] {series_id} HTTP {e.code}: {e}")
+            return []
+        except Exception as e:
+            last_err = e
+            print(f"[FRED] {series_id} error: {e}")
+            return []
+    print(f"[FRED] {series_id} 429 after 4 retries; giving up: {last_err}")
+    return []
 
 
 def latest_value(observations):
@@ -739,7 +757,10 @@ def lambda_handler(event, context):
         start = (datetime.now(timezone.utc) - timedelta(days=365 * 12)).strftime("%Y-%m-%d")
         return label, fred_observations(fred_id, observation_start=start, limit=4000)
 
-    with ThreadPoolExecutor(max_workers=8) as ex:
+    # Phase 9.3-fix: lowered from 8→3 workers to avoid FRED 429 rate-limits
+    # on 30-series fetches. Combined with retry+backoff in fred_observations
+    # this gives the same end-to-end speed but with reliable completion.
+    with ThreadPoolExecutor(max_workers=3) as ex:
         futures = [ex.submit(fetch, label, fid) for label, fid in all_series]
         for fut in as_completed(futures):
             label, obs = fut.result()

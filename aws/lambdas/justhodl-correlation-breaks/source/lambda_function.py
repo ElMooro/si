@@ -38,6 +38,7 @@ import os
 import time
 import urllib.request
 import urllib.parse
+import urllib.error
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
@@ -116,11 +117,28 @@ def fred_observations(series_id, observation_start=None, limit=4000):
     if observation_start:
         params["observation_start"] = observation_start
     url = FRED_BASE + "?" + urllib.parse.urlencode(params)
-    try:
-        with urllib.request.urlopen(url, timeout=15) as r:
-            data = json.loads(r.read())
-    except Exception as e:
-        print(f"[fred] {series_id} error: {e}")
+    # Phase 9.5-fix: FRED rate-limits parallel requests. Retry with exponential
+    # backoff on 429. 400/404/5xx don't retry.
+    last_err = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(url, timeout=15) as r:
+                data = json.loads(r.read())
+            break
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429:
+                wait = 1.5 * (2 ** attempt)
+                print(f"[fred] {series_id} 429 — sleep {wait}s (attempt {attempt+1}/4)")
+                time.sleep(wait)
+                continue
+            print(f"[fred] {series_id} HTTP {e.code}: {e}")
+            return []
+        except Exception as e:
+            print(f"[fred] {series_id} error: {e}")
+            return []
+    else:
+        print(f"[fred] {series_id} 429 after 4 retries; giving up: {last_err}")
         return []
     out = []
     for o in data.get("observations", []):
@@ -239,7 +257,10 @@ def lambda_handler(event, context):
     def fetch(label, fred_id):
         return label, fred_observations(fred_id, observation_start=start)
 
-    with ThreadPoolExecutor(max_workers=8) as ex:
+    # Phase 9.5-fix: lowered from 8→3 workers to avoid FRED 429 rate-limits.
+    # Retry+backoff in fred_observations now handles transient 429s; combined
+    # this keeps total fetch time fine while ensuring reliable completion.
+    with ThreadPoolExecutor(max_workers=3) as ex:
         futures = [ex.submit(fetch, label, meta["fred_id"]) for label, meta in INSTRUMENTS.items()]
         for fut in as_completed(futures):
             label, obs = fut.result()
