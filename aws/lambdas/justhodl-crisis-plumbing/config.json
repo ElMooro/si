@@ -1,0 +1,9 @@
+{
+  "function_name": "justhodl-crisis-plumbing",
+  "runtime": "python3.12",
+  "memory_size": 512,
+  "timeout": 120,
+  "handler": "lambda_function.lambda_handler",
+  "schedule": "rate(6 hours)",
+  "description": "Phase 9.1 — official crisis indices + plumbing tier 2 + XCC basis proxy"
+}
