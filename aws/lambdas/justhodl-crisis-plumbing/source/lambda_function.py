@@ -204,6 +204,185 @@ CROSS_CURRENCY_BASIS_INPUTS = {
 
 
 # ─────────────────────────────────────────────────────────────────────
+# Funding & Credit Signals (Phase 9.3b)
+# The 5 highest-leverage missing signals identified by gap analysis:
+#   1. SOFR-IORB spread — daily, the cleanest single repo stress signal
+#      Computed: SOFR (Secured Overnight Financing Rate) − IORB (Interest On
+#      Reserve Balances). When SOFR > IORB, banks have cash to lend to repo
+#      (stress easing). When SOFR < IORB by more than a few bps, cash is
+#      being hoarded (stress rising — what happened in Sep 2019 + March 2020).
+#   2. HY OAS (BAMLH0A0HYM2) — daily, the credit-fear gauge
+#   3. 10Y TIPS breakeven (T10YIE) — daily, inflation expectations
+#   4. 10Y Real Rate (DFII10) — daily, recession risk + USD funding cost
+#   5. SLOOS C&I tightening (DRTSCILM) — quarterly, the single most reliable
+#      bank-credit-cycle leading indicator
+# ─────────────────────────────────────────────────────────────────────
+
+FUNDING_CREDIT_SIGNALS = {
+    # SOFR-IORB is computed (not a FRED series); inputs pulled separately
+    "SOFR": {"name": "SOFR (Secured Overnight Financing Rate)", "fred_id": "SOFR"},
+    "IORB": {"name": "Interest On Reserve Balances",            "fred_id": "IORB"},
+    # HY OAS — ICE BofA US High Yield Index Option-Adjusted Spread
+    "HY_OAS": {
+        "name": "HY Credit Spread (ICE BofA US HY OAS)",
+        "fred_id": "BAMLH0A0HYM2",
+        "unit": "bps",
+        "stress_direction": "higher",
+        "thresholds": {"watch": 450, "elevated": 600, "crisis": 1000},
+    },
+    # IG (BBB) OAS — secondary credit fear gauge
+    "IG_BBB_OAS": {
+        "name": "IG BBB Credit Spread",
+        "fred_id": "BAMLC0A4CMTRIV",  # alt: BAMLC0A4CBBB level
+        "unit": "bps",
+        "stress_direction": "higher",
+        "thresholds": {"watch": 175, "elevated": 250, "crisis": 400},
+    },
+    # 10Y Breakeven Inflation
+    "T10YIE": {
+        "name": "10Y TIPS Breakeven Inflation",
+        "fred_id": "T10YIE",
+        "unit": "pct",
+        "stress_direction": "extremes",
+        # interpretation: very low (<1.5) = deflation fear; very high (>3) = inflation expectations unanchored
+    },
+    # 10Y Real Rate (TIPS yield)
+    "DFII10": {
+        "name": "10Y Real Rate (TIPS yield)",
+        "fred_id": "DFII10",
+        "unit": "pct",
+        "stress_direction": "higher",
+        "thresholds": {"watch": 1.5, "elevated": 2.25, "crisis": 3.0},
+    },
+    # SLOOS Senior Loan Officer Survey — C&I tightening (quarterly)
+    "SLOOS_TIGHTEN": {
+        "name": "SLOOS: Banks Tightening C&I Standards (net %)",
+        "fred_id": "DRTSCILM",
+        "unit": "pct",
+        "stress_direction": "higher",
+        "thresholds": {"watch": 10, "elevated": 25, "crisis": 50},
+    },
+}
+
+
+def compute_funding_credit_signals(observations_map):
+    """Build the funding-credit-signals section. SOFR-IORB is computed
+    from the two underlying series; everything else is direct FRED + threshold
+    bucketing.
+    """
+    out = {}
+
+    # ── 1. SOFR-IORB spread (computed daily) ──
+    sofr_obs = observations_map.get("SOFR") or []
+    iorb_obs = observations_map.get("IORB") or []
+    if sofr_obs and iorb_obs:
+        s_date, s_val = latest_value(sofr_obs)
+        i_date, i_val = latest_value(iorb_obs)
+        if s_val is not None and i_val is not None:
+            spread_bps = round((s_val - i_val) * 100, 2)  # rates in %, spread in bps
+            # Compute distribution of recent spread (1Y) for z-score context
+            iorb_by_date = {d: v for d, v in iorb_obs if v is not None}
+            spread_series = [
+                ((datetime.fromisoformat(d) - datetime.fromisoformat(min(s_date, i_date))).days,
+                 (v - iorb_by_date[d]) * 100)
+                for d, v in sofr_obs
+                if v is not None and d in iorb_by_date
+            ]
+            recent = [s for _, s in spread_series][-252:]  # 1Y of trading days
+            z = None
+            mean = std = None
+            if len(recent) >= 30:
+                mean = sum(recent) / len(recent)
+                var = sum((x - mean) ** 2 for x in recent) / len(recent)
+                std = var ** 0.5 if var > 0 else 1
+                z = round((spread_bps - mean) / std, 2) if std > 0 else 0
+
+            # Bucket: more negative = more stress (cash hoarding)
+            if spread_bps <= -15:
+                signal = "CRISIS"
+            elif spread_bps <= -7:
+                signal = "ELEVATED"
+            elif spread_bps <= -3:
+                signal = "WATCH"
+            else:
+                signal = "NORMAL"
+
+            out["SOFR_IORB_SPREAD"] = {
+                "name": "SOFR – IORB Spread",
+                "available": True,
+                "latest_date": s_date,
+                "spread_bps": spread_bps,
+                "sofr_pct": s_val,
+                "iorb_pct": i_val,
+                "z_score_1y": z,
+                "mean_1y_bps": round(mean, 2) if mean is not None else None,
+                "std_1y_bps": round(std, 2) if std is not None else None,
+                "signal": signal,
+                "interpretation": (
+                    "SOFR < IORB by ≥15bps = severe cash hoarding (Sep-2019 / March-2020 pattern)"
+                    if signal == "CRISIS" else
+                    "SOFR < IORB by ≥7bps = elevated repo stress"
+                    if signal == "ELEVATED" else
+                    "Mild repo stress (SOFR < IORB by 3-7bps)"
+                    if signal == "WATCH" else
+                    "Repo plumbing functioning normally"
+                ),
+            }
+        else:
+            out["SOFR_IORB_SPREAD"] = {"name": "SOFR – IORB Spread", "available": False}
+    else:
+        out["SOFR_IORB_SPREAD"] = {"name": "SOFR – IORB Spread", "available": False}
+
+    # ── 2-6. Direct FRED signals with threshold bucketing ──
+    for key in ("HY_OAS", "IG_BBB_OAS", "T10YIE", "DFII10", "SLOOS_TIGHTEN"):
+        meta = FUNDING_CREDIT_SIGNALS[key]
+        obs = observations_map.get(key, [])
+        if not obs:
+            out[key] = {"name": meta["name"], "available": False}
+            continue
+        latest_date, latest_val = latest_value(obs)
+        _, val_30d = value_at_offset(obs, 30)
+        _, val_90d = value_at_offset(obs, 90)
+        # 1Y z-score for context
+        distribution = historical_distribution(obs, lookback_years=1)
+        z = None
+        if distribution and len(distribution) >= 30 and latest_val is not None:
+            mean = sum(distribution) / len(distribution)
+            var = sum((x - mean) ** 2 for x in distribution) / len(distribution)
+            std = var ** 0.5 if var > 0 else 1
+            z = round((latest_val - mean) / std, 2) if std > 0 else 0
+
+        # Threshold bucket
+        signal = "NORMAL"
+        thr = meta.get("thresholds")
+        if thr and latest_val is not None:
+            if meta.get("stress_direction") == "higher":
+                if latest_val >= thr.get("crisis", 1e9):
+                    signal = "CRISIS"
+                elif latest_val >= thr.get("elevated", 1e9):
+                    signal = "ELEVATED"
+                elif latest_val >= thr.get("watch", 1e9):
+                    signal = "WATCH"
+
+        out[key] = {
+            "name": meta["name"],
+            "available": True,
+            "latest_date": latest_date,
+            "latest_value": latest_val,
+            "unit": meta.get("unit"),
+            "value_30d_ago": val_30d,
+            "delta_30d": (round(latest_val - val_30d, 4) if (latest_val is not None and val_30d is not None) else None),
+            "value_90d_ago": val_90d,
+            "delta_90d": (round(latest_val - val_90d, 4) if (latest_val is not None and val_90d is not None) else None),
+            "z_score_1y": z,
+            "thresholds": thr,
+            "signal": signal,
+        }
+
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Cross-currency basis synthesis
 # ─────────────────────────────────────────────────────────────────────
 
@@ -338,6 +517,9 @@ def lambda_handler(event, context):
         all_series.append((label, real_id))
     for sid in CROSS_CURRENCY_BASIS_INPUTS:
         all_series.append((sid, sid))
+    # Phase 9.3b: funding + credit signals
+    for label, meta in FUNDING_CREDIT_SIGNALS.items():
+        all_series.append((label, meta["fred_id"]))
 
     # 2. Parallel fetch (FRED is fine with ~10 concurrent reqs)
     observations_map = {}
@@ -464,6 +646,11 @@ def lambda_handler(event, context):
     # 6. Cross-currency basis proxy
     xcc_basis = synthesize_xcc_basis(observations_map)
 
+    # 6a. Phase 9.3b — Funding & Credit Signals
+    # The 5 highest-leverage missing crisis indicators:
+    #   SOFR-IORB spread, HY OAS, IG BBB OAS, T10YIE, DFII10, SLOOS C&I tightening
+    funding_credit = compute_funding_credit_signals(observations_map)
+
     # 7. Yield curve stress signals
     yc_results = {}
     for sid in ("T10Y2Y", "T10Y3M"):
@@ -484,13 +671,14 @@ def lambda_handler(event, context):
 
     # 8. Build final report
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",  # bumped: added funding_credit_signals section
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "fetch_time_sec": fetch_time,
         "composite": composite,
         "crisis_indices": crisis_results,
         "plumbing_tier2": plumbing,
         "mmf_composition": mmf_composition,
+        "funding_credit_signals": funding_credit,    # ← Phase 9.3b
         "xcc_basis_proxy": xcc_basis,
         "yield_curve": yc_results,
         "n_series_fetched": len(observations_map),
