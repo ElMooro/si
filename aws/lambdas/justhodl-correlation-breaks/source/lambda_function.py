@@ -77,7 +77,7 @@ INSTRUMENTS = {
     "DTWEXBGS":         {"label": "Broad USD",        "fred_id": "DTWEXBGS",         "diff_mode": "pct"},
     "DEXJPUS":          {"label": "JPY/USD",          "fred_id": "DEXJPUS",          "diff_mode": "pct"},
     "DCOILWTICO":       {"label": "WTI Oil",          "fred_id": "DCOILWTICO",       "diff_mode": "pct"},
-    "GOLDAMGBD228NLBM": {"label": "Gold (London PM)", "fred_id": "GOLDAMGBD228NLBM", "diff_mode": "pct"},
+    "GOLDPMGBD228NLBM": {"label": "Gold (London PM)", "fred_id": "GOLDPMGBD228NLBM", "diff_mode": "pct"},
 }
 
 WINDOW = 60         # rolling correlation window (trading days)
@@ -92,8 +92,8 @@ NOTABLE_PAIRS = {
     frozenset(("SP500", "DGS10")):          "Stock-bond correlation (flipping positive = inflation regime)",
     frozenset(("SP500", "DGS2")):           "SPX↔short-rates (sensitivity to Fed policy expectations)",
     frozenset(("DTWEXBGS", "SP500")):       "Dollar↔stocks (rising USD-SPX corr = late-cycle/risk-off)",
-    frozenset(("DTWEXBGS", "GOLDAMGBD228NLBM")): "Dollar-gold (textbook negative; break = monetary regime shift)",
-    frozenset(("DGS10", "GOLDAMGBD228NLBM")):    "10Y-Gold (real-rate hedge channel; break = stagflation pricing)",
+    frozenset(("DTWEXBGS", "GOLDPMGBD228NLBM")): "Dollar-gold (textbook negative; break = monetary regime shift)",
+    frozenset(("DGS10", "GOLDPMGBD228NLBM")):    "10Y-Gold (real-rate hedge channel; break = stagflation pricing)",
     frozenset(("DGS10", "DGS2")):           "10Y-2Y co-movement (curve dynamics)",
     frozenset(("BAMLH0A0HYM2", "SP500")):   "Credit-equity (HY OAS spike with stocks holding = late warning)",
     frozenset(("DTWEXBGS", "DEXJPUS")):     "Broad USD vs JPY/USD (carry dynamics)",
@@ -183,18 +183,27 @@ def align_returns(returns_by_instrument):
     then build a wide table: list of (date, [r_inst1, r_inst2, ...]).
 
     Why intersection? Correlations need synchronized observations.
+
+    Phase 9-fix: drop instruments whose return-series came back empty (e.g.
+    because their FRED series ID is invalid or returned 0 observations).
+    Without this, a single bad series collapses the intersection to empty.
     """
-    inst_keys = list(returns_by_instrument.keys())
+    # Drop empty instruments — they would otherwise zero the intersection
+    valid = {k: v for k, v in returns_by_instrument.items() if v}
+    dropped = [k for k, v in returns_by_instrument.items() if not v]
+    if dropped:
+        print(f"[align] dropping empty instruments: {dropped}")
+    inst_keys = list(valid.keys())
     if not inst_keys:
-        return []
+        return [], []
     # Start with first instrument's dates
-    common = set(returns_by_instrument[inst_keys[0]].keys())
+    common = set(valid[inst_keys[0]].keys())
     for k in inst_keys[1:]:
-        common &= set(returns_by_instrument[k].keys())
+        common &= set(valid[k].keys())
     sorted_dates = sorted(common)
     table = []
     for d in sorted_dates:
-        row = [returns_by_instrument[k][d] for k in inst_keys]
+        row = [valid[k][d] for k in inst_keys]
         table.append((d, row))
     return table, inst_keys
 
