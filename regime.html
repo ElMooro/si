@@ -154,7 +154,14 @@ footer a{margin:0 10px}
 
   <div id="warmupBanner" class="warmup-banner">
     <strong>⏳ Model warming up</strong>
-    <div style="margin-top:6px">The HMM is fitted on whatever historical data is available so far. With fewer than 60 observations, regime calls are directional but not yet calibrated to your specific signal characteristics. The model will improve over time as more data accumulates. Calibration target: 60+ daily observations.</div>
+    <div style="margin-top:6px">
+      The HMM needs <strong>≥12 observations</strong> to fit its first parameters and <strong>≥60 observations</strong> to be considered fully calibrated.
+      Current sample: <strong id="warmup-n">—</strong> observations.
+      <span id="warmup-detail"></span>
+    </div>
+    <div style="margin-top:6px;color:var(--fg-3);font-size:11px">
+      Note: archive entries with score = 0 (the Mar 9 → Apr 24 producer-bug period) are filtered from training. As more daily data accumulates from the post-fix Apr 25 baseline, the model retrains and improves automatically.
+    </div>
   </div>
 
   <!-- Composite anomaly banner -->
@@ -359,6 +366,16 @@ async function loadData() {
 
     if (data.hmm?.is_warming_up) {
       document.getElementById('warmupBanner').classList.add('show');
+      const n = data.hmm?.training_n ?? 0;
+      document.getElementById('warmup-n').textContent = n;
+      const detailEl = document.getElementById('warmup-detail');
+      if (n < 12) {
+        detailEl.textContent = ` ↳ Below 12-observation minimum — HMM has not fit yet. Showing all-zero state probabilities; this is expected.`;
+      } else if (n < 60) {
+        detailEl.textContent = ` ↳ HMM has fit but is below the 60-observation calibration target. Probabilities are directional, not authoritative.`;
+      }
+    } else {
+      document.getElementById('warmupBanner').classList.remove('show');
     }
 
     renderRegimes(data.hmm);
