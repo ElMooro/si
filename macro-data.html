@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Repo & Pre-Crisis Monitor · JustHodl.AI</title>
-<meta name="description" content="Repo plumbing health · pre-crisis warning system · 57 metrics · financial secretary API">
+<title>Macro Data · JustHodl.AI</title>
+<meta name="description" content="Global manufacturing PMI · Securities & banking · BEA GDP & national accounts">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -125,45 +125,42 @@ table.tbl tr:last-child td{border-bottom:none}
 
 <main class="page">
   <div class="page-head">
-    <h1>REPO · PRE-CRISIS MONITOR</h1>
-    <div class="sub">57-metric plumbing health monitor · phase classification · Financial Secretary v2.2 endpoints</div>
+    <h1>MACRO DATA</h1>
+    <div class="sub">Global manufacturing PMI · banking sector loans · BEA GDP & economic accounts · 3 agents in parallel</div>
   </div>
 
-  <div class="strip" id="strip">
-    <div class="strip-cell" id="phaseCell"><div class="label">PHASE</div><div class="value" id="phaseVal">—</div><div class="sub" id="phaseSub">market regime</div></div>
-    <div class="strip-cell" id="scoreCell"><div class="label">SCORE</div><div class="value" id="scoreVal">—</div><div class="sub" id="scoreSub">/100</div></div>
-    <div class="strip-cell red"><div class="label">RED FLAGS</div><div class="value" id="redVal">—</div><div class="sub" id="redSub">critical</div></div>
-    <div class="strip-cell amber"><div class="label">YELLOW FLAGS</div><div class="value" id="yellowVal">—</div><div class="sub">warnings</div></div>
+  <div class="grid-2">
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">GLOBAL MANUFACTURING PMI</div><div class="card-subtitle">Eurozone · Japan · UK · expansion vs contraction</div></div>
+      </div>
+      <div id="manufBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">SECURITIES &amp; BANKING</div><div class="card-subtitle">Total loans · Business loans · Real estate loans · 1W</div></div>
+      </div>
+      <div id="bankingBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
   </div>
-
   <div class="grid-1">
     <section class="card">
       <div class="card-head">
-        <div><div class="card-title">PRE-CRISIS WARNING SYSTEM</div><div class="card-subtitle" id="repoSubtitle">Plumbing health monitor · 57 metrics · auto-refresh every 30 min</div></div>
-        <div id="actionPill"></div>
+        <div><div class="card-title">BEA · GDP &amp; ECONOMIC ACCOUNTS</div><div class="card-subtitle">Bureau of Economic Analysis · National accounts · Personal income · Trade · Consumer spending</div></div>
       </div>
-      <div id="repoBody">
-        <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-head">
-        <div><div class="card-title">FINANCIAL SECRETARY</div><div class="card-subtitle">Multi-endpoint API · price/news/history/crypto/recommendations</div></div>
-      </div>
-      <div id="secretaryBody"><div class="skel"></div></div>
+      <div id="beaBody" style="overflow-x:auto"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </section>
   </div>
 
 </main>
 
 <footer class="footer">
-  <div>JUSTHODL · AI · REPO &amp; SECRETARY</div>
-  <div style="margin-top:8px;color:var(--fg-4)">Powered by justhodl-repo-monitor + justhodl-financial-secretary</div>
+  <div>JUSTHODL · AI · MACRO DATA</div>
+  <div style="margin-top:8px;color:var(--fg-4)">Powered by manufacturing-global-agent · securities-banking-agent · bea-economic-agent</div>
 </footer>
 
 <script>
-const URLS = {"repo": "https://justhodl-dashboard-live.s3.amazonaws.com/repo-data.json", "secretary": "https://api.justhodl.ai/agent/secretary"};
+const URLS = {"manufacturing": "https://api.justhodl.ai/agent/manufacturing", "banking": "https://api.justhodl.ai/agent/banking", "bea": "https://api.justhodl.ai/agent/bea"};
 
 function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -222,187 +219,91 @@ function renderMetricsTable(targetId, dataDict, opts){
 }
 
 
-function classifyPhase(phase){
-  const p = String(phase||'').toUpperCase();
-  if(p.includes('CRISIS') && !p.includes('PRE')) return 'red';
-  if(p.includes('WARNING') || p.includes('PRE-CRISIS') || p.includes('ELEVATED')) return 'amber';
-  if(p.includes('NORMAL') || p.includes('STABLE')) return 'green';
-  return 'cyan';
-}
-function classifyStatus(status){
-  const s = String(status||'').toUpperCase();
-  if(s.includes('CRITICAL') || s.includes('CRISIS')) return 'red';
-  if(s.includes('ELEVATED') || s.includes('WARNING')) return 'amber';
-  if(s.includes('NORMAL') || s.includes('OK')) return 'green';
-  return 'cyan';
-}
-
-function renderMetricCategory(targetId, sectionDict, sectionLabel){
+function renderBeaTable(targetId, beaSection, sectionName){
   const target = document.getElementById(targetId);
-  if(!sectionDict || Object.keys(sectionDict).length === 0){
-    target.innerHTML = `<div class="empty-state">No ${escHtml(sectionLabel)} data</div>`;
+  if(!beaSection || !beaSection.length){
+    target.innerHTML = `<div class="empty-state">No ${escHtml(sectionName)} data</div>`;
     return;
   }
-  let html = `<table class="tbl"><thead><tr>
-    <th>METRIC</th><th class="r">VALUE</th><th>STATUS</th>
+  let html = `<table class="tbl" style="min-width:880px"><thead><tr>
+    <th style="min-width:260px">SERIES</th><th>PERIOD</th><th class="r">VALUE</th><th>UNIT</th>
   </tr></thead><tbody>`;
-  for(const [k, v] of Object.entries(sectionDict)){
-    if(v == null) continue;
-    let valDisp = '—', statusDisp = '—', sigCls = '';
-    if(typeof v === 'object'){
-      // Common shapes: {value, status} or {current, signal} or {latest, ...}
-      const val = v.value ?? v.current ?? v.latest ?? v.level;
-      if(val != null) valDisp = typeof val === 'number' ? fmtNum(val, Math.abs(val) >= 100 ? 2 : 4) : escHtml(String(val));
-      statusDisp = v.status || v.signal || v.flag || '—';
-      sigCls = signalCls(statusDisp);
-    }else if(typeof v === 'number'){
-      valDisp = fmtNum(v, Math.abs(v) >= 100 ? 2 : 4);
-    }else{
-      valDisp = escHtml(String(v));
-    }
-    html += `<tr>
-      <td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td>
-      <td class="r">${valDisp}</td>
-      <td><span class="signal-badge ${sigCls}">${escHtml(statusDisp)}</span></td>
-    </tr>`;
+  for(const row of beaSection.slice(0, 30)){
+    const desc = row.LineDescription || '—';
+    const period = row.TimePeriod || '—';
+    const val = row.DataValue || '—';
+    const unit = row.CL_UNIT || '—';
+    html += `<tr><td class="metric-name">${escHtml(desc)}</td><td>${escHtml(period)}</td><td class="r">${escHtml(val)}</td><td style="font-size:9px">${escHtml(unit)}</td></tr>`;
   }
   html += '</tbody></table>';
   target.innerHTML = html;
 }
 
 async function load(){
-  const [repo, sec] = await Promise.allSettled([
-    fetchAgent(URLS.repo),
-    fetchAgent(URLS.secretary),
+  // Load 3 agents in parallel
+  const [manuf, banking, bea] = await Promise.allSettled([
+    fetchAgent(URLS.manufacturing),
+    fetchAgent(URLS.banking),
+    fetchAgent(URLS.bea),
   ]);
 
   let allOk = true;
 
-  if(repo.status === 'fulfilled'){
-    const r = repo.value;
-    const stress = r.stress || {};
-    const intel = r.intelligence || {};
-    const summary = r.summary || {};
-    const dataMetrics = r.data || {};
-
-    const phase = intel.phase || summary.phase || 'UNKNOWN';
-    const status = stress.status || summary.status || '—';
-    const score = stress.score ?? summary.score;
-    const redFlags = stress.red_flags ?? summary.red_flags;
-    const yellowFlags = stress.yellow_flags ?? summary.yellow_flags ?? 0;
-    const totalMetrics = summary.total_metrics ?? '?';
-    const action = stress.action || '—';
-    const headline = intel.headline || '';
-    const headlineDetail = intel.headline_detail || '';
-
-    // Top strip
-    const phaseCls = classifyPhase(phase);
-    const phaseCell = document.getElementById('phaseCell');
-    phaseCell.classList.remove('green','amber','red','cyan');
-    phaseCell.classList.add(phaseCls);
-    document.getElementById('phaseVal').textContent = phase;
-    document.getElementById('phaseSub').textContent = headline.replace(/[\u26a0\ufe0f⚠️]/g,'').trim() || 'plumbing status';
-
-    const scoreCell = document.getElementById('scoreCell');
-    scoreCell.classList.remove('green','amber','red','cyan');
-    if(score != null){
-      // Score 27 = elevated stress (lower = worse here per stress score interpretation)
-      // The schema uses 0-100 stress score where higher means MORE stress
-      // (we observed 27 = ELEVATED, so reverse our logic — but to be safe, use status to color)
-      scoreCell.classList.add(classifyStatus(status));
-    }
-    document.getElementById('scoreVal').textContent = score != null ? score : '—';
-    document.getElementById('scoreSub').textContent = `${totalMetrics} metrics · ${escHtml(status.toLowerCase())}`;
-
-    document.getElementById('redVal').textContent = redFlags != null ? redFlags : '—';
-    document.getElementById('redSub').textContent = (status || '').toLowerCase();
-    document.getElementById('yellowVal').textContent = yellowFlags;
-
-    // Action pill
-    if(action){
-      const cls = phaseCls === 'red' ? 'red' : phaseCls === 'amber' ? 'amber' : 'green';
-      document.getElementById('actionPill').innerHTML = `<span class="status-pill ${cls}">${escHtml(action)}</span>`;
-    }
-
-    // Headline + flags + metric categories
-    let html = '';
-    if(headline){
-      const headlineCls = phaseCls === 'red' ? 'red' : phaseCls === 'amber' ? 'amber' : 'green';
-      const headlineColor = headlineCls === 'red' ? 'var(--red)' : headlineCls === 'amber' ? 'var(--amber)' : 'var(--green)';
-      html += `<div style="font-family:var(--font-mono);font-size:14px;color:var(--fg-1);font-weight:600;margin-bottom:6px;padding:14px 16px;background:var(--bg-elevated);border-left:3px solid ${headlineColor};border-radius:3px">${escHtml(headline)}</div>`;
-      if(headlineDetail){
-        html += `<div style="font-family:var(--font-sans);font-size:12px;color:var(--fg-2);font-style:italic;margin-bottom:18px;padding:0 16px">${escHtml(headlineDetail)}</div>`;
-      }
-    }
-
-    // Active flags
-    const flags = stress.flags || [];
-    if(flags.length){
-      html += `<div style="margin-bottom:18px"><div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px">ACTIVE STRESS FLAGS (${flags.length})</div>`;
-      html += `<ul style="list-style:none;padding:0;margin:0">`;
-      for(const f of flags){
-        let txt = typeof f === 'string' ? f : (f.message || f.flag || JSON.stringify(f));
-        html += `<li style="padding:8px 12px;background:var(--bg-elevated);border-radius:3px;margin-bottom:6px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);border-left:3px solid var(--red)">${escHtml(txt)}</li>`;
-      }
-      html += '</ul></div>';
-    }
-
-    // Metric category tables
-    const categories = [
-      ['repo_rates', 'REPO RATES'],
-      ['reverse_repo', 'REVERSE REPO'],
-      ['fed_facilities', 'FED FACILITIES'],
-      ['funding_spreads', 'FUNDING SPREADS'],
-      ['swaps', 'CROSS-CURRENCY SWAPS'],
-      ['systemic', 'SYSTEMIC METRICS'],
-    ];
-    html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:16px">`;
-    for(const [key, label] of categories){
-      const sect = dataMetrics[key];
-      if(!sect || Object.keys(sect).length === 0) continue;
-      html += `<div><div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px">${escHtml(label)} (${Object.keys(sect).length})</div><div id="cat_${key}"></div></div>`;
-    }
-    html += `</div>`;
-    document.getElementById('repoBody').innerHTML = html;
-
-    // Render each category table after DOM is ready
-    for(const [key, label] of categories){
-      const sect = dataMetrics[key];
-      if(!sect || Object.keys(sect).length === 0) continue;
-      renderMetricCategory(`cat_${key}`, sect, label);
-    }
-
+  if(manuf.status === 'fulfilled'){
+    const d = manuf.value;
+    // Combine us + global
+    const merged = {...(d.us_manufacturing||{}), ...(d.global_manufacturing||{})};
+    renderMetricsTable('manufBody', merged, {cols:['1D','1M']});
   }else{
-    document.getElementById('repoBody').innerHTML = `<div class="err">⚠ Repo monitor: ${escHtml(repo.reason.message)}</div>`;
+    document.getElementById('manufBody').innerHTML = `<div class="err">⚠ Manufacturing: ${escHtml(manuf.reason.message)}</div>`;
     allOk = false;
   }
 
-  if(sec.status === 'fulfilled'){
-    const s = sec.value;
-    let html = `<div style="font-family:var(--font-mono);font-size:11px;color:var(--fg-2)"><strong style="color:var(--fg-1)">${escHtml(s.service || 'Financial Secretary')}</strong></div>`;
-    if(s.endpoints){
-      html += `<div style="margin-top:14px"><div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px">AVAILABLE ENDPOINTS</div>`;
-      html += `<table class="tbl"><thead><tr><th>METHOD + PATH</th><th>DESCRIPTION</th></tr></thead><tbody>`;
-      for(const [k, v] of Object.entries(s.endpoints)){
-        html += `<tr><td class="metric-name" style="font-family:var(--font-mono)">${escHtml(k)}</td><td>${escHtml(v)}</td></tr>`;
-      }
-      html += '</tbody></table></div>';
-    }
-    document.getElementById('secretaryBody').innerHTML = html;
+  if(banking.status === 'fulfilled'){
+    renderMetricsTable('bankingBody', banking.value.banking_metrics || {}, {cols:['1W']});
   }else{
-    document.getElementById('secretaryBody').innerHTML = `<div class="err">⚠ Secretary: ${escHtml(sec.reason.message)}</div>`;
+    document.getElementById('bankingBody').innerHTML = `<div class="err">⚠ Banking: ${escHtml(banking.reason.message)}</div>`;
     allOk = false;
   }
 
-  document.getElementById('statusPill').textContent = allOk ? 'LIVE' : 'PARTIAL';
-  document.getElementById('statusPill').className = allOk ? 'status-pill green' : 'status-pill red';
+  if(bea.status === 'fulfilled'){
+    const d = bea.value;
+    const beaData = d.bea_data || {};
+    // Pick GDP if available, else first key
+    const candidates = ['gdp', 'personal_income', 'consumer_spending', 'trade'];
+    let chosenKey = null;
+    let chosenList = null;
+    for(const k of candidates){
+      if(beaData[k] && beaData[k].length){ chosenKey = k; chosenList = beaData[k]; break; }
+    }
+    if(!chosenList){
+      const keys = Object.keys(beaData);
+      if(keys.length){ chosenKey = keys[0]; chosenList = beaData[keys[0]]; }
+    }
+    if(chosenList){
+      renderBeaTable('beaBody', chosenList, chosenKey || 'BEA');
+    }else{
+      document.getElementById('beaBody').innerHTML = '<div class="empty-state">No BEA tables in response</div>';
+    }
+  }else{
+    document.getElementById('beaBody').innerHTML = `<div class="err">⚠ BEA: ${escHtml(bea.reason.message)}</div>`;
+    allOk = false;
+  }
+
+  if(allOk){
+    document.getElementById('statusPill').textContent = 'LIVE';
+    document.getElementById('statusPill').className = 'status-pill green';
+  }else{
+    document.getElementById('statusPill').textContent = 'PARTIAL';
+    document.getElementById('statusPill').className = 'status-pill red';
+  }
 }
 
 
 updateClock();
 setInterval(updateClock, 1000);
 load();
-setInterval(load, 1800000);
+setInterval(load, 300000);
 </script>
 
 </body>

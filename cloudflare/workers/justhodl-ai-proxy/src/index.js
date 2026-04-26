@@ -1,10 +1,12 @@
 /**
  * justhodl-ai-proxy
  *
- * Cloudflare Worker that proxies browser requests to two AWS Lambdas:
+ * Cloudflare Worker that proxies browser requests to AWS Lambdas:
  *   POST /            → justhodl-ai-chat   (with auth token)
  *   POST /chat        → justhodl-ai-chat   (alias)
  *   GET  /research?…  → justhodl-stock-ai-research  (no auth)
+ *   POST /investor    → justhodl-investor-agents    (no auth, body {ticker})
+ *   GET  /agent/<n>   → AGENT_LAMBDAS[n]            (no auth, generic data agents)
  *
  * Why a Worker instead of direct Lambda URLs:
  *   1. Lambda URLs (*.lambda-url.us-east-1.on.aws) are blocked by some
@@ -17,7 +19,8 @@
  *   1. Origin allowlist (only justhodl.ai / www.justhodl.ai)
  *   2. Method allowlist per path
  *   3. Body size cap on POSTs
- *   4. Upstream auth where required (ai-chat token attached here)
+ *   4. AGENT_LAMBDAS whitelist — only listed agents are reachable
+ *   5. Upstream auth where required (ai-chat token attached here)
  *
  * CORS preflight (OPTIONS) handled at the Worker; never reaches Lambda.
  */
@@ -25,6 +28,21 @@
 const LAMBDA_AI_CHAT     = 'https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/';
 const LAMBDA_AI_RESEARCH = 'https://obcsgkzlvicwc6htdmj5wg6yae0tfmya.lambda-url.us-east-1.on.aws/';
 const LAMBDA_INVESTOR_AGENTS = 'https://7qufoauxzhqwnrsmdjjwt46wy40zzdyp.lambda-url.us-east-1.on.aws/';
+
+// Whitelist of generic data agents reachable via /agent/<key>
+// All return JSON via Function URL with permissive CORS.
+const AGENT_LAMBDAS = {
+  'volatility':      'https://w4bvakowhpbkvy3mqkzp66xfaa0kpfqi.lambda-url.us-east-1.on.aws/',
+  'dollar':          'https://us3uynmi23u676v3szd27ldwuq0jeqee.lambda-url.us-east-1.on.aws/',
+  'bonds':           'https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/',
+  'bea':             'https://hnqqkbf7y6avoda5v4rexwk3440ibbru.lambda-url.us-east-1.on.aws/',
+  'manufacturing':   'https://atjkdhikbinborcc2pujbs3jxm0iugqe.lambda-url.us-east-1.on.aws/',
+  'banking':         'https://iru4ado3aki625pnswcpycrniq0ctjba.lambda-url.us-east-1.on.aws/',
+  'trends':          'https://ohmu2l54tpbgm6jk7e5s6q3jpe0cqvij.lambda-url.us-east-1.on.aws/',
+  'sentiment':       'https://rtfrjcj43osvg4u4vza5bhf4pm0udfmo.lambda-url.us-east-1.on.aws/',
+  'secretary':       'https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/',
+  'macro-brief':     'https://qhmg6ybf5qhkviw2c6tlizar4e0xhbrc.lambda-url.us-east-1.on.aws/',
+};
 
 const ALLOWED_ORIGINS = new Set([
   'https://justhodl.ai',
@@ -158,6 +176,47 @@ async function handleInvestorAgents(request, env, origin) {
   });
 }
 
+async function handleAgent(request, env, origin, agentKey, subPath) {
+  // Generic data-agent proxy. Looks up agentKey in AGENT_LAMBDAS,
+  // forwards GET request (preserving query string + sub-path).
+  if (request.method !== 'GET') {
+    return json(405, { error: 'Method not allowed (use GET)' }, origin);
+  }
+  const upstreamBase = AGENT_LAMBDAS[agentKey];
+  if (!upstreamBase) {
+    return json(404, { error: 'Unknown agent', agent: agentKey, available: Object.keys(AGENT_LAMBDAS) }, origin);
+  }
+  const url = new URL(request.url);
+  // Build upstream URL: base + subPath + query
+  let targetUrl = upstreamBase;
+  if (subPath) {
+    targetUrl = upstreamBase.replace(/\/$/, '') + '/' + subPath.replace(/^\/+/, '');
+  }
+  if (url.search) {
+    targetUrl += url.search;
+  }
+  let upstream;
+  try {
+    upstream = await fetch(targetUrl, {
+      method: 'GET',
+      headers: { 'Origin': 'https://justhodl.ai' },
+    });
+  } catch (e) {
+    return json(502, { error: 'Upstream unreachable', detail: String(e), agent: agentKey }, origin);
+  }
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: {
+      ...corsHeaders(origin),
+      'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
+      // 60s cache — agents update at varying cadences (5min - hourly).
+      // Saves Lambda invocations + makes pages snappy on revisit.
+      'Cache-Control': 'public, max-age=60',
+    },
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
@@ -172,6 +231,12 @@ export default {
     // Origin check
     if (!ALLOWED_ORIGINS.has(origin)) {
       return json(403, { error: 'Forbidden' }, origin);
+    }
+
+    // /agent/<key>[/<subpath>]
+    const agentMatch = path.match(/^\/agent\/([a-z0-9-]+)(\/.*)?$/);
+    if (agentMatch) {
+      return handleAgent(request, env, origin, agentMatch[1], agentMatch[2] || '');
     }
 
     // Path-based routing

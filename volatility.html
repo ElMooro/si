@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Volatility Monitor · JustHodl.AI</title>
+<meta name="description" content="VIX · MOVE · SKEW · cross-asset volatility regime classification with divergence detection. Auto-refresh every 5 minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-sunken)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;font-weight:600;border:1px solid currentColor}
+.status-pill.green{background:rgba(56,255,168,.06);color:var(--green)}
+.status-pill.amber{background:rgba(255,177,61,.06);color:var(--amber)}
+.status-pill.red{background:rgba(255,92,122,.06);color:var(--red)}
+.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+
+.page{max-width:1620px;margin:0 auto;padding:24px}
+.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
+.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+
+.regime-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-bottom:24px;background:var(--border);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden}
+.regime-cell{background:var(--bg-raised);padding:18px 20px}
+.regime-cell .label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.regime-cell .value{font-family:var(--font-mono);font-size:34px;font-weight:600;line-height:1;margin-bottom:4px}
+.regime-cell .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px}
+.regime-cell.green .value{color:var(--green)}
+.regime-cell.amber .value{color:var(--amber)}
+.regime-cell.red .value{color:var(--red)}
+.regime-cell.cyan .value{color:var(--cyan)}
+@media (max-width:1024px){.regime-strip{grid-template-columns:repeat(2,1fr)}}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative}
+.card::before,.card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
+.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
+
+table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+table.tbl th{text-align:left;font-weight:500;letter-spacing:1.5px;color:var(--fg-3);font-size:9px;padding:8px 6px;border-bottom:1px solid var(--border);text-transform:uppercase}
+table.tbl th.r{text-align:right}
+table.tbl td{padding:9px 6px;border-bottom:1px solid rgba(120,145,180,.06);color:var(--fg-2);vertical-align:middle}
+table.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
+table.tbl tr:hover td{background:rgba(120,145,180,.04)}
+table.tbl tr:last-child td{border-bottom:none}
+.metric-name{color:var(--fg-1);font-weight:500}
+.chg-pos{color:var(--green)}
+.chg-neg{color:var(--red)}
+
+.divergence-list{list-style:none;padding:0}
+.divergence-list li{padding:10px 12px;background:var(--bg-elevated);border-radius:3px;margin-bottom:8px;font-family:var(--font-mono);font-size:11px;color:var(--fg-2);border-left:3px solid var(--amber)}
+.divergence-list li:last-child{margin-bottom:0}
+.empty-state{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);font-style:italic;padding:18px;text-align:center}
+
+.recommendations{display:grid;grid-template-columns:1fr;gap:8px}
+.rec{padding:12px 14px;background:var(--bg-elevated);border-radius:3px;border-left:3px solid var(--cyan);font-family:var(--font-sans);font-size:12px;color:var(--fg-1);line-height:1.5}
+
+.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px;height:14px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.err{color:var(--red);font-family:var(--font-mono);font-size:11px;padding:12px;background:rgba(255,92,122,.04);border:1px solid var(--red-dim);border-radius:3px}
+
+.signal-badge{display:inline-block;padding:2px 7px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--fg-2)}
+.signal-badge.high{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
+.signal-badge.elevated{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.05)}
+.signal-badge.normal{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
+.signal-badge.low{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,212,255,.05)}
+
+.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/stock/">STOCK</a>
+    <a href="/screener/">SCREENER</a>
+    <a href="/edge.html">EDGE</a>
+    <a href="/intelligence.html">INTEL</a>
+    <a href="/liquidity.html">LIQUIDITY</a>
+    <a href="/flow.html">FLOW</a>
+    <a href="/crypto/">CRYPTO</a>
+    <a href="/positioning/">COT</a>
+    <a href="/risk.html">RISK</a>
+    <a href="/volatility.html" class="active">VOL</a>
+    <a href="/system.html">SYSTEM</a>
+    <a href="/investor.html">INVESTORS</a>
+  </nav>
+  <div class="topbar-meta">
+    <span id="clock">—</span>
+    <span class="status-pill green" id="statusPill">LIVE</span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>VOLATILITY MONITOR</h1>
+    <div class="sub">VIX · MOVE · SKEW · cross-asset volatility regime · auto-refresh 5min · powered by volatility-monitor-agent</div>
+  </div>
+
+  <div class="regime-strip" id="regimeStrip">
+    <div class="regime-cell cyan"><div class="label">REGIME</div><div class="value" id="regimeVal">—</div><div class="sub" id="regimeSub">classifying…</div></div>
+    <div class="regime-cell"><div class="label">VIX</div><div class="value" id="vixVal">—</div><div class="sub" id="vixSub">—</div></div>
+    <div class="regime-cell"><div class="label">MOVE</div><div class="value" id="moveVal">—</div><div class="sub" id="moveSub">—</div></div>
+    <div class="regime-cell"><div class="label">RISK ENV</div><div class="value" id="riskVal">—</div><div class="sub" id="riskSub">—</div></div>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">EQUITY VOLATILITY</div><div class="card-subtitle">VIX surface · Vol of vol · forward curve</div></div>
+      </div>
+      <div id="eqVolBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">CROSS-ASSET VOLATILITY</div><div class="card-subtitle">Bonds · FX · commodities · crypto</div></div>
+      </div>
+      <div id="assetVolBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">TERM STRUCTURE</div><div class="card-subtitle">Front · 3m · 6m · 1y · contango/backwardation</div></div>
+      </div>
+      <div id="termStrucBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><div class="card-title">DIVERGENCES &amp; RECOMMENDATIONS</div><div class="card-subtitle">Cross-asset signal mismatches · trade ideas</div></div>
+      </div>
+      <div id="divBody"><div class="skel"></div><div class="skel"></div></div>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div>JUSTHODL · AI · VOLATILITY MONITOR</div>
+  <div style="margin-top:8px;color:var(--fg-4)">Powered by volatility-monitor-agent · routed via api.justhodl.ai/agent/volatility</div>
+</footer>
+
+<script>
+const URL_VOL = 'https://api.justhodl.ai/agent/volatility';
+
+function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtSigned(n,d=2){if(n==null||isNaN(n))return'—';const s=Number(n)>=0?'+':'';return s+Number(n).toFixed(d)+'%'}
+function chgClass(n){if(n==null||isNaN(n))return'';return Number(n)>=0?'chg-pos':'chg-neg'}
+function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
+
+function regimeClass(regime){
+  const r = (regime||'').toUpperCase();
+  if(r === 'CRISIS' || r === 'STRESS' || r === 'HIGH') return 'red';
+  if(r === 'ELEVATED' || r === 'CAUTION') return 'amber';
+  if(r === 'LOW' || r === 'COMPLACENT') return 'cyan';
+  return 'green'; // NORMAL
+}
+
+function signalCls(signal){
+  const s = (signal||'').toUpperCase();
+  if(s.includes('HIGH') || s.includes('CRISIS') || s.includes('STRESS')) return 'high';
+  if(s.includes('ELEVATED') || s.includes('CAUTION')) return 'elevated';
+  if(s.includes('LOW') || s.includes('COMPLACENT')) return 'low';
+  return 'normal';
+}
+
+function renderTable(targetId, dataDict, emptyMsg){
+  const target = document.getElementById(targetId);
+  if(!dataDict || Object.keys(dataDict).length === 0){
+    target.innerHTML = `<div class="empty-state">${escHtml(emptyMsg || 'No data')}</div>`;
+    return;
+  }
+  let html = `<table class="tbl"><thead><tr>
+    <th>METRIC</th><th class="r">CURRENT</th><th class="r">1D</th><th class="r">1W</th><th class="r">1M</th><th>SIGNAL</th>
+  </tr></thead><tbody>`;
+  for(const [k, v] of Object.entries(dataDict)){
+    if(!v || typeof v !== 'object') continue;
+    const ch = v.changes || {};
+    html += `<tr>
+      <td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td>
+      <td class="r">${fmtNum(v.current, v.current >= 1000 ? 0 : 2)}</td>
+      <td class="r ${chgClass(ch['1D'])}">${fmtSigned(ch['1D'])}</td>
+      <td class="r ${chgClass(ch['1W'])}">${fmtSigned(ch['1W'])}</td>
+      <td class="r ${chgClass(ch['1M'])}">${fmtSigned(ch['1M'])}</td>
+      <td><span class="signal-badge ${signalCls(v.signal)}">${escHtml(v.signal||'—')}</span></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  target.innerHTML = html;
+}
+
+async function load(){
+  try{
+    const r = await fetch(URL_VOL);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const wrapped = await r.json();
+    // Handle both raw response or {statusCode, body}-wrapped
+    let data = wrapped;
+    if(wrapped.statusCode && typeof wrapped.body === 'string'){
+      data = JSON.parse(wrapped.body);
+    }
+
+    // Top strip
+    const an = data.analysis || {};
+    const regime = an.volatility_regime || 'UNKNOWN';
+    const cell0 = document.getElementById('regimeStrip').children[0];
+    cell0.classList.remove('green','amber','red','cyan');
+    cell0.classList.add(regimeClass(regime));
+    document.getElementById('regimeVal').textContent = regime;
+    document.getElementById('regimeSub').textContent = data.timestamp ? 'updated ' + data.timestamp.slice(11,16) : '—';
+    document.getElementById('vixVal').textContent = an.vix_level != null ? an.vix_level.toFixed(1) : '—';
+    document.getElementById('vixSub').textContent = an.vix_percentile != null ? `${an.vix_percentile.toFixed(0)}th pct` : '—';
+    document.getElementById('moveVal').textContent = an.move_level != null ? an.move_level.toFixed(0) : '—';
+    document.getElementById('moveSub').textContent = 'bond vol';
+    document.getElementById('riskVal').textContent = an.risk_environment || '—';
+    document.getElementById('riskSub').textContent = 'cross-asset';
+
+    // Tables
+    renderTable('eqVolBody', data.equity_volatility, 'No equity volatility data — VIX/SKEW source may be temporarily unavailable');
+    renderTable('assetVolBody', data.asset_volatility, 'No cross-asset volatility data');
+    renderTable('termStrucBody', data.term_structure, 'No term structure data');
+
+    // Divergences + recommendations
+    const divs = an.divergences || [];
+    const recs = data.recommendations || [];
+    let divHtml = '';
+    if(divs.length){
+      divHtml += '<ul class="divergence-list">';
+      for(const d of divs) divHtml += `<li>${escHtml(typeof d === 'string' ? d : JSON.stringify(d))}</li>`;
+      divHtml += '</ul>';
+    }
+    if(recs.length){
+      divHtml += '<div style="margin-top:12px"><div style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px">RECOMMENDATIONS</div>';
+      divHtml += '<div class="recommendations">';
+      for(const rec of recs) divHtml += `<div class="rec">${escHtml(typeof rec === 'string' ? rec : JSON.stringify(rec))}</div>`;
+      divHtml += '</div></div>';
+    }
+    if(!divHtml) divHtml = '<div class="empty-state">No divergences detected — vol regime is internally consistent.</div>';
+    document.getElementById('divBody').innerHTML = divHtml;
+
+    document.getElementById('statusPill').textContent = 'LIVE';
+    document.getElementById('statusPill').className = 'status-pill green';
+  }catch(e){
+    document.getElementById('eqVolBody').innerHTML = `<div class="err">⚠ Failed: ${escHtml(e.message)}</div>`;
+    document.getElementById('statusPill').textContent = 'OFFLINE';
+    document.getElementById('statusPill').className = 'status-pill red';
+  }
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
