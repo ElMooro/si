@@ -223,7 +223,7 @@ CROSS_CURRENCY_BASIS_INPUTS = {
     "T10Y3M":          "10Y-3M spread",
     # ── Phase 9.3c: foreign 3M rates for rate-differential approach ──
     "IR3TIB01JPM156N": "Japan 3M Interbank rate (monthly)",
-    "IR3TBB01EZM156N": "Eurozone 3M T-Bill rate (monthly)",
+    "ECBESTRVOLWGTTRMDMNRT": "Eurozone ESTR (modern overnight benchmark, daily)",
     # ── Phase 9.3c: broad dollar index — global USD funding stress ──
     "DTWEXBGS":        "Broad Trade-Weighted USD Index (daily)",
     # ── Phase 9.3c: unsecured overnight bank funding ──
@@ -261,9 +261,11 @@ FUNDING_CREDIT_SIGNALS = {
         "thresholds": {"watch": 4.5, "elevated": 6.0, "crisis": 10.0},
     },
     # IG (BBB) OAS — secondary credit fear gauge — also published in PERCENT
+    # FRED ID BAMLC0A4CBBB ("ICE BofA US Corporate Index BBB Option-Adjusted Spread")
+    # confirmed live by step 241; the previously-tried BAMLC0A4CMTRIV doesn't exist.
     "IG_BBB_OAS": {
         "name": "IG BBB Credit Spread",
-        "fred_id": "BAMLC0A4CMTRIV",
+        "fred_id": "BAMLC0A4CBBB",
         "unit": "pct",
         "stress_direction": "higher",
         "thresholds": {"watch": 1.75, "elevated": 2.5, "crisis": 4.0},
@@ -526,11 +528,17 @@ def synthesize_xcc_basis(observations_map):
             out["rate_diff_jpy_3m"] = {"available": False, "reason": "insufficient overlap"}
 
     # ── 2. EUR rate differential ──
-    eur_3m = observations_map.get("IR3TBB01EZM156N", [])  # monthly, %
-    if usd_3m and eur_3m:
+    # Uses ESTR (Euro Short-Term Rate) — the modern Eurozone overnight benchmark
+    # that replaced EONIA. Daily data, current. Tenor mismatch with USD 3M T-Bill
+    # is acceptable: this signal tracks the SHAPE of the differential over time
+    # (its z-score), not the absolute level. The OECD's IR3TIB01EZM156N (3M
+    # interbank, the JPY-symmetric series) publishes with ~115d lag making it
+    # too stale for a stress signal that needs to respond within days.
+    eur_short = observations_map.get("ECBESTRVOLWGTTRMDMNRT", [])  # daily, %
+    if usd_3m and eur_short:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=400)).strftime("%Y-%m-%d")
         usd_recent = [(d, v) for d, v in usd_3m if v is not None and d >= cutoff]
-        eur_daily = _carry_forward(eur_3m, [d for d, _ in usd_recent])
+        eur_daily = _carry_forward(eur_short, [d for d, _ in usd_recent])
 
         diffs = []
         for d, uv in usd_recent:
@@ -578,8 +586,8 @@ def synthesize_xcc_basis(observations_map):
                     if signal == "WATCH" else
                     "Rate differential within 1Y normal range"
                 ),
-                "method": "USD 3M T-Bill (DGS3MO) minus Eurozone 3M T-Bill (IR3TBB01EZM156N), 1Y z-score",
-                "caveat": "Approximates CIP deviation; true basis requires forward FX (not on FRED)",
+                "method": "USD 3M T-Bill (DGS3MO) minus EUR ESTR overnight (ECBESTRVOLWGTTRMDMNRT), 1Y z-score",
+                "caveat": "Tenor mismatch (USD 3M vs EUR overnight); z-score of differential is what matters, not the level",
             }
         else:
             out["rate_diff_eur_3m"] = {"available": False, "reason": "insufficient overlap"}
