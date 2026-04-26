@@ -301,7 +301,7 @@ function render(d, elapsed){
         <div class="consensus-cell">
           <div class="label">REGIME</div>
           <div class="val" style="font-size:24px;color:var(--cyan)">${escHtml(d.macro?.regime || '—')}</div>
-          <div class="sub">KA ${d.macro?.khalid_score != null ? d.macro.khalid_score : '—'}/100</div>
+          <div class="sub">KA ${(d.macro?.ka_score ?? d.macro?.khalid_score) != null ? (d.macro?.ka_score ?? d.macro?.khalid_score) : '—'}/100</div>
         </div>
       </div>
       ${cons.summary ? `<div class="consensus-summary">${escHtml(cons.summary)}</div>` : ''}

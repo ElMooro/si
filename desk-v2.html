@@ -893,7 +893,7 @@ function renderStrip(risk, regime, intel){
       fmt(summary.total_recommended_size_pct, 1) + '%' : '—';
 
   // KA Index from intelligence
-  const ki = intelObj.khalid_index || {};
+  const ki = intelObj.ka_index ?? intelObj.khalid_index ?? {};
   const kiScore = typeof ki === 'object' ? ki.score : ki;
   const kiRegime = typeof ki === 'object' ? ki.regime : intelObj.regime;
   const stripK = document.getElementById('stripKhalid');
@@ -1060,14 +1060,14 @@ function renderPnl(pnl){
   const el = document.getElementById('cardPnl');
   if (!pnl) { el.innerHTML = '<div class="empty">LOOP 2 WARMING UP</div>'; return; }
   const bh = pnl.buy_and_hold || {};
-  const ks = pnl.khalid_strategy || {};
+  const ks = pnl.ka_strategy ?? pnl.khalid_strategy ?? {};
   const delta = pnl.delta_pct || 0;
   const rows = [
     ['inception', pnl.inception?.slice(0,10) || '—', 'dim'],
     ['days running', pnl.days_since_inception ?? 0],
     ['buy & hold', signedPct(bh.return_pct, 2),
       (bh.return_pct||0) >= 0 ? 'green' : 'red'],
-    ['khalid strategy', signedPct(ks.return_pct, 2),
+    ['KA strategy', signedPct(ks.return_pct, 2),
       (ks.return_pct||0) >= 0 ? 'green' : 'red'],
     ['system alpha', signedPct(delta, 2),
       delta >= 0 ? 'green' : 'red'],
@@ -1119,7 +1119,7 @@ function renderTraps(opps){
 function renderKhalid(intel){
   const el = document.getElementById('cardKhalid');
   if (!intel) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
-  const ki = intel.khalid_index || {};
+  const ki = intel.ka_index ?? intel.khalid_index ?? {};
   const kiObj = typeof ki === 'object' ? ki : { score: ki };
   const score = kiObj.score;
   const signals = kiObj.signals || [];

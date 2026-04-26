@@ -1074,8 +1074,9 @@ function renderAiIntelligence() {
   
   // Report data integration
   if (reportData) {
-    if (reportData.khalid_index !== undefined) {
-      report += `<div class="ai-bullet" style="margin-top:8px"><strong>KA Index™:</strong> ${reportData.khalid_index} — ${reportData.market_regime || reportData.regime || 'CALCULATING'}</div>`;
+    const kaIdx = reportData.ka_index ?? reportData.khalid_index;
+    if (kaIdx !== undefined) {
+      report += `<div class="ai-bullet" style="margin-top:8px"><strong>KA Index™:</strong> ${kaIdx} — ${reportData.market_regime || reportData.regime || 'CALCULATING'}</div>`;
     }
     if (reportData.ai_analysis) {
       const aiSections = typeof reportData.ai_analysis === 'string' ? reportData.ai_analysis : JSON.stringify(reportData.ai_analysis).substring(0, 500);

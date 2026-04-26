@@ -1112,10 +1112,10 @@ function renderStrip(){
 
   // KA INDEX (intelligence-report)
   if(intel.scores){
-    const ki = intel.scores.khalid_index;
+    const ki = intel.scores.ka_index ?? intel.scores.khalid_index;
     const phase = intel.phase || '';
     const cls = ki >= 70 ? 'green' : (ki >= 40 ? 'amber' : 'red');
-    setStripCell('khalid', ki!=null ? ki+'' : '—', phase, cls);
+    setStripCell('ka', ki!=null ? ki+'' : '—', phase, cls);
   }
 
   // LIQUIDITY (liquidity-data)
@@ -1230,7 +1230,7 @@ function renderKhalid(){
 
   const s = d.scores;
   document.getElementById('khalidSub').textContent = `${d.phase || 'STABLE'} · ${fmtAge(d.generated_at)}`;
-  const ki = s.khalid_index;
+  const ki = s.ka_index ?? s.khalid_index;
   const kiCls = ki >= 70 ? 'g' : ki >= 40 ? 'a' : 'r';
 
   let html = `
@@ -1468,7 +1468,7 @@ function renderPnl(){
   document.getElementById('pnlSub').textContent = `Day ${days} · inception ${d.inception || '—'} · ${fmtAge(d.generated_at)}`;
 
   const bh = d.buy_and_hold || {};
-  const ks = d.khalid_strategy || {};
+  const ks = d.ka_strategy ?? d.khalid_strategy ?? {};
   const delta = d.delta_pct;
   const alpha = d.system_alpha;
 

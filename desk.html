@@ -500,7 +500,7 @@
       if (!pnl) { el.innerHTML = '<div class="card-empty">no PnL data — Loop 2 still warming up</div>'; return; }
 
       const bh = pnl.buy_and_hold || {};
-      const ks = pnl.khalid_strategy || {};
+      const ks = pnl.ka_strategy ?? pnl.khalid_strategy ?? {};
       const delta = pnl.delta_pct || 0;
       const deltaCls = delta > 0 ? "green" : (delta < 0 ? "red" : "grey");
 

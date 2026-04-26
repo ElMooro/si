@@ -353,14 +353,15 @@ function renderMorningArchive(archive) {
     // Regime can be either a string or a dict {khalid, ml, sector, credit, liquidity}
     let regimeRaw = b.regime;
     if (regimeRaw && typeof regimeRaw === "object") {
-      regimeRaw = regimeRaw.khalid || regimeRaw.overall || regimeRaw.market || "?";
+      regimeRaw = regimeRaw.ka || regimeRaw.khalid || regimeRaw.overall || regimeRaw.market || "?";
     }
     const regime = String(regimeRaw || "?").toUpperCase();
     const dateStr = new Date(b.date + "T12:00:00Z").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric"
     });
     const metricItems = [];
-    if (b.khalid_score !== null && b.khalid_score !== undefined) metricItems.push(`KI <strong>${b.khalid_score}</strong>`);
+    const kaScore = b.ka_score ?? b.khalid_score;
+    if (kaScore !== null && kaScore !== undefined) metricItems.push(`KI <strong>${kaScore}</strong>`);
     if (b.vix !== null && b.vix !== undefined) metricItems.push(`VIX <strong>${num(b.vix, 1)}</strong>`);
     if (b.carry_risk !== null && b.carry_risk !== undefined) metricItems.push(`Carry <strong>${b.carry_risk}</strong>`);
     if (b.ml_risk !== null && b.ml_risk !== undefined) metricItems.push(`ML <strong>${b.ml_risk}</strong>`);
@@ -401,7 +402,7 @@ function renderAll(D) {
   </div>`;
 
   main.innerHTML = html;
-  renderTimeline(D.khalid_timeline || []);
+  renderTimeline(D.ka_timeline ?? D.khalid_timeline ?? []);
   attachSortHandlers();
 }
 

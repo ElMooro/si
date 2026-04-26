@@ -155,7 +155,7 @@ html+='</div>';
 // ═══ SCORE CARDS ═══
 var S=D.scores||{};
 html+='<div class="score-row">';
-html+='<div class="score-card"><div class="num" style="color:'+c+'">'+S.khalid_index+'</div><div class="lbl">KA Index</div><div class="bar"><div class="bar-fill" style="width:'+S.khalid_index+'%;background:'+c+'"></div></div></div>';
+html+='<div class="score-card"><div class="num" style="color:'+c+'">'+(S.ka_index ?? S.khalid_index)+'</div><div class="lbl">KA Index</div><div class="bar"><div class="bar-fill" style="width:'+(S.ka_index ?? S.khalid_index)+'%;background:'+c+'"></div></div></div>';
 html+='<div class="score-card"><div class="num" style="color:'+(S.crisis_distance<30?'var(--red)':S.crisis_distance<60?'var(--yellow)':'var(--green)')+'">'+S.crisis_distance+'</div><div class="lbl">Crisis Distance</div><div class="sub">0=crisis 100=safe</div><div class="bar"><div class="bar-fill" style="width:'+S.crisis_distance+'%;background:'+(S.crisis_distance<30?'var(--red)':S.crisis_distance<60?'var(--yellow)':'var(--green)')+'"></div></div></div>';
 html+='<div class="score-card"><div class="num" style="color:'+(S.plumbing_stress>40?'var(--red)':S.plumbing_stress>20?'var(--yellow)':'var(--green)')+'">'+S.plumbing_stress+'</div><div class="lbl">Plumbing Stress</div><div class="sub">/100</div><div class="bar"><div class="bar-fill" style="width:'+S.plumbing_stress+'%;background:'+(S.plumbing_stress>40?'var(--red)':S.plumbing_stress>20?'var(--yellow)':'var(--green)')+'"></div></div></div>';
 if(S.vix!=null){html+='<div class="score-card"><div class="num" style="color:'+(S.vix>30?'var(--red)':S.vix>20?'var(--yellow)':S.vix<15?'var(--orange)':'var(--green)')+'">'+S.vix+'</div><div class="lbl">VIX</div><div class="sub">'+(S.vix<15?'Complacent':S.vix<20?'Calm':S.vix<30?'Elevated':'Panic')+'</div></div>'}
@@ -189,7 +189,7 @@ html+='<div class="phase-grid">';
 html+='<div class="phase-card" style="border-left:4px solid '+c+'"><h3>Phase</h3><div class="big" style="color:'+c+'">'+D.phase+'</div><p>'+((D.signals&&D.signals.crisis_factors&&D.signals.crisis_factors.length)?D.signals.crisis_factors.join(' | '):'No crisis factors active')+'</p></div>';
 html+='<div class="phase-card" style="border-left:4px solid var(--red)"><h3>Action Required</h3><p style="font-weight:600;font-size:15px;color:'+(D.phase==='CRISIS'||D.phase==='PRE-CRISIS'?'var(--red)':'var(--t1)')+'">'+D.action_required+'</p></div>';
 var R=D.regime||{};
-html+='<div class="phase-card"><h3>Regime Consensus</h3><p><strong>KA:</strong> '+R.khalid+' | <strong>ML:</strong> '+R.ml+'</p><p style="margin-top:4px;font-size:12px;color:var(--t3)">Sector: '+R.sector+' | Credit: '+R.credit+' | Liquidity: '+R.liquidity+' | Curve: '+R.curve+'</p></div>';
+html+='<div class="phase-card"><h3>Regime Consensus</h3><p><strong>KA:</strong> '+(R.ka ?? R.khalid)+' | <strong>ML:</strong> '+R.ml+'</p><p style="margin-top:4px;font-size:12px;color:var(--t3)">Sector: '+R.sector+' | Credit: '+R.credit+' | Liquidity: '+R.liquidity+' | Curve: '+R.curve+'</p></div>';
 html+='<div class="phase-card"><h3>Forecast</h3><p>'+D.forecast+'</p></div>';
 html+='</div>';
 
