@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Correlation Breaks · JustHodl.AI</title>
+<meta name="description" content="Cross-asset correlation break detector · 10 instruments · 60-day rolling matrix · Frobenius z-score · daily refresh">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.page-hdr{margin-bottom:28px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px;max-width:900px}
+.page-hdr .meta{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
+.page-hdr .meta span{display:inline-flex;align-items:center;gap:6px}
+
+.composite-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}
+.composite-banner.crisis{border-color:var(--red);box-shadow:0 0 30px rgba(255,92,122,.18)}
+.composite-banner.elevated{border-color:var(--amber);box-shadow:0 0 30px rgba(255,177,61,.16)}
+.composite-banner.watch{border-color:var(--amber-dim)}
+.composite-banner.warming_up{border-color:var(--border-strong);opacity:.85}
+
+.score-circle{width:120px;height:120px;border-radius:50%;background:var(--bg-sunken);border:3px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.score-circle.crisis{border-color:var(--red);box-shadow:inset 0 0 20px rgba(255,92,122,.12)}
+.score-circle.elevated{border-color:var(--amber);box-shadow:inset 0 0 20px rgba(255,177,61,.12)}
+.score-circle.watch{border-color:var(--amber-dim)}
+.score-circle .big{font-size:34px;font-weight:700;line-height:1}
+.score-circle .sub{font-size:10px;color:var(--fg-3);margin-top:4px;letter-spacing:1px}
+
+.composite-banner h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500;margin-bottom:8px}
+.signal-text{font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:1.5px}
+.signal-text.sig-NORMAL{color:var(--green)}
+.signal-text.sig-WATCH{color:var(--amber)}
+.signal-text.sig-ELEVATED{color:var(--amber)}
+.signal-text.sig-CRISIS{color:var(--red)}
+.signal-text.sig-WARMING_UP{color:var(--fg-3)}
+.composite-banner .desc{margin-top:6px;color:var(--fg-2);max-width:580px;font-size:13px;line-height:1.55}
+
+.consensus{text-align:right}
+.consensus .big{font-family:var(--font-mono);font-size:38px;font-weight:700;line-height:1}
+.consensus .sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-top:4px}
+
+.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px}
+.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
+.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
+
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+
+.signal-pill{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1.2px;padding:3px 9px;border-radius:11px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border);font-weight:600;text-transform:uppercase}
+.signal-pill.NORMAL{color:var(--green);border-color:var(--green-dim)}
+.signal-pill.WATCH{color:var(--amber);border-color:var(--amber-dim)}
+.signal-pill.ELEVATED{color:var(--amber);border-color:var(--amber);background:rgba(255,177,61,.08)}
+.signal-pill.CRISIS{color:var(--red);border-color:var(--red);background:rgba(255,92,122,.12);animation:pillBlink 2.5s ease-in-out infinite}
+@keyframes pillBlink{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* Top breaking pair cards */
+.break-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:18px 20px;transition:border-color .15s}
+.break-card:hover{border-color:var(--border-hover)}
+.break-card.elevated{border-color:var(--amber);background:linear-gradient(135deg,var(--bg-raised),rgba(255,177,61,.06))}
+.break-card.crisis{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.06))}
+.break-card .pair-line{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.break-card .pair-name{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--fg-1);letter-spacing:.4px}
+.break-card .pair-name .arrow{color:var(--fg-3);margin:0 8px}
+.break-card .corr-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.break-card .corr-row .label{font-size:9.5px;color:var(--fg-4);letter-spacing:1px;text-transform:uppercase}
+.break-card .corr-row .value{font-size:14px;color:var(--fg-1);font-weight:600;margin-top:3px}
+.break-card .corr-row .value.delta-pos{color:var(--cyan)}
+.break-card .corr-row .value.delta-neg{color:var(--violet)}
+.break-card .context{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-top:10px;line-height:1.5}
+.break-card .direction{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:6px;letter-spacing:.5px}
+
+/* Heatmap */
+#heatmap-section{margin-top:32px}
+.heatmap-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px;overflow-x:auto}
+.heatmap-table{border-collapse:separate;border-spacing:1px;font-family:var(--font-mono);font-size:10px;background:var(--bg-sunken);margin:0 auto}
+.heatmap-table th, .heatmap-table td{padding:8px 6px;text-align:center;min-width:62px;background:var(--bg-raised)}
+.heatmap-table th{font-weight:500;color:var(--fg-3);letter-spacing:.5px;font-size:9px;text-transform:uppercase;background:var(--bg-sunken);position:sticky;top:0}
+.heatmap-table th.row-header{font-size:9px;text-align:right;padding-right:10px;background:var(--bg-sunken)}
+.heatmap-cell{font-weight:600;color:var(--fg-1);text-shadow:0 1px 2px rgba(0,0,0,.4);transition:all .15s}
+.heatmap-cell:hover{outline:2px solid var(--cyan);z-index:1;position:relative}
+.heatmap-legend{display:flex;align-items:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);justify-content:center}
+.legend-bar{display:inline-block;height:14px;width:200px;background:linear-gradient(to right,#ff5c7a,#3a4458,#38ffa8);border-radius:2px;border:1px solid var(--border)}
+.heatmap-toggle{display:flex;gap:8px;margin-bottom:14px;justify-content:flex-end}
+.heatmap-toggle button{font-family:var(--font-mono);font-size:10px;padding:5px 12px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg-3);cursor:pointer;border-radius:3px;letter-spacing:.5px;transition:all .15s;text-transform:uppercase}
+.heatmap-toggle button:hover{border-color:var(--border-hover);color:var(--fg-1)}
+.heatmap-toggle button.active{background:var(--bg-glow);border-color:var(--cyan);color:var(--cyan)}
+
+/* History chart */
+#history-section .chart-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px}
+#history-chart{width:100%;height:240px;display:block}
+.chart-axis-label{fill:var(--fg-4);font-family:var(--font-mono);font-size:10px}
+.chart-line{fill:none;stroke:var(--cyan);stroke-width:1.5}
+.chart-line.threshold-2{stroke:var(--amber);stroke-dasharray:4,4;stroke-width:1}
+.chart-line.threshold-3{stroke:var(--red);stroke-dasharray:4,4;stroke-width:1}
+.chart-area{fill:url(#chartGrad);opacity:.45}
+
+/* Stats summary */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:14px}
+.stat-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.stat-card .name{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.stat-card .value{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--fg-1)}
+.stat-card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:4px}
+
+.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
+
+footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
+footer a{margin:0 10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
+  <nav class="nav-links">
+    <a href="/">Desk</a>
+    <a href="/intelligence.html">Intel</a>
+    <a href="/desk-v2.html">Desk v2</a>
+    <a href="/ka/">KA Index</a>
+    <a href="/crisis.html">Crisis</a>
+    <a href="/regime.html">Regime</a>
+    <a href="/correlation.html" class="active">Correlations</a>
+    <a href="/macro-data.html">Macro</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/repo.html">Repo</a>
+    <a href="/sentiment.html">Sentiment</a>
+    <a href="/volatility.html">Vol</a>
+    <a href="/reports.html">Reports</a>
+  </nav>
+</div>
+
+<main class="container">
+  <div class="page-hdr">
+    <h1>CROSS-ASSET CORRELATION BREAKS</h1>
+    <p>The single highest-information-content macro signal: cross-asset correlations break <em>before</em> prices break.
+       60-day rolling correlation matrix across 10 instruments (equities, rates, FX, commodities), z-scored against 1Y baseline.
+       Aug-2024 yen carry unwind, Mar-2020 dollar funding, 2022 inflation regime — all preceded by composite z &gt; 2σ.</p>
+    <div class="meta">
+      <span>📊 last update: <span id="updated">—</span></span>
+      <span>🔄 daily refresh</span>
+      <span>🌐 <a href="https://fred.stlouisfed.org/" target="_blank">FRED data</a></span>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner"></div>
+
+  <!-- Composite signal banner -->
+  <div id="composite-banner" class="composite-banner">
+    <div id="score-circle" class="score-circle">
+      <div class="big" id="composite-z">—</div>
+      <div class="sub">FRO Z-SCORE</div>
+    </div>
+    <div>
+      <h2>COMPOSITE CORRELATION-BREAK SIGNAL</h2>
+      <div class="signal-text" id="composite-signal">—</div>
+      <div class="desc" id="composite-desc">Aggregating Frobenius norm of correlation-matrix change over rolling 60d windows. When the latest 60d correlation matrix differs sharply from the 60d-prior matrix, that's a regime change.</div>
+    </div>
+    <div class="consensus">
+      <div class="big" id="pairs-broken">—</div>
+      <div class="sub">PAIRS BROKEN<br/>&gt; 2σ FROM 1Y NORM</div>
+    </div>
+  </div>
+
+  <!-- Stats summary -->
+  <div class="stat-row" id="stats-row"></div>
+
+  <!-- Top breaking pairs -->
+  <div class="section-hdr">
+    <h3>TOP BREAKING PAIRS</h3>
+    <div class="sub">most-deviated correlations (sorted by |z-score|)</div>
+  </div>
+  <div id="break-grid" class="grid grid-2"></div>
+
+  <!-- Heatmap -->
+  <div id="heatmap-section">
+    <div class="section-hdr">
+      <h3>CORRELATION HEATMAP</h3>
+      <div class="sub">60-day rolling correlations · click toggle to compare</div>
+    </div>
+    <div class="heatmap-toggle">
+      <button id="hm-latest" class="active">LATEST WINDOW</button>
+      <button id="hm-prior">PRIOR WINDOW (60d ago)</button>
+      <button id="hm-delta">Δ DELTA (latest – prior)</button>
+    </div>
+    <div class="heatmap-wrap">
+      <table id="heatmap-table" class="heatmap-table"></table>
+      <div class="heatmap-legend">
+        <span>−1.0</span>
+        <span class="legend-bar"></span>
+        <span>+1.0</span>
+        <span style="margin-left:30px"><span id="hm-mode-label">latest 60d window</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frobenius history -->
+  <div id="history-section">
+    <div class="section-hdr">
+      <h3>FROBENIUS DELTA OVER TIME</h3>
+      <div class="sub">||M(t) − M(t−60d)||_F · 1Y history · spikes = regime breaks</div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="history-chart" viewBox="0 0 800 240" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <footer>
+    <a href="/crisis.html">Crisis &amp; Plumbing</a> ·
+    <a href="/regime.html">Regime &amp; Anomaly</a> ·
+    <a href="https://fred.stlouisfed.org/">FRED</a> ·
+    <a href="/">JustHodl.AI</a>
+    <div style="margin-top:6px">data refresh daily · last fetch: <span id="footer-ts">—</span></div>
+  </footer>
+</main>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/correlation-breaks.json?t=' + Date.now();
+let CURRENT_DATA = null;
+let HM_MODE = 'latest';
+
+function fmtAge(iso) {
+  if (!iso) return '—';
+  const ageMin = (Date.now() - new Date(iso).getTime()) / 60000;
+  if (ageMin < 60) return Math.round(ageMin) + 'm ago';
+  const h = ageMin / 60;
+  if (h < 24) return h.toFixed(1) + 'h ago';
+  return (h / 24).toFixed(1) + 'd ago';
+}
+
+function setError(msg) {
+  const eb = document.getElementById('errorBanner');
+  eb.textContent = '⚠️ ' + msg;
+  eb.style.display = 'block';
+}
+
+// HSL color from value in [-1, +1]: red → grey → green
+function corrColor(v) {
+  if (v == null || isNaN(v)) return 'var(--bg-elevated)';
+  const clamped = Math.max(-1, Math.min(1, v));
+  // -1 = red (0deg), 0 = grey, +1 = green (120deg)
+  const hue = clamped >= 0 ? 120 : 0;
+  const sat = Math.abs(clamped) * 70;
+  const light = 50 - Math.abs(clamped) * 14;
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
+
+// Color for delta matrix (centered at 0): more saturated as |delta| grows
+function deltaColor(v) {
+  if (v == null || isNaN(v)) return 'var(--bg-elevated)';
+  const clamped = Math.max(-2, Math.min(2, v)) / 2; // delta can exceed 1, clamp to ±2
+  const hue = clamped >= 0 ? 120 : 0;
+  const sat = Math.abs(clamped) * 80;
+  const light = 50 - Math.abs(clamped) * 18;
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
+
+function renderComposite(d) {
+  const sig = d.signal || 'WARMING_UP';
+  const z = d.frobenius_z_score_1y;
+  const sigLower = sig.toLowerCase();
+
+  document.getElementById('composite-banner').className = 'composite-banner ' + sigLower;
+  document.getElementById('score-circle').className = 'score-circle ' + sigLower;
+  document.getElementById('composite-z').textContent = z != null ? (z > 0 ? '+' : '') + z.toFixed(2) : '—';
+
+  const sigEl = document.getElementById('composite-signal');
+  sigEl.textContent = sig;
+  sigEl.className = 'signal-text sig-' + sig;
+
+  document.getElementById('composite-desc').textContent = d.interpretation || '—';
+  document.getElementById('pairs-broken').textContent = d.n_pairs_above_2sigma ?? '—';
+}
+
+function renderStats(d) {
+  const row = document.getElementById('stats-row');
+  const cards = [
+    {name: 'Frobenius Δ', value: d.frobenius_delta != null ? d.frobenius_delta.toFixed(3) : '—',
+     meta: d.frobenius_delta_baseline_mean != null ? `1Y baseline: ${d.frobenius_delta_baseline_mean.toFixed(3)}` : ''},
+    {name: 'Pairs > 2σ', value: d.n_pairs_above_2sigma ?? '—',
+     meta: 'of ' + (d.n_instruments * (d.n_instruments - 1) / 2) + ' total pairs'},
+    {name: 'Pairs > 3σ', value: d.n_pairs_above_3sigma ?? '—',
+     meta: '|z| ≥ 3 = extreme'},
+    {name: 'Instruments', value: d.n_instruments ?? '—',
+     meta: d.n_dates_aligned + ' aligned dates'},
+    {name: 'Window', value: d.window_days + 'd',
+     meta: 'rolling correlation length'},
+  ];
+  row.innerHTML = cards.map(c => `<div class="stat-card">
+    <div class="name">${c.name}</div>
+    <div class="value">${c.value}</div>
+    <div class="meta">${c.meta}</div>
+  </div>`).join('');
+}
+
+function renderTopBreaks(d) {
+  const grid = document.getElementById('break-grid');
+  const tops = d.top_breaking_pairs || [];
+  if (!tops.length) {
+    grid.innerHTML = '<div class="break-card">No correlation breaks detected at this scale</div>';
+    return;
+  }
+  let html = '';
+  for (const p of tops) {
+    const az = Math.abs(p.z_score);
+    const cardCls = az >= 3 ? 'crisis' : az >= 2 ? 'elevated' : '';
+    const sig = az >= 3 ? 'CRISIS' : az >= 2 ? 'ELEVATED' : az >= 1 ? 'WATCH' : 'NORMAL';
+    const deltaCls = p.delta > 0 ? 'delta-pos' : 'delta-neg';
+    const deltaStr = (p.delta > 0 ? '+' : '') + p.delta.toFixed(3);
+    html += `<div class="break-card ${cardCls}">
+      <div class="pair-line">
+        <div class="pair-name">${p.labels[0]}<span class="arrow">↔</span>${p.labels[1]}</div>
+        <span class="signal-pill ${sig}">z=${(p.z_score > 0 ? '+' : '')}${p.z_score}</span>
+      </div>
+      <div class="direction">${p.direction}</div>
+      ${p.context ? `<div class="context">${p.context}</div>` : ''}
+      <div class="corr-row">
+        <div>
+          <div class="label">Current corr</div>
+          <div class="value">${p.current_corr.toFixed(3)}</div>
+        </div>
+        <div>
+          <div class="label">1Y baseline</div>
+          <div class="value">${p.baseline_corr.toFixed(3)}</div>
+        </div>
+        <div>
+          <div class="label">Δ change</div>
+          <div class="value ${deltaCls}">${deltaStr}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderHeatmap(d, mode) {
+  HM_MODE = mode;
+  const insts = d.instruments || [];
+  const labels = d.labels || {};
+  const matrix = mode === 'delta' ? d.delta_matrix : (mode === 'prior' ? null : d.latest_matrix);
+  const title = mode === 'delta'
+    ? 'Δ DELTA: latest 60d minus prior 60d'
+    : mode === 'prior'
+      ? '(prior matrix not stored — recompute via API)'
+      : 'latest 60d window correlations';
+
+  document.getElementById('hm-mode-label').textContent = title;
+  document.querySelectorAll('.heatmap-toggle button').forEach(btn => btn.classList.remove('active'));
+  const btnId = mode === 'delta' ? 'hm-delta' : (mode === 'prior' ? 'hm-prior' : 'hm-latest');
+  const btnEl = document.getElementById(btnId);
+  if (btnEl) btnEl.classList.add('active');
+
+  const table = document.getElementById('heatmap-table');
+  if (!matrix) {
+    table.innerHTML = `<tr><td style="padding:24px;color:var(--fg-3);font-family:var(--font-mono);font-size:11px">Prior matrix not available in current schema. Try LATEST or DELTA.</td></tr>`;
+    return;
+  }
+
+  let html = '<thead><tr><th></th>';
+  for (const inst of insts) {
+    html += `<th>${inst}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+  for (let i = 0; i < insts.length; i++) {
+    html += `<tr><th class="row-header">${labels[insts[i]] || insts[i]}</th>`;
+    for (let j = 0; j < insts.length; j++) {
+      const v = matrix[i] && matrix[i][j];
+      const color = mode === 'delta' ? deltaColor(v) : corrColor(v);
+      const display = v == null ? '—' : v.toFixed(2);
+      const tooltip = `${insts[i]} ↔ ${insts[j]}: ${display}`;
+      html += `<td class="heatmap-cell" style="background:${color}" title="${tooltip}">${display}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function renderHistoryChart(d) {
+  const hist = d.frobenius_history || [];
+  if (!hist.length) return;
+  const svg = document.getElementById('history-chart');
+  const W = 800, H = 240, padL = 50, padR = 14, padT = 14, padB = 28;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+
+  const vals = hist.map(h => h.frobenius_delta);
+  const maxV = Math.max(...vals, d.frobenius_delta_baseline_mean + 3 * (d.frobenius_delta_baseline_std || 0.1));
+  const minV = 0;
+
+  const xStep = innerW / (hist.length - 1);
+  const yScale = v => padT + innerH * (1 - (v - minV) / (maxV - minV));
+  const xScale = i => padL + i * xStep;
+
+  // Build path
+  let pathD = '';
+  let areaD = `M ${padL} ${padT + innerH}`;
+  for (let i = 0; i < hist.length; i++) {
+    const x = xScale(i), y = yScale(vals[i]);
+    pathD += (i === 0 ? 'M ' : ' L ') + x.toFixed(1) + ' ' + y.toFixed(1);
+    areaD += ' L ' + x.toFixed(1) + ' ' + y.toFixed(1);
+  }
+  areaD += ` L ${padL + innerW} ${padT + innerH} Z`;
+
+  // Threshold lines
+  const baseMean = d.frobenius_delta_baseline_mean || 0;
+  const baseStd = d.frobenius_delta_baseline_std || 0.1;
+  const y2sig = yScale(baseMean + 2 * baseStd);
+  const y3sig = yScale(baseMean + 3 * baseStd);
+
+  // Y axis labels
+  let yTicks = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = minV + (maxV - minV) * (1 - i / 4);
+    const y = padT + i * innerH / 4;
+    yTicks += `<text class="chart-axis-label" x="${padL - 6}" y="${y + 3}" text-anchor="end">${v.toFixed(2)}</text>`;
+    yTicks += `<line x1="${padL}" x2="${padL + innerW}" y1="${y}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+  }
+
+  // X axis labels (a few dates spaced out)
+  let xTicks = '';
+  const tickIdxs = [0, Math.floor(hist.length * 0.25), Math.floor(hist.length * 0.5),
+                    Math.floor(hist.length * 0.75), hist.length - 1];
+  for (const idx of tickIdxs) {
+    if (idx >= 0 && idx < hist.length) {
+      const x = xScale(idx);
+      const date = hist[idx].date.substring(2, 10);  // "26-04-26" style
+      xTicks += `<text class="chart-axis-label" x="${x}" y="${padT + innerH + 18}" text-anchor="middle">${date}</text>`;
+    }
+  }
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${yTicks}
+    ${xTicks}
+    <line class="chart-line threshold-2" x1="${padL}" x2="${padL + innerW}" y1="${y2sig}" y2="${y2sig}"/>
+    <text class="chart-axis-label" x="${padL + innerW - 4}" y="${y2sig - 4}" text-anchor="end" fill="var(--amber)">+2σ</text>
+    <line class="chart-line threshold-3" x1="${padL}" x2="${padL + innerW}" y1="${y3sig}" y2="${y3sig}"/>
+    <text class="chart-axis-label" x="${padL + innerW - 4}" y="${y3sig - 4}" text-anchor="end" fill="var(--red)">+3σ</text>
+    <path d="${areaD}" class="chart-area"/>
+    <path d="${pathD}" class="chart-line"/>
+  `;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    CURRENT_DATA = d;
+
+    document.getElementById('updated').textContent = fmtAge(d.generated_at);
+    document.getElementById('footer-ts').textContent = d.generated_at || '—';
+
+    if (d.status === 'warming_up') {
+      setError(`Detector warming up: ${d.message || 'insufficient aligned data'}`);
+      return;
+    }
+
+    renderComposite(d);
+    renderStats(d);
+    renderTopBreaks(d);
+    renderHeatmap(d, 'latest');
+    renderHistoryChart(d);
+  } catch (e) {
+    console.error(e);
+    setError('Failed to load: ' + e.message);
+  }
+}
+
+document.getElementById('hm-latest').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'latest'));
+document.getElementById('hm-prior').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'prior'));
+document.getElementById('hm-delta').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'delta'));
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
