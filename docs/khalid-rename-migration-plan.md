@@ -1,6 +1,6 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** Phases 1+2 SHIPPED 2026-04-26. Phases 3-8 pending.
+**Status:** Phases 1+2+3 SHIPPED 2026-04-26. Phases 4-8 pending.
 **Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
@@ -77,7 +77,7 @@ Producers (Lambdas) write BOTH old and new keys. Consumers (pages) read either, 
 
 **Strategy:** during this phase the system works with EITHER set of names. New name takes priority where a choice is required, but old name still works.
 
-## Phase 3 — Frontend cuts over to new field names
+## Phase 3 — Frontend cuts over to new field names ✅ SHIPPED 60f3613 (2026-04-26)
 
 **Files:** every page that currently reads `data.khalid_*` switches to `data.ka_*`. Since phase 2 dual-writes both, this is safe.
 
