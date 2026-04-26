@@ -1,0 +1,330 @@
+# Inspect 12 alive Lambdas — find return shape
+
+**Status:** success  
+**Duration:** 102.2s  
+**Finished:** 2026-04-26T11:32:11+00:00  
+
+## Log
+## 📦 volatility-monitor-agent
+
+- `11:30:29`   Function URL: https://w4bvakowhpbkvy3mqkzp66xfaa0kpfqi.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:30:29`   source: lambda_volatility_agent.py  8158 chars
+- `11:30:29`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:30:29`          fred=True fmp=False polygon=False yfin=False
+- `11:30:29`   handler preview:
+- `11:30:29`     def lambda_handler(event, context):
+- `11:30:29`         """Volatility Agent - All volatility indices"""
+- `11:30:29`         fred_key = "2f057499936072679d8843d7fce99989"
+- `11:30:29`         # Complete volatility indicators
+- `11:30:29`         volatility_indicators = {
+- `11:30:29`             'VIX': 'VIXCLS',  # S&P 500 Volatility
+- `11:30:29`             'VIX_OF_VIX': 'VVIXCLS',  # Volatility of VIX
+- `11:30:29`             'VXN': 'VXNCLS',  # NASDAQ Volatility
+- `11:30:29`             'RVX': 'RVXCLS',  # Russell 2000 Volatility
+- `11:30:29`             'VXD': 'VXDCLS',  # Dow Jones Volatility
+- `11:30:29`             'OVX': 'OVXCLS',  # Oil Volatility
+- `11:30:29`             'GVZ': 'GVZCLS',  # Gold Volatility
+- `11:30:29`             'EVZ': 'EVZCLS',  # Euro Currency Volatility
+- `11:30:29`             'MOVE': 'MOVE',  # Bond Volatility
+- `11:30:29`             # Term Structure
+- `11:30:29`             'VIX9D': 'VXSTCLS',  # 9-Day VIX
+- `11:30:29`             'VIX3M': 'VXMTCLS',  # 3-Month VIX
+- `11:30:29`             'VIX6M': 'VXMTCLS',  # 6-Mon
+- `11:30:32`   invoke status: 200  payload 436B
+- `11:30:32`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:30:32.007503\", \"equity_volatility\": {}, \"asset_volatility\": {}, \"term_structure\": {}, \"analysis\": {\"volatility_regime\": \"NORMAL\", \"vix_level\": 20, \"vix_percentile\": 50, \"move_level\": 100, \"divergences\": [], \"risk_environment\": \"NEUTRAL\"}, \"recommendations\": []}"}
+## 📦 dollar-strength-agent
+
+- `11:30:32`   Function URL: https://us3uynmi23u676v3szd27ldwuq0jeqee.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:30:32`   source: lambda_dollar_agent.py  9020 chars
+- `11:30:32`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:30:32`          fred=True fmp=False polygon=False yfin=False
+- `11:30:32`   handler preview:
+- `11:30:32`     def lambda_handler(event, context):
+- `11:30:32`         """Dollar Strength & Currency Metrics Agent"""
+- `11:30:32`         fred_key = "2f057499936072679d8843d7fce99989"
+- `11:30:32`         # Complete currency indicators
+- `11:30:32`         currency_indicators = {
+- `11:30:32`             # Dollar Index and Components
+- `11:30:32`             'DXY': 'DTWEXBGS',  # Trade Weighted Dollar
+- `11:30:32`             'DXY_BROAD': 'DTWEXBGS',  # Broad Dollar Index
+- `11:30:32`             'DXY_MAJOR': 'DTWEXM',  # Major Currencies
+- `11:30:32`             'DXY_OITP': 'DTWEXO',  # Other Important Trading Partners
+- `11:30:32`             # Major Pairs
+- `11:30:32`             'EURUSD': 'DEXUSEU',
+- `11:30:32`             'USDJPY': 'DEXJPUS',
+- `11:30:32`             'GBPUSD': 'DEXUSUK',
+- `11:30:32`             'USDCAD': 'DEXCAUS',
+- `11:30:32`             'USDCHF': 'DEXSFUS',
+- `11:30:32`             'AUDUSD': 'DEXUSAL',
+- `11:30:32`             'NZDUSD': 'DEXUSNZ',
+- `11:30:32`             # Emerging Market Currencies
+- `11:30:32`             'USDCNY': 'DEXCHUS',
+- `11:30:32`             'USDMXN': '
+- `11:30:38`   invoke status: 200  payload 3353B
+- `11:30:38`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:30:38.633026\", \"dollar_indices\": {\"DXY_BROAD\": {\"current\": 118.0795, \"date\": \"2026-04-17\", \"changes\": {\"1D\": -0.23833743376230343, \"1W\": -0.8232011530359684, \"1M\": -1.1812605133441068}, \"signal\": \"VERY_STRONG\"}, \"DXY_MAJOR\": {\"current\": 90.8221, \"date\": \"2019-12-31\", \"changes\": {\"1D\": -0.34913205245099554, \"1W\": -1.3591315633705525, \"1M\": -1.5547955970582006}, \"signal\": \"WEAK\"}, \"DXY_OITP\": {\"current\": 1
+## 📦 bond-indices-agent
+
+- `11:30:38`   Function URL: https://s57bexwijusq7jukyxishguffe0nukpw.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:30:38`   source: lambda_function.py  8453 chars
+- `11:30:38`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:30:38`          fred=True fmp=False polygon=False yfin=False
+- `11:30:38`   handler preview:
+- `11:30:38`     def lambda_handler(event, context):
+- `11:30:38`         """Main handler for Bond Indices Agent"""
+- `11:30:38`         fred_key = "2f057499936072679d8843d7fce99989"
+- `11:30:38`         # Bond indices mapping
+- `11:30:38`         bond_indices = {
+- `11:30:38`             # ICE BofA indices that actually exist in FRED
+- `11:30:38`             'US_CORP_MASTER': 'BAMLC0A0CM',  # ICE BofA US Corporate Master
+- `11:30:38`             'US_HIGH_YIELD': 'BAMLH0A0HYM2',  # ICE BofA US High Yield
+- `11:30:38`             'AAA_CORP': 'BAMLC0A1CAAA',  # AAA Corporate
+- `11:30:38`             'BBB_CORP': 'BAMLC0A4CBBB',  # BBB Corporate  
+- `11:30:38`             'CCC_AND_LOWER': 'BAMLH0A3HYC',  # CCC & Lower
+- `11:30:38`             'US_TREASURY_MASTER': 'BAMLCC0A1AAATRIV',  # Treasury Master
+- `11:30:38`             # Additional key indices
+- `11:30:38`             'MOVE_INDEX': 'MOVE',  # Bond volatility
+- `11:30:38`             'TREASURY_10Y': 'DGS10',  # 10Y Treasury Yield
+- `11:30:38`             'TREASURY_2Y': 'DGS2',  # 2Y T
+- `11:30:41`   invoke status: 200  payload 2607B
+- `11:30:41`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:30:41.833523\", \"bond_indices\": {\"US_CORP_MASTER\": {\"current\": 0.8, \"date\": \"2026-04-23\", \"changes\": {\"1D\": 0.010000000000000009, \"1W\": -0.010000000000000009, \"1M\": -0.10999999999999999, \"3M\": 0.0}, \"signal\": \"CHECK_DATA\"}, \"US_HIGH_YIELD\": {\"current\": 2.86, \"date\": \"2026-04-23\", \"changes\": {\"1D\": 0.020000000000000018, \"1W\": 0.020000000000000018, \"1M\": -0.31000000000000005, \"3M\": -0.020000000000000018}, \"sig
+## 📦 fmp-stock-picks-agent
+
+- `11:30:41`   Function URL: none
+- `11:30:42`   source: lambda_function.py  18886 chars
+- `11:30:42`   flags: s3.put=True returns_dict=True apigw_response=True
+- `11:30:42`          fred=True fmp=False polygon=True yfin=True
+- `11:30:42`   handler preview:
+- `11:30:42`     def lambda_handler(event, context):
+- `11:30:42`         now = datetime.utcnow()
+- `11:30:42`         agents = fetch_agents()
+- `11:30:42`         # Snapshot metrics from FRED
+- `11:30:42`         snap = {}
+- `11:30:42`         for sid in ["RESBALNS","RRPONTSYD","WTREGEN","SOFR"]:
+- `11:30:42`             res = fred_latest_and_changes(sid)
+- `11:30:42`             if res:
+- `11:30:42`                 d, val, deltas = res
+- `11:30:42`                 snap[sid] = {"date":d, "val":val, "W":deltas.get("W"), "M":deltas.get("M"),
+- `11:30:42`                              "Q":deltas.get("Q"), "Y":deltas.get("Y")}
+- `11:30:42`         # Financial conditions panel
+- `11:30:42`         fci = {}
+- `11:30:42`         for sid in ["NFCI","ANFCI","NFCIRISK","NFCICREDIT","NFCILEVERAGE","STLFSI3"]:
+- `11:30:42`             res = fred_latest_and_changes(sid)
+- `11:30:42`             if res:
+- `11:30:42`                 d,val,_ = res
+- `11:30:42`                 fci[FRED_SERIES[sid]] = {"date":d,"val":val}
+- `11:30:42`         # SovCISS & ILM & Fails & CDS
+- `11:30:42`         sov  = fetch_sovciss()
+- `11:30:42`         ilm  = fetch_ecb_i
+- `11:31:20`   invoke status: 200  payload 45B
+- `11:31:20`   payload preview: {"statusCode": 200, "body": "{\"ok\": true}"}
+## 📦 justhodl-financial-secretary
+
+- `11:31:20`   Function URL: https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:20`   source: lambda_function.py  69976 chars
+- `11:31:20`   flags: s3.put=True returns_dict=True apigw_response=True
+- `11:31:20`          fred=True fmp=False polygon=True yfin=False
+- `11:31:20`   handler preview:
+- `11:31:20`     def lambda_handler(event, context):
+- `11:31:20`         headers = {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*",
+- `11:31:20`                    "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type"}
+- `11:31:20`         def respond(code, body):
+- `11:31:20`             return {"statusCode": code, "headers": headers, "body": json.dumps(body, default=str)}
+- `11:31:20`         method = event.get("requestContext", {}).get("http", {}).get("method", "")
+- `11:31:20`         if method == "OPTIONS":
+- `11:31:20`             return respond(200, {"status": "ok"})
+- `11:31:20`         if event.get("source") == "aws.events" or event.get("detail-type") == "Scheduled Event":
+- `11:31:20`             scan = run_full_scan()
+- `11:31:20`             return respond(200, {"status": "scan_complete", "regime": scan["liquidity"]["regime"], "risk": scan["risk"]["com
+- `11:31:20`   S3 keys in source: ['data/fred-cache.json', 'data/fred-cache-secretary.json', 'data/fred-cache-secretary.json', 'data/report.json', 'flow-data.json']
+- `11:31:21`   invoke status: 200  payload 591B
+- `11:31:21`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type"}, "body": "{\"service\": \"JustHodl Financial Secretary v2.2\", \"endpoints\": {\"GET /latest\": \"Latest scan\", \"POST /scan\": \"Force scan\", \"POST /chat\": \"Chat\", \"GET /price/TICKER\": \"Price\", \"GET /news/TICKER\": \"News\", \"GET /history/TICKER\": \"History\", \"GET /crypto\": \"Top 50\", \"GET /crypto/SYMBOL\": \"Crypto price\", \"GET /recommendations\": \"Signals\"}}"}
+## 📦 justhodl-news-sentiment
+
+- `11:31:21`   Function URL: https://rtfrjcj43osvg4u4vza5bhf4pm0udfmo.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:21`   source: lambda_function.py  9518 chars
+- `11:31:21`   flags: s3.put=True returns_dict=True apigw_response=True
+- `11:31:21`          fred=False fmp=True polygon=False yfin=False
+- `11:31:21`   handler preview:
+- `11:31:21`     def lambda_handler(event, context):
+- `11:31:21`         headers = {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
+- `11:31:21`         force = isinstance(event, dict) and event.get("force", False)
+- `11:31:21`         if not force:
+- `11:31:21`             try:
+- `11:31:21`                 obj = s3.get_object(Bucket=S3_BUCKET, Key=SENTIMENT_KEY)
+- `11:31:21`                 cached = json.loads(obj["Body"].read())
+- `11:31:21`                 age = time.time() - cached.get("generated_at_unix", 0)
+- `11:31:21`                 if age < CACHE_TTL:
+- `11:31:21`                     return {"statusCode": 200, "headers": headers,
+- `11:31:21`                             "body": json.dumps({"from_cache": True, "age_hours": round(age/3600,2),
+- `11:31:21`                                                 "count": cached.get("count",0)})}
+- `11:31:21`             except:
+- `11:31:21`                 pass
+- `11:31:21`         t0 = time.time()
+- `11:31:21`         print("=== SENTIMENT START ===")
+- `11:31:21`         stocks
+- `11:31:22`   invoke status: 200  payload 175B
+- `11:31:22`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"from_cache\": true, \"age_hours\": 5.23, \"count\": 503}"}
+## 📦 bea-economic-agent
+
+- `11:31:22`   Function URL: https://hnqqkbf7y6avoda5v4rexwk3440ibbru.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:22`   source: lambda_bea_agent.py  5141 chars
+- `11:31:22`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:31:22`          fred=False fmp=False polygon=False yfin=False
+- `11:31:22`   handler preview:
+- `11:31:22`     def lambda_handler(event, context):
+- `11:31:22`         """Bureau of Economic Analysis Agent"""
+- `11:31:22`         api_key = "997E5691-4F0E-4774-8B4E-CAE836D4AC47"
+- `11:31:22`         base_url = "https://apps.bea.gov/api/data"
+- `11:31:22`         results = {}
+- `11:31:22`         # Key BEA datasets
+- `11:31:22`         datasets = {
+- `11:31:22`             'gdp': {
+- `11:31:22`                 'dataset': 'NIPA',
+- `11:31:22`                 'table': 'T10101',
+- `11:31:22`                 'frequency': 'Q',
+- `11:31:22`                 'year': '2024,2025'
+- `11:31:22`             },
+- `11:31:22`             'personal_income': {
+- `11:31:22`                 'dataset': 'Regional',
+- `11:31:22`                 'table': 'CAINC1',
+- `11:31:22`                 'linecode': '1',
+- `11:31:22`                 'geofips': 'STATE'
+- `11:31:22`             },
+- `11:31:22`             'corporate_profits': {
+- `11:31:22`                 'dataset': 'NIPA', 
+- `11:31:22`                 'table': 'T61600D',
+- `11:31:38`   invoke status: 200  payload 200616B
+- `11:31:38`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:31:38.908610\", \"bea_data\": {\"gdp\": [{\"TableName\": \"T10101\", \"SeriesCode\": \"A191RL\", \"LineNumber\": \"1\", \"LineDescription\": \"Gross domestic product\", \"TimePeriod\": \"2024Q1\", \"METRIC_NAME\": \"Fisher Quantity Index\", \"CL_UNIT\": \"Percent change, annual rate\", \"UNIT_MULT\": \"0\", \"DataValue\": \"0.8\", \"NoteRef\": \"T10101\"}, {\"TableName\": \"T10101\", \"SeriesCode\": \"A191RL\", \"LineNumber\": \"1\", \"LineDescriptio
+## 📦 manufacturing-global-agent
+
+- `11:31:39`   Function URL: https://atjkdhikbinborcc2pujbs3jxm0iugqe.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:39`   source: lambda_manufacturing_agent.py  8427 chars
+- `11:31:39`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:31:39`          fred=True fmp=False polygon=False yfin=False
+- `11:31:39`   handler preview:
+- `11:31:39`     def lambda_handler(event, context):
+- `11:31:39`         """Manufacturing Agent - Global Manufacturing Intelligence"""
+- `11:31:39`         fred_key = "2f057499936072679d8843d7fce99989"
+- `11:31:39`         # Complete manufacturing indicators
+- `11:31:39`         manufacturing_indicators = {
+- `11:31:39`             # US Manufacturing (ISM)
+- `11:31:39`             'ISM_COMPOSITE': 'NAPM',
+- `11:31:39`             'ISM_NEW_ORDERS': 'NAPMNOI',
+- `11:31:39`             'ISM_PRODUCTION': 'NAPMPRI',
+- `11:31:39`             'ISM_EMPLOYMENT': 'NAPMEI',
+- `11:31:39`             'ISM_SUPPLIER_DELIVERIES': 'NAPMSDI',
+- `11:31:39`             'ISM_INVENTORIES': 'NAPMII',
+- `11:31:39`             'ISM_PRICES_PAID': 'NAPMPRI',
+- `11:31:39`             'ISM_BACKLOG': 'NAPMBI',
+- `11:31:39`             'ISM_EXPORTS': 'NAPMEI',
+- `11:31:39`             'ISM_IMPORTS': 'NAPMII',
+- `11:31:39`             # Regional Fed Manufacturing Surveys
+- `11:31:39`             'EMPIRE_STATE': 'GAFDIMSA',
+- `11:31:39`             'PHILLY_FED': 'GAPHDFBA',
+- `11:31:39`             'RICHMOND_FED': 'RMTSPL',
+- `11:31:39`             'DA
+- `11:31:47`   invoke status: 200  payload 2829B
+- `11:31:47`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:31:47.611680\", \"us_manufacturing\": {}, \"global_manufacturing\": {\"EUROZONE_MANUFACTURING_PMI\": {\"current\": 111.9, \"date\": \"2023-10-01\", \"changes\": {\"1D\": -1.8999999999999915, \"1M\": 4.700000000000003}, \"signal\": \"EXPANSION_STRONG\"}, \"JAPAN_MANUFACTURING_PMI\": {\"current\": 99.26672, \"date\": \"2024-03-01\", \"changes\": {\"1D\": 11.251440000000002, \"1M\": 5.716460000000012}, \"signal\": \"EXPANSION_STRONG\"}, \"UK_MANUFACTURI
+## 📦 securities-banking-agent
+
+- `11:31:47`   Function URL: https://iru4ado3aki625pnswcpycrniq0ctjba.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:47`   source: lambda_securities_agent.py  7167 chars
+- `11:31:47`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:31:47`          fred=True fmp=False polygon=False yfin=False
+- `11:31:47`   handler preview:
+- `11:31:47`     def lambda_handler(event, context):
+- `11:31:47`         """Securities & Banking Agent"""
+- `11:31:47`         fred_key = "2f057499936072679d8843d7fce99989"
+- `11:31:47`         # Banking and Securities indicators
+- `11:31:47`         securities_indicators = {
+- `11:31:47`             # Banking Metrics
+- `11:31:47`             'TOTAL_LOANS': 'TOTLL',
+- `11:31:47`             'BUSINESS_LOANS': 'BUSLOANS',
+- `11:31:47`             'REAL_ESTATE_LOANS': 'REALLN',
+- `11:31:47`             'CONSUMER_LOANS': 'CONSUMER',
+- `11:31:47`             'LOANS_INVESTMENTS': 'LOANINV',
+- `11:31:47`             'TREASURY_SECURITIES': 'USGSEC',
+- `11:31:47`             'OTHER_SECURITIES': 'OTHSEC',
+- `11:31:47`             'TOTAL_BANK_ASSETS': 'TLAACBW027SBOG',
+- `11:31:47`             'TOTAL_DEPOSITS': 'DPSACBW027SBOG',
+- `11:31:47`             'CASH_ASSETS': 'H8B1001NCBCMG',
+- `11:31:47`             # Bank Performance
+- `11:31:47`             'NONPERFORMING_LOANS': 'NDFACBS',
+- `11:31:47`             'CHARGE_OFF_RATE': 'CHARGEOFF',
+- `11:31:47`             'RETURN_ON_ASSETS': 'USROA',
+- `11:31:47`             'RETURN_ON_
+- `11:31:53`   invoke status: 200  payload 1991B
+- `11:31:53`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"timestamp\": \"2026-04-26T11:31:53.081929\", \"banking_metrics\": {\"TOTAL_LOANS\": {\"current\": 13727.0552, \"date\": \"2026-04-15\", \"changes\": {\"1W\": 178.39700000000084}, \"signal\": \"CHECK_DATA\"}, \"BUSINESS_LOANS\": {\"current\": 2827.6247, \"date\": \"2026-03-01\", \"changes\": {\"1W\": 142.42489999999998}, \"signal\": \"CHECK_DATA\"}, \"REAL_ESTATE_LOANS\": {\"current\": 5761.1261, \"date\": \"2026-03-01\", \"changes\": {\"1W\": 82.8747000000003}, \"signal\": \"CHE
+## 📦 google-trends-agent
+
+- `11:31:53`   Function URL: https://ohmu2l54tpbgm6jk7e5s6q3jpe0cqvij.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:53`   source: lambda_function_enhanced.py  7249 chars
+- `11:31:53`   flags: s3.put=False returns_dict=True apigw_response=True
+- `11:31:53`          fred=False fmp=False polygon=False yfin=False
+- `11:31:53`   handler preview:
+- `11:31:53`     def lambda_handler(event, context):
+- `11:31:53`         """
+- `11:31:53`         Google Trends Agent - Enhanced with Crypto, Employment, and Stock Searches
+- `11:31:53`         """
+- `11:31:53`         try:
+- `11:31:53`             # Your requested search terms organized by category
+- `11:31:53`             tracked_searches = {
+- `11:31:53`                 "crypto": [
+- `11:31:53`                     "altcoins",
+- `11:31:53`                     "crypto",
+- `11:31:53`                     "pepe crypto",
+- `11:31:53`                     "eth",
+- `11:31:53`                     "ethereum",
+- `11:31:53`                     "bitcoin",
+- `11:31:53`                     "cryptocurrency crash",
+- `11:31:53`                     "crypto news"
+- `11:31:53`                 ],
+- `11:31:53`                 "employment": [
+- `11:31:53`                     "looking for a job",
+- `11:31:53`                     "employment",
+- `11:31:53`                     "unemployment",
+- `11:31:53`                     "jobs near me",
+- `11:31:53`                     "remote work",
+- `11:31:53`                     "layoffs today"
+- `11:31:54`   invoke status: 200  payload 4205B
+- `11:31:54`   payload preview: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "max-age=300"}, "body": "{\"timestamp\": \"2026-04-26T11:31:54.146551\", \"status\": \"success\", \"data_source\": \"GOOGLE_TRENDS_ENHANCED\", \"data\": {\"crypto_searches\": {\"altcoins\": {\"current\": 38, \"24h_avg\": 42, \"trend\": \"spike\", \"change_pct\": -2.7609908839993373}, \"crypto\": {\"current\": 46, \"24h_avg\": 54, \"trend\": \"spike\", \"change_pct\": -20.36194044938984}, \"pepe crypto\": {\"current\": 58, \"24h_avg\": 56, \"trend\": \"spike\", \"change_pct\"
+## 📦 macro-financial-intelligence
+
+- `11:31:54`   Function URL: https://qhmg6ybf5qhkviw2c6tlizar4e0xhbrc.lambda-url.us-east-1.on.aws/  auth=NONE
+- `11:31:54`   source: lambda_function.py  5520 chars
+- `11:31:54`   flags: s3.put=True returns_dict=True apigw_response=True
+- `11:31:54`          fred=True fmp=False polygon=False yfin=False
+- `11:31:54`   handler preview:
+- `11:31:54`     def lambda_handler(e,c):
+- `11:31:54`      rc=e.get('requestContext',{})
+- `11:31:54`      if rc.get('http'):
+- `11:31:54`       try:
+- `11:31:54`        try:r=s3.get_object(Bucket=S3_BUCKET,Key='latest_brief.json');d=json.loads(r['Body'].read().decode('utf-8'))
+- `11:31:54`        except:d=gr()
+- `11:31:54`        h=f'''<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scal
+- `11:31:54`   S3 keys in source: ['latest_brief.json', 'latest_brief.json']
+- `11:31:55`   invoke status: 200  payload 105B
+- `11:31:55`   payload preview: {"statusCode": 200, "body": "{\"status\": \"success\", \"key\": \"daily_briefs/2026-04-26_brief.json\"}"}
+## 📦 justhodl-repo-monitor
+
+- `11:31:56`   Function URL: none
+- `11:31:56`   source: lambda_function.py  34755 chars
+- `11:31:56`   flags: s3.put=True returns_dict=True apigw_response=True
+- `11:31:56`          fred=True fmp=False polygon=False yfin=False
+- `11:31:56`   handler preview:
+- `11:31:56`     def lambda_handler(event,context):
+- `11:31:56`         try:
+- `11:31:56`             print("=== REPO MONITOR V2 START ===");ts=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+- `11:31:56`             print("Repo rates...");rr=collect_repo_rates();print(f"  {len(rr)}")
+- `11:31:56`             print("Reverse repo...");rv=collect_reverse_repo();print(f"  {len(rv)}")
+- `11:31:56`             print("Fed facilities...");ff=collect_fed_facilities();print(f"  {len(ff)}")
+- `11:31:56`             print("Spreads...");fs=collect_funding_spreads();print(f"  {len(fs)}")
+- `11:31:56`             print("Swaps...");sw=collect_swaps();print(f"  {len(sw)}")
+- `11:31:56`             print("Systemic...");sy=collect_systemic();print(f"  {len(sy)}")
+- `11:31:56`             print("Curve...");tc=collect_curve()
+- `11:31:56`             ad={'repo_rates':rr,'reverse_repo':rv,'fed_facilities':ff,'funding_spreads':fs,'swaps':sw,'systemic':sy,'treasur
+- `11:31:56`             print(
+- `11:31:56`   S3 keys in source: ['repo-data.json']
+- `11:32:11`   invoke status: 200  payload 283B
+- `11:32:11`   payload preview: {"statusCode": 200, "body": "{\"status\": \"published\", \"score\": 27, \"plumbing_status\": \"ELEVATED\", \"phase\": \"PRE-CRISIS\", \"red_flags\": 7, \"yellow_flags\": 0, \"total_metrics\": 57, \"action\": \"MONITOR CLOSELY\", \"headline\": \"\\u26a0\\ufe0f PRE-CRISIS WARNING\"}"}
+- `11:32:11` Done
