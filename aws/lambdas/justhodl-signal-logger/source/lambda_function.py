@@ -302,6 +302,166 @@ def lambda_handler(event,context):
             stype2=f"cftc_{contract.lower().replace(' ','_').replace('/','_')[:25]}"
             logged.append(log_sig(stype2,sig5,p5,cf5,tk3,wins3,meta={"contract":contract,"net_pos":item.get("netPosition")}))
     except Exception as ex: print(f"[CFTC] {ex}")
+
+    # ─── Phase 9.6 — Crisis & Plumbing signals (Loop 1 calibrator integration) ───
+    # Pulls data/crisis-plumbing.json (Phase 9.3) and data/correlation-breaks.json
+    # (Phase 9.5) and emits signals into the calibrator. Each non-NORMAL signal
+    # bucket maps to a directional prediction on a relevant outcome ticker.
+    # When the calibrator runs Sundays it will weight these by realized accuracy.
+    try:
+        cp=fs3("data/crisis-plumbing.json")
+        if cp:
+            # Confidence ladder: CRISIS=0.85, ELEVATED=0.75, WATCH=0.65, NORMAL=0.45
+            CONF={"CRISIS":0.85,"ELEVATED":0.75,"WATCH":0.65,"NORMAL":0.45}
+            # Direction: most stress signals predict equities DOWN
+            def stress_sig(name,sig,bucket_val,against,wins,meta=None,rat=None):
+                """Helper for stress-direction signals (DOWN on stress, NEUTRAL on normal)."""
+                pred="DOWN" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+                cf=CONF.get(sig,0.45)
+                logged.append(log_sig(name,bucket_val,pred,cf,against,wins,meta=meta,rationale=rat))
+
+            # Funding & Credit Signals (6)
+            fcs=cp.get("funding_credit_signals",{}) or {}
+            sofr=fcs.get("SOFR_IORB_SPREAD",{})
+            if sofr.get("available"):
+                sig=sofr.get("signal","NORMAL")
+                rat=f"SOFR-IORB spread {sofr.get('spread_bps')}bps z_1y={sofr.get('z_score_1y')} → {sig} repo stress"
+                stress_sig("crisis_sofr_iorb",sig,f"{sofr.get('spread_bps')}bps","SPY",[3,7,14],
+                           meta={"spread_bps":sofr.get("spread_bps"),"z_1y":sofr.get("z_score_1y"),"signal":sig},rat=rat)
+            hy=fcs.get("HY_OAS",{})
+            if hy.get("available"):
+                sig=hy.get("signal","NORMAL")
+                rat=f"HY OAS {hy.get('latest_value'):.0f}bps z_1y={hy.get('z_score_1y')} → {sig} credit fear"
+                # Two simultaneous predictions: HYG itself + broader SPY
+                stress_sig("crisis_hy_oas_vs_hyg",sig,f"{hy.get('latest_value'):.0f}bps","HYG",[3,7,14],
+                           meta={"oas_bps":hy.get("latest_value"),"z_1y":hy.get("z_score_1y"),"signal":sig},rat=rat)
+                stress_sig("crisis_hy_oas_vs_spy",sig,f"{hy.get('latest_value'):.0f}bps","SPY",[7,14,30],
+                           meta={"oas_bps":hy.get("latest_value"),"signal":sig},rat=rat)
+            ig=fcs.get("IG_BBB_OAS",{})
+            if ig.get("available"):
+                sig=ig.get("signal","NORMAL")
+                rat=f"IG BBB OAS {ig.get('latest_value'):.0f}bps → {sig}"
+                stress_sig("crisis_ig_bbb_oas",sig,f"{ig.get('latest_value'):.0f}bps","SPY",[14,30],
+                           meta={"oas_bps":ig.get("latest_value"),"signal":sig},rat=rat)
+            t10yie=fcs.get("T10YIE",{})
+            if t10yie.get("available"):
+                lv=float(t10yie.get("latest_value") or 0)
+                # T10YIE has 'extremes' direction — both very low (deflation) and very high (unanchored) are stress
+                if lv<1.5 or lv>3.0:
+                    pred="DOWN"; cf=0.65; sig="ELEVATED"
+                else:
+                    pred="NEUTRAL"; cf=0.45; sig="NORMAL"
+                rat=f"10Y breakeven inflation {lv:.2f}% → {sig} (extremes flagged: <1.5% deflation / >3% unanchored)"
+                logged.append(log_sig("crisis_t10yie_extreme",f"{lv:.2f}%",pred,cf,"SPY",[30,60],
+                                      meta={"breakeven_pct":lv,"signal":sig},rationale=rat))
+            dfii=fcs.get("DFII10",{})
+            if dfii.get("available"):
+                sig=dfii.get("signal","NORMAL")
+                rat=f"10Y real rate {dfii.get('latest_value'):.2f}% → {sig} (high real rates pressure equities + gold)"
+                stress_sig("crisis_dfii10_vs_spy",sig,f"{dfii.get('latest_value'):.2f}%","SPY",[14,30,60],
+                           meta={"real_rate_pct":dfii.get("latest_value"),"signal":sig},rat=rat)
+                # high real rates also pressure gold
+                stress_sig("crisis_dfii10_vs_gld",sig,f"{dfii.get('latest_value'):.2f}%","GLD",[14,30,60],
+                           meta={"real_rate_pct":dfii.get("latest_value"),"signal":sig},rat=rat)
+            sloos=fcs.get("SLOOS_TIGHTEN",{})
+            if sloos.get("available"):
+                sig=sloos.get("signal","NORMAL")
+                rat=f"SLOOS C&I tightening {sloos.get('latest_value'):.1f}% → {sig} (banks pulling credit, slow signal)"
+                stress_sig("crisis_sloos_tighten",sig,f"{sloos.get('latest_value'):.1f}%","SPY",[60,90],
+                           meta={"net_pct_tightening":sloos.get("latest_value"),"signal":sig},rat=rat)
+
+            # Cross-currency / offshore dollar funding (4)
+            xcc=cp.get("xcc_basis_proxy",{}) or {}
+            for k,against,wins in (("rate_diff_jpy_3m","SPY",[7,14]),
+                                    ("rate_diff_eur_3m","SPY",[7,14])):
+                rd=xcc.get(k,{})
+                if rd.get("available"):
+                    sig=rd.get("signal","NORMAL")
+                    rat=f"{k} {rd.get('current_pct'):.2f}% z_1y={rd.get('z_score_1y')} → {sig} USD funding stress proxy"
+                    stress_sig(f"crisis_{k}",sig,f"{rd.get('current_pct'):.2f}%",against,wins,
+                               meta={"diff_pct":rd.get("current_pct"),"z_1y":rd.get("z_score_1y"),"signal":sig},rat=rat)
+            bd=xcc.get("broad_dollar_index",{})
+            if bd.get("available"):
+                sig=bd.get("signal","NORMAL")
+                # High dollar = global stress = SPY/EEM down
+                rat=f"Broad USD index {bd.get('level')} z_1y={bd.get('z_score_1y')} → {sig}"
+                stress_sig("crisis_broad_dollar_vs_spy",sig,f"{bd.get('level')}","SPY",[7,14],
+                           meta={"level":bd.get("level"),"z_1y":bd.get("z_score_1y"),"signal":sig},rat=rat)
+                stress_sig("crisis_broad_dollar_vs_eem",sig,f"{bd.get('level')}","EEM",[7,14,30],
+                           meta={"level":bd.get("level"),"signal":sig},rat=rat)
+            ob=xcc.get("obfr_iorb_spread",{})
+            if ob.get("available"):
+                sig=ob.get("signal","NORMAL")
+                rat=f"OBFR-IORB spread {ob.get('spread_bps')}bps → {sig} unsecured cash hoarding"
+                stress_sig("crisis_obfr_iorb",sig,f"{ob.get('spread_bps')}bps","SPY",[3,7],
+                           meta={"spread_bps":ob.get("spread_bps"),"signal":sig},rat=rat)
+
+            # MMF flight-to-quality
+            mmf=cp.get("mmf_composition") or {}
+            if mmf and mmf.get("flight_to_quality") is not None:
+                ftq=bool(mmf.get("flight_to_quality"))
+                pred="DOWN" if ftq else "NEUTRAL"
+                cf=0.75 if ftq else 0.45
+                rat=f"MMF flight to quality: prime share Δ30d={mmf.get('prime_share_change_30d_pp')}pp → "+("FLIGHT" if ftq else "stable")
+                # Regional banks (KRE) are most affected by deposit flight
+                logged.append(log_sig("crisis_mmf_flight_to_quality",
+                                      "FLIGHT" if ftq else "STABLE",pred,cf,"KRE",[14,30],
+                                      meta={"prime_share_change_pp":mmf.get("prime_share_change_30d_pp"),
+                                            "flight":ftq},rationale=rat))
+
+            # Official Crisis Indices (NFCI / STLFSI4 / ANFCI / KCFSI)
+            ci=cp.get("crisis_indices",{}) or {}
+            for sid,data in ci.items():
+                if not data.get("available"): continue
+                stressed=bool(data.get("is_stressed"))
+                pct=data.get("pct_rank")
+                pred="DOWN" if stressed else "NEUTRAL"
+                if pct is not None and pct>=90: cf=0.80
+                elif stressed: cf=0.70
+                else: cf=0.45
+                rat=f"{sid} latest={data.get('latest_value')} pct_rank={pct} → "+("STRESSED" if stressed else "NORMAL")
+                logged.append(log_sig(f"crisis_index_{sid.lower()}",
+                                      "STRESSED" if stressed else "NORMAL",pred,cf,"SPY",[14,30],
+                                      meta={"latest":data.get("latest_value"),"pct_rank":pct,
+                                            "is_stressed":stressed},rationale=rat))
+    except Exception as ex: print(f"[CRISIS-PLUMBING signals] {ex}")
+
+    # Phase 9.5 — correlation break detector
+    try:
+        cb=fs3("data/correlation-breaks.json")
+        if cb and cb.get("status")!="warming_up":
+            sig=cb.get("signal","NORMAL")
+            fz=cb.get("frobenius_z_score_1y")
+            n2=cb.get("n_pairs_above_2sigma",0)
+            # Composite correlation break → VIX UP + SPY DOWN
+            CONF={"CRISIS":0.85,"ELEVATED":0.75,"WATCH":0.65,"NORMAL":0.45}
+            cf=CONF.get(sig,0.45)
+            pred_spy="DOWN" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+            pred_vix="UP" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+            rat=f"Correlation break composite z={fz}, {n2} pairs >2σ → {sig} regime change signal"
+            logged.append(log_sig("corr_break_composite_vs_spy",sig,pred_spy,cf,"SPY",[3,5,14],
+                                  meta={"fro_z":fz,"n_pairs_2sigma":n2,"signal":sig},rationale=rat))
+            logged.append(log_sig("corr_break_composite_vs_vxx",sig,pred_vix,cf,"VXX",[3,5,14],
+                                  meta={"fro_z":fz,"n_pairs_2sigma":n2,"signal":sig},rationale=rat))
+
+            # Top breaking pair — if |z|>=2 it's worth tracking individually
+            tops=cb.get("top_breaking_pairs") or []
+            if tops:
+                top=tops[0]
+                z1=top.get("z_score") or 0
+                if abs(z1)>=2:
+                    pname=f"{top['pair'][0]}_{top['pair'][1]}".lower()[:30]
+                    pred="DOWN" if abs(z1)>=2 else "NEUTRAL"
+                    cf2=min(0.85,0.5+abs(z1)*0.1)
+                    rat=f"Top breaking pair {top['pair'][0]}↔{top['pair'][1]}: z={z1}, current={top.get('current_corr')}, baseline={top.get('baseline_corr')}"
+                    logged.append(log_sig(f"corr_break_top_pair",pname,pred,cf2,"SPY",[5,14],
+                                          meta={"pair":top['pair'],"z":z1,
+                                                "current_corr":top.get('current_corr'),
+                                                "baseline_corr":top.get('baseline_corr'),
+                                                "context":top.get('context')},rationale=rat))
+    except Exception as ex: print(f"[CORRELATION-BREAK signals] {ex}")
+    # ─── End Phase 9.6 additions ───
+
     # save summary
     s3.put_object(Bucket=S3_BUCKET,Key="learning/last_log_run.json",Body=json.dumps({"logged_at":datetime.now(timezone.utc).isoformat(),"count":len([l for l in logged if l]),"action":event.get("action","auto")}),ContentType="application/json")
     total=len([l for l in logged if l])
