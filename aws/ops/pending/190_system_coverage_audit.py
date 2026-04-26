@@ -71,8 +71,15 @@ with report("system_coverage_audit") as r:
 
     # ─── B. EventBridge schedules — find scheduled Lambdas ──────────────
     r.section("B. EventBridge schedules (auto-running Lambdas)")
-    rules_resp = events.list_rules(Limit=200)
-    rules = [rule for rule in rules_resp.get("Rules", []) if rule.get("ScheduleExpression")]
+    rules = []
+    next_token = None
+    while True:
+        kwargs = {"Limit": 100}
+        if next_token: kwargs["NextToken"] = next_token
+        rules_resp = events.list_rules(**kwargs)
+        rules.extend([rule for rule in rules_resp.get("Rules", []) if rule.get("ScheduleExpression")])
+        next_token = rules_resp.get("NextToken")
+        if not next_token: break
     r.log(f"  Found {len(rules)} scheduled rules")
 
     rule_to_lambda = {}
