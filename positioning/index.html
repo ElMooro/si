@@ -36,7 +36,7 @@
 </style>
 </head>
 <body>
-<div class="topbar"><div class="topbar-left"><a href="https://justhodl.ai" class="logo">JUSTHODL.AI</a><div class="logo-sub">Futures Positioning Intelligence</div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span id="timestamp">Loading...</span><a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com" class="back-link">Terminal</a></div></div>
+<div class="topbar"><div class="topbar-left"><a href="https://justhodl.ai" class="logo">JUSTHODL.AI</a><div class="logo-sub">Futures Positioning Intelligence</div></div><div class="topbar-right"><span><span class="live-dot"></span> LIVE</span><span id="timestamp">Loading...</span><a href="/" class="back-link">Terminal</a></div></div>
 <div class="container"><div id="app"><div class="loading"><div class="spinner"></div><div style="color:var(--t2);font-size:13px;font-family:JetBrains Mono,monospace">Loading CFTC Positioning Data...</div></div></div></div>
 <script>
 var API="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws",DATA=null,activeCategory="all";
@@ -69,7 +69,7 @@ o+='<tr><td style="font-weight:600;color:var(--t1)">'+k+'</td><td style="color:v
 o+='</tbody></table></div>';
 var fk=Object.keys(fut);if(fk.length>0){o+='<div style="margin-top:20px"><div class="sec-head"><span class="sec-title">Real-Time Prices</span><span class="sec-badge">POLYGON.IO</span></div><div class="grid-sectors">';fk.forEach(function(k){var f=fut[k],ch=f.change_pct||0;o+='<div class="sector-card"><div class="sector-name" style="font-size:11px">'+k+' - '+f.name+'</div><div style="font-size:22px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--t1)">'+(f.close!=null?f.close.toLocaleString(undefined,{minimumFractionDigits:2}):"--")+'</div><div style="font-size:13px;font-family:JetBrains Mono,monospace;color:'+cc(ch)+';margin-top:4px">'+(ch>0?"+":"")+ch.toFixed(2)+'%</div><div class="sector-detail" style="margin-top:6px">H: '+(f.high?f.high.toLocaleString():"--")+' | L: '+(f.low?f.low.toLocaleString():"--")+(f.volume?" | Vol: "+fmt(f.volume):"")+'</div></div>'});o+='</div></div>'}
 o+='<div style="margin-top:20px"><div class="sec-head"><span class="sec-title">AI Summary</span></div><div class="card card-blue" style="font-family:JetBrains Mono,monospace;font-size:12px;line-height:1.8;color:var(--t2)">'+(s.summary||"No summary")+'</div></div>';
-o+='<div style="margin-top:30px;padding:16px;text-align:center;color:var(--t3);font-size:11px;font-family:JetBrains Mono,monospace;border-top:1px solid var(--brd)">CFTC.gov COT + Polygon.io | 29 Contracts | 7 Asset Classes | Fridays 6PM UTC<br><a href="https://justhodl.ai" style="color:var(--blue);text-decoration:none">justhodl.ai</a> | <a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com" style="color:var(--blue);text-decoration:none">Terminal</a></div>';
+o+='<div style="margin-top:30px;padding:16px;text-align:center;color:var(--t3);font-size:11px;font-family:JetBrains Mono,monospace;border-top:1px solid var(--brd)">CFTC.gov COT + Polygon.io | 29 Contracts | 7 Asset Classes | Fridays 6PM UTC<br><a href="https://justhodl.ai" style="color:var(--blue);text-decoration:none">justhodl.ai</a> | <a href="/" style="color:var(--blue);text-decoration:none">Terminal</a></div>';
 document.getElementById("app").innerHTML=o}
 function filterCategory(cat){activeCategory=cat;render()}
 loadData();setInterval(loadData,300000);

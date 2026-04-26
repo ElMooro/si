@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 </style>
 </head>
 <body>
-<div class="hdr"><div class="hdr-l"><div><div class="logo">CRYPTO INTEL v4.2</div><div class="logo-sub">JustHodl.AI</div></div></div><div class="hdr-r"><div class="nav-links"><a href="http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/">Main</a><a href="https://justhodl.ai">Home</a></div><span id="ts" class="mono" style="font-size:10px">Loading...</span><span style="display:flex;align-items:center;gap:5px"><span class="dot"></span>LIVE</span></div></div>
+<div class="hdr"><div class="hdr-l"><div><div class="logo">CRYPTO INTEL v4.2</div><div class="logo-sub">JustHodl.AI</div></div></div><div class="hdr-r"><div class="nav-links"><a href="/">Main</a><a href="https://justhodl.ai">Home</a></div><span id="ts" class="mono" style="font-size:10px">Loading...</span><span style="display:flex;align-items:center;gap:5px"><span class="dot"></span>LIVE</span></div></div>
 <div class="tabs" id="tabs">
 <div class="tab active" data-tab="overview">Overview</div>
 <div class="tab" data-tab="technicals">Technicals</div>
@@ -424,7 +424,7 @@ function cDex(){
 <div id="diw"><button id="dcb" onclick="cDex()">X BACK TO CRYPTO</button><iframe id="dif" src="about:blank"></iframe></div>
 <script>
 (function(){
-  var DEX='http://justhodl-dashboard-live.s3-website-us-east-1.amazonaws.com/dex.html';
+  var DEX='/dex.html';
   function hook(){
     var tb=document.getElementById('tabs');
     if(!tb){setTimeout(hook,300);return;}
