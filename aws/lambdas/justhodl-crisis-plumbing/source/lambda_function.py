@@ -178,10 +178,16 @@ CRISIS_INDICES = {
 }
 
 PLUMBING_TIER2 = {
-    "WMMFNS":            {"name": "Total MMF AUM", "fmt": "money", "scale": 1000},
-    "WIMFSL":            {"name": "Institutional MMF", "fmt": "money", "scale": 1000},
+    # MMF composition (post-2021): use the gov/prime/tax-exempt split.
+    # WMMFNS (Total MMF) appears on FRED as a discontinued legacy series; the
+    # modern ICI breakdown is WGMMNS/WPMMNS/WTMMNS published weekly.
+    "WGMMNS":            {"name": "Government MMF",      "fmt": "money", "scale": 1000},
+    "WPMMNS":            {"name": "Prime MMF",           "fmt": "money", "scale": 1000},
+    "WTMMNS":            {"name": "Tax-Exempt MMF",      "fmt": "money", "scale": 1000},
     "DPSACBW027SBOG":    {"name": "All Commercial Bank Deposits", "fmt": "money", "scale": 1000},
-    "H8B1058NCBCMG":     {"name": "C&I Lending (H.8)", "fmt": "money", "scale": 1},
+    # H.8 C&I Lending — switched from H8B1058NCBCMG (a percent-change series)
+    # to BUSLOANS (the absolute level in $B), so delta_30d_pct is meaningful.
+    "BUSLOANS":          {"name": "C&I Lending (H.8 absolute)", "fmt": "money", "scale": 1},
     "RRPONTSYD":         {"name": "Reverse Repo Facility Usage", "fmt": "money", "scale": 1000},
     "TGA":               {"name": "Treasury General Account", "fmt": "money", "scale": 1000, "real_id": "WTREGEN"},
 }
@@ -409,21 +415,49 @@ def lambda_handler(event, context):
             ),
         }
 
-    # 5a. MMF composition (institutional vs retail vs total)
-    mmf_total = plumbing.get("WMMFNS", {}).get("latest_value")
-    mmf_inst = plumbing.get("WIMFSL", {}).get("latest_value")
+    # 5a. MMF composition — modern ICI weekly split (gov / prime / tax-exempt)
+    # Stress signal: when prime_share drops fast, institutions are fleeing to
+    # government MMFs (a classic March-2020-style flight to safety).
+    mmf_gov = plumbing.get("WGMMNS", {}).get("latest_value")
+    mmf_prime = plumbing.get("WPMMNS", {}).get("latest_value")
+    mmf_taxexempt = plumbing.get("WTMMNS", {}).get("latest_value")
     mmf_composition = None
-    if mmf_total and mmf_inst:
-        retail = mmf_total - mmf_inst
+    if mmf_gov is not None and mmf_prime is not None:
+        mmf_total = mmf_gov + mmf_prime + (mmf_taxexempt or 0)
+        gov_share = round(100.0 * mmf_gov / mmf_total, 1) if mmf_total else None
+        prime_share = round(100.0 * mmf_prime / mmf_total, 1) if mmf_total else None
+        # Compare prime_share to its own 30d-ago level for trend
+        prime_30d = plumbing.get("WPMMNS", {}).get("value_30d_ago")
+        gov_30d = plumbing.get("WGMMNS", {}).get("value_30d_ago")
+        prime_share_30d = None
+        if prime_30d is not None and gov_30d is not None:
+            taxex_30d = plumbing.get("WTMMNS", {}).get("value_30d_ago") or 0
+            tot_30d = mmf_gov + mmf_prime + taxex_30d if False else (gov_30d + prime_30d + taxex_30d)
+            prime_share_30d = round(100.0 * prime_30d / tot_30d, 1) if tot_30d else None
+        prime_share_change_30d = (
+            round(prime_share - prime_share_30d, 2)
+            if prime_share is not None and prime_share_30d is not None
+            else None
+        )
+        # Flight-to-safety threshold: prime share dropping by >2 pts in 30d is unusual
+        ftq = (
+            prime_share_change_30d is not None and prime_share_change_30d < -2.0
+        )
         mmf_composition = {
-            "total_aum_billions": mmf_total,
-            "institutional_billions": mmf_inst,
-            "retail_billions": retail,
-            "institutional_share_pct": round(100.0 * mmf_inst / mmf_total, 1),
+            "total_aum_billions": round(mmf_total, 1),
+            "gov_billions": round(mmf_gov, 1),
+            "prime_billions": round(mmf_prime, 1),
+            "tax_exempt_billions": round(mmf_taxexempt or 0, 1),
+            "gov_share_pct": gov_share,
+            "prime_share_pct": prime_share,
+            "prime_share_30d_ago_pct": prime_share_30d,
+            "prime_share_change_30d_pp": prime_share_change_30d,
+            "flight_to_quality": bool(ftq),
             "interpretation": (
-                "Institutional flight to safety (>65% inst share)"
-                if mmf_inst / mmf_total > 0.65
-                else "Normal composition"
+                "FLIGHT TO QUALITY — prime share dropping ≥2pp in 30d (institutional flight to government)"
+                if ftq
+                else "Normal composition" if prime_share is not None
+                else "Indeterminate"
             ),
         }
 
