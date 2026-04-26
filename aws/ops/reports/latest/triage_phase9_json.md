@@ -1,0 +1,177 @@
+# Triage Phase 9 JSON outputs — full structure
+
+**Status:** success  
+**Duration:** 0.4s  
+**Finished:** 2026-04-26T20:39:05+00:00  
+
+## Log
+## 📄 data/crisis-plumbing.json
+
+- `20:39:05`   total bytes: 4369
+- `20:39:05`   top-level keys: ['schema_version', 'generated_at', 'fetch_time_sec', 'composite', 'crisis_indices', 'plumbing_tier2', 'mmf_composition', 'xcc_basis_proxy', 'yield_curve', 'n_series_fetched', 'data_sources']
+- `20:39:05` 
+- `20:39:05`     schema_version: '1.0'
+- `20:39:05`     generated_at: '2026-04-26T15:03:48.899807+00:00'
+- `20:39:05`     fetch_time_sec: 0.5
+- `20:39:05`     composite:
+- `20:39:05`       composite_stress_score: 37.0
+- `20:39:05`       consensus_count: 0
+- `20:39:05`       agreement_signal: 'NORMAL'
+- `20:39:05`       n_indices_available: 4
+- `20:39:05`       flagged_indices: [] (empty list)
+- `20:39:05`     crisis_indices:
+- `20:39:05`       STLFSI4:
+- `20:39:05`         name: 'St. Louis Fed Financial Stress Index'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-17'
+- `20:39:05`         latest_value: -0.7584
+- `20:39:05`         pct_rank: 11.7
+- `20:39:05`         is_stressed: False
+- `20:39:05`         value_1m_ago: -0.2974
+- `20:39:05`         value_3m_ago: -0.6496
+- `20:39:05`         delta_30d: -0.46099999999999997
+- `20:39:05`         n_observations: 625
+- `20:39:05`       NFCI:
+- `20:39:05`         name: 'Chicago Fed National Financial Conditions'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-17'
+- `20:39:05`         latest_value: -0.497
+- `20:39:05`         pct_rank: 49.2
+- `20:39:05`         is_stressed: False
+- `20:39:05`         value_1m_ago: -0.47
+- `20:39:05`         value_3m_ago: -0.565
+- `20:39:05`         delta_30d: -0.027000000000000024
+- `20:39:05`         n_observations: 625
+- `20:39:05`       ANFCI:
+- `20:39:05`         name: 'Chicago Fed Adjusted NFCI'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-17'
+- `20:39:05`         latest_value: -0.474
+- `20:39:05`         pct_rank: 54.4
+- `20:39:05`         is_stressed: False
+- `20:39:05`         value_1m_ago: -0.423
+- `20:39:05`         value_3m_ago: -0.539
+- `20:39:05`         delta_30d: -0.05099999999999999
+- `20:39:05`         n_observations: 625
+- `20:39:05`       KCFSI:
+- `20:39:05`         name: 'Kansas City Fed Financial Stress Index'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-03-01'
+- `20:39:05`         latest_value: -0.586617129294089
+- `20:39:05`         pct_rank: 32.5
+- `20:39:05`         is_stressed: False
+- `20:39:05`         value_1m_ago: -0.688377724276555
+- `20:39:05`         value_3m_ago: -0.711374329547438
+- `20:39:05`         delta_30d: 0.10176059498246592
+- `20:39:05`         n_observations: 144
+- `20:39:05`       OFRFSI:
+- `20:39:05`         name: 'OFR Financial Stress Index'
+- `20:39:05`         available: False
+- `20:39:05`     plumbing_tier2:
+- `20:39:05`       WMMFNS:
+- `20:39:05`         name: 'Total MMF AUM'
+- `20:39:05`         available: False
+- `20:39:05`       WIMFSL:
+- `20:39:05`         name: 'Institutional MMF'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2021-02-01'
+- `20:39:05`         latest_value: 2840.9
+- `20:39:05`         value_30d_ago: 2834.1
+- `20:39:05`         delta_30d_pct: 0.24
+- `20:39:05`         value_90d_ago: 2894.3
+- `20:39:05`         delta_90d_pct: -1.85
+- `20:39:05`       DPSACBW027SBOG:
+- `20:39:05`         name: 'All Commercial Bank Deposits'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-15'
+- `20:39:05`         latest_value: 19099.2018
+- `20:39:05`         value_30d_ago: 18889.9352
+- `20:39:05`         delta_30d_pct: 1.11
+- `20:39:05`         value_90d_ago: 18628.2173
+- `20:39:05`         delta_90d_pct: 2.53
+- `20:39:05`       H8B1058NCBCMG:
+- `20:39:05`         name: 'C&I Lending (H.8)'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-03-01'
+- `20:39:05`         latest_value: 9.8
+- `20:39:05`         value_30d_ago: 4.9
+- `20:39:05`         delta_30d_pct: 100.0
+- `20:39:05`         value_90d_ago: 5.0
+- `20:39:05`         delta_90d_pct: 96.0
+- `20:39:05`       RRPONTSYD:
+- `20:39:05`         name: 'Reverse Repo Facility Usage'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-24'
+- `20:39:05`         latest_value: 0.082
+- `20:39:05`         value_30d_ago: 0.777
+- `20:39:05`         delta_30d_pct: -89.45
+- `20:39:05`         value_90d_ago: 0.927
+- `20:39:05`         delta_90d_pct: -91.15
+- `20:39:05`       TGA:
+- `20:39:05`         name: 'Treasury General Account'
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-22'
+- `20:39:05`         latest_value: 1005968.0
+- `20:39:05`         value_30d_ago: 853052.0
+- `20:39:05`         delta_30d_pct: 17.93
+- `20:39:05`         value_90d_ago: 869261.0
+- `20:39:05`         delta_90d_pct: 15.73
+- `20:39:05`     mmf_composition: None
+- `20:39:05`     xcc_basis_proxy:
+- `20:39:05`       xcc_proxy_jpy_3m:
+- `20:39:05`         z_score_1y: -1.06
+- `20:39:05`         current_pct: 3.69
+- `20:39:05`         interpretation: 'ABUNDANT'
+- `20:39:05`         note: 'Proxied via DGS3MO; full BIS basis data needed for precise JPY/USD basis'
+- `20:39:05`       xcc_proxy_eur_3m:
+- `20:39:05`         z_score_1y: -1.06
+- `20:39:05`         current_pct: 3.69
+- `20:39:05`         interpretation: 'ABUNDANT'
+- `20:39:05`         note: 'Proxied via DGS3MO; full BIS basis data needed for precise EUR/USD basis'
+- `20:39:05`     yield_curve:
+- `20:39:05`       T10Y2Y:
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-24'
+- `20:39:05`         latest_value: 0.53
+- `20:39:05`         is_inverted: False
+- `20:39:05`         value_30d_ago: 0.49
+- `20:39:05`         delta_30d: 0.04
+- `20:39:05`       T10Y3M:
+- `20:39:05`         available: True
+- `20:39:05`         latest_date: '2026-04-24'
+- `20:39:05`         latest_value: 0.62
+- `20:39:05`         is_inverted: False
+- `20:39:05`         value_30d_ago: 0.6
+- `20:39:05`         delta_30d: 0.02
+- `20:39:05`     n_series_fetched: 18
+- `20:39:05`     data_sources:
+- `20:39:05`       fred_api: 'https://api.stlouisfed.org/fred'
+- `20:39:05`       license: 'Public domain (FRED + Federal Reserve Banks)'
+- `20:39:05` 
+- `20:39:05` 
+## 📄 data/regime-anomaly.json
+
+- `20:39:05`   total bytes: 594
+- `20:39:05`   top-level keys: ['schema_version', 'generated_at', 'elapsed_sec', 'hmm', 'anomaly', 'training_window', 'fit_method']
+- `20:39:05` 
+- `20:39:05`     schema_version: '1.0'
+- `20:39:05`     generated_at: '2026-04-26T15:24:47.232185+00:00'
+- `20:39:05`     elapsed_sec: 7.13
+- `20:39:05`     hmm:
+- `20:39:05`       is_warming_up: True
+- `20:39:05`       training_n: 10
+- `20:39:05`       message: 'Only 10 samples, need >=12 to fit'
+- `20:39:05`     anomaly:
+- `20:39:05`       per_signal: {} (empty dict)
+- `20:39:05`       n_anomalies: 0
+- `20:39:05`       n_extremes: 0
+- `20:39:05`       composite_anomaly_score: 0
+- `20:39:05`     training_window:
+- `20:39:05`       ka_index_observations: 10
+- `20:39:05`       signal_count: 9
+- `20:39:05`       earliest: '2026-04-25T00:04:26.342788+00:00'
+- `20:39:05`       latest: '2026-04-26T13:00:21.825915+00:00'
+- `20:39:05`     fit_method: 'Baum-Welch EM (4-state Gaussian HMM, pure-python)'
+- `20:39:05` 
+- `20:39:05` 
+- `20:39:05` Done
