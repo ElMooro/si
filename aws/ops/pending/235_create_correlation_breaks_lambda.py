@@ -21,6 +21,7 @@ import time
 import zipfile
 from pathlib import Path
 from ops_report import report
+import sys
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
@@ -59,7 +60,7 @@ with report("create_correlation_breaks_lambda") as r:
     r.log(f"  SOURCE_DIR: {SOURCE_DIR}")
     if not SOURCE_DIR.exists():
         r.warn(f"  ✗ source dir not found")
-        return
+        sys.exit(0)
     src_files = list(SOURCE_DIR.rglob("*.py"))
     r.log(f"  Found {len(src_files)} Python files: {[f.name for f in src_files]}")
 

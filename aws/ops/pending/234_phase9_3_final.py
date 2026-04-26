@@ -18,6 +18,7 @@ Verifies:
 import io, json, time, zipfile
 from datetime import datetime, timezone
 from ops_report import report
+import sys
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -74,7 +75,7 @@ with report("phase9_3_final_integration") as r:
     dur = round(time.time() - t0, 1)
     if resp.get("FunctionError"):
         r.warn(f"  ✗ FunctionError: {payload}")
-        return
+        sys.exit(0)
     r.log(f"  ✅ OK ({dur}s)  payload: {json.dumps(payload)[:300]}")
 
     # ─────────────────────────────────────────

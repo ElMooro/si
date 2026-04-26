@@ -13,6 +13,7 @@ Manually invoke + read S3 + sanity-check.
 import json
 import time
 from ops_report import report
+import sys
 import boto3
 from botocore.config import Config
 
@@ -43,7 +44,7 @@ with report("verify_9_3a_9_3b") as r:
     dur = round(time.time() - t0, 1)
     if resp.get("FunctionError"):
         r.warn(f"  ✗ FunctionError: {payload}")
-        return
+        sys.exit(0)
     r.log(f"  ✅ OK ({dur}s)")
     r.log(f"  payload: {json.dumps(payload)[:400]}")
 
@@ -105,8 +106,7 @@ with report("verify_9_3a_9_3b") as r:
     fcs = d.get("funding_credit_signals", {})
     if not fcs:
         r.warn("  ✗ funding_credit_signals section MISSING")
-        return
-
+        sys.exit(0)
     expected = [
         "SOFR_IORB_SPREAD",
         "HY_OAS",
