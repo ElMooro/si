@@ -1,0 +1,564 @@
+# Sample S3 data shapes for new index.html
+
+**Status:** success  
+**Duration:** 1.7s  
+**Finished:** 2026-04-26T00:15:15+00:00  
+
+## Log
+## intelligence-report.json
+
+- `00:15:14`   size=4369B  mod=2026-04-25 12:10
+- `00:15:14`   timestamp: "2026-04-25 07:10 ET"
+- `00:15:14`   generated_at: "2026-04-25T12:10:48.413477+00:00"
+- `00:15:14`   version: "3.0"
+- `00:15:14`   data_sources: dict(6 keys)
+- `00:15:14`     main_terminal: true
+- `00:15:14`     repo_plumbing: true
+- `00:15:14`     ml_predictions: true
+- `00:15:14`     sources_active: 3
+- `00:15:14`     agents_online: 0
+- `00:15:14`     total_agents: 0
+- `00:15:14`   headline: "\u26a0\ufe0f PRE-CRISIS WARNING"
+- `00:15:14`   headline_detail: "RRP at $0.1B \u2014 NEAR ZERO! Lower than March 2020 and Sept 2019. Liquidity b
+- `00:15:14`   phase: "PRE-CRISIS"
+- `00:15:14`   phase_color: "#ff6d00"
+- `00:15:14`   action_required: "REDUCE ALL RISK. Raise cash to 40%+. Exit leveraged and speculative positions."
+- `00:15:14`   forecast: "Correction risk -10% to -20%. Liquidity deteriorating rapidly. Credit stress bu
+- `00:15:14`   scores: dict(9 keys)
+- `00:15:14`     khalid_index: 43
+- `00:15:14`     crisis_distance: 60
+- `00:15:14`     plumbing_stress: 5
+- `00:15:14`     ml_risk_score: 60
+- `00:15:14`     carry_risk_score: 5
+- `00:15:14`     vix: null
+- `00:15:14`     move: null
+- `00:15:14`     calibrated_composite: 28.25
+- `00:15:14`     raw_composite: 28.25
+- `00:15:14`   signals: dict(4 keys)
+- `00:15:14`     crisis_signals: 4
+- `00:15:14`     warning_signals: 1
+- `00:15:14`     bullish_signals: 0
+- `00:15:14`     crisis_factors: list[1] ["RRP DEPLETED $0.1B"]
+- `00:15:14`   regime: dict(7 keys)
+- `00:15:14`     khalid: "BEAR"
+- `00:15:14`     ml: "N/A"
+- `00:15:14`     ml_description: ""
+- `00:15:14`     sector: "N/A"
+- `00:15:14`     credit: "N/A"
+- `00:15:14`     liquidity: "contracting"
+- `00:15:14`     curve: "NORMAL"
+- `00:15:14`   metrics_table: list[13 dicts]
+- `00:15:14`     [0]:
+- `00:15:14`       metric: "KHALID INDEX"
+- `00:15:14`       value: "43"
+- `00:15:14`       status: "Cautious"
+- `00:15:14`       action: "Stay cautious"
+- `00:15:14`   risks: list[2 dicts]
+- `00:15:14`     [0]:
+- `00:15:14`       title: "RRP DEPLETION"
+- `00:15:14`       severity: "CRITICAL"
+- `00:15:14`       detail: "At $0.1B, reverse repo buffer is exhausted. When RRP hits zero, system must fin
+## edge-data.json
+
+- `00:15:14`   size=1888B  mod=2026-04-25 22:04
+- `00:15:14`   generated_at: "2026-04-25T22:04:06.849657+00:00"
+- `00:15:14`   composite_score: 56
+- `00:15:14`   calibrated_composite: 56.0
+- `00:15:14`   raw_composite: 56.0
+- `00:15:14`   calibration: dict(4 keys)
+- `00:15:14`     is_meaningful: false
+- `00:15:14`     n_calibrated: 0
+- `00:15:14`     n_signals: 5
+- `00:15:14`     contributions: list[5 dicts]
+- `00:15:14`       [0]:
+- `00:15:14`         signal_type: "engine_options_flow"
+- `00:15:14`         score: 50.0
+- `00:15:14`         weight: 1.0
+- `00:15:14`         contribution: 50.0
+- `00:15:14`         calibrated: false
+- `00:15:14`   regime: "NEUTRAL"
+- `00:15:14`   engine_scores: dict(5 keys)
+- `00:15:14`     options_flow: 50
+- `00:15:14`     fund_sentiment: 60
+- `00:15:14`     earnings: 55
+- `00:15:14`     liquidity: 65
+- `00:15:14`     correlation: 50
+- `00:15:14`   options_flow: dict(6 keys)
+- `00:15:14`     vix: 19.31
+- `00:15:14`     vix_3m: 21.48
+- `00:15:14`     term_structure: 2.17
+- `00:15:14`     regime: "CONTANGO"
+- `00:15:14`     score: 50
+- `00:15:14`     signal: "NEUTRAL"
+- `00:15:14`   fund_flow: dict(7 keys)
+- `00:15:14`     hy_spread: 2.86
+- `00:15:14`     ig_spread: 0.8
+- `00:15:14`     ted_spread: 0.09
+- `00:15:14`     fear_greed: 31
+- `00:15:14`     fear_greed_label: "Fear"
+- `00:15:14`     score: 60
+- `00:15:14`     signal: "NEUTRAL"
+- `00:15:14`   earnings_momentum: dict(7 keys)
+- `00:15:14`     yield_curve: 0.54
+- `00:15:14`     t10y: 4.25
+- `00:15:14`     t2y: 3.71
+- `00:15:14`     bellwethers: dict(5 keys)
+- `00:15:14`       AAPL: dict(2 keys)
+- `00:15:14`       MSFT: dict(2 keys)
+- `00:15:14`       NVDA: dict(2 keys)
+- `00:15:14`       GOOGL: dict(2 keys)
+- `00:15:14`       META: dict(2 keys)
+- `00:15:14`     avg_change: 0.0
+- `00:15:14`     score: 55
+- `00:15:14`     signal: "STABLE"
+## liquidity-data.json
+
+- `00:15:14`   size=10475B  mod=2026-04-25 12:30
+- `00:15:14`   meta: dict(4 keys)
+- `00:15:14`     generated_at: "2026-04-25T12:30:38.683153+00:00"
+- `00:15:14`     elapsed_sec: 6.8
+- `00:15:14`     agent_version: "2.0.0"
+- `00:15:14`     data_sources: list[1] ["FRED"]
+- `00:15:14`   core: dict(4 keys)
+- `00:15:14`     net_liquidity: dict(4 keys)
+- `00:15:14`       value_bn: 5701450.92
+- `00:15:14`       label: "NEUTRAL"
+- `00:15:14`       score: 49
+- `00:15:14`       color: "#ffd700"
+- `00:15:14`     fed_balance_sheet: dict(3 keys)
+- `00:15:14`       value_bn: 6707419.0
+- `00:15:14`       date: "2026-04-22"
+- `00:15:14`       unit: "Billions USD"
+- `00:15:14`     tga: dict(3 keys)
+- `00:15:14`       value_bn: 1005968.0
+- `00:15:14`       date: "2026-04-22"
+- `00:15:14`       unit: "Billions USD"
+- `00:15:14`     rrp: dict(3 keys)
+- `00:15:14`       value_bn: 0.082
+- `00:15:14`       date: "2026-04-24"
+- `00:15:14`       unit: "Billions USD"
+- `00:15:14`   regime: dict(6 keys)
+- `00:15:14`     trend: "NEUTRAL"
+- `00:15:14`     structure: "UNKNOWN"
+- `00:15:14`     spy_signal: "NEUTRAL"
+- `00:15:14`     signal_strength: "WEAK"
+- `00:15:14`     delta_4w_bn: 0
+- `00:15:14`     delta_13w_bn: 0
+- `00:15:14`   components: dict(2 keys)
+- `00:15:14`     tga_analysis: dict(6 keys)
+- `00:15:14`       current_bn: 1005968.0
+- `00:15:14`       4w_ago_bn: 874077.0
+- `00:15:14`       4w_change_bn: 131891.0
+- `00:15:14`       signal: "BEARISH_REBUILD"
+- `00:15:14`       score: -100
+- `00:15:14`       note: "TGA rebuilt $131891.0B in 4 weeks"
+- `00:15:14`     rrp_analysis: dict(7 keys)
+- `00:15:14`       current_bn: 0.1
+- `00:15:14`       4w_change_bn: -0.4
+- `00:15:14`       peak_bn: 16.3
+- `00:15:14`       from_peak_bn: -16.2
+- `00:15:14`       drain_pct: -99.5
+- `00:15:14`       signal: "VERY_BULLISH"
+- `00:15:14`       note: "RRP at $0.1B (falling $0.4B/4w)"
+- `00:15:14`   spy_signal: dict(6 keys)
+- `00:15:14`     direction: "NEUTRAL"
+- `00:15:14`     strength: "WEAK"
+- `00:15:14`     lead_days: "3-5"
+## flow-data.json
+
+- `00:15:14`   size=31440B  mod=2026-04-26 00:12
+- `00:15:14`   success: true
+- `00:15:14`   timestamp: "2026-04-26T00:12:42.637847Z"
+- `00:15:14`   engine: "JustHodl Options Flow & Sentiment Engine v3.0"
+- `00:15:14`   data: dict(9 keys)
+- `00:15:14`     vix_complex: dict(3 keys)
+- `00:15:14`       vix: dict(15 keys)
+- `00:15:14`       vix3m: dict(3 keys)
+- `00:15:14`       term_structure: dict(5 keys)
+- `00:15:14`     skew: dict(0 keys)
+- `00:15:14`     put_call: dict(10 keys)
+- `00:15:14`       total_put_call_ratio: 0.202
+- `00:15:14`       total_call_volume: 1031613
+- `00:15:14`       total_put_volume: 208468
+- `00:15:14`       total_call_premium: 355917934.0
+- `00:15:14`       total_put_premium: 26919193.0
+- `00:15:14`       net_premium: 328998741.0
+- `00:15:14`       options_flow: list[8 dicts]
+- `00:15:14`       pc_signal: "COMPLACENCY"
+- `00:15:14`       pc_description: "Low put demand - complacency"
+- `00:15:14`       pc_color: "#22c55e"
+- `00:15:14`     gamma_exposure: dict(9 keys)
+- `00:15:14`       total_gex: 61014.0
+- `00:15:14`       call_gex: 61014.0
+- `00:15:14`       put_gex: 0
+- `00:15:14`       spy_price: 713.94
+- `00:15:14`       strike_levels: list[20 dicts]
+- `00:15:14`       max_gamma_strike: 695
+- `00:15:14`       regime: "POSITIVE_GAMMA"
+- `00:15:14`       description: "Dealers long gamma - suppressing vol"
+- `00:15:14`       color: "#22c55e"
+- `00:15:14`     fund_flows: dict(4 keys)
+- `00:15:14`       etf_flows: list[22 dicts]
+- `00:15:14`       sector_rotation: dict(7 keys)
+- `00:15:14`       risk_appetite: dict(4 keys)
+- `00:15:14`       market_flow: dict(3 keys)
+- `00:15:14`     sentiment: dict(8 keys)
+- `00:15:14`       vix_sentiment: dict(3 keys)
+- `00:15:14`       credit_sentiment: dict(3 keys)
+- `00:15:14`       curve_sentiment: dict(3 keys)
+- `00:15:14`       hy_sentiment: dict(3 keys)
+- `00:15:14`       breadth_sentiment: dict(2 keys)
+- `00:15:14`       momentum_sentiment: dict(3 keys)
+- `00:15:14`       news_sentiment: dict(8 keys)
+- `00:15:14`       composite: dict(4 keys)
+- `00:15:14`     unusual_activity: list[1 dicts]
+- `00:15:14`       [0]:
+- `00:15:14`         ticker: "AMD"
+- `00:15:14`         price: 347.81
+- `00:15:14`         change_pct: 3.28
+- `00:15:14`         volume: 81551299.75917
+## crypto-intel.json
+
+- `00:15:14`   size=56362B  mod=2026-04-26 00:09
+- `00:15:14`   generated_at: "2026-04-26T00:09:41Z"
+- `00:15:14`   fetch_time: 39.4
+- `00:15:14`   version: "4.1"
+- `00:15:14`   tvl: dict(4 keys)
+- `00:15:14`     status: "success"
+- `00:15:14`     total: 84338896121.45302
+- `00:15:14`     formatted: "$84.3B"
+- `00:15:14`     top_chains: list[8 dicts]
+- `00:15:14`       [0]:
+- `00:15:14`         name: "Ethereum"
+- `00:15:14`         tvl: 45397801601
+- `00:15:14`   stablecoins: dict(8 keys)
+- `00:15:14`     status: "ok"
+- `00:15:14`     stablecoins: list[25 dicts]
+- `00:15:14`       [0]:
+- `00:15:14`         name: "Tether"
+- `00:15:14`         symbol: "USDT"
+- `00:15:14`         mcap: 189809029575
+- `00:15:14`         mcap_fmt: "$189.81B"
+- `00:15:14`         change_1d: 0.07
+- `00:15:14`         change_7d: 1.71
+- `00:15:14`         change_30d: 3.03
+- `00:15:14`         signal: "MINTING"
+- `00:15:14`         mechanism: "fiat-backed"
+- `00:15:14`     total_mcap: 312946187729
+- `00:15:14`     total_mcap_fmt: "$312.95B"
+- `00:15:14`     minting_count: 6
+- `00:15:14`     burning_count: 9
+- `00:15:14`     stable_count: 10
+- `00:15:14`     net_signal: "OUTFLOW"
+- `00:15:14`   global_market: dict(9 keys)
+- `00:15:14`     status: "ok"
+- `00:15:14`     total_mcap: 2672893923977
+- `00:15:14`     total_mcap_fmt: "$2.67T"
+- `00:15:14`     total_volume: 49643121791
+- `00:15:14`     total_volume_fmt: "$49.64B"
+- `00:15:14`     btc_dominance: 58.1
+- `00:15:14`     eth_dominance: 10.5
+- `00:15:14`     mcap_change_24h: 0.07
+- `00:15:14`     active_coins: 17540
+- `00:15:14`   cmc_movers: dict(3 keys)
+- `00:15:14`     status: "ok"
+- `00:15:14`     top_gainers: list[0] []
+- `00:15:14`     top_losers: list[0] []
+- `00:15:14`   dex: dict(4 keys)
+- `00:15:14`     status: "ok"
+- `00:15:14`     total_24h_volume: 4797988685
+- `00:15:14`     total_24h_fmt: "$4.80B"
+- `00:15:14`     top_dexes: list[10 dicts]
+- `00:15:14`       [0]:
+## regime/current.json
+
+- `00:15:14`   size=1399B  mod=2026-04-26 00:00
+- `00:15:14`   as_of: "2026-04-26T00:00:36.046825+00:00"
+- `00:15:14`   regime: "NEUTRAL"
+- `00:15:14`   regime_strength: 57.9
+- `00:15:14`   indicators_extreme: 0
+- `00:15:14`   indicators_total: 7
+- `00:15:14`   n_risk_off: 0
+- `00:15:14`   n_risk_on: 0
+- `00:15:14`   consensus_direction: "MIXED"
+- `00:15:14`   signals: list[7 dicts]
+- `00:15:14`     [0]:
+- `00:15:14`       name: "HY OAS"
+- `00:15:14`       series: "BAMLH0A0HYM2"
+- `00:15:14`       value: 2.86
+- `00:15:14`       z: -1.183
+- `00:15:14`       direction: "RISK_ON"
+- `00:15:14`       extreme: false
+- `00:15:14`       type: "level"
+- `00:15:14`   thresholds: dict(3 keys)
+- `00:15:14`     z_threshold: 2.0
+- `00:15:14`     min_indicators_for_regime: 3
+- `00:15:14`     directional_agreement_ratio: 0.66
+- `00:15:14`   v: "1.0"
+- `00:15:14`   previous_regime: "NEUTRAL"
+- `00:15:14`   regime_changed: false
+- `00:15:14`   days_in_regime: 0
+## divergence/current.json
+
+- `00:15:14`   size=6280B  mod=2026-04-25 18:56
+- `00:15:14`   as_of: "2026-04-25T18:56:37.867641+00:00"
+- `00:15:14`   v: "1.0"
+- `00:15:14`   summary: dict(5 keys)
+- `00:15:14`     n_relationships_total: 12
+- `00:15:14`     n_processed: 12
+- `00:15:14`     n_missing_data: 0
+- `00:15:14`     n_extreme: 3
+- `00:15:14`     n_alert_worthy: 0
+- `00:15:14`   relationships: list[12 dicts]
+- `00:15:14`     [0]:
+- `00:15:14`       id: "nasdaq_long_rates"
+- `00:15:14`       name: "Nasdaq vs 10Y Yield"
+- `00:15:14`       description: "Rising 10Y compresses growth multiples"
+- `00:15:14`       status: "ok"
+- `00:15:14`       z_score: 2.727
+- `00:15:14`       extreme: true
+- `00:15:14`       alert_worthy: false
+- `00:15:14`       mispricing: "QQQ appears RICH vs DGS10"
+- `00:15:14`       asset_a: "stocks:QQQ"
+- `00:15:14`       asset_b: "fred:DGS10"
+- `00:15:14`       a_value: 663.88
+- `00:15:14`       b_value: 4.34
+- `00:15:14`       today_residual: 63.7074
+- `00:15:14`       slope: -240.252516
+- `00:15:14`       intercept: 1642.8685
+- `00:15:14`       r_squared: 0.19
+- `00:15:14`       expected_sign: -1
+- `00:15:14`       actual_sign: -1
+- `00:15:14`       relationship_intact: true
+- `00:15:14`       window_days: 60
+- `00:15:14`   thresholds: dict(3 keys)
+- `00:15:14`     z_threshold: 2.0
+- `00:15:14`     extreme_threshold: 3.0
+- `00:15:14`     rolling_window_days: 60
+## cot/extremes/current.json
+
+- `00:15:14`   size=8335B  mod=2026-04-25 16:11
+- `00:15:14`   as_of: "2026-04-25T16:11:16.425859+00:00"
+- `00:15:14`   v: "1.0"
+- `00:15:14`   summary: dict(5 keys)
+- `00:15:14`     n_contracts_total: 29
+- `00:15:14`     n_processed: 29
+- `00:15:14`     n_errors: 0
+- `00:15:14`     n_extreme: 1
+- `00:15:14`     n_cluster_alerts: 0
+- `00:15:14`   cluster_alerts: list[0] []
+- `00:15:14`   contracts: list[29 dicts]
+- `00:15:14`     [0]:
+- `00:15:14`       contract: "HG"
+- `00:15:14`       name: "Copper"
+- `00:15:14`       category: "metals"
+- `00:15:14`       report_type: "disagg"
+- `00:15:14`       status: "ok"
+- `00:15:14`       current_ratio: 0.23786
+- `00:15:14`       spec_net: 59585
+- `00:15:14`       open_int: 250504
+- `00:15:14`       report_date: "2026-04-21"
+- `00:15:14`       percentile: 95.8
+- `00:15:14`       extreme: "high"
+- `00:15:14`       trend_4w: 0.07876
+- `00:15:14`       n_weeks_history: 264
+- `00:15:14`   thresholds: dict(3 keys)
+- `00:15:14`     extreme_high_pct: 95.0
+- `00:15:14`     extreme_low_pct: 5.0
+- `00:15:14`     min_category_cluster: 3
+## risk/recommendations.json
+
+- `00:15:15`   size=9658B  mod=2026-04-25 18:45
+- `00:15:15`   as_of: "2026-04-25T18:45:37.417736+00:00"
+- `00:15:15`   v: "1.0"
+- `00:15:15`   regime: "NEUTRAL"
+- `00:15:15`   regime_strength: 57.9
+- `00:15:15`   max_gross_exposure_pct: 75.0
+- `00:15:15`   drawdown_status: dict(4 keys)
+- `00:15:15`     current_dd_pct: 0.0
+- `00:15:15`     peak_date: null
+- `00:15:15`     size_multiplier: 1.0
+- `00:15:15`     active_trigger: "no trigger"
+- `00:15:15`   summary: dict(4 keys)
+- `00:15:15`     n_candidate_ideas: 17
+- `00:15:15`     n_clusters: 10
+- `00:15:15`     total_recommended_size_pct: 75.01
+- `00:15:15`     total_pre_caps_pct: 134.15
+- `00:15:15`   constraints_applied: dict(4 keys)
+- `00:15:15`     max_single_position_pct: 8.0
+- `00:15:15`     max_cluster_pct: 25.0
+- `00:15:15`     max_gross_exposure_pct: 75.0
+- `00:15:15`     kelly_fraction: 0.25
+- `00:15:15`   clusters: list[10 dicts]
+- `00:15:15`     [0]:
+- `00:15:15`       id: "sector_healthcare"
+- `00:15:15`       method: "sector"
+- `00:15:15`       members: list[3] ["DXCM", "INCY", "RMD"]
+- `00:15:15`       avg_correlation: 0
+- `00:15:15`       size: 3
+- `00:15:15`       sector: "Healthcare"
+- `00:15:15`   sized_recommendations: list[17 dicts]
+- `00:15:15`     [0]:
+- `00:15:15`       symbol: "FSLR"
+- `00:15:15`       name: "First Solar, Inc."
+- `00:15:15`       sector: "Energy"
+- `00:15:15`       price: 193.76
+- `00:15:15`       source: "phase2b"
+- `00:15:15`       raw_conviction: 0.817
+- `00:15:15`       phase2b_composite: 89.1
+- `00:15:15`       phase2b_dims: 4
+- `00:15:15`       kelly_raw: 0.08
+- `00:15:15`       quality_weight: 1.151
+- `00:15:15`       dd_adjusted: 0.0921
+- `00:15:15`       cluster: "sector_energy"
+- `00:15:15`       after_cluster_cap: 0.0921
+- `00:15:15`       recommended_size_pct: 5.15
+- `00:15:15`       reasoning: "Phase2B 4/4 dims (composite 89.1) | gross cap: \u00d70.56"
+- `00:15:15`   warnings: list[0] []
+## opportunities/asymmetric-equity.json
+
+- `00:15:15`   size=13608B  mod=2026-04-25 16:16
+- `00:15:15`   as_of: "2026-04-25T16:16:36.406236+00:00"
+- `00:15:15`   v: "1.0"
+- `00:15:15`   summary: dict(7 keys)
+- `00:15:15`     n_screener_total: 503
+- `00:15:15`     n_quality_passed: 77
+- `00:15:15`     n_setups: 17
+- `00:15:15`     n_value_traps: 8
+- `00:15:15`     quality_gate_failures: dict(6 keys)
+- `00:15:15`       debt_high: 27
+- `00:15:15`       fcf_negative: 37
+- `00:15:15`       piotroski_low: 20
+- `00:15:15`       liquidity_weak: 26
+- `00:15:15`       no_earnings: 1
+- `00:15:15`       price_too_low: 315
+- `00:15:15`     new_this_week: list[17] ["AOS", "CBOE", "CDNS"]
+- `00:15:15`     dropped_this_week: list[0] []
+- `00:15:15`   cutoffs: dict(4 keys)
+- `00:15:15`     quality: 67.4
+- `00:15:15`     safety: 75.0
+- `00:15:15`     value: 95.2
+- `00:15:15`     momentum: 63.8
+- `00:15:15`   sector_breakdown: dict(8 keys)
+- `00:15:15`     Healthcare: 3
+- `00:15:15`     Energy: 1
+- `00:15:15`     Consumer Cyclical: 1
+- `00:15:15`     Technology: 5
+- `00:15:15`     Communication Services: 2
+- `00:15:15`     Real Estate: 1
+- `00:15:15`     Industrials: 2
+- `00:15:15`     Financial Services: 2
+- `00:15:15`   top_setups: list[17 dicts]
+- `00:15:15`     [0]:
+- `00:15:15`       symbol: "INCY"
+- `00:15:15`       name: "Incyte Corporation"
+- `00:15:15`       sector: "Healthcare"
+- `00:15:15`       price: 94.65
+- `00:15:15`       marketCap: 18836675100.0
+- `00:15:15`       peRatio: 14.52
+- `00:15:15`       psRatio: 3.6638
+- `00:15:15`       evEbitda: 8.9811
+- `00:15:15`       roe: 0.29
+- `00:15:15`       operatingMargin: 0.26
+- `00:15:15`       netMargin: 0.25
+- `00:15:15`       revenueGrowth: 0.21
+- `00:15:15`       epsGrowth: 40.19
+- `00:15:15`       fcfGrowth: 4.44
+- `00:15:15`       debtToEquity: 0.0134
+- `00:15:15`       currentRatio: 3.3157
+- `00:15:15`       interestCoverage: 558.0552
+- `00:15:15`       piotroski: 9
+## portfolio/pnl-daily.json
+
+- `00:15:15`   size=1182B  mod=2026-04-25 22:00
+- `00:15:15`   as_of: "2026-04-25"
+- `00:15:15`   generated_at: "2026-04-25T22:00:03.994378+00:00"
+- `00:15:15`   inception: "2026-04-25"
+- `00:15:15`   days_since_inception: 0
+- `00:15:15`   starting_value_usd: 100000
+- `00:15:15`   current_phase: "PRE-CRISIS"
+- `00:15:15`   current_regime: "BEAR"
+- `00:15:15`   current_action_required: "REDUCE ALL RISK. Raise cash to 40%+. Exit leveraged and speculative positions."
+- `00:15:15`   buy_and_hold: dict(4 keys)
+- `00:15:15`     allocation: dict(4 keys)
+- `00:15:15`       SPY: 0.6
+- `00:15:15`       TLT: 0.2
+- `00:15:15`       GLD: 0.1
+- `00:15:15`       CASH: 0.1
+- `00:15:15`     current_value_usd: 100000.0
+- `00:15:15`     return_pct: 0.0
+- `00:15:15`     breakdown: dict(4 keys)
+- `00:15:15`       SPY: 60000.0
+- `00:15:15`       TLT: 20000.0
+- `00:15:15`       GLD: 10000.0
+- `00:15:15`       CASH: 10000.0
+- `00:15:15`   khalid_strategy: dict(5 keys)
+- `00:15:15`     allocation: dict(4 keys)
+- `00:15:15`       SPY: 0.3
+- `00:15:15`       TLT: 0.2
+- `00:15:15`       GLD: 0.1
+- `00:15:15`       CASH: 0.4
+- `00:15:15`     current_value_usd: 100000.0
+- `00:15:15`     return_pct: 0.0
+- `00:15:15`     breakdown: dict(4 keys)
+- `00:15:15`       SPY: 30000.0
+- `00:15:15`       TLT: 20000.0
+- `00:15:15`       GLD: 10000.0
+- `00:15:15`       CASH: 40000.0
+- `00:15:15`     _note: "v1 approximation: current regime applied to current prices; doesn't model histo
+- `00:15:15`   delta_pct: 0.0
+- `00:15:15`   system_alpha: 0.0
+- `00:15:15`   prices: dict(2 keys)
+- `00:15:15`     current: dict(3 keys)
+- `00:15:15`       SPY: 713.94
+- `00:15:15`       TLT: 86.71
+- `00:15:15`       GLD: 433.25
+- `00:15:15`     baseline: dict(3 keys)
+- `00:15:15`       SPY: 713.94
+- `00:15:15`       TLT: 86.71
+- `00:15:15`       GLD: 433.25
+- `00:15:15`   v: "1.0"
+- `00:15:15`   DISCLAIMER: "HYPOTHETICAL \u2014 for tracking only. Not investment advice. Past hypothetical
+## screener/data.json
+
+- `00:15:15`   size=373339B  mod=2026-04-26 00:09
+- `00:15:15`   generated_at: "2026-04-26T00:09:01.242990+00:00"
+- `00:15:15`   generated_at_unix: 1777162141
+- `00:15:15`   elapsed_seconds: 236.2
+- `00:15:15`   count: 503
+- `00:15:15`   stocks: list[503 dicts]
+- `00:15:15`     [0]:
+- `00:15:15`       symbol: "CASY"
+- `00:15:15`       name: "Casey's General Stores, Inc."
+- `00:15:15`       sector: "Consumer Cyclical"
+- `00:15:15`       industry: "Specialty Retail"
+- `00:15:15`       price: 799.55
+- `00:15:15`       beta: 0.605
+- `00:15:15`       volume: 360601
+- `00:15:15`       marketCap: 29636864681.0
+- `00:15:15`       peRatio: 45.55
+- `00:15:15`       pbRatio: 7.6841
+- `00:15:15`       psRatio: 1.7452
+- `00:15:15`       evEbitda: 21.2314
+- `00:15:15`       roe: 0.18
+- `00:15:15`       roa: 0.08
+- `00:15:15`       roic: 0.11
+- `00:15:15`       grossMargin: 0.24
+- `00:15:15`       operatingMargin: 0.06
+- `00:15:15`       netMargin: 0.04
+- `00:15:15`       revenueGrowth: 0.07
+- `00:15:15`       epsGrowth: 0.09
+- `00:15:15`       fcfGrowth: 0.58
+- `00:15:15`       debtToEquity: 0.7515
+- `00:15:15`       currentRatio: 1.042
+- `00:15:15`       dividendYield: 0.0
+- `00:15:15`       interestCoverage: 13.4474
+- `00:15:15`       piotroski: 9
+- `00:15:15`       altmanZ: 6.7811
+- `00:15:15`       instSignal: "buying"
+- `00:15:15`       instHolders: null
+- `00:15:15`       instChgPct: null
+## valuations.json
+
+- `00:15:15` ⚠   err: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+- `00:15:15` Done
