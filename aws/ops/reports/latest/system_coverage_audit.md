@@ -1,104 +1,435 @@
 # System Coverage Audit — every feature on website?
 
-**Status:** failure  
-**Duration:** 20.6s  
-**Finished:** 2026-04-26T00:49:17+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/190_system_coverage_audit.py", line 74, in <module>
-    rules_resp = events.list_rules(Limit=200)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the ListRules operation: 1 validation error detected: Value '200' at 'limit' failed to satisfy constraint: Member must have value less than or equal to 100
-
-```
+**Status:** success  
+**Duration:** 30.7s  
+**Finished:** 2026-04-26T00:51:01+00:00  
 
 ## Log
 ## A. Lambda inventory (full account)
 
-- `00:48:57`   Total: 106 Lambdas
-- `00:48:57`   justhodl-* : 48
-- `00:48:57`   other      : 58
-- `00:48:57` 
+- `00:50:31`   Total: 106 Lambdas
+- `00:50:31`   justhodl-* : 48
+- `00:50:31`   other      : 58
+- `00:50:31` 
   Looking for Lambdas with Function URLs (browser-exposed):
-- `00:49:16`   Found 66 Lambdas with public Function URLs:
-- `00:49:16`     FinancialIntelligence-Backend            NONE     mod=2026-04-25
-- `00:49:16`     MLPredictor                              NONE     mod=2025-05-30
-- `00:49:16`     OpenBBS3DataProxy                        NONE     mod=2026-04-25
-- `00:49:16`     aiapi-market-analyzer                    NONE     mod=2026-04-25
-- `00:49:16`     alphavantage-market-agent                NONE     mod=2026-04-25
-- `00:49:16`     alphavantage-technical-analysis          NONE     mod=2026-04-25
-- `00:49:16`     autonomous-ai-processor                  NONE     mod=2026-04-25
-- `00:49:16`     bea-economic-agent                       NONE     mod=2026-04-25
-- `00:49:16`     benzinga-news-agent                      NONE     mod=2026-04-25
-- `00:49:16`     bls-labor-agent                          NONE     mod=2026-04-25
-- `00:49:16`     bond-indices-agent                       NONE     mod=2026-04-25
-- `00:49:16`     census-economic-agent                    NONE     mod=2026-04-25
-- `00:49:16`     cftc-futures-positioning-agent           NONE     mod=2026-04-25
-- `00:49:16`     chatgpt-agent-api                        NONE     mod=2026-04-25
-- `00:49:16`     coinmarketcap-agent                      NONE     mod=2026-04-25
-- `00:49:16`     createEnhancedIndex                      NONE     mod=2026-04-25
-- `00:49:16`     createUniversalIndex                     NONE     mod=2026-04-25
-- `00:49:16`     dollar-strength-agent                    NONE     mod=2026-04-25
-- `00:49:16`     economyapi                               NONE     mod=2026-04-25
-- `00:49:16`     eia-energy-agent                         NONE     mod=2026-04-25
-- `00:49:16`     enhanced-repo-agent                      NONE     mod=2026-04-25
-- `00:49:16`     fedliquidityapi                          NONE     mod=2026-04-25
-- `00:49:16`     fedliquidityapi-test                     NONE     mod=2026-04-25
-- `00:49:16`     fmp-fundamentals-agent                   NONE     mod=2026-04-25
-- `00:49:16`     fred-ice-bofa-api                        NONE     mod=2026-04-25
-- `00:49:16`     global-liquidity-agent-v2                NONE     mod=2026-04-25
-- `00:49:16`     google-trends-agent                      NONE     mod=2026-04-25
-- `00:49:16`     justhodl-advanced-charts                 NONE     mod=2026-04-25
-- `00:49:16`     justhodl-ai-chat                         NONE     mod=2026-04-25
-- `00:49:16`     justhodl-cache-layer                     NONE     mod=2026-04-25
-- `00:49:16`     justhodl-charts-agent                    NONE     mod=2026-04-25
-- `00:49:16`     justhodl-crypto-enricher                 NONE     mod=2026-04-25
-- `00:49:16`     justhodl-dex-scanner                     NONE     mod=2026-04-25
-- `00:49:16`     justhodl-ecb-proxy                       NONE     mod=2026-04-25
-- `00:49:16`     justhodl-edge-engine                     NONE     mod=2026-04-25
-- `00:49:16`     justhodl-financial-secretary             NONE     mod=2026-04-25
-- `00:49:16`     justhodl-fred-proxy                      NONE     mod=2026-04-25
-- `00:49:16`     justhodl-investor-agents                 NONE     mod=2026-04-25
-- `00:49:16`     justhodl-khalid-metrics                  NONE     mod=2026-04-25
-- `00:49:16`     justhodl-news-sentiment                  NONE     mod=2026-04-25
-- `00:49:16`     justhodl-options-flow                    NONE     mod=2026-04-25
-- `00:49:16`     justhodl-stock-ai-research               NONE     mod=2026-04-25
-- `00:49:16`     justhodl-stock-analyzer                  NONE     mod=2026-04-25
-- `00:49:16`     justhodl-stock-screener                  NONE     mod=2026-04-26
-- `00:49:16`     justhodl-telegram-bot                    NONE     mod=2026-04-25
-- `00:49:16`     justhodl-treasury-proxy                  NONE     mod=2026-04-25
-- `00:49:16`     justhodl-ultimate-orchestrator           NONE     mod=2026-04-25
-- `00:49:16`     justhodl-ultimate-trading                NONE     mod=2026-04-25
-- `00:49:16`     justhodl-valuations-agent                NONE     mod=2026-04-25
-- `00:49:16`     macro-financial-intelligence             NONE     mod=2026-04-25
-- `00:49:16`     macro-financial-report-viewer            NONE     mod=2026-04-25
-- `00:49:16`     macro-report-api                         NONE     mod=2026-04-25
-- `00:49:16`     manufacturing-global-agent               NONE     mod=2026-04-25
-- `00:49:16`     multi-agent-orchestrator                 NONE     mod=2025-09-21
-- `00:49:16`     nasdaq-datalink-agent                    NONE     mod=2026-04-25
-- `00:49:16`     news-sentiment-agent                     NONE     mod=2026-04-25
-- `00:49:16`     openbb-websocket-broadcast               NONE     mod=2025-05-30
-- `00:49:16`     openbb-websocket-handler                 NONE     mod=2025-06-15
-- `00:49:16`     scrapeMacroData                          NONE     mod=2025-06-03
-- `00:49:16`     securities-banking-agent                 NONE     mod=2026-04-25
-- `00:49:16`     testEnhancedScraper                      NONE     mod=2026-04-25
-- `00:49:16`     treasury-api                             NONE     mod=2026-04-25
-- `00:49:16`     ultimate-multi-agent                     NONE     mod=2025-09-21
-- `00:49:16`     universal-agent-gateway                  NONE     mod=2026-04-25
-- `00:49:16`     volatility-monitor-agent                 NONE     mod=2026-04-25
-- `00:49:16`     xccy-basis-agent                         NONE     mod=2026-04-25
+- `00:50:49`   Found 66 Lambdas with public Function URLs:
+- `00:50:49`     FinancialIntelligence-Backend            NONE     mod=2026-04-25
+- `00:50:49`     MLPredictor                              NONE     mod=2025-05-30
+- `00:50:49`     OpenBBS3DataProxy                        NONE     mod=2026-04-25
+- `00:50:49`     aiapi-market-analyzer                    NONE     mod=2026-04-25
+- `00:50:49`     alphavantage-market-agent                NONE     mod=2026-04-25
+- `00:50:49`     alphavantage-technical-analysis          NONE     mod=2026-04-25
+- `00:50:49`     autonomous-ai-processor                  NONE     mod=2026-04-25
+- `00:50:49`     bea-economic-agent                       NONE     mod=2026-04-25
+- `00:50:49`     benzinga-news-agent                      NONE     mod=2026-04-25
+- `00:50:49`     bls-labor-agent                          NONE     mod=2026-04-25
+- `00:50:49`     bond-indices-agent                       NONE     mod=2026-04-25
+- `00:50:49`     census-economic-agent                    NONE     mod=2026-04-25
+- `00:50:49`     cftc-futures-positioning-agent           NONE     mod=2026-04-25
+- `00:50:49`     chatgpt-agent-api                        NONE     mod=2026-04-25
+- `00:50:49`     coinmarketcap-agent                      NONE     mod=2026-04-25
+- `00:50:49`     createEnhancedIndex                      NONE     mod=2026-04-25
+- `00:50:49`     createUniversalIndex                     NONE     mod=2026-04-25
+- `00:50:49`     dollar-strength-agent                    NONE     mod=2026-04-25
+- `00:50:49`     economyapi                               NONE     mod=2026-04-25
+- `00:50:49`     eia-energy-agent                         NONE     mod=2026-04-25
+- `00:50:49`     enhanced-repo-agent                      NONE     mod=2026-04-25
+- `00:50:49`     fedliquidityapi                          NONE     mod=2026-04-25
+- `00:50:49`     fedliquidityapi-test                     NONE     mod=2026-04-25
+- `00:50:49`     fmp-fundamentals-agent                   NONE     mod=2026-04-25
+- `00:50:49`     fred-ice-bofa-api                        NONE     mod=2026-04-25
+- `00:50:49`     global-liquidity-agent-v2                NONE     mod=2026-04-25
+- `00:50:49`     google-trends-agent                      NONE     mod=2026-04-25
+- `00:50:49`     justhodl-advanced-charts                 NONE     mod=2026-04-25
+- `00:50:49`     justhodl-ai-chat                         NONE     mod=2026-04-25
+- `00:50:49`     justhodl-cache-layer                     NONE     mod=2026-04-25
+- `00:50:49`     justhodl-charts-agent                    NONE     mod=2026-04-25
+- `00:50:49`     justhodl-crypto-enricher                 NONE     mod=2026-04-25
+- `00:50:49`     justhodl-dex-scanner                     NONE     mod=2026-04-25
+- `00:50:49`     justhodl-ecb-proxy                       NONE     mod=2026-04-25
+- `00:50:49`     justhodl-edge-engine                     NONE     mod=2026-04-25
+- `00:50:49`     justhodl-financial-secretary             NONE     mod=2026-04-25
+- `00:50:49`     justhodl-fred-proxy                      NONE     mod=2026-04-25
+- `00:50:49`     justhodl-investor-agents                 NONE     mod=2026-04-25
+- `00:50:49`     justhodl-khalid-metrics                  NONE     mod=2026-04-25
+- `00:50:49`     justhodl-news-sentiment                  NONE     mod=2026-04-25
+- `00:50:49`     justhodl-options-flow                    NONE     mod=2026-04-25
+- `00:50:49`     justhodl-stock-ai-research               NONE     mod=2026-04-25
+- `00:50:49`     justhodl-stock-analyzer                  NONE     mod=2026-04-25
+- `00:50:49`     justhodl-stock-screener                  NONE     mod=2026-04-26
+- `00:50:49`     justhodl-telegram-bot                    NONE     mod=2026-04-25
+- `00:50:49`     justhodl-treasury-proxy                  NONE     mod=2026-04-25
+- `00:50:49`     justhodl-ultimate-orchestrator           NONE     mod=2026-04-25
+- `00:50:49`     justhodl-ultimate-trading                NONE     mod=2026-04-25
+- `00:50:49`     justhodl-valuations-agent                NONE     mod=2026-04-25
+- `00:50:49`     macro-financial-intelligence             NONE     mod=2026-04-25
+- `00:50:49`     macro-financial-report-viewer            NONE     mod=2026-04-25
+- `00:50:49`     macro-report-api                         NONE     mod=2026-04-25
+- `00:50:49`     manufacturing-global-agent               NONE     mod=2026-04-25
+- `00:50:49`     multi-agent-orchestrator                 NONE     mod=2025-09-21
+- `00:50:49`     nasdaq-datalink-agent                    NONE     mod=2026-04-25
+- `00:50:49`     news-sentiment-agent                     NONE     mod=2026-04-25
+- `00:50:49`     openbb-websocket-broadcast               NONE     mod=2025-05-30
+- `00:50:49`     openbb-websocket-handler                 NONE     mod=2025-06-15
+- `00:50:49`     scrapeMacroData                          NONE     mod=2025-06-03
+- `00:50:49`     securities-banking-agent                 NONE     mod=2026-04-25
+- `00:50:49`     testEnhancedScraper                      NONE     mod=2026-04-25
+- `00:50:49`     treasury-api                             NONE     mod=2026-04-25
+- `00:50:49`     ultimate-multi-agent                     NONE     mod=2025-09-21
+- `00:50:49`     universal-agent-gateway                  NONE     mod=2026-04-25
+- `00:50:49`     volatility-monitor-agent                 NONE     mod=2026-04-25
+- `00:50:49`     xccy-basis-agent                         NONE     mod=2026-04-25
 ## B. EventBridge schedules (auto-running Lambdas)
 
+- `00:50:49`   Found 108 scheduled rules
+- `00:50:56` 
+  Active scheduled Lambdas:
+- `00:50:56`     justhodl-email-reports-v2                cron(0 12 * * ? *)             (DailyEmailReportsV2)
+- `00:50:56`     global-liquidity-agent-v2                cron(0 12 * * ? *)             (DailyLiquidityReportRule)
+- `00:50:56`     justhodl-daily-macro-report              cron(0 12 * * ? *)             (DailyMacroReportRule)
+- `00:50:56`     MLPredictor                              cron(15 12 * * ? *)            (MLPredictorDaily)
+- `00:50:56`     aiapi-market-analyzer                    cron(0 7 * * ? *)              (aiapi-daily-analysis)
+- `00:50:56`     aiapi-monitor                            cron(0 14 * * ? *)             (aiapi-daily-report)
+- `00:50:56`     aiapi-monitor                            rate(1 hour)                   (aiapi-hourly-monitor)
+- `00:50:56`     aiapi-market-analyzer                    rate(1 hour)                   (aiapi-hourly-predictions)
+- `00:50:56`     aiapi-market-analyzer                    rate(15 minutes)               (aiapi-market-data-collect)
+- `00:50:56`     aiapi-market-analyzer                    cron(0 8 ? * SUN *)            (aiapi-weekly-training)
+- `00:50:56`     alphavantage-market-agent                cron(*/15 13-21 ? * MON-FRI *) (alphavantage-market-updat)
+- `00:50:56`     autonomous-ai-processor                  rate(5 minutes)                (autonomous-ai-schedule)
+- `00:50:56`     justhodl-bloomberg-v8                    rate(5 minutes)                (bloomberg-terminal-refres)
+- `00:50:56`     bls-labor-agent                          cron(30 13 * * ? *)            (bls-daily-update)
+- `00:50:56`     bls-employment-api-v2                    cron(0 22 ? * FRI *)           (bls-friday-update)
+- `00:50:56`     bls-employment-api-v2                    cron(0 22 ? * TUE *)           (bls-tuesday-update)
+- `00:50:56`     bond-indices-agent                       rate(1 hour)                   (bond-indices-hourly)
+- `00:50:56`     cftc-futures-positioning-agent           cron(0 18 ? * FRI *)           (cftc-cot-weekly-update)
+- `00:50:56`     daily-liquidity-report                   cron(45 12 * * ? *)            (daily-liquidity-7am)
+- `00:50:56`     ecb-data-daily-updater                   cron(0 6 * * ? *)              (ecb-daily-update-rule)
+- `00:50:56`     ecb-auto-updater                         cron(0 6 ? * MON *)            (ecb-weekly-update)
+- `00:50:56`     fredapi                                  cron(0 13 ? * MON,WED,FRI *)   (fed-liquidity-auto-update)
+- `00:50:56`     fed-liquidity-indicators                 cron(0 14 ? * MON *)           (fed-liquidity-indicators-)
+- `00:50:56`     fedapi                                   cron(0 14 ? * MON *)           (fed-liquidity-update-mond)
+- `00:50:56`     fedapi                                   cron(0 14 ? * THU *)           (fed-liquidity-update-thur)
+- `00:50:56`     fedliquidity                             cron(0 14 ? * MON *)           (fedliquidity-weekly-updat)
+- `00:50:56`     fedliquidityapi                          cron(0 13 ? * MON,WED,FRI *)   (fedliquidityapi-auto-upda)
+- `00:50:56`     fmp-stock-picks-agent                    cron(0 14,16,18,20 ? * MON-FRI *) (fmp-movers-hourly)
+- `00:50:56`     fmp-stock-picks-agent                    cron(0 12 ? * MON-FRI *)       (fmp-stock-picks-daily)
+- `00:50:56`     fredapi                                  cron(0 14 ? * MON *)           (fredapi-weekly-update)
+- `00:50:56`     fred-ice-bofa-api                        cron(0 9 ? * 1,3,5 *)          (ice-bofa-3x-weekly)
+- `00:50:56`     justhodl-email-reports                   cron(0 13 * * ? *)             (justhodl-8am)
+- `00:50:56`     justhodl-asymmetric-scorer               cron(30 13 ? * MON-FRI *)      (justhodl-asymmetric-score)
+- `00:50:56`     justhodl-bond-regime-detector            cron(0 */4 * * ? *)            (justhodl-bond-regime-dete)
+- `00:50:56`     justhodl-calibrator                      cron(0 9 ? * SUN *)            (justhodl-calibrator-weekl)
+- `00:50:56`     justhodl-cot-extremes-scanner            cron(0 19 ? * FRI *)           (justhodl-cot-extremes-sca)
+- `00:50:56`     justhodl-crypto-enricher                 cron(15 6 * * ? *)             (justhodl-crypto-enricher-)
+- `00:50:56`     justhodl-crypto-intel                    rate(15 minutes)               (justhodl-crypto-intel-sch)
+- `00:50:56`     justhodl-dex-scanner                     rate(15 minutes)               (justhodl-dex-scanner-15mi)
+- `00:50:56`     justhodl-divergence-scanner              cron(0 13 ? * MON-FRI *)       (justhodl-divergence-scann)
+- `00:50:56`     justhodl-edge-engine                     rate(6 hours)                  (justhodl-edge-6h)
+- `00:50:56`     justhodl-options-flow                    rate(5 minutes)                (justhodl-flow-refresh)
+- `00:50:56`     justhodl-health-monitor                  cron(0/15 * * * ? *)           (justhodl-health-monitor-1)
+- `00:50:56`     justhodl-intelligence                    cron(10 12 * * ? *)            (justhodl-intel-daily)
+- `00:50:56`     justhodl-intelligence                    cron(5 12-23 ? * MON-FRI *)    (justhodl-intel-hourly)
+- `00:50:56`     justhodl-khalid-metrics                  cron(0 11 * * ? *)             (justhodl-khalid-metrics-r)
+- `00:50:56`     justhodl-liquidity-agent                 cron(30 12 * * ? *)            (justhodl-liquidity-agent-)
+- `00:50:56`     justhodl-ml-predictions                  rate(4 hours)                  (justhodl-ml-predictions-s)
+- `00:50:56`     justhodl-morning-intelligence            cron(0 13 * * ? *)             (justhodl-morning-brief-da)
+- `00:50:56`     justhodl-outcome-checker                 cron(30 22 ? * MON-FRI *)      (justhodl-outcome-checker-)
+- `00:50:56`     justhodl-outcome-checker                 cron(0 8 1 * ? *)              (justhodl-outcome-checker-)
+- `00:50:56`     justhodl-outcome-checker                 cron(0 8 ? * SUN *)            (justhodl-outcome-checker-)
+- `00:50:56`     justhodl-pnl-tracker                     cron(0 22 * * ? *)             (justhodl-pnl-tracker-dail)
+- `00:50:56`     justhodl-prompt-iterator                 cron(0 10 ? * SUN *)           (justhodl-prompt-iterator-)
+- `00:50:56`     justhodl-repo-monitor                    cron(0/30 13-23 ? * MON-FRI *) (justhodl-repo-30min)
+- `00:50:56`     justhodl-repo-monitor                    cron(0 12 * * ? *)             (justhodl-repo-daily)
+- `00:50:56`     justhodl-reports-builder                 rate(1 hour)                   (justhodl-reports-builder-)
+- `00:50:56`     justhodl-risk-sizer                      cron(45 13 ? * MON-FRI *)      (justhodl-risk-sizer-daily)
+- `00:50:56`     justhodl-news-sentiment                  cron(15 6 * * ? *)             (justhodl-sentiment-daily)
+- `00:50:56`     justhodl-signal-logger                   rate(6 hours)                  (justhodl-signal-logger-6h)
+- `00:50:56`     justhodl-stock-screener                  rate(4 hours)                  (justhodl-stock-screener-4)
+- `00:50:56`     justhodl-telegram-bot                    rate(2 hours)                  (justhodl-telegram-alerts)
+- `00:50:56`     justhodl-daily-report-v3                 rate(5 minutes)                (justhodl-v9-auto-refresh)
+- `00:50:56`     justhodl-daily-report-v3                 cron(0 23 ? * MON-FRI *)       (justhodl-v9-evening)
+- `00:50:56`     justhodl-daily-report-v3                 cron(0 13 ? * MON-FRI *)       (justhodl-v9-morning)
+- `00:50:56`     justhodl-watchlist-debate                cron(0 3 * * ? *)              (justhodl-watchlist-debate)
+- `00:50:56`     global-liquidity-agent-v2                cron(0 13 * * ? *)             (khalid-daily-report)
+- `00:50:56`     macro-financial-intelligence             cron(0 14 * * ? *)             (macro-financial-daily-exe)
+- `00:50:56`     ofrapi                                   cron(0 14 * * ? *)             (ofr-daily-collection)
+- `00:50:56`     ofrapi                                   cron(0 13 ? * MON *)           (ofr-weekly-report)
+- `00:50:56`     openbb-combined_daily_reports            cron(0 12 * * ? *)             (openbb-combined-reports)
+- `00:50:56`     openbb-correlation_analysis              rate(4 hours)                  (openbb-correlation)
+- `00:50:56`     openbb-daily_risk_report                 cron(0 11 * * ? *)             (openbb-daily-risk)
+- `00:50:56`     openbb-ml_predictions                    cron(0 13-21 ? * MON-FRI *)    (openbb-ml-predictions)
+- `00:50:56`     openbb-trading_signals                   cron(0/30 13-21 ? * MON-FRI *) (openbb-trading-signals)
+- `00:50:56`     openbb-vix_alert                         cron(0/15 13-21 ? * MON-FRI *) (openbb-vix-check)
+- `00:50:56`     permanent-market-intelligence            cron(0 13 * * ? *)             (permanent-market-schedule)
+- `00:50:56`     enhanced-repo-agent                      rate(15 minutes)               (repo-metrics-15min)
+- `00:50:56`     justhodl-financial-secretary             rate(4 hours)                  (secretary-4h-scan)
+- `00:50:56`     treasury-api                             cron(0 10 ? * MON,THU *)       (treasury-auto-update)
+- `00:50:56`     treasury-auto-updater                    cron(0 10 ? * MON *)           (treasury-monday-update)
+- `00:50:56`     treasury-auto-updater                    cron(0 10 ? * THU *)           (treasury-thursday-update)
+- `00:50:56`     ultimate-market-intelligence             cron(0 13 * * ? *)             (ultimate-intelligence-sch)
+- `00:50:56`     justhodl-valuations-agent                cron(0 14 1 * ? *)             (valuations-monthly-update)
+- `00:50:56`     xccy-basis-agent                         rate(30 minutes)               (xccy-basis-30min)
+## C. S3 data inventory
+
+- `00:51:01`   Total: 19360 objects
+- `00:51:01` 
+  By prefix:
+- `00:51:01`     /                                     33 files
+- `00:51:01`     _audit/                                7 files
+- `00:51:01`     _health/                               3 files
+- `00:51:01`     archive/                            1670 files
+- `00:51:01`     bot/                                   1 files
+- `00:51:01`     calibration/                           8 files
+- `00:51:01`     cot/                                  30 files
+- `00:51:01`     data/                               17576 files
+- `00:51:01`     deploy/                                3 files
+- `00:51:01`     divergence/                            2 files
+- `00:51:01`     investor-analysis/                     2 files
+- `00:51:01`     khalid/                                1 files
+- `00:51:01`     learning/                              4 files
+- `00:51:01`     opportunities/                         1 files
+- `00:51:01`     portfolio/                             4 files
+- `00:51:01`     regime/                                2 files
+- `00:51:01`     reports/                               1 files
+- `00:51:01`     risk/                                  1 files
+- `00:51:01`     screener/                              1 files
+- `00:51:01`     secretary/                             1 files
+- `00:51:01`     sentiment/                             1 files
+- `00:51:01`     stock-ai/                              2 files
+- `00:51:01`     stock-analysis/                        2 files
+- `00:51:01`     stock/                                 1 files
+- `00:51:01`     telegram/                              1 files
+- `00:51:01`     valuations-archive/                    2 files
+- `00:51:01` 
+  All JSON data sources (recent only — last 7 days):
+- `00:51:01`     data/archive/report_20260426_0050.json               1750760B    0.0h ago
+- `00:51:01`     data/report.json                                     1750760B    0.0h ago
+- `00:51:01`     data/ath.json                                          19063B    0.0h ago
+- `00:51:01`     data/fred-cache.json                                 1022715B    0.0h ago
+- `00:51:01`     flow-data.json                                         26352B    0.1h ago
+- `00:51:01`     _health/last_alerted.json                              10084B    0.1h ago
+- `00:51:01`     _health/dashboard.json                                 30585B    0.1h ago
+- `00:51:01`     data/archive/report_20260426_0045.json               1750953B    0.1h ago
+- `00:51:01`     data/archive/report_20260426_0040.json               1750334B    0.2h ago
+- `00:51:01`     crypto-intel.json                                      57175B    0.2h ago
+- `00:51:01`     data/archive/report_20260426_0035.json               1750946B    0.3h ago
+- `00:51:01`     data/archive/report_20260426_0030.json               1750941B    0.3h ago
+- `00:51:01`     data/archive/report_20260426_0025.json               1750321B    0.4h ago
+- `00:51:01`     reports/scorecard.json                                 50661B    0.5h ago
+- `00:51:01`     data/archive/report_20260426_0020.json               1750980B    0.5h ago
+- `00:51:01`     data/archive/report_20260426_0015.json               1750968B    0.6h ago
+- `00:51:01`     data/archive/report_20260426_0010.json               1750138B    0.7h ago
+- `00:51:01`     screener/data.json                                    373339B    0.7h ago
+- `00:51:01`     data/archive/report_20260426_0005.json               1750084B    0.8h ago
+- `00:51:01`     regime/current.json                                     1399B    0.8h ago
+- `00:51:01`     regime/history.json                                      783B    0.8h ago
+- `00:51:01`     data/archive/report_20260426_0000.json               1750242B    0.8h ago
+- `00:51:01`     data/archive/report_20260425_2355.json               1751084B    0.9h ago
+- `00:51:01`     data/archive/report_20260425_2350.json               1751085B    1.0h ago
+- `00:51:01`     stock-ai/TSM.json                                       4231B    1.1h ago
+- `00:51:01`     data/archive/report_20260425_2345.json               1751070B    1.1h ago
+- `00:51:01`     data/archive/report_20260425_2340.json               1740223B    1.2h ago
+- `00:51:01`     stock-ai/AAPL.json                                      3960B    1.2h ago
+- `00:51:01`     data/archive/report_20260425_2335.json               1756330B    1.3h ago
+- `00:51:01`     data/archive/report_20260425_2329.json               1756338B    1.4h ago
+- `00:51:01`     data/archive/report_20260425_2324.json               1754620B    1.4h ago
+- `00:51:01`     data/archive/report_20260425_2319.json               1754617B    1.5h ago
+- `00:51:01`     data/archive/report_20260425_2314.json               1753560B    1.6h ago
+- `00:51:01`     data/archive/report_20260425_2310.json               1753568B    1.7h ago
+- `00:51:01`     data/archive/report_20260425_2305.json               1753141B    1.8h ago
+- `00:51:01`     telegram/alert_state.json                                167B    1.8h ago
+- `00:51:01`     data/archive/report_20260425_2300.json               1753110B    1.8h ago
+- `00:51:01`     stock-analysis/TSM.json                               107551B    1.9h ago
+- `00:51:01`     data/archive/report_20260425_2255.json               1752406B    1.9h ago
+- `00:51:01`     data/archive/report_20260425_2250.json               1752400B    2.0h ago
+- `00:51:01`     data/archive/report_20260425_2245.json               1754369B    2.1h ago
+- `00:51:01`     data/archive/report_20260425_2240.json               1754366B    2.2h ago
+- `00:51:01`     data/archive/report_20260425_2234.json               1754468B    2.3h ago
+- `00:51:01`     data/archive/report_20260425_2230.json               1754977B    2.4h ago
+- `00:51:01`     data/cftc-all-cache.json                               99154B    2.4h ago
+- `00:51:01`     data/archive/report_20260425_2225.json               1756191B    2.4h ago
+- `00:51:01`     data/archive/report_20260425_2220.json               1756197B    2.5h ago
+- `00:51:01`     data/archive/report_20260425_2215.json               1754660B    2.6h ago
+- `00:51:01`     data/archive/report_20260425_2210.json               1754667B    2.7h ago
+- `00:51:01`     data/archive/report_20260425_2205.json               1753615B    2.8h ago
+## D. HTML page inventory
+
+- `00:51:01`   Total HTML pages: 48
+- `00:51:01` 
+  Page status summary:
+- `00:51:01`     BROKEN-MIXED-CONTENT           5 pages
+- `00:51:01`     BROKEN-OPENBB                  2 pages
+- `00:51:01`     STUB                           4 pages
+- `00:51:01`     ok                             37 pages
+- `00:51:01` 
+  Pages by status:
+- `00:51:01` 
+  ── ok (37):
+- `00:51:01`     agent/index.html                           17322B
+- `00:51:01`     ai-predictions-supabase.html               38120B
+- `00:51:01`     ai_predictions.html                        22799B
+- `00:51:01`     ath.html                                   15637B
+- `00:51:01`     auctions.html                              52885B
+- `00:51:01`     benzinga.html                               5609B
+- `00:51:01`     bls.html                                   49832B
+- `00:51:01`     bot/index.html                             27832B
+- `00:51:01`     carry.html                                 27466B
+- `00:51:01`     census.html                                33487B
+- `00:51:01`     charts.html                               244668B
+- `00:51:01`     desk-v2.html                               41405B
+- `00:51:01`     desk.html                                  26770B
+- `00:51:01`     dex.html                                   48964B
+- `00:51:01`     ecb.html                                  117234B
+- `00:51:01`     edge.html                                   7438B
+- `00:51:01`     eia.html                                    5414B
+- `00:51:01`     euro/index.html                            65451B
+- `00:51:01`     flow.html                                  30227B
+- `00:51:01`     fmp.html                                    5880B
+- `00:51:01`     fred.html                                  27454B
+- `00:51:01`     index.html                                 50059B
+- `00:51:01`     khalid/index.html                          47707B
+- `00:51:01`     liquidity.html                             33187B
+- `00:51:01`     ml-predictions.html                        17103B
+- `00:51:01`     nasdaq-datalink.html                        4352B
+- `00:51:01`     ny-fed.html                                65947B
+- `00:51:01`     ofr.html                                   61702B
+- `00:51:01`     openbb-realtime-dashboard.html             61769B
+- `00:51:01`     pro.html                                   58313B
+- `00:51:01`     reports.html                               24022B
+- `00:51:01`     risk.html                                  20443B
+- `00:51:01`     screener/index.html                        32461B
+- `00:51:01`     stock/index.html                           53835B
+- `00:51:01`     trading-signals.html                       10925B
+- `00:51:01`     treasury-auctions.html                     85210B
+- `00:51:01`     valuations.html                            24844B
+- `00:51:01` 
+  ── STUB (4):
+- `00:51:01`     Reports.html                                 252B
+- `00:51:01`     ml.html                                      288B
+- `00:51:01`     repo.html                                    451B
+- `00:51:01`     stocks.html                                  249B
+- `00:51:01` 
+  ── BROKEN-OPENBB (2):
+- `00:51:01`     exponential-search-dashboard.html          56587B
+- `00:51:01`     macroeconomic-platform.html               118991B
+- `00:51:01` 
+  ── BROKEN-MIXED-CONTENT (5):
+- `00:51:01`     crypto/index.html                          44996B
+- `00:51:01`     downloads.html                             23087B
+- `00:51:01`     intelligence.html                          27902B
+- `00:51:01`     positioning/index.html                     17988B
+- `00:51:01`     stocks/index.html                          26099B
+## E. New index.html nav + tile launcher coverage
+
+- `00:51:01`   Pages linked from new index.html: 12
+- `00:51:01`     /ath.html
+- `00:51:01`     /crypto/index.html
+- `00:51:01`     /desk.html
+- `00:51:01`     /edge.html
+- `00:51:01`     /flow.html
+- `00:51:01`     /intelligence.html
+- `00:51:01`     /liquidity.html
+- `00:51:01`     /positioning/index.html
+- `00:51:01`     /risk.html
+- `00:51:01`     /screener/index.html
+- `00:51:01`     /stock/index.html
+- `00:51:01`     /valuations.html
+## F. GAPS — features not surfaced on the website
+
+- `00:51:01` 
+  Pages NOT linked from new index.html (36):
+- `00:51:01`     Reports.html                                 252B  STUB
+- `00:51:01`     agent/index.html                           17322B  ok
+- `00:51:01`     ai-predictions-supabase.html               38120B  ok
+- `00:51:01`     ai_predictions.html                        22799B  ok
+- `00:51:01`     auctions.html                              52885B  ok
+- `00:51:01`     benzinga.html                               5609B  ok
+- `00:51:01`     bls.html                                   49832B  ok
+- `00:51:01`     bot/index.html                             27832B  ok
+- `00:51:01`     carry.html                                 27466B  ok
+- `00:51:01`     census.html                                33487B  ok
+- `00:51:01`     charts.html                               244668B  ok
+- `00:51:01`     desk-v2.html                               41405B  ok
+- `00:51:01`     dex.html                                   48964B  ok
+- `00:51:01`     downloads.html                             23087B  BROKEN-MIXED-CONTENT
+- `00:51:01`     ecb.html                                  117234B  ok
+- `00:51:01`     eia.html                                    5414B  ok
+- `00:51:01`     euro/index.html                            65451B  ok
+- `00:51:01`     exponential-search-dashboard.html          56587B  BROKEN-OPENBB
+- `00:51:01`     fmp.html                                    5880B  ok
+- `00:51:01`     fred.html                                  27454B  ok
+- `00:51:01`     index.html                                 50059B  ok
+- `00:51:01`     khalid/index.html                          47707B  ok
+- `00:51:01`     macroeconomic-platform.html               118991B  BROKEN-OPENBB
+- `00:51:01`     ml-predictions.html                        17103B  ok
+- `00:51:01`     ml.html                                      288B  STUB
+- `00:51:01`     nasdaq-datalink.html                        4352B  ok
+- `00:51:01`     ny-fed.html                                65947B  ok
+- `00:51:01`     ofr.html                                   61702B  ok
+- `00:51:01`     openbb-realtime-dashboard.html             61769B  ok
+- `00:51:01`     pro.html                                   58313B  ok
+- `00:51:01`     repo.html                                    451B  STUB
+- `00:51:01`     reports.html                               24022B  ok
+- `00:51:01`     stocks.html                                  249B  STUB
+- `00:51:01`     stocks/index.html                          26099B  BROKEN-MIXED-CONTENT
+- `00:51:01`     trading-signals.html                       10925B  ok
+- `00:51:01`     treasury-auctions.html                     85210B  ok
+- `00:51:01` 
+  S3 keys REFERENCED by HTML pages: 19
+- `00:51:01` 
+  S3 JSONs UNUSED by any page (potential gaps):
+- `00:51:01`     _audit/ddb_pre_delete_20260425_015658.json             22645B   22.9h
+- `00:51:01`     _audit/inventory_2026-04-25.json                      783313B   24.3h
+- `00:51:01`     _health/dashboard.json                                 30585B    0.1h
+- `00:51:01`     _health/last_alerted.json                              10084B    0.1h
+- `00:51:01` 
+  All justhodl-* Lambda names (so we can spot orphans):
+- `00:51:01`     justhodl-advanced-charts                           mod=2026-04-25
+- `00:51:01`     justhodl-ai-chat                                   mod=2026-04-25
+- `00:51:01`     justhodl-asymmetric-scorer                         mod=2026-04-25
+- `00:51:01`     justhodl-bloomberg-v8                              mod=2026-04-25
+- `00:51:01`     justhodl-bond-regime-detector                      mod=2026-04-25
+- `00:51:01`     justhodl-cache-layer                               mod=2026-04-25
+- `00:51:01`     justhodl-calibrator                                mod=2026-04-25
+- `00:51:01`     justhodl-charts-agent                              mod=2026-04-25
+- `00:51:01`     justhodl-chat-api                                  mod=2026-04-25
+- `00:51:01`     justhodl-cot-extremes-scanner                      mod=2026-04-25
+- `00:51:01`     justhodl-crypto-enricher                           mod=2026-04-25
+- `00:51:01`     justhodl-crypto-intel                              mod=2026-04-25
+- `00:51:01`     justhodl-daily-macro-report                        mod=2026-04-25
+- `00:51:01`     justhodl-daily-report-v3                           mod=2026-04-25
+- `00:51:01`     justhodl-data-collector                            mod=2026-04-25
+- `00:51:01`     justhodl-dex-scanner                               mod=2026-04-25
+- `00:51:01`     justhodl-divergence-scanner                        mod=2026-04-25
+- `00:51:01`     justhodl-ecb-proxy                                 mod=2026-04-25
+- `00:51:01`     justhodl-edge-engine                               mod=2026-04-25
+- `00:51:01`     justhodl-email-reports                             mod=2026-04-25
+- `00:51:01`     justhodl-email-reports-v2                          mod=2026-04-25
+- `00:51:01`     justhodl-financial-secretary                       mod=2026-04-25
+- `00:51:01`     justhodl-fred-proxy                                mod=2026-04-25
+- `00:51:01`     justhodl-health-monitor                            mod=2026-04-25
+- `00:51:01`     justhodl-intelligence                              mod=2026-04-25
+- `00:51:01`     justhodl-investor-agents                           mod=2026-04-25
+- `00:51:01`     justhodl-khalid-metrics                            mod=2026-04-25
+- `00:51:01`     justhodl-liquidity-agent                           mod=2026-04-25
+- `00:51:01`     justhodl-ml-predictions                            mod=2026-04-25
+- `00:51:01`     justhodl-morning-intelligence                      mod=2026-04-25
+- `00:51:01`     justhodl-news-sentiment                            mod=2026-04-25
+- `00:51:01`     justhodl-options-flow                              mod=2026-04-25
+- `00:51:01`     justhodl-outcome-checker                           mod=2026-04-25
+- `00:51:01`     justhodl-pnl-tracker                               mod=2026-04-25
+- `00:51:01`     justhodl-prompt-iterator                           mod=2026-04-25
+- `00:51:01`     justhodl-repo-monitor                              mod=2026-04-25
+- `00:51:01`     justhodl-reports-builder                           mod=2026-04-25
+- `00:51:01`     justhodl-risk-sizer                                mod=2026-04-25
+- `00:51:01`     justhodl-signal-logger                             mod=2026-04-25
+- `00:51:01`     justhodl-stock-ai-research                         mod=2026-04-25
+- `00:51:01`     justhodl-stock-analyzer                            mod=2026-04-25
+- `00:51:01`     justhodl-stock-screener                            mod=2026-04-26
+- `00:51:01`     justhodl-telegram-bot                              mod=2026-04-25
+- `00:51:01`     justhodl-treasury-proxy                            mod=2026-04-25
+- `00:51:01`     justhodl-ultimate-orchestrator                     mod=2026-04-25
+- `00:51:01`     justhodl-ultimate-trading                          mod=2026-04-25
+- `00:51:01`     justhodl-valuations-agent                          mod=2026-04-25
+- `00:51:01`     justhodl-watchlist-debate                          mod=2026-04-25
+- `00:51:01` Done
