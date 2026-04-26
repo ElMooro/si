@@ -196,12 +196,12 @@ CRISIS_INDICES = {
 }
 
 PLUMBING_TIER2 = {
-    # MMF composition (post-2021): use the gov/prime/tax-exempt split.
-    # WMMFNS (Total MMF) appears on FRED as a discontinued legacy series; the
-    # modern ICI breakdown is WGMMNS/WPMMNS/WTMMNS published weekly.
-    "WGMMNS":            {"name": "Government MMF",      "fmt": "money", "scale": 1000},
-    "WPMMNS":            {"name": "Prime MMF",           "fmt": "money", "scale": 1000},
-    "WTMMNS":            {"name": "Tax-Exempt MMF",      "fmt": "money", "scale": 1000},
+    # MMF composition was attempted with WGMMNS/WPMMNS/WTMMNS in Phase 9.3a
+    # but step 237 confirmed those IDs DO NOT EXIST on FRED — all return
+    # HTTP 400. The modern ICI weekly H.6 split for gov/prime/tax-exempt
+    # MMF apparently isn't published with simple FRED IDs.
+    # Existing plumbing tier 2 captures the same flight-to-safety signal
+    # via RRP usage drop + bank deposit drop; MMF section omitted.
     "DPSACBW027SBOG":    {"name": "All Commercial Bank Deposits", "fmt": "money", "scale": 1000},
     # H.8 C&I Lending — switched from H8B1058NCBCMG (a percent-change series)
     # to BUSLOANS (the absolute level in $B), so delta_30d_pct is meaningful.
@@ -222,7 +222,7 @@ CROSS_CURRENCY_BASIS_INPUTS = {
     "T10Y2Y":          "10Y-2Y spread",
     "T10Y3M":          "10Y-3M spread",
     # ── Phase 9.3c: foreign 3M rates for rate-differential approach ──
-    "INTGSBJPM193N":   "Japan 3M T-Bill rate (monthly)",
+    "IR3TIB01JPM156N": "Japan 3M Interbank rate (monthly)",
     "IR3TBB01EZM156N": "Eurozone 3M T-Bill rate (monthly)",
     # ── Phase 9.3c: broad dollar index — global USD funding stress ──
     "DTWEXBGS":        "Broad Trade-Weighted USD Index (daily)",
@@ -462,7 +462,7 @@ def synthesize_xcc_basis(observations_map):
 
     # ── 1. JPY rate differential ──
     usd_3m = observations_map.get("DGS3MO", [])  # daily, %
-    jpy_3m = observations_map.get("INTGSBJPM193N", [])  # monthly, %
+    jpy_3m = observations_map.get("IR3TIB01JPM156N", [])  # monthly, %
     if usd_3m and jpy_3m:
         # daily axis from USD series (last 365 days for 1Y window)
         cutoff = (datetime.now(timezone.utc) - timedelta(days=400)).strftime("%Y-%m-%d")
@@ -517,7 +517,7 @@ def synthesize_xcc_basis(observations_map):
                     if signal == "WATCH" else
                     "Rate differential within 1Y normal range"
                 ),
-                "method": "USD 3M T-Bill (DGS3MO) minus Japan 3M T-Bill (INTGSBJPM193N), 1Y z-score",
+                "method": "USD 3M T-Bill (DGS3MO) minus Japan 3M Interbank (IR3TIB01JPM156N), 1Y z-score",
                 "caveat": "Approximates CIP deviation; true basis requires forward FX (not on FRED)",
             }
         else:
@@ -828,51 +828,12 @@ def lambda_handler(event, context):
             ),
         }
 
-    # 5a. MMF composition — modern ICI weekly split (gov / prime / tax-exempt)
-    # Stress signal: when prime_share drops fast, institutions are fleeing to
-    # government MMFs (a classic March-2020-style flight to safety).
-    mmf_gov = plumbing.get("WGMMNS", {}).get("latest_value")
-    mmf_prime = plumbing.get("WPMMNS", {}).get("latest_value")
-    mmf_taxexempt = plumbing.get("WTMMNS", {}).get("latest_value")
+    # 5a. MMF composition — DISABLED (Phase 9 fix): the modern ICI weekly
+    # gov/prime/tax-exempt split (WGMMNS/WPMMNS/WTMMNS) does not exist on
+    # FRED with those IDs (HTTP 400). The flight-to-quality signal is
+    # captured indirectly via RRP usage drop + bank deposit drop in the
+    # rest of plumbing tier 2.
     mmf_composition = None
-    if mmf_gov is not None and mmf_prime is not None:
-        mmf_total = mmf_gov + mmf_prime + (mmf_taxexempt or 0)
-        gov_share = round(100.0 * mmf_gov / mmf_total, 1) if mmf_total else None
-        prime_share = round(100.0 * mmf_prime / mmf_total, 1) if mmf_total else None
-        # Compare prime_share to its own 30d-ago level for trend
-        prime_30d = plumbing.get("WPMMNS", {}).get("value_30d_ago")
-        gov_30d = plumbing.get("WGMMNS", {}).get("value_30d_ago")
-        prime_share_30d = None
-        if prime_30d is not None and gov_30d is not None:
-            taxex_30d = plumbing.get("WTMMNS", {}).get("value_30d_ago") or 0
-            tot_30d = mmf_gov + mmf_prime + taxex_30d if False else (gov_30d + prime_30d + taxex_30d)
-            prime_share_30d = round(100.0 * prime_30d / tot_30d, 1) if tot_30d else None
-        prime_share_change_30d = (
-            round(prime_share - prime_share_30d, 2)
-            if prime_share is not None and prime_share_30d is not None
-            else None
-        )
-        # Flight-to-safety threshold: prime share dropping by >2 pts in 30d is unusual
-        ftq = (
-            prime_share_change_30d is not None and prime_share_change_30d < -2.0
-        )
-        mmf_composition = {
-            "total_aum_billions": round(mmf_total, 1),
-            "gov_billions": round(mmf_gov, 1),
-            "prime_billions": round(mmf_prime, 1),
-            "tax_exempt_billions": round(mmf_taxexempt or 0, 1),
-            "gov_share_pct": gov_share,
-            "prime_share_pct": prime_share,
-            "prime_share_30d_ago_pct": prime_share_30d,
-            "prime_share_change_30d_pp": prime_share_change_30d,
-            "flight_to_quality": bool(ftq),
-            "interpretation": (
-                "FLIGHT TO QUALITY — prime share dropping ≥2pp in 30d (institutional flight to government)"
-                if ftq
-                else "Normal composition" if prime_share is not None
-                else "Indeterminate"
-            ),
-        }
 
     # 6. Cross-currency basis proxy
     xcc_basis = synthesize_xcc_basis(observations_map)
