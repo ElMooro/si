@@ -1,6 +1,6 @@
 # Khalid → [NEW_NAME] Full Migration Plan
 
-**Status:** Phases 1+2+3+4+5 SHIPPED 2026-04-26. Phase 4b (delete OLD Lambda) due 2026-05-03 after 7-day grace. Phases 6-8 pending.
+**Status:** Phases 1+2+3+4+5+7 SHIPPED 2026-04-26. Phase 4b (delete OLD Lambda) due 2026-05-03. Phase 6 (drop khalid_* fallbacks) due ~2026-05-26 after 30-day grace. Phase 8 (git history rewrite) optional, undecided.
 **Decided:** new name = 'KA' (initialism).
 **Trigger:** user request 2026-04-26 to fully purge personal name from product brand.
 
