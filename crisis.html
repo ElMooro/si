@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Crisis & Plumbing · JustHodl.AI</title>
+<meta name="description" content="Official Fed crisis indices · MMF flows · cross-currency basis · yield curve stress · 6h refresh">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.page-hdr{margin-bottom:28px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px}
+.page-hdr .meta{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
+.page-hdr .meta span{display:inline-flex;align-items:center;gap:6px}
+
+.composite-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}
+.composite-banner.crisis{border-color:var(--red);box-shadow:0 0 30px rgba(255,92,122,.18)}
+.composite-banner.elevated{border-color:var(--amber);box-shadow:0 0 30px rgba(255,177,61,.16)}
+.composite-banner.caution{border-color:var(--violet);box-shadow:0 0 30px rgba(167,139,250,.14)}
+.composite-banner.watch{border-color:var(--cyan-dim)}
+.composite-banner.normal{border-color:var(--green-dim)}
+
+.score-circle{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-sunken);border:3px solid var(--cyan-dim);position:relative}
+.score-circle.crisis{border-color:var(--red)}
+.score-circle.elevated{border-color:var(--amber)}
+.score-circle.caution{border-color:var(--violet)}
+.score-circle.watch{border-color:var(--cyan)}
+.score-circle.normal{border-color:var(--green)}
+.score-circle .num{font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1}
+.score-circle .lbl{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1.5px;margin-top:4px}
+
+.composite-info h2{font-family:var(--font-mono);font-size:14px;font-weight:600;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:6px}
+.composite-info .signal-text{font-size:24px;font-weight:600;line-height:1.2;margin-bottom:8px;font-family:var(--font-mono);letter-spacing:1px}
+.composite-info .desc{color:var(--fg-2);max-width:600px;line-height:1.6}
+
+.consensus{text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+.consensus .big{font-size:32px;color:var(--fg-1);font-weight:700;line-height:1}
+.consensus .sub{margin-top:4px}
+
+.sig-NORMAL{color:var(--green)}
+.sig-WATCH{color:var(--cyan)}
+.sig-CAUTION{color:var(--violet)}
+.sig-ELEVATED{color:var(--amber)}
+.sig-CRISIS{color:var(--red)}
+
+.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px}
+.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
+.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
+
+.grid{display:grid;gap:14px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px;transition:border-color .15s}
+.card:hover{border-color:var(--border-hover)}
+.card.flagged{border-color:var(--amber);background:linear-gradient(135deg,var(--bg-raised),rgba(255,177,61,.05))}
+.card.crisis{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
+
+.card .name{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.card .value{font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--fg-1);line-height:1.1}
+.card .delta{font-family:var(--font-mono);font-size:11px;margin-top:6px}
+.card .delta.up{color:var(--red)}
+.card .delta.down{color:var(--green)}
+.card .delta.flat{color:var(--fg-3)}
+.card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:10px;letter-spacing:.5px}
+.card .pct-bar{height:6px;background:var(--bg-sunken);border-radius:3px;margin-top:10px;overflow:hidden;position:relative}
+.card .pct-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));transition:width .4s ease}
+.card .pct-bar .marker{position:absolute;top:-2px;width:2px;height:10px;background:var(--fg-1);border-radius:1px}
+
+table{width:100%;border-collapse:collapse;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;overflow:hidden;font-family:var(--font-mono);font-size:12px}
+th{background:var(--bg-sunken);padding:10px 14px;text-align:left;font-weight:500;color:var(--fg-3);letter-spacing:1px;font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover{background:var(--bg-glow)}
+
+.skeleton{background:linear-gradient(90deg,var(--bg-raised) 0%,var(--bg-elevated) 50%,var(--bg-raised) 100%);background-size:200% 100%;animation:shim 1.4s linear infinite;border-radius:4px;height:16px;margin:6px 0}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
+
+footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
+footer a{margin:0 10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
+  <nav class="nav-links">
+    <a href="/">Desk</a>
+    <a href="/intelligence.html">Intel</a>
+    <a href="/desk-v2.html">Desk v2</a>
+    <a href="/ka/">KA Index</a>
+    <a href="/crisis.html" class="active">Crisis</a>
+    <a href="/macro-data.html">Macro</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/repo.html">Repo</a>
+    <a href="/sentiment.html">Sentiment</a>
+    <a href="/volatility.html">Vol</a>
+    <a href="/reports.html">Reports</a>
+  </nav>
+</div>
+
+<main class="container">
+  <div class="page-hdr">
+    <h1>CRISIS &amp; PLUMBING</h1>
+    <p>Official Fed crisis indices · money market flows · cross-currency basis · yield curve stress</p>
+    <div class="meta">
+      <span>📊 <span id="n-indices">—</span> indices</span>
+      <span>🔄 <span id="updated">—</span></span>
+      <span>📡 source: <a href="https://fred.stlouisfed.org/" target="_blank" rel="noopener">FRED</a> + Federal Reserve Banks</span>
+      <span>🕒 refresh: every 6h</span>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner">⚠️ Failed to load data — please retry shortly</div>
+
+  <div id="composite-banner" class="composite-banner normal">
+    <div id="score-circle" class="score-circle normal">
+      <div class="num" id="composite-score">—</div>
+      <div class="lbl">STRESS</div>
+    </div>
+    <div class="composite-info">
+      <h2>COMPOSITE STRESS SIGNAL</h2>
+      <div class="signal-text sig-NORMAL" id="composite-signal">LOADING…</div>
+      <div class="desc" id="composite-desc">Aggregating St. Louis Fed, Chicago Fed (NFCI / ANFCI), Kansas City Fed, and OFR financial stress indices into a percentile-ranked composite. The agreement of multiple official indices is a non-curve-fitted prior on systemic stress.</div>
+    </div>
+    <div class="consensus">
+      <div class="big" id="consensus-count">—</div>
+      <div class="sub">OF <span id="indices-count">—</span> INDICES<br/>FLAGGED &gt;75TH PCT</div>
+    </div>
+  </div>
+
+  <!-- Crisis indices grid -->
+  <div class="section-hdr">
+    <h3>OFFICIAL CRISIS INDICES</h3>
+    <div class="sub">10Y percentile rank — higher = more stress</div>
+  </div>
+  <div id="crisis-grid" class="grid grid-3"></div>
+
+  <!-- Plumbing tier 2 -->
+  <div class="section-hdr">
+    <h3>PLUMBING TIER 2</h3>
+    <div class="sub">money market funds · bank deposits · funding facilities</div>
+  </div>
+  <div id="plumbing-grid" class="grid grid-3"></div>
+
+  <!-- MMF composition -->
+  <div class="section-hdr">
+    <h3>MONEY MARKET FUND COMPOSITION</h3>
+    <div class="sub">institutional flight to safety = leading bank stress signal</div>
+  </div>
+  <div id="mmf-row"></div>
+
+  <!-- Yield curve -->
+  <div class="section-hdr">
+    <h3>YIELD CURVE STRESS</h3>
+    <div class="sub">10Y-2Y &amp; 10Y-3M spreads · negative = inverted = recession indicator</div>
+  </div>
+  <div id="yc-grid" class="grid grid-2"></div>
+
+  <!-- XCC basis proxy -->
+  <div class="section-hdr">
+    <h3>OFFSHORE DOLLAR FUNDING (PROXY)</h3>
+    <div class="sub">3M USD basis vs JPY/EUR · directional only · BIS data needed for precise basis</div>
+  </div>
+  <div id="xcc-row"></div>
+
+  <footer>
+    <a href="https://fred.stlouisfed.org/">FRED</a> ·
+    <a href="https://www.financialresearch.gov/financial-stress-index/">OFR</a> ·
+    <a href="/">JustHodl.AI</a>
+    <div style="margin-top:6px">data refresh every 6h · last fetch: <span id="footer-ts">—</span></div>
+  </footer>
+</main>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/crisis-plumbing.json?t=' + Date.now();
+
+function fmtNum(v, decimals = 2) {
+  if (v == null || isNaN(v)) return '—';
+  return Number(v).toFixed(decimals);
+}
+
+function fmtMoney(v, scale = 1) {
+  if (v == null || isNaN(v)) return '—';
+  const scaled = v * scale;
+  if (scaled >= 1e3) return '$' + (scaled / 1e3).toFixed(2) + 'T';
+  if (scaled >= 1) return '$' + scaled.toFixed(1) + 'B';
+  return '$' + scaled.toFixed(0) + 'M';
+}
+
+function fmtPct(v) {
+  if (v == null || isNaN(v)) return '—';
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+
+function fmtAge(iso) {
+  if (!iso) return '—';
+  const ageMin = (Date.now() - new Date(iso).getTime()) / 60000;
+  if (ageMin < 60) return Math.round(ageMin) + 'm ago';
+  const h = ageMin / 60;
+  if (h < 24) return h.toFixed(1) + 'h ago';
+  return (h / 24).toFixed(1) + 'd ago';
+}
+
+function setError(msg) {
+  const eb = document.getElementById('errorBanner');
+  eb.textContent = '⚠️ ' + msg;
+  eb.style.display = 'block';
+}
+
+function renderComposite(c) {
+  if (!c) return;
+  const score = c.composite_stress_score;
+  const sig = c.agreement_signal || 'NO_DATA';
+  const sigLower = sig.toLowerCase();
+
+  const banner = document.getElementById('composite-banner');
+  const circle = document.getElementById('score-circle');
+  banner.className = 'composite-banner ' + sigLower;
+  circle.className = 'score-circle ' + sigLower;
+
+  document.getElementById('composite-score').textContent = score != null ? Math.round(score) : '—';
+  document.getElementById('composite-signal').textContent = sig;
+  document.getElementById('composite-signal').className = 'signal-text sig-' + sig;
+
+  const descEl = document.getElementById('composite-desc');
+  const descMap = {
+    NORMAL: 'No stress signals across the official Fed indices. All readings within typical historical ranges.',
+    WATCH: 'Slight elevation in stress measures but no consensus. Monitor for further deterioration.',
+    CAUTION: 'Multiple stress measures elevated. Increased systemic monitoring warranted.',
+    ELEVATED: 'Significant stress across most indices. Historical analogs include 2018-Q4, 2020-Mar early signals.',
+    CRISIS: '4+ official indices simultaneously above 75th percentile. Historical analogs: 2008-Sep, 2020-Mar peak, 2023-Mar SVB.',
+    NO_DATA: 'Crisis indices not yet available — data may still be loading.',
+  };
+  descEl.textContent = descMap[sig] || descMap.NO_DATA;
+
+  document.getElementById('consensus-count').textContent = c.consensus_count ?? '—';
+  document.getElementById('indices-count').textContent = c.n_indices_available ?? '—';
+  document.getElementById('n-indices').textContent = c.n_indices_available ?? '—';
+}
+
+function renderCrisisIndices(indices) {
+  const grid = document.getElementById('crisis-grid');
+  if (!indices) { grid.innerHTML = '<div class="card">No data</div>'; return; }
+  let html = '';
+  for (const [sid, data] of Object.entries(indices)) {
+    if (!data.available) {
+      html += `<div class="card" style="opacity:.4">
+        <div class="name">${sid}</div>
+        <div class="value">—</div>
+        <div class="meta">Not available on FRED</div>
+      </div>`;
+      continue;
+    }
+    const pct = data.pct_rank;
+    const flagged = data.is_stressed;
+    const cls = pct >= 90 ? 'crisis' : flagged ? 'flagged' : '';
+    const delta = data.delta_30d;
+    const deltaCls = delta == null ? 'flat' : delta > 0 ? 'up' : 'down';
+    const deltaTxt = delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(3);
+    html += `<div class="card ${cls}">
+      <div class="name">${sid}</div>
+      <div class="value">${fmtNum(data.latest_value, 3)}</div>
+      <div class="delta ${deltaCls}">30d Δ ${deltaTxt}</div>
+      <div class="pct-bar">
+        <div class="fill" style="width:${pct ?? 0}%"></div>
+        <div class="marker" style="left:75%"></div>
+      </div>
+      <div class="meta">${data.name} · ${pct != null ? pct + 'th pct' : 'no rank'} · ${data.latest_date || '—'}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderPlumbing(plumb) {
+  const grid = document.getElementById('plumbing-grid');
+  if (!plumb) { grid.innerHTML = ''; return; }
+  let html = '';
+  const labels = {
+    WMMFNS:           {label: 'Total MMF AUM',           scale: 1, fmt: 'money'},
+    WIMFSL:           {label: 'Institutional MMF',       scale: 1, fmt: 'money'},
+    DPSACBW027SBOG:   {label: 'Bank Deposits',           scale: 1, fmt: 'money'},
+    'H8B1058NCBCMG':  {label: 'C&I Lending (H.8)',       scale: 1, fmt: 'money'},
+    RRPONTSYD:        {label: 'Reverse Repo Facility',   scale: 1, fmt: 'money'},
+    TGA:              {label: 'Treasury General Account', scale: 1, fmt: 'money'},
+  };
+  for (const [sid, data] of Object.entries(plumb)) {
+    if (!data.available) continue;
+    const lbl = labels[sid] || {label: sid, fmt: 'num'};
+    const val = lbl.fmt === 'money' ? fmtMoney(data.latest_value, lbl.scale) : fmtNum(data.latest_value);
+    const d30 = data.delta_30d_pct;
+    const d90 = data.delta_90d_pct;
+    const d30Cls = d30 == null ? 'flat' : d30 > 0 ? 'down' : 'up'; // for deposits, decline is bad
+    const d30Txt = d30 == null ? '—' : fmtPct(d30);
+    html += `<div class="card">
+      <div class="name">${lbl.label}</div>
+      <div class="value">${val}</div>
+      <div class="delta">30d: ${d30Txt} · 90d: ${d90 == null ? '—' : fmtPct(d90)}</div>
+      <div class="meta">${data.latest_date || '—'}</div>
+    </div>`;
+  }
+  grid.innerHTML = html || '<div class="card">No plumbing data</div>';
+}
+
+function renderMMF(mmf) {
+  const row = document.getElementById('mmf-row');
+  if (!mmf) { row.innerHTML = ''; return; }
+  const total = mmf.total_aum_billions;
+  const inst = mmf.institutional_billions;
+  const retail = mmf.retail_billions;
+  const instPct = mmf.institutional_share_pct;
+  const flagged = inst / total > 0.65;
+  row.innerHTML = `<div class="card ${flagged ? 'flagged' : ''}" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+    <div>
+      <div class="name">Total MMF AUM</div>
+      <div class="value">${fmtMoney(total)}</div>
+    </div>
+    <div>
+      <div class="name">Institutional Share</div>
+      <div class="value">${instPct != null ? instPct.toFixed(1) + '%' : '—'}</div>
+      <div class="meta">${fmtMoney(inst)} of ${fmtMoney(total)}</div>
+    </div>
+    <div>
+      <div class="name">Retail</div>
+      <div class="value">${fmtMoney(retail)}</div>
+      <div class="meta">${mmf.interpretation || ''}</div>
+    </div>
+  </div>`;
+}
+
+function renderYieldCurve(yc) {
+  const grid = document.getElementById('yc-grid');
+  if (!yc) { grid.innerHTML = ''; return; }
+  let html = '';
+  const labels = {T10Y2Y: '10Y minus 2Y', T10Y3M: '10Y minus 3M (Estrella)'};
+  for (const [sid, data] of Object.entries(yc)) {
+    if (!data.available) continue;
+    const inverted = data.is_inverted;
+    const cls = inverted ? 'flagged' : '';
+    const delta = data.delta_30d;
+    const deltaCls = delta == null ? 'flat' : delta > 0 ? 'down' : 'up';
+    html += `<div class="card ${cls}">
+      <div class="name">${sid} · ${labels[sid] || sid}</div>
+      <div class="value" style="color:${inverted ? 'var(--red)' : 'var(--green)'}">${fmtNum(data.latest_value, 3)}%</div>
+      <div class="delta ${deltaCls}">30d Δ ${delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(3)}</div>
+      <div class="meta">${inverted ? '⚠️ INVERTED — recession indicator' : 'Normal'} · as of ${data.latest_date || '—'}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderXCC(xcc) {
+  const row = document.getElementById('xcc-row');
+  if (!xcc || (!xcc.xcc_proxy_jpy_3m && !xcc.xcc_proxy_eur_3m)) { row.innerHTML = ''; return; }
+  let html = '<div class="grid grid-2">';
+  for (const [key, data] of Object.entries(xcc)) {
+    if (!data) continue;
+    const intp = data.interpretation || '—';
+    const cls = intp === 'STRESSED' ? 'crisis' : intp === 'ELEVATED' ? 'flagged' : '';
+    html += `<div class="card ${cls}">
+      <div class="name">${key.replace('xcc_proxy_', '').toUpperCase()}</div>
+      <div class="value">${data.current_pct != null ? data.current_pct.toFixed(2) + '%' : '—'}</div>
+      <div class="delta">1Y z-score: ${data.z_score_1y != null ? (data.z_score_1y > 0 ? '+' : '') + data.z_score_1y : '—'}</div>
+      <div class="meta">${intp} · ${data.note || ''}</div>
+    </div>`;
+  }
+  html += '</div>';
+  row.innerHTML = html;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    document.getElementById('updated').textContent = fmtAge(data.generated_at);
+    document.getElementById('footer-ts').textContent = data.generated_at || '—';
+
+    renderComposite(data.composite);
+    renderCrisisIndices(data.crisis_indices);
+    renderPlumbing(data.plumbing_tier2);
+    renderMMF(data.mmf_composition);
+    renderYieldCurve(data.yield_curve);
+    renderXCC(data.xcc_basis_proxy);
+  } catch (e) {
+    console.error(e);
+    setError('Failed to load: ' + e.message);
+  }
+}
+
+loadData();
+// Auto-refresh every 5 min while page is open
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
