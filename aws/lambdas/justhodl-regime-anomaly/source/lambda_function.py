@@ -101,8 +101,19 @@ def _matmul_row(v, M):
     return out
 
 
-def hmm_baum_welch(observations, n_states=4, max_iter=30, tol=1e-4):
+def hmm_baum_welch(observations, n_states=4, max_iter=30, tol=1e-4, prior_strength=2.0):
     """Fit a Gaussian-emission HMM via Baum-Welch EM algorithm.
+
+    Includes a Dirichlet prior on the transition matrix to prevent
+    state collapse on small/uniform datasets. Without the prior,
+    when the data is sparse and similar in value, EM converges to
+    a degenerate solution where one state captures all probability.
+
+    The prior_strength parameter (default 2.0) acts as pseudo-counts
+    on every transition. With 4 states and prior_strength=2, every
+    transition starts with 2 pseudo-observations, ensuring all
+    states retain some probability mass even if no actual transitions
+    are observed.
 
     Returns:
       pi          initial state probabilities
@@ -194,21 +205,39 @@ def hmm_baum_welch(observations, n_states=4, max_iter=30, tol=1e-4):
                               * _normal_pdf(observations[t + 1], mu[j], sigma[j])
                               * beta[t + 1][j])
                     new_A[i][j] += xi_tij
+        # Apply Dirichlet prior — adds pseudo-counts to every transition
+        # so no state can be fully eliminated
+        for i in range(n_states):
+            for j in range(n_states):
+                new_A[i][j] += prior_strength / n_states
         # Normalize rows of new_A
         for i in range(n_states):
             row_sum = sum(new_A[i]) or 1e-300
             new_A[i] = [x / row_sum for x in new_A[i]]
 
-        # Re-estimate emissions
+        # Re-estimate emissions with floor on sigma to prevent collapse
         new_mu = [0.0] * n_states
         new_sigma = [0.0] * n_states
+
+        # Compute global std as floor reference
+        global_mean = sum(observations) / n
+        global_var = sum((x - global_mean) ** 2 for x in observations) / n
+        global_std = max(global_var ** 0.5, 1.0)
+        sigma_floor = max(global_std * 0.1, 0.5)  # at least 10% of global std
+
         for s in range(n_states):
             denom = sum(gamma[t][s] for t in range(n))
-            if denom == 0:
+            # Apply pseudo-count for emission too
+            denom_priored = denom + 0.5
+            if denom_priored == 0:
+                new_mu[s] = mu[s]
+                new_sigma[s] = sigma[s]
                 continue
-            new_mu[s] = sum(gamma[t][s] * observations[t] for t in range(n)) / denom
-            v = sum(gamma[t][s] * (observations[t] - new_mu[s]) ** 2 for t in range(n)) / denom
-            new_sigma[s] = max(math.sqrt(v), 1.0)
+            new_mu[s] = (sum(gamma[t][s] * observations[t] for t in range(n))
+                         + 0.5 * mu[s]) / denom_priored
+            v = (sum(gamma[t][s] * (observations[t] - new_mu[s]) ** 2 for t in range(n))
+                 + 0.5 * sigma[s] ** 2) / denom_priored
+            new_sigma[s] = max(math.sqrt(v), sigma_floor)
 
         # Compute log-likelihood
         log_lik = sum(math.log(c_t) for c_t in c if c_t > 0)
