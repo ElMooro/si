@@ -224,7 +224,7 @@ with report("phase_2b_followups") as r:
         full = "\n".join(code_files.values())
         return {
             "ses_usage":      bool(re.search(r"\.send_email\(|\.send_raw_email", full)),
-            "ses_from":       re.search(r"['\"](raafouis[^'\"]*@[^'\"]+)['\"]", full),
+            "ses_from":       re.search(r"['\"]([a-z0-9._-]+@[a-z0-9.-]+)['\"]", full),
             "ses_from_generic": re.search(r"['\"]([a-z0-9_\.+\-]+@[a-z0-9\.\-]+)['\"]", full, re.I),
             "subject_lines":  re.findall(r"['\"]?[Ss]ubject['\"]?\s*[:=]\s*['\"]([^'\"]{5,80})['\"]", full),
             "recipient":      re.search(r"ToAddresses\s*['\"]?[:=]\s*\[\s*['\"]([^'\"]+)['\"]", full),

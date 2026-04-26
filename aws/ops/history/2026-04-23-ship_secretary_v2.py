@@ -81,8 +81,8 @@ NEWS_KEY = os.environ.get("NEWS_API_KEY", "")
 CMC_KEY  = os.environ.get("CMC_API_KEY", "")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-EMAIL_TO   = os.environ.get("EMAIL_TO", "raafouis@gmail.com")
-EMAIL_FROM = os.environ.get("EMAIL_FROM", "raafouis@gmail.com")
+EMAIL_TO   = os.environ.get("EMAIL_TO", "[redacted]")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "[redacted]")
 
 s3  = boto3.client("s3")
 ses = boto3.client("ses", region_name="us-east-1")
@@ -1150,7 +1150,7 @@ with report("ship_secretary_v2") as r:
         Payload=_json.dumps({"source": "aws.events"}).encode(),
     )
     r.ok(f"  Scan triggered async. Status={resp['StatusCode']}")
-    r.log("  Scan will complete in ~45s and email will arrive at raafouis@gmail.com")
+    r.log("  Scan will complete in ~45s and email will arrive at [redacted]")
     r.log("  Fresh output appears at s3://justhodl-dashboard-live/data/secretary-latest.json")
 
     r.log("Done")

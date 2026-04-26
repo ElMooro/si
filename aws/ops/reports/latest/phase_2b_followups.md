@@ -85,7 +85,7 @@
 - `23:53:49`     Code size: 18753 bytes, 1 file(s)
 - `23:53:49`     Uses SES send_email: True
 - `23:53:49`     HTML email: True
-- `23:53:49`     From: raafouis@gmail.com
+- `23:53:49`     From: [redacted]
 - `23:53:49` 
 - `23:53:49`   justhodl-daily-report-v3:
 - `23:53:49`     Code size: 94117 bytes, 1 file(s)

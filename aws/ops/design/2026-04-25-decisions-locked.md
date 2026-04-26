@@ -1,6 +1,6 @@
 # Week 2-3 — Locked Design Decisions
 
-**Decided:** 2026-04-25 by Khalid (defaults accepted as proposed in the
+**Decided:** 2026-04-25 [redacted] (defaults accepted as proposed in the
 [Week 2-3 Architecture Document](2026-04-25-week-2-3-architecture.md))
 
 This document is the canonical reference for design decisions during

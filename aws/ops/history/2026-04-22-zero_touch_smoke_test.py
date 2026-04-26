@@ -23,7 +23,7 @@ import boto3
 
 REGION = "us-east-1"
 LAMBDA_URL = "https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/"
-WORKER_URL = "https://justhodl-ai-proxy.raafouis.workers.dev/"
+WORKER_URL = "https://justhodl-ai-proxy.REDACTED.workers.dev/"
 SSM_PARAM  = "/justhodl/ai-chat/auth-token"
 
 

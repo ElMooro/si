@@ -1,6 +1,6 @@
 # api.justhodl.ai Migration Runbook
 
-**Goal**: Point `api.justhodl.ai` at the Cloudflare Worker `justhodl-ai-proxy`, retiring both the `raafouis.workers.dev` branding and the legacy CloudFront distribution at that subdomain.
+**Goal**: Point `api.justhodl.ai` at the Cloudflare Worker `justhodl-ai-proxy`, retiring both the `REDACTED.workers.dev` branding and the legacy CloudFront distribution at that subdomain.
 
 **Estimated wall-clock time**: 30-60 minutes of active work + up to 48 hours of DNS propagation waiting.
 
@@ -12,10 +12,10 @@
 
 | Item | Value |
 |---|---|
-| Cloudflare account | `2e120c8358c6c85dcaba07eb16947817` (RAAfouis@gmail.com) |
-| Workers.dev subdomain | `raafouis.workers.dev` |
+| Cloudflare account | `2e120c8358c6c85dcaba07eb16947817` ([redacted]) |
+| Workers.dev subdomain | `REDACTED.workers.dev` |
 | Worker name | `justhodl-ai-proxy` |
-| Worker current URL | `https://justhodl-ai-proxy.raafouis.workers.dev` |
+| Worker current URL | `https://justhodl-ai-proxy.REDACTED.workers.dev` |
 | Worker target URL | `https://api.justhodl.ai` |
 | Worker source in repo | `cloudflare/workers/justhodl-ai-proxy/` |
 | Worker secret | `AI_CHAT_TOKEN` (already set in Worker environment) |
@@ -206,16 +206,16 @@ curl -sS -I https://api.justhodl.ai/ 2>&1 | grep -i "server\|cf-ray"
 
 ## STEP 6 — UPDATE frontend + Worker allowlist (2 min)
 
-The frontend dashboards currently point at `justhodl-ai-proxy.raafouis.workers.dev`. They should now point at `api.justhodl.ai`.
+The frontend dashboards currently point at `justhodl-ai-proxy.REDACTED.workers.dev`. They should now point at `api.justhodl.ai`.
 
 ### 6a — Find and replace in the repo
 
 ```bash
 cd /c/Users/Adam/Desktop/justhodl/si
-grep -rln "raafouis.workers.dev\|justhodl-ai-proxy.raafouis" --include="*.html" --include="*.js"
+grep -rln "REDACTED.workers.dev\|justhodl-ai-proxy.[redacted]" --include="*.html" --include="*.js"
 ```
 
-Update each hit from `https://justhodl-ai-proxy.raafouis.workers.dev` to `https://api.justhodl.ai`.
+Update each hit from `https://justhodl-ai-proxy.REDACTED.workers.dev` to `https://api.justhodl.ai`.
 
 ### 6b — Worker: tighten ALLOWED_ORIGINS if needed
 
@@ -230,7 +230,7 @@ This is already correct — the frontend will still be served from `justhodl.ai`
 
 ```bash
 git add -A
-git commit -m "feat: switch frontend to api.justhodl.ai (retires raafouis.workers.dev)"
+git commit -m "feat: switch frontend to api.justhodl.ai (retires REDACTED.workers.dev)"
 git push origin main
 ```
 
@@ -346,7 +346,7 @@ Print this, check off as you go:
 ## POST-MIGRATION BENEFITS
 
 - `api.justhodl.ai` is the branded endpoint.
-- `raafouis.workers.dev` no longer leaks into any user-facing URL.
+- `REDACTED.workers.dev` no longer leaks into any user-facing URL.
 - DNS is managed by Cloudflare — cleaner, free CDN, free DDoS, ability to add WAF rules.
 - Future Workers can be bound to `*.justhodl.ai` subdomains with one click.
 - Legacy CloudFront distribution at `api.justhodl.ai` can be safely retired.

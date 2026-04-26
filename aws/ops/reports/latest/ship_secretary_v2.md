@@ -21,6 +21,6 @@
 ## Step 5: trigger an immediate secretary scan
 
 - `12:01:51` ✅   Scan triggered async. Status=202
-- `12:01:51`   Scan will complete in ~45s and email will arrive at raafouis@gmail.com
+- `12:01:51`   Scan will complete in ~45s and email will arrive at [redacted]
 - `12:01:51`   Fresh output appears at s3://justhodl-dashboard-live/data/secretary-latest.json
 - `12:01:51` Done

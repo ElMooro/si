@@ -33,8 +33,8 @@ def send_report_now():
 </html>"""
     
     response = ses.send_email(
-        Source='raafouis@gmail.com',
-        Destination={'ToAddresses': ['raafouis@gmail.com', 'khalidbernoussi@yahoo.com']},
+        Source='PLACEHOLDER@example.com',
+        Destination={'ToAddresses': ['PLACEHOLDER@example.com', 'khalidbernoussi@yahoo.com']},
         Message={
             'Subject': {'Data': f'Daily Report {now.strftime("%m/%d %H:%M")} - IMMEDIATE'},
             'Body': {'Html': {'Data': html}}

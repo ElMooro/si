@@ -8,7 +8,7 @@ s3   = boto3.client("s3")
 
 S3_BUCKET  = "justhodl-historical-data-1758485495"
 SES_SENDER = "reports@justhodl.ai"
-RECIPIENTS = ["raafouis@gmail.com","plebsoulex@gmail.com","naafouis@gmail.com","khalidbernoussi@yahoo.com"]
+RECIPIENTS = ["PLACEHOLDER@example.com","plebsoulex@gmail.com","PLACEHOLDER2@example.com","khalidbernoussi@yahoo.com"]
 
 # ---- FRED ----
 FRED_API_KEY = "2f057499936072679d8843d7fce99989"   # or set via env and read with os.getenv

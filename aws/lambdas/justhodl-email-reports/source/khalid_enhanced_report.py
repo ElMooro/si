@@ -60,8 +60,8 @@ def lambda_handler(event, context):
     
     # Send email
     ses.send_email(
-        Source='raafouis@gmail.com',
-        Destination={'ToAddresses': ['raafouis@gmail.com']},
+        Source='PLACEHOLDER@example.com',
+        Destination={'ToAddresses': ['PLACEHOLDER@example.com']},
         Message={
             'Subject': {'Data': f"Khalid {khalid['index']:.0f} | {khalid['regime']} | Full Analysis"},
             'Body': {'Html': {'Data': html[:500000]}}

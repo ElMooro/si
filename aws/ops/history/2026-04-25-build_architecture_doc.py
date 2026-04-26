@@ -430,7 +430,7 @@ with report("build_architecture_doc") as r:
     md.append("**Account:** `2e120c8358c6c85dcaba07eb16947817`")
     md.append("")
     md.append("**Worker:** `justhodl-ai-proxy`")
-    md.append("- Routes: `api.justhodl.ai` (custom domain) + `justhodl-ai-proxy.raafouis.workers.dev`")
+    md.append("- Routes: `api.justhodl.ai` (custom domain) + `justhodl-ai-proxy.REDACTED.workers.dev`")
     md.append("- Forwards POST → AWS Lambda `justhodl-ai-chat`")
     md.append("- Origin allowlist: `https://justhodl.ai`, `https://www.justhodl.ai`")
     md.append("- Adds auth token from secret `AI_CHAT_TOKEN`")

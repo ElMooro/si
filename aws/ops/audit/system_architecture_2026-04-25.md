@@ -849,7 +849,7 @@ Most-frequent firing rules grouped by pattern:
 **Account:** `2e120c8358c6c85dcaba07eb16947817`
 
 **Worker:** `justhodl-ai-proxy`
-- Routes: `api.justhodl.ai` (custom domain) + `justhodl-ai-proxy.raafouis.workers.dev`
+- Routes: `api.justhodl.ai` (custom domain) + `justhodl-ai-proxy.REDACTED.workers.dev`
 - Forwards POST → AWS Lambda `justhodl-ai-chat`
 - Origin allowlist: `https://justhodl.ai`, `https://www.justhodl.ai`
 - Adds auth token from secret `AI_CHAT_TOKEN`

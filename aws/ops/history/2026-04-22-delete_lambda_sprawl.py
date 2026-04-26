@@ -2,7 +2,7 @@
 """
 Delete Lambda sprawl — 36 functions identified by audit 2026-04-22.
 
-Approved by Khalid on 2026-04-22 after review of
+Approved [redacted] on 2026-04-22 after review of
 aws/ops/reports/lambda-audit-2026-04-22.md.
 
 For each function in KILL_LIST:
