@@ -666,11 +666,11 @@ table.tbl tr:last-child td{border-bottom: none}
       <div class="card-head">
         <div>
           <div class="card-title">KA INDEX</div>
-          <div class="card-subtitle" id="khalidSub">—</div>
+          <div class="card-subtitle" id="kaSub">—</div>
         </div>
         <a href="/intelligence.html" class="card-action">REPORT →</a>
       </div>
-      <div id="khalidBody">
+      <div id="kaBody">
         <div class="skel skel-line"></div>
       </div>
     </section>
@@ -1223,13 +1223,13 @@ function renderRisk(){
 }
 
 // ── KA INDEX BREAKDOWN
-function renderKhalid(){
+function renderKa(){
   const d = STATE.data.intel;
-  const body = document.getElementById('khalidBody');
+  const body = document.getElementById('kaBody');
   if(!d || !d.scores){body.innerHTML = '<div class="muted">No intelligence report</div>'; return}
 
   const s = d.scores;
-  document.getElementById('khalidSub').textContent = `${d.phase || 'STABLE'} · ${fmtAge(d.generated_at)}`;
+  document.getElementById('kaSub').textContent = `${d.phase || 'STABLE'} · ${fmtAge(d.generated_at)}`;
   const ki = s.ka_index ?? s.khalid_index;
   const kiCls = ki >= 70 ? 'g' : ki >= 40 ? 'a' : 'r';
 
@@ -1237,7 +1237,7 @@ function renderKhalid(){
     <div style="display:flex;gap:24px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
       <div>
         <div class="bignum ${kiCls === 'r' ? 'r' : ''}" style="${kiCls==='g'?'color:var(--green)':kiCls==='a'?'color:var(--amber)':'color:var(--red)'}">${ki != null ? ki : '—'}</div>
-        <div class="bignum-sub">/ 100 · ${escHtml(d.regime?.khalid || 'STABLE')}</div>
+        <div class="bignum-sub">/ 100 · ${escHtml(d.regime?.ka || d.regime?.khalid || 'STABLE')}</div>
       </div>
       <div style="flex:1;min-width:200px">
         <div class="readout">
@@ -1532,8 +1532,8 @@ async function loadAll(){
   if(STATE.data.risk) renderRisk();
   else if(STATE.errors.risk) setError('riskBody', STATE.errors.risk);
 
-  if(STATE.data.intel) renderKhalid();
-  else if(STATE.errors.intel) setError('khalidBody', STATE.errors.intel);
+  if(STATE.data.intel) renderKa();
+  else if(STATE.errors.intel) setError('kaBody', STATE.errors.intel);
 
   if(STATE.data.liq) renderLiq();
   else if(STATE.errors.liq) setError('liqBody', STATE.errors.liq);

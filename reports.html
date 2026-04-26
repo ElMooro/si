@@ -350,7 +350,8 @@ function renderMorningArchive(archive) {
   }
   let html = `<div class="brief-grid">`;
   for (const b of archive) {
-    // Regime can be either a string or a dict {khalid, ml, sector, credit, liquidity}
+    // Regime can be either a string or a dict {ka, ml, sector, credit, liquidity}
+    // (legacy khalid alias still accepted for back-compat during Phase 6 grace)
     let regimeRaw = b.regime;
     if (regimeRaw && typeof regimeRaw === "object") {
       regimeRaw = regimeRaw.ka || regimeRaw.khalid || regimeRaw.overall || regimeRaw.market || "?";

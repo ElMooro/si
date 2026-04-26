@@ -676,7 +676,7 @@ button:hover{
   </div>
   <div class="strip-cell">
     <div class="strip-label">KA</div>
-    <div class="strip-value" id="stripKhalid">—</div>
+    <div class="strip-value" id="stripKa">—</div>
     <div class="strip-sub" id="stripKhaldidSub">— regime</div>
   </div>
 </div>
@@ -765,7 +765,7 @@ button:hover{
       <div class="card-title"><span class="num">08</span> KA INDEX</div>
       <div class="card-meta">5-FACTOR · LIVE</div>
     </div>
-    <div class="card-body" id="cardKhalid">
+    <div class="card-body" id="cardKa">
       <div class="loading">FETCHING</div>
     </div>
   </div>
@@ -896,7 +896,7 @@ function renderStrip(risk, regime, intel){
   const ki = intelObj.ka_index ?? intelObj.khalid_index ?? {};
   const kiScore = typeof ki === 'object' ? ki.score : ki;
   const kiRegime = typeof ki === 'object' ? ki.regime : intelObj.regime;
-  const stripK = document.getElementById('stripKhalid');
+  const stripK = document.getElementById('stripKa');
   stripK.textContent = kiScore !== undefined ? fmt(kiScore, 0) : '—';
   stripK.className = 'strip-value ' + regimeClass(kiRegime);
   document.getElementById('stripKhaldidSub').textContent = kiRegime || '—';
@@ -1116,8 +1116,8 @@ function renderTraps(opps){
   el.innerHTML = html;
 }
 
-function renderKhalid(intel){
-  const el = document.getElementById('cardKhalid');
+function renderKa(intel){
+  const el = document.getElementById('cardKa');
   if (!intel) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
   const ki = intel.ka_index ?? intel.khalid_index ?? {};
   const kiObj = typeof ki === 'object' ? ki : { score: ki };
@@ -1222,7 +1222,7 @@ async function loadAll(){
   renderDebate(debate);
   renderPnl(pnl);
   renderTraps(opps);
-  renderKhalid(intel);
+  renderKa(intel);
   renderCrypto(crypto);
 
   document.getElementById('footerLoad').textContent = `LOAD ${elapsed}MS`;

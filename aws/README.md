@@ -48,7 +48,8 @@ is to have all production Lambdas version-controlled here:
 - [ ] justhodl-morning-intelligence
 - [ ] justhodl-investor-agents
 - [ ] justhodl-daily-report-v3
-- [ ] justhodl-khalid-metrics
+- [ ] justhodl-ka-metrics
+- [ ] justhodl-khalid-metrics  <!-- LEGACY — Phase 4 of Khalid→KA rebrand. Delete after 7-day grace ~2026-05-03. -->
 - [ ] justhodl-crypto-enricher
 - [ ] justhodl-crypto-intel
 - [ ] justhodl-options-flow
