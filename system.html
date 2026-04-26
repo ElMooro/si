@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>System Health · JustHodl.AI</title>
+<meta name="description" content="System Health Monitor — 78 component status · Lambda invocations · S3 freshness · alert history · auto-refresh every 60s">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-sunken)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;font-weight:600}
+.status-pill.green{background:rgba(56,255,168,.06);border:1px solid var(--green-dim);color:var(--green)}
+.status-pill.amber{background:rgba(255,177,61,.06);border:1px solid var(--amber-dim);color:var(--amber)}
+.status-pill.red{background:rgba(255,92,122,.06);border:1px solid var(--red-dim);color:var(--red)}
+.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+
+.page{max-width:1620px;margin:0 auto;padding:24px}
+.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
+.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+
+/* STRIP */
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin-bottom:24px;background:var(--border);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden}
+.strip-cell{background:var(--bg-raised);padding:14px 18px;cursor:pointer;transition:background .15s}
+.strip-cell:hover{background:var(--bg-elevated)}
+.strip-cell.active{background:var(--bg-elevated);box-shadow:inset 0 -2px 0 var(--cyan)}
+.strip-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.strip-value{font-family:var(--font-mono);font-size:30px;font-weight:600;line-height:1;margin-bottom:4px}
+.strip-sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px}
+.strip-cell.green .strip-value{color:var(--green)}
+.strip-cell.amber .strip-value{color:var(--amber)}
+.strip-cell.red .strip-value{color:var(--red)}
+.strip-cell.cyan .strip-value{color:var(--cyan)}
+@media (max-width:1024px){.strip{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:600px){.strip{grid-template-columns:repeat(2,1fr)}}
+
+/* CARD */
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;margin-bottom:18px}
+.card::before,.card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
+.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
+
+/* FILTER BUTTONS */
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border:1px solid var(--border);border-radius:3px;color:var(--fg-3);transition:all .15s;background:transparent}
+.filter-btn:hover{color:var(--fg-1);border-color:var(--border-hover);background:var(--bg-glow)}
+.filter-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,.06)}
+.filter-btn.active.red{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.06)}
+.filter-btn.active.green{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.06)}
+.filter-btn.active.amber{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.06)}
+.filter-btn .count{margin-left:6px;color:var(--fg-4);font-weight:600}
+.filter-btn.active .count{color:inherit}
+
+/* COMPONENT TABLE */
+table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+table.tbl th{text-align:left;font-weight:500;letter-spacing:1.5px;color:var(--fg-3);font-size:9px;padding:8px 6px;border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;background:var(--bg-raised);z-index:1}
+table.tbl th.r{text-align:right}
+table.tbl td{padding:9px 6px;border-bottom:1px solid rgba(120,145,180,.06);color:var(--fg-2);vertical-align:top}
+table.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
+table.tbl tr:hover td{background:rgba(120,145,180,.04)}
+table.tbl tr:last-child td{border-bottom:none}
+.row-status{display:flex;align-items:center;gap:8px}
+.dot-l{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-l.g{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot-l.a{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.dot-l.r{background:var(--red);box-shadow:0 0 6px var(--red)}
+.dot-l.c{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.dot-l.gray{background:var(--fg-4)}
+
+.comp-name{color:var(--fg-1);font-weight:500;display:flex;align-items:center;gap:8px}
+.comp-name.r{color:var(--red)}
+.comp-name.a{color:var(--amber)}
+.comp-name .stub-id{color:var(--fg-4);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.reason{color:var(--fg-3);font-style:italic;font-size:10px;line-height:1.4;max-width:380px;display:block;margin-top:3px}
+
+.badge{display:inline-block;padding:2px 7px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;background:var(--bg-elevated);color:var(--fg-2);border:1px solid var(--border)}
+.badge.g{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
+.badge.a{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.05)}
+.badge.r{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
+.badge.c{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,212,255,.05)}
+.badge.v{color:var(--violet);border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.05)}
+
+.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:8px}
+.err{color:var(--red);font-family:var(--font-mono);font-size:11px;letter-spacing:.5px;padding:8px 0}
+.muted{color:var(--fg-3);font-style:italic;font-size:11px;padding:14px 0;text-align:center}
+
+.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/stock/">STOCK</a>
+    <a href="/screener/">SCREENER</a>
+    <a href="/edge.html">EDGE</a>
+    <a href="/intelligence.html">INTEL</a>
+    <a href="/liquidity.html">LIQUIDITY</a>
+    <a href="/flow.html">FLOW</a>
+    <a href="/crypto/">CRYPTO</a>
+    <a href="/positioning/">COT</a>
+    <a href="/risk.html">RISK</a>
+    <a href="/valuations.html">VALUATIONS</a>
+    <a href="/system.html" class="active">SYSTEM</a>
+  </nav>
+  <div class="topbar-meta">
+    <span id="clock">—</span>
+    <span class="status-pill green" id="sysStatus">OPERATIONAL</span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>SYSTEM HEALTH</h1>
+    <div class="sub">Live monitor for 78 components · Lambda invocations · S3 freshness · auto-refresh 60s</div>
+  </div>
+
+  <!-- STRIP — counts -->
+  <div class="strip" id="strip">
+    <div class="strip-cell active cyan" data-filter="all">
+      <div class="strip-label">TOTAL</div>
+      <div class="strip-value" id="cntTotal">—</div>
+      <div class="strip-sub">monitored</div>
+    </div>
+    <div class="strip-cell red" data-filter="red">
+      <div class="strip-label">RED</div>
+      <div class="strip-value" id="cntRed">—</div>
+      <div class="strip-sub">critical</div>
+    </div>
+    <div class="strip-cell amber" data-filter="yellow">
+      <div class="strip-label">YELLOW</div>
+      <div class="strip-value" id="cntYellow">—</div>
+      <div class="strip-sub">warning</div>
+    </div>
+    <div class="strip-cell cyan" data-filter="info">
+      <div class="strip-label">INFO</div>
+      <div class="strip-value" id="cntInfo">—</div>
+      <div class="strip-sub">notable</div>
+    </div>
+    <div class="strip-cell green" data-filter="green">
+      <div class="strip-label">GREEN</div>
+      <div class="strip-value" id="cntGreen">—</div>
+      <div class="strip-sub">healthy</div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS TABLE -->
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">COMPONENTS</div>
+        <div class="card-subtitle" id="compSub">—</div>
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">ALL <span class="count" id="fcAll">—</span></button>
+        <button class="filter-btn red" data-filter="red">RED <span class="count" id="fcRed">—</span></button>
+        <button class="filter-btn amber" data-filter="yellow">YELLOW <span class="count" id="fcYellow">—</span></button>
+        <button class="filter-btn" data-filter="info">INFO <span class="count" id="fcInfo">—</span></button>
+        <button class="filter-btn green" data-filter="green">GREEN <span class="count" id="fcGreen">—</span></button>
+        <button class="filter-btn" data-type-filter="lambda">λ LAMBDAS</button>
+        <button class="filter-btn" data-type-filter="s3">S3</button>
+      </div>
+    </div>
+    <div style="overflow:auto;max-height:75vh">
+      <table class="tbl" id="compTbl">
+        <thead>
+          <tr>
+            <th style="width:36%">COMPONENT</th>
+            <th>TYPE</th>
+            <th>SEVERITY</th>
+            <th class="r">INV 24H</th>
+            <th class="r">ERR 24H</th>
+            <th class="r">ERR %</th>
+            <th>ALERTED</th>
+          </tr>
+        </thead>
+        <tbody id="compBody">
+          <tr><td colspan="7"><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div>JUSTHODL · AI · SYSTEM HEALTH</div>
+  <div style="margin-top:8px;color:var(--fg-4)">
+    <span id="footUpdated">—</span> · auto-refresh 60s · <span id="duration">—</span>
+  </div>
+</footer>
+
+<script>
+const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const URL_DASH = `${S3}/_health/dashboard.json`;
+const URL_ALERTED = `${S3}/_health/last_alerted.json`;
+
+const STATE = {dashboard: null, alerted: null, statusFilter: 'red', typeFilter: null};
+
+function fmtNum(n){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString()}
+function fmtPct(n,d=1){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d)+'%'}
+function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtAge(unixSec){
+  if(!unixSec) return '—';
+  const t = unixSec * 1000;
+  const dt = (Date.now() - t) / 1000;
+  if(dt < 60) return Math.floor(dt) + 's';
+  if(dt < 3600) return Math.floor(dt/60) + 'm';
+  if(dt < 86400) return Math.floor(dt/3600) + 'h';
+  return Math.floor(dt/86400) + 'd';
+}
+function fmtAgeIso(iso){
+  if(!iso) return '—';
+  try{
+    const dt = (Date.now() - new Date(iso).getTime()) / 1000;
+    if(dt < 60) return Math.floor(dt) + 's ago';
+    if(dt < 3600) return Math.floor(dt/60) + 'm ago';
+    if(dt < 86400) return Math.floor(dt/3600) + 'h ago';
+    return Math.floor(dt/86400) + 'd ago';
+  }catch(e){return '—'}
+}
+function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
+
+function statusClass(s){return s === 'green' ? 'g' : s === 'yellow' ? 'a' : s === 'red' ? 'r' : s === 'info' ? 'c' : 'gray'}
+function severityClass(sev){return sev === 'critical' ? 'r' : sev === 'important' ? 'a' : sev === 'info' ? 'c' : ''}
+function typeForId(id, type){
+  if(type === 'lambda' || (id||'').startsWith('lambda:')) return 'λ Lambda';
+  if(type === 's3' || (id||'').startsWith('s3:')) return 'S3 obj';
+  if(type === 'apigw' || type === 'api_gateway') return 'API Gateway';
+  return type || 'other';
+}
+
+async function load(){
+  try{
+    const [dResp, aResp] = await Promise.all([
+      fetch(URL_DASH, {cache:'no-cache'}),
+      fetch(URL_ALERTED, {cache:'no-cache'}),
+    ]);
+    if(!dResp.ok) throw new Error('dashboard HTTP ' + dResp.status);
+    STATE.dashboard = await dResp.json();
+    if(aResp.ok) STATE.alerted = await aResp.json();
+    render();
+  }catch(e){
+    document.getElementById('compBody').innerHTML =
+      `<tr><td colspan="7"><div class="err">⚠ Failed to load: ${escHtml(e.message)}</div></td></tr>`;
+  }
+}
+
+function render(){
+  const d = STATE.dashboard;
+  if(!d) return;
+
+  // Top strip
+  const c = d.counts || {};
+  document.getElementById('cntTotal').textContent = fmtNum(d.total_components);
+  document.getElementById('cntGreen').textContent = fmtNum(c.green);
+  document.getElementById('cntYellow').textContent = fmtNum(c.yellow);
+  document.getElementById('cntRed').textContent = fmtNum(c.red);
+  document.getElementById('cntInfo').textContent = fmtNum(c.info);
+  document.getElementById('fcAll').textContent = fmtNum(d.total_components);
+  document.getElementById('fcGreen').textContent = fmtNum(c.green);
+  document.getElementById('fcYellow').textContent = fmtNum(c.yellow);
+  document.getElementById('fcRed').textContent = fmtNum(c.red);
+  document.getElementById('fcInfo').textContent = fmtNum(c.info);
+
+  // Top right system status pill
+  const pill = document.getElementById('sysStatus');
+  const sysSt = d.system_status || 'unknown';
+  pill.classList.remove('green','red','amber');
+  if(sysSt === 'red'){
+    pill.classList.add('red');
+    pill.textContent = 'DEGRADED · ' + (c.red||0) + ' RED';
+  }else if(sysSt === 'yellow'){
+    pill.classList.add('amber');
+    pill.textContent = 'WARNING · ' + (c.yellow||0) + ' YELLOW';
+  }else{
+    pill.classList.add('green');
+    pill.textContent = 'OPERATIONAL';
+  }
+
+  // Sub line
+  const dur = (d.duration_sec||0).toFixed(2);
+  document.getElementById('compSub').textContent = `last check ${fmtAgeIso(d.generated_at)} · ${dur}s elapsed · ${d.total_components||0} components`;
+  document.getElementById('duration').textContent = `check took ${dur}s`;
+  document.getElementById('footUpdated').textContent = 'updated ' + new Date().toISOString().slice(11,19) + ' UTC';
+
+  renderTable();
+}
+
+function renderTable(){
+  const d = STATE.dashboard;
+  if(!d) return;
+  const all = d.components || [];
+  const alertedMap = (STATE.alerted && STATE.alerted.components) || {};
+
+  let filtered = all;
+  if(STATE.statusFilter && STATE.statusFilter !== 'all'){
+    filtered = filtered.filter(c => c.status === STATE.statusFilter);
+  }
+  if(STATE.typeFilter){
+    filtered = filtered.filter(c => {
+      if(STATE.typeFilter === 'lambda') return c.type === 'lambda' || (c.id||'').startsWith('lambda:');
+      if(STATE.typeFilter === 's3') return c.type === 's3' || (c.id||'').startsWith('s3:');
+      return c.type === STATE.typeFilter;
+    });
+  }
+
+  // Sort: red→yellow→info→green, then by severity (critical→important→info), then by name
+  const statusOrder = {red:0, yellow:1, info:2, green:3, unknown:4};
+  const sevOrder = {critical:0, important:1, info:2, '':3, undefined:3, null:3};
+  filtered = [...filtered].sort((a,b) => {
+    const sa = statusOrder[a.status] ?? 5;
+    const sb = statusOrder[b.status] ?? 5;
+    if(sa !== sb) return sa - sb;
+    const va = sevOrder[a.severity] ?? 3;
+    const vb = sevOrder[b.severity] ?? 3;
+    if(va !== vb) return va - vb;
+    return (a.name||'').localeCompare(b.name||'');
+  });
+
+  const body = document.getElementById('compBody');
+  if(!filtered.length){
+    body.innerHTML = '<tr><td colspan="7"><div class="muted">No components match this filter</div></td></tr>';
+    return;
+  }
+
+  let html = '';
+  for(const c of filtered){
+    const stCls = statusClass(c.status);
+    const sevCls = severityClass(c.severity);
+    const alerted = alertedMap[c.id] || {};
+    const alertedAt = alerted.last_alerted_at || 0;
+    const alertedTxt = alertedAt ? fmtAge(alertedAt) + ' ago' : '—';
+    html += `
+      <tr>
+        <td>
+          <div class="comp-name ${stCls}"><span class="dot-l ${stCls}"></span>${escHtml(c.name||c.id||'?')}</div>
+          ${c.reason ? `<div class="reason">${escHtml(c.reason)}</div>` : ''}
+          ${c.note ? `<div class="reason" style="color:var(--fg-4)">${escHtml(c.note)}</div>` : ''}
+        </td>
+        <td><span class="badge">${escHtml(typeForId(c.id, c.type))}</span></td>
+        <td>${c.severity ? `<span class="badge ${sevCls}">${escHtml(c.severity)}</span>` : '—'}</td>
+        <td class="r">${c.invocations_24h != null ? fmtNum(c.invocations_24h) : '—'}</td>
+        <td class="r ${c.errors_24h > 0 ? 'r' : ''}">${c.errors_24h != null ? fmtNum(c.errors_24h) : '—'}</td>
+        <td class="r">${c.error_rate_24h != null ? fmtPct(c.error_rate_24h, 1) : '—'}</td>
+        <td>${alertedAt ? `<span class="badge a">${alertedTxt}</span>` : '<span style="color:var(--fg-4)">—</span>'}</td>
+      </tr>`;
+  }
+  body.innerHTML = html;
+}
+
+// Wire filter buttons
+document.querySelectorAll('[data-filter]').forEach(el => {
+  el.addEventListener('click', () => {
+    STATE.statusFilter = el.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`[data-filter="${el.dataset.filter}"]`).forEach(b => b.classList.add('active'));
+    renderTable();
+  });
+});
+document.querySelectorAll('[data-type-filter]').forEach(el => {
+  el.addEventListener('click', () => {
+    if(STATE.typeFilter === el.dataset.typeFilter){
+      STATE.typeFilter = null;
+      el.classList.remove('active');
+    }else{
+      STATE.typeFilter = el.dataset.typeFilter;
+      document.querySelectorAll('[data-type-filter]').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+    renderTable();
+  });
+});
+
+updateClock();
+setInterval(updateClock, 1000);
+load();
+setInterval(load, 60 * 1000);
+</script>
+
+</body>
+</html>
