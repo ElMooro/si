@@ -142,7 +142,7 @@ body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-
 <div class="topbar">
   <div class="topbar-left">
     <div>
-      <div class="logo">KHALID METRICS</div>
+      <div class="logo">KA METRICS</div>
       <div class="logo-sub">Custom Intelligence Platform</div>
     </div>
     <span class="live-dot"></span>
@@ -1075,7 +1075,7 @@ function renderAiIntelligence() {
   // Report data integration
   if (reportData) {
     if (reportData.khalid_index !== undefined) {
-      report += `<div class="ai-bullet" style="margin-top:8px"><strong>Khalid Index™:</strong> ${reportData.khalid_index} — ${reportData.market_regime || reportData.regime || 'CALCULATING'}</div>`;
+      report += `<div class="ai-bullet" style="margin-top:8px"><strong>KA Index™:</strong> ${reportData.khalid_index} — ${reportData.market_regime || reportData.regime || 'CALCULATING'}</div>`;
     }
     if (reportData.ai_analysis) {
       const aiSections = typeof reportData.ai_analysis === 'string' ? reportData.ai_analysis : JSON.stringify(reportData.ai_analysis).substring(0, 500);

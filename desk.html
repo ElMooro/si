@@ -510,7 +510,7 @@
         <span class="val">${pnl.days_since_inception || 0}</span></div>`;
       html += `<div class="metric"><span class="label">Buy &amp; hold</span>
         <span class="val ${(bh.return_pct || 0) >= 0 ? 'green' : 'red'}">${fmt(bh.return_pct, 2)}%</span></div>`;
-      html += `<div class="metric"><span class="label">Khalid strategy</span>
+      html += `<div class="metric"><span class="label">KA strategy</span>
         <span class="val ${(ks.return_pct || 0) >= 0 ? 'green' : 'red'}">${fmt(ks.return_pct, 2)}%</span></div>`;
       html += `<div class="metric"><span class="label">System alpha (Δ)</span>
         <span class="val ${deltaCls}">${(delta >= 0 ? '+' : '') + fmt(delta, 2)}%</span></div>`;

@@ -675,7 +675,7 @@ button:hover{
     <div class="strip-sub">total position</div>
   </div>
   <div class="strip-cell">
-    <div class="strip-label">KHALID</div>
+    <div class="strip-label">KA</div>
     <div class="strip-value" id="stripKhalid">—</div>
     <div class="strip-sub" id="stripKhaldidSub">— regime</div>
   </div>
@@ -759,10 +759,10 @@ button:hover{
     </div>
   </div>
 
-  <!-- ── ROW 4: KHALID INDEX + MARKET STATE ────────────────────── -->
+  <!-- ── ROW 4: KA INDEX + MARKET STATE ────────────────────── -->
   <div class="card wide">
     <div class="card-header">
-      <div class="card-title"><span class="num">08</span> KHALID INDEX</div>
+      <div class="card-title"><span class="num">08</span> KA INDEX</div>
       <div class="card-meta">5-FACTOR · LIVE</div>
     </div>
     <div class="card-body" id="cardKhalid">
@@ -892,7 +892,7 @@ function renderStrip(risk, regime, intel){
     summary.total_recommended_size_pct !== undefined ?
       fmt(summary.total_recommended_size_pct, 1) + '%' : '—';
 
-  // Khalid Index from intelligence
+  // KA Index from intelligence
   const ki = intelObj.khalid_index || {};
   const kiScore = typeof ki === 'object' ? ki.score : ki;
   const kiRegime = typeof ki === 'object' ? ki.regime : intelObj.regime;

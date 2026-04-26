@@ -108,7 +108,7 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 <div class="header">
   <div>
     <div class="logo">📊 REPORTS &amp; PERFORMANCE</div>
-    <div class="logo-sub">JustHodl.AI — Signal Scorecard &amp; Khalid Timeline</div>
+    <div class="logo-sub">JustHodl.AI — Signal Scorecard &amp; KA Timeline</div>
   </div>
   <div class="hdr-right">
     <a href="/" class="nav-link">🏠 Terminal</a>
@@ -271,7 +271,7 @@ function renderTimeline(timeline) {
   if (!timeline || timeline.length < 2) {
     wrap.innerHTML = `<div class="chart-empty">
       <div style="font-size:36px;margin-bottom:10px">📈</div>
-      <div style="font-size:13px;color:var(--t2);margin-bottom:6px">Not enough Khalid Index history yet</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:6px">Not enough KA Index history yet</div>
       <div style="font-size:11px;color:var(--t4)">Need at least 2 logged data points (current: ${(timeline || []).length}). The signal-logger fires every 6h.</div>
     </div>`;
     return;
@@ -297,7 +297,7 @@ function renderTimeline(timeline) {
     data: {
       labels: labels,
       datasets: [{
-        label: "Khalid Index",
+        label: "KA Index",
         data: data,
         borderColor: "#00e5ff",
         backgroundColor: "rgba(0,229,255,.08)",
@@ -393,7 +393,7 @@ function renderAll(D) {
   html += renderMorningArchive(D.morning_archive || []);
   html += `<div class="section-hdr">📋 Signal Scorecard <span class="badge">SECTION 2</span></div>`;
   html += renderScorecard(D.signal_scorecard);
-  html += `<div class="section-hdr">📈 Khalid Index Timeline <span class="badge">SECTION 3 · LAST 90 DAYS</span></div>`;
+  html += `<div class="section-hdr">📈 KA Index Timeline <span class="badge">SECTION 3 · LAST 90 DAYS</span></div>`;
   html += `<div class="chart-wrap" id="ki-chart-wrap"></div>`;
   html += `<div class="footer">
     <span>Source: <a href="${URL}" style="color:var(--cyan);text-decoration:none" target="_blank">reports/scorecard.json</a></span>

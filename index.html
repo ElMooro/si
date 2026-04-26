@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>JustHodl.AI · Operator Console</title>
-<meta name="description" content="Real-time financial operator console. Live S&P 500 screener, AI stock research, options flow, cross-asset divergences, and Khalid Index regime detection.">
+<meta name="description" content="Real-time financial operator console. Live S&P 500 screener, AI stock research, options flow, cross-asset divergences, and KA Index regime detection.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap" rel="stylesheet">
@@ -594,8 +594,8 @@ table.tbl tr:last-child td{border-bottom: none}
       <div class="strip-value">—</div>
       <div class="strip-sub">—</div>
     </div>
-    <div class="strip-cell" data-cell="khalid">
-      <div class="strip-label">KHALID INDEX</div>
+    <div class="strip-cell" data-cell="ka">
+      <div class="strip-label">KA INDEX</div>
       <div class="strip-value">—</div>
       <div class="strip-sub">—</div>
     </div>
@@ -661,11 +661,11 @@ table.tbl tr:last-child td{border-bottom: none}
       </div>
     </section>
 
-    <!-- Khalid Index breakdown -->
+    <!-- KA Index breakdown -->
     <section class="card col-6">
       <div class="card-head">
         <div>
-          <div class="card-title">KHALID INDEX</div>
+          <div class="card-title">KA INDEX</div>
           <div class="card-subtitle" id="khalidSub">—</div>
         </div>
         <a href="/intelligence.html" class="card-action">REPORT →</a>
@@ -749,7 +749,7 @@ table.tbl tr:last-child td{border-bottom: none}
     <section class="card col-12">
       <div class="card-head">
         <div>
-          <div class="card-title">HYPOTHETICAL PNL — KHALID STRATEGY vs BUY+HOLD</div>
+          <div class="card-title">HYPOTHETICAL PNL — KA STRATEGY vs BUY+HOLD</div>
           <div class="card-subtitle" id="pnlSub">—</div>
         </div>
         <a href="/desk.html" class="card-action">DESK →</a>
@@ -781,7 +781,7 @@ table.tbl tr:last-child td{border-bottom: none}
         <a class="tool" href="/intelligence.html">
           <div class="tool-icon">⚯</div>
           <div class="tool-name">INTELLIGENCE</div>
-          <div class="tool-desc">Khalid Index regime detection · pre-crisis warnings · risk metrics</div>
+          <div class="tool-desc">KA Index regime detection · pre-crisis warnings · risk metrics</div>
         </a>
         <a class="tool" href="/edge.html">
           <div class="tool-icon">∮</div>
@@ -918,8 +918,8 @@ table.tbl tr:last-child td{border-bottom: none}
         <div class="tools">
           <a class="tool" href="/khalid/">
             <div class="tool-icon">∇</div>
-            <div class="tool-name">KHALID METRICS</div>
-            <div class="tool-desc">Full Khalid Index breakdown · 13 metric components · score history · daily refresh</div>
+            <div class="tool-name">KA METRICS</div>
+            <div class="tool-desc">Full KA Index breakdown · 13 metric components · score history · daily refresh</div>
           </a>
           <a class="tool" href="/fred.html">
             <div class="tool-icon">⌭</div>
@@ -1110,7 +1110,7 @@ function renderStrip(){
     setStripCell('regime', regime.regime, `strength ${fmtNum(regime.regime_strength,1)}/100`, cls);
   }
 
-  // KHALID INDEX (intelligence-report)
+  // KA INDEX (intelligence-report)
   if(intel.scores){
     const ki = intel.scores.khalid_index;
     const phase = intel.phase || '';
@@ -1222,7 +1222,7 @@ function renderRisk(){
   body.innerHTML = html;
 }
 
-// ── KHALID INDEX BREAKDOWN
+// ── KA INDEX BREAKDOWN
 function renderKhalid(){
   const d = STATE.data.intel;
   const body = document.getElementById('khalidBody');
@@ -1484,7 +1484,7 @@ function renderPnl(){
         <div class="bignum-sub" style="margin-top:4px">${fmt$(bh.current_value_usd)}</div>
       </div>
       <div>
-        <div class="bignum-sub" style="margin-bottom:6px">KHALID STRAT</div>
+        <div class="bignum-sub" style="margin-bottom:6px">KA STRAT</div>
         <div class="bignum ${ksCls}" style="font-size:24px;color:var(--${ksCls === 'g' ? 'green' : 'red'})">${fmtPct(ks.return_pct,2)}</div>
         <div class="bignum-sub" style="margin-top:4px">${fmt$(ks.current_value_usd)}</div>
       </div>
