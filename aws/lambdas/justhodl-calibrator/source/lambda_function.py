@@ -355,10 +355,10 @@ def run_calibration():
         Type="String",
         Overwrite=True
     )
-    # Phase 2 dual-write — duplicate khalid_component_weights, khalid_new_weights,
-    # khalid_index keys throughout the report dict as ka_* aliases. All
-    # downstream serializations (SSM_REPORT_PATH + 2 S3 writes) inherit them.
-    report = add_ka_aliases(report)
+    # SSM_REPORT_PATH must serialize the un-aliased report — SSM Standard
+    # tier has a 4096-char limit and adding ka_* aliases doubles the size,
+    # which would push us over. Consumers reading from SSM will be migrated
+    # in phase 3 to either accept khalid_* OR read from S3 (which is aliased).
     ssm.put_parameter(
         Name=SSM_REPORT_PATH,
         Value=json.dumps(report),
@@ -366,6 +366,10 @@ def run_calibration():
         Overwrite=True
     )
     print(f"[CALIBRATE] Weights and accuracy saved to SSM")
+
+    # Phase 2 dual-write — alias khalid_* → ka_* for the S3-published copies.
+    # S3 has no 4KB limit, so we can grow the dict here without truncation.
+    report = add_ka_aliases(report)
 
     # ── Save full report to S3 ────────────────────────────────────────────
     s3.put_object(
