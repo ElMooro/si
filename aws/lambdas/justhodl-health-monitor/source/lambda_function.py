@@ -76,25 +76,67 @@ def check_s3_file(spec):
 
 def _lambda_age_hours(name: str):
     """Return the age in hours since the Lambda's last code/config update.
-    Returns None if we can't determine it (e.g. function missing).
-    Used to apply a grace period for newly-deployed Lambdas — the
-    rolling 24h invocation count naturally undershoots its target if
-    the Lambda was deployed less than 24h ago.
+
+    Tries two methods in order:
+      1. lambda:GetFunctionConfiguration → LastModified timestamp.
+         This is the canonical source but requires the IAM permission
+         lambda:GetFunctionConfiguration. If the role lacks it, AWS
+         returns AccessDeniedException.
+
+      2. CloudWatch metrics fallback — find the OLDEST invocation
+         datapoint in the past 24h. If the Lambda has been alive
+         less than 24h, its first datapoint will be < 24h ago. If
+         it's been alive longer, the oldest datapoint will be at
+         or near the start of our 24h window.
+
+    Returns None if both methods fail (we can't tell). When None is
+    returned, the calling check_lambda treats the Lambda as 'mature'
+    and applies the full min_invocations check.
     """
+    # Method 1: ask Lambda directly
     try:
         cfg = lam.get_function_configuration(FunctionName=name)
-        # LastModified is ISO-8601 like "2026-04-27T18:14:54.000+0000"
         ts = cfg.get("LastModified")
-        if not ts:
-            return None
-        # Some AWS responses use offset format "+0000" without colon;
-        # normalize for fromisoformat
-        ts = ts.replace("+0000", "+00:00")
-        dt = datetime.fromisoformat(ts)
-        delta = now() - dt
-        return delta.total_seconds() / 3600
+        if ts:
+            ts = ts.replace("+0000", "+00:00")
+            dt = datetime.fromisoformat(ts)
+            delta = now() - dt
+            return delta.total_seconds() / 3600
+    except Exception as e:
+        # Most common: AccessDeniedException if IAM missing GetFunctionConfiguration.
+        # Fall through to CloudWatch fallback.
+        pass
+
+    # Method 2: derive from oldest CloudWatch invocation datapoint
+    try:
+        end = now()
+        start = end - timedelta(hours=24)
+        inv = cw.get_metric_statistics(
+            Namespace="AWS/Lambda", MetricName="Invocations",
+            Dimensions=[{"Name": "FunctionName", "Value": name}],
+            StartTime=start, EndTime=end,
+            Period=300,                  # 5-min granularity
+            Statistics=["Sum"],
+        )
+        points = [p for p in inv.get("Datapoints", []) if p.get("Sum", 0) > 0]
+        if points:
+            oldest = min(points, key=lambda p: p["Timestamp"])
+            # Make oldest tz-aware UTC for delta calc
+            ts_oldest = oldest["Timestamp"]
+            if ts_oldest.tzinfo is None:
+                ts_oldest = ts_oldest.replace(tzinfo=timezone.utc)
+            delta = end - ts_oldest
+            hours = delta.total_seconds() / 3600
+            # If the oldest invocation is within the first 5min of our 24h
+            # window, the Lambda is plausibly older than 24h. Return None
+            # to skip the grace period.
+            if hours >= 23.9:
+                return None
+            return hours
     except Exception:
-        return None
+        pass
+
+    return None
 
 
 def check_lambda(spec):
