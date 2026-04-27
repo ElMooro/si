@@ -205,6 +205,13 @@ footer a{margin:0 10px}
   </div>
   <div id="crisis-grid" class="grid grid-3"></div>
 
+  <!-- Stress regime classification & asset playbook -->
+  <div class="section-hdr">
+    <h3>WHAT THIS MEANS — STRESS REGIME &amp; ASSET PLAYBOOK</h3>
+    <div class="sub">how composite stress + signal mix maps to asset performance</div>
+  </div>
+  <div id="regime-playbook" style="background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px"></div>
+
   <!-- Funding & Credit Signals (NEW Phase 9.3b) -->
   <div class="section-hdr">
     <h3>FUNDING &amp; CREDIT SIGNALS</h3>
@@ -653,6 +660,7 @@ async function loadData() {
     buildWatchlist(data);
     renderComposite(data.composite);
     renderCrisisIndices(data.crisis_indices);
+    renderRegimePlaybook(data);
     renderFundingCredit(data.funding_credit_signals);
     renderPlumbing(data.plumbing_tier2);
     renderMMF(data.mmf_composition);
@@ -662,6 +670,160 @@ async function loadData() {
     console.error(e);
     setError('Failed to load: ' + e.message);
   }
+}
+
+function classifyStressRegime(data) {
+  // Combine composite signal + n_stressed crisis indices + HY OAS direction + SOFR-IORB
+  const compSig = data.composite?.agreement_signal || 'NORMAL';
+  const ci = data.crisis_indices || {};
+  const nStressed = Object.values(ci).filter(v => v.is_stressed).length;
+  const hyZ = data.funding_credit_signals?.HY_OAS?.z_score_1y;
+  const sofrSpread = data.funding_credit_signals?.SOFR_IORB_SPREAD?.spread_bps;
+  const dfii = data.funding_credit_signals?.DFII10?.latest_value;
+  const usdZ = data.xcc_basis_proxy?.broad_dollar_index?.z_score_1y;
+
+  if (compSig === 'CRISIS' || nStressed >= 3) return 'ACUTE_STRESS';
+  if (compSig === 'ELEVATED' || nStressed >= 2 || (hyZ != null && hyZ > 1.5)) return 'BUILDING_STRESS';
+  if (hyZ != null && hyZ > 0.5 && nStressed >= 1) return 'EARLY_WARNING';
+  if (compSig === 'NORMAL' && nStressed === 0 && (hyZ == null || hyZ < 0) && (usdZ == null || usdZ < -1)) return 'PIVOT_PRICING';
+  if (compSig === 'NORMAL' && nStressed === 0) return 'CALM';
+  return 'TRANSITION';
+}
+
+const STRESS_REGIMES = {
+  ACUTE_STRESS: {
+    name: 'ACUTE FINANCIAL STRESS',
+    color: 'red',
+    desc: 'Multiple official Fed stress indices in stressed range simultaneously. This is the 2008-Sep, 2020-Mar, 2023-Mar SVB pattern. Capital preservation > everything.',
+    winners: [
+      ['Cash / T-Bills', '+2 to +5%', 'Yield captured + capital preserved'],
+      ['Long Treasuries (TLT)', '+8 to +20%', 'Flight to quality bid; Fed cuts rapidly'],
+      ['Gold (GLD)', '+10 to +25%', 'Real rates collapse + USD volatility'],
+    ],
+    losers: [
+      ['S&P 500 (SPY)', '-15 to -35%', 'Earnings cuts + multiple compression + retail capitulation'],
+      ['High Yield (HYG)', '-15 to -25%', 'Defaults rise; spreads widen 400-1000bps'],
+      ['BTC', '-30 to -60%', 'Highest-beta risk asset; full risk-off compression'],
+      ['EM Equities (EEM)', '-25 to -40%', 'Dollar strength + commodity weakness + risk-off'],
+    ],
+    call: '🔴 EXIT ALL RISK ASSETS IMMEDIATELY — go to cash + duration + gold',
+  },
+  BUILDING_STRESS: {
+    name: 'BUILDING STRESS',
+    color: 'amber',
+    desc: 'Stress indicators warming up; not yet acute. This is the Aug 2007, Q4-2018, Sept 2008-pre-Lehman pattern. Reduce risk now while you still can.',
+    winners: [
+      ['Cash / T-Bills', '+2 to +4%', 'Building cash buffer for opportunity'],
+      ['Long Treasuries (TLT)', '+5 to +12%', 'Duration as Fed-cut probabilities rise'],
+      ['Defensive sectors (XLU, XLP, XLV)', 'flat to +5%', 'Outperform broad market by 5-12pp'],
+      ['Gold (GLD)', '+5 to +12%', 'Insurance bid'],
+    ],
+    losers: [
+      ['S&P 500 (SPY)', '-5 to -15%', 'Drawdown begins; multiples compress'],
+      ['High Yield (HYG)', '-5 to -12%', 'Spreads widen pre-default cycle'],
+      ['BTC', '-15 to -35%', 'Risk-off deleveraging'],
+      ['Cyclicals (XLI, XLB)', '-10 to -20%', 'Industrial demand softens'],
+    ],
+    call: '🟠 TRIM RISK TO 50-60% — raise cash, add duration & gold, hedge equity exposure',
+  },
+  EARLY_WARNING: {
+    name: 'EARLY WARNING',
+    color: 'amber',
+    desc: 'One or two indicators flickering yellow. Not yet a clear stress regime, but the system is alerting. Tighten stops, prepare hedges.',
+    winners: [
+      ['S&P 500 (SPY)', 'flat to +5%', 'Range-bound; no resolution yet'],
+      ['Gold (GLD)', '+3 to +8%', 'Insurance bid building'],
+      ['Cash / T-Bills', '+1 to +2%', 'Yield captured while waiting'],
+    ],
+    losers: [
+      ['Leveraged equity (TQQQ, SPXL)', '-5 to -15%', 'Negative drift in choppy environment'],
+      ['Small-caps (IWM)', '-3 to -8%', 'Most credit-sensitive equity segment'],
+    ],
+    call: '🟡 STAY LONG WITH HEDGES — modest gold/cash buffer, tighten stops on growth/leveraged positions',
+  },
+  PIVOT_PRICING: {
+    name: 'FED-PIVOT PRICING (DISINFLATION)',
+    color: 'green',
+    desc: 'Stress indicators calm + USD weakening + credit calm + real rates restrictive but compressing. The 1995, 2002-03, 2019-H2 setup. Best risk-asset regime.',
+    winners: [
+      ['Bitcoin (BTC)', '+25 to +50%', 'High-beta to USD weakness + risk-on rotation'],
+      ['Emerging Markets (EEM)', '+10 to +20%', 'Dollar funding relief'],
+      ['Nasdaq (QQQ)', '+12 to +22%', 'Long-duration tech wins biggest'],
+      ['Gold (GLD)', '+10 to +18%', 'Real rates falling + USD weakening'],
+      ['Long Treasuries (TLT)', '+8 to +15%', 'Duration plays as cuts approach'],
+      ['S&P 500 (SPY)', '+10 to +18%', 'Multiple expansion on cut hopes'],
+    ],
+    losers: [
+      ['US Dollar (DXY)', '-5 to -10%', 'Cuts priced in = USD weakness'],
+      ['Defensives (XLU, XLP)', '-10pp vs SPY', 'Lag risk-on rotation'],
+      ['Regional banks (KRE)', '-5pp vs SPY', 'NIM compresses on falling rates'],
+    ],
+    call: '🟢 STAY LONG — max risk-on. Don\'t overthink it; ride the regime.',
+  },
+  CALM: {
+    name: 'CALM / NORMAL EXPANSION',
+    color: 'green',
+    desc: 'No stress signals. Normal expansion regime. Boring is good. 2013-14, 2017, parts of 2024.',
+    winners: [
+      ['S&P 500 (SPY)', '+8 to +15%', 'Steady earnings, stable multiples'],
+      ['Nasdaq (QQQ)', '+10 to +18%', 'Tech leadership in EPS growth'],
+      ['Banks (KRE/XLF)', '+5 to +12%', 'Healthy curve + loan demand'],
+    ],
+    losers: [
+      ['Long Treasuries (TLT)', '-2 to +3%', 'Yields modestly higher'],
+      ['Defensives (XLU, XLP)', '-3pp vs SPY', 'Lag in expansion'],
+      ['Gold (GLD)', 'flat to +5%', 'No clear catalyst'],
+    ],
+    call: '🟢 STAY LONG — standard diversified allocation, rebalance quarterly',
+  },
+  TRANSITION: {
+    name: 'TRANSITION / MIXED',
+    color: 'cyan',
+    desc: 'Mixed signals. Wait for one of the diagnostic indicators (HY OAS, MOVE, crisis indices) to break decisively in either direction.',
+    winners: [
+      ['Cash / T-Bills', '+1 to +2%', 'Yield while waiting'],
+      ['Gold (GLD)', '+0 to +5%', 'Modest hedge'],
+    ],
+    losers: [
+      ['Leveraged products', '-5 to -15%', 'Negative drift in choppy markets'],
+    ],
+    call: '⚪ HOLD CURRENT ALLOCATION — wait for regime resolution; don\'t force a trade',
+  },
+};
+
+function renderRegimePlaybook(data) {
+  const key = classifyStressRegime(data);
+  const r = STRESS_REGIMES[key] || STRESS_REGIMES.TRANSITION;
+  const colorVar = `var(--${r.color})`;
+  let html = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:6px">CURRENT STRESS REGIME</div>
+      <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:${colorVar};letter-spacing:.5px">${r.name}</div>
+      <div style="color:var(--fg-2);font-size:12.5px;margin-top:8px;line-height:1.6">${r.desc}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--green);margin-bottom:8px">WINNERS · 6M MEDIAN</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px">`;
+  r.winners.forEach(w => {
+    html += `<tr><td style="padding:5px 0;color:var(--fg-1);font-weight:500;border-bottom:1px solid var(--border)">${w[0]}</td>
+                <td style="padding:5px 8px;color:var(--green);font-family:var(--font-mono);text-align:right;border-bottom:1px solid var(--border)">${w[1]}</td></tr>
+             <tr><td colspan="2" style="padding:0 0 8px 0;color:var(--fg-3);font-size:10.5px;line-height:1.4;border-bottom:1px solid var(--border)">${w[2]}</td></tr>`;
+  });
+  html += `</table></div><div>
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--red);margin-bottom:8px">LOSERS · 6M MEDIAN</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px">`;
+  r.losers.forEach(l => {
+    html += `<tr><td style="padding:5px 0;color:var(--fg-1);font-weight:500;border-bottom:1px solid var(--border)">${l[0]}</td>
+                <td style="padding:5px 8px;color:var(--red);font-family:var(--font-mono);text-align:right;border-bottom:1px solid var(--border)">${l[1]}</td></tr>
+             <tr><td colspan="2" style="padding:0 0 8px 0;color:var(--fg-3);font-size:10.5px;line-height:1.4;border-bottom:1px solid var(--border)">${l[2]}</td></tr>`;
+  });
+  html += `</table></div></div>
+    <div style="margin-top:18px;padding:14px 16px;background:${r.color === 'red' ? 'rgba(255,92,122,.08)' : r.color === 'green' ? 'rgba(56,255,168,.06)' : 'rgba(167,139,250,.06)'};border:1px solid ${colorVar};border-radius:6px">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:6px">DECISIVE CALL</div>
+      <div style="font-family:var(--font-mono);font-size:14px;color:${colorVar};font-weight:600;line-height:1.5">${r.call}</div>
+    </div>`;
+  document.getElementById('regime-playbook').innerHTML = html;
 }
 
 loadData();

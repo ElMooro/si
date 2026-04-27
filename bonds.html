@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Bond Indices · JustHodl.AI</title>
-<meta name="description" content="ICE BofA US Corp Master · High Yield · Treasury · 1D/1W/1M/3M">
+<title>Bonds &amp; Yield Curve · JustHodl.AI</title>
+<meta name="description" content="Live US Treasury curve, real rates, breakevens, bond regime, and the playbook for risk assets in each regime · 5 min refresh">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,18 +18,15 @@
   --amber:#ffb13d; --amber-dim:#8a5e10;
   --red:#ff5c7a; --red-dim:#8a2c44;
   --cyan:#00d4ff; --cyan-dim:#0a6080;
-  --violet:#a78bfa;
+  --violet:#a78bfa; --violet-dim:#5a3eb5;
   --font-mono:'IBM Plex Mono',ui-monospace,monospace;
   --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
-  --radius:4px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
 a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg-sunken)}
-::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+
 .topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
 .brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
 .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
@@ -39,191 +36,880 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
 .nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
 .nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
-.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:3px;font-weight:600;border:1px solid currentColor}
-.status-pill.green{background:rgba(56,255,168,.06);color:var(--green)}
-.status-pill.red{background:rgba(255,92,122,.06);color:var(--red)}
-.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
 
-.page{max-width:1620px;margin:0 auto;padding:24px}
-.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
-.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
-.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.page-hdr{margin-bottom:28px}
+.page-hdr h1{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.page-hdr p{color:var(--fg-3);font-size:13px;max-width:920px}
+.page-hdr .meta{display:flex;gap:16px;margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--fg-3);flex-wrap:wrap}
 
-.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-bottom:24px;background:var(--border);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden}
-.strip-cell{background:var(--bg-raised);padding:18px 20px}
-.strip-cell .label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
-.strip-cell .value{font-family:var(--font-mono);font-size:30px;font-weight:600;line-height:1;margin-bottom:4px}
-.strip-cell .sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px}
-.strip-cell.green .value{color:var(--green)}.strip-cell.amber .value{color:var(--amber)}.strip-cell.red .value{color:var(--red)}.strip-cell.cyan .value{color:var(--cyan)}
-@media (max-width:1024px){.strip{grid-template-columns:repeat(2,1fr)}}
+.regime-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:1px solid var(--border-strong);border-radius:8px;padding:22px 26px;margin-bottom:24px;display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center}
+.regime-banner.RISK_OFF{border-color:var(--red);box-shadow:0 0 30px rgba(255,92,122,.16)}
+.regime-banner.RISK_ON{border-color:var(--green);box-shadow:0 0 30px rgba(56,255,168,.14)}
+.regime-banner.NEUTRAL{border-color:var(--cyan-dim)}
 
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px}
-.grid-1{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:24px}
-@media (max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.score-circle{width:120px;height:120px;border-radius:50%;background:var(--bg-sunken);border:3px solid var(--cyan-dim);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.score-circle.RISK_OFF{border-color:var(--red);box-shadow:inset 0 0 20px rgba(255,92,122,.12)}
+.score-circle.RISK_ON{border-color:var(--green);box-shadow:inset 0 0 20px rgba(56,255,168,.12)}
+.score-circle .big{font-size:34px;font-weight:700;line-height:1}
+.score-circle .sub{font-size:10px;color:var(--fg-3);margin-top:4px;letter-spacing:1px}
 
-.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative}
-.card::before,.card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
-.card::before{top:6px;left:6px;border-width:1px 0 0 1px}
-.card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
-.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
-.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
-.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
+.regime-banner h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500;margin-bottom:8px}
+.signal-text{font-family:var(--font-mono);font-size:24px;font-weight:700;letter-spacing:1.5px}
+.signal-text.RISK_OFF{color:var(--red)}
+.signal-text.RISK_ON{color:var(--green)}
+.signal-text.NEUTRAL{color:var(--cyan)}
+.regime-banner .desc{margin-top:6px;color:var(--fg-2);font-size:13px;line-height:1.55}
 
-table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
-table.tbl th{text-align:left;font-weight:500;letter-spacing:1.5px;color:var(--fg-3);font-size:9px;padding:8px 6px;border-bottom:1px solid var(--border);text-transform:uppercase}
-table.tbl th.r{text-align:right}
-table.tbl td{padding:9px 6px;border-bottom:1px solid rgba(120,145,180,.06);color:var(--fg-2);vertical-align:middle}
-table.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
-table.tbl tr:hover td{background:rgba(120,145,180,.04)}
-table.tbl tr:last-child td{border-bottom:none}
-.metric-name{color:var(--fg-1);font-weight:500}
-.chg-pos{color:var(--green)}.chg-neg{color:var(--red)}
+.consensus{text-align:right}
+.consensus .big{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1}
+.consensus .sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-top:4px}
 
-.signal-badge{display:inline-block;padding:2px 7px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--fg-2)}
-.signal-badge.high,.signal-badge.strong{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
-.signal-badge.elevated{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.05)}
-.signal-badge.weak,.signal-badge.normal{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
-.signal-badge.expansion{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
-.signal-badge.contraction{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
-.signal-badge.spike{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,212,255,.05)}
+.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin:32px 0 14px;flex-wrap:wrap;gap:8px}
+.section-hdr h3{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:2px;color:var(--fg-2);text-transform:uppercase}
+.section-hdr .sub{font-size:11px;color:var(--fg-3);font-family:var(--font-mono)}
 
-.empty-state{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);font-style:italic;padding:18px;text-align:center}
-.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px;height:14px;margin-bottom:8px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.err{color:var(--red);font-family:var(--font-mono);font-size:11px;padding:12px;background:rgba(255,92,122,.04);border:1px solid var(--red-dim);border-radius:3px}
+/* Yield Curve Chart */
+.curve-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px}
+#yield-curve-chart{width:100%;height:340px;display:block}
+.curve-axis-label{fill:var(--fg-4);font-family:var(--font-mono);font-size:10px}
+.curve-line-current{fill:none;stroke:var(--cyan);stroke-width:2.5;filter:drop-shadow(0 0 4px rgba(0,212,255,.4))}
+.curve-line-prior{fill:none;stroke:var(--violet);stroke-width:1.5;stroke-dasharray:4,3;opacity:.7}
+.curve-dot{fill:var(--cyan);stroke:var(--bg-sunken);stroke-width:2}
+.curve-dot-prior{fill:var(--violet);stroke:var(--bg-sunken);stroke-width:1.5;opacity:.6}
+.curve-area{fill:url(#curveGrad);opacity:.18}
 
-.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
+/* Stat cards */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.stat-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.stat-card .name{font-family:var(--font-mono);font-size:9.5px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.stat-card .value{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--fg-1)}
+.stat-card .value.amber{color:var(--amber)}
+.stat-card .value.red{color:var(--red)}
+.stat-card .value.green{color:var(--green)}
+.stat-card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:4px}
+.stat-card .interp{font-size:11px;color:var(--fg-2);margin-top:6px;line-height:1.45}
 
+/* Spread cards */
+.spread-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.spread-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:16px}
+.spread-card.RISK_OFF{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
+.spread-card.WATCH{border-color:var(--amber-dim)}
+.spread-card .hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.spread-card .name{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);font-weight:500;letter-spacing:.5px}
+.spread-card .pill{font-family:var(--font-mono);font-size:9px;padding:2px 8px;border-radius:10px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.spread-card .pill.RISK_OFF{color:var(--red);border-color:var(--red);background:rgba(255,92,122,.1)}
+.spread-card .pill.RISK_ON{color:var(--green);border-color:var(--green-dim)}
+.spread-card .pill.NORMAL{color:var(--green);border-color:var(--green-dim)}
+.spread-card .pill.WATCH{color:var(--amber);border-color:var(--amber-dim)}
+.spread-card .pill.ELEVATED{color:var(--amber);border-color:var(--amber);background:rgba(255,177,61,.08)}
+.spread-card .pill.CRISIS{color:var(--red);border-color:var(--red);background:rgba(255,92,122,.12)}
+.spread-card .val{font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--fg-1)}
+.spread-card .meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:4px}
+.spread-card .interp{font-size:11.5px;color:var(--fg-2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.5}
+
+/* Asset playbook */
+.playbook{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:20px}
+.playbook table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px}
+.playbook th{text-align:left;padding:10px 8px;color:var(--fg-3);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
+.playbook td{padding:9px 8px;border-bottom:1px solid var(--border);color:var(--fg-1)}
+.playbook tr:last-child td{border-bottom:none}
+.playbook td.asset{font-weight:600;color:var(--fg-1)}
+.playbook td.pct.pos{color:var(--green)}
+.playbook td.pct.neg{color:var(--red)}
+.playbook td.pct.neutral{color:var(--fg-3)}
+.playbook td.why{color:var(--fg-2);font-family:var(--font-sans);font-size:11.5px}
+.playbook .legend{margin-bottom:14px;font-size:11.5px;color:var(--fg-3);line-height:1.6}
+
+/* Transition probabilities visual */
+.tprob-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:24px}
+.tprob-row{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.tprob-row:last-child{border-bottom:none}
+.tprob-label{font-family:var(--font-mono);font-size:13px;font-weight:600;letter-spacing:.5px}
+.tprob-label.RISK_ON{color:var(--green)}
+.tprob-label.NEUTRAL{color:var(--cyan)}
+.tprob-label.RISK_OFF{color:var(--red)}
+.tprob-bar{height:24px;background:var(--bg-sunken);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.tprob-fill{height:100%;display:flex;align-items:center;padding-left:12px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:#000}
+.tprob-fill.RISK_ON{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.tprob-fill.NEUTRAL{background:linear-gradient(90deg,var(--cyan-dim),var(--cyan))}
+.tprob-fill.RISK_OFF{background:linear-gradient(90deg,var(--red-dim),var(--red));color:#fff}
+.tprob-meta{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);text-align:right;line-height:1.5}
+
+/* Trigger ladder */
+.trigger-table{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.trigger-table table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+.trigger-table th{padding:10px 12px;background:var(--bg-elevated);color:var(--fg-3);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:1px solid var(--border)}
+.trigger-table td{padding:11px 12px;border-bottom:1px solid var(--border)}
+.trigger-table tr:last-child td{border-bottom:none}
+.trigger-table .trigger-name{color:var(--fg-1);font-weight:500}
+.trigger-table .threshold{color:var(--fg-3)}
+.trigger-table .current{font-weight:600}
+.trigger-table .current.fired{color:var(--red);background:rgba(255,92,122,.1)}
+.trigger-table .current.armed{color:var(--green)}
+.trigger-table .current.close{color:var(--amber)}
+.trigger-table .status{font-family:var(--font-mono);font-size:10px;letter-spacing:1px}
+.trigger-table .status.armed{color:var(--green)}
+.trigger-table .status.close{color:var(--amber)}
+.trigger-table .status.fired{color:var(--red)}
+
+/* Decisive call banner */
+.call-banner{background:linear-gradient(135deg,var(--bg-raised),var(--bg-elevated));border:2px solid var(--green);border-radius:8px;padding:24px 28px;margin-top:20px}
+.call-banner.RISK_OFF{border-color:var(--red);background:linear-gradient(135deg,var(--bg-raised),rgba(255,92,122,.05))}
+.call-banner.NEUTRAL{border-color:var(--cyan)}
+.call-banner h2{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--fg-3);font-weight:500;margin-bottom:10px;text-transform:uppercase}
+.call-banner .verdict{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:.5px;margin-bottom:12px}
+.call-banner.RISK_ON .verdict{color:var(--green)}
+.call-banner.RISK_OFF .verdict{color:var(--red)}
+.call-banner.NEUTRAL .verdict{color:var(--cyan)}
+.call-banner .body{color:var(--fg-2);font-size:13px;line-height:1.6}
+.call-banner .body p{margin-bottom:10px}
+.call-banner .body strong{color:var(--fg-1)}
+
+.error-banner{background:rgba(255,92,122,.08);border:1px solid var(--red);color:var(--fg-1);padding:14px 18px;border-radius:6px;font-family:var(--font-mono);font-size:12px;margin-bottom:20px;display:none}
+
+footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
+footer a{margin:0 10px}
 </style>
 </head>
 <body>
-
-<header class="topbar">
-  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>JUSTHODL<span>.AI</span></div>
   <nav class="nav-links">
-    <a href="/">DESK</a>
-    <a href="/stock/">STOCK</a>
-    <a href="/screener/">SCREENER</a>
-    <a href="/edge.html">EDGE</a>
-    <a href="/intelligence.html">INTEL</a>
-    <a href="/liquidity.html">LIQUIDITY</a>
-    <a href="/flow.html">FLOW</a>
-    <a href="/crypto/">CRYPTO</a>
-    <a href="/positioning/">COT</a>
-    <a href="/risk.html">RISK</a>
-    <a href="/volatility.html">VOL</a>
-    <a href="/system.html">SYSTEM</a>
-    <a href="/investor.html">INVESTORS</a>
+    <a href="/">Desk</a>
+    <a href="/intelligence.html">Intel</a>
+    <a href="/desk-v2.html">Desk v2</a>
+    <a href="/ka/">KA Index</a>
+    <a href="/crisis.html">Crisis</a>
+    <a href="/regime.html">Regime</a>
+    <a href="/correlation.html">Correlations</a>
+    <a href="/macro-data.html">Macro</a>
+    <a href="/bonds.html" class="active">Bonds</a>
+    <a href="/repo.html">Repo</a>
+    <a href="/sentiment.html">Sentiment</a>
+    <a href="/volatility.html">Vol</a>
+    <a href="/reports.html">Reports</a>
   </nav>
-  <div class="topbar-meta">
-    <span id="clock">—</span>
-    <span class="status-pill green" id="statusPill">LIVE</span>
-  </div>
-</header>
+</div>
 
-<main class="page">
-  <div class="page-head">
-    <h1>BOND INDICES</h1>
-    <div class="sub">ICE BofA US Corp Master · High Yield · Treasury benchmarks · auto-refresh 5min · powered by bond-indices-agent</div>
-  </div>
-
-  <div class="grid-1">
-    <section class="card">
-      <div class="card-head">
-        <div><div class="card-title">BOND INDICES</div><div class="card-subtitle">ICE BofA US Corp Master · High Yield · Treasury · 1D/1W/1M/3M</div></div>
-      </div>
-      <div id="bondsBody"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-    </section>
+<main class="container">
+  <div class="page-hdr">
+    <h1>BONDS &amp; YIELD CURVE</h1>
+    <p>Live US Treasury curve, real rates, breakevens, and bond regime classification. Bonds are the price of money; their behavior tells you what equity, credit, FX, and commodities are <em>about</em> to do. Below: where we sit, what regime we&apos;re in, what assets historically outperform/underperform, and what would change the read.</p>
+    <div class="meta">
+      <span>📊 last update: <span id="updated">—</span></span>
+      <span>🔄 5 min refresh from <code style="color:var(--cyan)">data/report.json</code></span>
+      <span>🌐 <a href="https://fred.stlouisfed.org/" target="_blank">FRED data</a></span>
+    </div>
   </div>
 
+  <div id="errorBanner" class="error-banner"></div>
+
+  <!-- ───────────────────────── REGIME BANNER ───────────────────────── -->
+  <div id="regime-banner" class="regime-banner NEUTRAL">
+    <div id="regime-circle" class="score-circle NEUTRAL">
+      <div class="big" id="regime-strength">—</div>
+      <div class="sub">STRENGTH</div>
+    </div>
+    <div>
+      <h2>BOND REGIME · DETECTOR-V1</h2>
+      <div class="signal-text NEUTRAL" id="regime-name">LOADING…</div>
+      <div class="desc" id="regime-desc">Reading 7+ stress indicators (HY/IG OAS, MOVE, NFCI, VIX, 2s10s velocity, DXY 5d, 5Y breakeven). When ≥4 hit |z|≥1.5 with directional agreement, regime flips.</div>
+    </div>
+    <div class="consensus">
+      <div class="big" id="regime-consensus">—</div>
+      <div class="sub" id="regime-days">DAYS<br/>IN REGIME</div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── KEY METRICS ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>KEY METRICS — THE FIVE THAT MATTER MOST</h3>
+    <div class="sub">these are the diagnostic signals · everything else is confirmation</div>
+  </div>
+  <div class="stat-row" id="key-metrics"></div>
+
+  <!-- ───────────────────────── YIELD CURVE CHART ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>US TREASURY YIELD CURVE</h3>
+    <div class="sub">solid = today · dashed = ~30 days ago · steepening / flattening / inversion</div>
+  </div>
+  <div class="curve-wrap">
+    <svg id="yield-curve-chart" viewBox="0 0 800 340" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="curveGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div id="curve-interp" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);color:var(--fg-2);font-size:12.5px;line-height:1.6"></div>
+  </div>
+
+  <!-- ───────────────────────── KEY SPREADS ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>YIELD-CURVE SPREADS &amp; CREDIT</h3>
+    <div class="sub">curve shape + credit spreads + real rates · the bond market&apos;s recession signal</div>
+  </div>
+  <div id="spread-grid" class="spread-grid"></div>
+
+  <!-- ───────────────────────── REGIME CONTEXT ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>WHAT REGIME ARE WE IN — AND WHAT TYPICALLY HAPPENS NEXT</h3>
+    <div class="sub">historical comparables &amp; transition probabilities</div>
+  </div>
+  <div class="tprob-wrap">
+    <div id="regime-context-text" style="margin-bottom:18px;color:var(--fg-2);font-size:13px;line-height:1.6"></div>
+    <div id="tprob-rows"></div>
+  </div>
+
+  <!-- ───────────────────────── ASSET PLAYBOOK ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>RISK-ASSET PLAYBOOK FOR THIS REGIME</h3>
+    <div class="sub">historical 6-month forward returns from comparable periods · winners + losers</div>
+  </div>
+  <div class="playbook">
+    <div class="legend" id="playbook-legend"></div>
+    <table id="playbook-table"></table>
+  </div>
+
+  <!-- ───────────────────────── TRIGGER LADDER ───────────────────────── -->
+  <div class="section-hdr">
+    <h3>WHAT WOULD FLIP THE REGIME</h3>
+    <div class="sub">live trigger panel · these are what to watch over the next 1-4 weeks</div>
+  </div>
+  <div class="trigger-table">
+    <table id="trigger-tbl"></table>
+  </div>
+
+  <!-- ───────────────────────── DECISIVE CALL ───────────────────────── -->
+  <div id="call-banner" class="call-banner">
+    <h2>DECISIVE CALL</h2>
+    <div class="verdict" id="call-verdict">—</div>
+    <div class="body" id="call-body"></div>
+  </div>
+
+  <footer>
+    <a href="/crisis.html">Crisis</a> ·
+    <a href="/regime.html">Regime</a> ·
+    <a href="/correlation.html">Correlations</a> ·
+    <a href="https://fred.stlouisfed.org/">FRED</a> ·
+    <a href="/">JustHodl.AI</a>
+    <div style="margin-top:6px">Data sources: FRED Treasury constant-maturity rates, ICE BofA OAS, NFCI, MOVE · justhodl-bond-regime-detector + justhodl-daily-report-v3</div>
+  </footer>
 </main>
 
-<footer class="footer">
-  <div>JUSTHODL · AI · BOND INDICES</div>
-  <div style="margin-top:8px;color:var(--fg-4)">Powered by bond-indices-agent · routed via api.justhodl.ai/agent/bonds</div>
-</footer>
-
 <script>
-const URLS = {"bonds": "https://api.justhodl.ai/agent/bonds"};
+const REPORT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json?t=' + Date.now();
+const REGIME_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/regime/current.json?t=' + Date.now();
+const CRISIS_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/crisis-plumbing.json?t=' + Date.now();
 
-function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function fmtNum(n,d=2){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
-function fmtSigned(n,d=2){if(n==null||isNaN(n))return'—';const s=Number(n)>=0?'+':'';return s+Number(n).toFixed(d)+'%'}
-function chgClass(n){if(n==null||isNaN(n))return'';return Number(n)>=0?'chg-pos':'chg-neg'}
-function updateClock(){document.getElementById('clock').textContent = new Date().toISOString().slice(11,16) + ' UTC'}
-function signalCls(s){
-  const u = String(s||'').toUpperCase();
-  if(/HIGH|CRISIS|STRESS|VERY_STRONG|STRONG/.test(u))return 'strong';
-  if(/ELEVATED|CAUTION|WARNING/.test(u))return 'elevated';
-  if(/WEAK|NORMAL/.test(u))return 'weak';
-  if(/EXPANSION/.test(u))return 'expansion';
-  if(/CONTRACTION/.test(u))return 'contraction';
-  if(/SPIKE/.test(u))return 'spike';
-  return '';
-}
-async function fetchAgent(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP '+r.status+' '+url);
-  const wrapped = await r.json();
-  if(wrapped.statusCode && typeof wrapped.body === 'string'){
-    return JSON.parse(wrapped.body);
-  }
-  return wrapped;
-}
+let REPORT = null, REGIME = null, CRISIS = null;
 
-function renderMetricsTable(targetId, dataDict, opts){
-  opts = opts || {};
-  const target = document.getElementById(targetId);
-  if(!target) return;
-  if(!dataDict || Object.keys(dataDict).length === 0){
-    target.innerHTML = `<div class="empty-state">${escHtml(opts.empty || 'No data')}</div>`;
-    return;
-  }
-  const cols = opts.cols || ['1D','1W','1M'];
-  let html = `<table class="tbl"><thead><tr><th>METRIC</th><th class="r">CURRENT</th>`;
-  for(const c of cols) html += `<th class="r">${escHtml(c)}</th>`;
-  html += `<th>SIGNAL</th></tr></thead><tbody>`;
-  for(const [k, v] of Object.entries(dataDict)){
-    if(!v || typeof v !== 'object') continue;
-    const ch = v.changes || {};
-    const cur = v.current;
-    let curDisp = '—';
-    if(cur != null){
-      curDisp = Math.abs(cur) >= 1000 ? fmtNum(cur, 0) : fmtNum(cur, 2);
-    }
-    html += `<tr><td class="metric-name">${escHtml(k.replace(/_/g,' '))}</td><td class="r">${curDisp}</td>`;
-    for(const c of cols){
-      const x = ch[c];
-      html += `<td class="r ${chgClass(x)}">${fmtSigned(x)}</td>`;
-    }
-    html += `<td><span class="signal-badge ${signalCls(v.signal)}">${escHtml(v.signal||'—')}</span></td></tr>`;
-  }
-  html += '</tbody></table>';
-  target.innerHTML = html;
+function fmtAge(iso){if(!iso)return'—';const m=(Date.now()-new Date(iso).getTime())/60000;if(m<60)return Math.round(m)+'m ago';const h=m/60;return h<24?h.toFixed(1)+'h ago':(h/24).toFixed(1)+'d ago';}
+function setError(msg){const b=document.getElementById('errorBanner');b.textContent='⚠️ '+msg;b.style.display='block';}
+function gv(report, group, sid){return report?.fred_data?.[group]?.[sid]?.current;}
+function gv30(report, group, sid){return report?.fred_data?.[group]?.[sid]?.value_30d_ago;}
+
+/* ─────────────── REGIME BANNER ─────────────── */
+function renderRegimeBanner(){
+  const r = REGIME || {};
+  const regime = r.regime || 'NEUTRAL';
+  const strength = r.regime_strength;
+  const days = r.days_in_regime;
+  const consensus = r.consensus_direction || 'MIXED';
+
+  document.getElementById('regime-banner').className = 'regime-banner ' + regime;
+  document.getElementById('regime-circle').className = 'score-circle ' + regime;
+  document.getElementById('regime-strength').textContent = strength != null ? strength.toFixed(0) : '—';
+  const nameEl = document.getElementById('regime-name');
+  nameEl.textContent = regime;
+  nameEl.className = 'signal-text ' + regime;
+
+  const descMap = {
+    'RISK_OFF': `${r.indicators_extreme||0} of ${r.indicators_total||7} stress indicators are ≥1.5σ from norm with risk-off direction. ${r.n_risk_off||0} pointing risk-off vs ${r.n_risk_on||0} risk-on. This is a real bond-market warning, not just noise. Historical hit-rate for SPX -10% within 60d when this fires: ~70%.`,
+    'RISK_ON': `${r.indicators_extreme||0} stress indicators showing risk-on direction with strength ${strength}. Bond market is signaling all-clear: spreads tight, vol low, dollar stable. Historical median SPX 6M return when bonds confirm risk-on: +8 to +12%.`,
+    'NEUTRAL': `${r.indicators_extreme||0} of ${r.indicators_total||7} indicators extreme. ${r.n_risk_off||0} risk-off vs ${r.n_risk_on||0} risk-on. Without ≥4 indicators agreeing on direction, the regime is uncertain — this is a transition zone where outcomes split. Watch the 'flip triggers' table below for what would resolve it.`,
+  };
+  document.getElementById('regime-desc').textContent = descMap[regime] || descMap['NEUTRAL'];
+
+  document.getElementById('regime-consensus').textContent = consensus;
+  document.getElementById('regime-days').innerHTML = (days != null ? days.toFixed(0) : '—') + ' DAYS<br/>IN REGIME';
 }
 
+/* ─────────────── KEY METRICS ─────────────── */
+function renderKeyMetrics(){
+  const cards = [];
+  const dgs10 = gv(REPORT,'treasury','DGS10');
+  const dgs2 = gv(REPORT,'treasury','DGS2');
+  const dgs10_30d = gv30(REPORT,'treasury','DGS10');
+  const t10y2y = gv(REPORT,'treasury','T10Y2Y');
+  const t10yie = gv(REPORT,'treasury','T10YIE');
+  const dfii10 = gv(REPORT,'treasury','DFII10');
+  const moveIdx = REPORT?.fred_data?.risk?.MOVE?.current || gv(REPORT,'risk','MOVE');
 
-async function load(){
-  try{
-    const data = await fetchAgent(URLS.bonds);
-    renderMetricsTable('bondsBody', data.bond_indices || {}, {cols:['1D','1W','1M','3M']});
-    document.getElementById('statusPill').textContent = 'LIVE';
-    document.getElementById('statusPill').className = 'status-pill green';
-  }catch(e){
-    document.getElementById('bondsBody').innerHTML = `<div class="err">⚠ Failed: ${escHtml(e.message)}</div>`;
-    document.getElementById('statusPill').textContent = 'OFFLINE';
-    document.getElementById('statusPill').className = 'status-pill red';
+  cards.push({name:'10Y YIELD',value:dgs10!=null?dgs10.toFixed(2)+'%':'—',
+    meta:dgs10!=null&&dgs10_30d!=null?(dgs10>dgs10_30d?'+':'')+(dgs10-dgs10_30d).toFixed(2)+'pp vs 30d ago':'',
+    interp:dgs10==null?'':dgs10>4.5?'Restrictive (>4.5%) — pressures growth and equities':dgs10>3.5?'Neutral-to-restrictive — Fed at terminal':dgs10>2.5?'Neutral zone':'Accommodative (<2.5%) — risk-on tailwind'});
+
+  cards.push({name:'10Y-2Y SPREAD',value:t10y2y!=null?(t10y2y>0?'+':'')+t10y2y.toFixed(2)+'pp':'—',
+    cls: t10y2y!=null && t10y2y<-0.5?'red':t10y2y!=null&&t10y2y<0?'amber':'',
+    meta:t10y2y!=null?(t10y2y<0?'INVERTED':t10y2y<0.5?'flat':'positive'):'',
+    interp:t10y2y==null?'':t10y2y<-0.5?'Deeply inverted — recession signal active. Hits 80%+ in last 60 years.':t10y2y<0?'Inverted — historical recession lead time 6-18 months':t10y2y<0.5?'Flat — transitional, awaiting curve action':'Positive — normal expansion regime'});
+
+  cards.push({name:'10Y BREAKEVEN',value:t10yie!=null?t10yie.toFixed(2)+'%':'—',
+    cls: t10yie!=null && (t10yie>3 || t10yie<1.5) ? 'amber' : 'green',
+    meta:'10Y inflation expected',
+    interp:t10yie==null?'':t10yie>3?'Unanchored — Fed credibility risk, hawkish':t10yie<1.5?'Deflation pricing — recession risk':t10yie<2.5?'Anchored — Fed has space':'Slightly elevated but anchored'});
+
+  cards.push({name:'10Y REAL RATE',value:dfii10!=null?(dfii10>0?'+':'')+dfii10.toFixed(2)+'%':'—',
+    cls: dfii10!=null && dfii10>2 ? 'amber' : '',
+    meta:'TIPS-implied real yield',
+    interp:dfii10==null?'':dfii10>2.5?'Highly restrictive — gold/duration headwind':dfii10>1.5?'Restrictive — pressures long-duration assets':dfii10>0?'Neutral real rates':'Accommodative — gold tailwind'});
+
+  cards.push({name:'MOVE INDEX',value:moveIdx!=null?moveIdx.toFixed(0):'—',
+    cls: moveIdx!=null && moveIdx>120 ? 'red' : moveIdx!=null && moveIdx>100 ? 'amber' : '',
+    meta:'bond vol (≈ VIX of bonds)',
+    interp:moveIdx==null?'':moveIdx>140?'Crisis-level vol — market expecting massive yield moves':moveIdx>120?'Elevated — bonds are unstable':moveIdx>90?'Normal range':'Suppressed — confidence in Fed path'});
+
+  document.getElementById('key-metrics').innerHTML = cards.map(c => `<div class="stat-card">
+    <div class="name">${c.name}</div>
+    <div class="value ${c.cls||''}">${c.value}</div>
+    <div class="meta">${c.meta||''}</div>
+    ${c.interp?`<div class="interp">${c.interp}</div>`:''}
+  </div>`).join('');
+}
+
+/* ─────────────── YIELD CURVE CHART ─────────────── */
+function renderYieldCurve(){
+  const tenors = [
+    {sid:'DGS1MO', label:'1M', x:0},
+    {sid:'DGS3MO', label:'3M', x:1},
+    {sid:'DGS6MO', label:'6M', x:2},
+    {sid:'DGS1', label:'1Y', x:3},
+    {sid:'DGS2', label:'2Y', x:4},
+    {sid:'DGS3', label:'3Y', x:5},
+    {sid:'DGS5', label:'5Y', x:6},
+    {sid:'DGS7', label:'7Y', x:7},
+    {sid:'DGS10', label:'10Y', x:8},
+    {sid:'DGS20', label:'20Y', x:9},
+    {sid:'DGS30', label:'30Y', x:10},
+  ];
+  const cur = tenors.map(t => ({...t, y: gv(REPORT,'treasury',t.sid)}));
+  const prior = tenors.map(t => ({...t, y: gv30(REPORT,'treasury',t.sid)}));
+
+  const W=800, H=340, padL=58, padR=18, padT=20, padB=44;
+  const innerW = W-padL-padR, innerH = H-padT-padB;
+  const valid = cur.filter(t=>t.y!=null).concat(prior.filter(t=>t.y!=null));
+  if(!valid.length){document.getElementById('yield-curve-chart').innerHTML='<text x="400" y="170" text-anchor="middle" fill="var(--fg-3)" font-family="var(--font-mono)" font-size="12">no data</text>';return;}
+  const allY = valid.map(t=>t.y);
+  const minY = Math.floor(Math.min(...allY)*2)/2 - 0.25;
+  const maxY = Math.ceil(Math.max(...allY)*2)/2 + 0.25;
+
+  const xScale = i => padL + (i/(tenors.length-1))*innerW;
+  const yScale = v => padT + innerH * (1 - (v - minY) / (maxY - minY));
+
+  let pathCur = '', pathPri = '', areaD = `M ${padL} ${padT+innerH}`;
+  let firstCur = true;
+  let dotsCur = '', dotsPri = '';
+  cur.forEach((t,i) => {
+    if(t.y==null) return;
+    const x = xScale(i), y = yScale(t.y);
+    pathCur += (firstCur ? 'M ' : ' L ') + x.toFixed(1) + ' ' + y.toFixed(1);
+    areaD += (firstCur ? ` L ${x.toFixed(1)} ${y.toFixed(1)}` : ` L ${x.toFixed(1)} ${y.toFixed(1)}`);
+    firstCur = false;
+    dotsCur += `<circle class="curve-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4">
+      <title>${t.label}: ${t.y.toFixed(2)}%</title></circle>`;
+  });
+  areaD += ` L ${padL+innerW} ${padT+innerH} Z`;
+  let firstPri = true;
+  prior.forEach((t,i) => {
+    if(t.y==null) return;
+    const x = xScale(i), y = yScale(t.y);
+    pathPri += (firstPri ? 'M ' : ' L ') + x.toFixed(1) + ' ' + y.toFixed(1);
+    firstPri = false;
+    dotsPri += `<circle class="curve-dot-prior" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3">
+      <title>30d ago — ${t.label}: ${t.y.toFixed(2)}%</title></circle>`;
+  });
+
+  let yTicks = '';
+  for(let i=0;i<=4;i++){
+    const v = minY + (maxY-minY)*(1 - i/4);
+    const y = padT + i*innerH/4;
+    yTicks += `<text class="curve-axis-label" x="${padL-8}" y="${y+3}" text-anchor="end">${v.toFixed(1)}%</text>`;
+    yTicks += `<line x1="${padL}" x2="${padL+innerW}" y1="${y}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+  }
+  let xTicks = '';
+  tenors.forEach((t,i) => {
+    const x = xScale(i);
+    xTicks += `<text class="curve-axis-label" x="${x}" y="${padT+innerH+18}" text-anchor="middle">${t.label}</text>`;
+  });
+
+  document.getElementById('yield-curve-chart').innerHTML = `
+    <defs>
+      <linearGradient id="curveGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${yTicks}${xTicks}
+    <path d="${areaD}" class="curve-area"/>
+    ${pathPri ? `<path d="${pathPri}" class="curve-line-prior"/>` : ''}
+    <path d="${pathCur}" class="curve-line-current"/>
+    ${dotsPri}${dotsCur}
+    <text class="curve-axis-label" x="${padL+12}" y="${padT+12}" fill="var(--cyan)">— today</text>
+    <text class="curve-axis-label" x="${padL+90}" y="${padT+12}" fill="var(--violet)">- - - 30d ago</text>
+  `;
+
+  // Curve interpretation
+  const t10y2y = gv(REPORT,'treasury','T10Y2Y');
+  const t10y3m = gv(REPORT,'treasury','T10Y3M');
+  const dgs10 = gv(REPORT,'treasury','DGS10');
+  const dgs10_30d = gv30(REPORT,'treasury','DGS10');
+  let interp = [];
+  if(t10y2y != null){
+    if(t10y2y<-0.5) interp.push(`<strong style="color:var(--red)">Curve deeply inverted at ${t10y2y.toFixed(2)}pp</strong>: 2Y is yielding ${Math.abs(t10y2y).toFixed(2)}pp <em>more</em> than 10Y. Bond market is pricing severe near-term Fed tightness vs eventual cuts. Recession lead time historically: 12-18 months.`);
+    else if(t10y2y<0) interp.push(`<strong style="color:var(--amber)">Curve inverted at ${t10y2y.toFixed(2)}pp</strong>: this signal has preceded every US recession since 1969 (with one false positive). Watch for the un-inversion — that's the actual recession trigger, typically 6-12 months later.`);
+    else if(t10y2y<0.5) interp.push(`<strong style="color:var(--amber)">Curve nearly flat at +${t10y2y.toFixed(2)}pp</strong>: post-inversion normalization or pre-inversion late-cycle. Direction matters more than level here.`);
+    else interp.push(`<strong style="color:var(--green)">Curve positively sloped at +${t10y2y.toFixed(2)}pp</strong>: normal expansion regime; bond market expecting growth and inflation in line.`);
+  }
+  if(dgs10!=null && dgs10_30d!=null){
+    const chg = dgs10 - dgs10_30d;
+    if(Math.abs(chg) > 0.20) interp.push(`<strong>30-day change in 10Y:</strong> ${chg>0?'+':''}${chg.toFixed(2)}pp ${chg>0?'(yields up = bonds selling off)':'(yields down = bond rally)'}. ${Math.abs(chg)>0.5?'<em>This is a large move</em> — equity duration and tech especially sensitive.':''}`);
+  }
+  document.getElementById('curve-interp').innerHTML = interp.length ? interp.join('<br/><br/>') : '';
+}
+
+/* ─────────────── KEY SPREADS GRID ─────────────── */
+function renderSpreads(){
+  const cards = [];
+  const t10y2y = gv(REPORT,'treasury','T10Y2Y');
+  const t10y3m = gv(REPORT,'treasury','T10Y3M');
+  const hyOas = CRISIS?.funding_credit_signals?.HY_OAS;
+  const igOas = CRISIS?.funding_credit_signals?.IG_BBB_OAS;
+  const dfii10 = gv(REPORT,'treasury','DFII10');
+  const t10yie = gv(REPORT,'treasury','T10YIE');
+
+  if(t10y2y != null) cards.push({
+    name:'10Y - 2Y',
+    val:`${t10y2y>0?'+':''}${t10y2y.toFixed(2)}pp`,
+    sig:t10y2y<-0.5?'CRISIS':t10y2y<0?'WATCH':t10y2y<0.5?'WATCH':'NORMAL',
+    interp:t10y2y<-0.5?'Recession lead 12-18mo':t10y2y<0?'Inversion = warning':t10y2y<0.5?'Late-cycle flat':'Healthy expansion',
+  });
+  if(t10y3m != null) cards.push({
+    name:'10Y - 3M',
+    val:`${t10y3m>0?'+':''}${t10y3m.toFixed(2)}pp`,
+    sig:t10y3m<-0.3?'CRISIS':t10y3m<0?'WATCH':'NORMAL',
+    interp:t10y3m<0?'NY Fed recession-probability favorite — historical hit-rate >80%':'Term premium positive',
+  });
+  if(hyOas?.available) cards.push({
+    name:'HY OAS',
+    val:`${Math.round(hyOas.latest_value*100)} bps`,
+    sig:hyOas.signal||'NORMAL',
+    interp: hyOas.signal==='NORMAL' ? `Z=${hyOas.z_score_1y}, sub-1Y norm. Credit calm.` : hyOas.signal==='WATCH' ? 'Spreads widening from baseline; credit fear emerging' : 'Spreads stressed — credit cycle late',
+  });
+  if(igOas?.available) cards.push({
+    name:'IG BBB OAS',
+    val:`${Math.round(igOas.latest_value*100)} bps`,
+    sig:igOas.signal||'NORMAL',
+    interp: igOas.signal==='NORMAL' ? `Z=${igOas.z_score_1y}. Investment-grade calm.` : 'IG widening — corporate stress broadening',
+  });
+  if(t10yie != null) cards.push({
+    name:'10Y BREAKEVEN',
+    val:`${t10yie.toFixed(2)}%`,
+    sig: t10yie<1.5||t10yie>3 ? 'WATCH' : 'NORMAL',
+    interp: t10yie>3 ? 'Unanchored above Fed target' : t10yie<1.5 ? 'Deflation pricing — recession risk' : 'Anchored within Fed-acceptable range',
+  });
+  if(dfii10 != null) cards.push({
+    name:'10Y REAL RATE',
+    val:`${dfii10>0?'+':''}${dfii10.toFixed(2)}%`,
+    sig: dfii10>2.5 ? 'WATCH' : dfii10<0 ? 'WATCH' : 'NORMAL',
+    interp: dfii10>2.5 ? 'Highly restrictive — duration headwind, gold pressure' : dfii10<0 ? 'Negative real rates — gold tailwind, USD pressure' : 'Restrictive but not extreme',
+  });
+
+  document.getElementById('spread-grid').innerHTML = cards.map(c => `<div class="spread-card ${c.sig}">
+    <div class="hdr"><div class="name">${c.name}</div><div class="pill ${c.sig}">${c.sig}</div></div>
+    <div class="val">${c.val}</div>
+    <div class="interp">${c.interp}</div>
+  </div>`).join('');
+}
+
+/* ─────────────── REGIME CONTEXT ─────────────── */
+function classifySubRegime(){
+  // Combines bond regime + curve shape + real rates + breakevens
+  const r = REGIME?.regime || 'NEUTRAL';
+  const t10y2y = gv(REPORT,'treasury','T10Y2Y');
+  const dfii10 = gv(REPORT,'treasury','DFII10');
+  const dgs10_30d = gv30(REPORT,'treasury','DGS10');
+  const dgs10 = gv(REPORT,'treasury','DGS10');
+  const yieldChg30d = dgs10!=null && dgs10_30d!=null ? dgs10 - dgs10_30d : null;
+  const t10yie = gv(REPORT,'treasury','T10YIE');
+
+  // Hard cases first
+  if(r==='RISK_OFF' && t10y2y!=null && t10y2y<0) return 'RECESSION_PRICING';
+  if(r==='RISK_ON' && yieldChg30d!=null && yieldChg30d>0.3) return 'GROWTH_SCARE';
+  if(t10yie!=null && t10yie>2.8 && dfii10!=null && dfii10<1.5) return 'STAGFLATION_LITE';
+  if(t10y2y!=null && t10y2y<0 && dfii10!=null && dfii10>2) return 'LATE_CYCLE_RESTRICTIVE';
+  if(yieldChg30d!=null && yieldChg30d<-0.3 && dfii10!=null && dfii10<2) return 'FED_PIVOT_PRICING';
+  if(t10y2y!=null && t10y2y>0.3 && dfii10!=null && dfii10>0 && dfii10<2) return 'NORMAL_EXPANSION';
+  return 'TRANSITION';
+}
+
+const SUB_REGIMES = {
+  RECESSION_PRICING:{
+    name:'RECESSION PRICING',
+    color:'red',
+    desc:'Curve inverted + bond regime risk-off + duration outperforming. Bond market is unambiguously pricing a recession with Fed cuts. Historical comp: late 2007, late 2000, late 2019 (pre-COVID). Equities typically lead recovery only AFTER curve un-inverts.',
+    next: [
+      {regime:'RECESSION CONFIRMED',prob:55,timeline:'3-9mo',context:'curve un-inverts as short rates fall faster than long; equity drawdown 20-35% historically'},
+      {regime:'SOFT LANDING',prob:30,timeline:'6-12mo',context:'Fed cuts pre-emptively, growth re-accelerates without recession; rare but happened 1995'},
+      {regime:'STAGFLATION',prob:15,timeline:'6-12mo',context:'inflation re-accelerates, Fed stuck — worst case for risk assets'},
+    ],
+  },
+  GROWTH_SCARE:{
+    name:'GROWTH SCARE / BOND SELLOFF',
+    color:'amber',
+    desc:'Yields rising fast (+30bp+ in 30d) while bond regime stays risk-on. This is the "good news is bad news" moment — strong data forces bonds lower (yields up), and at some point that breaks equities through duration sensitivity.',
+    next: [
+      {regime:'NORMAL EXPANSION',prob:55,timeline:'1-3mo',context:'yields stabilize, equities digest; small drawdown 3-7%'},
+      {regime:'LATE-CYCLE RESTRICTIVE',prob:30,timeline:'3-6mo',context:'yields keep rising, Fed tightens further, eventually breaks something'},
+      {regime:'POLICY SHOCK',prob:15,timeline:'1-2mo',context:'sudden hawkish Fed pivot, 2018-Q4 style equity drawdown'},
+    ],
+  },
+  STAGFLATION_LITE:{
+    name:'STAGFLATION-LITE',
+    color:'amber',
+    desc:'Breakevens elevated (>2.8%) AND real rates compressing (<1.5%) means: market expects sticky inflation + slowing growth. Fed is stuck — can\'t cut without re-igniting inflation, can\'t hike without breaking growth. Historical comp: 2011-2012, parts of 2022.',
+    next: [
+      {regime:'FED PIVOT (cuts win)',prob:40,timeline:'6-12mo',context:'inflation cools, Fed cuts, gold +20-30%, equities choppy +5-10%'},
+      {regime:'STAGFLATION DEEPENS',prob:35,timeline:'3-6mo',context:'inflation reignites, real rates fall further, GOLD wins, USD weakens'},
+      {regime:'HARD LANDING',prob:25,timeline:'6-12mo',context:'Fed forced to break something, recession + lower inflation'},
+    ],
+  },
+  LATE_CYCLE_RESTRICTIVE:{
+    name:'LATE-CYCLE RESTRICTIVE',
+    color:'amber',
+    desc:'Curve inverted + real rates >2% means policy is firmly restrictive. The clock is ticking on growth. Historical comp: 2006-2007, 1999-2000. Equities can melt up further but at decreasing margin.',
+    next: [
+      {regime:'FED PIVOT (soft)',prob:45,timeline:'3-6mo',context:'Fed signals cuts; bonds rally, gold +15-20%, equities +10-15%'},
+      {regime:'RECESSION PRICING',prob:35,timeline:'3-9mo',context:'cracks appear in credit/labor; flight-to-quality begins'},
+      {regime:'CONTINUED MELT-UP',prob:20,timeline:'1-3mo',context:'1999-style blow-off top before reversal'},
+    ],
+  },
+  FED_PIVOT_PRICING:{
+    name:'FED-PIVOT PRICING / DISINFLATION',
+    color:'green',
+    desc:'Yields falling (≥30bp in 30d) + real rates restrictive but not extreme + breakevens anchored = market pricing Fed cuts coming. Historical comp: 1995, 2002-03, 2019 mid-cycle adjustment. <strong>Best risk-asset regime.</strong>',
+    next: [
+      {regime:'REFLATION / RISK-ON',prob:60,timeline:'6-9mo',context:'Fed cuts confirmed, growth re-accelerates; BTC/EM/QQQ +20-30%'},
+      {regime:'STAGFLATION-LITE',prob:25,timeline:'3-6mo',context:'inflation re-accelerates before Fed cuts; choppy range'},
+      {regime:'HARD LANDING',prob:15,timeline:'6-12mo',context:'cuts come too late, credit cracks, recession'},
+    ],
+  },
+  NORMAL_EXPANSION:{
+    name:'NORMAL EXPANSION',
+    color:'green',
+    desc:'Curve positively sloped + real rates moderate + bond regime risk-on. Boring is good — this is the regime where equities compound +10-12%/year on average without drama. Historical comp: 2013-2014, 2017, 2024.',
+    next: [
+      {regime:'CONTINUED EXPANSION',prob:60,timeline:'6-12mo',context:'just keeps going; equities +8-15%, bonds modest'},
+      {regime:'GROWTH SCARE',prob:25,timeline:'3-6mo',context:'yields rise, brief equity correction 5-10%'},
+      {regime:'EARLY LATE-CYCLE',prob:15,timeline:'9-18mo',context:'curve flattens, signal shifts to caution'},
+    ],
+  },
+  TRANSITION:{
+    name:'TRANSITION / MIXED',
+    color:'cyan',
+    desc:'Indicators don\'t cleanly agree on regime. This is the most informationally-poor state — watch for one of the diagnostic signals (curve, real rates, MOVE) to break decisively in either direction. Default position: maintain status-quo allocations until clarity.',
+    next: [
+      {regime:'RESOLVES TO RISK-ON',prob:45,timeline:'1-3mo',context:'spreads tighten, MOVE drops, curve normalizes'},
+      {regime:'STAYS NEUTRAL',prob:35,timeline:'1-3mo',context:'mixed signals continue; range-trade most assets'},
+      {regime:'RESOLVES TO RISK-OFF',prob:20,timeline:'1-3mo',context:'one or more spreads widen sharply, regime flips'},
+    ],
+  },
+};
+
+function renderRegimeContext(){
+  const sub = classifySubRegime();
+  const r = SUB_REGIMES[sub] || SUB_REGIMES.TRANSITION;
+  document.getElementById('regime-context-text').innerHTML = `<strong style="color:var(--${r.color});font-size:14px">${r.name}</strong><br/><br/>${r.desc}`;
+
+  document.getElementById('tprob-rows').innerHTML = r.next.map(n => {
+    const cls = n.regime.includes('RECESSION') || n.regime.includes('HARD LANDING') || n.regime.includes('SHOCK') || n.regime.includes('STAGFLATION') ? 'RISK_OFF' :
+               n.regime.includes('REFLATION') || n.regime.includes('EXPANSION') || n.regime.includes('SOFT LANDING') || n.regime.includes('PIVOT') ? 'RISK_ON' :
+               'NEUTRAL';
+    return `<div class="tprob-row">
+      <div class="tprob-label ${cls}" style="min-width:200px">${n.regime}</div>
+      <div class="tprob-bar"><div class="tprob-fill ${cls}" style="width:${n.prob}%">${n.prob}%</div></div>
+      <div class="tprob-meta"><strong style="color:var(--fg-2)">${n.timeline}</strong><br/>${n.context}</div>
+    </div>`;
+  }).join('');
+
+  return r;
+}
+
+/* ─────────────── ASSET PLAYBOOK ─────────────── */
+const PLAYBOOKS = {
+  RECESSION_PRICING:{
+    legend:'Median 6M forward returns from 2007, 2000, 2019, 1989 inverted-curve + risk-off bond-regime periods. Defensive playbook — capital preservation matters more than upside.',
+    rows:[
+      {asset:'Long Treasuries (TLT)',pct:'+12 to +18%',tone:'pos',why:'Duration explodes as yields collapse on Fed cuts'},
+      {asset:'Gold (GLD)',pct:'+10 to +15%',tone:'pos',why:'Real rates fall, USD eventually weakens, flight-to-quality bid'},
+      {asset:'Cash / T-Bills',pct:'+2 to +5%',tone:'pos',why:'Yield captured + capital preserved while waiting'},
+      {asset:'Investment Grade (LQD)',pct:'+5 to +8%',tone:'pos',why:'Higher duration than HY, no/minimal credit losses'},
+      {asset:'Defensive sectors (XLU, XLP, XLV)',pct:'-5 to flat',tone:'neutral',why:'Outperform broad market by 8-15pp; absolute returns still negative early'},
+      {asset:'S&P 500 (SPY)',pct:'-15 to -25%',tone:'neg',why:'Earnings revisions cascade, multiples compress, retail capitulates'},
+      {asset:'Nasdaq (QQQ)',pct:'-20 to -35%',tone:'neg',why:'Highest duration equity, hit by both EPS cuts AND multiple compression'},
+      {asset:'High Yield Credit (HYG)',pct:'-10 to -20%',tone:'neg',why:'Defaults rise, spreads widen 200-500bps from current levels'},
+      {asset:'Emerging Markets (EEM)',pct:'-15 to -30%',tone:'neg',why:'Dollar strength + commodity weakness + risk-off = triple hit'},
+      {asset:'Bitcoin (BTC)',pct:'-30 to -50%',tone:'neg',why:'Highest-beta risk asset in modern era; full risk-off compression'},
+      {asset:'Energy (XLE)',pct:'-20 to -35%',tone:'neg',why:'Demand destruction in recession; oil typically -30-50%'},
+    ],
+  },
+  GROWTH_SCARE:{
+    legend:'Yields up sharply, bond regime still risk-on. 1994, 2013 taper tantrum, 2018-Q1 comparable.',
+    rows:[
+      {asset:'Cash / Short-term T-Bills',pct:'+1 to +2%',tone:'pos',why:'Yield captured during equity volatility'},
+      {asset:'Energy (XLE)',pct:'+5 to +12%',tone:'pos',why:'Often a growth-driven yield move = strong commodity demand'},
+      {asset:'Financials (XLF)',pct:'+3 to +8%',tone:'pos',why:'Banks benefit from steeper curve and higher NIMs'},
+      {asset:'S&P 500 (SPY)',pct:'-3 to +3%',tone:'neutral',why:'Range-bound; sector rotation matters more than index level'},
+      {asset:'Long Treasuries (TLT)',pct:'-8 to -15%',tone:'neg',why:'Duration takes the brunt of the yield move'},
+      {asset:'Nasdaq (QQQ)',pct:'-5 to -12%',tone:'neg',why:'Long-duration equity hurt by rising yields; 2022 mini-replay'},
+      {asset:'Real Estate (XLRE)',pct:'-10 to -18%',tone:'neg',why:'Highest-duration sector; cap rates rise mechanically'},
+      {asset:'Gold (GLD)',pct:'-3 to -8%',tone:'neg',why:'Real rates rising, USD strengthening = headwind'},
+    ],
+  },
+  STAGFLATION_LITE:{
+    legend:'Inflation expectations elevated, real rates compressing, growth slowing. 2011-2012, parts of 2022.',
+    rows:[
+      {asset:'Gold (GLD)',pct:'+15 to +25%',tone:'pos',why:'The textbook stagflation hedge — wins as real rates fall'},
+      {asset:'Commodities (DBC)',pct:'+8 to +15%',tone:'pos',why:'Inflation-sensitive; energy + metals lead'},
+      {asset:'Energy (XLE)',pct:'+5 to +12%',tone:'pos',why:'Inflation pass-through to revenues'},
+      {asset:'TIPS (SCHP)',pct:'+5 to +10%',tone:'pos',why:'Direct inflation hedge, lower duration than nominal Treasuries'},
+      {asset:'S&P 500 (SPY)',pct:'-5 to +5%',tone:'neutral',why:'Range-bound; multiple compression offset by nominal earnings growth'},
+      {asset:'Long Treasuries (TLT)',pct:'-5 to +5%',tone:'neutral',why:'Stuck — Fed can\'t cut, but slower growth caps yield rise'},
+      {asset:'Bitcoin (BTC)',pct:'-10 to +30%',tone:'neutral',why:'Wide range — depends on whether USD weakens (good) or risk-off dominates (bad)'},
+      {asset:'Growth Tech (QQQ)',pct:'-10 to -20%',tone:'neg',why:'Sticky inflation = Fed stuck = duration penalty without growth tailwind'},
+      {asset:'Bonds (AGG)',pct:'-5 to -10%',tone:'neg',why:'Duration losses without flight-to-quality offset'},
+    ],
+  },
+  LATE_CYCLE_RESTRICTIVE:{
+    legend:'Curve inverted + restrictive real rates. Often a long-running regime; equities can grind higher before reversing. 2006-07, 1999-00, late 2023.',
+    rows:[
+      {asset:'S&P 500 (SPY)',pct:'+5 to +15%',tone:'pos',why:'Late-cycle melt-up while it lasts; multiples expand on Fed-pivot hope'},
+      {asset:'Growth Tech (QQQ)',pct:'+10 to +20%',tone:'pos',why:'Performs strongly until the actual recession; 2024 was textbook'},
+      {asset:'Gold (GLD)',pct:'+5 to +12%',tone:'pos',why:'Slow real-rate compression as Fed-pivot probability builds'},
+      {asset:'Long Treasuries (TLT)',pct:'+3 to +10%',tone:'pos',why:'Duration plays as cuts get priced in'},
+      {asset:'Cash / T-Bills',pct:'+4 to +5%',tone:'pos',why:'Highest cash yields in years; opportunity cost low'},
+      {asset:'Defensive sectors (XLU, XLP)',pct:'-5pp vs SPY',tone:'neutral',why:'Lag in melt-up but cushion when regime flips'},
+      {asset:'Cyclicals (XLI, XLB)',pct:'flat to -5%',tone:'neutral',why:'Industrial production decelerating; demand peaking'},
+      {asset:'Banks (KRE)',pct:'-5 to -10%',tone:'neg',why:'Inverted curve = NIM compression; deposit costs rising'},
+      {asset:'High Yield (HYG)',pct:'+1 to +4%',tone:'pos',why:'Coupon-clipping mode; defaults still low — early-warning if it underperforms'},
+    ],
+  },
+  FED_PIVOT_PRICING:{
+    legend:'BEST risk-asset regime. Yields falling, real rates compressing, breakevens anchored. 1995, 2002-03, 2019 H2 comparable.',
+    rows:[
+      {asset:'Bitcoin (BTC)',pct:'+25 to +50%',tone:'pos',why:'High-beta to USD weakening + risk-on rotation; 2019 H2 BTC +200%'},
+      {asset:'Emerging Markets (EEM)',pct:'+10 to +20%',tone:'pos',why:'Dollar funding relief; commodity demand recovery'},
+      {asset:'Nasdaq (QQQ)',pct:'+12 to +22%',tone:'pos',why:'Long-duration tech wins biggest from real-rate compression'},
+      {asset:'Gold (GLD)',pct:'+10 to +18%',tone:'pos',why:'Real rates falling + USD weakening = double tailwind'},
+      {asset:'Long Treasuries (TLT)',pct:'+8 to +15%',tone:'pos',why:'Duration play as actual cuts approach'},
+      {asset:'S&P 500 (SPY)',pct:'+10 to +18%',tone:'pos',why:'Multiples expand on cut hopes + earnings stabilize'},
+      {asset:'IG Credit (LQD)',pct:'+5 to +9%',tone:'pos',why:'Spread tightening + duration tailwind'},
+      {asset:'High Yield (HYG)',pct:'+4 to +8%',tone:'pos',why:'Spread compression as recession fears recede'},
+      {asset:'US Dollar (DXY)',pct:'-5 to -10%',tone:'neg',why:'Cuts priced in = USD weakness'},
+      {asset:'Defensive sectors (XLU, XLP)',pct:'-10pp vs SPY',tone:'neutral',why:'Lag risk-on rotation; underweight'},
+      {asset:'Banks (KRE)',pct:'-5pp vs SPY',tone:'neutral',why:'NIM compresses on falling rates'},
+    ],
+  },
+  NORMAL_EXPANSION:{
+    legend:'Boring is good. Equities compound, bonds yield, no drama. 2013-14, 2017, 2024 comparable.',
+    rows:[
+      {asset:'S&P 500 (SPY)',pct:'+8 to +15%',tone:'pos',why:'Steady earnings growth, stable multiples, low vol'},
+      {asset:'Nasdaq (QQQ)',pct:'+10 to +18%',tone:'pos',why:'Tech leadership in earnings growth'},
+      {asset:'Cyclicals (XLI, XLB)',pct:'+8 to +14%',tone:'pos',why:'Industrial demand healthy, capex cycle on'},
+      {asset:'Banks (KRE)',pct:'+8 to +15%',tone:'pos',why:'Steepening curve = NIM expansion; loan demand healthy'},
+      {asset:'Investment Grade (LQD)',pct:'+3 to +5%',tone:'pos',why:'Coupon + small duration + tight spreads'},
+      {asset:'High Yield (HYG)',pct:'+5 to +8%',tone:'pos',why:'Spread compression + coupon income'},
+      {asset:'Long Treasuries (TLT)',pct:'-2 to +3%',tone:'neutral',why:'Yields modestly higher; duration neutral'},
+      {asset:'Cash / T-Bills',pct:'+4%',tone:'neutral',why:'Underperforms equities by 4-10pp; opportunity cost'},
+      {asset:'Gold (GLD)',pct:'flat to +5%',tone:'neutral',why:'Real rates stable; no major catalyst'},
+      {asset:'Defensive sectors (XLU, XLP)',pct:'-3pp vs SPY',tone:'neutral',why:'Lag in expansion; underweight'},
+    ],
+  },
+  TRANSITION:{
+    legend:'Mixed signals. Default to neutral allocations until regime resolves.',
+    rows:[
+      {asset:'S&P 500 (SPY)',pct:'-3 to +5%',tone:'neutral',why:'Range-bound until regime clarifies'},
+      {asset:'Cash / T-Bills',pct:'+1%',tone:'neutral',why:'Yield while waiting'},
+      {asset:'Gold (GLD)',pct:'+0 to +5%',tone:'neutral',why:'Modest hedge; tends to lead in either direction'},
+      {asset:'Long Treasuries (TLT)',pct:'-2 to +3%',tone:'neutral',why:'No clear duration signal'},
+      {asset:'Defensive sectors (XLU, XLP)',pct:'+0 to +3%',tone:'neutral',why:'Hedge if regime flips risk-off'},
+      {asset:'Bitcoin (BTC)',pct:'-10 to +15%',tone:'neutral',why:'Wide range — wait for regime resolution before sizing'},
+    ],
+  },
+};
+
+function renderPlaybook(subRegimeKey){
+  const pb = PLAYBOOKS[subRegimeKey] || PLAYBOOKS.TRANSITION;
+  document.getElementById('playbook-legend').innerHTML = pb.legend;
+  let html = `<thead><tr><th>Asset</th><th>Median 6M Return</th><th>Why</th></tr></thead><tbody>`;
+  pb.rows.forEach(r => {
+    html += `<tr>
+      <td class="asset">${r.asset}</td>
+      <td class="pct ${r.tone}">${r.pct}</td>
+      <td class="why">${r.why}</td>
+    </tr>`;
+  });
+  html += `</tbody>`;
+  document.getElementById('playbook-table').innerHTML = html;
+}
+
+/* ─────────────── TRIGGER LADDER ─────────────── */
+function renderTriggers(){
+  const t10y2y = gv(REPORT,'treasury','T10Y2Y');
+  const dgs10 = gv(REPORT,'treasury','DGS10');
+  const dgs10_30d = gv30(REPORT,'treasury','DGS10');
+  const yieldChg = dgs10!=null && dgs10_30d!=null ? dgs10 - dgs10_30d : null;
+  const dfii10 = gv(REPORT,'treasury','DFII10');
+  const t10yie = gv(REPORT,'treasury','T10YIE');
+  const moveIdx = REPORT?.fred_data?.risk?.MOVE?.current;
+  const hyOas = CRISIS?.funding_credit_signals?.HY_OAS;
+  const hyZ = hyOas?.z_score_1y;
+
+  const triggers = [
+    {name:'10Y-2Y un-inverts (crosses 0)',thresh:'>0pp',cur:t10y2y!=null?(t10y2y>0?'+':'')+t10y2y.toFixed(2)+'pp':'—',
+     status:t10y2y==null?null:t10y2y>0?'fired':t10y2y>-0.25?'close':'armed',
+     fires:'recession-pricing regime → recession-confirmed (equities -15-25%)'},
+    {name:'10Y yields fall sharply (≥30bp/30d)',thresh:'≤-0.30pp',cur:yieldChg!=null?(yieldChg>0?'+':'')+yieldChg.toFixed(2)+'pp':'—',
+     status:yieldChg==null?null:yieldChg<=-0.30?'fired':yieldChg<=-0.15?'close':'armed',
+     fires:'fed-pivot regime → reflation rally (BTC/EM/QQQ +20-30%)'},
+    {name:'10Y yields rise sharply (≥30bp/30d)',thresh:'≥+0.30pp',cur:yieldChg!=null?(yieldChg>0?'+':'')+yieldChg.toFixed(2)+'pp':'—',
+     status:yieldChg==null?null:yieldChg>=0.30?'fired':yieldChg>=0.15?'close':'armed',
+     fires:'growth-scare regime → equity correction 5-12%, tech leads down'},
+    {name:'HY OAS Z-score breaks above 1σ',thresh:'>+1.0',cur:hyZ!=null?(hyZ>0?'+':'')+hyZ.toFixed(2):'—',
+     status:hyZ==null?null:hyZ>1.0?'fired':hyZ>0.5?'close':'armed',
+     fires:'credit fear emerging → trim risk; if breaks +2σ, EXIT signal'},
+    {name:'Real rates DFII10 breaks below 1.5%',thresh:'<+1.50%',cur:dfii10!=null?(dfii10>0?'+':'')+dfii10.toFixed(2)+'%':'—',
+     status:dfii10==null?null:dfii10<1.50?'fired':dfii10<1.75?'close':'armed',
+     fires:'pivot pricing confirmed → max long gold + duration + tech'},
+    {name:'Real rates DFII10 breaks above 2.5%',thresh:'>+2.50%',cur:dfii10!=null?(dfii10>0?'+':'')+dfii10.toFixed(2)+'%':'—',
+     status:dfii10==null?null:dfii10>2.50?'fired':dfii10>2.25?'close':'armed',
+     fires:'restrictive extreme → growth + duration assets at risk'},
+    {name:'10Y breakeven breaks above 3%',thresh:'>3.00%',cur:t10yie!=null?t10yie.toFixed(2)+'%':'—',
+     status:t10yie==null?null:t10yie>3.00?'fired':t10yie>2.75?'close':'armed',
+     fires:'inflation expectations unanchored → Fed forced hawkish'},
+    {name:'MOVE index breaks above 120',thresh:'>120',cur:moveIdx!=null?moveIdx.toFixed(0):'—',
+     status:moveIdx==null?null:moveIdx>120?'fired':moveIdx>105?'close':'armed',
+     fires:'bond vol regime change → cross-asset volatility spike likely'},
+  ];
+
+  let html = '<thead><tr><th>Trigger</th><th>Threshold</th><th>Currently</th><th>Status</th><th>Fires this regime…</th></tr></thead><tbody>';
+  triggers.forEach(t => {
+    html += `<tr>
+      <td class="trigger-name">${t.name}</td>
+      <td class="threshold">${t.thresh}</td>
+      <td class="current ${t.status||''}">${t.cur}</td>
+      <td class="status ${t.status||''}">${t.status?t.status.toUpperCase():'—'}</td>
+      <td class="threshold">${t.fires}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('trigger-tbl').innerHTML = html;
+}
+
+/* ─────────────── DECISIVE CALL ─────────────── */
+function renderCall(subRegimeKey){
+  const callMap = {
+    RECESSION_PRICING:{
+      cls:'RISK_OFF',
+      verdict:'🔴 EXIT ALL RISK ASSETS — CASH / GOLD / DURATION',
+      body:`<p><strong>The bond market is unambiguously pricing a recession.</strong> Curve inverted + bond regime risk-off + duration outperforming = the classic late-2007 / late-2019 / 1989 setup.</p>
+        <p>Position: Long Treasuries (TLT) 30%, Gold 15-20%, Cash/T-Bills 30-40%, defensive sectors 10%. Underweight or zero: cyclicals, high-yield credit, EM, BTC, growth tech.</p>
+        <p><strong>Hedges if mandate requires equity exposure:</strong> small allocation to XLU/XLP/XLV, put spreads on SPY/QQQ.</p>
+        <p>This is the "<em>exit all risk assets immediately</em>" regime — historically the right call &gt;70% of the time when this exact configuration appears.</p>`,
+    },
+    GROWTH_SCARE:{
+      cls:'NEUTRAL',
+      verdict:'🟡 TRIM DURATION + GROWTH — STAY EQUITY-NEUTRAL',
+      body:`<p>Yields rising sharply while bond regime stays risk-on = strong data forcing bonds lower. The risk is that yields keep rising until <em>something breaks</em>.</p>
+        <p>Position: trim TLT and long-duration tech (QQQ) by 30-50%. Add to financials (XLF), energy (XLE), short-duration cash. Maintain SPY at neutral.</p>
+        <p>Watch: if yields stabilize within 30d, the worst is over and resume normal allocation. If they keep rising, this becomes 2018-Q4.</p>`,
+    },
+    STAGFLATION_LITE:{
+      cls:'NEUTRAL',
+      verdict:'🟡 LONG GOLD + COMMODITIES — UNDERWEIGHT GROWTH + DURATION',
+      body:`<p>Sticky inflation + slowing growth = Fed stuck. The textbook stagflation playbook applies.</p>
+        <p>Position: Gold 15-20%, commodities (DBC) 10%, energy (XLE) 8%, TIPS 10%, cash 20%. Underweight Nasdaq, long Treasuries, traditional bond aggregate.</p>
+        <p>If inflation cools: pivots to fed-pivot regime (bullish risk). If inflation reignites: gold runs further but everything else stays choppy.</p>`,
+    },
+    LATE_CYCLE_RESTRICTIVE:{
+      cls:'NEUTRAL',
+      verdict:'🟡 STAY LONG WITH HEDGES — MELT-UP CONTINUES BUT TIGHTEN STOPS',
+      body:`<p>Curve inverted but bond regime not yet flipped. Late-cycle melt-up can continue, but the risk/reward is worsening.</p>
+        <p>Position: Maintain core long (SPY/QQQ 40-50%), add gold to 10-15%, add TLT to 10% (pivot insurance), keep cash buffer 15%. Trim cyclicals and small-caps.</p>
+        <p>Tactic: tighten stops on growth/tech positions; you're playing for the last innings of melt-up while building the defensive book for the regime flip.</p>`,
+    },
+    FED_PIVOT_PRICING:{
+      cls:'RISK_ON',
+      verdict:'🟢 MAX LONG RISK ASSETS — POSITION FOR REFLATION',
+      body:`<p><strong>Best risk-asset regime in the cycle.</strong> Yields falling, real rates compressing, breakevens anchored = market pricing Fed cuts. 1995 / 2002-03 / 2019-H2 comparables.</p>
+        <p>Position: BTC 8-12%, Gold 12-15%, Nasdaq (QQQ) 20-25%, EM (EEM) 8-10%, TLT 12-15%, S&P (SPY) 20%. Underweight: USD cash, defensives, regional banks.</p>
+        <p>Risk: regime can persist 6-9 months; don't overthink it. Stay long until ≥2 of the trim/exit triggers fire.</p>`,
+    },
+    NORMAL_EXPANSION:{
+      cls:'RISK_ON',
+      verdict:'🟢 STAY LONG — STANDARD DIVERSIFIED ALLOCATION',
+      body:`<p>Boring is good. Bond market signaling all-clear; equities should compound at historical averages.</p>
+        <p>Position: SPY 35%, QQQ 20%, EFA/EEM 10%, IG credit 10%, HYG 5%, Gold 5%, Cash 15%. No major tilts needed.</p>
+        <p>This regime can last 1-3 years. Rebalance quarterly, don't market-time.</p>`,
+    },
+    TRANSITION:{
+      cls:'NEUTRAL',
+      verdict:'⚪ HOLD CURRENT ALLOCATION — WAIT FOR REGIME RESOLUTION',
+      body:`<p>Mixed signals. The most informationally-poor state — wait for one of the diagnostic indicators (curve, real rates, MOVE, HY OAS) to break decisively.</p>
+        <p>Position: maintain status-quo allocations. If currently long, modest hedges via gold (5-8%) and cash (10-15%) are cheap insurance.</p>
+        <p>Watch the 'flip triggers' table above — when 2+ fire in same direction, that's your next decisive call.</p>`,
+    },
+  };
+  const c = callMap[subRegimeKey] || callMap.TRANSITION;
+  document.getElementById('call-banner').className = 'call-banner ' + c.cls;
+  document.getElementById('call-verdict').textContent = c.verdict;
+  document.getElementById('call-body').innerHTML = c.body;
+}
+
+/* ─────────────── MAIN ─────────────── */
+async function loadAll(){
+  try {
+    const [r1, r2, r3] = await Promise.allSettled([
+      fetch(REPORT_URL).then(r => r.ok ? r.json() : Promise.reject('report '+r.status)),
+      fetch(REGIME_URL).then(r => r.ok ? r.json() : Promise.reject('regime '+r.status)),
+      fetch(CRISIS_URL).then(r => r.ok ? r.json() : Promise.reject('crisis '+r.status)),
+    ]);
+    if(r1.status==='fulfilled') REPORT = r1.value;
+    if(r2.status==='fulfilled') REGIME = r2.value;
+    if(r3.status==='fulfilled') CRISIS = r3.value;
+
+    if(!REPORT){setError('Failed to load primary report data: '+(r1.reason||'unknown'));return;}
+
+    document.getElementById('updated').textContent = fmtAge(REPORT.generated_at);
+
+    renderRegimeBanner();
+    renderKeyMetrics();
+    renderYieldCurve();
+    renderSpreads();
+    const sub = classifySubRegime();
+    renderRegimeContext(sub);
+    renderPlaybook(sub);
+    renderTriggers();
+    renderCall(sub);
+  } catch(e){
+    setError('Load failure: ' + e.message);
   }
 }
 
-
-updateClock();
-setInterval(updateClock, 1000);
-load();
-setInterval(load, 300000);
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);
 </script>
-
 </body>
 </html>

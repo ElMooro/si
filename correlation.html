@@ -201,6 +201,13 @@ footer a{margin:0 10px}
   </div>
   <div id="break-grid" class="grid grid-2"></div>
 
+  <!-- Asset implications — what this means for portfolio -->
+  <div class="section-hdr">
+    <h3>WHAT THIS MEANS FOR YOUR PORTFOLIO</h3>
+    <div class="sub">interpretation of the top breaking pair · asset implications</div>
+  </div>
+  <div id="implications-box" style="background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:20px"></div>
+
   <!-- Heatmap -->
   <div id="heatmap-section">
     <div class="section-hdr">
@@ -482,6 +489,145 @@ function renderHistoryChart(d) {
   `;
 }
 
+/* Asset-implication overlays for known correlation breaks */
+const PAIR_IMPLICATIONS = {
+  'SP500_DGS10':{
+    breakSig: 'Stock-bond correlation flipping',
+    bullBear: function(curr, base){
+      // current more negative than baseline = bonds becoming hedge again = BULLISH risk assets
+      // current more positive than baseline = inflation regime = BEARISH risk assets
+      return curr < base ? 'BULLISH' : 'BEARISH';
+    },
+    bullText: 'Bonds becoming a hedge for stocks again. This is a Fed-pivot / disinflation tell. Best regime for risk assets historically (1995, 2002-03, 2019).',
+    bullAssets:'Long: TLT (+8-15% 6M), QQQ (+12-22%), Gold (+10-18%), BTC (+25-50%)',
+    bullAvoid:'Avoid: USD cash, defensives (XLU, XLP), regional banks (KRE)',
+    bearText: 'Stocks AND bonds selling off together = inflation/stagflation regime. Worst possible for 60/40 portfolios.',
+    bearAssets:'Long: Gold (+15-25% 6M), TIPS (+5-10%), Commodities (+8-15%), Energy (+5-12%)',
+    bearAvoid:'Avoid: Long Treasuries (-5 to -10%), Growth tech (-10 to -20%), Bond aggregate (-5 to -10%)',
+  },
+  'VIXCLS_DGS10':{
+    breakSig: 'Vol-rates correlation regime change',
+    bullBear: () => 'WATCH',
+    bullText: 'When VIX↔10Y correlation flips, the vol-of-vol environment is changing. Watch for follow-through in either direction.',
+    bullAssets: 'Hedge: long volatility (VXX small position), trim leveraged equity exposure',
+    bullAvoid: 'Avoid: short-vol strategies, leveraged ETFs (TQQQ, SPXL)',
+    bearText: '',
+    bearAssets: '',
+    bearAvoid: '',
+  },
+  'NASDAQCOM_DGS10':{
+    breakSig: 'Tech-rates relationship breaking',
+    bullBear: function(curr, base){
+      return curr < base ? 'BULLISH_TECH' : 'BEARISH_TECH';
+    },
+    bullText: 'Tech sensitivity to rates increasing (more negative correlation). Falling yields = tech up, classic duration trade.',
+    bullAssets: 'Long: QQQ, SOXX, MAGS (mega-cap tech) +15-25% historical 6M',
+    bullAvoid: 'Avoid: regional banks, value (VTV), small-caps in early phase',
+    bearText: 'Tech decoupling from rates — usually means EPS-driven moves dominating macro. Stock-picker market.',
+    bearAssets: 'Focus on individual quality names rather than QQQ as a whole',
+    bearAvoid: 'Avoid: assuming rate cuts will rescue tech',
+  },
+  'DTWEXBGS_DCOILWTICO':{
+    breakSig: 'Dollar-oil decoupling',
+    bullBear: function(curr, base){
+      return curr > base ? 'OIL_BULL' : 'OIL_BEAR';
+    },
+    bullText: 'USD and Oil both rising = supply-driven oil shock OR rising risk premium. Either way, energy sector benefits.',
+    bullAssets: 'Long: XLE (+5-15% 6M), XOP (+10-20%), USO (+10-20%)',
+    bullAvoid: 'Avoid: airlines (JETS), consumer disc (XLY) hurt by gas prices',
+    bearText: 'USD up but oil down = demand destruction signal. Recession risk rising.',
+    bearAssets: 'Long: USD cash, defensives (XLP, XLU, XLV)',
+    bearAvoid: 'Avoid: energy, EM, copper miners',
+  },
+  'DTWEXBGS_GOLDPMGBD228NLBM':{
+    breakSig: 'Dollar-gold relationship breaking',
+    bullBear: function(curr, base){
+      return curr > base ? 'MONETARY_REGIME' : 'NORMAL';
+    },
+    bullText: 'USD and Gold both rising together = monetary regime shift. CB de-dollarization OR severe global stress.',
+    bullAssets: 'Long: GLD (+15-25% 6M), miners (GDX +20-35%), Bitcoin (+30-60%)',
+    bullAvoid: 'Reduce: long-dated UST exposure if this is inflation-driven',
+    bearText: 'Restored normal inverse relationship. No special signal.',
+    bearAssets: '',
+    bearAvoid: '',
+  },
+  'DGS10_GOLDPMGBD228NLBM':{
+    breakSig: '10Y-Gold real-rate channel breaking',
+    bullBear: function(curr, base){
+      return curr > base ? 'STAGFLATION_PRICING' : 'NORMAL';
+    },
+    bullText: 'Gold rallying with rising yields = pricing stagflation / lost-decade scenarios. Real-rate hedge breaking down.',
+    bullAssets: 'Long: GLD (+20-30% 6M), TIPS, miners',
+    bullAvoid: 'Avoid: Long Treasuries (TLT), 60/40 portfolios',
+    bearText: 'Normal inverse relationship restored.',
+    bearAssets: '',
+    bearAvoid: '',
+  },
+  'BAMLH0A0HYM2_DCOILWTICO':{
+    breakSig: 'Credit-oil decoupling',
+    bullBear: function(curr, base){
+      return curr > base ? 'CREDIT_STRESS' : 'NORMAL';
+    },
+    bullText: 'HY OAS rising with oil rising = energy-sector credit stress (high-yield is energy-heavy). Late-2014 / late-2015 pattern.',
+    bullAssets: 'Long: USD cash, IG over HY',
+    bullAvoid: 'Avoid: HYG, energy junk bonds, leveraged loans',
+    bearText: 'Normal inverse relationship.',
+    bearAssets: '',
+    bearAvoid: '',
+  },
+};
+
+function renderImplications(d) {
+  const tops = d.top_breaking_pairs || [];
+  const box = document.getElementById('implications-box');
+  if (!tops.length) {
+    box.innerHTML = '<div style="color:var(--fg-3);font-size:12px">No significant correlation breaks to interpret</div>';
+    return;
+  }
+
+  // Use top 3 pairs
+  let html = '';
+  tops.slice(0, 3).forEach((p, i) => {
+    const key = `${p.pair[0]}_${p.pair[1]}`;
+    const keyRev = `${p.pair[1]}_${p.pair[0]}`;
+    const impl = PAIR_IMPLICATIONS[key] || PAIR_IMPLICATIONS[keyRev];
+    if (!impl) return;
+    const direction = impl.bullBear(p.current_corr, p.baseline_corr);
+    const isBull = ['BULLISH', 'BULLISH_TECH', 'OIL_BULL'].includes(direction);
+    const isBear = ['BEARISH', 'BEARISH_TECH', 'OIL_BEAR', 'CREDIT_STRESS', 'STAGFLATION_PRICING'].includes(direction);
+    const isWatch = ['WATCH', 'MONETARY_REGIME'].includes(direction);
+    const cls = isBull ? 'green' : isBear ? 'red' : isWatch ? 'amber' : 'cyan';
+    const text = (isBear || isWatch || direction === 'STAGFLATION_PRICING' || direction === 'CREDIT_STRESS' || direction === 'MONETARY_REGIME')
+      ? impl.bearText : impl.bullText;
+    const assets = (isBear || isWatch || direction === 'STAGFLATION_PRICING' || direction === 'CREDIT_STRESS' || direction === 'MONETARY_REGIME')
+      ? impl.bearAssets : impl.bullAssets;
+    const avoid = (isBear || isWatch || direction === 'STAGFLATION_PRICING' || direction === 'CREDIT_STRESS' || direction === 'MONETARY_REGIME')
+      ? impl.bearAvoid : impl.bullAvoid;
+
+    if (!text) return;
+
+    const divider = i > 0 ? '<div style="border-top:1px solid var(--border);margin:18px 0"></div>' : '';
+    html += divider + `
+      <div style="margin-bottom:8px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px">
+        BREAK #${i+1} · ${impl.breakSig}
+      </div>
+      <div style="font-size:14px;color:var(--fg-1);font-weight:500;margin-bottom:6px">
+        ${p.labels[0]} ↔ ${p.labels[1]}
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--${cls});margin-left:10px">z=${p.z_score>0?'+':''}${p.z_score} · ${direction.replace('_',' ')}</span>
+      </div>
+      <div style="color:var(--fg-2);font-size:13px;line-height:1.55;margin-bottom:10px">${text}</div>
+      ${assets ? `<div style="color:var(--green);font-size:12px;margin-bottom:4px;font-family:var(--font-mono)">→ ${assets}</div>` : ''}
+      ${avoid ? `<div style="color:var(--red);font-size:12px;font-family:var(--font-mono)">→ ${avoid}</div>` : ''}
+    `;
+  });
+
+  if (!html) {
+    html = '<div style="color:var(--fg-3);font-size:12px">Top breaking pairs do not yet have a documented playbook. Consult <a href="/bonds.html">/bonds.html</a> for full regime analysis.</div>';
+  }
+
+  box.innerHTML = html;
+}
+
 async function loadData() {
   try {
     const res = await fetch(URL);
@@ -500,6 +646,7 @@ async function loadData() {
     renderComposite(d);
     renderStats(d);
     renderTopBreaks(d);
+    renderImplications(d);
     renderHeatmap(d, 'latest');
     renderHistoryChart(d);
   } catch (e) {
