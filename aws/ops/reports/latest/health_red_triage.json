@@ -1,0 +1,160 @@
+{
+  "run_at": "2026-04-27T17:15:38+00:00",
+  "repaired_rules": [
+    "justhodl-data-collector \u2190 justhodl-hourly-collection",
+    "scrapeMacroData \u2190 DailyMacroScraper",
+    "fmp-stock-picks-agent \u2190 fmp-movers-hourly",
+    "fmp-stock-picks-agent \u2190 fmp-stock-picks-daily",
+    "news-sentiment-agent \u2190 news-sentiment-update"
+  ],
+  "repaired_handlers": [],
+  "findings": {
+    "justhodl-data-collector": {
+      "function": "justhodl-data-collector",
+      "runtime": "python3.9",
+      "aws_handler": "save_to_s3.lambda_handler",
+      "repo_handler": "save_to_s3.lambda_handler",
+      "last_modified": "2026-04-25T10:24:18",
+      "inv_24h": 0,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "justhodl-hourly-collection",
+          "schedule": "rate(1 hour)",
+          "state": "DISABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-hourly-collection"
+        }
+      ]
+    },
+    "justhodl-email-reports-v2": {
+      "function": "justhodl-email-reports-v2",
+      "runtime": "python3.11",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-04-26T12:18:10",
+      "inv_24h": 0,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "DailyEmailReportsV2",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "ENABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/DailyEmailReportsV2"
+        }
+      ]
+    },
+    "justhodl-khalid-metrics": {
+      "function": "justhodl-khalid-metrics",
+      "runtime": "python3.12",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-04-25T10:27:46",
+      "inv_24h": 0,
+      "err_24h": 0,
+      "rules": []
+    },
+    "scrapeMacroData": {
+      "function": "scrapeMacroData",
+      "runtime": "python3.11",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2025-06-03T18:10:33",
+      "inv_24h": 0,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "DailyMacroScraper",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "DISABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/DailyMacroScraper"
+        }
+      ]
+    },
+    "fmp-stock-picks-agent": {
+      "function": "fmp-stock-picks-agent",
+      "runtime": "python3.12",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-04-26T12:17:49",
+      "inv_24h": 0,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "fmp-movers-hourly",
+          "schedule": "cron(0 14,16,18,20 ? * MON-FRI *)",
+          "state": "DISABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/fmp-movers-hourly"
+        },
+        {
+          "name": "fmp-stock-picks-daily",
+          "schedule": "cron(0 12 ? * MON-FRI *)",
+          "state": "DISABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/fmp-stock-picks-daily"
+        }
+      ]
+    },
+    "news-sentiment-agent": {
+      "function": "news-sentiment-agent",
+      "runtime": "python3.9",
+      "aws_handler": "lambda_news_agent.lambda_handler",
+      "repo_handler": "lambda_news_agent.lambda_handler",
+      "last_modified": "2026-04-25T10:29:24",
+      "inv_24h": 78,
+      "err_24h": 78,
+      "rules": [
+        {
+          "name": "news-sentiment-update",
+          "schedule": "rate(30 minutes)",
+          "state": "DISABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/news-sentiment-update"
+        }
+      ]
+    },
+    "justhodl-intelligence": {
+      "function": "justhodl-intelligence",
+      "runtime": "python3.12",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-04-26T12:52:38",
+      "inv_24h": 7,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "justhodl-intel-daily",
+          "schedule": "cron(10 12 * * ? *)",
+          "state": "ENABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-intel-daily"
+        },
+        {
+          "name": "justhodl-intel-hourly",
+          "schedule": "cron(5 12-23 ? * MON-FRI *)",
+          "state": "ENABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-intel-hourly"
+        }
+      ]
+    },
+    "justhodl-repo-monitor": {
+      "function": "justhodl-repo-monitor",
+      "runtime": "python3.12",
+      "aws_handler": "lambda_function.lambda_handler",
+      "repo_handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-04-25T10:26:35",
+      "inv_24h": 10,
+      "err_24h": 0,
+      "rules": [
+        {
+          "name": "justhodl-repo-30min",
+          "schedule": "cron(0/30 13-23 ? * MON-FRI *)",
+          "state": "ENABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-repo-30min"
+        },
+        {
+          "name": "justhodl-repo-daily",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "ENABLED",
+          "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-repo-daily"
+        }
+      ]
+    }
+  }
+}
