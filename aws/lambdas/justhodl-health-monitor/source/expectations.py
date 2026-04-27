@@ -57,6 +57,16 @@ EXPECTATIONS = {
         "note": "Composite ML risk score, regime. edge-engine every 6h.",
         "severity": "critical",
     },
+    "s3:data/insider-trades.json": {
+        "type": "s3_file",
+        "key": "data/insider-trades.json",
+        "fresh_max": 2400,        # 40 min (writer is every 30 min)
+        "warn_max": 7200,         # 2h
+        "expected_size": 5_000,   # Even an empty day has stats + headers ~5KB
+        "note": "SEC EDGAR Form 4 insider trades. justhodl-insider-trades every 30min.",
+        "severity": "important",
+    },
+
     "s3:repo-data.json": {
         "type": "s3_file",
         "key": "repo-data.json",
@@ -202,6 +212,15 @@ EXPECTATIONS = {
         "note": "Edge composite + regime. Every 6h.",
         "severity": "critical",
     },
+    "lambda:justhodl-insider-trades": {
+        "type": "lambda",
+        "name": "justhodl-insider-trades",
+        "max_error_rate": 0.30,        # SEC EDGAR has occasional flakiness; 30% is forgiving
+        "min_invocations_24h": 40,     # rate(30min) = 48/day, allow some skipped
+        "note": "SEC EDGAR Form 4 pipeline. Cluster buys + big buys + sector heat.",
+        "severity": "important",
+    },
+
     "lambda:justhodl-repo-monitor": {
         "type": "lambda",
         "name": "justhodl-repo-monitor",

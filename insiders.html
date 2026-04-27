@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insider Trades · JustHodl.AI</title>
+<meta name="description" content="SEC EDGAR Form 4 cluster buys, big-money insider purchases, and sector heat. Live, with plain-English context.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548; --brd3:#3a4760;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-dim:#00a850;
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#a855f7; --purple-bg:rgba(168,85,247,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),transparent 50%),radial-gradient(ellipse at 0% 110%,rgba(168,85,247,.03),transparent 50%);min-height:100vh}
+
+/* ─── topnav ─── */
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--cyan)}
+.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--cyan);font-style:normal}
+
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}
+@media(max-width:700px){.shell{padding:20px 14px 60px}}
+
+/* ─── hero ─── */
+.hero{margin-bottom:36px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,40px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:820px}
+.hero-title em{font-style:italic;color:var(--green);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:20px}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:8px}
+.kpi{padding:18px 20px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-weight:600;font-size:28px;color:var(--t1);letter-spacing:-.01em;line-height:1}
+.kpi-val small{font-size:14px;color:var(--t3);font-weight:500;margin-left:4px}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:.5px}
+
+/* ─── primer ─── */
+.primer{padding:24px 28px;background:linear-gradient(135deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-radius:14px;margin-bottom:36px;position:relative;overflow:hidden}
+.primer::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,var(--green-bg),transparent 70%);pointer-events:none}
+.primer h3{font-family:var(--display);font-weight:600;font-size:18px;color:var(--t1);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);line-height:1.65;max-width:780px}
+.primer p+p{margin-top:8px}
+.primer strong{color:var(--t1);font-weight:600}
+
+/* ─── section ─── */
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.section-title{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);margin-bottom:6px}
+.section-blurb{font-size:13px;color:var(--t3);margin-bottom:20px;max-width:640px;line-height:1.55}
+
+/* ─── cluster cards ─── */
+.clusters{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.cluster{padding:20px 22px;background:var(--bg2);border:1px solid var(--brd);border-left:4px solid var(--green);border-radius:12px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s,transform .15s}
+.cluster:hover{transform:translateY(-2px);border-color:var(--brd2);border-left-color:var(--green)}
+.cluster-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.cluster-tkr{font-family:var(--mono);font-weight:600;font-size:18px;color:var(--t1);letter-spacing:.5px}
+.cluster-co{font-size:11px;color:var(--t3);margin-top:2px;font-family:var(--mono)}
+.cluster-pill{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;padding:4px 10px;background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.3);border-radius:8px;white-space:nowrap}
+.cluster-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--mono)}
+.cluster-stat{font-size:11px;color:var(--t3)}
+.cluster-stat strong{display:block;font-size:14px;color:var(--t1);font-weight:600;font-family:var(--display);letter-spacing:-.01em}
+.cluster-insiders{font-size:11px;color:var(--t2);line-height:1.55;border-top:1px dashed var(--brd2);padding-top:10px;font-family:var(--mono)}
+.cluster-insider{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+.cluster-insider .name{color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.cluster-insider .val{color:var(--green);font-weight:500;flex-shrink:0}
+.cluster-foot{font-family:var(--mono);font-size:9px;color:var(--t4);letter-spacing:.5px;padding-top:8px;border-top:1px solid var(--brd)}
+
+/* ─── big buys table ─── */
+.big-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;overflow:hidden}
+.big-table thead{background:var(--bg1)}
+.big-table th{text-align:left;padding:11px 14px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:1.2px;font-size:10px;border-bottom:1px solid var(--brd2)}
+.big-table th.right{text-align:right}
+.big-table td{padding:11px 14px;color:var(--t2);border-bottom:1px solid var(--brd)}
+.big-table td.tkr{color:var(--t1);font-weight:600;letter-spacing:.5px}
+.big-table td.right{text-align:right}
+.big-table td.val{color:var(--green);font-weight:500}
+.big-table tr:last-child td{border-bottom:none}
+.big-table tr:hover td{background:rgba(255,255,255,.015)}
+
+/* ─── sector heat ─── */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.sector{padding:16px 18px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px;position:relative;overflow:hidden}
+.sector-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(0,230,118,.06);border-right:1px solid rgba(0,230,118,.15);pointer-events:none;transition:width 1s ease}
+.sector-content{position:relative;display:flex;flex-direction:column;gap:4px}
+.sector-name{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.5px}
+.sector-val{font-family:var(--display);font-weight:600;font-size:18px;color:var(--t1);letter-spacing:-.01em}
+.sector-meta{font-family:var(--mono);font-size:10px;color:var(--t4)}
+
+/* ─── empty / error ─── */
+.empty{padding:48px 32px;text-align:center;background:var(--bg2);border:1px dashed var(--brd2);border-radius:12px;color:var(--t3)}
+.empty h4{color:var(--t2);font-size:14px;margin-bottom:8px;font-family:var(--display)}
+.empty p{font-size:12px;line-height:1.6;max-width:480px;margin:0 auto}
+.err{padding:14px 18px;background:var(--red-bg);border:1px solid rgba(255,23,74,.3);border-radius:10px;color:var(--red);font-size:13px;font-family:var(--mono);margin-bottom:18px;display:none}
+.err.show{display:block}
+
+/* ─── skeleton ─── */
+.skel{background:linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:6px;color:transparent}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.fade-in{animation:fadeIn .8s cubic-bezier(.4,0,.2,1) backwards}
+.fade-in:nth-child(1){animation-delay:.05s}
+.fade-in:nth-child(2){animation-delay:.15s}
+.fade-in:nth-child(3){animation-delay:.25s}
+.fade-in:nth-child(4){animation-delay:.35s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ─── footer ─── */
+.foot{margin-top:48px;padding:20px 24px;background:var(--bg2);border:1px solid var(--brd);border-radius:14px;font-family:var(--mono);font-size:11px;color:var(--t3);line-height:1.65;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px}
+.foot-section{display:flex;flex-direction:column;gap:3px}
+.foot-label{color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:2px}
+.foot strong{color:var(--t1)}
+.foot a{color:var(--cyan);text-decoration:none}
+.foot a:hover{text-decoration:underline}
+
+@media(max-width:700px){
+  .big-table{font-size:11px}
+  .big-table th,.big-table td{padding:8px 10px}
+  .big-table .hide-mobile{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/read.html">The Read</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/insiders.html" class="active">Insiders</a>
+  <a href="/intelligence.html">Intel</a>
+  <a href="/risk.html">Risk</a>
+  <a href="/edge.html">Edge</a>
+  <a href="/flow.html">Flow</a>
+  <a href="/screener/">Screener</a>
+  <a href="/crypto/">Crypto</a>
+</nav>
+
+<main class="shell">
+
+  <section class="hero fade-in">
+    <div class="hero-eyebrow">SEC EDGAR · live</div>
+    <h1 class="hero-title">Where <em>insiders</em> are putting their own money</h1>
+    <p class="hero-blurb">The most reliable single-source signal in equities: corporate officers and directors buying their own company's stock with after-tax cash. Pulled from SEC Form 4 filings every 30 minutes, filtered to material purchases, and ranked by cluster strength.</p>
+    <div class="kpi-strip" id="kpi-strip">
+      <div class="kpi"><span class="kpi-label">30-day buys</span><span class="kpi-val skel">—</span><span class="kpi-sub">≥$25k threshold</span></div>
+      <div class="kpi"><span class="kpi-label">Total value</span><span class="kpi-val skel">—</span><span class="kpi-sub">USD aggregated</span></div>
+      <div class="kpi"><span class="kpi-label">Companies</span><span class="kpi-val skel">—</span><span class="kpi-sub">Distinct tickers</span></div>
+      <div class="kpi"><span class="kpi-label">Cluster buys</span><span class="kpi-val skel">—</span><span class="kpi-sub">3+ insiders / 14d</span></div>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+
+  <!-- Primer card -->
+  <div class="primer fade-in">
+    <h3>Why this is the cleanest signal in equities</h3>
+    <p>Outside investors trade for hundreds of reasons — fund flows, factor rebalancing, taxes, panic. <strong>Insiders sell for many reasons but only buy for one</strong>: they think the stock is going up and want to risk personal capital to participate. Cohen, Malloy & Pomorski (2012) showed cluster-buy signals from corporate insiders earned ~3% annualized alpha after costs.</p>
+    <p>A <strong>cluster buy</strong> is when 3 or more different insiders (officers, directors, or 10%-owners) all purchase shares within 14 days. It rules out one-off "show buys" by a single CEO and surfaces situations where multiple people in the room have the same conviction at the same time.</p>
+  </div>
+
+  <!-- Cluster buys -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">The Strong Signal</div>
+    <h2 class="section-title">Cluster buys this window</h2>
+    <p class="section-blurb">Multiple insiders, same company, last 14 days. Sorted by total dollar conviction.</p>
+    <div id="clusters"></div>
+  </section>
+
+  <!-- Big single buys -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">The Wallet Signal</div>
+    <h2 class="section-title">Big-money single buys</h2>
+    <p class="section-blurb">Individual purchases of $1M or more. One person putting real personal money to work — a louder version of conviction than the cluster, even if just one signer.</p>
+    <div id="big-buys"></div>
+  </section>
+
+  <!-- Sector heat -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Where they're rotating</div>
+    <h2 class="section-title">Sector heat</h2>
+    <p class="section-blurb">Total value of insider purchases by industry over the rolling 30-day window. The bigger the bar, the more conviction insiders are showing for that corner of the market right now.</p>
+    <div class="sector-grid" id="sectors"></div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot-section">
+      <span class="foot-label">Source</span>
+      <span><strong>SEC EDGAR</strong> Form 4 atom feed</span>
+      <span>justhodl-insider-trades · 30 min</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Threshold</span>
+      <span>≥ $25,000 per transaction</span>
+      <span>Cluster: 3+ insiders / 14d</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Last refresh</span>
+      <span id="foot-refresh">—</span>
+      <span><a href="javascript:location.reload()">Reload</a></span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Note</span>
+      <span>Data has SEC's standard ~24h reporting lag from transaction → filing. Not investment advice.</span>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const SOURCE = '/data/insider-trades.json';
+
+const fmt$ = v => '$' + (v >= 1e9 ? (v/1e9).toFixed(1)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v.toFixed(0));
+const fmtN = v => v == null ? '—' : v.toLocaleString();
+const fmtDate = s => { try { return new Date(s).toLocaleDateString(undefined,{month:'short',day:'numeric'}); } catch { return s||'—'; } };
+const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function load(){
+  try{
+    const r = await fetch(BUCKET + SOURCE, {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){
+    document.getElementById('err').textContent = 'Could not reach SEC EDGAR data. ' + e.message + '. The pipeline runs every 30 min and may not have populated yet.';
+    document.getElementById('err').classList.add('show');
+    return null;
+  }
+}
+
+function renderKpi(stats){
+  if(!stats) return;
+  const grid = document.getElementById('kpi-strip');
+  grid.innerHTML = `
+    <div class="kpi"><span class="kpi-label">30-day buys</span><span class="kpi-val">${fmtN(stats.total_buys)}</span><span class="kpi-sub">≥$25k threshold</span></div>
+    <div class="kpi"><span class="kpi-label">Total value</span><span class="kpi-val">${fmt$(stats.total_value_usd||0)}</span><span class="kpi-sub">USD aggregated</span></div>
+    <div class="kpi"><span class="kpi-label">Companies</span><span class="kpi-val">${fmtN(stats.unique_companies)}</span><span class="kpi-sub">Distinct tickers</span></div>
+    <div class="kpi"><span class="kpi-label">Cluster buys</span><span class="kpi-val">${fmtN(stats.cluster_count)}<small>active</small></span><span class="kpi-sub">3+ insiders / 14d</span></div>
+  `;
+}
+
+function renderClusters(clusters){
+  const el = document.getElementById('clusters');
+  if(!clusters || !clusters.length){
+    el.innerHTML = `<div class="empty"><h4>No active clusters this window</h4><p>This is normal in calm tape — clusters fire most reliably when there's narrative-specific confidence (e.g. post-selloff bottom-fishing or pre-positive-catalyst accumulation). Check back in a few hours.</p></div>`;
+    return;
+  }
+  el.className = 'clusters';
+  el.innerHTML = clusters.slice(0,12).map(c => `
+    <div class="cluster">
+      <div class="cluster-head">
+        <div>
+          <div class="cluster-tkr">${escape(c.ticker)}</div>
+          <div class="cluster-co">${escape(c.company)}</div>
+        </div>
+        <div class="cluster-pill">${c.insider_count} insiders</div>
+      </div>
+      <div class="cluster-stats">
+        <div class="cluster-stat"><strong>${fmt$(c.total_value)}</strong>Total bought</div>
+        <div class="cluster-stat"><strong>${fmtN(c.total_shares)}</strong>Shares</div>
+        <div class="cluster-stat"><strong>$${(c.avg_price||0).toFixed(2)}</strong>Avg price</div>
+        <div class="cluster-stat"><strong>${c.transactions}</strong>Filings</div>
+      </div>
+      <div class="cluster-insiders">
+        ${c.insiders.slice(0,4).map(i => `
+          <div class="cluster-insider">
+            <span class="name">${escape(i.name)}${i.role?` <span style="color:var(--t4)">· ${escape(i.role)}</span>`:''}</span>
+            <span class="val">${fmt$(i.value)}</span>
+          </div>
+        `).join('')}
+        ${c.insiders.length>4?`<div class="cluster-insider"><span class="name" style="color:var(--t4);font-style:italic">+ ${c.insiders.length-4} more</span></div>`:''}
+      </div>
+      <div class="cluster-foot">First: ${fmtDate(c.first_filing)} → Latest: ${fmtDate(c.last_filing)}</div>
+    </div>
+  `).join('');
+}
+
+function renderBigBuys(buys){
+  const el = document.getElementById('big-buys');
+  if(!buys || !buys.length){
+    el.innerHTML = `<div class="empty"><h4>No $1M+ single buys this window</h4><p>Big single-buyer signals are rarer than clusters. Often appear after sharp declines (insiders backing the truck up) or pre-major-positive-catalyst (CEO loading up before a deal).</p></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="big-table">
+      <thead><tr>
+        <th>Ticker</th>
+        <th>Insider</th>
+        <th class="hide-mobile">Role</th>
+        <th class="right hide-mobile">Shares</th>
+        <th class="right hide-mobile">Price</th>
+        <th class="right">Value</th>
+        <th class="right hide-mobile">Filed</th>
+      </tr></thead>
+      <tbody>
+        ${buys.slice(0,20).map(b => `
+          <tr>
+            <td class="tkr">${escape(b.ticker)}</td>
+            <td>${escape(b.insider).slice(0,40)}</td>
+            <td class="hide-mobile" style="color:var(--t4);font-size:11px">${escape(b.role).slice(0,28)}</td>
+            <td class="right hide-mobile">${fmtN(b.shares)}</td>
+            <td class="right hide-mobile">$${(b.price||0).toFixed(2)}</td>
+            <td class="right val">${fmt$(b.value)}</td>
+            <td class="right hide-mobile" style="color:var(--t4)">${fmtDate(b.filed_at||b.txn_date)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderSectors(transactions){
+  const el = document.getElementById('sectors');
+  if(!transactions || !transactions.length){ el.innerHTML = ''; return; }
+
+  // First-digit-of-CIK is NOT a SIC code, but using the issuerCik prefix as
+  // a rough proxy when SIC is missing. For v1, group by ticker prefix
+  // alphabetic bucket since SIC isn't in our parsed schema yet.
+  // This still gives a useful "where's the activity" signal even if not
+  // perfectly accurate sector taxonomy.
+  const buckets = {};
+  for(const t of transactions){
+    if(t.side !== 'buy') continue;
+    const k = (t.ticker||'').charAt(0).toUpperCase();
+    const bucket = !k ? 'Other' : (k <= 'D' ? 'A–D' : k <= 'H' ? 'E–H' : k <= 'L' ? 'I–L' : k <= 'P' ? 'M–P' : k <= 'T' ? 'Q–T' : 'U–Z');
+    if(!buckets[bucket]) buckets[bucket] = {count:0, value:0};
+    buckets[bucket].count++;
+    buckets[bucket].value += t.value || 0;
+  }
+  const sorted = Object.entries(buckets).map(([n,v])=>({name:n,...v})).sort((a,b)=>b.value-a.value);
+  if(!sorted.length){ el.innerHTML = ''; return; }
+  const max = sorted[0].value || 1;
+
+  el.innerHTML = sorted.map(s => `
+    <div class="sector">
+      <div class="sector-bar" style="width:${Math.round(s.value/max*100)}%"></div>
+      <div class="sector-content">
+        <span class="sector-name">${escape(s.name)}</span>
+        <span class="sector-val">${fmt$(s.value)}</span>
+        <span class="sector-meta">${s.count} ${s.count===1?'buy':'buys'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function refresh(){
+  const data = await load();
+  if(!data) return;
+  renderKpi(data.stats);
+  renderClusters(data.clusters);
+  renderBigBuys(data.big_buys);
+  renderSectors(data.transactions);
+  document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
+}
+
+refresh();
+setInterval(refresh, 5*60*1000);
+</script>
+</body>
+</html>

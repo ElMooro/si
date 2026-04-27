@@ -1,0 +1,37 @@
+{
+  "name": "justhodl-insider-trades",
+  "function_name": "justhodl-insider-trades",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 300,
+  "timeout_s": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY",
+    "SEC_USER_AGENT",
+    "MIN_BUY_VALUE_USD",
+    "WINDOW_DAYS",
+    "CLUSTER_WINDOW_DAYS",
+    "CLUSTER_MIN_INSIDERS",
+    "BIG_BUY_USD"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": ["content-type"],
+      "AllowMethods": ["*"],
+      "AllowOrigins": ["*"],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": ["justhodl-insider-trades-30min"],
+  "description": "SEC EDGAR Form 4 pipeline: pulls recent insider trades, filters for >$25k buys, computes cluster buys (3+ insiders/14d), writes data/insider-trades.json. Runs every 30 min."
+}
