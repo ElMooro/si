@@ -48,6 +48,7 @@ import csv
 import io
 import json
 import os
+import ssl
 import time
 import urllib.request
 import urllib.error
@@ -61,7 +62,10 @@ S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/gdelt-news.json")
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com")
 
-GDELT_BASE = "https://data.gdeltproject.org/gdeltv2"
+# GDELT serves over http (no auth); the https cert often has hostname
+# mismatch errors from CDN edges. Use http to avoid SSL issues; data is
+# public and unauthenticated either way.
+GDELT_BASE = "http://data.gdeltproject.org/gdeltv2"
 
 # Themes we consider financially relevant (subset of GDELT taxonomy)
 FINANCIAL_THEMES = frozenset([

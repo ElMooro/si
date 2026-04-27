@@ -77,9 +77,15 @@ EXTREME_THRESHOLD = 0.30  # spread > +30 or < -30 = historical extreme
 
 
 def _fetch(url: str, timeout: int = 30) -> bytes:
+    # AAII blocks generic User-Agent strings with HTTP 403. Need a realistic
+    # browser UA + standard browser headers to get past their WAF.
     req = urllib.request.Request(url, headers={
-        "User-Agent": USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml,*/*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "identity",   # avoid compression
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
     })
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()

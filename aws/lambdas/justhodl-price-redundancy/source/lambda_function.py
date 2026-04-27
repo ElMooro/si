@@ -54,7 +54,7 @@ USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com"
 MAX_PARALLEL = int(os.environ.get("MAX_PARALLEL", "10"))
 
 # Core tickers (the most-watched). Larger sets can be added via env override.
-CORE_TICKERS = os.environ.get("TICKERS", "").split(",") or [
+_DEFAULT_TICKERS = [
     "SPY", "QQQ", "DIA", "IWM",                        # major US indices
     "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA",  # mega-cap
     "GLD", "SLV", "USO", "TLT", "HYG", "LQD",         # commodities + bonds
@@ -62,6 +62,8 @@ CORE_TICKERS = os.environ.get("TICKERS", "").split(",") or [
     "EURUSD=X", "DXY",                                 # FX
     "^VIX", "^TNX",                                    # vol + 10Y yield
 ]
+_env_tickers = os.environ.get("TICKERS", "").strip()
+CORE_TICKERS = [t.strip() for t in _env_tickers.split(",") if t.strip()] or _DEFAULT_TICKERS
 
 
 def _fetch(url: str, timeout: int = 10) -> bytes:

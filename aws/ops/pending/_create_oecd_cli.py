@@ -1,4 +1,6 @@
 """
+# bumped 2026-04-27 — fix smoke-test failures
+
 Step ___ — Create/update justhodl-oecd-cli Lambda + EB rule.
 
 Idempotent: creates Lambda if missing, updates if present, asserts EB rule
