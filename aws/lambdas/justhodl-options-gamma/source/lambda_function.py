@@ -259,12 +259,45 @@ def lambda_handler(event, context):
     spot = market.get("spot")
     vix = market.get("vix") or 16
 
+    # If we can't get spot, treat as transient and bail
     if not spot:
         return {"statusCode": 502, "body": json.dumps({"error": "Could not fetch spot price"})}
 
     snapshot = fetch_options_snapshot()
     if not snapshot:
-        return {"statusCode": 502, "body": json.dumps({"error": "Empty options snapshot"})}
+        # Market is closed (weekend, holiday, or after-hours).
+        # Write a "market_closed" marker so:
+        #   1. The S3 file always exists (no 'missing' alert in health monitor)
+        #   2. Downstream consumers know why GEX data is stale
+        #   3. The most recent valid GEX state can be preserved if we choose
+        try:
+            existing_obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
+            existing = json.loads(existing_obj["Body"].read())
+        except Exception:
+            existing = {}
+
+        marker = {
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "underlying": UNDERLYING,
+            "spot": spot,
+            "vix": vix,
+            "regime": "market_closed",
+            "interpretation": "Options market closed (weekend / holiday / outside regular hours). GEX cannot be computed live; last valid reading preserved.",
+            "market_closed": True,
+            "last_valid_at": existing.get("generated_at") if existing else None,
+            "last_valid_total_gex": existing.get("total_gex") if existing else None,
+            "last_valid_regime": existing.get("regime") if existing else None,
+            "fetch_duration_s": round(time.time() - started, 1),
+        }
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                      Body=json.dumps(marker).encode(),
+                      ContentType="application/json", CacheControl="no-cache")
+        print(f"GEX: market closed — wrote marker (last valid: {marker['last_valid_at']})")
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"ok": True, "market_closed": True}),
+        }
 
     gex = compute_gex(snapshot, spot)
     interp = interpret_gex(gex["total_gex"], gex["zero_gamma_strike"], spot, vix)

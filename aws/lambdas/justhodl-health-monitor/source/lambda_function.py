@@ -74,8 +74,36 @@ def check_s3_file(spec):
     return out
 
 
+def _lambda_age_hours(name: str):
+    """Return the age in hours since the Lambda's last code/config update.
+    Returns None if we can't determine it (e.g. function missing).
+    Used to apply a grace period for newly-deployed Lambdas — the
+    rolling 24h invocation count naturally undershoots its target if
+    the Lambda was deployed less than 24h ago.
+    """
+    try:
+        cfg = lam.get_function_configuration(FunctionName=name)
+        # LastModified is ISO-8601 like "2026-04-27T18:14:54.000+0000"
+        ts = cfg.get("LastModified")
+        if not ts:
+            return None
+        # Some AWS responses use offset format "+0000" without colon;
+        # normalize for fromisoformat
+        ts = ts.replace("+0000", "+00:00")
+        dt = datetime.fromisoformat(ts)
+        delta = now() - dt
+        return delta.total_seconds() / 3600
+    except Exception:
+        return None
+
+
 def check_lambda(spec):
-    """Check a Lambda's recent error rate + invocation count."""
+    """Check a Lambda's recent error rate + invocation count.
+
+    Newly-deployed Lambdas (LastModified < 24h ago) get a proportional
+    grace period on min_invocations_24h: a Lambda deployed 6h ago is
+    only expected to have 6/24 = 25% of its full-day target.
+    """
     name = spec["name"]
     out = {"id": f"lambda:{name}", "type": "lambda", "name": name,
            "note": spec.get("note", ""), "severity": spec.get("severity", "important")}
@@ -99,12 +127,34 @@ def check_lambda(spec):
         out["errors_24h"] = int(total_err)
         out["error_rate_24h"] = round(total_err / max(total_inv, 1), 4)
 
-        # Status
+        # Deployment-age grace period for min_invocations check
+        age_h = _lambda_age_hours(name)
         max_err_rate = spec.get("max_error_rate", 0.20)
-        min_inv = spec.get("min_invocations_24h", 0)
+        full_min_inv = spec.get("min_invocations_24h", 0)
+
+        if age_h is not None and age_h < 24 and full_min_inv > 0:
+            # Scale expectation by the fraction of the 24h window the
+            # Lambda has actually been alive. Floor at 1 so a Lambda
+            # deployed 30s ago doesn't immediately demand invocations.
+            scale = max(0.05, age_h / 24)
+            min_inv = max(1, int(full_min_inv * scale))
+            out["min_inv_scaled"] = min_inv
+            out["min_inv_full"] = full_min_inv
+            out["age_hours"] = round(age_h, 1)
+        else:
+            min_inv = full_min_inv
+            out["age_hours"] = round(age_h, 1) if age_h is not None else None
+
+        # Status
         if total_inv < min_inv:
-            out["status"] = "red"
-            out["reason"] = f"only {int(total_inv)} invocations in 24h (expected ≥{min_inv})"
+            if age_h is not None and age_h < 24:
+                # Newly deployed; soften the message + status
+                out["status"] = "yellow"
+                out["reason"] = (f"only {int(total_inv)} invocations in {age_h:.0f}h since deploy "
+                                 f"(scaled target ≥{min_inv}; full-day target ≥{full_min_inv})")
+            else:
+                out["status"] = "red"
+                out["reason"] = f"only {int(total_inv)} invocations in 24h (expected ≥{full_min_inv})"
         elif out["error_rate_24h"] > max_err_rate:
             out["status"] = "red"
             out["reason"] = f"error rate {out['error_rate_24h']:.1%} exceeds {max_err_rate:.0%}"
