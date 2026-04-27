@@ -1,24 +1,24 @@
 # Create/update justhodl-options-gamma Lambda + EB rule
 
 **Status:** success  
-**Duration:** 6.8s  
-**Finished:** 2026-04-27T18:44:07+00:00  
+**Duration:** 5.3s  
+**Finished:** 2026-04-27T22:36:09+00:00  
 
 ## Log
-- `18:44:00`   zip: 4121 bytes
+- `22:36:04`   zip: 4795 bytes
 ## 1. Lambda
 
-- `18:44:00`   Lambda missing — creating
-- `18:44:05` ✅   ✓ created justhodl-options-gamma
-- `18:44:05` ✅   ✓ reserved concurrency = 1
-- `18:44:05` ✅   ✓ Function URL: https://fmgo6obv33snuh6llbgu4vgtm40zwgzu.lambda-url.us-east-1.on.aws/
+- `22:36:04`   Lambda exists — updating
+- `22:36:07` ✅   ✓ updated justhodl-options-gamma
+- `22:36:07` ✅   ✓ reserved concurrency = 1
 ## 2. EB rule + permissions
 
-- `18:44:06` ✅   ✓ created rule justhodl-options-gamma-30min
-- `18:44:06` ✅   ✓ target → justhodl-options-gamma
-- `18:44:06` ✅   ✓ added invoke permission
+- `22:36:08`   rule already correct: justhodl-options-gamma-30min (rate(30 minutes))
+- `22:36:08` ✅   ✓ target → justhodl-options-gamma
+- `22:36:08` ✅   ✓ added invoke permission
 ## 3. Smoke test
 
-- `18:44:06`   invoking justhodl-options-gamma…
-- `18:44:07` ✅   ✓ smoke test passed
-- `18:44:07`     error                    Empty options snapshot
+- `22:36:08`   invoking justhodl-options-gamma…
+- `22:36:09` ✅   ✓ smoke test passed
+- `22:36:09`     ok                       True
+- `22:36:09`     market_closed            True
