@@ -1,0 +1,551 @@
+{
+  "generated_at": "2026-04-27T22:32:27.821290+00:00",
+  "s3_results": [
+    {
+      "key": "data/options-gamma.json",
+      "status": "missing",
+      "issues": [
+        "404 not found"
+      ]
+    },
+    {
+      "key": "data/exchange-flows.json",
+      "status": "size_too_small",
+      "age_hours": 0.36,
+      "size_bytes": 244,
+      "issues": [
+        "size 244 < expected 5000"
+      ]
+    },
+    {
+      "key": "data/report.json",
+      "status": "ok",
+      "age_hours": 0.02,
+      "size_bytes": 1752162,
+      "issues": []
+    },
+    {
+      "key": "crypto-intel.json",
+      "status": "ok",
+      "age_hours": 0.12,
+      "size_bytes": 49324,
+      "issues": []
+    },
+    {
+      "key": "edge-data.json",
+      "status": "ok",
+      "age_hours": 0.47,
+      "size_bytes": 1931,
+      "issues": []
+    },
+    {
+      "key": "data/insider-trades.json",
+      "status": "ok",
+      "age_hours": 0.47,
+      "size_bytes": 4407,
+      "issues": []
+    },
+    {
+      "key": "repo-data.json",
+      "status": "ok",
+      "age_hours": 0.02,
+      "size_bytes": 35511,
+      "issues": []
+    },
+    {
+      "key": "flow-data.json",
+      "status": "ok",
+      "age_hours": 0.07,
+      "size_bytes": 26196,
+      "issues": []
+    },
+    {
+      "key": "intelligence-report.json",
+      "status": "ok",
+      "age_hours": 0.44,
+      "size_bytes": 4647,
+      "issues": []
+    },
+    {
+      "key": "screener/data.json",
+      "status": "ok",
+      "age_hours": 2.98,
+      "size_bytes": 373121,
+      "issues": []
+    },
+    {
+      "key": "valuations-data.json",
+      "status": "ok",
+      "age_hours": 632.52,
+      "size_bytes": 2188,
+      "issues": []
+    },
+    {
+      "key": "calibration/latest.json",
+      "status": "ok",
+      "age_hours": 33.45,
+      "size_bytes": 5459,
+      "issues": []
+    },
+    {
+      "key": "learning/last_log_run.json",
+      "status": "ok",
+      "age_hours": 1.36,
+      "size_bytes": 80,
+      "issues": []
+    },
+    {
+      "key": "predictions.json",
+      "status": "ok",
+      "age_hours": 101.61,
+      "size_bytes": 14351,
+      "issues": []
+    },
+    {
+      "key": "data.json",
+      "status": "ok",
+      "age_hours": 1641.52,
+      "size_bytes": 60635,
+      "issues": []
+    },
+    {
+      "key": "data/gdelt-news.json",
+      "status": "ok",
+      "age_hours": 0.31,
+      "size_bytes": 6408,
+      "issues": []
+    },
+    {
+      "key": "data/aaii-sentiment.json",
+      "status": "ok",
+      "age_hours": 0.6,
+      "size_bytes": 719,
+      "issues": []
+    },
+    {
+      "key": "data/dealer-survey.json",
+      "status": "ok",
+      "age_hours": 3.81,
+      "size_bytes": 776,
+      "issues": []
+    },
+    {
+      "key": "data/price-redundancy.json",
+      "status": "ok",
+      "age_hours": 0.04,
+      "size_bytes": 2659,
+      "issues": []
+    },
+    {
+      "key": "data/onchain-ratios.json",
+      "status": "ok",
+      "age_hours": 3.8,
+      "size_bytes": 444,
+      "issues": []
+    },
+    {
+      "key": "data/oecd-cli.json",
+      "status": "ok",
+      "age_hours": 3.72,
+      "size_bytes": 2018,
+      "issues": []
+    },
+    {
+      "key": "data/labor-leading.json",
+      "status": "ok",
+      "age_hours": 3.81,
+      "size_bytes": 496,
+      "issues": []
+    },
+    {
+      "key": "data/institutional-positions.json",
+      "status": "ok",
+      "age_hours": 3.78,
+      "size_bytes": 8831,
+      "issues": []
+    },
+    {
+      "key": "data/8k-filings.json",
+      "status": "ok",
+      "age_hours": 0.29,
+      "size_bytes": 124668,
+      "issues": []
+    },
+    {
+      "key": "data/10kq-filings.json",
+      "status": "ok",
+      "age_hours": 3.78,
+      "size_bytes": 45460,
+      "issues": []
+    },
+    {
+      "key": "data/redflag-alerts.json",
+      "status": "ok",
+      "age_hours": 0.09,
+      "size_bytes": 650,
+      "issues": []
+    },
+    {
+      "key": "data/backtest-summary.json",
+      "status": "ok",
+      "age_hours": 0.5,
+      "size_bytes": 705,
+      "issues": []
+    },
+    {
+      "key": "data/liquidity-flow.json",
+      "status": "ok",
+      "age_hours": 0.32,
+      "size_bytes": 15597,
+      "issues": []
+    },
+    {
+      "key": "data/vix-curve.json",
+      "status": "ok",
+      "age_hours": 0.35,
+      "size_bytes": 505,
+      "issues": []
+    }
+  ],
+  "lambda_results": [
+    {
+      "name": "justhodl-daily-report-v3",
+      "status": "ok",
+      "invocations_24h": 289,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 114266.0,
+      "max_duration_ms": 321694.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-26T12:52:31.000+0000",
+      "issues": [
+        "max duration 321.7s \u2014 near timeout?"
+      ]
+    },
+    {
+      "name": "justhodl-signal-logger",
+      "status": "ok",
+      "invocations_24h": 4,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 12977.0,
+      "max_duration_ms": 15887.0,
+      "last_invocation": "2026-04-27T20:32:00+00:00",
+      "last_modified": "2026-04-26T21:42:35.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-outcome-checker",
+      "status": "ok",
+      "invocations_24h": 1,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 22951.0,
+      "max_duration_ms": 22951.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-25T10:27:42.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-calibrator",
+      "status": "dead",
+      "invocations_24h": 0,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 0.0,
+      "max_duration_ms": 0,
+      "last_invocation": null,
+      "last_modified": "2026-04-26T13:04:44.000+0000",
+      "issues": [
+        "no invocations in 24h"
+      ]
+    },
+    {
+      "name": "justhodl-intelligence",
+      "status": "ok",
+      "invocations_24h": 12,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 978.0,
+      "max_duration_ms": 1093.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-26T12:52:38.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-crypto-intel",
+      "status": "ok",
+      "invocations_24h": 96,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 39060.0,
+      "max_duration_ms": 50130.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T16:52:43.000+0000",
+      "issues": [
+        "max duration 50.1s \u2014 near timeout?"
+      ]
+    },
+    {
+      "name": "justhodl-edge-engine",
+      "status": "ok",
+      "invocations_24h": 7,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 2471.0,
+      "max_duration_ms": 5637.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-25T11:31:30.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-insider-trades",
+      "status": "ok",
+      "invocations_24h": 14,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 10609.0,
+      "max_duration_ms": 24183.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T21:56:19.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-repo-monitor",
+      "status": "ok",
+      "invocations_24h": 21,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 35551.0,
+      "max_duration_ms": 82007.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-25T10:26:35.000+0000",
+      "issues": [
+        "max duration 82.0s \u2014 near timeout?"
+      ]
+    },
+    {
+      "name": "justhodl-ai-chat",
+      "status": "ok",
+      "invocations_24h": 10,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 582.0,
+      "max_duration_ms": 723.0,
+      "last_invocation": "2026-04-27T20:32:00+00:00",
+      "last_modified": "2026-04-25T10:20:11.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-gdelt-sentiment",
+      "status": "ok",
+      "invocations_24h": 10,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 1374.0,
+      "max_duration_ms": 1709.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T18:48:48.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-aaii-sentiment",
+      "status": "ok",
+      "invocations_24h": 4,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 1227.0,
+      "max_duration_ms": 1651.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T21:56:10.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-nyfed-dealer-survey",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 838.0,
+      "max_duration_ms": 1456.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:43:38.359+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-price-redundancy",
+      "status": "ok",
+      "invocations_24h": 18,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 3008.0,
+      "max_duration_ms": 13277.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T18:49:09.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-onchain-ratios",
+      "status": "ok",
+      "invocations_24h": 1,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 1806.0,
+      "max_duration_ms": 1806.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:43:52.485+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-options-gamma",
+      "status": "ok",
+      "invocations_24h": 9,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 427.0,
+      "max_duration_ms": 543.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T22:21:26.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-oecd-cli",
+      "status": "ok",
+      "invocations_24h": 3,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 3170.0,
+      "max_duration_ms": 7863.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:48:55.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-labor-leading",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 2292.0,
+      "max_duration_ms": 2478.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:43:29.450+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-sec-13f",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 971.0,
+      "max_duration_ms": 1275.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:44:30.039+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-sec-8k",
+      "status": "ok",
+      "invocations_24h": 9,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 2649.0,
+      "max_duration_ms": 20517.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T18:44:37.963+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-sec-10kq",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 13971.0,
+      "max_duration_ms": 20003.0,
+      "last_invocation": "2026-04-27T18:32:00+00:00",
+      "last_modified": "2026-04-27T18:44:15.326+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-redflag-alerter",
+      "status": "ok",
+      "invocations_24h": 3,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 770.0,
+      "max_duration_ms": 1609.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T21:56:29.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-backtest-harness",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 14723.0,
+      "max_duration_ms": 25512.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T22:01:34.967+0000",
+      "issues": [
+        "max duration 25.5s \u2014 near timeout?"
+      ]
+    },
+    {
+      "name": "justhodl-liquidity-flow",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 3296.0,
+      "max_duration_ms": 4022.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T22:12:33.000+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-exchange-flows",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 571.0,
+      "max_duration_ms": 964.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T22:10:10.964+0000",
+      "issues": []
+    },
+    {
+      "name": "justhodl-vix-curve",
+      "status": "ok",
+      "invocations_24h": 2,
+      "errors_24h": 0,
+      "error_rate_pct": 0.0,
+      "avg_duration_ms": 2154.0,
+      "max_duration_ms": 2942.0,
+      "last_invocation": "2026-04-27T21:32:00+00:00",
+      "last_modified": "2026-04-27T22:10:26.924+0000",
+      "issues": []
+    }
+  ],
+  "html_broken_refs": [
+    {
+      "page": "signals.html",
+      "missing_key": "data/options-gamma.json"
+    },
+    {
+      "page": "today.html",
+      "missing_key": "data/options-gamma.json"
+    }
+  ],
+  "summary": {
+    "s3_total": 29,
+    "s3_with_issues": 2,
+    "lambda_total": 26,
+    "lambda_with_issues": 1,
+    "html_broken_refs": 2
+  }
+}
