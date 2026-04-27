@@ -354,8 +354,8 @@ EXPECTATIONS = {
         "key": "data/options-gamma.json",
         "fresh_max": 2400,
         "warn_max": 86400,
-        "expected_size": 5000,
-        "note": "SPY dealer gamma exposure (GEX). justhodl-options-gamma every 30min market hours.",
+        "expected_size": 300,
+        "note": "SPY dealer gamma exposure (GEX). Off-hours produces ~400-byte marker; market hours produces 10-50KB chain.",
         "severity": "important",
     },
     "s3:data/oecd-cli.json": {
