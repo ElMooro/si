@@ -151,19 +151,26 @@ def fetch_recent_form4_filings():
         link_el = entry.find("a:link", ns)
         link = (link_el.get("href") if link_el is not None else "") or ""
         updated = entry.findtext("a:updated", default="", namespaces=ns)
+        id_text = (entry.findtext("a:id", default="", namespaces=ns) or "").strip()
+        summary = (entry.findtext("a:summary", default="", namespaces=ns) or "").strip()
 
-        # Extract CIK + accession from link
-        # link format: https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000320193&...
-        # OR: https://www.sec.gov/Archives/edgar/data/320193/000032019326000001-index.htm
-        m_acc = re.search(r"/data/(\d+)/(\d{10}-\d{2}-\d{6})", link)
-        m_acc2 = re.search(r"accession-number=(\d{10}-\d{2}-\d{6})", link)
-        cik_match = re.search(r"CIK=(\d+)", link) or re.search(r"/data/(\d+)/", link)
-
+        # Accession number lives in the <id> field as
+        #   urn:tag:sec.gov,2008:accession-number=0001127602-26-012345
+        # Falls back to <summary> body which contains "AccNo: NNNNNNNNNN-NN-NNNNNN"
+        # and to <link> href as a final attempt.
         accession = None
-        if m_acc:
-            accession = m_acc.group(2)
-        elif m_acc2:
-            accession = m_acc2.group(1)
+        for source_text in (id_text, summary, link):
+            m = re.search(r"\b(\d{10}-\d{2}-\d{6})\b", source_text)
+            if m:
+                accession = m.group(1)
+                break
+
+        # Filer CIK extraction. The atom <link> for /cgi-bin/browse-edgar entries
+        # has CIK= as a query param. The title also contains CIK in parentheses
+        # like 'WARREN BUFFETT (0001067983)'. Try both.
+        cik_match = (re.search(r"CIK=(\d+)", link)
+                     or re.search(r"/data/(\d+)/", link)
+                     or re.search(r"\((\d{10})\)", title))
         cik = cik_match.group(1) if cik_match else None
 
         if not accession or not cik:
