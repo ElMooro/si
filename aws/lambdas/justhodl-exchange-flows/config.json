@@ -1,0 +1,22 @@
+{
+  "name": "justhodl-exchange-flows",
+  "function_name": "justhodl-exchange-flows",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 180,
+  "timeout_s": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": ["justhodl-exchange-flows-6h"],
+  "description": "Net BTC/ETH exchange flows — CoinMetrics community API. Active-supply momentum + price momentum → accumulation/distribution/quiet regime."
+}

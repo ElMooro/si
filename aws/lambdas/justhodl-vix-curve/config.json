@@ -1,0 +1,22 @@
+{
+  "name": "justhodl-vix-curve",
+  "function_name": "justhodl-vix-curve",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "memory_mb": 256,
+  "timeout": 120,
+  "timeout_s": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": ["justhodl-vix-curve-4h"],
+  "description": "VIX term structure (^VIX9D / ^VIX / ^VIX3M / ^VIX6M / ^VVIX). Slopes + regime classification (steep/mild contango / flat / backwardation)."
+}

@@ -533,6 +533,59 @@ EXPECTATIONS = {
         "note": "Daily backtest snapshot + forward-return tracker. DDB justhodl-backtest.",
         "severity": "important",
     },
+
+    # ─── Tier 3 — liquidity / exchange flows / VIX curve ──────
+    "s3:data/liquidity-flow.json": {
+        "type": "s3_file",
+        "key": "data/liquidity-flow.json",
+        "fresh_max": 90000,
+        "warn_max": 172800,
+        "expected_size": 5000,
+        "note": "TGA + RRP + WALCL liquidity tracker. justhodl-liquidity-flow daily.",
+        "severity": "important",
+    },
+    "s3:data/exchange-flows.json": {
+        "type": "s3_file",
+        "key": "data/exchange-flows.json",
+        "fresh_max": 25200,
+        "warn_max": 86400,
+        "expected_size": 5000,
+        "note": "Net BTC/ETH exchange flows. justhodl-exchange-flows every 6h.",
+        "severity": "important",
+    },
+    "s3:data/vix-curve.json": {
+        "type": "s3_file",
+        "key": "data/vix-curve.json",
+        "fresh_max": 16200,
+        "warn_max": 36000,
+        "expected_size": 200,
+        "note": "VIX term structure (9D/30D/3M/6M/VVIX). justhodl-vix-curve every 4h.",
+        "severity": "important",
+    },
+    "lambda:justhodl-liquidity-flow": {
+        "type": "lambda",
+        "name": "justhodl-liquidity-flow",
+        "max_error_rate": 0.3,
+        "min_invocations_24h": 1,
+        "note": "TGA+RRP+WALCL liquidity daily tracker.",
+        "severity": "important",
+    },
+    "lambda:justhodl-exchange-flows": {
+        "type": "lambda",
+        "name": "justhodl-exchange-flows",
+        "max_error_rate": 0.3,
+        "min_invocations_24h": 4,
+        "note": "BTC/ETH exchange flows 6h tracker.",
+        "severity": "important",
+    },
+    "lambda:justhodl-vix-curve": {
+        "type": "lambda",
+        "name": "justhodl-vix-curve",
+        "max_error_rate": 0.3,
+        "min_invocations_24h": 6,
+        "note": "VIX term structure 4h tracker.",
+        "severity": "important",
+    },
 }
 
 

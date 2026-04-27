@@ -163,11 +163,11 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 <main class="shell">
 
   <section class="hero">
-    <div class="hero-eyebrow">11 free + cheap data sources · live</div>
+    <div class="hero-eyebrow">14 free + cheap data sources · live</div>
     <h1 class="hero-title">The data <em>hedge funds pay $50k+/year</em> for. Free, here, explained.</h1>
     <p class="hero-blurb">Each card below is an independent data integration that runs on its own AWS Lambda, writes to S3 every interval, and is monitored by the platform's health system. <strong>Combined, they multiply the signal of any single source.</strong> Numbers tap to the underlying full-detail pages where available.</p>
     <div class="kpi-strip" id="kpi-strip">
-      <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">11</span><span class="kpi-sub">Tier S + A complete</span></div>
+      <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">14</span><span class="kpi-sub">Tier S + A + 3 complete</span></div>
       <div class="kpi"><span class="kpi-label">Updates / day</span><span class="kpi-val skel">—</span><span class="kpi-sub">aggregate</span></div>
       <div class="kpi"><span class="kpi-label">Data points</span><span class="kpi-val skel">—</span><span class="kpi-sub">in current window</span></div>
       <div class="kpi"><span class="kpi-label">Signal status</span><span class="kpi-val skel">—</span><span class="kpi-sub">as of now</span></div>
@@ -297,6 +297,33 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
     </div>
   </section>
 
+  <!-- ─── TIER 3 — LIQUIDITY + CRYPTO FLOWS + VIX CURVE ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Liquidity & Volatility Regime</div>
+    <h2 class="section-title">Where the money is flowing, where vol is pricing</h2>
+    <p class="section-blurb">Three regime indicators that tend to lead risk-asset performance: net Fed liquidity (WALCL minus TGA minus RRP), BTC/ETH exchange flow regime (accumulation vs distribution), and the shape of the VIX futures curve (contango vs backwardation).</p>
+    <div class="cards">
+      <article class="card t-macro fade-in" id="card-liq">
+        <div class="card-head"><div><div class="card-eyebrow">FRED · daily</div><div class="card-name">Net Fed liquidity (WALCL − TGA − RRP)</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="liq-headline">—</div>
+        <div class="card-blurb" id="liq-blurb">When net liquidity expands, risk assets benefit. When it drains, they struggle. 30-day delta is the cleanest signal.</div>
+        <div class="card-meta"><span id="liq-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-flow.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-crypto fade-in" id="card-xflow">
+        <div class="card-head"><div><div class="card-eyebrow">CoinMetrics · 6h</div><div class="card-name">BTC + ETH exchange flows</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="xf-headline">—</div>
+        <div class="card-blurb" id="xf-blurb">Active supply momentum + price momentum → accumulation (bullish) or distribution (bearish) regime classification.</div>
+        <div class="card-meta"><span id="xf-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/exchange-flows.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-options fade-in" id="card-vixcurve">
+        <div class="card-head"><div><div class="card-eyebrow">CBOE via Yahoo · 4h</div><div class="card-name">VIX term structure</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="vc-headline">—</div>
+        <div class="card-blurb" id="vc-blurb">Backwardation = stress now (~80% of equity drawdowns). Steep contango = vol-selling regime. Curve shape ≠ spot VIX.</div>
+        <div class="card-meta"><span id="vc-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/vix-curve.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
   <!-- ─── SECTOR ROTATION (cross-source consensus) ─── -->
   <section class="section">
     <div class="section-eyebrow">Cross-source consensus</div>
@@ -307,7 +334,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 
   <footer class="foot">
     <div class="foot-grid">
-      <div class="foot-section"><span class="foot-label">All sources</span><span><strong>11 Lambdas</strong> · all idempotent</span><span><strong>Auto-deploy</strong> via deploy-lambdas.yml</span></div>
+      <div class="foot-section"><span class="foot-label">All sources</span><span><strong>14 Lambdas</strong> · all idempotent</span><span><strong>Auto-deploy</strong> via deploy-lambdas.yml</span></div>
       <div class="foot-section"><span class="foot-label">Cost</span><span><strong>~$8/month</strong> total compute</span><span>vs ~$50,000/yr Bloomberg</span></div>
       <div class="foot-section"><span class="foot-label">Coverage</span><span><strong>Tier S</strong> 5 sources · free</span><span><strong>Tier A</strong> 4 sources · cheap</span><span>SEC EDGAR · 4 form types</span></div>
       <div class="foot-section"><span class="foot-label">Update</span><span id="foot-refresh">—</span><span><a href="javascript:location.reload()">Refresh now</a></span></div>
@@ -591,10 +618,57 @@ async function buildRotationMap(){
 
 function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
 
+async function loadLiquidity(){
+  const d = await fetchJSON('/data/liquidity-flow.json');
+  if(!d) { setStat('card-liq','neutral','no data'); set('liq-headline','—'); return null; }
+  const r = d.regime || 'unknown';
+  let stat='neutral', label=r;
+  if(r === 'expanding') { stat='good'; label='expanding'; }
+  else if(r === 'draining') { stat='bad'; label='draining'; }
+  setStat('card-liq', stat, label);
+  const cur = d.current || {};
+  set('liq-headline', cur.net_liquidity_b != null ? '$' + (cur.net_liquidity_b/1000).toFixed(1) + 'T' : '—');
+  setHTML('liq-blurb', d.interpretation || 'Liquidity data fetched.');
+  const m1 = (d.deltas || {})['1m'];
+  set('liq-meta', m1 ? `30d Δ: ${m1.net > 0 ? '+' : ''}${m1.net.toFixed(0)}B` : '—');
+  return d;
+}
+async function loadExchangeFlows(){
+  const d = await fetchJSON('/data/exchange-flows.json');
+  if(!d) { setStat('card-xflow','neutral','no data'); set('xf-headline','—'); return null; }
+  const btc = d.btc || {};
+  const r = btc.regime || 'neutral';
+  let stat='neutral', label=r;
+  if(r === 'accumulation') { stat='good'; label='accumulation'; }
+  else if(r === 'distribution') { stat='bad'; label='distribution'; }
+  else if(r === 'quiet') { stat='neutral'; label='quiet'; }
+  setStat('card-xflow', stat, label);
+  set('xf-headline', btc.regime ? r : '—');
+  setHTML('xf-blurb', d.interpretation || 'Exchange flow data fetched.');
+  const eth = d.eth || {};
+  set('xf-meta', `BTC: ${btc.regime || '?'} · ETH: ${eth.regime || '?'}`);
+  return d;
+}
+async function loadVixCurve(){
+  const d = await fetchJSON('/data/vix-curve.json');
+  if(!d) { setStat('card-vixcurve','neutral','no data'); set('vc-headline','—'); return null; }
+  const r = d.regime || 'unknown';
+  let stat='neutral', label=r.replace('_', ' ');
+  if(r === 'backwardation') { stat='bad'; label='backwardation'; }
+  else if(r === 'steep_contango') { stat='good'; label='steep contango'; }
+  else if(r === 'mild_contango') { stat='neutral'; label='mild contango'; }
+  setStat('card-vixcurve', stat, label);
+  set('vc-headline', d.vix_30d != null ? d.vix_30d.toFixed(1) : '—');
+  setHTML('vc-blurb', d.interpretation || 'VIX curve fetched.');
+  set('vc-meta', `9D ${d.vix_9d || '?'} · 30D ${d.vix_30d || '?'} · 3M ${d.vix_3m || '?'}`);
+  return d;
+}
 
+async function refreshAll(){
   const results = await Promise.all([
     loadGdelt(), loadAaii(), loadForm4(), load13F(), load8K(), load10KQ(),
     loadOECD(), loadLabor(), loadNyFed(), loadOnchain(), loadGex(), loadPrices(),
+    loadLiquidity(), loadExchangeFlows(), loadVixCurve(),
   ]);
 
   // After individual sources load, build cross-source consensus
@@ -614,17 +688,17 @@ function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&l
   // Updates per day (rough sum across schedules)
   // 30min Lambdas: 48/day each (×4) = 192
   // 15min: 96 (×1) = 96
-  // 6h: 4 (×1) = 4
+  // 6h: 4 (×2) = 8
   // 30min market hours: 14 (×1) = 14
-  // daily: 1 (×3) = 3
-  // 4h: 6 (×1) = 6
+  // daily: 1 (×4) = 4
+  // 4h: 6 (×2) = 12
   // weekly: 0.14 (×2) = 0.28
-  updatesPerDay = 192 + 96 + 4 + 14 + 3 + 6 + 1; // ~316
+  updatesPerDay = 192 + 96 + 8 + 14 + 4 + 12 + 1; // ~327
   kpi.innerHTML = `
-    <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">11</span><span class="kpi-sub">Tier S + A complete</span></div>
+    <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">14</span><span class="kpi-sub">Tier S + A + 3 complete</span></div>
     <div class="kpi"><span class="kpi-label">Updates / day</span><span class="kpi-val">${updatesPerDay}</span><span class="kpi-sub">aggregate</span></div>
     <div class="kpi"><span class="kpi-label">Data points</span><span class="kpi-val">${fmtN(totalDataPoints)}</span><span class="kpi-sub">in current window</span></div>
-    <div class="kpi"><span class="kpi-label">Live sources</span><span class="kpi-val">${liveCount}<small>/ 12</small></span><span class="kpi-sub">${liveCount === 12 ? 'all green' : liveCount + ' streaming'}</span></div>
+    <div class="kpi"><span class="kpi-label">Live sources</span><span class="kpi-val">${liveCount}<small>/ 15</small></span><span class="kpi-sub">${liveCount === 15 ? 'all green' : liveCount + ' streaming'}</span></div>
   `;
 
   document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
