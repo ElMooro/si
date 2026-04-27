@@ -1,0 +1,40 @@
+{
+  "name": "justhodl-nyfed-dealer-survey",
+  "function_name": "justhodl-nyfed-dealer-survey",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 180,
+  "timeout_s": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": [
+    "justhodl-nyfed-dealer-survey-weekly"
+  ],
+  "description": "NY Fed Survey of Primary Dealers \u2014 quarterly market expectations from the 24 banks moving the most flow. Weekly check for new release."
+}

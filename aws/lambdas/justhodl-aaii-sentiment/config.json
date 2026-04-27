@@ -1,0 +1,40 @@
+{
+  "name": "justhodl-aaii-sentiment",
+  "function_name": "justhodl-aaii-sentiment",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 180,
+  "timeout_s": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": [
+    "justhodl-aaii-sentiment-daily"
+  ],
+  "description": "AAII Investor Sentiment Survey weekly retail bull/bear/neutral. Released Thursdays. Daily check for new release; 26-week z-scores; extreme flags."
+}

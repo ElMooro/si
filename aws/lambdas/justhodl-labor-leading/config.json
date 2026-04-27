@@ -1,0 +1,40 @@
+{
+  "name": "justhodl-labor-leading",
+  "function_name": "justhodl-labor-leading",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 180,
+  "timeout_s": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": [
+    "justhodl-labor-leading-daily"
+  ],
+  "description": "JOLTS + Challenger + Initial Claims labor market leading indicators. Computes openings/unemployed ratio, quits rate z-score, claims 4-week MA trend."
+}

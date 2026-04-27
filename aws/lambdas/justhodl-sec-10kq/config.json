@@ -1,0 +1,40 @@
+{
+  "name": "justhodl-sec-10kq",
+  "function_name": "justhodl-sec-10kq",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 768,
+  "memory_mb": 768,
+  "timeout": 300,
+  "timeout_s": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "*"
+      ],
+      "MaxAge": 86400
+    }
+  },
+  "eventbridge_rules": [
+    "justhodl-sec-10kq-4h"
+  ],
+  "description": "SEC 10-K (annual) + 10-Q (quarterly) + amended (10-K/A, 10-Q/A) filings. Surfaces restatements which often precede stock drawdowns."
+}

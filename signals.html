@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Signals · JustHodl.AI</title>
+<meta name="description" content="Eleven free + cheap data sources hedge funds pay for. Plain English. Live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548; --brd3:#3a4760;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#a855f7; --purple-bg:rgba(168,85,247,.1);
+  --pink:#ec4899; --pink-bg:rgba(236,72,153,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),transparent 50%),radial-gradient(ellipse at 0% 110%,rgba(168,85,247,.03),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--cyan)}
+.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--cyan);font-style:normal}
+
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}
+@media(max-width:700px){.shell{padding:20px 14px 60px}}
+
+.hero{margin-bottom:40px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(28px,4.5vw,46px);line-height:1.05;letter-spacing:-.012em;margin-bottom:14px;max-width:880px}
+.hero-title em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:740px;line-height:1.6;margin-bottom:18px}
+.hero-blurb strong{color:var(--t1);font-weight:600}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:26px}
+.kpi{padding:18px 20px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);letter-spacing:-.01em;line-height:1.05}
+.kpi-val small{font-size:13px;color:var(--t3);font-weight:500;margin-left:4px}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:.5px}
+
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.section-title{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);margin-bottom:6px}
+.section-blurb{font-size:13px;color:var(--t3);margin-bottom:20px;max-width:680px;line-height:1.6}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.card{padding:24px;background:linear-gradient(180deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-radius:14px;border-top-width:3px;transition:transform .15s,border-color .2s;display:flex;flex-direction:column;gap:14px;min-height:240px}
+.card:hover{transform:translateY(-2px);border-color:var(--brd2)}
+.card.t-news{border-top-color:var(--purple)}
+.card.t-sentiment{border-top-color:var(--pink)}
+.card.t-insider{border-top-color:var(--green)}
+.card.t-institutional{border-top-color:var(--cyan)}
+.card.t-events{border-top-color:var(--orange)}
+.card.t-macro{border-top-color:var(--yellow)}
+.card.t-crypto{border-top-color:#f7931a}
+.card.t-options{border-top-color:var(--red)}
+.card.t-labor{border-top-color:var(--green)}
+.card.t-prices{border-top-color:var(--cyan)}
+.card.t-survey{border-top-color:var(--purple)}
+
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.card-name{font-family:var(--display);font-weight:600;font-size:18px;color:var(--t1);letter-spacing:-.005em;line-height:1.25}
+.card-eyebrow{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px}
+.card-stat{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.5px;padding:4px 10px;border-radius:8px;white-space:nowrap;text-transform:uppercase}
+.s-good{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.s-warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.3)}
+.s-bad{background:var(--red-bg);color:var(--red);border:1px solid rgba(255,23,74,.3)}
+.s-neutral{background:var(--bg3);color:var(--t3);border:1px solid var(--brd2)}
+
+.card-headline{font-family:var(--display);font-weight:600;font-size:32px;color:var(--t1);letter-spacing:-.015em;line-height:1}
+.card-headline small{font-size:14px;font-weight:500;color:var(--t3);margin-left:6px}
+.card-blurb{font-size:13px;color:var(--t2);line-height:1.55;flex-grow:1}
+.card-blurb strong{color:var(--t1);font-weight:600}
+
+.card-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:.5px;padding-top:10px;border-top:1px dashed var(--brd2)}
+.card-meta a{color:var(--cyan);text-decoration:none}
+.card-meta a:hover{text-decoration:underline}
+
+.card-mini-bars{display:flex;align-items:flex-end;gap:3px;height:32px;margin:6px 0}
+.card-mini-bar{flex:1;background:var(--bg3);border-radius:2px;min-height:3px;transition:background .2s}
+.card-mini-bar.up{background:var(--green-bg);border-bottom:1px solid var(--green)}
+.card-mini-bar.down{background:var(--red-bg);border-bottom:1px solid var(--red)}
+.card-mini-bar.flat{background:var(--bg3);border-bottom:1px solid var(--t4)}
+
+.skel{background:linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:6px;color:transparent}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.fade-in{animation:fadeIn .8s cubic-bezier(.4,0,.2,1) backwards}
+.fade-in:nth-child(1){animation-delay:.05s}.fade-in:nth-child(2){animation-delay:.10s}
+.fade-in:nth-child(3){animation-delay:.15s}.fade-in:nth-child(4){animation-delay:.20s}
+.fade-in:nth-child(5){animation-delay:.25s}.fade-in:nth-child(6){animation-delay:.30s}
+.fade-in:nth-child(7){animation-delay:.35s}.fade-in:nth-child(8){animation-delay:.40s}
+.fade-in:nth-child(9){animation-delay:.45s}.fade-in:nth-child(10){animation-delay:.50s}
+.fade-in:nth-child(11){animation-delay:.55s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.foot{margin-top:48px;padding:24px;background:var(--bg2);border:1px solid var(--brd);border-radius:14px;font-family:var(--mono);font-size:11px;color:var(--t3);line-height:1.65}
+.foot a{color:var(--cyan);text-decoration:none}
+.foot strong{color:var(--t1)}
+.foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:14px}
+.foot-section{display:flex;flex-direction:column;gap:3px}
+.foot-label{color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:2px}
+
+.thesis{padding:24px 28px;background:linear-gradient(135deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-radius:14px;margin-bottom:32px;position:relative;overflow:hidden}
+.thesis::before{content:'';position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,var(--cyan-bg),transparent 70%);pointer-events:none}
+.thesis h3{font-family:var(--display);font-weight:600;font-size:18px;color:var(--t1);margin-bottom:8px}
+.thesis p{font-size:13px;color:var(--t2);line-height:1.7;max-width:820px}
+.thesis p+p{margin-top:8px}
+.thesis strong{color:var(--t1);font-weight:600}
+.thesis em{color:var(--cyan);font-style:normal;font-weight:500}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/read.html">The Read</a>
+  <a href="/signals.html" class="active">Signals</a>
+  <a href="/insiders.html">Insiders</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/intelligence.html">Intel</a>
+  <a href="/risk.html">Risk</a>
+  <a href="/edge.html">Edge</a>
+  <a href="/flow.html">Flow</a>
+  <a href="/screener/">Screener</a>
+  <a href="/crypto/">Crypto</a>
+</nav>
+
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-eyebrow">11 free + cheap data sources · live</div>
+    <h1 class="hero-title">The data <em>hedge funds pay $50k+/year</em> for. Free, here, explained.</h1>
+    <p class="hero-blurb">Each card below is an independent data integration that runs on its own AWS Lambda, writes to S3 every interval, and is monitored by the platform's health system. <strong>Combined, they multiply the signal of any single source.</strong> Numbers tap to the underlying full-detail pages where available.</p>
+    <div class="kpi-strip" id="kpi-strip">
+      <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">11</span><span class="kpi-sub">Tier S + A complete</span></div>
+      <div class="kpi"><span class="kpi-label">Updates / day</span><span class="kpi-val skel">—</span><span class="kpi-sub">aggregate</span></div>
+      <div class="kpi"><span class="kpi-label">Data points</span><span class="kpi-val skel">—</span><span class="kpi-sub">in current window</span></div>
+      <div class="kpi"><span class="kpi-label">Signal status</span><span class="kpi-val skel">—</span><span class="kpi-sub">as of now</span></div>
+    </div>
+  </section>
+
+  <div class="thesis fade-in">
+    <h3>Why aggregating these matters</h3>
+    <p>Most analysts sit on one data source and trust their gut to weight signals. The <em>real</em> alpha is when independent sources <strong>converge</strong>: insider clusters at companies showing positive 8-K material events, AAII showing extreme bearishness when GDELT shows negative narrative saturation, OECD CLI ticking up while JOLTS layoffs decline. <strong>The combination is worth 10× any single source</strong> because each filters out the others' false positives.</p>
+    <p>This page shows you the latest reading from each source. The <code>justhodl-asymmetric-scorer</code> Lambda will be wired to read these next — turning the aggregate into a single conviction score per ticker.</p>
+  </div>
+
+  <!-- ─── NARRATIVE ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Narrative & Sentiment</div>
+    <h2 class="section-title">What the world is talking about</h2>
+    <p class="section-blurb">Two angles on the same question — what's the market mood right now? GDELT reads a billion news articles a day; AAII surveys retail investors. They diverge often. When they agree at extremes, the signal is strong.</p>
+    <div class="cards">
+      <article class="card t-news fade-in" id="card-gdelt">
+        <div class="card-head"><div><div class="card-eyebrow">GDELT 2.0 · 30 min</div><div class="card-name">Global news sentiment</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="gdelt-headline">—</div>
+        <div class="card-blurb" id="gdelt-blurb">Loading global news pulse from 1B+ articles/day across the world's media…</div>
+        <div class="card-meta"><span id="gdelt-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/gdelt-news.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-sentiment fade-in" id="card-aaii">
+        <div class="card-head"><div><div class="card-eyebrow">AAII Survey · weekly</div><div class="card-name">Retail bull/bear sentiment</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="aaii-headline">—</div>
+        <div class="card-blurb" id="aaii-blurb">Weekly poll of US retail investors. Strongest contrarian signal at extremes.</div>
+        <div class="card-meta"><span id="aaii-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/aaii-sentiment.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─── INSIDER + INSTITUTIONAL ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Smart Money</div>
+    <h2 class="section-title">Where insiders + institutions are positioned</h2>
+    <p class="section-blurb">Form 4 = corporate officers buying their own stock with personal cash. 13F = positions of the largest funds (Berkshire, Bridgewater, Citadel, etc.). When a single insider buy shows up in 13F too, that's stacked conviction.</p>
+    <div class="cards">
+      <article class="card t-insider fade-in" id="card-form4">
+        <div class="card-head"><div><div class="card-eyebrow">SEC Form 4 · 30 min</div><div class="card-name">Insider cluster buys</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="form4-headline">—</div>
+        <div class="card-blurb" id="form4-blurb">Tracking open-market purchases ≥$25k by corporate officers and directors. Cluster = 3+ insiders / 14d.</div>
+        <div class="card-meta"><span id="form4-meta">—</span><a href="/insiders.html">Full →</a></div>
+      </article>
+      <article class="card t-institutional fade-in" id="card-13f">
+        <div class="card-head"><div><div class="card-eyebrow">SEC 13F-HR · daily</div><div class="card-name">Institutional positions</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="i13f-headline">—</div>
+        <div class="card-blurb" id="i13f-blurb">Tracking 18 major funds for new quarterly position filings — Berkshire, Bridgewater, Citadel, Pershing, Soros, Burry, more.</div>
+        <div class="card-meta"><span id="i13f-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/institutional-positions.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─── MATERIAL EVENTS ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Material Events</div>
+    <h2 class="section-title">What's happening at companies right now</h2>
+    <p class="section-blurb">8-Ks disclose acquisitions, leadership changes, accounting issues, restructurings within 4 business days of the event. 10-Ks/Qs are the formal financial statements. Watching for restatements (10-K/A) is the cleanest restatement-risk signal.</p>
+    <div class="cards">
+      <article class="card t-events fade-in" id="card-8k">
+        <div class="card-head"><div><div class="card-eyebrow">SEC 8-K · 30 min</div><div class="card-name">Material event filings</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="k8-headline">—</div>
+        <div class="card-blurb" id="k8-blurb">Item 4.02 (non-reliance) is the killer red flag. Item 5.02 (officer departure) is the ambiguous one. Item 2.02 = preliminary earnings.</div>
+        <div class="card-meta"><span id="k8-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/8k-filings.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-events fade-in" id="card-10kq">
+        <div class="card-head"><div><div class="card-eyebrow">SEC 10-K/Q · 4 hours</div><div class="card-name">Annual + quarterly filings</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="kq-headline">—</div>
+        <div class="card-blurb" id="kq-blurb">Tracking new 10-K, 10-Q + amendments. Amended filings (10-K/A, 10-Q/A) often signal restatements ahead.</div>
+        <div class="card-meta"><span id="kq-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/10kq-filings.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─── MACRO ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Macro Pulse</div>
+    <h2 class="section-title">Where the cycle is turning</h2>
+    <p class="section-blurb">Three independent leading indicators of the business cycle: OECD CLI looks at 38 economies' composite of leading data, JOLTS reads US labor at the job-posting level, and the NY Fed dealer survey captures expectations from the 24 banks moving the most flow.</p>
+    <div class="cards">
+      <article class="card t-macro fade-in" id="card-oecd">
+        <div class="card-head"><div><div class="card-eyebrow">OECD CLI · weekly</div><div class="card-name">Leading indicators 38 economies</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="oecd-headline">—</div>
+        <div class="card-blurb" id="oecd-blurb">>100 = expansion. <100 = slowdown. Inflection points historically precede recessions/recoveries by 6-9 months.</div>
+        <div class="card-meta"><span id="oecd-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/oecd-cli.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-labor fade-in" id="card-labor">
+        <div class="card-head"><div><div class="card-eyebrow">JOLTS + Claims · daily</div><div class="card-name">Labor market leading edge</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="labor-headline">—</div>
+        <div class="card-blurb" id="labor-blurb">Quits rate = worker confidence. Openings/unemployed = labor tightness. 4-week claims MA = real-time recession signal.</div>
+        <div class="card-meta"><span id="labor-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/labor-leading.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-survey fade-in" id="card-nyfed">
+        <div class="card-head"><div><div class="card-eyebrow">NY Fed Dealers · weekly</div><div class="card-name">Primary dealer expectations</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="nyfed-headline">—</div>
+        <div class="card-blurb" id="nyfed-blurb">The 24 banks NY Fed trades with surveyed pre-FOMC. Their consensus = closest thing to "informed market expectations."</div>
+        <div class="card-meta"><span id="nyfed-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/dealer-survey.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ─── CRYPTO + OPTIONS + PRICES ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Market Microstructure</div>
+    <h2 class="section-title">On-chain, dealer gamma, redundant pricing</h2>
+    <p class="section-blurb">The plumbing layer. On-chain ratios reveal accumulation/distribution at extreme MVRV levels. Dealer gamma exposure (GEX) determines whether vol gets crushed or amplified intraday. Redundant prices ensure no Lambda goes blind when FMP rate-limits.</p>
+    <div class="cards">
+      <article class="card t-crypto fade-in" id="card-onchain">
+        <div class="card-head"><div><div class="card-eyebrow">CoinMetrics + mempool · 6h</div><div class="card-name">BTC + ETH on-chain ratios</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="oc-headline">—</div>
+        <div class="card-blurb" id="oc-blurb">Glassnode-equivalent metrics from free public APIs. MVRV >2 = overheated. MVRV <1 = accumulation zone.</div>
+        <div class="card-meta"><span id="oc-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/onchain-ratios.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-options fade-in" id="card-gex">
+        <div class="card-head"><div><div class="card-eyebrow">Polygon · 30 min</div><div class="card-name">SPY dealer gamma (GEX)</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="gex-headline">—</div>
+        <div class="card-blurb" id="gex-blurb">Long gamma = dealers dampen vol. Short gamma = dealers amplify moves. Below zero-gamma strike is the danger zone.</div>
+        <div class="card-meta"><span id="gex-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/options-gamma.json" target="_blank">JSON →</a></div>
+      </article>
+      <article class="card t-prices fade-in" id="card-prices">
+        <div class="card-head"><div><div class="card-eyebrow">Stooq + Yahoo · 15 min</div><div class="card-name">Free price redundancy</div></div><span class="card-stat skel">—</span></div>
+        <div class="card-headline" id="pr-headline">—</div>
+        <div class="card-blurb" id="pr-blurb">23 core tickers including indices, mega-cap, commodities, BTC/ETH, FX, vol, yields. Failover when premium feeds rate-limit.</div>
+        <div class="card-meta"><span id="pr-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/price-redundancy.json" target="_blank">JSON →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot-grid">
+      <div class="foot-section"><span class="foot-label">All sources</span><span><strong>11 Lambdas</strong> · all idempotent</span><span><strong>Auto-deploy</strong> via deploy-lambdas.yml</span></div>
+      <div class="foot-section"><span class="foot-label">Cost</span><span><strong>~$8/month</strong> total compute</span><span>vs ~$50,000/yr Bloomberg</span></div>
+      <div class="foot-section"><span class="foot-label">Coverage</span><span><strong>Tier S</strong> 5 sources · free</span><span><strong>Tier A</strong> 4 sources · cheap</span><span>SEC EDGAR · 4 form types</span></div>
+      <div class="foot-section"><span class="foot-label">Update</span><span id="foot-refresh">—</span><span><a href="javascript:location.reload()">Refresh now</a></span></div>
+    </div>
+    <div style="border-top:1px solid var(--brd);padding-top:14px;margin-top:6px;color:var(--t4);font-size:11px">Not investment advice. JustHodl.AI · Signals v1</div>
+  </footer>
+
+</main>
+
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const fmt$ = v => v == null ? '—' : ('$' + (Math.abs(v) >= 1e9 ? (v/1e9).toFixed(1)+'B' : Math.abs(v) >= 1e6 ? (v/1e6).toFixed(1)+'M' : Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0)+'K' : v.toFixed(0)));
+const fmtN = v => v == null ? '—' : v.toLocaleString();
+const fmtPct = (v, d=1) => v == null ? '—' : ((v*100).toFixed(d) + '%');
+const fmtSign = (v, d=1) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(d);
+
+async function fetchJSON(path){
+  try{ const r = await fetch(BUCKET+path,{cache:'no-cache'}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  catch(e){ console.warn('fetch fail',path,e); return null; }
+}
+
+function setStat(cardId, status, label){
+  const el = document.querySelector(`#${cardId} .card-stat`);
+  if(!el) return;
+  el.className = 'card-stat ' + ({good:'s-good',warn:'s-warn',bad:'s-bad',neutral:'s-neutral'}[status] || 's-neutral');
+  el.textContent = label;
+}
+function set(id, text){ const el = document.getElementById(id); if(el) el.textContent = text; }
+function setHTML(id, html){ const el = document.getElementById(id); if(el) el.innerHTML = html; }
+
+async function loadGdelt(){
+  const d = await fetchJSON('/data/gdelt-news.json');
+  if(!d) { setStat('card-gdelt','neutral','no data'); set('gdelt-headline','—'); set('gdelt-blurb','GDELT pipeline running but no data published yet. Lambda fires every 30 min.'); return null; }
+  const s = d.stats || {};
+  const tone = s.avg_tone ?? 0;
+  const fin = s.financial_articles ?? 0;
+  setStat('card-gdelt', tone > 0.5 ? 'good' : tone < -0.5 ? 'bad' : 'neutral', `tone ${tone.toFixed(1)}`);
+  set('gdelt-headline', `${fin} articles`);
+  setHTML('gdelt-blurb', `Average tone <strong>${tone.toFixed(2)}</strong> on a -100/+100 scale. ${s.extreme_negative||0} extreme negative, ${s.extreme_positive||0} extreme positive. Top themes: <strong>${Object.keys(d.themes||{}).slice(0,3).join(', ') || '—'}</strong>.`);
+  set('gdelt-meta', `Batch ${d.gdelt_timestamp || '—'}`);
+  return d;
+}
+async function loadAaii(){
+  const d = await fetchJSON('/data/aaii-sentiment.json');
+  if(!d) { setStat('card-aaii','neutral','no data'); set('aaii-headline','—'); set('aaii-blurb','AAII pipeline running but no data published yet. Lambda fires daily checking Thursdays for new survey.'); return null; }
+  const l = d.latest || {};
+  const ext = d.extremes || {};
+  let stat='neutral', label='balanced';
+  if(ext.is_bullish_extreme) { stat='warn'; label='bullish extreme'; }
+  else if(ext.is_bearish_extreme) { stat='good'; label='bearish extreme'; }
+  setStat('card-aaii', stat, label);
+  const spread = l.bull_bear_spread || 0;
+  set('aaii-headline', fmtSign(spread*100, 0) + '%');
+  setHTML('aaii-blurb', `Bull-Bear spread <strong>${fmtSign(spread*100, 0)}%</strong>. ${d.interpretation || ''}`);
+  set('aaii-meta', `Week ending ${l.week_ending || '—'}`);
+  return d;
+}
+async function loadForm4(){
+  const d = await fetchJSON('/data/insider-trades.json');
+  if(!d) { setStat('card-form4','neutral','no data'); set('form4-headline','—'); return null; }
+  const s = d.stats || {};
+  const cluster = s.cluster_count || 0;
+  setStat('card-form4', cluster > 5 ? 'good' : cluster > 0 ? 'warn' : 'neutral', `${cluster} clusters`);
+  set('form4-headline', fmt$(s.total_value_usd || 0));
+  setHTML('form4-blurb', `<strong>${cluster} active cluster buys</strong> across <strong>${s.unique_companies || 0}</strong> companies. ${s.total_buys || 0} insider purchases ≥$25k in the last 30 days.`);
+  set('form4-meta', `${s.fetch_duration_s||0}s fetch | ${s.fetch_errors||0} errors`);
+  return d;
+}
+async function load13F(){
+  const d = await fetchJSON('/data/institutional-positions.json');
+  if(!d) { setStat('card-13f','neutral','no data'); set('i13f-headline','—'); return null; }
+  const newCount = (d.new_filings || []).length;
+  setStat('card-13f', newCount > 0 ? 'good' : 'neutral', newCount > 0 ? `${newCount} new` : 'no new');
+  set('i13f-headline', `${d.tracked_funds || 18}`);
+  setHTML('i13f-blurb', `Tracking <strong>${d.tracked_funds || 18}</strong> funds. <strong>${newCount}</strong> new filings since last check. ${d.fetch_errors ? `(${d.fetch_errors} fetch errors — SEC may have rate-limited.)` : ''}`);
+  set('i13f-meta', `${d.filings_seen || 0} fetched`);
+  return d;
+}
+async function load8K(){
+  const d = await fetchJSON('/data/8k-filings.json');
+  if(!d) { setStat('card-8k','neutral','no data'); set('k8-headline','—'); return null; }
+  const s = d.stats || {};
+  const red = s.red_flag_filings || 0;
+  setStat('card-8k', red > 0 ? 'bad' : 'neutral', red > 0 ? `${red} red flags` : 'no red flags');
+  set('k8-headline', `${s.total_filings || 0}`);
+  setHTML('k8-blurb', `<strong>${s.last_24h || 0}</strong> filings in last 24h. <strong>${red}</strong> red flags (Item 4.02 / 1.03 / 5.04). <strong>${s.high_impact_filings || 0}</strong> high-impact (1.01 / 2.01 / 5.02).`);
+  set('k8-meta', `Window: 7 days`);
+  return d;
+}
+async function load10KQ(){
+  const d = await fetchJSON('/data/10kq-filings.json');
+  if(!d) { setStat('card-10kq','neutral','no data'); set('kq-headline','—'); return null; }
+  const s = d.stats || {};
+  const amended = (s.total_10k_amended || 0) + (s.total_10q_amended || 0);
+  setStat('card-10kq', amended > 5 ? 'warn' : 'neutral', amended > 0 ? `${amended} amended` : 'no amended');
+  set('kq-headline', `${s.total || 0}`);
+  setHTML('kq-blurb', `<strong>${s.total_10k || 0}</strong> 10-Ks · <strong>${s.total_10q || 0}</strong> 10-Qs · <strong>${amended}</strong> amended (potential restatements).`);
+  set('kq-meta', `Window: 30 days`);
+  return d;
+}
+async function loadOECD(){
+  const d = await fetchJSON('/data/oecd-cli.json');
+  if(!d) { setStat('card-oecd','neutral','no data'); set('oecd-headline','—'); return null; }
+  const usa = (d.by_country || {}).USA || {};
+  const cli = usa.cli;
+  let stat='neutral', label='neutral';
+  if(cli > 100.5) { stat='good'; label='expansion'; }
+  else if(cli < 99.5) { stat='warn'; label='slowdown'; }
+  setStat('card-oecd', stat, label);
+  set('oecd-headline', cli != null ? cli.toFixed(1) : '—');
+  setHTML('oecd-blurb', `${d.interpretation || 'OECD CLI fetched.'} <strong>Global avg: ${(d.global_avg_cli||0).toFixed(1)}</strong>.`);
+  set('oecd-meta', `As of ${d.as_of_period || '—'}`);
+  return d;
+}
+async function loadLabor(){
+  const d = await fetchJSON('/data/labor-leading.json');
+  if(!d) { setStat('card-labor','neutral','no data'); set('labor-headline','—'); return null; }
+  const r = d.regime || 'neutral';
+  let stat='neutral';
+  if(r === 'tight') stat='good';
+  else if(r === 'deteriorating') stat='bad';
+  else if(r === 'weakening') stat='warn';
+  setStat('card-labor', stat, r);
+  const opu = (d.jolts || {}).openings_per_unemployed;
+  set('labor-headline', opu != null ? opu.toFixed(2) : '—');
+  setHTML('labor-blurb', d.interpretation || 'Labor data published.');
+  set('labor-meta', `Regime: ${r}`);
+  return d;
+}
+async function loadNyFed(){
+  const d = await fetchJSON('/data/dealer-survey.json');
+  if(!d) { setStat('card-nyfed','neutral','no data'); set('nyfed-headline','—'); return null; }
+  const latest = d.latest_survey || {};
+  setStat('card-nyfed', 'neutral', 'tracked');
+  set('nyfed-headline', latest.fomc_date || 'awaiting');
+  setHTML('nyfed-blurb', `Latest survey for FOMC <strong>${latest.fomc_date || '—'}</strong>. Source: <a href="${latest.source_url || '#'}" target="_blank" style="color:var(--cyan)">PDF</a>. ${(d.history || []).length} historical surveys cached.`);
+  set('nyfed-meta', `Last check: ${(d.last_check || d.generated_at || '').slice(0,10)}`);
+  return d;
+}
+async function loadOnchain(){
+  const d = await fetchJSON('/data/onchain-ratios.json');
+  if(!d) { setStat('card-onchain','neutral','no data'); set('oc-headline','—'); return null; }
+  const btc = d.btc || {};
+  const mvrv = btc.mvrv;
+  let stat='neutral', label='fair value';
+  if(mvrv > 2.5) { stat='warn'; label='overheated'; }
+  else if(mvrv < 1) { stat='good'; label='accumulation'; }
+  setStat('card-onchain', stat, label);
+  set('oc-headline', mvrv != null ? mvrv.toFixed(2) : '—');
+  setHTML('oc-blurb', d.interpretation || 'On-chain ratios fetched.');
+  set('oc-meta', `BTC fee ${btc.fee_sat_vb || '—'} sat/vB`);
+  return d;
+}
+async function loadGex(){
+  const d = await fetchJSON('/data/options-gamma.json');
+  if(!d) { setStat('card-gex','neutral','no data'); set('gex-headline','—'); return null; }
+  const r = d.regime || 'neutral';
+  let stat = 'neutral', label = r;
+  if(r === 'long_gamma') { stat='good'; label='long gamma'; }
+  else if(r === 'short_gamma') { stat='warn'; label='short gamma'; }
+  setStat('card-gex', stat, label);
+  const t = d.total_gex;
+  set('gex-headline', t != null ? (t > 0 ? '+' : '') + (t/1e9).toFixed(2) + 'B' : '—');
+  setHTML('gex-blurb', d.interpretation || 'GEX computed.');
+  set('gex-meta', `Spot ${(d.spot||0).toFixed(0)} · Zero-γ ${(d.zero_gamma_strike||0).toFixed(0)}`);
+  return d;
+}
+async function loadPrices(){
+  const d = await fetchJSON('/data/price-redundancy.json');
+  if(!d) { setStat('card-prices','neutral','no data'); set('pr-headline','—'); return null; }
+  const s = d.stats || {};
+  const ok = s.tickers_ok || 0;
+  const total = s.tickers_total || 0;
+  setStat('card-prices', ok === total ? 'good' : ok > total*0.7 ? 'warn' : 'bad', `${ok}/${total} ok`);
+  set('pr-headline', `${ok}/${total}`);
+  setHTML('pr-blurb', `Stooq success: <strong>${fmtPct(s.stooq_success_rate, 0)}</strong> · Yahoo success: <strong>${fmtPct(s.yahoo_success_rate, 0)}</strong>. Failover ready when premium feeds rate-limit.`);
+  set('pr-meta', `${s.fetch_duration_s||0}s fetch`);
+  return d;
+}
+
+async function refreshAll(){
+  const results = await Promise.all([
+    loadGdelt(), loadAaii(), loadForm4(), load13F(), load8K(), load10KQ(),
+    loadOECD(), loadLabor(), loadNyFed(), loadOnchain(), loadGex(), loadPrices(),
+  ]);
+  const liveCount = results.filter(r => r != null).length;
+
+  // KPI strip
+  const kpi = document.getElementById('kpi-strip');
+  let totalDataPoints = 0;
+  let updatesPerDay = 11; // approximation
+  results.forEach(r => {
+    if (!r) return;
+    const s = r.stats || {};
+    totalDataPoints += s.total_filings || s.total_buys || s.tickers_ok || s.financial_articles || s.total || 0;
+  });
+  // Updates per day (rough sum across schedules)
+  // 30min Lambdas: 48/day each (×4) = 192
+  // 15min: 96 (×1) = 96
+  // 6h: 4 (×1) = 4
+  // 30min market hours: 14 (×1) = 14
+  // daily: 1 (×3) = 3
+  // 4h: 6 (×1) = 6
+  // weekly: 0.14 (×2) = 0.28
+  updatesPerDay = 192 + 96 + 4 + 14 + 3 + 6 + 1; // ~316
+  kpi.innerHTML = `
+    <div class="kpi"><span class="kpi-label">Sources Tracked</span><span class="kpi-val">11</span><span class="kpi-sub">Tier S + A complete</span></div>
+    <div class="kpi"><span class="kpi-label">Updates / day</span><span class="kpi-val">${updatesPerDay}</span><span class="kpi-sub">aggregate</span></div>
+    <div class="kpi"><span class="kpi-label">Data points</span><span class="kpi-val">${fmtN(totalDataPoints)}</span><span class="kpi-sub">in current window</span></div>
+    <div class="kpi"><span class="kpi-label">Live sources</span><span class="kpi-val">${liveCount}<small>/ 12</small></span><span class="kpi-sub">${liveCount === 12 ? 'all green' : liveCount + ' streaming'}</span></div>
+  `;
+
+  document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
+}
+
+refreshAll();
+setInterval(refreshAll, 5 * 60 * 1000);
+</script>
+</body>
+</html>

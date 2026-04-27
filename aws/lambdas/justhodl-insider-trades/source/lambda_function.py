@@ -245,8 +245,12 @@ def _pick_form4_xml(filenames):
     return xmls[0]
 
 
-def fetch_form4_xml(filer_cik: str, accession: str):
-    """Fetch the primary Form 4 XML document for a given filing."""
+def fetch_form4_xml(filer_cik: str, accession: str, errlog=None):
+    """Fetch the primary Form 4 XML document for a given filing.
+
+    errlog is an optional dict for surfacing per-error-type counts
+    (used by diagnostic instrumentation).
+    """
     base, index_json_url = _build_filing_paths(filer_cik, accession)
 
     # Prefer the JSON directory listing — most reliable
@@ -256,16 +260,24 @@ def fetch_form4_xml(filer_cik: str, accession: str):
         chosen = _pick_form4_xml(names)
         if chosen:
             return _fetch(base + chosen, accept="application/xml")
+        if errlog is not None:
+            errlog["no_xml_in_listing"] = errlog.get("no_xml_in_listing", 0) + 1
+    except urllib.error.HTTPError as e:
+        if errlog is not None:
+            errlog[f"http_{e.code}_index"] = errlog.get(f"http_{e.code}_index", 0) + 1
+    except urllib.error.URLError as e:
+        if errlog is not None:
+            errlog["url_err_index"] = errlog.get("url_err_index", 0) + 1
     except Exception as e:
-        # JSON index fetch failed → fall back to scraping the HTML index
-        pass
+        if errlog is not None:
+            etype = type(e).__name__
+            errlog[f"err_index_{etype}"] = errlog.get(f"err_index_{etype}", 0) + 1
 
     # Fallback: scrape the HTML index page for .xml links
     try:
         html = _fetch(base + "/", accept="text/html").decode("utf-8", errors="ignore")
         f = _AnchorFinder()
         f.feed(html)
-        # Strip any leading path from candidates and pick best
         cleaned = [c.split("/")[-1] for c in f.candidates]
         chosen = _pick_form4_xml(cleaned)
         if chosen:
@@ -276,8 +288,13 @@ def fetch_form4_xml(filer_cik: str, accession: str):
                     if cand.startswith("http"):
                         return _fetch(cand, accept="application/xml")
                     return _fetch(base + chosen, accept="application/xml")
-    except Exception:
-        pass
+    except urllib.error.HTTPError as e:
+        if errlog is not None:
+            errlog[f"http_{e.code}_html"] = errlog.get(f"http_{e.code}_html", 0) + 1
+    except Exception as e:
+        if errlog is not None:
+            etype = type(e).__name__
+            errlog[f"err_html_{etype}"] = errlog.get(f"err_html_{etype}", 0) + 1
     return None
 
 
@@ -543,6 +560,7 @@ def lambda_handler(event, context):
         "buys_kept": 0,
         "sells_kept": 0,
     }
+    errlog = {}  # per-error-type counter — see fetch_form4_xml
 
     def process(filing):
         diag["filings_seen"] += 1
@@ -551,7 +569,7 @@ def lambda_handler(event, context):
             # NOT what's in filing["cik"] (which can be the issuer CIK from atom).
             # SEC archives every filing under the filer's CIK directory.
             filer_cik = filing["accession"].split("-")[0]
-            xml = fetch_form4_xml(filer_cik, filing["accession"])
+            xml = fetch_form4_xml(filer_cik, filing["accession"], errlog=errlog)
             if not xml:
                 return None
             diag["xml_fetched"] += 1
@@ -709,6 +727,7 @@ def lambda_handler(event, context):
             "fetch_errors": fetch_errors,
             "fetch_duration_s": round(time.time() - started, 1),
             "diagnostics": diag,
+            "fetch_errlog": errlog,
             "atom_feed_count": len(filings),
         },
         "clusters": clusters[:30],
