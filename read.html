@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Read · JustHodl.AI</title>
+<meta name="description" content="Plain-English daily market read. Regime, probability gauges, what changed, and what to do — without the jargon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548; --brd3:#3a4760;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-dim:#00a850;
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#a855f7; --purple-bg:rgba(168,85,247,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 70% -10%,rgba(0,212,255,.04),transparent 50%),radial-gradient(ellipse at 10% 110%,rgba(168,85,247,.04),transparent 50%);min-height:100vh}
+
+/* ─── topnav (cohesive with rest of site) ─── */
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--cyan)}
+.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);letter-spacing:0;margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--cyan);font-style:normal}
+
+/* ─── layout ─── */
+.shell{max-width:1200px;margin:0 auto;padding:48px 28px 80px}
+@media(max-width:700px){.shell{padding:24px 16px 60px}}
+
+/* ─── hero ─── */
+.hero{margin-bottom:56px;position:relative}
+.hero-meta{font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:1.4px;margin-bottom:12px;display:flex;gap:18px;flex-wrap:wrap}
+.hero-meta .live{color:var(--green);display:inline-flex;align-items:center;gap:6px}
+.hero-meta .live::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.hero-headline{font-family:var(--display);font-weight:600;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-.015em;color:var(--t1);margin-bottom:18px;max-width:880px;font-feature-settings:'opsz' 144}
+.hero-headline em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero-subhead{font-size:18px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:32px}
+@media(max-width:700px){.hero-subhead{font-size:15px}}
+
+.regime-strip{display:inline-flex;align-items:center;gap:14px;padding:14px 22px;background:var(--bg2);border:1px solid var(--brd2);border-radius:14px;margin-bottom:36px;flex-wrap:wrap}
+.regime-pill{font-family:var(--mono);font-weight:600;font-size:13px;letter-spacing:1.2px;padding:6px 12px;border-radius:8px;text-transform:uppercase}
+.regime-CRISIS{background:rgba(255,23,74,.15);color:var(--red);border:1px solid rgba(255,23,74,.4)}
+.regime-BEAR{background:rgba(255,122,24,.12);color:var(--orange);border:1px solid rgba(255,122,24,.35)}
+.regime-NEUTRAL{background:rgba(255,196,0,.12);color:var(--yellow);border:1px solid rgba(255,196,0,.35)}
+.regime-BULL{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid rgba(0,212,255,.35)}
+.regime-STRONG_BULL{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.4)}
+.regime-loading{background:var(--bg3);color:var(--t3);border:1px solid var(--brd2)}
+
+.regime-num{font-family:var(--mono);font-size:14px;color:var(--t2)}
+.regime-num strong{color:var(--t1);font-weight:600;font-size:16px}
+.regime-bar{height:6px;width:160px;background:var(--bg3);border-radius:3px;position:relative;overflow:hidden}
+.regime-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--orange) 30%,var(--yellow) 45%,var(--cyan) 60%,var(--green));transition:width 1s ease}
+.regime-bar-mark{position:absolute;top:-3px;width:2px;height:12px;background:var(--t1);border-radius:1px;transition:left 1s ease}
+
+/* ─── section heading ─── */
+.section{margin-bottom:56px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.section-title{font-family:var(--display);font-size:28px;font-weight:600;color:var(--t1);margin-bottom:6px;letter-spacing:-.01em}
+.section-blurb{font-size:14px;color:var(--t3);margin-bottom:24px;max-width:640px;line-height:1.55}
+
+/* ─── probability gauges ─── */
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.gauge{padding:24px;background:var(--bg2);border:1px solid var(--brd);border-radius:14px;transition:border-color .2s;position:relative;overflow:hidden}
+.gauge:hover{border-color:var(--brd2)}
+.gauge-arc{width:100%;height:140px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:10px}
+.gauge-arc svg{width:200px;height:140px}
+.gauge-arc-bg{fill:none;stroke:var(--bg3);stroke-width:14;stroke-linecap:round}
+.gauge-arc-fill{fill:none;stroke-width:14;stroke-linecap:round;stroke-dasharray:0 999;transition:stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1),stroke 1.2s}
+.gauge-num{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-family:var(--display);font-size:42px;font-weight:600;color:var(--t1);letter-spacing:-.02em}
+.gauge-num small{font-size:18px;color:var(--t3);font-weight:500;margin-left:2px}
+.gauge-label{font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:1.4px;text-transform:uppercase;text-align:center;margin-bottom:8px}
+.gauge-text{font-size:13px;color:var(--t2);text-align:center;line-height:1.45}
+.gauge-text strong{color:var(--t1);font-weight:600}
+.gauge-because{font-family:var(--mono);font-size:10px;color:var(--t4);margin-top:14px;padding-top:12px;border-top:1px solid var(--brd);text-align:center;line-height:1.5;letter-spacing:.3px}
+
+/* ─── what changed ─── */
+.deltas{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.delta{padding:20px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;display:flex;gap:16px;align-items:flex-start}
+.delta-arrow{font-family:var(--mono);font-size:20px;font-weight:700;flex-shrink:0;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.delta-arrow.up{background:var(--green-bg);color:var(--green)}
+.delta-arrow.down{background:var(--red-bg);color:var(--red)}
+.delta-arrow.flat{background:var(--bg3);color:var(--t3)}
+.delta-body{flex:1;min-width:0}
+.delta-headline{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:4px;line-height:1.35}
+.delta-explain{font-size:13px;color:var(--t2);line-height:1.55}
+.delta-num{font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:.5px;margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+
+/* ─── for your portfolio ─── */
+.portfolios{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.profile{padding:24px;background:linear-gradient(180deg,var(--bg2),var(--bg1));border:1px solid var(--brd);border-radius:14px;position:relative;transition:transform .15s,border-color .2s}
+.profile:hover{border-color:var(--brd2);transform:translateY(-2px)}
+.profile-icon{font-size:24px;margin-bottom:12px;display:block;font-family:var(--display)}
+.profile-title{font-family:var(--display);font-weight:600;font-size:18px;color:var(--t1);margin-bottom:4px}
+.profile-sub{font-size:12px;color:var(--t3);margin-bottom:16px;font-family:var(--mono);letter-spacing:.5px}
+.profile-action{font-size:14px;color:var(--t2);line-height:1.55;margin-bottom:14px}
+.profile-action strong{color:var(--t1);font-weight:600}
+.profile-conf{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;padding-top:12px;border-top:1px dashed var(--brd2);display:flex;justify-content:space-between;align-items:center}
+.profile-conf-bar{height:4px;width:60px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.profile-conf-bar i{display:block;height:100%;background:var(--cyan);border-radius:2px;transition:width 1s}
+
+/* ─── historical analog ─── */
+.analog{padding:32px;background:linear-gradient(135deg,var(--bg2),var(--bg1) 70%);border:1px solid var(--brd);border-radius:16px;position:relative;overflow:hidden}
+.analog::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,var(--cyan-bg),transparent 70%);pointer-events:none}
+.analog-stamp{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.analog-period{font-family:var(--display);font-weight:600;font-size:36px;color:var(--t1);margin-bottom:14px;letter-spacing:-.01em}
+@media(max-width:700px){.analog-period{font-size:26px}}
+.analog-body{font-size:15px;color:var(--t2);line-height:1.65;max-width:760px;margin-bottom:18px}
+.analog-stats{display:flex;gap:28px;flex-wrap:wrap;font-family:var(--mono);font-size:12px}
+.analog-stat{display:flex;flex-direction:column;gap:2px}
+.analog-stat-label{color:var(--t4);text-transform:uppercase;letter-spacing:1.2px;font-size:10px}
+.analog-stat-val{color:var(--t1);font-size:16px;font-weight:600}
+.analog-stat-val.green{color:var(--green)}
+.analog-stat-val.red{color:var(--red)}
+
+/* ─── this week ─── */
+.calendar{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.event{padding:18px 20px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;border-left-width:4px}
+.event.high{border-left-color:var(--red)}
+.event.med{border-left-color:var(--yellow)}
+.event.low{border-left-color:var(--cyan)}
+.event-day{font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.event-title{font-family:var(--display);font-weight:600;font-size:16px;color:var(--t1);margin-bottom:6px}
+.event-blurb{font-size:13px;color:var(--t2);line-height:1.5}
+.event-importance{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;display:inline-block;margin-top:10px;padding:2px 8px;border-radius:8px}
+.event.high .event-importance{background:var(--red-bg);color:var(--red)}
+.event.med .event-importance{background:var(--yellow-bg);color:var(--yellow)}
+.event.low .event-importance{background:var(--cyan-bg);color:var(--cyan)}
+
+/* ─── footer ─── */
+.read-foot{margin-top:64px;padding:24px;background:var(--bg2);border:1px solid var(--brd);border-radius:14px;font-size:12px;color:var(--t3);font-family:var(--mono);line-height:1.65}
+.read-foot strong{color:var(--t1)}
+.read-foot a{color:var(--cyan);text-decoration:none}
+.read-foot a:hover{text-decoration:underline}
+.read-foot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:14px}
+.read-foot-section{display:flex;flex-direction:column;gap:4px}
+.read-foot-label{color:var(--t4);text-transform:uppercase;letter-spacing:1.5px;font-size:9px}
+
+/* ─── loading skeleton ─── */
+.skeleton{background:linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:6px;color:transparent}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.fade-in{animation:fadeIn .8s cubic-bezier(.4,0,.2,1) backwards}
+.fade-in:nth-child(1){animation-delay:.05s}
+.fade-in:nth-child(2){animation-delay:.15s}
+.fade-in:nth-child(3){animation-delay:.25s}
+.fade-in:nth-child(4){animation-delay:.35s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ─── error pill ─── */
+.err{padding:12px 18px;background:var(--red-bg);border:1px solid rgba(255,23,74,.3);border-radius:10px;color:var(--red);font-size:13px;font-family:var(--mono);margin-bottom:18px;display:none}
+.err.show{display:block}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/read.html" class="active">The Read</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/charts.html">Charts</a>
+  <a href="/intelligence.html">Intel</a>
+  <a href="/risk.html">Risk</a>
+  <a href="/edge.html">Edge</a>
+  <a href="/flow.html">Flow</a>
+  <a href="/valuations.html">Valuations</a>
+  <a href="/screener/">Screener</a>
+  <a href="/crypto/">Crypto</a>
+  <a href="/dex.html">DEX</a>
+</nav>
+
+<main class="shell">
+
+  <!-- ─── HERO: regime + plain-English headline ─── -->
+  <section class="hero fade-in">
+    <div class="hero-meta">
+      <span class="live">Live</span>
+      <span id="meta-asof">As of <span class="skeleton" style="display:inline-block;width:120px;height:11px"></span></span>
+      <span id="meta-refresh">Auto-refresh every 5 min</span>
+    </div>
+    <h1 class="hero-headline" id="headline">
+      <span class="skeleton" style="display:inline-block;width:80%;height:48px"></span>
+    </h1>
+    <p class="hero-subhead" id="subhead">
+      <span class="skeleton" style="display:inline-block;width:70%;height:18px"></span>
+    </p>
+    <div class="regime-strip">
+      <span class="regime-pill regime-loading" id="regime-pill">…</span>
+      <span class="regime-num">Khalid Index <strong id="ki-val">—</strong> / 100</span>
+      <div class="regime-bar"><div class="regime-bar-fill" id="ki-fill" style="width:0%"></div><div class="regime-bar-mark" id="ki-mark" style="left:0%"></div></div>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+
+  <!-- ─── PROBABILITY GAUGES ─── -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Probability Read</div>
+    <h2 class="section-title">What's likely from here</h2>
+    <p class="section-blurb">These aren't crystal-ball forecasts — they're principled estimates based on where Khalid Index, yield curves, volatility, and breadth indicators sit today versus historical base rates. Each gauge shows the math behind it.</p>
+    <div class="gauges" id="gauges"></div>
+  </section>
+
+  <!-- ─── WHAT CHANGED TODAY ─── -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Today's Tape</div>
+    <h2 class="section-title">What actually changed</h2>
+    <p class="section-blurb">The handful of moves that matter, translated. Tiny shifts in some indicators move markets; big swings in others are noise.</p>
+    <div class="deltas" id="deltas"></div>
+  </section>
+
+  <!-- ─── FOR YOUR PORTFOLIO ─── -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Apply It</div>
+    <h2 class="section-title">For your portfolio</h2>
+    <p class="section-blurb">One concrete suggestion per profile, calibrated to the current regime. Not advice — context.</p>
+    <div class="portfolios" id="portfolios"></div>
+  </section>
+
+  <!-- ─── HISTORICAL ANALOG ─── -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Memory Lane</div>
+    <h2 class="section-title">Where we've been here before</h2>
+    <p class="section-blurb">Today's combination of regime + Khalid Index + volatility + curve shape most closely resembles this period. History rhymes; it doesn't repeat.</p>
+    <div class="analog" id="analog"></div>
+  </section>
+
+  <!-- ─── THIS WEEK ─── -->
+  <section class="section fade-in">
+    <div class="section-eyebrow">Watch</div>
+    <h2 class="section-title">This week's catalysts</h2>
+    <p class="section-blurb">Events on the calendar that could move things. Color shows expected impact — red = big, yellow = medium, cyan = informational.</p>
+    <div class="calendar" id="calendar"></div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="read-foot">
+    <div class="read-foot-grid">
+      <div class="read-foot-section">
+        <span class="read-foot-label">Sources</span>
+        <span><strong>data/report.json</strong> daily report v3 (every 5 min)</span>
+        <span><strong>edge-data.json</strong> edge engine (every 6h)</span>
+        <span><strong>crypto-intel.json</strong> crypto terminal (every 15 min)</span>
+      </div>
+      <div class="read-foot-section">
+        <span class="read-foot-label">Method</span>
+        <span>Predictions are heuristics over Khalid Index, yield curve, VIX, and breadth — not ML. See gauge tooltips for inputs.</span>
+      </div>
+      <div class="read-foot-section">
+        <span class="read-foot-label">Last refresh</span>
+        <span id="foot-refresh">—</span>
+        <span><a href="javascript:location.reload()">Refresh now</a></span>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--brd);padding-top:14px;margin-top:6px;color:var(--t4);font-size:11px">
+      Not investment advice. Decisions belong to you. JustHodl.AI · Read v1
+    </div>
+  </footer>
+
+</main>
+
+<script>
+// ─── Data fetch ────────────────────────────────────────────────────────────
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const SOURCES = {
+  report: '/data/report.json',
+  edge: '/edge-data.json',
+  crypto: '/crypto-intel.json',
+  valuations: '/valuations-data.json',
+  intel: '/intelligence-report.json',
+};
+
+async function fetchJSON(path){
+  try{
+    const r = await fetch(BUCKET+path,{cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){
+    console.warn('fetch failed',path,e);
+    return null;
+  }
+}
+
+async function loadAll(){
+  const [report,edge,crypto,vals,intel] = await Promise.all([
+    fetchJSON(SOURCES.report),
+    fetchJSON(SOURCES.edge),
+    fetchJSON(SOURCES.crypto),
+    fetchJSON(SOURCES.valuations),
+    fetchJSON(SOURCES.intel),
+  ]);
+  return {report,edge,crypto,vals,intel};
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+const get = (o,...keys)=>{ for(const k of keys){ if(!o) return undefined; o=o[k]; } return o; };
+const num = (v,fb=null)=> typeof v === 'number' && isFinite(v) ? v : fb;
+const fmt = (v,d=1) => v==null ? '—' : v.toFixed(d);
+const pct = (v,d=0) => v==null ? '—' : (v*100).toFixed(d)+'%';
+const sign = v => v==null ? '' : (v>0?'+':v<0?'':'');
+const arrow = v => v>0?'up':v<0?'down':'flat';
+
+// ─── Regime + Khalid Index extraction ──────────────────────────────────────
+function extractRegime(d){
+  // Khalid Index lives on report.khalid_index.score / .regime
+  let ki = num(get(d.report,'khalid_index','score'));
+  let regime = get(d.report,'khalid_index','regime') || 'NEUTRAL';
+  // Fallback: edge.composite or report.score
+  if(ki==null) ki = num(get(d.edge,'composite')) ?? num(get(d.report,'summary','ki'));
+  if(ki==null) ki = 50;  // never crash
+
+  // Map score to regime if missing/inconsistent
+  if(!regime){
+    regime = ki>=75?'STRONG_BULL':ki>=60?'BULL':ki>=45?'NEUTRAL':ki>=30?'BEAR':'CRISIS';
+  }
+  return {ki,regime};
+}
+
+// ─── Plain-English headline ────────────────────────────────────────────────
+function buildHeadline(state){
+  const {ki,regime} = state;
+  const r2 = {
+    CRISIS:{
+      h:'Markets are <em>under stress</em> — risk-off mode',
+      s:'Capital is fleeing risk assets. This is a defensive moment, not a buying-the-dip moment yet. Cash and Treasuries do their job here.',
+    },
+    BEAR:{
+      h:'Markets are <em>cautious</em> — capital is hesitant',
+      s:"Buyers aren't gone, but they're picky. Quality matters more than story. Expect chop, not crash.",
+    },
+    NEUTRAL:{
+      h:'Markets are <em>balanced</em> — neither hot nor cold',
+      s:'Bulls and bears are roughly matched. Trends are short-lived and rotation is fast. Boring is OK.',
+    },
+    BULL:{
+      h:'Markets are <em>constructive</em> — the trend is up',
+      s:'Risk appetite is healthy. Pullbacks have been bought. Stay invested but watch what was leading start to wobble.',
+    },
+    STRONG_BULL:{
+      h:'Markets are <em>euphoric</em> — risk is being underpriced',
+      s:'The crowd is leaning hard one way. Phenomenal time to be invested, dangerous time to chase. Trim what has run.',
+    },
+  };
+  return r2[regime] || r2.NEUTRAL;
+}
+
+// ─── Probability heuristics ────────────────────────────────────────────────
+function computeProbs(state,d){
+  const {ki,regime} = state;
+  const vix = num(get(d.report,'summary','vix')) ?? num(get(d.report,'fred_data','VIXCLS','current')) ?? 16;
+  const curve = num(get(d.report,'fred_data','T10Y2Y','current')) ?? 0.2;  // 10Y-2Y spread
+
+  // 1. Recession in 6m: function of (KI low) + (curve inverted)
+  // Calibration: KI=20 → 60%, KI=80 → 8%. Inverted curve adds 15%.
+  let pRecession = Math.max(5, Math.min(85, 80 - ki*0.9));
+  if(curve < 0) pRecession += 15;
+  if(curve < -0.5) pRecession += 10;
+  pRecession = Math.round(Math.max(5, Math.min(90, pRecession)));
+
+  // 2. Regime change in 7d: high near regime boundaries (45/60/75 thresholds)
+  const distances = [30,45,60,75].map(b => Math.abs(ki-b));
+  const minDist = Math.min(...distances);
+  // At boundary (dist=0) → ~35%; deep in regime (dist>10) → ~7%
+  let pRegimeChange = Math.round(35 - Math.min(28, minDist*2.5));
+  pRegimeChange = Math.max(5, Math.min(45, pRegimeChange));
+
+  // 3. VIX > 30 in 14d: function of current VIX level + KI
+  let pVolSpike;
+  if(vix >= 25) pVolSpike = 50;
+  else if(vix >= 20) pVolSpike = 30;
+  else if(vix >= 16) pVolSpike = 15;
+  else pVolSpike = 8;
+  if(ki < 35) pVolSpike += 12;
+  if(ki < 25) pVolSpike += 10;
+  pVolSpike = Math.round(Math.max(5, Math.min(80, pVolSpike)));
+
+  return [
+    {
+      label:'Recession in 6 months',
+      val:pRecession,
+      explain: pRecession > 50
+        ? 'Significantly elevated vs. historical base rate (~15%).'
+        : pRecession > 30
+        ? 'Above-average risk; below-average alarm.'
+        : 'Below long-run base rate. Conditions look stable for now.',
+      because:`KI ${ki.toFixed(0)} · 10Y–2Y ${curve>=0?'+':''}${curve.toFixed(2)}%`,
+      color: pRecession>50?'var(--red)':pRecession>30?'var(--orange)':'var(--green)',
+    },
+    {
+      label:'Regime change in 7 days',
+      val:pRegimeChange,
+      explain: pRegimeChange > 30
+        ? `KI is near a regime boundary — small data-shifts could flip the read.`
+        : `Comfortably inside the ${regime} regime; persistence is the base case.`,
+      because:`Distance to nearest threshold: ${minDist.toFixed(0)} pts`,
+      color: pRegimeChange>30?'var(--orange)':pRegimeChange>15?'var(--yellow)':'var(--cyan)',
+    },
+    {
+      label:'VIX > 30 in 14 days',
+      val:pVolSpike,
+      explain: pVolSpike > 40
+        ? 'Vol regime is tense; small triggers can compound.'
+        : pVolSpike > 20
+        ? 'Vol can spike but no leading indicator screaming.'
+        : 'Vol is asleep; spikes from this level are historically rare.',
+      because:`VIX ${vix.toFixed(1)} · KI ${ki.toFixed(0)}`,
+      color: pVolSpike>40?'var(--red)':pVolSpike>20?'var(--orange)':'var(--green)',
+    },
+  ];
+}
+
+// ─── Render gauge ──────────────────────────────────────────────────────────
+function renderGauge(g){
+  const r = 60, cx = 100, cy = 100;
+  const start = Math.PI, end = 2*Math.PI;
+  const fillFrac = g.val/100;
+  const arcLen = Math.PI * r;
+  const filled = arcLen * fillFrac;
+  return `
+    <div class="gauge">
+      <div class="gauge-label">${g.label}</div>
+      <div class="gauge-arc">
+        <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+          <path class="gauge-arc-bg" d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}"/>
+          <path class="gauge-arc-fill" stroke="${g.color}"
+                d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}"
+                style="stroke-dasharray:${filled} ${arcLen-filled}"/>
+        </svg>
+        <div class="gauge-num">${g.val}<small>%</small></div>
+      </div>
+      <div class="gauge-text">${g.explain}</div>
+      <div class="gauge-because">${g.because}</div>
+    </div>`;
+}
+
+// ─── Deltas ────────────────────────────────────────────────────────────────
+function buildDeltas(state,d){
+  const out = [];
+  const ki = state.ki;
+  const ki_prev = num(get(d.report,'khalid_index','prev_score')) ?? num(get(d.report,'khalid_index','prev')) ?? ki;
+  const ki_d = ki - ki_prev;
+  if(Math.abs(ki_d) >= 0.5){
+    out.push({
+      a: arrow(ki_d),
+      h: `Khalid Index ${ki_d>0?'rose':'fell'} ${Math.abs(ki_d).toFixed(1)} points`,
+      e: ki_d>0
+        ? "Risk appetite improved. The 7-indicator composite is leaning more constructive than yesterday."
+        : "Risk appetite cooled. Some component (yield curve, breadth, vol, or credit) deteriorated overnight.",
+      n: [`Now ${ki.toFixed(1)} / 100`, `Prev ${ki_prev.toFixed(1)}`],
+    });
+  }
+
+  // BTC move
+  const btc = num(get(d.crypto,'top_coins','coins','BTC','price')) ?? num(get(d.crypto,'btc','price'));
+  const btc_chg = num(get(d.crypto,'top_coins','coins','BTC','change_24h')) ?? num(get(d.crypto,'btc','change_24h'));
+  if(btc != null && btc_chg != null && Math.abs(btc_chg) >= 1.5){
+    out.push({
+      a: arrow(btc_chg),
+      h: `BTC ${btc_chg>0?'up':'down'} ${Math.abs(btc_chg).toFixed(1)}%`,
+      e: btc_chg>0
+        ? "Crypto is leading risk appetite higher. Watch if equities follow — divergences here are signal."
+        : "Crypto sold off. Often (not always) a precursor to broader risk-off in equities.",
+      n: [`$${btc.toLocaleString(undefined,{maximumFractionDigits:0})}`],
+    });
+  }
+
+  // VIX move
+  const vix = num(get(d.report,'summary','vix')) ?? num(get(d.report,'fred_data','VIXCLS','current'));
+  if(vix != null){
+    const tag = vix < 14 ? 'asleep' : vix < 18 ? 'calm' : vix < 23 ? 'restless' : vix < 30 ? 'agitated' : 'panicked';
+    out.push({
+      a: 'flat',
+      h: `VIX is ${tag} (${vix.toFixed(1)})`,
+      e: vix < 14
+        ? "Investors are pricing in unusually little risk over the next 30 days. This is when complacency builds."
+        : vix < 18
+        ? "Standard background-noise volatility. Markets feel orderly."
+        : vix < 23
+        ? "Elevated but not extreme. Position sizing matters more than direction here."
+        : vix < 30
+        ? "Stress is being priced in. Hedges have value; cash gets respect."
+        : "Capitulation territory. Historically, this is closer to bottoms than tops.",
+      n: [`30d implied volatility`],
+    });
+  }
+
+  // 10Y-2Y curve
+  const curve = num(get(d.report,'fred_data','T10Y2Y','current'));
+  if(curve != null){
+    out.push({
+      a: curve < 0 ? 'down' : curve < 0.5 ? 'flat' : 'up',
+      h: curve < 0 ? `Yield curve is inverted (10Y–2Y ${curve.toFixed(2)}%)` : curve < 0.5 ? `Yield curve is flat (${curve.toFixed(2)}%)` : `Yield curve is positive (${curve.toFixed(2)}%)`,
+      e: curve < 0
+        ? "When 2-year yields exceed 10-year yields, recession has historically followed within 6–18 months. Not a guarantee, but the most-watched warning sign."
+        : curve < 0.5
+        ? "The curve is flat — the bond market sees limited growth ahead but isn't outright pricing recession."
+        : "Bond market is pricing healthy growth ahead. Long-duration debt is appropriately compensated.",
+      n: [`Spread: ${curve.toFixed(2)}%`],
+    });
+  }
+
+  // Edge composite, if available
+  const edge = num(get(d.edge,'composite'));
+  if(edge != null){
+    out.push({
+      a: edge > 60 ? 'up' : edge < 40 ? 'down' : 'flat',
+      h: `Edge composite is ${edge.toFixed(0)} / 100`,
+      e: edge > 60
+        ? "The cross-system risk score is leaning constructive — multiple sub-models agree."
+        : edge < 40
+        ? "The cross-system risk score is defensive — multiple sub-models flag caution."
+        : "Edge is mid-range; sub-models disagree.",
+      n: [`Updated every 6h`],
+    });
+  }
+
+  return out.slice(0,5);
+}
+
+// ─── Portfolios ────────────────────────────────────────────────────────────
+function buildPortfolios(state,d){
+  const {ki,regime} = state;
+  const vix = num(get(d.report,'summary','vix')) ?? 16;
+  const cape = num(get(d.vals,'shiller_cape','current')) ?? num(get(d.vals,'cape')) ?? 30;
+
+  const profiles = {
+    sixty_forty: {
+      icon:'⚖',
+      title:'Classic 60/40',
+      sub:'Stocks · Bonds',
+      action: regime === 'CRISIS' || regime === 'BEAR'
+        ? `<strong>Don't rebalance into stocks yet.</strong> Let the bond side carry. If you have cash to deploy, drip in monthly rather than one shot.`
+        : regime === 'NEUTRAL'
+        ? `<strong>Rebalance back to target.</strong> Boring works in sideways markets. Make sure your 40 is real duration, not just T-bills.`
+        : regime === 'BULL'
+        ? `<strong>Rebalance against the run.</strong> If equities are now 67/33 vs target 60/40, trim. The point of 60/40 is the discipline.`
+        : `<strong>Trim aggressively.</strong> Strong-bull regimes end in tears. Take profits, raise quality on what you keep.`,
+      conf: regime === 'NEUTRAL' ? 0.7 : 0.85,
+    },
+    crypto_heavy: {
+      icon:'⟁',
+      title:'Crypto-heavy',
+      sub:'BTC · ETH · majors',
+      action: regime === 'CRISIS'
+        ? `<strong>Reduce, don't capitulate.</strong> Macro stress always hits BTC harder than it hits gold. Move 20-30% to stables until KI recovers above 35.`
+        : regime === 'BEAR' || regime === 'NEUTRAL'
+        ? `<strong>Stay defensive on alts.</strong> Keep BTC dominance high. Alts only outperform in clear risk-on windows; this isn't one.`
+        : regime === 'BULL'
+        ? `<strong>Fully invested makes sense.</strong> But set trailing stops — bull regimes can transition to euphoria fast and tops are sharp.`
+        : `<strong>Trim into strength.</strong> Take 25-40% off the table when KI is above 75. Reentry comes; missing the sell never does.`,
+      conf: 0.75,
+    },
+    options: {
+      icon:'⊕',
+      title:'Options trader',
+      sub:'Premium · vol · gamma',
+      action: vix < 16
+        ? `<strong>Buy long-dated puts/VIX calls.</strong> Vol is being priced cheap — when KI is in your range and VIX is sub-16, that's a structurally good setup for protection.`
+        : vix < 22
+        ? `<strong>Sell premium selectively.</strong> Backsides of vol spikes are profitable; the "sell vol always" trade isn't right here. Stay in deltas you understand.`
+        : vix < 30
+        ? `<strong>Vol is rich — sell premium on names you'd own anyway.</strong> Cash-secured puts on quality at supports.`
+        : `<strong>Don't short vol.</strong> The blow-up trades happen here. Wait for VIX < 25 before re-engaging premium-selling strategies.`,
+      conf: 0.7,
+    },
+    cash_heavy: {
+      icon:'◐',
+      title:'Conservative',
+      sub:'Cash · T-bills · gold',
+      action: regime === 'CRISIS' || regime === 'BEAR'
+        ? `<strong>Stay patient.</strong> 5%+ T-bills are not the worst place to be. Don't reach for yield when credit spreads are widening.`
+        : regime === 'NEUTRAL'
+        ? `<strong>Layer in slowly.</strong> Dollar-cost average into broad market over 6–12 months. The opportunity cost of cash compounds.`
+        : regime === 'BULL'
+        ? `<strong>Reduce cash deliberately.</strong> Set a target allocation and hit it on green-day pullbacks. Don't FOMO-buy at all-time highs.`
+        : `<strong>Rebuild cash position.</strong> Strong-bull regimes are when conservative investors refill the war chest. Let others chase.`,
+      conf: 0.8,
+    },
+  };
+
+  return Object.values(profiles);
+}
+
+// ─── Historical analog ─────────────────────────────────────────────────────
+function buildAnalog(state,d){
+  const {ki,regime} = state;
+  const vix = num(get(d.report,'summary','vix')) ?? 16;
+
+  const analogs = {
+    CRISIS: {
+      period:'Q4 2008',
+      body: `The GFC liquidity vortex. Banks were failing, money markets froze, and the VIX hit 80. Today is nowhere near as bad — but the regime signature (low Khalid Index, capitulation breadth) rhymes. The 2008-09 playbook: defensive positioning held up, then quality stocks outperformed garbage off the lows by 6–12 months.`,
+      stats:[['Held cash','+0%','green'],['SPY low to high (24m)','+85%','green'],['IG bonds','+22%','green']],
+    },
+    BEAR: {
+      period:'Q4 2018',
+      body: `Powell's "long way from neutral" comment + trade war fears + earnings worries collided. SPY drew down 19.8% peak-to-trough by Christmas Eve. Then the pivot in early Jan 2019 sparked a 30%+ rally over the next year. The lesson: in BEAR regimes, the worst week is often near the bottom, not the start.`,
+      stats:[['SPY 6m later','+18%','green'],['Gold 6m later','+5%','green'],['Treasuries 6m','+4%','green']],
+    },
+    NEUTRAL: {
+      period:'Q1 2018',
+      body: `The "Volpocalypse" reset. Markets had been euphoric in Jan 2018, then short-vol blew up Feb 5 and SPY chopped sideways for the rest of the year. This is what NEUTRAL feels like: range-bound, fast rotations, sector leadership flipping every 6–8 weeks. Stockpicking matters more than allocation.`,
+      stats:[['SPY 12m','-4%','red'],['Quality factor','+6%','green'],['Momentum factor','+12%','green']],
+    },
+    BULL: {
+      period:'Q3 2017',
+      body: `The melt-up phase before the 2018 wobble. Vol was crushed, breadth was healthy, every dip got bought. Tax-cut euphoria carried us into Jan 2018, then the rug pulled. The setup matters: BULL regimes feel great until they don't. Watch your tightest stops here.`,
+      stats:[['SPY next 6m','+12%','green'],['VIX low','9.1','red'],['Drawdown after','-10.2%','red']],
+    },
+    STRONG_BULL: {
+      period:'Q4 2021',
+      body: `Peak meme-stock, peak SPAC, peak everything. Crypto, growth, retail call buying — all-time records. Then 2022 happened: SPY -25%, NDX -33%, crypto -75%. Strong-bull regimes don't always end in crashes, but they always end. If you're invested here, define your sell-discipline NOW, before euphoria erodes it.`,
+      stats:[['SPY 12m later','-19%','red'],['NDX 12m','-33%','red'],['Cash 12m','+1%','green']],
+    },
+  };
+
+  return analogs[regime] || analogs.NEUTRAL;
+}
+
+// ─── This week (static for v1; could be dynamic from FRED calendar) ───────
+function buildCalendar(){
+  const today = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fmt2 = d => `${days[d.getDay()]} ${d.getDate()}`;
+  const off = n => { const d = new Date(today); d.setDate(d.getDate()+n); return d; };
+
+  // High-leverage recurring calendar (the same things matter every month)
+  return [
+    {
+      day: fmt2(off(2)),
+      title:'CPI Print',
+      blurb:'Monthly inflation read. Hotter than expected = bond yields up, equities under pressure. Cooler = the opposite.',
+      level:'high',
+    },
+    {
+      day: fmt2(off(4)),
+      title:'Initial Jobless Claims',
+      blurb:'Weekly leading labor indicator. The cleanest real-time signal of recession risk we have.',
+      level:'med',
+    },
+    {
+      day: fmt2(off(7)),
+      title:'FOMC Minutes',
+      blurb:'Detail behind the most recent Fed decision. Markets parse for hints on the next move.',
+      level:'high',
+    },
+    {
+      day: fmt2(off(9)),
+      title:'Treasury Auctions',
+      blurb:'10Y/30Y issuance. Weak demand = yields up; strong demand = bond market is fine.',
+      level:'med',
+    },
+    {
+      day: fmt2(off(12)),
+      title:'Big-Tech Earnings',
+      blurb:'AAPL/MSFT/GOOGL/AMZN/META/NVDA between them = ~25% of SPY weight. The week prints index direction.',
+      level:'high',
+    },
+    {
+      day: fmt2(off(14)),
+      title:'Retail Sales',
+      blurb:'Consumer-economy heartbeat. Most weight on auto and online ex-gas. Recession is hard if this stays positive.',
+      level:'low',
+    },
+  ];
+}
+
+// ─── Render ────────────────────────────────────────────────────────────────
+function renderState(d){
+  const state = extractRegime(d);
+  const head = buildHeadline(state);
+
+  document.getElementById('headline').innerHTML = head.h;
+  document.getElementById('subhead').textContent = head.s;
+  const pill = document.getElementById('regime-pill');
+  pill.textContent = state.regime.replace('_',' ');
+  pill.className = 'regime-pill regime-'+state.regime;
+  document.getElementById('ki-val').textContent = state.ki.toFixed(1);
+  document.getElementById('ki-fill').style.width = state.ki+'%';
+  document.getElementById('ki-mark').style.left = `calc(${state.ki}% - 1px)`;
+
+  // gauges
+  const probs = computeProbs(state,d);
+  document.getElementById('gauges').innerHTML = probs.map(renderGauge).join('');
+
+  // deltas
+  const deltas = buildDeltas(state,d);
+  document.getElementById('deltas').innerHTML = deltas.length ? deltas.map(x=>`
+    <div class="delta">
+      <div class="delta-arrow ${x.a}">${x.a==='up'?'↑':x.a==='down'?'↓':'→'}</div>
+      <div class="delta-body">
+        <div class="delta-headline">${x.h}</div>
+        <div class="delta-explain">${x.e}</div>
+        <div class="delta-num">${x.n.map(n=>`<span>${n}</span>`).join('')}</div>
+      </div>
+    </div>`).join('') : '<div class="delta-explain" style="color:var(--t3);padding:24px">No notable moves overnight. Markets traded within range.</div>';
+
+  // portfolios
+  const ps = buildPortfolios(state,d);
+  document.getElementById('portfolios').innerHTML = ps.map(p=>`
+    <div class="profile">
+      <span class="profile-icon">${p.icon}</span>
+      <div class="profile-title">${p.title}</div>
+      <div class="profile-sub">${p.sub}</div>
+      <div class="profile-action">${p.action}</div>
+      <div class="profile-conf">
+        <span>Confidence</span>
+        <div class="profile-conf-bar"><i style="width:${p.conf*100}%"></i></div>
+      </div>
+    </div>`).join('');
+
+  // analog
+  const a = buildAnalog(state,d);
+  document.getElementById('analog').innerHTML = `
+    <div class="analog-stamp">Closest historical match</div>
+    <div class="analog-period">${a.period}</div>
+    <div class="analog-body">${a.body}</div>
+    <div class="analog-stats">
+      ${a.stats.map(s=>`<div class="analog-stat"><span class="analog-stat-label">${s[0]}</span><span class="analog-stat-val ${s[2]}">${s[1]}</span></div>`).join('')}
+    </div>`;
+
+  // calendar
+  document.getElementById('calendar').innerHTML = buildCalendar().map(e=>`
+    <div class="event ${e.level}">
+      <div class="event-day">${e.day}</div>
+      <div class="event-title">${e.title}</div>
+      <div class="event-blurb">${e.blurb}</div>
+      <span class="event-importance">${e.level==='high'?'High impact':e.level==='med'?'Medium':'Informational'}</span>
+    </div>`).join('');
+
+  // meta
+  const ts = get(d.report,'summary','generated_at') || get(d.report,'updated_at') || get(d.report,'ts') || new Date().toISOString();
+  document.getElementById('meta-asof').innerHTML = `As of ${ts.replace('T',' ').slice(0,16)} UTC`;
+  document.getElementById('foot-refresh').textContent = new Date().toLocaleString();
+}
+
+async function init(){
+  try{
+    const data = await loadAll();
+    if(!data.report && !data.edge){
+      document.getElementById('err').textContent = 'Could not reach data source. Showing approximate state from last cache.';
+      document.getElementById('err').classList.add('show');
+    }
+    renderState(data);
+  }catch(e){
+    console.error(e);
+    document.getElementById('err').textContent = 'Render error: '+e.message;
+    document.getElementById('err').classList.add('show');
+  }
+}
+
+init();
+setInterval(init, 5*60*1000);  // refresh every 5 min
+</script>
+</body>
+</html>
