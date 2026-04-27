@@ -3,6 +3,8 @@ Step ___ — Create/update justhodl-insider-trades Lambda + EB rule.
 
 Re-runs:
   - 2026-04-27 — Patched atom feed parser (accession comes from <id>, not <link>).
+  - 2026-04-27 — Patched URL construction (filer CIK from accession prefix)
+                + XML doc selection (excludes filing-summary.xml).
 
 deploy-lambdas.yml uses update-function-code which assumes the Lambda
 already exists. For brand-new Lambdas we need create-function on first run.

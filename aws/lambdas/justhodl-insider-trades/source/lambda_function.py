@@ -187,12 +187,32 @@ def fetch_recent_form4_filings():
 
 
 # ─── Form 4 XML parsing ───────────────────────────────────────────────────
-def _build_filing_paths(cik: str, accession: str):
-    """Return possible XML doc URLs for a filing."""
-    cik_int = str(int(cik))  # strip leading zeros
+def _build_filing_paths(filer_cik: str, accession: str):
+    """Return possible XML doc URLs for a filing.
+
+    SEC archives every filing under the FILER (reporting person) CIK,
+    not the issuer's. The filer CIK is the prefix of the accession number:
+    accession '0001127602-26-012345' → filer CIK '0001127602' → int form '1127602'.
+
+    The CIK in the atom feed's <link> is typically the issuer's CIK and
+    points at the wrong directory — we ignore it and use accession's prefix.
+    """
+    cik_int = str(int(filer_cik))
     acc_clean = accession.replace("-", "")
     base = f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_clean}"
     return base + "/", base + "/index.json"
+
+
+# Files in a filing's directory that are NEVER the primary Form 4 XML.
+# Used to filter when we have multiple .xml files in the listing.
+_EXCLUDE_XML_NAMES = {
+    "filing-summary.xml",
+    "metalinks.json",
+    "financial_report.xml",
+    "report.xml",
+}
+# Files matching these substrings are de-prioritized (only chosen as last resort).
+_DEPRIORITIZE_XML_SUBSTR = ("filing-summary", "metadata", "metalinks", "financial-report", "financial_report")
 
 
 class _AnchorFinder(HTMLParser):
@@ -204,43 +224,60 @@ class _AnchorFinder(HTMLParser):
         if tag != "a":
             return
         href = dict(attrs).get("href", "")
-        if href.lower().endswith(".xml") and "form4" not in href.lower() and "index" not in href.lower():
-            self.candidates.append(href)
-        elif href.lower().endswith(".xml"):
+        if href.lower().endswith(".xml"):
             self.candidates.append(href)
 
 
-def fetch_form4_xml(cik: str, accession: str):
+def _pick_form4_xml(filenames):
+    """From a list of filenames in the filing directory, pick the most-likely Form 4 ownership XML."""
+    xmls = [f for f in filenames if f.lower().endswith(".xml") and f.lower() not in _EXCLUDE_XML_NAMES]
+    if not xmls:
+        return None
+    # Strong preference for filenames containing 'form4', 'wf-form', 'wk-form', or 'primary_doc'
+    for kw in ("form4", "wf-form", "wk-form", "primary_doc"):
+        for f in xmls:
+            if kw in f.lower():
+                return f
+    # Otherwise filter out de-prioritized
+    good = [f for f in xmls if not any(sub in f.lower() for sub in _DEPRIORITIZE_XML_SUBSTR)]
+    if good:
+        return good[0]
+    return xmls[0]
+
+
+def fetch_form4_xml(filer_cik: str, accession: str):
     """Fetch the primary Form 4 XML document for a given filing."""
-    base, index_json_url = _build_filing_paths(cik, accession)
+    base, index_json_url = _build_filing_paths(filer_cik, accession)
 
-    # Prefer the JSON directory listing
+    # Prefer the JSON directory listing — most reliable
     try:
         idx = json.loads(_fetch(index_json_url, accept="application/json"))
-        for item in idx.get("directory", {}).get("item", []):
-            name = item.get("name", "")
-            if name.lower().endswith(".xml") and not name.lower().startswith(("form", "primary_doc")):
-                continue  # skip if obviously not the Form 4 doc
-            if name.lower().endswith(".xml"):
-                # Prefer files NOT matching "filing-summary" or similar
-                if any(kw in name.lower() for kw in ("filing-summary", "metadata")):
-                    continue
-                return _fetch(base + name, accept="application/xml")
-        # Fallback: try the conventional 'primary_doc.xml'
-        return _fetch(base + "primary_doc.xml", accept="application/xml")
-    except Exception:
-        # Fallback: scrape the HTML index
-        try:
-            html = _fetch(base + "/", accept="text/html").decode("utf-8", errors="ignore")
-            f = _AnchorFinder()
-            f.feed(html)
+        names = [item.get("name", "") for item in idx.get("directory", {}).get("item", [])]
+        chosen = _pick_form4_xml(names)
+        if chosen:
+            return _fetch(base + chosen, accept="application/xml")
+    except Exception as e:
+        # JSON index fetch failed → fall back to scraping the HTML index
+        pass
+
+    # Fallback: scrape the HTML index page for .xml links
+    try:
+        html = _fetch(base + "/", accept="text/html").decode("utf-8", errors="ignore")
+        f = _AnchorFinder()
+        f.feed(html)
+        # Strip any leading path from candidates and pick best
+        cleaned = [c.split("/")[-1] for c in f.candidates]
+        chosen = _pick_form4_xml(cleaned)
+        if chosen:
             for cand in f.candidates:
-                if cand.lower().endswith(".xml") and "filing-summary" not in cand.lower():
+                if cand.endswith(chosen):
                     if cand.startswith("/"):
                         return _fetch("https://www.sec.gov" + cand, accept="application/xml")
-                    return _fetch(cand, accept="application/xml")
-        except Exception:
-            pass
+                    if cand.startswith("http"):
+                        return _fetch(cand, accept="application/xml")
+                    return _fetch(base + chosen, accept="application/xml")
+    except Exception:
+        pass
     return None
 
 
@@ -510,7 +547,11 @@ def lambda_handler(event, context):
     def process(filing):
         diag["filings_seen"] += 1
         try:
-            xml = fetch_form4_xml(filing["cik"], filing["accession"])
+            # Filer (reporting person) CIK is the prefix of the accession number,
+            # NOT what's in filing["cik"] (which can be the issuer CIK from atom).
+            # SEC archives every filing under the filer's CIK directory.
+            filer_cik = filing["accession"].split("-")[0]
+            xml = fetch_form4_xml(filer_cik, filing["accession"])
             if not xml:
                 return None
             diag["xml_fetched"] += 1
