@@ -6,16 +6,13 @@ Static-only audit of all 110 Lambda sources in `aws/lambdas/`.
 
 | Class | Count |
 |-------|-------|
-| P0 | 17 |
+| P0 | 12 |
 | P1 | 13 |
 | P2 | 2 |
-| OK | 78 |
+| OK | 83 |
 
 
-## P0 (17)
-
-### `global-liquidity-agent-v2` [python3.11]
-- **P0** — source file for handler 'khalid_no_email.lambda_handler' not found
+## P0 (12)
 
 ### `justhodl-asymmetric-scorer` [?]
 - **P0** — source file for handler '?' not found
@@ -52,18 +49,6 @@ Static-only audit of all 110 Lambda sources in `aws/lambdas/`.
 
 ### `justhodl-watchlist-debate` [?]
 - **P0** — source file for handler '?' not found
-
-### `multi-agent-orchestrator` [python3.11]
-- **P0** — source file for handler 'lambda_function.lambda_handler' not found
-
-### `news-sentiment-agent` [python3.9]
-- **P0** — source file for handler 'lambda_news_agent.lambda_handler' not found
-
-### `treasury-auto-updater` [python3.9]
-- **P0** — source file for handler 'updater.lambda_handler' not found
-
-### `ultimate-multi-agent` [python3.11]
-- **P0** — source file for handler 'lambda_function.lambda_handler' not found
 
 
 ## P1 (13)
@@ -108,7 +93,7 @@ Static-only audit of all 110 Lambda sources in `aws/lambdas/`.
 - **P1** — hardcoded API key: API_KEY   = "17d36cdd13c44e139...
 
 ### `macro-report-api` [python3.9]
-- **P1** — hardcoded API key: API_KEY = '8e42b7b0d4754c0e5e8...
+- **P1** — hardcoded API key: API_KEY = '2f057499936072679d8...
 
 ### `openbb-system2-api` [python3.9]
 - **P1** — hardcoded API key: api_key = "2f057499936072679d8...
