@@ -8,7 +8,7 @@ s3   = boto3.client("s3")
 
 S3_BUCKET  = "justhodl-historical-data-1758485495"
 SES_SENDER = "reports@justhodl.ai"
-RECIPIENTS = ["PLACEHOLDER@example.com","plebsoulex@gmail.com","PLACEHOLDER2@example.com","khalidbernoussi@yahoo.com"]
+RECIPIENTS = ["plebsoulex@gmail.com","khalidbernoussi@yahoo.com"]
 
 # ---- FRED ----
 FRED_API_KEY = "2f057499936072679d8843d7fce99989"   # or set via env and read with os.getenv
@@ -218,7 +218,7 @@ def table(headers, rows):
     return f"<table><tr>{th}</tr>{trs}</table>"
 
 # ---- Lambda Handler ----
-def lambda_handler(event, context):
+def _lambda_handler_inner(event, context):
     now = datetime.utcnow()
     agents = fetch_agents()
 
@@ -443,3 +443,28 @@ def get_json(url, headers=None, timeout=20):
             except: return {}
         return {}
     except Exception: return {}
+
+
+# ─── Diagnostic wrapper (added 2026-04-27 after 90/90 errors in 7d) ───
+# Previous handler swallowed errors silently, leaving CloudWatch with
+# generic Lambda traceback only. This logs the full chain so next failure
+# reveals the actual root cause (bucket NoSuchBucket? key error in agents
+# dict? FRED schema change?).
+def lambda_handler(event, context):
+    import traceback as _tb
+    try:
+        return _lambda_handler_inner(event, context)
+    except Exception as _e:
+        err_type = type(_e).__name__
+        err_msg = str(_e)
+        tb = _tb.format_exc()
+        print(f"::FMP_STOCK_PICKS_HANDLER_ERROR:: {err_type}: {err_msg}")
+        print(tb)
+        return {
+            "statusCode": 500,
+            "body": json.dumps({
+                "error": err_type,
+                "message": err_msg,
+                "trace_first_line": tb.splitlines()[-2] if len(tb.splitlines()) > 1 else "",
+            }),
+        }

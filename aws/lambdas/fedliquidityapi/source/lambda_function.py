@@ -313,48 +313,68 @@ FED_LIQUIDITY_SERIES = {
     'HQMCB30YRP': 'HQM Par Yield 30Y',
 }
 
-def fetch_fred_data(series_id, start_date=None, end_date=None):
-    """Fetch data from FRED API"""
-    try:
-        base_url = 'https://api.stlouisfed.org/fred/series/observations'
-        
-        params = {
-            'series_id': series_id,
-            'api_key': FRED_API_KEY,
-            'file_type': 'json',
-            'sort_order': 'desc',
-            'limit': 1000
-        }
-        
-        if start_date:
-            params['observation_start'] = start_date
-        if end_date:
-            params['observation_end'] = end_date
-            
-        url = f"{base_url}?{urllib.parse.urlencode(params)}"
-        
-        with urllib.request.urlopen(url, timeout=10) as response:
-            data = json.loads(response.read())
-            
-        observations = data.get('observations', [])
-        
-        # Filter out non-numeric values
-        clean_observations = []
-        for obs in observations:
-            try:
-                value = float(obs['value'])
-                clean_observations.append({
-                    'date': obs['date'],
-                    'value': value
-                })
-            except (ValueError, KeyError):
+def fetch_fred_data(series_id, start_date=None, end_date=None, _max_retries=4):
+    """Fetch data from FRED API with 429 retry + exponential backoff.
+
+    FRED enforces ~120 requests/minute. With 220+ series in this Lambda,
+    hitting the limit is normal — previously caused ~73% error rate.
+    Retry policy: up to 4 attempts, sleep 2s/4s/8s on 429 or any URLError.
+    """
+    base_url = 'https://api.stlouisfed.org/fred/series/observations'
+    params = {
+        'series_id': series_id,
+        'api_key': FRED_API_KEY,
+        'file_type': 'json',
+        'sort_order': 'desc',
+        'limit': 1000,
+    }
+    if start_date:
+        params['observation_start'] = start_date
+    if end_date:
+        params['observation_end'] = end_date
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+
+    last_err = None
+    for attempt in range(_max_retries):
+        try:
+            with urllib.request.urlopen(url, timeout=15) as response:
+                data = json.loads(response.read())
+            observations = data.get('observations', [])
+            clean_observations = []
+            for obs in observations:
+                try:
+                    value = float(obs['value'])
+                    clean_observations.append({'date': obs['date'], 'value': value})
+                except (ValueError, KeyError):
+                    continue
+            return clean_observations
+        except urllib.error.HTTPError as e:
+            last_err = e
+            # 429 = rate limit, 500-503 = transient — retry. Other 4xx — bail.
+            if e.code == 429 or 500 <= e.code <= 503:
+                if attempt < _max_retries - 1:
+                    backoff = 2 ** attempt  # 1s, 2s, 4s, 8s
+                    print(f"FRED {series_id} HTTP {e.code}, retry in {backoff}s (attempt {attempt+1}/{_max_retries})")
+                    time.sleep(backoff)
+                    continue
+            print(f"Error fetching {series_id}: HTTP {e.code}")
+            return []
+        except urllib.error.URLError as e:
+            last_err = e
+            if attempt < _max_retries - 1:
+                backoff = 2 ** attempt
+                print(f"FRED {series_id} URLError {e.reason}, retry in {backoff}s")
+                time.sleep(backoff)
                 continue
-                
-        return clean_observations
-        
-    except Exception as e:
-        print(f"Error fetching {series_id}: {str(e)}")
-        return []
+            print(f"Error fetching {series_id}: URLError {e.reason}")
+            return []
+        except Exception as e:
+            # Anything else — log and stop retrying
+            print(f"Error fetching {series_id}: {type(e).__name__}: {e}")
+            return []
+    # Exhausted retries
+    print(f"FRED {series_id}: exhausted {_max_retries} retries, last={last_err}")
+    return []
 
 def get_series_metadata(series_id):
     """Get metadata for a series"""
