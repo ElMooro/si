@@ -1,33 +1,33 @@
 # Create justhodl-insider-trades Lambda + EB rule
 
-**Status:** failure  
-**Duration:** 0.5s  
-**Finished:** 2026-04-27T18:05:10+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/_create_insider_trades_lambda.py", line 243, in main
-    update_function(zip_bytes, r)
-  File "/home/runner/work/si/si/aws/ops/pending/_create_insider_trades_lambda.py", line 138, in update_function
-    lam.update_function_code(FunctionName=FN_NAME, ZipFile=zip_bytes)
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-trades
-
-```
+**Status:** success  
+**Duration:** 14.9s  
+**Finished:** 2026-04-27T18:06:41+00:00  
 
 ## Log
-- `18:05:10`   zip: 7513 bytes
+- `18:06:26`   zip: 7513 bytes
 ## 1. Lambda function
 
-- `18:05:10`   Lambda exists — updating code + config
+- `18:06:26`   Lambda exists — updating code + config
+- `18:06:29` ✅   ✓ updated Lambda justhodl-insider-trades
+## 2. EB rule + permissions
+
+- `18:06:29`   EB rule exists: state=ENABLED, schedule=rate(30 minutes)
+- `18:06:29` ✅   ✓ EB target → justhodl-insider-trades
+- `18:06:29` ✅   ✓ added invoke permission (AllowEB-justhodl-insider-trades-30min-1777313189)
+## 3. Smoke test
+
+- `18:06:29`   Triggering smoke-test invocation (this populates initial data)…
+- `18:06:41`   StatusCode: 200
+- `18:06:41` ✅   ✓ smoke test passed
+- `18:06:41`      buys:        0
+- `18:06:41`      value:       $0
+- `18:06:41`      companies:   0
+- `18:06:41`      clusters:    0
+- `18:06:41`      duration:    10.4s
+- `18:06:41`      errors:      0
+## 4. Next steps
+
+- `18:06:41`   - Frontend page /insiders.html consumes data/insider-trades.json
+- `18:06:41`   - Health monitor will pick up the new file via expectations.py
+- `18:06:41`   - Future code changes auto-deploy through deploy-lambdas.yml
