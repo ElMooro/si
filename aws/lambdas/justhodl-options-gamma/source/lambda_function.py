@@ -259,9 +259,39 @@ def lambda_handler(event, context):
     spot = market.get("spot")
     vix = market.get("vix") or 16
 
-    # If we can't get spot, treat as transient and bail
+    # If we can't get spot, write a 'spot_unavailable' marker so the file
+    # always exists and downstream consumers know why GEX is stale. Don't
+    # silently fail — that creates a 'missing S3 file' alert that masks
+    # the real cause (Polygon API issue, key expired, rate limit, etc.)
     if not spot:
-        return {"statusCode": 502, "body": json.dumps({"error": "Could not fetch spot price"})}
+        try:
+            existing_obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
+            existing = json.loads(existing_obj["Body"].read())
+        except Exception:
+            existing = {}
+        marker = {
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "underlying": UNDERLYING,
+            "spot": None,
+            "vix": vix if vix != 16 else None,
+            "regime": "spot_unavailable",
+            "interpretation": "Could not fetch SPY spot price from Polygon — likely transient API issue or rate limit. GEX cannot be computed; last valid reading preserved.",
+            "spot_unavailable": True,
+            "last_valid_at": existing.get("generated_at") if existing else None,
+            "last_valid_total_gex": existing.get("total_gex") if existing else None,
+            "last_valid_regime": existing.get("regime") if existing else None,
+            "polygon_errors": {"spot_err": market.get("spot_err"), "vix_err": market.get("vix_err")},
+            "fetch_duration_s": round(time.time() - started, 1),
+        }
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                      Body=json.dumps(marker).encode(),
+                      ContentType="application/json", CacheControl="no-cache")
+        print(f"GEX: spot fetch failed — wrote spot_unavailable marker. polygon_errors={marker['polygon_errors']}")
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"ok": True, "spot_unavailable": True}),
+        }
 
     snapshot = fetch_options_snapshot()
     if not snapshot:

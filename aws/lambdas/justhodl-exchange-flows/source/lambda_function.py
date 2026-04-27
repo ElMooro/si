@@ -76,22 +76,49 @@ def _fetch_json(url, timeout=15):
 def fetch_coinmetrics_series(asset: str, metrics: list, days_back: int = 120):
     """Fetch CoinMetrics community-API time series for an asset.
     Returns list of {time, asset, metric_name: value, ...} sorted ascending.
+
+    Some CoinMetrics metrics are not available on the free 'community' tier
+    (you'd need a paid plan). When the requested set fails, retries with a
+    smaller set known to be community-available.
     """
-    metrics_str = ",".join(metrics)
     end = datetime.utcnow().date()
     start = (end - timedelta(days=days_back)).isoformat()
-    url = (f"{COINMETRICS_BASE}/timeseries/asset-metrics"
-           f"?assets={asset}&metrics={metrics_str}"
-           f"&start_time={start}&end_time={end.isoformat()}"
-           f"&pretty=false&page_size=1000")
-    try:
-        data = _fetch_json(url)
-        rows = data.get("data", [])
-        rows.sort(key=lambda r: r.get("time", ""))
+
+    def _try(metric_list):
+        metrics_str = ",".join(metric_list)
+        url = (f"{COINMETRICS_BASE}/timeseries/asset-metrics"
+               f"?assets={asset}&metrics={metrics_str}"
+               f"&start_time={start}&end_time={end.isoformat()}"
+               f"&pretty=false&page_size=1000")
+        try:
+            data = _fetch_json(url)
+            rows = data.get("data", [])
+            if not rows and data.get("error"):
+                # API returned a structured error response
+                print(f"  coinmetrics {asset}: {data.get('error')} | {data.get('message','')}")
+                return None
+            rows.sort(key=lambda r: r.get("time", ""))
+            return rows
+        except Exception as e:
+            print(f"  coinmetrics fetch fail {asset} ({metrics_str}): {e}")
+            return None
+
+    # Try requested metrics first
+    rows = _try(metrics)
+    if rows:
         return rows
-    except Exception as e:
-        print(f"  coinmetrics fetch fail {asset}: {e}")
-        return []
+
+    # Fallback 1: the 4 metrics we want as separate calls (some may need
+    # paid tier; some are free)
+    print(f"  coinmetrics {asset}: full set failed, trying core metrics only")
+    core = ["PriceUSD", "TxCnt", "CapMrktCurUSD"]
+    rows = _try(core)
+    if rows:
+        return rows
+
+    # Fallback 2: minimal — just price (always available)
+    print(f"  coinmetrics {asset}: core set failed, trying price-only")
+    return _try(["PriceUSD"]) or []
 
 
 def _z_score(series, current):

@@ -1,4 +1,6 @@
 """
+# bumped 2026-04-27 22:35 — fix silent-fail issues
+
 Step ___ — Create/update justhodl-exchange-flows Lambda + EB rule.
 
 Tracks BTC/ETH on-chain active supply momentum vs price → accumulation
