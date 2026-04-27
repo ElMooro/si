@@ -135,16 +135,40 @@ def create_function(zip_bytes: bytes, r):
 
 
 def update_function(zip_bytes: bytes, r):
-    lam.update_function_code(FunctionName=FN_NAME, ZipFile=zip_bytes)
+    # Retry on ResourceConflictException — happens when deploy-lambdas.yml
+    # and this script race on the same Lambda. The conflict resolves within
+    # a few seconds once the other update finishes.
+    for attempt in range(6):
+        try:
+            lam.update_function_code(FunctionName=FN_NAME, ZipFile=zip_bytes)
+            break
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ResourceConflictException" and attempt < 5:
+                wait = 2 ** attempt
+                r.log(f"  another update in progress; retrying in {wait}s (attempt {attempt+1}/6)")
+                time.sleep(wait)
+                continue
+            raise
     lam.get_waiter("function_updated").wait(
         FunctionName=FN_NAME, WaiterConfig={"Delay": 2, "MaxAttempts": 30},
     )
-    lam.update_function_configuration(
-        FunctionName=FN_NAME,
-        Environment={"Variables": ENV_VARS},
-        Timeout=300,
-        MemorySize=512,
-    )
+
+    for attempt in range(6):
+        try:
+            lam.update_function_configuration(
+                FunctionName=FN_NAME,
+                Environment={"Variables": ENV_VARS},
+                Timeout=300,
+                MemorySize=512,
+            )
+            break
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ResourceConflictException" and attempt < 5:
+                wait = 2 ** attempt
+                r.log(f"  config update conflict; retrying in {wait}s")
+                time.sleep(wait)
+                continue
+            raise
     r.ok(f"  ✓ updated Lambda {FN_NAME}")
 
 
