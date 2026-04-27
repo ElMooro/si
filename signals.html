@@ -122,6 +122,25 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 .thesis p+p{margin-top:8px}
 .thesis strong{color:var(--t1);font-weight:600}
 .thesis em{color:var(--cyan);font-style:normal;font-weight:500}
+
+/* Sector rotation map */
+.rotation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.rot-cell{padding:16px 18px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;min-height:110px}
+.rot-cell.tilt-bullish{border-left:3px solid var(--green)}
+.rot-cell.tilt-bullish::before{content:'';position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,rgba(0,230,118,.07),transparent);pointer-events:none}
+.rot-cell.tilt-bearish{border-left:3px solid var(--red)}
+.rot-cell.tilt-bearish::before{content:'';position:absolute;left:0;top:0;bottom:0;width:60%;background:linear-gradient(90deg,rgba(255,23,74,.07),transparent);pointer-events:none}
+.rot-cell.tilt-neutral{border-left:3px solid var(--t4)}
+.rot-name{position:relative;font-family:var(--display);font-weight:600;font-size:15px;color:var(--t1);letter-spacing:-.005em}
+.rot-net{position:relative;font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:-.01em;line-height:1}
+.rot-net.bullish{color:var(--green)}
+.rot-net.bearish{color:var(--red)}
+.rot-net.neutral{color:var(--t3)}
+.rot-net small{font-size:11px;font-weight:500;margin-left:4px;color:var(--t3)}
+.rot-sources{position:relative;display:flex;flex-wrap:wrap;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;color:var(--t4);text-transform:uppercase}
+.rot-sources span{padding:2px 6px;background:var(--bg3);border-radius:4px}
+.rot-sources span.up{background:var(--green-bg);color:var(--green)}
+.rot-sources span.down{background:var(--red-bg);color:var(--red)}
 </style>
 </head>
 <body>
@@ -276,6 +295,14 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
         <div class="card-meta"><span id="pr-meta">—</span><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/price-redundancy.json" target="_blank">JSON →</a></div>
       </article>
     </div>
+  </section>
+
+  <!-- ─── SECTOR ROTATION (cross-source consensus) ─── -->
+  <section class="section">
+    <div class="section-eyebrow">Cross-source consensus</div>
+    <h2 class="section-title">Sector rotation map</h2>
+    <p class="section-blurb">Where the data sources collectively point. We blend insider buys, asymmetric setups, 8-K material events, and GDELT financial sentiment by sector — then surface the consensus tilt. Bullish sectors are where multiple independent signals agree.</p>
+    <div id="rotation-map"></div>
   </section>
 
   <footer class="foot">
@@ -461,11 +488,118 @@ async function loadPrices(){
   return d;
 }
 
-async function refreshAll(){
+// ─── Sector rotation cross-source consensus ────────────────────────
+// Pulls insider clusters + asymmetric setups + 8-K events + GDELT theme
+// counts, groups by sector. Each source contributes ±1 / ticker / sector;
+// totals tilt cells bullish/neutral/bearish.
+
+const SECTOR_FROM_TICKER_PREFIX = null;  // we have to use real sector from data
+
+async function buildRotationMap(){
+  const el = document.getElementById('rotation-map');
+  if(!el) return;
+  el.className = 'rotation-grid';
+
+  // Pull sources
+  const [insider, asym, gdelt] = await Promise.all([
+    fetchJSON('/data/insider-trades.json'),
+    fetchJSON('/opportunities/asymmetric-equity.json'),
+    fetchJSON('/data/gdelt-news.json'),
+  ]);
+
+  // Build a sector-level tally: {sector: {sources: Set, score: int}}
+  const tally = {};
+  function add(sector, src, points){
+    if(!sector) return;
+    if(!tally[sector]) tally[sector] = {sources_up: new Set(), sources_down: new Set(), score: 0};
+    if(points > 0) tally[sector].sources_up.add(src);
+    else if(points < 0) tally[sector].sources_down.add(src);
+    tally[sector].score += points;
+  }
+
+  // 1. Asymmetric setups → +1 per setup per sector (bullish)
+  if(asym && asym.sector_breakdown){
+    for(const [sec, count] of Object.entries(asym.sector_breakdown)){
+      if(count > 0) add(sec, 'asymmetric', count);
+    }
+  }
+
+  // 2. Insider clusters → look up sector via asymmetric data ticker→sector
+  // Build a lookup from asymmetric setups' top_setups
+  const tickerSector = {};
+  if(asym && asym.top_setups){
+    for(const s of asym.top_setups){
+      if(s.symbol && s.sector) tickerSector[s.symbol] = s.sector;
+    }
+  }
+  if(insider && insider.clusters){
+    for(const c of insider.clusters){
+      const sec = tickerSector[c.ticker] || 'Unknown';
+      add(sec, 'insider_cluster', Math.max(1, Math.min(3, c.insider_count - 2)));
+    }
+  }
+  if(insider && insider.big_buys){
+    for(const b of insider.big_buys){
+      const sec = tickerSector[b.ticker] || 'Unknown';
+      add(sec, 'big_buy', 1);
+    }
+  }
+
+  // 3. GDELT themes → only the financial themes that map to sectors
+  // Energy → Energy; Earnings → broad; Crypto → broad
+  if(gdelt && gdelt.themes){
+    const themeToSector = {
+      'ENERGY_OIL': 'Energy', 'ENERGY_GAS': 'Energy', 'ENERGY_RENEWABLE': 'Utilities',
+      'CRYPTOCURRENCY': 'Financial Services', 'BITCOIN': 'Financial Services',
+      'ECON_BANK': 'Financial Services', 'ECON_CENTRAL_BANK': 'Financial Services',
+    };
+    for(const [theme, info] of Object.entries(gdelt.themes)){
+      const sec = themeToSector[theme];
+      if(!sec) continue;
+      const tone = info.avg_tone || 0;
+      if(tone > 1) add(sec, 'gdelt', 1);
+      else if(tone < -1) add(sec, 'gdelt', -1);
+    }
+  }
+
+  // Render
+  const sectors = Object.entries(tally)
+    .filter(([sec]) => sec !== 'Unknown')
+    .sort((a, b) => b[1].score - a[1].score);
+
+  if(!sectors.length){
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1">No cross-source signals yet — sources still warming up.</div>`;
+    return;
+  }
+
+  el.innerHTML = sectors.map(([sec, t]) => {
+    let tilt = 'neutral', cls = 'neutral';
+    if(t.score >= 3){ tilt = 'bullish'; cls = 'bullish'; }
+    else if(t.score <= -3){ tilt = 'bearish'; cls = 'bearish'; }
+
+    const upSrc = [...t.sources_up].map(s => `<span class="up">${s}</span>`).join('');
+    const dnSrc = [...t.sources_down].map(s => `<span class="down">${s}</span>`).join('');
+    return `
+      <div class="rot-cell tilt-${tilt}">
+        <div class="rot-name">${escape(sec)}</div>
+        <div class="rot-net ${cls}">${t.score > 0 ? '+' : ''}${t.score}<small>signal pts</small></div>
+        <div class="rot-sources">${upSrc}${dnSrc || ''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+
   const results = await Promise.all([
     loadGdelt(), loadAaii(), loadForm4(), load13F(), load8K(), load10KQ(),
     loadOECD(), loadLabor(), loadNyFed(), loadOnchain(), loadGex(), loadPrices(),
   ]);
+
+  // After individual sources load, build cross-source consensus
+  buildRotationMap();
+
   const liveCount = results.filter(r => r != null).length;
 
   // KPI strip

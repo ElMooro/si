@@ -1,0 +1,24 @@
+{
+  "name": "justhodl-backtest-harness",
+  "function_name": "justhodl-backtest-harness",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 600,
+  "timeout_s": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_OUTPUT_KEY",
+    "DDB_TABLE",
+    "FMP_KEY"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": ["justhodl-backtest-harness-daily"],
+  "description": "Daily snapshot of all signal types + forward-return tracker. Records to DDB justhodl-backtest, rolls up to S3 data/backtest-summary.json."
+}

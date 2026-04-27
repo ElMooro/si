@@ -512,6 +512,25 @@ EXPECTATIONS = {
         "note": "Telegram alerter for serious 8-K events. Reads data/8k-filings.json.",
         "severity": "important",
     },
+
+    # ─── Phase 11B — backtest harness ──────────────────────
+    "s3:data/backtest-summary.json": {
+        "type": "s3_file",
+        "key": "data/backtest-summary.json",
+        "fresh_max": 90_000,         # 25h (writer is daily)
+        "warn_max": 172_800,         # 48h
+        "expected_size": 200,
+        "note": "Forward-return cohort tracker. justhodl-backtest-harness daily.",
+        "severity": "important",
+    },
+    "lambda:justhodl-backtest-harness": {
+        "type": "lambda",
+        "name": "justhodl-backtest-harness",
+        "max_error_rate": 0.30,
+        "min_invocations_24h": 1,
+        "note": "Daily backtest snapshot + forward-return tracker. DDB justhodl-backtest.",
+        "severity": "important",
+    },
 }
 
 

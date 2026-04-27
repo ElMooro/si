@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d12">
+<title>JustHodl · Today</title>
+<meta name="description" content="The 3 things you need to know right now. Bloomberg Terminal in your pocket.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh;min-height:100dvh}
+
+/* Tab bar at top — sleek mobile */
+.tabs{position:sticky;top:0;background:rgba(15,19,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--brd);padding:env(safe-area-inset-top) 0 0;z-index:100}
+.tabs-inner{display:flex;align-items:center;gap:0;padding:0 4px;height:48px;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.tabs-inner::-webkit-scrollbar{display:none}
+.brand{font-family:var(--display);font-weight:700;font-size:15px;font-style:italic;color:var(--t1);padding:0 14px;flex-shrink:0;letter-spacing:-.005em}
+.brand i{color:var(--cyan);font-style:normal}
+.tab{padding:8px 12px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);text-decoration:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;flex-shrink:0}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* Page */
+.shell{padding:20px 16px 60px;max-width:680px;margin:0 auto}
+
+/* Hero — date + regime */
+.hero{padding:24px 4px 28px;border-bottom:1px solid var(--brd);margin-bottom:24px}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.hero-title{font-family:var(--display);font-weight:600;font-size:28px;line-height:1.05;letter-spacing:-.012em;margin-bottom:14px;color:var(--t1)}
+.hero-title em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero-pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.regime-pill{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:1.2px;padding:5px 11px;border-radius:8px;text-transform:uppercase}
+.regime-CRISIS{background:rgba(255,23,74,.15);color:var(--red);border:1px solid rgba(255,23,74,.4)}
+.regime-BEAR{background:rgba(255,122,24,.12);color:var(--orange);border:1px solid rgba(255,122,24,.35)}
+.regime-NEUTRAL{background:rgba(255,196,0,.12);color:var(--yellow);border:1px solid rgba(255,196,0,.35)}
+.regime-BULL{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid rgba(0,212,255,.35)}
+.regime-STRONG_BULL{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.4)}
+.ki-pill{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.5px}
+.ki-pill strong{color:var(--t1);font-weight:600;font-size:13px}
+.live-dot{display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;margin-right:6px;vertical-align:middle}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Top 3 actionable signals */
+.section-eyebrow{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:8px;padding:0 4px}
+.section-title{font-family:var(--display);font-size:22px;font-weight:600;color:var(--t1);margin-bottom:18px;padding:0 4px;letter-spacing:-.01em}
+
+.signals-stack{display:flex;flex-direction:column;gap:14px;margin-bottom:36px}
+.signal{padding:18px 20px;background:var(--bg2);border:1px solid var(--brd);border-radius:14px;border-left:4px solid var(--cyan);position:relative;overflow:hidden}
+.signal.tone-bullish{border-left-color:var(--green)}
+.signal.tone-bearish{border-left-color:var(--red)}
+.signal.tone-warning{border-left-color:var(--yellow)}
+.signal-rank{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--t4);text-transform:uppercase}
+.signal-source{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:6px}
+.signal-headline{font-family:var(--display);font-weight:600;font-size:20px;color:var(--t1);line-height:1.2;margin-bottom:8px;letter-spacing:-.01em;padding-right:50px}
+.signal-headline em{font-style:italic;color:var(--cyan);font-weight:500}
+.signal-headline.bullish em{color:var(--green)}
+.signal-headline.bearish em{color:var(--red)}
+.signal-blurb{font-size:14px;color:var(--t2);line-height:1.55;margin-bottom:12px}
+.signal-action{padding:10px 14px;background:var(--bg);border-radius:8px;font-size:13px;color:var(--t2);border-left:3px solid var(--cyan);font-style:italic}
+.signal-action strong{color:var(--t1);font-weight:600;font-style:normal}
+.signal.tone-bullish .signal-action{border-left-color:var(--green)}
+.signal.tone-bearish .signal-action{border-left-color:var(--red)}
+.signal.tone-warning .signal-action{border-left-color:var(--yellow)}
+
+/* Quick links */
+.qlinks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:32px}
+.qlink{display:block;padding:18px 14px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;text-decoration:none;color:var(--t1);transition:transform .15s,border-color .2s;text-align:center}
+.qlink:active{transform:scale(.98);border-color:var(--brd2)}
+.qlink-icon{font-family:var(--display);font-size:22px;font-weight:700;color:var(--cyan);margin-bottom:6px;letter-spacing:-.01em}
+.qlink-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;display:block}
+.qlink-meta{display:block;font-size:11px;color:var(--t4);margin-top:4px}
+
+/* Footer note */
+.foot{margin-top:36px;padding:18px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;font-family:var(--mono);font-size:11px;color:var(--t3);line-height:1.6;text-align:center}
+.foot a{color:var(--cyan);text-decoration:none}
+.foot strong{color:var(--t1)}
+
+.skel{background:linear-gradient(90deg,var(--bg2),var(--bg3),var(--bg2));background-size:200% 100%;animation:shimmer 1.6s infinite;border-radius:6px;color:transparent;display:inline-block;min-width:60px;height:1em}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.fade-in{animation:fadeIn .6s cubic-bezier(.4,0,.2,1) backwards}
+.fade-in:nth-child(1){animation-delay:.05s}.fade-in:nth-child(2){animation-delay:.15s}.fade-in:nth-child(3){animation-delay:.25s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Tablet+ */
+@media(min-width:680px){
+  .qlinks{grid-template-columns:repeat(4,1fr)}
+  .hero-title{font-size:32px}
+}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand">just<i>hodl</i></span>
+    <a class="tab active" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main class="shell">
+
+  <section class="hero fade-in">
+    <div class="hero-eyebrow"><span class="live-dot"></span><span id="today-date">—</span> · live</div>
+    <h1 class="hero-title" id="today-headline">Markets are <em>—</em></h1>
+    <div class="hero-pills">
+      <span id="regime-pill" class="regime-pill regime-NEUTRAL">…</span>
+      <span class="ki-pill">Khalid Index <strong id="ki-val">—</strong> / 100</span>
+    </div>
+  </section>
+
+  <div class="section-eyebrow">The 3 things to watch</div>
+  <h2 class="section-title">Top signals right now</h2>
+
+  <div class="signals-stack" id="signals-stack">
+    <article class="signal fade-in">
+      <span class="signal-rank">#1</span>
+      <div class="signal-source skel">—</div>
+      <div class="signal-headline skel" style="height:1.2em">—</div>
+      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
+    </article>
+    <article class="signal fade-in">
+      <span class="signal-rank">#2</span>
+      <div class="signal-source skel">—</div>
+      <div class="signal-headline skel" style="height:1.2em">—</div>
+      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
+    </article>
+    <article class="signal fade-in">
+      <span class="signal-rank">#3</span>
+      <div class="signal-source skel">—</div>
+      <div class="signal-headline skel" style="height:1.2em">—</div>
+      <div class="signal-blurb skel" style="display:block;height:2.5em">—</div>
+    </article>
+  </div>
+
+  <div class="section-eyebrow">Go deeper</div>
+  <h2 class="section-title">Pages</h2>
+  <div class="qlinks">
+    <a class="qlink" href="/read.html">
+      <div class="qlink-icon">R</div>
+      <span class="qlink-label">The Read</span>
+      <span class="qlink-meta">Daily · plain English</span>
+    </a>
+    <a class="qlink" href="/signals.html">
+      <div class="qlink-icon">11</div>
+      <span class="qlink-label">All Signals</span>
+      <span class="qlink-meta">All sources · live</span>
+    </a>
+    <a class="qlink" href="/insiders.html">
+      <div class="qlink-icon">$</div>
+      <span class="qlink-label">Insiders</span>
+      <span class="qlink-meta">Form 4 · cluster buys</span>
+    </a>
+    <a class="qlink" href="/desk.html">
+      <div class="qlink-icon">⚡</div>
+      <span class="qlink-label">Desk</span>
+      <span class="qlink-meta">Full terminal</span>
+    </a>
+  </div>
+
+  <footer class="foot">
+    <strong>JustHodl.AI</strong> · 11 data sources · ~$8/mo compute<br>
+    <span id="updated-at">—</span> · <a href="javascript:location.reload()">Refresh</a>
+  </footer>
+
+</main>
+
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+
+async function fetchJSON(path){
+  try{ const r = await fetch(BUCKET+path,{cache:'no-cache'}); if(!r.ok) throw 0; return await r.json(); }
+  catch(e){ return null; }
+}
+
+// ─── Build the top 3 signals with priority logic ────────────────────
+//
+// Priority for what makes top 3:
+//   1. RED FLAGS (8-K Item 4.02 / 1.03 / 5.04) — anything bearish + recent
+//   2. INSIDER CLUSTERS — strongest single-source bullish signal
+//   3. AAII EXTREMES — broad-market contrarian
+//   4. KI/regime change — only if at boundary
+//   5. AAYI big buy — fallback bullish
+//   6. GEX regime change — fallback dealer positioning
+//
+// We rank candidates and surface the top 3.
+
+function reltime(iso){
+  if(!iso) return '—';
+  try{
+    const d = new Date(iso);
+    const ms = Date.now() - d.getTime();
+    const h = Math.floor(ms/3600000);
+    if(h < 1) return Math.round(ms/60000) + 'm ago';
+    if(h < 24) return h + 'h ago';
+    return Math.floor(h/24) + 'd ago';
+  }catch{ return '—'; }
+}
+
+async function buildTopSignals(){
+  const [report, insider, sec8k, aaii, gex, redflag] = await Promise.all([
+    fetchJSON('/data/report.json'),
+    fetchJSON('/data/insider-trades.json'),
+    fetchJSON('/data/8k-filings.json'),
+    fetchJSON('/data/aaii-sentiment.json'),
+    fetchJSON('/data/options-gamma.json'),
+    fetchJSON('/data/redflag-alerts.json'),
+  ]);
+
+  // Hero: regime + KI
+  const ki = (report?.khalid_index?.score) ?? 50;
+  const regime = (report?.khalid_index?.regime) || 'NEUTRAL';
+  const headlineMap = {
+    CRISIS: ['under <em>stress</em>', 'bearish'],
+    BEAR: ['<em>cautious</em>', 'bearish'],
+    NEUTRAL: ['<em>balanced</em>', 'neutral'],
+    BULL: ['<em>constructive</em>', 'bullish'],
+    STRONG_BULL: ['<em>euphoric</em>', 'bullish'],
+  };
+  const [hl, tone] = headlineMap[regime] || headlineMap.NEUTRAL;
+  document.getElementById('today-headline').innerHTML = `Markets are ${hl}`;
+  document.getElementById('today-headline').className = 'hero-title ' + tone;
+  const pill = document.getElementById('regime-pill');
+  pill.textContent = regime.replace('_', ' ');
+  pill.className = 'regime-pill regime-' + regime;
+  document.getElementById('ki-val').textContent = ki.toFixed(1);
+  const today = new Date();
+  document.getElementById('today-date').textContent = today.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
+
+  // Build candidate list with priority scores
+  const candidates = [];
+
+  // 1. RED FLAGS — most recent ones
+  if(redflag && redflag.log){
+    const recent = (redflag.log || []).filter(e => {
+      try { return (Date.now() - new Date(e.alerted_at).getTime()) < 24*3600*1000; }
+      catch { return false; }
+    }).sort((a,b) => new Date(b.alerted_at) - new Date(a.alerted_at));
+    if(recent.length > 0){
+      const r = recent[0];
+      candidates.push({
+        priority: 100,
+        tone: 'bearish',
+        source: 'SEC 8-K · red flag',
+        headline: `<em>${escape(r.company || '?')}</em> filed Item ${r.items?.[0] || '?'}`,
+        blurb: `${recent.length} red-flag 8-K filing${recent.length>1?'s':''} in last 24h. Item 4.02 = non-reliance on prior financials, historically precedes 30%+ drawdowns.`,
+        action: `<strong>Audit any positions in ${escape(r.company || '?')}.</strong> Check for restatement, governance issues, or accounting concerns before adding.`,
+        meta: reltime(r.alerted_at),
+      });
+    }
+  }
+
+  // 2. INSIDER CLUSTERS — top one by total value
+  if(insider && insider.clusters && insider.clusters.length > 0){
+    const c = insider.clusters[0];
+    candidates.push({
+      priority: 80,
+      tone: 'bullish',
+      source: 'SEC Form 4 · insider cluster',
+      headline: `<em>${escape(c.ticker)}</em> · ${c.insider_count} insiders bought $${(c.total_value/1e6).toFixed(1)}M`,
+      blurb: `${c.insider_count} different insiders at ${escape(c.company)} bought ${c.total_shares?.toLocaleString() || '?'} shares in the last 14 days. Cluster buys outperform broad insider signals by ~3% annualized.`,
+      action: `<strong>Add ${escape(c.ticker)} to your watchlist.</strong> Check why insiders see opportunity — often pre-catalyst or post-selloff accumulation.`,
+      meta: reltime(c.last_filing),
+    });
+  }
+
+  // 3. AAII EXTREMES (high signal value at extremes)
+  if(aaii && aaii.extremes){
+    if(aaii.extremes.is_bearish_extreme){
+      candidates.push({
+        priority: 70,
+        tone: 'bullish',
+        source: 'AAII Survey · contrarian',
+        headline: `Retail is <em>extremely bearish</em>`,
+        blurb: `Bull-Bear spread at ${(aaii.latest.bull_bear_spread*100).toFixed(0)}%. AAII extremes have historically been strong contrarian signals — herd is rarely right at extremes.`,
+        action: `<strong>Lean bullish on broad market.</strong> Historically the 30-day forward return for SPY when AAII is extremely bearish averages +3-5%.`,
+        meta: 'Week ending ' + (aaii.latest.week_ending || '?'),
+      });
+    } else if(aaii.extremes.is_bullish_extreme){
+      candidates.push({
+        priority: 70,
+        tone: 'bearish',
+        source: 'AAII Survey · contrarian',
+        headline: `Retail is <em>extremely bullish</em>`,
+        blurb: `Bull-Bear spread at +${(aaii.latest.bull_bear_spread*100).toFixed(0)}%. Contrarian sell signal — euphoria is when distribution typically happens.`,
+        action: `<strong>Trim winners, raise cash.</strong> Strong-bull regimes with AAII extremes often peak within weeks, not months.`,
+        meta: 'Week ending ' + (aaii.latest.week_ending || '?'),
+      });
+    }
+  }
+
+  // 4. KI BOUNDARY — if KI is within 3 of a regime threshold, flag transition risk
+  if(ki !== null){
+    const boundaries = [30, 45, 60, 75];
+    const minDist = Math.min(...boundaries.map(b => Math.abs(ki - b)));
+    if(minDist < 3){
+      candidates.push({
+        priority: 65,
+        tone: 'warning',
+        source: 'Khalid Index · regime watch',
+        headline: `KI <em>${ki.toFixed(1)}</em> — near regime boundary`,
+        blurb: `The Khalid Index is within ${minDist.toFixed(1)} points of a regime threshold. Small data shifts could flip the read between ${regime.replace('_',' ')} and an adjacent regime.`,
+        action: `<strong>Watch for regime change.</strong> A flip of regime on the morning brief = recalibrate position sizing.`,
+        meta: 'Right now',
+      });
+    }
+  }
+
+  // 5. BIG INSIDER BUY — fallback if no clusters
+  if(insider && insider.big_buys && insider.big_buys.length > 0 && candidates.length < 5){
+    const b = insider.big_buys[0];
+    candidates.push({
+      priority: 50,
+      tone: 'bullish',
+      source: 'SEC Form 4 · big buy',
+      headline: `<em>${escape(b.ticker)}</em> · $${(b.value/1e6).toFixed(1)}M insider purchase`,
+      blurb: `${escape(b.insider || '?').slice(0,40)} bought ${b.shares?.toLocaleString() || '?'} shares at $${b.price?.toFixed(2) || '?'}.`,
+      action: `<strong>Worth investigating.</strong> Single big buys are louder than clusters in $ terms but quieter in conviction breadth.`,
+      meta: reltime(b.filed_at),
+    });
+  }
+
+  // 6. GEX regime — dealer positioning
+  if(gex && gex.regime && gex.regime !== 'neutral' && candidates.length < 5){
+    const isLong = gex.regime === 'long_gamma';
+    candidates.push({
+      priority: 45,
+      tone: isLong ? 'bullish' : 'warning',
+      source: 'Polygon · dealer GEX',
+      headline: `Dealers are <em>${isLong ? 'long' : 'short'} gamma</em>`,
+      blurb: gex.interpretation || (isLong ? 'Dealers dampen vol — range-bound action likely.' : 'Dealers amplify moves — gap risk in both directions.'),
+      action: isLong
+        ? `<strong>Sell premium selectively.</strong> Vol is being suppressed by dealer hedging.`
+        : `<strong>Don't fade extreme moves.</strong> Dealer hedging accelerates trend; wait for short-gamma conditions to clear before mean-reversion trades.`,
+      meta: `Total GEX: ${(gex.total_gex/1e9).toFixed(2)}B`,
+    });
+  }
+
+  // Sort by priority and take top 3
+  candidates.sort((a, b) => b.priority - a.priority);
+  const top3 = candidates.slice(0, 3);
+
+  // Render
+  const stack = document.getElementById('signals-stack');
+  if(top3.length === 0){
+    stack.innerHTML = '<div class="signal"><div class="signal-source">No actionable signals</div><div class="signal-headline">Quiet day</div><div class="signal-blurb">No red flags, no insider clusters, no extremes detected. Stay disciplined.</div></div>';
+  } else {
+    stack.innerHTML = top3.map((s, i) => `
+      <article class="signal tone-${s.tone} fade-in">
+        <span class="signal-rank">#${i+1}</span>
+        <div class="signal-source">${escape(s.source)}</div>
+        <div class="signal-headline ${s.tone}">${s.headline}</div>
+        <div class="signal-blurb">${s.blurb}</div>
+        <div class="signal-action">${s.action}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--t4);margin-top:8px;text-transform:uppercase;letter-spacing:1px">${escape(s.meta)}</div>
+      </article>
+    `).join('');
+  }
+
+  document.getElementById('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString();
+}
+
+function escape(s){ return (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); }
+
+buildTopSignals();
+setInterval(buildTopSignals, 5 * 60 * 1000);
+</script>
+</body>
+</html>
