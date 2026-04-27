@@ -105,7 +105,10 @@ def get_funding_rates():
         if not result['rates']:
             # Fallback: manual from Binance
             for sym in ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT']:
-                data = fetch(f'https://fapi.binance.com/fapi/v1/fundingRate?symbol={sym}&limit=1')
+                data = fetch(f'https://api.bybit.com/v5/market/funding/history?category=linear&symbol={sym}&limit=1')
+                # Adapt Bybit response shape to Binance's flat list
+                if isinstance(data, dict) and data.get('retCode') == 0:
+                    data = (data.get('result') or {}).get('list') or []
                 if data and isinstance(data, list) and len(data) > 0:
                     rate = float(data[0].get('fundingRate', 0))
                     result['rates'][sym.replace('USDT', '')] = round(rate * 100, 4)
@@ -118,7 +121,23 @@ def get_leverage_sentiment():
     result = {}
     try:
         for sym in ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']:
-            data = fetch(f'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol={sym}&period=1h&limit=1')
+            ccy = sym.replace('USDT','')
+            r_okx = fetch(f'https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio?ccy={ccy}&period=1H')
+            data = []
+            if isinstance(r_okx, dict) and r_okx.get('code') == '0':
+                # OKX shape: data is [[ts, ratio], ...]; we want [{longAccount, shortAccount, longShortRatio}]
+                rows = r_okx.get('data') or []
+                if rows:
+                    try:
+                        ratio = float(rows[0][1])
+                        long_pct = ratio / (ratio + 1) if ratio > 0 else 0.5
+                        data = [{
+                            'longAccount': str(long_pct),
+                            'shortAccount': str(1 - long_pct),
+                            'longShortRatio': str(ratio),
+                        }]
+                    except (ValueError, IndexError, TypeError):
+                        pass
             if data and isinstance(data, list) and len(data) > 0:
                 ratio = data[0]
                 result[sym.replace('USDT', '')] = {

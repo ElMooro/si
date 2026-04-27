@@ -128,6 +128,31 @@ BN_MIRRORS = ['https://api.binance.com', 'https://api1.binance.com', 'https://ap
 
 FP_MIRRORS = ['https://fapi.binance.com']
 
+# ── Bybit / OKX shape adapters (Binance hardblock migration 2026-04-27) ──
+def _bybit_kline_to_binance_shape(d):
+    """Bybit v5 kline returns {result:{list:[[start,o,h,l,c,v,turnover],...]}}.
+    Binance returns flat [[ts,o,h,l,c,v,close_time,...],...].
+    Our klines() consumer reads indices [1..5] for o/h/l/c/v, so we just
+    return result.list directly — same column order as Binance for o,h,l,c,v.
+    Bybit returns newest-first; reverse to match Binance oldest-first."""
+    if not isinstance(d, dict):
+        return None
+    if d.get('retCode') != 0:
+        return None
+    lst = (d.get('result') or {}).get('list') or []
+    return list(reversed(lst)) if lst else None
+
+def _bybit_oi_to_binance_shape(d):
+    """Bybit v5 open-interest returns {result:{list:[{openInterest, timestamp},...]}}.
+    Binance returned {openInterest, symbol, time}. We adapt to {openInterest:str}."""
+    if not isinstance(d, dict) or d.get('retCode') != 0:
+        return None
+    lst = (d.get('result') or {}).get('list') or []
+    if not lst:
+        return None
+    return {'openInterest': lst[0].get('openInterest', '0')}
+
+
 
 
 
@@ -768,13 +793,14 @@ def klines(sym, intv, lim=200):
 
 
 
-    path=f"/api/v3/klines?symbol={sym}&interval={intv}&limit={lim}"
+    _BYBIT_INTV={"1m":"1","3m":"3","5m":"5","15m":"15","30m":"30","1h":"60","2h":"120","4h":"240","6h":"360","12h":"720","1d":"D","1w":"W"}; _bv=_BYBIT_INTV.get(intv, intv); path=f"/v5/market/kline?category=spot&symbol={sym}&interval={_bv}&limit={lim}"
 
 
 
 
 
-    d=http_mirror(path, BN_MIRRORS, timeout=12)
+    d=http_mirror(path, ['https://api.bybit.com'], timeout=12)
+    d=_bybit_kline_to_binance_shape(d) if d else None
 
 
 
@@ -1998,29 +2024,27 @@ def fetch_funding():
                 continue
     except Exception as e:
         print('OKX funding err: ' + str(e))
-    # Fallback: Binance futures
+    # Fallback: Bybit funding history (Binance hardblocked from AWS us-east-1)
     if not out:
         try:
-            req3 = urllib.request.Request(
-                'https://fapi.binance.com/fapi/v1/premiumIndex',
-                headers={'User-Agent': 'JustHodl/2.0'}
-            )
-            with urllib.request.urlopen(req3, timeout=12) as r3:
-                data3 = json.loads(r3.read().decode('utf-8'))
-            want = {'BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT',
-                    'ADAUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','BNBUSDT'}
-            for item in data3:
-                if item.get('symbol') in want:
-                    rate = float(item.get('lastFundingRate', 0))
-                    out.append({
-                        'symbol': item['symbol'].replace('USDT',''),
-                        'funding_rate': rate,
-                        'funding_rate_pct': round(rate*100, 4),
-                        'sentiment': 'LONG' if rate>0 else 'SHORT',
-                        'annualized_pct': round(rate*3*365*100, 2)
-                    })
+            for sym in ('BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT',
+                        'ADAUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','BNBUSDT'):
+                d4 = http_get(f'https://api.bybit.com/v5/market/funding/history?category=linear&symbol={sym}&limit=1', timeout=8)
+                if not d4 or d4.get('retCode') != 0:
+                    continue
+                lst = (d4.get('result') or {}).get('list') or []
+                if not lst:
+                    continue
+                rate = float(lst[0].get('fundingRate', 0))
+                out.append({
+                    'symbol': sym.replace('USDT',''),
+                    'funding_rate': rate,
+                    'funding_rate_pct': round(rate*100, 4),
+                    'sentiment': 'LONG' if rate>0 else 'SHORT',
+                    'annualized_pct': round(rate*3*365*100, 2),
+                })
         except Exception as e:
-            print('Binance funding fallback err: ' + str(e))
+            print('Bybit funding fallback err: ' + str(e))
     if not out:
         return {'status': 'error', 'rates': [], 'bias': 'unknown',
                 'error': 'All funding rate sources unavailable'}
@@ -2061,7 +2085,7 @@ def fetch_oi():
 
 
 
-        d=http_mirror(f"/fapi/v1/openInterest?symbol={s}",FP_MIRRORS,timeout=8)
+        d=http_mirror(f"/v5/market/open-interest?category=linear&symbol={s}&intervalTime=1h&limit=1", ["https://api.bybit.com"], timeout=8); d=_bybit_oi_to_binance_shape(d) if d else None
 
 
 
