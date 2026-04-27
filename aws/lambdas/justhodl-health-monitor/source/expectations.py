@@ -1,5 +1,7 @@
-# MIRROR — kept for backward compat with archived ops scripts.
-# Source of truth is aws/lambdas/justhodl-health-monitor/source/expectations.py
+# CANONICAL — this is the source of truth for the health-monitor Lambda.
+# A copy at aws/ops/health/expectations.py exists for ops-script compatibility
+# (early one-off deploy scripts referenced that path). Edits should be made here;
+# the deploy-lambdas.yml workflow zips this directory and pushes to AWS.
 #
 # ═══════════════════════════════════════════════════════════════════
 #  JustHodl.AI Health Expectations
