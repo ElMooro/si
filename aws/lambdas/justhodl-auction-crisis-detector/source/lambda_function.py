@@ -111,19 +111,41 @@ CRISIS_REFERENCE = [
 
 
 def fetch_fiscal_auctions(start_date, end_date, page_size=200):
-    """Pull auction data from fiscaldata.treasury.gov. Returns list of records."""
+    """Pull auction data from fiscaldata.treasury.gov. Returns list of records.
+
+    Always pulls fresh — no caching. The fiscaldata API publishes auction
+    results within ~1-2 hours of auction close. We pull on every Lambda
+    invocation so the dashboard reflects whatever Treasury has published
+    most recently, including same-day auctions.
+
+    URL contract:
+      https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/
+        accounting/od/auctions_query?
+        filter=auction_date:gte:YYYY-MM-DD,auction_date:lte:YYYY-MM-DD&
+        sort=-auction_date&
+        format=json&
+        page[size]=200&
+        page[number]=N
+    """
     all_records = []
     page = 1
     while True:
         params = {
             "filter": f"auction_date:gte:{start_date},auction_date:lte:{end_date}",
-            "sort": "-auction_date",
+            "sort": "-auction_date",  # most recent first
+            "format": "json",
             "page[size]": page_size,
             "page[number]": page,
         }
         url = FISCAL_BASE + "?" + urllib.parse.urlencode(params, safe=":,")
         try:
-            with urllib.request.urlopen(url, timeout=20) as r:
+            req = urllib.request.Request(url, headers={
+                "Accept": "application/json",
+                "User-Agent": "justhodl-auction-crisis-detector/1.0",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+            })
+            with urllib.request.urlopen(req, timeout=20) as r:
                 body = json.loads(r.read())
         except Exception as e:
             print(f"[fiscal] error page {page}: {e}")
@@ -535,8 +557,47 @@ def lambda_handler(event, context):
         interp = "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern."
 
     # Build report
+    # Freshness tracking: detect the most-recent auction in the data and
+    # how stale it is. If Treasury hasn't published a new auction in >36h
+    # AND it's a weekday business window, that itself is a red flag
+    # (publication delay during stress).
+    latest_auction_date = None
+    latest_cusip = None
+    latest_auction_iso = None
+    if scored_auctions:
+        # scored_auctions is sorted desc by auction_date already
+        latest = scored_auctions[0]
+        latest_auction_date = latest.get("auction_date")
+        latest_cusip = latest.get("cusip")
+        if latest_auction_date:
+            latest_auction_iso = latest_auction_date
+
+    # How fresh? Compute hours since latest auction settlement.
+    hours_since_latest = None
+    if latest_auction_date:
+        try:
+            la = datetime.strptime(latest_auction_date[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            hours_since_latest = round((datetime.now(timezone.utc) - la).total_seconds() / 3600, 1)
+        except Exception:
+            pass
+
+    # Compare against PREVIOUS run's latest_cusip to detect if THIS run
+    # picked up a brand-new auction (used for change-detection / alerts).
+    is_new_auction_this_run = False
+    previous_latest_cusip = None
+    try:
+        prev_body = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)["Body"].read()
+        prev = json.loads(prev_body)
+        previous_latest_cusip = prev.get("freshness", {}).get("latest_cusip")
+        if previous_latest_cusip and latest_cusip and previous_latest_cusip != latest_cusip:
+            is_new_auction_this_run = True
+    except Exception:
+        # First run, or no prior file
+        pass
+
+    # Build report
     report = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",  # bumped: added freshness tracking
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
         "regime": regime,
@@ -545,6 +606,19 @@ def lambda_handler(event, context):
         "n_recent_auctions_14d": len(recent),
         "issuance_anomaly": issuance,
         "fed_funds_rate": fed_rate,
+
+        # Freshness tracking — confirms wiring is pulling latest data
+        "freshness": {
+            "latest_auction_date": latest_auction_iso,
+            "latest_cusip": latest_cusip,
+            "hours_since_latest_auction": hours_since_latest,
+            "previous_latest_cusip": previous_latest_cusip,
+            "is_new_auction_this_run": is_new_auction_this_run,
+            "n_total_auctions_pulled": len(raw),
+            "data_window_start": start.strftime("%Y-%m-%d"),
+            "data_window_end": end.strftime("%Y-%m-%d"),
+            "fetched_via": "https://api.fiscaldata.treasury.gov (no-cache headers, format=json)",
+        },
 
         # Last 10 auctions with scores
         "recent_auctions": scored_auctions[:10],
@@ -581,6 +655,10 @@ def lambda_handler(event, context):
         "composite_score": report["composite_score"],
         "n_recent": len(recent),
         "issuance_anomaly_pct": issuance.get("pct_above_baseline") if issuance else None,
+        "latest_auction_date": latest_auction_iso,
+        "latest_cusip": latest_cusip,
+        "hours_since_latest_auction": hours_since_latest,
+        "is_new_auction_this_run": is_new_auction_this_run,
     }
     print(f"[auction-crisis] done: {summary}")
     return {"statusCode": 200, "body": json.dumps(summary)}
