@@ -9,7 +9,7 @@ ssl_context = ssl.create_default_context()
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 
-FRED_API_KEY = '8e42b7b0d4754c0e5e88bb45b7164d77'
+FRED_API_KEY = '2f057499936072679d8843d7fce99989'
 
 # ALL 272 METRICS FROM YOUR DOCUMENTATION
 ALL_METRICS = {
