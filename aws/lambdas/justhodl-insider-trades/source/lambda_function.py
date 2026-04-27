@@ -494,14 +494,135 @@ def lambda_handler(event, context):
     # 2. Fetch + parse each filing's XML in parallel (small batch to stay under SEC rate)
     fresh_txns = []
     fetch_errors = 0
+    diag = {
+        "filings_seen": 0,
+        "xml_fetched": 0,
+        "xml_parse_failed": 0,
+        "no_issuer_or_ticker": 0,
+        "no_nonderivative_table": 0,
+        "txn_seen": 0,
+        "skipped_not_buy_or_sell": 0,
+        "skipped_below_threshold": 0,
+        "buys_kept": 0,
+        "sells_kept": 0,
+    }
 
     def process(filing):
+        diag["filings_seen"] += 1
         try:
             xml = fetch_form4_xml(filing["cik"], filing["accession"])
-            txns = parse_form4(xml)
-            for t in txns:
-                t["accession"] = filing["accession"]
-                t["filed_at"] = filing["filed_at"]
+            if not xml:
+                return None
+            diag["xml_fetched"] += 1
+
+            # Inline parse with diagnostics rather than calling parse_form4
+            try:
+                root = ET.fromstring(xml)
+            except ET.ParseError:
+                diag["xml_parse_failed"] += 1
+                return []
+
+            def t(elem, path):
+                e = elem.find(path)
+                if e is None:
+                    return None
+                v = e.find("value")
+                if v is not None and v.text:
+                    return v.text.strip()
+                return e.text.strip() if e.text else None
+
+            issuer = root.find("issuer")
+            if issuer is None:
+                diag["no_issuer_or_ticker"] += 1
+                return []
+
+            ticker = t(issuer, "issuerTradingSymbol")
+            company = t(issuer, "issuerName")
+            cik = t(issuer, "issuerCik")
+            if not ticker or ticker.upper() in ("NONE", "NA"):
+                diag["no_issuer_or_ticker"] += 1
+                return []
+
+            owner = root.find("reportingOwner")
+            insider_name = None
+            insider_role = []
+            if owner is not None:
+                insider_name = t(owner, "reportingOwnerId/rptOwnerName")
+                rel = owner.find("reportingOwnerRelationship")
+                if rel is not None:
+                    for tag, label in [
+                        ("isDirector", "Director"),
+                        ("isOfficer", "Officer"),
+                        ("isTenPercentOwner", "10% Owner"),
+                        ("isOther", "Other"),
+                    ]:
+                        e = rel.find(tag)
+                        if e is not None:
+                            val = (e.text or "").strip()
+                            if val in ("1", "true", "True"):
+                                insider_role.append(label)
+                    title = t(rel, "officerTitle")
+                    if title and "Officer" in insider_role:
+                        insider_role = [r if r != "Officer" else f"{title}" for r in insider_role]
+            role_str = ", ".join(insider_role) if insider_role else "Insider"
+
+            nd_table = root.find("nonDerivativeTable")
+            if nd_table is None:
+                diag["no_nonderivative_table"] += 1
+                return []
+
+            txns = []
+            for tx in nd_table.findall("nonDerivativeTransaction"):
+                diag["txn_seen"] += 1
+                amounts = tx.find("transactionAmounts")
+                coding = tx.find("transactionCoding")
+                if amounts is None or coding is None:
+                    continue
+
+                try:
+                    shares = float(t(amounts, "transactionShares") or 0)
+                    price = float(t(amounts, "transactionPricePerShare") or 0)
+                except (TypeError, ValueError):
+                    continue
+
+                code = t(coding, "transactionCode") or ""
+                ad = t(amounts, "transactionAcquiredDisposedCode") or ""
+                is_buy = code == "P" and ad == "A"
+                is_sell = code == "S" and ad == "D"
+                value = abs(shares * price)
+
+                if not (is_buy or is_sell):
+                    diag["skipped_not_buy_or_sell"] += 1
+                    continue
+                if is_buy and value < MIN_BUY_VALUE_USD:
+                    diag["skipped_below_threshold"] += 1
+                    continue
+
+                if is_buy:
+                    diag["buys_kept"] += 1
+                else:
+                    diag["sells_kept"] += 1
+
+                txn_date_el = tx.find("transactionDate")
+                txn_date = t(txn_date_el, "value") if txn_date_el is not None else None
+
+                txns.append({
+                    "ticker": ticker.upper().strip(),
+                    "company": (company or "")[:80],
+                    "cik": cik,
+                    "insider": (insider_name or "Unknown")[:80],
+                    "role": role_str[:60],
+                    "code": code,
+                    "code_meaning": TXN_CODES.get(code, "Other"),
+                    "side": "buy" if is_buy else "sell",
+                    "shares": int(shares),
+                    "price": round(price, 2),
+                    "value": round(value, 2),
+                    "txn_date": txn_date,
+                    "accession": filing["accession"],
+                    "filed_at": filing["filed_at"],
+                })
+
             return txns
         except Exception as e:
             print(f"parse error {filing['accession']}: {e}")
@@ -515,11 +636,10 @@ def lambda_handler(event, context):
                 fetch_errors += 1
             else:
                 fresh_txns.extend(r)
-            # Tiny sleep to throttle
             time.sleep(0.05)
 
-    fetched_buys = sum(1 for t in fresh_txns if t["side"] == "buy")
-    print(f"Parsed {len(fresh_txns)} transactions ({fetched_buys} buys); errors={fetch_errors}")
+    print(f"DIAG: {json.dumps(diag)}")
+    print(f"Parsed {len(fresh_txns)} kept transactions; fetch_errors={fetch_errors}")
 
     # 3. Merge with rolling 30-day window from S3
     prior = load_existing(s3)
@@ -547,6 +667,8 @@ def lambda_handler(event, context):
             "big_buy_count": len(big_buys),
             "fetch_errors": fetch_errors,
             "fetch_duration_s": round(time.time() - started, 1),
+            "diagnostics": diag,
+            "atom_feed_count": len(filings),
         },
         "clusters": clusters[:30],
         "big_buys": big_buys[:30],
