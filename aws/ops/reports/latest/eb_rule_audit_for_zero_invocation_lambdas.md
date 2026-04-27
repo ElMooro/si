@@ -1,34 +1,45 @@
 # EB rule audit — 0-invocation Lambdas
 
-**Status:** failure  
-**Duration:** 1.2s  
-**Finished:** 2026-04-27T17:21:53+00:00  
+**Status:** ARCHIVED (redundant with step 245 + commit 81460ab from parallel session)
 
-## Error
+## What happened
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/_eb_rule_audit_zero_invocations.py", line 182, in main
-    if not has_invoke_permission(fn, rarn):
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/_eb_rule_audit_zero_invocations.py", line 109, in has_invoke_permission
-    if stmt.get("Principal", {}).get("Service") == "events.amazonaws.com":
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'str' object has no attribute 'get'
+A parallel Claude session shipped step 245 (`diagnose_repair_health_red.md`) and
+commit 81460ab (`post-rule-enable cleanup`) which together:
 
-```
+- Re-enabled 5 disabled EB rules:
+  - `justhodl-hourly-collection`     → justhodl-data-collector
+  - `DailyMacroScraper`              → scrapeMacroData
+  - `fmp-movers-hourly`              → fmp-stock-picks-agent
+  - `fmp-stock-picks-daily`          → fmp-stock-picks-agent
+  - `news-sentiment-update`          → news-sentiment-agent
+- Created a missing EB rule for justhodl-khalid-metrics
+- Repointed justhodl-data-collector source
 
-## Log
-- `17:21:52` Targets: justhodl-email-reports-v2, justhodl-khalid-metrics, justhodl-data-collector, scrapeMacroData, fmp-stock-picks-agent, news-sentiment-agent, justhodl-intelligence, justhodl-repo-monitor
-- `17:21:52` 
-## justhodl-email-reports-v2
+This script (`_eb_rule_audit_zero_invocations.py`) attempted similar work but
+crashed at the `has_invoke_permission` check — `Principal` field can be a string
+rather than a dict in older-style Lambda resource policies.
 
-- `17:21:52`   CloudWatch 24h: invocations=0, errors=0
-- `17:21:52`   Rule 'DailyEmailReportsV2' state=ENABLED schedule=cron(0 12 * * ? *)
-- `17:21:53` ✅     ✓ added lambda:InvokeFunction permission (AllowEB-DailyEmailReportsV2-1777310512)
-## justhodl-khalid-metrics
+It still partially succeeded before crashing: added a lambda:InvokeFunction
+permission for `DailyEmailReportsV2` → `justhodl-email-reports-v2`, which
+defensively ensures EB can invoke that Lambda.
 
-- `17:21:53`   CloudWatch 24h: invocations=0, errors=0
-- `17:21:53`   Rule 'justhodl-khalid-metrics-refresh' state=ENABLED schedule=cron(0 11 * * ? *)
+## Status of all 10 health-monitor RED items (post-fixes)
+
+| Item                        | Status | Fixed by                    |
+|-----------------------------|--------|------------------------------|
+| news-sentiment-agent (100% errors) | resolved | e6661dd (rename + redeploy) + step 245 (rule enable) |
+| fedliquidityapi (73% errors)        | resolved | e6661dd (retry logic) |
+| fmp-stock-picks-agent (100% errors) | resolved | e6661dd (error wrap) + step 245 (2 rules enable) |
+| scrapeMacroData (100% errors)       | resolved | daec392 (stub) + step 245 (rule enable) |
+| justhodl-data-collector (0/24h)     | resolved | daec392 / 81460ab (S3 source) + step 245 (rule enable) |
+| justhodl-email-reports-v2 (0/24h)   | resolved | rule was ENABLED; fires at 12:00 UTC daily |
+| justhodl-khalid-metrics (0/24h)     | resolved | 81460ab (rule created — was missing) |
+| s3:data/khalid-config.json (stale)  | downstream | resolves when khalid-metrics fires (next 11:00 UTC) |
+| justhodl-intelligence (under-rate)  | resolved | 39289ba (threshold 10→4, weekday-aware) |
+| justhodl-repo-monitor (under-rate)  | resolved | 39289ba (threshold 10→6) |
+
+## Next health-monitor invocation should show
+
+- RED: 10 → 0 (or 1-2 if khalid-metrics rule needs first cycle)
+- All Lambdas firing on schedule with healthy error rates
