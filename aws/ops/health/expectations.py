@@ -49,7 +49,9 @@ EXPECTATIONS = {
         "key": "edge-data.json",
         "fresh_max": 25_000,     # ~7h (writer is every 6h)
         "warn_max": 43_200,      # 12h
-        "expected_size": 10_000,
+        "expected_size": 1_000,  # Healthy compact runs are ~1.2KB; full runs ~11KB.
+                                 # Step 86 (2026-04-25) tried this fix but pattern
+                                 # mismatched another way — applied correctly now.
         "note": "Composite ML risk score, regime. edge-engine every 6h.",
         "severity": "critical",
     },
