@@ -44,7 +44,7 @@ def main():
                 last_mod = head["LastModified"]
                 age_h = (now() - last_mod).total_seconds() / 3600
                 exp_size = spec.get("expected_size", 0)
-                fresh_max = spec.get("fresh_max", 86400)
+                fresh_max = spec.get("fresh_max") or 86400
                 fresh_max_h = fresh_max / 3600
 
                 problem = None
