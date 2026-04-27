@@ -1,0 +1,27 @@
+{
+  "name": "justhodl-redflag-alerter",
+  "function_name": "justhodl-redflag-alerter",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "memory_mb": 256,
+  "timeout": 60,
+  "timeout_s": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_INPUT_KEY",
+    "S3_OUTPUT_KEY",
+    "TG_TOKEN_PARAM",
+    "TG_CHAT_ID_PARAM",
+    "LOOKBACK_MINUTES",
+    "DEDUPE_WINDOW_HOURS"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": ["justhodl-redflag-alerter-30min"],
+  "description": "Telegram alerter for serious 8-K events (Item 4.02 / 1.03 / 3.01 / 5.04 / 2.04 / 2.06). Reads data/8k-filings.json, dedupes by accession, fires markdown messages."
+}

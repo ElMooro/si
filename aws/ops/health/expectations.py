@@ -493,6 +493,25 @@ EXPECTATIONS = {
         "note": "SEC 10-K/10-Q filings tracker.",
         "severity": "important",
     },
+
+    # ─── Phase 11A — cross-pollination alerter ──────────────
+    "s3:data/redflag-alerts.json": {
+        "type": "s3_file",
+        "key": "data/redflag-alerts.json",
+        "fresh_max": 2400,
+        "warn_max": 7200,
+        "expected_size": 50,
+        "note": "Telegram red-flag alert log. justhodl-redflag-alerter every 30min.",
+        "severity": "important",
+    },
+    "lambda:justhodl-redflag-alerter": {
+        "type": "lambda",
+        "name": "justhodl-redflag-alerter",
+        "max_error_rate": 0.30,
+        "min_invocations_24h": 40,
+        "note": "Telegram alerter for serious 8-K events. Reads data/8k-filings.json.",
+        "severity": "important",
+    },
 }
 
 

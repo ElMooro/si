@@ -1,4 +1,6 @@
 """
+# bumped 2026-04-27 21:55 — Phase 11A
+
 Step ___ — Create/update justhodl-insider-trades Lambda + EB rule.
 
 Re-runs:
@@ -259,6 +261,12 @@ def smoke_test_invocation(r):
                 r.log(f"     clusters:            {stats.get('cluster_count', '?')}")
                 r.log(f"     duration:            {stats.get('fetch_duration_s', '?')}s")
                 r.log(f"     errors:              {stats.get('fetch_errors', 0)}")
+                # Surface per-error-type counts from fetch_form4_xml
+                errlog = stats.get("fetch_errlog", {})
+                if errlog:
+                    r.log(f"     ─── fetch errlog ───────────────────")
+                    for k, v in sorted(errlog.items(), key=lambda x: -x[1]):
+                        r.log(f"     {k:30s}  {v}")
                 return True
             except Exception:
                 r.log(f"  Body (raw): {body.get('body', '')[:300]}")

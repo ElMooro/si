@@ -92,27 +92,64 @@ def _fetch(url: str, timeout: int = 30) -> bytes:
 
 
 def _parse_aaii_html(html: str):
-    """Parse the AAII HTML table for the latest week's percentages."""
-    # Looking for rows like:
-    #   "Bullish    34.2%    37.8%"
-    pattern = re.compile(
-        r"Bullish[^\d]+(\d+\.?\d*)%\s+(\d+\.?\d*)%[^\d]+"
-        r"Neutral[^\d]+(\d+\.?\d*)%\s+(\d+\.?\d*)%[^\d]+"
-        r"Bearish[^\d]+(\d+\.?\d*)%\s+(\d+\.?\d*)%",
-        re.S,
-    )
-    m = pattern.search(html)
-    if not m:
-        return None
-    bull, bull_lr, neut, neut_lr, bear, bear_lr = (float(x) / 100 for x in m.groups())
-    # Try to extract week ending date
-    date_m = re.search(r"Week Ending[^A-Z]*([A-Z][a-z]+ \d+, \d{4})", html)
-    week_ending = None
-    if date_m:
+    r"""Parse the AAII HTML page for the latest week's percentages.
+
+    AAII renders each percentage in its own table cell with surrounding
+    HTML that varies week-to-week. Strategy:
+      1. Find each label (Bullish/Neutral/Bearish) and grab the FIRST
+         `\d+(?:\.\d+)?%` that appears within ~600 chars after it.
+         Each match yields the "current week" reading.
+      2. Validate: bullish + neutral + bearish must sum to ~100% (±3%).
+      3. Extract week-ending date from typical "Week Ending Wednesday,
+         <Month> <day>, <year>" patterns (multiple variants).
+
+    Returns None if validation fails — caller handles by preserving
+    the prior data.
+    """
+    def _grab_pct_after(label: str):
+        # Match `Bullish` (case-insensitive, word boundary), then the next %
+        # value within a generous window. Tolerates `<td>`, `<span>`, etc.
+        pat = re.compile(rf"\b{re.escape(label)}\b[^%]{{1,800}}?(\d{{1,3}}(?:\.\d+)?)\s*%", re.I | re.S)
+        m = pat.search(html)
+        if not m:
+            return None
         try:
-            week_ending = datetime.strptime(date_m.group(1), "%B %d, %Y").date().isoformat()
-        except Exception:
-            pass
+            return float(m.group(1)) / 100
+        except (ValueError, TypeError):
+            return None
+
+    bull = _grab_pct_after("Bullish")
+    neut = _grab_pct_after("Neutral")
+    bear = _grab_pct_after("Bearish")
+
+    if bull is None or neut is None or bear is None:
+        return None
+    # Sanity-check: these three percentages should sum to roughly 1.00.
+    # If they don't, we caught wrong percentages somewhere on the page.
+    total = bull + neut + bear
+    if not (0.97 <= total <= 1.03):
+        return None
+
+    # Extract week ending date — multiple acceptable patterns
+    week_ending = None
+    for pat in (
+        r"Week Ending\s+\w+,?\s+([A-Z][a-z]+ \d{1,2},? \d{4})",   # "Week Ending Wednesday, April 23, 2026"
+        r"Week Ending\s+([A-Z][a-z]+ \d{1,2},? \d{4})",            # "Week Ending April 23, 2026"
+        r"as of\s+([A-Z][a-z]+ \d{1,2},? \d{4})",                  # "as of April 23, 2026"
+        r"\b([A-Z][a-z]+ \d{1,2},?\s+\d{4})\b",                    # last-resort: any month/day/year
+    ):
+        m = re.search(pat, html)
+        if m:
+            txt = m.group(1).replace(",", "")
+            for fmt in ("%B %d %Y", "%b %d %Y"):
+                try:
+                    week_ending = datetime.strptime(txt, fmt).date().isoformat()
+                    break
+                except ValueError:
+                    continue
+            if week_ending:
+                break
+
     return {
         "week_ending": week_ending,
         "bullish": round(bull, 4),
