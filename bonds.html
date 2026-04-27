@@ -185,6 +185,7 @@ footer a{margin:0 10px}
     <a href="/correlation.html">Correlations</a>
     <a href="/macro-data.html">Macro</a>
     <a href="/bonds.html" class="active">Bonds</a>
+    <a href="/auction-crisis.html">Auctions</a>
     <a href="/repo.html">Repo</a>
     <a href="/sentiment.html">Sentiment</a>
     <a href="/volatility.html">Vol</a>
@@ -273,6 +274,13 @@ footer a{margin:0 10px}
     <table id="playbook-table"></table>
   </div>
 
+  <!-- ───────────────────── AUCTION CRISIS SUMMARY ───────────────────── -->
+  <div class="section-hdr">
+    <h3>TREASURY AUCTION CRISIS DETECTOR · SUMMARY</h3>
+    <div class="sub">live read on auction stress · <a href="/auction-crisis.html" style="color:var(--cyan)">full detail →</a></div>
+  </div>
+  <div id="auction-summary" style="background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:14px"></div>
+
   <!-- ───────────────────────── TRIGGER LADDER ───────────────────────── -->
   <div class="section-hdr">
     <h3>WHAT WOULD FLIP THE REGIME</h3>
@@ -303,6 +311,7 @@ footer a{margin:0 10px}
 const REPORT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/report.json?t=' + Date.now();
 const REGIME_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/regime/current.json?t=' + Date.now();
 const CRISIS_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/crisis-plumbing.json?t=' + Date.now();
+const AUCTION_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json?t=' + Date.now();
 
 let REPORT = null, REGIME = null, CRISIS = null;
 
@@ -878,17 +887,59 @@ function renderCall(subRegimeKey){
   document.getElementById('call-body').innerHTML = c.body;
 }
 
+/* ─────────────── AUCTION CRISIS SUMMARY ─────────────── */
+let AUCTION_DATA = null;
+function renderAuctionSummary(){
+  const el = document.getElementById('auction-summary');
+  if(!AUCTION_DATA){
+    el.innerHTML = '<div style="color:var(--fg-3);font-size:12px;font-family:var(--font-mono)">Auction crisis detector not yet bootstrapped — see <a href="/auction-crisis.html" style="color:var(--cyan)">/auction-crisis.html</a> in ~hourly refresh after Phase 10 deploys.</div>';
+    return;
+  }
+  if(AUCTION_DATA.status === 'no_data'){
+    el.innerHTML = `<div style="color:var(--fg-3);font-size:12px">Auction data unavailable: ${AUCTION_DATA.message || 'unknown'}</div>`;
+    return;
+  }
+  const r = AUCTION_DATA.regime || 'CALM';
+  const score = AUCTION_DATA.composite_score || 0;
+  const colors = {ACUTE_STRESS:'red',ELEVATED:'amber',WATCH:'amber',CALM:'green'};
+  const color = colors[r] || 'green';
+  const agg = AUCTION_DATA.indicator_aggregate_14d || {};
+  const issuance = AUCTION_DATA.issuance_anomaly;
+  const firedIndicators = Object.keys(agg);
+  if(issuance && issuance.score >= 50) firedIndicators.push('issuance_explosion');
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center">
+      <div style="width:90px;height:90px;border-radius:50%;background:var(--bg-sunken);border:3px solid var(--${color});display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono)">
+        <div style="font-size:26px;font-weight:700">${Math.round(score)}</div>
+        <div style="font-size:9px;color:var(--fg-3);letter-spacing:1px">/100</div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);margin-bottom:4px">AUCTION REGIME · 14d ROLLING</div>
+        <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--${color});margin-bottom:6px">${r}</div>
+        <div style="color:var(--fg-2);font-size:12.5px;line-height:1.5">${AUCTION_DATA.interpretation || ''}</div>
+        ${firedIndicators.length ? `<div style="margin-top:8px;font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)">Firing: <strong style="color:var(--${color})">${firedIndicators.join(', ')}</strong></div>` : ''}
+      </div>
+      <div style="text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">
+        <div>${AUCTION_DATA.n_recent_auctions_14d ?? '—'} auctions / 14d</div>
+        <div style="margin-top:6px"><a href="/auction-crisis.html" style="color:var(--cyan)">full detail →</a></div>
+      </div>
+    </div>`;
+}
+
 /* ─────────────── MAIN ─────────────── */
 async function loadAll(){
   try {
-    const [r1, r2, r3] = await Promise.allSettled([
+    const [r1, r2, r3, r4] = await Promise.allSettled([
       fetch(REPORT_URL).then(r => r.ok ? r.json() : Promise.reject('report '+r.status)),
       fetch(REGIME_URL).then(r => r.ok ? r.json() : Promise.reject('regime '+r.status)),
       fetch(CRISIS_URL).then(r => r.ok ? r.json() : Promise.reject('crisis '+r.status)),
+      fetch(AUCTION_URL).then(r => r.ok ? r.json() : Promise.reject('auction '+r.status)),
     ]);
     if(r1.status==='fulfilled') REPORT = r1.value;
     if(r2.status==='fulfilled') REGIME = r2.value;
     if(r3.status==='fulfilled') CRISIS = r3.value;
+    if(r4.status==='fulfilled') AUCTION_DATA = r4.value;
 
     if(!REPORT){setError('Failed to load primary report data: '+(r1.reason||'unknown'));return;}
 
@@ -901,6 +952,7 @@ async function loadAll(){
     const sub = classifySubRegime();
     renderRegimeContext(sub);
     renderPlaybook(sub);
+    renderAuctionSummary();
     renderTriggers();
     renderCall(sub);
   } catch(e){
