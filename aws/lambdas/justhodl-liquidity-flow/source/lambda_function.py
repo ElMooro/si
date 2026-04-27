@@ -137,12 +137,32 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": "Missing FRED data",
                                     "errors": fetch_errors})}
 
-    # WALCL is in millions; convert to billions for consistency
-    for o in data["walcl"]:
-        o["value"] = o["value"] / 1000
+    # ─── Unit normalization ──────────────────────────────────────────
+    # FRED publishes:
+    #   WALCL         "Millions of Dollars"  (raw value ~6,500,000)
+    #   WTREGEN       "Millions of Dollars"  (raw value ~800,000)
+    #   RRPONTSYD     "Billions of Dollars"  (raw value ~500)
+    # We normalize everything to BILLIONS for consistency.
+    #
+    # If the raw values look like they're in millions (any > 50,000),
+    # we divide by 1000. This is safer than hardcoding the unit per
+    # series since FRED occasionally changes units.
 
-    # TGA is in billions already; RRP is in billions already
-    # (units checked: FRED metadata for WTREGEN and RRPONTSYD both say "Billions of Dollars")
+    def _normalize_to_billions(observations, label):
+        if not observations:
+            return observations
+        # If the latest value is > 50,000 it must be in millions
+        # (no realistic Fed/Treasury number is > $50T-as-billions)
+        latest_val = observations[-1]["value"]
+        if latest_val > 50_000:
+            for o in observations:
+                o["value"] = o["value"] / 1000
+            print(f"  {label}: detected millions-units, normalized to billions")
+        return observations
+
+    data["walcl"] = _normalize_to_billions(data["walcl"], "WALCL")
+    data["tga"]   = _normalize_to_billions(data["tga"], "WTREGEN")
+    data["rrp"]   = _normalize_to_billions(data["rrp"], "RRPONTSYD")
 
     # Latest values
     walcl_latest = data["walcl"][-1]

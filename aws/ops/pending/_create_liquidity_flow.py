@@ -1,4 +1,6 @@
 """
+# bumped 2026-04-27 22:12 — fix unit normalization (WALCL+TGA both in millions)
+
 Step ___ — Create/update justhodl-liquidity-flow Lambda + EB rule.
 
 TGA + RRP + WALCL daily delta tracker. Idempotent.
