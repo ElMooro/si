@@ -216,9 +216,11 @@ def check_lambda(spec):
                 out["reason"] = f"weekly schedule — 0 invocations in last 8 days (rule may be disabled)"
                 return out
 
-        if (schedule in ("weekday", "weekday_market_hours")) and is_weekend and total_inv == 0:
-            # On weekends, weekday-only Lambdas correctly have no invocations.
-            # Look back 7 days to confirm the rule is firing on weekdays.
+        if (schedule in ("weekday", "weekday_market_hours")) and is_weekend:
+            # On weekends, weekday-only Lambdas naturally undershoot the 24h
+            # min target (rolling window shrinks each weekend hour).
+            # Look back 7 days; if the rule has been firing during weekdays
+            # the Lambda is healthy regardless of current 24h count.
             inv_7d = cw.get_metric_statistics(
                 Namespace="AWS/Lambda", MetricName="Invocations",
                 Dimensions=[{"Name": "FunctionName", "Value": name}],
@@ -227,9 +229,13 @@ def check_lambda(spec):
             )
             inv_7d_total = sum(p.get("Sum", 0) for p in inv_7d.get("Datapoints", []))
             out["invocations_7d"] = int(inv_7d_total)
-            if inv_7d_total >= full_min_inv:
+            # Expected weekday inv = full_min_inv * 5 (5 weekdays out of 7)
+            # Use a generous threshold: ≥ 50% of weekday-equivalent target
+            weekday_target = max(1, int(full_min_inv * 3))
+            if inv_7d_total >= weekday_target:
                 out["status"] = "green"
-                out["reason"] = f"weekday-only schedule — {int(inv_7d_total)} inv across last 7 days, currently weekend"
+                out["reason"] = (f"weekday-only schedule — {int(inv_7d_total)} inv across last 7 days, "
+                                 f"currently weekend (≥{weekday_target} = healthy)")
                 return out
             # else fall through to normal check (may still flag genuine issue)
 

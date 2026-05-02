@@ -229,6 +229,7 @@ EXPECTATIONS = {
         "min_invocations_24h": 6,   # Every 30min weekdays — relaxed from 10 to
                                     # handle Mon AM rolling-24h dip (Sun gap +
                                     # partial Mon = much less than weekday avg)
+        "schedule": "weekday_market_hours",   # cron(0/30 13-23 ? * MON-FRI *)
         "note": "Plumbing stress. Every 30min weekdays.",
         "severity": "critical",
     },
