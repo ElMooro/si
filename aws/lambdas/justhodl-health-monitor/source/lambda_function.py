@@ -56,7 +56,10 @@ def check_s3_file(spec):
         out["last_modified"] = isoformat(last_mod)
         out["age_sec"] = age_sec
         out["size_bytes"] = size
-        out["age_status"] = status_for_age(age_sec, spec.get("fresh_max"), spec.get("warn_max"))
+        out["age_status"] = status_for_age(
+            age_sec, spec.get("fresh_max"), spec.get("warn_max"),
+            schedule=spec.get("schedule"),
+        )
         out["size_status"] = status_for_size(size, spec.get("expected_size"))
         # Combined: worst of the two
         statuses = [out["age_status"], out["size_status"]]
@@ -187,10 +190,51 @@ def check_lambda(spec):
             min_inv = full_min_inv
             out["age_hours"] = round(age_h, 1) if age_h is not None else None
 
-        # Status
+        # Status (schedule-aware)
+        schedule = spec.get("schedule")
+        weekday = datetime.now(timezone.utc).weekday()    # 0=Mon, 5=Sat
+        is_weekend = weekday >= 5
+
+        # Apply schedule-based grace BEFORE the normal min-invocation check
+        if schedule == "weekly" and total_inv == 0:
+            # Weekly schedule. Look at last 8 days; if any invocation in
+            # that window the Lambda is healthy.
+            inv_8d = cw.get_metric_statistics(
+                Namespace="AWS/Lambda", MetricName="Invocations",
+                Dimensions=[{"Name": "FunctionName", "Value": name}],
+                StartTime=end - timedelta(days=8), EndTime=end,
+                Period=86400, Statistics=["Sum"],
+            )
+            inv_8d_total = sum(p.get("Sum", 0) for p in inv_8d.get("Datapoints", []))
+            out["invocations_8d"] = int(inv_8d_total)
+            if inv_8d_total >= 1:
+                out["status"] = "green"
+                out["reason"] = f"weekly schedule — {int(inv_8d_total)} inv in last 8 days"
+                return out
+            else:
+                out["status"] = "red"
+                out["reason"] = f"weekly schedule — 0 invocations in last 8 days (rule may be disabled)"
+                return out
+
+        if (schedule in ("weekday", "weekday_market_hours")) and is_weekend and total_inv == 0:
+            # On weekends, weekday-only Lambdas correctly have no invocations.
+            # Look back 7 days to confirm the rule is firing on weekdays.
+            inv_7d = cw.get_metric_statistics(
+                Namespace="AWS/Lambda", MetricName="Invocations",
+                Dimensions=[{"Name": "FunctionName", "Value": name}],
+                StartTime=end - timedelta(days=7), EndTime=end,
+                Period=86400, Statistics=["Sum"],
+            )
+            inv_7d_total = sum(p.get("Sum", 0) for p in inv_7d.get("Datapoints", []))
+            out["invocations_7d"] = int(inv_7d_total)
+            if inv_7d_total >= full_min_inv:
+                out["status"] = "green"
+                out["reason"] = f"weekday-only schedule — {int(inv_7d_total)} inv across last 7 days, currently weekend"
+                return out
+            # else fall through to normal check (may still flag genuine issue)
+
         if total_inv < min_inv:
             if age_h is not None and age_h < 24:
-                # Newly deployed; soften the message + status
                 out["status"] = "yellow"
                 out["reason"] = (f"only {int(total_inv)} invocations in {age_h:.0f}h since deploy "
                                  f"(scaled target ≥{min_inv}; full-day target ≥{full_min_inv})")

@@ -73,6 +73,7 @@ EXPECTATIONS = {
         "fresh_max": 3600,       # 1h (writer is every 30 min weekdays)
         "warn_max": 14_400,      # 4h
         "expected_size": 5_000,
+        "schedule": "weekday_market_hours",   # cron(0/30 13-23 ? * MON-FRI *)
         "note": "Repo plumbing stress. repo-monitor every 30min weekdays.",
         "severity": "critical",
     },
@@ -91,6 +92,7 @@ EXPECTATIONS = {
         "fresh_max": 7200,       # 2h (hourly weekdays)
         "warn_max": 14_400,      # 4h
         "expected_size": 2_000,
+        "schedule": "weekday_market_hours",   # cron(5 12-23 ? * MON-FRI *)
         "note": "Cross-system synthesis. Heart of ai-chat + signal-logger.",
         "severity": "critical",
     },
@@ -193,6 +195,7 @@ EXPECTATIONS = {
         "min_invocations_24h": 4,   # Hourly weekdays — relaxed from 10 to handle
                                     # rolling-24h dips after weekend (Mon AM = ~6h
                                     # of invocations + 18h weekend gap)
+        "schedule": "weekday_market_hours",   # cron(5 12-23 ? * MON-FRI *)
         "note": "Cross-system synthesis. FIXED 2026-04-25 (adapter pattern).",
         "severity": "critical",
     },
@@ -427,7 +430,8 @@ EXPECTATIONS = {
         "type": "lambda",
         "name": "justhodl-nyfed-dealer-survey",
         "max_error_rate": 0.4,
-        "min_invocations_24h": 1,
+        "min_invocations_24h": 0,
+        "schedule": "weekly",   # rate(7 days)
         "note": "NY Fed dealer survey checker.",
         "severity": "important",
     },
@@ -459,7 +463,8 @@ EXPECTATIONS = {
         "type": "lambda",
         "name": "justhodl-oecd-cli",
         "max_error_rate": 0.4,
-        "min_invocations_24h": 1,
+        "min_invocations_24h": 0,
+        "schedule": "weekly",   # rate(7 days)
         "note": "OECD CLI weekly fetcher.",
         "severity": "important",
     },
@@ -593,12 +598,65 @@ EXPECTATIONS = {
 #  Status helpers — used by the monitor Lambda
 # ═══════════════════════════════════════════════════════════════════
 
-def status_for_age(age_sec, fresh_max, warn_max):
-    """Return 'green' | 'yellow' | 'red' | 'unknown'."""
-    if fresh_max is None:
-        return "unknown"  # No expectation set
+def status_for_age(age_sec, fresh_max, warn_max, schedule=None):
+    """Return 'green' | 'yellow' | 'red' | 'unknown'.
+
+    If schedule is provided, applies cadence-aware grace:
+      schedule="weekday_market_hours" — fresh_max only enforced
+        Mon-Fri 13:00-23:00 UTC. Outside window, status_for_age uses
+        max(fresh_max, hours_since_last_market_close).
+      schedule="weekday" — Mon-Fri any hour. On weekends, allows
+        up to 60h staleness (Fri 17:00 UTC + 60h covers Sat+Sun).
+      schedule="weekly" — anything < 8 days fresh; 8-14 days yellow;
+        > 14 days red.
+    None or unset → original behavior.
+    """
+    from datetime import datetime, timezone, timedelta
+
+    if fresh_max is None and schedule is None:
+        return "unknown"
     if age_sec is None:
         return "red"
+
+    # ── Weekly cadence ─────────────────────────────────────────────
+    if schedule == "weekly":
+        if age_sec <= 8 * 86_400:        # 8 days
+            return "green"
+        if age_sec <= 14 * 86_400:       # 14 days
+            return "yellow"
+        return "red"
+
+    # ── Schedule-aware grace for weekday-only Lambdas ──────────────
+    now_utc = datetime.now(timezone.utc)
+    weekday = now_utc.weekday()    # 0=Mon, 5=Sat, 6=Sun
+    hour_utc = now_utc.hour
+
+    in_market_hours = (weekday < 5 and 13 <= hour_utc < 23)
+    in_weekday_any = (weekday < 5)
+
+    if schedule == "weekday_market_hours" and not in_market_hours:
+        # Outside the schedule's active window — allow more staleness
+        # Compute hours since last Friday 23:00 UTC (latest possible run)
+        # Simpler: just allow up to 4 days staleness on weekend mornings
+        # which covers Fri 23:00 UTC → Mon 13:00 UTC = 62h
+        weekend_grace_sec = 75 * 3600   # 75h covers Fri close → Mon open + buffer
+        if age_sec <= weekend_grace_sec:
+            return "green"
+        if age_sec <= weekend_grace_sec * 1.3:
+            return "yellow"
+        return "red"
+
+    if schedule == "weekday" and not in_weekday_any:
+        weekend_grace_sec = 65 * 3600   # 65h covers Sat 00:00 → Mon 17:00 UTC
+        if age_sec <= weekend_grace_sec:
+            return "green"
+        if age_sec <= weekend_grace_sec * 1.3:
+            return "yellow"
+        return "red"
+
+    # ── Default behavior (within window or no schedule hint) ──────
+    if fresh_max is None:
+        return "unknown"
     if age_sec <= fresh_max:
         return "green"
     if warn_max is None or age_sec <= warn_max:
