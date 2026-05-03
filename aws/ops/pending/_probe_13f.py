@@ -1,10 +1,14 @@
 """
-Probe: what's in data/institutional-positions.json right now,
-and what does an actual 13F infotable XML look like?
+Probe v2: Fetch filing index via data.sec.gov filing-index JSON endpoint
+which is more reliable than the cgi-bin browse interface.
 
-This is fact-finding before building the position-extracting Lambda.
+The standard SEC archive filing has these files:
+  - primary_doc.xml         — coverpage (filer name, period, etc.)
+  - infotable.xml           — actual holdings (CUSIP, name, value, shares)
+    OR sometimes form13fInfoTable.xml
 """
 import json
+import re
 import urllib.request
 
 from ops_report import report
@@ -17,96 +21,80 @@ USER_AGENT = "JustHodl Research raafouis@gmail.com"
 s3 = boto3.client("s3", region_name=REGION)
 
 
+def fetch(url, timeout=15):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": USER_AGENT,
+        "Accept": "*/*",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
 def main():
-    with report("probe_13f_state") as r:
-        r.heading("Probe 13F state + SEC infotable format")
+    with report("probe_13f_v2") as r:
+        r.heading("Probe 13F infotable XML format (v2)")
 
-        r.section("1. Current data/institutional-positions.json")
-        try:
-            obj = s3.get_object(Bucket=BUCKET, Key="data/institutional-positions.json")
-            data = json.loads(obj["Body"].read())
-        except Exception as e:
-            r.fail(f"  {e}")
-            return
-
-        r.log(f"  generated_at: {data.get('generated_at')}")
-        r.log(f"  tracked_funds: {data.get('tracked_funds')}")
-        r.log(f"  filings_seen: {data.get('filings_seen')}")
-        r.log(f"  new_filings: {len(data.get('new_filings', []))}")
-        r.log(f"  by_fund keys: {list(data.get('by_fund', {}).keys())}")
-
-        # Show one fund example
-        fund = data.get("by_fund", {}).get("BERKSHIRE", {})
-        r.log(f"\n  Sample (Berkshire):")
-        r.log(f"    {json.dumps(fund, indent=2, default=str)[:600]}")
-
-        # Sample new filings
-        if data.get("new_filings"):
-            r.log(f"\n  Sample new filing:")
-            r.log(f"    {json.dumps(data['new_filings'][0], indent=2, default=str)[:400]}")
-
-        r.section("2. Fetch one real 13F infotable XML to learn schema")
-        # Use Berkshire's most recent filing
-        latest = (data.get("by_fund", {}).get("BERKSHIRE", {}).get("latest_filing", {}))
-        accession = latest.get("accession")
-        if not accession:
-            r.fail("  no Berkshire accession found")
-            return
-
-        # Berkshire CIK = 0001067983
+        # Berkshire's most recent filing details from prior probe
         cik_int = "1067983"
+        accession = "0001193125-26-054580"
         acc_clean = accession.replace("-", "")
-        idx_url = f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_clean}/"
-        r.log(f"  filing index URL: {idx_url}")
+        base_url = f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_clean}/"
+        r.log(f"  filing dir: {base_url}")
 
-        req = urllib.request.Request(
-            f"https://www.sec.gov/cgi-bin/browse-edgar"
-            f"?action=getcompany&CIK={cik_int}&type=13F-HR&dateb=&owner=include&count=5",
-            headers={"User-Agent": USER_AGENT, "Accept": "*/*"},
-        )
+        r.section("1. Try filing-index JSON")
+        # SEC publishes a JSON manifest at /index.json
+        index_json_url = f"{base_url}index.json"
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                browse_html = resp.read().decode("utf-8", errors="ignore")
-            # Find the latest accession's full index URL
-            import re
-            m = re.search(r'href="(/Archives/edgar/data/\d+/\d+/\d+-index\.htm)"', browse_html)
-            if m:
-                index_url = "https://www.sec.gov" + m.group(1)
-                r.log(f"  resolved index: {index_url}")
-
-                # Fetch the index page to find the infotable.xml
-                req2 = urllib.request.Request(index_url, headers={"User-Agent": USER_AGENT})
-                with urllib.request.urlopen(req2, timeout=15) as resp:
-                    index_html = resp.read().decode("utf-8", errors="ignore")
-
-                # Find any .xml link that's an infotable (not the primary doc)
-                xml_matches = re.findall(r'href="([^"]+\.xml)"', index_html)
-                r.log(f"  xml files found: {xml_matches[:8]}")
-
-                # Try to fetch the infotable (usually has 'infotable' or similar in name)
-                infotable_url = None
-                for x in xml_matches:
-                    name = x.split("/")[-1].lower()
-                    if "infotable" in name or "form13fInfoTable" in name.lower():
-                        infotable_url = x if x.startswith("http") else "https://www.sec.gov" + x
-                        break
-                # Fallback: try the largest .xml
-                if not infotable_url and xml_matches:
-                    infotable_url = (xml_matches[0] if xml_matches[0].startswith("http")
-                                     else "https://www.sec.gov" + xml_matches[0])
-                r.log(f"  infotable url: {infotable_url}")
-
-                if infotable_url:
-                    req3 = urllib.request.Request(infotable_url, headers={"User-Agent": USER_AGENT})
-                    with urllib.request.urlopen(req3, timeout=20) as resp:
-                        infotable_xml = resp.read().decode("utf-8", errors="ignore")
-                    r.log(f"  infotable size: {len(infotable_xml)} bytes")
-                    # Show first 1500 chars
-                    r.log(f"  infotable preview:")
-                    r.log(f"    {infotable_xml[:1500]}")
+            data = json.loads(fetch(index_json_url).decode("utf-8"))
+            items = data.get("directory", {}).get("item", [])
+            r.log(f"  files in filing:")
+            for item in items:
+                name = item.get("name", "")
+                size = item.get("size", "")
+                r.log(f"    {name}  ({size} bytes)")
         except Exception as e:
-            r.log(f"  fetch error: {e}")
+            r.log(f"  index.json failed: {e}")
+
+        r.section("2. Attempt to fetch infotable directly")
+        # Common naming patterns
+        candidates = [
+            "infotable.xml",
+            "form13fInfoTable.xml",
+            "informationTable.xml",
+            "primary_doc.xml",
+        ]
+        # Find via index first
+        try:
+            data = json.loads(fetch(index_json_url).decode("utf-8"))
+            items = data.get("directory", {}).get("item", [])
+            xml_files = [i["name"] for i in items if i.get("name", "").endswith(".xml")]
+            r.log(f"  xml files in filing: {xml_files}")
+
+            # Try each xml — find which is the holdings table
+            for xml_name in xml_files:
+                xml_url = base_url + xml_name
+                try:
+                    xml_text = fetch(xml_url).decode("utf-8", errors="ignore")
+                    # Look for known infotable elements
+                    if "<infoTable>" in xml_text or "<ns1:infoTable" in xml_text or "<infoTable " in xml_text:
+                        r.log(f"  ✓ infotable found: {xml_name}")
+                        # Show first 2 records
+                        # Extract first 2000 chars after first <infoTable>
+                        idx = xml_text.find("<infoTable")
+                        if idx == -1:
+                            idx = xml_text.find("<ns1:infoTable")
+                        snippet = xml_text[idx:idx + 3000]
+                        r.log(f"  first 2 records:")
+                        r.log(f"    {snippet[:2500]}")
+                        break
+                    elif "<periodOfReport>" in xml_text:
+                        r.log(f"  - {xml_name}: cover page (not holdings)")
+                except Exception as e:
+                    r.log(f"  fetch {xml_name}: {e}")
+        except Exception as e:
+            r.log(f"  v2 probe failed: {e}")
 
 
 if __name__ == "__main__":
     main()
+
