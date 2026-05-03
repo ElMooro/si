@@ -344,7 +344,7 @@ def parse_infotable(xml_text: str):
             name = (it.findtext("nameOfIssuer") or "").strip()
             title = (it.findtext("titleOfClass") or "").strip()
             cusip = (it.findtext("cusip") or "").strip().upper()
-            value_kdollars = it.findtext("value") or "0"
+            value_str = it.findtext("value") or "0"
             shrs_node = it.find("shrsOrPrnAmt")
             shares = "0"
             stype = "SH"
@@ -352,7 +352,7 @@ def parse_infotable(xml_text: str):
                 shares = (shrs_node.findtext("sshPrnamt") or "0").strip()
                 stype = (shrs_node.findtext("sshPrnamtType") or "SH").strip()
 
-            value_usd = int(float(value_kdollars)) * 1000
+            value_usd = int(float(value_str))   # SEC <value> is in dollars (not thousands per old guidance)
             shares_int = int(float(shares))
             if not name or not cusip:
                 continue
