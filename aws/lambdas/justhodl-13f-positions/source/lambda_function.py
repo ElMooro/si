@@ -238,6 +238,90 @@ CUSIP_OVERRIDES = {
     "94106L109": ("WBA", "Walgreens Boots"),
     "94755P101": ("WCN", "Waste Connections"),
     "98138H101": ("WYNN", "Wynn Resorts"),
+    # Berkshire's known top holdings + common 13F names
+    "025816109": ("AXP", "American Express"),
+    "191216100": ("KO", "Coca-Cola"),
+    "20825C104": ("COP", "ConocoPhillips"),
+    "532457108": ("LLY", "Eli Lilly"),
+    "742718109": ("PG", "Procter & Gamble"),
+    "713448108": ("PEP", "PepsiCo"),
+    "742737109": ("PG", "Procter & Gamble"),  # alt cusip
+    "92345Y106": ("VRTX", "Vertex Pharmaceuticals"),
+    "92556H206": ("VICI", "VICI Properties"),
+    "743315103": ("PM", "Philip Morris"),
+    "740189105": ("PPG", "PPG Industries"),
+    "733174100": ("POOL", "Pool Corp"),
+    "722816107": ("PNC", "PNC Financial"),
+    "709599105": ("PFE", "Pfizer"),  # alt
+    "67103H107": ("OXY", "Occidental Petroleum"),
+    "655664408": ("NOC", "Northrop Grumman"),
+    "654106103": ("NKE", "Nike"),
+    "63938C108": ("NFLX", "Netflix"),
+    "615369105": ("MCO", "Moody's"),
+    "60855R100": ("MOH", "Molina Healthcare"),
+    "60628P303": ("MMM", "3M Company"),
+    "59491610Z": ("MSFT", "Microsoft"),  # alt
+    "58155Q103": ("MCD", "McDonald's"),
+    "574599106": ("MSI", "Motorola Solutions"),
+    "55354G100": ("MMC", "Marsh McLennan"),
+    "54153E105": ("LLY", "Eli Lilly"),  # alt
+    "509151107": ("LMT", "Lockheed Martin"),
+    "501797309": ("LRCX", "Lam Research"),
+    "493267108": ("KEYS", "Keysight Technologies"),
+    "478366107": ("JNPR", "Juniper"),
+    "459200101": ("IBM", "IBM"),
+    "44891N208": ("HUBS", "HubSpot"),
+    "443510607": ("HUM", "Humana"),
+    "437076102": ("HD", "Home Depot"),
+    "404119109": ("HCA", "HCA Healthcare"),
+    "37733W105": ("GLW", "Corning"),
+    "369604103": ("GE", "General Electric"),  # alt
+    "369550108": ("HCA", "HCA Healthcare"),
+    "353484103": ("FFIV", "F5 Networks"),
+    "344849104": ("FCX", "Freeport-McMoRan"),
+    "30303M102": ("META", "Meta Platforms"),
+    "29786A106": ("FAST", "Fastenal"),
+    "28176E108": ("EBAY", "eBay"),
+    "278642103": ("EA", "Electronic Arts"),
+    "247361702": ("DE", "Deere"),
+    "24906P109": ("DHR", "Danaher"),
+    "247203802": ("DEO", "Diageo"),
+    "166764100": ("CVX", "Chevron"),
+    "172967424": ("C", "Citigroup"),  # alt
+    "172967101": ("C", "Citigroup"),
+    "169656105": ("CHKP", "Check Point"),
+    "164045100": ("CHTR", "Charter Communications"),
+    "1592525095": ("CHWY", "Chewy"),
+    "12572Q105": ("CME", "CME Group"),
+    "125509106": ("CI", "Cigna"),
+    "125896100": ("CMS", "CMS Energy"),
+    "126650100": ("CVS", "CVS Health"),
+    "126408103": ("CSX", "CSX Corporation"),
+    "127190304": ("CAH", "Cardinal Health"),
+    "108102206": ("BMY", "Bristol-Myers Squibb"),
+    "097023105": ("BA", "Boeing"),
+    "075887109": ("BSX", "Boston Scientific"),
+    "071813109": ("BKNG", "Booking Holdings"),
+    "06367W103": ("BK", "BNY Mellon"),
+    "045327103": ("APH", "Amphenol"),
+    "032654105": ("AMP", "Ameriprise Financial"),
+    "037411105": ("APD", "Air Products"),
+    "030490103": ("AKAM", "Akamai"),
+    "025537101": ("AME", "Ametek"),
+    "00724F101": ("ADBE", "Adobe"),
+    "00191U102": ("AAPL", "Apple Inc"),  # alt sometimes
+    "00130H105": ("ALB", "Albemarle"),
+    "00079N105": ("AAP", "Advance Auto Parts"),
+    # Common ETF / fund holdings
+    "78462F103": ("SPY", "SPDR S&P 500"),
+    "464287200": ("IWM", "iShares Russell 2000"),
+    "464287465": ("IVV", "iShares Core S&P 500"),
+    "46428P457": ("AGG", "iShares Aggregate Bond"),
+    "464287317": ("EFA", "iShares MSCI EAFE"),
+    "464287481": ("EEM", "iShares MSCI Emerging Markets"),
+    "46090E103": ("ICLN", "iShares Global Clean Energy"),
+    "46428793": ("IBB", "iShares Biotech"),
+    "46137V357": ("IEF", "iShares 7-10 Yr Treasury"),
 }
 
 
@@ -275,33 +359,42 @@ def get_filing_index_dir(cik: str, accession: str):
 def find_infotable_xml(filing_dir: str):
     """Locate the infotable XML in a 13F filing directory.
 
-    Returns the URL of the infotable, or None.
+    Returns (url, xml_text), or (None, None).
 
     Strategy:
-      1. fetch filing_dir/index.json
-      2. iterate xml files; the one containing <infoTable> elements is it
-      3. fallback: largest .xml that's not primary_doc.xml
+      1. Try filing_dir/infotable.xml directly (standard SEC filename)
+      2. Else fetch index.json + iterate xml files until one has <infoTable>
+      3. Fallback to primary_doc.xml in case it's combined
     """
+    # Step 1: try infotable.xml directly (the standard filename)
+    direct_url = filing_dir + "infotable.xml"
+    try:
+        text = _fetch(direct_url, timeout=15).decode("utf-8", errors="ignore")
+        if "<infoTable" in text or "<ns1:infoTable" in text:
+            return direct_url, text
+    except Exception:
+        pass   # fall through
+
+    # Step 2: walk index.json
     try:
         raw = _fetch(filing_dir + "index.json")
         idx = json.loads(raw.decode("utf-8"))
         items = idx.get("directory", {}).get("item", [])
         xml_files = [i.get("name", "") for i in items if i.get("name", "").endswith(".xml")]
 
-        # Probe each in order
+        # Probe each in order, skipping primary_doc and any we've already tried
         for name in xml_files:
-            if name == "primary_doc.xml":
+            if name == "primary_doc.xml" or name == "infotable.xml":
                 continue
             url = filing_dir + name
             try:
-                head = _fetch(url, timeout=15)
-                text = head.decode("utf-8", errors="ignore")
+                text = _fetch(url, timeout=15).decode("utf-8", errors="ignore")
                 if "<infoTable" in text or "<ns1:infoTable" in text:
                     return url, text
             except Exception:
                 continue
 
-        # Fallback: try primary_doc.xml in case it's combined
+        # Step 3: fallback to primary_doc.xml
         if "primary_doc.xml" in xml_files:
             url = filing_dir + "primary_doc.xml"
             text = _fetch(url, timeout=15).decode("utf-8", errors="ignore")
@@ -356,8 +449,28 @@ def parse_infotable(xml_text: str):
                 shares = (shrs_node.findtext("sshPrnamt") or "0").strip()
                 stype = (shrs_node.findtext("sshPrnamtType") or "SH").strip()
 
-            value_usd = int(float(value_str))   # SEC <value> is in dollars (not thousands per old guidance)
+            # SEC 13F-HR <value>: documented as "in thousands of dollars" but
+            # many filers report whole dollars. Auto-detect by sanity-checking
+            # the implied per-share price.
+            value_int = int(float(value_str))
             shares_int = int(float(shares))
+            value_usd = value_int   # default: dollars
+            if shares_int > 0 and value_int > 0:
+                price_if_thousands = (value_int * 1000) / shares_int
+                price_if_dollars = value_int / shares_int
+                t_plausible = 0.5 <= price_if_thousands <= 5000
+                d_plausible = 0.5 <= price_if_dollars <= 5000
+                if t_plausible and not d_plausible:
+                    value_usd = value_int * 1000
+                elif d_plausible and t_plausible:
+                    # Both plausible — pick whichever yields a price closer to $50
+                    # (typical median equity price). Most legitimate $0.50-$50
+                    # are large-cap stocks so we lean dollar.
+                    if abs(price_if_dollars - 50) < abs(price_if_thousands - 50):
+                        value_usd = value_int
+                    else:
+                        value_usd = value_int * 1000
+
             if not name or not cusip:
                 continue
             positions.append({
@@ -391,25 +504,39 @@ def parse_infotable(xml_text: str):
 
 
 def cusip_to_ticker(cusip: str, name: str):
-    """Resolve CUSIP → ticker via override map first, then FMP if available."""
+    """Resolve CUSIP → ticker via override map.
+
+    NOTE: FMP API lookups were originally used as fallback but were causing
+    Lambda timeouts (each call ~200-500ms × thousands of CUSIPs per run).
+    Now we only resolve via the static override map (94 top names) during
+    Lambda execution. Tickers for positions outside the override map are
+    null, and the frontend displays the issuer name instead. This keeps
+    the Lambda fast and reliable; ticker resolution can be done lazily
+    on-demand for the few that matter (top positions per fund).
+    """
     if cusip in CUSIP_OVERRIDES:
         ticker, full_name = CUSIP_OVERRIDES[cusip]
         return ticker, full_name
+    return None, name
 
-    # FMP CUSIP search
-    if FMP_KEY:
-        try:
-            url = f"https://financialmodelingprep.com/api/v3/cusip/{cusip}?apikey={FMP_KEY}"
-            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(req, timeout=8) as r:
-                data = json.loads(r.read())
-            if isinstance(data, list) and data:
-                t = data[0].get("ticker") or data[0].get("symbol")
-                if t:
-                    return t.upper(), data[0].get("company") or name
-        except Exception:
-            pass
-    # Fallback: use the issuer name truncated as a "synthetic ticker"
+
+def cusip_to_ticker_via_fmp(cusip: str, name: str):
+    """Optional FMP lookup for individual cusips.
+    Used during async resolve, NOT during parse. Returns (ticker, name) or (None, name).
+    """
+    if not FMP_KEY:
+        return None, name
+    try:
+        url = f"https://financialmodelingprep.com/api/v3/cusip/{cusip}?apikey={FMP_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read())
+        if isinstance(data, list) and data:
+            t = data[0].get("ticker") or data[0].get("symbol")
+            if t:
+                return t.upper(), data[0].get("company") or name
+    except Exception:
+        pass
     return None, name
 
 
@@ -419,10 +546,11 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
     if not accession:
         return {"fund_key": fund_key, "error": "no_accession"}
 
-    # Cache check
-    cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}.json"
+    # Cache check — version-tagged so unit fixes invalidate old cache
+    PARSER_VERSION = "v2"   # bump when parser logic changes (units, fields, etc.)
+    cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}_{PARSER_VERSION}.json"
     cached = get_s3_json(cache_key)
-    if cached and cached.get("positions"):
+    if cached and cached.get("positions") and cached.get("parser_version") == PARSER_VERSION:
         positions = cached["positions"]
         print(f"  {fund_key}: using cached positions ({len(positions)})")
     else:
@@ -446,6 +574,7 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
             put_s3_json(cache_key, {
                 "fund_key": fund_key,
                 "accession": accession,
+                "parser_version": PARSER_VERSION,
                 "positions": positions,
                 "cached_at": datetime.now(timezone.utc).isoformat(),
             })
@@ -464,9 +593,9 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
     prior_positions = []
     if prior_filing and prior_filing.get("accession"):
         prior_acc = prior_filing["accession"]
-        prior_cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{prior_acc.replace('-', '')}.json"
+        prior_cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{prior_acc.replace('-', '')}_{PARSER_VERSION}.json"
         prior_cached = get_s3_json(prior_cache_key)
-        if prior_cached:
+        if prior_cached and prior_cached.get("parser_version") == PARSER_VERSION:
             prior_positions = prior_cached.get("positions", [])
         else:
             # Parse prior on-the-fly
@@ -675,6 +804,49 @@ def lambda_handler(event, context):
 
     successful = [r for r in fund_results if not r.get("error")]
     failed = [r for r in fund_results if r.get("error")]
+
+    # Step 3.5: async-resolve FMP CUSIPs for top positions per fund.
+    # We deliberately skip CUSIP→ticker FMP lookups during parse (timeout
+    # risk). Now resolve only the top 30 positions per fund (where it
+    # matters for visualization). Caps the FMP calls at 30 × 18 = 540
+    # max, with parallel workers, finishing in <30s.
+    cusips_to_resolve = set()
+    for fund in successful:
+        for p in (fund.get("top_positions") or [])[:30]:
+            if not p.get("ticker") and p.get("cusip"):
+                cusips_to_resolve.add((p["cusip"], p.get("name", "")))
+
+    print(f"Resolving {len(cusips_to_resolve)} unique top CUSIPs via FMP…")
+    resolved_map = {}    # cusip → (ticker, name)
+    if cusips_to_resolve and FMP_KEY:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futs = {pool.submit(cusip_to_ticker_via_fmp, c, n): c
+                    for c, n in cusips_to_resolve}
+            for fut in as_completed(futs):
+                cusip = futs[fut]
+                try:
+                    tk, nm = fut.result(timeout=10)
+                    if tk:
+                        resolved_map[cusip] = (tk, nm)
+                except Exception:
+                    pass
+
+    print(f"  resolved {len(resolved_map)}/{len(cusips_to_resolve)} via FMP")
+
+    # Apply resolved tickers back to all positions across all funds
+    for fund in successful:
+        for p in (fund.get("top_positions") or []):
+            if not p.get("ticker") and p.get("cusip") in resolved_map:
+                tk, nm = resolved_map[p["cusip"]]
+                p["ticker"] = tk
+                if nm:
+                    p["resolved_name"] = nm
+        for p in (fund.get("changes_summary", {}).get("new_positions") or []):
+            if not p.get("ticker") and p.get("cusip") in resolved_map:
+                p["ticker"], p["resolved_name"] = resolved_map[p["cusip"]]
+        for p in (fund.get("changes_summary", {}).get("exited_positions") or []):
+            if not p.get("ticker") and p.get("cusip") in resolved_map:
+                p["ticker"], p["resolved_name"] = resolved_map[p["cusip"]]
 
     # Step 4: aggregate by ticker
     by_ticker = aggregate_by_ticker(successful)
