@@ -766,15 +766,20 @@ def lambda_handler(event, context):
         return {"statusCode": 502,
                 "body": json.dumps({"error": "no filings index — run sec-13f first"})}
 
-    # Step 2: load PRIOR run's positions to get prior accession per fund
+    # Step 2: build prior-filing map. Two sources, in order of preference:
+    #   1. The filings index now includes 'prior_filing' per fund (current quarter's
+    #      previous quarter — Q4-vs-Q3, etc.) — most authoritative.
+    #   2. Fallback: our own previous run's accession (only useful when
+    #      moving between two consecutive 13f-positions runs).
     prior_run = get_s3_json(S3_KEY, {})
-    prior_by_fund = {}
+    prior_by_fund_from_self = {}
     for f in prior_run.get("by_fund", {}).values():
-        prior_by_fund[f.get("fund_key")] = {
-            "accession": f.get("accession"),
-            "filed_at": f.get("filed_at"),
-            "period_of_report": f.get("period_of_report"),
-        }
+        if isinstance(f, dict):
+            prior_by_fund_from_self[f.get("fund_key")] = {
+                "accession": f.get("accession"),
+                "filed_at": f.get("filed_at"),
+                "period_of_report": f.get("period_of_report"),
+            }
 
     # Step 3: parse each fund's latest filing in parallel
     fund_results = []
@@ -785,12 +790,15 @@ def lambda_handler(event, context):
         if not latest or not latest.get("accession"):
             print(f"  {fund_key}: no latest filing in index")
             continue
-        # Find prior — try to detect from our prior run if accession differs
-        prior = None
-        prior_meta = prior_by_fund.get(fund_key)
-        if prior_meta and prior_meta.get("accession") != latest["accession"]:
-            # We have a prior we know about
-            prior = prior_meta
+
+        # Pick prior filing — prefer the index's prior_filing (true prior quarter)
+        # over our own previous run's accession (which may be the same quarter).
+        prior = meta.get("prior_filing") or None
+        if not prior:
+            # Fallback to our own previous run, if accession differs from latest
+            prior_self = prior_by_fund_from_self.get(fund_key)
+            if prior_self and prior_self.get("accession") != latest["accession"]:
+                prior = prior_self
         fund_inputs.append((fund_key, cik, latest, prior))
 
     print(f"Parsing {len(fund_inputs)} funds in parallel (max {MAX_PARALLEL})…")

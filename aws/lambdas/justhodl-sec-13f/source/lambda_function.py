@@ -111,6 +111,7 @@ def fetch_fund_filings(name: str, cik: str):
     primary_docs = recent.get("primaryDocument", [])
 
     latest_13f = None
+    prior_13f = None
     for i, form in enumerate(forms):
         if form in ("13F-HR", "13F-HR/A"):
             acc = accessions[i] if i < len(accessions) else None
@@ -118,7 +119,7 @@ def fetch_fund_filings(name: str, cik: str):
                 continue
             acc_clean = acc.replace("-", "")
             primary = primary_docs[i] if i < len(primary_docs) else "primary_doc.xml"
-            latest_13f = {
+            entry = {
                 "accession": acc,
                 "filed_at": filing_dates[i] if i < len(filing_dates) else None,
                 "period_of_report": period_dates[i] if i < len(period_dates) else None,
@@ -127,12 +128,19 @@ def fetch_fund_filings(name: str, cik: str):
                 "filing_url": f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_clean}/{primary}",
                 "filing_index": f"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={cik}&type=13F-HR&dateb=&owner=include&count=10",
             }
-            break
+            if latest_13f is None:
+                latest_13f = entry
+            elif prior_13f is None:
+                # Only consider it "prior" if it's a different period (skip amendments to same period)
+                if entry["period_of_report"] != latest_13f["period_of_report"]:
+                    prior_13f = entry
+                    break
 
     return name, {
         "name": data.get("name", name),
         "cik": cik,
         "latest_filing": latest_13f,
+        "prior_filing": prior_13f,
     }
 
 
