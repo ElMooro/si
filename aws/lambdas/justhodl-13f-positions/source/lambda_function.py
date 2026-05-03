@@ -325,11 +325,15 @@ def parse_infotable(xml_text: str):
     Strategy: aggressively strip ALL namespace declarations and prefixes
     so ElementTree treats elements as bare tags.
     """
-    # Step 1: strip namespace prefixes (ns1:foo → foo)
+    # Step 1: strip namespace prefixes from element tags (ns1:foo → foo)
     cleaned = re.sub(r"<(/?)\w+:", r"<\1", xml_text)
     # Step 2: strip default namespace declarations from any element
     # so ET.iter("infoTable") matches without {namespace}infoTable.
     cleaned = re.sub(r'\s+xmlns(:\w+)?="[^"]*"', "", cleaned)
+    # Step 3: strip prefixed attributes (xsi:schemaLocation, etc.) that
+    # would now be "unbound" since their namespace declaration is gone.
+    # Match attribute names like `xsi:schemaLocation="..."` inside tags.
+    cleaned = re.sub(r'\s+\w+:\w+="[^"]*"', "", cleaned)
 
     positions = []
     try:
