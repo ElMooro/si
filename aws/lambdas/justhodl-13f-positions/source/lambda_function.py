@@ -356,6 +356,13 @@ def get_filing_index_dir(cik: str, accession: str):
     return f"https://www.sec.gov/Archives/edgar/data/{cik_int}/{acc_clean}/"
 
 
+def _has_info_table(text: str) -> bool:
+    """Check if XML contains an infoTable element under any namespace prefix.
+    Matches: <infoTable, <ns1:infoTable, <n1:infoTable, <abc:infoTable, etc.
+    """
+    return bool(re.search(r"<(\w+:)?infoTable\b", text))
+
+
 def find_infotable_xml(filing_dir: str):
     """Locate the infotable XML in a 13F filing directory.
 
@@ -370,7 +377,7 @@ def find_infotable_xml(filing_dir: str):
     direct_url = filing_dir + "infotable.xml"
     try:
         text = _fetch(direct_url, timeout=15).decode("utf-8", errors="ignore")
-        if "<infoTable" in text or "<ns1:infoTable" in text:
+        if _has_info_table(text):
             return direct_url, text
     except Exception:
         pass   # fall through
@@ -389,7 +396,7 @@ def find_infotable_xml(filing_dir: str):
             url = filing_dir + name
             try:
                 text = _fetch(url, timeout=15).decode("utf-8", errors="ignore")
-                if "<infoTable" in text or "<ns1:infoTable" in text:
+                if _has_info_table(text):
                     return url, text
             except Exception:
                 continue
@@ -398,7 +405,7 @@ def find_infotable_xml(filing_dir: str):
         if "primary_doc.xml" in xml_files:
             url = filing_dir + "primary_doc.xml"
             text = _fetch(url, timeout=15).decode("utf-8", errors="ignore")
-            if "<infoTable" in text or "<ns1:infoTable" in text:
+            if _has_info_table(text):
                 return url, text
     except Exception as e:
         print(f"  index probe fail {filing_dir}: {e}")
