@@ -167,6 +167,10 @@ def load_all():
         "correlation_breaks":"data/correlation-breaks.json",
         "crisis_plumbing":"data/crisis-plumbing.json",
         "risk_recommendations":"risk/recommendations.json",
+        # ─── Earnings tracker (#3) ────────────────────────────────
+        "earnings":"data/earnings-tracker.json",
+        # ─── Crisis KB (#2) ────────────────────────────────────────
+        "crisis_kb":"data/crisis-knowledge-base.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -384,6 +388,32 @@ def extract_metrics(data,weights):
             "plumbing_status": p.get("status") or p.get("regime"),
             "plumbing_phase": p.get("phase"),
         })(),
+        # Earnings tracker (#3)
+        **(lambda e=data.get("earnings", {}): {
+            "n_earnings_7d": len([
+                u for u in (e.get("upcoming_14d") or [])
+                if u.get("earnings_date", "") <= (datetime.now(timezone.utc) + timedelta(days=7)).date().isoformat()
+            ]),
+            "next_earnings_ticker": ((e.get("upcoming_14d") or [{}])[0].get("ticker")
+                                     if e.get("upcoming_14d") else None),
+            "next_earnings_date": ((e.get("upcoming_14d") or [{}])[0].get("earnings_date")
+                                   if e.get("upcoming_14d") else None),
+            "n_pead_signals": len(e.get("pead_signals") or []),
+            "top_pead_ticker": ((e.get("pead_signals") or [{}])[0].get("ticker")
+                                if e.get("pead_signals") else None),
+            "top_pead_signal": ((e.get("pead_signals") or [{}])[0].get("pead_signal")
+                                if e.get("pead_signals") else None),
+            "earnings_beat_rate": (e.get("aggregate_stats") or {}).get("beat_rate_eps"),
+            "earnings_median_1d": (e.get("aggregate_stats") or {}).get("median_1d_return_pct"),
+        })(),
+        # Crisis KB (#2) — top active patterns
+        **(lambda k=data.get("crisis_kb", {}): {
+            "active_crisis_patterns": [
+                p.get("name") for p in
+                ((k.get("current_state") or {}).get("active_patterns") or [])[:3]
+            ],
+            "n_active_crisis_patterns": len((k.get("current_state") or {}).get("active_patterns") or []),
+        })(),
     }
 
 def get_outcomes(days=7):
@@ -507,6 +537,12 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "CORR_BREAKS: "+str(m.get("n_corr_breaks") or 0)+" pairs. Top:"+str(m.get("top_corr_break") or "none"),
         "PLUMBING_PHASE: "+str(m.get("plumbing_status") or "?")+" "+str(m.get("plumbing_phase") or ""),
         "RISK_RECS: "+str(m.get("n_risk_recs") or 0)+" sized. Top:"+str(m.get("top_risk_rec") or "none"),
+        # ═══ Earnings (#3) ════════════════════════════════════════════
+        "EARNINGS_NEXT_7D: "+str(m.get("n_earnings_7d") or 0)+" reports. Top:"+str(m.get("next_earnings_ticker") or "none")+" on "+str(m.get("next_earnings_date") or "?"),
+        "PEAD_SIGNALS: "+str(m.get("n_pead_signals") or 0)+" drift candidates. Top:"+str(m.get("top_pead_ticker") or "none")+" "+str(m.get("top_pead_signal") or ""),
+        "EARNINGS_BEAT_RATE: "+str(m.get("earnings_beat_rate") or "?")+" median_1d:"+str(m.get("earnings_median_1d") or "?")+"%",
+        # ═══ Crisis KB (#2) ════════════════════════════════════════════
+        "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",
         tw,
         "SIGNAL ACCURACY 7d:",

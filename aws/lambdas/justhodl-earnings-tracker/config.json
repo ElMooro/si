@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-earnings-tracker",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 600,
+  "description": "Earnings calendar + beat/miss reactivity + PEAD signals",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "S3_KEY": "data/earnings-tracker.json",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+    "MAX_PARALLEL": "8"
+  },
+  "tags": {
+    "Project": "JustHodl",
+    "Component": "intelligence",
+    "Tier": "earnings"
+  }
+}

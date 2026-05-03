@@ -5,7 +5,7 @@ import os
 import urllib.request
 import urllib.error
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # ── AUTH MODULE (token from SSM + origin allowlist) ──────────────────
 _AUTH_TOKEN_CACHE = None
@@ -181,6 +181,32 @@ def build_context(message):
         bear = aaii.get('bearish_pct')
         regime_a = aaii.get('regime') or aaii.get('signal')
         lines.append(f"[AAII SENTIMENT] Bull:{bull}%  Bear:{bear}%  Regime:{regime_a}")
+
+    # Earnings calendar — always show next 5 watchlist names with earnings in 7d
+    earnings = get_s3('data/earnings-tracker.json')
+    if earnings:
+        upcoming = earnings.get('upcoming_14d') or []
+        next_7d = [e for e in upcoming if e.get('earnings_date', '') <= (datetime.now(timezone.utc) + timedelta(days=7)).date().isoformat()][:5]
+        if next_7d:
+            ev_str = ', '.join(f"{e.get('ticker')}({e.get('earnings_date','')[5:]} {e.get('time','?')})" for e in next_7d)
+            lines.append(f"[EARNINGS NEXT 7D] {ev_str}")
+        # Show PEAD signals (recent earnings with strong drift potential)
+        pead = (earnings.get('pead_signals') or [])[:3]
+        if pead:
+            pe_str = '; '.join(f"{p.get('ticker')} surprise:{p.get('eps_surprise_pct')}% 1d:{p.get('return_1d_pct')}% drift:{p.get('pead_signal','?')}" for p in pead)
+            lines.append(f"[PEAD SIGNALS] {pe_str}")
+
+    # Per-ticker earnings detail — when user mentions a stock with upcoming earnings
+    if stocks and earnings:
+        upcoming = earnings.get('upcoming_14d') or []
+        recent = earnings.get('recent_results_30d') or []
+        for tkr in stocks:
+            up = next((e for e in upcoming if e.get('ticker') == tkr), None)
+            if up:
+                lines.append(f"[{tkr} EARNINGS UPCOMING] {up.get('earnings_date')} ({up.get('time','?')}). EPS consensus:${up.get('eps_consensus')}. Rev:${up.get('revenue_consensus_b','?')}B")
+            rec = next((e for e in recent if e.get('ticker') == tkr), None)
+            if rec:
+                lines.append(f"[{tkr} LAST EARNINGS] {rec.get('earnings_date')}: EPS_actual:${rec.get('eps_actual')} vs ${rec.get('eps_estimate')} ({rec.get('eps_surprise_pct','?')}% surprise). 1d:{rec.get('return_1d_pct','?')}% 5d:{rec.get('return_5d_pct','?')}% 20d:{rec.get('return_20d_pct','?')}%")
 
     # 8-K red flags — material events worth flagging
     f8k = get_s3('data/8k-filings.json')
