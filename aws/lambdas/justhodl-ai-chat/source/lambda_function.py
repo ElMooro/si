@@ -295,6 +295,49 @@ def build_context(message):
             n_articles = gd.get('n_articles') or gd.get('article_count')
             lines.append(f"[GDELT NEWS] Articles:{n_articles}  Mean tone:{tone}")
 
+    # ─── Crisis Knowledge Base — RAG retrieval ─────────────────────
+    # For pattern-matching questions, retrieve relevant patterns + frameworks.
+    pattern_keywords = [
+        'CRISIS','PATTERN','HISTORICAL','LIKE 2008','LIKE 2020','LIKE 2018',
+        'PIVOT','RECESSION','INFLATION','STAGFLATION','CYCLE',
+        'YIELD CURVE','INVERSION','BACKWARDATION','DOLLAR','SHORTAGE',
+        'CYCLE TOP','CYCLE BOTTOM','BUBBLE','BOTTOM','PEAK',
+        'WHAT SHOULD I DO','PLAYBOOK','HOW TO TRADE',
+    ]
+    if any(w in msg_up for w in pattern_keywords):
+        kb = get_s3('data/crisis-knowledge-base.json')
+        if kb:
+            # Surface the active patterns matched in current state
+            cs = kb.get('current_state', {}) or {}
+            active = cs.get('active_patterns') or []
+            if active:
+                act_str = '; '.join(f"{p.get('name','?')} (matches: {', '.join(p.get('matched_signals', []))})"
+                                    for p in active[:3])
+                lines.append(f"[CRISIS KB ACTIVE PATTERNS] {act_str}")
+
+            # Find patterns matching the user's question by keyword
+            patterns = kb.get('patterns', [])
+            relevant = []
+            for p in patterns:
+                p_keywords = (p.get('name', '') + ' ' + p.get('category', '') + ' ' +
+                              ' '.join(p.get('trigger_signals', []))).upper()
+                # Check if user's message contains pattern keywords
+                if any(w in msg_up for w in [p.get('id', '').upper().replace('_', ' ')]):
+                    relevant.append(p)
+                elif any(w in p_keywords for w in msg_up.split() if len(w) > 4):
+                    relevant.append(p)
+            for p in relevant[:2]:   # top 2 most relevant
+                play = (p.get('playbook', '') or '')[:300]
+                examples = ', '.join(e.get('date', '?') for e in (p.get('historical_examples', []) or [])[:3])
+                lines.append(f"[CRISIS PATTERN: {p.get('name','?')}] Examples: {examples}. Playbook: {play}")
+
+            # Always include the framework definitions if user mentions them by name
+            frameworks = kb.get('frameworks', {})
+            for fid, f in frameworks.items():
+                if fid.upper().replace('_', ' ') in msg_up:
+                    desc = (f.get('description', '') or '')[:200]
+                    lines.append(f"[FRAMEWORK: {f.get('name', fid)}] {desc}")
+
     return '\n'.join(lines)
 
 def call_claude(message, context, history=None):
