@@ -590,6 +590,25 @@ EXPECTATIONS = {
         "note": "VIX term structure 4h tracker.",
         "severity": "important",
     },
+
+    # ─── 13F position tracker ──────────────────────────────
+    "s3:data/13f-positions.json": {
+        "type": "s3_file",
+        "key": "data/13f-positions.json",
+        "fresh_max": 25_200,         # 7h (writer is every 6h)
+        "warn_max": 86_400,          # 24h
+        "expected_size": 50_000,
+        "note": "13F position deltas — NEW/ADD/TRIM/EXIT across 18 funds.",
+        "severity": "important",
+    },
+    "lambda:justhodl-13f-positions": {
+        "type": "lambda",
+        "name": "justhodl-13f-positions",
+        "max_error_rate": 0.30,
+        "min_invocations_24h": 4,    # Every 6h
+        "note": "13F position parser. Holdings + deltas vs prior quarter.",
+        "severity": "important",
+    },
 }
 
 

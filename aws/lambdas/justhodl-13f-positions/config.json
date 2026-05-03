@@ -1,0 +1,27 @@
+{
+  "name": "justhodl-13f-positions",
+  "function_name": "justhodl-13f-positions",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 1024,
+  "memory_mb": 1024,
+  "timeout": 600,
+  "timeout_s": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY",
+    "S3_CACHE_PREFIX",
+    "S3_FILINGS_KEY",
+    "USER_AGENT",
+    "FMP_KEY",
+    "MAX_PARALLEL"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": ["justhodl-13f-positions-6h"],
+  "description": "Parse 13F infotables from 18 institutional funds. Compute NEW/ADD/TRIM/EXIT vs prior quarter. Aggregate by ticker. Caches per-accession to avoid re-parsing."
+}
