@@ -135,6 +135,7 @@ def save_templates(t):
 
 def load_all():
     keys={
+        # Existing core
         "main":"data/report.json",
         "intel":"intelligence-report.json",
         "crypto":"crypto-intel.json",
@@ -145,7 +146,27 @@ def load_all():
         "predictions":"predictions.json",
         "valuations":"valuations-data.json",
         "bond_regime":"regime/current.json",
-        "divergence":"divergence/current.json"
+        "divergence":"divergence/current.json",
+        # ─── Tier S+A — added 2026-05-03 ─────────────────────
+        "aaii":"data/aaii-sentiment.json",
+        "options_gamma":"data/options-gamma.json",
+        "onchain_ratios_full":"data/onchain-ratios.json",
+        "labor_leading":"data/labor-leading.json",
+        "oecd_cli":"data/oecd-cli.json",
+        "dealer_survey":"data/dealer-survey.json",
+        "price_redundancy":"data/price-redundancy.json",
+        "filings_8k":"data/8k-filings.json",
+        "filings_10kq":"data/10kq-filings.json",
+        "filings_13f":"data/13f-positions.json",
+        # ─── Tier 1-3 ─────────────────────────────────────────
+        "liquidity_flow":"data/liquidity-flow.json",
+        "exchange_flows":"data/exchange-flows.json",
+        "vix_curve":"data/vix-curve.json",
+        # ─── Phase 9-11 ────────────────────────────────────────
+        "auction_crisis":"data/auction-crisis.json",
+        "correlation_breaks":"data/correlation-breaks.json",
+        "crisis_plumbing":"data/crisis-plumbing.json",
+        "risk_recommendations":"risk/recommendations.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -264,7 +285,105 @@ def extract_metrics(data,weights):
         "options_bias":flow.get("bias") or flow.get("overall_bias"),
         "picks":picks,
         "alerts":alerts,
-        "top_weights":top_w
+        "top_weights":top_w,
+        # ═══════ Tier S+A — added 2026-05-03 ═══════════════════════
+        # AAII sentiment — extreme readings are contrarian indicators
+        **(lambda a=data.get("aaii", {}): {
+            "aaii_bullish": a.get("bullish_pct"),
+            "aaii_bearish": a.get("bearish_pct"),
+            "aaii_spread": (a.get("bullish_pct", 0) or 0) - (a.get("bearish_pct", 0) or 0)
+                           if a.get("bullish_pct") is not None else None,
+            "aaii_extreme": a.get("regime") or a.get("signal"),
+        })(),
+        # Options gamma — dealer positioning
+        **(lambda g=data.get("options_gamma", {}): {
+            "gex_total": g.get("total_gex") or g.get("gex"),
+            "gex_regime": g.get("regime"),
+            "gex_flip_strike": g.get("zero_gamma") or g.get("flip"),
+        })(),
+        # Labor leading indicators
+        **(lambda l=data.get("labor_leading", {}): {
+            "labor_signal": l.get("signal") or l.get("regime"),
+            "labor_score": l.get("score"),
+            "claims_4wk": l.get("claims_4wk_avg") or l.get("ic4wk"),
+        })(),
+        # OECD CLI
+        **(lambda o=data.get("oecd_cli", {}): {
+            "oecd_us": o.get("us") or (o.get("countries") or {}).get("USA"),
+            "oecd_signal": o.get("signal") or o.get("regime"),
+        })(),
+        # NY Fed dealer survey (recent shifts in dealer expectations)
+        **(lambda d=data.get("dealer_survey", {}): {
+            "dealer_signal": d.get("signal") or d.get("regime"),
+            "dealer_summary": (d.get("summary") or "")[:150],
+        })(),
+        # Price redundancy — cross-source consistency
+        **(lambda p=data.get("price_redundancy", {}): {
+            "price_disagreements": p.get("disagreements_count") or len(p.get("disagreements", [])),
+        })(),
+        # 8-K red flags — material event watcher
+        **(lambda f=data.get("filings_8k", {}): {
+            "n_8k_redflags_24h": f.get("redflags_24h_count") or len([
+                x for x in (f.get("filings") or [])
+                if x.get("severity") == "red" and x.get("filed_at", "")[:10] >= (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()[:10]
+            ][:50]),
+            "top_8k_event": (f.get("filings") or [{}])[0].get("item_label", "") if (f.get("filings") or []) else None,
+        })(),
+        # 13F positions — institutional buying/selling
+        **(lambda t=data.get("filings_13f", {}): {
+            "n_funds_13f": t.get("funds_parsed"),
+            "top_buy_13f": (t.get("most_bought") or [{}])[0].get("ticker", "") if (t.get("most_bought") or []) else None,
+            "top_sell_13f": (t.get("most_sold") or [{}])[0].get("ticker", "") if (t.get("most_sold") or []) else None,
+            "n_top_buy_funds": (t.get("most_bought") or [{}])[0].get("n_funds_adding", 0) +
+                               (t.get("most_bought") or [{}])[0].get("n_funds_new_position", 0)
+                               if (t.get("most_bought") or []) else 0,
+            "n_top_sell_funds": (t.get("most_sold") or [{}])[0].get("n_funds_trimming", 0) +
+                                (t.get("most_sold") or [{}])[0].get("n_funds_exiting", 0)
+                                if (t.get("most_sold") or []) else 0,
+        })(),
+        # 10-K/Q filings (recent material disclosures)
+        **(lambda k=data.get("filings_10kq", {}): {
+            "n_recent_10kq": k.get("recent_count") or len(k.get("filings") or []),
+        })(),
+        # Liquidity flow (Fed balance sheet, TGA, RRP)
+        **(lambda l=data.get("liquidity_flow", {}): {
+            "net_liquidity_b": l.get("net_liquidity_b") or l.get("net_liquidity"),
+            "liquidity_regime": l.get("regime"),
+            "liquidity_30d_chg_b": l.get("change_30d_b") or l.get("change_30d"),
+        })(),
+        # Exchange flows (BTC/ETH on-chain accumulation/distribution)
+        **(lambda e=data.get("exchange_flows", {}): {
+            "btc_flow_regime": (e.get("BTC") or {}).get("regime"),
+            "eth_flow_regime": (e.get("ETH") or {}).get("regime"),
+        })(),
+        # VIX curve (term structure of volatility)
+        **(lambda v=data.get("vix_curve", {}): {
+            "vix_spot": v.get("vix_spot") or v.get("spot"),
+            "vix_3m": v.get("vix_3m") or v.get("3m"),
+            "vix_curve_regime": v.get("regime"),
+            "vix_slope_3m_spot": v.get("slope_3m_spot") or v.get("slope"),
+        })(),
+        # Auction crisis (Treasury auction stress)
+        **(lambda a=data.get("auction_crisis", {}): {
+            "auction_score": a.get("composite_score") or a.get("score"),
+            "auction_regime": a.get("regime"),
+        })(),
+        # Correlation breaks (cross-asset relationship dislocations)
+        **(lambda c=data.get("correlation_breaks", {}): {
+            "n_corr_breaks": c.get("breaks_count") or len(c.get("breaks") or []),
+            "top_corr_break": (c.get("breaks") or [{}])[0].get("pair", "") if (c.get("breaks") or []) else None,
+        })(),
+        # Risk recommendations (sized positions from risk-sizer)
+        **(lambda r=data.get("risk_recommendations", {}): {
+            "n_risk_recs": len(r.get("recommendations") or r.get("positions") or []),
+            "top_risk_rec": (r.get("recommendations") or r.get("positions") or [{}])[0].get("ticker", "")
+                            if (r.get("recommendations") or r.get("positions") or []) else None,
+        })(),
+        # Crisis plumbing (early warning system)
+        **(lambda p=data.get("crisis_plumbing", {}): {
+            "plumbing_status": p.get("status") or p.get("regime"),
+            "plumbing_phase": p.get("phase"),
+        })(),
     }
 
 def get_outcomes(days=7):
@@ -369,6 +488,25 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "OPTIONS: Bias:"+str(m["options_bias"])+" P/C:"+str(m["pc"]),
         "PICKS: "+str(", ".join(m["picks"])),
         "ALERTS: "+str(", ".join(m["alerts"]) or "none"),
+        # ═══ Tier S+A — added 2026-05-03 ═══════════════════════════
+        "AAII: bull:"+str(m.get("aaii_bullish") or "?")+"% bear:"+str(m.get("aaii_bearish") or "?")+"% spread:"+str(m.get("aaii_spread") or "?")+" regime:"+str(m.get("aaii_extreme") or "neutral"),
+        "GAMMA(GEX): "+str(m.get("gex_total") or "?")+" regime:"+str(m.get("gex_regime") or "?")+" flip:"+str(m.get("gex_flip_strike") or "?"),
+        "LABOR: signal:"+str(m.get("labor_signal") or "?")+" score:"+str(m.get("labor_score") or "?")+" claims_4wk:"+str(m.get("claims_4wk") or "?"),
+        "OECD_CLI: us:"+str(m.get("oecd_us") or "?")+" signal:"+str(m.get("oecd_signal") or "?"),
+        "DEALER_SURVEY: "+str(m.get("dealer_signal") or "?")+" "+str(m.get("dealer_summary") or "")[:100],
+        "13F_FLOWS: "+str(m.get("n_funds_13f") or 0)+" funds. Most_bought:"+str(m.get("top_buy_13f") or "?")+"("+str(m.get("n_top_buy_funds") or 0)+" buying) Most_sold:"+str(m.get("top_sell_13f") or "?")+"("+str(m.get("n_top_sell_funds") or 0)+" selling)",
+        "8K_REDFLAGS: "+str(m.get("n_8k_redflags_24h") or 0)+" red flags 24h. Latest event: "+str(m.get("top_8k_event") or "none"),
+        "10KQ_RECENT: "+str(m.get("n_recent_10kq") or 0)+" recent material 10-K/Q filings",
+        "PRICE_AUDIT: "+str(m.get("price_disagreements") or 0)+" cross-source price disagreements",
+        # ═══ Tier 1-3 ════════════════════════════════════════════════
+        "LIQUIDITY: net:$"+str(m.get("net_liquidity_b") or "?")+"B 30d_chg:$"+str(m.get("liquidity_30d_chg_b") or "?")+"B regime:"+str(m.get("liquidity_regime") or "?"),
+        "EXCHANGE_FLOWS: BTC:"+str(m.get("btc_flow_regime") or "?")+" ETH:"+str(m.get("eth_flow_regime") or "?"),
+        "VIX_CURVE: spot:"+str(m.get("vix_spot") or "?")+" 3m:"+str(m.get("vix_3m") or "?")+" slope:"+str(m.get("vix_slope_3m_spot") or "?")+" regime:"+str(m.get("vix_curve_regime") or "?"),
+        # ═══ Phase 9-11 ═══════════════════════════════════════════════
+        "AUCTION_STRESS: "+str(m.get("auction_score") or "?")+"/100 regime:"+str(m.get("auction_regime") or "?"),
+        "CORR_BREAKS: "+str(m.get("n_corr_breaks") or 0)+" pairs. Top:"+str(m.get("top_corr_break") or "none"),
+        "PLUMBING_PHASE: "+str(m.get("plumbing_status") or "?")+" "+str(m.get("plumbing_phase") or ""),
+        "RISK_RECS: "+str(m.get("n_risk_recs") or 0)+" sized. Top:"+str(m.get("top_risk_rec") or "none"),
         "TOP TRUSTED SIGNALS:",
         tw,
         "SIGNAL ACCURACY 7d:",
@@ -377,7 +515,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "Write the morning brief using real numbers above. Use emojis and Markdown bold."
     ]
     prompt="\n".join(parts)
-    brief=ai(prompt,max_tokens=600)
+    brief=ai(prompt,max_tokens=1200)
     if not brief:
         em="HIGH RISK" if float(m["khalid_raw"] or 0)>=70 else "ELEVATED" if float(m["khalid_raw"] or 0)>=40 else "LOW RISK"
         brief=("JustHodl Brief "+date_str+"\n\n"
