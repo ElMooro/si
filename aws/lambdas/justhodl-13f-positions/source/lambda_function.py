@@ -612,6 +612,7 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
                     put_s3_json(prior_cache_key, {
                         "fund_key": fund_key,
                         "accession": prior_acc,
+                        "parser_version": PARSER_VERSION,
                         "positions": prior_positions,
                         "cached_at": datetime.now(timezone.utc).isoformat(),
                     })
