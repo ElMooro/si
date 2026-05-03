@@ -317,10 +317,19 @@ def parse_infotable(xml_text: str):
 
     Returns: [{name, cusip, value_usd, shares, share_type}, ...]
     Note: <value> is in THOUSANDS per SEC instructions; we multiply by 1000.
+
+    Handles two namespace patterns commonly seen in SEC 13F filings:
+      Pattern A: prefixed namespaces (<ns1:infoTable>)
+      Pattern B: default namespace (xmlns="..." on root, plain <infoTable>)
+
+    Strategy: aggressively strip ALL namespace declarations and prefixes
+    so ElementTree treats elements as bare tags.
     """
-    # Strip XML namespace for simpler parsing
-    # Replace e.g. <ns1:infoTable> with <infoTable>
+    # Step 1: strip namespace prefixes (ns1:foo → foo)
     cleaned = re.sub(r"<(/?)\w+:", r"<\1", xml_text)
+    # Step 2: strip default namespace declarations from any element
+    # so ET.iter("infoTable") matches without {namespace}infoTable.
+    cleaned = re.sub(r'\s+xmlns(:\w+)?="[^"]*"', "", cleaned)
 
     positions = []
     try:
@@ -329,7 +338,7 @@ def parse_infotable(xml_text: str):
         print(f"  parse fail: {e}")
         return positions
 
-    # Find all infoTable elements
+    # Find all infoTable elements (now namespace-free)
     for it in root.iter("infoTable"):
         try:
             name = (it.findtext("nameOfIssuer") or "").strip()
@@ -355,7 +364,7 @@ def parse_infotable(xml_text: str):
                 "shares": shares_int,
                 "share_type": stype,
             })
-        except (ValueError, TypeError, AttributeError) as e:
+        except (ValueError, TypeError, AttributeError):
             continue
 
     # Multiple infoTable rows can exist for the same name+cusip (different

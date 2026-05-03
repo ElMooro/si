@@ -1,4 +1,6 @@
 """
+# bumped 2026-05-03 16:55 — fix namespace parsing
+
 Step ___ — Create/update justhodl-13f-positions Lambda + EB rule.
 
 Parses 13F infotable XML for all 18 watchlist funds. Extracts positions,
