@@ -1,26 +1,22 @@
 # Create/update justhodl-13f-positions Lambda + EB rule
 
 **Status:** success  
-**Duration:** 76.8s  
-**Finished:** 2026-05-03T16:57:00+00:00  
+**Duration:** 76.5s  
+**Finished:** 2026-05-03T17:04:36+00:00  
 
 ## Log
-- `16:55:43`   zip: 9027 bytes
+- `17:03:20`   zip: 9157 bytes
 ## 1. Lambda
 
-- `16:55:43`   Lambda exists — updating
-- `16:55:46` ✅   ✓ updated justhodl-13f-positions
-- `16:55:46` ✅   ✓ reserved concurrency = 1
+- `17:03:20`   Lambda exists — updating
+- `17:03:25` ✅   ✓ updated justhodl-13f-positions
+- `17:03:25` ✅   ✓ reserved concurrency = 1
 ## 2. EB rule + permissions
 
-- `16:55:46`   rule already correct: justhodl-13f-positions-6h (rate(6 hours))
-- `16:55:46` ✅   ✓ target → justhodl-13f-positions
-- `16:55:46` ✅   ✓ added invoke permission
+- `17:03:25`   rule already correct: justhodl-13f-positions-6h (rate(6 hours))
+- `17:03:25` ✅   ✓ target → justhodl-13f-positions
+- `17:03:25` ✅   ✓ added invoke permission
 ## 3. Smoke test
 
-- `16:55:46`   invoking justhodl-13f-positions…
-- `16:57:00` ✅   ✓ smoke test passed
-- `16:57:00`     ok                       True
-- `16:57:00`     funds_parsed             6
-- `16:57:00`     funds_failed             11
-- `16:57:00`     tickers_aggregated       5000
+- `17:03:25`   invoking justhodl-13f-positions…
+- `17:04:36` ✗   ✗ invoke: An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded.
