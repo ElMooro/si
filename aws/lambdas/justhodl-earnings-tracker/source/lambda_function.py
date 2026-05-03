@@ -1,79 +1,40 @@
 """
-justhodl-earnings-tracker — Earnings calendar + beat/miss reactivity
+justhodl-earnings-tracker — Earnings calendar + beat/miss reactivity + PEAD signals
 
 Tracks upcoming earnings (next 14 days) and recent earnings results
-(past 30 days) for ~500 watchlist stocks. Computes:
-  - Upcoming earnings dates per ticker
-  - Beat/miss vs consensus (EPS + revenue)
-  - Post-earnings drift (PEAD) — 1d, 5d, 20d returns vs SPY
-  - Aggregate metrics: beat rate, % positive reactions, surprise distribution
+(past 30 days) for the watchlist. Computes:
+  - Upcoming earnings dates per ticker (from Nasdaq earnings calendar — free, public)
+  - Beat/miss vs consensus where data available (Polygon financials for actuals)
+  - Post-earnings drift (PEAD) — 1d, 5d, 20d returns
+  - Aggregate metrics: beat rate, % positive reactions
+
+Data sources:
+  - Nasdaq earnings calendar API (free, no auth, daily by date)
+  - Polygon stocks-financials API (for actuals when reported)
+  - Polygon aggregates API (for post-earnings 1d/5d/20d returns)
 
 Output: data/earnings-tracker.json
-{
-  "version": "1.0",
-  "generated_at": "...",
-  "upcoming_14d": [
-    {
-      "ticker": "AAPL",
-      "earnings_date": "2026-05-08",
-      "eps_consensus": 1.62,
-      "revenue_consensus_b": 95.4,
-      "n_estimates": 30,
-      "implied_move_pct": 5.2,        # from options
-      "last_4_quarters": [             # historical pattern
-        {"date": "...", "eps_actual": ..., "eps_surprise_pct": ..., "1d_return": ...},
-      ]
-    }
-  ],
-  "recent_results_30d": [...],
-  "aggregate_stats": {
-    "n_reported": 145,
-    "beat_rate_eps": 0.72,
-    "beat_rate_rev": 0.65,
-    "median_1d_return": 0.5,
-    "best_reaction": {"ticker": "...", "1d_return": ...},
-    "worst_reaction": {"ticker": "...", "1d_return": ...}
-  },
-  "pead_signals": [             # Post-Earnings Announcement Drift candidates
-    {
-      "ticker": "...",
-      "earnings_date": "...",
-      "surprise_pct": 12,
-      "1d_return": 4.2,
-      "pead_score": 85,         # high score → drift expected to continue
-      "thesis": "Beat + positive reaction + above-trend → drift continues 30-60d"
-    }
-  ]
-}
-
-Update cadence: every 6 hours (earnings can be announced ad hoc).
 """
-from __future__ import annotations
 import json
 import os
 import time
-import urllib.request
-from datetime import datetime, timezone, timedelta
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
 import boto3
+import urllib.request
+import urllib.parse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
 
-S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-S3_KEY = os.environ.get("S3_KEY", "data/earnings-tracker.json")
-FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+S3 = boto3.client("s3", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+KEY = "data/earnings-tracker.json"
+
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-USER_AGENT = "JustHodl Research raafouis@gmail.com"
-MAX_PARALLEL = int(os.environ.get("MAX_PARALLEL", "8"))
 
-s3 = boto3.client("s3")
-
-
-# Top S&P 500 + popular high-volume names that move on earnings
+# Watchlist — 165 high-priority tickers
 WATCHLIST = [
-    # Mega-caps
-    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AVGO", "BRK-B",
-    # Top S&P 500 by market cap
-    "TSM", "JPM", "WMT", "LLY", "V", "MA", "ORCL", "XOM", "UNH", "JNJ",
+    # Mega caps
+    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AVGO",
+    "BRK-B", "TSM", "JPM", "WMT", "LLY", "V", "MA", "ORCL", "XOM", "UNH", "JNJ",
     "HD", "COST", "BAC", "PG", "ABBV", "NFLX", "CVX", "MRK", "KO", "AMD",
     "ADBE", "PEP", "CRM", "PM", "TMO", "LIN", "MCD", "ACN", "GE", "ABT",
     "CSCO", "WFC", "DHR", "AXP", "DIS", "VZ", "INTU", "MS", "T", "RTX",
@@ -82,281 +43,352 @@ WATCHLIST = [
     "PLD", "SYK", "BSX", "PANW", "ETN", "MDT", "KKR", "ADP", "MMC", "REGN",
     "MU", "GILD", "VRTX", "FI", "LMT", "TJX", "INTC", "ADI", "CB", "AMT",
     "PYPL", "MO", "CI", "BA", "CME", "SHW", "ZTS", "EQIX", "HCA", "ICE",
-    # High-velocity names
-    "PLTR", "COIN", "MARA", "RIOT", "CLSK", "SOFI", "RBLX", "U", "NET", "SNOW",
-    "DDOG", "CRWD", "ZS", "PANW", "OKTA", "DOCU", "SHOP", "MELI", "PDD", "NU",
-    "ABNB", "DASH", "RIVN", "LCID", "F", "GM", "STLA", "TM", "HMC",
-    "UBER", "LYFT", "SQ", "AFRM", "HOOD", "RDDT", "DJT", "TSM", "ASML",
-    # Sector leaders
-    "WBA", "TGT", "DLTR", "CVS", "WBD", "PARA", "DIS", "ROKU", "SPOT",
-    "FDX", "UPS", "NOC", "GD", "HON", "EMR", "ITW",
-    "SLB", "EOG", "OXY", "FANG", "PXD", "MPC", "VLO", "PSX",
-    "GLD", "SLV", "USO", "TLT", "HYG", "LQD", "EEM", "EFA", "VWO", "SPY", "QQQ", "IWM",
+    # High-velocity / high-reactivity
+    "PLTR", "COIN", "MARA", "RIOT", "CLSK", "SOFI", "RBLX", "U", "NET",
+    "SNOW", "DDOG", "CRWD", "ZS", "OKTA", "DOCU", "SHOP", "MELI", "PDD", "NU",
+    "ABNB", "DASH", "RIVN", "LCID", "F", "GM", "STLA", "TM", "HMC", "UBER",
+    "LYFT", "SQ", "AFRM", "HOOD", "RDDT", "DJT", "ASML", "WBA", "TGT", "DLTR",
+    "CVS", "WBD", "PARA", "ROKU", "SPOT", "FDX", "UPS", "NOC", "GD", "HON",
+    "EMR", "ITW", "SLB", "EOG", "OXY", "FANG", "MPC", "VLO", "PSX",
+    # Liquid ETFs (no earnings but useful for reference returns)
+    "SPY", "QQQ", "IWM", "GLD", "SLV", "USO", "TLT", "HYG", "LQD", "EEM", "EFA", "VWO",
 ]
 
+WATCHLIST_SET = set(WATCHLIST)
 
-def _fetch_json(url: str, timeout: int = 15):
+
+# ────────────────────────── HTTP helpers ──────────────────────────
+def http_get(url, timeout=15, ua="justhodl-earnings/1.0"):
+    """Generic HTTP GET with browser UA (Nasdaq blocks default urllib UA)."""
     req = urllib.request.Request(url, headers={
-        "User-Agent": USER_AGENT,
-        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; " + ua + ")",
+        "Accept": "application/json,text/plain,*/*",
     })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        body = r.read()
+        try:
+            return json.loads(body)
+        except Exception:
+            return body.decode("utf-8", errors="replace")
+
+
+# ────────────────────────── Nasdaq earnings calendar ──────────────────────────
+def fetch_nasdaq_earnings_for_date(date_yyyy_mm_dd):
+    """Pull Nasdaq earnings calendar for a single date. Returns list of rows."""
+    url = f"https://api.nasdaq.com/api/calendar/earnings?date={date_yyyy_mm_dd}"
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read())
-    except Exception as e:
-        print(f"  fetch err {url[:80]}: {e}")
-        return None
-
-
-def get_earnings_calendar(from_date: str, to_date: str):
-    """FMP earnings calendar — returns all earnings in date range."""
-    url = (f"https://financialmodelingprep.com/api/v3/earning_calendar"
-           f"?from={from_date}&to={to_date}&apikey={FMP_KEY}")
-    data = _fetch_json(url)
-    if not isinstance(data, list):
+        d = http_get(url, timeout=20)
+        if not isinstance(d, dict):
+            return []
+        rows = (d.get("data") or {}).get("rows") or []
+        return rows
+    except Exception:
         return []
-    return data
 
 
-def get_historical_earnings(ticker: str, n: int = 8):
-    """FMP historical earnings — beat/miss + actual vs estimate."""
-    url = f"https://financialmodelingprep.com/api/v3/historical/earning_calendar/{ticker}?limit={n}&apikey={FMP_KEY}"
-    data = _fetch_json(url)
-    if not isinstance(data, list):
-        return []
-    return data
+def collect_upcoming_earnings(days_ahead=14):
+    """Collect upcoming earnings for the next N weekdays."""
+    upcoming = []
+    today = datetime.now(timezone.utc).date()
+    days_added = 0
+    days_offset = 0
+    while days_added < days_ahead and days_offset < days_ahead + 14:
+        d = today + timedelta(days=days_offset)
+        days_offset += 1
+        # Skip weekends — markets closed, no earnings reports
+        if d.weekday() >= 5:
+            continue
+        rows = fetch_nasdaq_earnings_for_date(d.isoformat())
+        for r in rows:
+            sym = (r.get("symbol") or "").strip().upper()
+            if not sym or sym not in WATCHLIST_SET:
+                continue
+            time_str = r.get("time", "")
+            if "pre-market" in time_str:
+                tcode = "BMO"
+            elif "after-hours" in time_str:
+                tcode = "AMC"
+            else:
+                tcode = "TBD"
+            eps_est = None
+            eps_str = r.get("epsForecast", "")
+            if eps_str:
+                try:
+                    s = eps_str.replace("$", "").replace(",", "").strip()
+                    if s.startswith("(") and s.endswith(")"):
+                        eps_est = -float(s[1:-1])
+                    elif s and s != "N/A":
+                        eps_est = float(s)
+                except Exception:
+                    pass
+            upcoming.append({
+                "ticker": sym,
+                "name": r.get("name", ""),
+                "earnings_date": d.isoformat(),
+                "time": tcode,
+                "eps_consensus": eps_est,
+                "n_estimates": r.get("noOfEsts"),
+                "fiscal_quarter_ending": r.get("fiscalQuarterEnding", ""),
+                "last_year_eps": r.get("lastYearEPS", ""),
+                "market_cap": r.get("marketCap", ""),
+            })
+        days_added += 1
+        time.sleep(0.15)
+    return upcoming
 
 
-def get_close_price(ticker: str, date_str: str):
-    """Polygon close price for a single date."""
-    url = f"https://api.polygon.io/v1/open-close/{ticker}/{date_str}?apikey={POLYGON_KEY}"
-    data = _fetch_json(url)
-    if data and isinstance(data, dict):
-        return data.get("close")
-    return None
-
-
-def get_returns_after(ticker: str, earnings_date: str):
-    """Compute 1d/5d/20d returns starting from earnings date."""
+# ────────────────────────── Polygon financials (actual results) ──────────────────────────
+def fetch_polygon_financials(ticker, limit=4):
+    """Return last N quarterly filings with EPS + revenue."""
+    url = f"https://api.polygon.io/vX/reference/financials?ticker={urllib.parse.quote(ticker)}&timeframe=quarterly&limit={limit}&apiKey={POLYGON_KEY}"
     try:
-        ed = datetime.strptime(earnings_date, "%Y-%m-%d")
-    except ValueError:
-        return {}
+        d = http_get(url, timeout=15)
+        results = []
+        for r in (d.get("results") or []):
+            fin = r.get("financials", {}) or {}
+            ic = fin.get("income_statement", {}) or {}
+            eps = (ic.get("basic_earnings_per_share") or {}).get("value")
+            rev = (ic.get("revenues") or {}).get("value")
+            results.append({
+                "period_start": r.get("start_date"),
+                "period_end": r.get("end_date"),
+                "filing_date": r.get("filing_date") or r.get("acceptance_datetime", "")[:10],
+                "eps_actual": eps,
+                "revenue_actual": rev,
+            })
+        return results
+    except Exception:
+        return []
 
-    # Get bars from FMP (more reliable for historical)
-    end_date = (ed + timedelta(days=35)).strftime("%Y-%m-%d")
-    url = (f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}"
-           f"?from={earnings_date}&to={end_date}&apikey={FMP_KEY}")
-    data = _fetch_json(url)
-    if not data or not isinstance(data, dict):
-        return {}
-    historical = data.get("historical", [])
-    if not historical:
-        return {}
 
-    # FMP returns reverse-chronological; sort ascending by date
-    historical.sort(key=lambda x: x.get("date", ""))
-    if len(historical) < 2:
-        return {}
+def fetch_polygon_aggs(ticker, from_date, to_date):
+    """Get daily bars for a ticker between two dates."""
+    url = (
+        f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(ticker)}"
+        f"/range/1/day/{from_date}/{to_date}?adjusted=true&sort=asc&limit=120&apiKey={POLYGON_KEY}"
+    )
+    try:
+        d = http_get(url, timeout=15)
+        return d.get("results") or []
+    except Exception:
+        return []
 
-    base = historical[0].get("close")
+
+# ────────────────────────── Recent results + post-earnings drift ──────────────────────────
+def compute_pead_signal(eps_actual, eps_estimate, returns):
+    """Score PEAD signal 0-100."""
+    if eps_actual is None or eps_estimate is None or eps_estimate == 0:
+        return None, "INSUFFICIENT_DATA", 50
+    surprise_pct = (eps_actual - eps_estimate) / abs(eps_estimate) * 100
+    r1d = returns.get("1d", 0) or 0
+    if surprise_pct > 5 and r1d > 2:
+        return surprise_pct, "STRONG_POSITIVE_DRIFT", 80
+    if surprise_pct > 0 and r1d > 0:
+        return surprise_pct, "POSITIVE_DRIFT", 65
+    if surprise_pct < -5 and r1d < -2:
+        return surprise_pct, "NEGATIVE_DRIFT", 20
+    if surprise_pct < 0 and r1d < 0:
+        return surprise_pct, "MODERATE_NEGATIVE_DRIFT", 35
+    if abs(surprise_pct) < 2 and abs(r1d) < 1:
+        return surprise_pct, "INLINE_NO_DRIFT", 50
+    if surprise_pct > 0 and r1d < 0:
+        return surprise_pct, "BEAT_BUT_FELL", 45
+    if surprise_pct < 0 and r1d > 0:
+        return surprise_pct, "MISS_BUT_ROSE", 55
+    return surprise_pct, "MIXED", 50
+
+
+def compute_returns(bars, anchor_date):
+    """Compute 1d/5d/20d returns from anchor date."""
+    if not bars:
+        return {"1d": None, "5d": None, "20d": None}
+    bars_sorted = sorted(bars, key=lambda b: b.get("t", 0))
+    try:
+        anchor_ts = int(datetime.fromisoformat(anchor_date).replace(tzinfo=timezone.utc).timestamp() * 1000)
+    except Exception:
+        return {"1d": None, "5d": None, "20d": None}
+    anchor_idx = None
+    for i, b in enumerate(bars_sorted):
+        if b.get("t", 0) >= anchor_ts:
+            anchor_idx = i
+            break
+    if anchor_idx is None or anchor_idx >= len(bars_sorted) - 1:
+        return {"1d": None, "5d": None, "20d": None}
+    base = bars_sorted[anchor_idx].get("c")
     if not base:
-        return {}
-
+        return {"1d": None, "5d": None, "20d": None}
     out = {}
-    for days, key in [(1, "1d"), (5, "5d"), (20, "20d")]:
-        if len(historical) > days:
-            close = historical[days].get("close")
-            if close and base:
-                out[f"return_{key}_pct"] = round((close / base - 1) * 100, 2)
+    for n_days, key in [(1, "1d"), (5, "5d"), (20, "20d")]:
+        target_idx = anchor_idx + n_days
+        if target_idx < len(bars_sorted):
+            target = bars_sorted[target_idx].get("c")
+            if target and base:
+                out[key] = round(((target - base) / base) * 100, 2)
+            else:
+                out[key] = None
+        else:
+            out[key] = None
     return out
 
 
-def process_recent_earnings(earnings_event):
-    """For a recently-reported earnings, compute reactivity + PEAD score."""
-    ticker = earnings_event.get("symbol")
-    if not ticker or ticker not in WATCHLIST:
+def build_recent_result(ticker):
+    """For a single ticker, find recent earnings + compute drift."""
+    try:
+        fins = fetch_polygon_financials(ticker, limit=2)
+        if not fins:
+            return None
+        latest = fins[0]
+        filing_date = latest.get("filing_date")
+        if not filing_date:
+            return None
+        try:
+            fdt = datetime.fromisoformat(filing_date)
+            if (datetime.now() - fdt).days > 35:
+                return None
+        except Exception:
+            return None
+        from_d = filing_date
+        try:
+            to_d = (datetime.fromisoformat(filing_date) + timedelta(days=35)).date().isoformat()
+        except Exception:
+            to_d = (datetime.now() + timedelta(days=2)).date().isoformat()
+        bars = fetch_polygon_aggs(ticker, from_d, to_d)
+        returns = compute_returns(bars, filing_date)
+        prev_eps = None
+        if len(fins) > 1:
+            prev_eps = fins[1].get("eps_actual")
+        eps_actual = latest.get("eps_actual")
+        eps_yoy_pct = None
+        if eps_actual is not None and prev_eps is not None and prev_eps != 0:
+            eps_yoy_pct = round(((eps_actual - prev_eps) / abs(prev_eps)) * 100, 2)
+        pead_surprise, pead_label, pead_score = compute_pead_signal(
+            eps_actual, prev_eps, returns
+        )
+        return {
+            "ticker": ticker,
+            "filing_date": filing_date,
+            "period_end": latest.get("period_end"),
+            "eps_actual": eps_actual,
+            "eps_prior_quarter": prev_eps,
+            "revenue_actual": latest.get("revenue_actual"),
+            "eps_yoy_pct": eps_yoy_pct,
+            "returns": returns,
+            "pead_label": pead_label,
+            "pead_score": pead_score,
+        }
+    except Exception:
         return None
 
-    eps_actual = earnings_event.get("eps")
-    eps_estimate = earnings_event.get("epsEstimated")
-    rev_actual = earnings_event.get("revenue")
-    rev_estimate = earnings_event.get("revenueEstimated")
-    earnings_date = earnings_event.get("date")
-    if not earnings_date:
-        return None
 
-    # Compute surprises
-    eps_surprise_pct = None
-    if eps_estimate and eps_actual is not None:
-        try:
-            eps_surprise_pct = round((float(eps_actual) - float(eps_estimate)) / abs(float(eps_estimate) or 1) * 100, 1)
-        except (ValueError, TypeError, ZeroDivisionError):
-            pass
+def collect_recent_results():
+    """Parallel fetch recent results across watchlist."""
+    out = []
+    eq_tickers = [t for t in WATCHLIST if t not in {
+        "SPY", "QQQ", "IWM", "GLD", "SLV", "USO", "TLT", "HYG", "LQD", "EEM", "EFA", "VWO",
+    }]
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        futures = {ex.submit(build_recent_result, t): t for t in eq_tickers}
+        for fut in as_completed(futures):
+            res = fut.result()
+            if res:
+                out.append(res)
+    out.sort(key=lambda x: x.get("filing_date", ""), reverse=True)
+    return out
 
-    rev_surprise_pct = None
-    if rev_estimate and rev_actual is not None:
-        try:
-            rev_surprise_pct = round((float(rev_actual) - float(rev_estimate)) / abs(float(rev_estimate) or 1) * 100, 1)
-        except (ValueError, TypeError, ZeroDivisionError):
-            pass
 
-    # Compute returns
-    returns = get_returns_after(ticker, earnings_date)
-
-    # PEAD score: positive surprise + positive 1d reaction → drift continues
-    # 0-100 scale. Higher = more confidence in drift continuation.
-    pead_score = 50  # neutral
-    pead_signal = None
-    r1d = returns.get("return_1d_pct")
-    if eps_surprise_pct is not None and r1d is not None:
-        if eps_surprise_pct > 5 and r1d > 2:
-            pead_score = 80
-            pead_signal = "STRONG_POSITIVE_DRIFT"
-        elif eps_surprise_pct > 0 and r1d > 0:
-            pead_score = 65
-            pead_signal = "POSITIVE_DRIFT"
-        elif eps_surprise_pct < -5 and r1d < -2:
-            pead_score = 20  # negative drift expected
-            pead_signal = "NEGATIVE_DRIFT"
-        elif eps_surprise_pct < 0 and r1d < 0:
-            pead_score = 35
-            pead_signal = "MODERATE_NEGATIVE_DRIFT"
-
+# ────────────────────────── Aggregate stats ──────────────────────────
+def aggregate_stats(recent):
+    if not recent:
+        return {
+            "n_reported": 0,
+            "beat_rate_eps_yoy": None,
+            "median_1d_return_pct": None,
+            "pct_positive_reactions": None,
+            "best_reaction": None,
+            "worst_reaction": None,
+        }
+    n = len(recent)
+    beats = sum(1 for r in recent if (r.get("eps_yoy_pct") or 0) > 0)
+    r1d = [r["returns"].get("1d") for r in recent if r.get("returns", {}).get("1d") is not None]
+    r1d_sorted = sorted(r1d)
+    med = r1d_sorted[len(r1d_sorted) // 2] if r1d_sorted else None
+    pos = sum(1 for x in r1d if x > 0)
+    valid_recent = [r for r in recent if r["returns"].get("1d") is not None]
+    best = max(valid_recent, key=lambda r: r["returns"].get("1d") or -999) if valid_recent else None
+    worst = min(valid_recent, key=lambda r: r["returns"].get("1d") or 999) if valid_recent else None
     return {
-        "ticker": ticker,
-        "earnings_date": earnings_date,
-        "time": earnings_event.get("time"),  # bmo / amc
-        "eps_actual": eps_actual,
-        "eps_estimate": eps_estimate,
-        "eps_surprise_pct": eps_surprise_pct,
-        "revenue_actual_b": round(rev_actual / 1e9, 2) if rev_actual else None,
-        "revenue_estimate_b": round(rev_estimate / 1e9, 2) if rev_estimate else None,
-        "revenue_surprise_pct": rev_surprise_pct,
-        "beat_eps": (eps_surprise_pct or 0) > 0 if eps_surprise_pct is not None else None,
-        "beat_revenue": (rev_surprise_pct or 0) > 0 if rev_surprise_pct is not None else None,
-        **returns,
-        "pead_score": pead_score,
-        "pead_signal": pead_signal,
+        "n_reported": n,
+        "beat_rate_eps_yoy": round(beats / n * 100, 1) if n else None,
+        "median_1d_return_pct": med,
+        "pct_positive_reactions": round(pos / len(r1d) * 100, 1) if r1d else None,
+        "best_reaction": {"ticker": best["ticker"], "1d": best["returns"].get("1d")} if best else None,
+        "worst_reaction": {"ticker": worst["ticker"], "1d": worst["returns"].get("1d")} if worst else None,
     }
 
 
-def lambda_handler(event, context):
-    print(f"[START] earnings-tracker watchlist={len(WATCHLIST)}")
+def top_pead_signals(recent, n=10):
+    """Return top N PEAD signals by absolute drift score."""
+    scored = [r for r in recent if r.get("pead_label") not in (None, "INSUFFICIENT_DATA", "INLINE_NO_DRIFT")]
+    scored.sort(key=lambda r: abs((r.get("pead_score") or 50) - 50), reverse=True)
+    return scored[:n]
+
+
+# ────────────────────────── Lambda handler ──────────────────────────
+def lambda_handler(event=None, context=None):
     started = time.time()
+    print(f"[earnings] starting — watchlist={len(WATCHLIST)} tickers")
 
-    today = datetime.now(timezone.utc).date()
-    upcoming_to = (today + timedelta(days=14)).isoformat()
-    recent_from = (today - timedelta(days=30)).isoformat()
-    today_str = today.isoformat()
+    upcoming = collect_upcoming_earnings(days_ahead=14)
+    print(f"[earnings] upcoming: {len(upcoming)} reports in next 14d")
 
-    # 1. Upcoming earnings (next 14 days)
-    print(f"  Fetching upcoming earnings: {today_str} → {upcoming_to}")
-    upcoming_raw = get_earnings_calendar(today_str, upcoming_to)
-    upcoming_filtered = [e for e in upcoming_raw if e.get("symbol") in WATCHLIST]
-    print(f"    {len(upcoming_raw)} total, {len(upcoming_filtered)} in watchlist")
+    recent = collect_recent_results()
+    print(f"[earnings] recent: {len(recent)} reports in past 35d")
 
-    upcoming = []
-    for e in upcoming_filtered:
-        upcoming.append({
-            "ticker": e.get("symbol"),
-            "earnings_date": e.get("date"),
-            "time": e.get("time"),  # bmo/amc
-            "eps_consensus": e.get("epsEstimated"),
-            "revenue_consensus_b": round(e["revenueEstimated"] / 1e9, 2) if e.get("revenueEstimated") else None,
-            "fiscal_date": e.get("fiscalDateEnding"),
-        })
-    upcoming.sort(key=lambda x: x.get("earnings_date") or "9999")
+    stats = aggregate_stats(recent)
+    pead = top_pead_signals(recent, n=10)
+    print(f"[earnings] aggregates: beat_rate={stats.get('beat_rate_eps_yoy')}% median_1d={stats.get('median_1d_return_pct')}%")
+    print(f"[earnings] PEAD top: {len(pead)}")
 
-    # 2. Recent earnings (last 30 days)
-    print(f"  Fetching recent earnings: {recent_from} → {today_str}")
-    recent_raw = get_earnings_calendar(recent_from, today_str)
-    recent_filtered = [e for e in recent_raw if e.get("symbol") in WATCHLIST and e.get("eps") is not None]
-    print(f"    {len(recent_raw)} total, {len(recent_filtered)} in watchlist with results")
-
-    # Process in parallel — each call needs price history fetch
-    recent_processed = []
-    with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as pool:
-        futures = [pool.submit(process_recent_earnings, e) for e in recent_filtered]
-        for fut in as_completed(futures):
-            try:
-                r = fut.result(timeout=15)
-                if r:
-                    recent_processed.append(r)
-            except Exception as e:
-                print(f"  process err: {e}")
-
-    print(f"    processed {len(recent_processed)} with reactivity")
-
-    # 3. Aggregate stats
-    n_reported = len(recent_processed)
-    beat_eps_count = sum(1 for r in recent_processed if r.get("beat_eps") is True)
-    beat_rev_count = sum(1 for r in recent_processed if r.get("beat_revenue") is True)
-    has_eps = [r for r in recent_processed if r.get("beat_eps") is not None]
-    has_rev = [r for r in recent_processed if r.get("beat_revenue") is not None]
-
-    r1ds = [r.get("return_1d_pct") for r in recent_processed if r.get("return_1d_pct") is not None]
-    r1ds.sort()
-    median_1d = r1ds[len(r1ds) // 2] if r1ds else None
-
-    pos_reactions = sum(1 for r in r1ds if r > 0)
-
-    best_react = max(recent_processed, key=lambda r: r.get("return_1d_pct", -999) or -999) if recent_processed else None
-    worst_react = min(recent_processed, key=lambda r: r.get("return_1d_pct", 999) or 999) if recent_processed else None
-
-    # 4. PEAD signals (high-conviction drift candidates from past 10 days)
-    pead_cutoff = (today - timedelta(days=10)).isoformat()
-    pead_signals = sorted(
-        [r for r in recent_processed
-         if r.get("earnings_date", "") >= pead_cutoff
-         and r.get("pead_score", 50) >= 65
-         and r.get("pead_signal")],
-        key=lambda r: -r.get("pead_score", 0)
-    )[:15]
-
-    output = {
-        "version": "1.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    out = {
+        "version": "1.1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "watchlist_size": len(WATCHLIST),
         "upcoming_14d": upcoming,
-        "recent_results_30d": sorted(recent_processed, key=lambda r: r.get("earnings_date") or "0", reverse=True)[:60],
-        "aggregate_stats": {
-            "n_reported": n_reported,
-            "beat_rate_eps": round(beat_eps_count / max(len(has_eps), 1), 2) if has_eps else None,
-            "beat_rate_revenue": round(beat_rev_count / max(len(has_rev), 1), 2) if has_rev else None,
-            "median_1d_return_pct": round(median_1d, 2) if median_1d is not None else None,
-            "pct_positive_reactions": round(pos_reactions / max(len(r1ds), 1) * 100, 1) if r1ds else None,
-            "best_reaction": {
-                "ticker": best_react.get("ticker"), "earnings_date": best_react.get("earnings_date"),
-                "eps_surprise_pct": best_react.get("eps_surprise_pct"),
-                "return_1d_pct": best_react.get("return_1d_pct"),
-            } if best_react else None,
-            "worst_reaction": {
-                "ticker": worst_react.get("ticker"), "earnings_date": worst_react.get("earnings_date"),
-                "eps_surprise_pct": worst_react.get("eps_surprise_pct"),
-                "return_1d_pct": worst_react.get("return_1d_pct"),
-            } if worst_react else None,
+        "n_upcoming": len(upcoming),
+        "recent_results_30d": recent,
+        "n_recent": len(recent),
+        "pead_signals": pead,
+        "n_pead": len(pead),
+        "aggregate_stats": stats,
+        "duration_s": round(time.time() - started, 2),
+        "data_sources": {
+            "upcoming": "Nasdaq earnings calendar API (free)",
+            "actuals": "Polygon stocks-financials API",
+            "returns": "Polygon aggregates API",
         },
-        "pead_signals": pead_signals,
-        "duration_s": round(time.time() - started, 1),
     }
 
-    s3.put_object(
-        Bucket=S3_BUCKET, Key=S3_KEY,
-        Body=json.dumps(output, default=str).encode(),
+    body = json.dumps(out, default=str).encode("utf-8")
+    S3.put_object(
+        Bucket=BUCKET,
+        Key=KEY,
+        Body=body,
         ContentType="application/json",
-        CacheControl="no-cache",
+        CacheControl="public, max-age=900",
     )
-    print(f"[DONE] {len(upcoming)} upcoming, {n_reported} recent, {len(pead_signals)} PEAD signals → s3://{S3_BUCKET}/{S3_KEY}")
+    print(f"[earnings] wrote s3://{BUCKET}/{KEY} — {len(body):,}b in {out['duration_s']}s")
 
     return {
         "statusCode": 200,
-        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps({
-            "ok": True,
-            "n_upcoming": len(upcoming),
-            "n_recent": n_reported,
-            "n_pead_signals": len(pead_signals),
-            "median_1d_return_pct": output["aggregate_stats"]["median_1d_return_pct"],
+            "n_upcoming": out["n_upcoming"],
+            "n_recent": out["n_recent"],
+            "n_pead": out["n_pead"],
+            "duration_s": out["duration_s"],
         }),
     }
+
+
+if __name__ == "__main__":
+    import json as _j
+    print(_j.dumps(lambda_handler({}, None), indent=2, default=str))
