@@ -1,0 +1,75 @@
+# Inspect outcomes table schema
+
+**Status:** success  
+**Duration:** 0.2s  
+**Finished:** 2026-05-04T13:14:50+00:00  
+
+## Log
+- `13:14:50` --- item 0 ---
+- `13:14:50`   checked_at           (S) = 2026-04-24T23:17:41.907006+00:00
+- `13:14:50`   correct              (NULL) = True
+- `13:14:50`   is_legacy            (BOOL) = True
+- `13:14:50`   legacy_reason        (S) = pre_baseline_fix_2026_04_24
+- `13:14:50`   logged_at            (S) = 2026-03-20T21:10:13.805378+00:00
+- `13:14:50`   outcome              (M) = {'price_at_check': {'N': '86.71'}, 'actual_direction': {'S': 'UNKNOWN'}, 'return
+- `13:14:50`   outcome_id           (S) = fdfa64fe-acef-44f9-809b-be177bbd27e8_day_1
+- `13:14:50`   predicted_dir        (S) = DOWN
+- `13:14:50`   signal_id            (S) = fdfa64fe-acef-44f9-809b-be177bbd27e8
+- `13:14:50`   signal_type          (S) = momentum_tlt
+- `13:14:50`   signal_value         (S) = -1.71%
+- `13:14:50`   ttl                  (N) = 1779742032
+- `13:14:50`   window_key           (S) = day_1
+- `13:14:50` --- item 1 ---
+- `13:14:50`   checked_at           (S) = 2026-04-24T23:17:41.907006+00:00
+- `13:14:50`   correct              (NULL) = True
+- `13:14:50`   is_legacy            (BOOL) = True
+- `13:14:50`   legacy_reason        (S) = pre_baseline_fix_2026_04_24
+- `13:14:50`   logged_at            (S) = 2026-03-22T09:10:13.390116+00:00
+- `13:14:50`   outcome              (M) = {'price_at_check': {'N': '713.94'}, 'actual_direction': {'S': 'UNKNOWN'}, 'retur
+- `13:14:50`   outcome_id           (S) = c2447ef6-3f05-43ee-9ebc-3dc49ad425ab_day_14
+- `13:14:50`   predicted_dir        (S) = NEUTRAL
+- `13:14:50`   signal_id            (S) = c2447ef6-3f05-43ee-9ebc-3dc49ad425ab
+- `13:14:50`   signal_type          (S) = khalid_index
+- `13:14:50`   signal_value         (S) = MODERATE
+- `13:14:50`   ttl                  (N) = 1779742032
+- `13:14:50`   window_key           (S) = day_14
+- `13:14:50` --- item 2 ---
+- `13:14:50`   checked_at           (S) = 2026-04-24T23:10:19.571920+00:00
+- `13:14:50`   correct              (NULL) = True
+- `13:14:50`   is_legacy            (BOOL) = True
+- `13:14:50`   legacy_reason        (S) = pre_baseline_fix_2026_04_24
+- `13:14:50`   logged_at            (S) = 2026-04-19T03:10:13.721712+00:00
+- `13:14:50`   outcome              (M) = {'price_at_check': {'N': '77397.8'}, 'actual_direction': {'S': 'UNKNOWN'}, 'retu
+- `13:14:50`   outcome_id           (S) = 035715a5-ba9e-44ad-8ebd-aa9ab0d6e6b9_day_3
+- `13:14:50`   predicted_dir        (S) = UP
+- `13:14:50`   signal_id            (S) = 035715a5-ba9e-44ad-8ebd-aa9ab0d6e6b9
+- `13:14:50`   signal_type          (S) = crypto_fear_greed
+- `13:14:50`   signal_value         (S) = FEAR
+- `13:14:50`   ttl                  (N) = 1779742032
+- `13:14:50`   window_key           (S) = day_3
+- `13:14:50` --- item 3 ---
+- `13:14:50`   checked_at           (S) = 2026-04-12T08:00:12.125141+00:00
+- `13:14:50`   correct              (NULL) = True
+- `13:14:50`   is_legacy            (BOOL) = True
+- `13:14:50`   legacy_reason        (S) = pre_baseline_fix_2026_04_24
+- `13:14:50`   logged_at            (S) = 2026-03-28T21:10:13.805894+00:00
+- `13:14:50`   outcome              (M) = {'price_at_check': {'N': '71737.39'}, 'actual_direction': {'S': 'UNKNOWN'}, 'ret
+- `13:14:50`   outcome_id           (S) = f652cc71-b463-47f8-bee7-8e4915b8a12f_day_14
+- `13:14:50`   predicted_dir        (S) = DOWN
+- `13:14:50`   signal_id            (S) = f652cc71-b463-47f8-bee7-8e4915b8a12f
+- `13:14:50`   signal_type          (S) = crypto_risk_score
+- `13:14:50`   signal_value         (S) = HIGH
+- `13:14:50`   ttl                  (N) = 1779742032
+- `13:14:50`   window_key           (S) = day_14
+- `13:14:50` --- item 4 ---
+- `13:14:50`   checked_at           (S) = 2026-04-27T22:30:03.042818+00:00
+- `13:14:50`   correct              (NULL) = True
+- `13:14:50`   logged_at            (S) = 2026-04-13T15:10:14.323414+00:00
+- `13:14:50`   outcome              (M) = {'price_at_check': {'N': '715.17'}, 'actual_direction': {'S': 'UNKNOWN'}, 'retur
+- `13:14:50`   outcome_id           (S) = 871c0ace-b011-4ec0-8125-0f4df585da57_day_14
+- `13:14:50`   predicted_dir        (S) = NEUTRAL
+- `13:14:50`   signal_id            (S) = 871c0ace-b011-4ec0-8125-0f4df585da57
+- `13:14:50`   signal_type          (S) = edge_composite
+- `13:14:50`   signal_value         (S) = 53.0
+- `13:14:50`   ttl                  (N) = 1808865003
+- `13:14:50`   window_key           (S) = day_14
