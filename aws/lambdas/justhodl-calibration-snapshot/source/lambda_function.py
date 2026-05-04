@@ -1,32 +1,16 @@
 """
-justhodl-calibration-snapshot — Materializes Loop 1 calibration state into a
-single S3 JSON file the frontend can read without DDB/SSM access.
+justhodl-calibration-snapshot v1.1 — Materializes Loop 1 calibration state.
 
-Reads:
-  - SSM /justhodl/calibration/weights        (current model weights per signal_type)
-  - SSM /justhodl/calibration/accuracy       (overall accuracy + n + avg_return per signal_type)
-  - DDB justhodl-outcomes                    (scored outcomes, last 60 days)
-  - DDB justhodl-signals                     (raw signals logged, last 60 days)
-  - S3 portfolio/signal-portfolio-state.json (paper portfolio NAV)
-  - S3 data/ab-test-results.json             (challenger leaderboard)
-
-Computes (per signal_type):
-  - rolling 7d / 30d / 60d accuracy
-  - rolling 7d / 30d / 60d avg return
-  - direction hit rate (binary up/down predictions)
-  - latest signal value + age
-
-Writes: data/calibration-snapshot.json
-Schedule: every 30 minutes
+DDB schema (justhodl-outcomes):
+  checked_at (S), logged_at (S), is_legacy (BOOL),
+  signal_type (S), signal_value (S), predicted_dir (S),
+  outcome (M)={return_pct, actual_direction, price_at_check},
+  window_key (S)=day_1|day_3|day_14|day_21
 """
-
 import json
-import os
 import time
 from datetime import datetime, timezone, timedelta
-from collections import defaultdict, Counter
-from statistics import mean
-
+from collections import defaultdict
 import boto3
 from boto3.dynamodb.conditions import Attr
 
@@ -49,66 +33,78 @@ def get_ssm_json(path):
         return {}
 
 
-def scan_outcomes_recent(days=60):
-    """Scan outcomes scored in last N days. Filters legacy=true items."""
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
-    items = []
-    last_key = None
-    pages = 0
-    while True:
-        kw = {"Limit": 1000, "FilterExpression": Attr("scored_at").gte(cutoff) & Attr("is_legacy").ne(True)}
-        if last_key:
-            kw["ExclusiveStartKey"] = last_key
-        try:
-            resp = OUTCOMES_TBL.scan(**kw)
-        except Exception as e:
-            # fallback: filter without is_legacy clause if attr is missing
-            kw = {"Limit": 1000, "FilterExpression": Attr("scored_at").gte(cutoff)}
-            if last_key:
-                kw["ExclusiveStartKey"] = last_key
-            resp = OUTCOMES_TBL.scan(**kw)
-        items.extend(resp.get("Items", []))
-        last_key = resp.get("LastEvaluatedKey")
-        pages += 1
-        if not last_key or pages > 8:
-            break
-    print(f"[outcomes] scanned {pages} pages, {len(items)} non-legacy items")
-    return items
-
-
 def to_float(v, default=None):
+    if v is None:
+        return default
     try:
-        if v is None:
-            return default
         return float(v)
     except (ValueError, TypeError):
         return default
 
 
+def hit_from_record(rec):
+    pred = rec.get("predicted_dir")
+    outcome = rec.get("outcome") or {}
+    actual = outcome.get("actual_direction")
+    ret = to_float(outcome.get("return_pct"))
+    if pred and actual and actual != "UNKNOWN":
+        if pred == actual:
+            return 1
+        if pred == "NEUTRAL":
+            return 1 if (ret is not None and abs(ret) < 0.5) else 0
+        return 0
+    if pred and ret is not None:
+        if pred == "UP":
+            return 1 if ret > 0 else 0
+        if pred == "DOWN":
+            return 1 if ret < 0 else 0
+        if pred == "NEUTRAL":
+            return 1 if abs(ret) < 0.5 else 0
+    return None
+
+
+def scan_outcomes_recent(days=60):
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    items = []
+    last_key = None
+    pages = 0
+    while True:
+        kw = {
+            "Limit": 1000,
+            "FilterExpression": Attr("checked_at").gte(cutoff) & (
+                Attr("is_legacy").not_exists() | Attr("is_legacy").eq(False)
+            ),
+        }
+        if last_key:
+            kw["ExclusiveStartKey"] = last_key
+        resp = OUTCOMES_TBL.scan(**kw)
+        items.extend(resp.get("Items", []))
+        last_key = resp.get("LastEvaluatedKey")
+        pages += 1
+        if not last_key or pages > 15:
+            break
+    print(f"[outcomes] {pages} pages, {len(items)} non-legacy items")
+    return items
+
+
 def compute_per_signal_stats(outcomes):
-    """Per-signal-type rolling stats."""
     now = datetime.now(timezone.utc)
     by_type = defaultdict(list)
     for it in outcomes:
         st = it.get("signal_type")
         if not st:
             continue
-        scored = it.get("scored_at")
-        if not scored:
+        ts_str = it.get("checked_at", "")
+        if not ts_str:
             continue
         try:
-            ts = datetime.fromisoformat(scored.replace("Z", "+00:00"))
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
         except Exception:
             continue
         age_days = (now - ts).total_seconds() / 86400
-        ret = to_float(it.get("return_pct"))
-        hit = it.get("hit", None)
-        if hit in ("true", True):
-            hit = 1
-        elif hit in ("false", False):
-            hit = 0
-        else:
-            hit = None
+        outcome = it.get("outcome") or {}
+        ret = to_float(outcome.get("return_pct"))
+        hit = hit_from_record(it)
         by_type[st].append({"age_days": age_days, "return_pct": ret, "hit": hit})
 
     stats = {}
@@ -137,8 +133,7 @@ def _avg(vals):
     return round(sum(vals) / len(vals), 4)
 
 
-def get_latest_signals(days=2, max_per_type=1):
-    """Get latest signal per signal_type within last N days."""
+def get_latest_signals(days=2):
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     items = []
     last_key = None
@@ -153,7 +148,6 @@ def get_latest_signals(days=2, max_per_type=1):
         pages += 1
         if not last_key or pages > 5:
             break
-    # group by type, keep latest
     latest = {}
     for it in items:
         st = it.get("signal_type")
@@ -167,28 +161,26 @@ def get_latest_signals(days=2, max_per_type=1):
 
 def lambda_handler(event=None, context=None):
     started = time.time()
-
-    # SSM state
     weights = get_ssm_json("/justhodl/calibration/weights")
     accuracy = get_ssm_json("/justhodl/calibration/accuracy")
 
-    # Outcome stats (rolling 7/30/60d)
     outcomes = scan_outcomes_recent(days=60)
     rolling_stats = compute_per_signal_stats(outcomes)
 
-    # Latest signal values
     latest = get_latest_signals(days=2)
     latest_by_type = {}
     for st, it in latest.items():
+        sv = it.get("signal_value")
+        if not isinstance(sv, (str, int, float)):
+            sv = str(sv)
         latest_by_type[st] = {
             "logged_at": it.get("logged_at"),
-            "signal_value": it.get("signal_value") if isinstance(it.get("signal_value"), (str, int, float)) else str(it.get("signal_value")),
-            "direction": it.get("direction"),
+            "signal_value": sv,
+            "direction": it.get("direction") or it.get("predicted_dir"),
             "confidence": to_float(it.get("confidence")),
             "asset": it.get("asset"),
         }
 
-    # Paper portfolio
     portfolio = None
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="portfolio/signal-portfolio-state.json")
@@ -196,7 +188,6 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[portfolio] {e}")
 
-    # A/B test
     ab = None
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/ab-test-results.json")
@@ -204,7 +195,6 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[ab] {e}")
 
-    # Build per-signal unified view (weights + accuracy + rolling + latest)
     all_types = set(weights.keys()) | set(accuracy.keys()) | set(rolling_stats.keys()) | set(latest_by_type.keys())
     signals = []
     for st in sorted(all_types):
@@ -220,32 +210,31 @@ def lambda_handler(event=None, context=None):
             "rolling": roll,
             "latest": latest_blob,
         })
-    # Sort by weight desc (highest-trusted signals first)
     signals.sort(key=lambda x: -(x.get("weight") or 0))
 
-    # Top performers + worst performers
-    rated = [s for s in signals if s.get("overall_accuracy") is not None and s.get("overall_n", 0) >= 20]
-    top_accuracy = sorted(rated, key=lambda x: -x["overall_accuracy"])[:10]
-    worst_accuracy = sorted(rated, key=lambda x: x["overall_accuracy"])[:10]
+    rated = [s for s in signals if s.get("rolling", {}).get("n_60d", 0) >= 5 and s.get("rolling", {}).get("accuracy_60d") is not None]
+    top_accuracy = sorted(rated, key=lambda x: -x["rolling"]["accuracy_60d"])[:10]
+    worst_accuracy = sorted(rated, key=lambda x: x["rolling"]["accuracy_60d"])[:10]
 
-    # Aggregate calibration stats
     weighted_accuracy = None
     if rated:
-        total_w = sum(s.get("weight") or 0 for s in rated)
+        total_w = sum((s.get("weight") or 0) for s in rated)
         if total_w > 0:
-            weighted_accuracy = round(sum((s.get("weight") or 0) * s["overall_accuracy"] for s in rated) / total_w, 4)
+            weighted_accuracy = round(
+                sum((s.get("weight") or 0) * s["rolling"]["accuracy_60d"] for s in rated) / total_w, 4
+            )
 
     out = {
-        "version": "1.0",
+        "version": "1.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - started, 2),
         "summary": {
             "n_signal_types_tracked": len(all_types),
-            "n_signal_types_with_accuracy": len(rated),
+            "n_signal_types_with_rolling_data": len(rated),
             "n_outcomes_60d": len(outcomes),
-            "weighted_avg_accuracy": weighted_accuracy,
-            "best_signal": top_accuracy[0]["signal_type"] if top_accuracy else None,
-            "worst_signal": worst_accuracy[0]["signal_type"] if worst_accuracy else None,
+            "weighted_avg_accuracy_60d": weighted_accuracy,
+            "best_signal_60d": top_accuracy[0]["signal_type"] if top_accuracy else None,
+            "worst_signal_60d": worst_accuracy[0]["signal_type"] if worst_accuracy else None,
         },
         "signals": signals,
         "top_accuracy": top_accuracy,
@@ -263,19 +252,16 @@ def lambda_handler(event=None, context=None):
     }
 
     body = json.dumps(out, default=str).encode("utf-8")
-    S3.put_object(
-        Bucket=BUCKET, Key=KEY, Body=body,
-        ContentType="application/json", CacheControl="public, max-age=600",
-    )
-    print(f"[calib-snap] wrote s3://{BUCKET}/{KEY}  {len(body):,}b  in {out['duration_s']}s")
-    print(f"[calib-snap] tracked={len(all_types)}  rated={len(rated)}  weighted_acc={weighted_accuracy}")
+    S3.put_object(Bucket=BUCKET, Key=KEY, Body=body, ContentType="application/json", CacheControl="public, max-age=600")
+    print(f"[calib-snap] wrote {len(body):,}b — types={len(all_types)} rated={len(rated)} weighted_acc={weighted_accuracy}")
 
     return {
         "statusCode": 200,
         "body": json.dumps({
             "n_signal_types": len(all_types),
             "n_outcomes_60d": len(outcomes),
-            "weighted_avg_accuracy": weighted_accuracy,
+            "n_rated": len(rated),
+            "weighted_avg_accuracy_60d": weighted_accuracy,
             "duration_s": out["duration_s"],
         }),
     }

@@ -1,3 +1,4 @@
+# rerun-marker: 1777900729
 """Create justhodl-calibration-snapshot Lambda + 30min schedule + smoke test."""
 import io
 import json
