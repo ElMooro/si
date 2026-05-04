@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Accuracy · JustHodl</title>
+<meta name="description" content="Live calibration dashboard — every signal type's hit rate, weight, and rolling accuracy from 1300+ scored outcomes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap}
+header.hero .meta span b{color:var(--t2);font-weight:500}
+
+.grid{display:grid;gap:14px;margin-bottom:28px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:900px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.card h3{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.card .v{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--t1)}
+.card .v.lg{font-size:36px;font-family:var(--display)}
+.card .vsub{font-family:var(--mono);font-size:12px;color:var(--t3);margin-top:4px}
+
+.section{margin-bottom:28px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+table td{padding:10px;border-bottom:1px solid var(--brd);color:var(--t2)}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:var(--yellow)}
+
+.bar-bg{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;width:100%;display:inline-block;vertical-align:middle;margin-right:8px;max-width:120px}
+.bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.bar.green{background:linear-gradient(90deg,var(--green),#26ffaf)}
+.bar.red{background:linear-gradient(90deg,var(--red),var(--orange))}
+.bar.yellow{background:linear-gradient(90deg,var(--yellow),#ffe066)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+.empty{color:var(--t3);padding:20px;text-align:center;font-style:italic}
+
+.tbl-wrap{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden}
+.tbl-head{padding:14px 18px;background:var(--bg2);border-bottom:1px solid var(--brd2)}
+.tbl-head h3{margin:0;font-family:var(--display);font-size:18px;font-weight:600;color:var(--t1)}
+.tbl-head p{margin:2px 0 0;color:var(--t3);font-size:12px}
+.tbl-wrap table{font-size:12px}
+
+.row-good{border-left:3px solid var(--green)}
+.row-bad{border-left:3px solid var(--red)}
+.row-okay{border-left:3px solid var(--yellow)}
+
+footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
+footer a{color:var(--t2)}
+.warn{color:var(--yellow);background:var(--yellow-bg);padding:14px 18px;border-radius:8px;margin-bottom:18px;font-size:13px}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/13f.html">13F</a>
+    <a class="tab" href="/ticker.html">Ticker</a>
+    <a class="tab active" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/feedback.html">Feedback</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Accuracy</h1>
+    <p class="lede">How every signal in JustHodl is performing right now — hit rates, weights, and rolling accuracy from real scored outcomes. The system grades itself.</p>
+    <div class="meta">
+      <span><b>Source</b> data/calibration-snapshot.json</span>
+      <span><b>Refresh</b> every 30 min</span>
+      <span id="meta-updated"><b>Updated</b> —</span>
+    </div>
+  </header>
+
+  <div class="grid grid-4" id="kpis">
+    <div class="card"><h3>Signal types tracked</h3><div class="v" id="kpi-types">—</div><div class="vsub" id="kpi-types-sub">across all sources</div></div>
+    <div class="card"><h3>Outcomes scored (60d)</h3><div class="v" id="kpi-outcomes">—</div><div class="vsub" id="kpi-outcomes-sub">non-legacy</div></div>
+    <div class="card"><h3>Weighted accuracy 60d</h3><div class="v lg" id="kpi-acc">—</div><div class="vsub" id="kpi-acc-sub">weight × hit rate</div></div>
+    <div class="card"><h3>Rated signals</h3><div class="v" id="kpi-rated">—</div><div class="vsub" id="kpi-rated-sub">≥5 outcomes in 60d</div></div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>📈 Top Performers (60d)</h3>
+      <div id="top-perfs"><div class="empty">Loading…</div></div>
+    </div>
+    <div class="card">
+      <h3>📉 Worst Performers (60d)</h3>
+      <div id="worst-perfs"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:32px">
+    <h2>All signals</h2>
+    <p class="sub">Every signal type the system tracks, sorted by current model weight. The weight is what the calibrator (Loop 1) believes about each signal's reliability.</p>
+    <div class="tbl-wrap">
+      <div class="tbl-head"><h3>Signal-by-signal calibration</h3><p>Click column headers to sort.</p></div>
+      <table id="all-signals">
+        <thead>
+          <tr>
+            <th>Signal type</th>
+            <th class="num">Weight</th>
+            <th class="num">Acc 7d</th>
+            <th class="num">Acc 30d</th>
+            <th class="num">Acc 60d</th>
+            <th class="num">N (60d)</th>
+            <th class="num">Avg ret 60d</th>
+            <th>Latest</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Paper portfolio (Loop 2)</h2>
+    <p class="sub">Hypothetical $100k portfolio that takes every signal flagged by the system. Tracks what would happen if you actually traded the signals.</p>
+    <div id="portfolio-block" class="card"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🆎 A/B Test (Loop 3)</h2>
+    <p class="sub">Challenger model variants ranked against the current production calibrator. Best-of-3 daily.</p>
+    <div id="ab-block" class="card"><div class="empty">Loading…</div></div>
+  </div>
+
+</main>
+
+<footer>
+  Calibration loop powered by 1300+ scored outcomes across 47 signal types.
+  Updates every 30 min. Source <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/calibration-snapshot.json">data/calibration-snapshot.json</a>.
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+async function load(){
+  let snap = null;
+  try{
+    const r = await fetch(`${BUCKET}/data/calibration-snapshot.json?t=${Date.now()}`);
+    if(r.ok) snap = await r.json();
+  }catch(e){console.error(e)}
+
+  if(!snap){
+    document.querySelectorAll(".empty").forEach(el=>el.textContent="Could not load calibration data.");
+    return;
+  }
+
+  // Meta
+  const upd = snap.generated_at ? new Date(snap.generated_at) : null;
+  if(upd) document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${upd.toLocaleString()}`;
+
+  // KPIs
+  const s = snap.summary || {};
+  document.getElementById("kpi-types").textContent = s.n_signal_types_tracked ?? "—";
+  document.getElementById("kpi-outcomes").textContent = (s.n_outcomes_60d ?? 0).toLocaleString();
+  const acc = s.weighted_avg_accuracy_60d;
+  if(acc != null){
+    document.getElementById("kpi-acc").innerHTML = `${(acc*100).toFixed(1)}<span style="font-size:18px;color:var(--t3)">%</span>`;
+  }
+  document.getElementById("kpi-rated").textContent = s.n_signal_types_with_rolling_data ?? "—";
+
+  // Top + Worst performers
+  document.getElementById("top-perfs").innerHTML = renderPerfList(snap.top_accuracy || [], "good");
+  document.getElementById("worst-perfs").innerHTML = renderPerfList(snap.worst_accuracy || [], "bad");
+
+  // All signals
+  document.querySelector("#all-signals tbody").innerHTML = renderAllSignals(snap.signals || []);
+
+  // Portfolio
+  document.getElementById("portfolio-block").innerHTML = renderPortfolio(snap.paper_portfolio);
+
+  // A/B
+  document.getElementById("ab-block").innerHTML = renderAb(snap.ab_test);
+}
+
+function pct(v, sign){
+  if(v==null||isNaN(v)) return "—";
+  const f = +v * 100;
+  return (sign && f>=0 ? "+" : "") + f.toFixed(1) + "%";
+}
+function pctRet(v, sign){
+  if(v==null||isNaN(v)) return "—";
+  const f = +v;
+  return (sign && f>=0 ? "+" : "") + f.toFixed(2) + "%";
+}
+function num(v){
+  if(v==null||isNaN(v)) return "—";
+  return (+v).toLocaleString();
+}
+function bar(v, kind){
+  if(v==null) return "—";
+  const pct = Math.max(0, Math.min(100, +v * 100));
+  return `<div class="bar-bg"><div class="bar ${kind||""}" style="width:${pct}%"></div></div><span style="font-size:12px;color:var(--t2)">${pct.toFixed(1)}%</span>`;
+}
+
+function renderPerfList(list, mood){
+  if(!list.length) return `<div class="empty">No rated signals yet.</div>`;
+  return `<table style="margin-top:6px"><thead><tr>
+    <th>Signal</th><th class="num">Acc 60d</th><th class="num">N</th><th class="num">Ret</th></tr></thead>
+    <tbody>` +
+    list.slice(0,8).map(s=>{
+      const acc = s.rolling?.accuracy_60d;
+      const n = s.rolling?.n_60d;
+      const ret = s.rolling?.avg_return_60d;
+      const cls = acc>=.55 ? "up" : acc<=.4 ? "down" : "flat";
+      return `<tr>
+        <td class="tname">${s.signal_type}</td>
+        <td class="num ${cls}">${pct(acc)}</td>
+        <td class="num">${num(n)}</td>
+        <td class="num ${ret>0?"up":ret<0?"down":""}">${pctRet(ret, true)}</td>
+      </tr>`;
+    }).join("") + `</tbody></table>`;
+}
+
+function renderAllSignals(signals){
+  if(!signals.length) return `<tr><td colspan="8" class="empty">No signals.</td></tr>`;
+  return signals.map(s=>{
+    const acc60 = s.rolling?.accuracy_60d;
+    const acc30 = s.rolling?.accuracy_30d;
+    const acc7 = s.rolling?.accuracy_7d;
+    const n60 = s.rolling?.n_60d;
+    const ret60 = s.rolling?.avg_return_60d;
+    const w = s.weight;
+    const cls = acc60>=.6 ? "row-good" : acc60!=null && acc60<.4 ? "row-bad" : "row-okay";
+    const wkind = w>=.7 ? "green" : w<.4 ? "red" : "yellow";
+    const accColor = a => a==null ? "" : a>=.55 ? "up" : a<=.4 ? "down" : "flat";
+    const latest = s.latest || {};
+    const latestStr = latest.signal_value ? `<span class="tag cyan">${latest.signal_value}</span>` : "—";
+    return `<tr class="${cls}">
+      <td class="tname">${s.signal_type}</td>
+      <td class="num">${w!=null ? bar(w, wkind) : "—"}</td>
+      <td class="num ${accColor(acc7)}">${pct(acc7)}</td>
+      <td class="num ${accColor(acc30)}">${pct(acc30)}</td>
+      <td class="num ${accColor(acc60)}"><b>${pct(acc60)}</b></td>
+      <td class="num">${num(n60)}</td>
+      <td class="num ${ret60>0?"up":ret60<0?"down":""}">${pctRet(ret60, true)}</td>
+      <td>${latestStr}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderPortfolio(p){
+  if(!p) return `<div class="empty">No paper portfolio data yet.</div>`;
+  const nav = p.current_nav;
+  const init = p.initial_nav;
+  const chg = p.current_nav_pct_chg;
+  const pnl = p.unrealized_pnl_dollars;
+  const pos = p.open_positions || [];
+  const cls = chg>0 ? "up" : chg<0 ? "down" : "flat";
+  return `
+    <div class="grid grid-4" style="margin-bottom:14px">
+      <div><h3 style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">NAV</h3>
+        <div style="font-size:24px;font-family:var(--mono);color:var(--t1)">$${num(nav?.toFixed?nav.toFixed(0):nav)}</div></div>
+      <div><h3 style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Initial</h3>
+        <div style="font-size:24px;font-family:var(--mono);color:var(--t2)">$${num(init?.toFixed?init.toFixed(0):init)}</div></div>
+      <div><h3 style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">P&L %</h3>
+        <div class="${cls}" style="font-size:24px;font-family:var(--mono)">${pctRet(chg, true)}</div></div>
+      <div><h3 style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">P&L $</h3>
+        <div class="${cls}" style="font-size:24px;font-family:var(--mono)">${pnl!=null ? "$"+num(pnl.toFixed?pnl.toFixed(0):pnl) : "—"}</div></div>
+    </div>
+    <div>
+      <p style="color:var(--t3);font-size:12px;margin-bottom:8px">Open positions: <b>${pos.length}</b> · Tracking since ${p.first_seen||"—"}</p>
+      ${pos.length ? `<table>
+        <thead><tr><th>Asset</th><th>Signal</th><th class="num">Entry</th><th class="num">Now</th><th class="num">Ret</th></tr></thead>
+        <tbody>${pos.slice(0,15).map(x=>`
+          <tr>
+            <td class="tname">${x.asset||"—"}</td>
+            <td>${x.signal_type||"—"}</td>
+            <td class="num">${x.entry_price?'$'+num(x.entry_price):"—"}</td>
+            <td class="num">${x.current_price?'$'+num(x.current_price):"—"}</td>
+            <td class="num ${(x.return_pct||0)>0?"up":(x.return_pct||0)<0?"down":""}">${pctRet(x.return_pct, true)}</td>
+          </tr>`).join("")}</tbody></table>` : ""}
+    </div>`;
+}
+
+function renderAb(ab){
+  if(!ab) return `<div class="empty">No A/B test data yet.</div>`;
+  const lb = ab.leaderboard || [];
+  const winner = ab.winner;
+  const tracked = ab.n_variants_tracked || 0;
+  if(!tracked && !lb.length) {
+    return `<div class="empty">A/B test running but no variants scored yet (challengers awaiting first scoring cycle). Updates daily 16 UTC.</div>`;
+  }
+  return `
+    <p style="color:var(--t3);font-size:12px;margin-bottom:8px">Variants tracked: <b>${tracked}</b> · Current winner: <b style="color:var(--cyan)">${winner||"—"}</b></p>
+    ${lb.length ? `<table>
+      <thead><tr><th>Variant</th><th class="num">N</th><th class="num">Hit rate</th><th class="num">Avg ret</th></tr></thead>
+      <tbody>${lb.map(v=>`
+        <tr>
+          <td class="tname">${v.variant||v.name||"—"}</td>
+          <td class="num">${num(v.n)}</td>
+          <td class="num">${pct(v.hit_rate)}</td>
+          <td class="num ${(v.avg_return||0)>0?"up":(v.avg_return||0)<0?"down":""}">${pctRet(v.avg_return, true)}</td>
+        </tr>`).join("")}</tbody></table>` : ""}`;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
