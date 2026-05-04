@@ -35,6 +35,7 @@ Writes:
 import json
 import os
 import time
+import urllib.request
 from collections import Counter, defaultdict
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
@@ -58,6 +59,32 @@ POSITION_SIZE = 0.005
 # Shorter windows let the strategy turn capital faster and align better with
 # realistic trading horizons.
 WINDOW_PREFERENCE = ["day_30", "day_60", "day_90", "day_14", "day_7", "day_3", "day_1"]
+
+# Polygon for SPY benchmark
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+POLYGON_BASE = "https://api.polygon.io"
+
+
+def fetch_spy_window(start_date, end_date):
+    """Fetch SPY daily closing prices via Polygon for the [start, end] window.
+    Returns dict {date_iso: close_price}.
+    """
+    if not start_date or not end_date:
+        return {}
+    url = (f"{POLYGON_BASE}/v2/aggs/ticker/SPY/range/1/day/{start_date}/{end_date}"
+           f"?adjusted=true&sort=asc&limit=5000&apiKey={POLYGON_KEY}")
+    try:
+        with urllib.request.urlopen(url, timeout=15) as resp:
+            data = json.loads(resp.read())
+        prices = {}
+        for r in data.get("results") or []:
+            d = datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+            prices[d] = r["c"]
+        print(f"[backtest] fetched {len(prices)} SPY closes from {start_date} to {end_date}")
+        return prices
+    except Exception as e:
+        print(f"[backtest] SPY fetch failed: {e}")
+        return {}
 
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
@@ -274,6 +301,45 @@ def lambda_handler(event=None, context=None):
             "cum_pct": round(cum_contribution, 4),
         })
 
+    # 7a. Date range first
+    dates = [r["logged_at"][:10] for r in results if r["logged_at"]]
+    if not dates:
+        dates = [r["checked_at"][:10] for r in results if r["checked_at"]]
+    first_date = min(dates) if dates else None
+    last_date = max(dates) if dates else None
+    # Extend SPY fetch by 7 days on each side to ensure we cover trading days
+    if first_date and last_date:
+        try:
+            sd = (datetime.fromisoformat(first_date) - timedelta(days=7)).strftime("%Y-%m-%d")
+            ed = (datetime.fromisoformat(last_date) + timedelta(days=7)).strftime("%Y-%m-%d")
+        except Exception:
+            sd, ed = first_date, last_date
+    else:
+        sd, ed = first_date, last_date
+
+    # 7b. Fetch SPY benchmark and align to nav_curve dates
+    spy_prices = fetch_spy_window(sd, ed)
+    spy_first_close = None
+    spy_dates_sorted = sorted(spy_prices.keys())
+    if spy_dates_sorted:
+        spy_first_close = spy_prices[spy_dates_sorted[0]]
+
+    # For each strategy nav_curve entry, find the closest SPY close (≤ same date or fallback prev)
+    def closest_spy_close_at_or_before(d):
+        # Walk backward through sorted list
+        candidates = [k for k in spy_dates_sorted if k <= d]
+        return spy_prices[candidates[-1]] if candidates else None
+
+    if spy_first_close:
+        for n in nav_curve:
+            spy_close = closest_spy_close_at_or_before(n["date"])
+            if spy_close:
+                n["spy_nav"] = round(INITIAL_NAV * (spy_close / spy_first_close), 2)
+                n["spy_pct"] = round((spy_close / spy_first_close - 1) * 100, 4)
+            else:
+                n["spy_nav"] = INITIAL_NAV
+                n["spy_pct"] = 0.0
+
     # 8. Compute summary stats
     n_total = len(results)
     n_correct = sum(1 for r in results if r["correct"])
@@ -281,10 +347,12 @@ def lambda_handler(event=None, context=None):
     final_nav = nav_curve[-1]["nav"] if nav_curve else INITIAL_NAV
     nav_return_pct = (final_nav - INITIAL_NAV) / INITIAL_NAV * 100
 
-    # Date range
-    dates = [r["checked_at"][:10] for r in results if r["checked_at"]]
-    first_date = min(dates) if dates else None
-    last_date = max(dates) if dates else None
+    # SPY benchmark
+    spy_final_nav = nav_curve[-1].get("spy_nav") if nav_curve else None
+    spy_return_pct = nav_curve[-1].get("spy_pct") if nav_curve else None
+    alpha_pct = (nav_return_pct - spy_return_pct) if spy_return_pct is not None else None
+
+    # n_days
     n_days = (datetime.fromisoformat(last_date) - datetime.fromisoformat(first_date)).days + 1 if first_date and last_date else 0
 
     # Drawdown
@@ -335,6 +403,9 @@ def lambda_handler(event=None, context=None):
             "total_return_pct": round(nav_return_pct, 4),
             "max_drawdown_pct": round(max_dd, 4),
             "sharpe_proxy": round(sharpe, 4) if sharpe is not None else None,
+            "spy_final_nav": round(spy_final_nav, 2) if spy_final_nav is not None else None,
+            "spy_return_pct": round(spy_return_pct, 4) if spy_return_pct is not None else None,
+            "alpha_vs_spy_pct": round(alpha_pct, 4) if alpha_pct is not None else None,
             "skipped_no_weight": skipped_no_weight,
             "skipped_no_return": skipped_no_return,
         },
@@ -366,7 +437,7 @@ def lambda_handler(event=None, context=None):
 
     print(f"[backtest] wrote backtest/results.json ({len(full_body):,}b) and summary.json ({len(summary_body):,}b)")
     print(f"[backtest] {n_total} outcomes, {n_correct} correct ({n_correct/max(n_total,1)*100:.1f}%)")
-    print(f"[backtest] total_contribution={total_contribution:.2f}%  final_nav=${final_nav:.0f}  return={nav_return_pct:+.2f}%")
+    print(f"[backtest] strategy: ${final_nav:.0f}  return={nav_return_pct:+.2f}%   SPY: ${spy_final_nav}  return={spy_return_pct}%   alpha={alpha_pct}")
     print(f"[backtest] window={first_date} → {last_date} ({n_days} days)  max_dd={max_dd:.2f}%  sharpe={sharpe}")
 
     return {
@@ -375,6 +446,8 @@ def lambda_handler(event=None, context=None):
             "n_outcomes": n_total,
             "total_return_pct": round(nav_return_pct, 4),
             "final_nav": round(final_nav, 2),
+            "spy_return_pct": round(spy_return_pct, 4) if spy_return_pct is not None else None,
+            "alpha_vs_spy_pct": round(alpha_pct, 4) if alpha_pct is not None else None,
             "max_dd_pct": round(max_dd, 4),
             "sharpe": round(sharpe, 4) if sharpe is not None else None,
             "n_signals": len(by_signal),

@@ -49,7 +49,7 @@ header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:v
 .method-card h3{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--cyan);margin-bottom:8px}
 .method-card code{background:var(--bg3);padding:1px 6px;border-radius:3px;color:var(--t1);font-size:12px}
 
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
 @media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:600px){.kpis{grid-template-columns:1fr}}
 .kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
@@ -260,19 +260,23 @@ function renderKPIs(summ){
   const winRate = summ.win_rate;
   const sharpe = summ.sharpe_proxy;
   const dd = summ.max_drawdown_pct;
+  const spy = summ.spy_return_pct;
+  const alpha = summ.alpha_vs_spy_pct;
 
   const tiles = [
-    {h:'Total Return', v: ret != null ? fmtPct(ret, 2) : '—', cls:pctClass(ret||0),
+    {h:'Strategy Return', v: ret != null ? fmtPct(ret, 2) : '—', cls:pctClass(ret||0),
      sub: `${fmt(summ.initial_nav, {maximumFractionDigits:0})} → ${fmt(summ.final_nav,{maximumFractionDigits:0})} over ${summ.n_days||0} days`},
+    {h:'SPY Buy & Hold', v: spy != null ? fmtPct(spy, 2) : '—', cls:pctClass(spy||0),
+     sub: spy != null ? `Same window benchmark` : 'fetching SPY...'},
+    {h:'Alpha vs SPY', v: alpha != null ? fmtPct(alpha, 2) : '—',
+     cls: alpha != null ? (alpha > 0 ? 'up' : 'down') : '',
+     sub: 'strategy − SPY'},
     {h:'Win Rate', v: winRate != null ? `${(winRate*100).toFixed(1)}%` : '—',
      cls: winRate >= 0.55 ? 'up' : (winRate < 0.45 ? 'down' : ''),
-     sub: `${summ.n_correct||0} of ${summ.n_outcomes||0} outcomes`},
-    {h:'Sharpe (proxy)', v: sharpe != null ? sharpe.toFixed(2) : '—',
-     cls: sharpe > 1 ? 'up' : (sharpe < 0 ? 'down' : ''),
-     sub: 'annualized · daily-contribution std'},
+     sub: `${summ.n_correct||0} of ${summ.n_outcomes||0} trades`},
     {h:'Max Drawdown', v: dd != null ? `-${fmt(dd,{maximumFractionDigits:2})}%` : '—',
      cls: dd > 10 ? 'down' : '',
-     sub: 'worst peak-to-trough'},
+     sub: `Sharpe ${sharpe != null ? sharpe.toFixed(2) : '—'}`},
   ];
   document.getElementById('kpi-row').innerHTML = tiles.map(t =>
     `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
@@ -290,25 +294,30 @@ function renderNavChart(nav){
   const innerW = W - padL - padR, innerH = H - padT - padB;
 
   const navs = nav.map(n => Number(n.nav));
-  const yMin = Math.min(...navs, 100000) * 0.998;
-  const yMax = Math.max(...navs, 100000) * 1.002;
+  const spyNavs = nav.map(n => n.spy_nav != null ? Number(n.spy_nav) : null).filter(v => v !== null);
+  const allValues = [...navs, ...spyNavs, 100000];
+  const yMin = Math.min(...allValues) * 0.998;
+  const yMax = Math.max(...allValues) * 1.002;
   const yRange = yMax - yMin;
 
   const xScale = i => padL + (nav.length<=1 ? innerW/2 : (i/(nav.length-1))*innerW);
   const yScale = v => padT + innerH - ((v - yMin)/yRange)*innerH;
 
-  const line = nav.map((n, i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
+  const stratLine = nav.map((n, i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
 
-  // Drawdown shading: build "max so far" and only fill where current < max
+  // SPY line — only if we have data
+  const hasSpy = nav.some(n => n.spy_nav != null);
+  const spyLine = hasSpy ? nav
+    .filter(n => n.spy_nav != null)
+    .map((n, i, arr) => `${i===0?'M':'L'}${xScale(nav.indexOf(n)).toFixed(1)},${yScale(n.spy_nav).toFixed(1)}`)
+    .join(' ') : '';
+
+  // Drawdown shading on strategy line
   let runningMax = 100000;
   const ddPoints = nav.map((n, i) => {
     runningMax = Math.max(runningMax, n.nav);
-    return {x: xScale(i), yMax: yScale(runningMax), yNav: yScale(n.nav), inDD: n.nav < runningMax};
+    return {x: xScale(i), yMax: yScale(runningMax), yNav: yScale(n.nav)};
   });
-  // Build a path that traces NAV when in DD, else stays at runningMax
-  // Simpler: fill the area between NAV and runningMax line for entire chart
-  const navPath = nav.map((n, i) => `L${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
-  const maxLine = ddPoints.map((p, i) => `${i===0?'M':'L'}${p.x.toFixed(1)},${p.yMax.toFixed(1)}`).join(' ');
   const ddArea = ddPoints.length > 1
     ? `M${ddPoints[0].x},${ddPoints[0].yMax} ` +
       ddPoints.slice(1).map(p => `L${p.x},${p.yMax}`).join(' ') +
@@ -335,21 +344,37 @@ function renderNavChart(nav){
   // Baseline at $100k
   const baseline = `<line x1="${padL}" x2="${W-padR}" y1="${yScale(100000)}" y2="${yScale(100000)}" stroke="#475064" stroke-width="1" stroke-dasharray="3,3"/>`;
 
-  // Final value annotation
+  // Final value annotations
   const lastNav = nav[nav.length-1];
-  const lastReturn = (lastNav.nav - 100000) / 1000;
-  const lastColor = lastReturn >= 0 ? '#00e676' : '#ff174a';
+  const stratReturn = (lastNav.nav - 100000) / 1000;
+  const stratColor = stratReturn >= 0 ? '#00e676' : '#ff174a';
+  const lastSpyEntry = [...nav].reverse().find(n => n.spy_nav != null);
+  const spyReturn = lastSpyEntry ? (lastSpyEntry.spy_nav - 100000) / 1000 : null;
+  const spyColor = '#00d4ff';
+
+  // Legend (top-left of chart)
+  const legend = `
+    <g transform="translate(${padL+8}, ${padT+8})" font-family="IBM Plex Mono" font-size="11">
+      <rect x="-4" y="-4" width="200" height="${hasSpy ? 36 : 16}" fill="rgba(15,19,26,0.85)" stroke="#1c2433" rx="3"/>
+      <line x1="0" x2="20" y1="3" y2="3" stroke="${stratColor}" stroke-width="2.5"/>
+      <text x="26" y="7" fill="#e9eef7">Strategy NAV</text>
+      ${hasSpy ? `<line x1="0" x2="20" y1="22" y2="22" stroke="${spyColor}" stroke-width="2" stroke-dasharray="4,3"/>
+      <text x="26" y="26" fill="#e9eef7">SPY Buy & Hold</text>` : ''}
+    </g>
+  `;
 
   svg.innerHTML = `
     ${grid}
     ${baseline}
     <path d="${ddArea}" fill="rgba(255,23,74,0.06)" stroke="none"/>
-    <path d="${maxLine}" fill="none" stroke="#475064" stroke-width="1" stroke-dasharray="2,3"/>
-    <path d="${line}" fill="none" stroke="${lastColor}" stroke-width="2.5"/>
+    ${hasSpy ? `<path d="${spyLine}" fill="none" stroke="${spyColor}" stroke-width="2" stroke-dasharray="4,3" opacity="0.85"/>` : ''}
+    <path d="${stratLine}" fill="none" stroke="${stratColor}" stroke-width="2.5"/>
     ${yLabels}
     ${xLabels}
     <text x="${padL+8}" y="${yScale(100000)-4}" fill="#475064" font-family="IBM Plex Mono" font-size="9">$100K BASE</text>
-    <text x="${W-padR-4}" y="${yScale(lastNav.nav)-8}" fill="${lastColor}" font-family="IBM Plex Mono" font-size="11" text-anchor="end" font-weight="600">$${fmt(lastNav.nav,{maximumFractionDigits:0})}  (${lastReturn>=0?'+':''}${lastReturn.toFixed(2)}%)</text>
+    <text x="${W-padR-4}" y="${yScale(lastNav.nav)-8}" fill="${stratColor}" font-family="IBM Plex Mono" font-size="11" text-anchor="end" font-weight="600">$${fmt(lastNav.nav,{maximumFractionDigits:0})}  (${stratReturn>=0?'+':''}${stratReturn.toFixed(2)}%)</text>
+    ${lastSpyEntry ? `<text x="${W-padR-4}" y="${yScale(lastSpyEntry.spy_nav)+18}" fill="${spyColor}" font-family="IBM Plex Mono" font-size="10" text-anchor="end">SPY $${fmt(lastSpyEntry.spy_nav,{maximumFractionDigits:0})}  (${spyReturn>=0?'+':''}${spyReturn.toFixed(2)}%)</text>` : ''}
+    ${legend}
   `;
 }
 
