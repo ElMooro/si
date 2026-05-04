@@ -1,0 +1,129 @@
+# 1) Sample 20 screener_top_pick signals from justhodl-signals
+
+**Status:** success  
+**Duration:** 0.6s  
+**Finished:** 2026-05-04T21:15:23+00:00  
+
+## Log
+- `21:15:23`   total screener_top_pick signal records: 509 (after 1 pages, capped at 200)
+- `21:15:23` 
+- `21:15:23`   baseline_price field:          {'present': 509}
+- `21:15:23`   baseline_benchmark_price:      {'missing': 399, 'present': 110}
+- `21:15:23`   baseline_price == 0:           0
+- `21:15:23` 
+- `21:15:23`   baseline_benchmark_price values (top 5 most common):
+- `21:15:23`     None                            n=399
+- `21:15:23`     713.94                          n=37
+- `21:15:23`     720.65                          n=25
+- `21:15:23`     718.66                          n=13
+- `21:15:23`     711.58                          n=10
+- `21:15:23` 
+# 2) Sample 5 individual records
+
+- `21:15:23`   [0] signal_id=8bad03d7-21c2-49ef-ad1e-b13485fa7f72
+- `21:15:23`       signal_type                      = screener_top_pick
+- `21:15:23`       signal_value                     = TOP_10
+- `21:15:23`       predicted_direction              = OUTPERFORM
+- `21:15:23`       measure_against                  = SATS
+- `21:15:23`       benchmark                        = SPY
+- `21:15:23`       baseline_price                   = 128.59
+- `21:15:23`       baseline_benchmark_price         = None
+- `21:15:23`       logged_at                        = 2026-04-12T21:10:14.163979+00:00
+- `21:15:23`       status                           = pending
+- `21:15:23`   [1] signal_id=cac76a25-4d17-4f74-b89d-383adeb44dde
+- `21:15:23`       signal_type                      = screener_top_pick
+- `21:15:23`       signal_value                     = TOP_10
+- `21:15:23`       predicted_direction              = OUTPERFORM
+- `21:15:23`       measure_against                  = COHR
+- `21:15:23`       benchmark                        = SPY
+- `21:15:23`       baseline_price                   = 243.29
+- `21:15:23`       baseline_benchmark_price         = None
+- `21:15:23`       logged_at                        = 2026-03-27T09:10:14.064718+00:00
+- `21:15:23`       status                           = partial
+- `21:15:23`   [2] signal_id=d27a8675-220c-4119-ba39-1f701c23b5ce
+- `21:15:23`       signal_type                      = screener_top_pick
+- `21:15:23`       signal_value                     = TOP_10
+- `21:15:23`       predicted_direction              = OUTPERFORM
+- `21:15:23`       measure_against                  = CVNA
+- `21:15:23`       benchmark                        = SPY
+- `21:15:23`       baseline_price                   = 297.35
+- `21:15:23`       baseline_benchmark_price         = None
+- `21:15:23`       logged_at                        = 2026-03-25T03:10:14.231872+00:00
+- `21:15:23`       status                           = partial
+- `21:15:23`   [3] signal_id=dcd49298-e6fc-4714-b294-a2ed3568aa38
+- `21:15:23`       signal_type                      = screener_top_pick
+- `21:15:23`       signal_value                     = TOP_10
+- `21:15:23`       predicted_direction              = OUTPERFORM
+- `21:15:23`       measure_against                  = CVNA
+- `21:15:23`       benchmark                        = SPY
+- `21:15:23`       baseline_price                   = 281.34
+- `21:15:23`       baseline_benchmark_price         = None
+- `21:15:23`       logged_at                        = 2026-03-23T03:10:14.039414+00:00
+- `21:15:23`       status                           = partial
+- `21:15:23`   [4] signal_id=75b72a78-d2fe-4cd3-9894-21b2f73043ae
+- `21:15:23`       signal_type                      = screener_top_pick
+- `21:15:23`       signal_value                     = TOP_10
+- `21:15:23`       predicted_direction              = OUTPERFORM
+- `21:15:23`       measure_against                  = SNDK
+- `21:15:23`       benchmark                        = SPY
+- `21:15:23`       baseline_price                   = 559.99
+- `21:15:23`       baseline_benchmark_price         = None
+- `21:15:23`       logged_at                        = 2026-03-30T21:10:14.293566+00:00
+- `21:15:23`       status                           = partial
+# 3) Date distribution of signal records (when were they logged?)
+
+- `21:15:23`     2026-03-11: 8
+- `21:15:23`     2026-03-12: 21
+- `21:15:23`     2026-03-13: 7
+- `21:15:23`     2026-03-14: 12
+- `21:15:23`     2026-03-15: 9
+- `21:15:23`     2026-03-16: 8
+- `21:15:23`     2026-03-17: 8
+- `21:15:23`     2026-03-18: 14
+- `21:15:23`     2026-03-19: 7
+- `21:15:23`     2026-03-20: 7
+- `21:15:23`     2026-03-21: 8
+- `21:15:23`     2026-03-22: 8
+- `21:15:23`     2026-03-23: 6
+- `21:15:23`     2026-03-24: 12
+- `21:15:23`     2026-03-25: 6
+- `21:15:23`     2026-03-26: 7
+- `21:15:23`     2026-03-27: 7
+- `21:15:23`     2026-03-28: 9
+- `21:15:23`     2026-03-29: 6
+- `21:15:23`     2026-03-30: 9
+- `21:15:23`     2026-03-31: 7
+- `21:15:23`     2026-04-01: 7
+- `21:15:23`     2026-04-02: 16
+- `21:15:23`     2026-04-03: 9
+- `21:15:23`     2026-04-04: 10
+- `21:15:23`     2026-04-05: 5
+- `21:15:23`     2026-04-06: 10
+- `21:15:23`     2026-04-07: 7
+- `21:15:23`     2026-04-08: 6
+- `21:15:23`     2026-04-09: 12
+- `21:15:23`     2026-04-10: 9
+- `21:15:23`     2026-04-11: 6
+- `21:15:23`     2026-04-12: 10
+- `21:15:23`     2026-04-13: 7
+- `21:15:23`     2026-04-14: 8
+- `21:15:23`     2026-04-15: 12
+- `21:15:23`     2026-04-16: 11
+- `21:15:23`     2026-04-17: 7
+- `21:15:23`     2026-04-18: 9
+- `21:15:23`     2026-04-19: 6
+- `21:15:23`     2026-04-20: 6
+- `21:15:23`     2026-04-21: 7
+- `21:15:23`     2026-04-22: 10
+- `21:15:23`     2026-04-23: 9
+- `21:15:23`     2026-04-24: 18
+- `21:15:23`     2026-04-25: 16
+- `21:15:23`     2026-04-26: 15
+- `21:15:23`     2026-04-27: 6
+- `21:15:23`     2026-04-28: 7
+- `21:15:23`     2026-04-29: 7
+- `21:15:23`     2026-04-30: 14
+- `21:15:23`     2026-05-01: 12
+- `21:15:23`     2026-05-02: 9
+- `21:15:23`     2026-05-03: 11
+- `21:15:23`     2026-05-04: 9
