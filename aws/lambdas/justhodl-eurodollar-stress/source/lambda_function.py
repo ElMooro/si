@@ -53,7 +53,7 @@ FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 # 8 signals — (id, fred_series, label, polarity, description)
 # polarity: +1 = higher value means more stress; -1 = lower value means more stress
 SIGNALS = [
-    ("ofr_fsi",      "OFRFSI",          "OFR Financial Stress Index",  +1, "Composite of 33 US/global financial stress indicators (OFR-published)"),
+    ("ofr_fsi",      "STLFSI4",         "St Louis Fed FSI",            +1, "St. Louis Fed Financial Stress Index v4 — composite of 18 weekly stress indicators"),
     ("hy_oas",       "BAMLH0A0HYM2",    "HY Credit OAS",               +1, "ICE BofA US High Yield option-adjusted spread (bps over Treasuries)"),
     ("ig_oas",       "BAMLC0A0CM",      "IG Credit OAS",               +1, "ICE BofA US Corporate (IG) option-adjusted spread (bps)"),
     ("vix",          "VIXCLS",          "VIX (Equity Vol)",            +1, "CBOE 30-day implied volatility — risk-off proxy"),
@@ -106,7 +106,7 @@ def fred_series(series_id, start_date, key):
 
 def realized_vol(values, window=60):
     """Annualized realized vol of daily yield-changes over window days (in vol units, %)."""
-    if len(values) < window + 2:
+    if len(values) < window + 1:
         return None
     diffs = [values[i] - values[i-1] for i in range(1, len(values))]
     recent = diffs[-window:]
