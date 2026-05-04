@@ -127,10 +127,21 @@ def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None,
     # Auto-fetch baseline_price if not explicitly passed
     if price is None and against:
         price=get_baseline_price(against)
-    # Auto-fetch benchmark price for relative-comparison signals (OUTPERFORM/UNDERPERFORM)
+    # Auto-fetch benchmark price for relative-comparison signals (OUTPERFORM/UNDERPERFORM).
+    # If the fetch fails (returns None after the 3-fallback chain), SKIP the signal entirely
+    # rather than persisting None — that poisons the calibrator (outcome-checker can't score
+    # without baseline_benchmark_price). Signal-logger reruns every 6h so a skipped signal
+    # will be retried promptly. Backfill ops/2026-05-04 already fixed historical None values.
     bench_price=None
     if bench and pred in ("OUTPERFORM","UNDERPERFORM"):
         bench_price=get_baseline_price(bench)
+        if bench_price is None:
+            # Retry once after short pause (transient API glitch is the typical cause)
+            import time as _t; _t.sleep(0.5)
+            bench_price=get_baseline_price(bench)
+        if bench_price is None:
+            print(f"[skip-relative-signal] {stype} against={against} bench={bench} — bench_price unavailable, skipping to avoid calibration poisoning")
+            return None
 
     # Compute predicted_target_price from magnitude × baseline (Q1.2 — both)
     computed_target=None
