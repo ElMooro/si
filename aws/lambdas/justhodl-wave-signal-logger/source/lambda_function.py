@@ -18,7 +18,7 @@ Sources (each produces 1+ signals):
   9. data/sector-rotation.json      → sector_breadth
  10. data/momentum-scanner.json     → momentum_top_pick (top 3)
  11. data/correlation-surface.json  → SKIP (existing logger handles)
- 12. data/eurodollar-stress.json    → SKIP (file not produced)
+ 12. data/eurodollar-stress.json    → eurodollar_stress (composite >=70 or <=30)
 
 Each log entry includes baseline_price (so outcome-checker can score it)
 and check_windows for [day_3, day_14, day_21] outcomes.
@@ -599,6 +599,46 @@ def log_cot_extremes():
 
 
 
+def log_eurodollar_stress():
+    """Log USD/Eurodollar funding stress when composite >=70 (risk-off) or <=30 (abundant).
+
+    Reads data/eurodollar-stress.json (produced hourly by justhodl-eurodollar-stress).
+    Schema: {composite_score: 0-100, severity: ABUNDANT|CALM|MODERATE|ELEVATED|CRITICAL,
+             regime: ABUNDANT_LIQUIDITY|CALM|MODERATE_STRESS|ELEVATED_STRESS, signals: [...]}
+    Mid-range (30-70) is skipped — only fire on actionable extremes for calibration.
+    """
+    d = fs3("data/eurodollar-stress.json") or {}
+    score = d.get("composite_score") or d.get("composite_stress_score") or d.get("composite")
+    if score is None:
+        return []
+    try:
+        score = float(score)
+    except (TypeError, ValueError):
+        return []
+    if score >= 70:
+        pred = "DOWN"
+        label = "ELEVATED_STRESS"
+    elif score <= 30:
+        pred = "UP"
+        label = "ABUNDANT_LIQUIDITY"
+    else:
+        return []
+    severity = d.get("severity", "")
+    hot = d.get("hot_signals") or []
+    hot_summary = ", ".join(f"{h['id']}={h['score']:.0f}" for h in hot[:3]) if hot else ""
+    sid = log_sig(
+        stype="eurodollar_stress",
+        val=f"{label}_{score:.0f}",
+        pred=pred,
+        conf=min(0.85, abs(score - 50) / 50.0),
+        against="SPY",  # Score against SPY since stress affects all risk assets
+        windows=WINDOWS_DEFAULT,
+        magnitude=None,
+        rationale=f"Composite {score:.0f}/100 ({severity}); hot: {hot_summary}" if hot_summary else f"Composite {score:.0f}/100 ({severity}) — {label}",
+    )
+    return [sid]
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[wave-logger] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -618,6 +658,7 @@ def lambda_handler(event=None, context=None):
         ("correlation_break", log_correlation_breaks),
         ("divergence_extreme", log_divergence_extremes),
         ("cot_extreme", log_cot_extremes),
+        ("eurodollar_stress", log_eurodollar_stress),
     ]
     for name, fn in handlers:
         try:
