@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Brief · JustHodl</title>
+<meta name="description" content="Executive AI brief — Claude synthesizes 14 systems into a decisive 7-section call every 4 hours.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1100px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+header.hero .meta span b{color:var(--t2);font-weight:500}
+header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
+header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+header.hero .meta button{background:var(--bg2);border:1px solid var(--brd2);color:var(--t2);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .15s}
+header.hero .meta button:hover{background:var(--bg3);color:var(--t1);border-color:var(--cyan)}
+header.hero .meta button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Brief content area */
+.brief{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:32px 36px;margin-bottom:28px}
+.brief h1{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:-.5px;margin:0 0 8px}
+.brief h1 + p{color:var(--t3);font-family:var(--mono);font-size:12px;margin-bottom:18px}
+.brief h2{font-family:var(--display);font-size:22px;font-weight:600;color:var(--t1);margin:28px 0 12px;padding-top:18px;border-top:1px solid var(--brd)}
+.brief h2:first-of-type{border-top:none;padding-top:0;margin-top:18px}
+.brief h3{font-family:var(--sans);font-size:16px;font-weight:600;color:var(--t1);margin:20px 0 10px}
+.brief p{color:var(--t2);margin:0 0 12px;line-height:1.7}
+.brief p strong, .brief li strong{color:var(--t1);font-weight:600}
+.brief ul, .brief ol{margin:8px 0 16px 22px;color:var(--t2)}
+.brief li{margin:6px 0;line-height:1.6}
+.brief li::marker{color:var(--t3)}
+.brief code{font-family:var(--mono);font-size:13px;background:var(--bg3);padding:1px 6px;border-radius:3px;color:var(--cyan)}
+.brief blockquote{border-left:3px solid var(--cyan);padding:8px 16px;margin:12px 0;background:var(--bg2);color:var(--t2);font-style:italic}
+.brief hr{border:none;border-top:1px solid var(--brd);margin:24px 0}
+.brief table{width:100%;border-collapse:collapse;margin:14px 0;font-family:var(--mono);font-size:12.5px}
+.brief table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+.brief table td{padding:9px 10px;border-bottom:1px solid var(--brd);color:var(--t2);vertical-align:top}
+.brief table tr:hover td{background:var(--bg2)}
+/* Highlight DECISIVE CALL section */
+.brief h2:last-of-type, .brief h2[data-decisive]{color:var(--orange)}
+
+.snapshot{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:24px 28px;margin-bottom:28px}
+.snapshot h2{font-family:var(--display);font-size:20px;font-weight:600;margin-bottom:6px}
+.snapshot .sub{color:var(--t3);font-size:13px;margin-bottom:18px}
+.snap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.snap-card{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .15s}
+.snap-card:hover{border-color:var(--cyan);background:var(--bg3)}
+.snap-card .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:6px}
+.snap-card .val{font-family:var(--mono);font-size:14px;color:var(--t1)}
+.snap-card .val.lg{font-size:18px;font-weight:600}
+.snap-card .delta{font-family:var(--mono);font-size:11px;margin-top:4px}
+.snap-card .delta.up{color:var(--green)}
+.snap-card .delta.down{color:var(--red)}
+.snap-card .delta.flat{color:var(--yellow)}
+
+dialog{background:var(--bg1);border:1px solid var(--brd2);border-radius:12px;color:var(--t1);max-width:1000px;width:90%;max-height:80vh;padding:0;overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog .dlg-head{padding:18px 24px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)}
+dialog .dlg-head h3{font-family:var(--display);font-size:18px}
+dialog .dlg-head button{background:transparent;border:none;color:var(--t3);font-size:24px;cursor:pointer;line-height:1}
+dialog .dlg-head button:hover{color:var(--t1)}
+dialog .dlg-body{padding:18px 24px;overflow:auto;max-height:calc(80vh - 60px)}
+dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pre-wrap;word-break:break-word;line-height:1.5}
+
+.loading{padding:48px 24px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
+.loading .dot{display:inline-block;width:6px;height:6px;background:var(--cyan);border-radius:50%;margin:0 2px;animation:pulse 1.4s ease-in-out infinite}
+.loading .dot:nth-child(2){animation-delay:.2s}
+.loading .dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
+.warn-banner{background:var(--yellow-bg);border:1px solid var(--yellow);color:var(--yellow);padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px;margin-bottom:18px}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab active" href="/brief.html">Brief</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/13f.html">13F</a>
+    <a class="tab" href="/ticker.html">Ticker</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/allocator.html">Allocator</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/news.html">News</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/research.html">Research</a>
+    <a class="tab" href="/feedback.html">Feedback</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Executive Brief</h1>
+    <p class="lede">Claude synthesizes 14 live systems — calibration, sectors, momentum, allocator, risk, COT, eurodollar, macro surprise, insider flow, earnings PEAD, correlations, alerts — into one decisive 7-section call. Refreshed every 4 hours. Tap any snapshot tile to see the raw data Claude saw.</p>
+    <div class="meta" id="meta">
+      <span class="pill"><span class="dot"></span> <span id="status">loading…</span></span>
+      <span><b id="model">—</b></span>
+      <span>Generated <b id="generated">—</b></span>
+      <span>Synthesis <b id="duration">—</b></span>
+      <span>Cost <b id="cost">—</b></span>
+      <button id="refresh-btn">↻ Refresh</button>
+    </div>
+  </header>
+
+  <div id="warn-area"></div>
+
+  <div class="brief" id="brief-content">
+    <div class="loading">Loading brief<span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  </div>
+
+  <div class="snapshot" id="snapshot-section" style="display:none">
+    <h2>What Claude saw</h2>
+    <p class="sub">The 14 raw data files that fed this brief. Tap any tile to inspect the JSON Claude was given.</p>
+    <div class="snap-grid" id="snap-grid"></div>
+  </div>
+</main>
+
+<dialog id="snap-dialog">
+  <div class="dlg-head">
+    <h3 id="dlg-title">—</h3>
+    <button onclick="document.getElementById('snap-dialog').close()">×</button>
+  </div>
+  <div class="dlg-body"><pre id="dlg-body">—</pre></div>
+</dialog>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+function fmt(n, opts){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2});
+}
+
+function timeAgo(iso){
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+// Approximate Haiku 4.5 pricing: $1/M input, $5/M output
+function estimateCost(usage){
+  if (!usage) return null;
+  const cIn = (usage.input_tokens||0) * 1.0 / 1e6;
+  const cOut = (usage.output_tokens||0) * 5.0 / 1e6;
+  return cIn + cOut;
+}
+
+function renderSnapshot(snap){
+  const grid = document.getElementById('snap-grid');
+  grid.innerHTML = '';
+  const order = [
+    ['intelligence',       'Intel Report',          d => d?.regime || d?.scores?.regime || '—'],
+    ['calibration',        'Calibration',           d => d?.summary?.weighted_acc != null ? `${(d.summary.weighted_acc*100).toFixed(1)}% acc` : '—'],
+    ['sectors',            'Sector Rotation',       d => d?.headline?.breadth || d?.summary?.breadth_state || '—'],
+    ['momentum',           'Momentum Top',          d => d?.top?.[0]?.ticker ? `${d.top[0].ticker} ${fmt(d.top[0].composite,{maximumFractionDigits:1})}` : '—'],
+    ['allocator',          'Allocator',             d => d?.regime_headline || `${d?.cash_buffer_pct||0}% cash` ],
+    ['asymmetric_setups',  'Asymmetric Setups',     d => d?.setups?.length ? `${d.setups.length} setups` : '—'],
+    ['risk_sizer',         'Risk Sizer',            d => d?.kelly_capped_max ? `Kelly cap ${fmt(d.kelly_capped_max,{maximumFractionDigits:0,style:'percent'})}` : '—'],
+    ['auction_stress',     'Auction Crisis',        d => d?.composite_score ? `${fmt(d.composite_score)}/100 ${d.severity||''}` : '—'],
+    ['eurodollar_stress',  'Eurodollar Stress',     d => d?.composite_score ? `${fmt(d.composite_score)}/100` : 'not deployed'],
+    ['macro_surprise',     'Macro Surprise',        d => d?.summary?.composite_z != null ? `Z ${fmt(d.summary.composite_z,{signDisplay:'always',maximumFractionDigits:2})}` : '—'],
+    ['insider_buys',       'Insider Trades',        d => d?.summary?.cluster_count ? `${d.summary.cluster_count} clusters` : (d?.clusters?.length ? `${d.clusters.length} clusters` : '—')],
+    ['earnings_pead',      'Earnings PEAD',         d => d?.signals?.length ? `${d.signals.length} signals` : '—'],
+    ['correlation_breaks', 'Correlation',           d => d?.summary?.regime_breaks_count != null ? `${d.summary.regime_breaks_count} breaks` : (d?.alerts?.length ? `${d.alerts.length} alerts` : '—')],
+    ['alerts',             'Alert Router',          d => d?.alerts?.length ? `${d.alerts.length} active` : '—'],
+  ];
+  for (const [key, label, summarize] of order){
+    const data = snap?.[key];
+    let summary = '—';
+    try { summary = summarize(data) || '—'; } catch(e){ summary = '—'; }
+    const card = document.createElement('div');
+    card.className = 'snap-card';
+    card.innerHTML = `
+      <div class="label">${label}</div>
+      <div class="val">${summary}</div>
+    `;
+    card.onclick = () => {
+      document.getElementById('dlg-title').textContent = `${label} (snapshot.${key})`;
+      document.getElementById('dlg-body').textContent = JSON.stringify(data, null, 2);
+      document.getElementById('snap-dialog').showModal();
+    };
+    grid.appendChild(card);
+  }
+}
+
+async function load(){
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'loading…';
+  try {
+    const r = await fetch(`${BUCKET}/data/ai-brief.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    // Status
+    if (d.error) {
+      document.getElementById('status').textContent = 'error';
+      document.querySelector('.meta .pill .dot').style.background = 'var(--red)';
+      document.getElementById('warn-area').innerHTML = `<div class="err">⚠ Last brief generation failed: ${d.error}. Showing cached snapshot.</div>`;
+    } else {
+      document.getElementById('status').textContent = 'fresh';
+      document.querySelector('.meta .pill .dot').style.background = 'var(--green)';
+    }
+    // Meta
+    document.getElementById('model').textContent = d.model || '—';
+    document.getElementById('generated').textContent = `${timeAgo(d.generated_at)} (${new Date(d.generated_at).toLocaleString()})`;
+    document.getElementById('duration').textContent = d.duration_s ? `${d.duration_s}s` : '—';
+    const cost = estimateCost(d.usage);
+    document.getElementById('cost').textContent = cost != null ? `~$${cost.toFixed(4)}/run` : '—';
+
+    // Body
+    const md = d.brief_md || '_No brief content yet._';
+    const html = marked.parse(md, {gfm:true, breaks:false});
+    const c = document.getElementById('brief-content');
+    c.innerHTML = html;
+
+    // Highlight last h2 (DECISIVE CALL)
+    const h2s = c.querySelectorAll('h2');
+    if (h2s.length){
+      const last = h2s[h2s.length-1];
+      if (/decisive|call/i.test(last.textContent)){
+        last.setAttribute('data-decisive','1');
+      }
+    }
+
+    // Snapshot tiles
+    if (d.snapshot){
+      document.getElementById('snapshot-section').style.display = '';
+      renderSnapshot(d.snapshot);
+    }
+  } catch(e){
+    document.getElementById('brief-content').innerHTML = `<div class="err">Failed to load brief: ${e.message}<br>Source: <a href="${BUCKET}/data/ai-brief.json" style="color:var(--cyan)">data/ai-brief.json</a></div>`;
+    document.getElementById('status').textContent = 'error';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('refresh-btn').onclick = load;
+load();
+// Auto-refresh every 5 min (the file updates every 4h, but this catches new ones quickly)
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
