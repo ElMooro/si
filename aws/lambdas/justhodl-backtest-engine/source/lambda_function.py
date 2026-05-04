@@ -46,6 +46,12 @@ REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 INITIAL_NAV = 100_000.0
 
+# Position sizing: each scored outcome represents a hypothetical 2%-of-NAV trade,
+# modulated by the signal's calibration weight. So a w=1.5 signal with +10% return
+# contributes 0.02 × 1.5 × 0.10 = +0.30% to NAV. This bounds daily P&L to realistic
+# hedge-fund-like ranges and lets us compound NAV honestly across overlapping trades.
+POSITION_SIZE = 0.02
+
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
 DDB = boto3.resource("dynamodb", region_name=REGION)
@@ -151,10 +157,12 @@ def lambda_handler(event=None, context=None):
             # NEUTRAL — score as "correct if return small". Use bool(correct) directly.
             correct = bool(o.get("correct"))
             # Treat NEUTRAL as: positive contribution if correct, negative if wrong
-            # Magnitude proxy: absolute return
-            contribution = w * (abs(ret) if correct else -abs(ret))
+            # Magnitude proxy: absolute return × position size
+            contribution = POSITION_SIZE * w * (abs(ret) if correct else -abs(ret))
         else:
-            contribution = w * sign * ret
+            # Each outcome = a 2%-of-NAV hypothetical trade, modulated by calibration weight.
+            # contribution is in PERCENTAGE POINTS of NAV (e.g., 0.30 = +0.30% of NAV)
+            contribution = POSITION_SIZE * w * sign * ret
 
         checked_at = o.get("checked_at") or inner.get("checked_at") or ""
         logged_at = o.get("logged_at") or ""
@@ -267,11 +275,13 @@ def lambda_handler(event=None, context=None):
     results_doc = {
         "v": "1.0",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay",
+        "method": "calibrated_alpha_replay_2pct_sizing",
         "method_description": (
-            "For each scored outcome, contribution = weight × predicted_direction_sign × actual_return. "
-            "Cumulative sum traces the system's hypothetical alpha if every realized trade had been "
-            "sized by its current calibration weight. Compare to SPY buy-and-hold over same window."
+            "For each scored outcome, contribution = 0.02 × weight × predicted_direction_sign × actual_return. "
+            "Each outcome is treated as a 2%-of-NAV hypothetical trade modulated by the signal's calibration "
+            "weight. So a w=1.5 signal earning +10% contributes 0.30% to NAV. Daily contributions sum, NAV "
+            "compounds normally. This is a 'what-if' estimator showing how much alpha the calibrated weighting "
+            "would have generated. Compare to SPY buy-and-hold over the same window."
         ),
         "summary": {
             "n_outcomes": n_total,

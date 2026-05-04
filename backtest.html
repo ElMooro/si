@@ -127,12 +127,14 @@ table td.num{text-align:right}
 
   <div class="method-card">
     <h3>Methodology</h3>
-    For each scored outcome where <code>correct</code> is True or False, the engine computes:
-    <code>contribution = weight × predicted_direction_sign × actual_return</code>.
-    Sums roll up by signal_type, by date, and cumulatively into the NAV curve below. This is a
-    "what-if" estimator — not a daily-rebalance simulation. Compare the final return % to SPY
-    buy-and-hold over the same window. A positive number means the calibrated weighting would
-    have added measurable alpha. Auto-recomputes every 6 hours after the calibrator runs.
+    For each scored outcome where <code>correct ∈ {True, False}</code>, the engine computes:
+    <code>contribution = 0.02 × weight × predicted_direction_sign × actual_return</code>.
+    Each outcome is treated as a hypothetical 2%-of-NAV trade modulated by the signal's calibration
+    weight — so a w=1.5 signal earning +10% contributes 0.30% to NAV. Daily contributions sum and
+    NAV compounds normally from $100,000. This is a <em>what-if</em> estimator: if you had sized
+    every realized signal by its current calibration weight at 2% per trade, this is the alpha curve
+    you would have produced. Compare the final return % to SPY buy-and-hold over the same window.
+    Auto-recomputes every 6 hours after the calibrator runs.
   </div>
 
   <div id="notice-area"></div>
