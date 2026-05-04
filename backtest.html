@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Backtest · JustHodl</title>
+<meta name="description" content="Calibrated alpha replay — what cumulative P&L would the system have generated if every historical signal had been sized by its current calibration weight?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,230,118,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,212,255,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:820px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+header.hero .meta span b{color:var(--t2);font-weight:500}
+header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
+header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+.method-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px 22px;margin-bottom:24px;font-family:var(--mono);font-size:12.5px;color:var(--t2);line-height:1.65}
+.method-card h3{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--cyan);margin-bottom:8px}
+.method-card code{background:var(--bg3);padding:1px 6px;border-radius:3px;color:var(--t1);font-size:12px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.kpi h3{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .v.up{color:var(--green)} .kpi .v.down{color:var(--red)} .kpi .v.flat{color:var(--yellow)}
+.kpi .vsub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:22px 26px}
+
+#nav-chart{width:100%;height:320px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+table th{text-align:left;padding:10px 12px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2);position:sticky;top:0}
+table td{padding:10px 12px;border-bottom:1px solid var(--brd);color:var(--t2);font-variant-numeric:tabular-nums}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1)}
+table td.num{text-align:right}
+.up{color:var(--green)} .down{color:var(--red)}
+.bar-bg{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;width:100%;display:inline-block;vertical-align:middle;max-width:120px}
+.bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),#26ffaf)}
+.bar.red{background:linear-gradient(90deg,var(--red),var(--orange))}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+
+.contrib-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:800px){.contrib-grid{grid-template-columns:1fr}}
+
+.notice{background:var(--cyan-bg);border:1px solid var(--cyan);color:var(--cyan);padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:24px}
+.warn{background:var(--yellow-bg);border:1px solid var(--yellow);color:var(--yellow);padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:12px;margin-bottom:24px}
+.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
+.loading{padding:48px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/brief.html">Brief</a>
+    <a class="tab" href="/calls.html">Calls</a>
+    <a class="tab" href="/performance.html">Performance</a>
+    <a class="tab active" href="/backtest.html">Backtest</a>
+    <a class="tab" href="/weights.html">Weights</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/allocator.html">Allocator</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/research.html">Research</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/news.html">News</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/desk.html">Desk</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Backtest</h1>
+    <p class="lede">Calibrated alpha replay — what cumulative P&L would the system have generated if every realized signal had been sized by its current calibration weight? This page replays the entire historical signal ledger using today's trust weights to estimate the strategy's hypothetical NAV.</p>
+    <div class="meta" id="meta">
+      <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
+      <span>Outcomes <b id="n-outcomes">—</b></span>
+      <span>Window <b id="window">—</b></span>
+      <span>Last computed <b id="updated">—</b></span>
+    </div>
+  </header>
+
+  <div class="method-card">
+    <h3>Methodology</h3>
+    For each scored outcome where <code>correct</code> is True or False, the engine computes:
+    <code>contribution = weight × predicted_direction_sign × actual_return</code>.
+    Sums roll up by signal_type, by date, and cumulatively into the NAV curve below. This is a
+    "what-if" estimator — not a daily-rebalance simulation. Compare the final return % to SPY
+    buy-and-hold over the same window. A positive number means the calibrated weighting would
+    have added measurable alpha. Auto-recomputes every 6 hours after the calibrator runs.
+  </div>
+
+  <div id="notice-area"></div>
+
+  <div class="kpis" id="kpi-row">
+    <div class="kpi"><h3>Loading…</h3></div>
+  </div>
+
+  <div class="section">
+    <h2>Cumulative NAV — calibrated alpha replay</h2>
+    <p class="sub">Starting at $100,000. Each step compounds that day's net contribution at the calibrated weight. Drawdowns shaded.</p>
+    <div class="card" style="padding:20px">
+      <svg id="nav-chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Signal contribution rankings</h2>
+    <p class="sub">Which signals drove the cumulative alpha? Top contributors deserve more weight; bottom contributors are candidates for inversion or removal.</p>
+    <div class="contrib-grid">
+      <div class="card">
+        <h3 style="font-family:var(--mono);font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">↑ Top alpha contributors</h3>
+        <div id="top-contrib"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--mono);font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">↓ Negative contributors</h3>
+        <div id="bottom-contrib"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Full signal table</h2>
+    <p class="sub">Every signal with at least one scored outcome. Click column headers to sort.</p>
+    <div class="card" style="padding:0">
+      <div style="overflow-x:auto;max-height:600px">
+        <table id="signal-table">
+          <thead><tr>
+            <th data-sort="signal_type">Signal</th>
+            <th class="num" data-sort="weight">Weight</th>
+            <th class="num" data-sort="n_outcomes">N</th>
+            <th class="num" data-sort="win_rate">Win Rate</th>
+            <th class="num" data-sort="avg_return_pct">Avg Return</th>
+            <th class="num" data-sort="avg_contribution">Avg Contrib</th>
+            <th class="num" data-sort="total_contribution">Total Contrib</th>
+          </tr></thead>
+          <tbody id="signal-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+let DATA = null;
+let sortKey = "total_contribution";
+let sortDesc = true;
+
+function fmt(n, opts){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2});
+}
+function fmtPct(n, dp=2){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return `${n>=0?'+':''}${Number(n).toFixed(dp)}%`;
+}
+function pctClass(n){ return n>0.001 ? 'up' : (n<-0.001 ? 'down' : ''); }
+function timeAgo(iso){
+  if (!iso) return "—";
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+function fmtDate(iso){
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+}
+
+async function load(){
+  document.getElementById('status').textContent = 'loading…';
+  try {
+    const r = await fetch(`${BUCKET}/backtest/results.json?t=${Date.now()}`);
+    if (!r.ok) {
+      // Fallback to summary if full results not available yet
+      const r2 = await fetch(`${BUCKET}/backtest/summary.json?t=${Date.now()}`);
+      if (!r2.ok) throw new Error(`HTTP ${r.status} / ${r2.status}`);
+      DATA = await r2.json();
+      DATA.partial = true;
+    } else {
+      DATA = await r.json();
+    }
+    document.getElementById('status').textContent = 'fresh';
+
+    const summ = DATA.summary || {};
+    document.getElementById('n-outcomes').textContent = summ.n_outcomes || '—';
+    document.getElementById('window').textContent = summ.first_date && summ.last_date
+      ? `${summ.first_date} → ${summ.last_date}`
+      : '—';
+    document.getElementById('updated').textContent = timeAgo(DATA.generated_at);
+
+    if (DATA.partial) {
+      document.getElementById('notice-area').innerHTML = `<div class="notice">📊 Showing summary view — full daily breakdown not yet available. Engine recomputes every 6 hours.</div>`;
+    }
+    if (!summ.n_outcomes || summ.n_outcomes === 0) {
+      document.getElementById('notice-area').innerHTML = `<div class="warn">⚠ No scored outcomes yet — backtest will populate after the calibrator processes recent outcomes.</div>`;
+    }
+
+    renderKPIs(summ);
+    renderNavChart(DATA.nav_curve || []);
+    renderContributors(DATA.by_signal || (DATA.top_5_contributors || []).concat(DATA.bottom_5_contributors || []));
+    renderTable(DATA.by_signal || []);
+  } catch (err) {
+    document.getElementById('kpi-row').innerHTML = `<div class="err" style="grid-column:1/-1">Failed to load backtest: ${err.message}<br>The engine may not have run yet — try again in a few minutes.</div>`;
+    document.getElementById('status').textContent = 'error';
+  }
+}
+
+function renderKPIs(summ){
+  const ret = summ.total_return_pct;
+  const winRate = summ.win_rate;
+  const sharpe = summ.sharpe_proxy;
+  const dd = summ.max_drawdown_pct;
+
+  const tiles = [
+    {h:'Total Return', v: ret != null ? fmtPct(ret, 2) : '—', cls:pctClass(ret||0),
+     sub: `${fmt(summ.initial_nav, {maximumFractionDigits:0})} → ${fmt(summ.final_nav,{maximumFractionDigits:0})} over ${summ.n_days||0} days`},
+    {h:'Win Rate', v: winRate != null ? `${(winRate*100).toFixed(1)}%` : '—',
+     cls: winRate >= 0.55 ? 'up' : (winRate < 0.45 ? 'down' : ''),
+     sub: `${summ.n_correct||0} of ${summ.n_outcomes||0} outcomes`},
+    {h:'Sharpe (proxy)', v: sharpe != null ? sharpe.toFixed(2) : '—',
+     cls: sharpe > 1 ? 'up' : (sharpe < 0 ? 'down' : ''),
+     sub: 'annualized · daily-contribution std'},
+    {h:'Max Drawdown', v: dd != null ? `-${fmt(dd,{maximumFractionDigits:2})}%` : '—',
+     cls: dd > 10 ? 'down' : '',
+     sub: 'worst peak-to-trough'},
+  ];
+  document.getElementById('kpi-row').innerHTML = tiles.map(t =>
+    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+  ).join('');
+}
+
+function renderNavChart(nav){
+  const svg = document.getElementById('nav-chart');
+  if (!nav.length){
+    svg.innerHTML = '<text x="550" y="160" fill="#6f7b91" font-family="IBM Plex Mono" font-size="12" text-anchor="middle">No NAV history yet — engine has not run or no scored outcomes available.</text>';
+    return;
+  }
+
+  const W = 1100, H = 320, padL = 70, padR = 30, padT = 20, padB = 36;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+
+  const navs = nav.map(n => Number(n.nav));
+  const yMin = Math.min(...navs, 100000) * 0.998;
+  const yMax = Math.max(...navs, 100000) * 1.002;
+  const yRange = yMax - yMin;
+
+  const xScale = i => padL + (nav.length<=1 ? innerW/2 : (i/(nav.length-1))*innerW);
+  const yScale = v => padT + innerH - ((v - yMin)/yRange)*innerH;
+
+  const line = nav.map((n, i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
+
+  // Drawdown shading: build "max so far" and only fill where current < max
+  let runningMax = 100000;
+  const ddPoints = nav.map((n, i) => {
+    runningMax = Math.max(runningMax, n.nav);
+    return {x: xScale(i), yMax: yScale(runningMax), yNav: yScale(n.nav), inDD: n.nav < runningMax};
+  });
+  // Build a path that traces NAV when in DD, else stays at runningMax
+  // Simpler: fill the area between NAV and runningMax line for entire chart
+  const navPath = nav.map((n, i) => `L${xScale(i).toFixed(1)},${yScale(n.nav).toFixed(1)}`).join(' ');
+  const maxLine = ddPoints.map((p, i) => `${i===0?'M':'L'}${p.x.toFixed(1)},${p.yMax.toFixed(1)}`).join(' ');
+  const ddArea = ddPoints.length > 1
+    ? `M${ddPoints[0].x},${ddPoints[0].yMax} ` +
+      ddPoints.slice(1).map(p => `L${p.x},${p.yMax}`).join(' ') +
+      ` L${ddPoints[ddPoints.length-1].x},${ddPoints[ddPoints.length-1].yNav} ` +
+      ddPoints.slice(0,-1).reverse().map(p => `L${p.x},${p.yNav}`).join(' ') + ' Z'
+    : '';
+
+  // Y-axis labels
+  const yTicks = [yMin, (yMin+yMax)/2, yMax];
+  const yLabels = yTicks.map(v =>
+    `<text x="${padL-8}" y="${yScale(v)+4}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">$${fmt(v,{maximumFractionDigits:0})}</text>`
+  ).join('');
+  const grid = yTicks.map(v =>
+    `<line x1="${padL}" x2="${W-padR}" y1="${yScale(v)}" y2="${yScale(v)}" stroke="#1c2433" stroke-width="1"/>`
+  ).join('');
+
+  // X-axis labels
+  let xLabels = '';
+  const step = Math.max(1, Math.floor(nav.length / 6));
+  for (let i = 0; i < nav.length; i += step) {
+    xLabels += `<text x="${xScale(i)}" y="${H-padB+18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${fmtDate(nav[i].date)}</text>`;
+  }
+
+  // Baseline at $100k
+  const baseline = `<line x1="${padL}" x2="${W-padR}" y1="${yScale(100000)}" y2="${yScale(100000)}" stroke="#475064" stroke-width="1" stroke-dasharray="3,3"/>`;
+
+  // Final value annotation
+  const lastNav = nav[nav.length-1];
+  const lastReturn = (lastNav.nav - 100000) / 1000;
+  const lastColor = lastReturn >= 0 ? '#00e676' : '#ff174a';
+
+  svg.innerHTML = `
+    ${grid}
+    ${baseline}
+    <path d="${ddArea}" fill="rgba(255,23,74,0.06)" stroke="none"/>
+    <path d="${maxLine}" fill="none" stroke="#475064" stroke-width="1" stroke-dasharray="2,3"/>
+    <path d="${line}" fill="none" stroke="${lastColor}" stroke-width="2.5"/>
+    ${yLabels}
+    ${xLabels}
+    <text x="${padL+8}" y="${yScale(100000)-4}" fill="#475064" font-family="IBM Plex Mono" font-size="9">$100K BASE</text>
+    <text x="${W-padR-4}" y="${yScale(lastNav.nav)-8}" fill="${lastColor}" font-family="IBM Plex Mono" font-size="11" text-anchor="end" font-weight="600">$${fmt(lastNav.nav,{maximumFractionDigits:0})}  (${lastReturn>=0?'+':''}${lastReturn.toFixed(2)}%)</text>
+  `;
+}
+
+function renderContributors(byList){
+  if (!Array.isArray(byList)) return;
+  const sorted = [...byList].sort((a,b) => (b.total_contribution||0) - (a.total_contribution||0));
+  const topPositive = sorted.filter(s => s.total_contribution > 0).slice(0, 5);
+  const topNegative = sorted.filter(s => s.total_contribution < 0).slice(0, 5);
+
+  const renderItem = (s, isPositive) => {
+    const c = s.total_contribution || 0;
+    const wr = s.win_rate || 0;
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--brd);font-family:var(--mono);font-size:13px">
+      <div style="display:flex;justify-content:space-between;color:var(--t1);margin-bottom:2px">
+        <span>${s.signal_type}</span>
+        <span class="${isPositive?'up':'down'}">${c>=0?'+':''}${c.toFixed(2)}%</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--t3)">
+        n=${s.n_outcomes} · win=${(wr*100).toFixed(0)}% · w=${s.weight} · avg_ret=${(s.avg_return_pct>=0?'+':'')}${s.avg_return_pct.toFixed(2)}%
+      </div>
+    </div>`;
+  };
+
+  const topHtml = topPositive.length ? topPositive.map(s => renderItem(s, true)).join('')
+    : '<p class="sub" style="margin:0">No positive contributors yet.</p>';
+  const botHtml = topNegative.length ? topNegative.map(s => renderItem(s, false)).join('')
+    : '<p class="sub" style="margin:0">No negative contributors — system is net positive.</p>';
+  document.getElementById('top-contrib').innerHTML = topHtml;
+  document.getElementById('bottom-contrib').innerHTML = botHtml;
+}
+
+function renderTable(rows){
+  if (!rows || !rows.length) {
+    document.getElementById('signal-body').innerHTML = '<tr><td colspan="7" class="loading">No data — engine has not run.</td></tr>';
+    return;
+  }
+  const sorted = [...rows].sort((a,b) => {
+    const av = a[sortKey] ?? 0;
+    const bv = b[sortKey] ?? 0;
+    if (typeof av === 'string') return sortDesc ? bv.localeCompare(av) : av.localeCompare(bv);
+    return sortDesc ? bv - av : av - bv;
+  });
+  const maxAbsContrib = Math.max(...sorted.map(r => Math.abs(r.total_contribution || 0)), 0.01);
+
+  document.getElementById('signal-body').innerHTML = sorted.map(r => {
+    const c = r.total_contribution || 0;
+    const cls = pctClass(c);
+    const barCls = c >= 0 ? '' : 'red';
+    const barW = Math.min(100, (Math.abs(c) / maxAbsContrib) * 100);
+    return `<tr>
+      <td class="tname">${r.signal_type}</td>
+      <td class="num">${r.weight.toFixed(3)}</td>
+      <td class="num">${r.n_outcomes}</td>
+      <td class="num">${(r.win_rate*100).toFixed(1)}%</td>
+      <td class="num ${pctClass(r.avg_return_pct)}">${r.avg_return_pct>=0?'+':''}${r.avg_return_pct.toFixed(2)}%</td>
+      <td class="num ${pctClass(r.avg_contribution)}">${r.avg_contribution>=0?'+':''}${r.avg_contribution.toFixed(3)}</td>
+      <td class="num"><span class="bar-bg"><span class="bar ${barCls}" style="width:${barW}%"></span></span> <span class="${cls}">${c>=0?'+':''}${c.toFixed(2)}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('th[data-sort]').forEach(th => {
+  th.style.cursor = 'pointer';
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDesc = !sortDesc;
+    else { sortKey = k; sortDesc = true; }
+    renderTable(DATA?.by_signal || []);
+  });
+});
+
+load();
+setInterval(load, 10*60*1000);
+</script>
+</body>
+</html>
