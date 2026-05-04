@@ -508,18 +508,24 @@ def log_divergence_extremes():
     out = []
     relationships = d.get("relationships") or []
     for rel in relationships:
-        z = rel.get("z_score")
-        if z is None or abs(z) < 2.0:
+        # z_score arrives as a string ("2.16") in real data — must cast.
+        z_raw = rel.get("z_score")
+        try:
+            z = float(z_raw)
+        except (TypeError, ValueError):
             continue
-        asset_a_raw = rel.get("asset_a", "")
-        asset_b_raw = rel.get("asset_b", "")
-        # Strip 'stocks:' / 'fred:' prefix; only score if asset_a is a tradable stock
+        # Trigger if extreme flag is set OR |z| above 2.0 threshold.
+        ext_flag = str(rel.get("extreme", "")).lower() in ("true", "high", "low")
+        if not ext_flag and abs(z) < 2.0:
+            continue
+        asset_a_raw = rel.get("asset_a", "") or ""
+        asset_b_raw = rel.get("asset_b", "") or ""
+        # Only fire if asset_a is a tradable equity/ETF we can price-track for scoring.
         if not asset_a_raw.startswith("stocks:"):
             continue
         ticker_a = asset_a_raw.split(":", 1)[1]
         ticker_b = asset_b_raw.split(":", 1)[1] if ":" in asset_b_raw else asset_b_raw
-        # Mispricing semantics: "QQQ appears RICH vs DGS10" → predict QQQ DOWN (mean revert)
-        # If "asset_a CHEAP vs asset_b" → predict asset_a UP
+        # Mispricing semantics: "QQQ appears RICH vs DGS10" → predict QQQ DOWN (mean revert).
         mispricing = (rel.get("mispricing") or "").upper()
         if "RICH" in mispricing:
             pred = "DOWN"
@@ -560,13 +566,18 @@ def log_cot_extremes():
         "KC": None, "CT": None, "SB": None, "RB": None, "HO": None,  # no clean ETF proxies
     }
     for e in extremes[:10]:
-        pct = e.get("percentile_rank") or e.get("pct_rank") or e.get("percentile")
-        if pct is None:
+        # 'percentile' arrives as a string ("98.5") in real data — must cast.
+        pct_raw = e.get("percentile_rank") or e.get("pct_rank") or e.get("percentile")
+        try:
+            pct = float(pct_raw)
+        except (TypeError, ValueError):
             continue
         contract = (e.get("contract") or e.get("name") or e.get("symbol") or "").upper()
-        if pct >= 95:
+        # Use 'extreme' flag as the primary trigger ('high'/'low'), falling back to numeric thresholds.
+        ext_flag = str(e.get("extreme", "")).lower()
+        if ext_flag == "high" or pct >= 95:
             pred = "DOWN"; label = "EXTREME_LONG"
-        elif pct <= 5:
+        elif ext_flag == "low" or pct <= 5:
             pred = "UP"; label = "EXTREME_SHORT"
         else:
             continue
