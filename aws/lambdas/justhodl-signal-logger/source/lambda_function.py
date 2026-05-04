@@ -124,9 +124,22 @@ def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None,
     sid=str(uuid.uuid4())
     ts={f"day_{d}":(now+timedelta(days=d)).isoformat() for d in windows}
 
-    # Auto-fetch baseline_price if not explicitly passed
+    # Auto-fetch baseline_price if not explicitly passed.
+    # If the price fetch fails (returns None after the 3-fallback chain), retry
+    # once after a short pause. If still None, SKIP the signal entirely — persisting
+    # baseline_price=None poisons score_directional and leaves the outcome
+    # unscoreable forever (root cause of the directional-signal calibration gap
+    # discovered 2026-05-04: edge_regime/carry_risk/market_phase/khalid_index/
+    # ml_risk/plumbing_stress all had ~30-55 unscored outcomes from a single
+    # batch where get_baseline_price("SPY") failed transiently).
     if price is None and against:
         price=get_baseline_price(against)
+        if price is None:
+            import time as _t; _t.sleep(0.5)
+            price=get_baseline_price(against)
+        if price is None:
+            print(f"[skip-directional-signal] {stype} against={against} pred={pred} — baseline_price unavailable, skipping to avoid calibration poisoning")
+            return None
     # Auto-fetch benchmark price for relative-comparison signals (OUTPERFORM/UNDERPERFORM).
     # If the fetch fails (returns None after the 3-fallback chain), SKIP the signal entirely
     # rather than persisting None — that poisons the calibrator (outcome-checker can't score
