@@ -1,3 +1,4 @@
+# rerun-marker: 1777919736
 """Verify research.html is live on GH Pages, and verify the data sources it depends on."""
 import urllib.request
 import json
