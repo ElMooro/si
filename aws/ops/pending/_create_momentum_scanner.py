@@ -1,5 +1,10 @@
-"""Create justhodl-momentum-scanner + daily schedule + smoke."""
-import io, json, os, time, zipfile, boto3
+"""Deploy justhodl-momentum-scanner Lambda + daily 12:30 UTC weekday schedule + smoke test."""
+import io
+import json
+import os
+import time
+import zipfile
+import boto3
 from ops_report import report
 
 REGION = "us-east-1"
@@ -29,7 +34,7 @@ def make_zip():
 
 def main():
     with report("create_momentum_scanner") as r:
-        r.heading("Create justhodl-momentum-scanner + daily schedule")
+        r.heading("Deploy justhodl-momentum-scanner")
 
         zb = make_zip()
         r.log(f"  zip size: {len(zb):,}b")
@@ -44,8 +49,8 @@ def main():
                 FunctionName=LAMBDA_NAME,
                 Runtime="python3.12",
                 Handler="lambda_function.lambda_handler",
-                Timeout=600,
-                MemorySize=2048,
+                Timeout=600,            # 10 min — universe of 503 tickers
+                MemorySize=2048,         # heavy parallel processing
                 Role=ROLE_ARN,
                 Environment={"Variables": env_vars},
             )
@@ -70,13 +75,14 @@ def main():
                 break
             time.sleep(2)
 
-        r.heading("EventBridge schedule (daily at 12:30 UTC weekdays)")
+        # Schedule: daily 12:30 UTC weekdays
+        r.heading("EventBridge schedule (weekdays 12:30 UTC)")
         rule_name = f"{LAMBDA_NAME}-daily"
         events.put_rule(
             Name=rule_name,
             ScheduleExpression="cron(30 12 ? * MON-FRI *)",
             State="ENABLED",
-            Description="Universe-wide momentum scan daily 12:30 UTC weekdays",
+            Description="Universe momentum scanner — daily 12:30 UTC weekdays",
         )
         fn_arn = lam.get_function(FunctionName=LAMBDA_NAME)["Configuration"]["FunctionArn"]
         events.put_targets(Rule=rule_name, Targets=[{"Id": "1", "Arn": fn_arn}])
@@ -92,30 +98,37 @@ def main():
             pass
         r.ok("  ✓ wired")
 
-        r.heading("Smoke test (this will take 1-2 minutes)")
+        # Smoke test
+        r.heading("Smoke test (will take 30-90s)")
         t0 = time.time()
         resp = lam.invoke(FunctionName=LAMBDA_NAME, InvocationType="RequestResponse")
         body = resp["Payload"].read().decode()
         r.log(f"  status: {resp['StatusCode']}  duration: {time.time()-t0:.1f}s")
-        r.log(f"  resp: {body[:600]}")
+        r.log(f"  resp: {body[:400]}")
 
+        # S3 verify
         r.heading("S3 verify")
         try:
             obj = s3.get_object(Bucket="justhodl-dashboard-live", Key="data/momentum-scanner.json")
             d = json.loads(obj["Body"].read())
-            r.log(f"  universe_size: {d.get('universe_size')}")
-            r.log(f"  n_with_data: {d.get('n_with_data')}")
-            r.log(f"  duration_s: {d.get('duration_s')}")
-            r.log(f"  📈 Top 10 by composite score:")
-            for s in d.get("top_50_composite", [])[:10]:
-                ret_3m = s.get("ret_3m", 0)
-                r.log(f"    {s['symbol']:6s} {s.get('name','')[:28]:28s} score={s.get('composite_score')} ret_3m={ret_3m:+.1f}% sector={s.get('sector','')[:20]}")
-            r.log(f"  📉 Bottom 5:")
-            for s in d.get("bottom_50_composite", [])[-5:]:
-                r.log(f"    {s['symbol']:6s} {s.get('name','')[:28]:28s} score={s.get('composite_score')}")
-            r.log(f"  🏆 Top sectors by avg composite:")
-            for s in d.get("sector_breakdown", [])[:5]:
-                r.log(f"    {s['sector']:30s} avg={s['avg_composite']} n={s['n_stocks']} top={s['top_stock']}")
+            s_blob = d.get("summary", {})
+            for k, v in s_blob.items():
+                r.log(f"  {k}: {v}")
+
+            r.log(f"")
+            r.log(f"  📊 Top 10 composite momentum:")
+            for x in (d.get("rankings") or {}).get("composite_top_50", [])[:10]:
+                r.log(f"    {x['ticker']:6s} score={x.get('composite_score',0):.1f}  3m={x.get('ret_3m',0):>+7.2f}%  12m={x.get('ret_12m',0):>+7.2f}%  vol60={x.get('vol_60d',0):.1f}%  sector={x.get('sector','?')[:25]}")
+
+            r.log(f"")
+            r.log(f"  📉 Bottom 5 composite (mean reversion candidates):")
+            for x in (d.get("rankings") or {}).get("bottom_50_composite", [])[:5]:
+                r.log(f"    {x['ticker']:6s} score={x.get('composite_score',0):.1f}  3m={x.get('ret_3m',0):>+7.2f}%")
+
+            r.log(f"")
+            r.log(f"  📈 By sector (avg composite):")
+            for sec, info in list((d.get("by_sector") or {}).items())[:8]:
+                r.log(f"    {sec[:30]:30s} n={info.get('n',0):3d}  avg={info.get('avg_composite',0):.1f}  top={info.get('top_5',[{}])[0].get('ticker','?')}")
         except Exception as e:
             r.log(f"  ✗ {e}")
 
