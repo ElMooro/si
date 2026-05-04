@@ -62,6 +62,26 @@ def load_json(key, default=None):
         return default if default is not None else {}
 
 
+_CALL_VERBS = ["EXIT ALL RISK", "EXIT", "TRIM", "HEDGE", "LEVER", "LONG", "LOAD", "WAIT", "HOLD"]
+
+def _extract_call_verb(md):
+    """Heuristic: find the DECISIVE CALL section and pull the dominant action verb.
+    Returns one of EXIT_ALL_RISK / EXIT / TRIM / HEDGE / LEVER / LONG / WAIT / HOLD / UNKNOWN."""
+    if not md:
+        return "UNKNOWN"
+    # Find the decisive-call section
+    import re as _re
+    m = _re.search(r'(?i)\bdecisive\s*call\b(.*?)(?=\n#{1,3}\s|\Z)', md, _re.DOTALL)
+    section = m.group(1) if m else md[-800:]  # fallback: last 800 chars
+    section_upper = section.upper()
+    # Match in priority order — most specific/decisive first
+    for verb in _CALL_VERBS:
+        if verb in section_upper:
+            # Normalize "EXIT ALL RISK" → "EXIT_ALL_RISK"
+            return verb.replace(" ", "_")
+    return "UNKNOWN"
+
+
 def compress_intel(intel):
     """Pull just the decisive bits from intelligence-report.json."""
     if not intel:
@@ -79,6 +99,7 @@ def compress_intel(intel):
 
 
 def compress_calibration(cal):
+    """Original snapshot from data/calibration-snapshot.json — kept as fallback."""
     if not cal:
         return None
     s = cal.get("summary", {})
@@ -91,6 +112,123 @@ def compress_calibration(cal):
         "best_3": [{"sig": x.get("signal_type"), "acc": x.get("rolling", {}).get("accuracy_60d"), "weight": x.get("weight")} for x in top],
         "worst_3": [{"sig": x.get("signal_type"), "acc": x.get("rolling", {}).get("accuracy_60d"), "weight": x.get("weight")} for x in worst],
     }
+
+
+def compress_calibration_v2(latest):
+    """Rich calibration summary from the snapshotter's calibration/latest.json.
+    Surfaces ranked signal trust + per-signal accuracy + n_60d so Claude can cite
+    specific signals when synthesizing the brief."""
+    if not latest:
+        return None
+    weights = latest.get("weights") or {}
+    accuracy = latest.get("accuracy") or {}
+    meta = latest.get("accuracy_meta") or {}
+    counts = latest.get("outcome_counts_60d") or {}
+    summ = latest.get("summary") or {}
+
+    # Rank by weight, expose top 8 + bottom 5 with accuracy + return context
+    ranked = sorted(
+        [(sig, float(w)) for sig, w in weights.items()],
+        key=lambda x: -x[1],
+    )
+
+    def to_row(sig, w):
+        a = accuracy.get(sig)
+        avg = (meta.get(sig) or {}).get("avg_return")
+        n = counts.get(sig, 0)
+        return {
+            "sig": sig,
+            "weight": round(w, 3),
+            "accuracy": round(a, 3) if a is not None else None,
+            "avg_return_pct": round(avg, 2) if avg is not None else None,
+            "n_outcomes_60d": n,
+        }
+
+    top = [to_row(s, w) for s, w in ranked[:8]]
+    bottom = [to_row(s, w) for s, w in ranked[-5:]]
+    return {
+        "iso_week": latest.get("iso_week"),
+        "n_weights": summ.get("n_weights_total"),
+        "n_calibrated_n30": summ.get("n_signals_calibrated_n30"),
+        "weighted_mean_accuracy": summ.get("weighted_mean_accuracy"),
+        "highest_weight": summ.get("highest_weight"),
+        "median_weight": summ.get("median_weight"),
+        "top_weighted_signals": top,
+        "lowest_weighted_signals": bottom,
+    }
+
+
+def compress_paper_portfolio(state, daily):
+    """Signal-driven paper portfolio open positions + Loop 2 macro NAV vs B&H.
+    Surfaces positions near stops/targets so Claude can flag them in the brief."""
+    if not state and not daily:
+        return None
+    out = {}
+
+    if daily:
+        bh = daily.get("buy_and_hold") or {}
+        kh = daily.get("khalid_strategy") or {}
+        out["macro_loop2"] = {
+            "inception": daily.get("inception"),
+            "days_live": daily.get("days_since_inception"),
+            "phase": daily.get("current_phase"),
+            "regime": daily.get("current_regime"),
+            "khalid_return_pct": kh.get("return_pct"),
+            "buy_and_hold_return_pct": bh.get("return_pct"),
+            "system_alpha_pct": daily.get("system_alpha"),
+            "current_action_required": daily.get("current_action_required"),
+        }
+
+    if state:
+        opens = state.get("open_positions") or []
+        stats = state.get("stats") or {}
+        # Identify positions near stops/targets
+        near_target = []
+        near_stop = []
+        for p in opens:
+            try:
+                cur = float(p.get("current_price") or 0)
+                stop = float(p.get("stop_price") or 0)
+                tgt = float(p.get("target_price") or 0)
+                if cur > 0 and stop > 0 and tgt > 0:
+                    # Near target: within 3% of target (long) or above target
+                    if p.get("direction") == "LONG":
+                        if cur >= tgt * 0.97:
+                            near_target.append({"ticker": p.get("ticker"), "current": cur, "target": tgt, "pnl_pct": p.get("current_pnl_pct")})
+                        elif cur <= stop * 1.02:
+                            near_stop.append({"ticker": p.get("ticker"), "current": cur, "stop": stop, "pnl_pct": p.get("current_pnl_pct")})
+            except Exception:
+                continue
+        # Top by P&L
+        sorted_pnl = sorted(opens, key=lambda x: float(x.get("current_pnl_pct") or 0), reverse=True)
+        # Source breakdown
+        from collections import Counter as _Counter
+        sources = dict(_Counter(p.get("source") or "?" for p in opens))
+        out["signal_portfolio"] = {
+            "first_seen": state.get("first_seen"),
+            "current_nav": state.get("current_nav"),
+            "current_nav_pct_chg": state.get("current_nav_pct_chg"),
+            "unrealized_pnl_dollars": state.get("unrealized_pnl_dollars"),
+            "n_open": len(opens),
+            "n_closed": len(state.get("all_closed_positions") or []),
+            "win_rate": stats.get("win_rate"),
+            "sharpe_proxy": stats.get("sharpe_proxy"),
+            "max_drawdown_pct": stats.get("max_drawdown_pct"),
+            "source_breakdown": sources,
+            "near_target": near_target[:5],
+            "near_stop": near_stop[:5],
+            "best_3": [
+                {"ticker": p.get("ticker"), "source": p.get("source"),
+                 "pnl_pct": p.get("current_pnl_pct"), "days_held": p.get("days_held")}
+                for p in sorted_pnl[:3]
+            ],
+            "worst_3": [
+                {"ticker": p.get("ticker"), "source": p.get("source"),
+                 "pnl_pct": p.get("current_pnl_pct"), "days_held": p.get("days_held")}
+                for p in sorted_pnl[-3:]
+            ] if len(sorted_pnl) >= 3 else [],
+        }
+    return out
 
 
 def compress_sectors(s):
@@ -341,10 +479,11 @@ def call_anthropic(prompt, key, model=ANTHROPIC_MODEL, max_tokens=2000):
 def lambda_handler(event=None, context=None):
     started = time.time()
 
-    # 1. Pull all 14 sources
+    # 1. Pull all 17 sources (was 14 — added paper portfolio + macro P&L + ranked calibration ledger)
     print("[ai-brief] loading sources")
     intel       = load_json("intelligence-report.json")
     cal         = load_json("data/calibration-snapshot.json")
+    cal_latest  = load_json("calibration/latest.json")          # snapshotter ledger w/ full ranked weights
     sectors     = load_json("data/sector-rotation.json")
     momentum    = load_json("data/momentum-scanner.json")
     allocator   = load_json("data/allocator.json")
@@ -357,12 +496,16 @@ def lambda_handler(event=None, context=None):
     earnings    = load_json("data/earnings-tracker.json")
     correlation = load_json("data/correlation-surface.json")
     alerts      = load_json("data/alert-history.json")
+    pf_state    = load_json("portfolio/signal-portfolio-state.json")  # 10 open paper positions
+    pf_daily    = load_json("portfolio/pnl-daily.json")              # macro Loop 2 NAV vs B&H
 
     # 2. Compress
     snapshot = {
         "as_of": datetime.now(timezone.utc).isoformat(),
         "intelligence":       compress_intel(intel),
         "calibration":        compress_calibration(cal),
+        "calibration_v2":     compress_calibration_v2(cal_latest),       # ranked trust signals
+        "paper_portfolio":    compress_paper_portfolio(pf_state, pf_daily),
         "sectors":            compress_sectors(sectors),
         "momentum":           compress_momentum(momentum),
         "allocator":          compress_allocator(allocator),
@@ -393,11 +536,21 @@ Synthesize this into a DECISIVE executive brief in Khalid's preferred 7-section 
 (6) **WATCH TRIGGERS** — 4-6 specific data thresholds that would flip the regime (e.g., "VIX > 25, Khalid Index > 70, RRP > $50B")
 (7) **DECISIVE CALL** — one of: LONG / TRIM / EXIT / LEVER / HEDGE — with concrete % allocations and explicit thresholds for changing the call. Be willing to issue "EXIT ALL RISK" if data warrants. Khalid prefers DECISIVE over hedged.
 
+CALIBRATION-AWARE SYNTHESIS:
+- The `calibration_v2` block contains the system's empirically-measured trust in each signal. Higher `weight` = more reliable.
+- When two signals disagree, **explicitly cite the weight** and resolve in favor of the higher-weighted one. Example: "carry_risk (w=1.45, 100% accuracy n=30) says risk-on but khalid_index (w=0.31, 0% accuracy on 30d window during recent rally) says defensive — defer to carry_risk."
+- The `khalid_index` signal has been floored at 0.31 because its 30-day predictions during the recent rally were 100% wrong (it was bearish, SPY rallied). Treat its current reading as low-confidence input, not headline guidance.
+- Top-trusted signals you should privilege: carry_risk, ml_risk, screener_top_pick, momentum_spy, plumbing_stress, crisis_hy_oas_vs_hyg.
+
+PAPER-PORTFOLIO AWARENESS:
+- `paper_portfolio.signal_portfolio` shows the system's actual paper positions. Flag any in `near_target` or `near_stop` — these need attention NOW.
+- `paper_portfolio.macro_loop2` shows how the regime allocation is performing vs buy-and-hold. If `system_alpha_pct` is negative for >7 days, mention it as a regime mismatch.
+- Don't recommend new positions in tickers already open unless the thesis has materially strengthened.
+
 Rules:
 - Use ONLY data from the snapshot. Never make up numbers.
-- Cite specific signal names when you reference them (e.g., "calibration says edge_regime hits 92% but market_phase only 38%")
-- If two systems disagree, name both and resolve to the higher-weight calibrated signal
-- Be concise. Khalid reads this 4x/day so density matters.
+- Cite specific signal names with their weight when you reference them (e.g., "carry_risk (w=1.45)" not just "carry_risk")
+- Be concise. Khalid reads this 4-6x/day so density matters.
 - Output GitHub-flavored Markdown only. No preamble, no greeting.
 
 ```json
@@ -453,6 +606,56 @@ Rules:
     md_body = (out.get("brief_md") or "").encode("utf-8")
     S3.put_object(Bucket=BUCKET, Key="data/ai-brief.md", Body=md_body, ContentType="text/markdown", CacheControl="public, max-age=600")
     print(f"[ai-brief] wrote ai-brief.json ({len(body):,}b) and ai-brief.md ({len(md_body):,}b) in {out['duration_s']}s")
+
+    # 6. Snapshot decisive call to history ledger (append-only) so we can chart how
+    #    the call evolves over time. Extract the call verb (LONG/TRIM/EXIT/LEVER/HEDGE)
+    #    from the DECISIVE CALL section of the markdown using a simple heuristic.
+    try:
+        brief_md = out.get("brief_md") or ""
+        call_verb = _extract_call_verb(brief_md)
+        regime = (snapshot.get("intelligence") or {}).get("regime") if snapshot.get("intelligence") else None
+        khalid_score = (snapshot.get("intelligence") or {}).get("khalid_score") if snapshot.get("intelligence") else None
+        phase = ((snapshot.get("paper_portfolio") or {}).get("macro_loop2") or {}).get("phase")
+        cal_v2 = snapshot.get("calibration_v2") or {}
+
+        snap = {
+            "timestamp": snapshot["as_of"],
+            "iso_week": cal_v2.get("iso_week"),
+            "call_verb": call_verb,
+            "regime": regime,
+            "phase": phase,
+            "khalid_score": khalid_score,
+            "weighted_mean_accuracy": cal_v2.get("weighted_mean_accuracy"),
+            "highest_weight_signal": (cal_v2.get("highest_weight") or {}).get("signal"),
+            "n_open_positions": ((snapshot.get("paper_portfolio") or {}).get("signal_portfolio") or {}).get("n_open"),
+            "duration_s": out["duration_s"],
+            "brief_chars": len(brief_md),
+        }
+
+        # Append to history (last-1000 rolling window to keep file manageable)
+        try:
+            existing = json.loads(S3.get_object(Bucket=BUCKET, Key="data/decisive-call-history.json")["Body"].read())
+            history = existing.get("snapshots", [])
+        except Exception:
+            history = []
+        history.append(snap)
+        history = history[-1000:]
+        ledger = {
+            "v": "1.0",
+            "last_updated": snapshot["as_of"],
+            "n_snapshots": len(history),
+            "snapshots": history,
+        }
+        S3.put_object(
+            Bucket=BUCKET, Key="data/decisive-call-history.json",
+            Body=json.dumps(ledger, default=str).encode("utf-8"),
+            ContentType="application/json",
+            CacheControl="public, max-age=300",
+        )
+        print(f"[ai-brief] decisive-call-history snapshot appended (call={call_verb}, n_total={len(history)})")
+    except Exception as e:
+        # Non-fatal — brief itself is more important than the audit trail
+        print(f"[ai-brief] decisive-call snapshot failed (non-fatal): {e}")
 
     return {
         "statusCode": 200,
