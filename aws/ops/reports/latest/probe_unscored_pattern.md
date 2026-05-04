@@ -1,0 +1,609 @@
+# === edge_regime ===
+
+**Status:** success  
+**Duration:** 6.3s  
+**Finished:** 2026-05-04T22:05:08+00:00  
+
+## Log
+- `22:05:03`   total: 30, scored: 0, correct=None: 30
+- `22:05:03`   unscored by window: {'day_30': 30}
+- `22:05:03`   unscored predicted_dir: {'NEUTRAL': 30}
+- `22:05:03`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:03`   ── unscored outcome [0] ──
+- `22:05:03`     outcome_id:    9721a496-92b3-4505-a162-15ab2ecd4851_day_30
+- `22:05:03`     predicted_dir: NEUTRAL
+- `22:05:03`     window_key:    day_30
+- `22:05:03`     correct:       None
+- `22:05:03`       outcome.correct              = None
+- `22:05:03`       outcome.actual_direction     = UNKNOWN
+- `22:05:03`       outcome.return_pct           = 0
+- `22:05:03`       outcome.price_at_signal      = 0
+- `22:05:03`       outcome.price_at_check       = 711.58
+- `22:05:03`       outcome.checked_at           = 2026-04-29T22:30:03.226648+00:00
+- `22:05:03`     source signal:
+- `22:05:03`       signal_type                      = edge_regime
+- `22:05:03`       predicted_direction              = NEUTRAL
+- `22:05:03`       measure_against                  = SPY
+- `22:05:03`       benchmark                        = None
+- `22:05:03`       baseline_price                   = None
+- `22:05:03`       baseline_benchmark_price         = None
+- `22:05:03`       logged_at                        = 2026-03-30T21:10:13.513886+00:00
+- `22:05:03`       status                           = complete
+- `22:05:03` 
+- `22:05:03`   ── unscored outcome [1] ──
+- `22:05:03`     outcome_id:    1b8b00f5-4616-4538-b6d9-2730425416fa_day_30
+- `22:05:03`     predicted_dir: NEUTRAL
+- `22:05:03`     window_key:    day_30
+- `22:05:03`     correct:       None
+- `22:05:03`       outcome.correct              = None
+- `22:05:03`       outcome.actual_direction     = UNKNOWN
+- `22:05:03`       outcome.return_pct           = 0
+- `22:05:03`       outcome.price_at_signal      = 0
+- `22:05:03`       outcome.price_at_check       = 718.66
+- `22:05:03`       outcome.checked_at           = 2026-05-01T08:00:48.035084+00:00
+- `22:05:03`     source signal:
+- `22:05:03`       signal_type                      = edge_regime
+- `22:05:03`       predicted_direction              = NEUTRAL
+- `22:05:03`       measure_against                  = SPY
+- `22:05:03`       benchmark                        = None
+- `22:05:03`       baseline_price                   = None
+- `22:05:03`       baseline_benchmark_price         = None
+- `22:05:03`       logged_at                        = 2026-04-01T03:10:13.644695+00:00
+- `22:05:03`       status                           = complete
+- `22:05:03` 
+- `22:05:03`   ── unscored outcome [2] ──
+- `22:05:03`     outcome_id:    a5a2e652-f8e3-409c-a4a3-4fdd89025dab_day_30
+- `22:05:03`     predicted_dir: NEUTRAL
+- `22:05:03`     window_key:    day_30
+- `22:05:03`     correct:       None
+- `22:05:03`       outcome.correct              = None
+- `22:05:03`       outcome.actual_direction     = UNKNOWN
+- `22:05:03`       outcome.return_pct           = 0
+- `22:05:03`       outcome.price_at_signal      = 0
+- `22:05:03`       outcome.price_at_check       = 711.58
+- `22:05:03`       outcome.checked_at           = 2026-04-29T22:30:03.226648+00:00
+- `22:05:03`     source signal:
+- `22:05:03`       signal_type                      = edge_regime
+- `22:05:03`       predicted_direction              = NEUTRAL
+- `22:05:03`       measure_against                  = SPY
+- `22:05:03`       benchmark                        = None
+- `22:05:03`       baseline_price                   = None
+- `22:05:03`       baseline_benchmark_price         = None
+- `22:05:03`       logged_at                        = 2026-03-30T09:10:13.507834+00:00
+- `22:05:03`       status                           = complete
+- `22:05:03` 
+- `22:05:03` 
+# === carry_risk ===
+
+- `22:05:04`   total: 30, scored: 0, correct=None: 30
+- `22:05:04`   unscored by window: {'day_30': 30}
+- `22:05:04`   unscored predicted_dir: {'UP': 30}
+- `22:05:04`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:04`   ── unscored outcome [0] ──
+- `22:05:04`     outcome_id:    4d9e46ec-20c9-4415-92ad-fb6fc0f0dd80_day_30
+- `22:05:04`     predicted_dir: UP
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 720.65
+- `22:05:04`       outcome.checked_at           = 2026-05-01T22:30:03.010914+00:00
+- `22:05:04`     source signal:
+- `22:05:04`       signal_type                      = carry_risk
+- `22:05:04`       predicted_direction              = UP
+- `22:05:04`       measure_against                  = SPY
+- `22:05:04`       benchmark                        = None
+- `22:05:04`       baseline_price                   = None
+- `22:05:04`       baseline_benchmark_price         = None
+- `22:05:04`       logged_at                        = 2026-04-01T15:10:14.428406+00:00
+- `22:05:04`       status                           = complete
+- `22:05:04` 
+- `22:05:04`   ── unscored outcome [1] ──
+- `22:05:04`     outcome_id:    23f3aa28-7754-4a84-a9f4-2e657aa544fe_day_30
+- `22:05:04`     predicted_dir: UP
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 711.58
+- `22:05:04`       outcome.checked_at           = 2026-04-29T22:30:03.226648+00:00
+- `22:05:04`     source signal:
+- `22:05:04`       signal_type                      = carry_risk
+- `22:05:04`       predicted_direction              = UP
+- `22:05:04`       measure_against                  = SPY
+- `22:05:04`       benchmark                        = None
+- `22:05:04`       baseline_price                   = None
+- `22:05:04`       baseline_benchmark_price         = None
+- `22:05:04`       logged_at                        = 2026-03-30T15:10:14.092771+00:00
+- `22:05:04`       status                           = complete
+- `22:05:04` 
+- `22:05:04`   ── unscored outcome [2] ──
+- `22:05:04`     outcome_id:    8a7c32ac-353a-4ab4-b450-f147e41dd924_day_30
+- `22:05:04`     predicted_dir: UP
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 711.69
+- `22:05:04`       outcome.checked_at           = 2026-04-28T22:30:03.016350+00:00
+- `22:05:04`     source signal:
+- `22:05:04`       signal_type                      = carry_risk
+- `22:05:04`       predicted_direction              = UP
+- `22:05:04`       measure_against                  = SPY
+- `22:05:04`       benchmark                        = None
+- `22:05:04`       baseline_price                   = None
+- `22:05:04`       baseline_benchmark_price         = None
+- `22:05:04`       logged_at                        = 2026-03-29T15:10:13.841101+00:00
+- `22:05:04`       status                           = complete
+- `22:05:04` 
+- `22:05:04` 
+# === market_phase ===
+
+- `22:05:04`   total: 30, scored: 0, correct=None: 30
+- `22:05:04`   unscored by window: {'day_30': 30}
+- `22:05:04`   unscored predicted_dir: {'DOWN': 30}
+- `22:05:04`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:04`   ── unscored outcome [0] ──
+- `22:05:04`     outcome_id:    fe9bd8cb-2255-4e58-b738-72a313831a38_day_30
+- `22:05:04`     predicted_dir: DOWN
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 718.66
+- `22:05:04`       outcome.checked_at           = 2026-04-30T22:30:02.977689+00:00
+- `22:05:04`     source signal:
+- `22:05:04`       signal_type                      = market_phase
+- `22:05:04`       predicted_direction              = DOWN
+- `22:05:04`       measure_against                  = SPY
+- `22:05:04`       benchmark                        = None
+- `22:05:04`       baseline_price                   = None
+- `22:05:04`       baseline_benchmark_price         = None
+- `22:05:04`       logged_at                        = 2026-03-31T03:10:14.148177+00:00
+- `22:05:04`       status                           = partial
+- `22:05:04` 
+- `22:05:04`   ── unscored outcome [1] ──
+- `22:05:04`     outcome_id:    3a68d8b5-50af-4a63-84f6-d91d3962dc5e_day_30
+- `22:05:04`     predicted_dir: DOWN
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 720.65
+- `22:05:04`       outcome.checked_at           = 2026-05-03T08:00:12.125270+00:00
+- `22:05:04`     source signal:
+- `22:05:04`       signal_type                      = market_phase
+- `22:05:04`       predicted_direction              = DOWN
+- `22:05:04`       measure_against                  = SPY
+- `22:05:04`       benchmark                        = None
+- `22:05:04`       baseline_price                   = None
+- `22:05:04`       baseline_benchmark_price         = None
+- `22:05:04`       logged_at                        = 2026-04-02T15:10:14.119639+00:00
+- `22:05:04`       status                           = partial
+- `22:05:04` 
+- `22:05:04`   ── unscored outcome [2] ──
+- `22:05:04`     outcome_id:    7fca64f1-e0fc-472d-b10e-ecb2f4119fe3_day_30
+- `22:05:04`     predicted_dir: DOWN
+- `22:05:04`     window_key:    day_30
+- `22:05:04`     correct:       None
+- `22:05:04`       outcome.correct              = None
+- `22:05:04`       outcome.actual_direction     = UNKNOWN
+- `22:05:04`       outcome.return_pct           = 0
+- `22:05:04`       outcome.price_at_signal      = 0
+- `22:05:04`       outcome.price_at_check       = 720.65
+- `22:05:04`       outcome.checked_at           = 2026-05-01T22:30:03.010914+00:00
+- `22:05:05`     source signal:
+- `22:05:05`       signal_type                      = market_phase
+- `22:05:05`       predicted_direction              = DOWN
+- `22:05:05`       measure_against                  = SPY
+- `22:05:05`       benchmark                        = None
+- `22:05:05`       baseline_price                   = None
+- `22:05:05`       baseline_benchmark_price         = None
+- `22:05:05`       logged_at                        = 2026-04-01T15:10:14.448866+00:00
+- `22:05:05`       status                           = partial
+- `22:05:05` 
+- `22:05:05` 
+# === khalid_index ===
+
+- `22:05:05`   total: 67, scored: 12, correct=None: 55
+- `22:05:05`   unscored by window: {'day_30': 30, 'day_14': 25}
+- `22:05:05`   unscored predicted_dir: {'NEUTRAL': 55}
+- `22:05:05`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:05`   ── unscored outcome [0] ──
+- `22:05:05`     outcome_id:    7baf1c27-4823-4841-9e95-a8923848e30b_day_30
+- `22:05:05`     predicted_dir: NEUTRAL
+- `22:05:05`     window_key:    day_30
+- `22:05:05`     correct:       None
+- `22:05:05`       outcome.correct              = None
+- `22:05:05`       outcome.actual_direction     = UNKNOWN
+- `22:05:05`       outcome.return_pct           = 0
+- `22:05:05`       outcome.price_at_signal      = 0
+- `22:05:05`       outcome.price_at_check       = 718.66
+- `22:05:05`       outcome.checked_at           = 2026-04-30T22:30:02.977689+00:00
+- `22:05:05`     source signal:
+- `22:05:05`       signal_type                      = khalid_index
+- `22:05:05`       predicted_direction              = NEUTRAL
+- `22:05:05`       measure_against                  = SPY
+- `22:05:05`       benchmark                        = None
+- `22:05:05`       baseline_price                   = None
+- `22:05:05`       baseline_benchmark_price         = None
+- `22:05:05`       logged_at                        = 2026-03-31T03:10:13.571511+00:00
+- `22:05:05`       status                           = complete
+- `22:05:05` 
+- `22:05:05`   ── unscored outcome [1] ──
+- `22:05:05`     outcome_id:    5e8c00a7-be04-4174-b947-579a6b3add9e_day_14
+- `22:05:05`     predicted_dir: NEUTRAL
+- `22:05:05`     window_key:    day_14
+- `22:05:05`     correct:       None
+- `22:05:05`       outcome.correct              = None
+- `22:05:05`       outcome.actual_direction     = UNKNOWN
+- `22:05:05`       outcome.return_pct           = 0
+- `22:05:05`       outcome.price_at_signal      = 0
+- `22:05:05`       outcome.price_at_check       = 713.94
+- `22:05:05`       outcome.checked_at           = 2026-04-26T08:00:11.868203+00:00
+- `22:05:05`     source signal:
+- `22:05:05`       signal_type                      = khalid_index
+- `22:05:05`       predicted_direction              = NEUTRAL
+- `22:05:05`       measure_against                  = SPY
+- `22:05:05`       benchmark                        = None
+- `22:05:05`       baseline_price                   = None
+- `22:05:05`       baseline_benchmark_price         = None
+- `22:05:05`       logged_at                        = 2026-04-11T21:10:13.825309+00:00
+- `22:05:05`       status                           = partial
+- `22:05:05` 
+- `22:05:05`   ── unscored outcome [2] ──
+- `22:05:05`     outcome_id:    b7d6b0f3-eaf6-4b83-8a69-7ada366499af_day_14
+- `22:05:05`     predicted_dir: NEUTRAL
+- `22:05:05`     window_key:    day_14
+- `22:05:05`     correct:       None
+- `22:05:05`       outcome.correct              = None
+- `22:05:05`       outcome.actual_direction     = UNKNOWN
+- `22:05:05`       outcome.return_pct           = 0
+- `22:05:05`       outcome.price_at_signal      = 0
+- `22:05:05`       outcome.price_at_check       = 711.58
+- `22:05:05`       outcome.checked_at           = 2026-04-29T22:30:03.226648+00:00
+- `22:05:05`     source signal:
+- `22:05:05`       signal_type                      = khalid_index
+- `22:05:05`       predicted_direction              = NEUTRAL
+- `22:05:05`       measure_against                  = SPY
+- `22:05:05`       benchmark                        = None
+- `22:05:05`       baseline_price                   = None
+- `22:05:05`       baseline_benchmark_price         = None
+- `22:05:05`       logged_at                        = 2026-04-15T03:10:13.488538+00:00
+- `22:05:05`       status                           = partial
+- `22:05:05` 
+- `22:05:05`   ── Sample 1 SCORED outcome for comparison ──
+- `22:05:05`     outcome_id:  a7eb1b7e-058e-4c5b-9c02-2b8fc26fe842_day_7
+- `22:05:05`     correct:     False
+- `22:05:05`       outcome.correct              = False
+- `22:05:05`       outcome.actual_direction     = UP
+- `22:05:05`       outcome.return_pct           = 0.939855
+- `22:05:05`       outcome.price_at_signal      = 713.94
+- `22:05:05`       outcome.price_at_check       = 720.65
+- `22:05:05`     source signal predicted_direction: NEUTRAL
+- `22:05:05`     source signal baseline_price:      713.94
+- `22:05:05`     source signal baseline_benchmark:  None
+- `22:05:05` 
+# === ml_risk ===
+
+- `22:05:06`   total: 67, scored: 12, correct=None: 55
+- `22:05:06`   unscored by window: {'day_30': 30, 'day_14': 25}
+- `22:05:06`   unscored predicted_dir: {'UP': 55}
+- `22:05:06`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:06`   ── unscored outcome [0] ──
+- `22:05:06`     outcome_id:    632317c7-accd-4e6b-baaf-661c9d9e34cb_day_30
+- `22:05:06`     predicted_dir: UP
+- `22:05:06`     window_key:    day_30
+- `22:05:06`     correct:       None
+- `22:05:06`       outcome.correct              = None
+- `22:05:06`       outcome.actual_direction     = UNKNOWN
+- `22:05:06`       outcome.return_pct           = 0
+- `22:05:06`       outcome.price_at_signal      = 0
+- `22:05:06`       outcome.price_at_check       = 715.17
+- `22:05:06`       outcome.checked_at           = 2026-04-27T22:30:03.042818+00:00
+- `22:05:06`     source signal:
+- `22:05:06`       signal_type                      = ml_risk
+- `22:05:06`       predicted_direction              = UP
+- `22:05:06`       measure_against                  = SPY
+- `22:05:06`       benchmark                        = None
+- `22:05:06`       baseline_price                   = None
+- `22:05:06`       baseline_benchmark_price         = None
+- `22:05:06`       logged_at                        = 2026-03-28T09:10:14.122619+00:00
+- `22:05:06`       status                           = complete
+- `22:05:06` 
+- `22:05:06`   ── unscored outcome [1] ──
+- `22:05:06`     outcome_id:    1e71ffd0-ae5e-47d5-85d0-118ba18b4cb1_day_30
+- `22:05:06`     predicted_dir: UP
+- `22:05:06`     window_key:    day_30
+- `22:05:06`     correct:       None
+- `22:05:06`       outcome.correct              = None
+- `22:05:06`       outcome.actual_direction     = UNKNOWN
+- `22:05:06`       outcome.return_pct           = 0
+- `22:05:06`       outcome.price_at_signal      = 0
+- `22:05:06`       outcome.price_at_check       = 711.69
+- `22:05:06`       outcome.checked_at           = 2026-04-28T22:30:03.016350+00:00
+- `22:05:06`     source signal:
+- `22:05:06`       signal_type                      = ml_risk
+- `22:05:06`       predicted_direction              = UP
+- `22:05:06`       measure_against                  = SPY
+- `22:05:06`       benchmark                        = None
+- `22:05:06`       baseline_price                   = None
+- `22:05:06`       baseline_benchmark_price         = None
+- `22:05:06`       logged_at                        = 2026-03-29T09:10:13.907471+00:00
+- `22:05:06`       status                           = complete
+- `22:05:06` 
+- `22:05:06`   ── unscored outcome [2] ──
+- `22:05:06`     outcome_id:    470eee15-47a0-4906-9456-a80e5ee12137_day_14
+- `22:05:06`     predicted_dir: UP
+- `22:05:06`     window_key:    day_14
+- `22:05:06`     correct:       None
+- `22:05:06`       outcome.correct              = None
+- `22:05:06`       outcome.actual_direction     = UNKNOWN
+- `22:05:06`       outcome.return_pct           = 0
+- `22:05:06`       outcome.price_at_signal      = 0
+- `22:05:06`       outcome.price_at_check       = 711.58
+- `22:05:06`       outcome.checked_at           = 2026-04-29T22:30:03.226648+00:00
+- `22:05:06`     source signal:
+- `22:05:06`       signal_type                      = ml_risk
+- `22:05:06`       predicted_direction              = UP
+- `22:05:06`       measure_against                  = SPY
+- `22:05:06`       benchmark                        = None
+- `22:05:06`       baseline_price                   = None
+- `22:05:06`       baseline_benchmark_price         = None
+- `22:05:06`       logged_at                        = 2026-04-15T09:10:14.063976+00:00
+- `22:05:06`       status                           = partial
+- `22:05:06` 
+- `22:05:06`   ── Sample 1 SCORED outcome for comparison ──
+- `22:05:06`     outcome_id:  c402674e-00fc-4c7d-9c1c-ac05d15f2f96_day_7
+- `22:05:06`     correct:     False
+- `22:05:06`       outcome.correct              = False
+- `22:05:06`       outcome.actual_direction     = UP
+- `22:05:06`       outcome.return_pct           = 0.939855
+- `22:05:06`       outcome.price_at_signal      = 713.94
+- `22:05:06`       outcome.price_at_check       = 720.65
+- `22:05:06`     source signal predicted_direction: NEUTRAL
+- `22:05:06`     source signal baseline_price:      713.94
+- `22:05:06`     source signal baseline_benchmark:  None
+- `22:05:06` 
+# === plumbing_stress ===
+
+- `22:05:07`   total: 104, scored: 49, correct=None: 55
+- `22:05:07`   unscored by window: {'day_30': 30, 'day_14': 25}
+- `22:05:07`   unscored predicted_dir: {'UP': 43, 'NEUTRAL': 12}
+- `22:05:07`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:07`   ── unscored outcome [0] ──
+- `22:05:07`     outcome_id:    63823beb-f6df-471a-a0a5-ade0d3d60315_day_30
+- `22:05:07`     predicted_dir: UP
+- `22:05:07`     window_key:    day_30
+- `22:05:07`     correct:       None
+- `22:05:07`       outcome.correct              = None
+- `22:05:07`       outcome.actual_direction     = UNKNOWN
+- `22:05:07`       outcome.return_pct           = 0
+- `22:05:07`       outcome.price_at_signal      = 0
+- `22:05:07`       outcome.price_at_check       = 718.66
+- `22:05:07`       outcome.checked_at           = 2026-04-30T22:30:02.977689+00:00
+- `22:05:07`     source signal:
+- `22:05:07`       signal_type                      = plumbing_stress
+- `22:05:07`       predicted_direction              = UP
+- `22:05:07`       measure_against                  = SPY
+- `22:05:07`       benchmark                        = None
+- `22:05:07`       baseline_price                   = None
+- `22:05:07`       baseline_benchmark_price         = None
+- `22:05:07`       logged_at                        = 2026-03-31T21:10:13.914435+00:00
+- `22:05:07`       status                           = complete
+- `22:05:07` 
+- `22:05:07`   ── unscored outcome [1] ──
+- `22:05:07`     outcome_id:    377dfc14-0541-4e74-8828-7da18bda4c6c_day_30
+- `22:05:07`     predicted_dir: NEUTRAL
+- `22:05:07`     window_key:    day_30
+- `22:05:07`     correct:       None
+- `22:05:07`       outcome.correct              = None
+- `22:05:07`       outcome.actual_direction     = UNKNOWN
+- `22:05:07`       outcome.return_pct           = 0
+- `22:05:07`       outcome.price_at_signal      = 0
+- `22:05:07`       outcome.price_at_check       = 720.65
+- `22:05:07`       outcome.checked_at           = 2026-05-01T22:30:03.010914+00:00
+- `22:05:07`     source signal:
+- `22:05:07`       signal_type                      = plumbing_stress
+- `22:05:07`       predicted_direction              = NEUTRAL
+- `22:05:07`       measure_against                  = SPY
+- `22:05:07`       benchmark                        = None
+- `22:05:07`       baseline_price                   = None
+- `22:05:07`       baseline_benchmark_price         = None
+- `22:05:07`       logged_at                        = 2026-04-01T15:10:14.358346+00:00
+- `22:05:07`       status                           = complete
+- `22:05:07` 
+- `22:05:07`   ── unscored outcome [2] ──
+- `22:05:07`     outcome_id:    d002adc8-ad04-49d4-ad24-b8907d642260_day_14
+- `22:05:07`     predicted_dir: NEUTRAL
+- `22:05:07`     window_key:    day_14
+- `22:05:07`     correct:       None
+- `22:05:07`       outcome.correct              = None
+- `22:05:07`       outcome.actual_direction     = UNKNOWN
+- `22:05:07`       outcome.return_pct           = 0
+- `22:05:07`       outcome.price_at_signal      = 0
+- `22:05:07`       outcome.price_at_check       = 718.66
+- `22:05:07`       outcome.checked_at           = 2026-04-30T22:30:02.977689+00:00
+- `22:05:07`     source signal:
+- `22:05:07`       signal_type                      = plumbing_stress
+- `22:05:07`       predicted_direction              = NEUTRAL
+- `22:05:07`       measure_against                  = SPY
+- `22:05:07`       benchmark                        = None
+- `22:05:07`       baseline_price                   = None
+- `22:05:07`       baseline_benchmark_price         = None
+- `22:05:07`       logged_at                        = 2026-04-16T21:10:13.913464+00:00
+- `22:05:07`       status                           = partial
+- `22:05:07` 
+- `22:05:07`   ── Sample 1 SCORED outcome for comparison ──
+- `22:05:07`     outcome_id:  bb6c48cc-4d04-4a0c-b510-6187bb769f70_day_1
+- `22:05:07`     correct:     True
+- `22:05:07`       outcome.correct              = True
+- `22:05:07`       outcome.actual_direction     = UP
+- `22:05:07`       outcome.return_pct           = 0.994969
+- `22:05:07`       outcome.price_at_signal      = 711.58
+- `22:05:07`       outcome.price_at_check       = 718.66
+- `22:05:07`     source signal predicted_direction: UP
+- `22:05:07`     source signal baseline_price:      711.58
+- `22:05:07`     source signal baseline_benchmark:  None
+- `22:05:07` 
+# === momentum_tlt ===
+
+- `22:05:07`   total: 5, scored: 0, correct=None: 5
+- `22:05:07`   unscored by window: {'day_7': 5}
+- `22:05:07`   unscored predicted_dir: {'UP': 5}
+- `22:05:07`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:07`   ── unscored outcome [0] ──
+- `22:05:07`     outcome_id:    c7ffea58-de3e-4b7a-b148-9da2b21855ae_day_7
+- `22:05:07`     predicted_dir: UP
+- `22:05:07`     window_key:    day_7
+- `22:05:07`     correct:       None
+- `22:05:07`       outcome.correct              = None
+- `22:05:07`       outcome.actual_direction     = UNKNOWN
+- `22:05:07`       outcome.return_pct           = 0
+- `22:05:07`       outcome.price_at_signal      = 0
+- `22:05:07`       outcome.price_at_check       = 86.71
+- `22:05:07`       outcome.checked_at           = 2026-04-26T08:00:11.868203+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_tlt
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = TLT
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-18T21:10:13.796794+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08`   ── unscored outcome [1] ──
+- `22:05:08`     outcome_id:    0e5075e6-ff33-4f26-9ddd-af2b4f044688_day_7
+- `22:05:08`     predicted_dir: UP
+- `22:05:08`     window_key:    day_7
+- `22:05:08`     correct:       None
+- `22:05:08`       outcome.correct              = None
+- `22:05:08`       outcome.actual_direction     = UNKNOWN
+- `22:05:08`       outcome.return_pct           = 0
+- `22:05:08`       outcome.price_at_signal      = 0
+- `22:05:08`       outcome.price_at_check       = 86.28
+- `22:05:08`       outcome.checked_at           = 2026-04-27T22:30:03.042818+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_tlt
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = TLT
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-19T21:10:13.725663+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08`   ── unscored outcome [2] ──
+- `22:05:08`     outcome_id:    117119b5-3e16-4cf3-93f8-ae89336f9607_day_7
+- `22:05:08`     predicted_dir: UP
+- `22:05:08`     window_key:    day_7
+- `22:05:08`     correct:       None
+- `22:05:08`       outcome.correct              = None
+- `22:05:08`       outcome.actual_direction     = UNKNOWN
+- `22:05:08`       outcome.return_pct           = 0
+- `22:05:08`       outcome.price_at_signal      = 0
+- `22:05:08`       outcome.price_at_check       = 86.28
+- `22:05:08`       outcome.checked_at           = 2026-04-27T22:30:03.042818+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_tlt
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = TLT
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-19T15:10:13.926314+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08` 
+# === momentum_spy ===
+
+- `22:05:08`   total: 13, scored: 2, correct=None: 11
+- `22:05:08`   unscored by window: {'day_7': 8, 'day_3': 3}
+- `22:05:08`   unscored predicted_dir: {'UP': 11}
+- `22:05:08`   Sample 3 correct=None outcomes + their source signals:
+- `22:05:08`   ── unscored outcome [0] ──
+- `22:05:08`     outcome_id:    10db2e8a-012f-4a9f-8979-7d47411d5032_day_7
+- `22:05:08`     predicted_dir: UP
+- `22:05:08`     window_key:    day_7
+- `22:05:08`     correct:       None
+- `22:05:08`       outcome.correct              = None
+- `22:05:08`       outcome.actual_direction     = UNKNOWN
+- `22:05:08`       outcome.return_pct           = 0
+- `22:05:08`       outcome.price_at_signal      = 0
+- `22:05:08`       outcome.price_at_check       = 718.66
+- `22:05:08`       outcome.checked_at           = 2026-04-30T22:30:02.977689+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_spy
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = SPY
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-23T09:10:14.712175+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08`   ── unscored outcome [1] ──
+- `22:05:08`     outcome_id:    10db2e8a-012f-4a9f-8979-7d47411d5032_day_3
+- `22:05:08`     predicted_dir: UP
+- `22:05:08`     window_key:    day_3
+- `22:05:08`     correct:       None
+- `22:05:08`       outcome.correct              = None
+- `22:05:08`       outcome.actual_direction     = UNKNOWN
+- `22:05:08`       outcome.return_pct           = 0
+- `22:05:08`       outcome.price_at_signal      = 0
+- `22:05:08`       outcome.price_at_check       = 715.17
+- `22:05:08`       outcome.checked_at           = 2026-04-27T22:30:03.042818+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_spy
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = SPY
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-23T09:10:14.712175+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08`   ── unscored outcome [2] ──
+- `22:05:08`     outcome_id:    553eeb36-4dec-461f-8c05-199fcd9f7b7e_day_7
+- `22:05:08`     predicted_dir: UP
+- `22:05:08`     window_key:    day_7
+- `22:05:08`     correct:       None
+- `22:05:08`       outcome.correct              = None
+- `22:05:08`       outcome.actual_direction     = UNKNOWN
+- `22:05:08`       outcome.return_pct           = 0
+- `22:05:08`       outcome.price_at_signal      = 0
+- `22:05:08`       outcome.price_at_check       = 713.94
+- `22:05:08`       outcome.checked_at           = 2026-04-26T08:00:11.868203+00:00
+- `22:05:08`     source signal:
+- `22:05:08`       signal_type                      = momentum_spy
+- `22:05:08`       predicted_direction              = UP
+- `22:05:08`       measure_against                  = SPY
+- `22:05:08`       benchmark                        = None
+- `22:05:08`       baseline_price                   = None
+- `22:05:08`       baseline_benchmark_price         = None
+- `22:05:08`       logged_at                        = 2026-04-18T21:10:13.784155+00:00
+- `22:05:08`       status                           = complete
+- `22:05:08` 
+- `22:05:08`   ── Sample 1 SCORED outcome for comparison ──
+- `22:05:08`     outcome_id:  3350e6bd-8ac2-4e85-93a6-597346d6b693_day_1
+- `22:05:08`     correct:     False
+- `22:05:08`       outcome.correct              = False
+- `22:05:08`       outcome.actual_direction     = NEUTRAL
+- `22:05:08`       outcome.return_pct           = 0.276904
+- `22:05:08`       outcome.price_at_signal      = 718.66
+- `22:05:08`       outcome.price_at_check       = 720.65
+- `22:05:08`     source signal predicted_direction: UP
+- `22:05:08`     source signal baseline_price:      718.66
+- `22:05:08`     source signal baseline_benchmark:  None
+- `22:05:08` 
