@@ -46,11 +46,18 @@ REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 INITIAL_NAV = 100_000.0
 
-# Position sizing: each scored outcome represents a hypothetical 2%-of-NAV trade,
-# modulated by the signal's calibration weight. So a w=1.5 signal with +10% return
-# contributes 0.02 × 1.5 × 0.10 = +0.30% to NAV. This bounds daily P&L to realistic
-# hedge-fund-like ranges and lets us compound NAV honestly across overlapping trades.
-POSITION_SIZE = 0.02
+# Position sizing: each scored outcome represents a hypothetical 0.5%-of-NAV trade,
+# modulated by the signal's calibration weight. So a w=1.5 signal earning +10%
+# contributes 0.075% to NAV. Conservative size accommodates the heavy daily
+# signal counts (screener_top_pick alone fires ~10 trades/day at peak), and
+# bounds gross daily exposure to a realistic ~10-20% of NAV.
+POSITION_SIZE = 0.005
+
+# Window preference for dedup — when the same signal_id has multiple scored
+# outcomes (e.g., day_30, day_60, day_90), use the SHORTEST as the canonical one.
+# Shorter windows let the strategy turn capital faster and align better with
+# realistic trading horizons.
+WINDOW_PREFERENCE = ["day_30", "day_60", "day_90", "day_14", "day_7", "day_3", "day_1"]
 
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
@@ -128,6 +135,33 @@ def lambda_handler(event=None, context=None):
     # 2. Pull all scored outcomes
     outcomes, pages = scan_scored_outcomes()
     print(f"[backtest] pulled {len(outcomes)} scored outcomes ({pages} pages)")
+
+    # 2a. Dedup by signal_id — same signal often has 2-3 outcomes (day_30/60/90).
+    # Pick the shortest available window so we measure faster-turning strategies
+    # and avoid triple-counting overlapping positions.
+    by_sig = {}
+    for o in outcomes:
+        sid = o.get("signal_id")
+        if not sid:
+            continue
+        existing = by_sig.get(sid)
+        if existing is None:
+            by_sig[sid] = o
+            continue
+        # Compare windows
+        cur_window = o.get("window_key")
+        prev_window = existing.get("window_key")
+        try:
+            cur_pref = WINDOW_PREFERENCE.index(cur_window) if cur_window in WINDOW_PREFERENCE else 99
+            prev_pref = WINDOW_PREFERENCE.index(prev_window) if prev_window in WINDOW_PREFERENCE else 99
+            if cur_pref < prev_pref:
+                by_sig[sid] = o
+        except Exception:
+            pass
+
+    deduped = list(by_sig.values())
+    print(f"[backtest] after dedup by signal_id: {len(deduped)} unique trades (was {len(outcomes)})")
+    outcomes = deduped
 
     # 3. Compute contributions
     results = []
@@ -209,11 +243,13 @@ def lambda_handler(event=None, context=None):
         })
     signal_summary.sort(key=lambda x: -x["total_contribution"])
 
-    # 6. Aggregate by date — daily contribution sum
+    # 6. Aggregate by date — daily contribution sum.
+    # Use logged_at (trade-open date) instead of checked_at (when the outcome was scored)
+    # so trades distribute across their actual firing dates instead of clustering on backfill dates.
     by_date = defaultdict(float)
     by_date_n = defaultdict(int)
     for r in results:
-        d = (r["checked_at"] or "")[:10]
+        d = (r["logged_at"] or r["checked_at"] or "")[:10]
         if d:
             by_date[d] += r["contribution"]
             by_date_n[d] += 1
@@ -275,13 +311,15 @@ def lambda_handler(event=None, context=None):
     results_doc = {
         "v": "1.0",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay_2pct_sizing",
+        "method": "calibrated_alpha_replay_v2",
         "method_description": (
-            "For each scored outcome, contribution = 0.02 × weight × predicted_direction_sign × actual_return. "
-            "Each outcome is treated as a 2%-of-NAV hypothetical trade modulated by the signal's calibration "
-            "weight. So a w=1.5 signal earning +10% contributes 0.30% to NAV. Daily contributions sum, NAV "
-            "compounds normally. This is a 'what-if' estimator showing how much alpha the calibrated weighting "
-            "would have generated. Compare to SPY buy-and-hold over the same window."
+            "For each scored outcome (deduped to one per signal_id, shortest window preferred), "
+            "contribution = 0.005 × weight × predicted_direction_sign × actual_return. "
+            "Each unique trade is sized at 0.5% of NAV modulated by the signal's calibration weight. "
+            "So a w=1.5 signal earning +10% contributes 0.075% to NAV. Trades distribute across their "
+            "logged_at firing dates and NAV compounds normally from $100k. This estimates how much "
+            "alpha the calibrated weighting would have generated if every realized signal had been "
+            "executed at this position size. Compare to SPY buy-and-hold over the same window."
         ),
         "summary": {
             "n_outcomes": n_total,
