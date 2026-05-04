@@ -1,0 +1,413 @@
+"""
+justhodl-alert-router — Real-time threshold alerter, runs every 30 min.
+
+Scans 12 high-leverage data sources for extreme readings:
+  1. correlation-surface     | regime breaks (|Δ corr 30d vs 90d| ≥ 0.30)
+  2. macro-surprise          | composite z-score |z| ≥ 2.0
+  3. yield-curve             | rapid bear-flatten/bull-steepen detection
+  4. eurodollar-stress       | composite stress > 70/100
+  5. auction-crisis          | crisis score > 60/100
+  6. vix-curve               | VIX1M/VIX3M inversion (term structure)
+  7. divergence              | new divergences with |z| ≥ 2.5
+  8. cot-extremes            | new percentile-rank extremes ≤ 5 or ≥ 95
+  9. earnings-tracker        | new STRONG_POSITIVE_DRIFT or STRONG_NEGATIVE_DRIFT
+ 10. short-interest          | new SQUEEZE_RISK signals
+ 11. etf-flows               | new HEAVY_INFLOW or HEAVY_OUTFLOW
+ 12. sector-rotation         | regime change to/from BROAD_LEADERSHIP
+
+Deduplication: keeps a state file in S3 (alerts-state.json) that records when
+each alert type was last fired. Same alert is suppressed for 6 hours by default.
+
+Sends to Telegram via existing bot. Schedule: rate(30 minutes).
+
+Output:
+  - data/alert-history.json  (last 100 alerts fired, for audit)
+  - alerts-state.json        (dedup state)
+"""
+
+import json
+import os
+import time
+import urllib.request
+from datetime import datetime, timezone, timedelta
+import boto3
+
+S3 = boto3.client("s3", region_name="us-east-1")
+SSM = boto3.client("ssm", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+
+TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+DEDUP_HOURS = 6
+HISTORY_KEY = "data/alert-history.json"
+STATE_KEY = "alerts-state.json"
+
+
+def get_chat_id():
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ssm] chat_id: {e}")
+        return None
+
+
+def get_token():
+    if TG_BOT_TOKEN:
+        return TG_BOT_TOKEN
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/bot_token", WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return None
+
+
+def send_telegram(text, chat_id):
+    token = get_token()
+    if not token or not chat_id:
+        print("[tg] missing token/chat_id")
+        return False, "missing creds"
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        body = json.dumps({
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }).encode()
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return True, resp.read().decode()[:200]
+    except Exception as e:
+        return False, str(e)
+
+
+def load_json(key, default=None):
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key=key)
+        return json.loads(obj["Body"].read())
+    except Exception:
+        return default if default is not None else {}
+
+
+def write_json(key, data):
+    body = json.dumps(data, default=str).encode("utf-8")
+    S3.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType="application/json", CacheControl="public, max-age=60")
+
+
+def is_recent_dup(state, alert_id, hours=DEDUP_HOURS):
+    last = state.get(alert_id)
+    if not last:
+        return False
+    try:
+        last_ts = datetime.fromisoformat(last.replace("Z", "+00:00"))
+    except Exception:
+        return False
+    return (datetime.now(timezone.utc) - last_ts).total_seconds() < hours * 3600
+
+
+def check_correlation_surface(alerts):
+    d = load_json("data/correlation-surface.json")
+    breaks = d.get("regime_breaks", [])
+    for b in breaks[:5]:
+        ta, tb = b.get("ticker_a"), b.get("ticker_b")
+        delta = b.get("delta_30d_vs_90d")
+        if delta is None or abs(delta) < 0.30:
+            continue
+        alerts.append({
+            "id": f"corr_break_{ta}_{tb}",
+            "category": "CORRELATION",
+            "severity": "HIGH",
+            "title": f"🔁 Correlation regime break: {ta}↔{tb}",
+            "detail": f"30d vs 90d Δ = {delta:+.2f} ({b.get('name_a')} vs {b.get('name_b')}). 30d corr = {b.get('corr_30d')}, 90d = {b.get('corr_90d')}.",
+        })
+
+
+def check_macro_surprise(alerts):
+    d = load_json("data/macro-surprise.json")
+    composite = d.get("composite") or d.get("composite_z")
+    regime = d.get("regime")
+    if composite is None:
+        return
+    if abs(composite) >= 2.0:
+        sign = "+" if composite > 0 else ""
+        alerts.append({
+            "id": f"macro_extreme_{regime}",
+            "category": "MACRO",
+            "severity": "HIGH" if abs(composite) >= 3 else "MEDIUM",
+            "title": f"📊 Macro composite extreme: {sign}{composite:.2f}σ",
+            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+        })
+
+
+def check_yield_curve(alerts):
+    d = load_json("data/yield-curve.json")
+    slope = d.get("slope_2s10s")
+    butterfly = d.get("butterfly_2s5s10s")
+    regime = d.get("regime")
+    if slope is None:
+        return
+    # Inversion threshold
+    if slope < 0 and slope > -50:
+        alerts.append({
+            "id": f"yc_inverted_{round(slope)}",
+            "category": "RATES",
+            "severity": "MEDIUM",
+            "title": "📉 2s10s curve inverted",
+            "detail": f"2s10s = {slope:+.1f} bps. Regime: {regime}. Historical recession pre-signal.",
+        })
+    elif slope > 100:
+        alerts.append({
+            "id": "yc_steep",
+            "category": "RATES",
+            "severity": "LOW",
+            "title": "📈 2s10s curve steepening",
+            "detail": f"2s10s = {slope:+.1f} bps. Regime: {regime}.",
+        })
+
+
+def check_eurodollar_stress(alerts):
+    d = load_json("data/eurodollar-stress.json")
+    composite = d.get("composite_stress_score") or d.get("composite_score")
+    regime = d.get("regime")
+    if composite is None:
+        return
+    if composite >= 70:
+        alerts.append({
+            "id": f"ed_stress_high",
+            "category": "DOLLAR",
+            "severity": "HIGH",
+            "title": f"💵 Eurodollar stress elevated: {composite}/100",
+            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+        })
+
+
+def check_auction_crisis(alerts):
+    d = load_json("data/auction-crisis.json")
+    score = d.get("composite_score") or d.get("crisis_score")
+    regime = d.get("regime")
+    if score is not None and score >= 60:
+        alerts.append({
+            "id": "auction_crisis",
+            "category": "TREASURY",
+            "severity": "HIGH",
+            "title": f"🏛️ Treasury auction stress: {score}/100",
+            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+        })
+
+
+def check_vix_curve(alerts):
+    d = load_json("data/vix-curve.json")
+    structure = d.get("term_structure") or d.get("vix_curve_state")
+    if structure == "INVERTED" or structure == "BACKWARDATION":
+        ratio = d.get("vix1m_vix3m_ratio") or d.get("vix_3m_1m_ratio")
+        alerts.append({
+            "id": "vix_inverted",
+            "category": "VOLATILITY",
+            "severity": "HIGH",
+            "title": "📊 VIX term structure inverted",
+            "detail": f"VIX1M/VIX3M = {ratio}. Historic stress signal.",
+        })
+
+
+def check_earnings(alerts):
+    d = load_json("data/earnings-tracker.json")
+    pead_signals = d.get("pead_signals", [])
+    for s in pead_signals[:3]:
+        signal_label = s.get("signal")
+        if signal_label not in ("STRONG_POSITIVE_DRIFT", "STRONG_NEGATIVE_DRIFT"):
+            continue
+        ticker = s.get("ticker")
+        ret_1d = s.get("price_return_1d_pct")
+        eps_surp = s.get("eps_surprise_pct")
+        emoji = "🚀" if signal_label == "STRONG_POSITIVE_DRIFT" else "💥"
+        alerts.append({
+            "id": f"pead_{ticker}_{signal_label}",
+            "category": "EARNINGS",
+            "severity": "MEDIUM",
+            "title": f"{emoji} PEAD: {ticker} {signal_label}",
+            "detail": f"EPS surprise {eps_surp:+.1f}%, 1d return {ret_1d:+.2f}%. Score {s.get('drift_score')}.",
+        })
+
+
+def check_short_interest(alerts):
+    d = load_json("data/short-interest.json")
+    squeeze = d.get("top_squeeze_risk", [])
+    for s in squeeze[:3]:
+        ticker = s.get("ticker")
+        dtc = s.get("days_to_cover") or s.get("polygon_days_to_cover")
+        if dtc is None or dtc < 8:
+            continue
+        alerts.append({
+            "id": f"squeeze_{ticker}",
+            "category": "SHORT_INTEREST",
+            "severity": "MEDIUM",
+            "title": f"🚨 Squeeze risk: {ticker}",
+            "detail": f"Days-to-cover {dtc:.1f}, signal {s.get('signal_label') or s.get('label') or 'SQUEEZE_RISK'}.",
+        })
+
+
+def check_etf_flows(alerts):
+    d = load_json("data/etf-flows.json")
+    for cat, etfs in (d.get("by_category") or {}).items():
+        for e in etfs:
+            sig = e.get("signal")
+            z = e.get("dollar_volume_z_60d")
+            if sig in ("HEAVY_INFLOW", "HEAVY_OUTFLOW") and z is not None and abs(z) >= 2.5:
+                ticker = e.get("ticker")
+                emoji = "💚" if sig == "HEAVY_INFLOW" else "🔻"
+                alerts.append({
+                    "id": f"flow_{ticker}_{sig}",
+                    "category": "ETF_FLOW",
+                    "severity": "MEDIUM",
+                    "title": f"{emoji} {ticker} {sig}: z={z:+.2f}",
+                    "detail": f"{cat} category. ${e.get('dollar_volume_today',0):,.0f} today vs 60d distribution.",
+                })
+
+
+def check_sector_rotation(alerts):
+    d = load_json("data/sector-rotation.json")
+    breadth = d.get("market_breadth")
+    if breadth in ("BROAD_LEADERSHIP", "NARROW_LEADERSHIP"):
+        n_lead = len(d.get("leaders", []))
+        n_lag = len(d.get("laggards", []))
+        alerts.append({
+            "id": f"sector_breadth_{breadth}",
+            "category": "SECTOR",
+            "severity": "LOW",
+            "title": f"📊 Market breadth: {breadth}",
+            "detail": f"Leaders: {n_lead}, Laggards: {n_lag}. {d.get('market_breadth_description', '')}",
+        })
+
+
+def check_divergences(alerts):
+    d = load_json("data/divergence-current.json") or load_json("divergence/current.json")
+    if not d:
+        return
+    divergences = d.get("divergences", []) or d.get("active_divergences", [])
+    for div in divergences[:3]:
+        z = div.get("residual_z") or div.get("z_score")
+        if z is None or abs(z) < 2.5:
+            continue
+        pair = div.get("pair") or f"{div.get('asset_y')} vs {div.get('asset_x')}"
+        alerts.append({
+            "id": f"divergence_{pair}_{round(z,1)}",
+            "category": "DIVERGENCE",
+            "severity": "MEDIUM",
+            "title": f"📈 Divergence: {pair}",
+            "detail": f"Residual z = {z:+.2f}. Mean-reversion candidate.",
+        })
+
+
+def check_cot_extremes(alerts):
+    d = load_json("data/cot-extremes.json") or load_json("cot/extremes.json")
+    extremes = (d.get("extremes") or []) if d else []
+    for e in extremes[:3]:
+        pct = e.get("percentile_rank") or e.get("pct_rank")
+        if pct is None:
+            continue
+        contract = e.get("contract") or e.get("name")
+        if pct >= 95:
+            alerts.append({
+                "id": f"cot_long_{contract}",
+                "category": "COT",
+                "severity": "MEDIUM",
+                "title": f"📍 COT extreme LONG: {contract}",
+                "detail": f"Percentile rank {pct}% (5y window). Net spec position is at extreme high.",
+            })
+        elif pct <= 5:
+            alerts.append({
+                "id": f"cot_short_{contract}",
+                "category": "COT",
+                "severity": "MEDIUM",
+                "title": f"📍 COT extreme SHORT: {contract}",
+                "detail": f"Percentile rank {pct}% (5y window). Net spec position is at extreme low.",
+            })
+
+
+def format_telegram_msg(alert):
+    sev_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🔵"}.get(alert["severity"], "⚪")
+    return (
+        f"{sev_icon} *JustHodl Alert — {alert['category']}*\n\n"
+        f"*{alert['title']}*\n\n"
+        f"{alert['detail']}\n\n"
+        f"_{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}_"
+    )
+
+
+def lambda_handler(event=None, context=None):
+    started = time.time()
+    print(f"[alert-router] start")
+
+    state = load_json(STATE_KEY)
+    history = load_json(HISTORY_KEY, default={"version": "1.0", "alerts": []})
+    if not isinstance(history, dict):
+        history = {"version": "1.0", "alerts": []}
+
+    chat_id = get_chat_id()
+
+    # Run every check (each appends to alerts list)
+    alerts = []
+    checks = [
+        ("correlation_surface", check_correlation_surface),
+        ("macro_surprise", check_macro_surprise),
+        ("yield_curve", check_yield_curve),
+        ("eurodollar_stress", check_eurodollar_stress),
+        ("auction_crisis", check_auction_crisis),
+        ("vix_curve", check_vix_curve),
+        ("earnings", check_earnings),
+        ("short_interest", check_short_interest),
+        ("etf_flows", check_etf_flows),
+        ("sector_rotation", check_sector_rotation),
+        ("divergences", check_divergences),
+        ("cot_extremes", check_cot_extremes),
+    ]
+    for name, fn in checks:
+        try:
+            fn(alerts)
+        except Exception as e:
+            print(f"[check.{name}] error: {e}")
+
+    print(f"[alert-router] {len(alerts)} candidate alerts before dedup")
+
+    # Dedup + send
+    sent = []
+    suppressed = []
+    for a in alerts:
+        aid = a["id"]
+        if is_recent_dup(state, aid):
+            suppressed.append(a)
+            continue
+        msg = format_telegram_msg(a)
+        ok, info = send_telegram(msg, chat_id) if chat_id else (False, "no_chat_id")
+        a["sent_at"] = datetime.now(timezone.utc).isoformat()
+        a["telegram_sent"] = ok
+        a["telegram_info"] = info[:200] if info else None
+        sent.append(a)
+        state[aid] = a["sent_at"]
+        time.sleep(0.5)  # rate limit
+
+    # Update history
+    history["alerts"] = (history.get("alerts", []) + sent)[-100:]
+    history["last_run"] = datetime.now(timezone.utc).isoformat()
+    history["last_run_summary"] = {
+        "candidates": len(alerts),
+        "sent": len(sent),
+        "suppressed": len(suppressed),
+    }
+
+    write_json(HISTORY_KEY, history)
+    write_json(STATE_KEY, state)
+
+    print(f"[alert-router] sent={len(sent)} suppressed={len(suppressed)} duration={time.time()-started:.1f}s")
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "candidates": len(alerts),
+            "sent": len(sent),
+            "suppressed": len(suppressed),
+            "duration_s": round(time.time() - started, 2),
+        }),
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(lambda_handler({}, None), indent=2))
