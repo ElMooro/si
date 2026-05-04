@@ -141,7 +141,7 @@ def log_sig(stype, val, pred, conf, against, windows=None, magnitude=None, ratio
         "predicted_target_price": f2d(float(target)) if target else None,
         "horizon_days_primary": int(max(windows)),
         "rationale": str(rationale) if rationale else None,
-        "source": "wave-signal-logger-v1",
+        "source": "wave-signal-logger-v2",
     }
     SIGNALS_TBL.put_item(Item=item)
     bp = f"${price:.2f}" if price else "no-price"
@@ -154,14 +154,19 @@ def log_sig(stype, val, pred, conf, against, windows=None, magnitude=None, ratio
 
 
 def log_earnings_pead():
+    """Schema: pead_signals[].pead_label / pead_score (NOT 'signal' / 'drift_score')."""
     d = fs3("data/earnings-tracker.json")
     out = []
     for s in d.get("pead_signals", []) or []:
         ticker = s.get("ticker")
-        label = s.get("signal")
-        score = s.get("drift_score") or 0
+        label = s.get("pead_label") or s.get("signal")  # tolerate either
+        score = s.get("pead_score") or s.get("drift_score") or 0
         if not ticker or not label:
             continue
+        try:
+            score = float(score)
+        except Exception:
+            score = 0
         if label == "STRONG_POSITIVE_DRIFT":
             sid = log_sig("earnings_pead", label, "UP",
                           conf=min(0.85, max(0.3, abs(score) / 100)),
@@ -424,13 +429,14 @@ def log_sector_breadth():
 
 
 def log_momentum_top_picks():
+    """Schema: top_50_composite[].symbol (NOT 'ticker') / composite_score."""
     d = fs3("data/momentum-scanner.json")
     top = d.get("top_50_composite") or d.get("top_composite") or d.get("ranked", [])
     if not isinstance(top, list):
         return []
     out = []
     for s in top[:3]:
-        ticker = s.get("ticker")
+        ticker = s.get("symbol") or s.get("ticker")  # tolerate either
         score = s.get("composite_score") or s.get("composite") or s.get("score") or 0
         if not ticker:
             continue
