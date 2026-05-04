@@ -20,7 +20,7 @@ def main():
         # OPTIONS handled automatically by CORS preflight; no need to list it
         cors = {
             "AllowOrigins": ["*"],
-            "AllowMethods": ["GET", "POST", "*"],  # all ≤6 chars
+            "AllowMethods": ["*"],  # wildcard alone — can't be combined with specifics
             "AllowHeaders": ["content-type", "x-justhodl-token"],
             "MaxAge": 3600,
         }
