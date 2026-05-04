@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Vol &amp; Sentiment · JustHodl</title>
+<meta name="description" content="VIX term structure, put-call ratios, gamma exposure, fund flows, 7-dimension sentiment composite, contrarian trading signals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(181,107,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,212,255,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap}
+header.hero .meta b{color:var(--t2);font-weight:500}
+
+.grid{display:grid;gap:14px;margin-bottom:28px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:900px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.card h3{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.card .v{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--t1)}
+.card .v.lg{font-size:36px;font-family:var(--display)}
+.card .v.xl{font-size:44px;font-family:var(--display)}
+.card .vsub{font-family:var(--mono);font-size:12px;color:var(--t3);margin-top:4px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:6px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+table td{padding:10px;border-bottom:1px solid var(--brd);color:var(--t2)}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:var(--yellow)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+.empty{color:var(--t3);padding:20px;text-align:center;font-style:italic}
+
+.tbl-wrap{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden}
+.tbl-head{padding:14px 18px;background:var(--bg2);border-bottom:1px solid var(--brd2)}
+.tbl-head h3{margin:0;font-family:var(--display);font-size:18px;font-weight:600}
+.tbl-head p{margin:2px 0 0;color:var(--t3);font-size:12px}
+
+.gauge-bar{height:32px;background:var(--bg3);border-radius:6px;overflow:hidden;position:relative;margin-top:6px}
+.gauge-fill{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font-family:var(--mono);font-weight:600;font-size:13px;color:#000;background:linear-gradient(90deg,var(--red) 0%,var(--orange) 30%,var(--yellow) 50%,#7adb46 70%,var(--green) 100%);transition:width .4s}
+.gauge-bar .gtick{position:absolute;top:0;height:100%;width:1px;background:rgba(255,255,255,.15)}
+
+.term-curve{position:relative;height:200px;padding:20px 30px}
+.curve-svg{width:100%;height:100%;overflow:visible}
+
+.signal-card{background:var(--bg2);border-left:3px solid var(--cyan);padding:14px 18px;border-radius:0 6px 6px 0;margin-bottom:10px}
+.signal-card.RISK_OFF{border-left-color:var(--red)}
+.signal-card.RISK_ON{border-left-color:var(--green)}
+.signal-card.CONTRARIAN_SELL{border-left-color:var(--orange)}
+.signal-card.CONTRARIAN_BUY{border-left-color:var(--purple)}
+.signal-card .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.signal-card .type{font-family:var(--mono);font-weight:700;font-size:14px}
+.signal-card .strength{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t3)}
+.signal-card .msg{color:var(--t2);font-size:14px}
+.signal-card .conf{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:4px}
+
+.news-item{padding:10px 0;border-bottom:1px solid var(--brd)}
+.news-item:last-child{border-bottom:none}
+.news-item .title{color:var(--t1);font-weight:500;font-size:13px;margin-bottom:2px;line-height:1.4}
+.news-item .meta{font-family:var(--mono);font-size:10px;color:var(--t3);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+
+footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/flow.html">Flow</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab active" href="/vol.html">Vol</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Vol &amp; Sentiment</h1>
+    <p class="lede">VIX term structure, put-call positioning, gamma exposure, 7-dimension sentiment composite, and contrarian trading signals — pulled from real options flow + market internals.</p>
+    <div class="meta">
+      <span><b>Source</b> flow-data.json + data/vix-curve.json</span>
+      <span><b>Refresh</b> every 5 min on this page</span>
+      <span id="meta-updated"><b>Updated</b> —</span>
+    </div>
+  </header>
+
+  <!-- Top KPIs -->
+  <div class="grid grid-4">
+    <div class="card">
+      <h3>VIX</h3>
+      <div class="v xl" id="kpi-vix">—</div>
+      <div class="vsub" id="kpi-vix-sub">spot index</div>
+    </div>
+    <div class="card">
+      <h3>P/C ratio (premium)</h3>
+      <div class="v lg" id="kpi-pc">—</div>
+      <div class="vsub" id="kpi-pc-sub">today</div>
+    </div>
+    <div class="card">
+      <h3>Total GEX (SPY)</h3>
+      <div class="v lg" id="kpi-gex">—</div>
+      <div class="vsub" id="kpi-gex-sub">gamma regime</div>
+    </div>
+    <div class="card">
+      <h3>VIX term structure</h3>
+      <div class="v lg" id="kpi-ts">—</div>
+      <div class="vsub" id="kpi-ts-sub">avg slope</div>
+    </div>
+  </div>
+
+  <!-- Composite sentiment + trading signals -->
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>🌡️ 7-dimension sentiment composite</h3>
+      <p style="color:var(--t3);font-size:12px;margin-bottom:14px">Each dimension scored 0-100. Higher = more bullish/calm.</p>
+      <div id="sentiment-grid"></div>
+    </div>
+    <div class="card">
+      <h3>🎯 Trading signals (active)</h3>
+      <p style="color:var(--t3);font-size:12px;margin-bottom:14px">Contrarian + risk regime triggers from current internals.</p>
+      <div id="signals-list"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- VIX term structure curve -->
+  <div class="section">
+    <h2>📈 VIX term structure</h2>
+    <p class="sub">9-day, 30-day, 3-month, 6-month VIX. Contango (back > front) = calm now, hedging later. Backwardation = stress now.</p>
+    <div class="card">
+      <div class="grid grid-4" style="margin-bottom:18px">
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">VIX 9d</div><div id="vix-9d" style="font-family:var(--mono);font-size:24px;font-weight:600">—</div></div>
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">VIX 30d</div><div id="vix-30d" style="font-family:var(--mono);font-size:24px;font-weight:600">—</div></div>
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">VIX 3m</div><div id="vix-3m" style="font-family:var(--mono);font-size:24px;font-weight:600">—</div></div>
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">VIX 6m</div><div id="vix-6m" style="font-family:var(--mono);font-size:24px;font-weight:600">—</div></div>
+      </div>
+      <div class="term-curve">
+        <svg class="curve-svg" id="curve-svg" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+      </div>
+      <p id="curve-desc" style="margin-top:14px;color:var(--t2);font-size:13px"></p>
+    </div>
+  </div>
+
+  <!-- Top options flow -->
+  <div class="section">
+    <h2>🌊 Top options flow today</h2>
+    <p class="sub">Largest premium movers — net premium positive = call-skewed, negative = put-skewed.</p>
+    <div class="tbl-wrap">
+      <div class="tbl-head"><h3>Single-name flow ranking</h3><p>Source: real-time options aggregator</p></div>
+      <table id="flow-table">
+        <thead><tr>
+          <th>Ticker</th>
+          <th class="num">Stock</th>
+          <th class="num">Call vol</th>
+          <th class="num">Put vol</th>
+          <th class="num">P/C</th>
+          <th class="num">Net premium</th>
+          <th>Sentiment</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Top SPY GEX strikes -->
+  <div class="section">
+    <h2>🎯 SPY gamma walls</h2>
+    <p class="sub">Top GEX strike levels — where dealer hedging is concentrated. Spot magnetism: positive GEX = pinning; negative = volatility amplification.</p>
+    <div class="card">
+      <div id="gex-strikes"></div>
+    </div>
+  </div>
+
+  <!-- Top news -->
+  <div class="section">
+    <h2>📰 Top news today</h2>
+    <p class="sub">Real-time news sentiment from 50+ articles. Higher score = more bullish.</p>
+    <div class="card">
+      <div id="news-list"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Vol &amp; Sentiment data refreshed by justhodl-options-flow Lambda · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/flow-data.json">flow-data.json</a>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+async function load(){
+  let flow = null, vix = null;
+  try{
+    const r1 = await fetch(`${BUCKET}/flow-data.json?t=${Date.now()}`);
+    if(r1.ok) flow = await r1.json();
+  }catch(e){console.error(e)}
+  try{
+    const r2 = await fetch(`${BUCKET}/data/vix-curve.json?t=${Date.now()}`);
+    if(r2.ok) vix = await r2.json();
+  }catch(e){console.error(e)}
+
+  if(!flow){
+    document.querySelectorAll(".empty").forEach(el=>el.textContent="Could not load vol data.");
+    return;
+  }
+
+  const data = flow.data || {};
+  const upd = flow.timestamp || flow.generated_at;
+  if(upd) document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${new Date(upd).toLocaleString()}`;
+
+  // KPIs
+  const vc = data.vix_complex || {};
+  const vixVal = vc.vix?.current;
+  const vixZ = vc.vix?.zscore;
+  if(vixVal != null){
+    document.getElementById("kpi-vix").textContent = vixVal.toFixed(2);
+    const cls = vixVal>=25 ? "down" : vixVal<=15 ? "up" : "flat";
+    document.getElementById("kpi-vix").className = "v xl " + cls;
+    document.getElementById("kpi-vix-sub").textContent = `z=${vixZ?.toFixed(2)} · pctile ${vc.vix?.percentile_1y}%`;
+  }
+
+  const pc = data.put_call || {};
+  const pcRatio = pc.total_put_call_ratio;
+  const callPrem = pc.total_call_premium || 0;
+  const putPrem = pc.total_put_premium || 0;
+  const netPrem = pc.net_premium || 0;
+  if(pcRatio != null){
+    document.getElementById("kpi-pc").textContent = pcRatio.toFixed(3);
+    const cls = pcRatio < 0.5 ? "up" : pcRatio > 1 ? "down" : "flat";
+    document.getElementById("kpi-pc").className = "v lg " + cls;
+    const label = pcRatio < 0.5 ? "extreme call buying" : pcRatio > 1 ? "put-skewed" : "balanced";
+    document.getElementById("kpi-pc-sub").textContent = `${label} · net $${(netPrem/1e6).toFixed(0)}M`;
+  }
+
+  const gex = data.gamma_exposure || {};
+  const totalGex = gex.total_gex;
+  if(totalGex != null){
+    const sign = totalGex >= 0 ? "+" : "";
+    document.getElementById("kpi-gex").textContent = sign + (totalGex/1000).toFixed(0) + "K";
+    const cls = totalGex>0 ? "up" : "down";
+    document.getElementById("kpi-gex").className = "v lg " + cls;
+    document.getElementById("kpi-gex-sub").textContent = totalGex>0 ? "long gamma — pinning" : "short gamma — amplifying";
+  }
+
+  // VIX term structure
+  if(vix && vix.slopes){
+    const slope = vix.slopes.avg_slope;
+    document.getElementById("kpi-ts").textContent = (slope>=0 ? "+" : "") + (slope*100).toFixed(1) + "%";
+    document.getElementById("kpi-ts").className = "v lg " + (slope>0 ? "up" : "down");
+    document.getElementById("kpi-ts-sub").textContent = vix.regime || "—";
+
+    document.getElementById("vix-9d").textContent = vix.vix_9d?.toFixed(2) || "—";
+    document.getElementById("vix-30d").textContent = vix.vix_30d?.toFixed(2) || "—";
+    document.getElementById("vix-3m").textContent = vix.vix_3m?.toFixed(2) || "—";
+    document.getElementById("vix-6m").textContent = vix.vix_6m?.toFixed(2) || "—";
+
+    drawCurve(vix);
+    document.getElementById("curve-desc").textContent = vix.interpretation || "";
+  }
+
+  // Sentiment grid
+  const sent = data.sentiment || {};
+  const dims = [
+    ["VIX", "vix_sentiment"],
+    ["Credit (TED spread)", "credit_sentiment"],
+    ["Yield curve", "curve_sentiment"],
+    ["High-yield spread", "hy_sentiment"],
+    ["Breadth", "breadth_sentiment"],
+    ["Momentum (RSI)", "momentum_sentiment"],
+    ["News (50 articles)", "news_sentiment"],
+  ];
+  const grid = document.getElementById("sentiment-grid");
+  grid.innerHTML = dims.map(([label, key]) => {
+    const s = sent[key] || {};
+    const score = s.score;
+    if(score == null) return "";
+    const lbl = s.label || "—";
+    const w = Math.max(2, Math.min(100, score));
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">
+        <span>${label}</span><span>${score.toFixed(1)} · <b style="color:var(--t1)">${lbl}</b></span>
+      </div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:${w}%">${score.toFixed(0)}</div></div>
+    </div>`;
+  }).join("");
+
+  // Trading signals
+  const signals = data.trading_signals || [];
+  const sigList = document.getElementById("signals-list");
+  if(signals.length === 0){
+    sigList.innerHTML = `<div class="empty">No active trading signals.</div>`;
+  } else {
+    sigList.innerHTML = signals.map(s => `
+      <div class="signal-card ${s.type||''}">
+        <div class="head">
+          <div class="type">${s.type||'—'}</div>
+          <div class="strength">${s.strength||''}</div>
+        </div>
+        <div class="msg">${s.message||''}</div>
+        <div class="conf">${s.source||''} · confidence ${s.confidence||0}%</div>
+      </div>`).join("");
+  }
+
+  // Flow table
+  const flowList = pc.options_flow || [];
+  document.querySelector("#flow-table tbody").innerHTML = flowList.slice(0, 15).map(f => {
+    const np = f.net_premium || 0;
+    const cls = f.sentiment === "BULLISH" ? "green" : f.sentiment === "BEARISH" ? "red" : "yellow";
+    return `<tr>
+      <td class="tname"><b>${f.ticker}</b></td>
+      <td class="num">$${f.stock_price?.toFixed(2) || '—'}</td>
+      <td class="num">${(f.call_volume||0).toLocaleString()}</td>
+      <td class="num">${(f.put_volume||0).toLocaleString()}</td>
+      <td class="num">${f.pc_ratio?.toFixed(2) || '—'}</td>
+      <td class="num ${np>0?'up':np<0?'down':''}">${np>=0?'+':''}$${(np/1e6).toFixed(1)}M</td>
+      <td><span class="tag ${cls}">${f.sentiment||'—'}</span></td>
+    </tr>`;
+  }).join("");
+
+  // GEX strike levels
+  const strikes = (gex.strike_levels || []).slice(0, 8);
+  const spy = gex.spy_price;
+  const maxAbs = Math.max(...strikes.map(s => Math.abs(s.gex || 0)));
+  document.getElementById("gex-strikes").innerHTML = strikes.map(s => {
+    const dist = spy ? ((s.strike - spy)/spy*100).toFixed(2) : "—";
+    const w = maxAbs ? Math.abs(s.gex)/maxAbs*100 : 0;
+    const cls = s.gex>0 ? "up" : "down";
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;margin-bottom:3px">
+        <span><b>$${s.strike}</b> <span style="color:var(--t3);margin-left:8px">${dist}% from spot</span></span>
+        <span class="${cls}">${s.gex>=0?'+':''}${(s.gex/1000).toFixed(1)}K</span>
+      </div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${w}%;background:var(--${s.gex>0?'green':'red'})"></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // News list
+  const news = sent.news_sentiment?.top_articles || [];
+  const newsEl = document.getElementById("news-list");
+  if(news.length === 0){
+    newsEl.innerHTML = `<div class="empty">No articles available.</div>`;
+  } else {
+    newsEl.innerHTML = news.slice(0, 8).map(n => {
+      const score = n.sentiment_score;
+      const cls = score>0.3 ? "up" : score<-0.1 ? "down" : "flat";
+      const time = n.time ? `${n.time.slice(0,4)}-${n.time.slice(4,6)}-${n.time.slice(6,8)} ${n.time.slice(9,11)}:${n.time.slice(11,13)}` : "";
+      return `<div class="news-item">
+        <div class="title"><a href="${n.url}" target="_blank" rel="noopener">${n.title}</a></div>
+        <div class="meta">
+          <span>${n.source||""}</span>
+          <span>${time}</span>
+          <span class="${cls}">${n.sentiment_label||""} (${(score||0).toFixed(2)})</span>
+        </div>
+      </div>`;
+    }).join("");
+  }
+}
+
+function drawCurve(vix){
+  const svg = document.getElementById("curve-svg");
+  if(!svg) return;
+  const points = [
+    {x: 0.0, label: "9d", y: vix.vix_9d},
+    {x: 0.33, label: "30d", y: vix.vix_30d},
+    {x: 0.66, label: "3m", y: vix.vix_3m},
+    {x: 1.0, label: "6m", y: vix.vix_6m},
+  ].filter(p => p.y != null);
+  if(points.length < 2) return;
+  const yMin = Math.min(...points.map(p=>p.y)) - 1;
+  const yMax = Math.max(...points.map(p=>p.y)) + 1;
+  const W = 600, H = 200, PAD_L = 40, PAD_R = 20, PAD_T = 20, PAD_B = 30;
+  const xMap = x => PAD_L + x * (W - PAD_L - PAD_R);
+  const yMap = y => PAD_T + (1 - (y - yMin)/(yMax - yMin)) * (H - PAD_T - PAD_B);
+
+  let html = '';
+  // grid
+  for(let i=0; i<=4; i++){
+    const yy = PAD_T + i * (H - PAD_T - PAD_B)/4;
+    const yVal = yMax - i*(yMax-yMin)/4;
+    html += `<line x1="${PAD_L}" y1="${yy}" x2="${W-PAD_R}" y2="${yy}" stroke="#1c2433" stroke-width="1"/>`;
+    html += `<text x="${PAD_L-4}" y="${yy+4}" font-family="IBM Plex Mono" font-size="10" fill="#6f7b91" text-anchor="end">${yVal.toFixed(1)}</text>`;
+  }
+  // path
+  const path = points.map((p,i) => (i===0?"M":"L") + xMap(p.x) + " " + yMap(p.y)).join(" ");
+  html += `<path d="${path}" fill="none" stroke="#b56bff" stroke-width="2.5" stroke-linecap="round"/>`;
+  // points + labels
+  for(const p of points){
+    html += `<circle cx="${xMap(p.x)}" cy="${yMap(p.y)}" r="5" fill="#b56bff"/>`;
+    html += `<text x="${xMap(p.x)}" y="${H-PAD_B+18}" font-family="IBM Plex Mono" font-size="11" fill="#a8b3c7" text-anchor="middle">${p.label}</text>`;
+    html += `<text x="${xMap(p.x)}" y="${yMap(p.y)-12}" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#e9eef7" text-anchor="middle">${p.y.toFixed(2)}</text>`;
+  }
+  svg.innerHTML = html;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
