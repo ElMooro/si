@@ -170,8 +170,18 @@ def compress_ed_stress(e):
         return None
     return {
         "score": e.get("composite_stress_score") or e.get("composite_score"),
+        "severity": e.get("severity"),
         "regime": e.get("regime"),
         "regime_desc": e.get("regime_description"),
+        "n_signals_used": e.get("n_signals_used"),
+        "hot_signals": [
+            {"id": s.get("id"), "label": s.get("label"), "score": s.get("score")}
+            for s in (e.get("hot_signals") or [])
+        ],
+        "cold_signals": [
+            {"id": s.get("id"), "label": s.get("label"), "score": s.get("score")}
+            for s in (e.get("cold_signals") or [])
+        ],
         "top_2_signals": (e.get("signals") or e.get("active_signals") or [])[:2],
     }
 

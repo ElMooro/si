@@ -202,7 +202,14 @@ function renderSnapshot(snap){
     ['asymmetric_setups',  'Asymmetric Setups',     d => d?.setups?.length ? `${d.setups.length} setups` : '—'],
     ['risk_sizer',         'Risk Sizer',            d => d?.kelly_capped_max ? `Kelly cap ${fmt(d.kelly_capped_max,{maximumFractionDigits:0,style:'percent'})}` : '—'],
     ['auction_stress',     'Auction Crisis',        d => d?.composite_score ? `${fmt(d.composite_score)}/100 ${d.severity||''}` : '—'],
-    ['eurodollar_stress',  'Eurodollar Stress',     d => d?.composite_score ? `${fmt(d.composite_score)}/100` : 'not deployed'],
+    ['eurodollar_stress',  'Eurodollar Stress',     d => {
+      const sc = d?.score ?? d?.composite_score;
+      if (sc == null) return 'not deployed';
+      const severity = d?.severity || d?.regime || '';
+      const hot = (d?.hot_signals || []).length;
+      const tag = hot ? ` (${hot}🔴)` : '';
+      return `${fmt(sc,{maximumFractionDigits:1})}/100 · ${severity}${tag}`;
+    }],
     ['macro_surprise',     'Macro Surprise',        d => d?.summary?.composite_z != null ? `Z ${fmt(d.summary.composite_z,{signDisplay:'always',maximumFractionDigits:2})}` : '—'],
     ['insider_buys',       'Insider Trades',        d => d?.summary?.cluster_count ? `${d.summary.cluster_count} clusters` : (d?.clusters?.length ? `${d.clusters.length} clusters` : '—')],
     ['earnings_pead',      'Earnings PEAD',         d => d?.signals?.length ? `${d.signals.length} signals` : '—'],
