@@ -42,6 +42,10 @@ BUCKET = "justhodl-dashboard-live"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 
+# Telegram defaults — overrideable via env var or SSM
+TG_BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
+SKIP_TELEGRAM = os.environ.get("SKIP_TELEGRAM") == "1"
+
 
 def get_anthropic_key():
     if ANTHROPIC_KEY:
@@ -51,6 +55,178 @@ def get_anthropic_key():
     except Exception as e:
         print(f"[ssm-anthropic] {e}")
         return None
+
+
+def get_telegram_chat_id():
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ssm-tg-chat] {e}")
+        return None
+
+
+def get_telegram_token():
+    if TG_BOT_TOKEN:
+        return TG_BOT_TOKEN
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/bot_token", WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return None
+
+
+def send_telegram(text, chat_id):
+    """Reuses the same pattern as alert-router + position-monitor."""
+    import urllib.request as _ur
+    token = get_telegram_token()
+    if not token or not chat_id:
+        print("[tg] missing token/chat_id")
+        return False, "missing creds"
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        body = json.dumps({
+            "chat_id": chat_id,
+            "text": text[:4096],
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }).encode()
+        req = _ur.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with _ur.urlopen(req, timeout=10) as resp:
+            return True, resp.read().decode()[:200]
+    except Exception as e:
+        # Fall back without parse_mode in case Markdown is malformed
+        try:
+            payload = {"chat_id": chat_id, "text": text[:4096], "disable_web_page_preview": True}
+            req = _ur.Request(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            with _ur.urlopen(req, timeout=10) as resp:
+                return True, resp.read().decode()[:200]
+        except Exception as e2:
+            return False, f"{e} / fallback: {e2}"
+
+
+_VERB_EMOJI = {
+    "EXIT_ALL_RISK": "🚨", "EXIT": "🔴", "TRIM": "🟠", "HEDGE": "🟡",
+    "WAIT": "🟣", "HOLD": "⚪", "LONG": "🟢", "LOAD": "🟢", "LEVER": "🚀",
+    "UNKNOWN": "⚫",
+}
+
+
+def _verb_label(verb):
+    return verb.replace("_", " ") if verb else "UNKNOWN"
+
+
+def build_telegram_digest(snapshot, brief_md, call_verb, prev_verb=None):
+    """Compact Markdown digest (~1000 chars) of the brief for mobile push.
+
+    Format:
+      📊 *Brief* — May 4 22:32 UTC
+      *Call:* 🚨 EXIT ALL RISK  (was UNKNOWN)
+      *Phase:* PRE-CRISIS · *Regime:* NEUTRAL · *Khalid:* 48
+      *Top trusted:* carry_risk (w=1.45, 100% acc)
+      *Weighted accuracy:* 55.3%
+
+      📊 *Key signals*
+      • RRP $0.6B (-3σ) → liquidity cliff
+      • carry_risk LOW (23, w=1.45)
+      • crisis_hy_oas CALM (11.2, w=1.42, lagging)
+      • System alpha -0.28% in 9d
+      • Sector breadth NARROW (1 leader)
+
+      📈 *Open positions:* 11 · *Near stop:* 0 · *Near target:* 0
+
+      🔗 [Full brief](https://justhodl.ai/brief.html) · [Call history](https://justhodl.ai/calls.html)
+    """
+    intel = snapshot.get("intelligence") or {}
+    cal_v2 = snapshot.get("calibration_v2") or {}
+    pp = snapshot.get("paper_portfolio") or {}
+    sp = pp.get("signal_portfolio") or {}
+    ml = pp.get("macro_loop2") or {}
+    ed = snapshot.get("eurodollar_stress") or {}
+
+    emoji = _VERB_EMOJI.get(call_verb, "📊")
+    verb_label = _verb_label(call_verb)
+
+    # Header line
+    when = datetime.now(timezone.utc).strftime("%b %d %H:%M UTC")
+    parts = [f"📊 *JustHodl Brief* — {when}", ""]
+
+    # Call line
+    if prev_verb and prev_verb != call_verb and prev_verb != "UNKNOWN":
+        parts.append(f"*Call:* {emoji} `{verb_label}` (was `{_verb_label(prev_verb)}`)")
+    else:
+        parts.append(f"*Call:* {emoji} `{verb_label}`")
+
+    # Regime + phase + Khalid Index
+    phase = ml.get("phase") or intel.get("phase") or "—"
+    regime_obj = intel.get("regime") or intel.get("scores", {}).get("regime")
+    if isinstance(regime_obj, dict):
+        regime = regime_obj.get("khalid") or regime_obj.get("ka") or "—"
+    else:
+        regime = regime_obj or "—"
+    ki = intel.get("khalid_score") or (intel.get("scores", {}) or {}).get("khalid_score") or "—"
+    parts.append(f"*Phase:* {phase} · *Regime:* {regime} · *Khalid:* {ki}")
+
+    # Top trusted signal
+    hw = cal_v2.get("highest_weight") or {}
+    top_sigs = cal_v2.get("top_weighted_signals") or []
+    if top_sigs:
+        top = top_sigs[0]
+        acc = top.get("accuracy")
+        acc_str = f"{int(acc*100)}% acc" if acc is not None else "no acc yet"
+        parts.append(f"*Top trusted:* `{top.get('sig')}` (w={top.get('weight'):.2f}, {acc_str})")
+
+    # Weighted mean accuracy
+    wma = cal_v2.get("weighted_mean_accuracy")
+    if wma is not None:
+        parts.append(f"*Weighted accuracy:* {wma*100:.1f}%")
+
+    parts.append("")
+
+    # Key signals — pull a handful of the most decisive
+    parts.append("📊 *Key signals*")
+    key_lines = []
+    # Eurodollar
+    if ed:
+        comp = ed.get("score") or ed.get("composite_score")
+        sev = ed.get("severity") or ed.get("regime") or ""
+        hot = (ed.get("hot_signals") or [])
+        if comp is not None:
+            hot_str = f" · {len(hot)} hot" if hot else ""
+            key_lines.append(f"• Eurodollar stress: {comp:.0f}/100 {sev}{hot_str}")
+    # Paper portfolio alpha
+    if ml.get("system_alpha_pct") is not None:
+        days = ml.get("days_live") or "?"
+        key_lines.append(f"• System alpha: {ml.get('system_alpha_pct'):+.2f}% in {days}d")
+    # Top weighted signals (skip the first since we cited it above)
+    for s in top_sigs[1:4]:
+        acc = s.get("accuracy")
+        if acc is not None:
+            key_lines.append(f"• `{s.get('sig')}` (w={s.get('weight'):.2f}, {acc*100:.0f}% acc)")
+    # Limit to first 5
+    parts.extend(key_lines[:5])
+    parts.append("")
+
+    # Open positions
+    n_open = sp.get("n_open") or 0
+    near_stop = len(sp.get("near_stop") or [])
+    near_target = len(sp.get("near_target") or [])
+    if n_open:
+        flags = []
+        if near_stop:
+            flags.append(f"🔴 {near_stop} near stop")
+        if near_target:
+            flags.append(f"🟢 {near_target} near target")
+        flag_str = (" · " + " · ".join(flags)) if flags else ""
+        parts.append(f"📈 *Positions:* {n_open} open{flag_str}")
+        parts.append("")
+
+    # Links
+    parts.append("🔗 [Full brief](https://justhodl.ai/brief.html) · [Calls](https://justhodl.ai/calls.html) · [Performance](https://justhodl.ai/performance.html)")
+
+    return "\n".join(parts)
 
 
 def load_json(key, default=None):
@@ -663,6 +839,40 @@ Rules:
     except Exception as e:
         # Non-fatal — brief itself is more important than the audit trail
         print(f"[ai-brief] decisive-call snapshot failed (non-fatal): {e}")
+
+    # 7. Push a compact digest to Telegram (every brief generation, throttled by
+    #    a "last_telegram_send" field on the ledger to prevent double-sends if
+    #    the Lambda is invoked twice within 5 minutes).
+    if SKIP_TELEGRAM:
+        print("[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest")
+    else:
+        try:
+            chat_id = get_telegram_chat_id()
+            if not chat_id:
+                print("[ai-brief] no telegram chat_id, skipping digest")
+            else:
+                # Pull prev verb from the ledger we just appended (second-to-last entry)
+                prev_verb = None
+                try:
+                    hist_obj = S3.get_object(Bucket=BUCKET, Key="data/decisive-call-history.json")
+                    hist_data = json.loads(hist_obj["Body"].read())
+                    snaps_list = hist_data.get("snapshots") or []
+                    if len(snaps_list) >= 2:
+                        prev_verb = snaps_list[-2].get("call_verb")
+                except Exception:
+                    pass
+
+                # Build + send
+                digest_text = build_telegram_digest(
+                    snapshot=snapshot,
+                    brief_md=out.get("brief_md") or "",
+                    call_verb=_extract_call_verb(out.get("brief_md") or ""),
+                    prev_verb=prev_verb,
+                )
+                ok, info = send_telegram(digest_text, chat_id)
+                print(f"[ai-brief] telegram digest sent: ok={ok} chars={len(digest_text)} info={info[:120]}")
+        except Exception as e:
+            print(f"[ai-brief] telegram digest failed (non-fatal): {e}")
 
     return {
         "statusCode": 200,
