@@ -93,12 +93,13 @@ def fetch_finra_short_volume(date):
                 continue
             sym = parts[1].strip().upper()
             try:
-                short_vol = int(parts[2])
-                total_vol = int(parts[4])
+                # FINRA values may be int or float ("311078.000779")
+                short_vol = float(parts[2])
+                total_vol = float(parts[4])
                 if total_vol > 0 and sym in WATCHLIST_SET:
                     rows[sym] = {
-                        "short_vol": short_vol,
-                        "total_vol": total_vol,
+                        "short_vol": int(short_vol),
+                        "total_vol": int(total_vol),
                         "short_pct": round(short_vol / total_vol * 100, 2),
                     }
             except Exception:
