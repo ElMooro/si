@@ -1,3 +1,4 @@
+# rerun-marker: 1777898799
 """
 Create justhodl-feedback Lambda + DynamoDB table + Function URL + smoke test.
 """

@@ -1,3 +1,4 @@
+# rerun-marker: 1777898799
 """
 Create justhodl-morning-brief-tg Lambda + daily 12 UTC schedule + smoke test.
 Sources Telegram token from existing justhodl-telegram-bot env.

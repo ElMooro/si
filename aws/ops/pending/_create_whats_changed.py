@@ -1,3 +1,4 @@
+# rerun-marker: 1777898799
 """
 Create justhodl-whats-changed Lambda + daily 17 UTC schedule + smoke test.
 """
