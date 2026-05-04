@@ -499,65 +499,79 @@ def log_correlation_breaks():
 
 
 def log_divergence_extremes():
-    """Log OLS-residual divergences with |residual_z| >= 2.5 from divergence/current.json."""
+    """Log divergences from divergence/current.json (schema: relationships[]).
+    Field names: z_score, asset_a (e.g. 'stocks:QQQ'), asset_b ('fred:DGS10' or 'stocks:SPY'),
+    extreme (bool), alert_worthy (bool), mispricing (str).
+    Threshold lowered to |z|>=2.0 since current data has no z>=2.5.
+    """
     d = fs3("divergence/current.json") or {}
     out = []
-    divergences = d.get("divergences") or d.get("active_divergences") or []
-    for div in divergences[:8]:
-        z = div.get("residual_z") or div.get("z_score")
-        if z is None or abs(z) < 2.5:
+    relationships = d.get("relationships") or []
+    for rel in relationships:
+        z = rel.get("z_score")
+        if z is None or abs(z) < 2.0:
             continue
-        asset_y = div.get("asset_y") or div.get("y") or div.get("dependent")
-        asset_x = div.get("asset_x") or div.get("x") or div.get("independent")
-        if not asset_y:
+        asset_a_raw = rel.get("asset_a", "")
+        asset_b_raw = rel.get("asset_b", "")
+        # Strip 'stocks:' / 'fred:' prefix; only score if asset_a is a tradable stock
+        if not asset_a_raw.startswith("stocks:"):
             continue
-        # Mean-reversion: positive z = y is rich vs x → predict y goes DOWN
-        pred = "DOWN" if z > 0 else "UP"
+        ticker_a = asset_a_raw.split(":", 1)[1]
+        ticker_b = asset_b_raw.split(":", 1)[1] if ":" in asset_b_raw else asset_b_raw
+        # Mispricing semantics: "QQQ appears RICH vs DGS10" → predict QQQ DOWN (mean revert)
+        # If "asset_a CHEAP vs asset_b" → predict asset_a UP
+        mispricing = (rel.get("mispricing") or "").upper()
+        if "RICH" in mispricing:
+            pred = "DOWN"
+        elif "CHEAP" in mispricing:
+            pred = "UP"
+        else:
+            pred = "DOWN" if z > 0 else "UP"
         sid = log_sig(
             stype="divergence_extreme",
-            val=f"{asset_y}_vs_{asset_x}_z{z:+.2f}",
+            val=f"{ticker_a}_vs_{ticker_b}_z{z:+.2f}",
             pred=pred,
-            conf=min(0.85, abs(z) / 5.0),
-            against=asset_y,
+            conf=min(0.85, abs(z) / 4.0),
+            against=ticker_a,
             windows=WINDOWS_DEFAULT,
             magnitude=None,
-            rationale=f"OLS residual z={z:+.2f}, mean-reversion candidate",
+            rationale=f"{rel.get('name', '?')}: z={z:+.2f}, {mispricing.lower()}, intact={rel.get('relationship_intact')}",
         )
         out.append(sid)
     return out
 
 
 def log_cot_extremes():
-    """Log COT speculator-net positioning extremes (≤5 or ≥95 percentile rank)."""
-    d = fs3("data/cot-extremes.json") or fs3("cot/extremes.json") or {}
+    """Log COT speculator-net positioning extremes (≤5 or ≥95 percentile rank).
+    Real path: cot/extremes/current.json. Contract symbols are CME codes (GC, CL, ES, etc).
+    """
+    d = fs3("cot/extremes/current.json") or {}
     out = []
     extremes = d.get("extremes") or d.get("contracts") or []
-    for e in extremes[:8]:
-        pct = e.get("percentile_rank") or e.get("pct_rank")
+    # Map CME futures symbols to tradable ETFs for price tracking
+    proxy = {
+        "GC": "GLD", "SI": "SLV", "CL": "USO", "BZ": "USO",  # Brent
+        "NG": "UNG", "HG": "JJC", "PL": "PPLT",
+        "ES": "SPY", "NQ": "QQQ", "RTY": "IWM", "YM": "DIA",
+        "ZN": "TLT", "ZB": "TLT", "ZT": "SHY",
+        "6E": "FXE", "6J": "FXY", "6B": "FXB", "6C": "FXC", "6S": "FXF",
+        "DX": "UUP",
+        "BTC": "BITO",
+        "KC": None, "CT": None, "SB": None, "RB": None, "HO": None,  # no clean ETF proxies
+    }
+    for e in extremes[:10]:
+        pct = e.get("percentile_rank") or e.get("pct_rank") or e.get("percentile")
         if pct is None:
             continue
+        contract = (e.get("contract") or e.get("name") or e.get("symbol") or "").upper()
         if pct >= 95:
-            # Specs at extreme long → contrarian SHORT signal
-            pred = "DOWN"
-            label = "EXTREME_LONG"
+            pred = "DOWN"; label = "EXTREME_LONG"
         elif pct <= 5:
-            # Specs at extreme short → contrarian LONG signal
-            pred = "UP"
-            label = "EXTREME_SHORT"
+            pred = "UP"; label = "EXTREME_SHORT"
         else:
             continue
-        contract = e.get("contract") or e.get("name") or "?"
-        # Map COT contract to a tradable proxy ticker for price tracking
-        proxy = {
-            "GOLD": "GLD", "SILVER": "SLV", "CRUDE": "USO", "WTI": "USO",
-            "BRENT": "USO", "NATGAS": "UNG", "NATURAL_GAS": "UNG",
-            "SP500": "SPY", "NASDAQ": "QQQ", "RUSSELL": "IWM",
-            "10Y": "TLT", "10_YEAR": "TLT", "EURO": "FXE", "YEN": "FXY",
-            "BTC": "BITO", "BITCOIN": "BITO", "DXY": "UUP", "DOLLAR": "UUP",
-        }
-        proxy_ticker = proxy.get(contract.upper())
+        proxy_ticker = proxy.get(contract)
         if not proxy_ticker:
-            # Skip — no clean price proxy means we can't score it
             continue
         sid = log_sig(
             stype="cot_extreme",
@@ -565,42 +579,13 @@ def log_cot_extremes():
             pred=pred,
             conf=min(0.85, abs(pct - 50) / 50.0),
             against=proxy_ticker,
-            windows=WINDOWS_LONG,  # COT mean-reversion takes longer
+            windows=WINDOWS_LONG,
             magnitude=None,
             rationale=f"Spec net at {pct:.0f}th pct (5y) — contrarian {label}",
         )
         out.append(sid)
     return out
 
-
-def log_eurodollar_stress():
-    """Log eurodollar funding stress when composite > 70/100."""
-    d = fs3("data/eurodollar-stress.json") or {}
-    score = d.get("composite_stress_score") or d.get("composite_score") or d.get("composite")
-    if score is None:
-        return []
-    if score < 50:
-        return []
-    # Stress > 70 = predict risk-off. Stress 50-70 = neutral-to-defensive.
-    if score >= 70:
-        pred = "DOWN"
-        label = "ELEVATED_STRESS"
-    elif score <= 30:
-        pred = "UP"
-        label = "ABUNDANT_LIQUIDITY"
-    else:
-        return []
-    sid = log_sig(
-        stype="eurodollar_stress",
-        val=f"{label}_{score:.0f}",
-        pred=pred,
-        conf=min(0.85, abs(score - 50) / 50.0),
-        against="SPY",
-        windows=WINDOWS_DEFAULT,
-        magnitude=None,
-        rationale=f"Composite stress {score}/100 — {label}",
-    )
-    return [sid]
 
 
 def lambda_handler(event=None, context=None):
@@ -622,7 +607,6 @@ def lambda_handler(event=None, context=None):
         ("correlation_break", log_correlation_breaks),
         ("divergence_extreme", log_divergence_extremes),
         ("cot_extreme", log_cot_extremes),
-        ("eurodollar_stress", log_eurodollar_stress),
     ]
     for name, fn in handlers:
         try:
