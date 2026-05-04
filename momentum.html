@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Momentum · JustHodl</title>
+<meta name="description" content="Universe-wide momentum scanner — top decile S&P 500 names ranked by 1m/3m/6m/12m composite, 12-1 academic factor, vol-adjusted, acceleration.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,230,118,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(255,196,0,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1500px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+main{max-width:1500px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap}
+header.hero .meta b{color:var(--t2);font-weight:500}
+
+.tabs-row{display:flex;gap:0;border-bottom:1px solid var(--brd2);margin-bottom:14px;overflow-x:auto}
+.tabs-row .ttab{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs-row .ttab.active{color:var(--green);border-bottom-color:var(--green)}
+.tabs-row .ttab:hover{color:var(--t1)}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:6px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+
+.tbl-wrap{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden}
+.tbl-head{padding:14px 18px;background:var(--bg2);border-bottom:1px solid var(--brd2)}
+.tbl-head h3{margin:0;font-family:var(--display);font-size:18px;font-weight:600}
+.tbl-head p{margin:2px 0 0;color:var(--t3);font-size:12px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2);position:sticky;top:0;z-index:1}
+table td{padding:10px;border-bottom:1px solid var(--brd);color:var(--t2)}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:var(--yellow)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+.score-bar{display:inline-block;height:12px;background:var(--bg3);border-radius:2px;width:60px;overflow:hidden;vertical-align:middle;margin-right:6px}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--red) 0,var(--orange) 30%,var(--yellow) 50%,#7adb46 70%,var(--green) 100%)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+@media (max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.kpi-grid{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.card h3{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.card .v{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--t1)}
+.card .vsub{font-family:var(--mono);font-size:12px;color:var(--t3);margin-top:4px}
+
+.empty{color:var(--t3);padding:20px;text-align:center;font-style:italic}
+footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
+
+.sector-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--brd);font-family:var(--mono);font-size:12px}
+.sector-row:last-child{border-bottom:none}
+.sector-bar{flex:1;height:8px;background:var(--bg3);border-radius:4px;margin:0 12px;overflow:hidden}
+.sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green))}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab active" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Momentum</h1>
+    <p class="lede">Top-decile S&amp;P 500 stocks ranked by composite momentum across 1m/3m/6m/12m windows. Five views: composite, academic 12-1, accelerating, vol-adjusted, near 52-week high.</p>
+    <div class="meta">
+      <span><b>Source</b> data/momentum-scanner.json · 503 stocks scanned</span>
+      <span><b>Refresh</b> daily 12:30 UTC weekdays</span>
+      <span id="meta-updated"><b>Updated</b> —</span>
+    </div>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="card"><h3>Universe scanned</h3><div class="v" id="kpi-universe">—</div><div class="vsub" id="kpi-data">—</div></div>
+    <div class="card"><h3>#1 composite</h3><div class="v" id="kpi-top">—</div><div class="vsub" id="kpi-top-sub">—</div></div>
+    <div class="card"><h3>#1 12-1 (academic)</h3><div class="v" id="kpi-12-1">—</div><div class="vsub" id="kpi-12-1-sub">—</div></div>
+    <div class="card"><h3>Top sector</h3><div class="v" id="kpi-sector">—</div><div class="vsub" id="kpi-sector-sub">avg composite</div></div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Sector momentum breakdown</h2>
+    <p class="sub">Average composite score per sector — leadership rotation reveals theme.</p>
+    <div class="card">
+      <div id="sector-list"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🏆 Rankings</h2>
+    <p class="sub">Switch views to see different momentum factors.</p>
+
+    <div class="tabs-row">
+      <div class="ttab active" data-view="composite">Composite top 50</div>
+      <div class="ttab" data-view="12_1">12-1 academic</div>
+      <div class="ttab" data-view="acceleration">Accelerating</div>
+      <div class="ttab" data-view="vol_adj">Vol-adjusted</div>
+      <div class="ttab" data-view="at_52w_high">Near 52w high</div>
+      <div class="ttab" data-view="bottom">Bottom 50 (mean revert?)</div>
+    </div>
+
+    <div class="tab-panel active" data-panel="composite">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Composite top 50 — average percentile rank across 1m/3m/6m/12m</h3><p>Higher = more consistent momentum across all windows.</p></div>
+        <table id="tbl-composite">
+          <thead><tr>
+            <th>#</th><th>Symbol</th><th>Name</th><th>Sector</th>
+            <th class="num">Score</th>
+            <th class="num">1m</th><th class="num">3m</th><th class="num">6m</th><th class="num">12m</th>
+            <th class="num">From 52w high</th>
+          </tr></thead>
+          <tbody><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="12_1">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>12-1 academic momentum — top 20</h3><p>12m return EXCLUDING last month. The classic Carhart momentum factor.</p></div>
+        <table id="tbl-12-1">
+          <thead><tr><th>#</th><th>Symbol</th><th>Name</th><th>Sector</th><th class="num">Mom 12-1</th><th class="num">12m</th><th class="num">1m</th></tr></thead>
+          <tbody><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="acceleration">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Accelerating momentum — top 20</h3><p>1m annualized return − 6m annualized return. Highest = momentum picking up speed.</p></div>
+        <table id="tbl-accel">
+          <thead><tr><th>#</th><th>Symbol</th><th>Name</th><th>Sector</th><th class="num">Accel</th><th class="num">1m</th><th class="num">6m</th></tr></thead>
+          <tbody><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="vol_adj">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Vol-adjusted momentum — top 20</h3><p>3m return / annualized vol. Best risk-adjusted trends.</p></div>
+        <table id="tbl-voladj">
+          <thead><tr><th>#</th><th>Symbol</th><th>Name</th><th>Sector</th><th class="num">Vol-adj</th><th class="num">3m</th><th class="num">Vol 60d</th></tr></thead>
+          <tbody><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="at_52w_high">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Near 52-week high — top 20</h3><p>Stocks closest to or printing new ATH.</p></div>
+        <table id="tbl-52w">
+          <thead><tr><th>#</th><th>Symbol</th><th>Name</th><th>Sector</th><th class="num">% from 52w high</th><th class="num">Last</th><th class="num">52w high</th></tr></thead>
+          <tbody><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="bottom">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><h3>Bottom 50 by composite — potential mean reversion candidates</h3><p>Lowest percentile across windows. Watch for value/turnaround setups.</p></div>
+        <table id="tbl-bottom">
+          <thead><tr>
+            <th>#</th><th>Symbol</th><th>Name</th><th>Sector</th>
+            <th class="num">Score</th>
+            <th class="num">1m</th><th class="num">3m</th><th class="num">6m</th><th class="num">12m</th>
+            <th class="num">From 52w high</th>
+          </tr></thead>
+          <tbody><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Universe momentum refreshed daily 12:30 UTC weekdays · Source <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/momentum-scanner.json">data/momentum-scanner.json</a>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+let _data = null;
+
+async function load(){
+  try{
+    const r = await fetch(`${BUCKET}/data/momentum-scanner.json?t=${Date.now()}`);
+    if(r.ok) _data = await r.json();
+  }catch(e){console.error(e)}
+
+  if(!_data){
+    document.querySelectorAll(".empty").forEach(el=>el.textContent="Could not load momentum data.");
+    return;
+  }
+
+  const upd = _data.generated_at ? new Date(_data.generated_at) : null;
+  if(upd) document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${upd.toLocaleString()}`;
+
+  document.getElementById("kpi-universe").textContent = _data.universe_size || "—";
+  document.getElementById("kpi-data").textContent = `${_data.n_with_data || 0} with full data`;
+
+  const top = (_data.top_50_composite || [])[0];
+  if(top){
+    document.getElementById("kpi-top").textContent = top.symbol;
+    document.getElementById("kpi-top-sub").textContent = `score ${top.composite_score} · ${top.sector}`;
+  }
+  const top12 = (_data.top_20_mom_12_1 || [])[0];
+  if(top12){
+    document.getElementById("kpi-12-1").textContent = top12.symbol;
+    document.getElementById("kpi-12-1-sub").textContent = `${top12.mom_12_1?.toFixed(1)}% · ${top12.sector}`;
+  }
+  const sec = (_data.sector_breakdown || [])[0];
+  if(sec){
+    document.getElementById("kpi-sector").textContent = sec.sector;
+    document.getElementById("kpi-sector-sub").textContent = `${sec.avg_composite} avg · top: ${sec.top_stock}`;
+  }
+
+  // Sector list
+  const sectors = _data.sector_breakdown || [];
+  const maxAvg = Math.max(...sectors.map(s=>s.avg_composite || 0));
+  document.getElementById("sector-list").innerHTML = sectors.map(s => {
+    const w = (s.avg_composite || 0) / maxAvg * 100;
+    return `<div class="sector-row">
+      <span style="color:var(--t1);min-width:160px"><b>${s.sector}</b></span>
+      <span style="color:var(--t3);width:60px">n=${s.n_stocks}</span>
+      <div class="sector-bar"><div class="sector-bar-fill" style="width:${w}%"></div></div>
+      <span style="color:var(--t1);font-weight:600;width:50px;text-align:right">${s.avg_composite}</span>
+      <span style="color:var(--cyan);min-width:60px;text-align:right;margin-left:8px">${s.top_stock}</span>
+    </div>`;
+  }).join("");
+
+  // Tables
+  renderComposite();
+  render12_1();
+  renderAccel();
+  renderVolAdj();
+  render52w();
+  renderBottom();
+}
+
+function pct(v, sign){
+  if(v==null||isNaN(v)) return "—";
+  const f = +v;
+  return (sign && f>=0 ? "+" : "") + f.toFixed(1) + "%";
+}
+function colorize(v){
+  if(v==null) return "—";
+  const cls = v>0 ? "up" : v<0 ? "down" : "flat";
+  return `<span class="${cls}">${pct(v, true)}</span>`;
+}
+
+function renderComposite(){
+  const list = _data.top_50_composite || [];
+  const tbody = document.querySelector("#tbl-composite tbody");
+  if(!list.length){tbody.innerHTML = `<tr><td colspan="10" class="empty">No data.</td></tr>`; return}
+  tbody.innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num"><span class="score-bar"><span class="score-fill" style="width:${s.composite_score||0}%"></span></span><b>${s.composite_score}</b></td>
+    <td class="num">${colorize(s.ret_1m)}</td>
+    <td class="num">${colorize(s.ret_3m)}</td>
+    <td class="num">${colorize(s.ret_6m)}</td>
+    <td class="num">${colorize(s.ret_12m)}</td>
+    <td class="num">${colorize(s.pct_from_52w_high)}</td>
+  </tr>`).join("");
+}
+
+function render12_1(){
+  const list = _data.top_20_mom_12_1 || [];
+  document.querySelector("#tbl-12-1 tbody").innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num up"><b>${pct(s.mom_12_1,true)}</b></td>
+    <td class="num">${colorize(s.ret_12m)}</td>
+    <td class="num">${colorize(s.ret_1m)}</td>
+  </tr>`).join("");
+}
+
+function renderAccel(){
+  const list = _data.top_20_acceleration || [];
+  document.querySelector("#tbl-accel tbody").innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num up"><b>${pct(s.acceleration,true)}</b></td>
+    <td class="num">${colorize(s.ret_1m)}</td>
+    <td class="num">${colorize(s.ret_6m)}</td>
+  </tr>`).join("");
+}
+
+function renderVolAdj(){
+  const list = _data.top_20_vol_adj || [];
+  document.querySelector("#tbl-voladj tbody").innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num up"><b>${(s.vol_adj_mom_3m||0).toFixed(2)}</b></td>
+    <td class="num">${colorize(s.ret_3m)}</td>
+    <td class="num">${(s.vol_60d_annualized||0).toFixed(1)}%</td>
+  </tr>`).join("");
+}
+
+function render52w(){
+  const list = _data.top_20_at_52w_high || [];
+  document.querySelector("#tbl-52w tbody").innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num"><b>${pct(s.pct_from_52w_high,true)}</b></td>
+    <td class="num">$${(s.last_close||0).toFixed(2)}</td>
+    <td class="num">$${(s.high_252w||0).toFixed(2)}</td>
+  </tr>`).join("");
+}
+
+function renderBottom(){
+  const list = (_data.bottom_50_composite || []).slice().reverse();
+  document.querySelector("#tbl-bottom tbody").innerHTML = list.map((s,i) => `<tr>
+    <td class="num">${i+1}</td>
+    <td class="tname"><a href="https://www.tradingview.com/symbols/${s.symbol}/" target="_blank"><b>${s.symbol}</b></a></td>
+    <td>${s.name||""}</td>
+    <td>${s.sector||""}</td>
+    <td class="num"><span class="score-bar"><span class="score-fill" style="width:${s.composite_score||0}%"></span></span><b>${s.composite_score}</b></td>
+    <td class="num">${colorize(s.ret_1m)}</td>
+    <td class="num">${colorize(s.ret_3m)}</td>
+    <td class="num">${colorize(s.ret_6m)}</td>
+    <td class="num">${colorize(s.ret_12m)}</td>
+    <td class="num">${colorize(s.pct_from_52w_high)}</td>
+  </tr>`).join("");
+}
+
+// Tab switching
+document.querySelectorAll(".ttab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".ttab").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    const v = t.getAttribute("data-view");
+    document.querySelectorAll(".tab-panel").forEach(p => {
+      p.classList.toggle("active", p.getAttribute("data-panel") === v);
+    });
+  });
+});
+
+load();
+setInterval(load, 30 * 60 * 1000);
+</script>
+</body>
+</html>
