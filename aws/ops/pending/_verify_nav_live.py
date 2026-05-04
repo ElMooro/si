@@ -1,3 +1,4 @@
+# rerun-marker: 1777899709
 """Verify ticker.html + feedback.html links are live on justhodl.ai across 10 pages."""
 import urllib.request
 from ops_report import report
