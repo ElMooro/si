@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Performance · JustHodl</title>
+<meta name="description" content="System track record — paper-portfolio P&L vs S&P 500 buy-and-hold, open positions, signal-source breakdown, win rate, Sharpe.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+header.hero .meta span b{color:var(--t2);font-weight:500}
+header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
+header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.kpi h3{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums}
+.kpi .v.up{color:var(--green)} .kpi .v.down{color:var(--red)} .kpi .v.flat{color:var(--yellow)}
+.kpi .vsub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:4px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:22px 26px}
+
+/* Chart */
+.chart-card{padding:20px}
+.chart-legend{display:flex;gap:18px;font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:14px}
+.chart-legend .item{display:inline-flex;align-items:center;gap:6px}
+.chart-legend .swatch{width:12px;height:3px;border-radius:2px}
+#nav-chart{width:100%;height:320px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2);position:sticky;top:56px}
+table td{padding:10px;border-bottom:1px solid var(--brd);color:var(--t2);font-variant-numeric:tabular-nums}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right}
+.up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--yellow)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+
+.bar-bg{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;width:100%;display:inline-block;vertical-align:middle;margin-right:8px;max-width:140px}
+.bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+
+.disclaimer{background:var(--yellow-bg);border:1px solid var(--yellow);color:var(--yellow);padding:12px 16px;border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:24px}
+.disclaimer b{color:#ffd966}
+
+.loading{padding:48px 24px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
+.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
+
+.action-banner{background:var(--bg2);border-left:4px solid var(--orange);padding:14px 18px;border-radius:8px;margin-bottom:18px;font-family:var(--mono);font-size:13px;color:var(--t1)}
+.action-banner b{color:var(--orange);text-transform:uppercase;font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/brief.html">Brief</a>
+    <a class="tab active" href="/performance.html">Performance</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/13f.html">13F</a>
+    <a class="tab" href="/ticker.html">Ticker</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/allocator.html">Allocator</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/news.html">News</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/research.html">Research</a>
+    <a class="tab" href="/feedback.html">Feedback</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Performance</h1>
+    <p class="lede">Hypothetical $100k paper portfolios tracking the system's calls. Two engines: Loop 2 follows the macro regime allocation (60/20/10/10 SPY/TLT/GLD/CASH baseline, modified by phase), and the signal-driven engine takes individual ideas from earnings PEAD, squeezes, momentum, etc. with stops + targets.</p>
+    <div class="meta" id="meta">
+      <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
+      <span>Inception <b id="inception">—</b></span>
+      <span>Days live <b id="days-live">—</b></span>
+      <span>Last updated <b id="updated">—</b></span>
+    </div>
+  </header>
+
+  <div class="disclaimer" id="disclaimer-banner">
+    <b>HYPOTHETICAL</b> · For tracking the system's call quality only. Not investment advice. Past hypothetical performance does not predict future results. Real-money returns will differ due to slippage, fees, taxes, and execution timing.
+  </div>
+
+  <div id="action-banner-area"></div>
+
+  <div class="kpis" id="kpi-row">
+    <div class="kpi"><h3>Loading…</h3></div>
+  </div>
+
+  <div class="section">
+    <h2>NAV: Strategy vs Buy-and-Hold</h2>
+    <p class="sub">Loop 2 macro tracker — applies the current regime to a 60/20/10/10 baseline. Daily snapshots since inception.</p>
+    <div class="card chart-card">
+      <div class="chart-legend">
+        <span class="item"><span class="swatch" style="background:var(--cyan)"></span>Khalid Strategy</span>
+        <span class="item"><span class="swatch" style="background:var(--t3)"></span>Buy & Hold</span>
+        <span class="item"><span class="swatch" style="background:var(--green)"></span>System Alpha (right axis)</span>
+      </div>
+      <svg id="nav-chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Open paper positions</h2>
+    <p class="sub">Signal-driven engine — each position came from an active signal (earnings, squeeze, momentum, COT, etc.). Stops and targets enforced; max hold capped per signal type.</p>
+    <div class="card" style="padding:0">
+      <div style="overflow-x:auto">
+        <table id="positions-table">
+          <thead><tr>
+            <th>Ticker</th>
+            <th>Source</th>
+            <th>Dir</th>
+            <th>Entry</th>
+            <th>Current</th>
+            <th>Stop</th>
+            <th>Target</th>
+            <th class="num">P&L %</th>
+            <th class="num">P&L $</th>
+            <th class="num">Days</th>
+            <th class="num">Notional</th>
+            <th>Status</th>
+          </tr></thead>
+          <tbody id="positions-body"><tr><td colspan="12" class="loading">Loading positions…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="closed-section" style="display:none">
+    <h2>Recently closed</h2>
+    <p class="sub">Last 10 trades that hit stop, target, or max-hold.</p>
+    <div class="card" style="padding:0">
+      <div style="overflow-x:auto">
+        <table id="closed-table">
+          <thead><tr>
+            <th>Ticker</th><th>Source</th><th>Entry</th><th>Exit</th><th>Reason</th>
+            <th class="num">Realized %</th><th class="num">Days</th>
+          </tr></thead>
+          <tbody id="closed-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Position breakdown by signal source</h2>
+    <p class="sub">Where today's open positions came from — concentration warns when one signal dominates.</p>
+    <div class="card">
+      <div id="source-breakdown"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+function fmt(n, opts){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2});
+}
+function pctClass(n){ return n>0 ? 'up' : (n<0 ? 'down' : 'flat'); }
+function num(v){ const n = Number(v); return isFinite(n) ? n : null; }
+function timeAgo(iso){
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+async function load(){
+  document.getElementById('status').textContent = 'loading…';
+  try {
+    const [daily, history, sigState, sigHist, base] = await Promise.all([
+      fetch(`${BUCKET}/portfolio/pnl-daily.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`${BUCKET}/portfolio/pnl-history.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`${BUCKET}/portfolio/signal-portfolio-state.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`${BUCKET}/portfolio/signal-portfolio-history.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch(`${BUCKET}/portfolio/state.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    ]);
+
+    document.getElementById('status').textContent = 'fresh';
+
+    // Header meta
+    document.getElementById('inception').textContent = daily?.inception || base?.as_of || '—';
+    document.getElementById('days-live').textContent = daily?.days_since_inception ?? '—';
+    document.getElementById('updated').textContent = `${timeAgo(daily?.generated_at || sigState?.generated_at)}`;
+
+    // Action banner
+    if (daily?.current_action_required && daily.current_phase !== 'CALM'){
+      document.getElementById('action-banner-area').innerHTML = `<div class="action-banner"><b>${daily.current_phase || 'ALERT'} · ${daily.current_regime || ''}</b>${daily.current_action_required}</div>`;
+    }
+
+    renderKPIs(daily, sigState);
+    renderNavChart(history?.snapshots || []);
+    renderPositions(sigState?.open_positions || []);
+    renderClosed(sigState?.recently_closed || sigState?.all_closed_positions || []);
+    renderSourceBreakdown(sigState?.open_positions || []);
+
+  } catch (err) {
+    document.getElementById('kpi-row').innerHTML = `<div class="err" style="grid-column:1/-1">Failed to load: ${err.message}</div>`;
+    document.getElementById('status').textContent = 'error';
+  }
+}
+
+function renderKPIs(daily, sigState){
+  const stratRet = num(daily?.khalid_strategy?.return_pct);
+  const bhRet    = num(daily?.buy_and_hold?.return_pct);
+  const alpha    = num(daily?.system_alpha ?? daily?.delta_pct);
+  const sigNav   = num(sigState?.current_nav_pct_chg);
+  const stats    = sigState?.stats || {};
+  const winRate  = num(stats.win_rate);
+  const sharpe   = num(stats.sharpe_proxy);
+  const dd       = num(stats.max_drawdown_pct);
+  const nOpen    = num(stats.n_open) ?? (sigState?.open_positions?.length ?? 0);
+  const nClosed  = num(stats.n_closed) ?? 0;
+
+  const tiles = [
+    {h:'Strategy Return', v: stratRet!=null?`${stratRet>0?'+':''}${fmt(stratRet)}%`:'—', cls:pctClass(stratRet||0), sub:`Macro Loop 2 · since ${daily?.inception||'—'}`},
+    {h:'Buy & Hold Return', v: bhRet!=null?`${bhRet>0?'+':''}${fmt(bhRet)}%`:'—', cls:pctClass(bhRet||0), sub:'Same baseline, no regime overlay'},
+    {h:'System Alpha', v: alpha!=null?`${alpha>0?'+':''}${fmt(alpha)}%`:'—', cls:pctClass(alpha||0), sub:'Strategy − B&H'},
+    {h:'Signal Engine NAV', v: sigNav!=null?`${sigNav>0?'+':''}${fmt(sigNav)}%`:'flat', cls:pctClass(sigNav||0), sub:`${nOpen} open · ${nClosed} closed`},
+    {h:'Win Rate', v: winRate!=null?`${fmt(winRate*(winRate<=1?100:1),{maximumFractionDigits:1})}%`:'—', cls:'flat', sub:`${nClosed} closed trades`},
+    {h:'Sharpe (proxy)', v: sharpe!=null?fmt(sharpe,{maximumFractionDigits:2}):'—', cls:sharpe>1?'up':(sharpe<0?'down':'flat'), sub:'Daily-return based, annualized'},
+    {h:'Max Drawdown', v: dd!=null?`${fmt(dd)}%`:'—', cls:dd<-5?'down':'flat', sub:'Worst peak-to-trough'},
+    {h:'Open Positions', v: nOpen, cls:'flat', sub:`${sigState?.open_positions?.length||0} active`},
+  ];
+  document.getElementById('kpi-row').innerHTML = tiles.map(t =>
+    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+  ).join('');
+}
+
+function renderNavChart(snapshots){
+  const svg = document.getElementById('nav-chart');
+  if (!snapshots.length){
+    svg.innerHTML = '<text x="550" y="160" fill="#6f7b91" font-family="IBM Plex Mono" font-size="12" text-anchor="middle">No NAV history yet — first snapshot recorded today.</text>';
+    return;
+  }
+
+  const W = 1100, H = 320, padL = 60, padR = 30, padT = 20, padB = 30;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+
+  const xs = snapshots.map((s, i) => i);
+  const khalid = snapshots.map(s => Number(s.khalid_strategy_value_usd));
+  const bh = snapshots.map(s => Number(s.buy_and_hold_value_usd));
+  const all = [...khalid, ...bh].filter(v => isFinite(v));
+  const yMin = Math.min(...all) * 0.999;
+  const yMax = Math.max(...all) * 1.001;
+  const yRange = yMax - yMin;
+
+  const xScale = i => padL + (xs.length<=1 ? innerW/2 : (i/(xs.length-1))*innerW);
+  const yScale = v => padT + innerH - ((v - yMin)/yRange)*innerH;
+
+  const path = (vals) => vals.map((v,i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(v).toFixed(1)}`).join(' ');
+
+  // Y-axis labels
+  const yLabels = [yMax, yMin + yRange*0.5, yMin].map(v => `<text x="${padL-8}" y="${yScale(v)+4}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">$${fmt(v,{maximumFractionDigits:0})}</text>`).join('');
+
+  // X-axis labels (every other date)
+  const xLabels = snapshots.map((s, i) => {
+    if (i !== 0 && i !== snapshots.length-1 && i % Math.max(1, Math.floor(snapshots.length/6)) !== 0) return '';
+    const d = (s.as_of||'').slice(5);
+    return `<text x="${xScale(i)}" y="${H-padB+18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${d}</text>`;
+  }).join('');
+
+  // Grid lines
+  const grid = [yMax, yMin + yRange*0.5, yMin].map(v => `<line x1="${padL}" x2="${W-padR}" y1="${yScale(v)}" y2="${yScale(v)}" stroke="#1c2433" stroke-width="1"/>`).join('');
+
+  // Inception line (start)
+  const baseline = `<line x1="${padL}" x2="${W-padR}" y1="${yScale(100000)}" y2="${yScale(100000)}" stroke="#475064" stroke-width="1" stroke-dasharray="3,3"/>`;
+
+  svg.innerHTML = `
+    ${grid}
+    ${baseline}
+    <path d="${path(bh)}" fill="none" stroke="#6f7b91" stroke-width="2" stroke-dasharray="4,3"/>
+    <path d="${path(khalid)}" fill="none" stroke="#00d4ff" stroke-width="2.5"/>
+    ${yLabels}
+    ${xLabels}
+    <text x="${padL+8}" y="${yScale(100000)-4}" fill="#475064" font-family="IBM Plex Mono" font-size="9">$100K BASE</text>
+  `;
+}
+
+function renderPositions(positions){
+  const tbody = document.getElementById('positions-body');
+  if (!positions.length){
+    tbody.innerHTML = '<tr><td colspan="12" class="loading">No open positions yet — system is between signals.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = positions.map(p => {
+    const pnlPct = num(p.current_pnl_pct);
+    const pnlDol = num(p.current_pnl_dollars);
+    const cls = pctClass(pnlPct||0);
+    const sourceTag = p.source ? `<span class="tag ${p.direction==='LONG'?'green':'red'}">${p.source}</span>` : '—';
+    return `<tr>
+      <td class="tname">${p.ticker || '—'}</td>
+      <td>${sourceTag}</td>
+      <td>${p.direction || '—'}</td>
+      <td class="num">$${fmt(num(p.entry_price))}</td>
+      <td class="num">$${fmt(num(p.current_price))}</td>
+      <td class="num">$${fmt(num(p.stop_price))}</td>
+      <td class="num">$${fmt(num(p.target_price))}</td>
+      <td class="num ${cls}">${pnlPct!=null?(pnlPct>=0?'+':'')+fmt(pnlPct)+'%':'—'}</td>
+      <td class="num ${cls}">${pnlDol!=null?(pnlDol>=0?'+':'')+'$'+fmt(pnlDol):'—'}</td>
+      <td class="num">${p.days_held ?? 0}/${p.max_hold_days || '?'}</td>
+      <td class="num">$${fmt(num(p.notional_at_entry))}</td>
+      <td><span class="tag ${p.status==='OPEN'?'cyan':'flat'}">${p.status || '—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderClosed(closed){
+  if (!closed.length) return;
+  const sec = document.getElementById('closed-section');
+  sec.style.display = '';
+  document.getElementById('closed-body').innerHTML = closed.slice(0, 10).map(p => {
+    const realized = num(p.realized_pnl_pct);
+    const cls = pctClass(realized||0);
+    return `<tr>
+      <td class="tname">${p.ticker}</td>
+      <td>${p.source || '—'}</td>
+      <td class="num">$${fmt(num(p.entry_price))}</td>
+      <td class="num">$${fmt(num(p.exit_price))}</td>
+      <td><span class="tag ${p.exit_reason==='target_hit'?'green':(p.exit_reason==='stop_hit'?'red':'flat')}">${p.exit_reason || '—'}</span></td>
+      <td class="num ${cls}">${realized!=null?(realized>=0?'+':'')+fmt(realized)+'%':'—'}</td>
+      <td class="num">${p.days_held || 0}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSourceBreakdown(positions){
+  const counts = {};
+  positions.forEach(p => { const k = p.source || 'unknown'; counts[k] = (counts[k]||0)+1; });
+  const total = positions.length || 1;
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const html = sorted.map(([src, n]) => {
+    const pct = (n/total)*100;
+    return `<div style="display:flex;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--brd)">
+      <div style="font-family:var(--mono);font-size:12px;width:200px;color:var(--t1)">${src}</div>
+      <div class="bar-bg" style="max-width:none;flex:1"><div class="bar" style="width:${pct}%"></div></div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--t3);min-width:90px;text-align:right">${n} (${fmt(pct,{maximumFractionDigits:0})}%)</div>
+    </div>`;
+  }).join('');
+  document.getElementById('source-breakdown').innerHTML = html || '<p class="sub" style="margin:0">No positions to break down.</p>';
+}
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
