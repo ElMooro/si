@@ -1,3 +1,4 @@
+# rerun-marker: 1777922224
 """Deploy justhodl-ai-brief — synthesizes 14 systems via Claude every 4h."""
 import io
 import json
