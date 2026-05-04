@@ -87,13 +87,15 @@ def fetch_finra_short_volume(date):
         body = http_get(url, timeout=20, raw=True).decode("utf-8", errors="replace")
         # Pipe-delimited: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
         rows = {}
+        n_rows_seen = 0
+        n_rows_matched = 0
         for line in body.splitlines()[1:]:  # skip header
+            n_rows_seen += 1
             parts = line.split("|")
             if len(parts) < 5:
                 continue
             sym = parts[1].strip().upper()
             try:
-                # FINRA values may be int or float ("311078.000779")
                 short_vol = float(parts[2])
                 total_vol = float(parts[4])
                 if total_vol > 0 and sym in WATCHLIST_SET:
@@ -102,11 +104,13 @@ def fetch_finra_short_volume(date):
                         "total_vol": int(total_vol),
                         "short_pct": round(short_vol / total_vol * 100, 2),
                     }
+                    n_rows_matched += 1
             except Exception:
                 continue
+        print(f"[short-interest] finra {yyyymmdd}: body={len(body):,}b parsed={n_rows_seen} matched={n_rows_matched}")
         return rows
     except Exception as e:
-        print(f"[short-interest] finra {yyyymmdd} fetch fail: {e}")
+        print(f"[short-interest] finra {yyyymmdd} fetch fail: {type(e).__name__}: {e}")
         return {}
 
 
