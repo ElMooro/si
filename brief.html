@@ -199,8 +199,24 @@ function renderSnapshot(snap){
     ['sectors',            'Sector Rotation',       d => d?.headline?.breadth || d?.summary?.breadth_state || '—'],
     ['momentum',           'Momentum Top',          d => d?.top?.[0]?.ticker ? `${d.top[0].ticker} ${fmt(d.top[0].composite,{maximumFractionDigits:1})}` : '—'],
     ['allocator',          'Allocator',             d => d?.regime_headline || `${d?.cash_buffer_pct||0}% cash` ],
-    ['asymmetric_setups',  'Asymmetric Setups',     d => d?.setups?.length ? `${d.setups.length} setups` : '—'],
-    ['risk_sizer',         'Risk Sizer',            d => d?.kelly_capped_max ? `Kelly cap ${fmt(d.kelly_capped_max,{maximumFractionDigits:0,style:'percent'})}` : '—'],
+    ['asymmetric_setups',  'Asymmetric Setups',     d => {
+      if (!d) return '—';
+      const n = d.n_setups;
+      if (n == null) return '—';
+      const trap = d.n_value_traps;
+      const top = d.top_5_setups?.[0]?.symbol;
+      return top ? `${n} setups · top ${top}${trap?` · ${trap} traps`:''}` : `${n} setups`;
+    }],
+    ['risk_sizer',         'Risk Sizer',            d => {
+      if (!d) return '—';
+      const cap = d.max_gross_exposure_pct;
+      const k = d.kelly_fraction;
+      const dd = d.current_dd_pct;
+      if (cap == null) return '—';
+      const ddPart = dd != null ? ` · DD ${fmt(dd,{maximumFractionDigits:1})}%` : '';
+      const kPart = k != null ? ` · ¼Kelly` : '';
+      return `${cap}% cap${kPart}${ddPart}`;
+    }],
     ['auction_stress',     'Auction Crisis',        d => d?.composite_score ? `${fmt(d.composite_score)}/100 ${d.severity||''}` : '—'],
     ['eurodollar_stress',  'Eurodollar Stress',     d => {
       const sc = d?.score ?? d?.composite_score;

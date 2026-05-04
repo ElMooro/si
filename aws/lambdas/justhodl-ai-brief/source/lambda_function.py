@@ -136,22 +136,104 @@ def compress_allocator(a):
 
 
 def compress_asymmetric(a):
+    """Compress asymmetric-scorer (QARP screener) output for Claude.
+
+    Source: opportunities/asymmetric-equity.json
+    Schema: summary{}, cutoffs{}, sector_breakdown{}, top_setups[], value_traps[], cross_pollination{}.
+    """
     if not a:
         return None
+    summary = a.get("summary") or {}
+    cutoffs = a.get("cutoffs") or {}
+    sector_breakdown = a.get("sector_breakdown") or {}
+    top_setups = a.get("top_setups") or []
+    value_traps = a.get("value_traps") or []
+    cross = a.get("cross_pollination") or {}
+
+    # Distill top 5 setups with the dimension scores Claude can reason about
+    top_5 = []
+    for s in top_setups[:5]:
+        top_5.append({
+            "symbol": s.get("symbol"),
+            "sector": s.get("sector"),
+            "composite_score": s.get("composite_score"),
+            "dims_passed": s.get("dims_passed"),
+            "quality": s.get("quality_score"),
+            "safety": s.get("safety_score"),
+            "value": s.get("value_score"),
+            "momentum": s.get("momentum_score"),
+        })
+
+    # Top sectors by setup count
+    top_sectors = sorted(sector_breakdown.items(), key=lambda x: -x[1])[:3]
+
     return {
-        "n_setups": a.get("n_setups") or len(a.get("setups", [])),
-        "top_5": [{"t": s.get("ticker"), "score": s.get("score"), "narrative": (s.get("narrative") or "")[:100]} for s in (a.get("setups") or [])[:5]],
+        "n_setups": summary.get("n_setups"),
+        "n_value_traps": summary.get("n_value_traps"),
+        "n_quality_passed": summary.get("n_quality_passed"),
+        "n_screened": summary.get("n_screener_total"),
+        "new_this_week": summary.get("new_this_week"),
+        "dropped_this_week": summary.get("dropped_this_week"),
+        "n_with_stacking_signals": summary.get("n_with_stacking_signals"),
+        "cutoffs_used": cutoffs,
+        "top_5_setups": top_5,
+        "top_3_sectors": [{"sector": k, "n_setups": v} for k, v in top_sectors],
+        "first_3_value_traps": [{"symbol": t.get("symbol"), "sector": t.get("sector"), "reason": t.get("trap_reason")} for t in value_traps[:3]],
+        "aaii_signal": cross.get("aaii_signal"),
+        "btc_mvrv": cross.get("btc_mvrv"),
     }
 
 
 def compress_risk_sizer(r):
+    """Compress risk-sizer (Kelly + circuit breakers + clusters) output for Claude.
+
+    Source: risk/recommendations.json
+    Schema: regime, regime_strength, max_gross_exposure_pct, drawdown_status{},
+            summary{}, constraints_applied{}, clusters[], sized_recommendations[], warnings[].
+    """
     if not r:
         return None
+    dd = r.get("drawdown_status") or {}
+    summary = r.get("summary") or {}
+    constraints = r.get("constraints_applied") or {}
+    clusters = r.get("clusters") or []
+    sized = r.get("sized_recommendations") or []
+    warnings = r.get("warnings") or []
+
+    # Top 5 sized positions w/ context
+    top_5 = []
+    for s in sized[:5]:
+        top_5.append({
+            "symbol": s.get("symbol"),
+            "sector": s.get("sector"),
+            "size_pct": s.get("recommended_size_pct"),
+            "kelly_raw": s.get("kelly_raw"),
+            "conviction": s.get("phase2b_composite") or s.get("raw_conviction"),
+            "cluster": s.get("cluster"),
+        })
+
+    # Cluster sizes
+    cluster_summary = sorted(
+        [{"id": c.get("id"), "method": c.get("method"), "size": c.get("size"), "sector": c.get("sector")} for c in clusters],
+        key=lambda x: -(x.get("size") or 0),
+    )[:5]
+
     return {
-        "regime_exposure_cap_pct": r.get("regime_exposure_cap_pct"),
-        "circuit_breaker_active": r.get("circuit_breaker_active"),
-        "current_dd_pct": r.get("current_drawdown_pct"),
-        "top_3_kelly": [{"t": x.get("ticker"), "kelly": x.get("kelly_pct")} for x in (r.get("positions") or [])[:3]],
+        "regime": r.get("regime"),
+        "regime_strength": r.get("regime_strength"),
+        "max_gross_exposure_pct": r.get("max_gross_exposure_pct"),
+        "current_dd_pct": dd.get("current_dd_pct"),
+        "dd_size_multiplier": dd.get("size_multiplier"),
+        "dd_active_trigger": dd.get("active_trigger"),
+        "n_candidate_ideas": summary.get("n_candidate_ideas"),
+        "n_clusters": summary.get("n_clusters"),
+        "total_recommended_size_pct": summary.get("total_recommended_size_pct"),
+        "kelly_fraction": constraints.get("kelly_fraction"),
+        "max_single_pct": constraints.get("max_single_position_pct"),
+        "max_cluster_pct": constraints.get("max_cluster_pct"),
+        "top_5_sized": top_5,
+        "top_5_clusters": cluster_summary,
+        "warnings": [{"level": w.get("level"), "message": w.get("message")} for w in warnings[:3]],
     }
 
 
@@ -266,8 +348,8 @@ def lambda_handler(event=None, context=None):
     sectors     = load_json("data/sector-rotation.json")
     momentum    = load_json("data/momentum-scanner.json")
     allocator   = load_json("data/allocator.json")
-    asymmetric  = load_json("data/asymmetric-scorer.json")
-    risk_sizer  = load_json("data/risk-sizer.json")
+    asymmetric  = load_json("opportunities/asymmetric-equity.json")
+    risk_sizer  = load_json("risk/recommendations.json")
     auction     = load_json("data/auction-crisis.json")
     ed_stress   = load_json("data/eurodollar-stress.json")
     macro       = load_json("data/macro-surprise.json")

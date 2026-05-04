@@ -624,6 +624,8 @@ def lambda_handler(event, context):
     }
 
     put_s3_json("opportunities/asymmetric-equity.json", snapshot)
+    # Mirror to canonical data/ path so consumers using either naming convention work.
+    put_s3_json("data/asymmetric-scorer.json", snapshot)
 
     # 10. Telegram alert: 5+ new high-conviction setups appear (rare event)
     if len(new_this_week) >= 5 and len(prior.get("top_setups", [])) > 0:

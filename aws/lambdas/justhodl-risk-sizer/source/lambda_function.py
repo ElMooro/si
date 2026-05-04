@@ -497,6 +497,8 @@ def lambda_handler(event, context):
     }
 
     put_s3_json("risk/recommendations.json", snapshot)
+    # Mirror to canonical data/ path so consumers using either naming convention work.
+    put_s3_json("data/risk-sizer.json", snapshot)
 
     print(f"  total recommended size: {final_total_size:.2f}%")
     print(f"  warnings: {len(warnings)}")
