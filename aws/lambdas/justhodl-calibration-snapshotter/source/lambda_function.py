@@ -107,11 +107,29 @@ def lambda_handler(event=None, context=None):
 
     # 1. Pull SSM
     weights = safe_get_ssm("/justhodl/calibration/weights") or {}
-    accuracy = safe_get_ssm("/justhodl/calibration/accuracy") or {}
-    print(f"[snapshotter] weights: {len(weights)}, accuracy: {len(accuracy)}")
+    accuracy_raw = safe_get_ssm("/justhodl/calibration/accuracy") or {}
+    print(f"[snapshotter] weights: {len(weights)}, accuracy: {len(accuracy_raw)}")
 
     if not weights:
         return {"statusCode": 500, "body": json.dumps({"error": "no weights in SSM"})}
+
+    # accuracy SSM is nested: {signal: {accuracy, n, avg_return}}. Flatten the
+    # primary scalar (accuracy) and keep the rich fields as a sibling structure.
+    accuracy = {}
+    accuracy_meta = {}
+    for sig, v in accuracy_raw.items():
+        if isinstance(v, dict):
+            acc = v.get("accuracy")
+            if acc is not None:
+                accuracy[sig] = float(acc)
+            accuracy_meta[sig] = {
+                "accuracy": float(v["accuracy"]) if v.get("accuracy") is not None else None,
+                "n": int(v["n"]) if v.get("n") is not None else None,
+                "avg_return": float(v["avg_return"]) if v.get("avg_return") is not None else None,
+            }
+        elif isinstance(v, (int, float)):
+            accuracy[sig] = float(v)
+            accuracy_meta[sig] = {"accuracy": float(v), "n": None, "avg_return": None}
 
     # 2. Count outcomes per signal_type
     outcome_counts, pages = count_outcomes_60d()
@@ -144,6 +162,7 @@ def lambda_handler(event=None, context=None):
         "week_end": week_end,
         "weights": {k: float(v) for k, v in weights.items()},
         "accuracy": {k: float(v) for k, v in accuracy.items()},
+        "accuracy_meta": accuracy_meta,
         "outcome_counts_60d": outcome_counts,
         "summary": {
             "n_weights_total": n_weights,
