@@ -1,0 +1,88 @@
+# Final audit — 16 exponential items
+
+**Status:** success  
+**Duration:** 5.8s  
+**Finished:** 2026-05-04T12:52:47+00:00  
+
+## Log
+- `12:52:41` 
+- `12:52:41` ━━ #1 Wire Tier S+A + Tier 1-3 into morning-intel + ai-chat ━━
+- `12:52:41`   (no Lambda — this is a frontend/wiring item)
+- `12:52:41` 
+- `12:52:41` ━━ #2 RAG-over-Crisis-KB ━━
+- `12:52:41`   (no Lambda — this is a frontend/wiring item)
+- `12:52:42` ✅   S3 data/crisis-knowledge-base.json: 15,563b  age=412.1min
+- `12:52:42` 
+- `12:52:42` ━━ #3 Earnings tracker (PEAD signals) ━━
+- `12:52:42` ✅   Lambda justhodl-earnings-tracker — python3.12 512MB age=Successful
+- `12:52:42`     schedule justhodl-earnings-tracker-6h: rate(6 hours)  (ENABLED)
+- `12:52:42` ✅   S3 data/earnings-tracker.json: 29,535b  age=66.1min
+- `12:52:42` 
+- `12:52:42` ━━ #4 Short interest tracker (FINRA + Polygon) ━━
+- `12:52:43` ✅   Lambda justhodl-short-interest — python3.12 512MB age=Successful
+- `12:52:43`     schedule justhodl-short-interest-6h: rate(6 hours)  (ENABLED)
+- `12:52:43` ✅   S3 data/short-interest.json: 58,474b  age=49.0min
+- `12:52:43` 
+- `12:52:43` ━━ #5 ETF flows tracker (z-scores) ━━
+- `12:52:43` ✅   Lambda justhodl-etf-flows — python3.12 512MB age=Successful
+- `12:52:43`     schedule justhodl-etf-flows-6h: rate(6 hours)  (ENABLED)
+- `12:52:43` ✅   S3 data/etf-flows.json: 28,038b  age=33.8min
+- `12:52:43` 
+- `12:52:43` ━━ #6 Macro Surprise Index (CESI proxy) ━━
+- `12:52:43` ✅   Lambda justhodl-macro-surprise — python3.12 512MB age=Successful
+- `12:52:44`     schedule justhodl-macro-surprise-6h: rate(6 hours)  (ENABLED)
+- `12:52:44` ✅   S3 data/macro-surprise.json: 11,259b  age=36.6min
+- `12:52:44` 
+- `12:52:44` ━━ #7 Yield curve shape decomposition ━━
+- `12:52:44` ✅   Lambda justhodl-yield-curve — python3.12 512MB age=Successful
+- `12:52:44`     schedule justhodl-yield-curve-6h: rate(6 hours)  (ENABLED)
+- `12:52:44` ✅   S3 data/yield-curve.json: 4,699b  age=32.9min
+- `12:52:44` 
+- `12:52:44` ━━ #8 Per-signal paper portfolio + PnL ━━
+- `12:52:44` ✅   Lambda justhodl-signal-portfolio — python3.12 512MB age=Successful
+- `12:52:44`     schedule justhodl-signal-portfolio-daily: cron(30 22 * * ? *)  (ENABLED)
+- `12:52:44` ✅   S3 portfolio/signal-portfolio-state.json: 7,244b  age=31.0min
+- `12:52:44` 
+- `12:52:44` ━━ #9 Historical Analog Finder ━━
+- `12:52:44` ✅   Lambda justhodl-historical-analogs — python3.12 1024MB age=Successful
+- `12:52:45`     schedule justhodl-historical-analogs-daily: cron(0 13 * * ? *)  (ENABLED)
+- `12:52:45` ✅   S3 data/historical-analogs.json: 5,790b  age=26.8min
+- `12:52:45` 
+- `12:52:45` ━━ #10 Event Study Automation ━━
+- `12:52:45` ✅   Lambda justhodl-event-study — python3.12 1024MB age=Successful
+- `12:52:45`     schedule justhodl-event-study-daily: cron(0 14 * * ? *)  (ENABLED)
+- `12:52:45` ✅   S3 data/event-study.json: 11,318b  age=25.3min
+- `12:52:45` 
+- `12:52:45` ━━ #11 Cross-Asset Correlation Surface ━━
+- `12:52:45` ✅   Lambda justhodl-correlation-surface — python3.12 1024MB age=Successful
+- `12:52:45`     schedule justhodl-correlation-surface-daily: cron(0 15 * * ? *)  (ENABLED)
+- `12:52:46` ✅   S3 data/correlation-surface.json: 43,787b  age=10.1min
+- `12:52:46` 
+- `12:52:46` ━━ #12 A/B Test Of Competing Models ━━
+- `12:52:46` ✅   Lambda justhodl-ab-test — python3.12 512MB age=Successful
+- `12:52:46`     schedule justhodl-ab-test-daily: cron(0 16 * * ? *)  (ENABLED)
+- `12:52:46`   ✗ S3 data/ab-test.json: missing
+- `12:52:46` 
+- `12:52:46` ━━ #13 User Feedback Labeling ━━
+- `12:52:46` ✅   Lambda justhodl-feedback — python3.12 256MB age=Successful
+- `12:52:46`     no EventBridge schedule (manual/event-driven)
+- `12:52:46` 
+- `12:52:46` ━━ #14 Telegram Morning Brief Delivery ━━
+- `12:52:46` ✅   Lambda justhodl-morning-brief-tg — python3.12 256MB age=Successful
+- `12:52:46`     schedule justhodl-morning-brief-tg-daily: cron(0 12 * * ? *)  (ENABLED)
+- `12:52:46` 
+- `12:52:46` ━━ #15 Unified Ticker Page ━━
+- `12:52:46`   (no Lambda — this is a frontend/wiring item)
+- `12:52:46` 
+- `12:52:46` ━━ #16 What Changed Today (daily diff) ━━
+- `12:52:47` ✅   Lambda justhodl-whats-changed — python3.12 512MB age=Successful
+- `12:52:47`     schedule justhodl-whats-changed-daily: cron(0 17 * * ? *)  (ENABLED)
+- `12:52:47` ✅   S3 data/whats-changed.json: 1,657b  age=4.8min
+- `12:52:47` 
+- `12:52:47` ═══ SUMMARY ═══
+- `12:52:47`   Lambdas live:     13 / 13 expected
+- `12:52:47`   Schedules wired:  12
+- `12:52:47`   S3 outputs:       11 / 11 expected
+- `12:52:47`   ✗ ticker.html NOT on S3
+- `12:52:47`   ✗ feedback.html NOT on S3
+- `12:52:47` ✅   ✓ feedback-url.json → https://vmzexqk56frz3dvpo6nioe5ylm0kijlj.lambda-url.us-east-1.on.aws/
