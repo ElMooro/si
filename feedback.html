@@ -168,8 +168,8 @@ async function discoverUrl(){
     const r = await fetch("/feedback-url.json");
     if(r.ok){
       const j = await r.json();
-      if(j.url){
-        FEEDBACK_URL = j.url;
+      if(j.url || j.feedback_url){
+        FEEDBACK_URL = (j.url || j.feedback_url).replace(/\/$/, "");
         localStorage.setItem(FEEDBACK_URL_KEY, FEEDBACK_URL);
         return FEEDBACK_URL;
       }
