@@ -1,0 +1,8 @@
+{
+  "FunctionName": "justhodl-short-interest",
+  "Runtime": "python3.12",
+  "Handler": "lambda_function.lambda_handler",
+  "MemorySize": 512,
+  "Timeout": 600,
+  "Description": "Tracks FINRA short volume + Polygon short interest. Detects squeeze risk, crowded shorts, distribution, covering."
+}
