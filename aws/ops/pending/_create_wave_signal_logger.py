@@ -1,3 +1,4 @@
+# rerun-marker: 1777918512
 """Create justhodl-wave-signal-logger + 6h schedule + smoke."""
 import io
 import json

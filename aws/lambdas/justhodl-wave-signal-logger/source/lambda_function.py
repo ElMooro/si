@@ -200,34 +200,71 @@ def log_squeeze_risk():
 
 
 def log_etf_flows():
+    """Schema: by_category is dict-of-summaries (NOT lists of ETFs).
+    Per-ETF data is in heavy_inflow / heavy_outflow / rotation_in / rotation_out arrays."""
     d = fs3("data/etf-flows.json")
     out = []
-    for cat, etfs in (d.get("by_category") or {}).items():
-        for e in etfs:
-            ticker = e.get("ticker")
-            sig = e.get("signal")
-            z = e.get("dollar_volume_z_60d")
-            if not ticker or not sig or z is None:
-                continue
-            try:
-                z = float(z)
-            except Exception:
-                continue
-            if abs(z) < 2.5:
-                continue
-            if sig == "HEAVY_INFLOW":
-                sid = log_sig("etf_flow_extreme", f"INFLOW_z{z:.1f}", "UP",
-                              conf=min(0.7, abs(z) / 4),
-                              against=ticker, windows=WINDOWS_DEFAULT,
-                              rationale=f"{cat} heavy inflow z={z:.2f}")
-                out.append((ticker, "UP", sid))
-            elif sig == "HEAVY_OUTFLOW":
-                sid = log_sig("etf_flow_extreme", f"OUTFLOW_z{z:.1f}", "DOWN",
-                              conf=min(0.7, abs(z) / 4),
-                              against=ticker, windows=WINDOWS_DEFAULT,
-                              rationale=f"{cat} heavy outflow z={z:.2f}")
-                out.append((ticker, "DOWN", sid))
-    return out[:6]
+    # Heavy: high-confidence extreme inflow/outflow
+    for e in (d.get("heavy_inflow") or [])[:5]:
+        if not isinstance(e, dict):
+            continue
+        ticker = e.get("ticker")
+        z = e.get("dollar_volume_z_60d") or e.get("dvol_z_60d")
+        if not ticker:
+            continue
+        try:
+            z = float(z) if z is not None else None
+        except Exception:
+            z = None
+        sid = log_sig("etf_flow_extreme",
+                      f"INFLOW_z{z:.1f}" if z else "INFLOW",
+                      "UP",
+                      conf=min(0.7, abs(z) / 4) if z else 0.5,
+                      against=ticker, windows=WINDOWS_DEFAULT,
+                      rationale=f"{e.get('category','')} heavy inflow z={z}")
+        out.append((ticker, "UP", sid))
+    for e in (d.get("heavy_outflow") or [])[:5]:
+        if not isinstance(e, dict):
+            continue
+        ticker = e.get("ticker")
+        z = e.get("dollar_volume_z_60d") or e.get("dvol_z_60d")
+        if not ticker:
+            continue
+        try:
+            z = float(z) if z is not None else None
+        except Exception:
+            z = None
+        sid = log_sig("etf_flow_extreme",
+                      f"OUTFLOW_z{z:.1f}" if z else "OUTFLOW",
+                      "DOWN",
+                      conf=min(0.7, abs(z) / 4) if z else 0.5,
+                      against=ticker, windows=WINDOWS_DEFAULT,
+                      rationale=f"{e.get('category','')} heavy outflow z={z}")
+        out.append((ticker, "DOWN", sid))
+    # Rotation: lower confidence (price+flow combination)
+    for e in (d.get("rotation_in") or [])[:3]:
+        if not isinstance(e, dict):
+            continue
+        ticker = e.get("ticker")
+        if not ticker:
+            continue
+        sid = log_sig("etf_rotation", "ROTATION_IN", "UP",
+                      conf=0.45,
+                      against=ticker, windows=WINDOWS_DEFAULT,
+                      rationale=f"{e.get('category','')} rotation in (5d:{e.get('return_5d_pct')}%)")
+        out.append((ticker, "UP", sid))
+    for e in (d.get("rotation_out") or [])[:3]:
+        if not isinstance(e, dict):
+            continue
+        ticker = e.get("ticker")
+        if not ticker:
+            continue
+        sid = log_sig("etf_rotation", "ROTATION_OUT", "DOWN",
+                      conf=0.45,
+                      against=ticker, windows=WINDOWS_DEFAULT,
+                      rationale=f"{e.get('category','')} rotation out (20d:{e.get('return_20d_pct')}%)")
+        out.append((ticker, "DOWN", sid))
+    return out
 
 
 def log_macro_surprise():
@@ -262,15 +299,31 @@ def log_yield_curve():
     except Exception:
         return []
     out = []
-    if s2y10y < -10:  # inverted
-        sid = log_sig("yc_regime", f"INVERTED_{s2y10y:.0f}", "DOWN",
+    # Regime-based logging — historically:
+    #   BEAR_STEEPENER (long rates rising) → bad for SPY+TLT (cost of capital up)
+    #   BULL_STEEPENER (Fed cutting → short rates fall) → good for SPY (rate-cut tailwind)
+    #   BEAR_FLATTENER (Fed hiking) → mixed/bad for risk
+    #   BULL_FLATTENER (long rates falling, recession-pricing) → bad for SPY in time
+    #   INVERTED → recession leading indicator → DOWN for SPY
+    if "INVERT" in regime or s2y10y < -10:
+        sid = log_sig("yc_regime", regime or f"INV_{s2y10y:.0f}", "DOWN",
                       conf=0.45, against="SPY", windows=[21, 60],
-                      rationale=f"2s10s={s2y10y:.0f} bps inverted, regime={regime}")
+                      rationale=f"2s10s={s2y10y:.0f} bps, regime={regime}")
         out.append(("SPY", "DOWN", sid))
-    elif s2y10y > 100:  # very steep
-        sid = log_sig("yc_regime", f"STEEP_{s2y10y:.0f}", "DOWN",
+    elif regime == "BEAR_STEEPENER":
+        sid = log_sig("yc_regime", regime, "DOWN",
+                      conf=0.45, against="TLT", windows=[7, 21],
+                      rationale=f"2s10s={s2y10y:.0f} bps bear-steepening (long rates rising)")
+        out.append(("TLT", "DOWN", sid))
+    elif regime == "BULL_STEEPENER":
+        sid = log_sig("yc_regime", regime, "UP",
+                      conf=0.5, against="SPY", windows=[21, 60],
+                      rationale=f"2s10s={s2y10y:.0f} bps bull-steepening (Fed-cut tailwind)")
+        out.append(("SPY", "UP", sid))
+    elif regime == "BULL_FLATTENER":
+        sid = log_sig("yc_regime", regime, "DOWN",
                       conf=0.4, against="SPY", windows=[21, 60],
-                      rationale=f"2s10s={s2y10y:.0f} bps steep, regime={regime}")
+                      rationale=f"2s10s={s2y10y:.0f} bps bull-flattening (long rates falling — slowdown signal)")
         out.append(("SPY", "DOWN", sid))
     return out
 
@@ -279,23 +332,27 @@ def log_analogs():
     d = fs3("data/historical-analogs.json")
     call = d.get("directional_call")
     fwd = d.get("forward_distribution") or {}
+    fwd21 = fwd.get("21d") if isinstance(fwd, dict) else None
     if not call or call.upper() in ("NEUTRAL", "MIXED", "UNCLEAR"):
         return []
     pred = "UP" if "BULL" in call.upper() else "DOWN" if "BEAR" in call.upper() else None
     if pred is None:
         return []
-    # Use 21d hit rate as confidence proxy
-    hit = fwd.get("hit_rate_21d") or fwd.get("hit_rate") or 0.55
-    if isinstance(hit, str):
-        try:
-            hit = float(hit.replace("%", "")) / 100
-        except Exception:
-            hit = 0.55
-    mean_ret = fwd.get("mean_return_21d") or fwd.get("mean_return")
+    # Hit rate as confidence proxy. Schema: {"21d": {"hit_rate_pct": 100, "mean_pct": 2.54, ...}}
+    hit = 0.55
+    mean_ret = None
+    if isinstance(fwd21, dict):
+        hr = fwd21.get("hit_rate_pct")
+        if hr is not None:
+            try:
+                hit = float(hr) / 100
+            except Exception:
+                pass
+        mean_ret = fwd21.get("mean_pct")
     sid = log_sig("analog_signal", call, pred,
                   conf=min(0.85, max(0.4, hit)),
                   against="SPY", windows=[21],
-                  rationale=f"Top analog {call}, mean_21d={mean_ret}")
+                  rationale=f"Top analog {call}, mean_21d={mean_ret}%, hit_rate={hit:.0%}")
     return [("SPY", pred, sid)]
 
 
@@ -368,13 +425,13 @@ def log_sector_breadth():
 
 def log_momentum_top_picks():
     d = fs3("data/momentum-scanner.json")
-    top = d.get("top_composite") or d.get("top_50") or d.get("ranked", [])
+    top = d.get("top_50_composite") or d.get("top_composite") or d.get("ranked", [])
     if not isinstance(top, list):
         return []
     out = []
     for s in top[:3]:
         ticker = s.get("ticker")
-        score = s.get("composite_score") or s.get("composite") or 0
+        score = s.get("composite_score") or s.get("composite") or s.get("score") or 0
         if not ticker:
             continue
         try:
@@ -386,7 +443,7 @@ def log_momentum_top_picks():
         sid = log_sig("momentum_top_pick", f"composite_{score:.1f}", "UP",
                       conf=min(0.75, score / 100),
                       against=ticker, windows=[7, 21],
-                      rationale=f"Universe momentum composite={score:.1f}/100")
+                      rationale=f"Universe momentum composite={score:.1f}/100, sector={s.get('sector', '?')}")
         out.append((ticker, "UP", sid))
     return out
 
