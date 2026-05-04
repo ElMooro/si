@@ -141,7 +141,7 @@ def log_sig(stype, val, pred, conf, against, windows=None, magnitude=None, ratio
         "predicted_target_price": f2d(float(target)) if target else None,
         "horizon_days_primary": int(max(windows)),
         "rationale": str(rationale) if rationale else None,
-        "source": "wave-signal-logger-v2",
+        "source": "wave-signal-logger-v3",
     }
     SIGNALS_TBL.put_item(Item=item)
     bp = f"${price:.2f}" if price else "no-price"
@@ -454,6 +454,155 @@ def log_momentum_top_picks():
     return out
 
 
+def log_correlation_breaks():
+    """Log top regime correlation breaks (|delta_30d_vs_90d| >= 0.30) — per-pair, max 5.
+    Each break is logged as a directional signal on the dependent ticker:
+      - corr collapsing (delta >>0 toward decoupling) → predict mean-reversion in ticker_a
+      - delta sign tells direction of recent change, not future — we score whether
+        ticker_a continues to outperform/underperform ticker_b after the break.
+    """
+    d = fs3("data/correlation-surface.json") or {}
+    out = []
+    breaks = (d.get("regime_breaks") or [])[:5]
+    for b in breaks:
+        ta, tb = b.get("ticker_a"), b.get("ticker_b")
+        delta = b.get("delta_30d_vs_90d")
+        if not ta or not tb or delta is None:
+            continue
+        if abs(delta) < 0.30:
+            continue
+        # Direction: positive delta = correlation rose vs 90d (more coupled now)
+        # negative delta = correlation fell (decoupled). Both are mean-reversion candidates.
+        # We predict ticker_a will revert toward its 90d relationship with ticker_b.
+        # For scoring: if 30d corr was positive and now negative, expect ticker_a to
+        # underperform ticker_b over next 21d (mean-reversion of relative strength).
+        c30, c90 = b.get("corr_30d"), b.get("corr_90d")
+        if c30 is None or c90 is None:
+            continue
+        # Net mean-reversion direction depends on which way the relationship moved
+        if c30 > c90:  # got more coupled — expect decoupling reversion
+            pred = "DOWN"  # ticker_a relative to spy generally underperforms
+        else:  # got less coupled — expect re-coupling, depends on ticker_a recent move
+            pred = "UP"
+        sid = log_sig(
+            stype="correlation_break",
+            val=f"{ta}_{tb}_d{delta:+.2f}",
+            pred=pred,
+            conf=min(0.85, abs(delta)),
+            against=ta,
+            windows=WINDOWS_DEFAULT,
+            magnitude=None,
+            rationale=f"30d corr {c30:+.2f} vs 90d {c90:+.2f}, Δ={delta:+.2f}",
+        )
+        out.append(sid)
+    return out
+
+
+def log_divergence_extremes():
+    """Log OLS-residual divergences with |residual_z| >= 2.5 from divergence/current.json."""
+    d = fs3("divergence/current.json") or {}
+    out = []
+    divergences = d.get("divergences") or d.get("active_divergences") or []
+    for div in divergences[:8]:
+        z = div.get("residual_z") or div.get("z_score")
+        if z is None or abs(z) < 2.5:
+            continue
+        asset_y = div.get("asset_y") or div.get("y") or div.get("dependent")
+        asset_x = div.get("asset_x") or div.get("x") or div.get("independent")
+        if not asset_y:
+            continue
+        # Mean-reversion: positive z = y is rich vs x → predict y goes DOWN
+        pred = "DOWN" if z > 0 else "UP"
+        sid = log_sig(
+            stype="divergence_extreme",
+            val=f"{asset_y}_vs_{asset_x}_z{z:+.2f}",
+            pred=pred,
+            conf=min(0.85, abs(z) / 5.0),
+            against=asset_y,
+            windows=WINDOWS_DEFAULT,
+            magnitude=None,
+            rationale=f"OLS residual z={z:+.2f}, mean-reversion candidate",
+        )
+        out.append(sid)
+    return out
+
+
+def log_cot_extremes():
+    """Log COT speculator-net positioning extremes (≤5 or ≥95 percentile rank)."""
+    d = fs3("data/cot-extremes.json") or fs3("cot/extremes.json") or {}
+    out = []
+    extremes = d.get("extremes") or d.get("contracts") or []
+    for e in extremes[:8]:
+        pct = e.get("percentile_rank") or e.get("pct_rank")
+        if pct is None:
+            continue
+        if pct >= 95:
+            # Specs at extreme long → contrarian SHORT signal
+            pred = "DOWN"
+            label = "EXTREME_LONG"
+        elif pct <= 5:
+            # Specs at extreme short → contrarian LONG signal
+            pred = "UP"
+            label = "EXTREME_SHORT"
+        else:
+            continue
+        contract = e.get("contract") or e.get("name") or "?"
+        # Map COT contract to a tradable proxy ticker for price tracking
+        proxy = {
+            "GOLD": "GLD", "SILVER": "SLV", "CRUDE": "USO", "WTI": "USO",
+            "BRENT": "USO", "NATGAS": "UNG", "NATURAL_GAS": "UNG",
+            "SP500": "SPY", "NASDAQ": "QQQ", "RUSSELL": "IWM",
+            "10Y": "TLT", "10_YEAR": "TLT", "EURO": "FXE", "YEN": "FXY",
+            "BTC": "BITO", "BITCOIN": "BITO", "DXY": "UUP", "DOLLAR": "UUP",
+        }
+        proxy_ticker = proxy.get(contract.upper())
+        if not proxy_ticker:
+            # Skip — no clean price proxy means we can't score it
+            continue
+        sid = log_sig(
+            stype="cot_extreme",
+            val=f"{contract}_{label}_p{pct:.0f}",
+            pred=pred,
+            conf=min(0.85, abs(pct - 50) / 50.0),
+            against=proxy_ticker,
+            windows=WINDOWS_LONG,  # COT mean-reversion takes longer
+            magnitude=None,
+            rationale=f"Spec net at {pct:.0f}th pct (5y) — contrarian {label}",
+        )
+        out.append(sid)
+    return out
+
+
+def log_eurodollar_stress():
+    """Log eurodollar funding stress when composite > 70/100."""
+    d = fs3("data/eurodollar-stress.json") or {}
+    score = d.get("composite_stress_score") or d.get("composite_score") or d.get("composite")
+    if score is None:
+        return []
+    if score < 50:
+        return []
+    # Stress > 70 = predict risk-off. Stress 50-70 = neutral-to-defensive.
+    if score >= 70:
+        pred = "DOWN"
+        label = "ELEVATED_STRESS"
+    elif score <= 30:
+        pred = "UP"
+        label = "ABUNDANT_LIQUIDITY"
+    else:
+        return []
+    sid = log_sig(
+        stype="eurodollar_stress",
+        val=f"{label}_{score:.0f}",
+        pred=pred,
+        conf=min(0.85, abs(score - 50) / 50.0),
+        against="SPY",
+        windows=WINDOWS_DEFAULT,
+        magnitude=None,
+        rationale=f"Composite stress {score}/100 — {label}",
+    )
+    return [sid]
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[wave-logger] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -470,6 +619,10 @@ def lambda_handler(event=None, context=None):
         ("auction_crisis", log_auction_crisis),
         ("sector_breadth", log_sector_breadth),
         ("momentum_top_pick", log_momentum_top_picks),
+        ("correlation_break", log_correlation_breaks),
+        ("divergence_extreme", log_divergence_extremes),
+        ("cot_extreme", log_cot_extremes),
+        ("eurodollar_stress", log_eurodollar_stress),
     ]
     for name, fn in handlers:
         try:
