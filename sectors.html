@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Sectors · JustHodl</title>
+<meta name="description" content="11 SPDR sectors — returns, relative strength vs SPY, momentum quintile, capital flow, regime classification.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap}
+header.hero .meta b{color:var(--t2);font-weight:500}
+
+.breadth-card{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd2);border-radius:12px;padding:20px 24px;margin-bottom:28px}
+.breadth-card .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:6px}
+.breadth-card .v{font-family:var(--display);font-size:32px;font-weight:700}
+.breadth-card .desc{color:var(--t2);font-size:14px;margin-top:4px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:6px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+
+.heatmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.cell{position:relative;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .2s;overflow:hidden}
+.cell:hover{border-color:var(--brd2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.cell .row{display:flex;justify-content:space-between;align-items:center}
+.cell .ticker{font-family:var(--mono);font-weight:700;font-size:14px;letter-spacing:.5px}
+.cell .name{color:var(--t2);font-size:12px;margin-top:2px}
+.cell .price{font-family:var(--mono);color:var(--t3);font-size:11px;margin-top:6px}
+.cell .ret{font-family:var(--mono);font-weight:700;font-size:24px;margin-top:8px}
+.cell .ret-label{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px}
+.cell .returns-row{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--brd)}
+.cell .returns-row .col{text-align:center;flex:1}
+.cell .returns-row .col .lbl{font-family:var(--mono);font-size:9px;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.cell .returns-row .col .val{font-family:var(--mono);font-size:11px;font-weight:600}
+.cell .regime-tag{position:absolute;top:10px;right:10px;font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;padding:2px 6px;border-radius:3px;font-weight:600}
+.cell .emoji{font-size:16px;margin-right:6px;vertical-align:middle}
+.cell.LEADER{border-left:4px solid var(--green)}
+.cell.RECOVERING{border-left:4px solid var(--cyan)}
+.cell.FATIGUING{border-left:4px solid var(--yellow)}
+.cell.LAGGING{border-left:4px solid var(--red)}
+.regime-tag.LEADER{background:var(--green-bg);color:var(--green)}
+.regime-tag.RECOVERING{background:var(--cyan-bg);color:var(--cyan)}
+.regime-tag.FATIGUING{background:var(--yellow-bg);color:var(--yellow)}
+.regime-tag.LAGGING{background:var(--red-bg);color:var(--red)}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:var(--yellow)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+table th{text-align:left;padding:8px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+table td{padding:10px;border-bottom:1px solid var(--brd);color:var(--t2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+.tbl-wrap{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden}
+.tbl-head{padding:14px 18px;background:var(--bg2);border-bottom:1px solid var(--brd2)}
+.tbl-head h3{margin:0;font-family:var(--display);font-size:18px;font-weight:600;color:var(--t1)}
+.tbl-head p{margin:2px 0 0;color:var(--t3);font-size:12px}
+
+.empty{color:var(--t3);padding:20px;text-align:center;font-style:italic}
+footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/13f.html">13F</a>
+    <a class="tab" href="/ticker.html">Ticker</a>
+    <a class="tab active" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/feedback.html">Feedback</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Sectors</h1>
+    <p class="lede">11 SPDR sector ETFs ranked by relative strength vs SPY across 6 windows. Regime tags spot leaders, fatiguing pockets, and laggards in real time.</p>
+    <div class="meta">
+      <span><b>Source</b> data/sector-rotation.json + data/etf-flows.json</span>
+      <span><b>Refresh</b> every 6 hours</span>
+      <span id="meta-updated"><b>Updated</b> —</span>
+      <span><b>SPY</b> $<span id="spy-close">—</span> · 252d <span id="spy-252">—</span></span>
+    </div>
+  </header>
+
+  <div class="breadth-card">
+    <div class="label">Market breadth</div>
+    <div class="v" id="breadth">—</div>
+    <div class="desc" id="breadth-desc">—</div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Sector heatmap</h2>
+    <p class="sub">Each tile shows 63d return up top, then 1d/5d/20d/126d/252d below. Border color = regime. Click for breakdown.</p>
+    <div class="heatmap" id="heatmap"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>📋 Detailed table — sorted by 63d RS vs SPY</h2>
+    <p class="sub">Relative strength = sector return − SPY return. Positive RS = outperforming. Highlights momentum quintile (★★★★★ = top 20%).</p>
+    <div class="tbl-wrap">
+      <div class="tbl-head"><h3>Full sector breakdown</h3><p>Capital flow z-score from data/etf-flows.json (60d $ volume distribution).</p></div>
+      <table id="all-sectors">
+        <thead>
+          <tr>
+            <th>Sector</th>
+            <th class="num">Last</th>
+            <th class="num">1d</th>
+            <th class="num">5d</th>
+            <th class="num">20d</th>
+            <th class="num">63d</th>
+            <th class="num">126d</th>
+            <th class="num">252d</th>
+            <th class="num">RS 20d</th>
+            <th class="num">RS 63d</th>
+            <th class="num">RS 252d</th>
+            <th class="num">Mom</th>
+            <th class="num">Flow z</th>
+            <th>Regime</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="14" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Sector rotation refreshed every 6 hours · Source <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/sector-rotation.json">data/sector-rotation.json</a>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+async function load(){
+  let snap = null;
+  try{
+    const r = await fetch(`${BUCKET}/data/sector-rotation.json?t=${Date.now()}`);
+    if(r.ok) snap = await r.json();
+  }catch(e){console.error(e)}
+
+  if(!snap){
+    document.querySelectorAll(".empty").forEach(el=>el.textContent="Could not load sector data.");
+    return;
+  }
+
+  const upd = snap.generated_at ? new Date(snap.generated_at) : null;
+  if(upd) document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${upd.toLocaleString()}`;
+  document.getElementById("spy-close").textContent = (snap.spy_close||0).toFixed(2);
+  const spy252 = (snap.spy_returns||{})["252"];
+  if(spy252!=null) document.getElementById("spy-252").innerHTML = `<span class="${spy252>0?'up':'down'}">${spy252>0?'+':''}${spy252.toFixed(2)}%</span>`;
+
+  const breadth = snap.market_breadth;
+  const breadthEl = document.getElementById("breadth");
+  breadthEl.textContent = breadth || "—";
+  const cMap = {BROAD_LEADERSHIP:"var(--green)", NARROW_LEADERSHIP:"var(--red)", MIXED:"var(--yellow)"};
+  if(cMap[breadth]) breadthEl.style.color = cMap[breadth];
+  document.getElementById("breadth-desc").textContent = snap.market_breadth_description || "—";
+
+  const sectors = snap.sectors || [];
+  // Heatmap
+  document.getElementById("heatmap").innerHTML = sectors.map(s => renderCell(s)).join("");
+  // Table
+  document.querySelector("#all-sectors tbody").innerHTML = sectors.map(s => renderRow(s)).join("");
+}
+
+function pct(v, sign){
+  if(v==null||isNaN(v)) return "—";
+  const f = +v;
+  return (sign && f>=0 ? "+" : "") + f.toFixed(2) + "%";
+}
+function getRet(s, w){
+  const r = s.returns || {};
+  return r[w] ?? r[String(w)];
+}
+function getRs(s, w){
+  const r = s.rs_vs_spy || {};
+  return r[w] ?? r[String(w)];
+}
+function colorize(v){
+  if(v==null) return "—";
+  const cls = v>0 ? "up" : v<0 ? "down" : "flat";
+  return `<span class="${cls}">${pct(v, true)}</span>`;
+}
+function quintileStars(q){
+  if(q==null) return "—";
+  return "★".repeat(q+1) + "☆".repeat(4-q);
+}
+
+function renderCell(s){
+  const ret63 = getRet(s, 63);
+  const c = ret63>0 ? "up" : ret63<0 ? "down" : "flat";
+  return `<div class="cell ${s.regime||''}" onclick="window.open('https://www.tradingview.com/symbols/AMEX-${s.ticker}/', '_blank')">
+    <span class="regime-tag ${s.regime||''}">${s.regime||'—'}</span>
+    <div class="row">
+      <div>
+        <div class="ticker"><span class="emoji">${s.emoji||''}</span>${s.ticker}</div>
+        <div class="name">${s.name||''}</div>
+      </div>
+    </div>
+    <div class="ret-label">63d return</div>
+    <div class="ret ${c}">${pct(ret63, true)}</div>
+    <div class="returns-row">
+      <div class="col"><div class="lbl">1d</div><div class="val">${colorize(getRet(s,1))}</div></div>
+      <div class="col"><div class="lbl">5d</div><div class="val">${colorize(getRet(s,5))}</div></div>
+      <div class="col"><div class="lbl">20d</div><div class="val">${colorize(getRet(s,20))}</div></div>
+      <div class="col"><div class="lbl">126d</div><div class="val">${colorize(getRet(s,126))}</div></div>
+      <div class="col"><div class="lbl">252d</div><div class="val">${colorize(getRet(s,252))}</div></div>
+    </div>
+  </div>`;
+}
+
+function renderRow(s){
+  const fz = s.flow_z;
+  const fzCls = fz!=null ? (fz>1.5?"up":fz<-1.5?"down":"flat") : "";
+  const fzStr = fz!=null ? fz.toFixed(2) : "—";
+  return `<tr>
+    <td class="tname">${s.emoji||""} <b>${s.ticker}</b> <span style="color:var(--t3);font-weight:400">${s.name}</span></td>
+    <td class="num">$${(s.last_close||0).toFixed(2)}</td>
+    <td class="num">${colorize(getRet(s,1))}</td>
+    <td class="num">${colorize(getRet(s,5))}</td>
+    <td class="num">${colorize(getRet(s,20))}</td>
+    <td class="num">${colorize(getRet(s,63))}</td>
+    <td class="num">${colorize(getRet(s,126))}</td>
+    <td class="num">${colorize(getRet(s,252))}</td>
+    <td class="num">${colorize(getRs(s,20))}</td>
+    <td class="num"><b>${colorize(getRs(s,63))}</b></td>
+    <td class="num">${colorize(getRs(s,252))}</td>
+    <td class="num" style="color:var(--cyan)">${quintileStars(s.momentum_quintile)}</td>
+    <td class="num ${fzCls}">${fzStr}</td>
+    <td><span class="tag ${s.regime==='LEADER'?'green':s.regime==='LAGGING'?'red':s.regime==='RECOVERING'?'cyan':'yellow'}">${s.regime||'—'}</span></td>
+  </tr>`;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
