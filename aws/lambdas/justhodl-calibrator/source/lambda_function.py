@@ -355,16 +355,31 @@ def run_calibration():
         Type="String",
         Overwrite=True
     )
-    # SSM_REPORT_PATH must serialize the un-aliased report — SSM Standard
-    # tier has a 4096-char limit and adding ka_* aliases doubles the size,
-    # which would push us over. Consumers reading from SSM will be migrated
-    # in phase 3 to either accept khalid_* OR read from S3 (which is aliased).
-    ssm.put_parameter(
-        Name=SSM_REPORT_PATH,
-        Value=json.dumps(report),
-        Type="String",
-        Overwrite=True
-    )
+    # SSM_REPORT_PATH historically tried to fit the entire report. Standard tier
+    # caps at 4096 chars and the report has grown beyond that as more signal types
+    # accumulate. Fix: write a slim summary (pure metadata, no per-signal lists)
+    # to SSM. Full report still persists to S3 below at calibration/latest.json.
+    # Reports-builder only uses .keys() for diagnostics, so summary suffices.
+    slim_summary = {
+        "generated_at":         report["generated_at"],
+        "total_outcomes":       report["total_outcomes"],
+        "signal_types_tracked": report["signal_types_tracked"],
+        "n_weights":            len(report.get("weights") or {}),
+        "n_accuracy":           len(report.get("accuracy_by_type") or {}),
+        "khalid_weights":       report.get("khalid_component_weights"),
+        "n_recommendations":    len(report.get("recommendations") or []),
+        "_note":                "Full report at s3://justhodl-dashboard-live/calibration/latest.json (SSM Standard tier 4KB cap forces summary here).",
+    }
+    try:
+        ssm.put_parameter(
+            Name=SSM_REPORT_PATH,
+            Value=json.dumps(slim_summary),
+            Type="String",
+            Overwrite=True,
+        )
+    except ssm.exceptions.ClientError as e:
+        # Last-resort: silence non-critical SSM error; weights+accuracy already saved.
+        print(f"[CALIBRATE] SSM_REPORT_PATH write failed (non-fatal): {e}")
     print(f"[CALIBRATE] Weights and accuracy saved to SSM")
 
     # Phase 2 dual-write — alias khalid_* → ka_* for the S3-published copies.
