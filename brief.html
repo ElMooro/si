@@ -134,7 +134,7 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
 <main>
   <header class="hero">
     <h1>Executive Brief</h1>
-    <p class="lede">Claude synthesizes 14 live systems — calibration, sectors, momentum, allocator, risk, COT, eurodollar, macro surprise, insider flow, earnings PEAD, correlations, alerts — into one decisive 7-section call. Refreshed every 4 hours. Tap any snapshot tile to see the raw data Claude saw.</p>
+    <p class="lede">Claude synthesizes 17 live systems — calibration trust ranking, paper portfolio P&L, sectors, momentum, allocator, risk, COT, eurodollar, macro surprise, insider flow, earnings PEAD, correlations, alerts — into one decisive 7-section call. Refreshed every 4 hours. Each call gets snapshotted to <code>data/decisive-call-history.json</code> for evolution tracking. Tap any snapshot tile to see the raw data Claude saw.</p>
     <div class="meta" id="meta">
       <span class="pill"><span class="dot"></span> <span id="status">loading…</span></span>
       <span><b id="model">—</b></span>
@@ -153,7 +153,7 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
 
   <div class="snapshot" id="snapshot-section" style="display:none">
     <h2>What Claude saw</h2>
-    <p class="sub">The 14 raw data files that fed this brief. Tap any tile to inspect the JSON Claude was given.</p>
+    <p class="sub">The 17 raw data files that fed this brief. Tap any tile to inspect the JSON Claude was given.</p>
     <div class="snap-grid" id="snap-grid"></div>
   </div>
 </main>
@@ -197,7 +197,32 @@ function renderSnapshot(snap){
   grid.innerHTML = '';
   const order = [
     ['intelligence',       'Intel Report',          d => d?.regime || d?.scores?.regime || '—'],
+    ['calibration_v2',     'Trust Ranking',         d => {
+      if (!d) return '—';
+      const wa = d.weighted_mean_accuracy;
+      const top = d.top_weighted_signals?.[0];
+      const cal = d.n_calibrated_n30;
+      const accStr = wa != null ? `${(wa*100).toFixed(1)}%` : '—';
+      const topStr = top ? `★ ${top.sig} w=${top.weight}` : '';
+      return `${accStr} acc · ${cal||0} ready · ${topStr}`;
+    }],
     ['calibration',        'Calibration',           d => d?.summary?.weighted_acc != null ? `${(d.summary.weighted_acc*100).toFixed(1)}% acc` : '—'],
+    ['paper_portfolio',    'Paper Portfolio',       d => {
+      if (!d) return '—';
+      const sp = d.signal_portfolio;
+      const ml = d.macro_loop2;
+      if (sp) {
+        const nOpen = sp.n_open ?? 0;
+        const navChg = sp.current_nav_pct_chg;
+        const nearStop = sp.near_stop?.length || 0;
+        const nearTarget = sp.near_target?.length || 0;
+        const flag = nearStop ? ` ${nearStop}🔴` : (nearTarget ? ` ${nearTarget}🟢` : '');
+        const navStr = navChg != null ? ` ${navChg>0?'+':''}${fmt(navChg,{maximumFractionDigits:2})}%` : '';
+        return `${nOpen} open${navStr}${flag}`;
+      }
+      if (ml) return `Loop2: ${ml.system_alpha_pct>=0?'+':''}${fmt(ml.system_alpha_pct,{maximumFractionDigits:2})}% alpha`;
+      return '—';
+    }],
     ['sectors',            'Sector Rotation',       d => d?.headline?.breadth || d?.summary?.breadth_state || '—'],
     ['momentum',           'Momentum Top',          d => d?.top?.[0]?.ticker ? `${d.top[0].ticker} ${fmt(d.top[0].composite,{maximumFractionDigits:1})}` : '—'],
     ['allocator',          'Allocator',             d => d?.regime_headline || `${d?.cash_buffer_pct||0}% cash` ],

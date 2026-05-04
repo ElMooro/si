@@ -65,19 +65,26 @@ def load_json(key, default=None):
 _CALL_VERBS = ["EXIT ALL RISK", "EXIT", "TRIM", "HEDGE", "LEVER", "LONG", "LOAD", "WAIT", "HOLD"]
 
 def _extract_call_verb(md):
-    """Heuristic: find the DECISIVE CALL section and pull the dominant action verb.
-    Returns one of EXIT_ALL_RISK / EXIT / TRIM / HEDGE / LEVER / LONG / WAIT / HOLD / UNKNOWN."""
+    """Heuristic: find the DECISIVE CALL verb in Claude's brief output.
+    The verb appears in section 7 of every brief and is one of:
+    EXIT_ALL_RISK / EXIT / TRIM / HEDGE / LEVER / LONG / WAIT / HOLD / UNKNOWN.
+
+    Strategy:
+      1. Look at the last 2500 chars of the brief (section 7 is always near the end).
+      2. Scan for the call verbs in priority order — most decisive first.
+      3. The brief consistently bolds the verb (**TRIM**, **LONG**, etc.) so the
+         pattern is reliable.
+    """
     if not md:
         return "UNKNOWN"
-    # Find the decisive-call section
+    tail = md[-2500:].upper()
+    # Prefer verbs that appear inside ** ** (bolded action), then fall back to plain
     import re as _re
-    m = _re.search(r'(?i)\bdecisive\s*call\b(.*?)(?=\n#{1,3}\s|\Z)', md, _re.DOTALL)
-    section = m.group(1) if m else md[-800:]  # fallback: last 800 chars
-    section_upper = section.upper()
-    # Match in priority order — most specific/decisive first
     for verb in _CALL_VERBS:
-        if verb in section_upper:
-            # Normalize "EXIT ALL RISK" → "EXIT_ALL_RISK"
+        if _re.search(rf'\*\*\s*{_re.escape(verb)}\b', tail):
+            return verb.replace(" ", "_")
+    for verb in _CALL_VERBS:
+        if _re.search(rf'\b{_re.escape(verb)}\b', tail):
             return verb.replace(" ", "_")
     return "UNKNOWN"
 
