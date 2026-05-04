@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>News Flow · JustHodl</title>
+<meta name="description" content="Unified what's-happening feed: alerts, insider buys, earnings, macro surprises, divergences, correlation breaks. One timeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(255,196,0,.04),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,212,255,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+
+main{max-width:1100px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:740px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap}
+header.hero .meta b{color:var(--t2);font-weight:500}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.filter-btn{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:6px 12px;border:1px solid var(--brd2);background:var(--bg1);color:var(--t3);border-radius:4px;cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--brd);color:var(--t1)}
+.filter-btn.active{background:var(--bg3);color:var(--cyan);border-color:var(--cyan)}
+
+.timeline{position:relative;padding-left:30px}
+.timeline:before{content:'';position:absolute;top:0;bottom:0;left:8px;width:1px;background:var(--brd2)}
+.event{position:relative;margin-bottom:18px}
+.event:before{content:'';position:absolute;left:-29px;top:14px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--cyan)}
+.event.HIGH:before{border-color:var(--red);box-shadow:0 0 0 4px var(--red-bg)}
+.event.MED:before{border-color:var(--yellow);box-shadow:0 0 0 4px var(--yellow-bg)}
+.event.LOW:before{border-color:var(--cyan);box-shadow:0 0 0 4px var(--cyan-bg)}
+.event.INFO:before{border-color:var(--t3)}
+
+.event-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 18px;transition:all .15s}
+.event-card:hover{border-color:var(--brd2)}
+.event-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.event-cat{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 8px;border-radius:3px;flex-shrink:0;white-space:nowrap}
+.event-cat.ALERT{background:var(--red-bg);color:var(--red)}
+.event-cat.INSIDER{background:var(--green-bg);color:var(--green)}
+.event-cat.EARNINGS{background:var(--purple-bg);color:var(--purple)}
+.event-cat.MACRO{background:var(--cyan-bg);color:var(--cyan)}
+.event-cat.DIVERGENCE{background:var(--yellow-bg);color:var(--yellow)}
+.event-cat.CORRELATION{background:var(--orange-bg);color:var(--orange)}
+.event-cat.AUCTION{background:var(--red-bg);color:var(--red)}
+.event-cat.WHATS_CHANGED{background:var(--cyan-bg);color:var(--cyan)}
+
+.event-time{font-family:var(--mono);font-size:11px;color:var(--t3);white-space:nowrap}
+.event-title{color:var(--t1);font-weight:600;font-size:15px;margin-bottom:4px}
+.event-detail{color:var(--t2);font-size:13px;line-height:1.5}
+.event-detail .pill{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--bg3);padding:1px 6px;border-radius:3px;margin-right:4px;color:var(--t1)}
+.event-up{color:var(--green)}
+.event-down{color:var(--red)}
+
+.empty-feed{padding:60px;text-align:center;color:var(--t3);font-style:italic}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media (max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px;text-align:center}
+.kpi .lbl{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.kpi .val{font-family:var(--mono);font-size:24px;font-weight:600}
+
+footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab active" href="/news.html">News Flow</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>News Flow</h1>
+    <p class="lede">Everything happening across the system in one timeline — alerts, insider buys, earnings PEAD, macro surprises, divergences, correlation breaks, auction stress, what changed today.</p>
+    <div class="meta">
+      <span><b>Sources</b> 8 systems aggregated</span>
+      <span><b>Refresh</b> every 5 min</span>
+      <span id="meta-updated"><b>Updated</b> —</span>
+    </div>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="lbl">Events today</div><div class="val" id="kpi-events">—</div></div>
+    <div class="kpi"><div class="lbl">High severity</div><div class="val" id="kpi-high" style="color:var(--red)">—</div></div>
+    <div class="kpi"><div class="lbl">Insider buys</div><div class="val" id="kpi-insider" style="color:var(--green)">—</div></div>
+    <div class="kpi"><div class="lbl">Active alerts</div><div class="val" id="kpi-alerts" style="color:var(--orange)">—</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="ALERT">🔴 Alerts</button>
+    <button class="filter-btn" data-filter="INSIDER">💼 Insider</button>
+    <button class="filter-btn" data-filter="EARNINGS">📊 Earnings</button>
+    <button class="filter-btn" data-filter="MACRO">🌍 Macro</button>
+    <button class="filter-btn" data-filter="DIVERGENCE">🔀 Divergence</button>
+    <button class="filter-btn" data-filter="CORRELATION">🔁 Correlation</button>
+    <button class="filter-btn" data-filter="AUCTION">🏛️ Auction</button>
+    <button class="filter-btn" data-filter="WHATS_CHANGED">📅 Daily diff</button>
+  </div>
+
+  <div class="timeline" id="feed"><div class="empty-feed">Loading…</div></div>
+
+</main>
+
+<footer>
+  Aggregated from 8 systems · Refreshed every 5 min on this page
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+let _events = [];
+let _filter = "all";
+
+async function fetchJson(key){
+  try{
+    const r = await fetch(`${BUCKET}/${key}?t=${Date.now()}`);
+    if(r.ok) return await r.json();
+  }catch(e){console.error(key, e)}
+  return null;
+}
+
+function parseTime(s){
+  try{ return new Date(s); }catch(e){ return null; }
+}
+
+function fmtTime(t){
+  if(!t) return "—";
+  const now = new Date();
+  const diff = (now - t) / 1000;
+  if(diff < 60) return "just now";
+  if(diff < 3600) return Math.floor(diff/60) + "m ago";
+  if(diff < 86400) return Math.floor(diff/3600) + "h ago";
+  return Math.floor(diff/86400) + "d ago";
+}
+
+async function load(){
+  const [alerts, insider, earnings, macro, divergence, correl, auction, whatsChanged] = await Promise.all([
+    fetchJson("data/alert-history.json"),
+    fetchJson("data/insider-trades.json"),
+    fetchJson("data/earnings-tracker.json"),
+    fetchJson("data/macro-surprise.json"),
+    fetchJson("divergence/current.json"),
+    fetchJson("data/correlation-surface.json"),
+    fetchJson("data/auction-crisis.json"),
+    fetchJson("data/whats-changed.json"),
+  ]);
+
+  document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${new Date().toLocaleString()}`;
+
+  const events = [];
+
+  // 1. ALERTS (with timestamps)
+  let activeAlerts = 0;
+  if(alerts && alerts.alerts){
+    for(const a of alerts.alerts){
+      const t = parseTime(a.sent_at);
+      if(t) activeAlerts++;
+      events.push({
+        cat: "ALERT",
+        sev: a.severity || "MED",
+        time: t || new Date(),
+        title: a.title || "Alert",
+        detail: a.detail || "",
+        sortKey: t ? t.getTime() : 0,
+      });
+    }
+  }
+
+  // 2. INSIDER (recent buys)
+  let insiderBuys = 0;
+  if(insider){
+    const trades = insider.recent_buys || insider.buys || insider.transactions || [];
+    if(Array.isArray(trades)){
+      for(const tr of trades.slice(0, 50)){
+        const ttime = parseTime(tr.transaction_date || tr.filing_date || tr.date);
+        const ticker = tr.ticker || tr.symbol;
+        const insider_name = tr.name || tr.insider_name || tr.officer || "";
+        const value = tr.value || tr.transaction_value || tr.total_value;
+        const action = tr.transaction_type || tr.acquired_disposed || "BUY";
+        if(action === "P" || action === "BUY" || (action || "").toLowerCase().includes("buy") || (action || "").toLowerCase().includes("acquir")){
+          insiderBuys++;
+          events.push({
+            cat: "INSIDER",
+            sev: value > 1e6 ? "HIGH" : value > 100000 ? "MED" : "LOW",
+            time: ttime || new Date(),
+            title: `Insider buy: ${ticker}`,
+            detail: `${insider_name} · ${value ? '$' + (value/1000).toFixed(0) + 'K' : 'amount n/a'}`,
+            sortKey: ttime ? ttime.getTime() : 0,
+          });
+        }
+      }
+    }
+  }
+
+  // 3. EARNINGS (PEAD signals)
+  if(earnings){
+    const pead = earnings.pead_signals || [];
+    for(const p of pead.slice(0, 15)){
+      const ticker = p.ticker;
+      const sig = p.signal;
+      if(!sig || sig === "INSUFFICIENT_DATA") continue;
+      const eps = p.eps_surprise_pct;
+      const ret1d = p.price_return_1d_pct;
+      events.push({
+        cat: "EARNINGS",
+        sev: sig.includes("STRONG") ? "MED" : "INFO",
+        time: parseTime(p.report_date) || new Date(),
+        title: `${ticker} · ${sig.replace(/_/g,' ').toLowerCase()}`,
+        detail: `EPS surprise <span class="pill">${eps?.toFixed(1)}%</span> · 1d return <span class="${ret1d>0?'event-up':'event-down'}">${ret1d?.toFixed(2)}%</span>`,
+        sortKey: 0,
+      });
+    }
+  }
+
+  // 4. MACRO (surprise composite)
+  if(macro){
+    const composite = macro.composite || macro.composite_z;
+    const regime = macro.regime;
+    if(composite != null){
+      const sev = Math.abs(composite) >= 3 ? "HIGH" : Math.abs(composite) >= 2 ? "MED" : "LOW";
+      events.push({
+        cat: "MACRO",
+        sev,
+        time: parseTime(macro.generated_at || macro.as_of) || new Date(),
+        title: `Macro surprise composite: ${composite >= 0 ? '+' : ''}${composite.toFixed(2)}σ`,
+        detail: `Regime: ${regime} · ${macro.regime_description || ''}`,
+        sortKey: 0,
+      });
+    }
+  }
+
+  // 5. DIVERGENCES
+  if(divergence){
+    const divs = divergence.divergences || divergence.active_divergences || [];
+    for(const d of divs.slice(0, 10)){
+      const z = d.residual_z || d.z_score;
+      const pair = d.pair || `${d.asset_y || ''} vs ${d.asset_x || ''}`;
+      events.push({
+        cat: "DIVERGENCE",
+        sev: Math.abs(z) >= 2.5 ? "MED" : "LOW",
+        time: parseTime(divergence.generated_at) || new Date(),
+        title: `Divergence: ${pair}`,
+        detail: `Residual z = <span class="pill">${z >= 0 ? '+' : ''}${z?.toFixed(2)}</span>`,
+        sortKey: 0,
+      });
+    }
+  }
+
+  // 6. CORRELATION
+  if(correl){
+    const breaks = correl.regime_breaks || [];
+    for(const b of breaks.slice(0, 10)){
+      const ta = b.ticker_a, tb = b.ticker_b;
+      const delta = b.delta_30d_vs_90d;
+      events.push({
+        cat: "CORRELATION",
+        sev: Math.abs(delta || 0) >= 0.4 ? "HIGH" : "MED",
+        time: parseTime(correl.generated_at) || new Date(),
+        title: `Correlation regime break: ${ta}↔${tb}`,
+        detail: `30d-vs-90d Δ = <span class="pill">${delta >= 0 ? '+' : ''}${(delta || 0).toFixed(2)}</span>`,
+        sortKey: 0,
+      });
+    }
+  }
+
+  // 7. AUCTION
+  if(auction){
+    const score = auction.composite_score || auction.crisis_score;
+    const regime = auction.regime;
+    if(score != null){
+      events.push({
+        cat: "AUCTION",
+        sev: score >= 60 ? "HIGH" : score >= 30 ? "MED" : "LOW",
+        time: parseTime(auction.generated_at) || new Date(),
+        title: `Treasury auction stress: ${score}/100`,
+        detail: `Regime: ${regime} · ${auction.regime_description || ''}`,
+        sortKey: 0,
+      });
+    }
+  }
+
+  // 8. WHATS CHANGED
+  if(whatsChanged){
+    const changes = whatsChanged.changes || whatsChanged.diff || [];
+    if(Array.isArray(changes)){
+      for(const c of changes.slice(0, 8)){
+        events.push({
+          cat: "WHATS_CHANGED",
+          sev: c.severity || "INFO",
+          time: parseTime(whatsChanged.generated_at) || new Date(),
+          title: c.title || c.summary || c.field || "What changed",
+          detail: c.detail || c.description || JSON.stringify(c).slice(0, 150),
+          sortKey: 0,
+        });
+      }
+    } else if(typeof whatsChanged === 'object'){
+      // dump the structure as one event
+      const summary = whatsChanged.summary || whatsChanged.headline;
+      if(summary){
+        events.push({
+          cat: "WHATS_CHANGED",
+          sev: "INFO",
+          time: parseTime(whatsChanged.generated_at) || new Date(),
+          title: "What changed today",
+          detail: summary,
+          sortKey: 0,
+        });
+      }
+    }
+  }
+
+  // Sort newest first (mostly by sortKey or by sev)
+  events.sort((a, b) => {
+    if(a.sortKey && b.sortKey) return b.sortKey - a.sortKey;
+    if(a.sortKey) return -1;
+    if(b.sortKey) return 1;
+    const sevOrder = {HIGH:0, MED:1, LOW:2, INFO:3};
+    return (sevOrder[a.sev]||9) - (sevOrder[b.sev]||9);
+  });
+
+  _events = events;
+  document.getElementById("kpi-events").textContent = events.length;
+  document.getElementById("kpi-high").textContent = events.filter(e => e.sev === "HIGH").length;
+  document.getElementById("kpi-insider").textContent = insiderBuys;
+  document.getElementById("kpi-alerts").textContent = activeAlerts;
+
+  render();
+}
+
+function render(){
+  const feed = document.getElementById("feed");
+  let list = _filter === "all" ? _events : _events.filter(e => e.cat === _filter);
+  if(!list.length){
+    feed.innerHTML = `<div class="empty-feed">No events for this filter.</div>`;
+    return;
+  }
+  feed.innerHTML = list.slice(0, 200).map(e => `
+    <div class="event ${e.sev}">
+      <div class="event-card">
+        <div class="event-head">
+          <span class="event-cat ${e.cat}">${e.cat.replace('_',' ')}</span>
+          <span class="event-time">${fmtTime(e.time)}</span>
+        </div>
+        <div class="event-title">${e.title}</div>
+        <div class="event-detail">${e.detail || ''}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+document.querySelectorAll(".filter-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    _filter = b.getAttribute("data-filter");
+    render();
+  });
+});
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
