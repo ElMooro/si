@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Ticker · JustHodl</title>
+<meta name="description" content="Unified ticker view — earnings, short interest, 13F positions, technicals, signals, and historical analogs in one place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18;
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 60%);min-height:100vh}
+
+.tabs{position:sticky;top:0;background:rgba(15,19,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--brd);z-index:100}
+.tabs-inner{display:flex;align-items:center;gap:0;padding:0 4px;height:48px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;max-width:1400px;margin:0 auto}
+.tabs-inner::-webkit-scrollbar{display:none}
+.brand{font-family:var(--display);font-weight:700;font-size:15px;font-style:italic;color:var(--t1);padding:0 14px;flex-shrink:0}
+.brand i{color:var(--cyan);font-style:normal}
+.tab{padding:8px 12px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);text-decoration:none;border-bottom:2px solid transparent;flex-shrink:0}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab:hover{color:var(--t2)}
+
+.shell{padding:32px 20px 80px;max-width:1400px;margin:0 auto}
+
+.hero{padding:24px 0 28px;border-bottom:1px solid var(--brd);margin-bottom:28px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:10px}
+.hero-title{font-family:var(--display);font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.012em;margin-bottom:8px;color:var(--t1)}
+.hero-title em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:780px;line-height:1.6}
+
+.search{margin:18px 0 8px;display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1;min-width:240px;padding:14px 18px;background:var(--bg1);border:1px solid var(--brd2);border-radius:10px;color:var(--t1);font-family:var(--mono);font-size:15px;font-weight:500;text-transform:uppercase;letter-spacing:1px;outline:none}
+.search input:focus{border-color:var(--cyan)}
+.search button{padding:14px 24px;background:var(--cyan);color:var(--bg);border:none;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.search button:hover{background:#33ddff}
+.quick-tickers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.quick-tickers a{font-family:var(--mono);font-size:11px;color:var(--t3);text-decoration:none;background:var(--bg1);border:1px solid var(--brd);padding:5px 9px;border-radius:5px}
+.quick-tickers a:hover{color:var(--cyan);border-color:var(--cyan)}
+
+.section{margin-bottom:36px}
+.section-eyebrow{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-size:26px;font-weight:600;color:var(--t1);margin-bottom:6px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);max-width:760px;line-height:1.6;margin-bottom:18px}
+
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:22px;margin-bottom:16px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--brd);border:1px solid var(--brd);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.kpi{padding:16px 20px;background:var(--bg1)}
+.kpi-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-family:var(--display);font-weight:600;font-size:26px;color:var(--t1);line-height:1;letter-spacing:-.01em}
+.kpi-val small{font-size:13px;font-weight:500;color:var(--t3);margin-left:4px}
+.kpi-val.up{color:var(--green)}
+.kpi-val.down{color:var(--red)}
+.kpi-sub{display:block;font-size:11px;color:var(--t3);margin-top:5px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+table th{font-family:var(--mono);text-align:left;color:var(--t3);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--brd);font-weight:500}
+table td{padding:11px 12px;border-bottom:1px solid var(--brd);color:var(--t2)}
+table tr:hover td{background:var(--bg2);color:var(--t1)}
+.mono{font-family:var(--mono)}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.flat{color:var(--t3)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:500}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+.empty{padding:18px;text-align:center;color:var(--t4);font-style:italic;font-size:13px}
+.loader{padding:40px;text-align:center;color:var(--t3)}
+.loader::after{content:"…";animation:dots 1.4s infinite}
+@keyframes dots{0%{content:"."}33%{content:".."}66%{content:"..."}}
+
+@media(max-width:680px){
+  .shell{padding:18px 14px 60px}
+  .hero-title{font-size:36px}
+  .kpi-strip{grid-template-columns:1fr 1fr}
+  .kpi-val{font-size:22px}
+  table th,table td{padding:9px 8px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/read.html">Read</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/insiders.html">Insiders</a>
+    <a class="tab" href="/13f.html">13F</a>
+    <a class="tab active" href="/ticker.html">Ticker</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <header class="hero">
+    <div class="hero-eyebrow">Unified Symbol View</div>
+    <h1 class="hero-title">Ticker <em id="symbolHeader">—</em></h1>
+    <p class="hero-blurb">Everything we know about a ticker, gathered from every JustHodl pipeline: earnings reactivity (PEAD), short interest, 13F institutional positions, technical posture, asymmetric setup score, and historical analog forward returns — refreshed across daily and 4‑hour cycles.</p>
+    <div class="search">
+      <input id="symbolInput" type="text" placeholder="Enter ticker (e.g. AAPL, NVDA, TSLA)" autocomplete="off">
+      <button id="goBtn">Open</button>
+    </div>
+    <div class="quick-tickers" id="quickTickers"></div>
+  </header>
+
+  <div id="results"></div>
+</div>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+const QUICK = ["AAPL","MSFT","NVDA","GOOGL","META","AMZN","TSLA","AMD","AVGO","TSM","NFLX","JPM","XOM","UNH","COST","HD","V","MA","BRK.B","SPY","QQQ","IBIT"];
+
+function getSymbolFromUrl(){
+  const url = new URL(window.location.href);
+  return (url.searchParams.get("symbol") || url.searchParams.get("s") || url.hash.replace("#","") || "").toUpperCase().trim();
+}
+
+function setSymbolInUrl(sym){
+  const url = new URL(window.location.href);
+  url.searchParams.set("symbol", sym);
+  history.replaceState(null, "", url);
+}
+
+async function fetchJson(path){
+  try{
+    const r = await fetch(`${BUCKET}/${path}?t=${Date.now()}`);
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(e){
+    console.warn("fetch fail", path, e);
+    return null;
+  }
+}
+
+function tag(text, kind){
+  return `<span class="tag ${kind||"cyan"}">${text}</span>`;
+}
+
+function fmtPct(v, sign){
+  if(v==null||isNaN(v)) return "—";
+  const f = +v;
+  return (sign && f>=0 ? "+" : "") + f.toFixed(2) + "%";
+}
+function fmtNum(v, decimals){
+  if(v==null||isNaN(v)) return "—";
+  return (+v).toLocaleString(undefined,{minimumFractionDigits:decimals||0,maximumFractionDigits:decimals||0});
+}
+
+function pctSpan(v){
+  if(v==null) return "—";
+  const f = +v;
+  if(f>0) return `<span class="up">+${f.toFixed(2)}%</span>`;
+  if(f<0) return `<span class="down">${f.toFixed(2)}%</span>`;
+  return `<span class="flat">${f.toFixed(2)}%</span>`;
+}
+
+function renderEarnings(sym, earnings){
+  if(!earnings) return "";
+  const tracker = earnings.tracker || earnings;
+  const recent = (tracker.recent||[]).find(x => (x.symbol||x.ticker||"").toUpperCase() === sym);
+  const upcoming = (tracker.upcoming||[]).find(x => (x.symbol||x.ticker||"").toUpperCase() === sym);
+  const pead = (tracker.pead_signals||[]).find(x => (x.symbol||x.ticker||"").toUpperCase() === sym);
+  if(!recent && !upcoming && !pead) return `<div class="empty">No earnings data tracked for ${sym}.</div>`;
+  let html = "";
+  if(upcoming){
+    html += `<div class="card"><div class="section-eyebrow">Upcoming Earnings</div>
+      <table><tr>
+        <th>Date</th><th>Time</th><th>EPS Est.</th><th>Rev Est.</th>
+      </tr><tr>
+        <td class="mono">${upcoming.report_date||upcoming.date||"—"}</td>
+        <td class="mono">${upcoming.report_time||upcoming.time||"—"}</td>
+        <td class="mono">${upcoming.eps_estimate??"—"}</td>
+        <td class="mono">${upcoming.revenue_estimate??"—"}</td>
+      </tr></table></div>`;
+  }
+  if(recent){
+    html += `<div class="card"><div class="section-eyebrow">Most Recent Earnings</div>
+      <table><tr>
+        <th>Date</th><th>EPS Beat?</th><th>1d</th><th>5d</th><th>20d</th>
+      </tr><tr>
+        <td class="mono">${recent.report_date||recent.date||"—"}</td>
+        <td class="mono">${recent.eps_beat==null?"—":(recent.eps_beat?tag("BEAT","green"):tag("MISS","red"))}</td>
+        <td>${pctSpan(recent.return_1d_pct ?? recent.r1d)}</td>
+        <td>${pctSpan(recent.return_5d_pct ?? recent.r5d)}</td>
+        <td>${pctSpan(recent.return_20d_pct ?? recent.r20d)}</td>
+      </tr></table></div>`;
+  }
+  if(pead){
+    const lab = pead.signal||pead.label||pead.pead_label||"";
+    const cls = lab.includes("POSITIVE")||lab.includes("STRONG")?"green":lab.includes("NEGATIVE")||lab.includes("MISS")?"red":"yellow";
+    html += `<div class="card"><div class="section-eyebrow">PEAD Signal</div>
+      <p>Post-earnings drift label: ${tag(lab,cls)}</p>
+      ${pead.note?`<p style="color:var(--t2);font-size:13px;margin-top:8px">${pead.note}</p>`:""}
+    </div>`;
+  }
+  return html;
+}
+
+function renderShortInterest(sym, si){
+  if(!si) return "";
+  const all = si.tracker||si.tickers||[];
+  const row = all.find(x => (x.symbol||x.ticker||"").toUpperCase() === sym);
+  if(!row) return `<div class="empty">No short interest data for ${sym}.</div>`;
+  const sig = row.signal || row.label || "";
+  const sigCls = sig.includes("SQUEEZE")?"yellow":sig.includes("CROWDED")?"red":sig.includes("COVERING")?"green":"cyan";
+  return `<div class="card"><div class="section-eyebrow">Short Interest</div>
+    <table><tr>
+      <th>Short %</th><th>Days to Cover</th><th>Signal</th>
+    </tr><tr>
+      <td class="mono">${fmtPct(row.short_pct_float ?? row.short_percent_float ?? row.short_pct, false)}</td>
+      <td class="mono">${fmtNum(row.days_to_cover, 1)}</td>
+      <td>${sig?tag(sig,sigCls):"—"}</td>
+    </tr></table></div>`;
+}
+
+function render13F(sym, positions){
+  if(!positions) return "";
+  // positions data structure varies — try the change-detection style
+  const ticker_summary = positions.tickers||positions.by_ticker||{};
+  const entry = ticker_summary[sym];
+  if(!entry){
+    return `<div class="empty">No tracked institutional 13F positions for ${sym} (most recent quarter).</div>`;
+  }
+  const buys = entry.buyers||entry.added_by||[];
+  const sells = entry.sellers||entry.exited_by||entry.trimmed_by||[];
+  const holds = entry.holders||[];
+  const rows = [];
+  buys.forEach(f => rows.push({fund:f.fund||f, action:"ADD/NEW", change:f.change_pct, value:f.value}));
+  sells.forEach(f => rows.push({fund:f.fund||f, action:"TRIM/EXIT", change:f.change_pct, value:f.value}));
+  if(rows.length===0 && holds.length){
+    holds.slice(0,8).forEach(f => rows.push({fund:f.fund||f, action:"HOLD", value:f.value}));
+  }
+  if(!rows.length) return `<div class="empty">No actionable 13F changes for ${sym}.</div>`;
+  return `<div class="card"><div class="section-eyebrow">13F Institutional Activity (Most Recent Quarter)</div>
+    <table><tr><th>Fund</th><th>Action</th><th>Δ%</th><th>Value</th></tr>
+    ${rows.slice(0,12).map(r=>`<tr>
+      <td>${r.fund}</td>
+      <td>${tag(r.action, r.action.includes("ADD")||r.action.includes("NEW")?"green":r.action.includes("TRIM")||r.action.includes("EXIT")?"red":"cyan")}</td>
+      <td>${pctSpan(r.change)}</td>
+      <td class="mono">${r.value?"$"+fmtNum(r.value,0):"—"}</td>
+    </tr>`).join("")}
+    </table></div>`;
+}
+
+function renderAsymmetric(sym, asy){
+  if(!asy) return "";
+  const setups = asy.setups||asy.signals||[];
+  const setup = setups.find(s => (s.symbol||s.ticker||"").toUpperCase() === sym);
+  if(!setup) return "";
+  const score = setup.qarp_score ?? setup.score ?? setup.composite_score;
+  return `<div class="card"><div class="section-eyebrow">Asymmetric Setup (QARP)</div>
+    <div class="kpi-strip">
+      <div class="kpi"><span class="kpi-label">QARP Score</span>
+        <span class="kpi-val">${fmtNum(score,2)}</span>
+        <span class="kpi-sub">composite 4-dim</span></div>
+      ${setup.quality?`<div class="kpi"><span class="kpi-label">Quality</span><span class="kpi-val">${fmtNum(setup.quality,2)}</span></div>`:""}
+      ${setup.asymmetry?`<div class="kpi"><span class="kpi-label">Asymmetry</span><span class="kpi-val">${fmtNum(setup.asymmetry,2)}</span></div>`:""}
+      ${setup.reflexivity?`<div class="kpi"><span class="kpi-label">Reflexivity</span><span class="kpi-val">${fmtNum(setup.reflexivity,2)}</span></div>`:""}
+      ${setup.positioning?`<div class="kpi"><span class="kpi-label">Positioning</span><span class="kpi-val">${fmtNum(setup.positioning,2)}</span></div>`:""}
+    </div>
+    ${setup.thesis?`<p style="color:var(--t2);font-size:13px;margin-top:10px;">${setup.thesis}</p>`:""}
+  </div>`;
+}
+
+function renderRiskSizer(sym, rs){
+  if(!rs) return "";
+  const positions = rs.proposed_positions||rs.positions||[];
+  const pos = positions.find(p => (p.symbol||p.ticker||"").toUpperCase() === sym);
+  if(!pos) return "";
+  return `<div class="card"><div class="section-eyebrow">Recommended Position Size</div>
+    <table><tr>
+      <th>Recommended %</th><th>Stop %</th><th>Target %</th><th>R:R</th>
+    </tr><tr>
+      <td class="mono">${fmtPct(pos.position_size_pct ?? pos.size_pct, false)}</td>
+      <td class="mono down">${fmtPct(pos.stop_pct, false)}</td>
+      <td class="mono up">${fmtPct(pos.target_pct, false)}</td>
+      <td class="mono">${fmtNum(pos.rr_ratio,2)}</td>
+    </tr></table></div>`;
+}
+
+function renderPaperPortfolio(sym, p){
+  if(!p) return "";
+  const open = (p.open_positions||[]).filter(x => (x.symbol||x.ticker||"").toUpperCase() === sym);
+  const closed = (p.closed_positions||[]).filter(x => (x.symbol||x.ticker||"").toUpperCase() === sym).slice(-5);
+  if(!open.length && !closed.length) return "";
+  let html = `<div class="card"><div class="section-eyebrow">Paper Portfolio Positions</div>`;
+  if(open.length){
+    html += `<p style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:6px">OPEN</p>
+      <table><tr><th>Source</th><th>Entered</th><th>Entry $</th><th>Stop</th><th>Target</th><th>P/L %</th></tr>
+      ${open.map(x=>`<tr>
+        <td>${x.source||x.signal_source||"—"}</td>
+        <td class="mono">${(x.entry_date||x.opened_at||"").slice(0,10)}</td>
+        <td class="mono">${fmtNum(x.entry_price,2)}</td>
+        <td class="mono down">${fmtNum(x.stop_price,2)}</td>
+        <td class="mono up">${fmtNum(x.target_price,2)}</td>
+        <td>${pctSpan(x.unrealized_pnl_pct)}</td>
+      </tr>`).join("")}
+      </table>`;
+  }
+  if(closed.length){
+    html += `<p style="font-family:var(--mono);font-size:11px;color:var(--t3);margin:10px 0 6px">CLOSED (last 5)</p>
+      <table><tr><th>Source</th><th>Closed</th><th>Outcome</th><th>P/L %</th></tr>
+      ${closed.map(x=>`<tr>
+        <td>${x.source||"—"}</td>
+        <td class="mono">${(x.exit_date||x.closed_at||"").slice(0,10)}</td>
+        <td>${tag(x.exit_reason||"—", x.realized_pnl_pct>0?"green":"red")}</td>
+        <td>${pctSpan(x.realized_pnl_pct)}</td>
+      </tr>`).join("")}
+      </table>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+async function loadTicker(sym){
+  document.getElementById("symbolHeader").textContent = sym;
+  setSymbolInUrl(sym);
+  const results = document.getElementById("results");
+  results.innerHTML = `<div class="loader">Loading every pipeline for ${sym}</div>`;
+  document.title = `${sym} · Ticker · JustHodl`;
+
+  const [earnings, si, positions13f, asy, rs, paper, redflag] = await Promise.all([
+    fetchJson("data/earnings-tracker.json"),
+    fetchJson("data/short-interest.json"),
+    fetchJson("data/13f-positions.json"),
+    fetchJson("data/asymmetric-setups.json"),
+    fetchJson("data/risk-sized-positions.json"),
+    fetchJson("portfolio/signal-portfolio-state.json"),
+    fetchJson("data/red-flags.json"),
+  ]);
+
+  let html = "";
+
+  // Red flag banner if active
+  if(redflag && Array.isArray(redflag.alerts)){
+    const tickerFlags = redflag.alerts.filter(a => (a.symbol||a.ticker||"").toUpperCase() === sym);
+    if(tickerFlags.length){
+      html += `<div class="card" style="border-color:var(--red);background:var(--red-bg)">
+        <div class="section-eyebrow" style="color:var(--red)">🚨 Red Flag Alerts</div>
+        ${tickerFlags.map(f=>`<p style="margin-bottom:6px">${f.message||f.note||f.reason}</p>`).join("")}
+      </div>`;
+    }
+  }
+
+  html += `<div class="section">
+    <div class="section-eyebrow">Earnings Snapshot</div>
+    <h2 class="section-title">Earnings &amp; PEAD</h2>
+    <p class="section-blurb">Recent reactivity, upcoming reports, and post-earnings drift labels.</p>
+    ${renderEarnings(sym, earnings) || `<div class="empty">No earnings data for ${sym}.</div>`}
+  </div>`;
+
+  html += `<div class="section">
+    <div class="section-eyebrow">Short Interest</div>
+    <h2 class="section-title">Short Position</h2>
+    <p class="section-blurb">FINRA-sourced short interest, days-to-cover, and flow signal classification.</p>
+    ${renderShortInterest(sym, si) || `<div class="empty">No short interest data for ${sym}.</div>`}
+  </div>`;
+
+  html += `<div class="section">
+    <div class="section-eyebrow">Smart Money</div>
+    <h2 class="section-title">Institutional 13F</h2>
+    <p class="section-blurb">Most recent quarter — what 17 of the largest institutions have done with this name.</p>
+    ${render13F(sym, positions13f) || `<div class="empty">No 13F data for ${sym}.</div>`}
+  </div>`;
+
+  if(asy){
+    html += `<div class="section">
+      <div class="section-eyebrow">Setup Quality</div>
+      <h2 class="section-title">Asymmetric / QARP</h2>
+      <p class="section-blurb">4-dimensional setup score: quality, asymmetry, reflexivity, positioning.</p>
+      ${renderAsymmetric(sym, asy)}
+    </div>`;
+  }
+
+  if(rs){
+    html += `<div class="section">
+      <div class="section-eyebrow">Risk Sizing</div>
+      <h2 class="section-title">Recommended Position</h2>
+      <p class="section-blurb">Kelly-bounded position size with stop, target, and risk/reward.</p>
+      ${renderRiskSizer(sym, rs)}
+    </div>`;
+  }
+
+  html += `<div class="section">
+    <div class="section-eyebrow">Live Tracking</div>
+    <h2 class="section-title">Paper Portfolio</h2>
+    <p class="section-blurb">Open and recently-closed paper positions for this ticker.</p>
+    ${renderPaperPortfolio(sym, paper) || `<div class="empty">No active paper portfolio positions for ${sym}.</div>`}
+  </div>`;
+
+  html += `<div style="margin-top:50px;color:var(--t4);font-size:12px;font-family:var(--mono);text-align:center;border-top:1px solid var(--brd);padding-top:24px">
+    All data refreshed daily/4h. Sources: Polygon, FRED, FINRA, SEC EDGAR, Nasdaq, FMP. justhodl.ai
+  </div>`;
+
+  results.innerHTML = html;
+}
+
+function init(){
+  // Build quick links
+  const q = document.getElementById("quickTickers");
+  q.innerHTML = QUICK.map(t => `<a href="?symbol=${t}">${t}</a>`).join("");
+
+  document.getElementById("goBtn").addEventListener("click", () => {
+    const v = document.getElementById("symbolInput").value.trim().toUpperCase();
+    if(v) loadTicker(v);
+  });
+  document.getElementById("symbolInput").addEventListener("keypress", e => {
+    if(e.key === "Enter"){
+      const v = e.target.value.trim().toUpperCase();
+      if(v) loadTicker(v);
+    }
+  });
+  // Quick link delegation (intercept)
+  q.addEventListener("click", e => {
+    if(e.target.tagName === "A"){
+      e.preventDefault();
+      const url = new URL(e.target.href);
+      const sym = url.searchParams.get("symbol");
+      if(sym){
+        document.getElementById("symbolInput").value = sym;
+        loadTicker(sym);
+      }
+    }
+  });
+
+  const initialSym = getSymbolFromUrl();
+  if(initialSym){
+    document.getElementById("symbolInput").value = initialSym;
+    loadTicker(initialSym);
+  }else{
+    document.getElementById("results").innerHTML = `<div class="empty" style="font-size:15px;padding:60px 20px">Enter a ticker above or pick from the popular list to see everything.</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
