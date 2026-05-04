@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Calls · JustHodl</title>
+<meta name="description" content="Decisive call history — how the system's regime call has evolved across every brief generation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+
+  /* Call-verb colors — semantic spectrum from defensive (red) to aggressive (cyan) */
+  --c-exit-all-risk:#ff174a;
+  --c-exit:#ff4d6d;
+  --c-trim:#ff7a18;
+  --c-hedge:#ffc400;
+  --c-wait:#b56bff;
+  --c-hold:#6f7b91;
+  --c-long:#00e676;
+  --c-load:#26ffaf;
+  --c-lever:#00d4ff;
+  --c-unknown:#475064;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(255,23,74,.05),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,212,255,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:820px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+header.hero .meta span b{color:var(--t2);font-weight:500}
+header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
+header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.kpi h3{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.kpi .v{font-family:var(--display);font-size:32px;font-weight:700;color:var(--t1);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .v.up{color:var(--green)} .kpi .v.down{color:var(--red)} .kpi .v.flat{color:var(--yellow)}
+.kpi .vsub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:22px 26px}
+
+#timeline-chart{width:100%;height:200px}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;font-family:var(--mono);font-size:11px}
+.legend .item{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd);color:var(--t2)}
+.legend .item .swatch{width:10px;height:10px;border-radius:2px}
+
+.call-tag{display:inline-block;padding:3px 10px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.call-tag.exit-all-risk{background:rgba(255,23,74,.18);color:var(--c-exit-all-risk);border:1px solid var(--c-exit-all-risk)}
+.call-tag.exit{background:rgba(255,77,109,.15);color:var(--c-exit)}
+.call-tag.trim{background:rgba(255,122,24,.15);color:var(--c-trim)}
+.call-tag.hedge{background:rgba(255,196,0,.15);color:var(--c-hedge)}
+.call-tag.wait{background:rgba(181,107,255,.15);color:var(--c-wait)}
+.call-tag.hold{background:rgba(111,123,145,.18);color:var(--c-hold)}
+.call-tag.long{background:rgba(0,230,118,.15);color:var(--c-long)}
+.call-tag.load{background:rgba(38,255,175,.18);color:var(--c-load)}
+.call-tag.lever{background:rgba(0,212,255,.18);color:var(--c-lever)}
+.call-tag.unknown{background:rgba(71,80,100,.2);color:var(--t3)}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+table th{text-align:left;padding:10px 12px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+table td{padding:10px 12px;border-bottom:1px solid var(--brd);color:var(--t2);font-variant-numeric:tabular-nums;vertical-align:middle}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1)}
+table td.num{text-align:right}
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+
+.changes-list .change{padding:14px 16px;background:var(--bg2);border:1px solid var(--brd);border-left:3px solid var(--cyan);border-radius:6px;margin-bottom:8px;font-family:var(--mono);font-size:13px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.changes-list .change .arrow{color:var(--t3);font-size:16px}
+.changes-list .change .when{color:var(--t3);font-size:11px;margin-left:auto}
+.changes-list .change .ctx{color:var(--t3);font-size:11px;flex-basis:100%;margin-top:4px}
+
+.notice{background:var(--cyan-bg);border:1px solid var(--cyan);color:var(--cyan);padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:24px}
+.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
+.loading{padding:48px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
+
+.now-call-banner{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--brd2);border-radius:12px;padding:28px;margin-bottom:28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.now-call-banner .label{font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.now-call-banner .verb{font-family:var(--display);font-size:48px;font-weight:700;line-height:1;letter-spacing:-1px}
+.now-call-banner .when{font-family:var(--mono);font-size:12px;color:var(--t3);margin-top:6px}
+.now-call-banner .ctx{font-family:var(--mono);font-size:12px;color:var(--t2);margin-left:auto;text-align:right;line-height:1.7}
+.now-call-banner .ctx .row{display:flex;gap:8px;justify-content:flex-end}
+.now-call-banner .ctx .row .key{color:var(--t3);text-transform:uppercase;font-size:10px;letter-spacing:1px}
+.now-call-banner .ctx .row .val{color:var(--t1)}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/brief.html">Brief</a>
+    <a class="tab active" href="/calls.html">Calls</a>
+    <a class="tab" href="/performance.html">Performance</a>
+    <a class="tab" href="/weights.html">Weights</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/allocator.html">Allocator</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/research.html">Research</a>
+    <a class="tab" href="/vol.html">Vol</a>
+    <a class="tab" href="/news.html">News</a>
+    <a class="tab" href="/signals.html">Signals</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Decisive Call History</h1>
+    <p class="lede">Every 4 hours, the AI brief crystallizes 17 live systems into a single decisive call — LONG, TRIM, HEDGE, EXIT, EXIT_ALL_RISK, LEVER, LOAD, WAIT, or HOLD. This page is the audit trail. Each generation gets snapshotted to <code>data/decisive-call-history.json</code> with the call verb, regime, phase, Khalid Index reading, weighted-mean accuracy, and the highest-trusted signal at that moment. Watch how the system's posture evolves through the day, the week, the cycle.</p>
+    <div class="meta" id="meta">
+      <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
+      <span>Snapshots <b id="n-total">—</b></span>
+      <span>Last brief <b id="last-when">—</b></span>
+      <span>Auto-refresh <b>5min</b></span>
+    </div>
+  </header>
+
+  <div id="notice-area"></div>
+
+  <div class="now-call-banner" id="now-banner" style="display:none">
+    <div>
+      <div class="label">Current Call</div>
+      <div class="verb" id="now-verb">—</div>
+      <div class="when" id="now-when">—</div>
+    </div>
+    <div class="ctx" id="now-ctx"></div>
+  </div>
+
+  <div class="kpis" id="kpi-row">
+    <div class="kpi"><h3>Loading…</h3></div>
+  </div>
+
+  <div class="section">
+    <h2>Timeline</h2>
+    <p class="sub">Each dot is one brief generation. Color = call verb. Y-position cycles for visibility — there is no implicit ranking.</p>
+    <div class="card" style="padding:24px 26px">
+      <svg id="timeline-chart" viewBox="0 0 1100 200" preserveAspectRatio="none"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="section" id="changes-section" style="display:none">
+    <h2>Call changes</h2>
+    <p class="sub">Moments where consecutive briefs disagreed — these are the system's posture shifts. Reasons in the brief explain why.</p>
+    <div class="changes-list" id="changes-list"></div>
+  </div>
+
+  <div class="section">
+    <h2>All briefs (newest first)</h2>
+    <p class="sub">Full history — call, regime, phase, Khalid Index, weighted accuracy at the moment of each brief.</p>
+    <div class="card" style="padding:0">
+      <div style="overflow-x:auto;max-height:600px">
+        <table id="history-table">
+          <thead><tr>
+            <th>Time</th>
+            <th>Call</th>
+            <th>Regime</th>
+            <th>Phase</th>
+            <th class="num">Khalid Idx</th>
+            <th class="num">Weighted Acc</th>
+            <th>Top Trusted</th>
+            <th class="num">N Open</th>
+            <th class="num">Brief Size</th>
+          </tr></thead>
+          <tbody id="history-body"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+const VERB_ORDER = ["EXIT_ALL_RISK","EXIT","TRIM","HEDGE","WAIT","HOLD","LONG","LOAD","LEVER","UNKNOWN"];
+const VERB_CSS = {
+  "EXIT_ALL_RISK":"exit-all-risk","EXIT":"exit","TRIM":"trim","HEDGE":"hedge",
+  "WAIT":"wait","HOLD":"hold","LONG":"long","LOAD":"load","LEVER":"lever","UNKNOWN":"unknown",
+};
+const VERB_COLOR = {
+  "EXIT_ALL_RISK":"var(--c-exit-all-risk)","EXIT":"var(--c-exit)","TRIM":"var(--c-trim)",
+  "HEDGE":"var(--c-hedge)","WAIT":"var(--c-wait)","HOLD":"var(--c-hold)",
+  "LONG":"var(--c-long)","LOAD":"var(--c-load)","LEVER":"var(--c-lever)","UNKNOWN":"var(--c-unknown)",
+};
+const VERB_LABEL = {
+  "EXIT_ALL_RISK":"EXIT ALL RISK","EXIT":"EXIT","TRIM":"TRIM","HEDGE":"HEDGE",
+  "WAIT":"WAIT","HOLD":"HOLD","LONG":"LONG","LOAD":"LOAD","LEVER":"LEVER","UNKNOWN":"UNKNOWN",
+};
+
+function fmt(n, opts){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2});
+}
+function timeAgo(iso){
+  if (!iso) return "—";
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+function fmtDate(iso){
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function regimeStr(r){
+  if (!r) return "—";
+  if (typeof r === "string") return r;
+  // The intel report stores nested regime
+  if (typeof r === "object") {
+    return r.khalid || r.ka || r.composite || JSON.stringify(r).slice(0,40);
+  }
+  return String(r);
+}
+
+async function load(){
+  document.getElementById('status').textContent = 'loading…';
+  try {
+    const r = await fetch(`${BUCKET}/data/decisive-call-history.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const snaps = d.snapshots || [];
+    snaps.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    document.getElementById('status').textContent = 'fresh';
+    document.getElementById('n-total').textContent = snaps.length;
+    document.getElementById('last-when').textContent = snaps.length ? timeAgo(snaps[snaps.length-1].timestamp) : '—';
+
+    if (snaps.length === 0) {
+      document.getElementById('notice-area').innerHTML = `<div class="notice">📊 No briefs in the ledger yet — the next AI brief generation (every 4h, at minute :05) will start the history.</div>`;
+      return;
+    }
+    if (snaps.length < 4) {
+      document.getElementById('notice-area').innerHTML = `<div class="notice">📊 ${snaps.length} brief${snaps.length===1?'':'s'} in the ledger so far — the timeline will fill in quickly. Briefs run every 4 hours (00, 04, 08, 12, 16, 20 UTC).</div>`;
+    }
+
+    renderNowBanner(snaps[snaps.length - 1]);
+    renderKPIs(snaps);
+    renderTimeline(snaps);
+    renderLegend();
+    renderChanges(snaps);
+    renderHistory(snaps);
+  } catch (err) {
+    document.getElementById('kpi-row').innerHTML = `<div class="err" style="grid-column:1/-1">Failed to load ledger: ${err.message}</div>`;
+    document.getElementById('status').textContent = 'error';
+  }
+}
+
+function renderNowBanner(snap){
+  const banner = document.getElementById('now-banner');
+  banner.style.display = '';
+  const verb = snap.call_verb || 'UNKNOWN';
+  document.getElementById('now-verb').textContent = VERB_LABEL[verb] || verb;
+  document.getElementById('now-verb').style.color = VERB_COLOR[verb] || 'var(--t1)';
+  document.getElementById('now-when').textContent = `as of ${timeAgo(snap.timestamp)} · ${fmtDate(snap.timestamp)}`;
+  const acc = snap.weighted_mean_accuracy;
+  const accStr = acc != null ? `${(acc*100).toFixed(1)}%` : '—';
+  document.getElementById('now-ctx').innerHTML = `
+    <div class="row"><span class="key">Phase</span><span class="val">${snap.phase || '—'}</span></div>
+    <div class="row"><span class="key">Regime</span><span class="val">${regimeStr(snap.regime)}</span></div>
+    <div class="row"><span class="key">Khalid Index</span><span class="val">${snap.khalid_score ?? '—'}</span></div>
+    <div class="row"><span class="key">Top Signal</span><span class="val">${snap.highest_weight_signal || '—'}</span></div>
+    <div class="row"><span class="key">Weighted Acc</span><span class="val">${accStr}</span></div>
+    <div class="row"><span class="key">Open Positions</span><span class="val">${snap.n_open_positions ?? '—'}</span></div>
+  `;
+}
+
+function renderKPIs(snaps){
+  const cur = snaps[snaps.length - 1];
+  const dayStart = new Date();
+  dayStart.setHours(0,0,0,0);
+  const today = snaps.filter(s => new Date(s.timestamp) >= dayStart);
+  const last7d = snaps.filter(s => new Date(s.timestamp) >= new Date(Date.now() - 7*86400000));
+  const distinct7d = new Set(last7d.map(s => s.call_verb)).size;
+
+  // Find last call change
+  let lastChangeIdx = -1;
+  for (let i = snaps.length - 1; i > 0; i--) {
+    if (snaps[i].call_verb !== snaps[i-1].call_verb) {
+      lastChangeIdx = i;
+      break;
+    }
+  }
+  const lastChange = lastChangeIdx >= 0 ? snaps[lastChangeIdx] : null;
+
+  const tiles = [
+    {h:'Current Call', v: VERB_LABEL[cur.call_verb] || cur.call_verb, sub: timeAgo(cur.timestamp), klass: VERB_CSS[cur.call_verb]},
+    {h:'Last Change', v: lastChange ? `${snaps[lastChangeIdx-1].call_verb} → ${lastChange.call_verb}` : 'no changes',
+     sub: lastChange ? timeAgo(lastChange.timestamp) : '—'},
+    {h:'Briefs Today', v: today.length, sub: `${snaps.length} total`},
+    {h:'Distinct Calls 7d', v: distinct7d, sub: `${last7d.length} briefs in window`},
+  ];
+  document.getElementById('kpi-row').innerHTML = tiles.map(t => {
+    const valHtml = t.klass ? `<span class="call-tag ${t.klass}" style="font-size:24px;padding:6px 14px">${t.v}</span>` :
+                              `<span class="v">${t.v}</span>`;
+    return `<div class="kpi"><h3>${t.h}</h3><div class="v" style="font-size:28px">${valHtml}</div><div class="vsub">${t.sub}</div></div>`;
+  }).join('');
+}
+
+function renderTimeline(snaps){
+  const svg = document.getElementById('timeline-chart');
+  const W = 1100, H = 200, padL = 60, padR = 30, padT = 30, padB = 36;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+
+  const ts = snaps.map(s => new Date(s.timestamp).getTime());
+  const tMin = Math.min(...ts);
+  const tMax = Math.max(...ts);
+  const tRange = Math.max(tMax - tMin, 1);
+
+  // Use a fixed Y-band per call verb so verbs are visually grouped
+  const verbsPresent = [...new Set(snaps.map(s => s.call_verb))];
+  // Order from "defensive" to "aggressive" along the y-axis
+  const yOrder = VERB_ORDER.filter(v => verbsPresent.includes(v));
+  const yPos = {};
+  yOrder.forEach((v, i) => { yPos[v] = padT + (i + 0.5) * (innerH / Math.max(yOrder.length, 1)); });
+
+  const xScale = t => padL + ((t - tMin) / tRange) * innerW;
+  const yScale = v => yPos[v] || padT + innerH / 2;
+
+  // Y-axis labels
+  let yLabels = '';
+  for (const v of yOrder) {
+    yLabels += `<text x="${padL - 8}" y="${yPos[v] + 4}" fill="${VERB_COLOR[v]}" font-family="IBM Plex Mono" font-size="10" text-anchor="end" font-weight="600">${VERB_LABEL[v]}</text>`;
+    yLabels += `<line x1="${padL}" x2="${W - padR}" y1="${yPos[v]}" y2="${yPos[v]}" stroke="${VERB_COLOR[v]}" stroke-width="1" opacity="0.18" stroke-dasharray="3,4"/>`;
+  }
+
+  // X-axis labels
+  let xLabels = '';
+  if (snaps.length === 1) {
+    xLabels = `<text x="${W/2}" y="${H - padB + 18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${fmtDate(snaps[0].timestamp)}</text>`;
+  } else {
+    const step = Math.max(1, Math.floor(snaps.length / 6));
+    for (let i = 0; i < snaps.length; i += step) {
+      xLabels += `<text x="${xScale(ts[i])}" y="${H - padB + 18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${fmtDate(snaps[i].timestamp).split(',')[0]}</text>`;
+    }
+  }
+
+  // Connecting line through the verb-mapped trajectory
+  const line = snaps.map((s, i) => `${i === 0 ? 'M' : 'L'}${xScale(ts[i]).toFixed(1)},${yScale(s.call_verb).toFixed(1)}`).join(' ');
+
+  // Dots + tooltips
+  let dots = '';
+  for (let i = 0; i < snaps.length; i++) {
+    const s = snaps[i];
+    const x = xScale(ts[i]).toFixed(1);
+    const y = yScale(s.call_verb).toFixed(1);
+    const color = VERB_COLOR[s.call_verb];
+    dots += `<circle cx="${x}" cy="${y}" r="6" fill="${color}" stroke="${color}" stroke-width="2" opacity="0.9">
+      <title>${fmtDate(s.timestamp)}\nCall: ${VERB_LABEL[s.call_verb]}\nPhase: ${s.phase || '—'}\nRegime: ${regimeStr(s.regime)}\nKhalid: ${s.khalid_score ?? '—'}</title>
+    </circle>`;
+  }
+
+  svg.innerHTML = yLabels + xLabels + `<path d="${line}" fill="none" stroke="var(--t4)" stroke-width="1.5" opacity="0.4"/>` + dots;
+}
+
+function renderLegend(){
+  const html = VERB_ORDER.map(v => `<span class="item"><span class="swatch" style="background:${VERB_COLOR[v]}"></span>${VERB_LABEL[v]}</span>`).join('');
+  document.getElementById('legend').innerHTML = html;
+}
+
+function renderChanges(snaps){
+  const changes = [];
+  for (let i = 1; i < snaps.length; i++) {
+    if (snaps[i].call_verb !== snaps[i-1].call_verb) {
+      changes.push({from: snaps[i-1], to: snaps[i]});
+    }
+  }
+  if (!changes.length) return;
+  document.getElementById('changes-section').style.display = '';
+  const html = changes.reverse().map(c => {
+    const fromCss = VERB_CSS[c.from.call_verb];
+    const toCss = VERB_CSS[c.to.call_verb];
+    const ki = c.to.khalid_score;
+    const phase = c.to.phase;
+    return `<div class="change">
+      <span class="call-tag ${fromCss}">${VERB_LABEL[c.from.call_verb]}</span>
+      <span class="arrow">→</span>
+      <span class="call-tag ${toCss}">${VERB_LABEL[c.to.call_verb]}</span>
+      <span class="when">${fmtDate(c.to.timestamp)} · ${timeAgo(c.to.timestamp)}</span>
+      <div class="ctx">phase=${phase || '—'} · khalid_index=${ki ?? '—'} · regime=${regimeStr(c.to.regime)} · top_signal=${c.to.highest_weight_signal || '—'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('changes-list').innerHTML = html;
+}
+
+function renderHistory(snaps){
+  // Newest first
+  const reversed = [...snaps].reverse();
+  document.getElementById('history-body').innerHTML = reversed.map(s => {
+    const css = VERB_CSS[s.call_verb] || 'unknown';
+    const acc = s.weighted_mean_accuracy;
+    return `<tr>
+      <td class="tname">${fmtDate(s.timestamp)}</td>
+      <td><span class="call-tag ${css}">${VERB_LABEL[s.call_verb] || s.call_verb}</span></td>
+      <td>${regimeStr(s.regime)}</td>
+      <td>${s.phase || '—'}</td>
+      <td class="num">${s.khalid_score ?? '—'}</td>
+      <td class="num">${acc != null ? (acc*100).toFixed(1) + '%' : '—'}</td>
+      <td>${s.highest_weight_signal || '—'}</td>
+      <td class="num">${s.n_open_positions ?? '—'}</td>
+      <td class="num">${fmt(s.brief_chars)}</td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
