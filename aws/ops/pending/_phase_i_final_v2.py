@@ -1,11 +1,6 @@
 """
-PHASE I — Final state verification + clean summary Telegram digest.
-
-After all phases A through H, this:
-  1. Confirms every Lambda is healthy
-  2. Confirms compound aggregator is producing tier-3 (FCX)
-  3. Confirms L5 wrote the FCX thesis
-  4. Sends a final consolidated digest summarizing today's improvements
+PHASE I (v2) — final state verification + summary Telegram digest.
+Clean version — no nested f-string escapes that broke Phase I v1.
 """
 import io, json, os, time, base64, urllib.request, urllib.error
 import boto3
@@ -44,7 +39,8 @@ def main():
     log("")
     log("  ── compound leaderboard ──")
     for r in cs.get("compound", [])[:8]:
-        log(f"    {r['symbol']:<6} #{r['n_systems']}  comp={r['compound_score']:>7.1f}  ({','.join(r['systems'])})")
+        sys_str = ",".join(r["systems"])
+        log(f"    {r['symbol']:<6} #{r['n_systems']}  comp={r['compound_score']:>7.1f}  ({sys_str})")
 
     section("2) L5 rationale state")
     r5 = json.loads(S3.get_object(Bucket=BUCKET, Key="data/nobrainers-rationale.json")["Body"].read())
@@ -53,8 +49,9 @@ def main():
     tickers_with_priority = []
     for t in r5.get("theses", []):
         priority = (t.get("candidate") or {}).get("_compound_priority")
-        tickers_with_priority.append(f"{t.get('ticker')}{'[' + priority + ']' if priority else ''}")
-    log(f"  tickers: {', '.join(tickers_with_priority)}")
+        marker = " [" + priority + "]" if priority else ""
+        tickers_with_priority.append(t.get("ticker", "?") + marker)
+    log("  tickers: " + ", ".join(tickers_with_priority))
 
     section("3) Lambda activity state")
     lambdas = [
@@ -77,8 +74,9 @@ def main():
     log(f"  active Lambdas: {active}/{len(lambdas)}")
 
     section("4) DDB signals — last 24h")
+    cutoff = int(time.time()) - 86400
+    items = []
     try:
-        cutoff = int(time.time()) - 86400
         resp = DDB.scan(
             FilterExpression=Attr("logged_at").gte(cutoff),
             ProjectionExpression="signal_id,#src,ticker",
@@ -93,16 +91,17 @@ def main():
                 ExclusiveStartKey=resp["LastEvaluatedKey"],
             )
             items.extend(resp.get("Items", []))
-        by_src = defaultdict(int)
-        for it in items:
-            by_src[it.get("source","?")] += 1
-        log(f"  total: {len(items)}")
-        for src, n in sorted(by_src.items()):
-            log(f"    {src}: {n}")
     except Exception as e:
-        log(f"  ❌ {e}")
+        log(f"  ❌ DDB: {e}")
 
-    section("5) Pages — full HTTP + nav check")
+    by_src = defaultdict(int)
+    for it in items:
+        by_src[it.get("source", "?")] += 1
+    log(f"  total: {len(items)}")
+    for src, n in sorted(by_src.items()):
+        log(f"    {src}: {n}")
+
+    section("5) Pages — HTTP check")
     pages = [
         "https://justhodl.ai/compound-signals.html",
         "https://justhodl.ai/nobrainers.html",
@@ -110,7 +109,6 @@ def main():
         "https://justhodl.ai/smart-money.html",
         "https://justhodl.ai/deep-value.html",
         "https://justhodl.ai/eps-velocity.html",
-        "https://justhodl.ai/themes.html",
     ]
     for url in pages:
         try:
@@ -119,46 +117,72 @@ def main():
         except Exception as e:
             log(f"  ❌ {url}: {e}")
 
-    section("6) Send final summary digest")
+    section("6) Compose summary digest")
     fcx = next((r for r in cs.get("compound", []) if r.get("symbol") == "FCX"), None)
     fcx_thesis = next((t for t in r5.get("theses", []) if t.get("ticker") == "FCX"), None)
+    n_total_names = cs.get("stats", {}).get("n_total_names", 0)
+    n_multi = cs.get("stats", {}).get("n_multi_signal", 0)
+    n_t3 = cs.get("stats", {}).get("n_3_plus", 0)
 
-    lines = ["✅ *SYSTEM AUDIT \\+ EXPONENTIAL IMPROVEMENT COMPLETE*"]
-    lines.append(f"📅 {md_escape(time.strftime('%Y-%m-%d %H:%M UTC'))}")
+    lines = []
+    lines.append("✅ *SYSTEM AUDIT \\+ EXPONENTIAL IMPROVEMENT COMPLETE*")
+    lines.append("📅 " + md_escape(time.strftime("%Y-%m-%d %H:%M UTC")))
     lines.append("")
     lines.append("*Final state:*")
-    lines.append(f"• {md_escape(str(active))}/{md_escape(str(len(lambdas)))} Lambdas active")
-    lines.append(f"• {md_escape(str(cs.get('stats',{}).get('n_total_names',0)))} names tracked across 5 systems")
-    lines.append(f"• {md_escape(str(cs.get('stats',{}).get('n_multi_signal',0)))} multi\\-signal names")
-    lines.append(f"• {md_escape(str(cs.get('stats',{}).get('n_3_plus',0)))} TIER\\-3 names \\(3\\+ systems\\)")
+    lines.append("• " + md_escape(str(active)) + "/" + md_escape(str(len(lambdas))) + " Lambdas active")
+    lines.append("• " + md_escape(str(n_total_names)) + " names tracked across 5 systems")
+    lines.append("• " + md_escape(str(n_multi)) + " multi\\-signal names")
+    lines.append("• " + md_escape(str(n_t3)) + " TIER\\-3 names \\(3\\+ systems\\)")
+    lines.append("• " + md_escape(str(len(items))) + " signals logged to calibration in last 24h")
     lines.append("")
 
     if fcx and fcx_thesis:
-        lines.append("🚀 *Featured: FCX \\(Freeport\\-McMoRan\\)*")
-        lines.append(f"compound score: *{md_escape(str(int(fcx['compound_score'])))}* — TIER\\-3")
+        lines.append("🚀 *Featured: FCX \\(Freeport\\-McMoRan\\) — TIER\\-3*")
+        lines.append("compound score: *" + md_escape(str(int(fcx["compound_score"]))) + "*")
         details = fcx.get("details") or {}
         if "nobrainers" in details:
-            lines.append(f"  🎯 nobrainer tier {md_escape(str(details['nobrainers'].get('tier','?')))}, theme {md_escape(details['nobrainers'].get('theme',''))}")
+            d = details["nobrainers"]
+            tier = md_escape(str(d.get("tier", "?")))
+            theme = md_escape(d.get("theme", ""))
+            lines.append("  🎯 nobrainer tier " + tier + ", theme " + theme)
         if "smart_money" in details:
             sm = details["smart_money"]
-            lines.append(f"  💼 smart\\-money {md_escape(str(sm.get('n_buyers',0)))} buying / {md_escape(str(sm.get('n_sellers',0)))} selling \\(legends: {md_escape(', '.join(sm.get('legend_buyers',[])) or 'none')}\\)")
+            n_buy = md_escape(str(sm.get("n_buyers", 0)))
+            n_sell = md_escape(str(sm.get("n_sellers", 0)))
+            legends = ", ".join(sm.get("legend_buyers") or [])
+            legends_text = md_escape(legends) if legends else md_escape("none")
+            lines.append("  💼 smart\\-money " + n_buy + " buying / " + n_sell + " selling \\(legends: " + legends_text + "\\)")
         if "eps_velocity" in details:
             ev = details["eps_velocity"]
-            lines.append(f"  📈 eps\\-velocity \\+{md_escape(f'{ev.get(\"fy2_lift_pct\",0):.0f}')}% EPS, \\+{md_escape(f'{ev.get(\"fwd_rev_growth_pct\",0):.0f}')}% rev growth")
-        # Extract DECISIVE CALL line from thesis
+            lift_val = ev.get("fy2_lift_pct") or 0
+            rg_val = ev.get("fwd_rev_growth_pct") or 0
+            lift_str = md_escape("{:.0f}".format(lift_val))
+            rg_str = md_escape("{:.0f}".format(rg_val))
+            lines.append("  📈 eps\\-velocity \\+" + lift_str + "% EPS, \\+" + rg_str + "% revenue growth")
+        # Decisive call line
         text = fcx_thesis.get("thesis", "")
         for ln in text.splitlines():
-            if "Position:" in ln or "Entry zone:" in ln or "Target:" in ln:
-                lines.append(f"  → _{md_escape(ln.replace('**','').strip()[:120])}_")
+            if "Position:" in ln or "Entry zone:" in ln or "CALL:" in ln:
+                clean = ln.replace("**", "").strip()[:120]
+                lines.append("  → _" + md_escape(clean) + "_")
                 break
         lines.append("")
 
     lines.append("*Other multi\\-signal:*")
+    sys_emojis = {
+        "nobrainers": "🎯",
+        "insiders": "👀",
+        "smart_money": "💼",
+        "deep_value": "💎",
+        "eps_velocity": "📈",
+    }
     for r in cs.get("compound", [])[:7]:
-        if r["symbol"] == "FCX":
+        if r.get("symbol") == "FCX":
             continue
-        sys_str = " ".join({"nobrainers":"🎯","insiders":"👀","smart_money":"💼","deep_value":"💎","eps_velocity":"📈"}.get(s,"•") for s in r["systems"])
-        lines.append(f"*{md_escape(r['symbol'])}* {sys_str}  comp\\={md_escape(str(int(r['compound_score'])))}")
+        sys_str = " ".join(sys_emojis.get(s, "•") for s in r.get("systems", []))
+        sym = md_escape(r.get("symbol", "?"))
+        comp = md_escape(str(int(r.get("compound_score", 0))))
+        lines.append("*" + sym + "* " + sys_str + "  comp\\=" + comp)
     lines.append("")
 
     lines.append("*Today's exponential improvements:*")
@@ -174,11 +198,20 @@ def main():
 
     text = "\n".join(lines)
     log(f"  message length: {len(text)} chars")
+    log("  preview (first 25 lines):")
+    for ln in text.splitlines()[:25]:
+        log("    " + ln[:120])
 
-    token = SSM.get_parameter(Name="/justhodl/telegram/bot_token",
-                                WithDecryption=True)["Parameter"]["Value"]
-    chat = SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    section("7) Send via Telegram")
+    try:
+        token = SSM.get_parameter(Name="/justhodl/telegram/bot_token",
+                                    WithDecryption=True)["Parameter"]["Value"]
+        chat = SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception as e:
+        log("  ❌ telegram credentials: " + str(e))
+        return
+
+    url = "https://api.telegram.org/bot" + token + "/sendMessage"
     data = json.dumps({
         "chat_id": chat, "text": text,
         "parse_mode": "MarkdownV2",
@@ -190,11 +223,12 @@ def main():
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
             mid = json.loads(r.read())["result"]["message_id"]
-            log(f"  ✅ delivered, message_id={mid}")
+            log("  ✅ delivered, message_id=" + str(mid))
     except urllib.error.HTTPError as e:
-        log(f"  ❌ HTTP {e.code}: {e.read().decode('utf-8','replace')[:300]}")
+        body = e.read().decode("utf-8", "replace")[:400]
+        log("  ❌ HTTP " + str(e.code) + ": " + body)
     except Exception as e:
-        log(f"  ❌ {e}")
+        log("  ❌ " + str(e))
 
 
 if __name__ == "__main__":
