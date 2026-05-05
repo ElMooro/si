@@ -154,7 +154,9 @@ def horizon_for_position(p):
 
 
 def signal_type_for_position(p):
-    """Map a paper-portfolio open position to its source signal_type."""
+    """Map a paper-portfolio open position to its source signal_type for
+    calibration-weight lookup. Maps the human-friendly 'source' field to
+    a calibrated signal_type."""
     src = (p.get("source") or "").lower()
     if "screener" in src:
         return "screener_top_pick"
@@ -162,8 +164,14 @@ def signal_type_for_position(p):
         return "earnings_pead"
     if "asym" in src:
         return "edge_composite"
+    if "squeeze" in src:
+        return "squeeze_risk"
+    if "momentum_top" in src or "top_pick" in src:
+        return "momentum_top_pick"
     if "momentum" in src:
         return "momentum_spy"
+    if "carry" in src or "regime" in src:
+        return "carry_risk"
     return "edge_composite"
 
 
@@ -215,26 +223,44 @@ def lambda_handler(event=None, context=None):
     print(f"[sizer-v2] decisive call: {call_verb} → risk_mult={risk_mult}")
 
     # 5. For each open position, compute horizon-aware Kelly
+    initial_nav = to_float(portfolio.get("initial_nav"), BASE_NAV)
+    if initial_nav <= 0:
+        initial_nav = BASE_NAV
     pos_recs = []
     for p in open_positions:
         ticker = p.get("ticker")
         if not ticker:
             continue
-        cur_pct = (to_float(p.get("position_pct")) or
-                   (to_float(p.get("position_size_dollars"), 0) / BASE_NAV))
+        # Use notional_at_entry / initial_nav for current_pct.
+        # Fallback to qty × current_price / nav if notional missing.
+        notional = to_float(p.get("notional_at_entry"))
+        if notional <= 0:
+            qty = to_float(p.get("qty") or p.get("shares"))
+            cur_price = to_float(p.get("current_price") or p.get("entry_price"))
+            notional = qty * cur_price
+        cur_pct = notional / initial_nav if initial_nav > 0 else 0.0
         sig_type = signal_type_for_position(p)
         win = horizon_for_position(p)
         weight, src = resolve_weight(sig_type, win, flat, horizon)
-        # Conviction from confidence
-        conf = to_float(p.get("confidence"), 0.6)
+        # Conviction: use score/100 if present (asymmetric scorer style 0-100),
+        # else fall back to confidence (0-1 already), else 0.6 default.
+        score = to_float(p.get("score"), -1)
+        if 0 < score <= 100:
+            conf = score / 100.0
+        else:
+            conf = to_float(p.get("confidence"), 0.6)
         if conf < 0.5:
-            conf = 0.6  # paper portfolio entries default to 60% if unset
+            conf = 0.6
         flat_kelly = kelly_size(conf, weight=flat.get(sig_type, 1.0))
         horizon_kelly = kelly_size(conf, weight=weight)
         adj_kelly = horizon_kelly * risk_mult
 
-        # Action recommendation
-        if adj_kelly == 0:
+        # Action recommendation — but don't recommend ADD on a position with
+        # current_pct=0 (that's a stale metric; the position is freshly-opened
+        # and still being filled). Instead label it HOLD.
+        if cur_pct <= 0.001:
+            action = "HOLD"  # Newly-opened, no comparison possible
+        elif adj_kelly == 0:
             action = "EXIT"
         elif adj_kelly < cur_pct * 0.7:
             action = "TRIM"
@@ -251,6 +277,7 @@ def lambda_handler(event=None, context=None):
             "weight_used": round(weight, 3),
             "weight_source": src,
             "current_pct": round(cur_pct, 4),
+            "current_dollars": round(notional, 2),
             "current_pnl_pct": to_float(p.get("current_pnl_pct"), 0),
             "confidence": round(conf, 3),
             "flat_kelly_pct": flat_kelly,
@@ -259,7 +286,7 @@ def lambda_handler(event=None, context=None):
             "call_adjusted_pct": round(adj_kelly, 4),
             "recommended_action": action,
             "delta_pct": round(adj_kelly - cur_pct, 4),
-            "dollar_size": round(adj_kelly * BASE_NAV, 2),
+            "dollar_size": round(adj_kelly * initial_nav, 2),
         })
     pos_recs.sort(key=lambda x: -abs(x["delta_pct"]))
 
