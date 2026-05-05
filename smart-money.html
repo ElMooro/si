@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Money · JustHodl.AI</title>
+<meta name="description" content="13F smart-money cluster signals — when Buffett, Burry, Klarman, Druckenmiller and other legendary funds independently buy the same stock. Filtered for deep-value contrarian setups.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548; --brd3:#3a4760;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-dim:#00a850;
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#a855f7; --purple-bg:rgba(168,85,247,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),transparent 50%),radial-gradient(ellipse at 0% 110%,rgba(168,85,247,.03),transparent 50%);min-height:100vh}
+
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--cyan)}
+.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--cyan);font-style:normal}
+
+.shell{max-width:1320px;margin:0 auto;padding:36px 24px 80px}
+@media(max-width:700px){.shell{padding:20px 14px 60px}}
+
+.hero{margin-bottom:28px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,40px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--green);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:720px;line-height:1.55;margin-bottom:18px}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:13px 15px;display:flex;flex-direction:column;gap:3px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-size:22px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--t3)}
+.skel{background:linear-gradient(90deg,var(--bg2) 0,var(--bg3) 50%,var(--bg2) 100%);background-size:200% 100%;animation:skel 1.4s infinite;border-radius:3px;color:transparent;display:inline-block;width:55%}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px}
+.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--green);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}
+.primer p:last-child{margin-bottom:0}
+.primer strong{color:var(--t1);font-weight:600}
+
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:720px}
+
+.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(395px,1fr));gap:14px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:11px;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--brd2);transform:translateY(-1px)}
+.card-strong{border-color:rgba(0,230,118,.3);box-shadow:0 0 0 1px rgba(0,230,118,.05)}
+.card-strong:hover{border-color:var(--green);box-shadow:0 0 0 1px rgba(0,230,118,.15)}
+.card-deep-value{border-color:rgba(255,196,0,.3)}
+
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.card-ticker{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em;line-height:1}
+.card-name{font-size:12px;color:var(--t3);margin-top:2px}
+.card-score{font-family:var(--mono);font-weight:600;font-size:18px;text-align:right}
+.score-90{color:var(--green)}
+.score-80{color:#7df5b3}
+.score-70{color:var(--cyan)}
+.score-60{color:#9fb8d6}
+.score-low{color:var(--t3)}
+
+.signal-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:3px;font-weight:500}
+.tag-strong{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}
+.tag-new-init{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+.tag-deep-value{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.25)}
+.tag-legend{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(168,85,247,.25)}
+.tag-consensus{background:var(--orange-bg);color:var(--orange);border:1px solid rgba(255,122,24,.25)}
+
+.rationale{font-size:12.5px;color:var(--t2);line-height:1.5;background:var(--bg2);padding:10px 12px;border-radius:6px;border-left:2px solid var(--green)}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-family:var(--mono);font-size:11.5px;padding-top:6px;border-top:1px solid var(--brd)}
+.metric{display:flex;justify-content:space-between;align-items:baseline}
+.metric-label{color:var(--t3);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.metric-val{color:var(--t1);font-weight:500}
+.metric-val.up{color:var(--green)}
+.metric-val.down{color:var(--red)}
+.metric-val.warn{color:var(--yellow)}
+
+.legend-list{display:flex;flex-wrap:wrap;gap:5px;padding-top:4px}
+.legend-chip{font-family:var(--mono);font-size:10px;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:3px;border:1px solid rgba(168,85,247,.2);letter-spacing:.5px}
+
+.fund-list{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:10.5px;padding-top:4px;max-height:140px;overflow-y:auto}
+.fund-row{display:grid;grid-template-columns:90px 60px 1fr 50px;gap:8px;color:var(--t2);align-items:baseline}
+.fund-name{color:var(--t1);font-weight:500;font-size:10.5px}
+.fund-action{padding:1px 5px;border-radius:2px;font-size:9px;text-align:center;letter-spacing:.5px;font-weight:600}
+.action-NEW{background:var(--cyan-bg);color:var(--cyan)}
+.action-ADD{background:var(--green-bg);color:var(--green)}
+.action-TRIM{background:var(--red-bg);color:var(--red)}
+.action-EXIT{background:var(--red-bg);color:var(--red)}
+.action-HOLD{background:rgba(168,179,199,.08);color:var(--t3)}
+.fund-pct{color:var(--t3);font-size:10px;text-align:right}
+.fund-delta{color:var(--t2);font-size:10px;text-align:right}
+.fund-delta.up{color:var(--green)}
+.fund-delta.down{color:var(--red)}
+
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
+.err{background:var(--red-bg);border:1px solid rgba(255,23,74,.3);border-radius:6px;padding:10px 14px;color:var(--red);font-size:13px;display:none}
+.err.show{display:block}
+
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
+.foot-grid{max-width:1320px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
+.foot-section{display:flex;flex-direction:column;gap:4px}
+.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}
+.foot-section span{color:var(--t2)}
+.foot-section a{color:var(--cyan);text-decoration:none}
+
+.fade-in{animation:fade .35s ease-out}
+@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/calls.html">Calls</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/themes.html">Themes</a>
+  <a href="/nobrainers.html">Nobrainers</a>
+  <a href="/insider-clusters.html">Insiders</a>
+  <a href="/smart-money.html" class="active">Smart Money</a>
+  <a href="/13f.html">13F</a>
+  <a href="/horizons.html">Horizons</a>
+  <a href="/weights.html">Weights</a>
+  <a href="/performance.html">Performance</a>
+</nav>
+
+<main class="shell">
+  <section class="hero fade-in">
+    <span class="hero-eyebrow">13F · Smart-Money Cluster Detection</span>
+    <h1 class="hero-title">When the <em>legends agree</em> — smart-money cluster signals from 17 elite funds.</h1>
+    <p class="hero-blurb">Cluster scoring across 7,000+ holdings tracked from Berkshire, Burry's Scion, Klarman's Baupost, Pershing Square, Soros Fund, Lone Pine, Coatue, and 10 other elite funds. The system flags rare moments when 3+ legendary managers independently buy the same stock — especially when it's already crashed 25%+ from highs.</p>
+    <div class="kpi-strip" id="kpi-strip">
+      <div class="kpi"><span class="kpi-label">Stocks tracked</span><span class="kpi-val skel" id="kpi-tracked">—</span><span class="kpi-sub">via 17 fund 13Fs</span></div>
+      <div class="kpi"><span class="kpi-label">Clusters scored</span><span class="kpi-val skel" id="kpi-clusters">—</span><span class="kpi-sub">≥2 buyers / 1 legend</span></div>
+      <div class="kpi"><span class="kpi-label">Strong</span><span class="kpi-val skel" id="kpi-strong">—</span><span class="kpi-sub">score ≥ 70</span></div>
+      <div class="kpi"><span class="kpi-label">Legend buys</span><span class="kpi-val skel" id="kpi-legends">—</span><span class="kpi-sub">Buffett·Burry·Klarman·etc</span></div>
+      <div class="kpi"><span class="kpi-label">Deep-value</span><span class="kpi-val skel" id="kpi-deep">—</span><span class="kpi-sub">consensus + 25%+ DD</span></div>
+      <div class="kpi"><span class="kpi-label">As of</span><span class="kpi-val skel" id="kpi-quarter" style="font-size:14px">—</span><span class="kpi-sub">filing quarter</span></div>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+
+  <div class="primer fade-in">
+    <h3>Why smart-money clusters work</h3>
+    <p>13F filings show what the world's best money managers actually owned 45 days ago. Single funds chase narratives, get edge cases wrong, and have idiosyncratic constraints. <strong>But when 3 or more legendary managers — independently, in the same quarter, with their own analysts and convictions — open or grow positions in the same name, the signal compounds dramatically.</strong></p>
+    <p>The strongest setup is the <strong>Burry-Mandel pattern</strong>: two value-oriented contrarian managers who rarely agree on names both initiate brand-new positions in a stock that's already 25-50% off its 52-week high. The market is selling; the smart money is buying. Historical evidence (Cohen-Polk-Silli 2010, Frazzini-Israel 2017) shows these clusters earn 8-14% annualized alpha over 12-month horizons.</p>
+    <p><strong>Legend funds</strong> we weight extra: Berkshire, Baupost (Klarman), Greenlight (Einhorn), Pershing (Ackman), Scion (Burry), Lone Pine (Mandel), Tiger Global, Coatue, Duquesne (Druckenmiller via family office surrogates), Soros. <strong>Quant funds</strong> (Citadel, Millennium, Renaissance, Two Sigma, AQR, Point72) add color but each adds less weight per fund — a signal needing 4 quants is weaker than one needing 3 legends.</p>
+  </div>
+
+  <section class="section fade-in">
+    <div class="section-eyebrow">Highest conviction</div>
+    <h2 class="section-title">Strong signals (score ≥ 70)</h2>
+    <p class="section-blurb">Clusters where multiple legend funds agree, often with concentrated portfolio weight or contrarian drawdown timing. These are the rarest, highest-quality setups.</p>
+    <div class="cluster-grid" id="strong-grid">
+      <div class="empty skel" style="grid-column:1/-1">Loading…</div>
+    </div>
+  </section>
+
+  <section class="section fade-in">
+    <div class="section-eyebrow">Full leaderboard</div>
+    <h2 class="section-title">All scored clusters</h2>
+    <p class="section-blurb">Every smart-money cluster the system found in the most recent 13F quarter, sorted by composite score.</p>
+    <div class="cluster-grid" id="all-grid">
+      <div class="empty skel" style="grid-column:1/-1">Loading…</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section">
+      <span class="foot-label">Source</span>
+      <span><strong style="color:var(--t1)">SEC EDGAR</strong> 13F-HR filings</span>
+      <span>justhodl-13f-positions + smart-money-cluster</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Schedule</span>
+      <span>Daily 09:00 UTC re-score</span>
+      <span>Filings refresh quarterly (Feb·May·Aug·Nov)</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">17 funds tracked</span>
+      <span>Berkshire · Baupost · Pershing</span>
+      <span>Scion · Lone Pine · Coatue · Tiger</span>
+      <span>Duquesne · Soros · Greenlight</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Last refresh</span>
+      <span id="foot-refresh">—</span>
+      <span><a href="javascript:location.reload()">Reload</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const SOURCE = '/data/smart-money-clusters.json';
+
+const fmt$ = v => {
+  if (!v) return '—';
+  if (v >= 1e9) return '$' + (v/1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
+  return '$' + v.toFixed(0);
+};
+const fmtN = v => v == null ? '—' : v.toLocaleString();
+const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+function scoreColor(s){if(s>=90)return'score-90';if(s>=80)return'score-80';if(s>=70)return'score-70';if(s>=60)return'score-60';return'score-low'}
+
+function renderCard(c){
+  const score = c.score||0;
+  const ph = c.pct_from_52w_high;
+  const isStrong = score>=70;
+  const isDeepValue = (c.signal_types||[]).includes('DEEP_VALUE_CONSENSUS');
+  const cardCls = ['card', isStrong&&'card-strong', isDeepValue&&!isStrong&&'card-deep-value'].filter(Boolean).join(' ');
+
+  const sigMap = {
+    'NEW_INITIATION_CLUSTER': {cls:'tag-new-init', label:'NEW INIT'},
+    'CONSENSUS_BUY': {cls:'tag-consensus', label:'CONSENSUS'},
+    'DEEP_VALUE_CONSENSUS': {cls:'tag-deep-value', label:'DEEP VALUE'},
+    'LEGEND_FUND_BUY': {cls:'tag-legend', label:'LEGEND'},
+    'ACCUMULATION': {cls:'tag-strong', label:'ACCUM'},
+  };
+  const tags = (c.signal_types||[]).map(s => sigMap[s] || {cls:'tag-strong', label:s})
+    .map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('');
+
+  const phClass = ph==null?'':(ph<=-50?'warn':ph<=-25?'down':'');
+  const phStr = ph!=null ? (ph>0?'+':'')+ph.toFixed(0)+'%' : '?';
+
+  const legends = (c.legend_buyers||[]).map(f => `<span class="legend-chip">${f}</span>`).join('');
+
+  const fundActions = (c.fund_actions||[]).slice(0,12).map(a => {
+    const action = a.change || 'HOLD';
+    const dpct = a.delta_pct;
+    const dpctStr = dpct!=null ? (dpct>0?'+':'')+dpct.toFixed(0)+'%' : (action==='NEW'?'NEW':'—');
+    const dpctCls = dpct==null ? '' : (dpct>0?'up':'down');
+    const portPct = a.pct_of_portfolio||0;
+    return `<div class="fund-row">
+      <span class="fund-name">${escape(a.fund||'?')}</span>
+      <span class="fund-action action-${action}">${action}</span>
+      <span class="fund-pct">${portPct.toFixed(1)}%·${fmt$(a.value||0)}</span>
+      <span class="fund-delta ${dpctCls}">${dpctStr}</span>
+    </div>`;
+  }).join('');
+
+  const f = c.fundamentals || {};
+  const mc = f.market_cap;
+  const mcStr = mc ? (mc>=1e9?`$${(mc/1e9).toFixed(1)}B`:mc>=1e6?`$${(mc/1e6).toFixed(0)}M`:'?') : '?';
+  const px = f.price ? `$${f.price.toFixed(2)}` : '?';
+
+  return `
+    <div class="${cardCls}">
+      <div class="card-header">
+        <div>
+          <div class="card-ticker">${escape(c.ticker||'?')}</div>
+          <div class="card-name">${escape((c.name||'').substring(0,40))}</div>
+        </div>
+        <div class="card-score ${scoreColor(score)}">${score.toFixed(1)}</div>
+      </div>
+      <div class="signal-row">${tags}</div>
+      <div class="rationale">${escape(c.rationale||'—')}</div>
+      ${legends ? `<div class="legend-list">${legends}</div>` : ''}
+      <div class="metrics">
+        <div class="metric"><span class="metric-label">Buyers / Sellers</span><span class="metric-val">${c.n_buyers}/${c.n_sellers}</span></div>
+        <div class="metric"><span class="metric-label">New init</span><span class="metric-val ${c.n_new>=2?'up':''}">${c.n_new}</span></div>
+        <div class="metric"><span class="metric-label">Funds holding</span><span class="metric-val">${c.n_funds_holding}</span></div>
+        <div class="metric"><span class="metric-label">Total $</span><span class="metric-val">${fmt$(c.total_value)}</span></div>
+        <div class="metric"><span class="metric-label">Price</span><span class="metric-val">${px}</span></div>
+        <div class="metric"><span class="metric-label">Mcap</span><span class="metric-val">${mcStr}</span></div>
+        <div class="metric"><span class="metric-label">% 52W high</span><span class="metric-val ${phClass}">${phStr}</span></div>
+        <div class="metric"><span class="metric-label">Industry</span><span class="metric-val" style="font-size:10px">${escape((f.industry||'?').substring(0,18))}</span></div>
+      </div>
+      ${fundActions ? `<div class="fund-list">${fundActions}</div>` : ''}
+    </div>`;
+}
+
+async function load(){
+  try{
+    const r = await fetch(BUCKET+SOURCE+'?_='+Date.now(), {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){
+    document.getElementById('err').textContent = 'Load error: '+e.message;
+    document.getElementById('err').classList.add('show');
+    throw e;
+  }
+}
+
+(async () => {
+  try{
+    const data = await load();
+    const stats = data.stats || {};
+    const clusters = data.clusters || [];
+
+    document.getElementById('kpi-tracked').textContent = fmtN(stats.n_total_13f_stocks);
+    document.getElementById('kpi-clusters').textContent = fmtN(stats.n_clusters_scored);
+    document.getElementById('kpi-strong').textContent = fmtN(stats.n_strong);
+    document.getElementById('kpi-legends').textContent = fmtN(stats.n_legend_fund_buys);
+    document.getElementById('kpi-deep').textContent = fmtN(stats.n_deep_value);
+    document.getElementById('kpi-quarter').textContent = data.as_of_quarter || '—';
+    [...document.querySelectorAll('.kpi-val')].forEach(e => e.classList.remove('skel'));
+
+    const refresh = data.generated_at ? new Date(data.generated_at).toLocaleString() : '—';
+    document.getElementById('foot-refresh').textContent = refresh;
+
+    const strong = clusters.filter(c => (c.score||0) >= 70);
+    document.getElementById('strong-grid').innerHTML = strong.length
+      ? strong.map(renderCard).join('')
+      : `<div class="empty" style="grid-column:1/-1">No strong-conviction signals in latest filings.</div>`;
+
+    document.getElementById('all-grid').innerHTML = clusters.length
+      ? clusters.map(renderCard).join('')
+      : `<div class="empty" style="grid-column:1/-1">No clusters detected.</div>`;
+  }catch(e){
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
