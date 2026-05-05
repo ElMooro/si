@@ -54,6 +54,13 @@ INITIAL_NAV = 100_000.0
 # bounds gross daily exposure to a realistic ~10-20% of NAV.
 POSITION_SIZE = 0.005
 
+# v1.2 REALISTIC CONSTRAINTS — bring the unrealistically-clean v1.1 sharpe of
+# ~10 down toward the honest out-of-sample range of 2-5.
+SLIPPAGE_BPS_PER_LEG = 5     # 5 bps each side (entry+exit) = 10 bps round-trip per trade
+CONCENTRATION_CAP = 0.40     # 40% NAV max in any single signal_type per day
+GROSS_EXPOSURE_CAP = 1.00    # 100% NAV max total gross exposure per day
+# (No leverage cost needed — gross is hard-capped at 100%.)
+
 # Window preference for dedup — when the same signal_id has multiple scored
 # outcomes (e.g., day_30, day_60, day_90), use the SHORTEST as the canonical one.
 # Shorter windows let the strategy turn capital faster and align better with
@@ -353,6 +360,125 @@ def lambda_handler(event=None, context=None):
     for d in sorted(by_date.keys()):
         daily.append({"date": d, "contribution": round(by_date[d], 4), "n_outcomes": by_date_n[d]})
 
+    # 6b. v1.2 REALISTIC AGGREGATION (parallel to v1.1)
+    # ─────────────────────────────────────────────────
+    # Apply real-world frictions to each trade:
+    #   1) Slippage: subtract 10bps round-trip per trade (5bps × 2 legs)
+    #   2) Per-signal concentration cap: max 40% of NAV per signal_type per day
+    #   3) Gross exposure cap: max 100% of NAV total deployed per day
+    #
+    # Each trade's "size" (gross %-NAV) is POSITION_SIZE × |weight|. So a w=1.5 trade
+    # has size 0.75% of NAV. With 200 trades on a heavy day, gross naively = 150% NAV.
+    # Caps scale all trades that day proportionally so reality is enforced.
+    realistic_results = []
+    by_day_trades = defaultdict(list)  # date -> list of trade indices
+    for i, r in enumerate(results):
+        d = (r["logged_at"] or r["checked_at"] or "")[:10]
+        if d:
+            by_day_trades[d].append(i)
+
+    n_concentration_capped_days = 0
+    n_gross_capped_days = 0
+    total_slippage_cost = 0.0
+
+    realistic_daily = defaultdict(float)
+    realistic_daily_n = defaultdict(int)
+
+    for d in sorted(by_day_trades.keys()):
+        trade_idxs = by_day_trades[d]
+        # Step 1: per-trade slippage (always charged)
+        # Each trade's size in pct-NAV = POSITION_SIZE × weight (always positive for sizing)
+        sizes = []
+        slippage_costs = []
+        for i in trade_idxs:
+            r = results[i]
+            size = POSITION_SIZE * abs(r["weight"])  # gross size, always positive
+            slip = size * (SLIPPAGE_BPS_PER_LEG * 2) / 10000  # 10bps round-trip on size
+            sizes.append(size)
+            slippage_costs.append(slip)
+            total_slippage_cost += slip
+
+        # Step 2: per-signal concentration cap (per day)
+        sig_gross = defaultdict(float)
+        for j, i in enumerate(trade_idxs):
+            sig_gross[results[i]["signal_type"]] += sizes[j]
+        sig_scale = {}
+        any_concentration_capped = False
+        for stype, total_size in sig_gross.items():
+            if total_size > CONCENTRATION_CAP:
+                sig_scale[stype] = CONCENTRATION_CAP / total_size
+                any_concentration_capped = True
+            else:
+                sig_scale[stype] = 1.0
+        if any_concentration_capped:
+            n_concentration_capped_days += 1
+
+        # Apply concentration scaling
+        scaled_sizes = []
+        for j, i in enumerate(trade_idxs):
+            scale = sig_scale[results[i]["signal_type"]]
+            scaled_sizes.append(sizes[j] * scale)
+
+        # Step 3: total gross cap (per day)
+        total_gross = sum(scaled_sizes)
+        gross_scale = 1.0
+        if total_gross > GROSS_EXPOSURE_CAP:
+            gross_scale = GROSS_EXPOSURE_CAP / total_gross
+            n_gross_capped_days += 1
+
+        # Compose final per-trade realistic contribution
+        for j, i in enumerate(trade_idxs):
+            r = results[i]
+            sig_s = sig_scale[r["signal_type"]]
+            # Original gross contribution scales by: sig_concentration_scale × gross_scale
+            scaled_contribution = r["contribution"] * sig_s * gross_scale
+            # Slippage scales the same way (you only pay slippage on what you actually trade)
+            scaled_slip = slippage_costs[j] * sig_s * gross_scale
+            net = scaled_contribution - scaled_slip * 100  # slip is fractional, contribution is in %, so multiply by 100
+
+            realistic_daily[d] += net
+            realistic_daily_n[d] += 1
+            realistic_results.append({
+                "outcome_id": r["outcome_id"],
+                "signal_type": r["signal_type"],
+                "weight": r["weight"],
+                "gross_size_pct": round(sizes[j] * 100, 4),
+                "scaled_size_pct": round(scaled_sizes[j] * gross_scale * 100, 4),
+                "concentration_scale": round(sig_s, 4),
+                "gross_scale": round(gross_scale, 4),
+                "raw_contribution": round(r["contribution"], 4),
+                "slippage_cost_pct": round(scaled_slip * 100, 4),
+                "realistic_contribution": round(net, 4),
+                "logged_at": r["logged_at"],
+            })
+
+    realistic_daily_list = []
+    for d in sorted(realistic_daily.keys()):
+        realistic_daily_list.append({
+            "date": d,
+            "contribution": round(realistic_daily[d], 4),
+            "n_outcomes": realistic_daily_n[d],
+        })
+
+    # Realistic NAV curve
+    realistic_nav_curve = []
+    rnav = INITIAL_NAV
+    rcum = 0.0
+    for d in realistic_daily_list:
+        rnav = rnav * (1 + d["contribution"] / 100.0)
+        rcum += d["contribution"]
+        realistic_nav_curve.append({
+            "date": d["date"],
+            "nav": round(rnav, 2),
+            "daily_pct": round(d["contribution"], 4),
+            "cum_pct": round(rcum, 4),
+        })
+
+    print(f"[backtest-v1.2] realistic: {len(realistic_results)} trades, "
+          f"slippage_total={total_slippage_cost*100:.4f}%, "
+          f"concentration_capped_days={n_concentration_capped_days}, "
+          f"gross_capped_days={n_gross_capped_days}")
+
     # 7. Build NAV curve — start at $100k, add daily contribution as a % of NAV
     # Treat each contribution as a basis-point hit on NAV: NAV_t+1 = NAV_t * (1 + contribution_t/100)
     # since contributions are in percentage points
@@ -444,23 +570,63 @@ def lambda_handler(event=None, context=None):
     else:
         sharpe = None
 
+    # 8b. v1.2 REALISTIC stats (post-friction)
+    realistic_final_nav = realistic_nav_curve[-1]["nav"] if realistic_nav_curve else INITIAL_NAV
+    realistic_return_pct = (realistic_final_nav - INITIAL_NAV) / INITIAL_NAV * 100
+    realistic_alpha_pct = (realistic_return_pct - spy_return_pct) if spy_return_pct is not None else None
+    # Drawdown
+    rpeak = INITIAL_NAV
+    realistic_max_dd = 0.0
+    for n in realistic_nav_curve:
+        if n["nav"] > rpeak:
+            rpeak = n["nav"]
+        dd = (rpeak - n["nav"]) / rpeak * 100
+        if dd > realistic_max_dd:
+            realistic_max_dd = dd
+    # Sharpe
+    rd_contribs = [d["contribution"] for d in realistic_daily_list]
+    if len(rd_contribs) >= 5:
+        rmean = sum(rd_contribs) / len(rd_contribs)
+        rvar = sum((x - rmean) ** 2 for x in rd_contribs) / len(rd_contribs)
+        rstd = rvar ** 0.5
+        realistic_sharpe = (rmean / rstd * (252 ** 0.5)) if rstd > 0 else None
+    else:
+        realistic_sharpe = None
+    # Total slippage in pct of NAV (charged across all trades, fully scaled)
+    realistic_total_slippage_pct = round(
+        sum(r["slippage_cost_pct"] for r in realistic_results), 4
+    )
+
+    # Attach SPY benchmark to realistic_nav_curve too
+    if spy_first_close:
+        for n in realistic_nav_curve:
+            spy_close = closest_spy_close_at_or_before(n["date"])
+            if spy_close:
+                n["spy_nav"] = round(INITIAL_NAV * (spy_close / spy_first_close), 2)
+                n["spy_pct"] = round((spy_close / spy_first_close - 1) * 100, 4)
+
     # 9. Build full results
     results_doc = {
-        "v": "1.1",
+        "v": "1.2",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay_v3_horizon_aware",
+        "method": "calibrated_alpha_replay_v3_horizon_aware_realistic",
         "method_description": (
-            "For each scored outcome (deduped to one per signal_id, shortest window preferred), "
-            "contribution = 0.005 × weight × predicted_direction_sign × actual_return. "
-            "Each unique trade is sized at 0.5% of NAV modulated by the signal's calibration weight. "
-            "v1.1: HORIZON-AWARE. Weights now resolved per (signal, window): if "
-            "/justhodl/calibration/weights/{window} has a measured weight for this trade's window, "
-            "we use that; otherwise we fall back to the flat aggregate. So a "
-            "screener_top_pick trade scored at day_30 uses the day_30 weight (1.34), while a "
-            "crisis_hy_oas trade scored at day_3 uses the day_3 weight (1.22). Trades distribute "
-            "across their logged_at firing dates and NAV compounds normally from $100k. Compare to "
-            "SPY buy-and-hold over the same window."
+            "v1.2: HORIZON-AWARE + REALISTIC. The base v1.1 model lives in `summary` (no friction). "
+            "The new `realistic_summary` and `realistic_nav_curve` apply real-world frictions: "
+            "(1) slippage 5bps/leg = 10bps round-trip on each trade's gross size, "
+            "(2) per-signal concentration cap of 40% of NAV per day (scales down when one signal type "
+            "dominates a day), (3) gross exposure cap of 100% of NAV per day (scales down when total "
+            "deployed capital exceeds NAV). The v1.1 sharpe was unrealistically clean at ~10. The v1.2 "
+            "realistic sharpe should land in the honest 2-5 range. Both are reported side-by-side so "
+            "Khalid can see the cost of friction directly. Trades distribute across their logged_at "
+            "firing dates and NAV compounds normally from $100k. Compare to SPY buy-and-hold."
         ),
+        "constants": {
+            "POSITION_SIZE": POSITION_SIZE,
+            "SLIPPAGE_BPS_PER_LEG": SLIPPAGE_BPS_PER_LEG,
+            "CONCENTRATION_CAP": CONCENTRATION_CAP,
+            "GROSS_EXPOSURE_CAP": GROSS_EXPOSURE_CAP,
+        },
         "summary": {
             "n_outcomes": n_total,
             "n_correct": n_correct,
@@ -480,21 +646,39 @@ def lambda_handler(event=None, context=None):
             "alpha_vs_spy_pct": round(alpha_pct, 4) if alpha_pct is not None else None,
             "skipped_no_weight": skipped_no_weight,
             "skipped_no_return": skipped_no_return,
-            # NEW: horizon attribution
+            # Horizon attribution (v1.1)
             "n_horizon_weighted": n_horizon_weighted,
             "n_flat_weighted": n_flat_weighted,
             "horizon_breakdown": dict(horizon_breakdown),
         },
+        "realistic_summary": {
+            "n_trades": len(realistic_results),
+            "initial_nav": INITIAL_NAV,
+            "final_nav": round(realistic_final_nav, 2),
+            "total_return_pct": round(realistic_return_pct, 4),
+            "max_drawdown_pct": round(realistic_max_dd, 4),
+            "sharpe_proxy": round(realistic_sharpe, 4) if realistic_sharpe is not None else None,
+            "alpha_vs_spy_pct": round(realistic_alpha_pct, 4) if realistic_alpha_pct is not None else None,
+            "total_slippage_cost_pct": realistic_total_slippage_pct,
+            "n_concentration_capped_days": n_concentration_capped_days,
+            "n_gross_capped_days": n_gross_capped_days,
+            "n_total_days": len(realistic_daily_list),
+            "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
+        },
         "by_signal": signal_summary,
         "daily": daily,
         "nav_curve": nav_curve,
+        "realistic_daily": realistic_daily_list,
+        "realistic_nav_curve": realistic_nav_curve,
     }
 
     # Slim summary for fast page loads
     summary_doc = {
-        "v": "1.0",
+        "v": "1.2",
         "generated_at": now.isoformat(),
         "summary": results_doc["summary"],
+        "realistic_summary": results_doc["realistic_summary"],
+        "constants": results_doc["constants"],
         "top_5_contributors": signal_summary[:5],
         "bottom_5_contributors": signal_summary[-5:] if len(signal_summary) >= 5 else signal_summary,
     }
@@ -530,6 +714,14 @@ def lambda_handler(event=None, context=None):
             "n_horizon_weighted": n_horizon_weighted,
             "n_flat_weighted": n_flat_weighted,
             "horizon_breakdown": dict(horizon_breakdown),
+            # v1.2 realistic stats
+            "realistic_return_pct": round(realistic_return_pct, 4),
+            "realistic_sharpe": round(realistic_sharpe, 4) if realistic_sharpe is not None else None,
+            "realistic_alpha_pct": round(realistic_alpha_pct, 4) if realistic_alpha_pct is not None else None,
+            "realistic_max_dd_pct": round(realistic_max_dd, 4),
+            "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
+            "n_concentration_capped_days": n_concentration_capped_days,
+            "n_gross_capped_days": n_gross_capped_days,
             "duration_s": duration,
         }),
     }
