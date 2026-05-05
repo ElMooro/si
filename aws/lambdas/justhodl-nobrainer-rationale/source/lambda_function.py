@@ -485,8 +485,96 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[rationale] WARN — EPS velocity unavailable: {e}")
 
-    # 2. Pick top N candidates above MIN_SCORE
-    candidates = [x for x in leader if x.get("asymmetric_score", 0) >= MIN_SCORE][:N_THESES]
+    # Load compound signals — names with 2+ system agreement get priority
+    compound_by_ticker = {}
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/compound-signals.json")
+        cs_data = json.loads(obj["Body"].read())
+        for c in cs_data.get("compound", []):
+            sym = c.get("symbol")
+            if sym:
+                compound_by_ticker[sym] = c
+        n_t3 = sum(1 for c in cs_data.get("compound", []) if c.get("n_systems", 0) >= 3)
+        print(f"[rationale] loaded {len(compound_by_ticker)} compound signals ({n_t3} tier-3)")
+    except Exception as e:
+        print(f"[rationale] WARN — compound signals unavailable: {e}")
+
+    # 2. Pick top N candidates — combining nobrainer rank + compound priority
+    # First: tier-3 compound names get force-included with synthesized record if needed
+    # Second: top-N from nobrainer leaderboard, with compound names ranked higher
+    nb_top = [x for x in leader if x.get("asymmetric_score", 0) >= MIN_SCORE]
+
+    # Index nobrainer leader by ticker for fast lookup
+    nb_by_ticker = {x.get("ticker"): x for x in nb_top if x.get("ticker")}
+
+    # Build candidate list: tier-3 first, then tier-2 over 200, then nobrainer top
+    candidates = []
+    seen = set()
+
+    # Force-include all tier-3 compound names (max signal — must have a thesis)
+    tier3_names = [c for c in compound_by_ticker.values() if c.get("n_systems", 0) >= 3]
+    for cs in sorted(tier3_names, key=lambda x: -(x.get("compound_score") or 0)):
+        sym = cs.get("symbol")
+        if not sym or sym in seen:
+            continue
+        if sym in nb_by_ticker:
+            entry = dict(nb_by_ticker[sym])
+            entry["_compound_priority"] = "TIER_3"
+            entry["_compound_score"] = cs.get("compound_score")
+            entry["_compound_systems"] = cs.get("systems", [])
+            candidates.append(entry)
+        else:
+            # Synthesize a minimal nobrainer-shape entry from compound details
+            details = cs.get("details") or {}
+            nb_d = details.get("nobrainers") or {}
+            sm_d = details.get("smart_money") or {}
+            ev_d = details.get("eps_velocity") or {}
+            entry = {
+                "ticker": sym,
+                "name": nb_d.get("name") or sm_d.get("name") or ev_d.get("company") or sym,
+                "theme_etf": nb_d.get("theme") or "COMPOUND",
+                "theme_name": nb_d.get("theme") or "Compound multi-system",
+                "theme_phase": "COMPOUND",
+                "tier": nb_d.get("tier") or 0,
+                "asymmetric_score": cs.get("compound_score", 0) / 5.0,  # normalize
+                "flag": "COMPOUND_PRIORITY",
+                "factors": {},
+                "fundamentals": {},
+                "valuation_components": {},
+                "supply_signals": [],
+                "next_earnings": None,
+                "_compound_priority": "TIER_3",
+                "_compound_score": cs.get("compound_score"),
+                "_compound_systems": cs.get("systems", []),
+            }
+            candidates.append(entry)
+        seen.add(sym)
+
+    # Tier-2 with compound_score >= 200 (high conviction)
+    tier2_high = [c for c in compound_by_ticker.values()
+                   if c.get("n_systems") == 2 and (c.get("compound_score") or 0) >= 200]
+    for cs in sorted(tier2_high, key=lambda x: -(x.get("compound_score") or 0)):
+        sym = cs.get("symbol")
+        if not sym or sym in seen:
+            continue
+        if sym in nb_by_ticker:
+            entry = dict(nb_by_ticker[sym])
+            entry["_compound_priority"] = "TIER_2_HIGH"
+            entry["_compound_score"] = cs.get("compound_score")
+            entry["_compound_systems"] = cs.get("systems", [])
+            candidates.append(entry)
+            seen.add(sym)
+
+    # Then top nobrainers up to N_THESES total
+    for x in nb_top:
+        tk = x.get("ticker")
+        if tk and tk not in seen:
+            candidates.append(x)
+            seen.add(tk)
+        if len(candidates) >= N_THESES:
+            break
+
+    candidates = candidates[:N_THESES]
     if not candidates:
         print(f"[rationale] no candidates >= {MIN_SCORE} — nothing to write")
         return {
@@ -518,6 +606,8 @@ def lambda_handler(event=None, context=None):
         if compound_count >= 1:
             sigs = [n for n, x in zip(["insider","smart-money","deep-value","eps-velocity"], (cl, sm, dv, ev)) if x]
             print(f"[rationale] {ticker} COMPOUND: also flagged on {compound_count} other system(s): {', '.join(sigs)}")
+        if c.get("_compound_priority"):
+            print(f"[rationale] {ticker} _compound_priority={c['_compound_priority']} score={c.get('_compound_score')} systems={c.get('_compound_systems')}")
         prompt = build_thesis_prompt(c, cl, sm, dv, ev)
         thesis_text = ""
         usage = {}
