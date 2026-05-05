@@ -1,9 +1,9 @@
 """
-Audit the full nobrainer pipeline end-to-end.
-Verify L1-L6 Lambdas exist, code is current, S3 outputs are fresh,
-and a forced invocation of L4 produces a non-empty ranked list.
+End-to-end audit of L1-L6 nobrainer pipeline. Verifies Lambdas exist with
+fresh code, S3 outputs are recent, and a forced L4 invocation produces
+a non-empty ranked list. Writes report to aws/ops/reports/latest/audit_nobrainer_pipeline.md
 """
-import json, time
+import json, os, time
 import boto3
 
 L = boto3.client("lambda", region_name="us-east-1")
@@ -19,88 +19,127 @@ LAYERS = [
     ("L6 Nobrainer Tracker",    "justhodl-nobrainer-tracker",      None),
 ]
 
-print("# Nobrainer pipeline audit\n")
+REPORT = []
+def log(m): 
+    ts = time.strftime("%H:%M:%S"); print(f"- `{ts}`   {m}"); REPORT.append(f"- `{ts}`   {m}")
+def section(t): print(f"\n# {t}\n"); REPORT.append(f"\n# {t}\n")
 
-for name, fn, key in LAYERS:
-    print(f"## {name}: {fn}")
-    # Lambda existence
-    try:
-        meta = L.get_function(FunctionName=fn)
-        cfg  = meta["Configuration"]
-        print(f"  state: {cfg['State']}  mem={cfg['MemorySize']}MB  timeout={cfg['Timeout']}s")
-        print(f"  last modified: {cfg['LastModified']}")
-        env = cfg.get("Environment", {}).get("Variables", {})
-        print(f"  env keys: {list(env.keys())}")
-    except Exception as e:
-        print(f"  ❌ Lambda not found: {e}")
-        continue
-
-    # S3 freshness
-    if key:
+def main():
+    section("1) Lambda + S3 freshness audit")
+    for name, fn, key in LAYERS:
+        log("")
+        log(f"── {name}: {fn} ──")
         try:
-            head = S3.head_object(Bucket=BUCKET, Key=key)
-            sz = head["ContentLength"]
-            mod = head["LastModified"]
-            print(f"  S3 {key}: {sz:,}b  modified {mod}")
+            cfg = L.get_function(FunctionName=fn)["Configuration"]
+            log(f"  state: {cfg['State']}  mem={cfg['MemorySize']}MB  timeout={cfg['Timeout']}s")
+            log(f"  modified: {cfg['LastModified']}")
+            env_keys = list(cfg.get("Environment", {}).get("Variables", {}).keys())
+            log(f"  env keys: {env_keys}")
         except Exception as e:
-            print(f"  ❌ S3 {key}: {e}")
+            log(f"  ❌ Lambda not found: {e}")
+            continue
 
-    print()
+        if key:
+            try:
+                head = S3.head_object(Bucket=BUCKET, Key=key)
+                log(f"  S3 {key}: {head['ContentLength']:,}b  modified {head['LastModified']}")
+            except Exception as e:
+                log(f"  ⚠ S3 {key}: not present ({type(e).__name__})")
 
-print("## Force-invoke L4 (asymmetric-hunter) and dump top 5")
-try:
-    r = L.invoke(
-        FunctionName="justhodl-asymmetric-hunter",
-        InvocationType="RequestResponse",
-        LogType="Tail",
-        Payload=b"{}"
-    )
-    body = json.loads(r["Payload"].read().decode())
-    print(f"  status: {r['StatusCode']}")
-    print(f"  body keys: {list(body.keys())}")
-    if "body" in body and body.get("statusCode") == 200:
-        inner = json.loads(body["body"])
-        print(f"  inner keys: {list(inner.keys())}")
-        top = inner.get("top_5", inner.get("top", inner.get("ranked", [])))[:8]
-        if top:
-            print(f"  top picks:")
-            for t in top:
-                if isinstance(t, dict):
-                    sym  = t.get("symbol") or t.get("ticker") or "?"
-                    sc   = t.get("score") or t.get("nobrainer_score") or t.get("asymmetry_score") or "?"
-                    flag = t.get("flag") or t.get("tier") or ""
-                    print(f"    {sym:<8} score={sc} {flag}")
-                else:
-                    print(f"    {t}")
+    section("2) Force-invoke L4 asymmetric-hunter")
+    try:
+        r = L.invoke(FunctionName="justhodl-asymmetric-hunter",
+                     InvocationType="RequestResponse", LogType="Tail", Payload=b"{}")
+        body = json.loads(r["Payload"].read().decode())
+        log(f"  status: {r['StatusCode']}  body keys: {list(body.keys())}")
+        if "body" in body and body.get("statusCode") == 200:
+            inner = json.loads(body["body"])
+            log(f"  inner keys: {list(inner.keys())[:15]}")
+            for fld in ["n_setups", "n_top", "n_ranked", "n_candidates", "top_5_symbols", "top_symbols", "top_5"]:
+                if fld in inner:
+                    log(f"  {fld}: {inner[fld]}")
+            top = inner.get("top_5") or inner.get("ranked", [])[:8]
+            if top:
+                log("  top picks:")
+                for t in top[:8]:
+                    if isinstance(t, dict):
+                        sym = t.get("symbol") or t.get("ticker") or "?"
+                        sc  = t.get("score") or t.get("nobrainer_score") or "?"
+                        flag = t.get("flag") or t.get("tier") or ""
+                        log(f"    {sym:<8} score={sc} {flag}")
+                    else:
+                        log(f"    {t}")
         else:
-            print(f"  inner: {json.dumps(inner, indent=2)[:1500]}")
-except Exception as e:
-    print(f"  ❌ {e}")
+            log(f"  raw body: {json.dumps(body)[:1500]}")
+        if "LogResult" in r:
+            import base64
+            tail = base64.b64decode(r["LogResult"]).decode("utf-8", "replace")
+            log("  ── tail logs (last 4kb) ──")
+            for ln in tail.splitlines()[-25:]:
+                log(f"    {ln}")
+    except Exception as e:
+        log(f"  ❌ {e}")
 
-print("\n## Force-invoke L5 (rationale) for one symbol")
-try:
-    r = L.invoke(
-        FunctionName="justhodl-nobrainer-rationale",
-        InvocationType="RequestResponse",
-        LogType="Tail",
-        Payload=b'{"top_n": 3}'
-    )
-    body = json.loads(r["Payload"].read().decode())
-    print(f"  status: {r['StatusCode']}")
-    print(f"  raw: {json.dumps(body, indent=2)[:2000]}")
-except Exception as e:
-    print(f"  ❌ {e}")
+    section("3) Force-invoke L5 nobrainer-rationale (top_n=3)")
+    try:
+        r = L.invoke(FunctionName="justhodl-nobrainer-rationale",
+                     InvocationType="RequestResponse", LogType="Tail",
+                     Payload=json.dumps({"top_n": 3}).encode())
+        body = json.loads(r["Payload"].read().decode())
+        log(f"  status: {r['StatusCode']}  body keys: {list(body.keys())}")
+        if "body" in body and body.get("statusCode") == 200:
+            inner = json.loads(body["body"])
+            log(f"  inner keys: {list(inner.keys())[:12]}")
+            for fld in ["n_theses", "n_written", "symbols", "n_skipped"]:
+                if fld in inner:
+                    log(f"  {fld}: {inner[fld]}")
+            theses = inner.get("theses") or inner.get("results") or []
+            for t in theses[:2]:
+                if isinstance(t, dict):
+                    log(f"  ── thesis: {t.get('symbol', '?')} ──")
+                    txt = t.get("rationale") or t.get("thesis") or t.get("body") or ""
+                    log(f"    {txt[:300]}{'...' if len(txt) > 300 else ''}")
+        else:
+            log(f"  raw: {json.dumps(body)[:1500]}")
+    except Exception as e:
+        log(f"  ❌ {e}")
 
-print("\n## Force-invoke L6 (tracker)")
-try:
-    r = L.invoke(
-        FunctionName="justhodl-nobrainer-tracker",
-        InvocationType="RequestResponse",
-        LogType="Tail",
-        Payload=b"{}"
-    )
-    body = json.loads(r["Payload"].read().decode())
-    print(f"  status: {r['StatusCode']}")
-    print(f"  raw: {json.dumps(body, indent=2)[:1500]}")
-except Exception as e:
-    print(f"  ❌ {e}")
+    section("4) Force-invoke L6 nobrainer-tracker")
+    try:
+        r = L.invoke(FunctionName="justhodl-nobrainer-tracker",
+                     InvocationType="RequestResponse", LogType="Tail", Payload=b"{}")
+        body = json.loads(r["Payload"].read().decode())
+        log(f"  status: {r['StatusCode']}  body keys: {list(body.keys())}")
+        if "body" in body and body.get("statusCode") == 200:
+            inner = json.loads(body["body"])
+            log(f"  inner: {json.dumps(inner)[:1500]}")
+        else:
+            log(f"  raw: {json.dumps(body)[:1500]}")
+    except Exception as e:
+        log(f"  ❌ {e}")
+
+    section("5) Summary tally")
+    issues = []
+    for name, fn, key in LAYERS:
+        try:
+            L.get_function(FunctionName=fn)
+        except Exception:
+            issues.append(f"{name} missing")
+        if key:
+            try:
+                S3.head_object(Bucket=BUCKET, Key=key)
+            except Exception:
+                issues.append(f"{name} S3 missing: {key}")
+    if not issues:
+        log("✅ all 6 layers + S3 outputs present")
+    else:
+        for i in issues:
+            log(f"❌ {i}")
+
+if __name__ == "__main__":
+    main()
+    out_dir = "aws/ops/reports/latest"
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "audit_nobrainer_pipeline.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(REPORT))
+    print("[report written]")
