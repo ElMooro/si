@@ -1,0 +1,109 @@
+
+# 1) Trigger compound aggregator (final resync)
+
+- `23:32:47`     status: 200, body: {"n_compound": 7, "n_3_plus": 1, "n_alerts": 0, "duration_s": 0.53}
+- `23:32:47`       [compound] insiders: 22 entries
+- `23:32:47`       [compound] smart_money: 85 entries
+- `23:32:47`       [compound] deep_value: 22 entries
+- `23:32:47`       [compound] eps_velocity: 25 entries
+- `23:32:47`       [compound] aggregated: 171 names, 7 multi-signal
+- `23:32:47`       [compound] new alerts this run: 0
+- `23:32:47`       [compound] wrote 3839b to data/compound-signals.json
+- `23:32:47`       [compound] wrote state: 7 alerted_keys tracked
+- `23:32:47`       END RequestId: ecdcf8d4-f41c-428d-a9e1-c761203e4e10
+- `23:32:47`       REPORT RequestId: ecdcf8d4-f41c-428d-a9e1-c761203e4e10	Duration: 610.74 ms	Billed Duration: 1192 ms	Memory Size: 512 MB	Max Memory Used: 101 MB	Init Duration: 581.02 ms
+
+# 2) Final compound state
+
+- `23:32:48`     generated_at: 2026-05-05T23:32:47+00:00
+- `23:32:48`     duration_s: 0.53
+- `23:32:48`     feed_stats: {"nobrainers": 25, "insiders": 22, "smart_money": 85, "deep_value": 22, "eps_velocity": 25}
+- `23:32:48`     stats: {"n_total_names": 171, "n_multi_signal": 7, "n_3_plus": 1, "n_compound_over_200": 5, "n_compound_over_300": 1}
+- `23:32:48`   
+- `23:32:48`     ── compound leaderboard ──
+- `23:32:48`       FCX    #3  comp=  367.8  (eps_velocity,nobrainers,smart_money)
+- `23:32:48`       AVGO   #2  comp=  235.5  (eps_velocity,smart_money)
+- `23:32:48`       AMAT   #2  comp=  227.7  (eps_velocity,nobrainers)
+- `23:32:48`       CSGP   #2  comp=  220.7  (eps_velocity,insiders)
+- `23:32:48`       EPAM   #2  comp=  213.0  (deep_value,insiders)
+- `23:32:48`       OXY    #2  comp=  178.4  (nobrainers,smart_money)
+- `23:32:48`       HUM    #2  comp=  177.5  (deep_value,smart_money)
+
+# 3) Summary of today's session work
+
+- `23:32:48`   
+- `23:32:48`   SYSTEMS BUILT TODAY (5 hunters + compound + universe + signal-logger):
+- `23:32:48`   
+- `23:32:48`   1. NOBRAINER CHAIN (L1-L6) — was already in production from morning
+- `23:32:48`      • L1 theme-detector (cron 06 UTC) — themes-detected.json
+- `23:32:48`      • L2 supply-inflection-scanner (cron 07 UTC) — supply-inflection.json
+- `23:32:48`      • L3 theme-tier-classifier (cron 08 UTC) — theme-tiers.json
+- `23:32:48`      • L4 asymmetric-hunter (cron 13:30 UTC) — nobrainers.json
+- `23:32:48`      • L5 nobrainer-rationale (cron 13:45 UTC) — Claude theses w/ compound priority
+- `23:32:48`      • L6 nobrainer-tracker (rate 1h) — DDB signal logging
+- `23:32:48`   
+- `23:32:48`   2. INSIDER-CLUSTER SCANNER — SEC Form 4 daily index
+- `23:32:48`      • Lambda: justhodl-insider-cluster-scanner (cron 14:30 UTC)
+- `23:32:48`      • Output: insider-clusters.json (22 clusters today)
+- `23:32:48`      • Top: SRAD (CEO+6 directors $4.67M, -58% from 52WH, score 90.8)
+- `23:32:48`   
+- `23:32:48`   3. SMART-MONEY 13F CLUSTER — legendary funds buying same names
+- `23:32:48`      • Lambda: justhodl-smart-money-cluster (cron 16:00 UTC, fixed schedule conflict)
+- `23:32:48`      • Output: smart-money-clusters.json (85 clusters today)
+- `23:32:48`      • Top: MOH (Burry+Mandel both initiated, -42% drawdown, score 86.0)
+- `23:32:48`   
+- `23:32:48`   4. DEEP-VALUE SCREENER — Ben Graham net-cash + revenue
+- `23:32:48`      • Lambda: justhodl-deep-value-screener (cron 09:00 UTC)
+- `23:32:48`      • Output: deep-value.json (22 qualifying after fin-exclusion)
+- `23:32:48`      • Top: CNC (Centene, 91% net cash, mcap/rev 0.14, score 100)
+- `23:32:48`   
+- `23:32:48`   5. EPS-VELOCITY DETECTOR — accelerating consensus (MU pattern)
+- `23:32:48`      • Lambda: justhodl-eps-revision-velocity (cron 09:30 UTC)
+- `23:32:48`      • Output: eps-revision-velocity.json (218 qualifying)
+- `23:32:48`      • Top: AMD (+86% EPS lift), AVGO, BE — all HIGH_VELOCITY_TIER_B
+- `23:32:48`   
+- `23:32:48`   6. COMPOUND AGGREGATOR (Lambda)
+- `23:32:48`      • Lambda: justhodl-compound-aggregator (rate 1h)
+- `23:32:48`      • Output: compound-signals.json
+- `23:32:48`      • Logic: cross-references all 5 feeds, scores names appearing on 2+
+- `23:32:48`      • Alerts: TIER-3 emergence, compound>200, compound>300
+- `23:32:48`   
+- `23:32:48`   7. UNIVERSE BUILDER (Lambda)
+- `23:32:48`      • Lambda: justhodl-universe-builder (rate 4h)
+- `23:32:48`      • Output: universe.json (336 quality stocks, all sectors, no fin/REITs)
+- `23:32:48`      • Increases overlap between hunter universes
+- `23:32:48`   
+- `23:32:48`   8. SYSTEM SIGNAL LOGGER (Lambda)
+- `23:32:48`      • Lambda: justhodl-system-signal-logger (rate 6h)
+- `23:32:48`      • Logs all 5 hunter outputs to DDB justhodl-signals
+- `23:32:48`      • Feeds the existing calibration pipeline
+- `23:32:48`   
+- `23:32:48`   KEY FINDINGS:
+- `23:32:48`   
+- `23:32:48`   • FCX (Freeport-McMoRan) — TIER-3 compound signal, score 367.8
+- `23:32:48`     - Nobrainer tier-2 in PICK theme
+- `23:32:48`     - Smart-money: Lone Pine buying while 7 funds selling (contrarian)
+- `23:32:48`     - EPS velocity: +47% forward EPS, +22% revenue growth
+- `23:32:48`     - L5 wrote thesis: 3% portfolio, entry $54.50-$58, target $74-82 (+28-50%)
+- `23:32:48`   
+- `23:32:48`   • CSGP (CoStar) — TIER-2 (220.7): EPS velocity + insider CEO conviction, -64% from 52WH
+- `23:32:48`   • EPAM — TIER-2 (213.0): Deep value + insider buying
+- `23:32:48`   • AVGO — TIER-2 (235.5): EPS velocity + smart money
+- `23:32:48`   • AMAT — TIER-2 (227.7): EPS velocity + nobrainer
+- `23:32:48`   • OXY — TIER-2 (178.4): Nobrainer + smart money
+- `23:32:48`   • HUM — TIER-2 (177.5): Deep value + smart money
+- `23:32:48`   
+- `23:32:48`   INFRASTRUCTURE:
+- `23:32:48`   • 13/13 Lambdas active
+- `23:32:48`   • 17 S3 feeds (all fresh)
+- `23:32:48`   • 6 dedicated pages serving 200 (compound, nobrainers, insiders, smart-money, deep-value, eps-velocity)
+- `23:32:48`   • Nav wired across 24 canonical pages
+- `23:32:48`   • 114 signals in DDB calibration pipeline (24h activity)
+- `23:32:48`   • ~9 Telegram digests delivered through the session
+- `23:32:48`   
+- `23:32:48`   PROBLEMS FIXED:
+- `23:32:48`   • Deep-value showed insurance leakage → financial-book exclusion via /profile lookup
+- `23:32:48`   • L5 only wrote nobrainer theses → force-include tier-3 compound names
+- `23:32:48`   • Smart-money schedule collided with deep-value → moved to 16:00 UTC
+- `23:32:48`   • EPS-velocity had limited universe → seeded from unified universe
+- `23:32:48`   • Phase I script had nested f-string syntax error → rewritten v2
