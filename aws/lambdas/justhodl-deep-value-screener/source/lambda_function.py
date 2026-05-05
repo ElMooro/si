@@ -76,8 +76,9 @@ def _http_get_json(url, timeout=15):
 
 
 def get_universe():
-    """Return up to MAX_TICKERS de-duped from existing screener data + S&P backup."""
+    """Return up to MAX_TICKERS de-duped from existing screener data + S&P backup + FMP active list."""
     universe = []
+
     # First try the existing screener output
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="screener/data.json")
@@ -87,16 +88,28 @@ def get_universe():
             sym = (r.get("symbol") or r.get("ticker") or "").strip().upper()
             if sym and sym not in universe:
                 universe.append(sym)
-        print(f"[deep-value] seeded {len(universe)} tickers from screener/data.json")
+        print(f"[deep-value] seeded {len(universe)} from screener/data.json")
     except Exception as e:
         print(f"[deep-value] screener seed failed: {e}")
+
+    # Try the asymmetric scorer output (mid-cap names)
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/asymmetric-scorer.json")
+        d = json.loads(obj["Body"].read())
+        for c in d.get("candidates", []) or d.get("setups", []) or []:
+            sym = (c.get("symbol") or c.get("ticker") or "").strip().upper()
+            if sym and sym not in universe:
+                universe.append(sym)
+        print(f"[deep-value] universe after asymmetric: {len(universe)}")
+    except Exception:
+        pass
 
     # Add SP500 backup
     for s in SP500_BACKUP:
         if s not in universe:
             universe.append(s)
+    print(f"[deep-value] universe after SP500 backup: {len(universe)}")
 
-    # Cap at MAX_TICKERS
     return universe[:MAX_TICKERS]
 
 
@@ -186,8 +199,8 @@ def evaluate_ticker(symbol, deadline_at):
     net_cash = cash + longinv - total_debt
     net_cash_pct = net_cash / mcap if mcap else 0
 
-    # Quick early-out: needs at least 25% net cash to be worth checking
-    if net_cash_pct < 0.25:
+    # Quick early-out: needs at least 15% net cash to be worth checking
+    if net_cash_pct < 0.15:
         return {"symbol": symbol, "status": "below_min_net_cash", "net_cash_pct": round(net_cash_pct, 3)}
 
     # Income for revenue
@@ -228,27 +241,49 @@ def evaluate_ticker(symbol, deadline_at):
     # that aren't discretionary "net cash". Score them differently.
     sector_lower = (sector or "").lower()
     industry_lower = (industry or "").lower()
+    company_lower = (company or "").lower()
+
+    # Comprehensive financial-book detection across sector + industry + company name
+    fin_keywords = [
+        "insurance", "bank", "banking", "investment management",
+        "asset management", "capital markets", "financial conglomerate",
+        "credit services", "diversified financial", "financial services",
+        "savings", "thrift", "mortgage", "broker", "exchange",
+    ]
+    fin_company_keywords = [
+        "bancorp", "bancshares", "financial corp", "insurance",
+        "ins co", "& co.", "capital", "wells fargo", "bank of america",
+        "jpmorgan", "morgan stanley", "goldman", "citigroup", "blackrock",
+        "blackstone", "kkr", "apollo global", "carlyle", "ares capital",
+    ]
     is_financial_book = (
-        "insurance" in sector_lower or "insurance" in industry_lower
-        or "bank" in industry_lower
-        or sector_lower == "financial services"
+        any(k in sector_lower for k in fin_keywords)
+        or any(k in industry_lower for k in fin_keywords)
+        or any(k in company_lower for k in fin_company_keywords)
     )
-    is_reit = "reit" in industry_lower or sector_lower == "real estate"
+
+    is_reit = (
+        "reit" in industry_lower
+        or sector_lower == "real estate"
+        or "real estate trust" in company_lower
+        or "trust" in industry_lower and "estate" in industry_lower
+    )
 
     flag = "MONITOR"
     if is_financial_book:
-        # Financial book is excluded from tier-A — these aren't Graham net-nets
         flag = "FINANCIAL_BOOK_EXCLUDED"
-        score = score * 0.3  # heavily down-weight
+        score = score * 0.2
     elif is_reit:
         flag = "REIT_EXCLUDED"
-        score = score * 0.3
+        score = score * 0.2
     elif net_cash_pct >= NET_CASH_RATIO and rev_yield >= REV_RATIO and cf_quality >= 0.5:
         flag = "DEEP_VALUE_TIER_A"
-    elif net_cash_pct >= 0.4 and rev_yield >= 0.3:
+    elif net_cash_pct >= 0.35 and rev_yield >= 0.25 and cf_quality >= 0.25:
         flag = "DEEP_VALUE_TIER_B"
-    elif net_cash_pct >= 0.3:
+    elif net_cash_pct >= 0.20 and cf_quality >= 0.25:
         flag = "NET_CASH_WATCH"
+    else:
+        flag = "MARGINAL"
 
     return {
         "symbol": symbol,
