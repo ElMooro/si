@@ -1,0 +1,132 @@
+
+# 0) Checking GitHub Actions secrets in env
+
+- `16:40:21`     available secrets: {'ANTHROPIC_API_KEY': '<empty>', 'ANTHROPIC_API_KEY_NEW': 'len=108', 'TELEGRAM_BOT_TOKEN': '<empty>'}
+
+# 1) Update L5 env vars
+
+- `16:40:21`     cur L5 env keys: ['ANTHROPIC_KEY', 'MIN_SCORE', 'N_DIGEST', 'N_THESES', 'TELEGRAM_BOT_TOKEN']
+- `16:40:21`     has ANTHROPIC_KEY: True
+- `16:40:21`     SKIP_CLAUDE: <unset>
+- `16:40:23`     ✅ config update settled at 2026-05-05T16:40:21.000+0000
+
+# 2) Force-invoke L5 with top_n=3 (small batch)
+
+- `16:45:30`   
+- `16:45:30`   ❌ EXCEPTION: ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-nobrainer-rationale/invocations"
+- `16:45:30`   ```
+- `16:45:30`   Traceback (most recent call last):
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+- `16:45:30`       response = conn.getresponse()
+- `16:45:30`                  ^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
+- `16:45:30`       httplib_response = super().getresponse()
+- `16:45:30`                          ^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
+- `16:45:30`       response.begin()
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
+- `16:45:30`       version, status, reason = self._read_status()
+- `16:45:30`                                 ^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 297, in _read_status
+- `16:45:30`       line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+- `16:45:30`                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/socket.py", line 720, in readinto
+- `16:45:30`       return self._sock.recv_into(b)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py", line 1251, in recv_into
+- `16:45:30`       return self.read(nbytes, buffer)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py", line 1103, in read
+- `16:45:30`       return self._sslobj.read(len, buffer)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`   TimeoutError: The read operation timed out
+- `16:45:30`   
+- `16:45:30`   The above exception was the direct cause of the following exception:
+- `16:45:30`   
+- `16:45:30`   Traceback (most recent call last):
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 477, in send
+- `16:45:30`       urllib_response = conn.urlopen(
+- `16:45:30`                         ^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+- `16:45:30`       retries = retries.increment(
+- `16:45:30`                 ^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 465, in increment
+- `16:45:30`       raise reraise(type(error), error, _stacktrace)
+- `16:45:30`             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
+- `16:45:30`       raise value
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+- `16:45:30`       response = self._make_request(
+- `16:45:30`                  ^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+- `16:45:30`       self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+- `16:45:30`       raise ReadTimeoutError(
+- `16:45:30`   urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=60)
+- `16:45:30`   
+- `16:45:30`   During handling of the above exception, another exception occurred:
+- `16:45:30`   
+- `16:45:30`   Traceback (most recent call last):
+- `16:45:30`     File "/home/runner/work/si/si/aws/ops/pending/_fix_l5_v2.py", line 132, in <module>
+- `16:45:30`       ok = main()
+- `16:45:30`            ^^^^^^
+- `16:45:30`     File "/home/runner/work/si/si/aws/ops/pending/_fix_l5_v2.py", line 88, in main
+- `16:45:30`       r = L.invoke(
+- `16:45:30`           ^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+- `16:45:30`       return self._make_api_call(operation_name, kwargs)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+- `16:45:30`       return func(*args, **kwargs)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
+- `16:45:30`       http, parsed_response = self._make_request(
+- `16:45:30`                               ^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
+- `16:45:30`       return self._endpoint.make_request(operation_model, request_dict)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
+- `16:45:30`       return self._send_request(request_dict, operation_model)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
+- `16:45:30`       while self._needs_retry(
+- `16:45:30`             ^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
+- `16:45:30`       responses = self._event_emitter.emit(
+- `16:45:30`                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
+- `16:45:30`       return self._emitter.emit(aliased_event_name, **kwargs)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
+- `16:45:30`       return self._emit(event_name, kwargs)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
+- `16:45:30`       response = handler(**kwargs)
+- `16:45:30`                  ^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
+- `16:45:30`       if self._checker(**checker_kwargs):
+- `16:45:30`          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
+- `16:45:30`       should_retry = self._should_retry(
+- `16:45:30`                      ^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
+- `16:45:30`       return self._checker(attempt_number, response, caught_exception)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
+- `16:45:30`       checker_response = checker(
+- `16:45:30`                          ^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
+- `16:45:30`       return self._check_caught_exception(
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
+- `16:45:30`       raise caught_exception
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
+- `16:45:30`       http_response = self._send(request)
+- `16:45:30`                       ^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
+- `16:45:30`       return self.http_session.send(request)
+- `16:45:30`              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- `16:45:30`     File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
+- `16:45:30`       raise ReadTimeoutError(endpoint_url=request.url, error=e)
+- `16:45:30`   botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-nobrainer-rationale/invocations"
+- `16:45:30`   ```
