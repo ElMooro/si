@@ -1,0 +1,173 @@
+
+# Probe stable endpoints
+
+- `14:30:25`   GET stable profile?symbol=
+- `14:30:25`     status=200 size=2711b
+- `14:30:25`     list[1] keys=['address', 'averageVolume', 'beta', 'ceo', 'change', 'changePercentage', 'cik', 'city', 'companyName', 'country', 'currency', 'cusip']
+- `14:30:25`   GET stable quote?symbol=
+- `14:30:25`     status=200 size=449b
+- `14:30:25`     list[1] keys=['change', 'changePercentage', 'dayHigh', 'dayLow', 'exchange', 'marketCap', 'name', 'open', 'previousClose', 'price', 'priceAvg200', 'priceAvg50']
+- `14:30:25`   GET stable ratios-ttm?symbol=
+- `14:30:26`     status=200 size=2962b
+- `14:30:26`     list[1] keys=['assetTurnoverTTM', 'bookValuePerShareTTM', 'bottomLineProfitMarginTTM', 'capexPerShareTTM', 'capitalExpenditureCoverageRatioTTM', 'cashPerShareTTM', 'cashRatioTTM', 'continuousOperationsProfitMarginTTM', 'currentRatioTTM', 'debtServiceCoverageRatioTTM', 'debtToAssetsRatioTTM', 'debtToCapitalRatioTTM']
+- `14:30:26`   GET stable key-metrics-ttm?symbol=
+- `14:30:26`     status=200 size=2027b
+- `14:30:26`     list[1] keys=['averageInventoryTTM', 'averagePayablesTTM', 'averageReceivablesTTM', 'capexToDepreciationTTM', 'capexToOperatingCashFlowTTM', 'capexToRevenueTTM', 'cashConversionCycleTTM', 'currentRatioTTM', 'daysOfInventoryOutstandingTTM', 'daysOfPayablesOutstandingTTM', 'daysOfSalesOutstandingTTM', 'earningsYieldTTM']
+- `14:30:26`   GET stable income-statement?symbol=
+- `14:30:26`     status=200 size=5612b
+- `14:30:26`     list[4] keys=['acceptedDate', 'bottomLineNetIncome', 'cik', 'costAndExpenses', 'costOfRevenue', 'date', 'depreciationAndAmortization', 'ebit', 'ebitda', 'eps', 'epsDiluted', 'filingDate']
+- `14:30:26`   GET stable profile/AAPL
+- `14:30:26`     HTTP404: []
+- `14:30:26`   GET stable quote/AAPL
+- `14:30:27`     HTTP404: []
+- `14:30:27`   GET api/v4 company-outlook
+- `14:30:27`     HTTP403: {
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please 
+- `14:30:27`   GET api/v4 ratios
+- `14:30:27`     HTTP403: {
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please 
+
+# Inspect best stable endpoint
+
+- `14:30:27`   Full profile keys:
+- `14:30:27`     address: One Apple Park Way
+- `14:30:27`     averageVolume: 44885765
+- `14:30:27`     beta: 1.109
+- `14:30:27`     ceo: Timothy D. Cook
+- `14:30:27`     change: 4.49
+- `14:30:27`     changePercentage: 1.62193
+- `14:30:27`     cik: 0000320193
+- `14:30:27`     city: Cupertino
+- `14:30:27`     companyName: Apple Inc.
+- `14:30:27`     country: US
+- `14:30:27`     currency: USD
+- `14:30:27`     cusip: 037833100
+- `14:30:27`     defaultImage: False
+- `14:30:27`     description: Apple Inc. designs, manufactures, and markets smartphones, personal computers, t
+- `14:30:27`     exchange: NASDAQ
+- `14:30:27`     exchangeFullName: NASDAQ Global Select
+- `14:30:27`     fullTimeEmployees: 164000
+- `14:30:27`     image: https://images.financialmodelingprep.com/symbol/AAPL.png
+- `14:30:27`     industry: Consumer Electronics
+- `14:30:27`     ipoDate: 1980-12-12
+- `14:30:27`     isActivelyTrading: True
+- `14:30:27`     isAdr: False
+- `14:30:27`     isEtf: False
+- `14:30:27`     isFund: False
+- `14:30:27`     isin: US0378331005
+- `14:30:27`     lastDividend: 1.04
+- `14:30:27`     marketCap: 4130087052000
+- `14:30:27`     phone: (408) 996-1010
+- `14:30:27`     price: 281.32
+- `14:30:27`     range: 193.25-288.62
+- `14:30:27`     sector: Technology
+- `14:30:27`     state: CA
+- `14:30:27`     symbol: AAPL
+- `14:30:27`     volume: 9031894
+- `14:30:27`     website: https://www.apple.com
+- `14:30:27`     zip: 95014
+- `14:30:27`   Full ratios-ttm keys:
+- `14:30:27`     assetTurnoverTTM: 1.2165559094755336
+- `14:30:27`     bookValuePerShareTTM: 7.239007640551603
+- `14:30:27`     bottomLineProfitMarginTTM: 0.2715188219084622
+- `14:30:27`     capexPerShareTTM: 0.7510170475703497
+- `14:30:27`     capitalExpenditureCoverageRatioTTM: 12.69207096307024
+- `14:30:27`     cashPerShareTTM: 4.656944684820958
+- `14:30:27`     cashRatioTTM: 0.33847045105131424
+- `14:30:27`     continuousOperationsProfitMarginTTM: 0.2715188219084622
+- `14:30:27`     currentRatioTTM: 1.07035746912159
+- `14:30:27`     debtServiceCoverageRatioTTM: 67.72008012018027
+- `14:30:27`     debtToAssetsRatioTTM: 0.0053815598708641214
+- `14:30:27`     debtToCapitalRatioTTM: 0.018407565813730552
+- `14:30:27`     debtToEquityRatioTTM: 0.018752758449070813
+- `14:30:27`     debtToMarketCapTTM: 0.0004835249172370229
+- `14:30:27`     dividendPaidAndCapexCoverageRatioTTM: 5.271900142867885
+- `14:30:27`     dividendPayoutRatioTTM: 0.12686110544564552
+- `14:30:27`     dividendPerShareTTM: 1.04
+- `14:30:27`     dividendYieldTTM: 0.00369686
+- `14:30:27`     ebitMarginTTM: 0.32722254464582384
+- `14:30:27`     ebitdaMarginTTM: 0.3551552580397925
+- `14:30:27`     ebtPerEbitTTM: 1.00206289103321
+- `14:30:27`     effectiveTaxRateTTM: 0.1699397304801246
+- `14:30:27`     enterpriseValueMultipleTTM: 25.48781311279096
+- `14:30:27`     enterpriseValueTTM: 4086512052000
+- `14:30:27`     financialLeverageRatioTTM: 3.4846325041552806
+- `14:30:27`     fixedAssetTurnoverTTM: 9.007941575544736
+- `14:30:27`     forwardPriceToEarningsGrowthRatioTTM: 3.4836356569701867
+- `14:30:27`     freeCashFlowOperatingCashFlowRatioTTM: 0.921210651680906
+- `14:30:27`     freeCashFlowPerShareTTM: 8.780944614668027
+- `14:30:27`     grossProfitMarginTTM: 0.47862405358827936
+- `14:30:27`     interestCoverageRatioTTM: 0
+- `14:30:27`     interestDebtPerShareTTM: 0.13575136169424226
+- `14:30:27`     inventoryTurnoverTTM: 34.885282347710096
+- `14:30:27`     longTermDebtToCapitalRatioTTM: 0
+- `14:30:27`     netIncomePerEBTTTM: 0.8300602695198754
+- `14:30:27`     netIncomePerShareTTM: 8.332360120015895
+- `14:30:27`     netProfitMarginTTM: 0.2715188219084622
+- `14:30:27`     operatingCashFlowCoverageRatioTTM: 70.2163244867301
+- `14:30:27`     operatingCashFlowPerShareTTM: 9.531961662238377
+- `14:30:27`     operatingCashFlowRatioTTM: 1.041450969615496
+- `14:30:27`     operatingCashFlowSalesRatioTTM: 0.3106091147921549
+- `14:30:27`     operatingProfitMarginTTM: 0.32643396050876966
+- `14:30:27`     payablesTurnoverTTM: 4.10418664667213
+- `14:30:27`     pretaxProfitMarginTTM: 0.3271073581988384
+- `14:30:27`     priceToBookRatioTTM: 38.86168021485384
+- `14:30:27`     priceToEarningsGrowthRatioTTM: 1.1671605656092399
+- `14:30:27`     priceToEarningsRatioTTM: 33.76234295541506
+- `14:30:27`     priceToFairValueTTM: 38.86168021485384
+- `14:30:27`     priceToFreeCashFlowRatioTTM: 31.973052255097773
+- `14:30:27`     priceToOperatingCashFlowRatioTTM: 29.513337334797676
+- `14:30:27`     priceToSalesRatioTTM: 9.148654870393097
+- `14:30:27`     quickRatioTTM: 1.0202464331073002
+- `14:30:27`     receivablesTurnoverTTM: 14.879923530768977
+- `14:30:27`     revenuePerShareTTM: 30.68796506057692
+- `14:30:27`     shareholdersEquityPerShareTTM: 7.239007640551603
+- `14:30:27`     shortTermOperatingCashFlowCoverageRatioTTM: 70.2163244867301
+- `14:30:27`     solvencyRatioTTM: 0.5109206284416326
+- `14:30:27`     symbol: AAPL
+- `14:30:27`     tangibleBookValuePerShareTTM: 5.788772512667295
+- `14:30:27`     workingCapitalTurnoverRatioTTM: 173.29827255278312
+- `14:30:27`   Full key-metrics-ttm keys:
+- `14:30:27`     averageInventoryTTM: 6311000000
+- `14:30:27`     averagePayablesTTM: 63968000000
+- `14:30:27`     averageReceivablesTTM: 50329500000
+- `14:30:27`     capexToDepreciationTTM: 0.8761300555114988
+- `14:30:27`     capexToOperatingCashFlowTTM: 0.07878934831909401
+- `14:30:27`     capexToRevenueTTM: 0.02447268973644455
+- `14:30:27`     cashConversionCycleTTM: -53.94101624270792
+- `14:30:27`     currentRatioTTM: 1.07035746912159
+- `14:30:27`     daysOfInventoryOutstandingTTM: 10.462865008858357
+- `14:30:27`     daysOfPayablesOutstandingTTM: 88.93357720364871
+- `14:30:27`     daysOfSalesOutstandingTTM: 24.529695952082438
+- `14:30:27`     earningsYieldTTM: 0.029618797526005602
+- `14:30:27`     enterpriseValueTTM: 4086512052000
+- `14:30:27`     evToEBITDATTM: 25.48781311279096
+- `14:30:27`     evToFreeCashFlowTTM: 31.635716568349665
+- `14:30:27`     evToOperatingCashFlowTTM: 29.143159076321833
+- `14:30:27`     evToSalesTTM: 9.05213084294328
+- `14:30:27`     freeCashFlowToEquityTTM: 172749000000
+- `14:30:27`     freeCashFlowToFirmTTM: 110444163134.01505
+- `14:30:27`     freeCashFlowYieldTTM: 0.03127633833709324
+- `14:30:27`     grahamNetNetTTM: -11.55322602200654
+- `14:30:27`     grahamNumberTTM: 36.83959035988331
+- `14:30:27`     incomeQualityTTM: 1.1439689985723027
+- `14:30:27`     intangiblesToTotalAssetsTTM: 0.057491336146727676
+- `14:30:27`     interestBurdenTTM: 0.9996479874358593
+- `14:30:27`     investedCapitalTTM: 80923000000
+- `14:30:27`     marketCap: 4130087052000
+- `14:30:27`     netCurrentAssetValueTTM: -120477000000
+- `14:30:27`     netDebtToEBITDATTM: -0.2717798069006811
+- `14:30:27`     operatingCycleTTM: 34.99256096094079
+- `14:30:27`     operatingReturnOnAssetsTTM: 0.3927775164283649
+- `14:30:27`     researchAndDevelopementToRevenueTTM: 0.08868913393082611
+- `14:30:27`     returnOnAssetsTTM: 0.3303178273265747
+- `14:30:27`     returnOnCapitalEmployedTTM: 0.6232675382019193
+- `14:30:27`     returnOnEquityTTM: 1.4668924498270723
+- `14:30:27`     returnOnInvestedCapitalTTM: 0.5130166402925119
+- `14:30:27`     returnOnTangibleAssetsTTM: 0.3504666216818967
+- `14:30:27`     salesGeneralAndAdministrativeToRevenueTTM: 0.06350095914868355
+- `14:30:27`     stockBasedCompensationToRevenueTTM: 0.02984436538913083
+- `14:30:27`     symbol: AAPL
+- `14:30:27`     tangibleAssetValueTTM: 85157000000
+- `14:30:27`     taxBurdenTTM: 0.8300602695198754
+- `14:30:27`     workingCapitalTTM: 9473000000
