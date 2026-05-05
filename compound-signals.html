@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compound Signals · JustHodl.AI</title>
+<meta name="description" content="Multi-system signal fusion across nobrainers, insider clusters, smart money, deep value, and EPS velocity. The highest-conviction setups are stocks where 2+ independent systems agree.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230;
+  --brd:#1c2433; --brd2:#2a3548; --brd3:#3a4760;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#a855f7; --purple-bg:rgba(168,85,247,.1);
+  --pink:#ec4899; --pink-bg:rgba(236,72,153,.1);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),transparent 50%),radial-gradient(ellipse at 0% 110%,rgba(0,230,118,.04),transparent 50%);min-height:100vh}
+
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--purple)}
+.topnav a.active{color:var(--purple);border-bottom:2px solid var(--purple)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--purple);font-style:normal}
+
+.shell{max-width:1320px;margin:0 auto;padding:36px 24px 80px}
+@media(max-width:700px){.shell{padding:20px 14px 60px}}
+
+.hero{margin-bottom:28px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--purple);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--purple);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,42px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--purple);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:720px;line-height:1.55;margin-bottom:18px}
+
+.feed-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:24px}
+.feed-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;transition:all .15s}
+.feed-card:hover{border-color:var(--brd2)}
+.feed-icon{font-size:18px;margin-bottom:2px}
+.feed-name{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
+.feed-count{font-family:var(--display);font-size:22px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.feed-link{font-size:10px;color:var(--cyan);text-decoration:none;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--purple)}
+.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--purple);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}
+.primer p:last-child{margin-bottom:0}
+.primer strong{color:var(--t1)}
+
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:720px}
+
+.compound-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}
+.compound-card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;position:relative;transition:all .15s}
+.compound-card:hover{border-color:var(--brd2);transform:translateY(-2px)}
+.compound-card.tier-3{border-color:rgba(168,85,247,.4);box-shadow:0 0 0 1px rgba(168,85,247,.1)}
+.compound-card.tier-3:hover{border-color:var(--purple);box-shadow:0 0 24px rgba(168,85,247,.15)}
+.compound-card.tier-2{border-color:rgba(0,212,255,.3)}
+.compound-card.tier-2:hover{border-color:var(--cyan)}
+
+.compound-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.compound-ticker{font-family:var(--display);font-size:28px;font-weight:600;color:var(--t1);letter-spacing:-.012em;line-height:1}
+.compound-systems{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.system-pill{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:3px;font-weight:500}
+.pill-nobrainers{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}
+.pill-insiders{background:var(--orange-bg);color:var(--orange);border:1px solid rgba(255,122,24,.25)}
+.pill-smart_money{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+.pill-deep_value{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.25)}
+.pill-eps_velocity{background:var(--pink-bg);color:var(--pink);border:1px solid rgba(236,72,153,.25)}
+
+.compound-score{text-align:right;font-family:var(--display)}
+.compound-score-num{font-size:30px;font-weight:600;color:var(--purple);line-height:1}
+.compound-score-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+
+.system-detail{background:var(--bg2);border-radius:6px;padding:10px 12px;font-size:12.5px;color:var(--t2);line-height:1.55;border-left:2px solid var(--brd2)}
+.system-detail.is-nobrainers{border-left-color:var(--green)}
+.system-detail.is-insiders{border-left-color:var(--orange)}
+.system-detail.is-smart_money{border-left-color:var(--cyan)}
+.system-detail.is-deep_value{border-left-color:var(--yellow)}
+.system-detail.is-eps_velocity{border-left-color:var(--pink)}
+.system-detail-name{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.system-detail-body{color:var(--t1)}
+.system-detail-body strong{color:var(--t1);font-weight:600}
+
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic;background:var(--bg1);border:1px dashed var(--brd);border-radius:10px}
+.err{background:var(--red-bg);border:1px solid rgba(255,23,74,.3);border-radius:6px;padding:10px 14px;color:var(--red);font-size:13px;display:none}
+.err.show{display:block}
+
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
+.foot-grid{max-width:1320px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
+.foot-section{display:flex;flex-direction:column;gap:4px}
+.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}
+.foot-section span{color:var(--t2)}
+.foot-section a{color:var(--cyan);text-decoration:none}
+
+.fade-in{animation:fade .35s ease-out}
+@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/calls.html">Calls</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/compound-signals.html" class="active">Compound</a>
+  <a href="/themes.html">Themes</a>
+  <a href="/nobrainers.html">Nobrainers</a>
+  <a href="/insider-clusters.html">Clusters</a>
+  <a href="/smart-money.html">Smart Money</a>
+  <a href="/horizons.html">Horizons</a>
+  <a href="/weights.html">Weights</a>
+</nav>
+
+<main class="shell">
+  <section class="hero fade-in">
+    <span class="hero-eyebrow">Multi-System Signal Fusion</span>
+    <h1 class="hero-title">When five <em>independent systems</em> agree on the same name.</h1>
+    <p class="hero-blurb">Cross-references the nobrainer-hunter, insider-cluster scanner, smart-money 13F tracker, deep-value screener, and EPS-revision-velocity detector. Stocks appearing on 2+ systems are statistically very rare and historically very high return — when independent measurements line up, the signal compounds.</p>
+
+    <div class="feed-strip" id="feed-strip">
+      <a href="/nobrainers.html" class="feed-card">
+        <span class="feed-icon">🎯</span>
+        <span class="feed-name">Nobrainers</span>
+        <span class="feed-count" id="cnt-nobrainers">—</span>
+        <span class="feed-link">View →</span>
+      </a>
+      <a href="/insider-clusters.html" class="feed-card">
+        <span class="feed-icon">👀</span>
+        <span class="feed-name">Insiders</span>
+        <span class="feed-count" id="cnt-insiders">—</span>
+        <span class="feed-link">View →</span>
+      </a>
+      <a href="/smart-money.html" class="feed-card">
+        <span class="feed-icon">💼</span>
+        <span class="feed-name">Smart Money</span>
+        <span class="feed-count" id="cnt-smart_money">—</span>
+        <span class="feed-link">View →</span>
+      </a>
+      <a href="#" class="feed-card">
+        <span class="feed-icon">💎</span>
+        <span class="feed-name">Deep Value</span>
+        <span class="feed-count" id="cnt-deep_value">—</span>
+        <span class="feed-link">data only</span>
+      </a>
+      <a href="#" class="feed-card">
+        <span class="feed-icon">📈</span>
+        <span class="feed-name">EPS Velocity</span>
+        <span class="feed-count" id="cnt-eps_velocity">—</span>
+        <span class="feed-link">data only</span>
+      </a>
+    </div>
+
+    <div class="err" id="err"></div>
+  </section>
+
+  <div class="primer fade-in">
+    <h3>Why compound signals matter</h3>
+    <p>Each of the five underlying systems is independently designed and uses different data sources. <strong>Nobrainers</strong> looks at theme-supply inflection in mid-cap commodities. <strong>Insider clusters</strong> watches SEC Form 4 filings. <strong>Smart money</strong> tracks 13F filings of legendary funds. <strong>Deep value</strong> screens for net-cash + revenue. <strong>EPS velocity</strong> detects accelerating consensus.</p>
+    <p>Because these systems use independent inputs, when the same name appears on 2+ lists it's <strong>not coincidence</strong> — it's convergent evidence. When 3+ systems flag the same stock, the historical hit rate is extreme. These are the rare setups where multiple independent patterns agree, and the asymmetric upside is largest.</p>
+  </div>
+
+  <section class="section fade-in">
+    <div class="section-eyebrow">Tier-3 — three or more systems agree</div>
+    <h2 class="section-title">Highest-conviction signals</h2>
+    <p class="section-blurb">Stocks flagged by 3+ independent systems. Statistically very rare; historically very high return when present.</p>
+    <div class="compound-grid" id="tier3-grid">
+      <div class="empty">Loading…</div>
+    </div>
+  </section>
+
+  <section class="section fade-in">
+    <div class="section-eyebrow">Tier-2 — two systems agree</div>
+    <h2 class="section-title">Cross-confirmed signals</h2>
+    <p class="section-blurb">Stocks flagged by 2 independent systems. Strong setups worth a position.</p>
+    <div class="compound-grid" id="tier2-grid">
+      <div class="empty">Loading…</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section">
+      <span class="foot-label">Sources</span>
+      <span><strong style="color:var(--t1)">5 independent systems</strong></span>
+      <span>nobrainers / insiders / 13F / value / EPS</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Updated</span>
+      <span>Daily — see individual system pages</span>
+      <span id="foot-refresh">—</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Compound score</span>
+      <span>sum(scores) × (1 + 0.5 × (n_systems − 1))</span>
+      <span>capped at 5 × 100 = 500</span>
+    </div>
+    <div class="foot-section">
+      <span class="foot-label">Reload</span>
+      <span><a href="javascript:location.reload()">Refresh</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+
+const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt$ = v => v == null ? '—' : (v >= 1e9 ? '$' + (v/1e9).toFixed(1) + 'B' : v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : '$' + (v/1e3).toFixed(0) + 'K');
+
+const SYSTEM_LABELS = {
+  nobrainers: '🎯 NOBRAINER',
+  insiders: '👀 INSIDER CLUSTER',
+  smart_money: '💼 SMART MONEY',
+  deep_value: '💎 DEEP VALUE',
+  eps_velocity: '📈 EPS VELOCITY',
+};
+
+const SYSTEM_LINKS = {
+  nobrainers: '/nobrainers.html',
+  insiders: '/insider-clusters.html',
+  smart_money: '/smart-money.html',
+};
+
+function renderDetail(system, details) {
+  const d = details[system] || {};
+  let body = '';
+  switch (system) {
+    case 'nobrainers':
+      body = `Tier ${d.tier || '?'} in <strong>${escape(d.theme || '?')}</strong> theme — ${escape(d.flag || '')}`;
+      break;
+    case 'insiders':
+      body = `<strong>${escape(d.signal || '')}</strong> — ${d.n_insiders || 0} insiders bought ${fmt$(d.total_value)}${d.ceo ? ', incl. CEO 🦅' : ''}${d.cfo ? ', incl. CFO 💰' : ''}`;
+      break;
+    case 'smart_money':
+      const funds = (d.legend_funds || []).join(', ') || 'no legend funds';
+      body = `<strong>${escape(d.signal || '')}</strong> — ${d.n_buying || 0} funds buying. Legends: ${escape(funds)}`;
+      break;
+    case 'deep_value':
+      body = `Net cash <strong>${((d.net_cash_pct || 0) * 100).toFixed(0)}%</strong> of mcap, mcap/rev <strong>${(d.mcap_to_rev || 0).toFixed(2)}×</strong>${d.pct_from_52w_high ? `, ${d.pct_from_52w_high}% from 52W high` : ''}`;
+      break;
+    case 'eps_velocity':
+      body = `Forward EPS lift <strong>+${(d.fy2_lift_pct || 0).toFixed(0)}%</strong>, revenue growth <strong>+${(d.fwd_rev_growth_pct || 0).toFixed(0)}%</strong>`;
+      break;
+  }
+  return `
+    <div class="system-detail is-${system}">
+      <div class="system-detail-name">${SYSTEM_LABELS[system] || system}</div>
+      <div class="system-detail-body">${body}</div>
+    </div>`;
+}
+
+function renderCard(c) {
+  const tier = c.n_systems >= 3 ? 'tier-3' : c.n_systems >= 2 ? 'tier-2' : '';
+  const pills = c.systems.map(s => `<span class="system-pill pill-${s}">${s.replace('_', ' ')}</span>`).join('');
+  const details = c.systems.map(s => renderDetail(s, c.details || {})).join('');
+  return `
+    <div class="compound-card ${tier} fade-in">
+      <div class="compound-header">
+        <div>
+          <div class="compound-ticker">${escape(c.symbol)}</div>
+          <div class="compound-systems">${pills}</div>
+        </div>
+        <div class="compound-score">
+          <div class="compound-score-num">${(c.compound_score || 0).toFixed(0)}</div>
+          <div class="compound-score-lbl">${c.n_systems} systems</div>
+        </div>
+      </div>
+      ${details}
+    </div>`;
+}
+
+async function loadCompound() {
+  try {
+    const r = await fetch(BUCKET + '/data/compound-signals.json?_=' + Date.now(), {cache: 'no-cache'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) {
+    document.getElementById('err').textContent = 'Load error: ' + e.message;
+    document.getElementById('err').classList.add('show');
+    throw e;
+  }
+}
+
+(async () => {
+  try {
+    const data = await loadCompound();
+    const stats = data.stats || {};
+    const fs = data.feed_stats || {};
+
+    // Feed counts
+    for (const k of ['nobrainers','insiders','smart_money','deep_value','eps_velocity']) {
+      document.getElementById('cnt-' + k).textContent = (fs[k] != null) ? fs[k] : '—';
+    }
+
+    if (data.generated_at) {
+      document.getElementById('foot-refresh').textContent = new Date(data.generated_at).toLocaleString();
+    }
+
+    const compound = data.compound || [];
+    const tier3 = compound.filter(c => c.n_systems >= 3);
+    const tier2 = compound.filter(c => c.n_systems === 2);
+
+    document.getElementById('tier3-grid').innerHTML = tier3.length
+      ? tier3.map(renderCard).join('')
+      : `<div class="empty">No tier-3 signals today. Three independent systems converging on the same name is rare — this section will populate as markets move and systems align.</div>`;
+
+    document.getElementById('tier2-grid').innerHTML = tier2.length
+      ? tier2.map(renderCard).join('')
+      : `<div class="empty">No tier-2 signals today. Different systems hunt different universes; cross-confirmation is genuinely rare. Each individual system page has the full leaderboard.</div>`;
+  } catch (e) {
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
