@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EPS Velocity · JustHodl.AI</title>
+<meta name="description" content="Stocks with accelerating consensus EPS estimates. The MU/SNDK pattern in code form.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--pink:#ec4899;--pink-bg:rgba(236,72,153,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}body{background-image:radial-gradient(ellipse at 80% -10%,rgba(236,72,153,.05),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}.topnav a:hover{color:var(--pink)}.topnav a.active{color:var(--pink);border-bottom:2px solid var(--pink)}.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}.nav-brand i{color:var(--pink);font-style:normal}
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
+.hero{margin-bottom:32px}.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--pink);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--pink);border-radius:50%;animation:pulse 2.4s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}.hero-title em{font-style:italic;color:var(--pink);font-weight:500}.hero-blurb{font-size:15px;color:var(--t2);max-width:700px;line-height:1.55;margin-bottom:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}.kpi-sub{font-size:11px;color:var(--t3)}
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--pink)}.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--pink);margin-bottom:8px}.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}.primer p:last-child{margin-bottom:0}.primer strong{color:var(--t1)}
+.section{margin-bottom:48px}.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:680px}
+.dv-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px}.dv-table th{background:var(--bg2);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--brd)}.dv-table td{padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--t1)}.dv-table tr:hover td{background:var(--bg2)}.dv-table .num{font-family:var(--mono)}.dv-table .pos{color:var(--green)}.dv-table .neg{color:var(--red)}
+.flag-pill{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;font-weight:500;display:inline-block}.flag-tier_a{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}.flag-tier_b{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}.flag-watch{background:var(--pink-bg);color:var(--pink);border:1px solid rgba(236,72,153,.25)}
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}.foot-section{display:flex;flex-direction:column;gap:4px}.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
+.fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/calls.html">Calls</a>
+  <a href="/desk.html">Desk</a>
+  <a href="/compound-signals.html">Compound</a>
+  <a href="/themes.html">Themes</a>
+  <a href="/nobrainers.html">Nobrainers</a>
+  <a href="/insider-clusters.html">Clusters</a>
+  <a href="/smart-money.html">Smart Money</a>
+  <a href="/deep-value.html">Deep Value</a>
+  <a href="/eps-velocity.html" class="active">EPS Velocity</a>
+</nav>
+<main class="shell">
+  <section class="hero fade-in">
+    <span class="hero-eyebrow">Accelerating Consensus Estimates</span>
+    <h1 class="hero-title">When the Street's <em>EPS estimates are accelerating</em> upward.</h1>
+    <p class="hero-blurb">The MU/SNDK pattern in code form. When forward-year EPS estimates rise sharply versus the prior year and revenue growth confirms it, the stock historically outperforms by 12-18% over 6 months (Womack 1996; Givoly-Lakonishok). The system pulls multi-year analyst estimates from FMP and computes the second derivative — is the rate-of-change accelerating?</p>
+    <div class="kpi-strip">
+      <div class="kpi"><span class="kpi-label">Universe</span><span class="kpi-val" id="kpi-universe">—</span><span class="kpi-sub">stocks scanned</span></div>
+      <div class="kpi"><span class="kpi-label">Qualifying</span><span class="kpi-val" id="kpi-qualifying">—</span><span class="kpi-sub">≥ 5% velocity</span></div>
+      <div class="kpi"><span class="kpi-label">Tier-A</span><span class="kpi-val" id="kpi-tier-a">—</span><span class="kpi-sub">≥ 25% lift</span></div>
+      <div class="kpi"><span class="kpi-label">Tier-B</span><span class="kpi-val" id="kpi-tier-b">—</span><span class="kpi-sub">≥ 15% lift</span></div>
+    </div>
+  </section>
+  <div class="primer fade-in">
+    <h3>Why velocity beats absolute estimates</h3>
+    <p>What matters isn't the analyst consensus — it's <strong>how that consensus is changing</strong>. Markets price the current expectation efficiently; what's mispriced is the rate of revision. When sell-side analysts revise their estimates up systematically, it signals they're seeing positive incremental data they hadn't priced in. The trade is to be in the stock <em>before</em> consensus catches up.</p>
+    <p>The MU pattern: in 2023-24, sell-side EPS estimates went $0.50 → $1.10 → $1.85 over 90 days. Anyone tracking the velocity saw the move 6-9 months early. The system flags this signature: forward EPS lift &gt; 15%, forward revenue growth &gt; 8%, with rising analyst participation count.</p>
+  </div>
+  <section class="section fade-in">
+    <div class="section-eyebrow">All qualifying setups</div>
+    <h2 class="section-title">Top 25 by EPS-velocity score</h2>
+    <p class="section-blurb">Sorted by composite score: 40% velocity (FY2 vs FY1 lift), 20% acceleration (forward revenue), 15% breadth (analyst upgrades), 15% positive earnings, 10% growth alignment.</p>
+    <div id="table-host" class="empty">Loading…</div>
+  </section>
+</main>
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section"><span class="foot-label">Source</span><span><strong style="color:var(--t1)">FMP /stable</strong> analyst-estimates + grades</span><span>justhodl-eps-revision-velocity</span></div>
+    <div class="foot-section"><span class="foot-label">Schedule</span><span>Daily 09:30 UTC</span><span id="foot-refresh">—</span></div>
+    <div class="foot-section"><span class="foot-label">Filters</span><span>≥ $300M mcap</span><span>≥ 5% velocity to qualify</span></div>
+    <div class="foot-section"><span class="foot-label">Reload</span><span><a href="javascript:location.reload()">Refresh</a></span></div>
+  </div>
+</footer>
+<script>
+const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const flagClass = f => {
+  if (f === 'HIGH_VELOCITY_TIER_A') return 'flag-tier_a';
+  if (f === 'HIGH_VELOCITY_TIER_B') return 'flag-tier_b';
+  return 'flag-watch';
+};
+async function load() {
+  const r = await fetch(BUCKET + '/data/eps-revision-velocity.json?_=' + Date.now());
+  return await r.json();
+}
+(async () => {
+  try {
+    const data = await load();
+    const stats = data.stats || {};
+    document.getElementById('kpi-universe').textContent = stats.n_universe || '—';
+    document.getElementById('kpi-qualifying').textContent = stats.n_qualifying || '—';
+    document.getElementById('kpi-tier-a').textContent = stats.n_tier_a || '—';
+    document.getElementById('kpi-tier-b').textContent = stats.n_tier_b || '—';
+    if (data.generated_at) document.getElementById('foot-refresh').textContent = new Date(data.generated_at).toLocaleString();
+    const top = data.summary?.top_25_overall || [];
+    if (!top.length) {
+      document.getElementById('table-host').innerHTML = '<div class="empty">No qualifying setups.</div>';
+      return;
+    }
+    const rows = top.map((c,i) => `
+      <tr>
+        <td class="num">${i+1}</td>
+        <td><strong>${escape(c.symbol)}</strong> <span style="color:var(--t3);font-size:11px">${escape((c.company||'').substring(0,30))}</span></td>
+        <td class="num">${(c.score||0).toFixed(1)}</td>
+        <td><span class="flag-pill ${flagClass(c.flag)}">${(c.flag||'').replace('HIGH_VELOCITY_','').replace('_',' ')}</span></td>
+        <td class="num pos">+${(c.fy2_lift_pct||0).toFixed(0)}%</td>
+        <td class="num pos">+${(c.fwd_rev_growth_pct||0).toFixed(0)}%</td>
+        <td class="num">${((c.upgrade_pct||0)*100).toFixed(0)}%</td>
+        <td class="num">${c.n_estimates || 0}</td>
+        <td>${escape((c.sector||'').substring(0,18))}</td>
+      </tr>
+    `).join('');
+    document.getElementById('table-host').innerHTML = `<table class="dv-table">
+      <thead><tr><th>#</th><th>Stock</th><th>Score</th><th>Flag</th><th>FY2 Lift</th><th>Rev G</th><th>Upg%</th><th>NEst</th><th>Sector</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  } catch (e) {
+    document.getElementById('table-host').innerHTML = '<div class="empty">Load error: ' + escape(e.message) + '</div>';
+  }
+})();
+</script>
+</body>
+</html>
