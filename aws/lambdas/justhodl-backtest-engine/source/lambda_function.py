@@ -308,26 +308,34 @@ def lambda_handler(event=None, context=None):
 
     # 5. Aggregate by signal_type
     by_signal = defaultdict(lambda: {"n": 0, "n_correct": 0, "sum_contribution": 0.0,
-                                     "sum_return": 0.0, "weight": 0.0})
+                                     "sum_return": 0.0, "sum_weight": 0.0,
+                                     "windows_used": defaultdict(int)})
     for r in results:
         bucket = by_signal[r["signal_type"]]
         bucket["n"] += 1
         bucket["n_correct"] += 1 if r["correct"] else 0
         bucket["sum_contribution"] += r["contribution"]
         bucket["sum_return"] += r["actual_return"]
-        bucket["weight"] = r["weight"]
+        bucket["sum_weight"] += r["weight"]
+        # Track which horizons were used per signal (informational)
+        wsrc = r.get("weight_source") or ""
+        if wsrc.startswith("horizon:"):
+            bucket["windows_used"][wsrc.split(":")[1]] += 1
+        else:
+            bucket["windows_used"]["flat"] += 1
 
     signal_summary = []
     for sig, b in by_signal.items():
         n = b["n"]
         signal_summary.append({
             "signal_type": sig,
-            "weight": round(b["weight"], 4),
+            "weight": round(b["sum_weight"] / max(n, 1), 4),  # avg weight across trades
             "n_outcomes": n,
             "win_rate": round(b["n_correct"] / max(n, 1), 4),
             "avg_return_pct": round(b["sum_return"] / max(n, 1), 4),
             "total_contribution": round(b["sum_contribution"], 4),
             "avg_contribution": round(b["sum_contribution"] / max(n, 1), 4),
+            "windows_used": dict(b["windows_used"]),  # which horizons were applied
         })
     signal_summary.sort(key=lambda x: -x["total_contribution"])
 
