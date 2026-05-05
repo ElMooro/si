@@ -336,6 +336,13 @@ def lambda_handler(event=None, context=None):
         theme = c["theme_etf"]
         score = c["asymmetric_score"]
 
+        # Silent skip for known-delisted tickers (e.g. LTHM merged into ALTM)
+        if ticker in DELISTED_TICKERS:
+            n_skipped += 1
+            print(f"[track] SKIP {ticker}/{theme} — delisted/merged")
+            log_results.append({"ticker": ticker, "theme": theme, "skipped": True, "reason": "delisted"})
+            continue
+
         ok, reason = should_log(state, ticker, theme, score, now)
         if not ok:
             n_skipped += 1
