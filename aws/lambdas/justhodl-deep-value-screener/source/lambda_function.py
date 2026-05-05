@@ -76,10 +76,22 @@ def _http_get_json(url, timeout=15):
 
 
 def get_universe():
-    """Return up to MAX_TICKERS de-duped from existing screener data + S&P backup + FMP active list."""
+    """Return up to MAX_TICKERS, prioritizing the unified universe (data/universe.json)."""
     universe = []
 
-    # First try the existing screener output
+    # PRIMARY: pull from unified universe (master pool)
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
+        ud = json.loads(obj["Body"].read())
+        for s in ud.get("stocks", []):
+            sym = (s.get("symbol") or "").strip().upper()
+            if sym and sym not in universe:
+                universe.append(sym)
+        print(f"[deep-value] seeded {len(universe)} from data/universe.json (unified)")
+    except Exception as e:
+        print(f"[deep-value] unified universe failed, falling back: {e}")
+
+    # FALLBACK: existing screener output
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="screener/data.json")
         d = json.loads(obj["Body"].read())
@@ -88,7 +100,7 @@ def get_universe():
             sym = (r.get("symbol") or r.get("ticker") or "").strip().upper()
             if sym and sym not in universe:
                 universe.append(sym)
-        print(f"[deep-value] seeded {len(universe)} from screener/data.json")
+        print(f"[deep-value] universe after screener fallback: {len(universe)}")
     except Exception as e:
         print(f"[deep-value] screener seed failed: {e}")
 

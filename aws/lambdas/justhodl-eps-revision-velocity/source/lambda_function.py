@@ -69,6 +69,18 @@ def _http_get_json(url, timeout=12):
 
 def get_universe():
     universe = []
+    # PRIMARY: unified universe
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
+        ud = json.loads(obj["Body"].read())
+        for s in ud.get("stocks", []):
+            sym = (s.get("symbol") or "").strip().upper()
+            if sym and sym not in universe:
+                universe.append(sym)
+        print(f"[eps-velocity] seeded {len(universe)} from data/universe.json (unified)")
+    except Exception as e:
+        print(f"[eps-velocity] unified universe failed, falling back: {e}")
+    # FALLBACK: screener
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="screener/data.json")
         d = json.loads(obj["Body"].read())
@@ -77,9 +89,10 @@ def get_universe():
             sym = (r.get("symbol") or r.get("ticker") or "").strip().upper()
             if sym and sym not in universe:
                 universe.append(sym)
-        print(f"[eps-velocity] seeded {len(universe)} from screener")
+        print(f"[eps-velocity] universe after screener fallback: {len(universe)}")
     except Exception as e:
         print(f"[eps-velocity] screener seed failed: {e}")
+    # FALLBACK: SP500 backup
     for s in SP500_BACKUP:
         if s not in universe:
             universe.append(s)
