@@ -281,9 +281,13 @@ def run_calibration():
             weights[stype] = default_w
 
     # ── Compute per-window accuracy (short vs medium vs long term) ─────────
+    # Only compute weights for (signal, window) pairs with n>=5 outcomes —
+    # below that, accuracy_to_weight returns the default which would create
+    # spurious "horizon-uplifts" against floored flat weights.
     window_accuracy = {}
     window_weights = {}
     recommended_horizon = {}
+    MIN_N_PER_WINDOW = 5
     for stype, windows in by_type_window.items():
         window_accuracy[stype] = {}
         window_weights[stype] = {}
@@ -292,15 +296,15 @@ def run_calibration():
             stats = compute_accuracy_stats(outcomes)
             window_accuracy[stype][window] = stats
             acc = stats.get("accuracy")
-            if acc is not None and stats.get("n", 0) >= 5:
+            n = stats.get("n", 0)
+            if acc is not None and n >= MIN_N_PER_WINDOW:
                 window_weights[stype][window] = round(
-                    accuracy_to_weight(acc, stats["n"], default_w), 4
+                    accuracy_to_weight(acc, n, default_w), 4
                 )
-            else:
-                window_weights[stype][window] = default_w
-        # Pick the horizon with the highest weight as "recommended" — this is the
-        # window where this signal type is most reliable. Consumers should use
-        # this when scoring at that horizon, OR fall back to the flat weight.
+            # else: skip — no measured weight at this horizon. Consumers
+            # should fall back to flat weights[stype].
+        # Pick the horizon with the highest measured weight as "recommended".
+        # If all horizons fell below the n threshold, leave unrecommended.
         if window_weights[stype]:
             best = max(window_weights[stype].items(), key=lambda kv: kv[1])
             recommended_horizon[stype] = {
