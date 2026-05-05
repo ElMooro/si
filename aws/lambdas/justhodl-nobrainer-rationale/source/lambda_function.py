@@ -163,7 +163,41 @@ def _insider_block(cl):
     return "\n".join(lines)
 
 
-def build_thesis_prompt(candidate, insider_cluster=None):
+
+def _smart_money_block(cl):
+    """Format smart-money cluster info for prompt injection."""
+    if not cl:
+        return "  (no recent smart-money 13F cluster activity for this ticker)"
+    lines = []
+    lines.append(f"  Smart-money score: {cl.get('score', 0):.1f}/100 ({cl.get('flag')})")
+    sig_types = cl.get("signal_types", [])
+    lines.append(f"  Signal types: {', '.join(sig_types)}")
+    lines.append(f"  Rationale: {cl.get('rationale', '')}")
+    lines.append(f"  {cl.get('n_buyers', 0)} funds buying / {cl.get('n_sellers', 0)} selling / {cl.get('n_new', 0)} new initiations")
+    legends = cl.get("legend_buyers", [])
+    if legends:
+        lines.append(f"  ⭐ LEGEND FUND BUYERS: {', '.join(legends)}")
+    quants = cl.get("quant_buyers", [])
+    if quants:
+        lines.append(f"  Quant fund buyers: {', '.join(quants)}")
+    ph = cl.get("pct_from_52w_high")
+    if ph is not None:
+        lines.append(f"  Stock {abs(ph):.0f}% off 52W high (drawdown context)")
+    fund_actions = cl.get("fund_actions", [])[:5]
+    if fund_actions:
+        lines.append("  Top fund actions:")
+        for fa in fund_actions:
+            f_name = (fa.get("fund") or "?")[:14]
+            ch = fa.get("change", "?")
+            v = (fa.get("value") or 0)/1e6
+            pct = fa.get("pct_of_portfolio", 0) or 0
+            d = fa.get("delta_pct")
+            d_str = f"Δ{d:+.0f}%" if d is not None else (ch if ch=="NEW" else "")
+            lines.append(f"    • {f_name:<14} {ch:<5} ${v:>6.1f}M  {pct:>4.1f}% port  {d_str}")
+    return "\n".join(lines)
+
+
+def build_thesis_prompt(candidate, insider_cluster=None, smart_money_cluster=None):
     """Build the full structured prompt with all data inputs."""
     f = candidate.get("factors", {})
     fund = candidate.get("fundamentals", {})
@@ -235,6 +269,9 @@ NEXT CATALYST: {candidate.get('next_earnings') or 'no earnings date in window'}
 
 INSIDER CLUSTER SIGNAL (if any):
 {_insider_block(insider_cluster)}
+
+13F SMART-MONEY CLUSTER SIGNAL (if any):
+{_smart_money_block(smart_money_cluster)}
 
 YOUR TASK:
 Write a 250-350 word thesis for {candidate.get('ticker')} in your decisive-call voice. Structure:
@@ -350,6 +387,19 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[rationale] WARN — insider clusters unavailable: {e}")
 
+    # Load smart-money 13F cluster signals for compound-score augmentation
+    smart_money_by_ticker = {}
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/smart-money-clusters.json")
+        sm_data = json.loads(obj["Body"].read())
+        for cl in sm_data.get("clusters", []):
+            tk = cl.get("ticker")
+            if tk:
+                smart_money_by_ticker[tk] = cl
+        print(f"[rationale] loaded {len(smart_money_by_ticker)} smart-money clusters")
+    except Exception as e:
+        print(f"[rationale] WARN — smart-money clusters unavailable: {e}")
+
     # 2. Pick top N candidates above MIN_SCORE
     candidates = [x for x in leader if x.get("asymmetric_score", 0) >= MIN_SCORE][:N_THESES]
     if not candidates:
@@ -376,9 +426,12 @@ def lambda_handler(event=None, context=None):
         ticker = c.get("ticker")
         theme = c.get("theme_etf")
         cl = insider_by_ticker.get(ticker)
+        sm = smart_money_by_ticker.get(ticker)
         if cl:
             print(f"[rationale] {ticker} ALSO has insider cluster (score={cl.get('score')}, signal={cl.get('signal_type')})")
-        prompt = build_thesis_prompt(c, cl)
+        if sm:
+            print(f"[rationale] {ticker} ALSO has smart-money cluster (score={sm.get('score')}, legends={sm.get('legend_buyers')})")
+        prompt = build_thesis_prompt(c, cl, sm)
         thesis_text = ""
         usage = {}
         err = None
