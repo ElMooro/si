@@ -138,7 +138,32 @@ KHALID_VOICE = """You are writing in the voice of Khalid, a sharp macro/asymmetr
 Write the thesis as if you are Khalid himself, not as an analyst describing his thinking."""
 
 
-def build_thesis_prompt(candidate):
+
+def _insider_block(cl):
+    """Format insider-cluster info for prompt injection. Returns 'no recent insider signal' if None."""
+    if not cl:
+        return "  (no recent insider cluster activity for this ticker)"
+    lines = []
+    lines.append(f"  Insider score: {cl.get('score', 0):.1f}/100 ({cl.get('signal_type')})")
+    lines.append(f"  Rationale: {cl.get('rationale', '')}")
+    lines.append(f"  {cl.get('n_insiders', 0)} insiders / {cl.get('n_transactions', 0)} TX / ${cl.get('total_value', 0):,.0f} total")
+    lines.append(f"  Window: {cl.get('first_buy', '?')} → {cl.get('last_buy', '?')}")
+    if cl.get("has_ceo"):
+        lines.append("  ✓ CEO bought")
+    if cl.get("has_cfo"):
+        lines.append("  ✓ CFO bought")
+    insiders = cl.get("insiders", [])
+    if insiders:
+        lines.append("  Top insiders:")
+        for i in insiders[:5]:
+            name = (i.get("name") or "?")[:30]
+            role = (i.get("role") or "")[:35]
+            val = i.get("total_value", 0) or 0
+            lines.append(f"    • {name:<30} {role:<35} ${val:>10,.0f}")
+    return "\n".join(lines)
+
+
+def build_thesis_prompt(candidate, insider_cluster=None):
     """Build the full structured prompt with all data inputs."""
     f = candidate.get("factors", {})
     fund = candidate.get("fundamentals", {})
@@ -207,6 +232,9 @@ HARD SUPPLY/DEMAND SIGNALS (the market structurally misses these):
 {chr(10).join(supply_lines) if supply_lines else '  (no supply signals mapped to this theme)'}
 
 NEXT CATALYST: {candidate.get('next_earnings') or 'no earnings date in window'}
+
+INSIDER CLUSTER SIGNAL (if any):
+{_insider_block(insider_cluster)}
 
 YOUR TASK:
 Write a 250-350 word thesis for {candidate.get('ticker')} in your decisive-call voice. Structure:
@@ -309,6 +337,19 @@ def lambda_handler(event=None, context=None):
     mu_grade = summary.get("mu_grade_top_15", [])
     print(f"[rationale] leaderboard: {len(leader)}  mu_grade: {len(mu_grade)}")
 
+    # Load insider-cluster signals for compound-score augmentation
+    insider_by_ticker = {}
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/insider-clusters.json")
+        insider_data = json.loads(obj["Body"].read())
+        for cl in insider_data.get("clusters", []):
+            tk = cl.get("ticker")
+            if tk:
+                insider_by_ticker[tk] = cl
+        print(f"[rationale] loaded {len(insider_by_ticker)} insider clusters")
+    except Exception as e:
+        print(f"[rationale] WARN — insider clusters unavailable: {e}")
+
     # 2. Pick top N candidates above MIN_SCORE
     candidates = [x for x in leader if x.get("asymmetric_score", 0) >= MIN_SCORE][:N_THESES]
     if not candidates:
@@ -334,7 +375,10 @@ def lambda_handler(event=None, context=None):
     for c in candidates:
         ticker = c.get("ticker")
         theme = c.get("theme_etf")
-        prompt = build_thesis_prompt(c)
+        cl = insider_by_ticker.get(ticker)
+        if cl:
+            print(f"[rationale] {ticker} ALSO has insider cluster (score={cl.get('score')}, signal={cl.get('signal_type')})")
+        prompt = build_thesis_prompt(c, cl)
         thesis_text = ""
         usage = {}
         err = None
