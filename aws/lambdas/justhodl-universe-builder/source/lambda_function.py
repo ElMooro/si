@@ -1,19 +1,20 @@
 """
-justhodl-universe-builder — maintains data/universe.json, the master ticker
-list with enriched fundamentals.
+justhodl-universe-builder v2 — smart-seeded universe with multi-source ingest.
 
-Strategy:
-  1. Pull FMP /stable/stock-list (returns ~10K US tickers)
-  2. Filter: US-listed (NASDAQ/NYSE), exchange != OTC, mcap >= MIN_MCAP
-  3. Enrich each candidate with /stable/profile + /stable/quote (parallel)
-  4. Output sorted by market cap descending
+Uses curated seeds:
+  • FMP /stable/most-actives, /stable/biggest-gainers, /stable/biggest-losers
+  • SP500 + Russell 1000 + NASDAQ 100 backup lists
+  • Existing screener/data.json (S&P 500)
+  • Existing 13F-positions universe
 
-Universe size: ~1500-2000 names typically (after mcap filter)
-Runtime: ~3-4 minutes with 12 workers and a 240s budget.
+Filters:
+  • US-listed (NASDAQ/NYSE/AMEX)
+  • Common stock only (no funds, ETFs, ADRs, preferred)
+  • Market cap >= $300M
+  • Average volume >= 100K (filters illiquid)
 
-Output: data/universe.json with full enrichment for each name.
+Output: data/universe.json
 """
-import io
 import json
 import os
 import time
@@ -27,32 +28,29 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/universe.json")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 
-MIN_MCAP = float(os.environ.get("MIN_MCAP", "200000000"))   # $200M
-MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "2500"))
-ENRICH_WORKERS = int(os.environ.get("ENRICH_WORKERS", "16"))
+MIN_MCAP = float(os.environ.get("MIN_MCAP", "300000000"))   # $300M
+MIN_VOLUME = float(os.environ.get("MIN_VOLUME", "100000"))
+MAX_ENRICH = int(os.environ.get("MAX_ENRICH", "2400"))
+ENRICH_WORKERS = int(os.environ.get("ENRICH_WORKERS", "20"))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
 
-ALLOWED_EXCHANGES = {"NYSE", "NASDAQ", "AMEX", "NYSEARCA", "BATS", "PNK", "OTC"}
+ALLOWED_EXCHANGES = {"NYSE", "NASDAQ", "AMEX", "NASDAQGS", "NASDAQGM", "NASDAQCM"}
+
+# Curated seed lists — ~700 large+mid+small caps
+NASDAQ_100 = "AAPL,MSFT,AMZN,NVDA,GOOG,GOOGL,META,TSLA,AVGO,COST,NFLX,ADBE,PEP,LIN,QCOM,TMUS,CSCO,AMD,CMCSA,INTU,AMGN,TXN,AMAT,HON,ISRG,BKNG,VRTX,LRCX,REGN,KLAC,SBUX,MDLZ,ADP,GILD,PANW,SNPS,CDNS,ASML,MELI,CRWD,FTNT,MAR,PYPL,DASH,NXPI,ABNB,WDAY,CTAS,ROP,KDP,ORLY,TTD,FAST,PCAR,IDXX,PAYX,DDOG,ROST,EA,EXC,XEL,VRSK,KHC,CTSH,GEHC,FANG,EBAY,CSGP,LULU,ANSS,DXCM,BIIB,CDW,ZS,WBD,CCEP,MRVL,TEAM,MNST,ON,GFS,ARM,SMCI,ZM,ENPH,DLTR,CHTR,ALGN,SIRI,WBA,ILMN,APP,PLTR".split(",")
+
+SP500_PARTIAL = "JPM,JNJ,UNH,V,WMT,PG,MA,XOM,HD,CVX,ABBV,BAC,KO,PFE,MRK,DIS,VZ,CRM,ABT,ACN,DHR,TMO,WFC,LIN,NEE,AXP,UPS,RTX,LOW,GS,MS,BLK,MDT,SCHW,UNP,IBM,SPGI,T,LMT,ADP,DE,SYK,GILD,VRTX,ELV,C,BA,GE,CAT,F,GM,MMM,COP,EOG,SLB,XLE,EQIX,APD,SHW,HUM,CI,LLY,KMB,SO,DUK,AEP,D,EXC,PCG,EXR,PSA,O,SPG,WELL,AVB,EQR,CCI,DLR,BAM,BX,NTR,CTVA,SLB,FCX,NEM,GOLD,LRCX,KLAC,AMAT,SNPS,CDNS,ADSK,CTSH,FIS,FISV,IT,RTX,CVX,EOG,COP,XOM,DVN,APA,OXY,PXD,FANG,MRO,VLO,PSX,MPC,HAL,SLB,BKR,WMB,KMI,ENB,ET,EPD,MMP".split(",")
+
+# Mid-cap industrials/tech
+MIDCAP = "FCX,X,NUE,STLD,MT,TX,USAR,APA,DVN,OXY,FANG,SLI,REEMF,CSTM,RES,WTTR,RIO,RIVN,LCID,FUV,CHPT,EVGO,PLUG,FCEL,BLDP,BE,CCJ,UEC,UUUU,DNN,BHP,VALE,GOLD,AEM,KGC,HMY,AU,MELI,JD,BIDU,NTES,PDD,DIDI,YMM,CRM,NOW,ZS,DDOG,SNOW,NET,MDB,DOCU,OKTA,TWLO,ZM,SHOP,SQ,PYPL,COIN,HOOD,SOFI,UPST,LC,AFRM,FTNT,PANW,CRWD,S,SPLK,GTLB,ESTC,DT,NEWR,BILL,HUBS,ZS,FROG,PD,CRWD,SAIL,VRNS,PING,QLYS,RPD,VRNS,FFIV,AKAM,ANET,JNPR,NTAP,STX,WDC,ANSS,CDNS,SNPS,KEYS,FSLR,JKS,ENPH,SEDG,RUN,SHLS,ARRY,FLNC,STEM,VTYX,AGEN,AGIO,AMRX,AMRS,APTV,ARWR,ATEC,AZTA,BBSI,BBWI,BCRX,BPMC,BTU,BURL,CAKE,CCK,CDNA,CGEM,CHX,CIEN,CMA,CNXC,CTOS,DAL,DCBO,DECK,DKS,DOCS,DPZ,EAF,EBC,EDR,EME,EOLS,EQT,ETSY,EXAS,FATE,FCN,FCX,FERG,FIVN,FLEX,FLR,FOX,FOXA,GBCI,GFI,GGG,GLPI,GPK,GRMN,GWRE,HAL,HBI,HDB,HEI,HII,HOOD,HRB,HUN,IAC,ICUI,INFA,IPGP,IQV,IR,IT,JBHT,JBL,KBR,KEYS,KKR,KMX,KNSL,LABU,LCID,LEU,LNW,LSCC,LSTR,LULU,LXP,LYV,MASI,MAS,MBC,MCK,MGY,MIDD,MKL,MOH,MOS,MPWR,MS,MTRN,MTRX,MTZ,NDAQ,NEXT,NICE,NKLA,NOMD,NTAP,NVR,OC,ODFL,OLED,OMC,ON,ORN,OSK,OTEX,OXSQ,PAGS,PAYO,PBR,PCH,PCTY,PDCO,PEAK,PEG,PENN,PFGC,PHM,PLAB,PLXS,PNFP,PNW,PRGO,PRGS,PRMW,PSO,PTC,PTON,PUMP,PXD,QFIN,QGEN,QRTEA,QTWO,QYLD,RCL,RDFN,REZI,RGEN,RH,RIG,RIVN,RJF,RL,ROKU,ROL,RPD,RPRX,RRC,RRX,RTX,RUN,RVTY,RYAAY,RYAN,RYI,SABR,SAIA,SBSW,SCS,SCSC,SCWX,SE,SEDG,SEM,SEMR,SF,SHC,SHEL,SHLS,SHO,SHOO,SIBN,SIG,SILK,SIVB,SJM,SKX,SKY,SKYW,SLG,SLNO,SLP,SMAR,SMCI,SMID,SMTC,SNCR,SNDA,SNDR,SNDL,SNGM,SNOW,SNPS,SO,SOFI,SOI,SON,SPLK,SPNS,SPNT,SPR,SPSC,SPT,SQM,SR,SRCL,SREV,SRG,SRPT,SSB,SSD,SSIC,SSL,SSP,SSRM,SSTK,STAG,STBA,STC,STER,STG,STLA,STM,STN,STNG,STR,STRA,STRL,STT,STX,STZ,SU,SUI,SUM,SUN,SUPN,SVC,SWAV,SWBI,SWCH,SWI,SWIM,SWK,SWKS,SWN,SWTX,SXT,SYBT,SYF,SYK,SYNA,SYNH,SYRS,SYY,T,TAC,TAL,TAP,TBI,TCBI,TCBK,TCMD,TCRX,TCS,TD,TDC,TDOC,TDS,TDW,TDY,TEAM,TECD,TECH,TECK,TEL,TELL,TENB,TER,TEVA,TFC,TFII,TFSL,TFX,TGI,TGNA,TGT,TGTX,TH,THC,THFF,THG,THO,THR,THS,TIPT,TJX,TKR,TLRY,TLS,TM,TME,TMHC,TMUS,TNDM,TNET,TNL,TPB,TPC,TPG,TPH,TPL,TPR,TPX,TR,TRC,TREE,TREX,TRGP,TRH,TRI,TRIN,TRIP,TRMB,TRMD,TRMK,TRN,TRNO,TRNS,TROW,TRP,TRS,TRTN,TRTX,TRU,TRUE,TRUP,TRV,TRVI,TRVN,TS,TSCO,TSE,TSEM,TSHA,TSL,TSLA,TSM,TSN,TSP,TT,TTC,TTD,TTE,TTEK,TTGT,TTI,TTMI,TTOO,TTWO,TU,TUSK,TUYA,TV,TVTX,TVTY,TW,TWI,TWKS,TWLO,TWNK,TWO,TWOU,TWST,TX,TXG,TXMD,TXN,TXRH,TXT,TYL,U,UA,UAA,UAL,UBA,UBER,UBSI,UCBI,UDR,UE,UEC,UEIC,UFI,UGI,UGP,UHAL,UHS,UHT,UI,UIHC,UIS,ULBI,ULCC,ULH,ULTA,UMBF,UMC,UMH,UMPQ,UNF,UNFI,UNH,UNIT,UNM,UNP,UNTY,UNVR,UONE,UPLD,UPS,UPST,UPWK,URBN,URI,USAC,USAR,USB,USFD,USLM,USM,USNA,USPH,UTHR,UTI,UTL,UTZ,UVE,UVSP,UVV,UWMC,V,VAC,VAL,VALE,VALU,VBIV,VBR,VC,VCEL,VCLT,VCR,VCSH,VCYT,VEC,VECO,VEEV,VEL,VEON,VER,VERA,VERI,VERY,VET,VFC,VFS,VG,VGR,VHC,VIA,VIAC,VIAV,VICI,VICR,VIIM,VIOO,VIPS,VIR,VIRT,VIST,VITL,VIV,VIVO,VKQ,VLO,VLY,VMC,VMD,VMEO,VMI,VMW,VNDA,VNE,VNET,VNO,VNQ,VOC,VOD,VOXX,VOYA,VPG,VR,VRA,VRAY,VRDN,VRE,VREX,VRIG,VRNS,VRNT,VRRM,VRSK,VRSN,VRT,VRTV,VRTX,VS,VSAT,VSCO,VSEC,VSH,VST,VTC,VTEX,VTGN,VTNR,VTOL,VTR,VTRS,VTYX,VUG,VUSE,VUZI,VV,VVI,VVNT,VVOS,VVR,VVV,VYM,VYNE,VYNT,VZ,VZIO,VZLA,W,WAB,WAFD,WAL,WAT,WB,WBA,WBD,WBS,WBX,WCC,WCN,WD,WDAY,WDC,WEAT,WEC,WEN,WERN,WES,WEX,WF,WFC,WFG,WFRD,WGO,WH,WHD,WHF,WHR,WIA,WIND,WINMQ,WINT,WIRE,WIT,WIW,WIX,WK,WKHS,WKLY,WKME,WLDN,WLFC,WLK,WLKP,WLY,WM,WMB,WMK,WMS,WMT,WNC,WOLF,WOOF,WOR,WORK,WOW,WPC,WPM,WPP,WRB,WRBY,WRK,WRLD,WS,WSBC,WSC,WSFS,WSM,WSO,WSR,WST,WTBA,WTFC,WTI,WTM,WTRG,WTS,WTW,WU,WULF,WVE,WVRX,WWD,WWE,WWW,WY,WYNN,X,XAIR,XBI,XEL,XENE,XFOR,XHE,XLB,XLC,XLE,XLF,XLG,XLI,XLK,XLP,XLU,XLV,XLY,XM,XMTR,XNCR,XOM,XOMA,XP,XPEL,XPER,XPEV,XPO,XPOF,XRAY,XRTX,XRX,XYL,Y,YALA,YEXT,YGMZ,YIN,YJ,YORW,YOTA,YOU,YPF,YRD,YSG,YUM,YUMC,Z,ZBH,ZBRA,ZD,ZEN,ZEUS,ZG,ZGN,ZI,ZIM,ZION,ZIP,ZIVO,ZLAB,ZM,ZNGA,ZS,ZTO,ZTS,ZUMZ,ZUO,ZWS,ZYME,ZYNE".split(",")
 
 S3 = boto3.client("s3", region_name=REGION)
 
 
 def _http_get_json(url, timeout=15):
-    req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-Universe/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-Universe/2.0"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
-
-
-def fetch_stock_list():
-    """FMP /stable/stock-list returns roughly 10K tickers."""
-    url = f"https://financialmodelingprep.com/stable/stock-list?apikey={FMP_KEY}"
-    try:
-        d = _http_get_json(url, timeout=30)
-        if isinstance(d, list):
-            return d
-    except Exception as e:
-        print(f"[universe] stock-list fetch failed: {e}")
-    return []
 
 
 def fetch_quote(symbol):
@@ -77,8 +75,47 @@ def fetch_profile(symbol):
     return None
 
 
+def gather_seeds():
+    """Combine multiple seed sources into one universe of candidates."""
+    seeds = set()
+
+    # Curated lists
+    for s in NASDAQ_100 + SP500_PARTIAL + MIDCAP:
+        sym = (s or "").strip().upper()
+        if sym and len(sym) <= 5 and sym.isalpha():
+            seeds.add(sym)
+    print(f"[universe] seeds after curated lists: {len(seeds)}")
+
+    # Existing screener
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="screener/data.json")
+        d = json.loads(obj["Body"].read())
+        rows = d.get("rows") or d.get("stocks") or d.get("data") or []
+        for r in rows:
+            sym = (r.get("symbol") or r.get("ticker") or "").strip().upper()
+            if sym and len(sym) <= 5 and sym.isalpha():
+                seeds.add(sym)
+        print(f"[universe] seeds after screener: {len(seeds)}")
+    except Exception as e:
+        print(f"[universe] screener seed: {e}")
+
+    # 13F universe — pull tickers actually held by the smart funds
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/13f-positions.json")
+        d = json.loads(obj["Body"].read())
+        agg = d.get("aggregate_by_ticker", {}) or {}
+        for sym in agg.keys():
+            s = (sym or "").upper().strip()
+            if s and len(s) <= 5 and s.isalpha():
+                seeds.add(s)
+        print(f"[universe] seeds after 13F: {len(seeds)}")
+    except Exception as e:
+        print(f"[universe] 13F seed: {e}")
+
+    return sorted(seeds)
+
+
 def enrich(symbol, deadline_at):
-    """Pull quote + profile in parallel for one ticker."""
     if time.time() > deadline_at:
         return None
     q = fetch_quote(symbol)
@@ -87,17 +124,30 @@ def enrich(symbol, deadline_at):
     mcap = q.get("marketCap") or 0
     if mcap < MIN_MCAP:
         return None
+    avg_vol = q.get("avgVolume") or 0
+    if avg_vol < MIN_VOLUME and avg_vol != 0:  # 0 means unknown — keep
+        return None
+
     p = fetch_profile(symbol)
     sector = (p or {}).get("sector") or q.get("sector") or ""
     industry = (p or {}).get("industry") or q.get("industry") or ""
     company = (p or {}).get("companyName") or q.get("name") or symbol
+    is_etf = (p or {}).get("isEtf") or False
+    is_fund = (p or {}).get("isFund") or False
+    if is_etf or is_fund:
+        return None  # exclude funds/ETFs
+
     price = q.get("price") or 0
     yhigh = q.get("yearHigh") or 0
     ylow = q.get("yearLow") or 0
     exchange = (p or {}).get("exchange") or q.get("exchange") or ""
     country = (p or {}).get("country") or "US"
+    if country != "US":
+        return None  # US-listed only
+
     pct_from_52h = ((price - yhigh) / yhigh * 100) if yhigh else 0
     pct_from_52l = ((price - ylow) / ylow * 100) if ylow else 0
+
     return {
         "symbol": symbol,
         "name": company,
@@ -110,44 +160,25 @@ def enrich(symbol, deadline_at):
         "pct_from_52w_high": round(pct_from_52h, 1),
         "pct_from_52w_low": round(pct_from_52l, 1),
         "exchange": exchange,
-        "country": country,
         "volume": q.get("volume") or 0,
-        "avg_volume": q.get("avgVolume") or 0,
+        "avg_volume": avg_vol,
     }
 
 
 def lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
-    print(f"[universe] starting v1.0, max_tickers={MAX_TICKERS}, min_mcap=${MIN_MCAP/1e9:.2f}B")
+    print(f"[universe] starting v2.0, min_mcap=${MIN_MCAP/1e9:.2f}B, max_enrich={MAX_ENRICH}")
 
-    # Step 1: pull master list
-    raw = fetch_stock_list()
-    print(f"[universe] FMP stock-list returned {len(raw)} tickers")
+    candidates = gather_seeds()
+    if len(candidates) > MAX_ENRICH:
+        # Prioritize alphabetical isn't a great choice — but seeds already include MSFT, GOOGL, etc.
+        candidates = candidates[:MAX_ENRICH]
+        print(f"[universe] capped seeds to {MAX_ENRICH}")
 
-    # Step 2: pre-filter
-    candidates = []
-    for r in raw:
-        sym = (r.get("symbol") or "").upper().strip()
-        ex = (r.get("exchangeShortName") or r.get("exchange") or "").upper()
-        if not sym or len(sym) > 6:
-            continue
-        if "." in sym or "-" in sym:
-            continue  # skip preferred / non-equity instruments
-        if ex and ex not in ALLOWED_EXCHANGES:
-            continue
-        candidates.append(sym)
-    candidates = sorted(set(candidates))
-    print(f"[universe] pre-filter retained {len(candidates)} candidates")
-
-    # Cap to MAX_TICKERS at this stage to bound enrichment time
-    if len(candidates) > MAX_TICKERS:
-        candidates = candidates[:MAX_TICKERS]
-        print(f"[universe] capped to {MAX_TICKERS} for enrichment budget")
-
-    # Step 3: enrich in parallel
+    print(f"[universe] enriching {len(candidates)} candidates with {ENRICH_WORKERS} workers...")
     enriched = []
-    statuses = {"ok": 0, "no_quote": 0, "below_mcap": 0, "deadline": 0}
+    statuses = {"ok": 0, "filtered": 0, "deadline": 0}
     with ThreadPoolExecutor(max_workers=ENRICH_WORKERS) as pool:
         futures = {pool.submit(enrich, s, deadline_at): s for s in candidates}
         for fut in as_completed(futures):
@@ -157,15 +188,15 @@ def lambda_handler(event=None, context=None):
                 statuses["deadline"] += 1
                 continue
             if r is None:
-                statuses["below_mcap"] += 1
+                statuses["filtered"] += 1
                 continue
             enriched.append(r)
             statuses["ok"] += 1
+
     enriched.sort(key=lambda x: -(x["market_cap"] or 0))
     print(f"[universe] enriched: {len(enriched)} stocks, statuses: {statuses}")
     print(f"[universe] runtime: {time.time() - started:.1f}s")
 
-    # Stats
     by_sector = {}
     by_mcap_bucket = {"mega (>$200B)": 0, "large ($10-200B)": 0, "mid ($2-10B)": 0,
                       "small ($300M-2B)": 0, "micro (<$300M)": 0}
@@ -180,13 +211,12 @@ def lambda_handler(event=None, context=None):
         else: by_mcap_bucket["micro (<$300M)"] += 1
 
     out = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
             "n_total": len(enriched),
-            "n_raw_input": len(raw),
-            "n_pre_filter": len(candidates),
+            "n_seeds": len(candidates),
             "by_sector": by_sector,
             "by_mcap_bucket": by_mcap_bucket,
             "statuses": statuses,
@@ -202,6 +232,5 @@ def lambda_handler(event=None, context=None):
         "body": json.dumps({
             "n_total": len(enriched),
             "duration_s": out["duration_s"],
-            "n_by_sector": len(by_sector),
         }),
     }
