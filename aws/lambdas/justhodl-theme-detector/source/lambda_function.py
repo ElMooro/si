@@ -160,26 +160,52 @@ def fetch_polygon_aggs(ticker, end_dt=None):
         f"{start_dt.strftime('%Y-%m-%d')}/{end_dt.strftime('%Y-%m-%d')}"
         f"?adjusted=true&sort=asc&limit=5000&apiKey={POLYGON_KEY}"
     )
+    last_err = None
     for attempt in range(3):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "JustHodlAI/1.0"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read())
-                if data.get("status") == "OK" and data.get("results"):
-                    return [{"t": r["t"], "c": r["c"], "v": r.get("v", 0)} for r in data["results"]]
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                raw = resp.read()
+                data = json.loads(raw)
+                # Polygon returns status="OK" for fresh data, "DELAYED" for free-tier.
+                # Accept anything with a results array.
+                results = data.get("results") or []
+                if results:
+                    return [{"t": r["t"], "c": r["c"], "v": r.get("v", 0)} for r in results]
+                # No results — log why
+                status = data.get("status")
+                err_msg = data.get("error") or data.get("message")
+                count = data.get("resultsCount", 0)
+                if attempt == 0:
+                    print(f"[poly] {ticker} no_results status={status} count={count} err={err_msg}")
                 return []
         except urllib.error.HTTPError as e:
+            last_err = f"HTTP {e.code}"
+            try:
+                err_body = e.read().decode()[:200]
+            except Exception:
+                err_body = "<unreadable>"
             if e.code == 429 and attempt < 2:
                 time.sleep(2 ** attempt)
                 continue
-            print(f"[poly] {ticker} HTTP {e.code} attempt={attempt}: {e}")
+            print(f"[poly] {ticker} HTTP {e.code} attempt={attempt}: {err_body}")
             return []
-        except Exception as e:
+        except urllib.error.URLError as e:
+            last_err = f"URLError {e}"
             if attempt < 2:
                 time.sleep(1)
                 continue
-            print(f"[poly] {ticker} error: {e}")
+            print(f"[poly] {ticker} URLError attempt={attempt}: {e}")
             return []
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {e}"
+            if attempt < 2:
+                time.sleep(1)
+                continue
+            print(f"[poly] {ticker} error attempt={attempt}: {type(e).__name__}: {e}")
+            return []
+    if last_err:
+        print(f"[poly] {ticker} all attempts failed last_err={last_err}")
     return []
 
 
