@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theme Lifecycle Detection · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --line:#1c2433; --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18; --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+  --extended:#26ffaf; --accelerating:#00d4ff; --emerging:#a78bfa;
+  --peaking:#ffd266; --cooling:#ff7a18; --dying:#ff5577; --dormant:#6f7b91;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1500px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px}
+h1{font-family:var(--mono);font-size:20px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12px;margin:0}
+.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:700}
+.kpi .vsub{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono)}
+.phase-DORMANT{color:var(--dormant)} .phase-EMERGING{color:var(--emerging)} .phase-ACCELERATING{color:var(--accelerating)}
+.phase-EXTENDED{color:var(--extended)} .phase-PEAKING{color:var(--peaking)} .phase-COOLING{color:var(--cooling)} .phase-DYING{color:var(--dying)}
+.bg-DORMANT{background:rgba(111,123,145,0.12);border-left:3px solid var(--dormant)}
+.bg-EMERGING{background:rgba(167,139,250,0.12);border-left:3px solid var(--emerging)}
+.bg-ACCELERATING{background:rgba(0,212,255,0.12);border-left:3px solid var(--accelerating)}
+.bg-EXTENDED{background:rgba(38,255,175,0.12);border-left:3px solid var(--extended)}
+.bg-PEAKING{background:rgba(255,210,102,0.12);border-left:3px solid var(--peaking)}
+.bg-COOLING{background:rgba(255,122,24,0.12);border-left:3px solid var(--cooling)}
+.bg-DYING{background:rgba(255,85,119,0.15);border-left:3px solid var(--dying)}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.theme-card{background:var(--panel);padding:14px;border-radius:6px;border:1px solid var(--line);transition:transform 0.15s,border-color 0.15s}
+.theme-card:hover{transform:translateY(-1px);border-color:var(--dim)}
+.theme-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.theme-etf{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:0.5px}
+.theme-name{font-size:11px;color:var(--mute);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.8px}
+.theme-phase{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:1.5px;padding:3px 8px;border-radius:3px;background:rgba(0,0,0,0.3);text-transform:uppercase}
+.theme-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0;font-size:10.5px;font-family:var(--mono)}
+.theme-metrics .m{text-align:center;padding:4px 2px;background:rgba(0,0,0,0.2);border-radius:3px}
+.theme-metrics .m .lbl{color:var(--dim);font-size:9px;display:block}
+.theme-metrics .m .val{font-weight:600}
+.theme-interp{font-size:11.5px;color:var(--mute);line-height:1.45;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.up{color:var(--green)} .down{color:var(--red)} .neutral{color:var(--mute)}
+.holdings{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:6px}
+.confidence{font-size:9.5px;font-family:var(--mono);color:var(--dim);margin-left:6px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-btn{background:var(--panel);border:1px solid var(--line);color:var(--mute);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase}
+.filter-btn:hover{border-color:var(--dim);color:var(--txt)}
+.filter-btn.active{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:700}
+.filter-btn.active.bg-DYING{background:var(--dying)}
+.filter-btn.active.bg-COOLING{background:var(--cooling)}
+.filter-btn.active.bg-PEAKING{background:var(--peaking);color:#000}
+.filter-btn.active.bg-EXTENDED{background:var(--extended);color:#000}
+.filter-btn.active.bg-ACCELERATING{background:var(--accelerating);color:#000}
+.filter-btn.active.bg-EMERGING{background:var(--emerging)}
+.filter-btn.active.bg-DORMANT{background:var(--dormant);color:var(--bg)}
+.callouts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.callout{background:var(--panel);padding:14px;border-radius:6px;border:1px solid var(--line)}
+.callout h3{margin-bottom:8px}
+.callout ul{list-style:none;padding:0;margin:0;font-family:var(--mono);font-size:11.5px}
+.callout li{padding:4px 0;border-bottom:1px dotted var(--line)}
+.callout li:last-child{border-bottom:none}
+.callout li .etf{font-weight:700;color:var(--txt);width:48px;display:inline-block}
+.callout li .nm{color:var(--mute);font-size:10.5px}
+.loading{color:var(--dim);text-align:center;padding:40px;font-family:var(--mono);font-size:13px}
+.tape{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px;margin-bottom:24px}
+.tape-row{display:flex;flex-wrap:wrap;gap:14px}
+.tape-item{font-size:11.5px}
+.tape-item .lbl{color:var(--dim);margin-right:4px}
+.tape-item .val{font-weight:700}
+nav{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 24px;font-family:var(--mono);font-size:11px;letter-spacing:0.6px}
+nav a{color:var(--dim);text-decoration:none;margin-right:18px;text-transform:uppercase}
+nav a:hover{color:var(--green)}
+.gen-info{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.callouts{grid-template-columns:repeat(2,1fr)}.theme-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/">⌂ HOME</a>
+  <a href="/brief.html">BRIEF</a>
+  <a href="/calls.html">CALLS</a>
+  <a href="/themes.html" style="color:var(--green)">THEMES</a>
+  <a href="/horizons.html">HORIZONS</a>
+  <a href="/backtest.html">BACKTEST</a>
+  <a href="/sizing.html">SIZING</a>
+  <a href="/performance.html">PERFORMANCE</a>
+  <a href="/weights.html">WEIGHTS</a>
+</nav>
+
+<div class="container">
+<header>
+<h1>🎯 Theme Lifecycle Detection</h1>
+<p class="subtitle">Auto-detected from ~70 thematic ETFs · DORMANT → EMERGING → ACCELERATING → <strong style="color:var(--green)">EXTENDED</strong> (tier-2 hunt ground) → PEAKING → COOLING → DYING</p>
+<p class="gen-info" id="gen-info">Loading…</p>
+</header>
+
+<div class="tape" id="tape"><div class="loading">Loading…</div></div>
+
+<div class="kpis" id="kpi-row"></div>
+
+<div class="callouts" id="callouts"></div>
+
+<h2>All themes — filter by phase</h2>
+
+<div class="controls" id="filter-controls">
+  <button class="filter-btn active" data-filter="ALL">All Themes</button>
+  <button class="filter-btn bg-EXTENDED" data-filter="EXTENDED">EXTENDED ★</button>
+  <button class="filter-btn bg-ACCELERATING" data-filter="ACCELERATING">Accelerating</button>
+  <button class="filter-btn bg-EMERGING" data-filter="EMERGING">Emerging</button>
+  <button class="filter-btn bg-PEAKING" data-filter="PEAKING">Peaking</button>
+  <button class="filter-btn bg-COOLING" data-filter="COOLING">Cooling</button>
+  <button class="filter-btn bg-DYING" data-filter="DYING">Dying</button>
+  <button class="filter-btn bg-DORMANT" data-filter="DORMANT">Dormant</button>
+</div>
+
+<div class="theme-grid" id="theme-grid"><div class="loading">Loading themes…</div></div>
+
+</div>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+let DATA = null;
+let CURRENT_FILTER = "ALL";
+
+function fmtPct(n, dp=1){ if(n==null) return '—'; return (n>=0?'+':'') + n.toFixed(dp) + '%'; }
+function pctClass(n){ if(n==null) return 'neutral'; return n>0.001 ? 'up' : (n<-0.001 ? 'down' : 'neutral'); }
+
+async function load(){
+  try {
+    const resp = await fetch(`${BUCKET}/data/themes-detected.json?t=${Date.now()}`);
+    if (!resp.ok) {
+      document.getElementById('gen-info').textContent = `Failed to load themes-detected.json (HTTP ${resp.status})`;
+      document.getElementById('theme-grid').innerHTML = '<div class="loading">No data yet — engine recomputes every 24h at 06:00 UTC.</div>';
+      return;
+    }
+    DATA = await resp.json();
+    const t = new Date(DATA.generated_at);
+    const ageH = Math.round((Date.now() - t.getTime()) / 3600000 * 10) / 10;
+    document.getElementById('gen-info').textContent = `Generated ${t.toUTCString()} (${ageH}h ago) · ${DATA.fetch_stats?.n_ok || 0} of ${DATA.fetch_stats?.n_tickers || 0} tickers fetched · runtime ${DATA.duration_s}s`;
+    renderTape();
+    renderKpis();
+    renderCallouts();
+    renderGrid(CURRENT_FILTER);
+  } catch (err) {
+    console.error('themes load:', err);
+    document.getElementById('gen-info').textContent = `Error loading themes: ${err.message}`;
+  }
+}
+
+function renderTape(){
+  const summ = DATA.summary || {};
+  const spy = summ.spy_returns || {};
+  const tape = document.getElementById('tape');
+  tape.innerHTML = `
+    <div class="tape-row">
+      <div class="tape-item"><span class="lbl">SPY 5d:</span><span class="val ${pctClass(spy['5d'])}">${fmtPct(spy['5d'])}</span></div>
+      <div class="tape-item"><span class="lbl">30d:</span><span class="val ${pctClass(spy['30d'])}">${fmtPct(spy['30d'])}</span></div>
+      <div class="tape-item"><span class="lbl">90d:</span><span class="val ${pctClass(spy['90d'])}">${fmtPct(spy['90d'])}</span></div>
+      <div class="tape-item"><span class="lbl">180d:</span><span class="val ${pctClass(spy['180d'])}">${fmtPct(spy['180d'])}</span></div>
+      <div class="tape-item"><span class="lbl">365d:</span><span class="val ${pctClass(spy['365d'])}">${fmtPct(spy['365d'])}</span></div>
+      <div class="tape-item" style="margin-left:auto"><span class="lbl">N themes:</span><span class="val">${summ.n_themes || 0}</span></div>
+    </div>
+  `;
+}
+
+function renderKpis(){
+  const dist = DATA.summary?.phase_distribution || {};
+  const phases = ['EMERGING','ACCELERATING','EXTENDED','PEAKING','COOLING','DYING','DORMANT'];
+  document.getElementById('kpi-row').innerHTML = phases.map(p => `
+    <div class="kpi">
+      <h3>${p}</h3>
+      <div class="v phase-${p}">${dist[p] || 0}</div>
+      <div class="vsub">themes</div>
+    </div>
+  `).join('');
+}
+
+function renderCallouts(){
+  const summ = DATA.summary || {};
+  const themesByEtf = {};
+  (DATA.themes || []).forEach(t => themesByEtf[t.etf] = t);
+  const groups = [
+    {h: '★ TIER-2 HUNT GROUNDS',  cls:'bg-EXTENDED',  items: summ.best_for_tier2_hunting || []},
+    {h: '🔥 HOTTEST THEMES',       cls:'bg-ACCELERATING', items: summ.hottest_themes || []},
+    {h: '🌱 EMERGING — early',    cls:'bg-EMERGING',  items: summ.emerging_themes || []},
+    {h: '⚠ DYING — avoid/short', cls:'bg-DYING',     items: summ.dying_themes || []},
+  ];
+  document.getElementById('callouts').innerHTML = groups.map(g => `
+    <div class="callout ${g.cls}">
+      <h3>${g.h}</h3>
+      <ul>
+        ${g.items.length === 0 ? '<li class="nm" style="color:var(--dim)">none currently</li>' :
+          g.items.map(etf => {
+            const t = themesByEtf[etf];
+            if (!t) return '';
+            return `<li><span class="etf">${etf}</span><span class="nm">${t.name}</span></li>`;
+          }).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+function renderGrid(filter){
+  CURRENT_FILTER = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  let themes = DATA.themes || [];
+  if (filter !== 'ALL') {
+    themes = themes.filter(t => t.phase === filter);
+  }
+  if (themes.length === 0) {
+    document.getElementById('theme-grid').innerHTML = `<div class="loading">No themes in ${filter} phase right now.</div>`;
+    return;
+  }
+  document.getElementById('theme-grid').innerHTML = themes.map(renderThemeCard).join('');
+}
+
+function renderThemeCard(t){
+  const m = t.metrics || {};
+  const phaseClass = `bg-${t.phase}`;
+  const phaseTxt = `${t.phase} ${t.phase_score}`;
+  const conf = t.phase_confidence;
+  const confColor = conf === 'high' ? 'var(--green)' : conf === 'medium' ? 'var(--yellow)' : 'var(--dim)';
+  return `
+    <div class="theme-card ${phaseClass}">
+      <div class="theme-head">
+        <div>
+          <div class="theme-etf">${t.etf}</div>
+          <div class="theme-name">${t.name}</div>
+        </div>
+        <div class="theme-phase phase-${t.phase}">
+          ${phaseTxt}
+          <span class="confidence" style="color:${confColor}">·${conf}</span>
+        </div>
+      </div>
+      <div class="theme-metrics">
+        <div class="m"><span class="lbl">5d</span><span class="val ${pctClass(m.ret_5d)}">${fmtPct(m.ret_5d)}</span></div>
+        <div class="m"><span class="lbl">30d</span><span class="val ${pctClass(m.ret_30d)}">${fmtPct(m.ret_30d)}</span></div>
+        <div class="m"><span class="lbl">90d</span><span class="val ${pctClass(m.ret_90d)}">${fmtPct(m.ret_90d)}</span></div>
+        <div class="m"><span class="lbl">180d</span><span class="val ${pctClass(m.ret_180d)}">${fmtPct(m.ret_180d)}</span></div>
+        <div class="m"><span class="lbl">365d</span><span class="val ${pctClass(m.ret_365d)}">${fmtPct(m.ret_365d)}</span></div>
+      </div>
+      <div class="theme-metrics">
+        <div class="m"><span class="lbl">vs SPY 30d</span><span class="val ${pctClass(m.rs_30d)}">${fmtPct(m.rs_30d)}</span></div>
+        <div class="m"><span class="lbl">vs SPY 90d</span><span class="val ${pctClass(m.rs_90d)}">${fmtPct(m.rs_90d)}</span></div>
+        <div class="m"><span class="lbl">vs SPY 180d</span><span class="val ${pctClass(m.rs_180d)}">${fmtPct(m.rs_180d)}</span></div>
+        <div class="m"><span class="lbl">Vol Pct</span><span class="val">${m.vol_pct_90d != null ? m.vol_pct_90d + '%' : '—'}</span></div>
+        <div class="m"><span class="lbl">Breadth</span><span class="val">${m.breadth_30d != null ? Math.round(m.breadth_30d * 100) + '%' : '—'}</span></div>
+      </div>
+      <div class="theme-interp">${t.interpretation}</div>
+      <div class="holdings">Top: ${(t.top_holdings || []).slice(0, 6).join(' · ')}</div>
+    </div>
+  `;
+}
+
+document.getElementById('filter-controls').addEventListener('click', e => {
+  if (e.target.matches('.filter-btn')) {
+    renderGrid(e.target.dataset.filter);
+  }
+});
+
+load();
+setInterval(load, 30 * 60 * 1000);
+</script>
+</body>
+</html>
