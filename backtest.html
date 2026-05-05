@@ -152,6 +152,14 @@ table td.num{text-align:right}
     </div>
   </div>
 
+  <div class="section" id="horizon-attribution-section" style="display:none">
+    <h2>Horizon attribution</h2>
+    <p class="sub">How many trades were scored with a measured per-horizon weight (preferred) vs falling back to the flat aggregate weight. Horizon-aware weights more accurately reflect each signal's predictive power at the timeframe it actually predicts.</p>
+    <div class="card" style="padding:18px 22px">
+      <div id="horizon-attribution"></div>
+    </div>
+  </div>
+
   <div class="section">
     <h2>Signal contribution rankings</h2>
     <p class="sub">Which signals drove the cumulative alpha? Top contributors deserve more weight; bottom contributors are candidates for inversion or removal.</p>
@@ -248,12 +256,70 @@ async function load(){
 
     renderKPIs(summ);
     renderNavChart(DATA.nav_curve || []);
+    renderHorizonAttribution(summ);
     renderContributors(DATA.by_signal || (DATA.top_5_contributors || []).concat(DATA.bottom_5_contributors || []));
     renderTable(DATA.by_signal || []);
   } catch (err) {
     document.getElementById('kpi-row').innerHTML = `<div class="err" style="grid-column:1/-1">Failed to load backtest: ${err.message}<br>The engine may not have run yet — try again in a few minutes.</div>`;
     document.getElementById('status').textContent = 'error';
   }
+}
+
+function renderHorizonAttribution(summ){
+  const nh = summ.n_horizon_weighted || 0;
+  const nf = summ.n_flat_weighted || 0;
+  const total = nh + nf;
+  if (total === 0) return;
+  document.getElementById('horizon-attribution-section').style.display = '';
+
+  const breakdown = summ.horizon_breakdown || {};
+  const horizons = Object.keys(breakdown).sort((a, b) => {
+    // Order day_1, day_3, day_7, day_14, day_30, day_60, day_90
+    const order = ['day_1','day_3','day_7','day_14','day_30','day_60','day_90'];
+    const ai = order.indexOf(a), bi = order.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  let bars = '';
+  for (const h of horizons) {
+    const n = breakdown[h];
+    const pct = (n / total * 100).toFixed(1);
+    bars += `
+      <div style="display:flex;align-items:center;gap:14px;padding:8px 0;font-family:var(--mono);font-size:12px">
+        <span style="min-width:80px;color:var(--purple);font-weight:600">${h}</span>
+        <span style="flex:1;height:14px;background:var(--bg2);border-radius:4px;overflow:hidden;position:relative">
+          <span style="position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:linear-gradient(90deg,var(--purple),var(--cyan));border-radius:4px;"></span>
+        </span>
+        <span style="min-width:80px;text-align:right;color:var(--t1);font-weight:600">${n}</span>
+        <span style="min-width:60px;text-align:right;color:var(--t3)">${pct}%</span>
+      </div>`;
+  }
+  if (nf > 0) {
+    const pct = (nf / total * 100).toFixed(1);
+    bars += `
+      <div style="display:flex;align-items:center;gap:14px;padding:8px 0;font-family:var(--mono);font-size:12px;border-top:1px solid var(--brd);margin-top:8px;padding-top:14px">
+        <span style="min-width:80px;color:var(--t3);font-weight:600">flat</span>
+        <span style="flex:1;height:14px;background:var(--bg2);border-radius:4px;overflow:hidden;position:relative">
+          <span style="position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:var(--t4);border-radius:4px;"></span>
+        </span>
+        <span style="min-width:80px;text-align:right;color:var(--t2);font-weight:600">${nf}</span>
+        <span style="min-width:60px;text-align:right;color:var(--t3)">${pct}%</span>
+      </div>`;
+  }
+
+  const horAccPct = (nh / total * 100).toFixed(0);
+  const head = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1;color:var(--purple)">${horAccPct}%</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:4px">trades scored at measured horizon</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--t2)">${nh.toLocaleString()} horizon-aware · ${nf.toLocaleString()} flat fallback</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">${total.toLocaleString()} total trades</div>
+      </div>
+    </div>`;
+  document.getElementById('horizon-attribution').innerHTML = head + bars;
 }
 
 function renderKPIs(summ){

@@ -112,6 +112,48 @@ def get_weights():
         return {}
 
 
+def get_horizon_weights():
+    """Fetch all per-horizon weights from /justhodl/calibration/weights/{window}.
+
+    Returns: dict[window] -> dict[signal_type] -> weight
+    """
+    out = {}
+    try:
+        # GetParametersByPath pulls everything under the prefix in one call.
+        paginator = SSM.get_paginator("get_parameters_by_path")
+        for page in paginator.paginate(Path="/justhodl/calibration/weights/", Recursive=False):
+            for p in page.get("Parameters", []):
+                # Param name like /justhodl/calibration/weights/day_7
+                window = p["Name"].split("/")[-1]
+                try:
+                    out[window] = {k: to_float(v) for k, v in json.loads(p["Value"]).items()
+                                   if to_float(v) is not None}
+                except Exception as e:
+                    print(f"[ssm] parse {p['Name']}: {e}")
+    except Exception as e:
+        print(f"[ssm] horizon weights: {e}")
+    return out
+
+
+def resolve_weight(stype, window, flat_weights, horizon_weights):
+    """Pick the best weight for a (signal_type, window) trade.
+
+    Priority:
+      1. Per-horizon weight if available (from per-horizon SSM)
+      2. Flat aggregate weight as fallback
+      3. None if neither — caller skips
+    Returns: (weight, source) where source is 'horizon:{window}' or 'flat'
+    """
+    if window and window in horizon_weights:
+        h = horizon_weights[window].get(stype)
+        if h is not None:
+            return h, f"horizon:{window}"
+    flat = flat_weights.get(stype)
+    if flat is not None:
+        return flat, "flat"
+    return None, None
+
+
 def dir_sign(predicted_dir):
     """Map predicted direction to a numeric sign."""
     if not predicted_dir:
@@ -157,7 +199,10 @@ def lambda_handler(event=None, context=None):
 
     # 1. Load weights
     weights = get_weights()
-    print(f"[backtest] loaded {len(weights)} calibrated weights")
+    horizon_weights = get_horizon_weights()
+    horizon_signal_count = sum(len(v) for v in horizon_weights.values())
+    print(f"[backtest] loaded {len(weights)} flat weights + {len(horizon_weights)} horizons "
+          f"({horizon_signal_count} (signal,horizon) pairs)")
 
     # 2. Pull all scored outcomes
     outcomes, pages = scan_scored_outcomes()
@@ -194,14 +239,25 @@ def lambda_handler(event=None, context=None):
     results = []
     skipped_no_weight = 0
     skipped_no_return = 0
+    n_horizon_weighted = 0
+    n_flat_weighted = 0
+    horizon_breakdown = defaultdict(int)  # window -> n trades scored at that horizon
     for o in outcomes:
         stype = o.get("signal_type")
         if not stype:
             continue
-        w = weights.get(stype)
+        window = o.get("window_key")
+        # Horizon-aware: prefer per-horizon weight matching this trade's window.
+        # Falls back to flat weight when (signal, horizon) has insufficient data.
+        w, source = resolve_weight(stype, window, weights, horizon_weights)
         if w is None:
             skipped_no_weight += 1
             continue
+        if source and source.startswith("horizon:"):
+            n_horizon_weighted += 1
+            horizon_breakdown[window] += 1
+        else:
+            n_flat_weighted += 1
 
         inner = o.get("outcome") or {}
         # Prefer excess_return for relative signals; fall back to return_pct for directional
@@ -231,8 +287,9 @@ def lambda_handler(event=None, context=None):
             "outcome_id":   o.get("outcome_id"),
             "signal_type":  stype,
             "predicted_dir": pred,
-            "window_key":   o.get("window_key"),
+            "window_key":   window,
             "weight":       w,
+            "weight_source": source,  # 'horizon:day_7' / 'horizon:day_30' / 'flat'
             "actual_return": ret,
             "correct":      bool(o.get("correct")),
             "contribution": contribution,
@@ -240,7 +297,11 @@ def lambda_handler(event=None, context=None):
             "logged_at":    logged_at,
         })
 
-    print(f"[backtest] kept {len(results)} contributions  (skipped {skipped_no_weight} no_weight + {skipped_no_return} no_return)")
+    print(f"[backtest] kept {len(results)} contributions  "
+          f"(skipped {skipped_no_weight} no_weight + {skipped_no_return} no_return)")
+    print(f"[backtest] weight sources: {n_horizon_weighted} horizon-aware, {n_flat_weighted} flat fallback")
+    if horizon_breakdown:
+        print(f"[backtest] horizon breakdown: {dict(horizon_breakdown)}")
 
     # 4. Sort by checked_at — chronological order matters for NAV
     results.sort(key=lambda x: x["checked_at"] or "")
@@ -377,17 +438,20 @@ def lambda_handler(event=None, context=None):
 
     # 9. Build full results
     results_doc = {
-        "v": "1.0",
+        "v": "1.1",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay_v2",
+        "method": "calibrated_alpha_replay_v3_horizon_aware",
         "method_description": (
             "For each scored outcome (deduped to one per signal_id, shortest window preferred), "
             "contribution = 0.005 × weight × predicted_direction_sign × actual_return. "
             "Each unique trade is sized at 0.5% of NAV modulated by the signal's calibration weight. "
-            "So a w=1.5 signal earning +10% contributes 0.075% to NAV. Trades distribute across their "
-            "logged_at firing dates and NAV compounds normally from $100k. This estimates how much "
-            "alpha the calibrated weighting would have generated if every realized signal had been "
-            "executed at this position size. Compare to SPY buy-and-hold over the same window."
+            "v1.1: HORIZON-AWARE. Weights now resolved per (signal, window): if "
+            "/justhodl/calibration/weights/{window} has a measured weight for this trade's window, "
+            "we use that; otherwise we fall back to the flat aggregate. So a "
+            "screener_top_pick trade scored at day_30 uses the day_30 weight (1.34), while a "
+            "crisis_hy_oas trade scored at day_3 uses the day_3 weight (1.22). Trades distribute "
+            "across their logged_at firing dates and NAV compounds normally from $100k. Compare to "
+            "SPY buy-and-hold over the same window."
         ),
         "summary": {
             "n_outcomes": n_total,
@@ -408,6 +472,10 @@ def lambda_handler(event=None, context=None):
             "alpha_vs_spy_pct": round(alpha_pct, 4) if alpha_pct is not None else None,
             "skipped_no_weight": skipped_no_weight,
             "skipped_no_return": skipped_no_return,
+            # NEW: horizon attribution
+            "n_horizon_weighted": n_horizon_weighted,
+            "n_flat_weighted": n_flat_weighted,
+            "horizon_breakdown": dict(horizon_breakdown),
         },
         "by_signal": signal_summary,
         "daily": daily,
@@ -451,6 +519,9 @@ def lambda_handler(event=None, context=None):
             "max_dd_pct": round(max_dd, 4),
             "sharpe": round(sharpe, 4) if sharpe is not None else None,
             "n_signals": len(by_signal),
+            "n_horizon_weighted": n_horizon_weighted,
+            "n_flat_weighted": n_flat_weighted,
+            "horizon_breakdown": dict(horizon_breakdown),
             "duration_s": duration,
         }),
     }
