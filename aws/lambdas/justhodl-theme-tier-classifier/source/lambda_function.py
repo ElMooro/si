@@ -39,7 +39,7 @@ import boto3
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-FMP_BASE = "https://financialmodelingprep.com/api/v3"
+FMP_BASE = "https://financialmodelingprep.com/stable"
 
 # Filter Layer 1 themes by phase before classifying — focus on the phases
 # where tier-2/3 hunting makes sense. EXTENDED is the prime ground (the user's
@@ -103,30 +103,34 @@ def fmp_get(path, params=None, retries=FETCH_RETRIES):
 
 def fetch_fundamentals(ticker):
     """
-    Pull profile + key-metrics-ttm from FMP. Returns dict or None.
+    Pull profile + ratios-ttm + key-metrics-ttm from FMP /stable. Returns dict or None.
+
+    FMP migrated v3 → stable endpoints in Aug 2025. New structure:
+      • /stable/profile?symbol=AAPL  (instead of /v3/profile/AAPL)
+      • field "marketCap" (instead of "mktCap")
+      • field "evToEBITDATTM" (instead of "enterpriseValueOverEBITDATTM")
+      • field "priceToEarningsRatioTTM" (instead of "peRatioTTM")
     """
     with _CACHE_LOCK:
         if ticker in _FUNDAMENTAL_CACHE:
             return _FUNDAMENTAL_CACHE[ticker]
 
-    profile = fmp_get(f"/profile/{ticker}")
+    profile = fmp_get("/profile", params={"symbol": ticker})
     if not profile or not isinstance(profile, list) or not profile:
         result = None
     else:
         p = profile[0]
-        # key-metrics-ttm has the trailing-twelve-month ratios
-        ktm = fmp_get(f"/key-metrics-ttm/{ticker}", params={"limit": "1"})
+        rtm = fmp_get("/ratios-ttm", params={"symbol": ticker})
+        rt = rtm[0] if (rtm and isinstance(rtm, list) and rtm) else {}
+        ktm = fmp_get("/key-metrics-ttm", params={"symbol": ticker})
         kt = ktm[0] if (ktm and isinstance(ktm, list) and ktm) else {}
 
-        # ratios-ttm has additional ratios
-        rtm = fmp_get(f"/ratios-ttm/{ticker}")
-        rt = rtm[0] if (rtm and isinstance(rtm, list) and rtm) else {}
-
-        market_cap = p.get("mktCap")
-        revenue_ttm = kt.get("revenuePerShareTTM")
-        shares = (market_cap / p.get("price")) if (market_cap and p.get("price")) else None
-        if revenue_ttm is not None and shares:
-            revenue_ttm_total = revenue_ttm * shares
+        market_cap = p.get("marketCap") or kt.get("marketCap")
+        price = p.get("price")
+        rev_per_share = rt.get("revenuePerShareTTM")
+        shares = (market_cap / price) if (market_cap and price and price > 0) else None
+        if rev_per_share is not None and shares:
+            revenue_ttm_total = rev_per_share * shares
         else:
             revenue_ttm_total = None
 
@@ -135,28 +139,28 @@ def fetch_fundamentals(ticker):
             "name": p.get("companyName"),
             "sector": p.get("sector"),
             "industry": p.get("industry"),
-            "exchange": p.get("exchangeShortName"),
+            "exchange": p.get("exchange"),
             "country": p.get("country"),
             "currency": p.get("currency"),
-            "price": p.get("price"),
+            "price": price,
             "market_cap": market_cap,
             "shares_outstanding": shares,
             "revenue_ttm": revenue_ttm_total,
-            "p_s": kt.get("priceToSalesRatioTTM") or rt.get("priceToSalesRatioTTM"),
-            "p_e": kt.get("peRatioTTM") or rt.get("peRatioTTM"),
-            "ev_ebitda": kt.get("enterpriseValueOverEBITDATTM"),
+            "p_s": rt.get("priceToSalesRatioTTM"),
+            "p_e": rt.get("priceToEarningsRatioTTM"),
+            "ev_ebitda": kt.get("evToEBITDATTM") or rt.get("enterpriseValueMultipleTTM"),
+            "ev_sales": kt.get("evToSalesTTM"),
             "fcf_yield": kt.get("freeCashFlowYieldTTM"),
-            "fcf_per_share": kt.get("freeCashFlowPerShareTTM"),
-            "debt_to_equity": kt.get("debtToEquityTTM"),
-            "roic": kt.get("roicTTM"),
+            "fcf_per_share": rt.get("freeCashFlowPerShareTTM"),
+            "debt_to_equity": rt.get("debtToEquityRatioTTM"),
+            "roic": kt.get("returnOnInvestedCapitalTTM"),
             "gross_margin": rt.get("grossProfitMarginTTM"),
             "operating_margin": rt.get("operatingProfitMarginTTM"),
             "net_margin": rt.get("netProfitMarginTTM"),
-            "rev_growth_ttm": rt.get("revenueGrowthTTM"),
+            "earnings_yield": kt.get("earningsYieldTTM"),
             "fetched_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        # Derived: market_cap / revenue (asymmetry detector)
         if result["market_cap"] and result["revenue_ttm"]:
             result["mcap_to_rev"] = round(result["market_cap"] / result["revenue_ttm"], 3)
         else:
