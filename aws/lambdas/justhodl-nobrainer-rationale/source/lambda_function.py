@@ -197,7 +197,60 @@ def _smart_money_block(cl):
     return "\n".join(lines)
 
 
-def build_thesis_prompt(candidate, insider_cluster=None, smart_money_cluster=None):
+
+
+def _deep_value_block(c):
+    """Format deep-value (Ben Graham net-cash) info for prompt injection."""
+    if not c:
+        return "  (no deep-value signal for this ticker)"
+    lines = []
+    lines.append(f"  Deep-value score: {c.get('score', 0):.1f}/100 ({c.get('flag')})")
+    f = c.get("fundamentals") or {}
+    nc = f.get("net_cash_pct_of_mcap")
+    rv = f.get("revenue_yield_of_mcap")
+    m2r = f.get("mcap_to_rev")
+    cf = f.get("operating_cf_positive_quarters")
+    if nc is not None:
+        lines.append(f"  Net cash: {nc*100:.0f}% of market cap")
+    if rv is not None:
+        lines.append(f"  Revenue yield: {rv*100:.0f}% of market cap")
+    if m2r is not None:
+        lines.append(f"  Mcap/Revenue: {m2r:.2f}× (lower is cheaper)")
+    if cf is not None:
+        lines.append(f"  CF positive in {cf}/{f.get('operating_cf_total_quarters',4)} quarters (kills value-trap risk)")
+    rationale = c.get("rationale", "")
+    if rationale:
+        lines.append(f"  Read: {rationale[:160]}")
+    return "\n".join(lines)
+
+
+def _eps_velocity_block(c):
+    """Format EPS-revision-velocity info for prompt injection."""
+    if not c:
+        return "  (no EPS revision-velocity signal for this ticker)"
+    lines = []
+    lines.append(f"  EPS-velocity score: {c.get('score', 0):.1f}/100 ({c.get('flag')})")
+    e = c.get("estimates") or {}
+    lift = e.get("fy2_lift_pct")
+    rg = e.get("fwd_rev_growth_pct")
+    nest = e.get("fy1_n_estimates")
+    if lift is not None:
+        lines.append(f"  Forward EPS lift FY2 vs FY1: +{lift:.1f}%")
+    if rg is not None:
+        lines.append(f"  Forward revenue growth: +{rg:.1f}%")
+    if nest is not None:
+        lines.append(f"  Analyst coverage: {nest} estimates")
+    breadth = c.get("ratings_breadth") or {}
+    upg = breadth.get("upgrade_pct")
+    if upg is not None:
+        lines.append(f"  Recent upgrade rate (90d): {upg*100:.0f}%")
+    rationale = c.get("rationale", "")
+    if rationale:
+        lines.append(f"  Read: {rationale[:160]}")
+    return "\n".join(lines)
+
+
+def build_thesis_prompt(candidate, insider_cluster=None, smart_money_cluster=None, deep_value=None, eps_velocity=None):
     """Build the full structured prompt with all data inputs."""
     f = candidate.get("factors", {})
     fund = candidate.get("fundamentals", {})
@@ -272,6 +325,12 @@ INSIDER CLUSTER SIGNAL (if any):
 
 13F SMART-MONEY CLUSTER SIGNAL (if any):
 {_smart_money_block(smart_money_cluster)}
+
+DEEP-VALUE SIGNAL (Ben Graham net-cash pattern, if any):
+{_deep_value_block(deep_value)}
+
+EPS REVISION VELOCITY (MU-pattern, if any):
+{_eps_velocity_block(eps_velocity)}
 
 YOUR TASK:
 Write a 250-350 word thesis for {candidate.get('ticker')} in your decisive-call voice. Structure:
@@ -400,6 +459,32 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[rationale] WARN — smart-money clusters unavailable: {e}")
 
+    # Load deep-value (Ben Graham net-cash) signals
+    deep_value_by_ticker = {}
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/deep-value.json")
+        dv_data = json.loads(obj["Body"].read())
+        for c in dv_data.get("all_qualifying", []):
+            sym = c.get("symbol")
+            if sym:
+                deep_value_by_ticker[sym] = c
+        print(f"[rationale] loaded {len(deep_value_by_ticker)} deep-value qualifiers")
+    except Exception as e:
+        print(f"[rationale] WARN — deep-value unavailable: {e}")
+
+    # Load EPS revision velocity signals
+    eps_velocity_by_ticker = {}
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key="data/eps-revision-velocity.json")
+        ev_data = json.loads(obj["Body"].read())
+        for c in ev_data.get("all_qualifying", []):
+            sym = c.get("symbol")
+            if sym:
+                eps_velocity_by_ticker[sym] = c
+        print(f"[rationale] loaded {len(eps_velocity_by_ticker)} EPS velocity qualifiers")
+    except Exception as e:
+        print(f"[rationale] WARN — EPS velocity unavailable: {e}")
+
     # 2. Pick top N candidates above MIN_SCORE
     candidates = [x for x in leader if x.get("asymmetric_score", 0) >= MIN_SCORE][:N_THESES]
     if not candidates:
@@ -427,11 +512,13 @@ def lambda_handler(event=None, context=None):
         theme = c.get("theme_etf")
         cl = insider_by_ticker.get(ticker)
         sm = smart_money_by_ticker.get(ticker)
-        if cl:
-            print(f"[rationale] {ticker} ALSO has insider cluster (score={cl.get('score')}, signal={cl.get('signal_type')})")
-        if sm:
-            print(f"[rationale] {ticker} ALSO has smart-money cluster (score={sm.get('score')}, legends={sm.get('legend_buyers')})")
-        prompt = build_thesis_prompt(c, cl, sm)
+        dv = deep_value_by_ticker.get(ticker)
+        ev = eps_velocity_by_ticker.get(ticker)
+        compound_count = sum(1 for x in (cl, sm, dv, ev) if x)
+        if compound_count >= 1:
+            sigs = [n for n, x in zip(["insider","smart-money","deep-value","eps-velocity"], (cl, sm, dv, ev)) if x]
+            print(f"[rationale] {ticker} COMPOUND: also flagged on {compound_count} other system(s): {', '.join(sigs)}")
+        prompt = build_thesis_prompt(c, cl, sm, dv, ev)
         thesis_text = ""
         usage = {}
         err = None
