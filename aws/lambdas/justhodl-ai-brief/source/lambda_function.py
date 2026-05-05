@@ -300,7 +300,11 @@ def compress_calibration(cal):
 def compress_calibration_v2(latest):
     """Rich calibration summary from the snapshotter's calibration/latest.json.
     Surfaces ranked signal trust + per-signal accuracy + n_60d so Claude can cite
-    specific signals when synthesizing the brief."""
+    specific signals when synthesizing the brief.
+
+    HORIZON-AWARE additions: window_weights[stype][window], recommended_horizon[stype],
+    and a precomputed horizon_lifts list so the prompt can cite which signals
+    perform best at which timeframe."""
     if not latest:
         return None
     weights = latest.get("weights") or {}
@@ -308,6 +312,9 @@ def compress_calibration_v2(latest):
     meta = latest.get("accuracy_meta") or {}
     counts = latest.get("outcome_counts_60d") or {}
     summ = latest.get("summary") or {}
+    window_weights = latest.get("window_weights") or {}
+    window_accuracy = latest.get("window_accuracy") or {}
+    recommended_horizon = latest.get("recommended_horizon") or {}
 
     # Rank by weight, expose top 8 + bottom 5 with accuracy + return context
     ranked = sorted(
@@ -319,16 +326,42 @@ def compress_calibration_v2(latest):
         a = accuracy.get(sig)
         avg = (meta.get(sig) or {}).get("avg_return")
         n = counts.get(sig, 0)
-        return {
+        # NEW: best-horizon attribution if this signal has horizon-aware data
+        rec = recommended_horizon.get(sig)
+        row = {
             "sig": sig,
             "weight": round(w, 3),
             "accuracy": round(a, 3) if a is not None else None,
             "avg_return_pct": round(avg, 2) if avg is not None else None,
             "n_outcomes_60d": n,
         }
+        if rec:
+            row["best_horizon"] = rec.get("window")
+            row["best_horizon_weight"] = round(rec.get("weight") or 0, 3)
+            row["best_horizon_accuracy"] = round(rec.get("accuracy") or 0, 3) if rec.get("accuracy") is not None else None
+            row["best_horizon_n"] = rec.get("n")
+        return row
 
     top = [to_row(s, w) for s, w in ranked[:8]]
     bottom = [to_row(s, w) for s, w in ranked[-5:]]
+
+    # Compute horizon-lifts: signals where best-horizon weight beats flat by ≥0.15
+    horizon_lifts = []
+    for sig, rec in recommended_horizon.items():
+        flat_w = float(weights.get(sig, 0) or 0)
+        h_w = float(rec.get("weight") or 0)
+        if h_w - flat_w >= 0.15:
+            horizon_lifts.append({
+                "sig": sig,
+                "best_horizon": rec.get("window"),
+                "horizon_weight": round(h_w, 3),
+                "flat_weight": round(flat_w, 3),
+                "uplift": round(h_w - flat_w, 3),
+                "horizon_accuracy": round(rec.get("accuracy") or 0, 3) if rec.get("accuracy") is not None else None,
+                "horizon_n": rec.get("n"),
+            })
+    horizon_lifts.sort(key=lambda x: -x["uplift"])
+
     return {
         "iso_week": latest.get("iso_week"),
         "n_weights": summ.get("n_weights_total"),
@@ -338,6 +371,10 @@ def compress_calibration_v2(latest):
         "median_weight": summ.get("median_weight"),
         "top_weighted_signals": top,
         "lowest_weighted_signals": bottom,
+        # NEW horizon-aware fields:
+        "n_signals_with_horizon_data": len([s for s in window_weights.values() if s]),
+        "horizon_lifts": horizon_lifts[:8],  # top 8 mispriced signals
+        "horizons_tracked": sorted({h for sm in window_weights.values() for h in sm.keys()}),
     }
 
 
@@ -724,6 +761,13 @@ CALIBRATION-AWARE SYNTHESIS:
 - When two signals disagree, **explicitly cite the weight** and resolve in favor of the higher-weighted one. Example: "carry_risk (w=1.45, 100% accuracy n=30) says risk-on but khalid_index (w=0.31, 0% accuracy on 30d window during recent rally) says defensive — defer to carry_risk."
 - The `khalid_index` signal has been floored at 0.31 because its 30-day predictions during the recent rally were 100% wrong (it was bearish, SPY rallied). Treat its current reading as low-confidence input, not headline guidance.
 - Top-trusted signals you should privilege: carry_risk, ml_risk, screener_top_pick, momentum_spy, plumbing_stress, crisis_hy_oas_vs_hyg.
+
+HORIZON-AWARE WEIGHTING (NEW — 2026-05-05):
+- Each signal in `top_weighted_signals` and `lowest_weighted_signals` may now include `best_horizon`, `best_horizon_weight`, `best_horizon_accuracy`, `best_horizon_n` — meaning the signal's MEASURED RELIABILITY at its sweet-spot timeframe. The flat `weight` collapses all horizons into one number; the per-horizon weight tells you the truth at that timeframe.
+- The `horizon_lifts` list shows signals where horizon-aware weighting recovers ≥0.15 of weight vs the flat aggregate. These signals are mis-priced by the flat lens.
+- **Match weight to call horizon:** If the DECISIVE CALL is tactical (TRIM/HEDGE/EXIT, days-to-2-weeks), prioritize signals with strong day_1, day_3, day_7, day_14 horizon weights. If the call is strategic (LONG/LEVER/EXIT_ALL_RISK, weeks-to-months), prioritize signals with strong day_30+ weights.
+- When citing a signal, prefer the format: "carry_risk (w=1.45 at day_30, 100% acc n=30)" — i.e., specify which horizon's weight you're using. If `best_horizon_weight` differs materially from flat `weight`, that's a tell that the signal is timeframe-specific.
+- Signals like `crypto_fear_greed` (flat=0.86, but day_14=1.44 acc=97%) are MUCH more trustworthy at their best horizon than the flat aggregate suggests. Don't dismiss them based on flat weight alone.
 
 PAPER-PORTFOLIO AWARENESS:
 - `paper_portfolio.signal_portfolio` shows the system's actual paper positions. Flag any in `near_target` or `near_stop` — these need attention NOW.
