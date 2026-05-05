@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0d12">
+<title>Horizons · JustHodl</title>
+<meta name="description" content="Multi-horizon calibration — which signals are reliable at which time windows. Some signals predict day-30 well; others only earn their weight at day-60 or day-90.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d12; --bg1:#0f131a; --bg2:#141a23; --bg3:#1a2230; --bg4:#222b3a;
+  --brd:#1c2433; --brd2:#2a3548;
+  --t1:#e9eef7; --t2:#a8b3c7; --t3:#6f7b91; --t4:#475064;
+  --green:#00e676; --green-bg:rgba(0,230,118,.08); --green-strong:rgba(0,230,118,.22);
+  --red:#ff174a; --red-bg:rgba(255,23,74,.1); --red-strong:rgba(255,23,74,.22);
+  --yellow:#ffc400; --yellow-bg:rgba(255,196,0,.1);
+  --orange:#ff7a18; --orange-bg:rgba(255,122,24,.1);
+  --cyan:#00d4ff; --cyan-bg:rgba(0,212,255,.1);
+  --purple:#b56bff; --purple-bg:rgba(181,107,255,.12);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 90% -5%,rgba(181,107,255,.04),transparent 60%),radial-gradient(ellipse at 0% 110%,rgba(0,212,255,.04),transparent 60%);min-height:100vh}
+a{color:inherit;text-decoration:none}
+nav.tabs{background:var(--bg1);border-bottom:1px solid var(--brd);padding:0 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+nav.tabs .tabs-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:24px;height:56px;overflow-x:auto;white-space:nowrap}
+nav.tabs .brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.5px}
+nav.tabs .brand i{color:var(--cyan);font-style:italic}
+nav.tabs .tab{font-family:var(--mono);font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s}
+nav.tabs .tab:hover{color:var(--t1)}
+nav.tabs .tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+
+main{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+header.hero{margin-bottom:28px}
+header.hero h1{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:8px}
+header.hero .lede{color:var(--t2);font-size:16px;max-width:880px}
+header.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--t3);display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+header.hero .meta b{color:var(--t2);font-weight:500}
+header.hero .meta .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--brd2);color:var(--t2)}
+header.hero .meta .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px}
+.kpi h3{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px}
+.kpi .v{font-family:var(--display);font-size:28px;font-weight:700;color:var(--t1);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .v.up{color:var(--green)}
+.kpi .v.down{color:var(--red)}
+.kpi .vsub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px}
+
+.section{margin-bottom:32px}
+.section h2{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:8px}
+.section .sub{color:var(--t3);font-size:13px;margin-bottom:14px;max-width:880px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:12px}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+table th{text-align:left;padding:10px 12px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--brd2);background:var(--bg2)}
+table td{padding:9px 12px;border-bottom:1px solid var(--brd);color:var(--t2);font-variant-numeric:tabular-nums;vertical-align:middle}
+table tr:hover td{background:var(--bg2)}
+table td.tname{color:var(--t1);font-weight:500}
+table td.num{text-align:right}
+
+/* Heatmap cells — color-coded by weight */
+.cell{font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums;text-align:center}
+.cell.empty{color:var(--t4)}
+.cell.weight{display:inline-flex;flex-direction:column;align-items:center;padding:6px 0;border-radius:4px;width:84px}
+.cell.weight .w{font-weight:700;font-size:13px}
+.cell.weight .a{font-size:10px;color:var(--t3);margin-top:1px}
+.cell.weight .n{font-size:9px;color:var(--t4)}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.tag.cyan{background:var(--cyan-bg);color:var(--cyan)}
+.tag.green{background:var(--green-bg);color:var(--green)}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag.purple{background:var(--purple-bg);color:var(--purple)}
+.tag.muted{background:rgba(71,80,100,.2);color:var(--t3)}
+
+.uplift-row{padding:14px 16px;background:var(--bg2);border:1px solid var(--brd);border-left:3px solid var(--purple);border-radius:6px;margin-bottom:8px;font-family:var(--mono);font-size:13px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.uplift-row .signal{color:var(--t1);font-weight:600}
+.uplift-row .arrow{color:var(--t3);font-size:14px}
+.uplift-row .horizon-pill{padding:3px 10px;border-radius:99px;background:var(--purple-bg);color:var(--purple);font-weight:600;font-size:11px}
+.uplift-row .delta{margin-left:auto;color:var(--green);font-weight:700}
+
+.notice{background:var(--purple-bg);border:1px solid var(--purple);color:#d4baff;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;margin-bottom:24px}
+.err{background:var(--red-bg);border:1px solid var(--red-strong);color:#ffb3c1;padding:14px 18px;border-radius:8px;font-family:var(--mono);font-size:13px}
+.loading{padding:48px;text-align:center;color:var(--t3);font-family:var(--mono);font-size:13px}
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <span class="brand"><i>just</i>hodl</span>
+    <a class="tab" href="/today.html">Today</a>
+    <a class="tab" href="/brief.html">Brief</a>
+    <a class="tab" href="/calls.html">Calls</a>
+    <a class="tab" href="/performance.html">Performance</a>
+    <a class="tab" href="/backtest.html">Backtest</a>
+    <a class="tab" href="/weights.html">Weights</a>
+    <a class="tab active" href="/horizons.html">Horizons</a>
+    <a class="tab" href="/accuracy.html">Accuracy</a>
+    <a class="tab" href="/sectors.html">Sectors</a>
+    <a class="tab" href="/momentum.html">Momentum</a>
+    <a class="tab" href="/research.html">Research</a>
+    <a class="tab" href="/desk.html">Desk</a>
+    <a class="tab" href="/intelligence.html">Intel</a>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Horizons</h1>
+    <p class="lede">A signal can predict day-30 returns brilliantly while being useless at day-90 — or the reverse. The flat calibration weights collapse all horizons into a single number; this view splits them apart. <code>khalid_index</code> predicts long-term regime, not 30-day P&L. <code>screener_top_pick</code> is the opposite — fast tactical signal, no long-horizon edge. Multi-horizon weighting lets each signal earn its keep at the timeframe where it's actually predictive.</p>
+    <div class="meta" id="meta">
+      <span class="pill"><span class="dot"></span><span id="status">loading…</span></span>
+      <span>Generated <b id="generated-at">—</b></span>
+      <span>Signals tracked <b id="n-signals">—</b></span>
+      <span>Horizon-uplift <b id="n-uplift">—</b></span>
+    </div>
+  </header>
+
+  <div id="notice-area"></div>
+
+  <div class="kpis" id="kpi-row">
+    <div class="kpi"><h3>Loading…</h3></div>
+  </div>
+
+  <div class="section">
+    <h2>Horizon-uplift signals</h2>
+    <p class="sub">Signals where the best horizon's weight beats the flat-aggregate weight by ≥15 percentage points. These are the signals that the current flat calibration is mis-pricing — they're predictive at <em>some</em> horizon, just not all of them. Use the recommended horizon for forward weighting.</p>
+    <div id="uplift-list"><div class="loading">…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Multi-horizon matrix</h2>
+    <p class="sub">Weight × accuracy × n for every (signal, horizon) pair. Heatmap-tinted by weight: green ≥1.0 (high trust), yellow 0.7–1.0 (decent), red &lt;0.5 (floored / contrarian). Empty cells = no outcomes scored at that horizon yet.</p>
+    <div class="card" style="overflow-x:auto">
+      <table id="horizon-matrix">
+        <thead><tr>
+          <th style="position:sticky;left:0;background:var(--bg2);z-index:1">Signal</th>
+          <th class="num">Flat weight</th>
+          <th class="num">day_7</th>
+          <th class="num">day_30</th>
+          <th class="num">day_60</th>
+          <th class="num">day_90</th>
+          <th>Best horizon</th>
+        </tr></thead>
+        <tbody id="matrix-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+const HORIZONS = ["day_7", "day_30", "day_60", "day_90"];
+
+function fmt(n, opts){
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, opts || {maximumFractionDigits:2});
+}
+function pct(v, d=1){
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  return (v * 100).toFixed(d) + "%";
+}
+function timeAgo(iso){
+  if (!iso) return "—";
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+function weightColor(w){
+  if (w == null) return "var(--bg2)";
+  if (w >= 1.2) return "rgba(0,230,118,0.18)";
+  if (w >= 1.0) return "rgba(0,230,118,0.10)";
+  if (w >= 0.85) return "rgba(255,196,0,0.13)";
+  if (w >= 0.6) return "rgba(255,196,0,0.06)";
+  if (w >= 0.4) return "rgba(255,122,24,0.10)";
+  return "rgba(255,23,74,0.10)";
+}
+function weightTextColor(w){
+  if (w == null) return "var(--t4)";
+  if (w >= 1.0) return "var(--green)";
+  if (w >= 0.85) return "var(--yellow)";
+  if (w >= 0.6) return "var(--t2)";
+  if (w >= 0.4) return "var(--orange)";
+  return "var(--red)";
+}
+
+async function load(){
+  document.getElementById('status').textContent = 'loading…';
+  try {
+    const r = await fetch(`${BUCKET}/calibration/latest.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+
+    const winWeights = d.window_weights || {};
+    const winAcc = d.window_accuracy || {};
+    const flatWeights = d.weights || {};
+    const recommended = d.recommended_horizon || {};
+
+    document.getElementById('status').textContent = 'fresh';
+    document.getElementById('generated-at').textContent = timeAgo(d.generated_at);
+    document.getElementById('n-signals').textContent = Object.keys(winWeights).length;
+
+    // Compute uplifts
+    const uplifts = [];
+    for (const [sig, rec] of Object.entries(recommended)) {
+      const flat = flatWeights[sig] || 0;
+      const horW = rec.weight || 0;
+      const delta = horW - flat;
+      if (delta >= 0.15) {
+        uplifts.push({signal: sig, ...rec, flat_weight: flat, delta});
+      }
+    }
+    uplifts.sort((a, b) => b.delta - a.delta);
+    document.getElementById('n-uplift').textContent = uplifts.length;
+
+    if (Object.keys(winWeights).length === 0) {
+      document.getElementById('notice-area').innerHTML =
+        '<div class="notice">📊 No window-weight data in calibration/latest.json yet. The next calibrator run (Sundays 09:00 UTC) will populate this view. If you want to force it, you can manually invoke <code>justhodl-calibrator</code>.</div>';
+      return;
+    }
+
+    renderKPIs(winWeights, winAcc, uplifts, flatWeights);
+    renderUplifts(uplifts);
+    renderMatrix(winWeights, winAcc, flatWeights, recommended);
+  } catch (err) {
+    document.getElementById('kpi-row').innerHTML =
+      `<div class="err" style="grid-column:1/-1">Failed to load calibration: ${err.message}</div>`;
+    document.getElementById('status').textContent = 'error';
+  }
+}
+
+function renderKPIs(winWeights, winAcc, uplifts, flatWeights){
+  // Compute coverage by horizon
+  const cov = {};
+  for (const h of HORIZONS) {
+    let n = 0, total = 0, sumN = 0;
+    for (const sig of Object.keys(winWeights)) {
+      total++;
+      const ww = winWeights[sig] || {};
+      if (ww[h] != null) {
+        n++;
+        sumN += (winAcc[sig]?.[h]?.n) || 0;
+      }
+    }
+    cov[h] = {n, total, sumN};
+  }
+  const day30 = cov.day_30 || {n:0, total:1};
+  const day60 = cov.day_60 || {n:0, total:1};
+  const day90 = cov.day_90 || {n:0, total:1};
+  const tiles = [
+    {h:'day_30 coverage', v:`${day30.n}/${day30.total}`, sub:`${day30.sumN || 0} outcomes`, klass:''},
+    {h:'day_60 coverage', v:`${day60.n}/${day60.total}`, sub:`${day60.sumN || 0} outcomes`, klass:''},
+    {h:'day_90 coverage', v:`${day90.n}/${day90.total}`, sub:`${day90.sumN || 0} outcomes`, klass:''},
+    {h:'Horizon uplifts', v:uplifts.length, sub:'≥15pp gain at best horizon', klass: uplifts.length > 0 ? 'up' : ''},
+  ];
+  document.getElementById('kpi-row').innerHTML = tiles.map(t =>
+    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.klass}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+  ).join('');
+}
+
+function renderUplifts(uplifts){
+  if (!uplifts.length) {
+    document.getElementById('uplift-list').innerHTML =
+      '<div class="card" style="padding:24px;color:var(--t3);font-family:var(--mono);font-size:13px">No horizon-uplift signals detected yet. Either every signal performs consistently across horizons, or there\'s not enough data at non-day_30 horizons to compute reliable per-horizon weights (need n≥5 per horizon).</div>';
+    return;
+  }
+  document.getElementById('uplift-list').innerHTML = uplifts.map(u => {
+    const flatColor = u.flat_weight < 0.5 ? 'red' : (u.flat_weight < 0.85 ? 'yellow' : 'green');
+    return `
+      <div class="uplift-row">
+        <span class="signal"><code>${u.signal}</code></span>
+        <span class="tag ${flatColor}">flat=${u.flat_weight.toFixed(2)}</span>
+        <span class="arrow">→</span>
+        <span class="horizon-pill">${u.window} → w=${u.weight.toFixed(2)}, ${pct(u.accuracy)} acc, n=${u.n}</span>
+        <span class="delta">+${u.delta.toFixed(2)}</span>
+      </div>`;
+  }).join('');
+}
+
+function renderMatrix(winWeights, winAcc, flatWeights, recommended){
+  // Sort signals by max horizon weight desc
+  const rows = Object.keys(winWeights).map(sig => {
+    const ww = winWeights[sig] || {};
+    const maxW = Math.max(...Object.values(ww).filter(v => v != null), 0);
+    return {sig, ww, maxW};
+  });
+  rows.sort((a, b) => b.maxW - a.maxW);
+
+  document.getElementById('matrix-body').innerHTML = rows.map(({sig, ww}) => {
+    const flat = flatWeights[sig];
+    const flatHtml = flat != null
+      ? `<span style="color:${weightTextColor(flat)};font-weight:600">${flat.toFixed(2)}</span>`
+      : '—';
+    const cells = HORIZONS.map(h => {
+      const w = ww[h];
+      const acc = (winAcc[sig] || {})[h];
+      if (w == null || !acc || acc.n == null) {
+        return `<td class="num cell empty">—</td>`;
+      }
+      const bg = weightColor(w);
+      const tc = weightTextColor(w);
+      return `<td class="num">
+        <span class="cell weight" style="background:${bg}">
+          <span class="w" style="color:${tc}">${w.toFixed(2)}</span>
+          <span class="a">${pct(acc.accuracy)}</span>
+          <span class="n">n=${acc.n}</span>
+        </span>
+      </td>`;
+    }).join('');
+    const rec = recommended[sig];
+    const recHtml = rec ? `<span class="tag purple">${rec.window} · w=${rec.weight.toFixed(2)}</span>` : '<span class="cell empty">—</span>';
+    return `<tr>
+      <td class="tname" style="position:sticky;left:0;background:var(--bg1);z-index:1"><code>${sig}</code></td>
+      <td class="num">${flatHtml}</td>
+      ${cells}
+      <td>${recHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>

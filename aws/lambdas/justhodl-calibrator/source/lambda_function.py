@@ -282,11 +282,33 @@ def run_calibration():
 
     # ── Compute per-window accuracy (short vs medium vs long term) ─────────
     window_accuracy = {}
+    window_weights = {}
+    recommended_horizon = {}
     for stype, windows in by_type_window.items():
         window_accuracy[stype] = {}
+        window_weights[stype] = {}
+        default_w = DEFAULT_WEIGHTS.get(stype, 0.7)
         for window, outcomes in windows.items():
             stats = compute_accuracy_stats(outcomes)
             window_accuracy[stype][window] = stats
+            acc = stats.get("accuracy")
+            if acc is not None and stats.get("n", 0) >= 5:
+                window_weights[stype][window] = round(
+                    accuracy_to_weight(acc, stats["n"], default_w), 4
+                )
+            else:
+                window_weights[stype][window] = default_w
+        # Pick the horizon with the highest weight as "recommended" — this is the
+        # window where this signal type is most reliable. Consumers should use
+        # this when scoring at that horizon, OR fall back to the flat weight.
+        if window_weights[stype]:
+            best = max(window_weights[stype].items(), key=lambda kv: kv[1])
+            recommended_horizon[stype] = {
+                "window": best[0],
+                "weight": best[1],
+                "accuracy": window_accuracy[stype][best[0]].get("accuracy"),
+                "n": window_accuracy[stype][best[0]].get("n"),
+            }
 
     # ── Recompute Khalid Index component weights ───────────────────────────
     khalid_component_weights = compute_khalid_component_weights(accuracy_by_type)
@@ -300,6 +322,8 @@ def run_calibration():
         "weights":                weights,
         "accuracy_by_type":       accuracy_by_type,
         "window_accuracy":        window_accuracy,
+        "window_weights":         window_weights,
+        "recommended_horizon":    recommended_horizon,
         "khalid_component_weights": khalid_component_weights,
         "top_performing_signals": [],
         "worst_performing_signals": [],
@@ -355,6 +379,32 @@ def run_calibration():
         Type="String",
         Overwrite=True
     )
+
+    # Phase: per-horizon weights at /justhodl/calibration/weights/{window}
+    # Consumers (backtest engine, ai-brief, position monitors) can opt-in by
+    # passing the trade horizon they care about. Falls back to the flat
+    # SSM_WEIGHTS_PATH for backward compat.
+    horizon_writes = []
+    by_window_flat = defaultdict(dict)  # {window: {stype: weight}}
+    for stype, win_map in window_weights.items():
+        for win, w in win_map.items():
+            by_window_flat[win][stype] = w
+    for window, type_map in by_window_flat.items():
+        path = f"{SSM_WEIGHTS_PATH}/{window}"
+        try:
+            ssm.put_parameter(
+                Name=path,
+                Value=json.dumps(type_map),
+                Type="String",
+                Overwrite=True,
+            )
+            horizon_writes.append((path, len(type_map)))
+        except Exception as e:
+            print(f"[CALIBRATE] horizon SSM write {path} failed: {e}")
+    if horizon_writes:
+        print(f"[CALIBRATE] Wrote {len(horizon_writes)} per-horizon SSM weights:")
+        for path, n in horizon_writes:
+            print(f"  {path}: {n} signal types")
     # SSM_REPORT_PATH historically tried to fit the entire report. Standard tier
     # caps at 4096 chars and the report has grown beyond that as more signal types
     # accumulate. Fix: write a slim summary (pure metadata, no per-signal lists)
@@ -409,9 +459,32 @@ def run_calibration():
 def lambda_handler(event, context):
     report = run_calibration()
 
+    # Count signals where horizon-aware weighting unfloors them — i.e. their
+    # best-horizon weight is materially higher than the flat aggregate weight.
+    n_horizon_lift = 0
+    horizon_lifts = []
+    for stype, rec in (report.get("recommended_horizon") or {}).items():
+        flat_w = (report.get("weights") or {}).get(stype, 0)
+        rec_w = rec.get("weight", 0)
+        if rec_w - flat_w >= 0.15:  # 15+ pp uplift
+            n_horizon_lift += 1
+            horizon_lifts.append({
+                "signal": stype,
+                "best_horizon": rec.get("window"),
+                "horizon_weight": rec_w,
+                "flat_weight": flat_w,
+                "uplift": round(rec_w - flat_w, 3),
+            })
+    horizon_lifts.sort(key=lambda x: -x["uplift"])
+
     print("\n=== CALIBRATION SUMMARY ===")
     print(f"Total outcomes analyzed: {report['total_outcomes']}")
     print(f"Khalid components: {report['khalid_component_weights']}")
+    print(f"Per-horizon SSM weights: {len(report.get('window_weights', {}))} signals across windows")
+    if horizon_lifts:
+        print(f"Horizon-uplift signals (≥15pp better at non-default horizon):")
+        for h in horizon_lifts[:5]:
+            print(f"  {h['signal']:25s}  flat={h['flat_weight']:.2f} → {h['best_horizon']}={h['horizon_weight']:.2f}  (Δ+{h['uplift']:.2f})")
     print("Recommendations:")
     for rec in report.get("recommendations", []):
         print(f"  {rec}")
@@ -425,5 +498,7 @@ def lambda_handler(event, context):
             "top_signals":          report["top_performing_signals"],
             "recommendations":      report["recommendations"],
             "khalid_new_weights":   report["khalid_component_weights"],
+            "horizon_lifts":        horizon_lifts[:10],
+            "n_horizon_lift":       n_horizon_lift,
         }, default=str)
     }
