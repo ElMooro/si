@@ -218,10 +218,11 @@ def evaluate_ticker(symbol, deadline_at):
     if pct_from_52h <= -50:
         score = min(score + 10, 100)
 
-    # Sector
-    sector = q.get("sector") or ""
-    industry = q.get("industry") or ""
-    company = q.get("name") or symbol
+    # Sector + industry — FMP /quote often has these blank, so always pull /profile
+    profile = fetch_profile(symbol)
+    sector = (profile or {}).get("sector") or q.get("sector") or ""
+    industry = (profile or {}).get("industry") or q.get("industry") or ""
+    company = (profile or {}).get("companyName") or q.get("name") or symbol
 
     # Sector adjustments — insurance/banking carry massive investment books
     # that aren't discretionary "net cash". Score them differently.
