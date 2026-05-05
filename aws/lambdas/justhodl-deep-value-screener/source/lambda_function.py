@@ -354,7 +354,16 @@ def lambda_handler(event=None, context=None):
                     "pct_from_52w_high": r["fundamentals"]["pct_from_52w_high"],
                     "sector": r["fundamentals"]["sector"],
                 }
-                for r in results[:25]
+                for r in [x for x in results if x["flag"] not in ("FINANCIAL_BOOK_EXCLUDED", "REIT_EXCLUDED")][:25]
+            ],
+            "top_25_excluded_financials": [
+                {
+                    "symbol": r["symbol"],
+                    "score": r["score"],
+                    "flag": r["flag"],
+                    "sector": r["fundamentals"]["sector"],
+                }
+                for r in [x for x in results if x["flag"] in ("FINANCIAL_BOOK_EXCLUDED", "REIT_EXCLUDED")][:25]
             ],
             "tier_a": [r["symbol"] for r in tier_a],
             "contrarian_top": [r["symbol"] for r in contrarian[:15]],
