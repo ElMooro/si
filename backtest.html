@@ -196,6 +196,33 @@ table td.num{text-align:right}
       </div>
     </div>
   </div>
+
+  <!-- ─── CALLS BACKTEST — what if Khalid traded the brief's calls verbatim? ─── -->
+  <div class="section" style="margin-top:48px;padding-top:36px;border-top:1px solid var(--brd2)">
+    <h2>Brief calls backtest — would following the brief have made money?</h2>
+    <p class="sub">Each decisive call (EXIT_ALL_RISK..LEVER) maps to a SPY exposure level. The strategy holds that exposure until the next call. This compares what your NAV would have done if you had traded the brief's calls verbatim, vs 100% SPY buy-and-hold over the same window. Note: the ledger started 2026-05-04, so this metric is sparse until more calls accumulate.</p>
+    <div id="calls-notice"></div>
+    <div class="kpis" id="calls-kpi-row"></div>
+    <div class="card" style="padding:24px 26px;margin-top:18px">
+      <svg id="calls-nav-chart" viewBox="0 0 1100 340" preserveAspectRatio="none" style="width:100%;height:340px"></svg>
+    </div>
+    <div class="card" style="padding:0;margin-top:18px">
+      <div style="overflow-x:auto;max-height:500px">
+        <table id="calls-table">
+          <thead><tr>
+            <th>Call</th>
+            <th>Period</th>
+            <th class="num">Days</th>
+            <th class="num">Exposure</th>
+            <th class="num">SPY Δ</th>
+            <th class="num">Strategy Δ</th>
+            <th class="num">Contribution</th>
+          </tr></thead>
+          <tbody id="calls-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -515,7 +542,150 @@ document.querySelectorAll('th[data-sort]').forEach(th => {
 });
 
 load();
+loadCallsBacktest();
 setInterval(load, 10*60*1000);
+setInterval(loadCallsBacktest, 10*60*1000);
+
+// ── Calls Backtest section ───────────────────────────────────────────
+const VERB_COLOR = {
+  "EXIT_ALL_RISK":"#ff174a","EXIT":"#ff4d6d","TRIM":"#ff7a18","HEDGE":"#ffc400",
+  "WAIT":"#b56bff","HOLD":"#6f7b91","LONG":"#00e676","LOAD":"#26ffaf","LEVER":"#00d4ff",
+  "UNKNOWN":"#475064",
+};
+
+async function loadCallsBacktest(){
+  try {
+    const r = await fetch(`${BUCKET}/backtest/calls-results.json?t=${Date.now()}`);
+    if (!r.ok) {
+      document.getElementById('calls-notice').innerHTML =
+        `<div class="warn">⚠ Calls backtest not yet generated. Lambda runs daily at 14:15 UTC.</div>`;
+      return;
+    }
+    const d = await r.json();
+    const summ = d.summary || {};
+
+    // KPIs
+    const ret = summ.total_return_pct;
+    const spy = summ.spy_return_pct;
+    const alpha = summ.alpha_vs_spy_pct;
+    const dd = summ.max_drawdown_pct;
+    const tiles = [
+      {h:'Strategy Return', v:fmtPct(ret,2), klass:pctClass(ret/100), sub:`${summ.n_trading_days || 0} trading days`},
+      {h:'SPY Return',     v:fmtPct(spy,2), klass:pctClass(spy/100), sub:`benchmark over same window`},
+      {h:'Alpha vs SPY',   v:fmtPct(alpha,2), klass:pctClass(alpha/100), sub:`${summ.n_calls || 0} calls, ${summ.n_changes || 0} changes`},
+      {h:'Max Drawdown',   v:`-${(dd || 0).toFixed(2)}%`, klass:'down', sub:`Sharpe: ${(summ.sharpe_proxy || 0).toFixed(2)}`},
+    ];
+    document.getElementById('calls-kpi-row').innerHTML = tiles.map(t =>
+      `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.klass}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+    ).join('');
+
+    // Notice for sparse data
+    if ((summ.n_calls || 0) < 4) {
+      document.getElementById('calls-notice').innerHTML =
+        `<div class="notice">📊 Only ${summ.n_calls} calls in the ledger so far (started ${summ.first_call_date}). The strategy backtest will become more meaningful as more calls accumulate.</div>`;
+    } else {
+      document.getElementById('calls-notice').innerHTML = '';
+    }
+
+    // NAV chart
+    renderCallsNavChart(d.nav_curve || []);
+
+    // Table
+    const calls = d.calls || [];
+    document.getElementById('calls-body').innerHTML = calls.map(c => {
+      const verbColor = VERB_COLOR[c.verb] || '#475064';
+      return `<tr>
+        <td><span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${verbColor};text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border:1px solid ${verbColor};border-radius:4px;background:${verbColor}1a">${c.verb.replace('_',' ')}</span></td>
+        <td>${c.start_date} → ${c.end_date}</td>
+        <td class="num">${c.n_days}</td>
+        <td class="num">${(c.exposure*100).toFixed(0)}%</td>
+        <td class="num ${pctClass(c.spy_change_pct/100)}">${fmtPct(c.spy_change_pct, 3)}</td>
+        <td class="num ${pctClass(c.strat_change_pct/100)}">${fmtPct(c.strat_change_pct, 3)}</td>
+        <td class="num ${pctClass(c.contribution_pct/100)}">${fmtPct(c.contribution_pct, 3)}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="7" class="loading">No calls in window yet.</td></tr>';
+  } catch (err) {
+    console.error("calls backtest:", err);
+    document.getElementById('calls-notice').innerHTML =
+      `<div class="warn">⚠ Failed to load calls backtest: ${err.message}</div>`;
+  }
+}
+
+function renderCallsNavChart(curve){
+  const svg = document.getElementById('calls-nav-chart');
+  const W = 1100, H = 340, padL = 70, padR = 80, padT = 30, padB = 50;
+  if (!curve.length) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="13" text-anchor="middle">No trading days yet</text>`;
+    return;
+  }
+  const navs = curve.map(c => c.nav);
+  const spys = curve.map(c => c.spy_nav);
+  const all = navs.concat(spys);
+  const yMin = Math.min(...all) * 0.998;
+  const yMax = Math.max(...all) * 1.002;
+  const yRange = Math.max(yMax - yMin, 1);
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const x = i => padL + (i / Math.max(curve.length - 1, 1)) * innerW;
+  const y = v => padT + innerH - ((v - yMin) / yRange) * innerH;
+
+  // Axes
+  let yAxis = '';
+  for (let i = 0; i <= 5; i++) {
+    const v = yMin + (yRange * i / 5);
+    const yp = y(v);
+    yAxis += `<line x1="${padL}" x2="${W - padR}" y1="${yp}" y2="${yp}" stroke="#1c2433" stroke-width="1"/>`;
+    yAxis += `<text x="${padL - 8}" y="${yp + 4}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">$${Math.round(v).toLocaleString()}</text>`;
+  }
+  // X labels — first, mid, last
+  const labelIdxs = [0, Math.floor(curve.length / 2), curve.length - 1];
+  let xLabels = '';
+  for (const i of labelIdxs) {
+    if (curve[i]) {
+      xLabels += `<text x="${x(i)}" y="${H - padB + 18}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="middle">${curve[i].date}</text>`;
+    }
+  }
+
+  // Background bands per active call (vertical strips colored by verb)
+  let bands = '';
+  let curVerb = null, curStart = 0;
+  for (let i = 0; i <= curve.length; i++) {
+    const v = i < curve.length ? curve[i].active_verb : null;
+    if (v !== curVerb) {
+      if (curVerb !== null) {
+        const x1 = x(curStart);
+        const x2 = i < curve.length ? x(i) : x(curve.length - 1);
+        const color = VERB_COLOR[curVerb] || '#475064';
+        bands += `<rect x="${x1}" y="${padT}" width="${x2 - x1}" height="${innerH}" fill="${color}" opacity="0.06"/>`;
+      }
+      curVerb = v;
+      curStart = i;
+    }
+  }
+
+  const stratLine = curve.map((c, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(c.nav).toFixed(1)}`).join(' ');
+  const spyLine = curve.map((c, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(c.spy_nav).toFixed(1)}`).join(' ');
+
+  // Final value labels
+  const lastNav = curve[curve.length - 1];
+  const stratLabel = `<text x="${W - padR + 6}" y="${y(lastNav.nav) + 4}" fill="#00d4ff" font-family="IBM Plex Mono" font-size="11" font-weight="600">$${Math.round(lastNav.nav).toLocaleString()}</text>`;
+  const spyLabel = `<text x="${W - padR + 6}" y="${y(lastNav.spy_nav) + 4}" fill="#a8b3c7" font-family="IBM Plex Mono" font-size="11">SPY $${Math.round(lastNav.spy_nav).toLocaleString()}</text>`;
+
+  // Legend
+  const legend = `
+    <g transform="translate(${padL + 12}, ${padT + 8})">
+      <rect x="0" y="0" width="240" height="38" fill="#0f131a" opacity="0.85" rx="4"/>
+      <line x1="10" x2="32" y1="14" y2="14" stroke="#00d4ff" stroke-width="2.5"/>
+      <text x="40" y="18" fill="#a8b3c7" font-family="IBM Plex Mono" font-size="11">Strategy NAV</text>
+      <line x1="10" x2="32" y1="30" y2="30" stroke="#a8b3c7" stroke-width="2" stroke-dasharray="4,3"/>
+      <text x="40" y="34" fill="#a8b3c7" font-family="IBM Plex Mono" font-size="11">SPY 100% B&amp;H</text>
+    </g>`;
+
+  svg.innerHTML = bands + yAxis + xLabels +
+    `<path d="${spyLine}" fill="none" stroke="#a8b3c7" stroke-width="2" stroke-dasharray="4,3" opacity="0.7"/>` +
+    `<path d="${stratLine}" fill="none" stroke="#00d4ff" stroke-width="2.5"/>` +
+    stratLabel + spyLabel + legend;
+}
 </script>
 </body>
 </html>
