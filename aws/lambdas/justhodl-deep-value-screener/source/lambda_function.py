@@ -208,18 +208,41 @@ def evaluate_ticker(symbol, deadline_at):
     rev_score = min(rev_yield / 1.0, 1.0) * 25
     cf_score = cf_quality * 15
     score = nc_score + rev_score + cf_score
-    # Deep discount multiplier
+    # Deep discount multiplier — but cap at 100
     mcap_to_rev = mcap / rev if rev else 999
     if mcap_to_rev <= 1.0:
-        score = score * 1.2
+        score = min(score * 1.2, 100)
+    # Drawdown bonus — contrarian buying into 25%+ drawdown
+    if pct_from_52h <= -25:
+        score = min(score + 5, 100)
+    if pct_from_52h <= -50:
+        score = min(score + 10, 100)
 
     # Sector
     sector = q.get("sector") or ""
     industry = q.get("industry") or ""
     company = q.get("name") or symbol
 
+    # Sector adjustments — insurance/banking carry massive investment books
+    # that aren't discretionary "net cash". Score them differently.
+    sector_lower = (sector or "").lower()
+    industry_lower = (industry or "").lower()
+    is_financial_book = (
+        "insurance" in sector_lower or "insurance" in industry_lower
+        or "bank" in industry_lower
+        or sector_lower == "financial services"
+    )
+    is_reit = "reit" in industry_lower or sector_lower == "real estate"
+
     flag = "MONITOR"
-    if net_cash_pct >= NET_CASH_RATIO and rev_yield >= REV_RATIO and cf_quality >= 0.5:
+    if is_financial_book:
+        # Financial book is excluded from tier-A — these aren't Graham net-nets
+        flag = "FINANCIAL_BOOK_EXCLUDED"
+        score = score * 0.3  # heavily down-weight
+    elif is_reit:
+        flag = "REIT_EXCLUDED"
+        score = score * 0.3
+    elif net_cash_pct >= NET_CASH_RATIO and rev_yield >= REV_RATIO and cf_quality >= 0.5:
         flag = "DEEP_VALUE_TIER_A"
     elif net_cash_pct >= 0.4 and rev_yield >= 0.3:
         flag = "DEEP_VALUE_TIER_B"
@@ -294,6 +317,7 @@ def lambda_handler(event=None, context=None):
     # Sort and slice
     results.sort(key=lambda x: x["score"], reverse=True)
     tier_a = [r for r in results if r["flag"] == "DEEP_VALUE_TIER_A"]
+    excluded = [r for r in results if r["flag"] in ("FINANCIAL_BOOK_EXCLUDED", "REIT_EXCLUDED")]
     tier_b = [r for r in results if r["flag"] == "DEEP_VALUE_TIER_B"]
     watch = [r for r in results if r["flag"] == "NET_CASH_WATCH"]
 
