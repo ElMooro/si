@@ -48,6 +48,8 @@ from decimal import Decimal
 
 import boto3
 
+DELISTED_TICKERS = frozenset({'LTHM', 'ALB-OLD', 'BBBY', 'WBD-OLD'})  # known delisted/merged
+
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
