@@ -252,7 +252,8 @@ def fetch_polygon_aggs(ticker, days_back=400):
         return []
 
 
-def fetch_fred(series_id, days_back=600):
+def fetch_fred(series_id, days_back=600, retries=4):
+    """Fetch FRED series with retry/backoff on 5xx and 429."""
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days_back)
     url = (
@@ -261,33 +262,45 @@ def fetch_fred(series_id, days_back=600):
         f"&observation_start={start.isoformat()}&observation_end={end.isoformat()}"
         f"&file_type=json&sort_order=asc"
     )
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "justhodl-supply-inflection/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode())
-        obs = data.get("observations") or []
-        if not obs:
-            print(f"[fred] {series_id} no observations")
+    last_err = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "justhodl-supply-inflection/1.0"})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode())
+            obs = data.get("observations") or []
+            if not obs:
+                print(f"[fred] {series_id} no observations")
+                return []
+            out = []
+            for o in obs:
+                try:
+                    v = float(o["value"])
+                    d = datetime.fromisoformat(o["date"]).date()
+                    out.append({"date": d, "close": v})
+                except (ValueError, TypeError):
+                    continue  # FRED uses "." for missing values
+            return out
+        except urllib.error.HTTPError as e:
+            last_err = f"HTTP{e.code}"
+            if e.code in (429, 500, 502, 503, 504):
+                wait = 0.7 * (2 ** attempt)
+                print(f"[fred] {series_id} {last_err} retry {attempt+1}/{retries} wait={wait:.1f}s")
+                time.sleep(wait)
+                continue
+            body = e.read().decode("utf-8", errors="replace")[:200] if hasattr(e, "read") else ""
+            print(f"[fred] {series_id} HTTPError {e.code} body={body}")
             return []
-        out = []
-        for o in obs:
-            try:
-                v = float(o["value"])
-                d = datetime.fromisoformat(o["date"]).date()
-                out.append({"date": d, "close": v})
-            except (ValueError, TypeError):
-                continue  # FRED uses "." for missing values
-        return out
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")[:400] if hasattr(e, "read") else ""
-        print(f"[fred] {series_id} HTTPError {e.code} body={body}")
-        return []
-    except urllib.error.URLError as e:
-        print(f"[fred] {series_id} URLError {e.reason}")
-        return []
-    except Exception as e:
-        print(f"[fred] {series_id} other_error {type(e).__name__} {e}")
-        return []
+        except urllib.error.URLError as e:
+            last_err = f"URL:{e.reason}"
+            time.sleep(0.7 * (2 ** attempt))
+            continue
+        except Exception as e:
+            last_err = f"{type(e).__name__}:{e}"
+            time.sleep(0.5)
+            continue
+    print(f"[fred] {series_id} all_retries_failed err={last_err}")
+    return []
 
 
 def fetch_signal(name, spec):
