@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nobrainer Hunter · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --line:#1c2433; --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18; --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+  --tier-a:#26ffaf; --tier-b:#ffd266; --tier-c:#ff7a18; --tier-d:#a8b3c7; --pass:#6f7b91;
+  --extended:#26ffaf; --accelerating:#00d4ff; --emerging:#a78bfa;
+  --peaking:#ffd266; --cooling:#ff7a18; --dying:#ff5577; --dormant:#6f7b91;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0}
+.subtitle a{color:var(--cyan);text-decoration:none;border-bottom:1px dashed var(--line)}
+.subtitle a:hover{border-bottom-color:var(--cyan)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px 14px 12px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.tier-A{color:var(--tier-a)} .tier-B{color:var(--tier-b)} .tier-C{color:var(--tier-c)} .tier-D{color:var(--tier-d)} .tier-PASS{color:var(--pass)}
+.bg-A{background:rgba(38,255,175,0.10);border-left:3px solid var(--tier-a)}
+.bg-B{background:rgba(255,210,102,0.10);border-left:3px solid var(--tier-b)}
+.bg-C{background:rgba(255,122,24,0.10);border-left:3px solid var(--tier-c)}
+.bg-D{background:rgba(168,179,199,0.06);border-left:3px solid var(--tier-d)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,0.5)}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.score-bar{display:inline-block;height:5px;border-radius:3px;background:var(--line);width:80px;vertical-align:middle;overflow:hidden;margin-left:6px}
+.score-fill{display:block;height:100%;background:var(--green);transition:width 0.3s}
+.flag{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,0.3);text-transform:uppercase;white-space:nowrap}
+.phase-EXTENDED{color:var(--extended)}.phase-ACCELERATING{color:var(--accelerating)}.phase-EMERGING{color:var(--emerging)}
+.phase-PEAKING{color:var(--peaking)}.phase-COOLING{color:var(--cooling)}.phase-DYING{color:var(--dying)}
+.factor-row{display:flex;gap:8px;font-size:10px;color:var(--mute);margin-top:3px}
+.factor-row span{padding:1px 5px;background:rgba(0,0,0,0.3);border-radius:2px}
+.thesis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(560px,1fr));gap:14px}
+.thesis-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.thesis-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.thesis-ticker{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:1px}
+.thesis-ticker span{font-size:11px;color:var(--dim);font-weight:400;letter-spacing:0.5px;display:block;margin-top:3px}
+.thesis-score{font-family:var(--mono);font-size:18px;font-weight:700;text-align:right}
+.thesis-score .vsub{font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:3px;display:block}
+.thesis-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;font-family:var(--mono)}
+.thesis-meta .m{padding:5px 6px;background:rgba(0,0,0,0.3);border-radius:3px;text-align:center}
+.thesis-meta .lbl{color:var(--dim);font-size:9px;display:block;margin-bottom:1px}
+.thesis-meta .val{font-weight:600}
+.thesis-text{font-size:13px;color:var(--txt);line-height:1.6;white-space:pre-wrap;font-family:'Inter',sans-serif}
+.thesis-text strong{color:var(--green);font-weight:600}
+.fund-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:11px;font-family:var(--mono);padding:10px;background:rgba(0,0,0,0.25);border-radius:4px}
+.fund-grid .lbl{color:var(--dim);font-size:9px;text-transform:uppercase;letter-spacing:1px;display:block}
+.fund-grid .val{font-weight:600;font-size:12px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:12px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.callout-amber{border-left-color:var(--yellow)}
+.callout-amber strong{color:var(--yellow)}
+.callout-orange{border-left-color:var(--orange)}
+.callout-orange strong{color:var(--orange)}
+.tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.supply-pill{display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 6px;background:rgba(38,255,175,0.10);color:var(--green);border-radius:2px;margin:1px 3px 1px 0;letter-spacing:0.5px}
+.muted{color:var(--mute)}.dim{color:var(--dim)}
+.empty{text-align:center;padding:50px 20px;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1.5px}
+.loading{text-align:center;padding:60px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.refresh{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+.timestamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+@media (max-width:920px){.kpis{grid-template-columns:repeat(3,1fr)}.thesis-grid{grid-template-columns:1fr}.thesis-meta{grid-template-columns:repeat(2,1fr)}.fund-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎯 Nobrainer Hunter — Asymmetric Opportunity Scanner</h1>
+    <p class="subtitle">5-factor fusion engine. Detects tier-2/tier-3 stocks downstream of crowded megatrends with hard supply/demand inflections, valuation asymmetry, and catalyst proximity. The MU/SNDK pattern, automated.</p>
+    <nav class="crumbs" style="margin-top:10px">
+      <a href="themes.html">themes</a>
+      <a href="brief.html">brief</a>
+      <a href="calls.html">calls</a>
+      <a href="horizons.html">horizons</a>
+      <a href="performance.html">performance</a>
+      <a href="backtest.html">backtest</a>
+    </nav>
+  </header>
+
+  <!-- KPI tiles -->
+  <section class="kpis" id="kpis">
+    <div class="kpi"><h3>Tier-A nobrainer</h3><div class="v tier-A" id="kpi_a">—</div><div class="vsub">≥80 score</div></div>
+    <div class="kpi"><h3>Tier-B high conviction</h3><div class="v tier-B" id="kpi_b">—</div><div class="vsub">70-79 score</div></div>
+    <div class="kpi"><h3>Tier-C watchlist</h3><div class="v tier-C" id="kpi_c">—</div><div class="vsub">60-69 score</div></div>
+    <div class="kpi"><h3>MU-grade (mcap/rev≤3)</h3><div class="v mono" id="kpi_mu">—</div><div class="vsub">tier-2 / tier-3 only</div></div>
+    <div class="kpi"><h3>Total candidates</h3><div class="v mono" id="kpi_total">—</div><div class="vsub">scored across themes</div></div>
+    <div class="kpi"><h3>Theses written</h3><div class="v mono" id="kpi_theses">—</div><div class="vsub" id="kpi_theses_sub">—</div></div>
+  </section>
+
+  <!-- Pipeline status callouts -->
+  <section id="callouts"></section>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="theses">Top theses</div>
+    <div class="tab" data-tab="leader">Full leaderboard</div>
+    <div class="tab" data-tab="mu">MU-grade only</div>
+    <div class="tab" data-tab="tier2">Tier-2 only</div>
+  </div>
+
+  <div class="tab-pane active" id="pane-theses">
+    <h2>Top theses (Layer 5 — Claude rationale)</h2>
+    <p class="dim mono" style="font-size:10.5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">
+      Each thesis written daily after the L4 hunter scores. <span id="theses_meta"></span>
+    </p>
+    <div id="theses_grid" class="thesis-grid"><div class="loading">Loading theses…</div></div>
+  </div>
+
+  <div class="tab-pane" id="pane-leader">
+    <h2>Full leaderboard (top 25)</h2>
+    <div id="leader_table"><div class="loading">Loading…</div></div>
+  </div>
+
+  <div class="tab-pane" id="pane-mu">
+    <h2>MU-grade — mcap/rev ≤ 3 (the user's pattern)</h2>
+    <p class="dim mono" style="font-size:10.5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">
+      Tier-2 / tier-3 only. The structural mispricing zone where market cap reflects
+      a fraction of forward revenue.
+    </p>
+    <div id="mu_table"><div class="loading">Loading…</div></div>
+  </div>
+
+  <div class="tab-pane" id="pane-tier2">
+    <h2>Tier-2 leaderboard (top 15)</h2>
+    <p class="dim mono" style="font-size:10.5px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">
+      ETF holdings 6-10 — beneath the obvious primary leg, in the asymmetric pocket
+    </p>
+    <div id="tier2_table"><div class="loading">Loading…</div></div>
+  </div>
+
+  <p class="timestamp" id="timestamp"></p>
+</div>
+
+<script>
+const S3_BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+
+const fmtScore = (s) => s != null ? s.toFixed(1) : "—";
+const fmtMcap  = (v) => v == null ? "—" : v >= 1e9 ? "$" + (v/1e9).toFixed(1) + "B" : "$" + (v/1e6).toFixed(0) + "M";
+const fmtRatio = (v, d=2) => v == null ? "—" : v.toFixed(d);
+const fmtPct   = (v, d=1) => v == null ? "—" : (v*100).toFixed(d) + "%";
+const fmtDate  = (s) => s ? s.slice(0,10) : "—";
+
+function tierClass(flag) {
+  return flag === "TIER_A_NOBRAINER" ? "A" :
+         flag === "TIER_B_HIGH_CONVICTION" ? "B" :
+         flag === "TIER_C_WATCHLIST" ? "C" :
+         flag === "TIER_D_MONITOR" ? "D" : "PASS";
+}
+
+async function loadJSON(key) {
+  const r = await fetch(`${S3_BASE}/${key}?_=${Date.now()}`);
+  if (!r.ok) throw new Error(`${key} ${r.status}`);
+  return await r.json();
+}
+
+function renderKPIs(layer4, layer5) {
+  const summ = layer4.summary || {};
+  document.getElementById("kpi_a").textContent = summ.n_tier_a_nobrainer ?? 0;
+  document.getElementById("kpi_b").textContent = summ.n_tier_b_high_conviction ?? 0;
+  document.getElementById("kpi_c").textContent = summ.n_tier_c_watchlist ?? 0;
+  document.getElementById("kpi_mu").textContent = summ.n_mu_grade ?? 0;
+  document.getElementById("kpi_total").textContent = layer4.n_candidates_scored ?? 0;
+  document.getElementById("kpi_theses").textContent = (layer5 && layer5.n_theses) || 0;
+  document.getElementById("kpi_theses_sub").textContent = layer5
+    ? `${layer5.n_claude_ok || 0} ok · ${layer5.n_claude_fail || 0} fail`
+    : "—";
+}
+
+function renderCallouts(layer4) {
+  const summ = layer4.summary || {};
+  const lay = layer4.layers_loaded || {};
+  let html = "";
+  if (!lay.themes_detected || !lay.supply_inflection || !lay.theme_tiers) {
+    html += `<div class="callout callout-orange"><strong>⚠️ Pipeline state</strong>
+      L1 ${lay.themes_detected ? "✓" : "MISSING"} ·
+      L2 ${lay.supply_inflection ? "✓" : "MISSING"} ·
+      L3 ${lay.theme_tiers ? "✓" : "MISSING"}
+    </div>`;
+  }
+  if (summ.n_tier_a_nobrainer > 0) {
+    const tA = (summ.top_25_overall || []).filter(x => x.flag === "TIER_A_NOBRAINER");
+    html += `<div class="callout"><strong>🟢 Tier-A nobrainer (${tA.length})</strong>
+      ${tA.slice(0,5).map(x => `<b>${x.ticker}</b> on <b>${x.theme_etf}</b> (${x.theme_phase}) score ${x.asymmetric_score.toFixed(0)}`).join(" · ")}
+    </div>`;
+  }
+  if (summ.n_mu_grade > 0) {
+    const mu = summ.mu_grade_top_15.slice(0, 5);
+    html += `<div class="callout callout-amber"><strong>💎 MU-grade pattern detected (${summ.n_mu_grade})</strong>
+      Cheap mcap/rev tier-2/3 names downstream of active themes:
+      ${mu.map(x => `<b>${x.ticker}</b> (${x.theme_etf}, mcap/rev ${x.fundamentals?.mcap_to_rev?.toFixed(2) || "?"}×)`).join(" · ")}
+    </div>`;
+  }
+  document.getElementById("callouts").innerHTML = html;
+}
+
+function leaderRowHTML(x) {
+  const fund = x.fundamentals || {};
+  const f = x.factors || {};
+  const cls = tierClass(x.flag);
+  return `<tr class="bg-${cls}">
+    <td><b class="mono" style="font-size:13px">${x.ticker}</b><br><span class="dim mono" style="font-size:9.5px">${x.name || ""}</span></td>
+    <td><span class="mono">${x.theme_etf}</span><br><span class="phase-${x.theme_phase} mono" style="font-size:9.5px">${x.theme_phase}</span></td>
+    <td class="mono">T${x.tier}</td>
+    <td><b class="tier-${cls} mono" style="font-size:13px">${fmtScore(x.asymmetric_score)}</b>
+      <span class="score-bar"><span class="score-fill" style="width:${x.asymmetric_score}%;background:var(--tier-${cls.toLowerCase()})"></span></span></td>
+    <td><span class="flag tier-${cls}">${x.flag.replace("TIER_","")}</span></td>
+    <td class="mono">${fmtMcap(fund.market_cap)}</td>
+    <td class="mono">${fmtRatio(fund.mcap_to_rev)}</td>
+    <td class="mono">${fmtRatio(fund.p_s)}</td>
+    <td class="mono">${fmtRatio(fund.p_e, 1)}</td>
+    <td class="mono dim" style="font-size:10.5px">supply=${fmtScore(f.supply_inflection)} val=${fmtScore(f.valuation_asym)} cat=${fmtScore(f.catalyst_prox)}</td>
+    <td class="mono">${fmtDate(x.next_earnings)}</td>
+  </tr>`;
+}
+
+function renderTable(rows, containerId, title) {
+  const c = document.getElementById(containerId);
+  if (!rows || rows.length === 0) {
+    c.innerHTML = `<div class="empty">No candidates in this list yet</div>`;
+    return;
+  }
+  c.innerHTML = `<table>
+    <thead><tr>
+      <th>Ticker</th><th>Theme · Phase</th><th>Tier</th>
+      <th>Score</th><th>Flag</th>
+      <th>Mcap</th><th>Mcap/Rev</th><th>P/S</th><th>P/E</th>
+      <th>Top factors</th><th>Earnings</th>
+    </tr></thead>
+    <tbody>${rows.map(leaderRowHTML).join("")}</tbody>
+  </table>`;
+}
+
+function renderTheses(layer4, layer5) {
+  const grid = document.getElementById("theses_grid");
+  const meta = document.getElementById("theses_meta");
+
+  if (!layer5 || !layer5.theses || layer5.theses.length === 0) {
+    grid.innerHTML = `<div class="empty">No theses yet — Layer 5 has not run or returned 0 candidates above threshold.</div>`;
+    meta.textContent = "";
+    return;
+  }
+
+  meta.textContent = `Generated ${fmtDate(layer5.generated_at)} · ${layer5.n_theses} theses · model ${layer5.model || "?"}`;
+
+  grid.innerHTML = layer5.theses.map(t => {
+    const c = t.candidate || {};
+    const fund = c.fundamentals || {};
+    const f = c.factors || {};
+    const cls = tierClass(c.flag || t.flag);
+    const supplySigs = (c.supply_signals || []).slice(0, 3);
+    const thesisHTML = (t.thesis || "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "\n");
+    return `<div class="thesis-card">
+      <div class="thesis-head">
+        <div>
+          <div class="thesis-ticker tier-${cls}">${c.ticker || t.ticker}<span>${(c.name || "").slice(0,40)}</span></div>
+          <div class="dim mono" style="font-size:10px;margin-top:6px;letter-spacing:1px">${c.theme_etf || t.theme_etf} · <span class="phase-${c.theme_phase}">${c.theme_phase || ""}</span> · TIER ${c.tier || t.tier}</div>
+        </div>
+        <div class="thesis-score tier-${cls}">${fmtScore(t.asymmetric_score)}<span class="vsub">${(c.flag || t.flag || "").replace("TIER_","")}</span></div>
+      </div>
+
+      <div class="thesis-meta">
+        <div class="m"><span class="lbl">theme</span><span class="val">${fmtScore(f.theme_attribution)}</span></div>
+        <div class="m"><span class="lbl">supply</span><span class="val">${fmtScore(f.supply_inflection)}</span></div>
+        <div class="m"><span class="lbl">val asym</span><span class="val">${fmtScore(f.valuation_asym)}</span></div>
+        <div class="m"><span class="lbl">catalyst</span><span class="val">${fmtScore(f.catalyst_prox)}</span></div>
+      </div>
+
+      <div class="fund-grid">
+        <div><span class="lbl">Mcap</span><span class="val">${fmtMcap(fund.market_cap)}</span></div>
+        <div><span class="lbl">Rev TTM</span><span class="val">${fmtMcap(fund.revenue_ttm)}</span></div>
+        <div><span class="lbl">Mcap/Rev</span><span class="val tier-${cls}">${fmtRatio(fund.mcap_to_rev)}×</span></div>
+        <div><span class="lbl">P/S</span><span class="val">${fmtRatio(fund.p_s)}</span></div>
+        <div><span class="lbl">P/E</span><span class="val">${fmtRatio(fund.p_e, 1)}</span></div>
+        <div><span class="lbl">FCF Yield</span><span class="val">${fmtPct(fund.fcf_yield)}</span></div>
+        <div><span class="lbl">Gross Margin</span><span class="val">${fmtPct(fund.gross_margin)}</span></div>
+        <div><span class="lbl">Rev Growth</span><span class="val">${fmtPct(fund.rev_growth_ttm)}</span></div>
+        <div><span class="lbl">Earnings</span><span class="val mono">${fmtDate(c.next_earnings)}</span></div>
+      </div>
+
+      ${supplySigs.length ? `<div class="dim mono" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:-2px">Supply tightness signals</div>
+        <div>${supplySigs.map(s => `<span class="supply-pill">${s.signal} ${s.score?.toFixed?.(0) || "?"}</span>`).join("")}</div>` : ""}
+
+      <div class="thesis-text">${thesisHTML}</div>
+    </div>`;
+  }).join("");
+}
+
+async function load() {
+  try {
+    const [layer4, layer5] = await Promise.all([
+      loadJSON("data/nobrainers.json"),
+      loadJSON("data/nobrainers-rationale.json").catch(() => null),
+    ]);
+
+    renderKPIs(layer4, layer5);
+    renderCallouts(layer4);
+    renderTheses(layer4, layer5);
+    renderTable(layer4.summary?.top_25_overall || [], "leader_table");
+    renderTable(layer4.summary?.mu_grade_top_15 || [], "mu_table");
+    renderTable(layer4.summary?.top_15_tier2 || [], "tier2_table");
+
+    document.getElementById("timestamp").textContent =
+      `L4 generated ${fmtDate(layer4.generated_at)} · L5 ${layer5 ? fmtDate(layer5.generated_at) : "n/a"}`;
+  } catch (e) {
+    console.error(e);
+    document.getElementById("theses_grid").innerHTML = `<div class="empty">Load error: ${e.message}<br>Layer 4 (data/nobrainers.json) may not be live yet.</div>`;
+  }
+}
+
+// Tab switching
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("pane-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+load();
+setInterval(load, 600000); // 10 min
+</script>
+</body>
+</html>
