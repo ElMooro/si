@@ -106,8 +106,8 @@ def gather_seeds():
     """Combine multiple seed sources into one universe of candidates."""
     seeds = set()
 
-    # Curated lists
-    for s in NASDAQ_100 + SP500_PARTIAL + MIDCAP:
+    # Curated lists — large/mid + AI supply chain microcaps (added after backtest gap analysis)
+    for s in NASDAQ_100 + SP500_PARTIAL + MIDCAP + AI_SUPPLY_CHAIN_SEED:
         sym = (s or "").strip().upper()
         if sym and len(sym) <= 5 and sym.isalpha():
             seeds.add(sym)
