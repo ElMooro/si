@@ -23,12 +23,39 @@ import urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
+# AI / semi supply-chain microcap seed list (added 2026-05-05 after backtest gap analysis)
+AI_SUPPLY_CHAIN_SEED = [
+    # Optical transceivers / interconnect
+    "AAOI", "LITE", "COHR", "VIAV", "FN", "INFN", "OCC",
+    # AI memory pure-play
+    "MU", "SNDK", "WDC", "STX",
+    # Test equipment for AI / SiC
+    "AEHR", "TER", "ONTO", "FORM", "ACLS", "KLAC",
+    # Picks-and-shovels semi tools / fluid
+    "ICHR", "UCTT", "ENTG", "AMAT", "LRCX", "ASML", "KLAC",
+    # Compound / specialty semis
+    "AXTI", "WOLF", "QRVO", "SWKS", "MTSI", "POET",
+    # AI silicon / DSPs
+    "MRVL", "AVGO", "NVDA", "AMD", "QCOM", "BRCM", "ARM",
+    # AEC cables / connectivity for AI DC
+    "CRDO", "ANET", "CIEN", "JNPR", "EXTR",
+    # Photonics / R&D stage
+    "LWLG", "RKLB", "POET", "LASR", "PIXLW",
+    # AI infra / power
+    "VRT", "ETN", "EMR", "PWR", "HUBB",
+    # Foundries / large players
+    "INTC", "TSM", "TXN", "ON", "MCHP", "ADI",
+    # Memory / DRAM cycle
+    "ESI", "PI", "RMBS",
+]
+
+
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/universe.json")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 
-MIN_MCAP = float(os.environ.get("MIN_MCAP", "300000000"))   # $300M
+MIN_MCAP = float(os.environ.get("MIN_MCAP", "100000000"))   # $300M
 MIN_VOLUME = float(os.environ.get("MIN_VOLUME", "100000"))
 MAX_ENRICH = int(os.environ.get("MAX_ENRICH", "2400"))
 ENRICH_WORKERS = int(os.environ.get("ENRICH_WORKERS", "20"))
