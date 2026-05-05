@@ -1,0 +1,182 @@
+# 1) Lambda config inspection
+
+**Status:** success  
+**Duration:** 45.8s  
+**Finished:** 2026-05-05T13:35:50+00:00  
+
+## Log
+- `13:35:04`   Runtime: python3.12
+- `13:35:04`   Memory:  1024 MB
+- `13:35:04`   Timeout: 300 s
+- `13:35:04`   State:   Active
+- `13:35:04`   Env keys: ['POLYGON_KEY']
+- `13:35:04`   POLYGON_KEY: zvEY_KYY...JX_d (len=32)
+# 2) Compare against working Polygon Lambda
+
+- `13:35:04`   backtest-engine env keys: []
+# 3) Last invocation log stream
+
+- `13:35:05`   stream: 2026/05/05/[$LATEST]812eb5d45d3d4ed59a4d6ca054b6c8b0
+- `13:35:05`   events: 0b
+- `13:35:05` 
+- `13:35:05`   Log events:
+- `13:35:05`     INIT_START Runtime Version: python:3.12.mainlinev2.v7	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244
+- `13:35:05`     [theme-detector] fetching 550 tickers from Polygon
+- `13:35:05`     [theme-detector] fetched 0 ok / 550 failed in 3.9s
+- `13:35:05`     [theme-detector] skipping SMH — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping SOXX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping BOTZ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping AIQ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ROBO — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IGV — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping CLOU — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping CIBR — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping FDN — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ARKK — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping WCLD — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping FINX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XOP — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping OIH — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping URA — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping URNM — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ICLN — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping TAN — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping FAN — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping NLR — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping AMLP — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping GDX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping GDXJ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping COPX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping REMX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping LIT — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping SLX — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping WOOD — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping PICK — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping SIL — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ITA — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping PPA — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping PAVE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping GRID — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping JETS — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IYT — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XHB — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping AIRR — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLV — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XBI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IBB — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IHI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping GNOM — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping PJP — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLF — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping KRE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping KBE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping KIE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IAI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLY — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLP — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XRT — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping IBUY — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping XLRE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping REZ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping REM — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping INDS — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ICF — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping GLD — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping SLV — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping USO — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping UNG — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping DBB — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping DBA — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping BCI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping BITO — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping ETHE — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping BLOK — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping BITQ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping FXI — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping KWEB — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping EWZ — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping INDA — insufficient data (0 bars)
+- `13:35:05`     [theme-detector] skipping EWJ — insufficient data (0 bars)
+# 4) Direct API test via test Lambda invocation
+
+- `13:35:05`   Test code (will run inside Lambda):
+- `13:35:05`   
+import urllib.request, json, os
+key = os.environ.get("POLYGON_KEY", "MISSING")
+url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/day/2026-01-01/2026-05-04?adjusted=true&sort=asc&limit=200&api...
+# 5) Re-invoke + read fresh logs
+
+- `13:35:50`   invocation duration: 44.8s
+- `13:35:50`   status: 200
+- `13:35:50` 
+- `13:35:50`   Tail logs (last 4KB):
+- `13:35:50`   ────────────────────────────────────────────────────────────
+- `13:35:50`     bars)
+- `13:35:50`     [theme-detector] skipping NLR — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping AMLP — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping GDX — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping GDXJ — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping COPX — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping REMX — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping LIT — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping SLX — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping WOOD — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping PICK — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping SIL — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping ITA — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping PPA — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping PAVE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping GRID — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping JETS — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping IYT — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XHB — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping AIRR — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLV — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XBI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping IBB — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping IHI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping GNOM — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping PJP — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLF — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping KRE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping KBE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping KIE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping IAI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLY — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLP — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XRT — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping IBUY — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping XLRE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping REZ — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping REM — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping INDS — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping ICF — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping GLD — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping SLV — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping USO — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping UNG — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping DBB — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping DBA — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping BCI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping BITO — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping ETHE — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping BLOK — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping BITQ — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping FXI — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping KWEB — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping EWZ — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping INDA — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping EWJ — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping EEM — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping EWG — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] skipping EWU — insufficient data (0 bars)
+- `13:35:50`     [theme-detector] wrote 1,046b to data/themes-detected.json
+- `13:35:50`     [theme-detector] phase distribution: {'DORMANT': 0, 'EMERGING': 0, 'ACCELERATING': 0, 'EXTENDED': 0, 'PEAKING': 0, 'COOLING': 0, 'DYING': 0}
+- `13:35:50`     [theme-detector] hottest: []
+- `13:35:50`     [theme-detector] tier-2 hunt grounds: []
+- `13:35:50`   ────────────────────────────────────────────────────────────
+- `13:35:50` 
+- `13:35:50`   result: n_themes=0 duration=44.7s
