@@ -84,6 +84,9 @@ FEEDS_TO_SNAPSHOT = [
     # Calibration — for walk-forward backtest history
     "calibration/latest.json",
     "calibration/history-index.json",
+    # Alerts + forensic — added 2026-05-06
+    "data/alert-history.json",
+    "data/forensic-screen.json",
     # Major dashboards
     "screener/data.json",
     # Crypto / flows / edge (best-effort — skipped silently if missing)
