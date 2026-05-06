@@ -727,6 +727,25 @@ EXPECTATIONS = {
         "note": "EventBridge rate(12 hours) — drives forensic screen.",
         "severity": "important",
     },
+
+    # ─── Alert router (multi-channel: Telegram + webhooks) ─────────────
+    "s3:data/alert-history.json": {
+        "type": "s3_file",
+        "key": "data/alert-history.json",
+        "fresh_max": 7 * 86400,        # 7d — only updates when an alert fires
+        "warn_max": 14 * 86400,
+        "expected_size": 100,
+        "note": "Alert history (last 100 fired). Updated by justhodl-alert-router only on fire — slow-moving feed is normal.",
+        "severity": "nice_to_have",
+    },
+    "lambda:justhodl-alert-router": {
+        "type": "lambda",
+        "name": "justhodl-alert-router",
+        "max_error_rate": 0.10,
+        "min_invocations_24h": 40,     # Every 30min = 48/day, allow 8 misses
+        "note": "Multi-channel alert router — Telegram + Slack/Discord webhooks. Reads /justhodl/alerts/webhook_urls SSM. 12 alert sources.",
+        "severity": "critical",
+    },
 }
 
 
