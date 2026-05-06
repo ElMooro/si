@@ -1,0 +1,58 @@
+{
+  "probed_at": "2026-05-06T18:06:34+00:00",
+  "fresh_invoke": {
+    "status": 200,
+    "func_err": null,
+    "payload": {
+      "statusCode": 500,
+      "body": "no SPX data"
+    }
+  },
+  "n_log_events": 11,
+  "log_tail": [
+    {
+      "ts": 1778090486302,
+      "msg": "[event-study] start"
+    },
+    {
+      "ts": 1778090486795,
+      "msg": "[event-study] fed_target_upper: 6351 obs"
+    },
+    {
+      "ts": 1778090486810,
+      "msg": "[event-study] hy_oas: 785 obs"
+    },
+    {
+      "ts": 1778090487002,
+      "msg": "[event-study] fed_funds: 436 obs"
+    },
+    {
+      "ts": 1778090487556,
+      "msg": "[event-study] two_tens: 9091 obs"
+    },
+    {
+      "ts": 1778090487729,
+      "msg": "[event-study] spx: 2513 obs"
+    },
+    {
+      "ts": 1778090487815,
+      "msg": "[event-study] vix: 9179 obs"
+    },
+    {
+      "ts": 1778090488132,
+      "msg": "[fred] WILL5000PR failed: HTTP Error 400: Bad Request"
+    },
+    {
+      "ts": 1778090488132,
+      "msg": "[event-study] spx_alt: 0 obs"
+    },
+    {
+      "ts": 1778090488296,
+      "msg": "[event-study] active_themes=[] expected_21d=None"
+    },
+    {
+      "ts": 1778090488296,
+      "msg": "[event-study] wrote s3://justhodl-dashboard-live/data/event-study.json \u2014 11,316b in 1.88s"
+    }
+  ]
+}
