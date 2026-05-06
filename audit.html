@@ -121,19 +121,23 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
   <div class="section" id="ts-section" style="display:none">
     <div class="section-eyebrow">Timeline</div>
     <h2 class="section-title">Recent timestamps for <span id="selected-feed" style="color:var(--cyan)">—</span></h2>
-    <p class="section-blurb">Showing up to 50 most recent change timestamps. Each represents a moment when the feed's content hash differed from the prior snapshot.</p>
-    <div class="coming-soon">⚠ Phase 1: timestamps only. Phase 2 (next ship) adds a Lambda Function URL for fetching the actual snapshot content at any timestamp.</div>
+    <p class="section-blurb">Showing up to 50 most recent change timestamps. Each represents a moment when the feed's content hash differed from the prior snapshot. Click a timestamp to fetch and render the actual snapshot content from DDB.</p>
     <div class="timestamps" id="timestamps"></div>
     <div class="detail-card" id="detail-card" style="display:none">
       <div style="font-family:var(--display);font-size:14px;color:var(--cyan);margin-bottom:10px">Snapshot details</div>
       <div class="detail-row"><strong>Timestamp</strong><span id="d-ts">—</span></div>
       <div class="detail-row"><strong>Feed key</strong><span id="d-feed">—</span></div>
-      <div class="detail-row"><strong>DDB lookup</strong><span id="d-pk" class="mono">—</span></div>
-      <div class="detail-row"><strong>Status</strong><span style="color:var(--yellow)">Content fetch coming in Phase 2 — Lambda Function URL is the next ship</span></div>
+      <div class="detail-row"><strong>Content hash</strong><span id="d-hash" class="mono">—</span></div>
+      <div class="detail-row"><strong>Size</strong><span id="d-size" class="mono">—</span></div>
+      <div class="detail-row"><strong>Encoding</strong><span id="d-enc" class="mono">—</span></div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--brd)">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:6px;font-family:var(--mono);letter-spacing:1.2px;text-transform:uppercase">Content</div>
+        <pre id="d-content" style="background:var(--bg);border:1px solid var(--brd);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11.5px;color:var(--t1);line-height:1.5;max-height:480px;overflow:auto;white-space:pre-wrap;word-break:break-word">Click a timestamp above to load…</pre>
+      </div>
     </div>
   </div>
 
-  <p class="disclaimer">The history table is private (DynamoDB) — this page only displays metadata (counts, timestamps, hashes). Phase 2 will add a public read-only Function URL endpoint with rate-limiting so the page can fetch and render actual snapshot content for time-travel.</p>
+  <p class="disclaimer">The history table is private (DynamoDB). This page calls a read-only Lambda Function URL (justhodl-history-api, reserved concurrency=5 for rate limiting) to fetch snapshot content. Diff view between two timestamps is queued for the next ship.</p>
 
 </main>
 
@@ -165,6 +169,10 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 <script>
 const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
 let DATA = null;
+// API URL is dynamically discovered — first attempt: read SSM-mirrored
+// pointer at /data/history-api-url.json. Fallback: hard-coded value
+// patched in by the bootstrap script.
+let API_URL = null;
 
 function timeAgo(iso){
   if (!iso) return "—";
@@ -181,7 +189,26 @@ function fmtNumber(n){
   return Number(n).toLocaleString();
 }
 
+function fmtSize(n){
+  if (!n) return "—";
+  if (n >= 1024*1024) return `${(n/(1024*1024)).toFixed(1)} MB`;
+  if (n >= 1024) return `${(n/1024).toFixed(1)} KB`;
+  return `${n} B`;
+}
+
+async function discoverApiUrl(){
+  try {
+    const r = await fetch(`${BUCKET}/data/history-api-url.json?_=${Date.now()}`);
+    if (r.ok){
+      const j = await r.json();
+      if (j && j.url){ API_URL = j.url; return; }
+    }
+  } catch (e) { /* fall through */ }
+  // No fallback — content fetch will surface an error if API_URL stays null
+}
+
 async function load(){
+  await discoverApiUrl();
   try {
     const r = await fetch(`${BUCKET}/data/history-index.json?_=${Date.now()}`);
     if (!r.ok) {
@@ -209,7 +236,6 @@ async function load(){
     `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
   ).join('');
 
-  // Feeds table
   const feeds = DATA.feeds || [];
   if (feeds.length === 0){
     document.getElementById('feeds-body').innerHTML =
@@ -231,7 +257,6 @@ function selectFeed(idx){
   if (!DATA || !DATA.feeds || !DATA.feeds[idx]) return;
   const feed = DATA.feeds[idx];
 
-  // Highlight selected row
   document.querySelectorAll('#feeds-body tr').forEach(r => r.classList.remove('selected'));
   const row = document.querySelector(`#feeds-body tr[data-idx="${idx}"]`);
   if (row) row.classList.add('selected');
@@ -245,25 +270,60 @@ function selectFeed(idx){
     tsContainer.innerHTML = `<span style="color:var(--t3);font-style:italic">No timestamps recorded</span>`;
   } else {
     tsContainer.innerHTML = tss.map(ts =>
-      `<span class="ts-pill" onclick="selectTimestamp('${feed.feed_key}', '${feed.pk}', '${ts}')">${ts.replace('T',' ').replace('Z','')}</span>`
+      `<span class="ts-pill" data-ts="${ts}" onclick="selectTimestamp('${feed.feed_key}', '${ts}', this)">${ts.replace('T',' ').replace('Z','')}</span>`
     ).join('');
   }
 
-  // Hide previous detail
   document.getElementById('detail-card').style.display = 'none';
-
-  // Scroll to section
   document.getElementById('ts-section').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
-function selectTimestamp(feedKey, pk, ts){
+async function selectTimestamp(feedKey, ts, pillEl){
   document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
+  if (pillEl) pillEl.classList.add('active');
 
+  const card = document.getElementById('detail-card');
+  card.style.display = '';
   document.getElementById('d-ts').textContent = ts;
   document.getElementById('d-feed').textContent = feedKey;
-  document.getElementById('d-pk').textContent = `pk="${pk}"  sk="${ts}"`;
-  document.getElementById('detail-card').style.display = '';
+  document.getElementById('d-hash').textContent = '…';
+  document.getElementById('d-size').textContent = '…';
+  document.getElementById('d-enc').textContent = '…';
+  document.getElementById('d-content').textContent = 'Loading from history-api…';
+
+  if (!API_URL){
+    document.getElementById('d-content').textContent =
+      'history-api URL not yet discovered. Bootstrap script (step 259) writes ' +
+      'data/history-api-url.json — wait until that lands, then refresh this page.';
+    return;
+  }
+
+  try {
+    const apiUrl = `${API_URL.replace(/\/$/,'')}/snapshot?key=${encodeURIComponent(feedKey)}&ts=${encodeURIComponent(ts)}`;
+    const r = await fetch(apiUrl);
+    if (!r.ok){
+      document.getElementById('d-content').textContent = `Fetch failed: HTTP ${r.status}`;
+      return;
+    }
+    const data = await r.json();
+    document.getElementById('d-hash').textContent = (data.content_hash || '').slice(0,32) + '…';
+    document.getElementById('d-size').textContent = fmtSize(data.size_bytes);
+    document.getElementById('d-enc').textContent = data.encoding + (data.encoding_used_for_decode !== data.encoding ? ` (decoded: ${data.encoding_used_for_decode})` : '');
+
+    let rendered = '';
+    if (data.content_format === 'json' && data.content){
+      rendered = JSON.stringify(data.content, null, 2);
+    } else if (typeof data.content === 'string'){
+      rendered = data.content;
+    } else {
+      rendered = '(content unavailable)';
+    }
+    // Cap render to 200KB to avoid hanging the browser
+    if (rendered.length > 200_000) rendered = rendered.slice(0, 200_000) + '\n\n... (truncated, full size ' + fmtSize(data.size_bytes) + ')';
+    document.getElementById('d-content').textContent = rendered;
+  } catch (e) {
+    document.getElementById('d-content').textContent = `Error: ${e.message}`;
+  }
 }
 
 load();

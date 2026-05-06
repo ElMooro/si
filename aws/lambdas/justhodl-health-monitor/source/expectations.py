@@ -729,6 +729,24 @@ EXPECTATIONS = {
     },
 
     # ─── History audit index (Phase 1 of /audit.html) ────────────────
+# ─── History API (Phase 2 of /audit.html) ────────────────────────
+    "lambda:justhodl-history-api": {
+        "type": "lambda",
+        "name": "justhodl-history-api",
+        "max_error_rate": 0.30,
+        "min_invocations_24h": None,  # ad-hoc page calls only, no schedule
+        "note": "Read-only API for justhodl-history DDB. Function URL with NONE auth, reserved concurrency=5.",
+        "severity": "important",
+    },
+    "s3:data/history-api-url.json": {
+        "type": "s3_file",
+        "key": "data/history-api-url.json",
+        "fresh_max": None,           # written once on bootstrap
+        "warn_max": None,
+        "expected_size": 80,
+        "note": "Pointer to history-api Function URL — read by /audit.html.",
+        "severity": "nice_to_have",
+    },
     "s3:data/history-index.json": {
         "type": "s3_file",
         "key": "data/history-index.json",
