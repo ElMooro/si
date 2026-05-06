@@ -1,0 +1,79 @@
+{
+  "started": "2026-05-06T21:29:42.534470+00:00",
+  "treasury": {
+    "settle_s": 30,
+    "X1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X6_revoked_key": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "nasdaq": {
+    "settle_s": 2,
+    "X1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "X6_revoked_key": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "all_passed": true,
+  "duration_s": 40.9
+}
