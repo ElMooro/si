@@ -1,0 +1,97 @@
+{
+  "started": "2026-05-06T18:37:18.214603+00:00",
+  "zip_size_bytes": 3414,
+  "code_updated": true,
+  "env_updated": true,
+  "invoke": {
+    "status": 200,
+    "func_err": null,
+    "elapsed_s": 3.34,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"regime\": \"SLOWING\", \"score\": -0.4152, \"coverage_pct\": 100.0}"
+    }
+  },
+  "output": {
+    "regime": "SLOWING",
+    "regime_color": "amber",
+    "raw_score": -0.4152,
+    "normalized_score": -0.4152,
+    "coverage_pct": 100.0,
+    "n_components_used": 7,
+    "n_components_failed": 0,
+    "components": [
+      {
+        "fred_id": "PAYEMS",
+        "label": "Nonfarm Payrolls",
+        "z": -1.086,
+        "contribution": -0.2715,
+        "raw_value": 0.164,
+        "n_obs": 315,
+        "latest_date": "2026-03-01",
+        "error": null
+      },
+      {
+        "fred_id": "UMCSENT",
+        "label": "Consumer Sentiment (UMich)",
+        "z": -1.34,
+        "contribution": -0.134,
+        "raw_value": 53.3,
+        "n_obs": 315,
+        "latest_date": "2026-03-01",
+        "error": null
+      },
+      {
+        "fred_id": "RSAFS",
+        "label": "Retail Sales",
+        "z": -0.41,
+        "contribution": -0.0819,
+        "raw_value": 3.969,
+        "n_obs": 315,
+        "latest_date": "2026-03-01",
+        "error": null
+      },
+      {
+        "fred_id": "HOUST",
+        "label": "Housing Starts",
+        "z": 0.686,
+        "contribution": 0.0686,
+        "raw_value": 10.849,
+        "n_obs": 315,
+        "latest_date": "2026-03-01",
+        "error": null
+      },
+      {
+        "fred_id": "T10Y2Y",
+        "label": "2s10s Yield Curve",
+        "z": 0.651,
+        "contribution": 0.0651,
+        "raw_value": 0.52,
+        "n_obs": 316,
+        "latest_date": "2026-04-01",
+        "error": null
+      },
+      {
+        "fred_id": "INDPRO",
+        "label": "Industrial Production",
+        "z": -0.236,
+        "contribution": -0.0471,
+        "raw_value": 0.742,
+        "n_obs": 315,
+        "latest_date": "2026-03-01",
+        "error": null
+      },
+      {
+        "fred_id": "UNRATE",
+        "label": "Unemployment Rate",
+        "z": 0.287,
+        "contribution": -0.0144,
+        "raw_value": 4.3,
+        "n_obs": 314,
+        "latest_date": "2026-03-01",
+        "error": null
+      }
+    ]
+  },
+  "duration_s": 16.6
+}
