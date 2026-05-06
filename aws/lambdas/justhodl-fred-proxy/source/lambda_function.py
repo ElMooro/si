@@ -1,10 +1,25 @@
 import json
 import urllib.request
 import urllib.parse
+import os
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
 
 FRED_KEY = '2f057499936072679d8843d7fce99989'
 FRED_BASE = 'https://api.stlouisfed.org/fred/series/observations'
+
+# Allowed origins for Origin-bypass mode — justhodl.ai frontend pages
+# (carry.html, fred.html) call this Lambda directly. Adding strict
+# auth would break them; Origin allowlist lets browser pages through
+# while requiring API keys for external (curl, scripts) callers.
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 
 def fetch_one(series_id, limit=365):
     params = urllib.parse.urlencode({'series_id': series_id, 'api_key': FRED_KEY, 'file_type': 'json', 'limit': limit, 'sort_order': 'desc'})
@@ -18,6 +33,14 @@ def fetch_one(series_id, limit=365):
     return {'series_id': series_id, 'value': obs[0]['value'], 'date': obs[0]['date'], 'observations': obs[:60], 'count': len(obs)}
 
 def lambda_handler(event, context):
+    # ─── Auth gate (Origin-bypass mode) ──────────────────────────────
+    # justhodl.ai frontend pages (carry.html, fred.html) call this
+    # without any key — Origin matches → allowed through as ENTERPRISE.
+    # External callers (curl, third-party apps) need a valid jhd_<key>.
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     params = event.get('queryStringParameters') or {}
     series = params.get('series', '')
     if not series:

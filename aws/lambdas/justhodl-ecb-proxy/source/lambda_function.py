@@ -3,6 +3,12 @@ import urllib.request
 import traceback
 import csv
 import io
+import os
+import sys
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
 
 ECB_ENDPOINTS = [
     "https://data-api.ecb.europa.eu/service/data",
@@ -55,9 +61,17 @@ SERIES = {
 FRED_STRESS = ["STLFSI4","NFCI","ANFCI","KCFSI","VIXCLS","TEDRATE","BAMLH0A0HYM2","BAMLC0A4CBBB","T10Y2Y","T10Y3M","USEPUINDXD"]
 
 def lambda_handler(event, context):
-    headers = {"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, OPTIONS","Access-Control-Allow-Headers":"Content-Type"}
+    headers = {"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization, x-api-key"}
     if event.get("requestContext",{}).get("http",{}).get("method") == "OPTIONS":
         return {"statusCode":200,"headers":headers,"body":""}
+
+    # ─── API key auth (strict — no Origin bypass) ────────────────────
+    # ecb-proxy has no frontend callers per the audit (justhodl.ai
+    # pages do not embed the URL). Pure public API surface.
+    key_meta, err = authorize(event)
+    if err:
+        return err
+
     params = event.get("queryStringParameters") or {}
     action = params.get("action","multi")
     try:

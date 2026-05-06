@@ -222,22 +222,68 @@ def _update_last_used(key_hash: str) -> None:
         pass  # ignore — non-critical
 
 
-def authorize(event: dict) -> Tuple[Optional[dict], Optional[dict]]:
+def authorize(event: dict, allowed_origins: Optional[list] = None) -> Tuple[Optional[dict], Optional[dict]]:
     """Auth + rate-limit gate for a Lambda invocation.
+
+    DUAL MODE
+    ─────────
+    Strict mode (default, allowed_origins=None):
+        API key is required. No origin bypass.
+
+    Origin-bypass mode (allowed_origins is a non-empty list):
+        If the request's Origin or Referer header matches one of the
+        allowed origins, the request is allowed through WITHOUT a key,
+        treated as ENTERPRISE-tier (no rate limit). This is intended
+        for migrating existing Lambdas where the justhodl.ai frontend
+        calls them directly — adding auth would otherwise break the
+        page. External callers (curl, third-party apps) still need
+        a valid jhd_<key>.
+
+        Example:
+            authorize(event, allowed_origins=[
+                "https://justhodl.ai",
+                "https://www.justhodl.ai",
+            ])
 
     Args:
         event: Lambda event dict (Function URL format).
+        allowed_origins: Optional list of origins that bypass the
+                         API key requirement. If None or empty,
+                         strict mode applies.
 
     Returns:
         (key_meta, error_response)
           - On success: (key_meta_dict, None)
           - On failure: (None, lambda_response_dict)
 
-        The caller should check `if err: return err` as the first line of
-        their handler. On success, key_meta contains:
-          {key_hash, tier, owner_email, label, created_at}
+        On origin-bypass success, key_meta has:
+          {tier: "ENTERPRISE", auth_mode: "origin", origin: "..."}
+        On API-key success, key_meta has:
+          {key_hash, tier, owner_email, label, created_at,
+           auth_mode: "api_key"}
     """
     plain = _extract_key_from_event(event)
+
+    # Origin-bypass mode — only triggers if no API key was provided
+    # AND a matching origin/referer is present.
+    if not plain and allowed_origins:
+        bypass_origin = _check_origin_bypass(event, allowed_origins)
+        if bypass_origin:
+            # Pass through as ENTERPRISE-equivalent. We don't rate-limit
+            # internal frontend traffic; it's already protected by CORS
+            # at the Function URL level and by per-Lambda reserved
+            # concurrency.
+            return {
+                "auth_mode": "origin",
+                "tier": "ENTERPRISE",
+                "tier_label": "Enterprise (frontend internal)",
+                "origin": bypass_origin,
+                "owner_email": "",
+                "label": "frontend-internal",
+                "created_at": "",
+            }, None
+
+    # Strict mode — API key required
     if not plain:
         return None, _err(401, "unauthorized",
                           "Missing API key. Pass 'Authorization: Bearer jhd_<key>' "
@@ -307,6 +353,7 @@ def authorize(event: dict) -> Tuple[Optional[dict], Optional[dict]]:
     _update_last_used(key_hash)
 
     return {
+        "auth_mode": "api_key",
         "key_hash": key_hash,
         "tier": tier,
         "tier_label": limits["label"],
@@ -314,6 +361,42 @@ def authorize(event: dict) -> Tuple[Optional[dict], Optional[dict]]:
         "label": meta.get("label", ""),
         "created_at": meta.get("created_at", ""),
     }, None
+
+
+def _check_origin_bypass(event: dict, allowed_origins: list) -> Optional[str]:
+    """If the request's Origin or Referer header matches an allowed
+    origin (case-insensitive, trailing-slash insensitive), return the
+    matched origin string. Otherwise return None.
+
+    Browsers send Origin on cross-origin requests and Referer on most
+    requests — we check both to handle same-origin GETs that lack Origin.
+    """
+    headers = event.get("headers") or {}
+    headers_lower = {k.lower(): v for k, v in headers.items() if isinstance(k, str)}
+
+    # Normalize allowed origins for comparison
+    allowed_set = {o.rstrip("/").lower() for o in allowed_origins}
+
+    # Check Origin header (most reliable)
+    origin = (headers_lower.get("origin") or "").rstrip("/").lower()
+    if origin and origin in allowed_set:
+        return origin
+
+    # Fall back to Referer (browser sends this for same-origin nav)
+    referer = (headers_lower.get("referer") or "").lower()
+    if referer:
+        # Extract scheme://host from referer URL
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(referer)
+            ref_origin = f"{parsed.scheme}://{parsed.netloc}".rstrip("/").lower()
+            if ref_origin in allowed_set:
+                return ref_origin
+        except Exception:
+            pass
+
+    return None
+
 
 
 class AuthError(Exception):
