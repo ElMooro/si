@@ -372,8 +372,19 @@ def lambda_handler(event=None, context=None):
 
     # 3. Sort + pick highlights
     results.sort(key=lambda x: -(x.get("concern_score") or 0))
-    most_concerning = results[:25]
-    cleanest = [r for r in results if r.get("m_score") is not None]
+
+    # Filter financial-sector stocks from the "concerning" list — Beneish (1999)
+    # was designed for non-financial firms; banks/insurers/REITs have totally
+    # different balance sheet structure that produces spurious M-Score flags.
+    # Still computed and stored in all_results for transparency, but excluded
+    # from the headline most-concerning view.
+    FINANCIAL_SECTORS = {"Financial Services", "Financials", "Financial",
+                         "Insurance", "Real Estate", "Banks"}
+    non_financial = [r for r in results if (r.get("sector") or "") not in FINANCIAL_SECTORS]
+    n_financial_excluded = len(results) - len(non_financial)
+    most_concerning = non_financial[:25]
+
+    cleanest = [r for r in non_financial if r.get("m_score") is not None]
     cleanest.sort(key=lambda x: x.get("m_score") or 999)
     cleanest = cleanest[:25]
 
@@ -414,6 +425,7 @@ def lambda_handler(event=None, context=None):
             "n_sloan_flagged": n_sloan_flagged,
             "n_wc_divergence_flagged": n_wc_flagged,
             "n_goodwill_bloat_flagged": n_gw_flagged,
+            "n_financial_sector_excluded_from_most_concerning": n_financial_excluded,
             "m_score_distribution": stats(m_scores),
             "sloan_distribution": stats(sloan_vals),
         },
