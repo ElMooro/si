@@ -54,9 +54,14 @@ FEEDS = {
     # 2 technical hunters
     "momentum":       ("data/momentum-breakout.json",      "summary.top_25_overall",  "symbol"),
     "pre_pump":       ("data/pre-pump-signals.json",       "summary.top_25_overall",  "symbol"),
-    # NEW: institutional signals
+    # institutional signals
     "options_flow":   ("data/options-flow.json",           "summary.top_25_overall",  "symbol"),
     "activist":       ("data/activist-filings.json",       "summary.top_25_overall",  "subject_ticker"),
+    # NEW: coiled-spring + fundamental inflection + squeeze + PEAD
+    "vol_squeeze":    ("data/volatility-squeeze.json",     "summary.top_25_overall",  "symbol"),
+    "rev_accel":      ("data/revenue-acceleration.json",   "summary.top_25_overall",  "symbol"),
+    "microcap_sq":    ("data/microcap-float-squeeze.json", "summary.top_25_overall",  "symbol"),
+    "pead":           ("data/pead-signals.json",           "summary.top_30_overall",  "symbol"),
 }
 
 
@@ -180,6 +185,49 @@ def aggregate():
                     "filer_name": c.get("filer_name"),
                     "flags": c.get("flags") or [],
                     "filing_date": c.get("filing_date"),
+                }
+            elif name == "vol_squeeze":
+                d = {
+                    "tier": c.get("tier"),
+                    "score": c.get("score"),
+                    "n_signals": c.get("n_signals"),
+                    "flags": c.get("flags") or [],
+                    "bb_pct": c.get("bb_pct"),
+                    "atr_pct": c.get("atr_pct"),
+                    "base_days": c.get("base_days"),
+                    "vol_contraction": c.get("vol_contraction"),
+                }
+            elif name == "rev_accel":
+                d = {
+                    "tier": c.get("tier"),
+                    "score": c.get("score"),
+                    "consec_accel": c.get("consec_accel"),
+                    "growth": c.get("growth"),
+                    "acceleration": c.get("acceleration"),
+                    "gm_trend": c.get("gm_trend"),
+                    "is_microcap": c.get("is_microcap"),
+                    "flags": c.get("flags") or [],
+                }
+            elif name == "microcap_sq":
+                d = {
+                    "tier": c.get("tier"),
+                    "score": c.get("score"),
+                    "float_turnover": c.get("float_turnover"),
+                    "short_pct": c.get("short_pct"),
+                    "days_to_cover": c.get("days_to_cover"),
+                    "short_change": c.get("short_change"),
+                    "flags": c.get("flags") or [],
+                }
+            elif name == "pead":
+                d = {
+                    "tier": c.get("tier"),
+                    "score": c.get("score"),
+                    "streak": c.get("streak"),
+                    "avg_beat_pct": c.get("avg_beat_pct"),
+                    "beat_accel": c.get("beat_accel"),
+                    "drift_pct": c.get("drift_pct"),
+                    "days_since_earnings": c.get("days_since_earnings"),
+                    "flags": c.get("flags") or [],
                 }
             presence[sym]["details"][name] = d
 
@@ -309,6 +357,8 @@ def emit_alerts(new_alerts, agg):
         "deep_value": "💎", "eps_velocity": "📈",
         "momentum": "🚀", "pre_pump": "🌱",
         "options_flow": "📞", "activist": "🏛️",
+        "vol_squeeze": "🔋", "rev_accel": "📊",
+        "microcap_sq": "🔥", "pead": "📅",
     }
     for a in new_alerts[:8]:
         sym = a["symbol"]
