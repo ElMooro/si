@@ -1,0 +1,13 @@
+- `00:29:28`     message: 1734 chars
+- `00:29:28`     preview:
+- `00:29:28`       🚀 *EXPONENTIAL UPGRADE: 7 FEED COMPOUND SYSTEM LIVE*
+- `00:29:28`       📅 2026\-05\-06 00:29 UTC
+- `00:29:28`       
+- `00:29:28`       After honest backtest against your AI supply chain pump list,
+- `00:29:28`       two new technical hunters were added: momentum\-breakout and
+- `00:29:28`       pre\-pump\-detector \(calibrated on real winner snapshots\)\.
+- `00:29:28`       
+- `00:29:28`       *Compound state:*
+- `00:29:28`       • 209 names tracked
+- `00:29:28`       • 15 multi\-signal \(was 7\)
+- `00:29:29`     ✅ delivered, message_id=696
