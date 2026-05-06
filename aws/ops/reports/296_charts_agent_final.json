@@ -1,0 +1,33 @@
+{
+  "started": "2026-05-06T21:47:25.802878+00:00",
+  "last_modified": "2026-05-06T21:41:28.000+0000",
+  "code_size": 7530,
+  "valid_key": {
+    "status": 502,
+    "expected": 200,
+    "ok": false,
+    "preview": "Internal Server Error"
+  },
+  "latest_logs": [
+    {
+      "ts": "2026-05-06T21:45:49.407000+00:00",
+      "msg": "INIT_START Runtime Version: python:3.9.v133\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:56aff4f900e936db3f9298c07f22e2471d82c84a98b9e8045aadbcaed9cfe5ec"
+    },
+    {
+      "ts": "2026-05-06T21:45:49.713000+00:00",
+      "msg": "START RequestId: fb1bc30a-3715-4c33-8d6d-f5407728e27c Version: $LATEST"
+    },
+    {
+      "ts": "2026-05-06T21:45:50.445000+00:00",
+      "msg": "[ERROR] TypeError: unhashable type: 'dict'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 178, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0'headers': {{"
+    },
+    {
+      "ts": "2026-05-06T21:45:50.448000+00:00",
+      "msg": "END RequestId: fb1bc30a-3715-4c33-8d6d-f5407728e27c"
+    },
+    {
+      "ts": "2026-05-06T21:45:50.448000+00:00",
+      "msg": "REPORT RequestId: fb1bc30a-3715-4c33-8d6d-f5407728e27c\tDuration: 734.38 ms\tBilled Duration: 1037 ms\tMemory Size: 512 MB\tMax Memory Used: 82 MB\tInit Duration: 301.75 ms"
+    }
+  ]
+}
