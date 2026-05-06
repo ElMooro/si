@@ -141,6 +141,15 @@ table.tbl tr:last-child td{border-bottom:none}
     <div id="nowcastStrip" class="strip" style="margin-top:14px;margin-bottom:18px">
       <div class="strip-cell"><div class="label">Loading…</div><div class="value">…</div></div>
     </div>
+    <!-- ── Historical chart (10y monthly replay) ── -->
+    <div id="nowcastHistoryWrap" style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;text-transform:uppercase">
+        <span>10-year historical replay (no look-ahead)</span>
+        <span id="nowcastHistMeta">—</span>
+      </div>
+      <div id="nowcastHistChart" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:12px;min-height:220px"></div>
+      <div id="nowcastHistLegend" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)"></div>
+    </div>
     <div id="nowcastComponents" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-family:var(--font-mono);font-size:11px">
       <div class="skel"></div><div class="skel"></div><div class="skel"></div>
     </div>
@@ -259,6 +268,144 @@ function renderBeaTable(targetId, beaSection, sectionName){
 }
 
 // ─── COMPOSITE NOWCAST ──────────────────────────────────────────────
+
+// SVG line chart of the 10y historical track. Y-axis clipped to ±3.5
+// (extreme outliers like COVID -19 noted off-chart). X-axis is months
+// (no labels — fits the data-density-first aesthetic).
+function renderNowcastHistChart(d){
+  const wrap = document.getElementById('nowcastHistWrap') || document.getElementById('nowcastHistChart');
+  const chart = document.getElementById('nowcastHistChart');
+  const meta = document.getElementById('nowcastHistMeta');
+  const legend = document.getElementById('nowcastHistLegend');
+  const hist = d.historical_scores || [];
+  const summary = d.historical_summary || {};
+
+  if (!hist.length){
+    chart.innerHTML = '<div style="color:var(--fg-3);font-size:11px;font-style:italic;text-align:center;padding:60px 0">No historical data yet</div>';
+    return;
+  }
+
+  // Y-axis clip range
+  const Y_MIN = -3.5;
+  const Y_MAX = 3.5;
+  // Extreme values for annotation
+  const offChart = hist.filter(h => h.score < Y_MIN || h.score > Y_MAX);
+  const minPt = hist.reduce((a, b) => b.score < a.score ? b : a);
+  const maxPt = hist.reduce((a, b) => b.score > a.score ? b : a);
+
+  // Layout
+  const W = 960, H = 240, P = {l: 36, r: 12, t: 8, b: 22};
+  const innerW = W - P.l - P.r, innerH = H - P.t - P.b;
+
+  const x = i => P.l + (i / (hist.length - 1)) * innerW;
+  const y = s => {
+    const clipped = Math.max(Y_MIN, Math.min(Y_MAX, s));
+    return P.t + (1 - (clipped - Y_MIN) / (Y_MAX - Y_MIN)) * innerH;
+  };
+
+  // Threshold y-positions
+  const yStrong = y(1.0), yExp = y(0.3), yMud = y(-0.3), ySlow = y(-1.0);
+
+  // Regime color bands (top to bottom of chart)
+  // STRONG EXPANSION (>1.0): green
+  // EXPANSION (0.3 to 1.0): light green
+  // MUDDLE (-0.3 to 0.3): yellow
+  // SLOWING (-1.0 to -0.3): amber
+  // CONTRACTION (<-1.0): red
+  const bands = [
+    {y1: P.t, y2: yStrong, fill: 'rgba(56,255,168,0.10)'},   // strong-exp
+    {y1: yStrong, y2: yExp, fill: 'rgba(56,255,168,0.05)'}, // expansion
+    {y1: yExp, y2: yMud, fill: 'rgba(255,196,0,0.05)'},     // muddle (top half)
+    {y1: yMud, y2: ySlow, fill: 'rgba(255,177,61,0.08)'},   // slowing
+    {y1: ySlow, y2: P.t + innerH, fill: 'rgba(255,92,122,0.10)'}, // contraction
+  ];
+
+  // Score path
+  let path = '';
+  hist.forEach((h, i) => {
+    path += (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(h.score).toFixed(1) + ' ';
+  });
+
+  // Date axis ticks: every ~2 years
+  const tickCount = 6;
+  const ticks = [];
+  for (let i = 0; i <= tickCount; i++){
+    const idx = Math.floor((hist.length - 1) * i / tickCount);
+    ticks.push({x: x(idx), label: hist[idx]?.date?.slice(0,7) || ''});
+  }
+
+  // Y-axis labels at thresholds
+  const yLabels = [
+    {y: y(1.0), label: '+1.0', sub: 'expansion'},
+    {y: y(0.3), label: '+0.3', sub: ''},
+    {y: y(0), label: '0', sub: ''},
+    {y: y(-0.3), label: '-0.3', sub: ''},
+    {y: y(-1.0), label: '-1.0', sub: 'contraction'},
+  ];
+
+  // Current point
+  const lastIdx = hist.length - 1;
+  const lastX = x(lastIdx);
+  const lastY = y(hist[lastIdx].score);
+
+  const svg = `
+  <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">
+    <!-- background -->
+    <rect x="${P.l}" y="${P.t}" width="${innerW}" height="${innerH}" fill="var(--bg-sunken)"/>
+
+    <!-- regime bands -->
+    ${bands.map(b => `<rect x="${P.l}" y="${b.y1}" width="${innerW}" height="${b.y2 - b.y1}" fill="${b.fill}"/>`).join('')}
+
+    <!-- threshold lines -->
+    <line x1="${P.l}" y1="${y(0)}" x2="${P.l + innerW}" y2="${y(0)}" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,3"/>
+
+    <!-- score line -->
+    <path d="${path}" fill="none" stroke="var(--cyan)" stroke-width="1.5" opacity="0.95"/>
+
+    <!-- current value highlight -->
+    <circle cx="${lastX}" cy="${lastY}" r="4" fill="${d.regime_color === 'green' ? 'var(--green)' : d.regime_color === 'red' ? 'var(--red)' : d.regime_color === 'amber' ? 'var(--amber)' : 'var(--amber)'}" stroke="var(--bg-base)" stroke-width="1.5"/>
+
+    <!-- y-axis tick labels -->
+    ${yLabels.map(l => `
+      <line x1="${P.l - 3}" y1="${l.y}" x2="${P.l}" y2="${l.y}" stroke="var(--fg-3)" stroke-width="1"/>
+      <text x="${P.l - 6}" y="${l.y + 3}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--fg-3)" text-anchor="end">${l.label}</text>
+    `).join('')}
+
+    <!-- x-axis ticks -->
+    ${ticks.map(t => `
+      <text x="${t.x}" y="${H - 5}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--fg-3)" text-anchor="middle">${t.label}</text>
+    `).join('')}
+
+    <!-- annotation: extreme low (e.g. COVID) -->
+    ${offChart.length ? `
+      <text x="${P.l + 8}" y="${P.t + innerH - 8}" font-family="IBM Plex Mono,monospace" font-size="9" fill="var(--red)">
+        ${offChart.length} mo off-chart (min ${minPt.score.toFixed(1)}, ${minPt.date.slice(0,7)})
+      </text>
+    ` : ''}
+  </svg>`;
+  chart.innerHTML = svg;
+
+  // Meta line
+  meta.textContent = `${summary.first_date?.slice(0,7) || ''} → ${summary.last_date?.slice(0,7) || ''} · ${summary.n_months} months · today at ${summary.current_score_percentile}th pctile`;
+
+  // Legend
+  const dist = summary.regime_distribution || {};
+  const total = Object.values(dist).reduce((a,b)=>a+b,0) || 1;
+  const colors = {
+    'STRONG EXPANSION': 'var(--green)',
+    'EXPANSION': 'var(--green)',
+    'MUDDLE': 'var(--amber)',
+    'SLOWING': '#ffb13d',
+    'CONTRACTION RISK': 'var(--red)',
+  };
+  legend.innerHTML = ['STRONG EXPANSION','EXPANSION','MUDDLE','SLOWING','CONTRACTION RISK']
+    .map(k => {
+      const n = dist[k] || 0;
+      const pct = (n / total * 100).toFixed(1);
+      return `<span><span style="display:inline-block;width:10px;height:10px;background:${colors[k]};margin-right:5px;vertical-align:-1px;border-radius:2px"></span>${k}: ${n}mo (${pct}%)</span>`;
+    }).join('');
+}
+
 async function loadNowcast(){
   const stripEl = document.getElementById('nowcastStrip');
   const compsEl = document.getElementById('nowcastComponents');
@@ -296,6 +443,9 @@ async function loadNowcast(){
         <div class="sub">last build duration</div>
       </div>
     `;
+
+    // Historical chart
+    renderNowcastHistChart(d);
 
     const comps = d.components || [];
     compsEl.innerHTML = comps.map(c => {
