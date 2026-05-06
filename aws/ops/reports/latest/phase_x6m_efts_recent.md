@@ -1,0 +1,14 @@
+- `10:25:38`     invoking...
+- `10:25:46`     ✅ forms-only 13D                 total=10000  n=100 dates=2024-12-12..2024-12-17
+- `10:25:46`          SC 13D/A 2024-12-17 ['AGL Private Credit Income Fund  (CI', 'Abu Dhabi Investment Authority  (CI']
+- `10:25:46`          SC 13D/A 2024-12-17 ['FIRST NATIONAL CORP /VA/  (FXNC)  (', 'WILKINS III JAMES R  (CIK 000125275']
+- `10:25:46`     ✅ forms 13D + q=schedule         total=10000  n=100 dates=2001-11-02..2024-11-06
+- `10:25:46`          SC 13D/A 2009-11-19 ['BLUEGREEN CORP  (CIK 0000778946)', 'Central Florida Investments, Inc.  ']
+- `10:25:46`          SC 13D 2015-12-30 ['Qihoo 360 Technology Co Ltd  (CIK 0', 'TB Partners GP LTD  (CIK 0001436081']
+- `10:25:46`     ✅ forms 13D + dateRange last 30d total=0      n=0   dates=none..none
+- `10:25:46`     ❌ forms+q+dateRange last 30d     status=500
+- `10:25:46`     ✅ UI-style dateRange last 7d     total=0      n=0   dates=none..none
+- `10:25:46`     ❌ hits=10 last 7d                status=500
+- `10:25:46`     ✅ sort=desc filings              total=None   n=0   dates=none..none
+- `10:25:46`     ❌ efts-fts variant               status=500
+- `10:25:46`     ✓ deleted
