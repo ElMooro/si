@@ -1,0 +1,135 @@
+{
+  "probed_at": "2026-05-06T16:17:21+00:00",
+  "engine_version": "2.0.1",
+  "engine_generated_at": "2026-05-06T16:16:04.626553+00:00",
+  "honest_summary_RAW": {
+    "error": "name 'ann_return' is not defined"
+  },
+  "constants": {
+    "POSITION_SIZE": 0.005,
+    "SLIPPAGE_BPS_PER_LEG": 5,
+    "CONCENTRATION_CAP": 0.4,
+    "GROSS_EXPOSURE_CAP": 1.0,
+    "RF_ANNUAL": 0.05,
+    "N_BOOTSTRAP": 1000,
+    "BOOTSTRAP_BLOCK_LEN": 5
+  },
+  "log_events": [
+    {
+      "ts": 1778084077754,
+      "msg": "[backtest] starting at 2026-05-06T16:14:37.754803+00:00"
+    },
+    {
+      "ts": 1778084077894,
+      "msg": "[backtest] loaded 38 flat weights + 6 horizons (50 (signal,horizon) pairs)"
+    },
+    {
+      "ts": 1778084078962,
+      "msg": "[backtest] pulled 1807 scored outcomes (7 pages)"
+    },
+    {
+      "ts": 1778084078963,
+      "msg": "[backtest] after dedup by signal_id: 1479 unique trades (was 1807)"
+    },
+    {
+      "ts": 1778084079002,
+      "msg": "[backtest] kept 1479 contributions  (skipped 0 no_weight + 0 no_return)"
+    },
+    {
+      "ts": 1778084079002,
+      "msg": "[backtest] weight sources: 1477 horizon-aware, 2 flat fallback"
+    },
+    {
+      "ts": 1778084079002,
+      "msg": "[backtest] horizon breakdown: {'day_14': 182, 'day_30': 795, 'day_3': 151, 'day_7': 262, 'day_1': 71, 'day_5': 16}"
+    },
+    {
+      "ts": 1778084079046,
+      "msg": "[backtest-v1.2] realistic: 1479 trades, slippage_total=0.7099%, concentration_capped_days=10, gross_capped_days=0"
+    },
+    {
+      "ts": 1778084079168,
+      "msg": "[backtest] fetched 34 SPY closes from 2026-03-19 to 2026-05-11"
+    },
+    {
+      "ts": 1778084079220,
+      "msg": "[backtest-v2.0-honest] sharpe=269.4676738939148 [p5=4.866710093254235, p95=28963.704225009933], n_biz_days=28, trades=1479/1479, ann_ret=16740.87%, ann_vol=62.11%"
+    },
+    {
+      "ts": 1778084079384,
+      "msg": "[backtest] wrote backtest/results.json (25,634b) and summary.json (4,471b)"
+    },
+    {
+      "ts": 1778084079384,
+      "msg": "[backtest] 1479 outcomes, 851 correct (57.5%)"
+    },
+    {
+      "ts": 1778084079384,
+      "msg": "[backtest] strategy: $180134  return=+80.13%   SPY: $108822.37  return=8.8224%   alpha=71.31124000000001"
+    },
+    {
+      "ts": 1778084079384,
+      "msg": "[backtest] window=2026-03-26 \u2192 2026-05-04 (40 days)  max_dd=0.58%  sharpe=10.39118418876025"
+    },
+    {
+      "ts": 1778084164626,
+      "msg": "[backtest] starting at 2026-05-06T16:16:04.626553+00:00"
+    },
+    {
+      "ts": 1778084164764,
+      "msg": "[backtest] loaded 38 flat weights + 6 horizons (50 (signal,horizon) pairs)"
+    },
+    {
+      "ts": 1778084165814,
+      "msg": "[backtest] pulled 1807 scored outcomes (7 pages)"
+    },
+    {
+      "ts": 1778084165815,
+      "msg": "[backtest] after dedup by signal_id: 1479 unique trades (was 1807)"
+    },
+    {
+      "ts": 1778084165854,
+      "msg": "[backtest] kept 1479 contributions  (skipped 0 no_weight + 0 no_return)"
+    },
+    {
+      "ts": 1778084165854,
+      "msg": "[backtest] weight sources: 1477 horizon-aware, 2 flat fallback"
+    },
+    {
+      "ts": 1778084165854,
+      "msg": "[backtest] horizon breakdown: {'day_14': 182, 'day_30': 795, 'day_3': 151, 'day_7': 262, 'day_1': 71, 'day_5': 16}"
+    },
+    {
+      "ts": 1778084165897,
+      "msg": "[backtest-v1.2] realistic: 1479 trades, slippage_total=0.7099%, concentration_capped_days=10, gross_capped_days=0"
+    },
+    {
+      "ts": 1778084166109,
+      "msg": "[backtest] fetched 34 SPY closes from 2026-03-19 to 2026-05-11"
+    },
+    {
+      "ts": 1778084166158,
+      "msg": "[backtest-v2.0] ERROR: name 'ann_return' is not defined"
+    },
+    {
+      "ts": 1778084166158,
+      "msg": "Traceback (most recent call last):"
+    },
+    {
+      "ts": 1778084166527,
+      "msg": "[backtest] wrote backtest/results.json (21,317b) and summary.json (3,602b)"
+    },
+    {
+      "ts": 1778084166527,
+      "msg": "[backtest] 1479 outcomes, 851 correct (57.5%)"
+    },
+    {
+      "ts": 1778084166527,
+      "msg": "[backtest] strategy: $180134  return=+80.13%   SPY: $108822.37  return=8.8224%   alpha=71.31124000000001"
+    },
+    {
+      "ts": 1778084166527,
+      "msg": "[backtest] window=2026-03-26 \u2192 2026-05-04 (40 days)  max_dd=0.58%  sharpe=10.39118418876025"
+    }
+  ]
+}
