@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit Trail · JustHodl.AI</title>
+<meta name="description" content="Time-series audit trail — every feed snapshot, every change, immutably timestamped in DynamoDB. The institutional 'what did the system show at <timestamp>' query.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--yellow)}.topnav a.active{color:var(--cyan);border-bottom:2px solid var(--cyan)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--yellow);font-style:normal}
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
+.hero{margin-bottom:32px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--cyan);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--t3)}
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--cyan)}
+.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--cyan);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}.primer p:last-child{margin-bottom:0}.primer strong{color:var(--t1)}
+.primer code{font-family:var(--mono);background:var(--bg2);padding:1px 6px;border-radius:3px;color:var(--cyan);font-size:12px}
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--yellow);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:780px}
+.dv-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px}
+.dv-table th{background:var(--bg2);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--brd)}
+.dv-table td{padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--t1)}
+.dv-table tr:hover td{background:var(--bg2);cursor:pointer}
+.dv-table tr.selected td{background:rgba(0,212,255,0.05);border-left:2px solid var(--cyan)}
+.dv-table .num{font-family:var(--mono);text-align:right}
+.dv-table .mono{font-family:var(--mono);font-size:12px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
+.timestamps{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;max-height:240px;overflow-y:auto;padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:8px}
+.ts-pill{font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--brd);color:var(--t2);padding:4px 8px;border-radius:4px;cursor:pointer;white-space:nowrap}
+.ts-pill:hover{border-color:var(--cyan);color:var(--cyan)}
+.ts-pill.active{background:var(--cyan-bg);border-color:var(--cyan);color:var(--cyan)}
+.detail-card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:20px;margin-top:14px}
+.detail-row{display:flex;gap:12px;font-size:12px;margin-bottom:8px;font-family:var(--mono)}
+.detail-row strong{color:var(--cyan);min-width:140px}
+.detail-row span{color:var(--t2)}
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
+.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
+.foot-section{display:flex;flex-direction:column;gap:4px}
+.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}
+.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
+.disclaimer{font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;line-height:1.5}
+.coming-soon{background:var(--yellow-bg);border:1px solid rgba(255,196,0,.25);color:var(--yellow);padding:10px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);margin-bottom:12px}
+@media (max-width: 900px){
+  .kpi-strip{grid-template-columns: repeat(2, 1fr)}
+  .dv-table{font-size: 11.5px}
+}
+@media (max-width: 600px){
+  .kpi-strip{grid-template-columns: 1fr}
+  .dv-table th,.dv-table td{padding: 6px 8px}
+}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/system.html">System</a>
+  <a href="/backtest.html">Backtest</a>
+  <a href="/performance.html">Performance</a>
+  <a href="/forensic.html">Forensic</a>
+  <a href="/audit.html" class="active">Audit Trail</a>
+  <a href="/weights.html">Weights</a>
+  <a href="/brief.html">Brief</a>
+</nav>
+
+<main class="shell">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Compliance audit trail</div>
+    <h1 class="hero-title">Every feed, every change, <em>immutably timestamped</em>.</h1>
+    <p class="hero-blurb">Every 5 minutes, the snapshotter Lambda captures the state of all live JustHodl feeds and writes any changes to a DynamoDB time-series table with 365-day TTL. This page indexes that history — what feeds exist, when they last changed, and how many distinct snapshots have been recorded. The institutional "what did the system show at <code>&lt;timestamp&gt;</code>?" query.</p>
+    <div class="kpi-strip" id="kpis"></div>
+  </header>
+
+  <div class="primer">
+    <h3>Why this exists</h3>
+    <p>For an institutional reader, the question "did the system actually call this regime change before the move?" is only credible if there's a verifiable record of what the system showed when. <strong>This is that record.</strong> Every feed at every 5-min tick is hashed and only changes are persisted (so a feed that updates daily takes ~365 rows over a year, not 105k).</p>
+    <p>Storage: <code>DynamoDB justhodl-history</code> · 365d TTL · pk=<code>feed#&lt;key&gt;</code> · sk=ISO8601 timestamp · content stored gzipped if &gt;100KB · oversize bodies archived to S3 with pointer in DDB.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Index</div>
+    <h2 class="section-title">Feeds tracked in the history table</h2>
+    <p class="section-blurb">Every feed that has at least one snapshot. Click a row to see its recent timestamps. Snapshot count grows over time as feed contents change — feeds with rapid changes (report.json every 5min) accumulate quickly; weekly feeds (calibration snapshots) grow slowly.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="feeds-table">
+        <thead><tr>
+          <th>Feed key</th>
+          <th class="num">Snapshots</th>
+          <th>First seen</th>
+          <th>Last change</th>
+          <th>Latest hash</th>
+        </tr></thead>
+        <tbody id="feeds-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="ts-section" style="display:none">
+    <div class="section-eyebrow">Timeline</div>
+    <h2 class="section-title">Recent timestamps for <span id="selected-feed" style="color:var(--cyan)">—</span></h2>
+    <p class="section-blurb">Showing up to 50 most recent change timestamps. Each represents a moment when the feed's content hash differed from the prior snapshot.</p>
+    <div class="coming-soon">⚠ Phase 1: timestamps only. Phase 2 (next ship) adds a Lambda Function URL for fetching the actual snapshot content at any timestamp.</div>
+    <div class="timestamps" id="timestamps"></div>
+    <div class="detail-card" id="detail-card" style="display:none">
+      <div style="font-family:var(--display);font-size:14px;color:var(--cyan);margin-bottom:10px">Snapshot details</div>
+      <div class="detail-row"><strong>Timestamp</strong><span id="d-ts">—</span></div>
+      <div class="detail-row"><strong>Feed key</strong><span id="d-feed">—</span></div>
+      <div class="detail-row"><strong>DDB lookup</strong><span id="d-pk" class="mono">—</span></div>
+      <div class="detail-row"><strong>Status</strong><span style="color:var(--yellow)">Content fetch coming in Phase 2 — Lambda Function URL is the next ship</span></div>
+    </div>
+  </div>
+
+  <p class="disclaimer">The history table is private (DynamoDB) — this page only displays metadata (counts, timestamps, hashes). Phase 2 will add a public read-only Function URL endpoint with rate-limiting so the page can fetch and render actual snapshot content for time-travel.</p>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section">
+      <div class="foot-label">Source</div>
+      <span>DynamoDB justhodl-history</span>
+      <span>365-day TTL on snapshots</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Refresh</div>
+      <span>Index rebuilt hourly</span>
+      <span id="last-updated">—</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Engine</div>
+      <span>justhodl-history-snapshotter Lambda</span>
+      <span><a href="/system.html">System health →</a></span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Schema</div>
+      <span>pk = feed#&lt;key&gt;</span>
+      <span>sk = ISO8601 timestamp</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+let DATA = null;
+
+function timeAgo(iso){
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+function fmtNumber(n){
+  if (n === null || n === undefined) return "—";
+  return Number(n).toLocaleString();
+}
+
+async function load(){
+  try {
+    const r = await fetch(`${BUCKET}/data/history-index.json?_=${Date.now()}`);
+    if (!r.ok) {
+      document.getElementById('feeds-body').innerHTML =
+        `<tr><td colspan="5" class="empty">Index file not yet generated. The history-snapshotter writes the index hourly — wait up to 1h after first deploy.</td></tr>`;
+      return;
+    }
+    DATA = await r.json();
+  } catch (e) {
+    document.getElementById('feeds-body').innerHTML =
+      `<tr><td colspan="5" class="empty">Failed to load: ${e.message}</td></tr>`;
+    return;
+  }
+
+  document.getElementById('last-updated').textContent =
+    DATA.generated_at ? `Updated ${timeAgo(DATA.generated_at)}` : '';
+
+  const kpis = [
+    { l: 'Feeds tracked', v: fmtNumber(DATA.n_feeds), sub: 'distinct keys in DDB' },
+    { l: 'Total snapshots', v: fmtNumber(DATA.n_snapshots_total), sub: 'across all feeds, all time' },
+    { l: 'DDB pages scanned', v: fmtNumber(DATA.ddb_pages_scanned), sub: 'last index build' },
+    { l: 'Index build time', v: `${DATA.duration_s}s`, sub: 'most recent run' },
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k =>
+    `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
+  ).join('');
+
+  // Feeds table
+  const feeds = DATA.feeds || [];
+  if (feeds.length === 0){
+    document.getElementById('feeds-body').innerHTML =
+      `<tr><td colspan="5" class="empty">No feeds in DDB yet. The snapshotter is running but has not yet captured any feeds — wait for the next 5-min tick.</td></tr>`;
+    return;
+  }
+  document.getElementById('feeds-body').innerHTML = feeds.map((f, i) =>
+    `<tr data-idx="${i}" onclick="selectFeed(${i})">
+      <td><strong>${f.feed_key}</strong></td>
+      <td class="num">${fmtNumber(f.snapshot_count)}</td>
+      <td class="mono" style="font-size:11px">${(f.first_seen||'—').slice(0,16)}</td>
+      <td class="mono" style="font-size:11px">${(f.last_seen||'—').slice(0,16)}</td>
+      <td class="mono" style="font-size:11px;color:var(--t3)">${(f.latest_hash||'').slice(0,16)}…</td>
+    </tr>`
+  ).join('');
+}
+
+function selectFeed(idx){
+  if (!DATA || !DATA.feeds || !DATA.feeds[idx]) return;
+  const feed = DATA.feeds[idx];
+
+  // Highlight selected row
+  document.querySelectorAll('#feeds-body tr').forEach(r => r.classList.remove('selected'));
+  const row = document.querySelector(`#feeds-body tr[data-idx="${idx}"]`);
+  if (row) row.classList.add('selected');
+
+  document.getElementById('selected-feed').textContent = feed.feed_key;
+  document.getElementById('ts-section').style.display = '';
+
+  const tsContainer = document.getElementById('timestamps');
+  const tss = feed.recent_timestamps || [];
+  if (tss.length === 0){
+    tsContainer.innerHTML = `<span style="color:var(--t3);font-style:italic">No timestamps recorded</span>`;
+  } else {
+    tsContainer.innerHTML = tss.map(ts =>
+      `<span class="ts-pill" onclick="selectTimestamp('${feed.feed_key}', '${feed.pk}', '${ts}')">${ts.replace('T',' ').replace('Z','')}</span>`
+    ).join('');
+  }
+
+  // Hide previous detail
+  document.getElementById('detail-card').style.display = 'none';
+
+  // Scroll to section
+  document.getElementById('ts-section').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function selectTimestamp(feedKey, pk, ts){
+  document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+
+  document.getElementById('d-ts').textContent = ts;
+  document.getElementById('d-feed').textContent = feedKey;
+  document.getElementById('d-pk').textContent = `pk="${pk}"  sk="${ts}"`;
+  document.getElementById('detail-card').style.display = '';
+}
+
+load();
+</script>
+</body>
+</html>

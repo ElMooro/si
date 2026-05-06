@@ -728,6 +728,17 @@ EXPECTATIONS = {
         "severity": "important",
     },
 
+    # ─── History audit index (Phase 1 of /audit.html) ────────────────
+    "s3:data/history-index.json": {
+        "type": "s3_file",
+        "key": "data/history-index.json",
+        "fresh_max": 7200,           # 2h (writer fires hourly at top of hour)
+        "warn_max": 14_400,          # 4h
+        "expected_size": 500,
+        "note": "Audit-trail index — feed-level snapshot counts + recent timestamps from DDB. Drives /audit.html.",
+        "severity": "nice_to_have",
+    },
+
     # ─── Alert router (multi-channel: Telegram + webhooks) ─────────────
     "s3:data/alert-history.json": {
         "type": "s3_file",

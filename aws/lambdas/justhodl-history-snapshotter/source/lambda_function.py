@@ -298,4 +298,118 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[history] heartbeat err: {e}")
 
+    # History index: lists every feed with snapshot count + newest 50 timestamps.
+    # Powers /audit.html. Scanning DDB on every 5-min run is wasteful, so we
+    # fire once per hour at the top of the hour (when minute < 5). Total
+    # output is small (tens of KB) regardless of total snapshot count
+    # because we cap recent_timestamps to 50 per feed.
+    try:
+        if datetime.now(timezone.utc).minute < 5:
+            _build_history_index()
+    except Exception as e:
+        print(f"[history] index build err: {e}")
+
     return {"statusCode": 200, "body": json.dumps(summary)}
+
+
+def _build_history_index():
+    """Scan DDB, group by pk, write data/history-index.json for /audit.html.
+
+    Schema (matches what audit.html expects):
+      {
+        "generated_at": ISO timestamp,
+        "n_feeds": int,
+        "n_snapshots_total": int,
+        "ddb_pages_scanned": int,
+        "duration_s": float,
+        "feeds": [
+          {
+            "feed_key": "data/report.json",
+            "pk": "feed#data/report.json",
+            "snapshot_count": int,
+            "first_seen": ISO,
+            "last_seen": ISO,
+            "latest_hash": sha256,
+            "recent_timestamps": [ISO, ...]   # newest 50
+          },
+          ...
+        ]
+      }
+    """
+    started = time.time()
+    print(f"[history-index] scanning DDB {DDB_TABLE}…")
+
+    feeds_data = {}  # pk -> aggregate info
+    pages = 0
+    last_key = None
+
+    try:
+        while True:
+            kw = {
+                "TableName": DDB_TABLE,
+                "ProjectionExpression": "pk, sk, content_hash",
+            }
+            if last_key:
+                kw["ExclusiveStartKey"] = last_key
+            resp = ddb_client.scan(**kw)
+            pages += 1
+            for item in resp.get("Items", []):
+                pk = item.get("pk", {}).get("S", "")
+                sk = item.get("sk", {}).get("S", "")
+                h = item.get("content_hash", {}).get("S", "")
+                if not pk or not sk:
+                    continue
+                bucket = feeds_data.setdefault(pk, {
+                    "pk": pk,
+                    "feed_key": pk[5:] if pk.startswith("feed#") else pk,
+                    "snapshot_count": 0,
+                    "first_seen": sk,
+                    "last_seen": sk,
+                    "latest_hash": h,
+                    "_all_sks": [],
+                })
+                bucket["snapshot_count"] += 1
+                if sk < bucket["first_seen"]:
+                    bucket["first_seen"] = sk
+                if sk > bucket["last_seen"]:
+                    bucket["last_seen"] = sk
+                    bucket["latest_hash"] = h  # most recent hash
+                bucket["_all_sks"].append(sk)
+            last_key = resp.get("LastEvaluatedKey")
+            if not last_key or pages > 100:
+                break
+    except Exception as e:
+        print(f"[history-index] scan err: {e}")
+        return
+
+    # Finalize: cap recent_timestamps at 50 per feed (newest first)
+    feeds_list = []
+    n_total = 0
+    for pk, b in feeds_data.items():
+        b["_all_sks"].sort(reverse=True)
+        b["recent_timestamps"] = b["_all_sks"][:50]
+        del b["_all_sks"]
+        feeds_list.append(b)
+        n_total += b["snapshot_count"]
+
+    # Sort feeds by snapshot count desc (most-tracked first)
+    feeds_list.sort(key=lambda x: -x["snapshot_count"])
+
+    out = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "n_feeds": len(feeds_list),
+        "n_snapshots_total": n_total,
+        "ddb_pages_scanned": pages,
+        "duration_s": round(time.time() - started, 2),
+        "feeds": feeds_list,
+    }
+
+    s3.put_object(
+        Bucket=S3_BUCKET, Key="data/history-index.json",
+        Body=json.dumps(out, default=str).encode(),
+        ContentType="application/json",
+        CacheControl="public, max-age=1800",
+    )
+    print(f"[history-index] wrote data/history-index.json: "
+          f"{len(feeds_list)} feeds, {n_total} total snapshots, "
+          f"{pages} DDB pages, {round(time.time()-started,2)}s")
