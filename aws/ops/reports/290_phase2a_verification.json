@@ -1,0 +1,78 @@
+{
+  "started": "2026-05-06T21:21:44.796293+00:00",
+  "admin_url": "https://drmkbf2q3bvlb6mqy7vvjbomf40dnlod.lambda-url.us-east-1.on.aws/",
+  "test_key_first_12": "jhd_neYiifU9...",
+  "test_key_hash": "6368b73478737d486a816d8d686780ecf7b04b400ee14ba6696741f09febdfe3",
+  "ecb": {
+    "A1_no_key": {
+      "status": 200,
+      "expected": 401,
+      "ok": false,
+      "error_code": null
+    },
+    "A2_origin_only": {
+      "status": 401,
+      "expected": 401,
+      "ok": true,
+      "error_code": "unauthorized"
+    },
+    "A3_valid_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "data_keys": [
+        "status",
+        "series_count",
+        "fred_series",
+        "endpoints"
+      ]
+    }
+  },
+  "fred": {
+    "B1_no_key_no_origin": {
+      "status": 200,
+      "expected": 401,
+      "ok": false,
+      "error_code": null
+    },
+    "B2_origin_bypass_main": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B3_evil_origin": {
+      "status": 200,
+      "expected": 401,
+      "ok": false,
+      "error_code": null
+    },
+    "B4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B6_revoked_key": {
+      "status": 200,
+      "expected": 403,
+      "ok": false,
+      "error_code": null
+    }
+  },
+  "demo": {
+    "C1_origin_only_strict": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    }
+  },
+  "all_passed": false,
+  "duration_s": 7.2
+}
