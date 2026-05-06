@@ -1,0 +1,88 @@
+{
+  "started": "2026-05-06T18:32:44.759148+00:00",
+  "deploy": {
+    "created": true,
+    "zip_bytes": 4110
+  },
+  "eb_rule": {
+    "rule_name": "justhodl-macro-nowcast-6h",
+    "rate": "6 hours",
+    "permission": "added"
+  },
+  "invoke": {
+    "status": 200,
+    "func_err": null,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"regime\": \"MUDDLE\", \"score\": 0, \"coverage_pct\": 0}"
+    },
+    "elapsed_s": 1.46,
+    "output_summary": {
+      "regime": "MUDDLE",
+      "normalized_score": 0,
+      "raw_score": 0.0,
+      "coverage_pct": 0,
+      "n_components_used": 0,
+      "n_components_failed": 7,
+      "components": [
+        {
+          "fred_id": "INDPRO",
+          "label": "Industrial Production",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "PAYEMS",
+          "label": "Nonfarm Payrolls",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "RSAFS",
+          "label": "Retail Sales",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "HOUST",
+          "label": "Housing Starts",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "UMCSENT",
+          "label": "Consumer Sentiment (UMich)",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "T10Y2Y",
+          "label": "2s10s Yield Curve",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        },
+        {
+          "fred_id": "UNRATE",
+          "label": "Unemployment Rate",
+          "z": null,
+          "contribution": null,
+          "raw_value": null,
+          "error": "series_not_in_report"
+        }
+      ]
+    }
+  },
+  "duration_s": 6.3
+}
