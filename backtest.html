@@ -169,6 +169,20 @@ table td.num{text-align:right}
     </div>
   </div>
 
+  <!-- ─── v2.1 WALK-FORWARD CALIBRATION ─── -->
+  <div class="section" id="walkforward-section">
+    <h2>v2.1 Walk-Forward Calibration <span style="font-size:11px;color:var(--cyan);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">future headline</span></h2>
+    <p class="sub">Each trade's weight resolved from the calibration snapshot in effect at its <code>logged_at</code> date — eliminates in-sample look-ahead bias. Snapshots written every Sunday 12:00 UTC. Coverage stat tells you how trustworthy the v2.1 number is. When coverage ≥50% AND window ≥0.5y, this becomes the headline number.</p>
+    <div id="walkforward-notice"></div>
+    <div class="kpis" id="walkforward-kpi-row"><div class="kpi"><h3>Loading…</h3></div></div>
+    <div class="card" style="padding:18px 22px;margin-top:14px">
+      <table id="walkforward-stats" style="font-size:13px;width:100%">
+        <thead><tr><th>Metric</th><th class="num">Value</th></tr></thead>
+        <tbody id="walkforward-stats-body"><tr><td colspan="2" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="kpis" id="kpi-row">
     <div class="kpi"><h3>Loading…</h3></div>
   </div>
@@ -329,6 +343,7 @@ async function load(){
 
     renderKPIs(summ);
     renderHonest(DATA.honest_summary, DATA.honest_daily_curve);
+    renderWalkforward(DATA.walkforward_summary);
     renderNavChart(DATA.nav_curve || []);
     renderHorizonAttribution(summ);
     renderContributors(DATA.by_signal || (DATA.top_5_contributors || []).concat(DATA.bottom_5_contributors || []));
@@ -585,6 +600,125 @@ function renderHonestChart(curve){
     <text x="${W-P}" y="${P-8}" fill="#10b981" font-family="IBM Plex Mono" font-size="10" text-anchor="end">v2.0 NAV (honest)</text>
     ${spyPath ? `<text x="${W-P}" y="${P+6}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">SPY buy &amp; hold</text>` : ''}
   `;
+}
+
+function renderWalkforward(wf){
+  const noticeEl = document.getElementById('walkforward-notice');
+  const kpiEl    = document.getElementById('walkforward-kpi-row');
+  const bodyEl   = document.getElementById('walkforward-stats-body');
+
+  if (!wf) {
+    noticeEl.innerHTML = `<div class="warn">⚠ v2.1 walk-forward not yet computed. Engine recomputes every 6h.</div>`;
+    kpiEl.innerHTML = '';
+    bodyEl.innerHTML = '<tr><td colspan="2" class="loading">Pending engine v2.1 next tick</td></tr>';
+    return;
+  }
+  if (wf.error) {
+    noticeEl.innerHTML = `<div class="warn">⚠ v2.1 walk-forward error: ${wf.error}</div>`;
+    kpiEl.innerHTML = '';
+    bodyEl.innerHTML = '<tr><td colspan="2">—</td></tr>';
+    return;
+  }
+  if (!wf.available) {
+    noticeEl.innerHTML = `<div class="warn" style="background:#fef3c7;border-color:#f59e0b;color:#92400e;padding:14px 18px;font-size:13px;line-height:1.5">
+      <strong>⚠ Walk-forward not yet applicable.</strong>
+      ${wf.reason || 'No calibration snapshots available.'}
+      Snapshots are written every Sunday 12:00 UTC by <code>justhodl-calibration-snapshotter</code>.
+      As snapshots accumulate the walk-forward Sharpe becomes the headline number.
+    </div>`;
+    kpiEl.innerHTML = '';
+    bodyEl.innerHTML = '<tr><td colspan="2">—</td></tr>';
+    return;
+  }
+
+  // Coverage banner: low coverage = not yet publishable
+  const cov = wf.coverage_pct ?? 0;
+  const sufficient = wf.data_sufficient === true;
+  if (!sufficient) {
+    const noteColor = cov < 50 ? '#92400e' : '#1e40af';
+    noticeEl.innerHTML = `<div class="warn" style="background:${cov<50?'#fef3c7':'#dbeafe'};border-color:${cov<50?'#f59e0b':'#3b82f6'};color:${noteColor};padding:14px 18px;font-size:13px;line-height:1.5">
+      <strong>⚠ Walk-forward not yet publishable</strong> — coverage ${cov.toFixed(1)}%, window ${(wf.n_business_days||0)} biz days (${(wf.n_years||0).toFixed(2)}y).
+      Of ${wf.n_trades_total||0} total trades, ${wf.n_trades_walkforward_resolved||0} had a historical weight snapshot
+      (${wf.n_trades_predates_snapshots||0} pre-date all snapshots${wf.n_trades_signal_missing ? `, ${wf.n_trades_signal_missing} had signals not in snapshots` : ''}).
+      Becomes the headline when coverage ≥50% AND window ≥0.5y.
+    </div>`;
+  } else {
+    noticeEl.innerHTML = '';
+  }
+
+  // KPI tiles — when sufficient lead with Sharpe; when insufficient lead with coverage
+  let tiles;
+  if (sufficient) {
+    const sp = wf.sharpe_point;
+    const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
+    tiles = [
+      {h:'Walk-forward Sharpe',
+       v: sp != null ? sp.toFixed(2) : '—', cls: sharpeClass,
+       sub: `coverage ${cov.toFixed(1)}% · ${wf.n_snapshots||0} snapshots`},
+      {h:'Annualized Return',
+       v: wf.annualized_return_pct != null ? `${wf.annualized_return_pct.toFixed(2)}%` : '—',
+       cls: pctClass((wf.annualized_return_pct||0)/100),
+       sub: `walk-forward, no in-sample bias`},
+      {h:'Period Total Return',
+       v: wf.period_total_return_pct != null ? `${wf.period_total_return_pct.toFixed(2)}%` : '—',
+       cls: pctClass((wf.period_total_return_pct||0)/100),
+       sub: `${wf.n_business_days||0} biz days`},
+      {h:'Period Max DD',
+       v: wf.period_max_drawdown_pct != null ? `-${wf.period_max_drawdown_pct.toFixed(2)}%` : '—',
+       cls: 'down',
+       sub: wf.period_alpha_vs_spy_pct != null ? `Alpha vs SPY ${wf.period_alpha_vs_spy_pct.toFixed(2)}%` : ''},
+    ];
+  } else {
+    tiles = [
+      {h:'Coverage',
+       v: `${cov.toFixed(1)}%`,
+       cls: cov >= 50 ? 'up' : (cov >= 10 ? 'flat' : 'down'),
+       sub: `${wf.n_trades_walkforward_resolved||0} of ${wf.n_trades_total||0} trades`},
+      {h:'Snapshots',
+       v: `${wf.n_snapshots||0}`,
+       cls: '',
+       sub: wf.snapshots_earliest ? `earliest ${wf.snapshots_earliest}` : 'none yet'},
+      {h:'Trades pre-dating',
+       v: `${wf.n_trades_predates_snapshots||0}`,
+       cls: 'flat',
+       sub: 'before earliest snapshot'},
+      {h:'Walk-forward Sharpe',
+       v: '— gated',
+       cls: '',
+       sub: 'wait for ≥50% coverage & ≥0.5y window'},
+    ];
+  }
+  kpiEl.innerHTML = tiles.map(t =>
+    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+  ).join('');
+
+  // Stats table
+  const sufTag = sufficient ? '✓ publishable' : `⚠ ${cov < 50 ? 'low coverage' : 'short window'}`;
+  const rows = [
+    ['Method', wf.method || 'walk_forward_calibration'],
+    ['Available', wf.available ? '✓' : '✗'],
+    ['Status', sufTag],
+    ['Risk-free rate', wf.rf_annual != null ? `${(wf.rf_annual*100).toFixed(2)}%` : '—'],
+    ['Snapshots loaded', `${wf.n_snapshots || 0}`],
+    ['Snapshot range', `${wf.snapshots_earliest || '—'} → ${wf.snapshots_latest || '—'}`],
+    ['Total trades', `${wf.n_trades_total || 0}`],
+    ['Walk-forward resolved', `${wf.n_trades_walkforward_resolved || 0} (${cov.toFixed(2)}%)`],
+    ['Predate all snapshots', `${wf.n_trades_predates_snapshots || 0}`],
+    ['Signal missing in snapshot', `${wf.n_trades_signal_missing_in_snapshot || 0}`],
+    ['Window', `${wf.n_business_days || 0} biz days (${(wf.n_years||0).toFixed(2)}y)`],
+    ['Final NAV', `$${(wf.final_nav || 0).toLocaleString()}`],
+    ['Period total return', wf.period_total_return_pct != null ? `${wf.period_total_return_pct.toFixed(2)}%` : '—'],
+    ['Period max DD', wf.period_max_drawdown_pct != null ? `-${wf.period_max_drawdown_pct.toFixed(2)}%` : '—'],
+    ['Period alpha vs SPY', wf.period_alpha_vs_spy_pct != null ? `${wf.period_alpha_vs_spy_pct.toFixed(2)}%` : '—'],
+    ['Daily P&L', `${wf.n_pos_days||0} pos · ${wf.n_neg_days||0} neg`],
+    ['Daily hit rate', wf.daily_hit_rate != null ? `${(wf.daily_hit_rate*100).toFixed(1)}%` : '—'],
+    ['Annualized Return', sufficient && wf.annualized_return_pct != null ? `${wf.annualized_return_pct.toFixed(2)}%` : '—  <em style="color:#92400e">gated</em>'],
+    ['Annualized Vol', sufficient && wf.annualized_vol_pct != null ? `${wf.annualized_vol_pct.toFixed(2)}%` : '—  <em style="color:#92400e">gated</em>'],
+    ['Sharpe (point)', sufficient && wf.sharpe_point != null ? wf.sharpe_point.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
+  ];
+  bodyEl.innerHTML = rows.map(([k, v]) =>
+    `<tr><td>${k}</td><td class="num" style="font-family:var(--mono)">${v}</td></tr>`
+  ).join('');
 }
 
 function renderNavChart(nav){
