@@ -1,0 +1,16 @@
+- `11:38:42`     invoking...
+- `11:38:45`     ❌ share-float AAPL                                 status=404  body=[]
+- `11:38:45`     ❌ share-float-latest                               status=404  body=[]
+- `11:38:45`     ❌ shares-outstanding AAPL                          status=404  body=[]
+- `11:38:45`     ✅ key-metrics AAPL (has float?)                    n=1
+- `11:38:45`          {"symbol": "AAPL", "marketCap": 3660026638400}
+- `11:38:45`     ✅ screener: mcap 50M-500M, US, NASDAQ              n=50
+- `11:38:45`          {"symbol": "CCSMX", "marketCap": 499789020, "price": 21.92, "companyName": "Conestoga SMid Cap Fund", "exchange": "NASDAQ", "country": "US", "industry": "Asset Management"}
+- `11:38:45`          {"symbol": "OFIX", "marketCap": 499396336, "price": 12.44, "companyName": "Orthofix Medical Inc.", "exchange": "NASDAQ Global Select", "country": "US", "industry": "Medical - Devices"}
+- `11:38:45`     ✅ screener: mcap 500M-2B, US                       n=50
+- `11:38:45`          {"symbol": "TPPAX", "marketCap": 1999427989, "price": 26.24, "companyName": "T. Rowe Price Spectrum Moderate Allocation Fund I Class", "exchange": "NASDAQ", "country": "US", "industry": "Asset Managem
+- `11:38:45`          {"symbol": "TRPBX", "marketCap": 1999415742, "price": 26.27, "companyName": "T. Rowe Price Spectrum Moderate Allocation Fund", "exchange": "NASDAQ", "country": "US", "industry": "Asset Management"}
+- `11:38:45`     ❌ profile-bulk AAPL,MSFT                           status=None  body=Extra data: line 1 column 9 (char 8)
+- `11:38:45`     ✅ balance-sheet AAPL (has shares info?)            n=1
+- `11:38:45`          {"symbol": "AAPL"}
+- `11:38:45`     ✓ deleted
