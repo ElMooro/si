@@ -343,10 +343,116 @@ def lambda_handler(event=None, context=None):
         CacheControl="public, max-age=600",
     )
 
+    # ─── Regime-change detection ────────────────────────────────────
+    # State persisted in SSM /justhodl/nowcast/last_state. Lambda runs
+    # every 6h but the underlying FRED data updates monthly, so this
+    # fires Telegram only when the regime label changes — typically
+    # once per quarter at most.
+    change_summary = check_regime_change(regime, normalized_score)
+
     print(f"[nowcast-v2] regime={regime}  score={round(normalized_score, 3)}  "
           f"coverage={round(coverage*100, 0)}%  duration={round(time.time()-started, 2)}s")
     return {"statusCode": 200, "body": json.dumps({
         "regime": regime,
         "score": round(normalized_score, 4),
         "coverage_pct": round(coverage * 100, 1),
+        "regime_change": change_summary,
     })}
+
+
+def check_regime_change(current_regime: str, current_score: float):
+    """Compare current vs previous regime in SSM. Fire Telegram on change."""
+    ssm = boto3.client("ssm", region_name=REGION)
+    state_key = "/justhodl/nowcast/last_state"
+
+    # Read previous state
+    prev = None
+    try:
+        v = ssm.get_parameter(Name=state_key)["Parameter"]["Value"]
+        prev = json.loads(v)
+    except Exception as e:
+        if "ParameterNotFound" not in str(e):
+            print(f"[regime-change] read err: {e}")
+
+    new_state = {
+        "regime": current_regime,
+        "score": round(current_score, 4),
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+    summary = {"changed": False, "previous": prev, "new": new_state}
+
+    if prev and prev.get("regime") and prev["regime"] != current_regime:
+        # REGIME CHANGED — fire Telegram
+        summary["changed"] = True
+        summary["from"] = prev["regime"]
+        summary["to"] = current_regime
+        summary["score_delta"] = round(current_score - (prev.get("score") or 0), 4)
+        try:
+            send_regime_change_alert(prev, new_state)
+            summary["telegram_sent"] = True
+        except Exception as e:
+            summary["telegram_err"] = str(e)[:200]
+
+    # Always persist current state
+    try:
+        ssm.put_parameter(
+            Name=state_key, Value=json.dumps(new_state),
+            Type="String", Overwrite=True,
+            Description="Most recent nowcast regime + score (for change detection)",
+        )
+    except Exception as e:
+        print(f"[regime-change] persist err: {e}")
+
+    return summary
+
+
+def send_regime_change_alert(prev, new):
+    """Send Telegram message announcing regime change."""
+    ssm = boto3.client("ssm", region_name=REGION)
+
+    # Get bot token + chat_id from SSM
+    try:
+        token = ssm.get_parameter(
+            Name="/justhodl/telegram/bot_token", WithDecryption=True
+        )["Parameter"]["Value"]
+    except Exception:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    try:
+        chat_id = ssm.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception:
+        chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat_id:
+        raise RuntimeError("missing token or chat_id")
+
+    icon_map = {
+        "STRONG EXPANSION": "🟢🟢", "EXPANSION": "🟢",
+        "MUDDLE": "🟡", "SLOWING": "🟠", "CONTRACTION RISK": "🔴",
+    }
+    new_icon = icon_map.get(new["regime"], "⚪")
+    old_icon = icon_map.get(prev["regime"], "⚪")
+    score_delta = (new["score"] or 0) - (prev.get("score") or 0)
+    delta_arrow = "↑" if score_delta > 0 else "↓" if score_delta < 0 else "→"
+
+    text = (
+        f"⚡ *MACRO NOWCAST — REGIME CHANGE*\n\n"
+        f"{old_icon} *{prev['regime']}*  →  {new_icon} *{new['regime']}*\n"
+        f"`Score: {prev.get('score'):+.3f}  {delta_arrow}  {new['score']:+.3f}`\n"
+        f"`Δ:    {score_delta:+.3f} z-score units`\n\n"
+        f"_Previous reading: {prev.get('ts', 'unknown')}_\n"
+        f"_New reading:      {new['ts']}_\n\n"
+        f"[Open dashboard](https://justhodl.ai/macro-data.html)"
+    )
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    body = json.dumps({
+        "chat_id": chat_id,
+        "text": text[:4096],
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True,
+    }).encode()
+    import urllib.request
+    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        print(f"[regime-change] telegram sent: {r.status}")
+
