@@ -835,10 +835,12 @@ def lambda_handler(event=None, context=None):
                     "Survivorship bias — outcomes only include scored trades (delisted positions excluded)",
                 ],
             }
-            print(f"[backtest-v2.0-honest] sharpe={honest_sharpe} "
-                  f"[p5={p5}, p95={p95}], n_biz_days={n_obs}, "
+            print(f"[backtest-v2.0.1-honest] sharpe={honest_sharpe} "
+                  f"[p5={p5}, p95={p95}], n_biz_days={n_obs}, n_years={n_years:.3f}, "
+                  f"sufficient={data_sufficient}, "
                   f"trades={n_distributed}/{n_distributed + n_skipped}, "
-                  f"ann_ret={ann_return*100:.2f}%, ann_vol={ann_vol*100:.2f}%")
+                  f"ann_ret_arith={ann_return_arith_pct:.2f}%, ann_vol={ann_vol_arith_pct:.2f}%, "
+                  f"period_total={(final_nav_h/INITIAL_NAV-1)*100:.2f}%")
     except Exception as e:
         import traceback
         print(f"[backtest-v2.0] ERROR: {e}\n{traceback.format_exc()}")
