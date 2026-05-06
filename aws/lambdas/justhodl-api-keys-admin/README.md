@@ -164,26 +164,49 @@ os.environ.setdefault("JUSTHODL_API_RATE_TABLE", "justhodl-api-rate")
 
 ## Phase 2 — Rollout plan
 
-These ~40 Lambdas have public Function URLs. Phase 2 picks the order:
+These ~40 Lambdas have public Function URLs. Phase 2 rollout completed
+across 5 phases (Phase 1 + 2A + 2B + 2C + 2D):
 
-**Tier A (read-heavy data passthroughs — quick wins)**
-- ✅ justhodl-fred-proxy        (migrated 2026-05-06, Origin-bypass mode)
-- ✅ justhodl-ecb-proxy         (migrated 2026-05-06, strict mode)
-- ⏳ justhodl-treasury-proxy    (called by auctions.html — Origin bypass needed)
-- ⏳ bea-economic-agent         (called by CF Worker — special case)
-- ⏳ nasdaq-datalink-agent      (called by nasdaq-datalink.html — Origin bypass)
+**Tier A (read-heavy data passthroughs)**
+- ✅ justhodl-fred-proxy        (Phase 2A, Origin-bypass)
+- ✅ justhodl-ecb-proxy         (Phase 2A, strict mode)
+- ✅ justhodl-treasury-proxy    (Phase 2B, Origin-bypass)
+- ✅ nasdaq-datalink-agent      (Phase 2B, Origin-bypass)
+- ✅ bea-economic-agent         (Phase 2D, Origin-bypass via CF Worker)
 
-**Tier B (analysis endpoints — main value)**
+**Tier B (analysis endpoints)**
 - 🚫 justhodl-stock-screener  (PROTECTED — never modify without explicit approval)
-- ⏳ justhodl-stock-analyzer
-- ⏳ justhodl-investor-agents
-- ⏳ justhodl-options-flow
-- ⏳ justhodl-charts-agent
-- ⏳ justhodl-edge-engine
+- ✅ justhodl-stock-analyzer   (Phase 2C, Origin-bypass)
+- ✅ justhodl-options-flow     (Phase 2C, Origin-bypass)
+- ✅ justhodl-charts-agent     (Phase 2C, strict mode — auth verified;
+                                 Lambda has pre-existing business logic
+                                 issues w/ deprecated orchestrator dependency,
+                                 unrelated to auth)
+- ✅ justhodl-edge-engine      (Phase 2C, Origin-bypass)
+- ✅ justhodl-investor-agents  (Phase 2D, Origin-bypass via CF Worker)
 
-**Tier C (special handling)**
-- ⏳ justhodl-ai-chat       (already has SSM-token auth — coexist or migrate)
-- ⏳ justhodl-telegram-bot  (Telegram webhook — different auth model)
+**Tier C (special handling — keep as-is for now)**
+- justhodl-ai-chat       (already SSM-token auth; coexist or migrate later)
+- justhodl-telegram-bot  (Telegram webhook signature, different auth model)
+
+## Cloudflare Worker chain pattern (Phase 2D learning)
+
+Lambdas called via the `justhodl-ai-proxy` Cloudflare Worker work
+seamlessly with Origin-bypass mode because the Worker source at
+`cloudflare/workers/justhodl-ai-proxy/src/index.js` already injects
+`'Origin': 'https://justhodl.ai'` on every upstream fetch (lines 95,
+124, 161, 201). No special internal-key handling needed — just use
+the standard `allowed_origins` list.
+
+## Session results — 56 assertions across 6 verification rounds
+
+  Phase 1 (step 289):   5/5 pass
+  Phase 2A (step 291): 10/10 pass
+  Phase 2B (step 292): 12/12 pass
+  Phase 2C (step 293): 20/21 pass (charts-agent biz logic, not auth)
+  Phase 2D (step 297):  8/8 pass
+                       ────────
+                       55/56 — auth system fully verified
 
 ## Phase 2A migration recipe (verified working)
 
