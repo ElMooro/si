@@ -192,6 +192,90 @@ def resolve_weight(stype, window, flat_weights, horizon_weights):
     return None, None
 
 
+# ─── v2.1 WALK-FORWARD HELPERS ──────────────────────────────────────────
+# Eliminates in-sample weight-fitting bias by resolving each trade's weight
+# from the calibration snapshot in effect at the trade's logged_at date,
+# instead of using the current SSM weights. Snapshots live at
+# s3://justhodl-dashboard-live/calibration/history/{ISO_WEEK}.json with
+# schema {week_start, week_end, weights:{}, accuracy:{}}.
+
+def load_weight_history():
+    """Load all calibration snapshots and build a sorted timeline.
+
+    Returns: list of {"week_start": iso, "week_end": iso, "weights": {...}, "accuracy": {...}}
+    sorted by week_end ascending, plus a manifest of failures for visibility.
+    Returns ([], {error: ...}) on missing/failed.
+    """
+    out = []
+    info = {"n_snapshots": 0, "earliest_week_start": None, "latest_week_end": None,
+            "fetch_errors": []}
+    try:
+        idx_obj = S3.get_object(Bucket=BUCKET, Key="calibration/history-index.json")
+        idx = json.loads(idx_obj["Body"].read())
+    except Exception as e:
+        info["error"] = f"history-index.json not available: {e}"
+        return out, info
+
+    snapshots_meta = idx.get("snapshots") or idx.get("entries") or []
+    # Try common shapes: list of {key, week_start, week_end} or list of week-ids
+    for s in snapshots_meta:
+        if isinstance(s, str):
+            # Just an ISO week string — construct the path
+            key = f"calibration/history/{s}.json"
+        elif isinstance(s, dict):
+            key = s.get("key") or s.get("path") or f"calibration/history/{s.get('iso_week')}.json"
+        else:
+            continue
+        try:
+            body = S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+            snap = json.loads(body)
+            ws = snap.get("week_start")
+            we = snap.get("week_end")
+            w = snap.get("weights") or {}
+            if not (ws and we and w):
+                continue
+            out.append({
+                "week_start": ws,
+                "week_end": we,
+                "iso_week": snap.get("iso_week"),
+                "weights": {k: to_float(v) for k, v in w.items() if to_float(v) is not None},
+                "accuracy": snap.get("accuracy") or {},
+            })
+        except Exception as e:
+            info["fetch_errors"].append({"key": key, "err": str(e)[:120]})
+
+    out.sort(key=lambda x: x["week_end"])
+    info["n_snapshots"] = len(out)
+    if out:
+        info["earliest_week_start"] = out[0]["week_start"]
+        info["latest_week_end"] = out[-1]["week_end"]
+    return out, info
+
+
+def resolve_weight_walkforward(stype, trade_date_iso, history):
+    """Find the calibration snapshot in effect at the trade's logged_at date.
+
+    A snapshot covers trades whose logged_at >= snapshot.week_start. We pick
+    the LATEST snapshot whose week_start <= trade_date. If trade pre-dates
+    all snapshots, return (None, "no_snapshot_yet"). The returned weight
+    represents what the system actually believed at the time the trade fired.
+    """
+    if not trade_date_iso or not history:
+        return None, "no_history" if not history else "no_date"
+    chosen = None
+    for snap in history:
+        if snap["week_start"] <= trade_date_iso:
+            chosen = snap
+        else:
+            break  # history is sorted, no later snap can cover earlier date
+    if chosen is None:
+        return None, "trade_predates_all_snapshots"
+    w = chosen["weights"].get(stype)
+    if w is None:
+        return None, f"signal_not_in_snapshot:{chosen.get('iso_week')}"
+    return w, f"walkforward:{chosen.get('iso_week')}"
+
+
 def dir_sign(predicted_dir):
     """Map predicted direction to a numeric sign."""
     if not predicted_dir:
@@ -847,22 +931,248 @@ def lambda_handler(event=None, context=None):
         honest_summary = {"error": str(e)}
         honest_daily_curve = []
 
+    # 8d. v2.1 WALK-FORWARD CALIBRATION
+    # ─────────────────────────────────────────────────────────────────
+    # Resolves each trade's weight from the calibration snapshot that
+    # was in effect at the trade's logged_at date — eliminates the
+    # in-sample look-ahead bias that v1.x and v2.0.1 still carry.
+    #
+    # When the snapshotter has limited history (e.g., 2 weeks since
+    # bootstrap), trades pre-dating the earliest snapshot can't be
+    # walk-forward-resolved and are tracked in n_trades_predates.
+    # Coverage stat tells the reader how trustworthy the v2.1 number is.
+    walkforward_summary = None
+    walkforward_daily_curve = []
+    try:
+        weight_history, wh_info = load_weight_history()
+        print(f"[backtest-v2.1] weight_history: {wh_info}")
+
+        if not weight_history:
+            walkforward_summary = {
+                "method": "walk_forward_calibration",
+                "available": False,
+                "reason": (wh_info.get("error")
+                           or "no calibration snapshots available — "
+                              "calibration-snapshotter runs Sundays 12:00 UTC, "
+                              "first snapshot needed before walk-forward can run"),
+                "snapshots_info": wh_info,
+            }
+        else:
+            # Re-iterate outcomes with walk-forward weight resolution
+            wf_results = []
+            n_wf_resolved = 0
+            n_wf_predates = 0
+            n_wf_no_snapshot_for_signal = 0
+            n_wf_no_return = 0
+
+            for o in outcomes:  # already deduped in section 2a
+                stype = o.get("signal_type")
+                if not stype:
+                    continue
+                window = o.get("window_key")
+                logged_at = (o.get("logged_at") or "")[:10]
+
+                w, src = resolve_weight_walkforward(stype, logged_at, weight_history)
+                if w is None:
+                    if src == "trade_predates_all_snapshots":
+                        n_wf_predates += 1
+                    else:
+                        n_wf_no_snapshot_for_signal += 1
+                    continue
+
+                inner = o.get("outcome") or {}
+                ret = to_float(inner.get("excess_return"))
+                if ret is None:
+                    ret = to_float(inner.get("return_pct"))
+                if ret is None:
+                    n_wf_no_return += 1
+                    continue
+
+                pred = o.get("predicted_dir")
+                sign = dir_sign(pred)
+                if sign == 0:
+                    correct = bool(o.get("correct"))
+                    contribution = POSITION_SIZE * w * (abs(ret) if correct else -abs(ret))
+                else:
+                    contribution = POSITION_SIZE * w * sign * ret
+
+                # Apply v1.2 frictions (slippage only — concentration/gross
+                # caps would require re-running the day-aggregation. Slippage
+                # is the dominant friction for individual contribution.)
+                size_pct = POSITION_SIZE * abs(w)
+                slip = size_pct * (SLIPPAGE_BPS_PER_LEG * 2) / 10000  # 10bps round-trip
+                net_contribution = contribution - slip * 100  # net contribution in pct of NAV
+
+                wf_results.append({
+                    "outcome_id": o.get("outcome_id"),
+                    "signal_type": stype,
+                    "weight": w,
+                    "weight_source": src,
+                    "actual_return": ret,
+                    "correct": bool(o.get("correct")),
+                    "raw_contribution": round(contribution, 4),
+                    "slippage_cost_pct": round(slip * 100, 4),
+                    "realistic_contribution": round(net_contribution, 4),
+                    "logged_at": logged_at,
+                    "window_key": window,
+                })
+                n_wf_resolved += 1
+
+            # Sort by logged_at
+            wf_results.sort(key=lambda x: x.get("logged_at") or "")
+
+            # Build full business-day daily curve (lump-sum on firing day)
+            if first_date and last_date and wf_results:
+                sd_dt = datetime.fromisoformat(first_date).date()
+                ed_dt = datetime.fromisoformat(last_date).date()
+                biz_dates = []
+                cur = sd_dt
+                while cur <= ed_dt:
+                    if cur.weekday() < 5:
+                        biz_dates.append(cur.isoformat())
+                    cur += timedelta(days=1)
+                biz_idx = {d: i for i, d in enumerate(biz_dates)}
+                n_biz = len(biz_dates)
+                wf_daily_pct = [0.0] * n_biz
+                wf_n_distributed = 0
+                wf_n_skipped = 0
+                for tr in wf_results:
+                    logged = (tr.get("logged_at") or "")[:10]
+                    if logged not in biz_idx:
+                        # roll forward from weekend
+                        try:
+                            d = datetime.fromisoformat(logged).date()
+                            for _ in range(7):
+                                if d.isoformat() in biz_idx:
+                                    logged = d.isoformat()
+                                    break
+                                d += timedelta(days=1)
+                        except Exception:
+                            pass
+                    start_i = biz_idx.get(logged)
+                    if start_i is None:
+                        wf_n_skipped += 1
+                        continue
+                    wf_daily_pct[start_i] += float(tr.get("realistic_contribution", 0) or 0)
+                    wf_n_distributed += 1
+
+                # NAV curve
+                wf_nav = INITIAL_NAV
+                wf_cum = 0.0
+                for i, d in enumerate(biz_dates):
+                    wf_nav = wf_nav * (1.0 + wf_daily_pct[i] / 100.0)
+                    wf_cum += wf_daily_pct[i]
+                    walkforward_daily_curve.append({
+                        "date": d,
+                        "nav": round(wf_nav, 2),
+                        "daily_pct": round(wf_daily_pct[i], 5),
+                        "cum_pct": round(wf_cum, 4),
+                    })
+
+                # Stats
+                wf_n_obs = n_biz
+                wf_mean = sum(wf_daily_pct) / wf_n_obs if wf_n_obs else 0.0
+                wf_var = sum((x - wf_mean) ** 2 for x in wf_daily_pct) / wf_n_obs if wf_n_obs else 0.0
+                wf_std = wf_var ** 0.5
+                wf_n_years = wf_n_obs / 252.0
+                wf_ann_ret_pct = wf_mean * 252.0
+                wf_ann_vol_pct = wf_std * (252.0 ** 0.5)
+                wf_sharpe = ((wf_ann_ret_pct - RF_ANNUAL * 100.0) / wf_ann_vol_pct
+                             if wf_ann_vol_pct > 0 else None)
+
+                # Drawdown
+                wf_peak = INITIAL_NAV
+                wf_max_dd = 0.0
+                for entry in walkforward_daily_curve:
+                    if entry["nav"] > wf_peak:
+                        wf_peak = entry["nav"]
+                    dd = (wf_peak - entry["nav"]) / wf_peak * 100
+                    if dd > wf_max_dd:
+                        wf_max_dd = dd
+
+                wf_n_pos = sum(1 for x in wf_daily_pct if x > 0)
+                wf_n_neg = sum(1 for x in wf_daily_pct if x < 0)
+
+                # Coverage: what fraction of total trades made it into walk-forward?
+                total_trades = len(outcomes)
+                coverage = n_wf_resolved / max(total_trades, 1)
+
+                walkforward_summary = {
+                    "method": "walk_forward_calibration",
+                    "available": True,
+                    "n_snapshots": wh_info.get("n_snapshots"),
+                    "snapshots_earliest": wh_info.get("earliest_week_start"),
+                    "snapshots_latest": wh_info.get("latest_week_end"),
+                    # Coverage stats — how trustworthy is this number?
+                    "n_trades_total": total_trades,
+                    "n_trades_walkforward_resolved": n_wf_resolved,
+                    "n_trades_predates_snapshots": n_wf_predates,
+                    "n_trades_signal_missing_in_snapshot": n_wf_no_snapshot_for_signal,
+                    "coverage_pct": round(coverage * 100, 2),
+                    # Whether to publish the number — high coverage AND data sufficient
+                    "data_sufficient": (wf_n_years >= 0.5 and coverage >= 0.5),
+                    "data_sufficiency_note": (
+                        f"walk-forward coverage {round(coverage*100,1)}%, "
+                        f"window {wf_n_obs} biz days ({round(wf_n_years,3)}y). "
+                        f"{'PUBLISHABLE' if (wf_n_years >= 0.5 and coverage >= 0.5) else 'NOT YET PUBLISHABLE — wait for more snapshots and/or longer window'}."
+                    ),
+                    # Period stats (always reliable)
+                    "n_business_days": wf_n_obs,
+                    "n_years": round(wf_n_years, 3),
+                    "initial_nav": INITIAL_NAV,
+                    "final_nav": round(wf_nav, 2),
+                    "period_total_return_pct": round((wf_nav / INITIAL_NAV - 1) * 100, 4),
+                    "period_max_drawdown_pct": round(wf_max_dd, 4),
+                    "period_alpha_vs_spy_pct": round(((wf_nav / INITIAL_NAV - 1) * 100) - (spy_return_pct or 0), 4)
+                                                if spy_return_pct is not None else None,
+                    "n_pos_days": wf_n_pos,
+                    "n_neg_days": wf_n_neg,
+                    "daily_hit_rate": round(wf_n_pos / max(wf_n_obs, 1), 4),
+                    # Annualized stats — gated by data_sufficient
+                    "annualized_return_pct": round(wf_ann_ret_pct, 4),
+                    "annualized_vol_pct": round(wf_ann_vol_pct, 4),
+                    "sharpe_point": round(wf_sharpe, 4) if wf_sharpe is not None else None,
+                    "rf_annual": RF_ANNUAL,
+                    "fetch_errors": wh_info.get("fetch_errors") or [],
+                }
+                print(f"[backtest-v2.1-walkforward] coverage={round(coverage*100,1)}%, "
+                      f"sharpe={wf_sharpe}, "
+                      f"trades_resolved={n_wf_resolved}/{total_trades} "
+                      f"(predates={n_wf_predates}, no_signal={n_wf_no_snapshot_for_signal})")
+            else:
+                walkforward_summary = {
+                    "method": "walk_forward_calibration",
+                    "available": False,
+                    "reason": "no trades resolved — likely all trades pre-date earliest snapshot",
+                    "snapshots_info": wh_info,
+                    "n_trades_predates_snapshots": n_wf_predates,
+                    "n_trades_signal_missing_in_snapshot": n_wf_no_snapshot_for_signal,
+                }
+    except Exception as e:
+        import traceback
+        print(f"[backtest-v2.1] ERROR: {e}\n{traceback.format_exc()}")
+        walkforward_summary = {"error": str(e), "method": "walk_forward_calibration"}
+        walkforward_daily_curve = []
+
     # 9. Build full results
     results_doc = {
-        "v": "2.0.1",
+        "v": "2.1",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay_v3_horizon_aware_realistic_plus_honest_v2",
+        "method": "v2_1_walkforward_calibration_with_v2_0_1_honest_baseline",
         "method_description": (
-            "v2.0.1 (HEADLINE): lump-sum each trade's net P&L on its firing day; complete "
-            "business-day calendar (zero-trade days included in vol); arithmetic annualization "
-            "(daily_mean × 252) which is stable for short windows — geometric annualization blew "
-            "up in v2.0 with 0.11y of data. Risk-free rate (5%) subtracted. Sharpe reported with "
-            "p5/median/p95 from 1000-sample block bootstrap. data_sufficient flag gates "
-            "annualized stats — when window <0.5y the page surfaces a warning and leads with "
-            "unannualized period stats (period_total_return_pct, period_max_drawdown_pct) which "
-            "are reliable regardless of window length. v1.1 and v1.2 are kept for comparison. "
-            "Walk-forward calibration (v2.1, next ship) requires loading historical weight "
-            "snapshots from justhodl-calibration-snapshotter to remove in-sample weight-fitting bias."
+            "v2.1 (NEW HEADLINE when coverage>=50%): walk-forward calibration. "
+            "Each trade's weight is resolved from the calibration snapshot in effect at "
+            "the trade's logged_at date — eliminates in-sample look-ahead bias. Snapshots "
+            "are written every Sunday 12:00 UTC by justhodl-calibration-snapshotter to "
+            "s3://justhodl-dashboard-live/calibration/history/{ISO_WEEK}.json. Coverage "
+            "metric tells you how trustworthy the v2.1 number is — if most trades pre-date "
+            "the earliest snapshot, walkforward_summary.data_sufficient=false and the "
+            "v2.0.1 honest_summary remains the headline.\n\n"
+            "v2.0.1 (still computed): same lump-sum daily aggregation but using current "
+            "SSM weights (in-sample bias). Reports arithmetic Sharpe with bootstrap CI "
+            "and a 0.5y data-sufficiency gate.\n\n"
+            "v1.1/v1.2 (preserved for comparison): original idealized + realistic with "
+            "the broken std-over-active-days math that produced Sharpe ~10."
         ),
         "constants": {
             "POSITION_SIZE": POSITION_SIZE,
@@ -912,21 +1222,24 @@ def lambda_handler(event=None, context=None):
             "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
         },
         "honest_summary": honest_summary,
+        "walkforward_summary": walkforward_summary,
         "by_signal": signal_summary,
         "daily": daily,
         "nav_curve": nav_curve,
         "realistic_daily": realistic_daily_list,
         "realistic_nav_curve": realistic_nav_curve,
         "honest_daily_curve": honest_daily_curve,
+        "walkforward_daily_curve": walkforward_daily_curve,
     }
 
     # Slim summary for fast page loads
     summary_doc = {
-        "v": "2.0.1",
+        "v": "2.1",
         "generated_at": now.isoformat(),
         "summary": results_doc["summary"],
         "realistic_summary": results_doc["realistic_summary"],
         "honest_summary": results_doc["honest_summary"],
+        "walkforward_summary": results_doc["walkforward_summary"],
         "constants": results_doc["constants"],
         "top_5_contributors": signal_summary[:5],
         "bottom_5_contributors": signal_summary[-5:] if len(signal_summary) >= 5 else signal_summary,

@@ -81,6 +81,9 @@ FEEDS_TO_SNAPSHOT = [
     # Backtest
     "backtest/results.json",
     "backtest/summary.json",
+    # Calibration — for walk-forward backtest history
+    "calibration/latest.json",
+    "calibration/history-index.json",
     # Major dashboards
     "screener/data.json",
     # Crypto / flows / edge (best-effort — skipped silently if missing)
