@@ -47,6 +47,7 @@ tr:hover{background:rgba(255,255,255,.02)}
 .sector-tag{font-size:9px;color:var(--dim);background:rgba(255,255,255,.05);padding:1px 6px;border-radius:3px}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.stats-bar{flex-wrap:wrap;gap:10px}}
 </style>
+<!-- auto-wrapped-table-2026-05-06 -->
 </head>
 <body>
 <div class="header">
@@ -141,7 +142,8 @@ function render() {
     html += '<div class="card" style="border-left:3px solid var(--gold)">';
     html += '<h2>🔥 NEW ALL-TIME HIGHS — ' + bk.length + ' Breakout' + (bk.length>1?'s':'') + ' Today</h2>';
     html += '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">Stocks and ETFs that exceeded their previous all-time high price in today\'s session</div>';
-    html += '<table id="tblBreakouts"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>New ATH</th><th>Previous ATH</th><th>Prev Date</th><th>% Above ATH</th><th>Day Change</th><th>Volume</th><th>Score</th></tr>';
+    html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
+<table id="tblBreakouts"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>New ATH</th><th>Previous ATH</th><th>Prev Date</th><th>% Above ATH</th><th>Day Change</th><th>Volume</th><th>Score</th></tr>';
     bk.forEach((b, i) => {
       const sector = SECTOR_MAP[b.ticker] || 'Other';
       html += '<tr data-ticker="' + b.ticker + '" data-sector="' + sector + '"' + (i < 3 ? ' style="background:rgba(255,215,0,0.06)"' : '') + '>';
@@ -157,7 +159,8 @@ function render() {
       html += '<td><span class="score-badge" style="background:' + scoreColor(b.score) + '">' + b.score + ' ' + b.grade + '</span></td>';
       html += '</tr>';
     });
-    html += '</table></div>';
+    html += '</table>
+</div></div>';
   } else {
     html += '<div class="card" style="border-left:3px solid var(--border)">';
     html += '<div class="empty-state"><div class="icon">📊</div>';
@@ -171,7 +174,8 @@ function render() {
     html += '<div class="card" style="border-left:3px solid var(--amber)">';
     html += '<h2 style="color:var(--amber)">👀 APPROACHING ALL-TIME HIGH — ' + near.length + ' Within 2%</h2>';
     html += '<div style="font-size:10px;color:var(--dim);margin-bottom:8px">Watchlist: stocks and ETFs within striking distance of their all-time high — potential breakout candidates</div>';
-    html += '<table id="tblNear"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>Price</th><th>All-Time High</th><th>ATH Date</th><th>Gap to ATH</th><th>Day Change</th><th>Score</th></tr>';
+    html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
+<table id="tblNear"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>Price</th><th>All-Time High</th><th>ATH Date</th><th>Gap to ATH</th><th>Day Change</th><th>Score</th></tr>';
     near.forEach((n, i) => {
       const sector = SECTOR_MAP[n.ticker] || 'Other';
       const gapPct = n.pct_from_ath;
@@ -188,7 +192,8 @@ function render() {
       html += '<td><span class="score-badge" style="background:' + scoreColor(n.score) + '">' + n.score + ' ' + n.grade + '</span></td>';
       html += '</tr>';
     });
-    html += '</table></div>';
+    html += '</table>
+</div></div>';
   }
 
   // ── SECTOR BREAKDOWN ──

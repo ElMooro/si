@@ -125,6 +125,38 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
 
 footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--fg-3);text-align:center}
 footer a{margin:0 10px}
+
+
+/* ─── MOBILE RESPONSIVE — auto-injected 2026-05-06 ─── */
+@media (max-width: 900px){
+  .kpis{grid-template-columns: repeat(2, 1fr) !important; gap: 12px}
+  .grid{grid-template-columns: repeat(6, 1fr)}
+  .col-4,.col-5{grid-column: span 6 !important}
+  .col-6,.col-7,.col-8{grid-column: span 12 !important}
+  .strip{grid-template-columns: repeat(2, 1fr)}
+  .tools{grid-template-columns: repeat(2, 1fr)}
+  .card-grid{grid-template-columns: repeat(2, 1fr)}
+  .tabs{overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch}
+  .nav-tabs{overflow-x: auto; -webkit-overflow-scrolling: touch}
+  h1{font-size: 22px !important; line-height: 1.25}
+  .lede,.hero p{font-size: 13px !important}
+  main{padding: 14px !important}
+  header.hero{padding: 14px 18px !important}
+  table{font-size: 11.5px}
+  .meta{flex-wrap: wrap; gap: 8px}
+}
+@media (max-width: 600px){
+  .kpis{grid-template-columns: 1fr !important}
+  .col-4,.col-5,.col-6{grid-column: span 12 !important}
+  .strip{grid-template-columns: 1fr}
+  .tools{grid-template-columns: 1fr}
+  .card-grid{grid-template-columns: 1fr}
+  h1{font-size: 19px !important}
+  table{font-size: 11px}
+  th,td{padding: 6px 8px !important}
+  .kpi h3{font-size: 10px !important}
+  .kpi .v{font-size: 22px !important}
+}
 </style>
 </head>
 <body>

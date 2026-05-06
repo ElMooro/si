@@ -84,6 +84,7 @@ nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font
 nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
 @media (max-width:920px){.kpis{grid-template-columns:repeat(3,1fr)}.thesis-grid{grid-template-columns:1fr}.thesis-meta{grid-template-columns:repeat(2,1fr)}.fund-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
+<!-- auto-wrapped-table-2026-05-06 -->
 </head>
 <body>
 <div class="container">
@@ -247,7 +248,8 @@ function renderTable(rows, containerId, title) {
     c.innerHTML = `<div class="empty">No candidates in this list yet</div>`;
     return;
   }
-  c.innerHTML = `<table>
+  c.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
+<table>
     <thead><tr>
       <th>Ticker</th><th>Theme · Phase</th><th>Tier</th>
       <th>Score</th><th>Flag</th>
@@ -255,7 +257,8 @@ function renderTable(rows, containerId, title) {
       <th>Top factors</th><th>Earnings</th>
     </tr></thead>
     <tbody>${rows.map(leaderRowHTML).join("")}</tbody>
-  </table>`;
+  </table>
+</div>`;
 }
 
 function renderTheses(layer4, layer5) {

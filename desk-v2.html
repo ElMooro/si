@@ -632,6 +632,7 @@ button:hover{
 }
 
 </style>
+<!-- auto-wrapped-table-2026-05-06 -->
 </head>
 <body>
 
@@ -1018,7 +1019,8 @@ function renderRecs(risk){
 
   const maxSize = Math.max(...recs.map(r => r.recommended_size_pct||0), 0.01);
 
-  let html = `<table class="rec-table">
+  let html = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
+<table class="rec-table">
     <thead><tr>
       <th>SYM</th>
       <th>NAME</th>
@@ -1052,7 +1054,8 @@ function renderRecs(risk){
       </tr>`;
     }
   }
-  html += '</tbody></table>';
+  html += '</tbody></table>
+</div>';
   el.innerHTML = html;
 }
 

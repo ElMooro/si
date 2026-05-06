@@ -103,6 +103,7 @@ body{background:var(--bg);color:var(--t1);font-family:'IBM Plex Sans',system-ui,
 @keyframes pulse-y { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
 .headline-box { position: relative; }
 </style>
+<!-- auto-wrapped-table-2026-05-06 -->
 </head>
 <body>
 <div class="header">
@@ -226,7 +227,8 @@ function renderScorecard(rows) {
     {key: "trend_90d", label: "90d", numeric: true},
     {key: "calibrator_weight", label: "Weight", numeric: true},
   ];
-  let html = `<table class="mtable" id="scorecard"><thead><tr>`;
+  let html = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
+<table class="mtable" id="scorecard"><thead><tr>`;
   for (const c of cols) {
     const sortedClass = c.key === sortBy ? "sorted" : "";
     const arrow = c.key === sortBy ? (sortDir === "desc" ? "▼" : "▲") : "";
@@ -249,7 +251,8 @@ function renderScorecard(rows) {
       <td class="num-cell">${r.calibrator_weight === undefined ? "—" : num(r.calibrator_weight, 3)}</td>
     </tr>`;
   }
-  html += `</tbody></table>`;
+  html += `</tbody></table>
+</div>`;
   return html;
 }
 
