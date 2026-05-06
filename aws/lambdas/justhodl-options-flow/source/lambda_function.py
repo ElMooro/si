@@ -1,4 +1,16 @@
 import json
+import os
+import sys
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
+# Allowed origins — flow.html on justhodl.ai calls this Lambda
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 
 
 
@@ -4260,13 +4272,10 @@ def generate_signals(vix, skew, pc, gex, sentiment, ff):
 
 def lambda_handler(event, context):
 
-
-
-
-
-
-
-
+    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
 
     try:
 

@@ -1,6 +1,16 @@
-import json, boto3, urllib.request, time, concurrent.futures
+import json, os, sys, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
 from _sentry_lite import track_errors
+
+# Allowed origins — edge.html on justhodl.ai calls this Lambda
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 
 
 # Calibration helper — Loop 1 (light-touch: edge-engine sub-engines
@@ -162,6 +172,12 @@ def lambda_handler(event, context):
     }
     if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {'statusCode': 200, 'headers': cors, 'body': ''}
+
+    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     try:
         t0 = time.time()
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:

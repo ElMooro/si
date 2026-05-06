@@ -1,9 +1,19 @@
-import json, os, boto3, urllib.request, math, traceback
+import json, os, sys, boto3, urllib.request, math, traceback
 from datetime import datetime, timezone, timedelta
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
 
 FMP_KEY = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
 POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
 FMP_BASE = "https://financialmodelingprep.com/stable"
+
+# Allowed origins — /stock/index.html on justhodl.ai calls this
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 POLY_BASE = "https://api.polygon.io"
 S3_BUCKET = "justhodl-dashboard-live"
 
@@ -429,6 +439,12 @@ def lambda_handler(event, context):
     # Handle CORS preflight
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS" or event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS_HEADERS, "body": ""}
+
+    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     try:
         qs = event.get("queryStringParameters") or {}
         body = event.get("body", "{}")

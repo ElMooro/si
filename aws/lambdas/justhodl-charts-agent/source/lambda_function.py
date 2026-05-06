@@ -1,9 +1,21 @@
 import json
+import os
+import sys
 import urllib.request
 import ssl
 from datetime import datetime, timedelta
 
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
+
 def lambda_handler(event, context):
+    # Auth gate — strict mode (no frontend callers per audit)
+    key_meta, err = authorize(event)
+    if err:
+        return err
+
     params = event.get('queryStringParameters', {}) or {}
     chart_type = params.get('type', 'line')
     indicator = params.get('indicator', 'sp500')
