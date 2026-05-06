@@ -45,7 +45,7 @@ Special microcap focus:
 
 OUTPUT: data/revenue-acceleration.json
 """
-import io, json, os, time, urllib.request
+import io, json, os, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
@@ -53,8 +53,8 @@ REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/revenue-acceleration.json")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-N_WORKERS = int(os.environ.get("N_WORKERS", "12"))
-MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "600"))
+N_WORKERS = int(os.environ.get("N_WORKERS", "6"))
+MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "1200"))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
 
 S3 = boto3.client("s3", region_name=REGION)
@@ -76,17 +76,35 @@ def get_universe():
         return []
 
 
-def fetch_quarterly_income(symbol, limit=8):
-    """Get last 8 quarters of income statement from FMP."""
+def fetch_quarterly_income(symbol, limit=8, max_retries=2):
+    """Get last 8 quarters of income statement from FMP. Retries on 429."""
     url = "https://financialmodelingprep.com/stable/income-statement?symbol=" + symbol + "&period=quarter&limit=" + str(limit) + "&apikey=" + FMP_KEY
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-RevAccel/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            d = json.loads(r.read())
-            if isinstance(d, list):
-                return d  # newest first
-    except Exception:
-        pass
+    last_err = None
+    for attempt in range(max_retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-RevAccel/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                d = json.loads(r.read())
+                if isinstance(d, list):
+                    return d
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_retries:
+                time.sleep(1.0 + attempt)
+                continue
+            last_err = "HTTP " + str(e.code)
+            break
+        except Exception as e:
+            last_err = str(e)[:80]
+            break
+    if last_err:
+        # Throttled error logging — only first ~5 errors per run to avoid log flood
+        global _err_count
+        try:
+            _err_count = (_err_count + 1) if "_err_count" in globals() else 1
+        except Exception:
+            _err_count = 1
+        if _err_count <= 5:
+            print("[rev-accel] fetch err " + symbol + ": " + last_err)
     return None
 
 
