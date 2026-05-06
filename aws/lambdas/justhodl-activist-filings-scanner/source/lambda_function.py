@@ -95,7 +95,7 @@ def http_get(url, timeout=20):
 
 def fetch_atom_feed(form_type):
     """Fetch latest filings for a form type via Atom RSS."""
-    url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=" + urllib.parse.quote(form_type) + "&output=atom&count=40"
+    url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=" + urllib.parse.quote(form_type) + "&output=atom&count=100"
     try:
         text = http_get(url, timeout=15)
         return parse_atom_entries(text, form_type)
@@ -110,7 +110,10 @@ def parse_atom_entries(xml_text, fetched_form_type):
     blocks = re.findall(r"<entry>(.*?)</entry>", xml_text, flags=re.DOTALL)
     for b in blocks:
         title_m = re.search(r"<title>([^<]+)</title>", b)
+        # Try both <link href="..."/> attribute form and <link>...</link> element form
         link_m = re.search(r'<link[^/]*href="([^"]+)"', b)
+        if not link_m:
+            link_m = re.search(r"<link>([^<]+)</link>", b)
         updated_m = re.search(r"<updated>([^<]+)</updated>", b)
         summary_m = re.search(r"<summary[^>]*>(.*?)</summary>", b, flags=re.DOTALL)
         if not title_m:
@@ -371,29 +374,9 @@ def lambda_handler(event=None, context=None):
 
     print("[activist] RSS unique filings: " + str(len(by_accession)))
 
-    # ── EFTS pulls (broader 30d backfill) ──
+    # EFTS full-text search abandoned — its index lags by months (returns 2024 filings)
+    # Atom RSS is real-time and sufficient for daily activist coverage.
     efts_filings = []
-    if time.time() < deadline_at - 30:
-        for query_form, q_text in [
-            ("SC 13D", "schedule 13D"),
-            ("SC 13D/A", "schedule 13D"),
-            ("SC 13G", "schedule 13G"),
-            ("SC 13G/A", "schedule 13G"),
-        ]:
-            if time.time() > deadline_at:
-                break
-            hits = fetch_efts_search(query_form, q_text, max_pages=2)
-            print("[activist] EFTS " + query_form + ": " + str(len(hits)) + " hits")
-            for h in hits:
-                parsed = parse_efts_hit(h)
-                # Filter client-side by file_date
-                fd = parsed.get("filing_date", "")
-                if fd:
-                    cutoff = time.strftime("%Y-%m-%d", time.gmtime(time.time() - DAYS_BACK * 86400))
-                    if fd >= cutoff:
-                        efts_filings.append(parsed)
-
-    print("[activist] EFTS filtered to last " + str(DAYS_BACK) + "d: " + str(len(efts_filings)))
 
     # ── Build unified filing records ──
     filings = []
