@@ -1,0 +1,18 @@
+- `14:03:21`     invoking...
+- `14:03:22`     test_url: "https://financialmodelingprep.com/stable/income-statement?symbol=AAPL&period=quarter&limit=8&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+- `14:03:22`     result: "ok"
+- `14:03:22`     type: "list"
+- `14:03:22`     is_list: true
+- `14:03:22`     len: 8
+- `14:03:22`     first_keys: ["date", "symbol", "reportedCurrency", "cik", "filingDate", "acceptedDate", "fiscalYear", "period", "revenue", "costOfRevenue", "grossProfit", "researchAndDevelopmentExpenses", "generalAndAdministrati
+- `14:03:22`     has_revenue: true
+- `14:03:22`     has_grossProfit: true
+- `14:03:22`     has_operatingExpenses: true
+- `14:03:22`     has_eps: true
+- `14:03:22`     sample_row: {"date": "2026-03-28", "symbol": "AAPL", "reportedCurrency": "USD", "cik": "0000320193", "filingDate": "2026-05-01", "acceptedDate": "2026-05-01 10:01:00", "fiscalYear": "2026", "period": "Q2", "reven
+- `14:03:22`     sym_NVDA_n: 8
+- `14:03:22`     sym_AGIO_n: 8
+- `14:03:22`     sym_AAOI_n: 8
+- `14:03:22`     sym_AXTI_n: 8
+- `14:03:22`     sym_CRDO_n: 8
+- `14:03:22`     ✓ deleted
