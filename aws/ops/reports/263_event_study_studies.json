@@ -1,0 +1,156 @@
+{
+  "probed_at": "2026-05-06T18:03:00+00:00",
+  "version": "1.0",
+  "as_of_date": "2026-05-05",
+  "horizons_trading_days": [
+    1,
+    5,
+    21,
+    63,
+    126
+  ],
+  "active_themes": [],
+  "n_studies": 8,
+  "data_sources": {
+    "all": "FRED API (free)"
+  },
+  "methodology": "Algorithmic event detection from FRED time series + SPY forward returns at 1/5/21/63/126 trading days",
+  "studies_summary": {
+    "fed_first_cut": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "fed_first_hike": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "yield_curve_inverts": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "yield_curve_steepens": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "vix_spike": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "vix_normalize": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "credit_blowout": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    },
+    "credit_recover": {
+      "all_keys": [
+        "description",
+        "n_events",
+        "n_with_forward_data",
+        "all_dates",
+        "most_recent_date",
+        "days_since_most_recent",
+        "currently_active",
+        "forward_return_summary",
+        "recent_events_sample"
+      ],
+      "n_occurrences": 0,
+      "currently_active": false,
+      "summary": null,
+      "sample_occurrence": null
+    }
+  }
+}
