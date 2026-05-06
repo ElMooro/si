@@ -1,0 +1,31 @@
+- `13:43:25`     invoking...
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earnings-surprises?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earnings-surprises-bulk?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=400 body=Query Error: Invalid or missing query parameter - year
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/historical-earnings-surprises?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ✅ https://financialmodelingprep.com/stable/earnings?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          n=164, sample=[{'symbol': 'AAPL', 'date': '2026-07-30', 'epsActual': None, 'epsEstimated': 1.87, 'revenueActual': None, 'revenueEstimated': 107618800000, 'lastUpdated': '2026-05-06'}, {'symbol': 'AAPL', 'date': '20
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earnings-historical?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ✅ https://financialmodelingprep.com/stable/earnings-calendar?from=2026-04-15&to=2026-05-15&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          n=4000, sample=[{'symbol': 'NXDT', 'date': '2026-05-15', 'epsActual': None, 'epsEstimated': None, 'revenueActual': None, 'revenueEstimated': None, 'lastUpdated': '2026-05-06'}, {'symbol': 'RUP.TO', 'date': '2026-05-
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earning-calendar?from=2026-04-15&to=2026-05-15&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earnings-confirmed?from=2026-04-15&to=2026-05-15&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ❌ https://financialmodelingprep.com/stable/earnings-confirmed?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=404 body=[]
+- `13:43:26`     ✅ tps://financialmodelingprep.com/stable/income-statement?symbol=AAPL&period=quarter&limit=4&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          n=4, sample=[{'date': '2026-03-28', 'symbol': 'AAPL', 'reportedCurrency': 'USD', 'cik': '0000320193', 'filingDate': '2026-05-01', 'acceptedDate': '2026-05-01 10:01:00', 'fiscalYear': '2026', 'period': 'Q2', 'reve
+- `13:43:26`     ❌ https://financialmodelingprep.com/api/v3/earnings-surprises/AAPL?apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=403 body={
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only availa
+- `13:43:26`     ❌ https://financialmodelingprep.com/api/v3/historical/earning_calendar/AAPL?apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=403 body={
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only availa
+- `13:43:26`     ❌ https://financialmodelingprep.com/api/v4/earnings-surprises?symbol=AAPL&apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb
+- `13:43:26`          status=403 body={
+  "Error Message": "Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only availa
+- `13:43:27`     ✓ deleted
