@@ -184,6 +184,7 @@ dialog pre{font-family:var(--mono);font-size:12px;color:var(--t2);white-space:pr
       <span>Generated <b id="generated">—</b></span>
       <span>Synthesis <b id="duration">—</b></span>
       <span>Cost <b id="cost">—</b></span>
+      <span id="macroNowcastBadge" title="Macroeconomic composite from 7 FRED series">📊 macro: <b style="color:var(--muted,#888)">loading…</b></span>
       <button id="refresh-btn">↻ Refresh</button>
     </div>
   </header>
@@ -377,6 +378,30 @@ document.getElementById('refresh-btn').onclick = load;
 load();
 // Auto-refresh every 5 min (the file updates every 4h, but this catches new ones quickly)
 setInterval(load, 5 * 60 * 1000);
+
+// ─── Macro Nowcast cross-link badge ──────────────────────────────
+// The brief synthesizes 17 systems but doesn't always foreground the
+// macro regime call. This badge surfaces the current macro-nowcast
+// classification at a glance, with a link to /macro-data.html for
+// the full SVG chart + 10y replay + SPY-by-regime table.
+async function loadNowcastBadge(){
+  const el = document.getElementById('macroNowcastBadge');
+  if (!el) return;
+  try {
+    const r = await fetch(`${BUCKET}/data/macro-nowcast.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const score = d.normalized_score;
+    const regime = d.regime || '—';
+    const icon = {'STRONG EXPANSION':'🟢','EXPANSION':'🟢','MUDDLE':'🟡','SLOWING':'🟠','CONTRACTION RISK':'🔴'}[regime] || '⚪';
+    const sign = score >= 0 ? '+' : '';
+    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="text-decoration:none" title="Composite z-score from 7 FRED series · 10y historical replay · SPY forward returns by regime"><b>${icon} ${regime} ${sign}${score?.toFixed(2)}</b></a>`;
+  } catch(e) {
+    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="text-decoration:none"><b>view →</b></a>`;
+  }
+}
+loadNowcastBadge();
+setInterval(loadNowcastBadge, 5 * 60 * 1000);
 </script>
 </body>
 </html>

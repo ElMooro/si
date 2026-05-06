@@ -181,6 +181,7 @@ footer a{margin:0 10px}
       <span>🔄 refit: daily 14:00 UTC</span>
       <span>🕒 last: <span id="updated">—</span></span>
       <span>📊 training: <span id="training-n">—</span> obs</span>
+      <span id="macroNowcastBadge" title="Macroeconomic composite from 7 FRED series">📊 macro: <span style="color:var(--fg-3)">loading…</span></span>
     </div>
   </div>
 
@@ -462,6 +463,31 @@ async function loadData() {
   }
 }
 
+// ─── Macro Nowcast cross-link badge ──────────────────────────────
+// Fetches data/macro-nowcast.json and renders a small badge linking to
+// /macro-data.html. The HMM model on this page detects regimes from
+// price action; the macro nowcast classifies the macroeconomic state
+// from 7 FRED series. Showing both gives a fuller regime picture.
+async function loadNowcastBadge(){
+  const el = document.getElementById('macroNowcastBadge');
+  if (!el) return;
+  try {
+    const r = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-nowcast.json?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const score = d.normalized_score;
+    const regime = d.regime || '—';
+    const icon = {'STRONG EXPANSION':'🟢','EXPANSION':'🟢','MUDDLE':'🟡','SLOWING':'🟠','CONTRACTION RISK':'🔴'}[regime] || '⚪';
+    const color = d.regime_color === 'green' ? 'var(--green)'
+                : d.regime_color === 'red'   ? 'var(--red)'
+                : d.regime_color === 'amber' ? 'var(--amber)' : 'var(--fg-2)';
+    const sign = (score >= 0 ? '+' : '');
+    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="color:${color};font-weight:500" title="Composite z-score from 7 FRED series · click for full nowcast">${icon} ${regime} ${sign}${score?.toFixed(2)}</a>`;
+  } catch(e) {
+    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="color:var(--fg-3)">view nowcast →</a>`;
+  }
+}
+loadNowcastBadge();
 loadData();
 setInterval(loadData, 5 * 60 * 1000);
 </script>
