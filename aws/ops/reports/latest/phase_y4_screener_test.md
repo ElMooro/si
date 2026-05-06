@@ -1,0 +1,40 @@
+- `11:46:32`     invoking...
+- `11:46:35`   
+- `11:46:35`   # nano  $5M-50M
+- `11:46:35`     Returned: 1000 (real: ~371, funds/shells: 629)
+- `11:46:35`       TDSB   $50M     ETC Cabana Target Beta ETF          | Asset Management
+- `11:46:35`       BOF    $50M     BranchOut Food Inc.                 | Packaged Foods
+- `11:46:35`       MUSE   $50M     TCW Multisector Credit Income ETF   | Asset Management
+- `11:46:35`   
+- `11:46:35`   # micro $50M-300M
+- `11:46:35`     Returned: 1000 (real: ~480, funds/shells: 520)
+- `11:46:35`       RXST   $300M    RxSight, Inc.                       | Medical - Devices
+- `11:46:35`       MPACX  $299M    Matthews Asia Growth Fund           | Asset Management
+- `11:46:35`       BSMQ   $299M    Invesco BulletShares 2026 Municipal | Asset Management - Bonds
+- `11:46:35`   
+- `11:46:35`   # small $300M-2B
+- `11:46:35`     Returned: 1000 (real: ~468, funds/shells: 532)
+- `11:46:35`       TPPAX  $2.0B    T. Rowe Price Spectrum Moderate All | Asset Management
+- `11:46:35`       TRPBX  $2.0B    T. Rowe Price Spectrum Moderate All | Asset Management
+- `11:46:35`       SHTCX  $2.0B    Columbia Seligman Global Technology | Asset Management - Global
+- `11:46:35`   
+- `11:46:35`   # mid   $2B-10B
+- `11:46:35`     Returned: 1000 (real: ~551, funds/shells: 449)
+- `11:46:35`       DCI    $10.0B   Donaldson Company, Inc.             | Industrial - Machinery
+- `11:46:35`       FRT    $10.0B   Federal Realty Investment Trust     | REIT - Retail
+- `11:46:35`       UMBF   $10.0B   UMB Financial Corporation           | Banks - Regional
+- `11:46:35`   
+- `11:46:35`   # large $10B-200B
+- `11:46:35`     Returned: 1000 (real: ~509, funds/shells: 491)
+- `11:46:35`       VZ     $199.7B  Verizon Communications Inc.         | Telecommunications Services
+- `11:46:35`       VO     $199.6B  Vanguard Mid-Cap ETF                | Asset Management
+- `11:46:35`       VMCPX  $199.4B  Vanguard Mid-Cap Index Fund Institu | Asset Management
+- `11:46:35`   
+- `11:46:35`   # mega  >$200B
+- `11:46:35`     Returned: 109 (real: ~64, funds/shells: 45)
+- `11:46:35`       NVDA   $4775.9B NVIDIA Corporation                  | Semiconductors
+- `11:46:35`       GOOGL  $4698.0B Alphabet Inc.                       | Internet Content & Information
+- `11:46:35`       GOOG   $4647.7B Alphabet Inc.                       | Internet Content & Information
+- `11:46:35`   
+- `11:46:35`   # GRAND TOTAL: 5109 stocks across all buckets (real: ~2443)
+- `11:46:35`     ✓ deleted
