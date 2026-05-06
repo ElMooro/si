@@ -1,0 +1,37 @@
+{
+  "lambda_invoke_status": 200,
+  "lambda_invoke_err": null,
+  "index": {
+    "n_feeds": 30,
+    "n_snapshots_total": 58,
+    "ddb_pages_scanned": 2,
+    "duration_s": 5.53
+  },
+  "top_5_feeds_by_snapshot_count": [
+    {
+      "feed_key": "data/report.json",
+      "count": 19,
+      "last_seen": "2026-05-06T17:54:09Z"
+    },
+    {
+      "feed_key": "backtest/results.json",
+      "count": 3,
+      "last_seen": "2026-05-06T17:09:34Z"
+    },
+    {
+      "feed_key": "backtest/summary.json",
+      "count": 3,
+      "last_seen": "2026-05-06T17:09:34Z"
+    },
+    {
+      "feed_key": "data/compound-signals.json",
+      "count": 3,
+      "last_seen": "2026-05-06T17:49:33Z"
+    },
+    {
+      "feed_key": "data/eurodollar-stress.json",
+      "count": 3,
+      "last_seen": "2026-05-06T17:49:33Z"
+    }
+  ]
+}
