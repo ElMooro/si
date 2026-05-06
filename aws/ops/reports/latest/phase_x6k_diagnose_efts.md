@@ -1,0 +1,24 @@
+- `10:14:03`     invoking...
+- `10:14:20`     ✅ v3 13D from=0                  total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013D%22&forms=SC+13D&from=0
+- `10:14:20`     ✅ v3 13D from=100                total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013D%22&forms=SC+13D&from=100
+- `10:14:20`     ✅ v3 13D/A from=0                total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013D%22&forms=SC+13D%2FA&from=0
+- `10:14:20`     ✅ v3 13D/A from=100              total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013D%22&forms=SC+13D%2FA&from=100
+- `10:14:20`     ❌ v3 13G from=0                  status=500  body: {"message": "Internal server error"}
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013G%22&forms=SC+13G&from=0
+- `10:14:20`     ✅ v3 13G/A from=0                total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%2013G%22&forms=SC+13G%2FA&from=0
+- `10:14:20`     ✅ known_good 13D                 total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule+13D%22&forms=SC+13D
+- `10:14:20`     ✅ 13D simple q                   total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=13D&forms=SC+13D
+- `10:14:20`     ✅ 13D no q                       total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?forms=SC+13D
+- `10:14:20`     ✅ 13D ICAHN                      total=1536 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22Icahn%22&forms=SC+13D
+- `10:14:20`     ✅ 13D-13DA-13G concat            total=10000 n_returned=100
+- `10:14:20`          URL: https://efts.sec.gov/LATEST/search-index?q=%22schedule%22&forms=SC+13D,SC+13D%2FA,SC+13G,SC+13G%2FA
+- `10:14:20`     ✓ deleted
