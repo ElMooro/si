@@ -152,27 +152,48 @@ def parse_atom_entries(xml_text, fetched_form_type):
 
 # ─── EFTS full-text search ───────────────────────────────────────────────
 
-def fetch_efts_search(form_type_query, q_text, max_pages=4):
+def fetch_efts_search(form_type_query, q_text, max_pages=4, max_retries=3):
     """Use EDGAR full-text search. The dateRange filter breaks results, so
-    we omit it and filter client-side by file_date."""
+    we omit it and filter client-side by file_date.
+    
+    Retries on transient 500 errors (SEC server occasionally returns these).
+    """
     all_hits = []
     for page in range(max_pages):
         offset = page * 100
-        # forms= uses + for spaces, %2F for slashes
         forms_encoded = form_type_query.replace(" ", "+").replace("/", "%2F")
         url = ("https://efts.sec.gov/LATEST/search-index?"
                "q=" + urllib.parse.quote('"' + q_text + '"') +
                "&forms=" + forms_encoded +
                "&from=" + str(offset))
-        try:
-            text = http_get(url, timeout=20)
-            d = json.loads(text)
-            hits = (d.get("hits") or {}).get("hits") or []
-            if not hits:
+        success = False
+        for attempt in range(max_retries):
+            try:
+                text = http_get(url, timeout=20)
+                d = json.loads(text)
+                hits = (d.get("hits") or {}).get("hits") or []
+                if not hits:
+                    return all_hits
+                all_hits.extend(hits)
+                success = True
                 break
-            all_hits.extend(hits)
-        except Exception as e:
-            print("[activist] efts " + form_type_query + " p" + str(page) + " failed: " + str(e))
+            except urllib.error.HTTPError as e:
+                if e.code == 500 and attempt < max_retries - 1:
+                    print("[activist] efts " + form_type_query + " p" + str(page) +
+                           " 500 retry " + str(attempt+1) + "/" + str(max_retries))
+                    time.sleep(2 + attempt)
+                    continue
+                print("[activist] efts " + form_type_query + " p" + str(page) +
+                       " HTTP " + str(e.code))
+                break
+            except Exception as e:
+                print("[activist] efts " + form_type_query + " p" + str(page) +
+                       " err: " + str(e))
+                if attempt < max_retries - 1:
+                    time.sleep(1 + attempt)
+                    continue
+                break
+        if not success:
             break
     return all_hits
 
@@ -340,7 +361,8 @@ def lambda_handler(event=None, context=None):
     by_accession = defaultdict(list)
     for e in rss_entries:
         link = e.get("link", "")
-        accession_match = re.search(r"/Archives/edgar/data/(\d+)/(\d+\-\d+\-\d+|[\d\-]+)", link)
+        # Accession: 18-digit hyphenated number e.g. 0001140361-26-018419
+        accession_match = re.search(r"(\d{10}-\d{2}-\d{6})", link)
         if accession_match:
             accession = accession_match.group(2)
             by_accession[accession].append(e)
