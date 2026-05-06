@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-06T21:11:22.968780+00:00",
+  "deploy": {
+    "action": "created",
+    "zip_bytes": 5878
+  },
+  "url": {
+    "action": "created",
+    "url": "https://odoy2bydzufzjbp765n3ix6w5u0rvqmj.lambda-url.us-east-1.on.aws/"
+  },
+  "issue_key": {
+    "status": 200,
+    "tier": "FREE",
+    "key_hash": "7feefc80b23f70f09daa52ec7c8a80e54ffb3bab98256292391871930b90508e"
+  },
+  "test_key_first_12": "jhd_yqILrNw9...",
+  "call_with_key": {
+    "status": 200,
+    "tier": "FREE",
+    "owner": "phase1-poc@justhodl.ai"
+  },
+  "call_no_key": {
+    "status": 401,
+    "expected": 401,
+    "ok": true,
+    "error_code": "unauthorized"
+  },
+  "call_bad_key": {
+    "status": 401,
+    "expected": 401,
+    "ok": true,
+    "error_code": "unauthorized"
+  },
+  "rate_limit_test": {
+    "successes": 99,
+    "first_429_at": 101,
+    "429_status": 429,
+    "429_error_code": "rate_limit_exceeded_hour",
+    "429_body": {
+      "error": "rate_limit_exceeded_hour",
+      "message": "Hourly limit: 100 req/hour for FREE tier.",
+      "tier": "FREE",
+      "limit_per_hour": 100,
+      "current": 101,
+      "resets_in_seconds": 2870
+    }
+  },
+  "revoke": {
+    "status": 200,
+    "revoked_at": "2026-05-06T21:12:10+00:00"
+  },
+  "call_after_revoke": {
+    "status": 403,
+    "expected": 403,
+    "ok": true,
+    "error_code": "forbidden"
+  },
+  "duration_s": 48.8,
+  "all_passed": true
+}
