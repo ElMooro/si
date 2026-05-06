@@ -1,7 +1,19 @@
 import os
-import json,urllib3,boto3,os,time
+import sys
+import json,urllib3,boto3,time
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import datetime
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
+# Allowed origins — called via Cloudflare Worker which sets
+# Origin: https://justhodl.ai on every upstream fetch.
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
@@ -167,9 +179,15 @@ def build_consensus(verdicts,metrics,macro):
     return{"signal":sig,"conviction":conv,"bulls":bulls,"bears":bears,"holds":counts["HOLD"],"signal_breakdown":counts,"score":round(avg,2),"summary":str(bulls)+" of 6 legends bullish on "+metrics["ticker"]+". Regime: "+str(macro.get("regime","STABLE"))+" Khalid: "+str(macro.get("khalid_score","N/A"))+"/100. Consensus: "+sig+" conviction "+str(conv)+"/10."}
 
 def lambda_handler(event,context):
-    cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"POST,OPTIONS"}
+    cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type, Authorization, x-api-key","Access-Control-Allow-Methods":"POST,OPTIONS"}
     if event.get("requestContext",{}).get("http",{}).get("method")=="OPTIONS":
         return{"statusCode":200,"headers":cors,"body":""}
+
+    # Auth gate — Origin-bypass mode for Cloudflare Worker chain
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     try:
         body=event.get("body","{}")
         if isinstance(body,str):

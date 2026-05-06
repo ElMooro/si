@@ -1,11 +1,29 @@
 import json
+import os
+import sys
 import urllib.request
 import urllib.parse
 from datetime import datetime
 
+# Bundle api_auth.py alongside lambda_bea_agent.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
+# Allowed origins — called via Cloudflare Worker which sets
+# Origin: https://justhodl.ai on every upstream fetch.
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
+
 def lambda_handler(event, context):
     """Bureau of Economic Analysis Agent"""
-    
+
+    # Auth gate — Origin-bypass mode for Cloudflare Worker chain
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     api_key = "997E5691-4F0E-4774-8B4E-CAE836D4AC47"
     base_url = "https://apps.bea.gov/api/data"
     
