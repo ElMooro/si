@@ -1,0 +1,133 @@
+{
+  "probed_at": "2026-05-06T18:33:58+00:00",
+  "top_keys": [
+    "version",
+    "generated_at",
+    "fetch_time_seconds",
+    "cftc_positioning",
+    "khalid_index",
+    "risk_dashboard",
+    "net_liquidity",
+    "sectors",
+    "signals",
+    "market_flow",
+    "ath_breakouts",
+    "fred",
+    "stocks",
+    "crypto",
+    "crypto_global",
+    "ecb_ciss",
+    "news",
+    "ai_analysis",
+    "ticker_names",
+    "stats",
+    "ka_index"
+  ],
+  "size_summary": {
+    "version": "str",
+    "generated_at": "str",
+    "fetch_time_seconds": "float",
+    "cftc_positioning": "dict",
+    "khalid_index": "dict",
+    "risk_dashboard": "dict",
+    "net_liquidity": "dict",
+    "sectors": "dict",
+    "signals": "dict",
+    "market_flow": "dict",
+    "ath_breakouts": "dict",
+    "fred": "dict",
+    "stocks": "dict",
+    "crypto": "dict",
+    "crypto_global": "dict",
+    "ecb_ciss": "dict",
+    "news": "list",
+    "ai_analysis": "dict",
+    "ticker_names": "dict",
+    "stats": "dict",
+    "ka_index": "dict"
+  },
+  "INDPRO_locations": [
+    {
+      "path": "fred.macro.INDPRO",
+      "type": "dict",
+      "keys_or_len": [
+        "current",
+        "date",
+        "prev",
+        "change",
+        "pct_change",
+        "week_pct",
+        "month_pct",
+        "quarter_pct",
+        "high",
+        "low"
+      ],
+      "sample": {
+        "current": "float",
+        "date": "str",
+        "prev": "float",
+        "change": "float",
+        "pct_change": "float",
+        "week_pct": "float",
+        "month_pct": "float",
+        "quarter_pct": "float"
+      }
+    }
+  ],
+  "PAYEMS_locations": [
+    {
+      "path": "fred.macro.PAYEMS",
+      "type": "dict",
+      "keys_or_len": [
+        "current",
+        "date",
+        "prev",
+        "change",
+        "pct_change",
+        "week_pct",
+        "month_pct",
+        "quarter_pct",
+        "high",
+        "low"
+      ],
+      "sample": {
+        "current": "float",
+        "date": "str",
+        "prev": "float",
+        "change": "float",
+        "pct_change": "float",
+        "week_pct": "float",
+        "month_pct": "float",
+        "quarter_pct": "float"
+      }
+    }
+  ],
+  "UMCSENT_locations": [
+    {
+      "path": "fred.macro.UMCSENT",
+      "type": "dict",
+      "keys_or_len": [
+        "current",
+        "date",
+        "prev",
+        "change",
+        "pct_change",
+        "week_pct",
+        "month_pct",
+        "quarter_pct",
+        "high",
+        "low"
+      ],
+      "sample": {
+        "current": "float",
+        "date": "str",
+        "prev": "float",
+        "change": "float",
+        "pct_change": "float",
+        "week_pct": "float",
+        "month_pct": "float",
+        "quarter_pct": "float"
+      }
+    }
+  ]
+}
