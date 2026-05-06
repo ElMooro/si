@@ -1,0 +1,126 @@
+{
+  "started": "2026-05-06T21:37:59.965294+00:00",
+  "stock-analyzer": {
+    "strict": false,
+    "X1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X6_revoked": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "options-flow": {
+    "strict": false,
+    "X1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X6_revoked": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "charts-agent": {
+    "strict": true,
+    "strict_no_key": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "strict_valid_key": {
+      "status": 502,
+      "expected": 200,
+      "ok": false
+    },
+    "strict_revoked": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": false
+  },
+  "edge-engine": {
+    "strict": false,
+    "X1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X6_revoked": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "all_passed": false,
+  "duration_s": 69.9
+}
