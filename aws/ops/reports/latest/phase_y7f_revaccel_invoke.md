@@ -1,0 +1,17 @@
+- `14:12:39`     current env: {"S3_BUCKET": "justhodl-dashboard-live", "TIMEOUT_BUDGET_S": "550", "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb", "N_WORKERS": "6", "MAX_TICKERS": "1200"}
+- `14:12:39`     last modified: 2026-05-06T14:08:44.000+0000
+- `14:12:39`     size: 17917
+- `14:12:41`     invoking with MAX_TICKERS=10, N_WORKERS=2...
+- `14:12:42`     status: 200, dur: 1.2s
+- `14:12:42`     body: {'statusCode': 200, 'body': '{"n_evaluated": 10, "n_tier_s": 0, "n_tier_a": 1, "n_microcap_picks": 0, "duration_s": 0.3}'}
+- `14:12:42`   
+- `14:12:42`     ── FULL LOG TAIL ──
+- `14:12:42`       START RequestId: e2e9a97e-8e1c-472a-81d0-9010f9c382d4 Version: $LATEST
+- `14:12:42`       [rev-accel] starting v1.0
+- `14:12:42`       [rev-accel] universe: 10 stocks
+- `14:12:42`       [rev-accel] OK: 10, no_data: 0
+- `14:12:42`       [rev-accel] wrote 17234b
+- `14:12:42`       [rev-accel] tier_s=0 tier_a=1
+- `14:12:42`       [rev-accel] top: [('NVDA', 64.0, 2), ('GOOGL', 43.0, 3), ('GOOG', 43.0, 3), ('TSLA', 42.0, 1), ('AVGO', 41.0, 3)]
+- `14:12:42`       END RequestId: e2e9a97e-8e1c-472a-81d0-9010f9c382d4
+- `14:12:42`       REPORT RequestId: e2e9a97e-8e1c-472a-81d0-9010f9c382d4	Duration: 377.16 ms	Billed Duration: 963 ms	Memory Size: 1024 MB	Max Memory Used: 99 MB	Init Duration: 585.74 ms
