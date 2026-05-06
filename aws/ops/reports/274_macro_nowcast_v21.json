@@ -1,0 +1,82 @@
+{
+  "started": "2026-05-06T18:46:22.510271+00:00",
+  "zip_size_bytes": 4548,
+  "code_updated": true,
+  "env_updated": true,
+  "invoke": {
+    "status": 200,
+    "func_err": null,
+    "elapsed_s": 5.44,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"regime\": \"SLOWING\", \"score\": -0.4152, \"coverage_pct\": 100.0}"
+    }
+  },
+  "output_summary": {
+    "version": "2.1",
+    "regime": "SLOWING",
+    "score": -0.4152,
+    "coverage_pct": 100.0,
+    "n_historical_months": 120,
+    "first_historical": {
+      "date": "2016-05-01",
+      "score": -0.771,
+      "raw_score": -0.771,
+      "regime": "SLOWING",
+      "regime_color": "amber",
+      "coverage_pct": 100.0,
+      "n_components": 7
+    },
+    "last_historical": {
+      "date": "2026-04-01",
+      "score": -0.415,
+      "raw_score": -0.415,
+      "regime": "SLOWING",
+      "regime_color": "amber",
+      "coverage_pct": 100.0,
+      "n_components": 7
+    },
+    "min_historical": {
+      "date": "2020-04-01",
+      "score": -19.088,
+      "raw_score": -19.088,
+      "regime": "CONTRACTION RISK",
+      "regime_color": "red",
+      "coverage_pct": 100.0,
+      "n_components": 7
+    },
+    "max_historical": {
+      "date": "2021-04-01",
+      "score": 4.064,
+      "raw_score": 4.064,
+      "regime": "STRONG EXPANSION",
+      "regime_color": "green",
+      "coverage_pct": 100.0,
+      "n_components": 7
+    },
+    "historical_summary": {
+      "n_months": 120,
+      "first_date": "2016-05-01",
+      "last_date": "2026-04-01",
+      "min_score": -19.088,
+      "max_score": 4.064,
+      "mean_score": -0.382,
+      "regime_distribution": {
+        "SLOWING": 43,
+        "MUDDLE": 55,
+        "EXPANSION": 11,
+        "CONTRACTION RISK": 7,
+        "STRONG EXPANSION": 4
+      },
+      "current_score_percentile": 30.8
+    },
+    "regime_distribution": {
+      "SLOWING": 43,
+      "MUDDLE": 55,
+      "EXPANSION": 11,
+      "CONTRACTION RISK": 7,
+      "STRONG EXPANSION": 4
+    }
+  },
+  "duration_s": 33.0
+}
