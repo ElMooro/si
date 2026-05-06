@@ -1,0 +1,9 @@
+{
+  "started": "2026-05-06T18:16:31.190821+00:00",
+  "lambda": {
+    "exists": false,
+    "err": "Lambda not deployed after 90s"
+  },
+  "fatal_error": "Lambda not deployed after 90s",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/266_bootstrap_macro_nowcast.py\", line 125, in main\n    raise RuntimeError(out[\"lambda\"].get(\"err\"))\nRuntimeError: Lambda not deployed after 90s\n"
+}
