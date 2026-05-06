@@ -757,6 +757,17 @@ EXPECTATIONS = {
         "note": "Multi-channel alert router — Telegram + Slack/Discord webhooks. Reads /justhodl/alerts/webhook_urls SSM. 12 alert sources.",
         "severity": "critical",
     },
+
+    # ─── Audit trail (DDB-backed, surfaced in /audit.html) ─────────────
+    "s3:data/history-index.json": {
+        "type": "s3_file",
+        "key": "data/history-index.json",
+        "fresh_max": 4_500,    # 75min — index rebuilds at top of hour
+        "warn_max": 7_200,
+        "expected_size": 5_000,
+        "note": "Per-feed snapshot index for /audit.html. Built by history-snapshotter ~hourly via DDB scan.",
+        "severity": "important",
+    },
 }
 
 
