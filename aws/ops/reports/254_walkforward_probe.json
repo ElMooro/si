@@ -1,0 +1,41 @@
+{
+  "probed_at": "2026-05-06T16:33:49+00:00",
+  "engine_version": "2.1",
+  "engine_generated_at": "2026-05-06T16:33:45.802827+00:00",
+  "v2_1_walkforward": {
+    "available": true,
+    "data_sufficient": false,
+    "data_sufficiency_note": "walk-forward coverage 1.4%, window 28 biz days (0.111y). NOT YET PUBLISHABLE \u2014 wait for more snapshots and/or longer window.",
+    "n_snapshots": 1,
+    "snapshots_earliest": "2026-05-04",
+    "snapshots_latest": "2026-05-10",
+    "n_trades_total": 1479,
+    "n_trades_walkforward_resolved": 20,
+    "n_trades_predates_snapshots": 1459,
+    "n_trades_signal_missing": 0,
+    "coverage_pct": 1.35,
+    "period_total_return_pct": -0.0567,
+    "period_alpha_vs_spy_pct": -8.8791,
+    "period_max_drawdown_pct": 0.0567,
+    "annualized_return_pct": -0.5103,
+    "annualized_vol_pct": 0.167,
+    "sharpe_point": -32.9889,
+    "daily_hit_rate": 0.0,
+    "n_pos_days": 0,
+    "n_neg_days": 1,
+    "reason_unavailable": null,
+    "fetch_errors": []
+  },
+  "v2_0_1_honest": {
+    "data_sufficient": false,
+    "period_total_return_pct": 76.7559,
+    "period_alpha_vs_spy_pct": 67.9335,
+    "sharpe_point": 8.5481,
+    "sharpe_p5": 3.3258,
+    "sharpe_p95": 14.4184
+  },
+  "v1_1_sharpe": 10.3912,
+  "v1_2_sharpe": 10.3371,
+  "n_business_days": 28,
+  "n_years": 0.111
+}
