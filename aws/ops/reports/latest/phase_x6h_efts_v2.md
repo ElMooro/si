@@ -1,0 +1,13 @@
+- `09:58:00`     invoking probe...
+- `09:58:18`     🎯 13D q+forms (no date)                    total=10000
+- `09:58:18`          form=SC 13D date=2015-12-30 ciks=['0001508913', '0001436081'] names=['Qihoo 360 Technology Co Ltd  (CIK 0', 'TB Partners GP LTD  (CIK 0001436081']
+- `09:58:18`          form=SC 13D/A date=2012-09-26 ciks=['0001072725', '0001450746'] names=['GOLD RESERVE INC  (GDRZF)  (CIK 000', 'WEST FACE CAPITAL INC.  (CIK 000145']
+- `09:58:18`          all keys: ['ciks', 'period_ending', 'file_num', 'display_names', 'xsl', 'sequence', 'root_forms', 'file_date', 'biz_states', 'sics', 'form', 'adsh', 'film_num', 'biz_locations', 'file_type', 'file_description', 'inc_states', 'items']
+- `09:58:18`     ○ 13D q+forms last 7d                      total=0
+- `09:58:18`     ○ 13D q-no-quotes                          total=0
+- `09:58:18`     ○ 13D no-q just-form                       total=0
+- `09:58:18`     ○ 13D-A with %2F                           total=0
+- `09:58:18`     ○ 13G                                      total=0
+- `09:58:18`     ○ Icahn 13D q                              total=0
+- `09:58:18`     ○ q=13D forms=SC+13D                       total=0
+- `09:58:18`     ✓ probe deleted
