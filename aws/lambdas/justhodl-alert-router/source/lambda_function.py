@@ -79,6 +79,157 @@ def send_telegram(text, chat_id):
         return False, str(e)
 
 
+# ─── WEBHOOK DELIVERY ─────────────────────────────────────────────────
+# In addition to Telegram, alerts can be POSTed to any number of webhook
+# URLs (Slack, Discord, custom HTTP receivers, PagerDuty Events API).
+# Webhook URLs are stored as a JSON list in SSM SecureString at
+# /justhodl/alerts/webhook_urls — each item is either a plain URL string
+# or {url, type, min_severity}. Slack/Discord get format-specific
+# payloads; everything else gets the generic JSON envelope.
+#
+# Schema example (SSM value):
+#   ["https://hooks.slack.com/services/T0/B0/abc",
+#    {"url": "https://discord.com/api/webhooks/123/abc", "type": "discord"},
+#    {"url": "https://example.com/alert", "type": "generic", "min_severity": "HIGH"}]
+
+SEVERITY_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
+
+
+def get_webhook_urls():
+    """Read /justhodl/alerts/webhook_urls — a JSON list. Returns [] if missing."""
+    try:
+        v = SSM.get_parameter(Name="/justhodl/alerts/webhook_urls", WithDecryption=True)["Parameter"]["Value"]
+        parsed = json.loads(v) if v else []
+        if not isinstance(parsed, list):
+            return []
+        out = []
+        for item in parsed:
+            if isinstance(item, str):
+                out.append({"url": item, "type": _detect_type(item), "min_severity": "LOW"})
+            elif isinstance(item, dict) and item.get("url"):
+                out.append({
+                    "url": item["url"],
+                    "type": item.get("type") or _detect_type(item["url"]),
+                    "min_severity": item.get("min_severity", "LOW"),
+                })
+        return out
+    except Exception as e:
+        # Param not set yet is the normal case — silent
+        if "ParameterNotFound" not in str(e):
+            print(f"[webhooks] read err: {e}")
+        return []
+
+
+def _detect_type(url: str) -> str:
+    u = (url or "").lower()
+    if "slack.com" in u:
+        return "slack"
+    if "discord.com" in u or "discordapp.com" in u:
+        return "discord"
+    return "generic"
+
+
+def _passes_severity(alert_sev: str, min_sev: str) -> bool:
+    return SEVERITY_RANK.get(alert_sev, 0) >= SEVERITY_RANK.get(min_sev or "LOW", 1)
+
+
+def format_slack_payload(alert):
+    """Slack incoming-webhook block format."""
+    sev_color = {"HIGH": "#ff174a", "MEDIUM": "#ffc400", "LOW": "#00d4ff"}.get(alert.get("severity"), "#6f7b91")
+    sev_icon = {"HIGH": ":red_circle:", "MEDIUM": ":large_yellow_circle:",
+                "LOW": ":large_blue_circle:"}.get(alert.get("severity"), ":white_circle:")
+    title = f"{sev_icon} {alert.get('title') or alert.get('check') or alert.get('id', 'Alert')}"
+    body = alert.get("message") or alert.get("body") or ""
+    fields = []
+    for k in ("source", "metric", "value", "threshold", "check", "ts"):
+        if k in alert and alert[k] is not None:
+            fields.append({"title": k, "value": str(alert[k])[:200], "short": True})
+    return {
+        "attachments": [{
+            "color": sev_color,
+            "title": title,
+            "text": body[:1500],
+            "fields": fields,
+            "footer": "JustHodl alert-router",
+            "ts": int(time.time()),
+        }],
+    }
+
+
+def format_discord_payload(alert):
+    """Discord webhook embed format."""
+    color_int = {"HIGH": 16718410, "MEDIUM": 16762880, "LOW": 54271}.get(alert.get("severity"), 7301513)
+    sev_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🔵"}.get(alert.get("severity"), "⚪")
+    title = f"{sev_icon} {alert.get('title') or alert.get('check') or alert.get('id', 'Alert')}"
+    body = alert.get("message") or alert.get("body") or ""
+    fields = []
+    for k in ("source", "metric", "value", "threshold", "check"):
+        if k in alert and alert[k] is not None:
+            fields.append({"name": k, "value": str(alert[k])[:200], "inline": True})
+    return {
+        "username": "JustHodl",
+        "embeds": [{
+            "title": title[:240],
+            "description": body[:2000],
+            "color": color_int,
+            "fields": fields[:10],
+            "footer": {"text": "alert-router · justhodl.ai"},
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }],
+    }
+
+
+def format_generic_payload(alert):
+    """Plain JSON envelope — for custom HTTP receivers, Zapier, n8n, etc."""
+    return {
+        "service": "justhodl-alert-router",
+        "version": "1.1",
+        "alert": alert,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def send_webhook(target: dict, alert: dict):
+    """POST a single alert to one webhook target. Returns (ok, info)."""
+    url = target["url"]
+    typ = target.get("type", "generic")
+    if typ == "slack":
+        payload = format_slack_payload(alert)
+    elif typ == "discord":
+        payload = format_discord_payload(alert)
+    else:
+        payload = format_generic_payload(alert)
+    try:
+        body = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "User-Agent": "justhodl-alert-router/1.1"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return True, f"{resp.status} {resp.read()[:160].decode(errors='replace')}"
+    except Exception as e:
+        return False, str(e)[:200]
+
+
+def dispatch_to_webhooks(alert: dict, targets: list):
+    """Send alert to all webhook targets that pass severity filter.
+    Returns list of {url_host, type, ok, info} for the alert record.
+    """
+    results = []
+    for t in targets:
+        if not _passes_severity(alert.get("severity"), t.get("min_severity")):
+            continue
+        ok, info = send_webhook(t, alert)
+        # Mask the URL — keep only the host so secrets don't leak in S3 history
+        try:
+            from urllib.parse import urlparse
+            host = urlparse(t["url"]).netloc
+        except Exception:
+            host = "unknown"
+        results.append({"host": host, "type": t.get("type"), "ok": ok, "info": info})
+    return results
+
+
 def load_json(key, default=None):
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
@@ -367,19 +518,35 @@ def lambda_handler(event=None, context=None):
 
     print(f"[alert-router] {len(alerts)} candidate alerts before dedup")
 
+    # Load webhook targets once (may be empty list = no webhooks configured)
+    webhook_targets = get_webhook_urls()
+    if webhook_targets:
+        print(f"[alert-router] {len(webhook_targets)} webhook target(s) configured")
+
     # Dedup + send
     sent = []
     suppressed = []
+    n_webhook_attempts = 0
+    n_webhook_ok = 0
     for a in alerts:
         aid = a["id"]
         if is_recent_dup(state, aid):
             suppressed.append(a)
             continue
+        # Telegram (preserved)
         msg = format_telegram_msg(a)
         ok, info = send_telegram(msg, chat_id) if chat_id else (False, "no_chat_id")
         a["sent_at"] = datetime.now(timezone.utc).isoformat()
         a["telegram_sent"] = ok
         a["telegram_info"] = info[:200] if info else None
+
+        # Webhooks (in addition to Telegram, severity-filtered)
+        if webhook_targets:
+            wh_results = dispatch_to_webhooks(a, webhook_targets)
+            a["webhook_results"] = wh_results
+            n_webhook_attempts += len(wh_results)
+            n_webhook_ok += sum(1 for r in wh_results if r["ok"])
+
         sent.append(a)
         state[aid] = a["sent_at"]
         time.sleep(0.5)  # rate limit
@@ -391,12 +558,17 @@ def lambda_handler(event=None, context=None):
         "candidates": len(alerts),
         "sent": len(sent),
         "suppressed": len(suppressed),
+        "webhooks_configured": len(webhook_targets),
+        "webhook_attempts": n_webhook_attempts,
+        "webhook_ok": n_webhook_ok,
     }
 
     write_json(HISTORY_KEY, history)
     write_json(STATE_KEY, state)
 
-    print(f"[alert-router] sent={len(sent)} suppressed={len(suppressed)} duration={time.time()-started:.1f}s")
+    print(f"[alert-router] sent={len(sent)} suppressed={len(suppressed)} "
+          f"webhooks={n_webhook_ok}/{n_webhook_attempts} "
+          f"duration={time.time()-started:.1f}s")
 
     return {
         "statusCode": 200,
@@ -404,6 +576,9 @@ def lambda_handler(event=None, context=None):
             "candidates": len(alerts),
             "sent": len(sent),
             "suppressed": len(suppressed),
+            "webhooks_configured": len(webhook_targets),
+            "webhook_attempts": n_webhook_attempts,
+            "webhook_ok": n_webhook_ok,
             "duration_s": round(time.time() - started, 2),
         }),
     }
