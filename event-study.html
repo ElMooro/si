@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Event Study · JustHodl.AI</title>
+<meta name="description" content="How does SPY perform around macro events? Algorithmic event detection from FRED + forward-return distributions at 1/5/21/63/126 trading days.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--yellow)}.topnav a.active{color:var(--green);border-bottom:2px solid var(--green)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--yellow);font-style:normal}
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
+.hero{margin-bottom:32px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--green);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--t3)}
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--green)}
+.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--green);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}.primer p:last-child{margin-bottom:0}.primer strong{color:var(--t1)}
+.primer code{font-family:var(--mono);background:var(--bg2);padding:1px 6px;border-radius:3px;color:var(--green);font-size:12px}
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:780px}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+.event-card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;transition:border-color .2s}
+.event-card:hover{border-color:var(--brd2)}
+.event-card.active{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.event-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.event-name{font-family:var(--display);font-size:15px;font-weight:600;color:var(--t1)}
+.event-pill{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;font-weight:500;display:inline-block;white-space:nowrap}
+.pill-active{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.pill-quiet{background:var(--bg2);color:var(--t3);border:1px solid var(--brd)}
+.event-desc{font-size:12px;color:var(--t3);margin-bottom:14px;line-height:1.55}
+.event-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 14px;margin-bottom:12px}
+.event-stat{display:flex;flex-direction:column;gap:1px}
+.event-stat-label{font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
+.event-stat-val{font-family:var(--mono);font-size:13px;color:var(--t1)}
+.event-stat-val.up{color:var(--green)}.event-stat-val.down{color:var(--red)}.event-stat-val.warn{color:var(--yellow)}
+.event-fwd{margin-top:8px;padding-top:12px;border-top:1px solid var(--brd)}
+.event-fwd-label{font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.event-fwd-table{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-family:var(--mono);font-size:11.5px}
+.event-fwd-cell{display:flex;flex-direction:column;align-items:center;padding:6px 4px;background:var(--bg);border:1px solid var(--brd);border-radius:4px}
+.event-fwd-h{font-size:9.5px;color:var(--t3);letter-spacing:.5px}
+.event-fwd-v{font-size:12px;font-weight:600;color:var(--t1);margin-top:2px}
+.event-fwd-v.up{color:var(--green)}.event-fwd-v.down{color:var(--red)}
+.event-fwd-hit{font-size:9px;color:var(--t3);margin-top:1px}
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
+.warn-banner{background:var(--yellow-bg);border:1px solid rgba(255,196,0,.3);color:var(--yellow);padding:12px 16px;border-radius:6px;font-size:12px;margin-bottom:16px;font-family:var(--mono)}
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
+.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
+.foot-section{display:flex;flex-direction:column;gap:4px}
+.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}
+.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
+.disclaimer{font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;line-height:1.5}
+@media (max-width: 900px){
+  .kpi-strip{grid-template-columns: repeat(2, 1fr)}
+  .event-grid{grid-template-columns: 1fr}
+}
+@media (max-width: 600px){
+  .kpi-strip{grid-template-columns: 1fr}
+  .event-fwd-table{grid-template-columns: repeat(3,1fr)}
+  .event-fwd-table .event-fwd-cell:nth-child(n+4){display:none}
+}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/regime.html">Regime</a>
+  <a href="/event-study.html" class="active">Event Study</a>
+  <a href="/backtest.html">Backtest</a>
+  <a href="/forensic.html">Forensic</a>
+  <a href="/audit.html">Audit</a>
+  <a href="/system.html">System</a>
+</nav>
+
+<main class="shell">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Event study</div>
+    <h1 class="hero-title">How does SPY react to <em>macro events</em>?</h1>
+    <p class="hero-blurb">Algorithmic detection of 8 high-leverage event types — first Fed cut, first Fed hike, yield-curve inversions/steepenings, VIX spikes/normalizations, credit blow-outs/recoveries — built directly from FRED time series with no manual calendar required. For every historical occurrence, the SPY forward-return distribution is computed at 1, 5, 21, 63, and 126 trading-day horizons.</p>
+    <div class="kpi-strip" id="kpis"></div>
+  </header>
+
+  <div class="primer">
+    <h3>How to read</h3>
+    <p>Each card is one event class. <code>currently_active</code> = the event has triggered in the past few days; cards in green are live signals. <strong>Forward returns</strong> are SPY mean / median / hit-rate measured from the day of trigger going forward N trading days.</p>
+    <p>If multiple events are simultaneously active, the system computes a composite expected forward return across active themes.</p>
+    <p><strong>Limitations:</strong> events compute on FRED's public daily series — trigger detection has up to ~1 trading day of lag. Sample sizes per event are small (8-25 occurrences across 35 years) so confidence intervals around forward-return summaries are wide. This is a <em>directional</em> tool, not a precision instrument.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Live</div>
+    <h2 class="section-title">Currently active events</h2>
+    <p class="section-blurb">Events that have triggered recently and are still considered "active" by the detector.</p>
+    <div id="active-summary"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">All events</div>
+    <h2 class="section-title">8 algorithmically-detected event classes</h2>
+    <p class="section-blurb">Sorted by recency of last trigger. Click a card for occurrence list (forthcoming).</p>
+    <div id="events-grid" class="event-grid">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+  <p class="disclaimer">Past forward-return distributions do not predict future returns. Sample sizes per event class are inherently small (often single-digit occurrences over decades). This page surfaces statistical patterns, not trading signals. Always pair with regime context (<a href="/regime.html" style="color:var(--cyan)">regime page</a>), positioning data, and risk constraints before acting.</p>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section">
+      <div class="foot-label">Source</div>
+      <span>FRED API</span>
+      <span>SPY price history</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Refresh</div>
+      <span>Daily via EventBridge</span>
+      <span id="last-updated">—</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Engine</div>
+      <span>justhodl-event-study Lambda</span>
+      <span><a href="/system.html">System health →</a></span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Methodology</div>
+      <span>Algorithmic detection on FRED series</span>
+      <span>Forward returns at 1/5/21/63/126 days</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+function fmtPct(v, dp=2){
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  const s = n >= 0 ? "+" : "";
+  return `${s}${n.toFixed(dp)}%`;
+}
+function fmtN(v){
+  if (v === null || v === undefined) return "—";
+  return Number(v).toLocaleString();
+}
+function pctClass(v){ return v > 0 ? "up" : (v < 0 ? "down" : ""); }
+
+function timeAgo(iso){
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+async function load(){
+  let data;
+  try {
+    const r = await fetch(`${BUCKET}/data/event-study.json?_=${Date.now()}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    data = await r.json();
+  } catch (e) {
+    document.getElementById('events-grid').innerHTML =
+      `<div class="empty">Failed to load: ${e.message}</div>`;
+    return;
+  }
+
+  document.getElementById('last-updated').textContent =
+    data.generated_at ? `Updated ${timeAgo(data.generated_at)}` : '';
+
+  const studies = data.studies || {};
+  const studyList = Object.entries(studies);
+  const activeKeys = (data.active_themes || []).map(t => typeof t === 'string' ? t : t.name);
+  const totalOccurrences = studyList.reduce((sum, [k,s]) => sum + (s.n_events || 0), 0);
+
+  // KPIs
+  const kpis = [
+    { l: 'Event classes', v: studyList.length, sub: 'algorithmic detectors' },
+    { l: 'Currently active', v: activeKeys.length || 0,
+      sub: activeKeys.length ? activeKeys.join(', ') : 'no triggers fired' },
+    { l: 'Total occurrences', v: fmtN(totalOccurrences),
+      sub: 'across all event types since 1990' },
+    { l: 'Expected 21d return', v: fmtPct(data.expected_21d_return_from_active_pct, 2),
+      sub: data.expected_21d_return_from_active_pct === null ? 'no active events' : 'from currently active themes' },
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k =>
+    `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
+  ).join('');
+
+  // Active summary block
+  const activeBlock = document.getElementById('active-summary');
+  if (activeKeys.length === 0){
+    activeBlock.innerHTML = `<div class="warn-banner">⚪ No event classes currently active. The market is in a "quiet" regime where no detector has fired recently.</div>`;
+  } else {
+    activeBlock.innerHTML = activeKeys.map(k =>
+      `<div style="background:var(--green-bg);border:1px solid rgba(0,230,118,.3);padding:12px 16px;border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--green);margin-bottom:8px"><strong>${k}</strong> — currently triggered</div>`
+    ).join('');
+  }
+
+  // Sort studies: active first, then by most_recent_date desc
+  studyList.sort(([ak, a], [bk, b]) => {
+    if (a.currently_active && !b.currently_active) return -1;
+    if (!a.currently_active && b.currently_active) return 1;
+    const aDate = a.most_recent_date || '0000';
+    const bDate = b.most_recent_date || '0000';
+    return bDate.localeCompare(aDate);
+  });
+
+  if (studyList.length === 0){
+    document.getElementById('events-grid').innerHTML =
+      `<div class="empty">No event-study data available yet.</div>`;
+    return;
+  }
+
+  document.getElementById('events-grid').innerHTML = studyList.map(([key, s]) => {
+    const fwd = s.forward_return_summary || {};
+    const horizons = data.horizons_trading_days || [1, 5, 21, 63, 126];
+    const fwdCells = horizons.map(h => {
+      const stat = fwd[`day_${h}`] || fwd[String(h)] || {};
+      const meanPct = stat.mean_pct ?? stat.mean ?? null;
+      const hit = stat.hit_rate ?? null;
+      return `<div class="event-fwd-cell">
+        <span class="event-fwd-h">${h}d</span>
+        <span class="event-fwd-v ${pctClass(meanPct)}">${fmtPct(meanPct, 1)}</span>
+        <span class="event-fwd-hit">${hit !== null ? `${(hit*100).toFixed(0)}% hit` : ''}</span>
+      </div>`;
+    }).join('');
+
+    const activePill = s.currently_active
+      ? '<span class="event-pill pill-active">● Active</span>'
+      : '<span class="event-pill pill-quiet">Quiet</span>';
+
+    const lastDate = s.most_recent_date || '—';
+    const daysAgo = s.days_since_most_recent !== null && s.days_since_most_recent !== undefined
+      ? `${s.days_since_most_recent}d ago`
+      : '—';
+
+    return `<div class="event-card${s.currently_active ? ' active' : ''}">
+      <div class="event-head">
+        <span class="event-name">${key}</span>
+        ${activePill}
+      </div>
+      <p class="event-desc">${(s.description || '').slice(0, 220)}</p>
+      <div class="event-stats">
+        <div class="event-stat">
+          <span class="event-stat-label">Occurrences</span>
+          <span class="event-stat-val">${fmtN(s.n_events)}</span>
+        </div>
+        <div class="event-stat">
+          <span class="event-stat-label">Last trigger</span>
+          <span class="event-stat-val">${lastDate}</span>
+        </div>
+        <div class="event-stat">
+          <span class="event-stat-label">Days since</span>
+          <span class="event-stat-val">${daysAgo}</span>
+        </div>
+        <div class="event-stat">
+          <span class="event-stat-label">w/ forward data</span>
+          <span class="event-stat-val">${fmtN(s.n_with_forward_data)}</span>
+        </div>
+      </div>
+      ${(s.n_events || 0) > 0 ? `
+      <div class="event-fwd">
+        <div class="event-fwd-label">SPY forward returns (mean across all occurrences)</div>
+        <div class="event-fwd-table">${fwdCells}</div>
+      </div>` : '<div class="event-fwd"><div class="event-fwd-label" style="color:var(--t3);font-style:italic">No historical occurrences yet — detector may need wider data window or has bug. Check Lambda logs.</div></div>'}
+    </div>`;
+  }).join('');
+}
+
+load();
+</script>
+</body>
+</html>

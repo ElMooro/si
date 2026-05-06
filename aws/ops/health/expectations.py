@@ -728,6 +728,24 @@ EXPECTATIONS = {
         "severity": "important",
     },
 
+# ─── Event study (algorithmic event detection from FRED) ─────────
+    "s3:data/event-study.json": {
+        "type": "s3_file",
+        "key": "data/event-study.json",
+        "fresh_max": 30 * 3600,        # 30h (writer is daily)
+        "warn_max": 72 * 3600,         # 72h
+        "expected_size": 5_000,
+        "note": "Event-study output — 8 event classes, forward SPY returns at 1/5/21/63/126 trading days.",
+        "severity": "important",
+    },
+    "lambda:justhodl-event-study": {
+        "type": "lambda",
+        "name": "justhodl-event-study",
+        "max_error_rate": 0.20,
+        "min_invocations_24h": 1,      # daily schedule
+        "note": "Algorithmic event detection from FRED + SPY forward returns.",
+        "severity": "important",
+    },
     # ─── History audit index (Phase 1 of /audit.html) ────────────────
 # ─── History API (Phase 2 of /audit.html) ────────────────────────
     "lambda:justhodl-history-api": {
