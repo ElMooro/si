@@ -50,10 +50,14 @@ S3 = boto3.client("s3", region_name=REGION)
 
 
 def get_universe():
+    """Filter universe to nano/micro/small/mid caps for squeeze detection."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
         d = json.loads(obj["Body"].read())
-        return d.get("stocks", [])[:MAX_TICKERS]
+        all_stocks = d.get("stocks", [])
+        target_buckets = {"nano", "micro", "small", "mid"}
+        filtered = [s for s in all_stocks if s.get("cap_bucket") in target_buckets]
+        return filtered[:MAX_TICKERS]
     except Exception as e:
         print("[float-sq] universe load failed: " + str(e))
         return []
@@ -167,28 +171,32 @@ def evaluate_ticker(stock, finra_history):
     sector = stock.get("sector", "?")
     industry = stock.get("industry", "?")
 
-    # Get profile + quote
-    profile = fetch_profile(sym)
-    quote = fetch_quote(sym)
-    if not profile or not quote:
-        return None
+    # Use universe-supplied data first to avoid extra API calls
+    market_cap = stock.get("market_cap") or 0
+    price = stock.get("price") or 0
+    
+    # If universe data is missing, fall back to live quote
+    if not (market_cap and price):
+        quote = fetch_quote(sym)
+        if not quote:
+            return None
+        market_cap = quote.get("marketCap") or 0
+        price = quote.get("price") or 0
 
-    market_cap = quote.get("marketCap") or 0
-    price = quote.get("price") or 0
-
-    # Filter: $50M - $2B mcap, price > $1
-    if not (50_000_000 <= market_cap < 2_000_000_000):
+    # Filter: $50M - $5B mcap (loosened upper to capture small inflection plays)
+    if not (50_000_000 <= market_cap < 5_000_000_000):
         return None
     if price < 1.0:
         return None
 
-    # Get float (Polygon-style; FMP profile has it)
-    shares_out = profile.get("sharesOutstanding") or 0
-    # FMP doesn't always have a separate float field, so use sharesOutstanding as proxy
-    # Some FMP versions have 'sharesFloat' — try both
-    float_shares = profile.get("sharesFloat") or shares_out
-    if float_shares <= 0:
-        float_shares = shares_out
+    # Derive shares outstanding from market_cap / price (always works,
+    # avoids need for now-broken /share-float endpoint)
+    if price <= 0:
+        return None
+    shares_out = market_cap / price
+    
+    # Float estimate: 80% of shares outstanding (insiders/restricted typically 10-25%)
+    float_shares = shares_out * 0.80
     if float_shares <= 0:
         return None
 
@@ -203,7 +211,7 @@ def evaluate_ticker(stock, finra_history):
     today = closes[-1]
 
     avg_dollar_vol_30 = sum(c * v for c, v in zip(closes[-30:], volumes[-30:])) / min(30, n)
-    if avg_dollar_vol_30 < 500_000:
+    if avg_dollar_vol_30 < 200_000:
         return None
 
     avg_vol_30 = sum(volumes[-30:]) / min(30, n)
