@@ -1,0 +1,262 @@
+{
+  "started": "2026-05-06T20:02:43.310516+00:00",
+  "n_log_groups": 244,
+  "n_deployed_lambdas": 187,
+  "n_lambda_log_groups": 238,
+  "n_non_lambda_groups": 6,
+  "n_orphan_log_groups": 52,
+  "n_orphan_unbounded_retention": 46,
+  "n_orphan_with_retention": 6,
+  "total_orphan_bytes": 39514,
+  "total_orphan_mb": 0.04,
+  "top_20_by_size": [
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-fred-probe-237",
+      "lambda_name": "justhodl-tmp-fred-probe-237",
+      "size_bytes": 3541,
+      "retention_days": null,
+      "created_ms": 1777240705137,
+      "created_iso": "2026-04-26T21:58:25.137000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-207",
+      "lambda_name": "justhodl-tmp-probe-207",
+      "size_bytes": 3181,
+      "retention_days": null,
+      "created_ms": 1777205303933,
+      "created_iso": "2026-04-26T12:08:23.933000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe",
+      "lambda_name": "justhodl-tmp-probe",
+      "size_bytes": 3133,
+      "retention_days": null,
+      "created_ms": 1777161785869,
+      "created_iso": "2026-04-26T00:03:05.869000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-208",
+      "lambda_name": "justhodl-tmp-probe-208",
+      "size_bytes": 3001,
+      "retention_days": null,
+      "created_ms": 1777205489523,
+      "created_iso": "2026-04-26T12:11:29.523000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-fred-probe-241",
+      "lambda_name": "justhodl-tmp-fred-probe-241",
+      "size_bytes": 2825,
+      "retention_days": null,
+      "created_ms": 1777241748257,
+      "created_iso": "2026-04-26T22:15:48.257000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-206",
+      "lambda_name": "justhodl-tmp-probe-206",
+      "size_bytes": 2572,
+      "retention_days": null,
+      "created_ms": 1777205157735,
+      "created_iso": "2026-04-26T12:05:57.735000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-201",
+      "lambda_name": "justhodl-tmp-probe-201",
+      "size_bytes": 2293,
+      "retention_days": null,
+      "created_ms": 1777204488695,
+      "created_iso": "2026-04-26T11:54:48.695000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-209",
+      "lambda_name": "justhodl-tmp-probe-209",
+      "size_bytes": 1783,
+      "retention_days": null,
+      "created_ms": 1777206596747,
+      "created_iso": "2026-04-26T12:29:56.747000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-205",
+      "lambda_name": "justhodl-tmp-probe-205",
+      "size_bytes": 1613,
+      "retention_days": null,
+      "created_ms": 1777205012311,
+      "created_iso": "2026-04-26T12:03:32.311000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-203",
+      "lambda_name": "justhodl-tmp-probe-203",
+      "size_bytes": 1601,
+      "retention_days": null,
+      "created_ms": 1777204770053,
+      "created_iso": "2026-04-26T11:59:30.053000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-210",
+      "lambda_name": "justhodl-tmp-probe-210",
+      "size_bytes": 1589,
+      "retention_days": null,
+      "created_ms": 1777206688009,
+      "created_iso": "2026-04-26T12:31:28.009000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-skew-engine",
+      "lambda_name": "justhodl-skew-engine",
+      "size_bytes": 1432,
+      "retention_days": null,
+      "created_ms": 1777914842702,
+      "created_iso": "2026-05-04T17:14:02.702000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-214",
+      "lambda_name": "justhodl-tmp-probe-214",
+      "size_bytes": 1313,
+      "retention_days": null,
+      "created_ms": 1777209210162,
+      "created_iso": "2026-04-26T13:13:30.162000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-fred-probe-236",
+      "lambda_name": "justhodl-tmp-fred-probe-236",
+      "size_bytes": 1182,
+      "retention_days": null,
+      "created_ms": 1777240392907,
+      "created_iso": "2026-04-26T21:53:12.907000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-fmp-probe",
+      "lambda_name": "justhodl-tmp-fmp-probe",
+      "size_bytes": 1042,
+      "retention_days": null,
+      "created_ms": 1777161548804,
+      "created_iso": "2026-04-25T23:59:08.804000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-231",
+      "lambda_name": "justhodl-tmp-probe-231",
+      "size_bytes": 905,
+      "retention_days": null,
+      "created_ms": 1777235840125,
+      "created_iso": "2026-04-26T20:37:20.125000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-223",
+      "lambda_name": "justhodl-tmp-probe-223",
+      "size_bytes": 904,
+      "retention_days": null,
+      "created_ms": 1777212515524,
+      "created_iso": "2026-04-26T14:08:35.524000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-222",
+      "lambda_name": "justhodl-tmp-probe-222",
+      "size_bytes": 901,
+      "retention_days": null,
+      "created_ms": 1777212444708,
+      "created_iso": "2026-04-26T14:07:24.708000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-196",
+      "lambda_name": "justhodl-tmp-probe-196",
+      "size_bytes": 886,
+      "retention_days": null,
+      "created_ms": 1777166799978,
+      "created_iso": "2026-04-26T01:26:39.978000+00:00"
+    },
+    {
+      "log_group_name": "/aws/lambda/justhodl-tmp-probe-221",
+      "lambda_name": "justhodl-tmp-probe-221",
+      "size_bytes": 760,
+      "retention_days": null,
+      "created_ms": 1777212046665,
+      "created_iso": "2026-04-26T14:00:46.665000+00:00"
+    }
+  ],
+  "all_orphan_log_group_names": [
+    "/aws/lambda/justhodl-tmp-fred-probe-237",
+    "/aws/lambda/justhodl-tmp-probe-207",
+    "/aws/lambda/justhodl-tmp-probe",
+    "/aws/lambda/justhodl-tmp-probe-208",
+    "/aws/lambda/justhodl-tmp-fred-probe-241",
+    "/aws/lambda/justhodl-tmp-probe-206",
+    "/aws/lambda/justhodl-tmp-probe-201",
+    "/aws/lambda/justhodl-tmp-probe-209",
+    "/aws/lambda/justhodl-tmp-probe-205",
+    "/aws/lambda/justhodl-tmp-probe-203",
+    "/aws/lambda/justhodl-tmp-probe-210",
+    "/aws/lambda/justhodl-skew-engine",
+    "/aws/lambda/justhodl-tmp-probe-214",
+    "/aws/lambda/justhodl-tmp-fred-probe-236",
+    "/aws/lambda/justhodl-tmp-fmp-probe",
+    "/aws/lambda/justhodl-tmp-probe-231",
+    "/aws/lambda/justhodl-tmp-probe-223",
+    "/aws/lambda/justhodl-tmp-probe-222",
+    "/aws/lambda/justhodl-tmp-probe-196",
+    "/aws/lambda/justhodl-tmp-probe-221",
+    "/aws/lambda/justhodl-tmp-probe-194",
+    "/aws/lambda/justhodl-tmp-url-probe",
+    "/aws/lambda/justhodl-tmp-probe-195",
+    "/aws/lambda/justhodl-tmp-probe-234",
+    "/aws/lambda/justhodl-tmp-probe-202",
+    "/aws/lambda/fredapi",
+    "/aws/lambda/justhodl-acl-fix-temp",
+    "/aws/lambda/justhodl-e2e-temp",
+    "/aws/lambda/justhodl-efts-diag-temp",
+    "/aws/lambda/justhodl-efts-probe-temp",
+    "/aws/lambda/justhodl-fmp-test-temp",
+    "/aws/lambda/justhodl-html-inspect-temp",
+    "/aws/lambda/justhodl-html-patch-temp",
+    "/aws/lambda/justhodl-microcap-diag-temp",
+    "/aws/lambda/justhodl-pages-verify-temp",
+    "/aws/lambda/justhodl-pead-diag-temp",
+    "/aws/lambda/justhodl-pead-test-temp",
+    "/aws/lambda/justhodl-policy-temp",
+    "/aws/lambda/justhodl-revaccel-diag-temp",
+    "/aws/lambda/justhodl-revaccel-logic-temp",
+    "/aws/lambda/justhodl-rss-diag-temp",
+    "/aws/lambda/justhodl-s3-audit-temp",
+    "/aws/lambda/justhodl-s3-uploader-temp",
+    "/aws/lambda/justhodl-screener-test-temp",
+    "/aws/lambda/justhodl-sec-probe-temp",
+    "/aws/lambda/justhodl-verify-temp",
+    "/aws/lambda/justhodl-website-audit-temp",
+    "/aws/lambda/macro-email-sender",
+    "/aws/lambda/market-report-generator",
+    "/aws/lambda/openbb-search-api",
+    "/aws/lambda/report-email-agent",
+    "/aws/lambda/simple-email-sender"
+  ],
+  "estimated_monthly_cost_usd": 0.0,
+  "non_lambda_groups_sample": [
+    {
+      "name": "/aws/sagemaker/studio",
+      "size_bytes": 22424,
+      "retention_days": 14
+    },
+    {
+      "name": "/aws/apprunner/openbb-api/1ccdfbc8a3ab43cca282e6a6fd10a72f/application",
+      "size_bytes": 2028,
+      "retention_days": 14
+    },
+    {
+      "name": "//ecs//openbb-api",
+      "size_bytes": 0,
+      "retention_days": 14
+    },
+    {
+      "name": "/aws/apprunner/openbb-api/1ccdfbc8a3ab43cca282e6a6fd10a72f/service",
+      "size_bytes": 0,
+      "retention_days": 14
+    },
+    {
+      "name": "/ecs/openbb-api",
+      "size_bytes": 0,
+      "retention_days": 14
+    },
+    {
+      "name": "/ecs/openbb-websocket-api",
+      "size_bytes": 0,
+      "retention_days": 14
+    }
+  ],
+  "duration_s": 2.5
+}
