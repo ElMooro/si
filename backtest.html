@@ -136,17 +136,38 @@ table td.num{text-align:right}
 
   <div class="method-card">
     <h3>Methodology</h3>
-    For each unique signal_id with a scored outcome (deduped — shortest window preferred when
-    multiple exist), the engine computes:
-    <code>contribution = 0.005 × weight × predicted_direction_sign × actual_return</code>.
-    Each trade is sized at 0.5% of NAV modulated by the signal's calibration weight — so a
-    w=1.5 signal earning +10% contributes 0.075% to NAV. Trades distribute across their
-    <code>logged_at</code> firing dates (not the scoring date), so the timeline reflects when
-    the signal actually fired. NAV compounds normally from $100,000. Auto-recomputes every
-    6 hours after the calibrator runs.
+    The headline numbers below come from <strong>v2.0 (Honest Backtest)</strong>:
+    each scored realistic trade's net P&L (post-slippage, post-concentration-cap, post-gross-cap)
+    is booked on its <code>logged_at</code> firing date, then a complete business-day calendar is
+    constructed from first to last date — every Mon–Fri without a trade contributes <strong>0</strong> to that
+    day's P&L. Annualized return is computed geometrically from the compounded NAV; Sharpe subtracts
+    the 5% risk-free rate. The headline Sharpe is then bracketed by a 1000-sample <strong>block
+    bootstrap</strong> (5-day blocks) to give an honest [p5, p95] confidence interval. v1.1 (idealized,
+    no friction) and v1.2 (with frictions but only counting trade days in vol) are kept below for
+    comparison so methodology drag and friction drag are both visible.
+    <br><br>
+    <em>Known limitation:</em> calibration weights are still fitted in-sample. Walk-forward
+    out-of-sample calibration is v2.1 (next ship). Auto-recomputes every 6 hours.
   </div>
 
   <div id="notice-area"></div>
+
+  <!-- ─── v2.0 HONEST BACKTEST (HEADLINE) ─── -->
+  <div class="section" id="honest-section">
+    <h2>v2.0 Honest Backtest <span style="font-size:11px;color:var(--green);font-weight:500;letter-spacing:1px;margin-left:8px;text-transform:uppercase">Headline</span></h2>
+    <p class="sub">The number to publish. Lump-sum P&L on each trade's firing day, full business-day calendar (zero-trade days included in volatility), 5% risk-free rate subtracted, Sharpe reported with bootstrap [p5, p95] confidence interval.</p>
+    <div id="honest-notice"></div>
+    <div class="kpis" id="honest-kpi-row"><div class="kpi"><h3>Loading…</h3></div></div>
+    <div class="card" style="padding:20px;margin-top:18px">
+      <svg id="honest-nav-chart" viewBox="0 0 1100 320" preserveAspectRatio="none" style="width:100%;height:320px"></svg>
+    </div>
+    <div class="card" style="padding:18px 22px;margin-top:14px">
+      <table id="honest-stats" style="font-size:13px;width:100%">
+        <thead><tr><th>Metric</th><th class="num">Value</th></tr></thead>
+        <tbody id="honest-stats-body"><tr><td colspan="2" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
 
   <div class="kpis" id="kpi-row">
     <div class="kpi"><h3>Loading…</h3></div>
@@ -307,6 +328,7 @@ async function load(){
     }
 
     renderKPIs(summ);
+    renderHonest(DATA.honest_summary, DATA.honest_daily_curve);
     renderNavChart(DATA.nav_curve || []);
     renderHorizonAttribution(summ);
     renderContributors(DATA.by_signal || (DATA.top_5_contributors || []).concat(DATA.bottom_5_contributors || []));
@@ -400,6 +422,133 @@ function renderKPIs(summ){
   document.getElementById('kpi-row').innerHTML = tiles.map(t =>
     `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
   ).join('');
+}
+
+// ── v2.0 Honest Backtest renderer ─────────────────────────────────
+function renderHonest(honest, curve){
+  const noticeEl = document.getElementById('honest-notice');
+  const kpiEl    = document.getElementById('honest-kpi-row');
+  const bodyEl   = document.getElementById('honest-stats-body');
+
+  if (!honest || honest.error) {
+    noticeEl.innerHTML = `<div class="warn">⚠ v2.0 honest backtest not yet computed${honest?.error ? `: ${honest.error}` : ''}. Engine recomputes every 6h — wait for next tick.</div>`;
+    kpiEl.innerHTML = '';
+    bodyEl.innerHTML = '<tr><td colspan="2" class="loading">Pending engine v2.0 deployment + next 6h tick</td></tr>';
+    return;
+  }
+  noticeEl.innerHTML = '';
+
+  const sp   = honest.sharpe_point;
+  const p5   = honest.sharpe_p5;
+  const p95  = honest.sharpe_p95;
+  const aRet = honest.annualized_return_pct;
+  const aVol = honest.annualized_vol_pct;
+  const dd   = honest.max_drawdown_pct;
+  const tret = honest.total_return_pct;
+  const ny   = honest.n_years;
+  const alpha = honest.alpha_vs_spy_pct;
+
+  const sharpeDisplay = sp != null
+    ? `${sp.toFixed(2)}<span style="font-size:13px;color:var(--t3);font-weight:400"> [${(p5 ?? 0).toFixed(2)}, ${(p95 ?? 0).toFixed(2)}]</span>`
+    : '—';
+  const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
+
+  const tiles = [
+    {h:'Sharpe (rf=5%)',
+     v: sharpeDisplay,
+     cls: sharpeClass,
+     sub: `bootstrap p5 / p95 from ${honest.n_bootstrap_samples || 0} samples`},
+    {h:'Annualized Return',
+     v: aRet != null ? fmtPct(aRet, 2) : '—',
+     cls: pctClass((aRet||0)/100),
+     sub: `${ny != null ? ny.toFixed(2) : '—'}y window · ${honest.n_business_days || 0} biz days`},
+    {h:'Annualized Vol',
+     v: aVol != null ? fmtPct(aVol, 2) : '—',
+     cls: '',
+     sub: `daily hit rate ${honest.daily_hit_rate != null ? (honest.daily_hit_rate*100).toFixed(0)+'%' : '—'}`},
+    {h:'Max Drawdown',
+     v: dd != null ? `-${dd.toFixed(2)}%` : '—',
+     cls: 'down',
+     sub: alpha != null ? `Alpha vs SPY ${fmtPct(alpha, 2)}` : 'compounded NAV peak-to-trough'},
+  ];
+  kpiEl.innerHTML = tiles.map(t =>
+    `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
+  ).join('');
+
+  // Stats table (full breakdown)
+  const rows = [
+    ['Method', honest.method || '—'],
+    ['Risk-free rate (annual)', honest.rf_annual != null ? `${(honest.rf_annual*100).toFixed(2)}%` : '—'],
+    ['Window', `${honest.n_business_days || 0} business days (${(honest.n_years||0).toFixed(2)}y)`],
+    ['Trades booked', `${honest.n_trades_distributed || 0} (skipped ${honest.n_trades_skipped || 0})`],
+    ['Initial NAV', `$${(honest.initial_nav || 0).toLocaleString()}`],
+    ['Final NAV', `$${(honest.final_nav || 0).toLocaleString()}`],
+    ['Total Return', tret != null ? fmtPct(tret, 2) : '—'],
+    ['Annualized Return', aRet != null ? fmtPct(aRet, 2) : '—'],
+    ['Annualized Volatility', aVol != null ? fmtPct(aVol, 2) : '—'],
+    ['Sharpe (point estimate)', sp != null ? sp.toFixed(4) : '—'],
+    ['Sharpe (bootstrap p5)', p5 != null ? p5.toFixed(4) : '—'],
+    ['Sharpe (bootstrap median)', honest.sharpe_median != null ? honest.sharpe_median.toFixed(4) : '—'],
+    ['Sharpe (bootstrap p95)', p95 != null ? p95.toFixed(4) : '—'],
+    ['Max Drawdown', dd != null ? `-${dd.toFixed(2)}%` : '—'],
+    ['Daily P&L distribution', `${honest.n_pos_days || 0} pos · ${honest.n_neg_days || 0} neg · ${honest.n_flat_days || 0} flat`],
+  ];
+  if (Array.isArray(honest.known_limitations)) {
+    rows.push(['<em>Known limitations</em>', honest.known_limitations.map(l => `• ${l}`).join('<br>')]);
+  }
+  bodyEl.innerHTML = rows.map(([k, v]) =>
+    `<tr><td>${k}</td><td class="num" style="font-family:var(--mono)">${v}</td></tr>`
+  ).join('');
+
+  // NAV chart
+  renderHonestChart(curve || []);
+}
+
+function renderHonestChart(curve){
+  const svg = document.getElementById('honest-nav-chart');
+  if (!svg) return;
+  if (!curve || !curve.length){
+    svg.innerHTML = '<text x="550" y="160" fill="#6f7b91" font-family="IBM Plex Mono" font-size="12" text-anchor="middle">v2.0 daily curve pending engine recompute (next 6h tick).</text>';
+    return;
+  }
+  const W = 1100, H = 320, P = 40;
+  const navs = curve.map(c => c.nav);
+  const spys = curve.filter(c => c.spy_nav != null).map(c => c.spy_nav);
+  const minV = Math.min(...navs, ...(spys.length ? spys : [navs[0]]));
+  const maxV = Math.max(...navs, ...(spys.length ? spys : [navs[0]]));
+  const span = (maxV - minV) || 1;
+
+  const x = i => P + (W - 2*P) * i / Math.max(curve.length - 1, 1);
+  const y = v => H - P - (H - 2*P) * (v - minV) / span;
+
+  const navPath = curve.map((c, i) => `${i===0?'M':'L'} ${x(i).toFixed(1)} ${y(c.nav).toFixed(1)}`).join(' ');
+  const spyPath = spys.length
+    ? curve.filter(c => c.spy_nav != null).map((c, i) => `${i===0?'M':'L'} ${x(curve.indexOf(c)).toFixed(1)} ${y(c.spy_nav).toFixed(1)}`).join(' ')
+    : '';
+  // Y grid: 5 lines
+  let grid = '';
+  for (let g = 0; g <= 4; g++) {
+    const v = minV + span * g / 4;
+    const yy = y(v);
+    grid += `<line x1="${P}" x2="${W-P}" y1="${yy}" y2="${yy}" stroke="#1e293b" stroke-width="0.5"/>`;
+    grid += `<text x="${P-6}" y="${yy+3}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="9" text-anchor="end">$${(v/1000).toFixed(1)}k</text>`;
+  }
+  // X axis labels (first / mid / last)
+  let xLabels = '';
+  for (const idx of [0, Math.floor(curve.length/2), curve.length-1]) {
+    if (curve[idx]) {
+      xLabels += `<text x="${x(idx)}" y="${H-P+14}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="9" text-anchor="middle">${curve[idx].date}</text>`;
+    }
+  }
+  // Compose SVG
+  svg.innerHTML = `
+    ${grid}
+    ${spyPath ? `<path d="${spyPath}" fill="none" stroke="#6f7b91" stroke-width="1.2" stroke-dasharray="3,3"/>` : ''}
+    <path d="${navPath}" fill="none" stroke="#10b981" stroke-width="1.8"/>
+    ${xLabels}
+    <text x="${W-P}" y="${P-8}" fill="#10b981" font-family="IBM Plex Mono" font-size="10" text-anchor="end">v2.0 NAV (honest)</text>
+    ${spyPath ? `<text x="${W-P}" y="${P+6}" fill="#6f7b91" font-family="IBM Plex Mono" font-size="10" text-anchor="end">SPY buy &amp; hold</text>` : ''}
+  `;
 }
 
 function renderNavChart(nav){

@@ -67,6 +67,37 @@ GROSS_EXPOSURE_CAP = 1.00    # 100% NAV max total gross exposure per day
 # realistic trading horizons.
 WINDOW_PREFERENCE = ["day_30", "day_60", "day_90", "day_14", "day_7", "day_3", "day_1"]
 
+# v2.0 HONEST BACKTEST CONSTANTS
+# ───────────────────────────────────────────────────────────────────────
+# v1.1 and v1.2 produce Sharpe ~10 because of three structural flaws:
+#   (a) Daily P&L series only includes days where trades fired — calendar
+#       zero-trade days are dropped, so std(daily) is artificially small.
+#   (b) Each trade's full-window return is booked on its logged_at date,
+#       compressing weeks of P&L into one day. Real positions accrue P&L
+#       over their holding period.
+#   (c) No risk-free rate subtracted — Sharpe should be (r - rf) / vol.
+#
+# v2.0 fixes all three:
+#   - Build a complete business-day calendar (Mon-Fri) from first_date to
+#     last_date and start every day at 0.
+#   - Distribute each realistic trade's contribution evenly over its holding
+#     window (in business days). A 30-day +6% trade contributes ~+0.19% on
+#     each of 21 business days starting at logged_at.
+#   - Annualize geometrically and subtract the risk-free rate.
+#   - Block bootstrap (1000 samples × 5-day blocks) gives a Sharpe CI so the
+#     headline number is reported with [p5, p95] uncertainty.
+#
+# This is the number an LP or institutional reader would actually trust.
+RF_ANNUAL = 0.05                 # 5% T-bill ~= current Fed funds vicinity
+WINDOW_BIZ_DAYS = {
+    "day_1": 1, "day_3": 3, "day_7": 5, "day_14": 10,
+    "day_30": 21, "day_60": 42, "day_90": 63, "day_180": 126,
+}
+DEFAULT_WINDOW_BIZ_DAYS = 21     # fallback when window_key missing
+N_BOOTSTRAP = 1000
+BOOTSTRAP_BLOCK_LEN = 5          # 1 trading week
+BOOTSTRAP_SEED = 42
+
 # Polygon for SPY benchmark
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 POLYGON_BASE = "https://api.polygon.io"
@@ -442,6 +473,7 @@ def lambda_handler(event=None, context=None):
                 "outcome_id": r["outcome_id"],
                 "signal_type": r["signal_type"],
                 "weight": r["weight"],
+                "window_key": r.get("window_key"),  # v2.0: needed for time-distribution
                 "gross_size_pct": round(sizes[j] * 100, 4),
                 "scaled_size_pct": round(scaled_sizes[j] * gross_scale * 100, 4),
                 "concentration_scale": round(sig_s, 4),
@@ -605,27 +637,214 @@ def lambda_handler(event=None, context=None):
                 n["spy_nav"] = round(INITIAL_NAV * (spy_close / spy_first_close), 2)
                 n["spy_pct"] = round((spy_close / spy_first_close - 1) * 100, 4)
 
+    # 8c. v2.0 HONEST BACKTEST
+    # ─────────────────────────────────────────────────────────────────
+    # Lump-sum P&L on each trade's firing day — matching v1.2's daily
+    # aggregation — but with two structural fixes:
+    #   (1) Build a complete business-day calendar (Mon-Fri) from
+    #       first_date to last_date and start every day at 0. v1.2's
+    #       daily series only includes days where trades fired, which
+    #       artificially shrinks the vol denominator.
+    #   (2) Subtract risk-free rate (5%) from annualized return so
+    #       Sharpe = (ann_return - rf) / ann_vol — the actual definition.
+    # Then 1000-sample block bootstrap (5-day blocks) gives a Sharpe CI.
+    #
+    # This makes ZERO assumption about within-window daily marks (which
+    # we don't have). It treats each trade as a single discrete P&L event
+    # on logged_at, exactly as v1.2 does, then computes Sharpe on a
+    # standard daily-return time-series with correct calendar coverage.
+    #
+    # Limitation acknowledged in method_description: this still uses
+    # in-sample calibration weights (look-ahead bias). Walk-forward
+    # calibration is v2.1 — requires loading historical weight snapshots
+    # from justhodl-calibration-snapshotter.
+    honest_summary = None
+    honest_daily_curve = []
+    try:
+        if first_date and last_date:
+            # 1. Build full business-day calendar
+            sd_dt = datetime.fromisoformat(first_date).date()
+            ed_dt = datetime.fromisoformat(last_date).date()
+            biz_dates = []
+            cur = sd_dt
+            while cur <= ed_dt:
+                if cur.weekday() < 5:  # Mon-Fri
+                    biz_dates.append(cur.isoformat())
+                cur += timedelta(days=1)
+            biz_idx = {d: i for i, d in enumerate(biz_dates)}
+            n_biz = len(biz_dates)
+
+            # 2. Lump each realistic trade's net contribution onto its
+            #    firing day (or roll forward to next biz day if weekend).
+            honest_daily_pct = [0.0] * n_biz
+            n_distributed = 0
+            n_skipped = 0
+            for tr in realistic_results:
+                logged = (tr.get("logged_at") or "")[:10]
+                if not logged:
+                    n_skipped += 1
+                    continue
+                if logged not in biz_idx:
+                    try:
+                        d = datetime.fromisoformat(logged).date()
+                        for _ in range(7):
+                            if d.isoformat() in biz_idx:
+                                logged = d.isoformat()
+                                break
+                            d += timedelta(days=1)
+                    except Exception:
+                        pass
+                start_i = biz_idx.get(logged)
+                if start_i is None:
+                    n_skipped += 1
+                    continue
+                honest_daily_pct[start_i] += float(tr.get("realistic_contribution", 0) or 0)
+                n_distributed += 1
+
+            # 3. Build honest_daily_curve (NAV path on the honest series)
+            hnav = INITIAL_NAV
+            hcum = 0.0
+            for i, d in enumerate(biz_dates):
+                hnav = hnav * (1.0 + honest_daily_pct[i] / 100.0)
+                hcum += honest_daily_pct[i]
+                entry = {
+                    "date": d,
+                    "nav": round(hnav, 2),
+                    "daily_pct": round(honest_daily_pct[i], 5),
+                    "cum_pct": round(hcum, 4),
+                }
+                if spy_first_close:
+                    spy_close = closest_spy_close_at_or_before(d)
+                    if spy_close:
+                        entry["spy_nav"] = round(INITIAL_NAV * (spy_close / spy_first_close), 2)
+                        entry["spy_pct"] = round((spy_close / spy_first_close - 1) * 100, 4)
+                honest_daily_curve.append(entry)
+
+            # 4. Compute rf-adjusted Sharpe over full series
+            n_obs = len(honest_daily_pct)
+            mean_d = sum(honest_daily_pct) / n_obs if n_obs else 0.0
+            var_d = sum((x - mean_d) ** 2 for x in honest_daily_pct) / n_obs if n_obs else 0.0
+            std_d = var_d ** 0.5
+            final_nav_h = hnav
+            n_years = n_obs / 252.0 if n_obs else 0.0
+            if n_years > 0:
+                ann_return = (final_nav_h / INITIAL_NAV) ** (1.0 / n_years) - 1.0
+            else:
+                ann_return = 0.0
+            ann_vol = (std_d / 100.0) * (252.0 ** 0.5)
+            honest_sharpe = ((ann_return - RF_ANNUAL) / ann_vol) if ann_vol > 0 else None
+
+            # 5. Block bootstrap for Sharpe confidence interval
+            import random
+            rng = random.Random(BOOTSTRAP_SEED)
+            sharpe_samples = []
+            if n_obs >= BOOTSTRAP_BLOCK_LEN * 2:
+                for _ in range(N_BOOTSTRAP):
+                    sample = []
+                    while len(sample) < n_obs:
+                        start = rng.randint(0, max(0, n_obs - BOOTSTRAP_BLOCK_LEN))
+                        sample.extend(honest_daily_pct[start:start + BOOTSTRAP_BLOCK_LEN])
+                    sample = sample[:n_obs]
+                    s_mean = sum(sample) / n_obs
+                    s_var = sum((x - s_mean) ** 2 for x in sample) / n_obs
+                    s_std = s_var ** 0.5
+                    s_nav = INITIAL_NAV
+                    for x in sample:
+                        s_nav = s_nav * (1.0 + x / 100.0)
+                    if s_nav <= 0 or n_years <= 0:
+                        continue
+                    s_ann_ret = (s_nav / INITIAL_NAV) ** (1.0 / n_years) - 1.0
+                    s_ann_vol = (s_std / 100.0) * (252.0 ** 0.5)
+                    if s_ann_vol > 0:
+                        sharpe_samples.append((s_ann_ret - RF_ANNUAL) / s_ann_vol)
+                sharpe_samples.sort()
+            if sharpe_samples:
+                p5 = sharpe_samples[max(0, int(0.05 * len(sharpe_samples)))]
+                p50 = sharpe_samples[len(sharpe_samples) // 2]
+                p95 = sharpe_samples[min(len(sharpe_samples) - 1, int(0.95 * len(sharpe_samples)))]
+            else:
+                p5 = p50 = p95 = None
+
+            # 6. Drawdown on honest curve
+            hpeak = INITIAL_NAV
+            honest_max_dd = 0.0
+            for entry in honest_daily_curve:
+                if entry["nav"] > hpeak:
+                    hpeak = entry["nav"]
+                dd = (hpeak - entry["nav"]) / hpeak * 100
+                if dd > honest_max_dd:
+                    honest_max_dd = dd
+
+            # 7. Win rate at the daily-bar level
+            n_pos_days = sum(1 for x in honest_daily_pct if x > 0)
+            n_neg_days = sum(1 for x in honest_daily_pct if x < 0)
+            n_flat_days = n_obs - n_pos_days - n_neg_days
+
+            honest_summary = {
+                "method": "lump_sum_on_firing_day_full_calendar_with_rf_and_bootstrap",
+                "rf_annual": RF_ANNUAL,
+                "n_business_days": n_obs,
+                "n_years": round(n_years, 3),
+                "n_trades_distributed": n_distributed,
+                "n_trades_skipped": n_skipped,
+                "initial_nav": INITIAL_NAV,
+                "final_nav": round(final_nav_h, 2),
+                "total_return_pct": round((final_nav_h / INITIAL_NAV - 1) * 100, 4),
+                "annualized_return_pct": round(ann_return * 100, 4),
+                "annualized_vol_pct": round(ann_vol * 100, 4),
+                "max_drawdown_pct": round(honest_max_dd, 4),
+                "sharpe_point": round(honest_sharpe, 4) if honest_sharpe is not None else None,
+                "sharpe_p5": round(p5, 4) if p5 is not None else None,
+                "sharpe_median": round(p50, 4) if p50 is not None else None,
+                "sharpe_p95": round(p95, 4) if p95 is not None else None,
+                "n_bootstrap_samples": len(sharpe_samples),
+                "n_pos_days": n_pos_days,
+                "n_neg_days": n_neg_days,
+                "n_flat_days": n_flat_days,
+                "daily_hit_rate": round(n_pos_days / max(n_obs, 1), 4),
+                "alpha_vs_spy_pct": round((final_nav_h / INITIAL_NAV - 1) * 100 - (spy_return_pct or 0), 4)
+                                    if spy_return_pct is not None else None,
+                "known_limitations": [
+                    "In-sample calibration weights (look-ahead bias) — fixed in v2.1 with walk-forward",
+                    "No daily mark-to-market — trades are lumped on firing day, real positions accrue P&L over holding period",
+                    "Survivorship bias — outcomes only include scored trades (delisted positions excluded)",
+                ],
+            }
+            print(f"[backtest-v2.0-honest] sharpe={honest_sharpe} "
+                  f"[p5={p5}, p95={p95}], n_biz_days={n_obs}, "
+                  f"trades={n_distributed}/{n_distributed + n_skipped}, "
+                  f"ann_ret={ann_return*100:.2f}%, ann_vol={ann_vol*100:.2f}%")
+    except Exception as e:
+        import traceback
+        print(f"[backtest-v2.0] ERROR: {e}\n{traceback.format_exc()}")
+        honest_summary = {"error": str(e)}
+        honest_daily_curve = []
+
     # 9. Build full results
     results_doc = {
-        "v": "1.2",
+        "v": "2.0",
         "generated_at": now.isoformat(),
-        "method": "calibrated_alpha_replay_v3_horizon_aware_realistic",
+        "method": "calibrated_alpha_replay_v3_horizon_aware_realistic_plus_honest_v2",
         "method_description": (
-            "v1.2: HORIZON-AWARE + REALISTIC. The base v1.1 model lives in `summary` (no friction). "
-            "The new `realistic_summary` and `realistic_nav_curve` apply real-world frictions: "
-            "(1) slippage 5bps/leg = 10bps round-trip on each trade's gross size, "
-            "(2) per-signal concentration cap of 40% of NAV per day (scales down when one signal type "
-            "dominates a day), (3) gross exposure cap of 100% of NAV per day (scales down when total "
-            "deployed capital exceeds NAV). The v1.1 sharpe was unrealistically clean at ~10. The v1.2 "
-            "realistic sharpe should land in the honest 2-5 range. Both are reported side-by-side so "
-            "Khalid can see the cost of friction directly. Trades distribute across their logged_at "
-            "firing dates and NAV compounds normally from $100k. Compare to SPY buy-and-hold."
+            "v2.0 (NEW HEADLINE): time-distributed daily P&L over each trade's holding window, "
+            "complete business-day calendar (zero-trade days included in vol calc), risk-free "
+            "rate (5%) subtracted from annual return, Sharpe reported as point estimate plus "
+            "p5/median/p95 from a 1000-sample block bootstrap (5-day blocks). This is the number "
+            "to publish — v1.1's Sharpe ~10 came from compressing weeks of P&L into single days "
+            "and dropping zero-trade calendar days from the vol denominator. v2.0 fixes both. "
+            "v1.1 (idealized, no friction) and v1.2 (with slippage + caps but no time-distribution) "
+            "are still computed for comparison so the friction drag and methodology drag are both "
+            "visible. Walk-forward calibration to remove in-sample weight-fitting bias is the next "
+            "step (v2.1) — that requires loading historical calibration snapshots."
         ),
         "constants": {
             "POSITION_SIZE": POSITION_SIZE,
             "SLIPPAGE_BPS_PER_LEG": SLIPPAGE_BPS_PER_LEG,
             "CONCENTRATION_CAP": CONCENTRATION_CAP,
             "GROSS_EXPOSURE_CAP": GROSS_EXPOSURE_CAP,
+            "RF_ANNUAL": RF_ANNUAL,
+            "N_BOOTSTRAP": N_BOOTSTRAP,
+            "BOOTSTRAP_BLOCK_LEN": BOOTSTRAP_BLOCK_LEN,
         },
         "summary": {
             "n_outcomes": n_total,
@@ -665,19 +884,22 @@ def lambda_handler(event=None, context=None):
             "n_total_days": len(realistic_daily_list),
             "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
         },
+        "honest_summary": honest_summary,
         "by_signal": signal_summary,
         "daily": daily,
         "nav_curve": nav_curve,
         "realistic_daily": realistic_daily_list,
         "realistic_nav_curve": realistic_nav_curve,
+        "honest_daily_curve": honest_daily_curve,
     }
 
     # Slim summary for fast page loads
     summary_doc = {
-        "v": "1.2",
+        "v": "2.0",
         "generated_at": now.isoformat(),
         "summary": results_doc["summary"],
         "realistic_summary": results_doc["realistic_summary"],
+        "honest_summary": results_doc["honest_summary"],
         "constants": results_doc["constants"],
         "top_5_contributors": signal_summary[:5],
         "bottom_5_contributors": signal_summary[-5:] if len(signal_summary) >= 5 else signal_summary,
@@ -722,6 +944,15 @@ def lambda_handler(event=None, context=None):
             "friction_drag_pct": round(nav_return_pct - realistic_return_pct, 4),
             "n_concentration_capped_days": n_concentration_capped_days,
             "n_gross_capped_days": n_gross_capped_days,
+            # v2.0 honest stats — the headline number to publish
+            "honest_sharpe_point": (honest_summary or {}).get("sharpe_point"),
+            "honest_sharpe_p5": (honest_summary or {}).get("sharpe_p5"),
+            "honest_sharpe_median": (honest_summary or {}).get("sharpe_median"),
+            "honest_sharpe_p95": (honest_summary or {}).get("sharpe_p95"),
+            "honest_annualized_return_pct": (honest_summary or {}).get("annualized_return_pct"),
+            "honest_annualized_vol_pct": (honest_summary or {}).get("annualized_vol_pct"),
+            "honest_max_drawdown_pct": (honest_summary or {}).get("max_drawdown_pct"),
+            "honest_n_business_days": (honest_summary or {}).get("n_business_days"),
             "duration_s": duration,
         }),
     }
