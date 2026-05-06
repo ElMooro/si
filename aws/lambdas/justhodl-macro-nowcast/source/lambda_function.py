@@ -137,6 +137,85 @@ def regime_for_score(score: float):
     return "CONTRACTION RISK", "red"
 
 
+def fetch_spy_monthly():
+    """Fetch monthly S&P 500 prices from FRED (SP500 series).
+    Returns sorted [(date, close_price), ...]. Note: FRED's SP500 only
+    goes back ~10 years (2015-present), which is fine for our 120-month
+    historical window."""
+    return fred_fetch("SP500")[0]
+
+
+def compute_spy_returns_by_regime(historical_scores, spy_data):
+    """For each historical month T classified as regime R, compute
+    SPY forward returns at 1, 3, 6, 12 months. Aggregate by regime.
+
+    Returns: {regime: {n_obs, mean_pct: {1m, 3m, 6m, 12m}, hit_rate: {...}}}
+    """
+    if not historical_scores or not spy_data:
+        return {}
+
+    # Build a date → spy_price lookup. SPY data is monthly already
+    # (FRED returns monthly observations when frequency=m). Match by year-month.
+    spy_by_ym = {}
+    for d, p in spy_data:
+        ym = d[:7]  # "2024-01"
+        if ym not in spy_by_ym:
+            spy_by_ym[ym] = p
+
+    sorted_yms = sorted(spy_by_ym.keys())
+    ym_idx = {ym: i for i, ym in enumerate(sorted_yms)}
+    horizons = [1, 3, 6, 12]   # months forward
+
+    by_regime = {}
+    for h in historical_scores:
+        regime = h["regime"]
+        ym = h["date"][:7]
+        if ym not in ym_idx:
+            continue
+        idx = ym_idx[ym]
+        spy_now = spy_by_ym[ym]
+        if spy_now is None or spy_now == 0:
+            continue
+
+        if regime not in by_regime:
+            by_regime[regime] = {"n_obs": 0, "returns": {h: [] for h in horizons}}
+        by_regime[regime]["n_obs"] += 1
+
+        for fwd_months in horizons:
+            target_idx = idx + fwd_months
+            if target_idx >= len(sorted_yms):
+                continue
+            target_ym = sorted_yms[target_idx]
+            spy_fwd = spy_by_ym.get(target_ym)
+            if spy_fwd is None:
+                continue
+            ret_pct = (spy_fwd - spy_now) / spy_now * 100
+            by_regime[regime]["returns"][fwd_months].append(ret_pct)
+
+    # Compute summary stats per regime
+    out = {}
+    for regime, info in by_regime.items():
+        summary = {"n_obs": info["n_obs"], "horizons": {}}
+        for h, vals in info["returns"].items():
+            if not vals:
+                summary["horizons"][f"{h}m"] = None
+                continue
+            n_pos = sum(1 for v in vals if v > 0)
+            sorted_vals = sorted(vals)
+            mid = len(sorted_vals) // 2
+            median = sorted_vals[mid] if len(sorted_vals) % 2 else (sorted_vals[mid-1] + sorted_vals[mid]) / 2
+            summary["horizons"][f"{h}m"] = {
+                "n": len(vals),
+                "mean_pct": round(sum(vals) / len(vals), 2),
+                "median_pct": round(median, 2),
+                "hit_rate_pct": round(n_pos / len(vals) * 100, 1),
+                "min_pct": round(min(vals), 2),
+                "max_pct": round(max(vals), 2),
+            }
+        out[regime] = summary
+    return out
+
+
 def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
     """Replay the nowcast month-by-month using only data available at each point.
 
@@ -204,8 +283,11 @@ def lambda_handler(event=None, context=None):
 
     fred_data = {}
     fred_errors = {}
-    with ThreadPoolExecutor(max_workers=7) as ex:
+    spy_data = []
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        # 7 nowcast components + SPY (for forward-return analysis)
         futs = {ex.submit(fred_fetch, sid): sid for sid in WEIGHTS.keys()}
+        spy_fut = ex.submit(fred_fetch, "SP500")
         for f in as_completed(futs):
             sid = futs[f]
             history, err = f.result()
@@ -213,6 +295,12 @@ def lambda_handler(event=None, context=None):
             if err:
                 fred_errors[sid] = err
             print(f"[nowcast-v2] {sid}: {len(history)} obs  err={err}")
+        spy_history, spy_err = spy_fut.result()
+        spy_data = spy_history
+        if spy_err:
+            print(f"[nowcast-v2] SPY: ERR {spy_err}")
+        else:
+            print(f"[nowcast-v2] SPY: {len(spy_data)} obs")
 
     components = []
     weighted_sum = 0.0
@@ -284,6 +372,14 @@ def lambda_handler(event=None, context=None):
     print(f"[nowcast-v2] historical: {len(historical_scores)} months "
           f"computed in {round(time.time()-hist_started, 2)}s")
 
+    # SPY forward returns conditional on each historical regime — turns
+    # the backward-looking composite into a forward-looking signal.
+    print("[nowcast-v2] computing SPY returns by regime…")
+    regime_spy_started = time.time()
+    regime_spy_performance = compute_spy_returns_by_regime(historical_scores, spy_data)
+    print(f"[nowcast-v2] regime-SPY: {len(regime_spy_performance)} regimes "
+          f"in {round(time.time()-regime_spy_started, 2)}s")
+
     # Summary stats for the historical track (useful for page rendering)
     hist_summary = {}
     if historical_scores:
@@ -304,7 +400,7 @@ def lambda_handler(event=None, context=None):
         }
 
     output = {
-        "v": "2.1",
+        "v": "2.2",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s": round(time.time() - started, 2),
         "raw_score": round(weighted_sum, 4),
@@ -317,6 +413,8 @@ def lambda_handler(event=None, context=None):
         "components": components,
         "historical_scores": historical_scores,
         "historical_summary": hist_summary,
+        "regime_spy_performance": regime_spy_performance,
+        "regime_spy_horizons": ["1m", "3m", "6m", "12m"],
         "thresholds": {
             "strong_expansion": 1.0, "expansion": 0.3,
             "muddle": -0.3, "slowing": -1.0,
@@ -332,7 +430,11 @@ def lambda_handler(event=None, context=None):
             "against weights actually used so missing components don't "
             "deflate the headline score. Historical track replays the "
             "same logic month-by-month using ONLY data available at "
-            "each historical point — no look-ahead bias."
+            "each historical point — no look-ahead bias. SPY returns "
+            "conditional on each regime are computed from FRED's SP500 "
+            "series (2015-present) at 1/3/6/12-month forward horizons "
+            "to turn the backward-looking composite into a forward-looking "
+            "signal."
         ),
     }
 

@@ -153,6 +153,18 @@ table.tbl tr:last-child td{border-bottom:none}
     <div id="nowcastComponents" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-family:var(--font-mono);font-size:11px">
       <div class="skel"></div><div class="skel"></div><div class="skel"></div>
     </div>
+    <!-- ── SPY forward returns conditional on regime ── -->
+    <div id="nowcastRegimeSpyWrap" style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1.5px;text-transform:uppercase">
+        <span>SPY forward returns by regime · 10y replay</span>
+        <span style="color:var(--cyan)">no look-ahead bias</span>
+      </div>
+      <div id="nowcastRegimeSpyTable" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:0;overflow-x:auto"></div>
+      <div style="margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);font-style:italic">
+        For each historical month classified as regime R, SPY total return is computed at 1/3/6/12 months forward.
+        The current regime's row is highlighted — that's the historical track record of what to expect.
+      </div>
+    </div>
     <div id="nowcastMethodology" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--fg-3);line-height:1.55">—</div>
   </section>
   <!-- ────────────────────────────────────────────────────── -->
@@ -268,6 +280,65 @@ function renderBeaTable(targetId, beaSection, sectionName){
 }
 
 // ─── COMPOSITE NOWCAST ──────────────────────────────────────────────
+
+// SPY forward-return table conditional on each regime. Highlights the
+// CURRENT regime row so Khalid sees the historical track-record of
+// what to expect from this regime.
+function renderRegimeSpyTable(d){
+  const wrap = document.getElementById('nowcastRegimeSpyTable');
+  if (!wrap) return;
+  const perf = d.regime_spy_performance || {};
+  const horizons = d.regime_spy_horizons || ['1m','3m','6m','12m'];
+  const currentRegime = d.regime;
+  const order = ['STRONG EXPANSION','EXPANSION','MUDDLE','SLOWING','CONTRACTION RISK'];
+  const colors = {
+    'STRONG EXPANSION':'var(--green)','EXPANSION':'var(--green)',
+    'MUDDLE':'var(--amber)','SLOWING':'#ffb13d','CONTRACTION RISK':'var(--red)',
+  };
+
+  const rows = order.filter(r => perf[r]).map(regime => {
+    const info = perf[regime];
+    const isCurrent = regime === currentRegime;
+    const cells = horizons.map(h => {
+      const stat = info.horizons?.[h];
+      if (!stat) return `<td style="text-align:right;color:var(--fg-3);padding:8px 12px">—</td>`;
+      const mean = stat.mean_pct;
+      const median = stat.median_pct;
+      const hit = stat.hit_rate_pct;
+      const meanColor = mean > 0 ? 'var(--green)' : mean < 0 ? 'var(--red)' : 'var(--fg-2)';
+      return `<td style="text-align:right;padding:8px 12px;font-size:11.5px">
+        <div style="color:${meanColor};font-weight:600">${mean >= 0 ? '+' : ''}${mean.toFixed(2)}%</div>
+        <div style="color:var(--fg-3);font-size:9.5px">med ${median >= 0 ? '+' : ''}${median.toFixed(2)}%</div>
+        <div style="color:var(--fg-3);font-size:9px">hit ${hit.toFixed(0)}% · n=${stat.n}</div>
+      </td>`;
+    }).join('');
+    const bg = isCurrent ? 'background:rgba(0,212,255,0.05);border-left:2px solid var(--cyan)' : '';
+    return `<tr style="${bg}">
+      <td style="padding:8px 12px;font-weight:${isCurrent?'700':'500'};color:${colors[regime]};font-size:11.5px;white-space:nowrap">
+        ${isCurrent ? '◆ ' : '  '}${regime}
+      </td>
+      <td style="text-align:right;padding:8px 12px;color:var(--fg-2);font-size:11px">${info.n_obs} mo</td>
+      ${cells}
+    </tr>`;
+  });
+
+  if (rows.length === 0){
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--fg-3);font-style:italic">SPY history not yet available — re-run Lambda after FRED SP500 fetch settles</div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-family:var(--font-mono)">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);background:var(--bg-sunken)">
+          <th style="text-align:left;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">REGIME</th>
+          <th style="text-align:right;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">OBS</th>
+          ${horizons.map(h => `<th style="text-align:right;padding:8px 12px;font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);font-weight:500">SPY ${h}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>`;
+}
 
 // SVG line chart of the 10y historical track. Y-axis clipped to ±3.5
 // (extreme outliers like COVID -19 noted off-chart). X-axis is months
@@ -446,6 +517,8 @@ async function loadNowcast(){
 
     // Historical chart
     renderNowcastHistChart(d);
+    // Regime SPY performance table
+    renderRegimeSpyTable(d);
 
     const comps = d.components || [];
     compsEl.innerHTML = comps.map(c => {
