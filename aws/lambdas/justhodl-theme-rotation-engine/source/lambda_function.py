@@ -341,23 +341,31 @@ def compute_theme_metrics(ticker, name, category, history, spy_history):
     }
 
 
-def fetch_etf_holdings(ticker):
-    """Fetch top constituents for ETF (used for breadth calc)."""
-    # FMP /etf-holder gives ETF holdings
-    url = "https://financialmodelingprep.com/api/v3/etf-holder/" + ticker + "?apikey=" + FMP_KEY
-    try:
-        d = _http_get_json(url, timeout=15)
-        if isinstance(d, list):
-            # Take top 25 by weight
-            holdings = []
-            for h in d[:25]:
-                sym = (h.get("asset") or "").upper().strip()
-                weight = h.get("weightPercentage") or 0
-                if sym and len(sym) <= 5 and sym.isalpha():
-                    holdings.append({"symbol": sym, "weight": weight})
-            return holdings
-    except Exception:
-        pass
+def fetch_etf_holdings(ticker, fallback_top=None):
+    """Fetch top constituents for ETF — try multiple endpoints, fall back to curated list."""
+    # Try newer stable endpoint first
+    urls_to_try = [
+        "https://financialmodelingprep.com/stable/etf/holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
+        "https://financialmodelingprep.com/api/v3/etf-holder/" + ticker + "?apikey=" + FMP_KEY,
+    ]
+    for url in urls_to_try:
+        try:
+            d = _http_get_json(url, timeout=15)
+            if isinstance(d, list) and d:
+                holdings = []
+                for h in d[:25]:
+                    # Different endpoints use different keys
+                    sym = (h.get("asset") or h.get("symbol") or h.get("ticker") or "").upper().strip()
+                    weight = h.get("weightPercentage") or h.get("weight") or h.get("pctHold") or 0
+                    if sym and len(sym) <= 5 and sym.isalpha():
+                        holdings.append({"symbol": sym, "weight": float(weight) if weight else 0})
+                if holdings:
+                    return holdings
+        except Exception:
+            continue
+    # Fall back to curated top constituents from THEMES
+    if fallback_top:
+        return [{"symbol": s, "weight": 0} for s in fallback_top]
     return []
 
 
@@ -429,11 +437,18 @@ def lambda_handler(event=None, context=None):
     breadth_results = {}
     print("[theme-rot] computing breadth for top " + str(len(top_themes_for_breadth)) + " themes...")
 
+    # Build a lookup of curated top holdings from THEMES
+    curated_lookup = {}
+    for tk, _name, _cat, top_list in THEMES:
+        if top_list:
+            curated_lookup[tk] = top_list
+
     def compute_one_breadth(theme):
         if time.time() > deadline_at:
             return None
         ticker = theme["ticker"]
-        holdings = fetch_etf_holdings(ticker)
+        fallback = curated_lookup.get(ticker, [])
+        holdings = fetch_etf_holdings(ticker, fallback_top=fallback)
         if not holdings:
             return (ticker, None)
         # Quick perf check on top holdings
