@@ -1,0 +1,42 @@
+- `13:53:52`   source: 19614 chars
+- `13:53:52`   contains 'stable/earnings': True
+- `13:53:52`   contains 'past = [e for e in d if e.get("epsActual")': True
+- `13:53:53`     ✓ deploy accepted (attempt 1), Code SHA: sKEH8Lldm6QMOG7ceY5K
+- `13:53:55`     ready, last modified: 2026-05-06T13:53:53.000+0000
+- `13:54:07`     invoke status: 200, dur: 12.5s
+- `13:54:07`     body: {"statusCode": 200, "body": "{\"n_evaluated\": 502, \"n_tier_s\": 97, \"n_tier_a\": 96, \"n_pre_earnings\": 21, \"duration_s\": 11.5}"}
+- `13:54:07`   
+- `13:54:07`     ── LOG TAIL ──
+- `13:54:07`       START RequestId: 2c6e8c88-a610-4487-9de5-03055449c61a Version: $LATEST
+- `13:54:07`       [pead] starting v1.0
+- `13:54:07`       [pead] universe: 1500 stocks
+- `13:54:07`       [pead] OK: 502, no_data: 998
+- `13:54:07`       [pead] wrote 474185b
+- `13:54:07`       [pead] tier_s=97 tier_a=96
+- `13:54:07`       [pead] top: [('MU', 100, 8), ('SPG', 100, 6), ('M', 100, 8), ('LGND', 100, 4), ('RUN', 100, 5)]
+- `13:54:07`       END RequestId: 2c6e8c88-a610-4487-9de5-03055449c61a
+- `13:54:07`       REPORT RequestId: 2c6e8c88-a610-4487-9de5-03055449c61a	Duration: 11598.98 ms	Billed Duration: 12131 ms	Memory Size: 2048 MB	Max Memory Used: 116 MB	Init Duration: 531.45 ms
+- `13:54:08`   
+- `13:54:08`     STATS: {"n_universe": 1500, "n_evaluated": 502, "n_no_data": 998, "n_tier_s": 97, "n_tier_a": 96, "n_tier_b": 66, "n_pre_earnings_setups": 21, "by_cap_bucket": {"nano": 0, "micro": 0, "small": 10, "mid": 101, "large": 115, "mega": 33}}
+- `13:54:08`   
+- `13:54:08`     ── TOP 20 OVERALL ──
+- `13:54:08`       MU     score=100.0  TIER_S_DRIFTING     mega    streak=8Q  avg_beat=+19.7%  drift=+42.6%  14d_ago
+- `13:54:08`       SPG    score=100.0  TIER_A_BEATING      large   streak=6Q  avg_beat=+99.5%  drift=+4.7%  58d_ago
+- `13:54:08`       M      score=100.0  TIER_S_DRIFTING     mid     streak=8Q  avg_beat=+75.1%  drift=+5.1%  14d_ago
+- `13:54:08`       LGND   score=100.0  TIER_S_DRIFTING     mid     streak=4Q  avg_beat=+25.4%  drift=+11.7%  34d_ago
+- `13:54:08`       RUN    score=100.0  TIER_S_DRIFTING     mid     streak=5Q  avg_beat=+490.1%  drift=+5.0%  34d_ago
+- `13:54:08`       FSLY   score= 98.0  TIER_A_BEATING      mid     streak=4Q  avg_beat=+44.7%  drift=+66.0%  49d_ago
+- `13:54:08`       GOOG   score= 95.0  TIER_S_DRIFTING     mega    streak=8Q  avg_beat=+32.2%  drift=+0.0%  0d_ago
+- `13:54:08`       PLD    score= 95.0  TIER_S_DRIFTING     large   streak=8Q  avg_beat=+31.1%  drift=+0.0%  0d_ago
+- `13:54:08`       FIX    score= 95.0  TIER_S_DRIFTING     large   streak=8Q  avg_beat=+39.8%  drift=+0.0%  0d_ago
+- `13:54:08`       LOAR   score= 95.0  TIER_S_DRIFTING     mid     streak=4Q  avg_beat=+31.0%  drift=-7.8%  34d_ago
+- `13:54:08`       AMBA   score= 92.0  TIER_S_DRIFTING     mid     streak=8Q  avg_beat=+73.9%  drift=+36.5%  34d_ago
+- `13:54:08`       GOOGL  score= 90.0  TIER_S_DRIFTING     mega    streak=8Q  avg_beat=+33.9%  drift=+0.0%  0d_ago
+- `13:54:08`       FDX    score= 90.0  TIER_S_DRIFTING     large   streak=4Q  avg_beat=+13.6%  drift=-5.3%  13d_ago
+- `13:54:08`       FCX    score= 90.0  TIER_S_DRIFTING     large   streak=5Q  avg_beat=+31.4%  drift=+0.0%  0d_ago
+- `13:54:08`       CNX    score= 90.0  TIER_S_DRIFTING     mid     streak=8Q  avg_beat=+45.3%  drift=+0.0%  0d_ago
+- `13:54:08`       SEDG   score= 90.0  TIER_S_DRIFTING     mid     streak=4Q  avg_beat=+17.7%  drift=+20.9%  42d_ago
+- `13:54:08`       URBN   score= 89.0  TIER_S_DRIFTING     mid     streak=8Q  avg_beat=+17.6%  drift=+9.5%  35d_ago
+- `13:54:08`       UI     score= 88.0  TIER_A_BEATING      large   streak=7Q  avg_beat=+38.8%  drift=+44.3%  54d_ago
+- `13:54:08`       MUR    score= 88.0  TIER_A_BEATING      mid     streak=4Q  avg_beat=+115.1%  drift=?  63d_ago
+- `13:54:08`       TMHC   score= 88.0  TIER_S_DRIFTING     mid     streak=8Q  avg_beat=+15.1%  drift=+0.0%  0d_ago
