@@ -63,10 +63,15 @@ S3 = boto3.client("s3", region_name=REGION)
 
 
 def get_universe():
+    """Use multi-cap universe — squeeze setups across all sizes except nano."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
         d = json.loads(obj["Body"].read())
-        return [(s.get("symbol") or "").upper() for s in d.get("stocks", []) if s.get("symbol")][:MAX_TICKERS]
+        all_stocks = d.get("stocks", [])
+        # Skip nano — too noisy for reliable BB squeeze detection
+        target_buckets = {"micro", "small", "mid", "large", "mega"}
+        filtered = [s for s in all_stocks if s.get("cap_bucket") in target_buckets]
+        return [(s.get("symbol") or "").upper() for s in filtered if s.get("symbol")][:MAX_TICKERS]
     except Exception as e:
         print("[squeeze] universe load failed: " + str(e))
         return []

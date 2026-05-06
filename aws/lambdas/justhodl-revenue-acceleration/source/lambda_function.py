@@ -61,10 +61,16 @@ S3 = boto3.client("s3", region_name=REGION)
 
 
 def get_universe():
+    """Use multi-cap universe. Revenue acceleration is most powerful in small/micro
+    where growth from $50M to $200M revenue produces 5x stock moves."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
         d = json.loads(obj["Body"].read())
-        return d.get("stocks", [])[:MAX_TICKERS]
+        all_stocks = d.get("stocks", [])
+        # All caps participate — but most powerful in small/micro
+        target_buckets = {"micro", "small", "mid", "large", "mega"}
+        filtered = [s for s in all_stocks if s.get("cap_bucket") in target_buckets]
+        return filtered[:MAX_TICKERS]
     except Exception as e:
         print("[rev-accel] universe load failed: " + str(e))
         return []
