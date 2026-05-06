@@ -1,0 +1,90 @@
+{
+  "started": "2026-05-06T16:23:18.205801+00:00",
+  "ddb": {
+    "created": true,
+    "status": "ACTIVE"
+  },
+  "lambda": {
+    "created": true,
+    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-history-snapshotter"
+  },
+  "rule": {
+    "name": "justhodl-history-snapshotter-5m",
+    "schedule": "rate(5 minutes)",
+    "state": "ENABLED"
+  },
+  "initial_invoke": {
+    "function_error": null,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"n_feeds_checked\": 30, \"n_skipped_no_change\": 0, \"n_skipped_missing\": 4, \"n_written\": 26, \"n_errors\": 0, \"duration_s\": 5.31}"
+    },
+    "status_code": 200
+  },
+  "verify": {
+    "heartbeat": {
+      "last_run": "2026-05-06T16:23:48.786228+00:00",
+      "n_feeds_checked": 30,
+      "n_skipped_no_change": 0,
+      "n_skipped_missing": 4,
+      "n_written": 26,
+      "n_errors": 0,
+      "duration_s": 5.31,
+      "write_log": [
+        {
+          "key": "data/theme-tiers.json",
+          "size": 318952,
+          "hash": "c5bfcaa8f590"
+        },
+        {
+          "key": "data/nobrainers.json",
+          "size": 475590,
+          "hash": "1eead5c0769b"
+        },
+        {
+          "key": "data/nobrainers-rationale.json",
+          "size": 50673,
+          "hash": "2662f555e580"
+        },
+        {
+          "key": "data/supply-inflection.json",
+          "size": 64089,
+          "hash": "1fafbc4314a4"
+        },
+        {
+          "key": "data/deep-value.json",
+          "size": 36925,
+          "hash": "792f90ecf78a"
+        },
+        {
+          "key": "data/universe.json",
+          "size": 441770,
+          "hash": "9c3ccc502635"
+        },
+        {
+          "key": "backtest/results.json",
+          "size": 26309,
+          "hash": "211fc9b3701d"
+        },
+        {
+          "key": "backtest/summary.json",
+          "size": 5147,
+          "hash": "7067307d2871"
+        },
+        {
+          "key": "screener/data.json",
+          "size": 373147,
+          "hash": "e121a65b2f77"
+        },
+        {
+          "key": "data/options-flow.json",
+          "size": 80943,
+          "hash": "7dbcb868df5f"
+        }
+      ]
+    },
+    "ddb_row_count_first_200_pages": 26,
+    "ddb_scanned_count": 26
+  },
+  "duration_s": 33.8
+}
