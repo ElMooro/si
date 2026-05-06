@@ -59,28 +59,20 @@ def fetch_url(url, timeout=15):
 
 
 def fetch_earnings_surprises(symbol, limit=8):
-    """FMP earnings surprises — actual vs estimated EPS for last N quarters."""
-    url = ("https://financialmodelingprep.com/stable/earnings-surprises-bulk?"
-           "symbol=" + symbol + "&limit=" + str(limit) +
-           "&apikey=" + FMP_KEY)
-    # Fall back to per-symbol endpoint if bulk doesn't work
+    """Use /earnings endpoint (the new working one) — has epsActual + epsEstimated."""
+    url = ("https://financialmodelingprep.com/stable/earnings?"
+           "symbol=" + symbol + "&apikey=" + FMP_KEY)
     try:
         d = fetch_url(url, timeout=15)
-        if isinstance(d, list):
-            return d
+        if not isinstance(d, list):
+            return None
+        # Filter to past earnings (epsActual is not null = it has been reported)
+        past = [r for r in d if r.get("epsActual") is not None and r.get("epsEstimated") is not None]
+        # Sort newest first (by date desc)
+        past.sort(key=lambda r: r.get("date", ""), reverse=True)
+        return past[:limit]
     except Exception:
-        pass
-    
-    try:
-        url2 = ("https://financialmodelingprep.com/stable/earnings-surprises?"
-                "symbol=" + symbol + "&apikey=" + FMP_KEY)
-        d = fetch_url(url2, timeout=15)
-        if isinstance(d, list):
-            return d[:limit]
-    except Exception:
-        pass
-    
-    return None
+        return None
 
 
 def fetch_recent_history(symbol, days=90):
@@ -119,11 +111,11 @@ def evaluate_ticker(stock):
     # Sort newest first
     surprises = sorted(surprises, key=lambda s: s.get("date", ""), reverse=True)
 
-    # Compute surprise pct for each
+    # Compute surprise pct for each (new /earnings endpoint uses epsActual/epsEstimated)
     surp_pcts = []
     for s in surprises:
-        actual = s.get("actualEarningResult") or s.get("actualEps")
-        est = s.get("estimatedEarning") or s.get("estimatedEps")
+        actual = s.get("epsActual") or s.get("actualEarningResult") or s.get("actualEps")
+        est = s.get("epsEstimated") or s.get("estimatedEarning") or s.get("estimatedEps")
         if actual is None or est is None:
             continue
         try:

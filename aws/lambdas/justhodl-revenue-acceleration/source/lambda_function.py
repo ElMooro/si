@@ -90,8 +90,10 @@ def fetch_quarterly_income(symbol, limit=8):
     return None
 
 
-def fetch_market_cap(symbol):
-    """Get current market cap."""
+def fetch_market_cap(symbol, stock_data=None):
+    """Get current market cap. Prefer universe-supplied data to skip API call."""
+    if stock_data and stock_data.get("market_cap"):
+        return stock_data["market_cap"]
     url = "https://financialmodelingprep.com/stable/quote?symbol=" + symbol + "&apikey=" + FMP_KEY
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-RevAccel/1.0"})
@@ -208,7 +210,7 @@ def evaluate_ticker(stock):
     eps_accelerating = (len(eps_growth) >= 2 and eps_growth[0] > eps_growth[-1])
 
     # Microcap focus
-    market_cap = fetch_market_cap(sym)
+    market_cap = fetch_market_cap(sym, stock_data=stock)
     is_microcap = market_cap and market_cap < 500_000_000
     is_smallcap = market_cap and 500_000_000 <= market_cap < 2_000_000_000
     
