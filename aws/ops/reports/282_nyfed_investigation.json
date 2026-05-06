@@ -1,0 +1,142 @@
+{
+  "started": "2026-05-06T20:39:46.493851+00:00",
+  "results": [
+    {
+      "name": "nyfed-primary-dealer-fetcher",
+      "meta": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:nyfed-primary-dealer-fetcher",
+        "runtime": "python3.9",
+        "handler": "pd_fixed.lambda_handler",
+        "memory_mb": 256,
+        "timeout_s": 30,
+        "code_size": 1640,
+        "last_modified": "2026-04-25T10:28:12.000+0000",
+        "description": "NY Fed Primary Dealer Statistics",
+        "env_vars": []
+      },
+      "invocations_30d": [
+        {
+          "date": "2026-04-30",
+          "invocations": 1
+        }
+      ],
+      "total_invocations_30d": 1,
+      "eb_rules": [],
+      "recent_log_messages": [
+        {
+          "ts": "2026-05-01T01:56:47.517000+00:00",
+          "msg": "INIT_START Runtime Version: python:3.9.v133\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:56aff4f900e936db3f9298c07f22e2471d82c84a98b9e8045aadbcaed9cfe5ec"
+        },
+        {
+          "ts": "2026-05-01T01:56:47.603000+00:00",
+          "msg": "START RequestId: fb9f3c78-4ba8-4c97-972d-754c07e7d9c1 Version: $LATEST"
+        },
+        {
+          "ts": "2026-05-01T01:56:47.606000+00:00",
+          "msg": "END RequestId: fb9f3c78-4ba8-4c97-972d-754c07e7d9c1"
+        },
+        {
+          "ts": "2026-05-01T01:56:47.606000+00:00",
+          "msg": "REPORT RequestId: fb9f3c78-4ba8-4c97-972d-754c07e7d9c1\tDuration: 2.12 ms\tBilled Duration: 85 ms\tMemory Size: 256 MB\tMax Memory Used: 32 MB\tInit Duration: 82.12 ms"
+        }
+      ]
+    },
+    {
+      "name": "nyfed-financial-stability-fetcher",
+      "meta": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:nyfed-financial-stability-fetcher",
+        "runtime": "python3.9",
+        "handler": "fs_full_history.lambda_handler",
+        "memory_mb": 256,
+        "timeout_s": 30,
+        "code_size": 2717,
+        "last_modified": "2026-04-25T10:29:12.000+0000",
+        "description": "NY Fed Financial Stability Indicators",
+        "env_vars": []
+      },
+      "invocations_30d": [
+        {
+          "date": "2026-04-30",
+          "invocations": 1
+        }
+      ],
+      "total_invocations_30d": 1,
+      "eb_rules": [],
+      "recent_log_messages": [
+        {
+          "ts": "2026-05-01T01:56:50.274000+00:00",
+          "msg": "INIT_START Runtime Version: python:3.9.v133\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:56aff4f900e936db3f9298c07f22e2471d82c84a98b9e8045aadbcaed9cfe5ec"
+        },
+        {
+          "ts": "2026-05-01T01:56:50.364000+00:00",
+          "msg": "START RequestId: e28766d7-eb2f-460b-9791-f1f60071f055 Version: $LATEST"
+        },
+        {
+          "ts": "2026-05-01T01:56:50.366000+00:00",
+          "msg": "END RequestId: e28766d7-eb2f-460b-9791-f1f60071f055"
+        },
+        {
+          "ts": "2026-05-01T01:56:50.366000+00:00",
+          "msg": "REPORT RequestId: e28766d7-eb2f-460b-9791-f1f60071f055\tDuration: 2.01 ms\tBilled Duration: 89 ms\tMemory Size: 256 MB\tMax Memory Used: 32 MB\tInit Duration: 86.05 ms"
+        }
+      ]
+    },
+    {
+      "name": "nyfedapi-isolated",
+      "meta": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:nyfedapi-isolated",
+        "runtime": "python3.9",
+        "handler": "nyfedapi_realdata.lambda_handler",
+        "memory_mb": 1024,
+        "timeout_s": 60,
+        "code_size": 4374,
+        "last_modified": "2026-04-25T10:29:28.000+0000",
+        "description": "NY Fed API with REAL data integration",
+        "env_vars": []
+      },
+      "invocations_30d": [
+        {
+          "date": "2026-04-23",
+          "invocations": 1
+        },
+        {
+          "date": "2026-04-25",
+          "invocations": 3
+        },
+        {
+          "date": "2026-04-26",
+          "invocations": 4
+        },
+        {
+          "date": "2026-04-30",
+          "invocations": 3
+        }
+      ],
+      "total_invocations_30d": 11,
+      "eb_rules": [],
+      "recent_log_messages": [
+        {
+          "ts": "2026-05-01T01:56:49.794000+00:00",
+          "msg": "Successfully fetched 1 real repo indicators from NY Fed"
+        },
+        {
+          "ts": "2026-05-01T01:56:49.794000+00:00",
+          "msg": "Fetching fresh soma_data from NY Fed APIs"
+        },
+        {
+          "ts": "2026-05-01T01:56:49.843000+00:00",
+          "msg": "Successfully fetched 0 real SOMA indicators from NY Fed"
+        },
+        {
+          "ts": "2026-05-01T01:56:49.845000+00:00",
+          "msg": "END RequestId: 29e57400-8a1e-4c71-82c5-f1368b6cb818"
+        },
+        {
+          "ts": "2026-05-01T01:56:49.845000+00:00",
+          "msg": "REPORT RequestId: 29e57400-8a1e-4c71-82c5-f1368b6cb818\tDuration: 906.54 ms\tBilled Duration: 1032 ms\tMemory Size: 1024 MB\tMax Memory Used: 48 MB\tInit Duration: 124.80 ms"
+        }
+      ]
+    }
+  ],
+  "duration_s": 27.8
+}
