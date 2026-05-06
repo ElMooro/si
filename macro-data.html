@@ -258,6 +258,85 @@ function renderBeaTable(targetId, beaSection, sectionName){
   target.innerHTML = html;
 }
 
+// ─── COMPOSITE NOWCAST ──────────────────────────────────────────────
+async function loadNowcast(){
+  const stripEl = document.getElementById('nowcastStrip');
+  const compsEl = document.getElementById('nowcastComponents');
+  const updEl = document.getElementById('nowcastUpdated');
+  const methEl = document.getElementById('nowcastMethodology');
+  try {
+    const r = await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-nowcast.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+
+    const score = d.normalized_score;
+    const regime = d.regime || '—';
+    const color = (d.regime_color === 'green') ? 'green'
+                : (d.regime_color === 'red') ? 'red'
+                : (d.regime_color === 'amber') ? 'amber' : 'cyan';
+    stripEl.innerHTML = `
+      <div class="strip-cell ${color}">
+        <div class="label">Composite score</div>
+        <div class="value">${score >= 0 ? '+' : ''}${score?.toFixed(2) ?? '—'}</div>
+        <div class="sub">z-score units · weighted</div>
+      </div>
+      <div class="strip-cell ${color}">
+        <div class="label">Regime</div>
+        <div class="value" style="font-size:18px">${regime}</div>
+        <div class="sub">vs trailing 5y baseline</div>
+      </div>
+      <div class="strip-cell">
+        <div class="label">Coverage</div>
+        <div class="value">${d.coverage_pct?.toFixed(0) ?? '—'}%</div>
+        <div class="sub">${d.n_components_used}/${(d.n_components_used + d.n_components_failed)} components used</div>
+      </div>
+      <div class="strip-cell">
+        <div class="label">Generated</div>
+        <div class="value" style="font-size:18px">${d.duration_s?.toFixed(2) ?? '—'}s</div>
+        <div class="sub">last build duration</div>
+      </div>
+    `;
+
+    const comps = d.components || [];
+    compsEl.innerHTML = comps.map(c => {
+      const ok = c.contribution !== null && c.contribution !== undefined;
+      const contrib = ok ? c.contribution : null;
+      const colorVar = !ok ? 'fg-3' : (contrib > 0 ? 'green' : contrib < 0 ? 'red' : 'fg-2');
+      const z = (c.z !== null && c.z !== undefined) ? (c.z >= 0 ? '+' : '') + c.z.toFixed(2) : 'N/A';
+      const raw = (c.raw_value !== null && c.raw_value !== undefined)
+                  ? (c.transform === 'yoy_pct' ? `${c.raw_value.toFixed(2)}% YoY` : c.raw_value.toFixed(2))
+                  : '—';
+      const errLine = c.error ? `<div style="color:var(--amber);font-size:10px;margin-top:2px">${c.error}</div>` : '';
+      return `
+        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:3px;padding:10px 12px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <div style="color:var(--fg-1);font-weight:600;font-size:11px">${c.fred_id}</div>
+              <div style="color:var(--fg-3);font-size:9.5px;letter-spacing:.5px;margin-top:2px">${c.label}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="color:var(--${colorVar});font-weight:600">z=${z}</div>
+              <div style="color:var(--fg-3);font-size:9.5px;margin-top:2px">w=${c.weight >= 0 ? '+' : ''}${c.weight}</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;display:flex;justify-content:space-between;color:var(--fg-2);font-size:10px">
+            <span>${raw}</span>
+            <span style="color:var(--${colorVar})">${ok ? (contrib >= 0 ? '+' : '') + contrib.toFixed(3) : '—'}</span>
+          </div>
+          ${errLine}
+        </div>
+      `;
+    }).join('');
+
+    updEl.textContent = d.generated_at ? `Updated ${d.generated_at}` : '';
+    methEl.textContent = d.methodology || '';
+  } catch (e) {
+    stripEl.innerHTML = `<div class="strip-cell"><div class="label">Nowcast unavailable</div><div class="value" style="font-size:14px;color:var(--amber)">${e.message}</div><div class="sub">Lambda may not have run yet</div></div>`;
+    compsEl.innerHTML = '';
+    methEl.textContent = '';
+  }
+}
+
 async function load(){
   // Composite nowcast first (separate file from agent endpoints)
   loadNowcast();
