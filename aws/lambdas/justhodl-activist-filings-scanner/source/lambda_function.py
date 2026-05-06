@@ -1,38 +1,32 @@
 """
-justhodl-activist-filings-scanner — SEC 13D/13G/13D-A filings monitor
+justhodl-activist-filings-scanner v2 — SEC EDGAR daily-index edition
 
-Activist investors and 5%+ holders must file 13D (active intent) or 13G
-(passive intent) within 10 days of crossing the threshold. These filings
-often precede major moves:
-  • Carl Icahn 13D in OXY (2014) → +200% over 18 months
-  • Bill Ackman 13D in ADP (2017) → +50% over 12 months
-  • Elliott 13D in AT&T (2019) → +40% in 6 months
+DATA SOURCE (MUCH BETTER than Atom RSS):
+  EDGAR daily-index master.idx files give us EVERY filing of EVERY type per day.
+  Format (pipe-delimited):  CIK|Company Name|Form Type|Date Filed|File Name
+  
+  Yesterday's master.idx had 192 13D/G filings (vs 1 in the Atom feed).
 
-WHAT THIS DOES:
-  1. Scans SEC EDGAR Atom RSS feeds for SC 13D, SC 13D/A, SC 13G, SC 13G/A daily
-  2. Walks EDGAR daily-index for full coverage (filing.idx for that day)
-  3. Identifies KNOWN ACTIVIST FILERS (ICAHN_ASSOCIATES, ELLIOTT_INV_MGMT,
-     PERSHING_SQUARE, THIRD_POINT, JANA_PARTNERS, STARBOARD, TRIAN_PARTNERS,
-     VALUEACT, ENGINE_NO_1, TPG, KKR, BLACKSTONE, BERKSHIRE_HATHAWAY, etc.)
-  4. For each filing, parses the SEC URL to get:
-     - Subject company (target ticker)
-     - Filer (fund name)
-     - Filing date
-     - Form type (13D = active, 13G = passive)
-  5. Scores by activist reputation × filing type × recency
-  6. Cross-references with our universe to surface only US-listed names
-  7. Writes data/activist-filings.json + tracks state for delta alerts
+PIPELINE:
+  1. Walk back N business days, fetch each master.YYYYMMDD.idx
+  2. Filter to SCHEDULE 13D, SCHEDULE 13D/A, SCHEDULE 13G, SCHEDULE 13G/A
+  3. For each filing, extract:
+     - Filer CIK + name (from idx)
+     - Accession number (from filename)
+     - Filing URL (.txt → primary doc)
+  4. Parse each 13D doc to extract SUBJECT company + ticker
+  5. Map filer CIK to known activist patterns (TIER_S/A/B/C)
+  6. Cross-reference subject ticker with our investable universe
+  7. Score: filer_tier × form_type × in_universe
+  8. Detect multi-activist setups (>=2 filings same ticker in N days)
 
-ALERT TRIGGERS:
-  - New 13D filing by KNOWN_ACTIVIST = TIER_A
-  - New 13D/A amendment with stake increase = TIER_A
-  - New 13G by major fund (KKR, BLACKSTONE, etc.) = TIER_B
-  - Volume of 13D filings on same ticker in 30 days >= 2 = TIER_A (multi-activist)
-
-OUTPUT: data/activist-filings.json
+OUTPUT:
+  data/activist-filings.json
+  data/activist-filings-state.json (seen accessions for delta detection)
 """
 import io, json, os, time, urllib.request, urllib.error, urllib.parse, re
-from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict, Counter
 import boto3
 
 REGION = "us-east-1"
@@ -41,44 +35,42 @@ S3_KEY = os.environ.get("S3_KEY", "data/activist-filings.json")
 STATE_KEY = os.environ.get("STATE_KEY", "data/activist-filings-state.json")
 SEC_USER_AGENT = os.environ.get("SEC_USER_AGENT", "JustHodl-AI raafouis@gmail.com")
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "260"))
-DAYS_BACK = int(os.environ.get("DAYS_BACK", "30"))  # how many days of history to keep
+DAYS_BACK = int(os.environ.get("DAYS_BACK", "5"))  # business days back to scan
+N_WORKERS = int(os.environ.get("N_WORKERS", "10"))
+RESOLVE_SUBJECTS = os.environ.get("RESOLVE_SUBJECTS", "1") == "1"
 
 S3 = boto3.client("s3", region_name=REGION)
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# KNOWN ACTIVIST INVESTORS — name patterns matched against filer (case-insensitive)
-# Tiered by reputation/track record
+# KNOWN ACTIVIST INVESTORS — name patterns (lowercase substring match against filer)
 # ─────────────────────────────────────────────────────────────────────────
 ACTIVIST_TIERS = {
     "TIER_S_LEGENDARY": [
-        # Legendary activists — top-tier credibility
         "icahn",
         "berkshire hathaway",
-        "berkshire ",
-        "buffett",
         "warren buffett",
+        "cascade investment",  # Bill Gates' family office
         "pershing square",
         "ackman",
         "third point",
-        "loeb",  # Daniel Loeb / Third Point
         "elliott management",
         "elliott investment",
-        "elliott associates",
         "paul singer",
         "trian fund",
         "trian partners",
         "trian management",
         "nelson peltz",
+        "michael burry",
+        "scion asset",
     ],
     "TIER_A_TOP": [
-        # Top-tier activists
         "starboard",
         "valueact",
         "engine no. 1",
         "engine no 1",
         "jana partners",
-        "irenic",  # Irenic Capital
+        "irenic",
         "blue harbour",
         "marcato",
         "land & buildings",
@@ -94,19 +86,20 @@ ACTIVIST_TIERS = {
         "appaloosa",
         "david tepper",
         "soroban",
-        "eric mandelblatt",
         "greenlight capital",
         "david einhorn",
-        "muddy waters",  # Short activist
-        "hindenburg",  # Short activist
-        "scion asset management",  # Burry
-        "michael burry",
+        "muddy waters",  # short activist
+        "hindenburg",  # short activist
+        "carson block",
+        "orbimed",  # biotech specialist
+        "baker bros",
+        "lundbeck",
     ],
     "TIER_B_MAJOR_FUND": [
-        # Major institutional funds (typically 13G passive but signal)
         "blackstone",
         "kkr ",
         "kkr,",
+        "kkr.",
         "kohlberg kravis",
         "apollo global",
         "carlyle group",
@@ -115,6 +108,7 @@ ACTIVIST_TIERS = {
         "bain capital",
         "tpg ",
         "tpg,",
+        "tpg.",
         "warburg pincus",
         "general atlantic",
         "silver lake",
@@ -123,14 +117,17 @@ ACTIVIST_TIERS = {
         "platinum equity",
         "advent international",
         "hellman & friedman",
-        "ck capital",
         "cvc capital",
         "permira",
+        "leonard green",
+        "msd partners",
+        "tpg axon",
     ],
     "TIER_C_NOTABLE_HEDGE": [
         "millennium management",
         "citadel ",
         "citadel,",
+        "citadel.",
         "renaissance technologies",
         "two sigma",
         "de shaw",
@@ -143,7 +140,6 @@ ACTIVIST_TIERS = {
         "brevan howard",
         "winton",
         "man group",
-        "tpg axon",
         "coatue",
         "philippe laffont",
         "whale rock",
@@ -152,125 +148,139 @@ ACTIVIST_TIERS = {
         "duquesne",
         "moore capital",
         "louis bacon",
+        "glenview capital",
+        "larry robbins",
+        "pzena investment",
+        "davis selected",
     ],
 }
 
 
 def http_get(url, timeout=20):
-    """SEC requires User-Agent with email."""
     req = urllib.request.Request(url, headers={
         "User-Agent": SEC_USER_AGENT,
-        "Accept": "application/json,application/atom+xml,*/*",
+        "Accept": "*/*",
     })
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode("utf-8", "replace")
 
 
-def fetch_atom_feed(form_type):
-    """Fetch latest filings RSS feed for a form type."""
-    url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=" + urllib.parse.quote(form_type) + "&output=atom"
-    try:
-        text = http_get(url, timeout=15)
-        return parse_atom_entries(text)
-    except Exception as e:
-        print("[activist] atom feed " + form_type + " failed: " + str(e))
-        return []
-
-
-def parse_atom_entries(xml_text):
-    """Parse SEC Atom feed entries into structured records."""
-    entries = []
-    # Extract <entry>...</entry> blocks
-    blocks = re.findall(r"<entry>(.*?)</entry>", xml_text, flags=re.DOTALL)
-    for b in blocks:
-        # Each entry: <title>FORM_TYPE - FILER_NAME (CIK) (Filer)</title>
-        # Or: <title>FORM_TYPE - SUBJECT_NAME (CIK) (Subject)</title>
-        title_m = re.search(r"<title>([^<]+)</title>", b)
-        link_m = re.search(r'<link[^/]*href="([^"]+)"', b)
-        updated_m = re.search(r"<updated>([^<]+)</updated>", b)
-        summary_m = re.search(r"<summary[^>]*>([^<]+)</summary>", b, flags=re.DOTALL)
-        if not title_m:
-            continue
-        title = title_m.group(1).strip()
-        link = link_m.group(1) if link_m else ""
-        updated = updated_m.group(1) if updated_m else ""
-        summary = summary_m.group(1).strip() if summary_m else ""
-
-        # Parse title: "FORM_TYPE - NAME (CIK) (Role)"
-        title_match = re.match(r"^([A-Z\d/\-\.+]+)\s*-\s*(.+?)\s*\((\d+)\)\s*\((Filer|Subject|Reporting)\)\s*$", title)
-        form_type = ""
-        name = ""
-        cik = ""
-        role = ""
-        if title_match:
-            form_type = title_match.group(1).strip()
-            name = title_match.group(2).strip()
-            cik = title_match.group(3).strip()
-            role = title_match.group(4).strip()
-        else:
-            form_type = title.split("-", 1)[0].strip() if "-" in title else title
-            name = title
-
-        entries.append({
-            "form_type": form_type,
-            "name": name,
-            "cik": cik,
-            "role": role,
-            "title": title,
-            "link": link,
-            "updated_iso": updated,
-            "summary": summary[:500],
-        })
-    return entries
-
-
-def fetch_filing_detail(filing_index_url):
-    """Pull the filing-index page to find the subject company and tickers.
-    EDGAR filings have a /Archives/edgar/data/CIK/ACCESSION/ folder. The
-    primary index file lists subject + filer.
-    """
-    try:
-        text = http_get(filing_index_url, timeout=15)
-    except Exception:
-        return {}
-    
-    # Try to extract subject company name + CIK
-    # Look for subject company section in HTML
-    info = {"subject_name": None, "subject_cik": None, "subject_ticker": None}
-
-    # SEC's index pages have: "Subject Company\n-+\nCompanyName\nCIK"
-    subj_match = re.search(r"Subject Company.*?<a[^>]*>([^<]+)</a>.*?CIK[^>]*>(\d+)", text, flags=re.DOTALL)
-    if subj_match:
-        info["subject_name"] = subj_match.group(1).strip()
-        info["subject_cik"] = subj_match.group(2).strip()
-
-    # Look for ticker references in the text
-    ticker_match = re.search(r'(?:ticker|symbol)[^A-Z]*([A-Z]{1,5})\b', text)
-    if ticker_match:
-        info["subject_ticker"] = ticker_match.group(1)
-
-    return info
-
-
 def cik_to_ticker_map():
-    """Pull SEC's company-ticker mapping (CIK→ticker)."""
+    """Pull SEC's CIK → ticker mapping."""
     url = "https://www.sec.gov/files/company_tickers.json"
     try:
         text = http_get(url, timeout=20)
         d = json.loads(text)
-        # Format: {"0": {"cik_str": 320193, "ticker": "AAPL", "title": "..."}}
         cik_map = {}
         for k, v in d.items():
             if isinstance(v, dict) and v.get("cik_str") and v.get("ticker"):
                 cik_str = str(v["cik_str"]).zfill(10)
+                # Also store unpadded for flexibility
                 cik_map[cik_str] = {
                     "ticker": v["ticker"].upper(),
                     "company_name": v.get("title", ""),
                 }
+                cik_map[str(v["cik_str"])] = cik_map[cik_str]
         return cik_map
     except Exception as e:
         print("[activist] cik mapping failed: " + str(e))
         return {}
+
+
+def fetch_master_idx(date_obj):
+    """Fetch master.YYYYMMDD.idx for one trading day. Returns parsed list of filings."""
+    date_str = time.strftime("%Y%m%d", date_obj)
+    year = time.strftime("%Y", date_obj)
+    qtr = ((date_obj.tm_mon - 1) // 3) + 1
+    url = "https://www.sec.gov/Archives/edgar/daily-index/" + year + "/QTR" + str(qtr) + "/master." + date_str + ".idx"
+    try:
+        text = http_get(url, timeout=25)
+    except urllib.error.HTTPError as e:
+        # Index may not exist for weekends/holidays
+        if e.code == 404:
+            return None
+        raise
+    except Exception as e:
+        print("[activist] master.idx " + date_str + " failed: " + str(e))
+        return None
+
+    filings = []
+    for line in text.splitlines():
+        parts = line.split("|")
+        if len(parts) != 5:
+            continue
+        cik, company, form, filed, filename = [p.strip() for p in parts]
+        if not cik.isdigit():
+            continue
+        if "13D" in form or "13G" in form:
+            # Filename like edgar/data/1045942/0000921895-26-001162.txt
+            # Build the index page URL: /Archives/edgar/data/CIK/ACCESSION-INDEX.htm
+            accession = ""
+            m = re.search(r"(\d{10}-\d{2}-\d{6})", filename)
+            if m:
+                accession = m.group(1)
+            else:
+                # Fallback: last token before .txt
+                m2 = re.search(r"/(\d+\-\d+\-\d+)\.txt$", filename)
+                if m2:
+                    accession = m2.group(1)
+            
+            filings.append({
+                "filer_cik": cik.zfill(10),
+                "filer_cik_raw": cik,
+                "filer_name": company,
+                "form_type": form,
+                "filed_date": filed,
+                "txt_filename": filename,
+                "accession": accession,
+                "filing_url_txt": "https://www.sec.gov/Archives/" + filename,
+                "index_url": "https://www.sec.gov/Archives/" + filename.replace(".txt", "-index.htm"),
+            })
+    return filings
+
+
+def fetch_subject_from_filing(filing):
+    """Pull the SEC index page (.htm or .txt header) to extract subject CIK + name.
+    
+    13D/G filings include a SUBJECT COMPANY section with CIK.
+    The fastest source is the .txt SGML header at the top of the .txt file.
+    """
+    # Fetch first 10KB of the text file to get the SGML header
+    url = filing["filing_url_txt"]
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": SEC_USER_AGENT,
+            "Range": "bytes=0-15000",
+        })
+        with urllib.request.urlopen(req, timeout=15) as r:
+            text = r.read().decode("utf-8", "replace")
+    except Exception:
+        return None
+
+    # SGML header in 13D/G has:
+    # <SUBJECT-COMPANY>
+    #   ...
+    #   COMPANY CONFORMED NAME:    Genco Shipping & Trading Ltd
+    #   CENTRAL INDEX KEY:         0001326200
+    #   ...
+    
+    # Find SUBJECT-COMPANY block
+    subj_block_m = re.search(r"SUBJECT[\s\-]*COMPANY[:\s]*(.+?)(?:FILED[\s\-]*BY|FILER|</SEC-HEADER>)",
+                              text, flags=re.DOTALL | re.IGNORECASE)
+    if not subj_block_m:
+        return None
+    subj_block = subj_block_m.group(1)
+
+    name_m = re.search(r"COMPANY CONFORMED NAME[:\s]+([^\r\n]+)", subj_block, flags=re.IGNORECASE)
+    cik_m = re.search(r"CENTRAL INDEX KEY[:\s]+(\d+)", subj_block, flags=re.IGNORECASE)
+    
+    if not (name_m or cik_m):
+        return None
+    
+    return {
+        "subject_name": name_m.group(1).strip() if name_m else "",
+        "subject_cik": cik_m.group(1).strip().zfill(10) if cik_m else "",
+    }
 
 
 def classify_filer(name):
@@ -295,86 +305,81 @@ def get_universe_tickers():
 def lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
-    print("[activist] starting v1.0")
+    print("[activist-v2] starting v2.0 — daily-index edition")
 
-    # Pull CIK → ticker mapping
-    print("[activist] fetching CIK → ticker map...")
+    # Load CIK→ticker map
     cik_map = cik_to_ticker_map()
-    print("[activist] mapped " + str(len(cik_map)) + " CIKs to tickers")
+    print("[activist-v2] cik map: " + str(len(cik_map)) + " entries")
 
     universe = get_universe_tickers()
-    print("[activist] universe: " + str(len(universe)) + " tickers")
+    print("[activist-v2] universe: " + str(len(universe)) + " tickers")
 
-    # Pull RSS feeds for all form types we care about
-    form_types = ["SC 13D", "SC 13D/A", "SC 13G", "SC 13G/A"]
-    all_entries = []
-    for ft in form_types:
-        print("[activist] fetching " + ft + "...")
-        entries = fetch_atom_feed(ft)
-        print("[activist]   got " + str(len(entries)) + " entries")
-        for e in entries:
-            e["fetched_form_type"] = ft
-        all_entries.extend(entries)
-
-    # Group by accession number / filing URL to dedupe
-    # The same filing has 2 entries (Filer + Subject)
-    # Pair them up using the link (which contains the accession#)
-    by_accession = defaultdict(list)
-    for e in all_entries:
-        link = e.get("link", "")
-        # Extract /Archives/edgar/data/CIK/ACCESSION-NUMBER-INDEX.htm
-        accession_match = re.search(r"/Archives/edgar/data/(\d+)/(\d+-\d+-\d+|[\d\-]+)", link)
-        if accession_match:
-            accession = accession_match.group(2)
-            by_accession[accession].append(e)
-        else:
-            # No accession — group by link itself
-            by_accession[link].append(e)
-
-    print("[activist] " + str(len(by_accession)) + " unique filings")
-
-    # Build structured records — each filing has filer + subject
-    filings = []
-    for acc, entries in by_accession.items():
-        filer = None
-        subject = None
-        form_type = None
-        for e in entries:
-            role = e.get("role", "")
-            if role == "Filer" or role == "Reporting":
-                filer = e
-            elif role == "Subject":
-                subject = e
-            if not form_type:
-                form_type = e.get("fetched_form_type") or e.get("form_type")
-
-        # Fall back: if both entries have same role, take first
-        if not filer and entries:
-            filer = entries[0]
-        if not subject and len(entries) > 1:
-            subject = entries[1]
-        elif not subject and entries:
-            subject = entries[0]
-
-        if not filer:
+    # Walk back DAYS_BACK business days
+    all_filings = []
+    days_collected = 0
+    days_back = 0
+    while days_collected < DAYS_BACK and days_back < DAYS_BACK * 2 + 5:
+        check_dt = time.gmtime(time.time() - days_back * 86400)
+        wday = check_dt.tm_wday
+        if wday >= 5:
+            days_back += 1
             continue
+        date_str = time.strftime("%Y-%m-%d", check_dt)
+        if time.time() > deadline_at:
+            break
+        filings = fetch_master_idx(check_dt)
+        if filings is not None:
+            print("[activist-v2] " + date_str + ": " + str(len(filings)) + " 13D/G filings")
+            all_filings.extend(filings)
+            days_collected += 1
+        days_back += 1
 
-        filer_name = filer.get("name", "")
-        filer_cik = filer.get("cik", "").zfill(10) if filer.get("cik") else ""
-        subject_name = subject.get("name", "") if subject else ""
-        subject_cik = subject.get("cik", "").zfill(10) if subject else ""
-        link = filer.get("link", "")
-        updated = filer.get("updated_iso", "")
+    print("[activist-v2] total raw filings: " + str(len(all_filings)))
 
-        # Map subject CIK to ticker
+    # Resolve subject company for each filing (parallel, with deadline)
+    subjects_resolved = 0
+    if RESOLVE_SUBJECTS and all_filings:
+        def resolve_one(filing):
+            if time.time() > deadline_at:
+                return filing
+            try:
+                subj = fetch_subject_from_filing(filing)
+                if subj:
+                    filing.update(subj)
+            except Exception:
+                pass
+            return filing
+
+        with ThreadPoolExecutor(max_workers=N_WORKERS) as pool:
+            futures = {pool.submit(resolve_one, f): f for f in all_filings}
+            for fut in as_completed(futures):
+                try:
+                    f = fut.result()
+                    if f.get("subject_cik"):
+                        subjects_resolved += 1
+                except Exception:
+                    continue
+
+    print("[activist-v2] subjects resolved: " + str(subjects_resolved) + "/" + str(len(all_filings)))
+
+    # Enrich each filing with classifier + ticker mapping + score
+    enriched = []
+    for f in all_filings:
+        tier, matched_pattern = classify_filer(f["filer_name"])
+
         subject_ticker = None
         subject_company = None
-        if subject_cik and subject_cik in cik_map:
-            subject_ticker = cik_map[subject_cik]["ticker"]
-            subject_company = cik_map[subject_cik]["company_name"]
+        if f.get("subject_cik") and f["subject_cik"] in cik_map:
+            subject_ticker = cik_map[f["subject_cik"]]["ticker"]
+            subject_company = cik_map[f["subject_cik"]]["company_name"]
+        elif f.get("subject_cik"):
+            # Try unpadded
+            unpadded = f["subject_cik"].lstrip("0")
+            if unpadded in cik_map:
+                subject_ticker = cik_map[unpadded]["ticker"]
+                subject_company = cik_map[unpadded]["company_name"]
 
-        # Classify filer
-        tier, matched_pattern = classify_filer(filer_name)
+        in_universe = subject_ticker in universe if subject_ticker else False
 
         # Score
         score = 0
@@ -392,28 +397,25 @@ def lambda_handler(event=None, context=None):
             score += 10
             flags.append("NOTABLE_HEDGE")
 
-        # 13D = active, 13D/A = amendment (often = stake change), 13G = passive
-        if form_type and ("13D" in form_type and "/A" not in form_type):
+        ft = f.get("form_type", "")
+        if "13D" in ft and "/A" not in ft:
             score += 25
             flags.append("ACTIVE_INTENT")
-        elif form_type and "13D/A" in form_type:
+        elif "13D/A" in ft:
             score += 20
             flags.append("ACTIVE_AMENDMENT")
-        elif form_type and ("13G" in form_type and "/A" not in form_type):
+        elif "13G" in ft and "/A" not in ft:
             score += 10
             flags.append("PASSIVE_INTENT")
-        elif form_type and "13G/A" in form_type:
+        elif "13G/A" in ft:
             score += 8
             flags.append("PASSIVE_AMENDMENT")
 
-        # Bonus if subject ticker is in our investable universe
-        in_universe = subject_ticker in universe if subject_ticker else False
         if in_universe:
             score += 15
             flags.append("IN_UNIVERSE")
 
         score = min(score, 100)
-
         if score >= 70:
             level = "TIER_A_HOT"
         elif score >= 50:
@@ -423,13 +425,13 @@ def lambda_handler(event=None, context=None):
         else:
             level = "NOTABLE"
 
-        filings.append({
-            "accession": acc,
-            "form_type": form_type,
-            "filer_name": filer_name,
-            "filer_cik": filer_cik,
-            "subject_name": subject_name,
-            "subject_cik": subject_cik,
+        enriched.append({
+            "accession": f.get("accession"),
+            "form_type": ft,
+            "filer_name": f["filer_name"],
+            "filer_cik": f["filer_cik"],
+            "subject_name": f.get("subject_name", ""),
+            "subject_cik": f.get("subject_cik", ""),
             "subject_ticker": subject_ticker,
             "subject_company": subject_company,
             "filer_tier": tier,
@@ -438,20 +440,17 @@ def lambda_handler(event=None, context=None):
             "score": score,
             "level": level,
             "flags": flags,
-            "filing_link": link,
-            "filing_date": updated[:10] if updated else "",
-            "updated_iso": updated,
+            "filing_url": f.get("filing_url_txt"),
+            "filed_date": f.get("filed_date"),
         })
 
-    # Sort by score
-    filings.sort(key=lambda x: -x["score"])
+    enriched.sort(key=lambda x: -x["score"])
 
-    # Aggregate by ticker — multi-activist same name detection
+    # Multi-activist setups (≥2 filings on same ticker)
     by_ticker = defaultdict(list)
-    for f in filings:
+    for f in enriched:
         if f["subject_ticker"]:
             by_ticker[f["subject_ticker"]].append(f)
-
     multi_activist = []
     for ticker, fs in by_ticker.items():
         if len(fs) >= 2:
@@ -459,14 +458,15 @@ def lambda_handler(event=None, context=None):
                 "ticker": ticker,
                 "company": fs[0].get("subject_company", ""),
                 "n_filings": len(fs),
-                "filers": [f["filer_name"] for f in fs],
+                "filers": list(set(f["filer_name"] for f in fs))[:6],
                 "form_types": list(set(f["form_type"] for f in fs)),
                 "tiers": list(set(f.get("filer_tier") for f in fs if f.get("filer_tier"))),
                 "max_score": max(f["score"] for f in fs),
+                "in_universe": fs[0].get("in_universe", False),
             })
     multi_activist.sort(key=lambda x: -x["max_score"])
 
-    # Detect new since last run (state-based)
+    # State delta tracking
     prior_state = None
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=STATE_KEY)
@@ -475,47 +475,51 @@ def lambda_handler(event=None, context=None):
         pass
 
     prior_seen = set((prior_state or {}).get("seen_accessions", []))
-    new_filings = [f for f in filings if f["accession"] not in prior_seen]
-    new_seen = list(prior_seen | set(f["accession"] for f in filings))[-1000:]  # cap state size
+    new_filings = [f for f in enriched if f["accession"] not in prior_seen]
+    new_seen = list(prior_seen | set(f["accession"] for f in enriched if f["accession"]))[-2000:]
 
-    # Top tier-A new filings = highest signal
     new_tier_a = [f for f in new_filings if f["level"] == "TIER_A_HOT"]
     new_tier_b = [f for f in new_filings if f["level"] == "TIER_B_BUILDING"]
 
-    print("[activist] total filings: " + str(len(filings)))
-    print("[activist] new filings this run: " + str(len(new_filings)))
-    print("[activist] new TIER-A: " + str(len(new_tier_a)))
-    print("[activist] new TIER-B: " + str(len(new_tier_b)))
-    print("[activist] multi-activist tickers: " + str(len(multi_activist)))
+    print("[activist-v2] total enriched: " + str(len(enriched)))
+    print("[activist-v2] new this run: " + str(len(new_filings)))
+    print("[activist-v2] new TIER-A: " + str(len(new_tier_a)) + ", TIER-B: " + str(len(new_tier_b)))
+    print("[activist-v2] multi-activist tickers: " + str(len(multi_activist)))
+
+    # Filer-tier breakdown stats
+    tier_counts = Counter(f["filer_tier"] for f in enriched if f["filer_tier"])
 
     out = {
-        "schema_version": 1,
-        "method": "activist_filings_scanner_v1",
+        "schema_version": 2,
+        "method": "activist_filings_daily_index_v2",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
-            "n_filings_total": len(filings),
+            "n_filings_total": len(enriched),
+            "n_subjects_resolved": subjects_resolved,
             "n_unique_tickers": len(by_ticker),
             "n_multi_activist": len(multi_activist),
             "n_new_filings": len(new_filings),
             "n_new_tier_a": len(new_tier_a),
             "n_new_tier_b": len(new_tier_b),
-            "n_in_universe": sum(1 for f in filings if f["in_universe"]),
+            "n_in_universe": sum(1 for f in enriched if f["in_universe"]),
+            "tier_counts": dict(tier_counts),
+            "days_collected": days_collected,
         },
         "summary": {
-            "top_25_filings": filings[:25],
+            "top_25_filings": enriched[:25],
+            "top_25_in_universe": [f for f in enriched if f["in_universe"]][:25],
             "new_tier_a_alerts": new_tier_a,
             "new_tier_b_alerts": new_tier_b,
             "multi_activist_setups": multi_activist[:15],
         },
-        "all_filings": filings,
+        "all_filings": enriched,
     }
 
     body = json.dumps(out, default=str).encode()
     S3.put_object(Bucket=BUCKET, Key=S3_KEY, Body=body, ContentType="application/json")
-    print("[activist] wrote " + str(len(body)) + "b")
+    print("[activist-v2] wrote " + str(len(body)) + "b")
 
-    # Save state
     state = {
         "generated_at": out["generated_at"],
         "seen_accessions": new_seen,
@@ -527,13 +531,10 @@ def lambda_handler(event=None, context=None):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "n_filings": len(filings),
-            "n_new": len(new_filings),
+            "n_filings": len(enriched),
+            "n_resolved": subjects_resolved,
             "n_new_tier_a": len(new_tier_a),
             "n_multi_activist": len(multi_activist),
             "duration_s": out["duration_s"],
         }),
     }
-
-
-# Need urllib.parse import at module level
