@@ -1,0 +1,18 @@
+- `13:52:53`     invoking diag...
+- `13:52:54`     ❌ earnings-surprises AAPL                  status=404  body=[]
+- `13:52:54`     ❌ earnings-surprises-bulk                  status=400  body=Query Error: Invalid or missing query parameter - year
+- `13:52:54`     ✅ earnings AAPL                            n=164
+- `13:52:54`          keys: ['symbol', 'date', 'epsActual', 'epsEstimated', 'revenueActual', 'revenueEstimated', 'lastUpdated']
+- `13:52:54`          sample: {"symbol": "AAPL", "date": "2026-07-30", "epsActual": null, "epsEstimated": 1.87, "revenueActual": null, "revenueEstimated": 107618800000, "lastUpdated": "2026-05-06"}
+- `13:52:54`     ✅ earnings-calendar today                  n=4000
+- `13:52:54`          keys: ['symbol', 'date', 'epsActual', 'epsEstimated', 'revenueActual', 'revenueEstimated', 'lastUpdated']
+- `13:52:54`          sample: {"symbol": "0R88.L", "date": "2026-05-06", "epsActual": null, "epsEstimated": null, "revenueActual": null, "revenueEstimated": null, "lastUpdated": "2026-04-01"}
+- `13:52:54`     ✅ income-statement AAPL quarter            n=8
+- `13:52:54`          keys: ['date', 'symbol', 'reportedCurrency', 'cik', 'filingDate', 'acceptedDate', 'fiscalYear', 'period', 'revenue', 'costOfRevenue', 'grossProfit', 'researchAndDevelopmentExpenses', 'generalAndAdministrativeExpenses', 'sellingAndMarketingExpenses', 'sellingGeneralAndAdministrativeExpenses']
+- `13:52:54`          sample: {"date": "2026-03-28", "symbol": "AAPL", "reportedCurrency": "USD", "cik": "0000320193", "filingDate": "2026-05-01", "acceptedDate": "2026-05-01 10:01:00", "fiscalYear": "2026", "period": "Q2"}
+- `13:52:54`     ❌ income-statement-quarterly AAPL          status=404  body=[]
+- `13:52:54`     ❌ financials/income-statement AAPL         status=404  body=[]
+- `13:52:54`     ✅ quote AAPL                               n=1
+- `13:52:54`          keys: ['symbol', 'name', 'price', 'changePercentage', 'change', 'volume', 'dayLow', 'dayHigh', 'yearHigh', 'yearLow', 'marketCap', 'priceAvg50', 'priceAvg200', 'exchange', 'open']
+- `13:52:54`          sample: {"symbol": "AAPL", "name": "Apple Inc.", "price": 285.15, "changePercentage": 0.34133, "change": 0.97, "volume": 6088982, "dayLow": 281.11, "dayHigh": 285.19}
+- `13:52:55`     ✓ deleted
