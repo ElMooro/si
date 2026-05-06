@@ -1,0 +1,1717 @@
+{
+  "generated_at": "2026-05-06T18:10:33+00:00",
+  "duration_s": 130.3,
+  "n_deployed": 186,
+  "n_repo_dirs": 184,
+  "n_in_repo_not_deployed": 0,
+  "n_deployed_not_in_repo": 2,
+  "n_orphan_deployed_no_invocations": 5,
+  "archive_candidates_in_repo_not_deployed": [],
+  "deployed_not_in_repo": [
+    "justhodl-cdn-diag-temp",
+    "justhodl-ka-metrics"
+  ],
+  "orphan_deployed_no_invocations": [
+    {
+      "name": "ecb",
+      "last_modified": "2026-04-25T10:26:31.000+0000",
+      "code_size": 1717
+    },
+    {
+      "name": "nyfed-primary-dealer-fetcher",
+      "last_modified": "2026-04-25T10:28:12.000+0000",
+      "code_size": 1640
+    },
+    {
+      "name": "justhodl-chat-api",
+      "last_modified": "2026-04-25T10:29:07.000+0000",
+      "code_size": 2042
+    },
+    {
+      "name": "nyfed-financial-stability-fetcher",
+      "last_modified": "2026-04-25T10:29:12.000+0000",
+      "code_size": 2717
+    },
+    {
+      "name": "nyfedapi-isolated",
+      "last_modified": "2026-04-25T10:29:28.000+0000",
+      "code_size": 4374
+    }
+  ],
+  "deployed_lambdas": [
+    {
+      "function_name": "justhodl-data-collector",
+      "last_modified": "2026-04-27T17:17:11.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 24,
+      "is_in_repo": true,
+      "code_size": 1277
+    },
+    {
+      "function_name": "justhodl-asymmetric-scorer",
+      "last_modified": "2026-05-04T20:14:49.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 8787
+    },
+    {
+      "function_name": "ofrapi",
+      "last_modified": "2026-04-25T10:24:22.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 21933
+    },
+    {
+      "function_name": "openbb-websocket-broadcast",
+      "last_modified": "2025-05-30T03:21:51.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 560
+    },
+    {
+      "function_name": "justhodl-onchain-ratios",
+      "last_modified": "2026-04-27T18:43:52.485+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 2951
+    },
+    {
+      "function_name": "justhodl-momentum-scanner",
+      "last_modified": "2026-05-04T18:55:16.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3577
+    },
+    {
+      "function_name": "bls-labor-agent",
+      "last_modified": "2026-04-25T10:24:27.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2158
+    },
+    {
+      "function_name": "justhodl-pnl-tracker",
+      "last_modified": "2026-04-26T12:53:01.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 5737
+    },
+    {
+      "function_name": "justhodl-volatility-squeeze-hunter",
+      "last_modified": "2026-05-06T13:47:59.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 16393
+    },
+    {
+      "function_name": "justhodl-ultimate-orchestrator",
+      "last_modified": "2026-04-25T10:24:31.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2503
+    },
+    {
+      "function_name": "justhodl-theme-tier-classifier",
+      "last_modified": "2026-05-05T14:35:15.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 21120
+    },
+    {
+      "function_name": "justhodl-crypto-enricher",
+      "last_modified": "2026-04-27T16:52:36.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3989
+    },
+    {
+      "function_name": "volatility-monitor-agent",
+      "last_modified": "2026-04-25T10:24:40.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2770
+    },
+    {
+      "function_name": "justhodl-liquidity-flow",
+      "last_modified": "2026-04-27T22:12:33.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4052
+    },
+    {
+      "function_name": "justhodl-crisis-plumbing",
+      "last_modified": "2026-04-26T22:18:21.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 12880
+    },
+    {
+      "function_name": "justhodl-cot-extremes-scanner",
+      "last_modified": "2026-04-25T16:11:09.164+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 17309
+    },
+    {
+      "function_name": "justhodl-stock-analyzer",
+      "last_modified": "2026-04-25T10:20:15.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 6612
+    },
+    {
+      "function_name": "justhodl-event-study",
+      "last_modified": "2026-05-06T18:07:45.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 4863
+    },
+    {
+      "function_name": "fedliquidityapi-test",
+      "last_modified": "2026-04-25T10:24:44.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 5682
+    },
+    {
+      "function_name": "justhodl-divergence-scanner",
+      "last_modified": "2026-04-25T16:00:09.899+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 14405
+    },
+    {
+      "function_name": "macro-report-api",
+      "last_modified": "2026-04-25T10:24:48.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 25894
+    },
+    {
+      "function_name": "justhodl-ai-brief",
+      "last_modified": "2026-05-05T11:45:49.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 12889
+    },
+    {
+      "function_name": "justhodl-position-sizer-v2",
+      "last_modified": "2026-05-05T12:17:12.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4617
+    },
+    {
+      "function_name": "bond-indices-agent",
+      "last_modified": "2026-04-25T10:24:53.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 14,
+      "is_in_repo": true,
+      "code_size": 2688
+    },
+    {
+      "function_name": "justhodl-ai-chat",
+      "last_modified": "2026-05-03T23:45:18.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 8610
+    },
+    {
+      "function_name": "justhodl-wave-signal-logger",
+      "last_modified": "2026-05-04T19:54:22.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 7833
+    },
+    {
+      "function_name": "ecb-data-daily-updater",
+      "last_modified": "2026-04-25T10:24:57.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 2547
+    },
+    {
+      "function_name": "google-trends-agent",
+      "last_modified": "2026-04-25T10:25:01.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2279
+    },
+    {
+      "function_name": "OpenBBS3DataProxy",
+      "last_modified": "2026-04-25T10:25:05.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2280
+    },
+    {
+      "function_name": "justhodl-stock-screener",
+      "last_modified": "2026-04-26T00:05:00.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 7,
+      "is_in_repo": true,
+      "code_size": 4813
+    },
+    {
+      "function_name": "justhodl-yield-curve",
+      "last_modified": "2026-05-04T12:19:04.789+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 4855
+    },
+    {
+      "function_name": "justhodl-cross-asset-regime",
+      "last_modified": "2026-05-06T10:41:13.645+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 15821
+    },
+    {
+      "function_name": "justhodl-calibrator",
+      "last_modified": "2026-05-05T10:40:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 8396
+    },
+    {
+      "function_name": "justhodl-email-reports-v2",
+      "last_modified": "2026-04-26T12:18:10.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 6623
+    },
+    {
+      "function_name": "fmp-fundamentals-agent",
+      "last_modified": "2026-04-25T10:25:18.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 1443
+    },
+    {
+      "function_name": "eia-energy-agent",
+      "last_modified": "2026-04-25T10:25:22.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2096
+    },
+    {
+      "function_name": "justhodl-sector-rotation",
+      "last_modified": "2026-05-04T13:23:58.351+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 3599
+    },
+    {
+      "function_name": "justhodl-nyfed-dealer-survey",
+      "last_modified": "2026-04-27T18:43:38.359+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2528
+    },
+    {
+      "function_name": "justhodl-universe-builder",
+      "last_modified": "2026-05-06T11:52:20.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 10,
+      "is_in_repo": true,
+      "code_size": 4971
+    },
+    {
+      "function_name": "justhodl-insider-cluster-scanner",
+      "last_modified": "2026-05-05T18:39:33.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 8,
+      "is_in_repo": true,
+      "code_size": 8072
+    },
+    {
+      "function_name": "justhodl-momentum-breakout",
+      "last_modified": "2026-05-05T23:52:43.965+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 12974
+    },
+    {
+      "function_name": "justhodl-liquidity-agent",
+      "last_modified": "2026-04-25T10:25:27.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 7041
+    },
+    {
+      "function_name": "ecb-auto-updater",
+      "last_modified": "2026-04-25T10:25:31.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2629
+    },
+    {
+      "function_name": "justhodl-bond-regime-detector",
+      "last_modified": "2026-04-25T15:33:08.748+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 14202
+    },
+    {
+      "function_name": "FinancialIntelligence-Backend",
+      "last_modified": "2026-04-25T10:25:35.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 7880
+    },
+    {
+      "function_name": "justhodl-daily-macro-report",
+      "last_modified": "2026-04-25T10:25:39.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 935
+    },
+    {
+      "function_name": "macro-financial-report-viewer",
+      "last_modified": "2026-04-25T10:25:43.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1151
+    },
+    {
+      "function_name": "justhodl-microcap-float-squeeze",
+      "last_modified": "2026-05-06T12:03:56.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 5385
+    },
+    {
+      "function_name": "justhodl-exchange-flows",
+      "last_modified": "2026-04-27T22:36:01.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 3940
+    },
+    {
+      "function_name": "justhodl-oecd-cli",
+      "last_modified": "2026-04-27T18:48:55.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 3548
+    },
+    {
+      "function_name": "justhodl-crypto-intel",
+      "last_modified": "2026-04-27T16:52:43.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 96,
+      "is_in_repo": true,
+      "code_size": 15776
+    },
+    {
+      "function_name": "createEnhancedIndex",
+      "last_modified": "2026-04-25T10:25:52.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 8329
+    },
+    {
+      "function_name": "justhodl-eps-revision-velocity",
+      "last_modified": "2026-05-05T22:41:56.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 16442
+    },
+    {
+      "function_name": "census-economic-agent",
+      "last_modified": "2026-04-25T10:25:56.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 1597
+    },
+    {
+      "function_name": "justhodl-forensic-screen",
+      "last_modified": "2026-05-06T16:56:04.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 6141
+    },
+    {
+      "function_name": "justhodl-ab-test",
+      "last_modified": "2026-05-04T12:42:18.724+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4850
+    },
+    {
+      "function_name": "justhodl-sec-8k",
+      "last_modified": "2026-04-27T18:44:37.963+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 3311
+    },
+    {
+      "function_name": "justhodl-sec-13f",
+      "last_modified": "2026-05-03T17:17:52.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3307
+    },
+    {
+      "function_name": "dollar-strength-agent",
+      "last_modified": "2026-04-25T10:26:01.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 3007
+    },
+    {
+      "function_name": "economyapi",
+      "last_modified": "2026-04-25T10:26:05.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 12328
+    },
+    {
+      "function_name": "justhodl-investor-agents",
+      "last_modified": "2026-04-26T12:52:46.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 7310
+    },
+    {
+      "function_name": "justhodl-backtest-engine",
+      "last_modified": "2026-05-06T16:33:32.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 10,
+      "is_in_repo": true,
+      "code_size": 16209
+    },
+    {
+      "function_name": "aiapi-market-analyzer",
+      "last_modified": "2026-04-25T10:26:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 126,
+      "is_in_repo": true,
+      "code_size": 2456
+    },
+    {
+      "function_name": "justhodl-allocator",
+      "last_modified": "2026-05-04T18:39:51.490+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 10,
+      "is_in_repo": true,
+      "code_size": 5625
+    },
+    {
+      "function_name": "autonomous-ai-processor",
+      "last_modified": "2026-04-27T16:47:30.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 985
+    },
+    {
+      "function_name": "treasury-auto-updater",
+      "last_modified": "2026-04-25T10:26:18.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1525
+    },
+    {
+      "function_name": "justhodl-history-snapshotter",
+      "last_modified": "2026-05-06T17:54:05.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 23,
+      "is_in_repo": true,
+      "code_size": 5265
+    },
+    {
+      "function_name": "permanent-market-intelligence",
+      "last_modified": "2026-04-26T12:18:24.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4318
+    },
+    {
+      "function_name": "ultimate-multi-agent",
+      "last_modified": "2025-09-21T17:16:19.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1931
+    },
+    {
+      "function_name": "justhodl-dex-scanner",
+      "last_modified": "2026-04-25T21:18:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 96,
+      "is_in_repo": true,
+      "code_size": 767
+    },
+    {
+      "function_name": "ecb",
+      "last_modified": "2026-04-25T10:26:31.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1717
+    },
+    {
+      "function_name": "justhodl-system-signal-logger",
+      "last_modified": "2026-05-05T22:05:58.943+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 10778
+    },
+    {
+      "function_name": "justhodl-narrative-density-tracker",
+      "last_modified": "2026-05-06T09:13:10.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 18725
+    },
+    {
+      "function_name": "justhodl-repo-monitor",
+      "last_modified": "2026-04-25T10:26:35.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 23,
+      "is_in_repo": true,
+      "code_size": 11062
+    },
+    {
+      "function_name": "global-liquidity-agent-v2",
+      "last_modified": "2026-04-25T10:26:39.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 744
+    },
+    {
+      "function_name": "justhodl-macro-surprise",
+      "last_modified": "2026-05-04T12:15:19.471+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 4288
+    },
+    {
+      "function_name": "justhodl-treasury-proxy",
+      "last_modified": "2026-04-25T10:26:43.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2119
+    },
+    {
+      "function_name": "justhodl-position-monitor",
+      "last_modified": "2026-05-04T22:44:07.409+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 4043
+    },
+    {
+      "function_name": "justhodl-daily-report-v3",
+      "last_modified": "2026-04-26T12:52:31.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 289,
+      "is_in_repo": true,
+      "code_size": 33387
+    },
+    {
+      "function_name": "justhodl-prompt-iterator",
+      "last_modified": "2026-04-25T14:57:12.413+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 13651
+    },
+    {
+      "function_name": "scrapeMacroData",
+      "last_modified": "2026-04-27T17:17:19.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 1081
+    },
+    {
+      "function_name": "justhodl-history-api",
+      "last_modified": "2026-05-06T17:59:34.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 2819
+    },
+    {
+      "function_name": "justhodl-theme-rotation-engine",
+      "last_modified": "2026-05-06T08:17:17.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 29462
+    },
+    {
+      "function_name": "daily-liquidity-report",
+      "last_modified": "2026-04-25T10:26:55.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4705
+    },
+    {
+      "function_name": "justhodl-asymmetric-hunter",
+      "last_modified": "2026-05-05T14:44:57.411+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 20228
+    },
+    {
+      "function_name": "fred-ice-bofa-api",
+      "last_modified": "2026-04-25T10:26:59.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 10,
+      "is_in_repo": true,
+      "code_size": 524
+    },
+    {
+      "function_name": "MLPredictor",
+      "last_modified": "2025-05-30T03:51:24.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 866
+    },
+    {
+      "function_name": "justhodl-intelligence",
+      "last_modified": "2026-04-26T12:52:38.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 13,
+      "is_in_repo": true,
+      "code_size": 17397
+    },
+    {
+      "function_name": "justhodl-signal-portfolio",
+      "last_modified": "2026-05-04T12:21:35.617+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 6738
+    },
+    {
+      "function_name": "justhodl-reports-builder",
+      "last_modified": "2026-04-26T12:53:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 24,
+      "is_in_repo": true,
+      "code_size": 7188
+    },
+    {
+      "function_name": "justhodl-insider-trades",
+      "last_modified": "2026-04-27T21:56:19.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 8868
+    },
+    {
+      "function_name": "justhodl-ultimate-trading",
+      "last_modified": "2026-04-25T10:27:08.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 6005
+    },
+    {
+      "function_name": "cftc-futures-positioning-agent",
+      "last_modified": "2026-04-25T10:23:35.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 300,
+      "is_in_repo": true,
+      "code_size": 6484
+    },
+    {
+      "function_name": "justhodl-deep-value-screener",
+      "last_modified": "2026-05-05T22:41:54.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 8,
+      "is_in_repo": true,
+      "code_size": 18910
+    },
+    {
+      "function_name": "justhodl-gdelt-sentiment",
+      "last_modified": "2026-04-27T18:48:48.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 4419
+    },
+    {
+      "function_name": "xccy-basis-agent",
+      "last_modified": "2026-04-25T10:27:12.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 14,
+      "is_in_repo": true,
+      "code_size": 2546
+    },
+    {
+      "function_name": "justhodl-nobrainer-tracker",
+      "last_modified": "2026-05-05T16:52:02.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 24,
+      "is_in_repo": true,
+      "code_size": 17228
+    },
+    {
+      "function_name": "justhodl-aaii-sentiment",
+      "last_modified": "2026-04-27T21:56:10.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4106
+    },
+    {
+      "function_name": "coinmarketcap-agent",
+      "last_modified": "2026-04-25T10:27:16.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 9,
+      "is_in_repo": true,
+      "code_size": 8387
+    },
+    {
+      "function_name": "justhodl-correlation-breaks",
+      "last_modified": "2026-04-26T22:07:59.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 9668
+    },
+    {
+      "function_name": "multi-agent-orchestrator",
+      "last_modified": "2025-09-21T17:28:02.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1505
+    },
+    {
+      "function_name": "alphavantage-market-agent",
+      "last_modified": "2026-04-25T10:27:20.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 10,
+      "is_in_repo": true,
+      "code_size": 2249
+    },
+    {
+      "function_name": "justhodl-options-flow",
+      "last_modified": "2026-04-25T10:27:25.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 292,
+      "is_in_repo": true,
+      "code_size": 9350
+    },
+    {
+      "function_name": "justhodl-supply-inflection-scanner",
+      "last_modified": "2026-05-05T14:20:30.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 27572
+    },
+    {
+      "function_name": "justhodl-email-reports",
+      "last_modified": "2026-04-26T12:18:03.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 4781
+    },
+    {
+      "function_name": "justhodl-theme-detector",
+      "last_modified": "2026-05-05T13:40:15.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 10606
+    },
+    {
+      "function_name": "treasury-api",
+      "last_modified": "2026-04-25T10:27:33.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 15,
+      "is_in_repo": true,
+      "code_size": 53108
+    },
+    {
+      "function_name": "benzinga-news-agent",
+      "last_modified": "2026-04-25T10:27:38.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1329
+    },
+    {
+      "function_name": "justhodl-outcome-checker",
+      "last_modified": "2026-04-25T10:27:42.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 15144
+    },
+    {
+      "function_name": "justhodl-short-interest",
+      "last_modified": "2026-05-04T00:13:17.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 4777
+    },
+    {
+      "function_name": "justhodl-historical-analogs",
+      "last_modified": "2026-05-04T12:25:28.725+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4527
+    },
+    {
+      "function_name": "justhodl-khalid-metrics",
+      "last_modified": "2026-04-25T10:27:46.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 7514
+    },
+    {
+      "function_name": "openbb-websocket-handler",
+      "last_modified": "2025-06-15T11:02:40.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1102
+    },
+    {
+      "function_name": "justhodl-options-flow-scanner",
+      "last_modified": "2026-05-06T08:50:22.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 5494
+    },
+    {
+      "function_name": "justhodl-watchlist-debate",
+      "last_modified": "2026-04-25T12:32:55.424+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 18552
+    },
+    {
+      "function_name": "justhodl-pre-pump-detector",
+      "last_modified": "2026-05-06T00:15:53.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 12660
+    },
+    {
+      "function_name": "justhodl-regime-anomaly",
+      "last_modified": "2026-04-26T21:36:46.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 10526
+    },
+    {
+      "function_name": "securities-banking-agent",
+      "last_modified": "2026-04-25T10:27:50.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2585
+    },
+    {
+      "function_name": "justhodl-alert-router",
+      "last_modified": "2026-05-06T17:47:10.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 49,
+      "is_in_repo": true,
+      "code_size": 6930
+    },
+    {
+      "function_name": "testEnhancedScraper",
+      "last_modified": "2026-04-25T10:27:55.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2539
+    },
+    {
+      "function_name": "justhodl-activist-filings-scanner",
+      "last_modified": "2026-05-06T10:35:12.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 7,
+      "is_in_repo": true,
+      "code_size": 24836
+    },
+    {
+      "function_name": "justhodl-vix-curve",
+      "last_modified": "2026-04-27T22:10:26.924+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 3480
+    },
+    {
+      "function_name": "createUniversalIndex",
+      "last_modified": "2026-04-25T10:27:59.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 8329
+    },
+    {
+      "function_name": "justhodl-crisis-knowledge-base",
+      "last_modified": "2026-05-03T23:40:42.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 9033
+    },
+    {
+      "function_name": "bls-employment-api-v2",
+      "last_modified": "2025-08-18T00:46:45.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 5726
+    },
+    {
+      "function_name": "justhodl-ml-predictions",
+      "last_modified": "2026-04-25T10:28:03.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 7368
+    },
+    {
+      "function_name": "justhodl-13f-positions",
+      "last_modified": "2026-05-03T17:19:49.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 11852
+    },
+    {
+      "function_name": "justhodl-sector-earnings-diffusion",
+      "last_modified": "2026-05-06T08:56:32.763+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 15792
+    },
+    {
+      "function_name": "justhodl-telegram-bot",
+      "last_modified": "2026-04-25T10:28:08.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 12,
+      "is_in_repo": true,
+      "code_size": 10783
+    },
+    {
+      "function_name": "justhodl-morning-intelligence",
+      "last_modified": "2026-05-03T23:45:32.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 14360
+    },
+    {
+      "function_name": "justhodl-earnings-tracker",
+      "last_modified": "2026-05-03T23:58:02.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 5348
+    },
+    {
+      "function_name": "justhodl-morning-brief-tg",
+      "last_modified": "2026-05-04T12:47:37.270+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3105
+    },
+    {
+      "function_name": "justhodl-stock-ai-research",
+      "last_modified": "2026-04-25T23:34:39.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 5927
+    },
+    {
+      "function_name": "justhodl-edge-engine",
+      "last_modified": "2026-04-25T11:31:30.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 14090
+    },
+    {
+      "function_name": "justhodl-compound-aggregator",
+      "last_modified": "2026-05-06T14:00:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 31,
+      "is_in_repo": true,
+      "code_size": 18572
+    },
+    {
+      "function_name": "nyfed-primary-dealer-fetcher",
+      "last_modified": "2026-04-25T10:28:12.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1640
+    },
+    {
+      "function_name": "justhodl-bloomberg-v8",
+      "last_modified": "2026-04-26T12:52:13.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 287,
+      "is_in_repo": true,
+      "code_size": 9930
+    },
+    {
+      "function_name": "justhodl-nobrainer-rationale",
+      "last_modified": "2026-05-05T23:04:05.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 9,
+      "is_in_repo": true,
+      "code_size": 31285
+    },
+    {
+      "function_name": "justhodl-news-sentiment",
+      "last_modified": "2026-04-25T10:28:20.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3363
+    },
+    {
+      "function_name": "fedliquidityapi",
+      "last_modified": "2026-04-25T10:28:25.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 14,
+      "is_in_repo": true,
+      "code_size": 6104
+    },
+    {
+      "function_name": "justhodl-fred-proxy",
+      "last_modified": "2026-04-25T10:28:29.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1022
+    },
+    {
+      "function_name": "enhanced-repo-agent",
+      "last_modified": "2026-04-25T10:28:33.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 14,
+      "is_in_repo": true,
+      "code_size": 1899
+    },
+    {
+      "function_name": "justhodl-correlation-surface",
+      "last_modified": "2026-05-04T12:42:30.003+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4329
+    },
+    {
+      "function_name": "justhodl-calibration-snapshot",
+      "last_modified": "2026-05-04T13:19:08.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 3063
+    },
+    {
+      "function_name": "manufacturing-global-agent",
+      "last_modified": "2026-04-25T10:28:37.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2933
+    },
+    {
+      "function_name": "justhodl-signal-logger",
+      "last_modified": "2026-05-04T22:09:27.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 11318
+    },
+    {
+      "function_name": "global-liquidity-agent-TEST",
+      "last_modified": "2026-04-25T10:28:46.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 14125
+    },
+    {
+      "function_name": "justhodl-whats-changed",
+      "last_modified": "2026-05-04T12:47:47.450+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3919
+    },
+    {
+      "function_name": "justhodl-ka-metrics",
+      "last_modified": "2026-04-26T13:37:23.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": false,
+      "code_size": 7472
+    },
+    {
+      "function_name": "justhodl-ecb-proxy",
+      "last_modified": "2026-04-25T10:28:50.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 3044
+    },
+    {
+      "function_name": "justhodl-price-redundancy",
+      "last_modified": "2026-04-27T18:49:09.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 96,
+      "is_in_repo": true,
+      "code_size": 3413
+    },
+    {
+      "function_name": "justhodl-etf-flows",
+      "last_modified": "2026-05-04T00:18:41.610+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 4,
+      "is_in_repo": true,
+      "code_size": 4346
+    },
+    {
+      "function_name": "bea-economic-agent",
+      "last_modified": "2026-04-25T10:28:55.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 1678
+    },
+    {
+      "function_name": "justhodl-sec-10kq",
+      "last_modified": "2026-04-27T18:44:15.326+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 2614
+    },
+    {
+      "function_name": "fmp-stock-picks-agent",
+      "last_modified": "2026-04-26T12:17:49.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 6690
+    },
+    {
+      "function_name": "justhodl-revenue-acceleration",
+      "last_modified": "2026-05-06T14:12:39.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 17917
+    },
+    {
+      "function_name": "justhodl-charts-agent",
+      "last_modified": "2026-04-25T10:29:03.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1989
+    },
+    {
+      "function_name": "justhodl-cdn-diag-temp",
+      "last_modified": "2026-05-06T15:28:55.973+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": false,
+      "code_size": 2292
+    },
+    {
+      "function_name": "justhodl-eurodollar-stress",
+      "last_modified": "2026-05-04T19:51:41.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 24,
+      "is_in_repo": true,
+      "code_size": 4428
+    },
+    {
+      "function_name": "justhodl-health-monitor",
+      "last_modified": "2026-05-06T18:05:29.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 96,
+      "is_in_repo": true,
+      "code_size": 14928
+    },
+    {
+      "function_name": "justhodl-chat-api",
+      "last_modified": "2026-04-25T10:29:07.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2042
+    },
+    {
+      "function_name": "justhodl-auction-crisis-detector",
+      "last_modified": "2026-04-27T12:58:37.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 42,
+      "is_in_repo": true,
+      "code_size": 8634
+    },
+    {
+      "function_name": "nyfed-financial-stability-fetcher",
+      "last_modified": "2026-04-25T10:29:12.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2717
+    },
+    {
+      "function_name": "justhodl-cache-layer",
+      "last_modified": "2026-04-25T10:29:16.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 882
+    },
+    {
+      "function_name": "alphavantage-technical-analysis",
+      "last_modified": "2026-04-25T10:29:20.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 9,
+      "is_in_repo": true,
+      "code_size": 770
+    },
+    {
+      "function_name": "news-sentiment-agent",
+      "last_modified": "2026-04-25T10:29:24.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 334
+    },
+    {
+      "function_name": "justhodl-backtest-harness",
+      "last_modified": "2026-04-27T22:01:34.967+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 5407
+    },
+    {
+      "function_name": "nyfedapi-isolated",
+      "last_modified": "2026-04-25T10:29:28.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 4374
+    },
+    {
+      "function_name": "macro-financial-intelligence",
+      "last_modified": "2026-04-25T10:29:33.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 334974
+    },
+    {
+      "function_name": "justhodl-financial-secretary",
+      "last_modified": "2026-04-26T12:18:17.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 6,
+      "is_in_repo": true,
+      "code_size": 20915
+    },
+    {
+      "function_name": "justhodl-advanced-charts",
+      "last_modified": "2026-04-25T10:29:41.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1989
+    },
+    {
+      "function_name": "justhodl-smart-money-cluster",
+      "last_modified": "2026-05-05T19:29:08.526+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 13882
+    },
+    {
+      "function_name": "justhodl-labor-leading",
+      "last_modified": "2026-04-27T18:43:29.450+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 3052
+    },
+    {
+      "function_name": "nasdaq-datalink-agent",
+      "last_modified": "2026-04-25T10:29:46.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1964
+    },
+    {
+      "function_name": "justhodl-options-gamma",
+      "last_modified": "2026-04-27T22:36:07.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 4795
+    },
+    {
+      "function_name": "justhodl-calibration-snapshotter",
+      "last_modified": "2026-05-04T20:51:12.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 3239
+    },
+    {
+      "function_name": "justhodl-feedback",
+      "last_modified": "2026-05-04T12:47:16.948+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 2879
+    },
+    {
+      "function_name": "justhodl-earnings-pead",
+      "last_modified": "2026-05-06T13:57:55.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 4485
+    },
+    {
+      "function_name": "chatgpt-agent-api",
+      "last_modified": "2026-04-26T12:17:41.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 5,
+      "is_in_repo": true,
+      "code_size": 2828
+    },
+    {
+      "function_name": "justhodl-pead-detector",
+      "last_modified": "2026-05-06T13:53:53.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 3,
+      "is_in_repo": true,
+      "code_size": 19808
+    },
+    {
+      "function_name": "justhodl-redflag-alerter",
+      "last_modified": "2026-04-27T21:56:29.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 48,
+      "is_in_repo": true,
+      "code_size": 3353
+    },
+    {
+      "function_name": "openbb-system2-api",
+      "last_modified": "2025-08-11T15:09:16.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": false,
+      "invocations_24h": 2,
+      "is_in_repo": true,
+      "code_size": 3432
+    },
+    {
+      "function_name": "justhodl-risk-sizer",
+      "last_modified": "2026-05-04T20:14:56.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 6802
+    },
+    {
+      "function_name": "universal-agent-gateway",
+      "last_modified": "2026-04-25T10:29:54.000+0000",
+      "has_eb_rule": false,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 1840
+    },
+    {
+      "function_name": "justhodl-valuations-agent",
+      "last_modified": "2026-04-25T10:29:58.000+0000",
+      "has_eb_rule": true,
+      "has_function_url": true,
+      "invocations_24h": 0,
+      "is_in_repo": true,
+      "code_size": 5273
+    },
+    {
+      "function_name": "justhodl-calls-backtest",
+      "last_modified": "2026-05-05T12:53:38.110+0000",
+      "has_eb_rule": true,
+      "has_function_url": false,
+      "invocations_24h": 1,
+      "is_in_repo": true,
+      "code_size": 4171
+    }
+  ]
+}
