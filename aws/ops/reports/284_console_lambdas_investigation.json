@@ -1,0 +1,175 @@
+{
+  "started": "2026-05-06T20:45:06.681715+00:00",
+  "results": [
+    {
+      "name": "justhodl-cdn-diag-temp",
+      "meta": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cdn-diag-temp",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "memory_mb": 256,
+        "timeout_s": 120,
+        "code_size": 2292,
+        "last_modified": "2026-05-06T15:28:55.973+0000",
+        "description": "",
+        "env_vars": []
+      },
+      "invocations_30d": [
+        {
+          "date": "2026-05-05",
+          "invocations": 1
+        }
+      ],
+      "total_invocations_30d": 1,
+      "eb_rules": [],
+      "function_url": null,
+      "source_download": {
+        "extracted_to": "aws/ops/reports/284_console_lambdas_source/justhodl-cdn-diag-temp",
+        "n_files": 1,
+        "files": [
+          {
+            "filename": "lambda_function.py",
+            "size_bytes": 2158
+          }
+        ]
+      },
+      "recent_logs": [
+        {
+          "ts": "2026-05-06T15:29:00.025000+00:00",
+          "msg": "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244"
+        },
+        {
+          "ts": "2026-05-06T15:29:00.182000+00:00",
+          "msg": "START RequestId: e580b547-d279-45e3-ad12-c42abac80a78 Version: $LATEST"
+        },
+        {
+          "ts": "2026-05-06T15:29:00.672000+00:00",
+          "msg": "END RequestId: e580b547-d279-45e3-ad12-c42abac80a78"
+        },
+        {
+          "ts": "2026-05-06T15:29:00.672000+00:00",
+          "msg": "REPORT RequestId: e580b547-d279-45e3-ad12-c42abac80a78\tDuration: 489.54 ms\tBilled Duration: 643 ms\tMemory Size: 256 MB\tMax Memory Used: 53 MB\tInit Duration: 153.11 ms"
+        }
+      ]
+    },
+    {
+      "name": "justhodl-ka-metrics",
+      "meta": {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ka-metrics",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "memory_mb": 512,
+        "timeout_s": 240,
+        "code_size": 7472,
+        "last_modified": "2026-04-26T13:37:23.000+0000",
+        "description": "KA Metrics \u2014 Phase 4 of Khalid\u2192KA rebrand (replaces justhodl-khalid-metrics)",
+        "env_vars": [
+          "FRED_API_KEY",
+          "POLYGON_API_KEY",
+          "S3_BUCKET",
+          "ANTHROPIC_API_KEY"
+        ]
+      },
+      "invocations_30d": [
+        {
+          "date": "2026-04-25",
+          "invocations": 8
+        },
+        {
+          "date": "2026-04-26",
+          "invocations": 1
+        },
+        {
+          "date": "2026-04-27",
+          "invocations": 1
+        },
+        {
+          "date": "2026-04-28",
+          "invocations": 1
+        },
+        {
+          "date": "2026-04-29",
+          "invocations": 3
+        },
+        {
+          "date": "2026-04-30",
+          "invocations": 1
+        },
+        {
+          "date": "2026-05-01",
+          "invocations": 1
+        },
+        {
+          "date": "2026-05-02",
+          "invocations": 1
+        },
+        {
+          "date": "2026-05-03",
+          "invocations": 1
+        },
+        {
+          "date": "2026-05-04",
+          "invocations": 1
+        },
+        {
+          "date": "2026-05-05",
+          "invocations": 1
+        }
+      ],
+      "total_invocations_30d": 20,
+      "eb_rules": [
+        {
+          "rule": "justhodl-khalid-metrics-refresh",
+          "schedule": "cron(0 11 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "function_url": "https://s6ascg5dntry5w5elqedee77na0fcljz.lambda-url.us-east-1.on.aws/",
+      "source_download": {
+        "extracted_to": "aws/ops/reports/284_console_lambdas_source/justhodl-ka-metrics",
+        "n_files": 1,
+        "files": [
+          {
+            "filename": "lambda_function.py",
+            "size_bytes": 24679
+          }
+        ]
+      },
+      "recent_logs": [
+        {
+          "ts": "2026-05-06T11:02:26.453000+00:00",
+          "msg": "=================================================="
+        },
+        {
+          "ts": "2026-05-06T11:02:26.453000+00:00",
+          "msg": "PUBLISHED: 62 OK, 22 errors, risk=27.6"
+        },
+        {
+          "ts": "2026-05-06T11:02:26.453000+00:00",
+          "msg": "=================================================="
+        },
+        {
+          "ts": "2026-05-06T11:02:26.453000+00:00",
+          "msg": "ERRORS: ['EFFR', 'OBFR', 'T10Y3M', 'DFF', 'STLFSI4', 'NFCI', 'TREAS911Y', 'RESH4MFNWW', 'BOGMBASE', 'WFCDA', 'DPSFRIW027SBOG', 'TCU', 'IPMAN', 'MCUMFN', 'CES4348400001', 'USPBS', 'RTWEXBGS', 'WSHOSHO', 'WDTGAL', 'DRCLACBS', 'BUSLOANS', 'ECBMRRFR']"
+        },
+        {
+          "ts": "2026-05-06T11:02:26.454000+00:00",
+          "msg": "Calling Claude..."
+        },
+        {
+          "ts": "2026-05-06T11:03:19.480000+00:00",
+          "msg": "AI: grade=B-, crypto=ACCUMULATE"
+        },
+        {
+          "ts": "2026-05-06T11:03:19.482000+00:00",
+          "msg": "END RequestId: 7a62c633-2359-4a27-9301-04207c542187"
+        },
+        {
+          "ts": "2026-05-06T11:03:19.482000+00:00",
+          "msg": "REPORT RequestId: 7a62c633-2359-4a27-9301-04207c542187\tDuration: 167485.79 ms\tBilled Duration: 167972 ms\tMemory Size: 512 MB\tMax Memory Used: 101 MB\tInit Duration: 485.89 ms"
+        }
+      ]
+    }
+  ],
+  "duration_s": 14.4
+}
