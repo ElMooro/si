@@ -66,11 +66,26 @@ jobs:
         run: |
           set -e
           for s in ${{ steps.pick.outputs.scripts }}; do
+            # Skip files that are no longer in the working tree (e.g. moved
+            # to ran/ or historical/ in the same push). git diff lists
+            # deletes too, but trying to execute a missing file would fail
+            # the run and prevent legitimate added scripts from running.
+            if [ ! -f "$s" ]; then
+              echo "⏭  Skipping $s — not in working tree (moved or deleted)"
+              continue
+            fi
             echo "══════════════════════════════════════════"
             echo "  Running: $s"
             echo "══════════════════════════════════════════"
             python3 "$s"
             echo "✅ $s completed"
+            # Auto-move successful scripts to ran/ so the pending dir
+            # only contains scripts that are still pending or failed.
+            mkdir -p aws/ops/ran
+            target="aws/ops/ran/$(basename "$s")"
+            if [ ! -e "$target" ]; then
+              git mv "$s" "$target" 2>/dev/null && echo "📦 moved to $target" || true
+            fi
           done
 
       - name: Commit any new/changed reports or imports
@@ -82,11 +97,13 @@ jobs:
           git pull --rebase origin main || true
           # Stage the standard ops paths plus root *.html (dashboard pages
           # served by GitHub Pages) and cloudflare/ (CF Worker source).
+          # aws/ops/pending/ and aws/ops/ran/ are now both committed so
+          # the auto-move logic in the run step persists across runs.
           shopt -s nullglob
           ROOT_HTML=( ./*.html )
           shopt -u nullglob
-          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null)" ]; then
-            git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null || git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
+          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null)" ]; then
+            git add aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" cloudflare/ 2>/dev/null || git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
             git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
             git push || (git pull --rebase origin main && git push)
             echo "Committed changes"
