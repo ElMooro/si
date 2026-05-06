@@ -1,0 +1,32 @@
+{
+  "probed_at": "2026-05-06T18:01:22+00:00",
+  "lambda": {
+    "exists": true,
+    "last_modified": "2026-05-04T12:27:19.041+0000",
+    "runtime": "python3.12",
+    "memory_mb": 1024,
+    "timeout_s": 600
+  },
+  "eb_rules": [
+    "justhodl-event-study-daily"
+  ],
+  "output": {
+    "exists": true,
+    "size_bytes": 11318,
+    "last_modified": "2026-05-04T14:00:51+00:00",
+    "v": null,
+    "generated_at": "2026-05-04T14:00:50.739321+00:00",
+    "n_event_types": 0,
+    "event_keys": [],
+    "sample": {},
+    "age_hours": 52.0
+  },
+  "fresh_invoke": {
+    "status": 200,
+    "func_err": null,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"n_event_classes\": 8, \"active_themes\": [], \"expected_21d_return_from_active_pct\": null, \"duration_s\": 1.88}"
+    }
+  }
+}
