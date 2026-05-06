@@ -12,6 +12,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from collections import defaultdict
 from boto3.dynamodb.conditions import Attr
+from _sentry_lite import track_errors
+
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
@@ -460,6 +462,7 @@ def run_calibration():
     return report
 
 
+@track_errors
 def lambda_handler(event, context):
     report = run_calibration()
 

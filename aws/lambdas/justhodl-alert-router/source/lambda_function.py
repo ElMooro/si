@@ -31,6 +31,8 @@ import time
 import urllib.request
 from datetime import datetime, timezone, timedelta
 import boto3
+from _sentry_lite import track_errors
+
 
 S3 = boto3.client("s3", region_name="us-east-1")
 SSM = boto3.client("ssm", region_name="us-east-1")
@@ -483,6 +485,7 @@ def format_telegram_msg(alert):
     )
 
 
+@track_errors
 def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[alert-router] start")

@@ -12,6 +12,8 @@ import urllib.error
 from datetime import datetime, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Attr
+from _sentry_lite import track_errors
+
 
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 ssm      = boto3.client("ssm",       region_name="us-east-1")
@@ -375,6 +377,7 @@ def check_pending_signals():
     return processed_count
 
 
+@track_errors
 def lambda_handler(event, context):
     processed = check_pending_signals()
     return {

@@ -804,6 +804,20 @@ EXPECTATIONS = {
         "note": "Per-feed snapshot index for /audit.html. Built by history-snapshotter ~hourly via DDB scan.",
         "severity": "important",
     },
+
+    # ─── Sentry-lite (self-hosted error tracking) ─────────────────────
+    "s3:errors/recent.json": {
+        "type": "s3_file",
+        "key": "errors/recent.json",
+        # No staleness check — file only updates when an error fires.
+        # The presence of fresh data here means errors ARE happening and
+        # would be alerted via the alert-router separately.
+        "fresh_max": 90 * 86400,
+        "warn_max": 180 * 86400,
+        "expected_size": 100,
+        "note": "Sentry-lite rolling tail of last 200 errors. Updated only on Lambda failure.",
+        "severity": "nice_to_have",
+    },
 }
 
 

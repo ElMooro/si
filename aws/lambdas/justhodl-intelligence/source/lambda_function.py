@@ -1,6 +1,8 @@
 import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
+from _sentry_lite import track_errors
+
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 # Producer Lambdas wrap output dicts before serialization so consumers
@@ -930,6 +932,7 @@ def generate_full_intelligence(main, repo, pred):
     
     return report
 
+@track_errors
 def lambda_handler(event, context):
     try:
         print("=== MARKET INTELLIGENCE ENGINE v3.0 ===")

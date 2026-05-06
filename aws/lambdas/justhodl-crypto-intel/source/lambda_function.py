@@ -79,6 +79,8 @@ ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 
 
 import boto3
+from _sentry_lite import track_errors
+
 
 
 
@@ -3579,6 +3581,7 @@ def risk(fg,fn,st,gl,tech):
 
 
 
+@track_errors
 def lambda_handler(event, context):
 
 

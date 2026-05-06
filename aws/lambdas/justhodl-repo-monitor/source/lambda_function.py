@@ -1,6 +1,8 @@
 import json,boto3,os,ssl,traceback
 from datetime import datetime,timezone,timedelta
 from urllib import request as urllib_request
+from _sentry_lite import track_errors
+
 s3=boto3.client('s3')
 FRED_API_KEY=os.environ.get('FRED_API_KEY','2f057499936072679d8843d7fce99989')
 S3_BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
@@ -442,6 +444,7 @@ def generate_intelligence(ad, stress):
         'generated_at': datetime.now(timezone.utc).isoformat()
     }
 
+@track_errors
 def lambda_handler(event,context):
     try:
         print("=== REPO MONITOR V2 START ===");ts=datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')

@@ -6,6 +6,8 @@ import urllib.request
 import urllib.error
 import re
 from datetime import datetime, timezone, timedelta
+from _sentry_lite import track_errors
+
 
 # ── AUTH MODULE (token from SSM + origin allowlist) ──────────────────
 _AUTH_TOKEN_CACHE = None
@@ -408,6 +410,7 @@ def call_claude(message, context, history=None):
         data = json.loads(r.read().decode())
     return data['content'][0]['text'] if data.get('content') else 'Error: empty response'
 
+@track_errors
 def lambda_handler(event, context):
 
     # ── AUTH GUARD ──────────────────────────────────────────────────

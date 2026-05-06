@@ -1,5 +1,7 @@
 import json, boto3, urllib.request, time, concurrent.futures
 from datetime import datetime, timezone
+from _sentry_lite import track_errors
+
 
 # Calibration helper — Loop 1 (light-touch: edge-engine sub-engines
 # aren't currently tracked signal types, so weights = 1.0 today;
@@ -150,6 +152,7 @@ def engine_correlation():
             'alerts': alerts, 'score': score,
             'signal': 'BREAKDOWN' if alerts else 'NORMAL'}
 
+@track_errors
 def lambda_handler(event, context):
     cors = {
         'Access-Control-Allow-Origin': '*',

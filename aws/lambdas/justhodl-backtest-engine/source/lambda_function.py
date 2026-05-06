@@ -42,6 +42,8 @@ from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Attr
+from _sentry_lite import track_errors
+
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
@@ -314,6 +316,7 @@ def scan_scored_outcomes():
     return items, pages
 
 
+@track_errors
 def lambda_handler(event=None, context=None):
     started = time.time()
     now = datetime.now(timezone.utc)

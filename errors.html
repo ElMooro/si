@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Errors · JustHodl.AI</title>
+<meta name="description" content="Self-hosted error tracking — every uncaught exception across critical Lambdas, structured and searchable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--purple:#b070ff;--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--yellow)}.topnav a.active{color:var(--red);border-bottom:2px solid var(--red)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--yellow);font-style:normal}
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
+.hero{margin-bottom:32px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--red);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--red);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--t3)}
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:780px}
+.err-list{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden}
+.err-row{display:grid;grid-template-columns:130px 200px 1fr;gap:14px;padding:14px 18px;border-bottom:1px solid var(--brd);align-items:flex-start;font-size:12.5px;cursor:pointer;transition:background .12s}
+.err-row:last-child{border-bottom:none}
+.err-row:hover{background:var(--bg2)}
+.err-row.expanded{background:var(--bg2)}
+.err-time{color:var(--t3);font-family:var(--mono);font-size:11px;line-height:1.45}
+.err-time strong{color:var(--t1);display:block;font-size:12px;margin-bottom:2px}
+.err-lambda{font-family:var(--mono);color:var(--cyan);font-size:11.5px;line-height:1.45}
+.err-lambda .type{color:var(--red);font-size:10.5px;margin-top:2px;display:block}
+.err-msg{color:var(--t1);line-height:1.5;font-family:var(--mono);font-size:11.5px;word-break:break-word}
+.err-msg .excerpt{color:var(--t3);margin-top:6px;font-size:10.5px;line-height:1.4;display:none}
+.err-row.expanded .err-msg .excerpt{display:block}
+.empty{text-align:center;padding:60px 20px;color:var(--t3);font-style:italic}
+.green-state{padding:60px 20px;text-align:center;background:var(--bg1);border:1px solid var(--brd);border-radius:8px}
+.green-state .icon{font-size:36px;color:var(--green);margin-bottom:12px}
+.green-state h3{font-family:var(--display);font-size:22px;color:var(--green);margin-bottom:8px}
+.green-state p{font-size:13px;color:var(--t2);max-width:480px;margin:0 auto}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.disclaimer{font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;line-height:1.5}
+.dist-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:18px 22px}
+.dist-row{display:grid;grid-template-columns:200px 60px 1fr;gap:12px;align-items:center;padding:6px 0;font-family:var(--mono);font-size:12px}
+.dist-row .name{color:var(--cyan)}
+.dist-row .count{color:var(--t1);text-align:right;font-weight:600}
+.dist-row .bar{height:8px;background:var(--bg2);border-radius:2px;overflow:hidden;border:1px solid var(--brd)}
+.dist-row .bar-fill{height:100%;background:var(--red);transition:width .3s}
+.fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@media (max-width: 900px){
+  .kpi-strip{grid-template-columns: repeat(2, 1fr)}
+  .err-row{grid-template-columns:1fr; gap:6px}
+}
+@media (max-width: 600px){
+  .kpi-strip{grid-template-columns: 1fr}
+}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/system.html">System</a>
+  <a href="/alerts.html">Alerts</a>
+  <a href="/errors.html" class="active">Errors</a>
+  <a href="/audit.html">Audit</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/desk.html">Desk</a>
+</nav>
+
+<main class="shell">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Error stream</div>
+    <h1 class="hero-title">Every uncaught exception, <em>structured and searchable</em>.</h1>
+    <p class="hero-blurb">Self-hosted Sentry-lite running on the 11 most critical Lambdas. Every unhandled exception writes a structured JSON record to S3 with traceback, request ID, log stream, and event shape. The platform tells on itself.</p>
+    <div class="kpi-strip" id="kpis"></div>
+  </header>
+
+  <div class="section">
+    <div class="section-eyebrow">By Lambda</div>
+    <h2 class="section-title">Error distribution</h2>
+    <p class="section-blurb">Where errors are concentrated. A healthy platform has empty rows everywhere — concentration on one Lambda points to a specific bug or upstream data issue.</p>
+    <div class="dist-card" id="dist-card">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Stream</div>
+    <h2 class="section-title">Last 200 errors</h2>
+    <p class="section-blurb">Reverse chronological. Click a row to expand traceback excerpt. Full traceback + log stream link is in <code>s3://justhodl-dashboard-live/errors/&lt;lambda&gt;/&lt;timestamp&gt;.json</code>.</p>
+    <div class="err-list" id="err-list">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+  <p class="disclaimer">Errors recorded by the @track_errors decorator at the top of each instrumented lambda_handler. Detail records are write-only (one per error). The recent.json rolling tail keeps the last 200 summary records (no traceback to keep the file small). On record failure, the original exception is still re-raised so AWS records the Lambda failure metric — error tracking never blocks failure attribution.</p>
+
+</main>
+
+<footer style="background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0;font-family:var(--mono);font-size:11px">
+  <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:24px;color:var(--t3)">
+    <span>Engine: <span style="color:var(--t2)">@track_errors decorator (aws/shared/_sentry_lite.py)</span></span>
+    <span>Storage: <span style="color:var(--t2)">s3://justhodl-dashboard-live/errors/</span></span>
+    <span>Instrumented: <span style="color:var(--t2)">11 critical Lambdas</span></span>
+    <span id="last-updated">—</span>
+  </div>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+function timeAgo(iso){
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ${m%60}m ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+function fmtDate(iso){
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString();
+}
+
+async function load(){
+  let data = null;
+  try {
+    const r = await fetch(`${BUCKET}/errors/recent.json?_=${Date.now()}`);
+    if (r.ok) data = await r.json();
+  } catch (e){ /* fall through */ }
+
+  if (!data || !data.errors || data.errors.length === 0){
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><span class="kpi-label">Last 24h</span><span class="kpi-val" style="color:var(--green)">0</span><span class="kpi-sub">no errors recorded</span></div>
+      <div class="kpi"><span class="kpi-label">Total tracked</span><span class="kpi-val" style="color:var(--green)">0</span><span class="kpi-sub">all clear</span></div>
+      <div class="kpi"><span class="kpi-label">Last error</span><span class="kpi-val">—</span><span class="kpi-sub">never</span></div>
+      <div class="kpi"><span class="kpi-label">Lambdas instrumented</span><span class="kpi-val">11</span><span class="kpi-sub">critical-severity</span></div>`;
+    document.getElementById('dist-card').innerHTML = `
+      <div class="empty">No errors recorded yet — distribution will populate when the first error fires.</div>`;
+    document.getElementById('err-list').innerHTML = `
+      <div class="green-state">
+        <div class="icon">✓</div>
+        <h3>No errors recorded</h3>
+        <p>The 11 instrumented critical Lambdas haven't thrown any unhandled exceptions yet. Either the platform is healthy, or no traffic has hit a faulty path. This is the expected state.</p>
+      </div>`;
+    return;
+  }
+
+  const errors = data.errors.slice().reverse();
+  document.getElementById('last-updated').textContent =
+    data.last_update ? `Updated ${timeAgo(data.last_update)}` : '';
+
+  // KPIs
+  const last24h = errors.filter(e => Date.now() - new Date(e.timestamp).getTime() < 86400000);
+  const last7d = errors.filter(e => Date.now() - new Date(e.timestamp).getTime() < 7 * 86400000);
+  const byLambda = {};
+  errors.forEach(e => { byLambda[e.lambda] = (byLambda[e.lambda] || 0) + 1; });
+  const lambdasHit = Object.keys(byLambda).length;
+  const mostRecent = errors[0];
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><span class="kpi-label">Last 24h</span><span class="kpi-val" style="color:${last24h.length > 0 ? 'var(--red)' : 'var(--green)'}">${last24h.length}</span><span class="kpi-sub">${last7d.length} in last 7d</span></div>
+    <div class="kpi"><span class="kpi-label">Total tracked</span><span class="kpi-val">${errors.length}</span><span class="kpi-sub">rolling buffer of last 200</span></div>
+    <div class="kpi"><span class="kpi-label">Last error</span><span class="kpi-val">${timeAgo(mostRecent.timestamp)}</span><span class="kpi-sub">${mostRecent.lambda || '—'}</span></div>
+    <div class="kpi"><span class="kpi-label">Lambdas hit</span><span class="kpi-val">${lambdasHit}</span><span class="kpi-sub">of 11 instrumented</span></div>`;
+
+  // Distribution
+  const sortedDist = Object.entries(byLambda).sort((a,b) => b[1] - a[1]);
+  const maxCount = sortedDist[0][1];
+  document.getElementById('dist-card').innerHTML = sortedDist.map(([name, n]) => {
+    const pct = (n / maxCount * 100).toFixed(0);
+    return `<div class="dist-row">
+      <div class="name">${name}</div>
+      <div class="count">${n}</div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Error list
+  document.getElementById('err-list').innerHTML = errors.slice(0, 200).map((e, idx) => {
+    const excerpt = (e.traceback_excerpt || []).join('\n').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+    return `<div class="err-row fade-in" onclick="this.classList.toggle('expanded')">
+      <div class="err-time">
+        <strong>${timeAgo(e.timestamp)}</strong>
+        ${fmtDate(e.timestamp)}
+      </div>
+      <div class="err-lambda">
+        ${e.lambda || '—'}
+        <span class="type">${e.exception_type || 'Exception'}</span>
+      </div>
+      <div class="err-msg">
+        ${(e.message || '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
+        ${excerpt ? `<pre class="excerpt">${excerpt}</pre>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+load();
+</script>
+</body>
+</html>

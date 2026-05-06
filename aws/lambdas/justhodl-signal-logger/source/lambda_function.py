@@ -2,6 +2,8 @@
 import json,boto3,uuid,time,urllib.request,urllib.error
 from datetime import datetime,timezone,timedelta
 from decimal import Decimal
+from _sentry_lite import track_errors
+
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
@@ -199,6 +201,7 @@ def dir_score(s,lo=40,hi=60):
 def conf_ext(s,c=50,r=50):
     return min(1.0,abs(s-c)/r)
 
+@track_errors
 def lambda_handler(event,context):
     # Capture Khalid regime once for this invocation; every log_sig() call
     # reads from _REGIME_SNAPSHOT to populate regime_at_log + khalid_score_at_log

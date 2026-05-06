@@ -8,6 +8,8 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 import json, urllib.request, os, time, boto3
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from _sentry_lite import track_errors
+
 
 # Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
 try:
@@ -1603,6 +1605,7 @@ def khalid_cftc_blend(ki_original, cftc):
     print(f"KI blend: orig={ki_original}, crisis={crisis_comp:.0f}, smart={smart_comp:.0f}, final={blended}")
     return blended
 
+@track_errors
 def lambda_handler(event, context):
     t0 = time.time()
     # ── ATH INIT MODE ──
