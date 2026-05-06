@@ -1,0 +1,50 @@
+{
+  "invocations_30d": [
+    {
+      "date": "2026-05-05",
+      "value": 3
+    }
+  ],
+  "errors_30d": [
+    {
+      "date": "2026-05-05",
+      "value": 1
+    }
+  ],
+  "recent_logs": [
+    {
+      "ts": "2026-05-06T21:39:00.590000+00:00",
+      "msg": "INIT_START Runtime Version: python:3.9.v133\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:56aff4f900e936db3f9298c07f22e2471d82c84a98b9e8045aadbcaed9cfe5ec"
+    },
+    {
+      "ts": "2026-05-06T21:39:00.902000+00:00",
+      "msg": "START RequestId: 64230f3d-f202-4d78-bcc4-709c271030db Version: $LATEST"
+    },
+    {
+      "ts": "2026-05-06T21:39:00.905000+00:00",
+      "msg": "END RequestId: 64230f3d-f202-4d78-bcc4-709c271030db"
+    },
+    {
+      "ts": "2026-05-06T21:39:00.905000+00:00",
+      "msg": "REPORT RequestId: 64230f3d-f202-4d78-bcc4-709c271030db\tDuration: 2.13 ms\tBilled Duration: 311 ms\tMemory Size: 512 MB\tMax Memory Used: 56 MB\tInit Duration: 308.56 ms"
+    },
+    {
+      "ts": "2026-05-06T21:39:01.083000+00:00",
+      "msg": "START RequestId: 0cad306b-b9a0-412e-b29b-51e4681f47db Version: $LATEST"
+    },
+    {
+      "ts": "2026-05-06T21:39:01.887000+00:00",
+      "msg": "[ERROR] UnboundLocalError: local variable 'sp500_value' referenced before assignment\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 144, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0<div clas"
+    },
+    {
+      "ts": "2026-05-06T21:39:01.889000+00:00",
+      "msg": "END RequestId: 0cad306b-b9a0-412e-b29b-51e4681f47db"
+    },
+    {
+      "ts": "2026-05-06T21:39:01.889000+00:00",
+      "msg": "REPORT RequestId: 0cad306b-b9a0-412e-b29b-51e4681f47db\tDuration: 805.06 ms\tBilled Duration: 806 ms\tMemory Size: 512 MB\tMax Memory Used: 82 MB"
+    }
+  ],
+  "pre_existing_errors_before_today": 0,
+  "concluded_pre_existing": false
+}
