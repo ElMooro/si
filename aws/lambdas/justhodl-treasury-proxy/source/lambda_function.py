@@ -1,7 +1,24 @@
-import json,urllib.request,urllib.parse,traceback
+import json,urllib.request,urllib.parse,traceback,os,sys
 from datetime import datetime,timedelta
+
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
 FISCAL_BASE="https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
+
+# Allowed origins — auctions.html on justhodl.ai calls this Lambda directly
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
+
 def lambda_handler(event,context):
+    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     params=event.get('queryStringParameters') or {}
     action=params.get('action','recent')
     if action=='health': return resp(200,{'status':'ok'})

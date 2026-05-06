@@ -1,7 +1,17 @@
-import json, urllib.request, os, traceback
+import json, urllib.request, os, sys, traceback
 from datetime import datetime
 
+# Bundle api_auth.py alongside lambda_function.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
 API_KEY = os.environ.get('NASDAQ_API_KEY', '965p8tUm6xa2xA8hVrx7')
+
+# Allowed origins — nasdaq-datalink.html on justhodl.ai calls this directly
+ALLOWED_ORIGINS = [
+    "https://justhodl.ai",
+    "https://www.justhodl.ai",
+]
 
 # Free-tier datasets that work with basic NASDAQ Data Link keys
 # WIKI is deprecated, use NASDAQOMX and other free sources
@@ -75,9 +85,15 @@ def fetch(code, limit=24):
         return {"error": str(e)}
 
 def lambda_handler(event, context):
-    h = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'}
+    h = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'}
     if isinstance(event, dict) and event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {'statusCode': 200, 'headers': h, 'body': '{}'}
+
+    # Auth gate — Origin-bypass mode for justhodl.ai frontend
+    key_meta, err = authorize(event, allowed_origins=ALLOWED_ORIGINS)
+    if err:
+        return err
+
     path = event.get('rawPath', '') if isinstance(event, dict) else ''
     if '/health' in path:
         return {'statusCode': 200, 'headers': h, 'body': json.dumps({'status': 'healthy', 'agent': 'nasdaq-datalink-agent', 'datasets': sum(len(v) for v in DATASETS.values())})}
