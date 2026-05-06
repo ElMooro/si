@@ -1,5 +1,7 @@
-# MIRROR — kept for backward compat with archived ops scripts.
-# Source of truth is aws/lambdas/justhodl-health-monitor/source/expectations.py
+# CANONICAL — this is the source of truth for the health-monitor Lambda.
+# A copy at aws/ops/health/expectations.py exists for ops-script compatibility
+# (early one-off deploy scripts referenced that path). Edits should be made here;
+# the deploy-lambdas.yml workflow zips this directory and pushes to AWS.
 #
 # ═══════════════════════════════════════════════════════════════════
 #  JustHodl.AI Health Expectations
@@ -607,6 +609,96 @@ EXPECTATIONS = {
         "max_error_rate": 0.30,
         "min_invocations_24h": 4,    # Every 6h
         "note": "13F position parser. Holdings + deltas vs prior quarter.",
+        "severity": "important",
+    },
+
+    # ─── Time-series history snapshotter (shipped 2026-05-06, step 253) ──
+    "s3:data/history-snapshotter-status.json": {
+        "type": "s3_file",
+        "key": "data/history-snapshotter-status.json",
+        "fresh_max": 600,            # 10 min (writer is every 5 min)
+        "warn_max": 1800,            # 30 min
+        "expected_size": 200,        # status JSON is small
+        "note": "Snapshotter heartbeat. Writes after each 5-min run with feeds_checked + n_written.",
+        "severity": "important",
+    },
+    "lambda:justhodl-history-snapshotter": {
+        "type": "lambda",
+        "name": "justhodl-history-snapshotter",
+        "max_error_rate": 0.10,
+        "min_invocations_24h": 250,  # 288 = every 5 min × 24h, allow some misses
+        "note": "Time-series snapshotter — captures 30 live feeds to DDB justhodl-history with hash-dedup. Foundation for walk-forward backtest.",
+        "severity": "important",
+    },
+    "ddb:justhodl-history": {
+        "type": "dynamodb",
+        "table": "justhodl-history",
+        "min_items": 20,             # Bootstrap captured 26; expect growth
+        "note": "Time-series feed snapshots. PK=feed#<key>, SK=ISO8601 timestamp. 365d TTL.",
+        "severity": "important",
+    },
+    "eb:justhodl-history-snapshotter-5m": {
+        "type": "eb_rule",
+        "name": "justhodl-history-snapshotter-5m",
+        "expected_state": "ENABLED",
+        "note": "EventBridge rate(5 minutes) — drives history snapshotter.",
+        "severity": "important",
+    },
+
+    # ─── Backtest engine output (v2.0.1 + v2.1 honest backtest) ──────
+    "s3:backtest/results.json": {
+        "type": "s3_file",
+        "key": "backtest/results.json",
+        "fresh_max": 25_200,         # 7h (writer is every 6h)
+        "warn_max": 43_200,          # 12h
+        "expected_size": 15_000,     # Currently ~26KB; alerts on shrinkage
+        "note": "Backtest engine v2.1 full results — v1.1/v1.2/v2.0.1/v2.1 + by_signal + nav curves.",
+        "severity": "critical",
+    },
+    "s3:backtest/summary.json": {
+        "type": "s3_file",
+        "key": "backtest/summary.json",
+        "fresh_max": 25_200,         # 7h
+        "warn_max": 43_200,          # 12h
+        "expected_size": 3_000,      # ~5KB normally
+        "note": "Backtest engine v2.1 slim summary — KPIs + honest_summary + walkforward_summary for fast page loads.",
+        "severity": "critical",
+    },
+    "lambda:justhodl-backtest-engine": {
+        "type": "lambda",
+        "name": "justhodl-backtest-engine",
+        "max_error_rate": 0.20,
+        "min_invocations_24h": 3,    # Every 6h
+        "note": "Backtest engine v2.1 — calibrated alpha replay + walk-forward. Reads SSM weights + historical snapshots + DDB outcomes.",
+        "severity": "critical",
+    },
+    "lambda:justhodl-calibration-snapshotter": {
+        "type": "lambda",
+        "name": "justhodl-calibration-snapshotter",
+        "max_error_rate": 0.20,
+        "min_invocations_24h": None,  # Weekly schedule
+        "schedule": "weekly_sunday",
+        "note": "Calibration weight snapshotter — Sundays 12:00 UTC. Foundation for v2.1 walk-forward backtest.",
+        "severity": "important",
+    },
+    "s3:calibration/history-index.json": {
+        "type": "s3_file",
+        "key": "calibration/history-index.json",
+        "fresh_max": 7 * 86400 + 3600,    # 7d 1h (weekly write Sundays)
+        "warn_max": 8 * 86400,             # 8d
+        "expected_size": 100,
+        "schedule": "weekly_sunday",
+        "note": "Manifest of all calibration snapshots — needed for v2.1 walk-forward.",
+        "severity": "important",
+    },
+    "s3:calibration/latest.json": {
+        "type": "s3_file",
+        "key": "calibration/latest.json",
+        "fresh_max": 7 * 86400 + 3600,    # 7d 1h
+        "warn_max": 8 * 86400,
+        "expected_size": 1_000,
+        "schedule": "weekly_sunday",
+        "note": "Pointer to most recent calibration snapshot.",
         "severity": "important",
     },
 }
