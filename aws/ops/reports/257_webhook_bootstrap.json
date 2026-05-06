@@ -1,0 +1,31 @@
+{
+  "started": "2026-05-06T17:47:03.212729+00:00",
+  "ssm_param": {
+    "created": true,
+    "type": "SecureString",
+    "value": "[]"
+  },
+  "iam": {
+    "created": true,
+    "policy_name": "ssm-justhodl-alerts-read"
+  },
+  "test_invoke": {
+    "function_error": null,
+    "elapsed_s": 2.0,
+    "status_code": 200,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"candidates\": 8, \"sent\": 0, \"suppressed\": 8, \"webhooks_configured\": 0, \"webhook_attempts\": 0, \"webhook_ok\": 0, \"duration_s\": 1.1}",
+      "body_parsed": {
+        "candidates": 8,
+        "sent": 0,
+        "suppressed": 8,
+        "webhooks_configured": 0,
+        "webhook_attempts": 0,
+        "webhook_ok": 0,
+        "duration_s": 1.1
+      }
+    }
+  },
+  "duration_s": 10.6
+}
