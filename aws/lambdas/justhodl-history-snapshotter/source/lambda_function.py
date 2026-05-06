@@ -87,6 +87,8 @@ FEEDS_TO_SNAPSHOT = [
     # Alerts + forensic — added 2026-05-06
     "data/alert-history.json",
     "data/forensic-screen.json",
+    # Macro nowcast — added 2026-05-06 (composite z-score)
+    "data/macro-nowcast.json",
     # Major dashboards
     "screener/data.json",
     # Crypto / flows / edge (best-effort — skipped silently if missing)

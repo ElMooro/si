@@ -124,6 +124,80 @@ def transform_zscore(history, transform: str):
     return None, current, f"unknown_transform:{transform}"
 
 
+def regime_for_score(score: float):
+    """Return (regime_label, color)."""
+    if score > 1.0:
+        return "STRONG EXPANSION", "green"
+    if score > 0.3:
+        return "EXPANSION", "green"
+    if score > -0.3:
+        return "MUDDLE", "yellow"
+    if score > -1.0:
+        return "SLOWING", "amber"
+    return "CONTRACTION RISK", "red"
+
+
+def compute_historical_scores(fred_data: dict, lookback_months: int = 120):
+    """Replay the nowcast month-by-month using only data available at each point.
+
+    This produces a 10-year historical track of what the composite would
+    have read in real time. Each month uses the same z-scoring methodology
+    (trailing 60-obs baseline, no look-ahead).
+    """
+    # Build a unified date axis: union of all month-ends across all series
+    all_dates = set()
+    for sid, history in fred_data.items():
+        for d, _ in history:
+            all_dates.add(d)
+    sorted_dates = sorted(all_dates)
+    if len(sorted_dates) < 24:
+        return []
+
+    # For each historical month T, replay all components with data up to T
+    # (no future leakage). Skip months too early to compute z-scores.
+    historical = []
+    n_months = len(sorted_dates)
+    start_idx = max(24, n_months - lookback_months)
+
+    for i in range(start_idx, n_months):
+        target_date = sorted_dates[i]
+        comp_contribs = []
+        weighted_sum = 0.0
+        weight_used_abs = 0.0
+
+        for fred_id, spec in WEIGHTS.items():
+            full = fred_data.get(fred_id, [])
+            # Slice to obs at or before target_date
+            slice_ = [(d, v) for d, v in full if d <= target_date]
+            if len(slice_) < 24:
+                continue
+            z, raw_value, err = transform_zscore(slice_, spec["transform"])
+            if z is None:
+                continue
+            contrib = spec["weight"] * z
+            comp_contribs.append({"id": fred_id, "z": round(z, 3),
+                                  "contribution": round(contrib, 4)})
+            weighted_sum += contrib
+            weight_used_abs += abs(spec["weight"])
+
+        if weight_used_abs == 0:
+            continue
+        total_abs_weight = sum(abs(s["weight"]) for s in WEIGHTS.values())
+        normalized = weighted_sum * (total_abs_weight / weight_used_abs)
+        regime, color = regime_for_score(normalized)
+        historical.append({
+            "date": target_date,
+            "score": round(normalized, 3),
+            "raw_score": round(weighted_sum, 3),
+            "regime": regime,
+            "regime_color": color,
+            "coverage_pct": round(weight_used_abs / total_abs_weight * 100, 1),
+            "n_components": len(comp_contribs),
+        })
+
+    return historical
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
     print(f"[nowcast-v2] start {datetime.now(timezone.utc).isoformat()}")
@@ -202,8 +276,35 @@ def lambda_handler(event=None, context=None):
 
     components.sort(key=lambda c: -abs(c.get("contribution") or 0))
 
+    # Historical replay — what would the nowcast have read each month
+    # over the past 10 years? No look-ahead. ~120 monthly evaluations.
+    print("[nowcast-v2] computing historical replay…")
+    hist_started = time.time()
+    historical_scores = compute_historical_scores(fred_data, lookback_months=120)
+    print(f"[nowcast-v2] historical: {len(historical_scores)} months "
+          f"computed in {round(time.time()-hist_started, 2)}s")
+
+    # Summary stats for the historical track (useful for page rendering)
+    hist_summary = {}
+    if historical_scores:
+        scores = [h["score"] for h in historical_scores]
+        regime_counts = {}
+        for h in historical_scores:
+            regime_counts[h["regime"]] = regime_counts.get(h["regime"], 0) + 1
+        hist_summary = {
+            "n_months": len(historical_scores),
+            "first_date": historical_scores[0]["date"],
+            "last_date": historical_scores[-1]["date"],
+            "min_score": round(min(scores), 3),
+            "max_score": round(max(scores), 3),
+            "mean_score": round(sum(scores) / len(scores), 3),
+            "regime_distribution": regime_counts,
+            "current_score_percentile": round(
+                sum(1 for s in scores if s <= normalized_score) / len(scores) * 100, 1),
+        }
+
     output = {
-        "v": "2.0",
+        "v": "2.1",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s": round(time.time() - started, 2),
         "raw_score": round(weighted_sum, 4),
@@ -214,6 +315,8 @@ def lambda_handler(event=None, context=None):
         "n_components_used": sum(1 for c in components if c.get("contribution") is not None),
         "n_components_failed": sum(1 for c in components if c.get("error")),
         "components": components,
+        "historical_scores": historical_scores,
+        "historical_summary": hist_summary,
         "thresholds": {
             "strong_expansion": 1.0, "expansion": 0.3,
             "muddle": -0.3, "slowing": -1.0,
@@ -227,7 +330,9 @@ def lambda_handler(event=None, context=None):
             "UNRATE) get current level z-scored against trailing 60 "
             "monthly levels. Composite = weighted sum, renormalized "
             "against weights actually used so missing components don't "
-            "deflate the headline score."
+            "deflate the headline score. Historical track replays the "
+            "same logic month-by-month using ONLY data available at "
+            "each historical point — no look-ahead bias."
         ),
     }
 
