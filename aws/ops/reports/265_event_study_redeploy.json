@@ -1,0 +1,128 @@
+{
+  "redeployed_at": "2026-05-06T18:07:55+00:00",
+  "invoke_status": 200,
+  "invoke_err": null,
+  "invoke_payload": {
+    "statusCode": 200,
+    "body": "{\"n_event_classes\": 4, \"active_themes\": [], \"expected_21d_return_from_active_pct\": null, \"duration_s\": 0.41}"
+  },
+  "n_studies": 4,
+  "active_themes": [],
+  "expected_21d_return_from_active_pct": null,
+  "studies_n_events": {
+    "yield_curve_inverts": 5,
+    "yield_curve_steepens": 3,
+    "vix_spike": 31,
+    "vix_normalize": 38
+  },
+  "studies_currently_active": {
+    "yield_curve_inverts": false,
+    "yield_curve_steepens": false,
+    "vix_spike": false,
+    "vix_normalize": false
+  },
+  "first_study_summary": {
+    "description": "2s10s crosses below 0 (recession warning)",
+    "n_events": 5,
+    "n_with_forward_data": 5,
+    "all_dates": [
+      "1998-05-26",
+      "2000-02-02",
+      "2005-12-27",
+      "2019-08-26",
+      "2022-04-01"
+    ],
+    "most_recent_date": "2022-04-01",
+    "days_since_most_recent": 1495,
+    "currently_active": false,
+    "forward_return_summary": {
+      "1d": {
+        "n": 5,
+        "mean_pct": 0.15,
+        "median_pct": 0.08,
+        "hit_rate_pct": 80.0,
+        "min_pct": -0.32,
+        "max_pct": 0.81,
+        "stdev_pct": 0.41
+      },
+      "5d": {
+        "n": 5,
+        "mean_pct": -0.37,
+        "median_pct": -0.51,
+        "hit_rate_pct": 20.0,
+        "min_pct": -1.27,
+        "max_pct": 0.97,
+        "stdev_pct": 0.82
+      },
+      "21d": {
+        "n": 5,
+        "mean_pct": 0.71,
+        "median_pct": 2.67,
+        "hit_rate_pct": 80.0,
+        "min_pct": -8.15,
+        "max_pct": 3.7,
+        "stdev_pct": 4.97
+      },
+      "63d": {
+        "n": 5,
+        "mean_pct": 2.13,
+        "median_pct": 6.11,
+        "hit_rate_pct": 80.0,
+        "min_pct": -15.72,
+        "max_pct": 8.06,
+        "stdev_pct": 10.02
+      },
+      "126d": {
+        "n": 5,
+        "mean_pct": -1.24,
+        "median_pct": 1.53,
+        "hit_rate_pct": 80.0,
+        "min_pct": -19.08,
+        "max_pct": 8.27,
+        "stdev_pct": 10.39
+      }
+    },
+    "recent_events_sample": [
+      {
+        "date": "1998-05-26",
+        "r1d_pct": 0.08,
+        "r5d_pct": -0.51,
+        "r21d_pct": 2.67,
+        "r63d_pct": 6.11,
+        "r126d_pct": 1.53
+      },
+      {
+        "date": "2000-02-02",
+        "r1d_pct": 0.08,
+        "r5d_pct": -0.51,
+        "r21d_pct": 2.67,
+        "r63d_pct": 6.11,
+        "r126d_pct": 1.53
+      },
+      {
+        "date": "2005-12-27",
+        "r1d_pct": 0.08,
+        "r5d_pct": -0.51,
+        "r21d_pct": 2.67,
+        "r63d_pct": 6.11,
+        "r126d_pct": 1.53
+      },
+      {
+        "date": "2019-08-26",
+        "r1d_pct": -0.32,
+        "r5d_pct": 0.97,
+        "r21d_pct": 3.7,
+        "r63d_pct": 8.06,
+        "r126d_pct": 8.27
+      },
+      {
+        "date": "2022-04-01",
+        "r1d_pct": 0.81,
+        "r5d_pct": -1.27,
+        "r21d_pct": -8.15,
+        "r63d_pct": -15.72,
+        "r126d_pct": -19.08
+      }
+    ]
+  }
+}
