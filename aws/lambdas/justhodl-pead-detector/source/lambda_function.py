@@ -73,27 +73,22 @@ def get_universe():
         return []
 
 
-def fetch_earnings_surprises(symbol, limit=8):
-    """FMP /earnings-surprises returns historical eps actual vs estimate."""
-    url = ("https://financialmodelingprep.com/stable/earnings-surprises-bulk?"
-           "symbol=" + symbol + "&limit=" + str(limit) + "&apikey=" + FMP_KEY)
+def fetch_earnings_surprises(symbol, limit=12):
+    """FMP /stable/earnings — returns past + future earnings with both
+    eps + revenue actual/estimate. 164 quarters of history per ticker."""
+    url = ("https://financialmodelingprep.com/stable/earnings?"
+           "symbol=" + symbol + "&apikey=" + FMP_KEY)
     try:
         d = fetch_url(url, timeout=12)
-        if isinstance(d, list):
-            return d
-    except urllib.error.HTTPError:
-        # Try alternate endpoint
-        url2 = ("https://financialmodelingprep.com/stable/earnings-surprises?"
-                "symbol=" + symbol + "&apikey=" + FMP_KEY)
-        try:
-            d = fetch_url(url2, timeout=12)
-            if isinstance(d, list):
-                return d[:limit]
-        except Exception:
-            pass
+        if not isinstance(d, list):
+            return None
+        # Filter to events with epsActual (i.e., past earnings, not future)
+        past = [e for e in d if e.get("epsActual") is not None]
+        # Sort newest first
+        past.sort(key=lambda x: x.get("date", ""), reverse=True)
+        return past[:limit]
     except Exception:
-        pass
-    return None
+        return None
 
 
 def fetch_earnings_calendar(symbol):
@@ -161,31 +156,49 @@ def evaluate_ticker(stock):
     if not surprises or len(surprises) < 3:
         return None
 
-    # Sort newest first by date (FMP usually does, but be safe)
-    surprises_sorted = sorted(surprises, key=lambda x: x.get("date", ""), reverse=True)
-    
-    # Compute beats
+    # surprises is already filtered to past + sorted newest first
+    surprises_sorted = surprises
+
+    # Compute EPS + revenue beats
     beats = []
     for q in surprises_sorted:
-        actual = q.get("epsActual") or q.get("actualEarningResult") or q.get("eps")
-        estimate = q.get("epsEstimated") or q.get("estimatedEarning") or q.get("epsEstimate")
-        if actual is None or estimate is None:
+        eps_actual = q.get("epsActual")
+        eps_est = q.get("epsEstimated")
+        rev_actual = q.get("revenueActual")
+        rev_est = q.get("revenueEstimated")
+        
+        if eps_actual is None or eps_est is None:
             continue
         try:
-            actual = float(actual)
-            estimate = float(estimate)
+            eps_actual = float(eps_actual)
+            eps_est = float(eps_est)
         except (TypeError, ValueError):
             continue
-        if abs(estimate) < 0.001:
-            # Avoid divide-by-zero on near-zero estimates
+        if abs(eps_est) < 0.001:
             continue
-        beat_pct = (actual - estimate) / abs(estimate) * 100
+        eps_beat_pct = (eps_actual - eps_est) / abs(eps_est) * 100
+        
+        # Revenue beat (optional)
+        rev_beat_pct = None
+        if rev_actual is not None and rev_est is not None:
+            try:
+                rev_actual = float(rev_actual)
+                rev_est = float(rev_est)
+                if rev_est > 0:
+                    rev_beat_pct = (rev_actual - rev_est) / rev_est * 100
+            except (TypeError, ValueError):
+                pass
+        
         beats.append({
             "quarter_end": q.get("date"),
-            "actual": actual,
-            "estimate": estimate,
-            "beat_pct": beat_pct,
-            "beat": actual > estimate,
+            "actual": eps_actual,
+            "estimate": eps_est,
+            "beat_pct": eps_beat_pct,
+            "beat": eps_actual > eps_est,
+            "rev_actual": rev_actual,
+            "rev_estimate": rev_est,
+            "rev_beat_pct": rev_beat_pct,
+            "double_beat": eps_actual > eps_est and (rev_beat_pct is not None and rev_beat_pct > 0),
         })
 
     if len(beats) < 3:
@@ -283,6 +296,15 @@ def evaluate_ticker(stock):
     elif beat_acceleration > 5:
         score += 10; flags.append("BEATS_ACCELERATING_5PP+")
     elif beat_acceleration > 0:
+        score += 5
+
+    # Count of last 4 with double-beat (EPS + revenue both beat)
+    last_4_db = sum(1 for b in beats[:4] if b.get("double_beat"))
+    if last_4_db >= 4:
+        score += 15; flags.append("DOUBLE_BEAT_4Q")
+    elif last_4_db >= 3:
+        score += 10; flags.append("DOUBLE_BEAT_3Q")
+    elif last_4_db >= 2:
         score += 5
 
     # 4. Latest beat — was it big?
