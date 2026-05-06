@@ -1,0 +1,50 @@
+- `11:34:06`     invoking diag (60 stocks sample)...
+- `11:34:09`     Total universe: 338
+- `11:34:09`     
+- `11:34:09`     ── Mcap distribution (60 stock sample) ──
+- `11:34:09`       <50M: 0
+- `11:34:09`       50M-500M: 0
+- `11:34:09`       500M-2B: 0
+- `11:34:09`       2B-10B: 0
+- `11:34:09`       10B-100B: 7
+- `11:34:09`       >100B: 53
+- `11:34:09`       no_mcap: 0
+- `11:34:09`   
+- `11:34:09`     no_mcap: 0 | price_under_1: 0 | no_float: 60
+- `11:34:09`   
+- `11:34:09`     ── FMP profile keys returned ──
+- `11:34:09`       symbol
+- `11:34:09`       price
+- `11:34:09`       marketCap
+- `11:34:09`       beta
+- `11:34:09`       lastDividend
+- `11:34:09`       range
+- `11:34:09`       change
+- `11:34:09`       changePercentage
+- `11:34:09`       volume
+- `11:34:09`       averageVolume
+- `11:34:09`       companyName
+- `11:34:09`       currency
+- `11:34:09`       cik
+- `11:34:09`       isin
+- `11:34:09`       cusip
+- `11:34:09`       exchangeFullName
+- `11:34:09`       exchange
+- `11:34:09`       industry
+- `11:34:09`       website
+- `11:34:09`       description
+- `11:34:09`       ceo
+- `11:34:09`       sector
+- `11:34:09`       country
+- `11:34:09`       fullTimeEmployees
+- `11:34:09`       phone
+- `11:34:09`   
+- `11:34:09`     ── Sample stocks $50M-$2B (qualify for filter) ──
+- `11:34:09`   
+- `11:34:09`     ── First 5 raw universe entries ──
+- `11:34:09`       {"symbol": "GOOGL", "sector": "Communication Services", "industry": "Internet Content & Information"}
+- `11:34:09`       {"symbol": "GOOG", "sector": "Communication Services", "industry": "Internet Content & Information"}
+- `11:34:09`       {"symbol": "AAPL", "sector": "Technology", "industry": "Consumer Electronics"}
+- `11:34:09`       {"symbol": "AMZN", "sector": "Consumer Cyclical", "industry": "Specialty Retail"}
+- `11:34:09`       {"symbol": "AVGO", "sector": "Technology", "industry": "Semiconductors"}
+- `11:34:09`     ✓ probe deleted
