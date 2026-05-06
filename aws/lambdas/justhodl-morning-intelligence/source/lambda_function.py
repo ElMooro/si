@@ -171,6 +171,8 @@ def load_all():
         "earnings":"data/earnings-tracker.json",
         # ─── Crisis KB (#2) ────────────────────────────────────────
         "crisis_kb":"data/crisis-knowledge-base.json",
+        # ─── Macro nowcast (composite z-score from FRED) ──────────
+        "macro_nowcast":"data/macro-nowcast.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -413,6 +415,19 @@ def extract_metrics(data,weights):
                 ((k.get("current_state") or {}).get("active_patterns") or [])[:3]
             ],
             "n_active_crisis_patterns": len((k.get("current_state") or {}).get("active_patterns") or []),
+        })(),
+        # ─── Macro nowcast (composite z-score from 7 FRED series) ──────
+        # Single line for the AI: regime + score + top 3 contributors
+        **(lambda n=data.get("macro_nowcast", {}): {
+            "macro_nowcast_regime": n.get("regime"),
+            "macro_nowcast_score": n.get("normalized_score"),
+            "macro_nowcast_coverage_pct": n.get("coverage_pct"),
+            "macro_nowcast_top_drivers": [
+                {"id": c.get("fred_id"), "z": c.get("z"),
+                 "contribution": c.get("contribution"), "raw": c.get("raw_value")}
+                for c in (n.get("components") or [])[:3]
+            ],
+            "macro_nowcast_generated_at": n.get("generated_at"),
         })(),
     }
 
