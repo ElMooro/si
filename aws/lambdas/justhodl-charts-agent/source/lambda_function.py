@@ -19,12 +19,21 @@ def lambda_handler(event, context):
     params = event.get('queryStringParameters', {}) or {}
     chart_type = params.get('type', 'line')
     indicator = params.get('indicator', 'sp500')
-    
+
+    # Initialize defaults BEFORE try so the except path has them defined
+    # (defense against UnboundLocalError when the orchestrator call fails).
+    sp500_value = "Loading..."
+    treasury_10y = "Loading..."
+    vix_value = "Loading..."
+    liquidity_value = "Loading..."
+    agent_data = {}
+    error_msg = ""
+
     # Fetch REAL data from orchestrator
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    
+
     try:
         req = urllib.request.Request(
             'https://api.justhodl.ai/',
@@ -33,15 +42,9 @@ def lambda_handler(event, context):
         )
         with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
             real_data = json.loads(response.read())
-            
+
         # Extract actual values from agents
         agent_data = real_data.get('data', {})
-        
-        # Parse real values
-        sp500_value = "Loading..."
-        treasury_10y = "Loading..."
-        vix_value = "Loading..."
-        liquidity_value = "Loading..."
         
         # Extract from polygon-api
         if 'polygon-api' in agent_data:
