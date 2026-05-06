@@ -1,0 +1,52 @@
+{
+  "started": "2026-05-06T21:53:31.463002+00:00",
+  "bea": {
+    "X1_no_key": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X4_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true
+    },
+    "X5_revoked": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "investor": {
+    "X1_no_key": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "X2_origin_bypass_passed_auth": {
+      "status": 200,
+      "passed_auth": true,
+      "ok": true,
+      "preview": "{\"ticker\": \"AAPL\", \"name\": \"Apple Inc.\", \"sector\": \"Technology\", \"price\": 287.51, \"metrics\": {\"ticker\": \"AAPL\", \"name\": "
+    },
+    "X3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "all_passed": true
+  },
+  "all_passed": true,
+  "duration_s": 60.0
+}
