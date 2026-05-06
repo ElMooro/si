@@ -55,6 +55,37 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
 .detail-row{display:flex;gap:12px;font-size:12px;margin-bottom:8px;font-family:var(--mono)}
 .detail-row strong{color:var(--cyan);min-width:140px}
 .detail-row span{color:var(--t2)}
+/* ── Diff styling ── */
+.diff-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:11.5px;color:var(--t2)}
+.diff-toolbar .pill{padding:3px 8px;border-radius:3px;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.diff-toolbar .a{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+.diff-toolbar .b{background:rgba(176,112,255,.1);color:var(--purple);border:1px solid rgba(176,112,255,.25)}
+.diff-toolbar button{background:var(--bg);color:var(--t1);border:1px solid var(--brd2);border-radius:4px;padding:4px 12px;font-family:var(--mono);font-size:11px;cursor:pointer;letter-spacing:.5px}
+.diff-toolbar button:hover{background:var(--bg1);border-color:var(--cyan);color:var(--cyan)}
+.diff-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.diff-stat{background:var(--bg2);border:1px solid var(--brd);border-radius:6px;padding:10px 12px;font-family:var(--mono)}
+.diff-stat-label{font-size:10px;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
+.diff-stat-val{font-size:18px;font-weight:600}
+.diff-stat-val.add{color:var(--green)}
+.diff-stat-val.rem{color:var(--red)}
+.diff-stat-val.chg{color:var(--yellow)}
+.diff-stat-val.same{color:var(--t3)}
+.diff-list{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px solid var(--brd);border-radius:6px;padding:0;max-height:520px;overflow:auto}
+.diff-row{display:grid;grid-template-columns:60px 1fr;gap:10px;padding:6px 12px;border-bottom:1px solid var(--brd);align-items:flex-start;line-height:1.5}
+.diff-row:last-child{border-bottom:none}
+.diff-row.add{background:rgba(0,230,118,.04)}
+.diff-row.rem{background:rgba(255,23,74,.04)}
+.diff-row.chg{background:rgba(255,196,0,.04)}
+.diff-row .op{font-size:9.5px;letter-spacing:1px;font-weight:600;align-self:flex-start;padding:2px 6px;border-radius:3px;text-align:center}
+.diff-row.add .op{background:rgba(0,230,118,.15);color:var(--green)}
+.diff-row.rem .op{background:rgba(255,23,74,.15);color:var(--red)}
+.diff-row.chg .op{background:rgba(255,196,0,.15);color:var(--yellow)}
+.diff-row .body{word-break:break-word;color:var(--t1)}
+.diff-row .path{color:var(--t3);margin-bottom:2px;font-size:11px}
+.diff-row .v-old{color:var(--red);text-decoration:line-through;text-decoration-color:rgba(255,23,74,.4)}
+.diff-row .v-new{color:var(--green)}
+.diff-row .arr{color:var(--t3);margin:0 6px}
+.ts-pill.compare{background:rgba(176,112,255,.15);border-color:var(--purple);color:var(--purple)}
 .foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
 .foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
 .foot-section{display:flex;flex-direction:column;gap:4px}
@@ -121,7 +152,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
   <div class="section" id="ts-section" style="display:none">
     <div class="section-eyebrow">Timeline</div>
     <h2 class="section-title">Recent timestamps for <span id="selected-feed" style="color:var(--cyan)">—</span></h2>
-    <p class="section-blurb">Showing up to 50 most recent change timestamps. Each represents a moment when the feed's content hash differed from the prior snapshot. Click a timestamp to fetch and render the actual snapshot content from DDB.</p>
+    <p class="section-blurb">Showing up to 50 most recent change timestamps. <strong>Click</strong> a timestamp to fetch and render the snapshot content. <strong>Shift-click</strong> a second timestamp to compute the JSON diff against the currently-loaded one — added (green), removed (red), changed (yellow) keys side-by-side.</p>
     <div class="timestamps" id="timestamps"></div>
     <div class="detail-card" id="detail-card" style="display:none">
       <div style="font-family:var(--display);font-size:14px;color:var(--cyan);margin-bottom:10px">Snapshot details</div>
@@ -135,9 +166,23 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
         <pre id="d-content" style="background:var(--bg);border:1px solid var(--brd);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11.5px;color:var(--t1);line-height:1.5;max-height:480px;overflow:auto;white-space:pre-wrap;word-break:break-word">Click a timestamp above to load…</pre>
       </div>
     </div>
+
+    <!-- Diff card — shown when shift-click selects a comparison timestamp -->
+    <div class="detail-card" id="diff-card" style="display:none">
+      <div style="font-family:var(--display);font-size:14px;color:var(--purple);margin-bottom:10px">JSON diff</div>
+      <div class="diff-toolbar">
+        <span><span class="pill a">A</span> <span id="diff-ts-a" class="mono">—</span></span>
+        <span style="color:var(--t3)">→</span>
+        <span><span class="pill b">B</span> <span id="diff-ts-b" class="mono">—</span></span>
+        <span style="flex:1"></span>
+        <button onclick="clearDiff()">Clear diff</button>
+      </div>
+      <div class="diff-stats" id="diff-stats"></div>
+      <div class="diff-list" id="diff-list"></div>
+    </div>
   </div>
 
-  <p class="disclaimer">The history table is private (DynamoDB). This page calls a read-only Lambda Function URL (justhodl-history-api, reserved concurrency=5 for rate limiting) to fetch snapshot content. Diff view between two timestamps is queued for the next ship.</p>
+  <p class="disclaimer">The history table is private (DynamoDB). This page calls a read-only Lambda Function URL (justhodl-history-api, reserved concurrency=5 for rate limiting) to fetch snapshot content. Diff is computed client-side after fetching both snapshots — no server round-trip beyond two /snapshot GETs.</p>
 
 </main>
 
@@ -270,7 +315,7 @@ function selectFeed(idx){
     tsContainer.innerHTML = `<span style="color:var(--t3);font-style:italic">No timestamps recorded</span>`;
   } else {
     tsContainer.innerHTML = tss.map(ts =>
-      `<span class="ts-pill" data-ts="${ts}" onclick="selectTimestamp('${feed.feed_key}', '${ts}', this)">${ts.replace('T',' ').replace('Z','')}</span>`
+      `<span class="ts-pill" data-ts="${ts}" onclick="selectTimestamp('${feed.feed_key}', '${ts}', this, event)">${ts.replace('T',' ').replace('Z','')}</span>`
     ).join('');
   }
 
@@ -278,9 +323,47 @@ function selectFeed(idx){
   document.getElementById('ts-section').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
-async function selectTimestamp(feedKey, ts, pillEl){
-  document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('active'));
+// Cache fetched snapshots so diff doesn't refetch the A snapshot
+const SNAPSHOT_CACHE = new Map();   // key: feedKey + '|' + ts → {content, content_hash, ...}
+
+async function fetchSnapshot(feedKey, ts){
+  const cacheKey = `${feedKey}|${ts}`;
+  if (SNAPSHOT_CACHE.has(cacheKey)) return SNAPSHOT_CACHE.get(cacheKey);
+  if (!API_URL) throw new Error('history-api URL not yet discovered');
+  const apiUrl = `${API_URL.replace(/\/$/,'')}/snapshot?key=${encodeURIComponent(feedKey)}&ts=${encodeURIComponent(ts)}`;
+  const r = await fetch(apiUrl);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const data = await r.json();
+  SNAPSHOT_CACHE.set(cacheKey, data);
+  return data;
+}
+
+async function selectTimestamp(feedKey, ts, pillEl, ev){
+  // Shift-click → enter diff mode against the currently-active timestamp
+  if (ev && ev.shiftKey){
+    const activeA = document.querySelector('.ts-pill.active');
+    if (!activeA){
+      // Nothing to diff against — fall through to normal selection
+    } else if (activeA === pillEl){
+      // Diffing same timestamp against itself — nonsensical; ignore
+      return;
+    } else {
+      // Mark this pill as the comparison (B), keep A's active styling
+      document.querySelectorAll('.ts-pill.compare').forEach(p => p.classList.remove('compare'));
+      pillEl.classList.add('compare');
+      const tsA = activeA.dataset.ts;
+      const tsB = pillEl.dataset.ts;
+      await renderDiff(feedKey, tsA, tsB);
+      return;
+    }
+  }
+
+  // Normal click → load and show single-snapshot detail
+  document.querySelectorAll('.ts-pill').forEach(p => { p.classList.remove('active'); p.classList.remove('compare'); });
   if (pillEl) pillEl.classList.add('active');
+
+  // Hide diff card if it was open from a prior session
+  document.getElementById('diff-card').style.display = 'none';
 
   const card = document.getElementById('detail-card');
   card.style.display = '';
@@ -299,13 +382,7 @@ async function selectTimestamp(feedKey, ts, pillEl){
   }
 
   try {
-    const apiUrl = `${API_URL.replace(/\/$/,'')}/snapshot?key=${encodeURIComponent(feedKey)}&ts=${encodeURIComponent(ts)}`;
-    const r = await fetch(apiUrl);
-    if (!r.ok){
-      document.getElementById('d-content').textContent = `Fetch failed: HTTP ${r.status}`;
-      return;
-    }
-    const data = await r.json();
+    const data = await fetchSnapshot(feedKey, ts);
     document.getElementById('d-hash').textContent = (data.content_hash || '').slice(0,32) + '…';
     document.getElementById('d-size').textContent = fmtSize(data.size_bytes);
     document.getElementById('d-enc').textContent = data.encoding + (data.encoding_used_for_decode !== data.encoding ? ` (decoded: ${data.encoding_used_for_decode})` : '');
@@ -324,6 +401,146 @@ async function selectTimestamp(feedKey, ts, pillEl){
   } catch (e) {
     document.getElementById('d-content').textContent = `Error: ${e.message}`;
   }
+}
+
+// ─── JSON DIFF ──────────────────────────────────────────────────────────
+// Recursive structural diff. Produces a flat list of changes, each tagged
+// 'add' / 'rem' / 'chg' with a JSONPath-like path string, old + new values.
+// Comparing arrays element-by-element is intentionally simple: index-based,
+// not LCS. For most JustHodl feeds (objects with named keys), this is fine.
+
+function diffJson(a, b, path = '$'){
+  const out = [];
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  const isArr = v => Array.isArray(v);
+
+  if (isObj(a) && isObj(b)){
+    const allKeys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const k of [...allKeys].sort()){
+      const childPath = `${path}.${k}`;
+      if (!(k in a)) out.push({ op: 'add', path: childPath, newVal: b[k] });
+      else if (!(k in b)) out.push({ op: 'rem', path: childPath, oldVal: a[k] });
+      else out.push(...diffJson(a[k], b[k], childPath));
+    }
+  } else if (isArr(a) && isArr(b)){
+    const n = Math.max(a.length, b.length);
+    for (let i = 0; i < n; i++){
+      const childPath = `${path}[${i}]`;
+      if (i >= a.length) out.push({ op: 'add', path: childPath, newVal: b[i] });
+      else if (i >= b.length) out.push({ op: 'rem', path: childPath, oldVal: a[i] });
+      else out.push(...diffJson(a[i], b[i], childPath));
+    }
+  } else {
+    // Primitive comparison (or type mismatch)
+    if (JSON.stringify(a) !== JSON.stringify(b)){
+      out.push({ op: 'chg', path: path, oldVal: a, newVal: b });
+    }
+  }
+  return out;
+}
+
+function renderVal(v){
+  if (v === undefined) return '<span style="color:var(--t3)">undefined</span>';
+  if (v === null) return '<span style="color:var(--t3)">null</span>';
+  if (typeof v === 'string'){
+    const s = v.length > 200 ? v.slice(0, 200) + '…' : v;
+    return `"${s.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}"`;
+  }
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  // Object / array — pretty-print with cap
+  let s = JSON.stringify(v);
+  if (s.length > 200) s = s.slice(0, 200) + '…';
+  return s.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+}
+
+async function renderDiff(feedKey, tsA, tsB){
+  // Hide single-snapshot detail card; show diff card
+  document.getElementById('detail-card').style.display = 'none';
+  const diffCard = document.getElementById('diff-card');
+  diffCard.style.display = '';
+  document.getElementById('diff-ts-a').textContent = tsA;
+  document.getElementById('diff-ts-b').textContent = tsB;
+  document.getElementById('diff-stats').innerHTML = '';
+  document.getElementById('diff-list').innerHTML =
+    `<div style="padding:24px;text-align:center;color:var(--t3);font-style:italic">Fetching both snapshots…</div>`;
+
+  let snapA, snapB;
+  try {
+    [snapA, snapB] = await Promise.all([
+      fetchSnapshot(feedKey, tsA),
+      fetchSnapshot(feedKey, tsB),
+    ]);
+  } catch (e){
+    document.getElementById('diff-list').innerHTML =
+      `<div style="padding:24px;text-align:center;color:var(--red);font-style:italic">Fetch failed: ${e.message}</div>`;
+    return;
+  }
+
+  const a = snapA.content_format === 'json' ? snapA.content : null;
+  const b = snapB.content_format === 'json' ? snapB.content : null;
+  if (a === null || b === null){
+    document.getElementById('diff-list').innerHTML =
+      `<div style="padding:24px;text-align:center;color:var(--yellow);font-style:italic">One or both snapshots aren't JSON. Diff is only available for JSON content.</div>`;
+    return;
+  }
+
+  // If A is older, swap so the diff reads "from earlier to later".
+  // tsA is the active selection — keep it as A regardless of order, but
+  // sort timestamps lexically for the displayed direction.
+  let leftSnap = a, rightSnap = b, leftTs = tsA, rightTs = tsB;
+  if (tsA > tsB){
+    leftSnap = b; rightSnap = a; leftTs = tsB; rightTs = tsA;
+  }
+  document.getElementById('diff-ts-a').textContent = leftTs;
+  document.getElementById('diff-ts-b').textContent = rightTs;
+
+  const diff = diffJson(leftSnap, rightSnap);
+  const adds = diff.filter(d => d.op === 'add').length;
+  const rems = diff.filter(d => d.op === 'rem').length;
+  const chgs = diff.filter(d => d.op === 'chg').length;
+  const total = adds + rems + chgs;
+
+  // Stats
+  document.getElementById('diff-stats').innerHTML = `
+    <div class="diff-stat"><div class="diff-stat-label">Added</div><div class="diff-stat-val add">+${adds}</div></div>
+    <div class="diff-stat"><div class="diff-stat-label">Removed</div><div class="diff-stat-val rem">−${rems}</div></div>
+    <div class="diff-stat"><div class="diff-stat-label">Changed</div><div class="diff-stat-val chg">~${chgs}</div></div>
+    <div class="diff-stat"><div class="diff-stat-label">Total ops</div><div class="diff-stat-val same">${total}</div></div>`;
+
+  if (total === 0){
+    document.getElementById('diff-list').innerHTML =
+      `<div style="padding:24px;text-align:center;color:var(--green);font-style:italic">✓ No differences. The two snapshots are structurally identical.</div>`;
+    return;
+  }
+
+  // Cap output at 500 rows to keep the page responsive on huge feeds
+  const MAX_ROWS = 500;
+  const shown = diff.slice(0, MAX_ROWS);
+  const truncated = diff.length > MAX_ROWS;
+
+  document.getElementById('diff-list').innerHTML = shown.map(d => {
+    if (d.op === 'add'){
+      return `<div class="diff-row add">
+        <div class="op">ADD</div>
+        <div class="body"><div class="path">${d.path}</div><div class="v-new">${renderVal(d.newVal)}</div></div>
+      </div>`;
+    }
+    if (d.op === 'rem'){
+      return `<div class="diff-row rem">
+        <div class="op">REM</div>
+        <div class="body"><div class="path">${d.path}</div><div class="v-old">${renderVal(d.oldVal)}</div></div>
+      </div>`;
+    }
+    return `<div class="diff-row chg">
+      <div class="op">CHG</div>
+      <div class="body"><div class="path">${d.path}</div><span class="v-old">${renderVal(d.oldVal)}</span><span class="arr">→</span><span class="v-new">${renderVal(d.newVal)}</span></div>
+    </div>`;
+  }).join('') + (truncated ? `<div style="padding:14px;text-align:center;color:var(--t3);font-style:italic;font-size:11px">… ${diff.length - MAX_ROWS} more changes truncated. Use the API directly for full diff.</div>` : '');
+}
+
+function clearDiff(){
+  document.getElementById('diff-card').style.display = 'none';
+  document.querySelectorAll('.ts-pill.compare').forEach(p => p.classList.remove('compare'));
 }
 
 load();
