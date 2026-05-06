@@ -1,0 +1,10 @@
+{
+  "function_name": "justhodl-history-snapshotter",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 256,
+  "timeout_s": 120,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": ["S3_BUCKET", "DDB_TABLE", "TTL_DAYS"],
+  "description": "Time-series snapshotter — every 5 min reads live data/*.json feeds, dedups by SHA256, writes to DynamoDB justhodl-history with 365d TTL"
+}
