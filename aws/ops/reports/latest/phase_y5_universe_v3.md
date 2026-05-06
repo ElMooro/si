@@ -1,0 +1,98 @@
+- `11:52:16`     source: 13692 chars
+
+# 1) Wait for in-flight + force-deploy v3
+
+- `11:52:16`     ✓ deploy accepted (attempt 1)
+- `11:52:23`     ✓ deployed at 2026-05-06T11:52:20.000+0000
+
+# 2) Invoke (~30-60s — fetches 6 cap buckets in parallel)
+
+- `11:52:25`     status: 200, dur: 1.9s
+- `11:52:25`     body: {"statusCode": 200, "body": "{\"total_stocks\": 1809, \"by_bucket\": {\"nano\": 248, \"micro\": 313, \"small\": 353, \"mid\": 421, \"large\": 419, \"mega\": 55, \"unknown\": 0}, \"duration_s\": 0.9}"}
+- `11:52:25`       [universe] v3.0 starting — full multi-cap
+- `11:52:25`       [universe] mid ($2000M-): raw=1000
+- `11:52:25`       [universe] mega ($200000M-): raw=109
+- `11:52:25`       [universe] nano ($5M-): raw=1000
+- `11:52:25`       [universe] large ($10000M-): raw=1000
+- `11:52:25`       [universe] small ($300M-): raw=1000
+- `11:52:25`       [universe] micro ($50M-): raw=1000
+- `11:52:25`       [universe] combined: 5109 unique symbols
+- `11:52:25`       [universe] valid: 1777 (filtered industry: 3298, symbol: 10, other: 24)
+- `11:52:25`       [universe] curated seed missing from screener: 32 of 78
+- `11:52:25`       [universe] curated seed added: 32
+- `11:52:25`       [universe] wrote 440105b
+- `11:52:25`       [universe] by_bucket: {"nano": 248, "micro": 313, "small": 353, "mid": 421, "large": 419, "mega": 55, "unknown": 0}
+- `11:52:25`       END RequestId: 71f1da2e-a4bc-44a9-8777-00abc254ee29
+- `11:52:25`       REPORT RequestId: 71f1da2e-a4bc-44a9-8777-00abc254ee29	Duration: 1021.75 ms	Billed Duration: 1639 ms	Memory Size: 1024 MB	Max Memory Used: 115 MB	Init Duration: 616.58 ms
+
+# 3) Inspect new universe
+
+- `11:52:25`     generated_at: 2026-05-06T11:52:25+00:00
+- `11:52:25`     total_stocks: 1809
+- `11:52:25`   
+- `11:52:25`     ── BY CAP BUCKET ──
+- `11:52:25`       mega         55 stocks
+- `11:52:25`       large       419 stocks
+- `11:52:25`       mid         421 stocks
+- `11:52:25`       small       353 stocks
+- `11:52:25`       micro       313 stocks
+- `11:52:25`       nano        248 stocks
+- `11:52:25`       unknown       0 stocks
+- `11:52:25`   
+- `11:52:25`     ── BY SECTOR (top 10) ──
+- `11:52:25`       Healthcare                             328
+- `11:52:25`       Financial Services                     309
+- `11:52:25`       Technology                             284
+- `11:52:25`       Industrials                            259
+- `11:52:25`       Consumer Cyclical                      140
+- `11:52:25`       Real Estate                            121
+- `11:52:25`       Energy                                  97
+- `11:52:25`       Consumer Defensive                      71
+- `11:52:25`       Utilities                               68
+- `11:52:25`       Communication Services                  64
+- `11:52:25`   
+- `11:52:25`     ── SAMPLE STOCKS PER BUCKET ──
+- `11:52:25`       mega:
+- `11:52:25`         NVDA   $4775.9B NVIDIA Corporation                  | Semiconductors
+- `11:52:25`         GOOGL  $4698.0B Alphabet Inc.                       | Internet Content & Inform
+- `11:52:25`         GOOG   $4647.7B Alphabet Inc.                       | Internet Content & Inform
+- `11:52:25`         AAPL   $4172.1B Apple Inc.                          | Consumer Electronics
+- `11:52:25`       large:
+- `11:52:25`         VZ     $199.7B  Verizon Communications Inc.         | Telecommunications Servic
+- `11:52:25`         ADI    $197.6B  Analog Devices, Inc.                | Semiconductors
+- `11:52:25`         QCOM   $196.6B  QUALCOMM Incorporated               | Semiconductors
+- `11:52:25`         T      $180.1B  AT&T Inc.                           | Telecommunications Servic
+- `11:52:25`       mid:
+- `11:52:25`         DCI    $10.0B   Donaldson Company, Inc.             | Industrial - Machinery
+- `11:52:25`         FRT    $10.0B   Federal Realty Investment Trust     | REIT - Retail
+- `11:52:25`         UMBF   $10.0B   UMB Financial Corporation           | Banks - Regional
+- `11:52:25`         GTLS   $9.9B    Chart Industries, Inc.              | Industrial - Machinery
+- `11:52:25`       small:
+- `11:52:25`         GTY    $2.0B    Getty Realty Corp.                  | REIT - Retail
+- `11:52:25`         OMCL   $2.0B    Omnicell, Inc.                      | Medical - Healthcare Info
+- `11:52:25`         DHC    $2.0B    Diversified Healthcare Trust        | REIT - Healthcare Facilit
+- `11:52:25`         LC     $2.0B    LendingClub Corporation             | Financial - Credit Servic
+- `11:52:25`       micro:
+- `11:52:25`         RXST   $300M    RxSight, Inc.                       | Medical - Devices
+- `11:52:25`         EDIT   $298M    Editas Medicine, Inc.               | Biotechnology
+- `11:52:25`         HVMC   $297M    Highview Merger Corp. Class A Ordin | Banks
+- `11:52:25`         ANGI   $297M    Angi Inc.                           | Internet Content & Inform
+- `11:52:25`       nano:
+- `11:52:25`         BOF    $50M     BranchOut Food Inc.                 | Packaged Foods
+- `11:52:25`         LEE    $50M     Lee Enterprises, Incorporated       | Publishing
+- `11:52:25`         ATHR   $50M     Aether Holdings, Inc. Common Stock  | Software - Application
+- `11:52:25`         NTRB   $50M     Nutriband Inc.                      | Biotechnology
+- `11:52:25`   
+- `11:52:25`     ── CURATED SEED CHECK ──
+- `11:52:25`       AAOI: ✓ in universe
+- `11:52:25`       LITE: ✓ in universe
+- `11:52:25`       COHR: ✓ in universe
+- `11:52:25`       AXTI: ✓ in universe
+- `11:52:25`       INFN: ✓ in universe
+- `11:52:25`       MU: ✓ in universe
+- `11:52:25`       SNDK: ✓ in universe
+- `11:52:25`       CRDO: ✓ in universe
+- `11:52:25`       ICHR: ✓ in universe
+- `11:52:25`       FCEL: ✓ in universe
+- `11:52:25`       AGIO: ✓ in universe
+- `11:52:25`       BCRX: ✓ in universe
