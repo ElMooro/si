@@ -1,0 +1,71 @@
+{
+  "started": "2026-05-06T21:24:07.353574+00:00",
+  "test_key_first_12": "jhd_tc9dijBu...",
+  "ecb": {
+    "A1_no_key": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "A2_origin_only": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "A3_valid_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "data_keys": [
+        "status",
+        "series_count",
+        "fred_series",
+        "endpoints"
+      ]
+    }
+  },
+  "fred": {
+    "B1_no_key_no_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "B2_origin_bypass_main": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B3_evil_origin": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    },
+    "B4_referer_bypass": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B5_api_key": {
+      "status": 200,
+      "expected": 200,
+      "ok": true,
+      "got_data": true
+    },
+    "B6_revoked_key": {
+      "status": 403,
+      "expected": 403,
+      "ok": true
+    }
+  },
+  "demo": {
+    "C1_origin_only_strict": {
+      "status": 401,
+      "expected": 401,
+      "ok": true
+    }
+  },
+  "all_passed": true,
+  "duration_s": 36.5
+}
