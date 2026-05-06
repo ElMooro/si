@@ -1,0 +1,69 @@
+{
+  "started": "2026-05-06T18:52:07.646195+00:00",
+  "iam": {
+    "policy_name": "ssm-justhodl-nowcast-state",
+    "action": "creating"
+  },
+  "telegram_token_ssm": {
+    "status": "already_exists"
+  },
+  "deploy": {
+    "zip_size": 5859
+  },
+  "invoke_1_baseline": {
+    "status": 200,
+    "func_err": null,
+    "elapsed_s": 5.31,
+    "body": {
+      "regime": "SLOWING",
+      "score": -0.4152,
+      "coverage_pct": 100.0,
+      "regime_change": {
+        "changed": false,
+        "previous": null,
+        "new": {
+          "regime": "SLOWING",
+          "score": -0.4152,
+          "ts": "2026-05-06T18:52:26+00:00"
+        }
+      }
+    }
+  },
+  "fake_old_state_written": {
+    "regime": "EXPANSION",
+    "score": 0.5,
+    "ts": "2026-04-01T00:00:00+00:00"
+  },
+  "invoke_2_simulate_change": {
+    "status": 200,
+    "func_err": null,
+    "elapsed_s": 3.44,
+    "body": {
+      "regime": "SLOWING",
+      "score": -0.4152,
+      "coverage_pct": 100.0,
+      "regime_change": {
+        "changed": true,
+        "previous": {
+          "regime": "EXPANSION",
+          "score": 0.5,
+          "ts": "2026-04-01T00:00:00+00:00"
+        },
+        "new": {
+          "regime": "SLOWING",
+          "score": -0.4152,
+          "ts": "2026-05-06T18:52:29+00:00"
+        },
+        "from": "EXPANSION",
+        "to": "SLOWING",
+        "score_delta": -0.9152,
+        "telegram_sent": true
+      }
+    }
+  },
+  "ssm_state_after": {
+    "regime": "SLOWING",
+    "score": -0.4152,
+    "ts": "2026-05-06T18:52:29+00:00"
+  }
+}
