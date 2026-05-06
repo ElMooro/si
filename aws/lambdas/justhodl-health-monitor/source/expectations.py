@@ -701,6 +701,32 @@ EXPECTATIONS = {
         "note": "Pointer to most recent calibration snapshot.",
         "severity": "important",
     },
+
+    # ─── Forensic accounting screen (shipped 2026-05-06, step 255) ───
+    "s3:data/forensic-screen.json": {
+        "type": "s3_file",
+        "key": "data/forensic-screen.json",
+        "fresh_max": 50_400,         # 14h (writer is every 12h)
+        "warn_max": 86_400,          # 24h
+        "expected_size": 50_000,     # SP500 with 4 factors per stock
+        "note": "Forensic accounting screen output — Beneish M-Score, Sloan accruals, WC divergence, goodwill bloat for top 200 SP500.",
+        "severity": "important",
+    },
+    "lambda:justhodl-forensic-screen": {
+        "type": "lambda",
+        "name": "justhodl-forensic-screen",
+        "max_error_rate": 0.20,
+        "min_invocations_24h": 1,    # Every 12h = 2/day, allow 1 miss
+        "note": "Forensic accounting screen — Beneish + Sloan + WC + goodwill. Reads SP500 universe from screener, 12h schedule.",
+        "severity": "important",
+    },
+    "eb:justhodl-forensic-screen-12h": {
+        "type": "eb_rule",
+        "name": "justhodl-forensic-screen-12h",
+        "expected_state": "ENABLED",
+        "note": "EventBridge rate(12 hours) — drives forensic screen.",
+        "severity": "important",
+    },
 }
 
 

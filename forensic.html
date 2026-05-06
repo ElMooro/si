@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forensic Screen · JustHodl.AI</title>
+<meta name="description" content="Beneish M-Score, Sloan accruals, working-capital divergence, and goodwill bloat across the SP500 — earnings quality and manipulation detection.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--yellow:#ffc400;--yellow-bg:rgba(255,196,0,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),transparent 50%);min-height:100vh}
+.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}
+.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}
+.topnav a:hover{color:var(--yellow)}.topnav a.active{color:var(--red);border-bottom:2px solid var(--red)}
+.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}
+.nav-brand i{color:var(--yellow);font-style:normal}
+.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
+.hero{margin-bottom:32px}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--red);border-radius:50%;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}
+.hero-title em{font-style:italic;color:var(--red);font-weight:500}
+.hero-blurb{font-size:15px;color:var(--t2);max-width:680px;line-height:1.55;margin-bottom:18px}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}
+.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}
+.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}
+.kpi-sub{font-size:11px;color:var(--t3)}
+.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--red)}
+.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--red);margin-bottom:8px}
+.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}.primer p:last-child{margin-bottom:0}.primer strong{color:var(--t1)}
+.primer code{font-family:var(--mono);background:var(--bg2);padding:1px 6px;border-radius:3px;color:var(--cyan);font-size:12px}
+.section{margin-bottom:48px}
+.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
+.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:780px}
+.dv-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px}
+.dv-table th{background:var(--bg2);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--brd);cursor:pointer;user-select:none}
+.dv-table th:hover{color:var(--t1)}
+.dv-table td{padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--t1)}
+.dv-table tr:hover td{background:var(--bg2)}
+.dv-table .num{font-family:var(--mono);text-align:right}
+.dv-table .pos{color:var(--green)}.dv-table .neg{color:var(--red)}.dv-table .warn{color:var(--yellow)}
+.flag-pill{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;font-weight:500;display:inline-block;margin-right:4px}
+.flag-clean{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}
+.flag-mscore{background:var(--red-bg);color:var(--red);border:1px solid rgba(255,23,74,.25)}
+.flag-sloan{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.25)}
+.flag-wc{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+.flag-gw{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(255,196,0,.25)}
+.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}
+.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}
+.foot-section{display:flex;flex-direction:column;gap:4px}
+.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}
+.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
+.disclaimer{font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;line-height:1.5}
+.fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+@media (max-width: 900px){
+  .kpi-strip{grid-template-columns: repeat(2, 1fr)}
+  .dv-table{font-size: 11.5px}
+}
+@media (max-width: 600px){
+  .kpi-strip{grid-template-columns: 1fr}
+  .dv-table th,.dv-table td{padding: 6px 8px}
+}
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <span class="nav-brand">just<i>hodl</i>.ai</span>
+  <a href="/">Home</a>
+  <a href="/brief.html">Brief</a>
+  <a href="/screener/">Screener</a>
+  <a href="/deep-value.html">Deep Value</a>
+  <a href="/forensic.html" class="active">Forensic</a>
+  <a href="/themes.html">Themes</a>
+  <a href="/nobrainers.html">Nobrainers</a>
+  <a href="/compound-signals.html">Compound</a>
+  <a href="/eps-velocity.html">EPS Velocity</a>
+  <a href="/insider-clusters.html">Clusters</a>
+  <a href="/smart-money.html">Smart Money</a>
+</nav>
+
+<main class="shell">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Forensic accounting screen</div>
+    <h1 class="hero-title">Where <em>earnings quality breaks down</em> before the price does.</h1>
+    <p class="hero-blurb">Four institutional-grade red flags across the SP500: <strong>Beneish M-Score</strong> (manipulation), <strong>Sloan accruals</strong> (earnings quality), <strong>working-capital divergence</strong> (channel stuffing / receivables buildup), and <strong>goodwill bloat</strong> (write-down tail risk). Screens top 200 by market cap every 12 hours.</p>
+    <div class="kpi-strip" id="kpis"></div>
+  </header>
+
+  <div class="primer">
+    <h3>How to read this</h3>
+    <p><strong>Beneish M-Score</strong> — composite of 8 factors comparing this year vs prior year. <code>M &gt; -1.78</code> = potentially manipulating earnings (Beneish 1999). <code>M &gt; -1.0</code> = strong flag. The original 1999 paper correctly identified Enron, WorldCom, Tyco, and Healtheon before each blew up.</p>
+    <p><strong>Sloan accruals</strong> = (Net Income − Operating Cash Flow) / Total Assets. <code>&gt; 10%</code> = earnings driven by accruals not cash. Sloan (1996) showed that high-accrual firms underperform by ~10% annually over the next 1-2 years.</p>
+    <p><strong>WC divergence</strong> — when receivables grow &gt;20% faster than revenue, often signals channel stuffing or aggressive revenue recognition. The original red flag in Lucent's 2000 collapse.</p>
+    <p><strong>Goodwill bloat</strong> = Goodwill / Total Assets. <code>&gt; 40%</code> = book value hostage to intangible valuations and a single impairment event can wipe out years of earnings (e.g., AT&amp;T-DirecTV $24B writedown 2020).</p>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">High-concern</div>
+    <h2 class="section-title">Most concerning — earnings quality red flags</h2>
+    <p class="section-blurb">Sorted by composite concern score (0-100). Higher = more red flags triggered. <strong>This is not a sell list</strong> — many of these stocks may have legitimate accounting reasons. It's a starting point for due diligence on which names deserve a closer look at their 10-K footnotes.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="concerning-table">
+        <thead><tr>
+          <th>Symbol</th>
+          <th>Sector</th>
+          <th class="num">Score</th>
+          <th class="num">M-Score</th>
+          <th class="num">Sloan</th>
+          <th class="num">WC Δ</th>
+          <th class="num">GW %</th>
+          <th>Flags</th>
+        </tr></thead>
+        <tbody id="concerning-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Low-concern</div>
+    <h2 class="section-title">Cleanest — lowest M-Scores in the universe</h2>
+    <p class="section-blurb">Sorted by Beneish M-Score ascending. Negative numbers far below the -1.78 threshold = earnings less likely to be manipulated. Pairs well with the Piotroski / Altman scores from the screener for a quality long basket.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="clean-table">
+        <thead><tr>
+          <th>Symbol</th>
+          <th>Sector</th>
+          <th class="num">M-Score</th>
+          <th class="num">Sloan</th>
+          <th class="num">DSRI</th>
+          <th class="num">SGI</th>
+          <th class="num">GMI</th>
+          <th class="num">Mcap</th>
+        </tr></thead>
+        <tbody id="clean-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Distribution</div>
+    <h2 class="section-title">Universe distribution</h2>
+    <p class="section-blurb">Where the SP500 sits today across each red-flag dimension.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="dist-table">
+        <thead><tr>
+          <th>Metric</th>
+          <th class="num">N</th>
+          <th class="num">Min</th>
+          <th class="num">P25</th>
+          <th class="num">Median</th>
+          <th class="num">P75</th>
+          <th class="num">Max</th>
+          <th class="num">Mean</th>
+        </tr></thead>
+        <tbody id="dist-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="disclaimer">Forensic ratios are starting points for due diligence, not signals to trade. Many flags have legitimate explanations (acquisitions, lumpy revenue recognition, regulated industries). Always read the 10-K footnotes before drawing conclusions. JustHodl.AI is not investment advice.</p>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-grid">
+    <div class="foot-section">
+      <div class="foot-label">Source</div>
+      <span>FMP financial statements (annual)</span>
+      <span>SP500 universe via screener</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Refresh</div>
+      <span>Every 12 hours via EventBridge</span>
+      <span id="last-updated">—</span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Engine</div>
+      <span>justhodl-forensic-screen Lambda</span>
+      <span><a href="/system.html">System health →</a></span>
+    </div>
+    <div class="foot-section">
+      <div class="foot-label">Reference</div>
+      <span>Beneish (1999) <em>The Detection of Earnings Manipulation</em></span>
+      <span>Sloan (1996) <em>Do Stock Prices Fully Reflect Information in Accruals?</em></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
+
+function fmtNum(v, dp=2){
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  return Number(v).toFixed(dp);
+}
+function fmtPct(v, dp=1){
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  return `${(v*100).toFixed(dp)}%`;
+}
+function fmtMcap(v){
+  if (!v) return "—";
+  if (v >= 1e12) return `$${(v/1e12).toFixed(1)}T`;
+  if (v >= 1e9) return `$${(v/1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `$${(v/1e6).toFixed(0)}M`;
+  return `$${v}`;
+}
+function classByThreshold(v, thresholds){
+  if (v === null || v === undefined) return "";
+  for (const [thr, cls] of thresholds){
+    if (v > thr) return cls;
+  }
+  return "";
+}
+
+function flagsBadge(r){
+  const out = [];
+  if (r.m_high_risk) out.push('<span class="flag-pill flag-mscore">M-HIGH</span>');
+  else if (r.m_flag) out.push('<span class="flag-pill flag-mscore">M-FLAG</span>');
+  if (r.sloan_high_risk) out.push('<span class="flag-pill flag-sloan">SLOAN</span>');
+  if (r.wc_divergence_flag) out.push('<span class="flag-pill flag-wc">WC</span>');
+  if (r.goodwill_bloat_flag) out.push('<span class="flag-pill flag-gw">GW</span>');
+  if (out.length === 0) out.push('<span class="flag-pill flag-clean">CLEAN</span>');
+  return out.join('');
+}
+
+async function load(){
+  let data = null;
+  try {
+    data = await fetch(`${BUCKET}/data/forensic-screen.json?_=${Date.now()}`).then(r => r.ok ? r.json() : null);
+  } catch (e) {
+    document.getElementById('concerning-body').innerHTML = `<tr><td colspan="8" class="empty">Failed to load: ${e.message}</td></tr>`;
+    return;
+  }
+  if (!data) {
+    document.getElementById('concerning-body').innerHTML = `<tr><td colspan="8" class="empty">Forensic screen has not run yet — Lambda must complete its first 12h cycle.</td></tr>`;
+    return;
+  }
+  document.getElementById('last-updated').textContent =
+    data.generated_at ? `Updated ${new Date(data.generated_at).toLocaleString()}` : '';
+
+  // KPIs
+  const s = data.summary || {};
+  const kpis = [
+    { l: 'Universe scored', v: data.n_scored_ok || 0, sub: `of ${data.n_universe_attempted || 0} attempted` },
+    { l: 'M-Score flagged', v: s.n_m_flagged || 0, sub: `M > -1.78` },
+    { l: 'Sloan flagged', v: s.n_sloan_flagged || 0, sub: `accruals > 10%` },
+    { l: 'WC divergence', v: s.n_wc_divergence_flagged || 0, sub: `receivables > +20% revenue` },
+    { l: 'Goodwill bloat', v: s.n_goodwill_bloat_flagged || 0, sub: `goodwill > 40% TA` },
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k =>
+    `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
+  ).join('');
+
+  // Most concerning
+  const concerning = data.most_concerning_top_25 || [];
+  document.getElementById('concerning-body').innerHTML = concerning.length === 0
+    ? `<tr><td colspan="8" class="empty">No flagged stocks in this run.</td></tr>`
+    : concerning.map(r => {
+        const mClass = r.m_score === null ? '' : (r.m_score > -1 ? 'neg' : (r.m_score > -1.78 ? 'warn' : 'pos'));
+        const sClass = r.sloan_accruals > 0.10 ? 'warn' : '';
+        return `<tr class="fade-in">
+          <td><strong>${r.symbol}</strong></td>
+          <td style="color:var(--t3);font-size:12px">${r.sector || '—'}</td>
+          <td class="num"><strong>${r.concern_score || 0}</strong></td>
+          <td class="num ${mClass}">${fmtNum(r.m_score)}</td>
+          <td class="num ${sClass}">${fmtPct(r.sloan_accruals, 1)}</td>
+          <td class="num ${r.wc_divergence_flag ? 'warn' : ''}">${fmtPct(r.wc_divergence, 1)}</td>
+          <td class="num ${r.goodwill_bloat_flag ? 'warn' : ''}">${fmtPct(r.goodwill_pct, 0)}</td>
+          <td>${flagsBadge(r)}</td>
+        </tr>`;
+      }).join('');
+
+  // Cleanest
+  const clean = data.cleanest_top_25 || [];
+  document.getElementById('clean-body').innerHTML = clean.length === 0
+    ? `<tr><td colspan="8" class="empty">No clean stocks scored yet.</td></tr>`
+    : clean.map(r => {
+        const f = r.factors || {};
+        return `<tr class="fade-in">
+          <td><strong>${r.symbol}</strong></td>
+          <td style="color:var(--t3);font-size:12px">${r.sector || '—'}</td>
+          <td class="num pos">${fmtNum(r.m_score)}</td>
+          <td class="num">${fmtPct(r.sloan_accruals, 1)}</td>
+          <td class="num">${fmtNum(f.DSRI)}</td>
+          <td class="num">${fmtNum(f.SGI)}</td>
+          <td class="num">${fmtNum(f.GMI)}</td>
+          <td class="num">${fmtMcap(r.mcap)}</td>
+        </tr>`;
+      }).join('');
+
+  // Distribution
+  const distRows = [];
+  if (s.m_score_distribution){
+    const d = s.m_score_distribution;
+    distRows.push(['M-Score', d.n, d.min, d.p25, d.median, d.p75, d.max, d.mean]);
+  }
+  if (s.sloan_distribution){
+    const d = s.sloan_distribution;
+    distRows.push(['Sloan accruals', d.n, d.min, d.p25, d.median, d.p75, d.max, d.mean]);
+  }
+  document.getElementById('dist-body').innerHTML = distRows.length === 0
+    ? `<tr><td colspan="8" class="empty">No distribution stats yet.</td></tr>`
+    : distRows.map(row =>
+        `<tr><td><strong>${row[0]}</strong></td>` +
+        row.slice(1).map(v => `<td class="num">${typeof v === 'number' && row[0] === 'Sloan accruals' && row.indexOf(v) >= 2 ? fmtPct(v, 1) : fmtNum(v)}</td>`).join('') +
+        `</tr>`
+      ).join('');
+}
+
+load();
+</script>
+</body>
+</html>
