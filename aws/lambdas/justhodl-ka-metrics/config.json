@@ -1,0 +1,26 @@
+{
+  "function_name": "justhodl-ka-metrics",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "ANTHROPIC_API_KEY",
+    "FRED_API_KEY",
+    "POLYGON_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": "https://s6ascg5dntry5w5elqedee77na0fcljz.lambda-url.us-east-1.on.aws/",
+  "eventbridge_rules": [
+    "justhodl-khalid-metrics-refresh"
+  ],
+  "description": "KA Metrics — Phase 4 of Khalid→KA rebrand (replaces justhodl-khalid-metrics). Daily at 11 UTC, computes 60+ FRED + Polygon metrics, publishes data/khalid-metrics.json + data/ka-metrics.json (and analysis variants when triggered with action=analyze). Serves /ka/ frontend page.",
+  "imported_at": "2026-05-06",
+  "imported_from": "console (no prior version control)",
+  "imported_via": "step 285 — re-imported after parallel session step 261 audit flagged it as deployed-not-in-repo"
+}
