@@ -1,0 +1,93 @@
+{
+  "started": "2026-05-06T16:52:26.852303+00:00",
+  "lambda": {
+    "created": true,
+    "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-forensic-screen"
+  },
+  "rule": {
+    "name": "justhodl-forensic-screen-12h",
+    "schedule": "rate(12 hours)",
+    "state": "ENABLED"
+  },
+  "initial_invoke": {
+    "function_error": null,
+    "payload": {
+      "statusCode": 200,
+      "body": "{\"n_scored_ok\": 200, \"n_m_flagged\": 10, \"n_sloan_flagged\": 0, \"duration_s\": 20.0}"
+    },
+    "status_code": 200,
+    "elapsed_s": 20.8
+  },
+  "verify": {
+    "generated_at": "2026-05-06T16:52:52+00:00",
+    "n_scored_ok": 200,
+    "n_skipped": 0,
+    "summary": {
+      "n_with_m_score": 163,
+      "n_m_flagged": 10,
+      "n_sloan_flagged": 0,
+      "n_wc_divergence_flagged": 20,
+      "n_goodwill_bloat_flagged": 19,
+      "m_score_distribution": {
+        "n": 163,
+        "min": -77.9315,
+        "p25": -2.7997,
+        "median": -2.5484,
+        "p75": -2.3841,
+        "max": 14.3672,
+        "mean": -2.8448
+      },
+      "sloan_distribution": {
+        "n": 200,
+        "min": -0.1689,
+        "p25": -0.0555,
+        "median": -0.0329,
+        "p75": -0.0129,
+        "max": 0.0839,
+        "mean": -0.036
+      }
+    },
+    "thresholds": {
+      "m_score_flag": -1.78,
+      "m_score_high_risk": -1.0,
+      "sloan_high_risk": 0.1,
+      "wc_divergence_flag": 0.2,
+      "goodwill_bloat_flag": 0.4
+    },
+    "top_3_concerning": [
+      {
+        "symbol": "BK",
+        "concern_score": 60,
+        "m_score": 7.031,
+        "sloan_accruals": -0.002501
+      },
+      {
+        "symbol": "HOOD",
+        "concern_score": 60,
+        "m_score": 0.6273,
+        "sloan_accruals": 0.006424
+      },
+      {
+        "symbol": "TFC",
+        "concern_score": 60,
+        "m_score": 14.3672,
+        "sloan_accruals": -0.000789
+      }
+    ],
+    "top_3_cleanest": [
+      {
+        "symbol": "SNPS",
+        "m_score": -77.9315
+      },
+      {
+        "symbol": "VRTX",
+        "m_score": -7.7451
+      },
+      {
+        "symbol": "ACN",
+        "m_score": -3.8175
+      }
+    ]
+  },
+  "duration_s": 29.5
+}
