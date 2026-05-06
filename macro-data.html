@@ -126,8 +126,27 @@ table.tbl tr:last-child td{border-bottom:none}
 <main class="page">
   <div class="page-head">
     <h1>MACRO DATA</h1>
-    <div class="sub">Global manufacturing PMI · banking sector loans · BEA GDP & economic accounts · 3 agents in parallel</div>
+    <div class="sub">Composite nowcast · global manufacturing PMI · banking sector loans · BEA GDP &amp; economic accounts</div>
   </div>
+
+  <!-- ────────── MACRO NOWCAST (composite z-score) ────────── -->
+  <section class="card" style="margin-bottom:24px">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="card-title">COMPOSITE NOWCAST</div>
+        <div class="card-subtitle">Weighted z-score from 7 FRED series · refreshed every 6h</div>
+      </div>
+      <div id="nowcastUpdated" style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px">—</div>
+    </div>
+    <div id="nowcastStrip" class="strip" style="margin-top:14px;margin-bottom:18px">
+      <div class="strip-cell"><div class="label">Loading…</div><div class="value">…</div></div>
+    </div>
+    <div id="nowcastComponents" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;font-family:var(--font-mono);font-size:11px">
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+    <div id="nowcastMethodology" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--fg-3);line-height:1.55">—</div>
+  </section>
+  <!-- ────────────────────────────────────────────────────── -->
 
   <div class="grid-2">
     <section class="card">
@@ -240,6 +259,9 @@ function renderBeaTable(targetId, beaSection, sectionName){
 }
 
 async function load(){
+  // Composite nowcast first (separate file from agent endpoints)
+  loadNowcast();
+
   // Load 3 agents in parallel
   const [manuf, banking, bea] = await Promise.allSettled([
     fetchAgent(URLS.manufacturing),

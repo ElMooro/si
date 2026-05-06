@@ -818,6 +818,32 @@ EXPECTATIONS = {
         "note": "Sentry-lite rolling tail of last 200 errors. Updated only on Lambda failure.",
         "severity": "nice_to_have",
     },
+
+    # ─── Macro nowcast (composite real-time GDP-equivalent indicator) ─
+    "s3:data/macro-nowcast.json": {
+        "type": "s3_file",
+        "key": "data/macro-nowcast.json",
+        "fresh_max": 8 * 3600,         # 8h (writer is every 6h)
+        "warn_max": 24 * 3600,
+        "expected_size": 1_500,
+        "note": "Composite z-score nowcast across 7 FRED series. Reuses data/report.json — no new API calls.",
+        "severity": "important",
+    },
+    "lambda:justhodl-macro-nowcast": {
+        "type": "lambda",
+        "name": "justhodl-macro-nowcast",
+        "max_error_rate": 0.10,
+        "min_invocations_24h": 3,      # Every 6h = 4/day, allow 1 miss
+        "note": "Composite nowcast — 7 FRED series weighted into z-score. 6h EB schedule. Outputs data/macro-nowcast.json.",
+        "severity": "important",
+    },
+    "eb:justhodl-macro-nowcast-6h": {
+        "type": "eb_rule",
+        "name": "justhodl-macro-nowcast-6h",
+        "expected_state": "ENABLED",
+        "note": "EventBridge rate(6 hours) — drives macro nowcast.",
+        "severity": "important",
+    },
 }
 
 
