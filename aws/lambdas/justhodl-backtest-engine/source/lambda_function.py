@@ -720,21 +720,39 @@ def lambda_handler(event=None, context=None):
                         entry["spy_pct"] = round((spy_close / spy_first_close - 1) * 100, 4)
                 honest_daily_curve.append(entry)
 
-            # 4. Compute rf-adjusted Sharpe over full series
+            # 4. Compute Sharpe with arithmetic annualization (standard
+            #    hedge fund convention — stable for short windows, unlike
+            #    geometric annualization which blows up when n_years << 1).
             n_obs = len(honest_daily_pct)
             mean_d = sum(honest_daily_pct) / n_obs if n_obs else 0.0
             var_d = sum((x - mean_d) ** 2 for x in honest_daily_pct) / n_obs if n_obs else 0.0
-            std_d = var_d ** 0.5
+            std_d = var_d ** 0.5  # in percentage points / day
             final_nav_h = hnav
             n_years = n_obs / 252.0 if n_obs else 0.0
-            if n_years > 0:
-                ann_return = (final_nav_h / INITIAL_NAV) ** (1.0 / n_years) - 1.0
-            else:
-                ann_return = 0.0
-            ann_vol = (std_d / 100.0) * (252.0 ** 0.5)
-            honest_sharpe = ((ann_return - RF_ANNUAL) / ann_vol) if ann_vol > 0 else None
 
-            # 5. Block bootstrap for Sharpe confidence interval
+            # Arithmetic annualization (industry standard for daily-returns Sharpe)
+            ann_return_arith_pct = mean_d * 252.0           # in pct/year
+            ann_vol_arith_pct = std_d * (252.0 ** 0.5)      # in pct/year
+            honest_sharpe = (
+                (ann_return_arith_pct - RF_ANNUAL * 100.0) / ann_vol_arith_pct
+                if ann_vol_arith_pct > 0 else None
+            )
+
+            # Data sufficiency gate — Sharpe estimates from <0.5y are noise.
+            # Below this threshold, ann stats are reported as None and the
+            # page surfaces a clear warning.
+            DATA_SUFFICIENT_MIN_YEARS = 0.5
+            data_sufficient = n_years >= DATA_SUFFICIENT_MIN_YEARS
+            sufficiency_note = (
+                None if data_sufficient else
+                (f"Insufficient data: {n_obs} business days ({round(n_years,3)}y). "
+                 f"Annualized Sharpe is unreliable for windows under {DATA_SUFFICIENT_MIN_YEARS}y. "
+                 f"Use the unannualized period stats below. The window is constrained because the "
+                 f"calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL — "
+                 f"window will widen as new outcomes accumulate.")
+            )
+
+            # 5. Block bootstrap for Sharpe confidence interval (arithmetic ann)
             import random
             rng = random.Random(BOOTSTRAP_SEED)
             sharpe_samples = []
@@ -748,15 +766,10 @@ def lambda_handler(event=None, context=None):
                     s_mean = sum(sample) / n_obs
                     s_var = sum((x - s_mean) ** 2 for x in sample) / n_obs
                     s_std = s_var ** 0.5
-                    s_nav = INITIAL_NAV
-                    for x in sample:
-                        s_nav = s_nav * (1.0 + x / 100.0)
-                    if s_nav <= 0 or n_years <= 0:
-                        continue
-                    s_ann_ret = (s_nav / INITIAL_NAV) ** (1.0 / n_years) - 1.0
-                    s_ann_vol = (s_std / 100.0) * (252.0 ** 0.5)
+                    s_ann_ret = s_mean * 252.0                  # pct/yr (arithmetic)
+                    s_ann_vol = s_std * (252.0 ** 0.5)          # pct/yr
                     if s_ann_vol > 0:
-                        sharpe_samples.append((s_ann_ret - RF_ANNUAL) / s_ann_vol)
+                        sharpe_samples.append((s_ann_ret - RF_ANNUAL * 100.0) / s_ann_vol)
                 sharpe_samples.sort()
             if sharpe_samples:
                 p5 = sharpe_samples[max(0, int(0.05 * len(sharpe_samples)))]
@@ -781,17 +794,28 @@ def lambda_handler(event=None, context=None):
             n_flat_days = n_obs - n_pos_days - n_neg_days
 
             honest_summary = {
-                "method": "lump_sum_on_firing_day_full_calendar_with_rf_and_bootstrap",
+                "method": "lump_sum_on_firing_day_full_calendar_arithmetic_ann_with_rf_and_bootstrap",
                 "rf_annual": RF_ANNUAL,
                 "n_business_days": n_obs,
                 "n_years": round(n_years, 3),
                 "n_trades_distributed": n_distributed,
                 "n_trades_skipped": n_skipped,
+                "data_sufficient": data_sufficient,
+                "data_sufficiency_min_years": DATA_SUFFICIENT_MIN_YEARS,
+                "data_sufficiency_note": sufficiency_note,
                 "initial_nav": INITIAL_NAV,
                 "final_nav": round(final_nav_h, 2),
-                "total_return_pct": round((final_nav_h / INITIAL_NAV - 1) * 100, 4),
-                "annualized_return_pct": round(ann_return * 100, 4),
-                "annualized_vol_pct": round(ann_vol * 100, 4),
+                # PERIOD stats (unannualized) — always reliable regardless of window
+                "period_total_return_pct": round((final_nav_h / INITIAL_NAV - 1) * 100, 4),
+                "period_max_drawdown_pct": round(honest_max_dd, 4),
+                "period_n_business_days": n_obs,
+                "period_alpha_vs_spy_pct": round((final_nav_h / INITIAL_NAV - 1) * 100 - (spy_return_pct or 0), 4)
+                                            if spy_return_pct is not None else None,
+                # ANNUALIZED stats — gated by data_sufficient. Reported as raw numbers
+                # for transparency but consumers should display them only if sufficient.
+                "total_return_pct": round((final_nav_h / INITIAL_NAV - 1) * 100, 4),  # period total (kept for back-compat)
+                "annualized_return_pct": round(ann_return_arith_pct, 4),
+                "annualized_vol_pct": round(ann_vol_arith_pct, 4),
                 "max_drawdown_pct": round(honest_max_dd, 4),
                 "sharpe_point": round(honest_sharpe, 4) if honest_sharpe is not None else None,
                 "sharpe_p5": round(p5, 4) if p5 is not None else None,
@@ -805,6 +829,7 @@ def lambda_handler(event=None, context=None):
                 "alpha_vs_spy_pct": round((final_nav_h / INITIAL_NAV - 1) * 100 - (spy_return_pct or 0), 4)
                                     if spy_return_pct is not None else None,
                 "known_limitations": [
+                    "Window currently <0.5y because calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL — annualized Sharpe gated by data_sufficient",
                     "In-sample calibration weights (look-ahead bias) — fixed in v2.1 with walk-forward",
                     "No daily mark-to-market — trades are lumped on firing day, real positions accrue P&L over holding period",
                     "Survivorship bias — outcomes only include scored trades (delisted positions excluded)",
@@ -822,20 +847,20 @@ def lambda_handler(event=None, context=None):
 
     # 9. Build full results
     results_doc = {
-        "v": "2.0",
+        "v": "2.0.1",
         "generated_at": now.isoformat(),
         "method": "calibrated_alpha_replay_v3_horizon_aware_realistic_plus_honest_v2",
         "method_description": (
-            "v2.0 (NEW HEADLINE): time-distributed daily P&L over each trade's holding window, "
-            "complete business-day calendar (zero-trade days included in vol calc), risk-free "
-            "rate (5%) subtracted from annual return, Sharpe reported as point estimate plus "
-            "p5/median/p95 from a 1000-sample block bootstrap (5-day blocks). This is the number "
-            "to publish — v1.1's Sharpe ~10 came from compressing weeks of P&L into single days "
-            "and dropping zero-trade calendar days from the vol denominator. v2.0 fixes both. "
-            "v1.1 (idealized, no friction) and v1.2 (with slippage + caps but no time-distribution) "
-            "are still computed for comparison so the friction drag and methodology drag are both "
-            "visible. Walk-forward calibration to remove in-sample weight-fitting bias is the next "
-            "step (v2.1) — that requires loading historical calibration snapshots."
+            "v2.0.1 (HEADLINE): lump-sum each trade's net P&L on its firing day; complete "
+            "business-day calendar (zero-trade days included in vol); arithmetic annualization "
+            "(daily_mean × 252) which is stable for short windows — geometric annualization blew "
+            "up in v2.0 with 0.11y of data. Risk-free rate (5%) subtracted. Sharpe reported with "
+            "p5/median/p95 from 1000-sample block bootstrap. data_sufficient flag gates "
+            "annualized stats — when window <0.5y the page surfaces a warning and leads with "
+            "unannualized period stats (period_total_return_pct, period_max_drawdown_pct) which "
+            "are reliable regardless of window length. v1.1 and v1.2 are kept for comparison. "
+            "Walk-forward calibration (v2.1, next ship) requires loading historical weight "
+            "snapshots from justhodl-calibration-snapshotter to remove in-sample weight-fitting bias."
         ),
         "constants": {
             "POSITION_SIZE": POSITION_SIZE,
@@ -895,7 +920,7 @@ def lambda_handler(event=None, context=None):
 
     # Slim summary for fast page loads
     summary_doc = {
-        "v": "2.0",
+        "v": "2.0.1",
         "generated_at": now.isoformat(),
         "summary": results_doc["summary"],
         "realistic_summary": results_doc["realistic_summary"],

@@ -436,61 +436,97 @@ function renderHonest(honest, curve){
     bodyEl.innerHTML = '<tr><td colspan="2" class="loading">Pending engine v2.0 deployment + next 6h tick</td></tr>';
     return;
   }
-  noticeEl.innerHTML = '';
 
-  const sp   = honest.sharpe_point;
-  const p5   = honest.sharpe_p5;
-  const p95  = honest.sharpe_p95;
-  const aRet = honest.annualized_return_pct;
-  const aVol = honest.annualized_vol_pct;
-  const dd   = honest.max_drawdown_pct;
-  const tret = honest.total_return_pct;
-  const ny   = honest.n_years;
-  const alpha = honest.alpha_vs_spy_pct;
+  // Data sufficiency banner — when window <0.5y, annualized stats are unreliable
+  const sufficient = honest.data_sufficient !== false;
+  if (!sufficient) {
+    noticeEl.innerHTML = `<div class="warn" style="background:#fef3c7;border-color:#f59e0b;color:#92400e;padding:14px 18px;font-size:13px;line-height:1.5">
+      <strong>⚠ Data sufficiency: insufficient for annualized Sharpe.</strong>
+      Window is ${honest.n_business_days || 0} business days (~${honest.n_years || 0} years).
+      Annualized Sharpe estimates are unreliable for windows under ${honest.data_sufficiency_min_years || 0.5} years.
+      <strong>Use the unannualized period stats below as the headline number.</strong>
+      Window will widen as new outcomes accumulate — calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL.
+    </div>`;
+  } else {
+    noticeEl.innerHTML = '';
+  }
 
-  const sharpeDisplay = sp != null
-    ? `${sp.toFixed(2)}<span style="font-size:13px;color:var(--t3);font-weight:400"> [${(p5 ?? 0).toFixed(2)}, ${(p95 ?? 0).toFixed(2)}]</span>`
-    : '—';
-  const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
+  // Always-reliable PERIOD stats (no annualization)
+  const periodRet = honest.period_total_return_pct ?? honest.total_return_pct;
+  const periodDD  = honest.period_max_drawdown_pct ?? honest.max_drawdown_pct;
+  const periodN   = honest.period_n_business_days ?? honest.n_business_days;
+  const periodAlp = honest.period_alpha_vs_spy_pct ?? honest.alpha_vs_spy_pct;
 
-  const tiles = [
-    {h:'Sharpe (rf=5%)',
-     v: sharpeDisplay,
-     cls: sharpeClass,
-     sub: `bootstrap p5 / p95 from ${honest.n_bootstrap_samples || 0} samples`},
-    {h:'Annualized Return',
-     v: aRet != null ? fmtPct(aRet, 2) : '—',
-     cls: pctClass((aRet||0)/100),
-     sub: `${ny != null ? ny.toFixed(2) : '—'}y window · ${honest.n_business_days || 0} biz days`},
-    {h:'Annualized Vol',
-     v: aVol != null ? fmtPct(aVol, 2) : '—',
-     cls: '',
-     sub: `daily hit rate ${honest.daily_hit_rate != null ? (honest.daily_hit_rate*100).toFixed(0)+'%' : '—'}`},
-    {h:'Max Drawdown',
-     v: dd != null ? `-${dd.toFixed(2)}%` : '—',
-     cls: 'down',
-     sub: alpha != null ? `Alpha vs SPY ${fmtPct(alpha, 2)}` : 'compounded NAV peak-to-trough'},
-  ];
+  // Annualized stats — only show if data_sufficient
+  const sp   = sufficient ? honest.sharpe_point : null;
+  const p5   = sufficient ? honest.sharpe_p5    : null;
+  const p95  = sufficient ? honest.sharpe_p95   : null;
+  const aRet = sufficient ? honest.annualized_return_pct : null;
+  const aVol = sufficient ? honest.annualized_vol_pct    : null;
+
+  let tiles;
+  if (sufficient) {
+    // Window long enough — annualized Sharpe is the headline
+    const sharpeDisplay = sp != null
+      ? `${sp.toFixed(2)}<span style="font-size:13px;color:var(--t3);font-weight:400"> [${(p5 ?? 0).toFixed(2)}, ${(p95 ?? 0).toFixed(2)}]</span>`
+      : '—';
+    const sharpeClass = sp != null ? (sp > 1 ? 'up' : (sp < 0 ? 'down' : '')) : '';
+    tiles = [
+      {h:'Sharpe (rf=5%)',
+       v: sharpeDisplay, cls: sharpeClass,
+       sub: `bootstrap p5 / p95 from ${honest.n_bootstrap_samples || 0} samples`},
+      {h:'Annualized Return',
+       v: aRet != null ? fmtPct(aRet, 2) : '—', cls: pctClass((aRet||0)/100),
+       sub: `${honest.n_years != null ? honest.n_years.toFixed(2) : '—'}y · ${honest.n_business_days || 0} biz days`},
+      {h:'Annualized Vol',
+       v: aVol != null ? fmtPct(aVol, 2) : '—', cls: '',
+       sub: `daily hit rate ${honest.daily_hit_rate != null ? (honest.daily_hit_rate*100).toFixed(0)+'%' : '—'}`},
+      {h:'Max Drawdown',
+       v: periodDD != null ? `-${periodDD.toFixed(2)}%` : '—', cls: 'down',
+       sub: periodAlp != null ? `Alpha vs SPY ${fmtPct(periodAlp, 2)}` : 'compounded NAV peak-to-trough'},
+    ];
+  } else {
+    // Window too short — lead with period stats, gray out annualized
+    tiles = [
+      {h:'Period Return',
+       v: periodRet != null ? fmtPct(periodRet, 2) : '—', cls: pctClass((periodRet||0)/100),
+       sub: `${periodN || 0} biz days · ${honest.n_trades_distributed || 0} trades`},
+      {h:'Period Alpha vs SPY',
+       v: periodAlp != null ? fmtPct(periodAlp, 2) : '—',
+       cls: periodAlp != null ? (periodAlp > 0 ? 'up' : 'down') : '',
+       sub: 'unannualized excess return'},
+      {h:'Max Drawdown (period)',
+       v: periodDD != null ? `-${periodDD.toFixed(2)}%` : '—', cls: 'down',
+       sub: 'NAV peak-to-trough'},
+      {h:'Daily Hit Rate',
+       v: honest.daily_hit_rate != null ? `${(honest.daily_hit_rate*100).toFixed(1)}%` : '—',
+       cls: (honest.daily_hit_rate||0) >= 0.55 ? 'up' : '',
+       sub: `${honest.n_pos_days||0} pos · ${honest.n_neg_days||0} neg · ${honest.n_flat_days||0} flat`},
+    ];
+  }
   kpiEl.innerHTML = tiles.map(t =>
     `<div class="kpi"><h3>${t.h}</h3><div class="v ${t.cls}">${t.v}</div><div class="vsub">${t.sub}</div></div>`
   ).join('');
 
   // Stats table (full breakdown)
+  const sufficientTag = sufficient ? '✓ sufficient' : '⚠ insufficient (window <0.5y)';
   const rows = [
     ['Method', honest.method || '—'],
+    ['Data sufficiency', sufficientTag],
     ['Risk-free rate (annual)', honest.rf_annual != null ? `${(honest.rf_annual*100).toFixed(2)}%` : '—'],
     ['Window', `${honest.n_business_days || 0} business days (${(honest.n_years||0).toFixed(2)}y)`],
     ['Trades booked', `${honest.n_trades_distributed || 0} (skipped ${honest.n_trades_skipped || 0})`],
     ['Initial NAV', `$${(honest.initial_nav || 0).toLocaleString()}`],
     ['Final NAV', `$${(honest.final_nav || 0).toLocaleString()}`],
-    ['Total Return', tret != null ? fmtPct(tret, 2) : '—'],
-    ['Annualized Return', aRet != null ? fmtPct(aRet, 2) : '—'],
-    ['Annualized Volatility', aVol != null ? fmtPct(aVol, 2) : '—'],
-    ['Sharpe (point estimate)', sp != null ? sp.toFixed(4) : '—'],
-    ['Sharpe (bootstrap p5)', p5 != null ? p5.toFixed(4) : '—'],
-    ['Sharpe (bootstrap median)', honest.sharpe_median != null ? honest.sharpe_median.toFixed(4) : '—'],
-    ['Sharpe (bootstrap p95)', p95 != null ? p95.toFixed(4) : '—'],
-    ['Max Drawdown', dd != null ? `-${dd.toFixed(2)}%` : '—'],
+    ['Period Total Return', periodRet != null ? fmtPct(periodRet, 2) : '—'],
+    ['Period Max DD', periodDD != null ? `-${periodDD.toFixed(2)}%` : '—'],
+    ['Period Alpha vs SPY', periodAlp != null ? fmtPct(periodAlp, 2) : '—'],
+    ['Annualized Return (arith)', sufficient && aRet != null ? fmtPct(aRet, 2) : '—  <em style="color:#92400e">gated</em>'],
+    ['Annualized Volatility', sufficient && aVol != null ? fmtPct(aVol, 2) : '—  <em style="color:#92400e">gated</em>'],
+    ['Sharpe (point estimate)', sufficient && sp != null ? sp.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
+    ['Sharpe (bootstrap p5)', sufficient && p5 != null ? p5.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
+    ['Sharpe (bootstrap median)', sufficient && honest.sharpe_median != null ? honest.sharpe_median.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
+    ['Sharpe (bootstrap p95)', sufficient && p95 != null ? p95.toFixed(4) : '—  <em style="color:#92400e">gated</em>'],
     ['Daily P&L distribution', `${honest.n_pos_days || 0} pos · ${honest.n_neg_days || 0} neg · ${honest.n_flat_days || 0} flat`],
   ];
   if (Array.isArray(honest.known_limitations)) {
