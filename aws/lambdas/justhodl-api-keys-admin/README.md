@@ -167,23 +167,92 @@ os.environ.setdefault("JUSTHODL_API_RATE_TABLE", "justhodl-api-rate")
 These ~40 Lambdas have public Function URLs. Phase 2 picks the order:
 
 **Tier A (read-heavy data passthroughs — quick wins)**
-- justhodl-fred-proxy
-- justhodl-treasury-proxy
-- justhodl-ecb-proxy
-- bea-economic-agent
-- nasdaq-datalink-agent
+- ✅ justhodl-fred-proxy        (migrated 2026-05-06, Origin-bypass mode)
+- ✅ justhodl-ecb-proxy         (migrated 2026-05-06, strict mode)
+- ⏳ justhodl-treasury-proxy    (called by auctions.html — Origin bypass needed)
+- ⏳ bea-economic-agent         (called by CF Worker — special case)
+- ⏳ nasdaq-datalink-agent      (called by nasdaq-datalink.html — Origin bypass)
 
 **Tier B (analysis endpoints — main value)**
-- justhodl-stock-screener  ⚠️ PROTECTED (do not modify without explicit approval)
-- justhodl-stock-analyzer
-- justhodl-investor-agents
-- justhodl-options-flow
-- justhodl-charts-agent
-- justhodl-edge-engine
+- 🚫 justhodl-stock-screener  (PROTECTED — never modify without explicit approval)
+- ⏳ justhodl-stock-analyzer
+- ⏳ justhodl-investor-agents
+- ⏳ justhodl-options-flow
+- ⏳ justhodl-charts-agent
+- ⏳ justhodl-edge-engine
 
 **Tier C (special handling)**
-- justhodl-ai-chat (already has its own SSM-token auth — coexist or migrate)
-- justhodl-telegram-bot (webhook from Telegram, different auth model)
+- ⏳ justhodl-ai-chat       (already has SSM-token auth — coexist or migrate)
+- ⏳ justhodl-telegram-bot  (Telegram webhook — different auth model)
+
+## Phase 2A migration recipe (verified working)
+
+For each Lambda being migrated, three steps:
+
+**1. Add the import + auth gate to lambda_function.py:**
+
+```python
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from api_auth import authorize
+
+# At the top of lambda_handler, AFTER the OPTIONS preflight check:
+def lambda_handler(event, context):
+    if event.get("requestContext",{}).get("http",{}).get("method") == "OPTIONS":
+        return {"statusCode": 200, "headers": cors_headers, "body": ""}
+
+    # ─── auth gate ───
+    # Strict mode (no frontend callers):
+    key_meta, err = authorize(event)
+    # OR Origin-bypass mode (justhodl.ai pages call this Lambda):
+    key_meta, err = authorize(event, allowed_origins=[
+        "https://justhodl.ai",
+        "https://www.justhodl.ai",
+    ])
+    if err:
+        return err
+
+    # ... existing business logic, with key_meta["tier"] available
+```
+
+**2. Bundle the shared module into the Lambda's source/:**
+
+```bash
+cp aws/shared/api_auth.py aws/lambdas/<your-lambda>/source/api_auth.py
+```
+
+**3. Add `Authorization, x-api-key` to the Lambda's CORS `AllowHeaders`:**
+
+```python
+headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",  # or POST
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
+}
+```
+
+That's it. Push + the deploy-lambdas.yml workflow will redeploy. IAM
+permissions are already on lambda-execution-role (granted in step 287),
+so any Lambda using that role gets DDB access automatically.
+
+## Determining strict vs Origin-bypass mode
+
+**Audit which frontend pages call the Lambda** before deciding:
+
+```bash
+# Get the Lambda's URL prefix (8-char subdomain id)
+URL_PREFIX=$(python3 -c "import json; c=json.load(open('aws/lambdas/<NAME>/config.json')); fu=c.get('function_url',{}); print((fu.get('url') if isinstance(fu,dict) else fu).split('//')[1].split('.')[0])")
+
+# Find HTML files referencing it
+grep -rln --include="*.html" "$URL_PREFIX" . | grep -v "/historical/\|/ran/\|/reports/"
+```
+
+- **No matches** → safe for strict mode. External callers must use a key.
+- **Matches found** → use Origin-bypass mode. Frontend pages keep working;
+  external callers still need keys.
+
 
 ## Phase 3 — Self-serve + billing
 
