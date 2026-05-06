@@ -45,13 +45,18 @@ SSM = boto3.client("ssm", region_name=REGION)
 
 
 FEEDS = {
+    # 5 fundamental hunters
     "nobrainers":     ("data/nobrainers.json",             "summary.top_25_overall",  "ticker"),
     "insiders":       ("data/insider-clusters.json",       "clusters",                "ticker"),
     "smart_money":    ("data/smart-money-clusters.json",   "clusters",                "ticker"),
     "deep_value":     ("data/deep-value.json",             "summary.top_25_overall",  "symbol"),
     "eps_velocity":   ("data/eps-revision-velocity.json",  "summary.top_25_overall",  "symbol"),
+    # 2 technical hunters
     "momentum":       ("data/momentum-breakout.json",      "summary.top_25_overall",  "symbol"),
     "pre_pump":       ("data/pre-pump-signals.json",       "summary.top_25_overall",  "symbol"),
+    # NEW: institutional signals
+    "options_flow":   ("data/options-flow.json",           "summary.top_25_overall",  "symbol"),
+    "activist":       ("data/activist-filings.json",       "summary.top_25_overall",  "subject_ticker"),
 }
 
 
@@ -157,6 +162,24 @@ def aggregate():
                     "liq_expand": c.get("liq_expand"),
                     "ret_60d": c.get("ret_60d"),
                     "ret_30d": c.get("ret_30d"),
+                }
+            elif name == "options_flow":
+                d = {
+                    "tier": c.get("tier"),
+                    "flags": c.get("flags") or [],
+                    "cpr_recent": c.get("cpr_recent"),
+                    "cpr_change_pct": c.get("cpr_change_pct"),
+                    "call_vol_surge": c.get("call_vol_surge"),
+                    "short_pct_change": c.get("short_pct_change"),
+                }
+            elif name == "activist":
+                d = {
+                    "level": c.get("level"),
+                    "form_type": c.get("form_type"),
+                    "filer_tier": c.get("filer_tier"),
+                    "filer_name": c.get("filer_name"),
+                    "flags": c.get("flags") or [],
+                    "filing_date": c.get("filing_date"),
                 }
             presence[sym]["details"][name] = d
 
@@ -285,6 +308,7 @@ def emit_alerts(new_alerts, agg):
         "nobrainers": "🎯", "insiders": "👀", "smart_money": "💼",
         "deep_value": "💎", "eps_velocity": "📈",
         "momentum": "🚀", "pre_pump": "🌱",
+        "options_flow": "📞", "activist": "🏛️",
     }
     for a in new_alerts[:8]:
         sym = a["symbol"]
