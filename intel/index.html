@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JustHodl.AI | Institutional Intelligence Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050810;--bg1:#0a0f1a;--bg2:#0f1524;--bg3:#141c2e;--brd:#1a2540;--brd2:#243050;--t1:#e8ecf4;--t2:#8b95ad;--t3:#5a6580;--t4:#3a4560;--green:#00d68f;--green2:#00f4a8;--red:#ff5070;--red2:#ff7088;--amber:#ffaa00;--blue:#5a9fff;--purple:#b070ff;--cyan:#40d4e8;--orange:#ff8838}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans',-apple-system,sans-serif;background:var(--bg);color:var(--t1);font-size:13px;line-height:1.5;min-height:100vh}
+.mono{font-family:'IBM Plex Mono',monospace}
+a{color:var(--cyan);text-decoration:none}
+a:hover{color:var(--green2)}
+
+.topbar{background:var(--bg1);border-bottom:1px solid var(--brd);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.topbar .brand{font-weight:700;font-size:15px;letter-spacing:0.5px}
+.topbar .brand .logo{color:var(--green2)}
+.topbar nav{display:flex;gap:16px;font-size:12px}
+.topbar nav a{color:var(--t2);font-weight:500}
+.topbar nav a:hover{color:var(--t1)}
+.topbar nav a.active{color:var(--green2)}
+.status-pill{font-size:10px;color:var(--green2);background:rgba(0,214,143,0.1);padding:4px 10px;border-radius:12px;border:1px solid rgba(0,214,143,0.3);font-family:'IBM Plex Mono',monospace}
+
+.container{max-width:1600px;margin:0 auto;padding:20px}
+.hero{margin-bottom:20px}
+.hero h1{font-size:22px;font-weight:600;margin-bottom:6px}
+.hero p{color:var(--t2);font-size:13px}
+
+/* Regime banner */
+.regime-banner{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--brd);border-radius:8px;padding:18px 24px;margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.regime-banner .regime-main{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.regime-banner .regime-tag{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--green2);padding:6px 14px;background:rgba(0,214,143,0.12);border-radius:4px;border:1px solid rgba(0,214,143,0.3)}
+.regime-banner .regime-tag.risk-on{color:var(--green2);background:rgba(0,214,143,0.12);border-color:rgba(0,214,143,0.3)}
+.regime-banner .regime-tag.neutral{color:var(--amber);background:rgba(255,170,0,0.12);border-color:rgba(255,170,0,0.3)}
+.regime-banner .regime-tag.risk-off{color:var(--red);background:rgba(255,80,112,0.12);border-color:rgba(255,80,112,0.3)}
+.regime-banner .regime-detail{color:var(--t2);font-size:12px}
+.regime-banner .regime-meta{display:flex;gap:14px;font-size:11px;color:var(--t3);align-items:center}
+.regime-banner .regime-meta .stat{display:flex;flex-direction:column;align-items:flex-end}
+.regime-banner .regime-meta .stat .label{color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
+.regime-banner .regime-meta .stat .val{color:var(--t1);font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600}
+.regime-banner .regime-meta .stat .val.up{color:var(--green2)}
+.regime-banner .regime-meta .stat .val.down{color:var(--red)}
+
+/* Signal grid */
+.signal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px;margin-bottom:20px}
+.signal-card{background:var(--bg1);border:1px solid var(--brd);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+.signal-card .header{padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.signal-card .header h3{font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--t1)}
+.signal-card .header .badge{font-size:10px;padding:3px 8px;border-radius:3px;font-family:'IBM Plex Mono',monospace}
+.signal-card .header .badge.fresh{color:var(--green2);background:rgba(0,214,143,0.1)}
+.signal-card .header .badge.stale{color:var(--amber);background:rgba(255,170,0,0.1)}
+.signal-card .body{padding:0;flex:1;overflow:hidden}
+.signal-card .body table{width:100%;border-collapse:collapse;font-size:12px}
+.signal-card .body th{text-align:left;padding:8px 16px;color:var(--t3);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--brd);background:var(--bg2)}
+.signal-card .body td{padding:7px 16px;border-bottom:1px solid var(--brd2)}
+.signal-card .body tr:last-child td{border-bottom:none}
+.signal-card .body tr:hover td{background:var(--bg2)}
+.signal-card .body .sym{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--cyan)}
+.signal-card .body .score{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right}
+.signal-card .body .meta{font-size:10px;color:var(--t3)}
+.signal-card .body .tier-s{color:var(--green2)}
+.signal-card .body .tier-a{color:var(--green)}
+.signal-card .body .tier-b{color:var(--amber)}
+.signal-card .footer{padding:8px 16px;border-top:1px solid var(--brd);background:var(--bg2);display:flex;justify-content:space-between;font-size:10px;color:var(--t3)}
+
+/* Compound table - full width */
+.compound-card{grid-column:1/-1}
+
+/* Universe stats */
+.universe-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:20px;background:var(--bg1);border:1px solid var(--brd);border-radius:6px;padding:14px}
+.universe-stats .stat{text-align:center;padding:8px}
+.universe-stats .stat .label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px}
+.universe-stats .stat .val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:var(--t1);margin:4px 0}
+.universe-stats .stat .pct{font-size:10px;color:var(--green2);font-family:'IBM Plex Mono',monospace}
+
+.up{color:var(--green2)}
+.down{color:var(--red)}
+.amber{color:var(--amber)}
+.cyan{color:var(--cyan)}
+.purple{color:var(--purple)}
+
+.loading{padding:20px;text-align:center;color:var(--t3);font-size:11px}
+
+@media (max-width:768px){
+  .topbar{padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .topbar nav{flex-wrap:wrap;gap:10px}
+  .container{padding:14px}
+  .signal-grid{grid-template-columns:1fr}
+  .universe-stats{grid-template-columns:repeat(3,1fr)}
+  .regime-banner .regime-meta{flex-wrap:wrap}
+}
+
+footer{padding:30px 20px;text-align:center;color:var(--t3);font-size:10px;border-top:1px solid var(--brd);margin-top:30px}
+footer a{color:var(--t2)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="logo">●</span> JUSTHODL.AI <span style="color:var(--t3);font-weight:400">— Institutional Intelligence Terminal</span></div>
+  <nav>
+    <a href="/" >Home</a>
+    <a href="/intel/" class="active">Intel</a>
+    <a href="/screener/">Screener</a>
+    <a href="/stock/">Stock</a>
+    <a href="/crypto.html">Crypto</a>
+    <a href="/intelligence.html">Brief</a>
+    <a href="/khalid.html">Bloomberg</a>
+  </nav>
+  <div class="status-pill" id="last-updated">LOADING…</div>
+</div>
+
+<div class="container">
+  <div class="hero">
+    <h1>13-Feed Institutional Intelligence</h1>
+    <p>Multi-cap pump detection across 1,800+ stocks. Real-time fundamental + technical + macro signal fusion.</p>
+  </div>
+
+  <!-- Macro Regime Banner -->
+  <div class="regime-banner" id="regime-banner">
+    <div class="regime-main">
+      <span class="regime-tag" id="regime-tag">LOADING</span>
+      <span class="regime-detail" id="regime-detail">Loading cross-asset analysis…</span>
+    </div>
+    <div class="regime-meta" id="regime-meta"></div>
+  </div>
+
+  <!-- Universe Coverage -->
+  <div class="universe-stats" id="universe-stats">
+    <div class="stat"><div class="label">Mega</div><div class="val">--</div></div>
+    <div class="stat"><div class="label">Large</div><div class="val">--</div></div>
+    <div class="stat"><div class="label">Mid</div><div class="val">--</div></div>
+    <div class="stat"><div class="label">Small</div><div class="val">--</div></div>
+    <div class="stat"><div class="label">Micro</div><div class="val">--</div></div>
+    <div class="stat"><div class="label">Nano</div><div class="val">--</div></div>
+  </div>
+
+  <!-- Signals Grid -->
+  <div class="signal-grid">
+    
+    <!-- TIER-3+ Compound (full width) -->
+    <div class="signal-card compound-card">
+      <div class="header"><h3>⚡ Compound Tier-3+ (3+ systems agree)</h3><span class="badge fresh" id="comp-fresh">FRESH</span></div>
+      <div class="body" id="compound-tier3"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>13-feed institutional fusion: nobrainers, insiders, smart money, deep value, EPS velocity, momentum, pre-pump, options flow, activist, vol squeeze, rev accel, microcap squeeze, PEAD</span>
+      </div>
+    </div>
+
+    <!-- Volatility Squeeze -->
+    <div class="signal-card">
+      <div class="header"><h3>🔋 Volatility Squeeze (coiled springs)</h3><span class="badge fresh" id="vs-fresh">FRESH</span></div>
+      <div class="body" id="vol-squeeze"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>BB squeeze + TTM + NR7 + VCP + ATR + inside-day</span>
+        <span id="vs-meta"></span>
+      </div>
+    </div>
+
+    <!-- Revenue Acceleration -->
+    <div class="signal-card">
+      <div class="header"><h3>📊 Revenue Acceleration</h3><span class="badge fresh" id="ra-fresh">FRESH</span></div>
+      <div class="body" id="rev-accel"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>YoY growth inflection + GM expansion + op leverage</span>
+        <span id="ra-meta"></span>
+      </div>
+    </div>
+
+    <!-- Microcap Float Squeeze -->
+    <div class="signal-card">
+      <div class="header"><h3>🔥 Microcap Float Squeeze</h3><span class="badge fresh" id="ms-fresh">FRESH</span></div>
+      <div class="body" id="microcap-squeeze"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>Float exhaustion + short rising + short interest %</span>
+        <span id="ms-meta"></span>
+      </div>
+    </div>
+
+    <!-- PEAD -->
+    <div class="signal-card">
+      <div class="header"><h3>📈 Earnings Drift (PEAD)</h3><span class="badge fresh" id="pead-fresh">FRESH</span></div>
+      <div class="body" id="pead"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>3+ quarter beat streaks + post-earnings drift</span>
+        <span id="pead-meta"></span>
+      </div>
+    </div>
+
+    <!-- Options Flow -->
+    <div class="signal-card">
+      <div class="header"><h3>📞 Options Flow</h3><span class="badge fresh" id="of-fresh">FRESH</span></div>
+      <div class="body" id="options-flow"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>Polygon options + FINRA short interest</span>
+        <span id="of-meta"></span>
+      </div>
+    </div>
+
+    <!-- Activist Filings -->
+    <div class="signal-card">
+      <div class="header"><h3>🏛️ Activist Filings</h3><span class="badge fresh" id="af-fresh">FRESH</span></div>
+      <div class="body" id="activist"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>SEC 13D/G real-time, 4-tier filer classification</span>
+        <span id="af-meta"></span>
+      </div>
+    </div>
+
+    <!-- Theme Rotation -->
+    <div class="signal-card">
+      <div class="header"><h3>🟢 Themes Rotating IN</h3><span class="badge fresh" id="tr-fresh">FRESH</span></div>
+      <div class="body" id="theme-rotation"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>RS_60d momentum + breadth across 118 ETFs</span>
+        <span id="tr-meta"></span>
+      </div>
+    </div>
+
+    <!-- Sector Diffusion -->
+    <div class="signal-card">
+      <div class="header"><h3>📈 Sector Earnings Diffusion</h3><span class="badge fresh" id="sd-fresh">FRESH</span></div>
+      <div class="body" id="sector-diff"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>11 sectors, 45 industries — analyst FY1 revisions</span>
+        <span id="sd-meta"></span>
+      </div>
+    </div>
+
+    <!-- Narrative Density -->
+    <div class="signal-card">
+      <div class="header"><h3>📰 Narrative Density</h3><span class="badge fresh" id="nd-fresh">FRESH</span></div>
+      <div class="body" id="narrative"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>53 themes, accelerating today vs 7d</span>
+        <span id="nd-meta"></span>
+      </div>
+    </div>
+
+    <!-- No-Brainers (legacy) -->
+    <div class="signal-card">
+      <div class="header"><h3>🎯 No-Brainers</h3><span class="badge fresh" id="nb-fresh">FRESH</span></div>
+      <div class="body" id="nobrainers"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>Asymmetric setups + theme tier classifier</span>
+      </div>
+    </div>
+
+    <!-- Pre-Pump Detector -->
+    <div class="signal-card">
+      <div class="header"><h3>🌱 Pre-Pump Signals</h3><span class="badge fresh" id="pp-fresh">FRESH</span></div>
+      <div class="body" id="pre-pump"><div class="loading">Loading…</div></div>
+      <div class="footer">
+        <span>Calibrated against actual pump-list winners (v2)</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  JustHodl.AI · Auto-updating institutional intelligence · 24 active Lambdas · 1,809 stocks across 6 cap buckets · Refreshes every 5 min
+</footer>
+
+<script>
+const BASE = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/';
+
+function fmt(n, dec=0) {
+  if (n === null || n === undefined) return '-';
+  return Number(n).toFixed(dec);
+}
+function fmtPct(n, dec=0) {
+  if (n === null || n === undefined) return '-';
+  return (n>=0?'+':'') + Number(n).toFixed(dec) + '%';
+}
+function fmtMcap(n) {
+  if (!n) return '-';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(1) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(0) + 'M';
+  return '$' + n.toFixed(0);
+}
+function ageMin(iso) {
+  if (!iso) return '?';
+  return Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+}
+function freshBadge(ageM) {
+  return ageM < 1440 ? 'fresh' : 'stale';
+}
+
+async function fetchJson(key) {
+  try {
+    const r = await fetch(BASE + key + '?_=' + Date.now());
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+function tableHTML(rows, cols) {
+  let html = '<table><thead><tr>';
+  cols.forEach(c => html += '<th>' + c.label + '</th>');
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += '<tr>';
+    cols.forEach(c => {
+      const cls = c.cls || '';
+      const cellCls = c.cellCls ? c.cellCls(r) : '';
+      html += '<td class="' + cls + ' ' + cellCls + '">' + (c.render ? c.render(r) : r[c.key] || '-') + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+async function loadAll() {
+  // Cross-asset regime
+  const cr = await fetchJson('cross-asset-regime.json');
+  if (cr && cr.regime_20d) {
+    const r = cr.regime_20d;
+    const tag = document.getElementById('regime-tag');
+    tag.textContent = r.regime || '?';
+    tag.className = 'regime-tag ' + (
+      (r.risk_label||'').includes('RISK_ON') ? 'risk-on' :
+      (r.risk_label||'').includes('RISK_OFF') ? 'risk-off' : 'neutral'
+    );
+    document.getElementById('regime-detail').textContent =
+      'Confidence ' + (r.confidence||0) + '% · ' + (r.risk_label||'') +
+      ' · ' + ((r.rationale||[])[0] || '');
+    
+    // Asset returns
+    const ret = r.lookback_returns_pct || {};
+    const assets = ['SPY','TLT','GLD','UUP','HYG','USO','BITO','VIXY'];
+    const meta = document.getElementById('regime-meta');
+    meta.innerHTML = assets.map(a => {
+      const v = ret[a];
+      return '<div class="stat"><div class="label">' + a + ' 20d</div>' +
+              '<div class="val ' + (v>0?'up':v<0?'down':'') + '">' + fmtPct(v||0,1) + '</div></div>';
+    }).join('');
+  }
+
+  // Universe stats
+  const u = await fetchJson('universe.json');
+  if (u && u.stats && u.stats.by_cap_bucket) {
+    const buckets = ['mega','large','mid','small','micro','nano'];
+    const stats = u.stats.by_cap_bucket;
+    const total = u.stats.total_stocks;
+    const stEl = document.getElementById('universe-stats');
+    stEl.innerHTML = buckets.map(b => {
+      const n = stats[b] || 0;
+      const pct = total > 0 ? Math.round(n/total*100) : 0;
+      return '<div class="stat"><div class="label">' + b + '</div>' +
+              '<div class="val">' + n + '</div>' +
+              '<div class="pct">' + pct + '% of ' + total + '</div></div>';
+    }).join('');
+  }
+
+  // Compound TIER-3+
+  const cs = await fetchJson('compound-signals.json');
+  if (cs) {
+    const t3 = (cs.compound || []).filter(r => (r.n_systems || 0) >= 3).slice(0, 12);
+    const sysEmoji = {nobrainers:'🎯', insiders:'👀', smart_money:'💼', deep_value:'💎',
+                      eps_velocity:'📈', momentum:'🚀', pre_pump:'🌱', options_flow:'📞',
+                      activist:'🏛️', vol_squeeze:'🔋', rev_accel:'📊', microcap_sq:'🔥', pead:'🎁'};
+    document.getElementById('compound-tier3').innerHTML = tableHTML(t3, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Sys', render:r => r.n_systems},
+      {label:'Compound', cls:'score', render:r => Math.round(r.compound_score)},
+      {label:'Systems agreeing', render:r =>
+        '<span class="meta">' + (r.systems||[]).map(s => (sysEmoji[s]||'•') + ' ' + s).join('  ') + '</span>'
+      },
+    ]);
+  }
+
+  // Volatility Squeeze
+  const vs = await fetchJson('volatility-squeeze.json');
+  if (vs) {
+    const top = (vs.summary && vs.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('vol-squeeze').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.tier === 'TIER_S_EXCEPTIONAL' ? 'tier-s' : r.tier === 'TIER_A_STRONG_SQUEEZE' ? 'tier-a' : 'tier-b',
+        render:r => fmt(r.score,1)},
+      {label:'Sig', render:r => r.n_signals + '/6'},
+      {label:'Base', render:r => (r.base_days||0)+'d'},
+      {label:'BB%ile', cls:'meta', render:r => fmt(r.bb_pct,0)+'%'},
+    ]);
+    document.getElementById('vs-meta').textContent =
+      (vs.stats||{}).n_evaluated + ' evaluated · ' + ageMin(vs.generated_at) + 'm ago';
+  }
+
+  // Revenue Acceleration
+  const ra = await fetchJson('revenue-acceleration.json');
+  if (ra) {
+    const top = (ra.summary && ra.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('rev-accel').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.score>=85?'tier-s':r.score>=70?'tier-a':'tier-b', render:r => fmt(r.score,0)},
+      {label:'Growth', cls:'up', render:r => fmtPct(r.growth,0)},
+      {label:'Δ Accel', render:r => fmtPct(r.acceleration,0).replace('%','pp')},
+      {label:'Streak', render:r => (r.consec_accel||0)+'Q'},
+    ]);
+    document.getElementById('ra-meta').textContent =
+      (ra.stats||{}).n_evaluated + ' evaluated · ' + ageMin(ra.generated_at) + 'm ago';
+  }
+
+  // Microcap Squeeze
+  const ms = await fetchJson('microcap-float-squeeze.json');
+  if (ms) {
+    const top = (ms.summary && ms.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('microcap-squeeze').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.tier === 'TIER_S_PARABOLIC_SETUP'?'tier-s':r.tier === 'TIER_A_SQUEEZE_BREWING'?'tier-a':'tier-b',
+        render:r => fmt(r.score,1)},
+      {label:'Mcap', render:r => fmtMcap(r.market_cap)},
+      {label:'Short%', cls:'amber', render:r => fmt(r.short_pct,0)+'%'},
+      {label:'Δ Short', render:r => fmt(r.short_change,1)+'pp'},
+    ]);
+    document.getElementById('ms-meta').textContent =
+      (ms.stats||{}).n_evaluated + ' evaluated · ' + ageMin(ms.generated_at) + 'm ago';
+  }
+
+  // PEAD
+  const pead = await fetchJson('earnings-pead.json');
+  if (pead) {
+    const top = (pead.summary && pead.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('pead').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.score>=85?'tier-s':r.score>=70?'tier-a':'tier-b', render:r => fmt(r.score,0)},
+      {label:'Streak', render:r => (r.beat_streak||r.consec_beats||0)+'Q'},
+      {label:'Bucket', cls:'meta', render:r => r.cap_bucket||'-'},
+    ]);
+    document.getElementById('pead-meta').textContent =
+      (pead.stats||{}).n_evaluated + ' evaluated · ' + ageMin(pead.generated_at) + 'm ago';
+  }
+
+  // Options Flow
+  const of = await fetchJson('options-flow.json');
+  if (of) {
+    const top = (of.summary && of.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('options-flow').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.score>=85?'tier-s':r.score>=70?'tier-a':'tier-b', render:r => fmt(r.score,0)},
+      {label:'Tier', render:r => r.tier||'-'},
+      {label:'CPR Δ', cls:'meta', render:r => fmt(r.cpr_change_pct,0)+'%'},
+    ]);
+    document.getElementById('of-meta').textContent =
+      ((of.stats||{}).n_evaluated || (of.stats||{}).n_tickers_with_options || '-') + ' tickers · ' + ageMin(of.generated_at) + 'm ago';
+  }
+
+  // Activist
+  const af = await fetchJson('activist-filings.json');
+  if (af) {
+    const top = (af.summary && af.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('activist').innerHTML = tableHTML(top, [
+      {label:'Tkr', cls:'sym', render:r => r.subject_ticker || '?'},
+      {label:'Score', cls:'score', render:r => fmt(r.score,0)},
+      {label:'Form', render:r => r.form_type||'-'},
+      {label:'Filer', cls:'meta', render:r => (r.filer_name||'').substring(0,30)},
+    ]);
+    document.getElementById('af-meta').textContent =
+      (af.stats||{}).n_filings_total + ' filings · ' + ageMin(af.generated_at) + 'm ago';
+  }
+
+  // Theme Rotation
+  const tr = await fetchJson('theme-rotation.json');
+  if (tr) {
+    const top = (tr.summary && tr.summary.top_10_momentum || []).slice(0, 8);
+    document.getElementById('theme-rotation').innerHTML = tableHTML(top, [
+      {label:'ETF', cls:'sym', render:r => r.ticker},
+      {label:'Theme', render:r => (r.name||'').substring(0,28)},
+      {label:'RS 60d', cls:'up', render:r => fmtPct(r.rs_60d,0)},
+      {label:'Breadth', cls:'meta', render:r => fmt(r.breadth_pct,0)+'%'},
+    ]);
+    document.getElementById('tr-meta').textContent = ageMin(tr.generated_at) + 'm ago';
+  }
+
+  // Sector Diffusion
+  const sd = await fetchJson('sector-earnings-diffusion.json');
+  if (sd) {
+    const top = (sd.summary && sd.summary.sectors_top_diffusion || []).slice(0, 8);
+    document.getElementById('sector-diff').innerHTML = tableHTML(top, [
+      {label:'Sector', render:r => (r.group||'').substring(0,22)},
+      {label:'Up%', cls:'up', cellCls:r => 'up', render:r => fmt(r.diffusion_up_pct,0)+'%'},
+      {label:'Strong', render:r => fmt(r.diffusion_strong_up_pct,0)+'%'},
+      {label:'Lift', cls:'meta', render:r => fmtPct(r.avg_fy2_lift_pct,1)},
+    ]);
+    document.getElementById('sd-meta').textContent = ageMin(sd.generated_at) + 'm ago';
+  }
+
+  // Narrative Density
+  const nd = await fetchJson('narrative-density.json');
+  if (nd) {
+    const top = (nd.summary && nd.summary.top_15_themes || [])
+      .filter(t => (t.metrics && t.metrics.accel_today_vs_7d) > 1.5).slice(0, 8);
+    document.getElementById('narrative').innerHTML = tableHTML(top, [
+      {label:'Theme', render:r => (r.name||'').substring(0,25)},
+      {label:'Score', cls:'score', render:r => fmt(r.score,0)},
+      {label:'Accel', cls:'up', render:r => fmt((r.metrics||{}).accel_today_vs_7d,1)+'x'},
+      {label:'30d', cls:'meta', render:r => (r.metrics||{}).n_30d || 0},
+    ]);
+    document.getElementById('nd-meta').textContent = ageMin(nd.generated_at) + 'm ago';
+  }
+
+  // No-Brainers
+  const nb = await fetchJson('nobrainers.json');
+  if (nb) {
+    const top = (nb.summary && nb.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('nobrainers').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.ticker},
+      {label:'Score', cls:'score', render:r => fmt(r.score,0)},
+      {label:'Theme', cls:'meta', render:r => (r.theme||'-').substring(0,24)},
+    ]);
+  }
+
+  // Pre-Pump
+  const pp = await fetchJson('pre-pump-signals.json');
+  if (pp) {
+    const top = (pp.summary && pp.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('pre-pump').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Tier', cls:'amber', render:r => r.tier||'-'},
+      {label:'Score', cls:'score', render:r => fmt(r.score,0)},
+      {label:'30d', cls:'meta', render:r => fmtPct(r.ret_30d,0)},
+    ]);
+  }
+
+  // Last updated
+  document.getElementById('last-updated').textContent = 'UPDATED ' + new Date().toLocaleTimeString();
+}
+
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);
+</script>
+</body>
+</html>
