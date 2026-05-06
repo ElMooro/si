@@ -45,11 +45,13 @@ SSM = boto3.client("ssm", region_name=REGION)
 
 
 FEEDS = {
-    "nobrainers":   ("data/nobrainers.json",            "summary.top_25_overall",  "ticker"),
-    "insiders":     ("data/insider-clusters.json",      "clusters",                "ticker"),
-    "smart_money":  ("data/smart-money-clusters.json",  "clusters",                "ticker"),
-    "deep_value":   ("data/deep-value.json",            "summary.top_25_overall",  "symbol"),
-    "eps_velocity": ("data/eps-revision-velocity.json", "summary.top_25_overall",  "symbol"),
+    "nobrainers":     ("data/nobrainers.json",             "summary.top_25_overall",  "ticker"),
+    "insiders":       ("data/insider-clusters.json",       "clusters",                "ticker"),
+    "smart_money":    ("data/smart-money-clusters.json",   "clusters",                "ticker"),
+    "deep_value":     ("data/deep-value.json",             "summary.top_25_overall",  "symbol"),
+    "eps_velocity":   ("data/eps-revision-velocity.json",  "summary.top_25_overall",  "symbol"),
+    "momentum":       ("data/momentum-breakout.json",      "summary.top_25_overall",  "symbol"),
+    "pre_pump":       ("data/pre-pump-signals.json",       "summary.top_25_overall",  "symbol"),
 }
 
 
@@ -136,6 +138,25 @@ def aggregate():
                     "fy2_lift_pct": c.get("fy2_lift_pct"),
                     "fwd_rev_growth_pct": c.get("fwd_rev_growth_pct"),
                     "company": c.get("company", ""),
+                }
+            elif name == "momentum":
+                d = {
+                    "tier": c.get("tier"),
+                    "flags": c.get("flags") or [],
+                    "ret_60d": c.get("ret_60d"),
+                    "ret_20d": c.get("ret_20d"),
+                    "vol_ratio": c.get("vol_ratio"),
+                    "rs_vs_spy_20d": c.get("rs_vs_spy_20d"),
+                }
+            elif name == "pre_pump":
+                d = {
+                    "tier": c.get("tier"),
+                    "flags": c.get("flags") or [],
+                    "obv_slope": c.get("obv_slope"),
+                    "vol_comp": c.get("vol_comp"),
+                    "liq_expand": c.get("liq_expand"),
+                    "ret_60d": c.get("ret_60d"),
+                    "ret_30d": c.get("ret_30d"),
                 }
             presence[sym]["details"][name] = d
 
@@ -263,6 +284,7 @@ def emit_alerts(new_alerts, agg):
     emojis = {
         "nobrainers": "🎯", "insiders": "👀", "smart_money": "💼",
         "deep_value": "💎", "eps_velocity": "📈",
+        "momentum": "🚀", "pre_pump": "🌱",
     }
     for a in new_alerts[:8]:
         sym = a["symbol"]
