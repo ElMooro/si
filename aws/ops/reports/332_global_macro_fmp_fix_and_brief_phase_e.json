@@ -1,0 +1,158 @@
+{
+  "started": "2026-05-07T12:03:33.224060+00:00",
+  "global_macro": {
+    "status": 200,
+    "function_error": null,
+    "duration_s": 7.1,
+    "response_body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_with_data\\\": 15, \\\"global_regime\\\": \\\"GLOBAL MIXED\\\", \\\"avg_composite\\\": 57.4, \\\"duration_s\\\": 6.0}\"}"
+  },
+  "global_macro_check": {
+    "n_countries": 15,
+    "n_with_etf_data": 15,
+    "global_avg": 57.4,
+    "global_regime": "GLOBAL MIXED",
+    "rankings": {
+      "hottest": [
+        {
+          "code": "KR",
+          "name": "South Korea",
+          "score": 75.0
+        },
+        {
+          "code": "AU",
+          "name": "Australia",
+          "score": 67.2
+        },
+        {
+          "code": "US",
+          "name": "United States",
+          "score": 64.6
+        },
+        {
+          "code": "JP",
+          "name": "Japan",
+          "score": 64.6
+        },
+        {
+          "code": "GB",
+          "name": "United Kingdom",
+          "score": 63.8
+        }
+      ],
+      "coldest": [
+        {
+          "code": "CN",
+          "name": "China (proxy)",
+          "score": 32.8
+        },
+        {
+          "code": "ES",
+          "name": "Spain",
+          "score": 40.7
+        },
+        {
+          "code": "IN",
+          "name": "India",
+          "score": 50.2
+        },
+        {
+          "code": "IT",
+          "name": "Italy",
+          "score": 52.5
+        },
+        {
+          "code": "CA",
+          "name": "Canada",
+          "score": 53.1
+        }
+      ]
+    },
+    "etf_samples": [
+      {
+        "code": "US",
+        "name": "United States",
+        "etf": "SPY",
+        "ret_3m": 6.03,
+        "n_components": 3,
+        "composite": 64.6,
+        "regime": "MIXED"
+      },
+      {
+        "code": "FR",
+        "name": "France",
+        "etf": "EWQ",
+        "ret_3m": -0.23,
+        "n_components": 5,
+        "composite": 58.6,
+        "regime": "MIXED"
+      },
+      {
+        "code": "GB",
+        "name": "United Kingdom",
+        "etf": "EWU",
+        "ret_3m": 1.5,
+        "n_components": 5,
+        "composite": 63.8,
+        "regime": "MIXED"
+      },
+      {
+        "code": "ES",
+        "name": "Spain",
+        "etf": "EWP",
+        "ret_3m": 0.96,
+        "n_components": 3,
+        "composite": 40.7,
+        "regime": "COLD"
+      },
+      {
+        "code": "JP",
+        "name": "Japan",
+        "etf": "EWJ",
+        "ret_3m": -1.53,
+        "n_components": 3,
+        "composite": 64.6,
+        "regime": "MIXED"
+      },
+      {
+        "code": "CN",
+        "name": "China (proxy)",
+        "etf": "FXI",
+        "ret_3m": -5.16,
+        "n_components": 1,
+        "composite": 32.8,
+        "regime": "COLD"
+      },
+      {
+        "code": "KR",
+        "name": "South Korea",
+        "etf": "EWY",
+        "ret_3m": 46.23,
+        "n_components": 4,
+        "composite": 75.0,
+        "regime": "HOT"
+      },
+      {
+        "code": "AU",
+        "name": "Australia",
+        "etf": "EWA",
+        "ret_3m": 5.17,
+        "n_components": 1,
+        "composite": 67.2,
+        "regime": "HOT"
+      }
+    ]
+  },
+  "morning_brief": {
+    "status": 200,
+    "function_error": null,
+    "duration_s": 2.5,
+    "response_body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"info\\\": \\\"{\\\\\\\"ok\\\\\\\":true,\\\\\\\"result\\\\\\\":{\\\\\\\"message_id\\\\\\\":791,\\\\\\\"from\\\\\\\":{\\\\\\\"id\\\\\\\":8679881066,\\\\\\\"is_bot\\\\\\\":true,\\\\\\\"first_name\\\\\\\":\\\\\\\"AI Claude #VPN 1\\\\\\\",\\\\\\\"username\\\\\\\":\\\\\\\"Justhodl_bot\\\\\\\"},\\\\\\\"chat\\\\\\\":{\\\\\\\"id\\\\\\\":8678089260,\\\\\\\"first_name\\\\\\\":\\\\\\\"BotFather\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"private\\\\\\\"},\\\\\\\"date\\\\\\\":1778155514,\\\\\\\"text\\\\\\\":\\\\\\\"*\\\\\\\\ud83c\\\\\\\\udf05 JustHodl Morning Brief \\\\\\\\u2014 2026-05-07*\\\\\\\\n\\\\\\\\n*Regime:* `\\\\\\\\u\\\"}\"}"
+  },
+  "brief_check": {
+    "msg_length": 0,
+    "has_fed_section": false,
+    "has_global_section": false,
+    "fed_excerpt": "",
+    "global_excerpt": ""
+  }
+}
