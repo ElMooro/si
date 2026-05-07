@@ -1,0 +1,20 @@
+{
+  "as_of": "2026-05-07T11:58:48.680494+00:00",
+  "tests": {
+    "/stable/historical-price-eod": {
+      "ok": false,
+      "code": 404,
+      "body": "[]"
+    },
+    "/api/v3/historical-price-full/EWG": {
+      "ok": false,
+      "code": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}"
+    },
+    "/api/v3/historical-chart/1day/EWG": {
+      "ok": false,
+      "code": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}"
+    }
+  }
+}
