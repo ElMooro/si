@@ -1,0 +1,237 @@
+{
+  "started": "2026-05-07T11:43:17.677082+00:00",
+  "lambda_last_modified": "2026-05-07T11:34:36.000+0000",
+  "status": 200,
+  "function_error": null,
+  "duration_s": 7.0,
+  "response": {
+    "statusCode": 200,
+    "body": "{\"ok\": true, \"today_date\": \"2026-05-06\", \"n_with_data\": 902, \"n_top\": 30, \"top_5\": [\"UWMC\", \"CTRA\", \"TECH\", \"NRP\", \"PRIM\"], \"duration_s\": 6.2}"
+  },
+  "s3_size_kb": 17.1,
+  "today_date": "2026-05-06",
+  "n_universe": 1241,
+  "n_with_data": 902,
+  "market_breadth": {
+    "advance": 480,
+    "decline": 425,
+    "unch": 317,
+    "advance_decline_ratio": 1.13
+  },
+  "top_15": [
+    {
+      "ticker": "UWMC",
+      "score": 88.9,
+      "rel_vol": 4.25,
+      "block_ratio": 1.93,
+      "range_exp": 3.74,
+      "today_dollar_vol": 180986031,
+      "change_pct": -5.42,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION",
+        "BLOCK_PRINTS"
+      ],
+      "rationale": "vol 4.25\u00d7 baseline \u00b7 avg trade size 1.93\u00d7 normal (block prints) \u00b7 range 3.74\u00d7 normal \u00b7 close -5.4%"
+    },
+    {
+      "ticker": "CTRA",
+      "score": 86.9,
+      "rel_vol": 10.66,
+      "block_ratio": 3.75,
+      "range_exp": 1.69,
+      "today_dollar_vol": 2394182141,
+      "change_pct": -2.65,
+      "tags": [
+        "VOLUME_SURGE",
+        "BLOCK_PRINTS",
+        "MEGA_NOTIONAL"
+      ],
+      "rationale": "vol 10.66\u00d7 baseline \u00b7 avg trade size 3.75\u00d7 normal (block prints) \u00b7 range 1.69\u00d7 normal \u00b7 close -2.6%"
+    },
+    {
+      "ticker": "TECH",
+      "score": 85.3,
+      "rel_vol": 5.92,
+      "block_ratio": 1.69,
+      "range_exp": 5.4,
+      "today_dollar_vol": 575772998,
+      "change_pct": -16.36,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 5.92\u00d7 baseline \u00b7 avg trade size 1.69\u00d7 normal (block prints) \u00b7 range 5.4\u00d7 normal \u00b7 close -16.4%"
+    },
+    {
+      "ticker": "NRP",
+      "score": 83.1,
+      "rel_vol": 6.27,
+      "block_ratio": 1.54,
+      "range_exp": 4.41,
+      "today_dollar_vol": 13632837,
+      "change_pct": 2.97,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 6.27\u00d7 baseline \u00b7 avg trade size 1.54\u00d7 normal (block prints) \u00b7 range 4.41\u00d7 normal \u00b7 close +3.0%"
+    },
+    {
+      "ticker": "PRIM",
+      "score": 82.8,
+      "rel_vol": 15.84,
+      "block_ratio": 1.52,
+      "range_exp": 8.96,
+      "today_dollar_vol": 1425208492,
+      "change_pct": -21.15,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION",
+        "MEGA_NOTIONAL"
+      ],
+      "rationale": "vol 15.84\u00d7 baseline \u00b7 avg trade size 1.52\u00d7 normal (block prints) \u00b7 range 8.96\u00d7 normal \u00b7 close -21.1%"
+    },
+    {
+      "ticker": "NVAX",
+      "score": 82.1,
+      "rel_vol": 5.39,
+      "block_ratio": 1.47,
+      "range_exp": 3.22,
+      "today_dollar_vol": 150478101,
+      "change_pct": 9.35,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 5.39\u00d7 baseline \u00b7 range 3.22\u00d7 normal \u00b7 close +9.3%"
+    },
+    {
+      "ticker": "TBLA",
+      "score": 81.9,
+      "rel_vol": 7.21,
+      "block_ratio": 1.46,
+      "range_exp": 5.43,
+      "today_dollar_vol": 44183922,
+      "change_pct": 11.5,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 7.21\u00d7 baseline \u00b7 range 5.43\u00d7 normal \u00b7 close +11.5%"
+    },
+    {
+      "ticker": "COR",
+      "score": 81.6,
+      "rel_vol": 5.82,
+      "block_ratio": 1.44,
+      "range_exp": 4.06,
+      "today_dollar_vol": 1997530399,
+      "change_pct": -5.7,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION",
+        "MEGA_NOTIONAL"
+      ],
+      "rationale": "vol 5.82\u00d7 baseline \u00b7 range 4.06\u00d7 normal \u00b7 close -5.7%"
+    },
+    {
+      "ticker": "SR",
+      "score": 80.7,
+      "rel_vol": 3.59,
+      "block_ratio": 1.38,
+      "range_exp": 3.25,
+      "today_dollar_vol": 100620312,
+      "change_pct": -2.44,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 3.59\u00d7 baseline \u00b7 range 3.25\u00d7 normal \u00b7 close -2.4%"
+    },
+    {
+      "ticker": "TKR",
+      "score": 80.6,
+      "rel_vol": 3.04,
+      "block_ratio": 1.37,
+      "range_exp": 3.45,
+      "today_dollar_vol": 265765608,
+      "change_pct": 0.85,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 3.04\u00d7 baseline \u00b7 range 3.45\u00d7 normal \u00b7 close +0.8%"
+    },
+    {
+      "ticker": "VEEV",
+      "score": 80,
+      "rel_vol": 13.8,
+      "block_ratio": 7.51,
+      "range_exp": 0.58,
+      "today_dollar_vol": 6011228564,
+      "change_pct": -0.98,
+      "tags": [
+        "VOLUME_SURGE",
+        "BLOCK_PRINTS",
+        "MEGA_NOTIONAL"
+      ],
+      "rationale": "vol 13.8\u00d7 baseline \u00b7 avg trade size 7.51\u00d7 normal (block prints) \u00b7 close -1.0%"
+    },
+    {
+      "ticker": "TGTX",
+      "score": 79.9,
+      "rel_vol": 3.7,
+      "block_ratio": 1.32,
+      "range_exp": 3.91,
+      "today_dollar_vol": 263676377,
+      "change_pct": 15.78,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 3.7\u00d7 baseline \u00b7 range 3.91\u00d7 normal \u00b7 close +15.8%"
+    },
+    {
+      "ticker": "XPEL",
+      "score": 78.8,
+      "rel_vol": 3.35,
+      "block_ratio": 1.26,
+      "range_exp": 6.15,
+      "today_dollar_vol": 31015466,
+      "change_pct": -16.58,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 3.35\u00d7 baseline \u00b7 range 6.15\u00d7 normal \u00b7 close -16.6%"
+    },
+    {
+      "ticker": "MRCY",
+      "score": 78.4,
+      "rel_vol": 2.93,
+      "block_ratio": 1.39,
+      "range_exp": 2.87,
+      "today_dollar_vol": 126561563,
+      "change_pct": 4.12,
+      "tags": [
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 2.93\u00d7 baseline \u00b7 range 2.87\u00d7 normal \u00b7 close +4.1%"
+    },
+    {
+      "ticker": "LTH",
+      "score": 77.0,
+      "rel_vol": 3.02,
+      "block_ratio": 1.13,
+      "range_exp": 3.44,
+      "today_dollar_vol": 218702017,
+      "change_pct": 12.15,
+      "tags": [
+        "VOLUME_SURGE",
+        "RANGE_EXPANSION"
+      ],
+      "rationale": "vol 3.02\u00d7 baseline \u00b7 range 3.44\u00d7 normal \u00b7 close +12.2%"
+    }
+  ]
+}
