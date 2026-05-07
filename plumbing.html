@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plumbing & Stress · JustHodl.AI</title>
+<meta name="description" content="4-layer liquidity & risk plumbing composite — eurodollar, bank risk, real-side damage, cross-border stress.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1700px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  /* Composite banner */
+  .composite { padding: 22px 26px; border-radius: 10px; margin-bottom: 14px;
+                text-align: center; border-left: 5px solid var(--text-dim);
+                background: var(--bg-card); }
+  .composite.ABUNDANT { background: rgba(34,197,94,0.10); border-left-color: var(--green); }
+  .composite.NORMAL   { background: rgba(59,130,246,0.06); border-left-color: var(--blue); }
+  .composite.ELEVATED { background: rgba(245,158,11,0.10); border-left-color: var(--amber); }
+  .composite.CRITICAL { background: rgba(239,68,68,0.12); border-left-color: var(--red); }
+  .composite.CRISIS   { background: rgba(220,38,38,0.18); border-left-color: var(--crimson); }
+  .composite h2 { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }
+  .composite .score { font-size: 48px; font-weight: 800; margin: 4px 0;
+                       font-variant-numeric: tabular-nums; }
+  .composite .meta-line { font-size: 12px; color: var(--text-dim); }
+
+  /* Layer grid */
+  .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .layer { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            overflow: hidden; cursor: pointer; transition: border-color 0.1s; }
+  .layer:hover { border-color: var(--accent); }
+  .layer.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .layer-header { padding: 12px 14px; border-bottom: 1px solid var(--border-light);
+                   display: flex; justify-content: space-between; align-items: center; }
+  .layer-header .name { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .layer-header .weight { font-size: 10px; color: var(--text-muted); }
+  .layer-body { padding: 14px; text-align: center; }
+  .layer-score { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .layer-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+                  text-transform: uppercase; margin-top: 4px; }
+  .layer-coverage { font-size: 10px; color: var(--text-dim); margin-top: 6px; }
+  .score-ABUNDANT { color: var(--green); }
+  .score-NORMAL   { color: var(--blue); }
+  .score-ELEVATED { color: var(--amber); }
+  .score-CRITICAL { color: var(--red); }
+  .score-CRISIS   { color: var(--crimson); }
+
+  /* Alerts */
+  .alerts { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
+  .alerts-header { background: var(--bg-card-elev); padding: 10px 14px;
+                    border-bottom: 1px solid var(--border-light);
+                    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .alert-row { display: grid; grid-template-columns: 90px 1fr 60px 80px 80px;
+                gap: 10px; align-items: center; padding: 9px 14px;
+                border-bottom: 1px solid var(--border-light); font-size: 12px; }
+  .alert-row:last-child { border-bottom: none; }
+  .alert-row:hover { background: var(--bg-card-elev); }
+  .severity-pill { display: inline-block; padding: 2px 8px; border-radius: 3px;
+                    font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-align: center; }
+  .severity-pill.CRITICAL { background: rgba(239,68,68,0.22); color: var(--red); }
+  .severity-pill.ELEVATED { background: rgba(245,158,11,0.20); color: var(--amber); }
+  .alert-label { font-weight: 600; }
+  .alert-message { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .alert-layer { color: var(--purple); font-weight: 600; font-size: 10px; text-align: center; }
+  .alert-score { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Indicator detail table */
+  .panel { background: var(--bg-card); border: 1px solid var(--border);
+           border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+  .panel-header { background: var(--bg-card-elev); padding: 10px 14px;
+                   border-bottom: 1px solid var(--border-light);
+                   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+                   display: flex; justify-content: space-between; align-items: center; }
+  .panel-header .layer-tag { font-weight: 700; padding: 3px 8px; border-radius: 3px;
+                              background: rgba(168,85,247,0.16); color: var(--purple);
+                              font-size: 10px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--bg-card-elev); }
+  th { text-align: left; padding: 7px 10px; color: var(--text-dim);
+       font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+       border-bottom: 1px solid var(--border-light); white-space: nowrap; cursor: pointer; }
+  th:hover { color: var(--accent); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border-light);
+       font-variant-numeric: tabular-nums; vertical-align: middle; }
+  tr:hover td { background: var(--bg-card-elev); }
+  .ind-id { font-family: monospace; font-weight: 600; color: var(--accent); font-size: 11px; }
+  .ind-label { font-weight: 600; }
+  .ind-interp { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+  .stress-cell { display: inline-block; padding: 3px 8px; border-radius: 3px;
+                  min-width: 50px; text-align: center; font-weight: 600; font-size: 11px; }
+  .s0   { background: rgba(34,197,94,0.18); color: var(--green); }
+  .s25  { background: rgba(59,130,246,0.16); color: var(--blue); }
+  .s50  { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .s75  { background: rgba(239,68,68,0.18); color: var(--red); }
+  .s90  { background: rgba(220,38,38,0.30); color: #fff; }
+  .sNA  { background: var(--bg-card-elev); color: var(--text-muted); }
+
+  /* Layer descriptions */
+  .layer-desc { background: var(--bg-card); border-left: 3px solid var(--purple);
+                 padding: 12px 16px; margin-bottom: 12px; font-size: 12px; line-height: 1.6;
+                 color: var(--text-dim); }
+  .layer-desc strong { color: var(--text); }
+
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  @media (max-width: 900px) {
+    .layers { grid-template-columns: repeat(2, 1fr); }
+    table { font-size: 10px; } th, td { padding: 4px 5px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Plumbing & Stress <span class="sub">4-layer liquidity & risk composite — eurodollar / bank risk / real damage / cross-border</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/crisis.html">Crisis</a> ·
+        <a href="/liquidity.html">Liquidity</a> ·
+        <a href="/auction-crisis.html">Auctions</a> ·
+        <a href="/master-rank.html">Action Items</a>
+      </div>
+    </div>
+
+    <div id="composite" class="composite NORMAL">
+      <h2 id="compLabel">—</h2>
+      <div class="score" id="compScore">—</div>
+      <div class="meta-line">Composite weighted: L1 35% · L2 25% · L3 20% · L4 20%</div>
+    </div>
+
+    <div class="layers">
+      <div class="layer" data-layer="L1" onclick="setActiveLayer('L1')">
+        <div class="layer-header">
+          <span class="name">L1 — Eurodollar Plumbing</span>
+          <span class="weight">35%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L1score">—</div>
+          <div class="layer-label" id="L1label">—</div>
+          <div class="layer-coverage" id="L1coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L2" onclick="setActiveLayer('L2')">
+        <div class="layer-header">
+          <span class="name">L2 — Bank Risk Appetite</span>
+          <span class="weight">25%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L2score">—</div>
+          <div class="layer-label" id="L2label">—</div>
+          <div class="layer-coverage" id="L2coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L3" onclick="setActiveLayer('L3')">
+        <div class="layer-header">
+          <span class="name">L3 — Real-Side Damage</span>
+          <span class="weight">20%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L3score">—</div>
+          <div class="layer-label" id="L3label">—</div>
+          <div class="layer-coverage" id="L3coverage">—</div>
+        </div>
+      </div>
+      <div class="layer" data-layer="L4" onclick="setActiveLayer('L4')">
+        <div class="layer-header">
+          <span class="name">L4 — Cross-Border Stress</span>
+          <span class="weight">20%</span>
+        </div>
+        <div class="layer-body">
+          <div class="layer-score" id="L4score">—</div>
+          <div class="layer-label" id="L4label">—</div>
+          <div class="layer-coverage" id="L4coverage">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="alertsHost"></div>
+
+    <div id="layerDesc" class="layer-desc"></div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span id="indPanelTitle">All Indicators</span>
+        <span id="indCountTag" style="font-size:11px;color:var(--text-dim);">—</span>
+      </div>
+      <div id="indTableHost"><div class="loader">Loading indicators…</div></div>
+    </div>
+  </div>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/plumbing-stress.json';
+let DATA = null;
+let ACTIVE_LAYER = 'ALL';
+let SORT = { col: 'stress_score', dir: 'desc' };
+
+const LAYER_DESC = {
+  'ALL': '',
+  'L1': '<strong>L1 EURODOLLAR PLUMBING</strong> — Fast-moving funding stress in offshore dollar system. Tracks Fed swap line activations, Eurosystem foreign-currency claims, and primary dealer Treasury settlement fails. ~70% of global USD activity happens outside US borders. When non-US banks can\'t source dollars, they sell what they can (Treasuries, gold, equities). This is what actually moved markets in March 2020 — not the virus, the dollar shortage. SWP1690 spike + ILM claims rising = late-stage stress (Fed already intervening).',
+  'L2': '<strong>L2 BANK RISK APPETITE</strong> — Slow but leading indicator of recession. Tracks bank willingness to lend (loan officer survey spreads/collateral), foreign-related institution behavior (cash hoarding, deposit flight), and money-market fund flows. When banks tighten, real economy slows ~6 months later. Banks see truth before any macro print. SBCACBW + RMFSL both rising = institutional + retail in defensive crouch simultaneously = high-quality recession signal.',
+  'L3': '<strong>L3 REAL-SIDE DAMAGE</strong> — Lagging confirmation of regime change. Tracks employment quality (long-term unemployed, permanent layoffs vs cyclical), industrial production, capacity utilization, and broker-dealer leverage. By the time these move, recession is no longer hypothetical. TEMPHELPS turning negative YoY = 6mo recession warning (8/10 hit rate). UEMP27OV + LNS13025699 both accelerating = recession in progress, position defensively.',
+  'L4': '<strong>L4 CROSS-BORDER STRESS</strong> — Capital flow direction + sovereign credit risk + global liquidity regime. Dollar regime is the best macro variable for risk assets. Strong USD = global liquidity contraction = risk-off. Tracks broad dollar (nominal+real), EM-specific dollar (real/nominal), Advanced Foreign Economies dollar, and ECB CISS for US/EU/China. RTWEXEMEGS > +3% in 6mo = EM crisis incoming. CISS_EA > CISS_US by 0.3 = European-specific stress.',
+};
+
+function setActiveLayer(layer) {
+  ACTIVE_LAYER = ACTIVE_LAYER === layer ? 'ALL' : layer;
+  document.querySelectorAll('.layer').forEach(el => {
+    el.classList.toggle('active', el.dataset.layer === ACTIVE_LAYER);
+  });
+  document.getElementById('layerDesc').innerHTML = LAYER_DESC[ACTIVE_LAYER] || '';
+  document.getElementById('layerDesc').style.display = ACTIVE_LAYER === 'ALL' ? 'none' : 'block';
+  renderIndicators();
+}
+
+function scoreLabel(score) {
+  if (score === null || score === undefined) return 'NO DATA';
+  if (score < 25) return 'ABUNDANT';
+  if (score < 50) return 'NORMAL';
+  if (score < 70) return 'ELEVATED';
+  if (score < 85) return 'CRITICAL';
+  return 'CRISIS';
+}
+
+function stressCellClass(score) {
+  if (score === null || score === undefined) return 'sNA';
+  if (score < 25) return 's0';
+  if (score < 50) return 's25';
+  if (score < 75) return 's50';
+  if (score < 90) return 's75';
+  return 's90';
+}
+
+function applySort(rows, col, dir) {
+  return [...rows].sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
+    if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function fmtNum(v, decimals = 2) {
+  if (v === null || v === undefined) return '—';
+  return Number(v).toFixed(decimals);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '—';
+  return Number(v).toFixed(1) + '%';
+}
+
+function fmtZ(v) {
+  if (v === null || v === undefined) return '—';
+  const sign = v >= 0 ? '+' : '';
+  return sign + Number(v).toFixed(2) + 'σ';
+}
+
+function renderComposite() {
+  const score = DATA.composite_score;
+  const label = DATA.composite_label || 'UNKNOWN';
+  document.getElementById('composite').className = 'composite ' + label;
+  document.getElementById('compLabel').textContent = label;
+  document.getElementById('compScore').textContent = score !== null && score !== undefined ? Number(score).toFixed(1) : '—';
+}
+
+function renderLayers() {
+  for (const lid of ['L1', 'L2', 'L3', 'L4']) {
+    const layer = (DATA.layers || {})[lid] || {};
+    const score = layer.score;
+    const label = scoreLabel(score);
+    const labelEl = document.getElementById(lid + 'label');
+    const scoreEl = document.getElementById(lid + 'score');
+    scoreEl.textContent = score !== null && score !== undefined ? Number(score).toFixed(1) : '—';
+    scoreEl.className = 'layer-score score-' + label;
+    labelEl.textContent = label;
+    labelEl.className = 'layer-label score-' + label;
+    document.getElementById(lid + 'coverage').textContent =
+      `${layer.n_with_data || 0}/${layer.n_indicators || 0} indicators`;
+  }
+}
+
+function renderAlerts() {
+  const alerts = DATA.alerts || [];
+  if (!alerts.length) {
+    document.getElementById('alertsHost').innerHTML = '';
+    return;
+  }
+  document.getElementById('alertsHost').innerHTML = `
+    <div class="alerts">
+      <div class="alerts-header">⚠️ Active Stress Signals (${alerts.length})</div>
+      ${alerts.map(a => `
+        <div class="alert-row">
+          <span class="severity-pill ${a.severity}">${a.severity}</span>
+          <div>
+            <div class="alert-label">${a.label}</div>
+            <div class="alert-message">${a.message || ''}</div>
+          </div>
+          <span class="alert-layer">${a.layer}</span>
+          <span class="alert-score">z=${fmtZ(a.z_score)}</span>
+          <span class="alert-score">${fmtNum(a.stress_score, 0)}/100</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderIndicators() {
+  if (!DATA) return;
+  const raw = DATA.raw_indicators || {};
+  let rows = Object.entries(raw).map(([id, v]) => ({ id, ...v }));
+  if (ACTIVE_LAYER !== 'ALL') {
+    rows = rows.filter(r => r.layer === ACTIVE_LAYER);
+  }
+  rows = applySort(rows, SORT.col, SORT.dir);
+
+  const cols = [
+    { k: 'id', label: 'ID' },
+    { k: 'label', label: 'Indicator' },
+    { k: 'layer', label: 'Layer' },
+    { k: 'value', label: 'Latest' },
+    { k: 'date', label: 'As Of' },
+    { k: 'z_score', label: 'Z-Score' },
+    { k: 'percentile', label: 'Pctile' },
+    { k: 'stress_score', label: 'Stress' },
+  ];
+
+  const thead = cols.map(c => {
+    const cls = c.k === SORT.col ? `sort-${SORT.dir}` : '';
+    return `<th data-col="${c.k}" class="${cls}">${c.label}</th>`;
+  }).join('');
+
+  document.getElementById('indPanelTitle').textContent =
+    ACTIVE_LAYER === 'ALL' ? 'All Indicators' : `${ACTIVE_LAYER} Indicators`;
+  document.getElementById('indCountTag').textContent =
+    `${rows.length} ${ACTIVE_LAYER === 'ALL' ? 'total' : 'in ' + ACTIVE_LAYER}`;
+
+  const tbody = rows.map(r => `
+    <tr>
+      <td><span class="ind-id">${r.id}</span></td>
+      <td>
+        <div class="ind-label">${r.label || '—'}</div>
+        ${r.interp ? `<div class="ind-interp">${r.interp}</div>` : ''}
+      </td>
+      <td><span style="color:var(--purple);font-weight:700">${r.layer || '—'}</span></td>
+      <td>${r.value !== null && r.value !== undefined ? fmtNum(r.value, r.value > 1000 ? 0 : 2) : (r.err ? `<span style="color:var(--red);font-size:10px">${r.err}</span>` : '—')}</td>
+      <td style="color:var(--text-dim);font-size:11px">${r.date || '—'}</td>
+      <td>${fmtZ(r.z_score)}</td>
+      <td>${fmtPct(r.percentile)}</td>
+      <td><span class="stress-cell ${stressCellClass(r.stress_score)}">${r.stress_score !== null && r.stress_score !== undefined ? Number(r.stress_score).toFixed(0) : '—'}</span></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('indTableHost').innerHTML =
+    `<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
+      SORT.col = c;
+      renderIndicators();
+    });
+  });
+}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
+      `${DATA.n_with_data}/${DATA.n_indicators} indicators with data · ${DATA.duration_s}s`;
+    renderComposite();
+    renderLayers();
+    renderAlerts();
+    renderIndicators();
+  } catch (e) {
+    document.getElementById('indTableHost').innerHTML =
+      `<div class="loader">Failed: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+document.getElementById('layerDesc').style.display = 'none';
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
