@@ -1,0 +1,178 @@
+{
+  "as_of": "2026-05-07T12:00:19.336204+00:00",
+  "tests": {
+    "/stable/historical-price-eod/full": {
+      "ok": true,
+      "type": "list",
+      "count": 1254,
+      "first_record_keys": [
+        "symbol",
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "change",
+        "changePercent",
+        "vwap"
+      ],
+      "first_record": {
+        "symbol": "EWG",
+        "date": "2026-05-06",
+        "open": 43.28,
+        "high": 43.51,
+        "low": 43.2,
+        "close": 43.47,
+        "volume": 1859238,
+        "change": 0.19,
+        "changePercent": 0.439,
+        "vwap": 43.365
+      }
+    },
+    "/stable/historical-price-eod/light": {
+      "ok": true,
+      "type": "list",
+      "count": 1254,
+      "first_record_keys": [
+        "symbol",
+        "date",
+        "price",
+        "volume"
+      ],
+      "first_record": {
+        "symbol": "EWG",
+        "date": "2026-05-06",
+        "price": 43.47,
+        "volume": 1859238
+      }
+    },
+    "/stable/historical-chart/1day": {
+      "ok": false,
+      "code": 404,
+      "body": "[]"
+    },
+    "/stable/historical-chart/4hour": {
+      "ok": true,
+      "type": "list",
+      "count": 242,
+      "first_record_keys": [
+        "date",
+        "open",
+        "low",
+        "high",
+        "close",
+        "volume"
+      ],
+      "first_record": {
+        "date": "2026-05-06 13:30:00",
+        "open": 43.375,
+        "low": 43.345,
+        "high": 43.505,
+        "close": 43.44,
+        "volume": 829928.17075
+      }
+    },
+    "/stable/quote": {
+      "ok": true,
+      "type": "list",
+      "count": 1,
+      "first_record_keys": [
+        "symbol",
+        "name",
+        "price",
+        "changePercentage",
+        "change",
+        "volume",
+        "dayLow",
+        "dayHigh",
+        "yearHigh",
+        "yearLow"
+      ],
+      "first_record": {
+        "symbol": "EWG",
+        "name": "iShares MSCI Germany ETF",
+        "price": 43.47,
+        "changePercentage": 2.54777,
+        "change": 1.08,
+        "volume": 1859129,
+        "dayLow": 43.2,
+        "dayHigh": 43.51,
+        "yearHigh": 44.65,
+        "yearLow": 37.98,
+        "marketCap": 1948842954,
+        "priceAvg50": 41.2556,
+        "priceAvg200": 41.8396,
+        "exchange": "AMEX",
+        "open": 43.305,
+        "previousClose": 42.39,
+        "timestamp": 1778097600
+      }
+    },
+    "/stable/profile": {
+      "ok": true,
+      "type": "list",
+      "count": 1,
+      "first_record_keys": [
+        "symbol",
+        "price",
+        "marketCap",
+        "beta",
+        "lastDividend",
+        "range",
+        "change",
+        "changePercentage",
+        "volume",
+        "averageVolume"
+      ],
+      "first_record": {
+        "symbol": "EWG",
+        "price": 43.47,
+        "marketCap": 1948842954,
+        "beta": 1.06,
+        "lastDividend": 0.67931,
+        "range": "37.98-44.65",
+        "change": 1.08,
+        "changePercentage": 2.54777,
+        "volume": 1859129,
+        "averageVolume": 2395633,
+        "companyName": "iShares MSCI Germany ETF",
+        "currency": "USD",
+        "cik": "0000930667",
+        "isin": "US4642868065",
+        "cusip": "464286806",
+        "exchangeFullName": "New York Stock Exchange Arca",
+        "exchange": "AMEX",
+        "industry": "Asset Management",
+        "website": "https://www.ishares.com/us/products/239650/ishares-msci-germany-etf",
+        "description": "The iShares MSCI Germany ETF seeks to track the investment results of an index composed of German equities.",
+        "ceo": "",
+        "sector": "Financial Services",
+        "country": "US",
+        "fullTimeEmployees": null,
+        "phone": "1-800-474-2737",
+        "address": "50 Hudson Yards",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001",
+        "image": "https://images.financialmodelingprep.com/symbol/EWG.png",
+        "ipoDate": "1996-03-18",
+        "defaultImage": false,
+        "isEtf": true,
+        "isActivelyTrading": true,
+        "isAdr": false,
+        "isFund": false
+      }
+    },
+    "/stable/historical-price-full": {
+      "ok": false,
+      "code": 404,
+      "body": "[]"
+    },
+    "/stable/historical-prices-eod": {
+      "ok": false,
+      "code": 404,
+      "body": "[]"
+    }
+  }
+}
