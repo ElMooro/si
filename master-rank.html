@@ -135,6 +135,7 @@
       </div>
       <div class="meta">
         <a href="/">← Desk</a> ·
+        <a href="/watchlist.html">📌 My Watchlist</a> ·
         <a href="/alpha-scoreboard.html">Scoreboard</a> ·
         <a href="/divergence-v2.html">Divergence</a> ·
         <a href="/sector-tilt.html">Sector Tilt</a> ·
@@ -142,6 +143,21 @@
         <a href="/insider-drawdown.html">Insider DD</a>
       </div>
     </div>
+
+    <!-- Watchlist filter bar -->
+    <div id="wlFilterBar" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;font-size:12px;">
+      <strong style="color:var(--accent)">📌 Watchlist Filter:</strong>
+      <label style="cursor:pointer"><input type="checkbox" id="wlEnabled" style="vertical-align:middle"> Filter to my watchlist</label>
+      <select id="wlCategory" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;">
+        <option value="all">All categories</option>
+        <option value="holdings">Holdings only</option>
+        <option value="watching">Watching only</option>
+        <option value="research">Research only</option>
+        <option value="exit_zone">Exit zone</option>
+      </select>
+      <span id="wlInfo" style="color:var(--text-dim);margin-left:auto;font-size:11px">no watchlist loaded</span>
+    </div>
+
 
     <!-- Regime context strip -->
     <div class="regime-strip">
@@ -198,9 +214,46 @@
 
 <script>
 const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/master-ranker.json';
+const WL_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/user-watchlist.json';
 
 let DATA = null;
 let SORT = { col: 'score', dir: 'desc' };
+let WATCHLIST = null;     // {categories: {holdings:[...], watching:[...], ...}}
+let WL_FILTER_ON = localStorage.getItem('wl_filter_master') === '1';
+let WL_CATEGORY = localStorage.getItem('wl_category_master') || 'all';
+
+async function loadWatchlist() {
+  try {
+    const r = await fetch(WL_URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    WATCHLIST = await r.json();
+    const total = Object.values(WATCHLIST.categories || {}).reduce((s,a)=>s+(a||[]).length, 0);
+    document.getElementById('wlInfo').textContent =
+      `${total} tickers · v${WATCHLIST.version || '?'}`;
+  } catch (e) {
+    WATCHLIST = null;
+    document.getElementById('wlInfo').textContent = 'no watchlist (set up at /watchlist.html)';
+  }
+}
+
+function getWatchlistTickers(category) {
+  if (!WATCHLIST?.categories) return new Set();
+  if (category === 'all') {
+    const all = new Set();
+    for (const cat of ['holdings','watching','research','exit_zone']) {
+      (WATCHLIST.categories[cat] || []).forEach(t => all.add(t));
+    }
+    return all;
+  }
+  return new Set(WATCHLIST.categories[category] || []);
+}
+
+function filterByWatchlist(rows) {
+  if (!WL_FILTER_ON || !WATCHLIST) return rows;
+  const wl = getWatchlistTickers(WL_CATEGORY);
+  if (!wl.size) return rows;
+  return rows.filter(r => wl.has(r.ticker));
+}
 
 function fmt(v, d=2) {
   if (v === null || v === undefined || v === '') return '—';
@@ -235,8 +288,12 @@ function applySort(rows, col, dir) {
 }
 
 function renderTickers() {
-  const rows = applySort(DATA.top_tickers || [], SORT.col, SORT.dir);
-  document.getElementById('tickerCount').textContent = `${rows.length} ranked`;
+  let rows = applySort(DATA.top_tickers || [], SORT.col, SORT.dir);
+  rows = filterByWatchlist(rows);
+  document.getElementById('tickerCount').textContent =
+    WL_FILTER_ON && WATCHLIST ?
+      `${rows.length} ranked (filtered to watchlist)` :
+      `${rows.length} ranked`;
 
   const cols = [
     { k: 'rank', label: '#', sortable: false },
@@ -331,7 +388,10 @@ function renderHeader() {
 
 async function load() {
   try {
-    const r = await fetch(URL + '?_=' + Date.now());
+    const [r] = await Promise.all([
+      fetch(URL + '?_=' + Date.now()),
+      loadWatchlist(),
+    ]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     renderHeader();
@@ -343,6 +403,20 @@ async function load() {
     console.error(e);
   }
 }
+
+// Watchlist toggle wiring
+document.getElementById('wlEnabled').checked = WL_FILTER_ON;
+document.getElementById('wlCategory').value = WL_CATEGORY;
+document.getElementById('wlEnabled').addEventListener('change', e => {
+  WL_FILTER_ON = e.target.checked;
+  localStorage.setItem('wl_filter_master', WL_FILTER_ON ? '1' : '0');
+  if (DATA) renderTickers();
+});
+document.getElementById('wlCategory').addEventListener('change', e => {
+  WL_CATEGORY = e.target.value;
+  localStorage.setItem('wl_category_master', WL_CATEGORY);
+  if (DATA) renderTickers();
+});
 
 load();
 setInterval(load, 5*60*1000);

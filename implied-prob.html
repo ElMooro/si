@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implied Probability · JustHodl.AI</title>
+<meta name="description" content="Forward implied probabilities — Fed rate path, recession risk, SPY/BTC implied moves, earnings implied moves.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .panel-header { background: var(--bg-card-elev); padding: 10px 14px;
+                   border-bottom: 1px solid var(--border-light);
+                   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .panel-body { padding: 14px; }
+
+  .big-stat { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .big-stat.green { color: var(--green); }
+  .big-stat.red   { color: var(--red); }
+  .big-stat.amber { color: var(--amber); }
+  .big-stat.blue  { color: var(--blue); }
+
+  .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stance-pill { display: inline-block; padding: 4px 10px; border-radius: 4px;
+                  font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px; }
+  .stance-pill.cuts { background: rgba(34,197,94,0.18); color: var(--green); }
+  .stance-pill.hold { background: rgba(245,158,11,0.16); color: var(--amber); }
+  .stance-pill.hike { background: rgba(239,68,68,0.18); color: var(--red); }
+
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; margin-top: 8px; }
+  .kv .k { color: var(--text-dim); }
+  .kv .v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .kv .v.green { color: var(--green); } .kv .v.red { color: var(--red); }
+  .kv .v.amber { color: var(--amber); } .kv .v.blue { color: var(--blue); }
+
+  .moves-table { width: 100%; font-size: 13px; margin-top: 10px; border-collapse: collapse; }
+  .moves-table th { text-align: right; padding: 4px 6px; color: var(--text-dim);
+                     font-size: 10px; font-weight: 500; text-transform: uppercase; }
+  .moves-table th:first-child { text-align: left; }
+  .moves-table td { padding: 5px 6px; text-align: right; font-variant-numeric: tabular-nums;
+                     border-bottom: 1px solid var(--border-light); }
+  .moves-table td:first-child { text-align: left; color: var(--text-dim); font-size: 12px; }
+  .pct-up   { color: var(--green); }
+  .pct-down { color: var(--red); }
+
+  .earnings-row { display: grid; grid-template-columns: 70px 1fr 80px 80px 80px;
+                    gap: 8px; padding: 7px 14px; border-bottom: 1px solid var(--border-light);
+                    align-items: center; font-size: 12px; }
+  .earnings-row:hover { background: var(--bg-card-elev); }
+  .earnings-row .ticker { font-weight: 700; color: var(--accent); font-size: 13px; }
+  .earnings-row .move { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .earnings-row .move.high { color: var(--red); }
+  .earnings-row .move.med  { color: var(--amber); }
+  .earnings-row .move.low  { color: var(--green); }
+
+  .composite { padding: 16px; text-align: center; border-radius: 8px;
+                margin-bottom: 14px; border-left: 4px solid var(--text-dim); background: var(--bg-card); }
+  .composite.elevated { background: rgba(239,68,68,0.10); border-left-color: var(--red); }
+  .composite.moderate { background: rgba(245,158,11,0.08); border-left-color: var(--amber); }
+  .composite.low      { background: rgba(34,197,94,0.10); border-left-color: var(--green); }
+  .composite h2 { font-size: 18px; font-weight: 700; }
+  .composite .score { font-size: 32px; font-weight: 800; margin: 4px 0; font-variant-numeric: tabular-nums; }
+
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Implied Probability <span class="sub">what the market is PRICING for Fed / recession / SPY / BTC / earnings</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/master-rank.html">Action Items</a> ·
+        <a href="/fed-speak.html">Fed Speak</a> ·
+        <a href="/vol-regime.html">Vol</a>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">🏦 Fed Rate Path</div>
+        <div class="panel-body" id="fedPanel">
+          <div class="loader">Loading…</div>
+        </div>
+      </div>
+      <div>
+        <div id="recComposite" class="composite moderate">
+          <h2 id="recLabel">—</h2>
+          <div class="score" id="recScore">—</div>
+          <div class="label">Composite recession score · 0=low · 100=elevated</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">📉 Recession Probability</div>
+          <div class="panel-body" id="recPanel">
+            <div class="loader">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-header">📊 SPY Implied Moves</div>
+        <div class="panel-body" id="spyPanel"><div class="loader">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">📊 QQQ Implied Moves</div>
+        <div class="panel-body" id="qqqPanel"><div class="loader">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">₿ BTC (IBIT) Implied Moves</div>
+        <div class="panel-body" id="btcPanel"><div class="loader">Loading…</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">📅 Earnings Implied Moves (next 14d)</div>
+      <div id="earningsPanel"><div class="loader">Loading…</div></div>
+    </div>
+  </div>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/implied-prob.json';
+let DATA = null;
+
+function fmtBp(v) { return v >= 0 ? `+${v}bp` : `${v}bp`; }
+
+function renderFed(fed) {
+  if (!fed || !fed.current_rate) {
+    document.getElementById('fedPanel').innerHTML = '<div class="loader">Fed data not available</div>';
+    return;
+  }
+  const stance = fed.near_term_stance || '';
+  const stanceCls = stance.includes('CUTS') ? 'cuts' : stance.includes('HIKES') ? 'hike' : 'hold';
+  const cur = fed.current_rate;
+  let html = `
+    <div class="label">Current Fed Funds Target</div>
+    <div class="big-stat blue">${fed.target_lower?.toFixed(2)}–${fed.target_upper?.toFixed(2)}%</div>
+    <div class="stance-pill ${stanceCls}">${stance || '—'}</div>
+    <div class="kv">
+      <div class="k">EFFR (last)</div><div class="v">${fed.ffer_recent !== undefined ? fed.ffer_recent.toFixed(3) + '%' : '—'}</div>
+      <div class="k">3-mo bill yield</div><div class="v">${fed.bill_3m !== undefined ? fed.bill_3m.toFixed(2) + '%' : '—'}</div>
+      <div class="k">6-mo bill yield</div><div class="v">${fed.bill_6m !== undefined ? fed.bill_6m.toFixed(2) + '%' : '—'}</div>
+      <div class="k">1Y treasury</div><div class="v">${fed.bill_1y !== undefined ? fed.bill_1y.toFixed(2) + '%' : '—'}</div>
+      <div class="k">Implied 3-mo change</div><div class="v ${(fed.implied_3m_change_bp||0) < 0 ? 'green' : (fed.implied_3m_change_bp||0) > 0 ? 'red' : ''}">${fmtBp(fed.implied_3m_change_bp || 0)}</div>
+      <div class="k">Implied 6-mo change</div><div class="v ${(fed.implied_6m_change_bp||0) < 0 ? 'green' : (fed.implied_6m_change_bp||0) > 0 ? 'red' : ''}">${fmtBp(fed.implied_6m_change_bp || 0)}</div>
+      <div class="k">Implied 1y change</div><div class="v ${(fed.implied_1y_change_bp||0) < 0 ? 'green' : (fed.implied_1y_change_bp||0) > 0 ? 'red' : ''}">${fmtBp(fed.implied_1y_change_bp || 0)}</div>
+      ${fed.next_meeting ? `<div class="k">Next FOMC</div><div class="v">${fed.next_meeting.date} (+${fed.next_meeting.days_to}d)</div>` : ''}
+    </div>`;
+  document.getElementById('fedPanel').innerHTML = html;
+}
+
+function renderRecession(rec) {
+  const score = rec?.composite_score_0_100;
+  const label = rec?.composite_label || 'UNKNOWN';
+  const banner = document.getElementById('recComposite');
+  banner.className = 'composite ' +
+    (score >= 70 ? 'elevated' : score >= 40 ? 'moderate' : 'low');
+  document.getElementById('recLabel').textContent = label;
+  document.getElementById('recScore').textContent = score !== undefined ? score.toFixed(0) : '—';
+
+  if (!rec) {
+    document.getElementById('recPanel').innerHTML = '<div class="loader">No data</div>';
+    return;
+  }
+  let html = `
+    <div class="kv">
+      <div class="k">NY Fed 12m prob</div>
+      <div class="v ${(rec.ny_fed_12m_prob_pct||0) > 30 ? 'red' : (rec.ny_fed_12m_prob_pct||0) > 15 ? 'amber' : 'green'}">${rec.ny_fed_12m_prob_pct !== undefined ? rec.ny_fed_12m_prob_pct.toFixed(1) + '%' : '—'}</div>
+      ${rec.ny_fed_12m_delta_pct !== undefined ? `<div class="k">12m delta</div><div class="v ${rec.ny_fed_12m_delta_pct > 0 ? 'red' : 'green'}">${rec.ny_fed_12m_delta_pct > 0 ? '+' : ''}${rec.ny_fed_12m_delta_pct.toFixed(1)}%</div>` : ''}
+      <div class="k">10Y-3M curve</div>
+      <div class="v ${rec.yield_curve_inverted ? 'red' : 'green'}">${rec.yield_curve_10y3m_bp !== undefined ? rec.yield_curve_10y3m_bp.toFixed(1) + 'bp' : '—'}</div>
+      ${rec.days_inverted_current !== undefined && rec.days_inverted_current > 0 ? `<div class="k">Days inverted</div><div class="v red">${rec.days_inverted_current}d</div>` : ''}
+      <div class="k">HY spread</div>
+      <div class="v ${(rec.hy_spread_bp||0) > 600 ? 'red' : (rec.hy_spread_bp||0) > 400 ? 'amber' : 'green'}">${rec.hy_spread_bp !== undefined ? rec.hy_spread_bp.toFixed(0) + 'bp' : '—'}</div>
+      <div class="k">HY percentile (10y)</div>
+      <div class="v">${rec.hy_spread_percentile_10y !== undefined ? rec.hy_spread_percentile_10y.toFixed(0) + 'th' : '—'}</div>
+      ${rec.hy_spread_z !== undefined ? `<div class="k">HY z-score</div><div class="v ${rec.hy_spread_z > 1 ? 'red' : rec.hy_spread_z < -1 ? 'green' : ''}">${rec.hy_spread_z > 0 ? '+' : ''}${rec.hy_spread_z.toFixed(2)}σ</div>` : ''}
+    </div>`;
+  document.getElementById('recPanel').innerHTML = html;
+}
+
+function renderIndex(panelId, data) {
+  if (!data || !data.spot) {
+    document.getElementById(panelId).innerHTML = '<div class="loader">No options data</div>';
+    return;
+  }
+  let html = `
+    <div class="label">${data.ticker} spot</div>
+    <div class="big-stat">$${data.spot.toFixed(2)}</div>
+    <div class="kv" style="margin-top:6px">
+      <div class="k">IV 30d ATM</div><div class="v">${data.iv_30d !== undefined ? data.iv_30d.toFixed(1) + '%' : '—'}</div>
+      <div class="k">IV 90d ATM</div><div class="v">${data.iv_90d !== undefined ? data.iv_90d.toFixed(1) + '%' : '—'}</div>
+      ${data.moves_30d?.expected_move_pct ? `<div class="k">Exp move 30d</div><div class="v amber">±${data.moves_30d.expected_move_pct.toFixed(2)}%</div>` : ''}
+      ${data.moves_90d?.expected_move_pct ? `<div class="k">Exp move 90d</div><div class="v amber">±${data.moves_90d.expected_move_pct.toFixed(2)}%</div>` : ''}
+    </div>`;
+
+  if (data.moves_30d) {
+    html += `
+      <table class="moves-table" style="margin-top:8px">
+        <thead><tr><th>30d horizon</th><th>P(up)</th><th>P(down)</th></tr></thead>
+        <tbody>
+          <tr><td>±5%</td><td class="pct-up">${data.moves_30d.p_up_5 ?? '—'}%</td><td class="pct-down">${data.moves_30d.p_down_5 ?? '—'}%</td></tr>
+          <tr><td>±10%</td><td class="pct-up">${data.moves_30d.p_up_10 ?? '—'}%</td><td class="pct-down">${data.moves_30d.p_down_10 ?? '—'}%</td></tr>
+        </tbody>
+      </table>`;
+  }
+  if (data.moves_90d) {
+    html += `
+      <table class="moves-table">
+        <thead><tr><th>90d horizon</th><th>P(up)</th><th>P(down)</th></tr></thead>
+        <tbody>
+          <tr><td>±5%</td><td class="pct-up">${data.moves_90d.p_up_5 ?? '—'}%</td><td class="pct-down">${data.moves_90d.p_down_5 ?? '—'}%</td></tr>
+          <tr><td>±10%</td><td class="pct-up">${data.moves_90d.p_up_10 ?? '—'}%</td><td class="pct-down">${data.moves_90d.p_down_10 ?? '—'}%</td></tr>
+          <tr><td>±20%</td><td class="pct-up">${data.moves_90d.p_up_20 ?? '—'}%</td><td class="pct-down">${data.moves_90d.p_down_20 ?? '—'}%</td></tr>
+        </tbody>
+      </table>`;
+  }
+  document.getElementById(panelId).innerHTML = html;
+}
+
+function renderEarnings(events) {
+  if (!events || !events.length) {
+    document.getElementById('earningsPanel').innerHTML =
+      '<div class="loader">No earnings options data in window — this section runs only when budget allows</div>';
+    return;
+  }
+  document.getElementById('earningsPanel').innerHTML = events.map(e => {
+    const cls = e.expected_move_pct > 8 ? 'high' : e.expected_move_pct > 4 ? 'med' : 'low';
+    return `
+      <div class="earnings-row">
+        <span class="ticker">${e.ticker}</span>
+        <span style="color:var(--text-dim)">${e.name || ''} · ${e.earnings_date} · +${e.days_to}d</span>
+        <span style="color:var(--text-dim);font-size:11px;text-align:right">$${e.spot}</span>
+        <span style="color:var(--text-dim);font-size:11px;text-align:right">IV ${e.iv_pct}%</span>
+        <span class="move ${cls}">±${e.expected_move_pct}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ${DATA.duration_s}s`;
+    renderFed(DATA.fed);
+    renderRecession(DATA.recession);
+    renderIndex('spyPanel', DATA.spy);
+    renderIndex('qqqPanel', DATA.qqq);
+    renderIndex('btcPanel', DATA.btc);
+    renderEarnings(DATA.earnings_implied);
+  } catch (e) {
+    document.querySelectorAll('.loader').forEach(el =>
+      el.innerHTML = `<span style="color:var(--red)">Failed: ${e.message}</span>`);
+    console.error(e);
+  }
+}
+
+load();
+setInterval(load, 10*60*1000);
+</script>
+</body>
+</html>

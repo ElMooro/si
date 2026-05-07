@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watchlist · JustHodl.AI</title>
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  /* Auth setup */
+  .auth-row { background: var(--bg-card); border: 1px solid var(--border);
+               border-radius: 6px; padding: 12px 14px; margin-bottom: 16px;
+               display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .auth-row label { font-size: 12px; color: var(--text-dim); }
+  .auth-row input { background: var(--bg); border: 1px solid var(--border);
+                     color: var(--text); padding: 6px 10px; border-radius: 4px;
+                     font-size: 12px; font-family: monospace; min-width: 280px; }
+  .auth-row .status { font-size: 11px; padding: 2px 8px; border-radius: 3px; }
+  .auth-row .status.ok { background: rgba(34,197,94,0.18); color: var(--green); }
+  .auth-row .status.no { background: rgba(239,68,68,0.18); color: var(--red); }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar input[type="text"] { background: var(--bg-card); border: 1px solid var(--border);
+                                 color: var(--text); padding: 8px 12px; border-radius: 4px;
+                                 font-size: 14px; width: 180px; text-transform: uppercase; }
+  .toolbar select { background: var(--bg-card); border: 1px solid var(--border);
+                     color: var(--text); padding: 8px 10px; border-radius: 4px; font-size: 13px; }
+  .toolbar button { background: var(--accent); color: #0a0a0a; border: none;
+                     padding: 8px 16px; border-radius: 4px; font-weight: 600; font-size: 13px;
+                     cursor: pointer; }
+  .toolbar button:hover { background: #fbbf24; }
+  .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .toolbar button.secondary { background: var(--bg-card); color: var(--text);
+                                border: 1px solid var(--border); }
+  .toolbar .info { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+
+  /* Category grid */
+  .categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .category-panel { background: var(--bg-card); border: 1px solid var(--border);
+                     border-radius: 8px; min-height: 400px; }
+  .category-panel.drag-over { border-color: var(--accent); background: var(--bg-card-elev); }
+  .category-header { background: var(--bg-card-elev); padding: 12px 14px;
+                      border-bottom: 1px solid var(--border-light);
+                      display: flex; justify-content: space-between; align-items: baseline;
+                      border-radius: 8px 8px 0 0; }
+  .category-header .title { font-size: 13px; font-weight: 600; text-transform: uppercase;
+                              letter-spacing: 0.05em; }
+  .category-header .count { font-size: 11px; color: var(--text-dim); }
+  .category-panel.holdings  .title { color: var(--green); }
+  .category-panel.watching  .title { color: var(--accent); }
+  .category-panel.research  .title { color: var(--blue); }
+  .category-panel.exit_zone .title { color: var(--red); }
+
+  .ticker-list { padding: 8px 0; max-height: 600px; overflow-y: auto; }
+  .ticker-item { display: flex; justify-content: space-between; align-items: center;
+                  padding: 6px 14px; cursor: grab; user-select: none;
+                  border-bottom: 1px solid transparent; transition: background 0.1s; }
+  .ticker-item:hover { background: var(--bg-card-elev); }
+  .ticker-item.dragging { opacity: 0.4; cursor: grabbing; }
+  .ticker-name { font-weight: 600; font-size: 14px; color: var(--accent); }
+  .ticker-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.1s; }
+  .ticker-item:hover .ticker-actions { opacity: 1; }
+  .ticker-actions button { background: transparent; border: 1px solid var(--border-light);
+                            color: var(--text-dim); padding: 2px 6px; border-radius: 3px;
+                            font-size: 10px; cursor: pointer; }
+  .ticker-actions button:hover { color: var(--red); border-color: var(--red); }
+
+  .add-row { padding: 10px 14px; border-top: 1px solid var(--border-light); display: flex; gap: 6px; }
+  .add-row input { flex: 1; background: var(--bg); border: 1px solid var(--border-light);
+                    color: var(--text); padding: 5px 8px; border-radius: 3px;
+                    font-size: 12px; text-transform: uppercase; }
+  .add-row button { background: var(--bg-card-elev); border: 1px solid var(--border-light);
+                     color: var(--text-dim); padding: 5px 10px; border-radius: 3px;
+                     font-size: 12px; cursor: pointer; }
+  .add-row button:hover { color: var(--accent); border-color: var(--accent); }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted);
+                  font-size: 12px; }
+
+  /* Save state indicator */
+  .save-indicator { padding: 4px 10px; border-radius: 3px; font-size: 11px;
+                     font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .save-indicator.dirty { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .save-indicator.saved { background: rgba(34,197,94,0.18); color: var(--green); }
+  .save-indicator.error { background: rgba(239,68,68,0.18); color: var(--red); }
+  .save-indicator.saving { background: rgba(59,130,246,0.18); color: var(--blue); }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-card);
+           border: 1px solid var(--border); border-radius: 6px; padding: 12px 18px;
+           font-size: 13px; max-width: 400px; opacity: 0;
+           transition: opacity 0.2s, transform 0.2s; transform: translateX(20px); }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast.error { border-left: 4px solid var(--red); }
+  .toast.success { border-left: 4px solid var(--green); }
+
+  @media (max-width: 1100px) {
+    .categories { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .categories { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Watchlist <span class="sub">your personal universe — used by all signal pages</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/master-rank.html">Master Ranker</a>
+      </div>
+    </div>
+
+    <div class="auth-row">
+      <label>Admin Token:</label>
+      <input type="password" id="adminToken" placeholder="paste your x-justhodl-token here…">
+      <button class="secondary" onclick="testAuth()">Test</button>
+      <span id="authStatus" class="status no">no auth</span>
+      <span style="font-size:11px;color:var(--text-muted)">stored in localStorage; required for save</span>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="quickAdd" placeholder="Add ticker…" maxlength="8">
+      <select id="quickAddCategory">
+        <option value="holdings">→ Holdings</option>
+        <option value="watching" selected>→ Watching</option>
+        <option value="research">→ Research</option>
+        <option value="exit_zone">→ Exit Zone</option>
+      </select>
+      <button onclick="quickAddTicker()">+ Add</button>
+      <button class="secondary" onclick="reloadFromServer()">↻ Reload</button>
+      <button id="saveBtn" onclick="saveWatchlist()" disabled>💾 Save All</button>
+      <span id="saveIndicator" class="save-indicator saved">saved</span>
+      <span class="info" id="versionInfo">—</span>
+    </div>
+
+    <div class="categories" id="categoryGrid">
+      <div class="category-panel holdings" data-category="holdings">
+        <div class="category-header">
+          <span class="title">📊 Holdings</span>
+          <span class="count" data-count-for="holdings">0</span>
+        </div>
+        <div class="ticker-list" data-list-for="holdings"></div>
+        <div class="add-row">
+          <input type="text" data-add-input="holdings" placeholder="TICKER" maxlength="8" onkeypress="handleAddKey(event,'holdings')">
+          <button onclick="addToCategory('holdings')">+</button>
+        </div>
+      </div>
+
+      <div class="category-panel watching" data-category="watching">
+        <div class="category-header">
+          <span class="title">👀 Watching</span>
+          <span class="count" data-count-for="watching">0</span>
+        </div>
+        <div class="ticker-list" data-list-for="watching"></div>
+        <div class="add-row">
+          <input type="text" data-add-input="watching" placeholder="TICKER" maxlength="8" onkeypress="handleAddKey(event,'watching')">
+          <button onclick="addToCategory('watching')">+</button>
+        </div>
+      </div>
+
+      <div class="category-panel research" data-category="research">
+        <div class="category-header">
+          <span class="title">🔬 Research</span>
+          <span class="count" data-count-for="research">0</span>
+        </div>
+        <div class="ticker-list" data-list-for="research"></div>
+        <div class="add-row">
+          <input type="text" data-add-input="research" placeholder="TICKER" maxlength="8" onkeypress="handleAddKey(event,'research')">
+          <button onclick="addToCategory('research')">+</button>
+        </div>
+      </div>
+
+      <div class="category-panel exit_zone" data-category="exit_zone">
+        <div class="category-header">
+          <span class="title">🚪 Exit Zone</span>
+          <span class="count" data-count-for="exit_zone">0</span>
+        </div>
+        <div class="ticker-list" data-list-for="exit_zone"></div>
+        <div class="add-row">
+          <input type="text" data-add-input="exit_zone" placeholder="TICKER" maxlength="8" onkeypress="handleAddKey(event,'exit_zone')">
+          <button onclick="addToCategory('exit_zone')">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+<script>
+const API_URL = 'WATCHLIST_API_URL_PLACEHOLDER';  // replaced post-deploy
+const S3_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/user-watchlist.json';
+const TICKER_RE = /^[A-Z][A-Z0-9.\-]{0,7}$/;
+
+let STATE = null;        // current watchlist (from server)
+let DRAFT = null;        // local edits not yet saved
+let DIRTY = false;
+let DRAGGING = null;     // {ticker, fromCategory}
+
+const $ = id => document.getElementById(id);
+const ind = (cls, txt) => { const e = $('saveIndicator'); e.className = 'save-indicator ' + cls; e.textContent = txt; };
+
+function showToast(msg, type='info', ms=3000) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function getToken() { return localStorage.getItem('jh_admin_token') || ''; }
+function setToken(v) { localStorage.setItem('jh_admin_token', v); }
+
+function testAuth() {
+  const t = $('adminToken').value.trim();
+  if (!t) {
+    setToken('');
+    $('authStatus').className = 'status no';
+    $('authStatus').textContent = 'no auth';
+    $('saveBtn').disabled = true;
+    return;
+  }
+  setToken(t);
+  $('authStatus').className = 'status ok';
+  $('authStatus').textContent = 'token saved (server validates on save)';
+  $('saveBtn').disabled = !DIRTY;
+}
+
+function loadFromCache() {
+  const tok = getToken();
+  if (tok) {
+    $('adminToken').value = tok;
+    $('authStatus').className = 'status ok';
+    $('authStatus').textContent = 'token loaded';
+  }
+}
+
+async function reloadFromServer() {
+  ind('saving', 'loading…');
+  try {
+    const r = await fetch(S3_URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('S3 ' + r.status);
+    STATE = await r.json();
+    DRAFT = JSON.parse(JSON.stringify(STATE));
+    DIRTY = false;
+    ind('saved', 'saved');
+    $('saveBtn').disabled = true;
+    render();
+  } catch (e) {
+    showToast('Load failed: ' + e.message, 'error');
+    // Fallback to API
+    try {
+      const r = await fetch(API_URL);
+      const j = await r.json();
+      if (j.ok) {
+        STATE = j.watchlist;
+        DRAFT = JSON.parse(JSON.stringify(STATE));
+        render();
+      }
+    } catch (_) {}
+  }
+}
+
+function emptyState() {
+  return {
+    version: 0,
+    categories: { holdings: [], watching: [], research: [], exit_zone: [] },
+    tags: {},
+    settings: { default_filter: 'all', auto_filter_master_rank: true, telegram_alerts_only_wl: false },
+  };
+}
+
+function markDirty() {
+  DIRTY = true;
+  ind('dirty', 'unsaved');
+  $('saveBtn').disabled = !getToken();
+}
+
+function validateTicker(t) {
+  if (!t) return null;
+  t = t.trim().toUpperCase();
+  return TICKER_RE.test(t) ? t : null;
+}
+
+function addToCategory(cat) {
+  const inp = document.querySelector(`[data-add-input="${cat}"]`);
+  const t = validateTicker(inp.value);
+  if (!t) {
+    showToast('Invalid ticker: "' + inp.value + '" — must be 1-8 chars, A-Z/0-9 only', 'error');
+    return;
+  }
+  if (!DRAFT) DRAFT = emptyState();
+  // Remove from other categories first
+  for (const c of ['holdings', 'watching', 'research', 'exit_zone']) {
+    DRAFT.categories[c] = (DRAFT.categories[c] || []).filter(x => x !== t);
+  }
+  if (!DRAFT.categories[cat].includes(t)) {
+    DRAFT.categories[cat].push(t);
+    DRAFT.categories[cat].sort();
+  }
+  inp.value = '';
+  markDirty();
+  render();
+}
+
+function handleAddKey(ev, cat) {
+  if (ev.key === 'Enter') addToCategory(cat);
+}
+
+function quickAddTicker() {
+  const t = validateTicker($('quickAdd').value);
+  if (!t) {
+    showToast('Invalid ticker', 'error');
+    return;
+  }
+  const cat = $('quickAddCategory').value;
+  if (!DRAFT) DRAFT = emptyState();
+  for (const c of ['holdings', 'watching', 'research', 'exit_zone']) {
+    DRAFT.categories[c] = (DRAFT.categories[c] || []).filter(x => x !== t);
+  }
+  DRAFT.categories[cat].push(t);
+  DRAFT.categories[cat].sort();
+  $('quickAdd').value = '';
+  markDirty();
+  render();
+}
+
+function removeTicker(cat, ticker) {
+  DRAFT.categories[cat] = DRAFT.categories[cat].filter(x => x !== ticker);
+  markDirty();
+  render();
+}
+
+function moveTicker(ticker, fromCat, toCat) {
+  if (fromCat === toCat) return;
+  DRAFT.categories[fromCat] = (DRAFT.categories[fromCat] || []).filter(x => x !== ticker);
+  if (!DRAFT.categories[toCat].includes(ticker)) {
+    DRAFT.categories[toCat].push(ticker);
+    DRAFT.categories[toCat].sort();
+  }
+  markDirty();
+  render();
+}
+
+function render() {
+  if (!DRAFT) return;
+  for (const cat of ['holdings', 'watching', 'research', 'exit_zone']) {
+    const list = DRAFT.categories[cat] || [];
+    $('saveIndicator');  // touch
+    document.querySelector(`[data-count-for="${cat}"]`).textContent = list.length;
+    const host = document.querySelector(`[data-list-for="${cat}"]`);
+    if (!list.length) {
+      host.innerHTML = '<div class="empty-state">drop tickers here, or use the input below</div>';
+    } else {
+      host.innerHTML = list.map(t => `
+        <div class="ticker-item" draggable="true"
+             data-ticker="${t}" data-from="${cat}">
+          <span class="ticker-name">${t}</span>
+          <div class="ticker-actions">
+            <button onclick="removeTicker('${cat}','${t}')">remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+  $('versionInfo').textContent =
+    `v${STATE?.version ?? '?'} · ${(DRAFT.updated_at || '').slice(0,16)} · ` +
+    `total ${Object.values(DRAFT.categories).reduce((s,a)=>s+a.length,0)} tickers`;
+  attachDragHandlers();
+}
+
+function attachDragHandlers() {
+  document.querySelectorAll('.ticker-item').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      DRAGGING = { ticker: el.dataset.ticker, fromCategory: el.dataset.from };
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      DRAGGING = null;
+    });
+  });
+  document.querySelectorAll('.category-panel').forEach(panel => {
+    panel.addEventListener('dragover', e => {
+      e.preventDefault();
+      panel.classList.add('drag-over');
+    });
+    panel.addEventListener('dragleave', () => panel.classList.remove('drag-over'));
+    panel.addEventListener('drop', e => {
+      e.preventDefault();
+      panel.classList.remove('drag-over');
+      if (DRAGGING) {
+        moveTicker(DRAGGING.ticker, DRAGGING.fromCategory, panel.dataset.category);
+      }
+    });
+  });
+}
+
+async function saveWatchlist() {
+  const token = getToken();
+  if (!token) {
+    showToast('Set admin token first', 'error');
+    return;
+  }
+  ind('saving', 'saving…');
+  try {
+    const payload = {
+      version: STATE?.version,
+      categories: DRAFT.categories,
+      tags: DRAFT.tags || {},
+      settings: DRAFT.settings || {},
+    };
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-justhodl-token': token,
+      },
+      body: JSON.stringify(payload),
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.err || 'HTTP ' + r.status);
+    STATE = j.watchlist;
+    DRAFT = JSON.parse(JSON.stringify(STATE));
+    DIRTY = false;
+    ind('saved', 'saved v' + STATE.version);
+    $('saveBtn').disabled = true;
+    showToast('Saved successfully', 'success');
+    render();
+  } catch (e) {
+    ind('error', 'error');
+    showToast('Save failed: ' + e.message, 'error');
+  }
+}
+
+// Init
+loadFromCache();
+reloadFromServer();
+setInterval(() => { if (!DIRTY) reloadFromServer(); }, 60*1000);
+</script>
+</body>
+</html>

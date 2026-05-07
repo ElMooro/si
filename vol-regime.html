@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vol Regime · JustHodl.AI</title>
+<meta name="description" content="Volatility regime dashboard — RV/IV/Skew/Term Structure across major indices and watchlist.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1700px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  .composite { padding: 18px; border-radius: 8px; margin-bottom: 16px;
+                text-align: center; border-left: 5px solid var(--text-dim);
+                background: var(--bg-card); }
+  .composite.COMPLACENT { background: rgba(34,197,94,0.10); border-left-color: var(--green); }
+  .composite.NORMAL     { background: rgba(59,130,246,0.06); border-left-color: var(--blue); }
+  .composite.CONCERNED  { background: rgba(245,158,11,0.10); border-left-color: var(--amber); }
+  .composite.PANIC      { background: rgba(239,68,68,0.12); border-left-color: var(--red); }
+  .composite h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; }
+  .composite .score { font-size: 38px; font-weight: 800; margin: 4px 0;
+                       font-variant-numeric: tabular-nums; }
+  .composite .meta-line { font-size: 12px; color: var(--text-dim); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+           background: var(--bg-card); border: 1px solid var(--border);
+           border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .stat { padding: 0 14px; border-left: 1px solid var(--border-light); }
+  .stat:first-child { border-left: none; padding-left: 0; }
+  .stat .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 22px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .value.green { color: var(--green); }
+  .stat .value.red   { color: var(--red); }
+  .stat .value.amber { color: var(--amber); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px;
+          background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  thead { background: var(--bg-card-elev); }
+  th { text-align: left; padding: 8px 10px; color: var(--text-dim);
+       font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+       border-bottom: 1px solid var(--border-light); cursor: pointer; user-select: none;
+       white-space: nowrap; }
+  th:hover { color: var(--accent); }
+  th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border-light);
+       font-variant-numeric: tabular-nums; vertical-align: middle; white-space: nowrap; }
+  tr:hover td { background: var(--bg-card-elev); }
+  tr.regime-PANIC      td { border-left: 3px solid var(--red); }
+  tr.regime-CONCERNED  td { border-left: 3px solid var(--amber); }
+  tr.regime-NORMAL     td { border-left: 3px solid var(--blue); }
+  tr.regime-COMPLACENT td { border-left: 3px solid var(--green); }
+
+  .ticker-cell { font-weight: 700; color: var(--accent); font-size: 14px; }
+  .heat-cell { display: inline-block; padding: 3px 8px; border-radius: 3px;
+                min-width: 50px; text-align: center; font-weight: 600; }
+  .heat-cell.s0   { background: rgba(34,197,94,0.18); color: var(--green); }
+  .heat-cell.s25  { background: rgba(59,130,246,0.16); color: var(--blue); }
+  .heat-cell.s50  { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .heat-cell.s75  { background: rgba(239,68,68,0.18); color: var(--red); }
+  .heat-cell.s100 { background: rgba(220,38,38,0.30); color: #fff; }
+  .heat-cell.sNA  { background: var(--bg-card-elev); color: var(--text-muted); }
+
+  .regime-pill { display: inline-block; padding: 2px 8px; border-radius: 3px;
+                  font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .regime-pill.COMPLACENT { background: rgba(34,197,94,0.22); color: var(--green); }
+  .regime-pill.NORMAL     { background: rgba(59,130,246,0.18); color: var(--blue); }
+  .regime-pill.CONCERNED  { background: rgba(245,158,11,0.22); color: var(--amber); }
+  .regime-pill.PANIC      { background: rgba(239,68,68,0.28); color: var(--red); }
+  .regime-pill.UNKNOWN    { background: var(--bg-card-elev); color: var(--text-muted); }
+
+  .term-pill { display: inline-block; padding: 2px 6px; border-radius: 3px;
+                font-size: 10px; font-weight: 700; }
+  .term-CONTANGO { background: rgba(34,197,94,0.18); color: var(--green); }
+  .term-BACKWARDATION { background: rgba(239,68,68,0.22); color: var(--red); }
+
+  .help-box { background: var(--bg-card); border: 1px solid var(--border);
+               border-radius: 6px; padding: 14px; margin-bottom: 16px; font-size: 12px;
+               color: var(--text-dim); line-height: 1.6; }
+  .help-box strong { color: var(--text); }
+  .help-box code { background: var(--bg-card-elev); padding: 1px 4px;
+                    border-radius: 2px; font-family: 'SF Mono', monospace; font-size: 11px; }
+
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    table { font-size: 10px; } th, td { padding: 4px 5px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Vol Regime <span class="sub">RV/IV/Skew/Term Structure across markets</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/master-rank.html">Action Items</a> ·
+        <a href="/flow.html">Options Flow</a>
+      </div>
+    </div>
+
+    <div id="composite" class="composite NORMAL">
+      <h2 id="compRegime">—</h2>
+      <div class="score" id="compScore">—</div>
+      <div class="meta-line">Weighted: SPY 30% · QQQ 20% · IWM 10% · GLD 10% · TLT 15% · VXX 15%</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Tickers Tracked</div><div class="value" id="nTickers">—</div></div>
+      <div class="stat"><div class="label">Panic</div><div class="value red" id="nPanic">—</div></div>
+      <div class="stat"><div class="label">Concerned</div><div class="value amber" id="nConcerned">—</div></div>
+      <div class="stat"><div class="label">Complacent</div><div class="value green" id="nComplacent">—</div></div>
+    </div>
+
+    <div class="help-box">
+      <strong>Vol Regime Components:</strong>
+      <code>RV</code> = realized vol (annualized log-return stdev × √252) ·
+      <code>RV-z</code> = current 20d RV vs 1y mean ·
+      <code>IV</code> = implied vol (ATM ~30d/90d) ·
+      <code>IV/RV</code> > 1 = options expensive vs realized ·
+      <code>Skew</code> = 25Δ put IV − 25Δ call IV (positive = put protection bid) ·
+      <code>Term</code> = 90d − 30d IV (negative = backwardation = stress)
+    </div>
+
+    <div id="tableHost"><div class="loader">Loading vol regime…</div></div>
+  </div>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vol-regime.json';
+let DATA = null;
+let SORT = { col: 'rv_z', dir: 'desc' };
+
+function applySort(rows, col, dir) {
+  return [...rows].sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
+    if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function ivCell(v) {
+  if (v === null || v === undefined) return '<span class="heat-cell sNA">—</span>';
+  // IV ranges: <15 = low, 15-20 = normal, 20-25 = elevated, 25-35 = high, >35 = panic
+  const cls = v < 15 ? 's0' : (v < 20 ? 's25' : (v < 25 ? 's50' : (v < 35 ? 's75' : 's100')));
+  return `<span class="heat-cell ${cls}">${v.toFixed(1)}</span>`;
+}
+
+function ratioCell(v) {
+  if (v === null || v === undefined) return '<span class="heat-cell sNA">—</span>';
+  const cls = v < 0.95 ? 's0' : (v < 1.10 ? 's25' : (v < 1.30 ? 's50' : (v < 1.60 ? 's75' : 's100')));
+  return `<span class="heat-cell ${cls}">${v.toFixed(2)}</span>`;
+}
+
+function skewCell(v) {
+  if (v === null || v === undefined) return '<span class="heat-cell sNA">—</span>';
+  const cls = v < 1 ? 's0' : (v < 3 ? 's25' : (v < 5 ? 's50' : (v < 8 ? 's75' : 's100')));
+  return `<span class="heat-cell ${cls}">${v.toFixed(1)}</span>`;
+}
+
+function rvzCell(v) {
+  if (v === null || v === undefined) return '<span class="heat-cell sNA">—</span>';
+  const sign = v >= 0 ? '+' : '';
+  const av = Math.abs(v);
+  const cls = av < 0.5 ? 's0' : (av < 1.0 ? 's25' : (av < 1.5 ? 's50' : (av < 2.0 ? 's75' : 's100')));
+  return `<span class="heat-cell ${cls}">${sign}${v.toFixed(2)}σ</span>`;
+}
+
+function termCell(v) {
+  if (v === null || v === undefined) return '<span class="heat-cell sNA">—</span>';
+  const cls = v > 1 ? 's0' : (v > 0 ? 's25' : (v > -2 ? 's75' : 's100'));
+  const sign = v >= 0 ? '+' : '';
+  return `<span class="heat-cell ${cls}">${sign}${v.toFixed(2)}</span>`;
+}
+
+function render() {
+  if (!DATA) return;
+  const rows = applySort(DATA.tickers || [], SORT.col, SORT.dir);
+  const cols = [
+    { k: 'ticker', label: 'Ticker' },
+    { k: 'spot_price', label: 'Spot' },
+    { k: 'regime', label: 'Regime' },
+    { k: 'rv_5d', label: 'RV 5d' },
+    { k: 'rv_20d', label: 'RV 20d' },
+    { k: 'rv_z', label: 'RV-z' },
+    { k: 'iv_atm_30d', label: 'IV 30d' },
+    { k: 'iv_atm_90d', label: 'IV 90d' },
+    { k: 'iv_rv_ratio', label: 'IV/RV' },
+    { k: 'skew_30d', label: 'Skew' },
+    { k: 'term_slope', label: 'Term' },
+    { k: 'term_structure', label: 'Curve', sortable: false },
+  ];
+
+  const thead = cols.map(c => {
+    const cls = c.sortable !== false && c.k === SORT.col ? `sort-${SORT.dir}` : '';
+    const sortAttr = c.sortable !== false ? ` data-col="${c.k}"` : '';
+    return `<th${sortAttr} class="${cls}">${c.label}</th>`;
+  }).join('');
+
+  const tbody = rows.map(r => {
+    const reg = r.regime || 'UNKNOWN';
+    return `
+      <tr class="regime-${reg}">
+        <td><span class="ticker-cell">${r.ticker}</span></td>
+        <td>${r.spot_price !== null && r.spot_price !== undefined ? '$' + r.spot_price.toFixed(2) : '—'}</td>
+        <td><span class="regime-pill ${reg}">${reg}</span></td>
+        <td>${r.rv_5d !== null && r.rv_5d !== undefined ? r.rv_5d.toFixed(1) : '—'}</td>
+        <td>${r.rv_20d !== null && r.rv_20d !== undefined ? r.rv_20d.toFixed(1) : '—'}</td>
+        <td>${rvzCell(r.rv_z)}</td>
+        <td>${ivCell(r.iv_atm_30d)}</td>
+        <td>${ivCell(r.iv_atm_90d)}</td>
+        <td>${ratioCell(r.iv_rv_ratio)}</td>
+        <td>${skewCell(r.skew_30d)}</td>
+        <td>${termCell(r.term_slope)}</td>
+        <td>${r.term_structure ? `<span class="term-pill term-${r.term_structure}">${r.term_structure}</span>` : '—'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('tableHost').innerHTML = `
+    <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
+  `;
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
+      SORT.col = c;
+      render();
+    });
+  });
+}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
+      `${DATA.n_with_data}/${DATA.n_tickers} tickers with data · ${DATA.duration_s}s`;
+
+    const reg = DATA.composite_regime || 'UNKNOWN';
+    document.getElementById('composite').className = 'composite ' + reg;
+    document.getElementById('compRegime').textContent = reg;
+    document.getElementById('compScore').textContent =
+      DATA.composite_score !== null && DATA.composite_score !== undefined ?
+      DATA.composite_score.toFixed(1) : '—';
+
+    const rc = DATA.regime_counts || {};
+    document.getElementById('nTickers').textContent = DATA.n_tickers || 0;
+    document.getElementById('nPanic').textContent = rc.PANIC || 0;
+    document.getElementById('nConcerned').textContent = rc.CONCERNED || 0;
+    document.getElementById('nComplacent').textContent = rc.COMPLACENT || 0;
+
+    render();
+  } catch (e) {
+    document.getElementById('tableHost').innerHTML =
+      `<div class="loader">Failed: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
