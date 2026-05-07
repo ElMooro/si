@@ -416,24 +416,37 @@ CATALOG = {
 }
 
 
+# Build catalog-aware source lookup at module load time
+_SOURCE_LOOKUP = {}
+for cat in CATALOG.values():
+    for sid, label, source in cat["series"]:
+        _SOURCE_LOOKUP[sid] = source.lower().replace("polygon", "stock").replace("fred", "fred").replace("ecb", "ecb").replace("ofr", "ofr").replace("internal", "internal")
+
+
 # ─── Universal series resolver ───────────────────────────────────────────────
 def fetch_series(series_id, kind=None, start_date=None, end_date=None):
-    """Auto-route to the right fetcher based on series_id pattern or kind hint."""
+    """Auto-route to the right fetcher based on series_id pattern or kind hint.
+    
+    Resolution order:
+      1. Explicit kind param wins
+      2. Catalog lookup (covers 92 known indicators)
+      3. Pattern heuristics (FRED, OFR mnemonic, internal, stock fallback)
+    """
     if not kind:
-        # Auto-detect
-        if series_id.startswith("ciss_") or series_id.startswith("sovciss_") \
-           or series_id.startswith("clifs_") or series_id.startswith("ilm_"):
+        # 2. Catalog lookup
+        if series_id in _SOURCE_LOOKUP:
+            kind = _SOURCE_LOOKUP[series_id]
+        # 3. Pattern heuristics
+        elif series_id.startswith("ciss_") or series_id.startswith("sovciss_") \
+             or series_id.startswith("clifs_") or series_id.startswith("ilm_"):
             kind = "ecb"
         elif series_id.startswith("NYPD-"):
             kind = "ofr"
         elif series_id in INTERNAL_SERIES_MAP:
             kind = "internal"
-        elif len(series_id) <= 6 and series_id.isupper() and series_id.isalpha() \
-                and series_id not in ("INDPRO", "PAYEMS", "WALCL", "EFFR", "SOFR",
-                                       "DFF", "GDP", "PCE", "ICSA", "UNRATE", "HOUST",
-                                       "AAA", "AAL", "CPI"):
-            kind = "stock"
         else:
+            # FRED is the most common — default there for unknown alphanumeric IDs
+            # Stocks (Polygon) only when explicitly requested via kind=stock
             kind = "fred"
 
     if kind == "fred":
