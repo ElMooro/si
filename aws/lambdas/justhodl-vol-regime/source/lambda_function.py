@@ -1,49 +1,57 @@
 """
-justhodl-vol-regime — Volatility regime dashboard (institutional-grade).
+justhodl-vol-regime — Volatility regime dashboard (v2: FRED VIX-family).
+
+CHANGE FROM v1
+──────────────
+v1 used Polygon /v3/snapshot/options which is paid-tier-locked (HTTP 403).
+v2 uses FRED VIX-family indices — same data CBOE publishes daily, FREE.
 
 WHAT IT COMPUTES PER TICKER
 ────────────────────────────
-For each ticker (SPY, QQQ, IWM, GLD, TLT, IBIT, VIX + watchlist top 20):
+For each ticker (SPY, QQQ, IWM, DIA, GLD, TLT, IBIT, VXX + watchlist top 20):
 
-  REALIZED VOL (Polygon daily history)
-    rv_5d, rv_20d, rv_90d   — annualized stdev of log returns
+  REALIZED VOL (Polygon daily history — works on free tier)
+    rv_5d, rv_20d, rv_90d   — annualized stdev of log returns × √252
     rv_z                    — current 20d RV vs 1y mean (z-score)
 
-  IMPLIED VOL (Polygon options snapshot)
-    iv_atm_30d              — ATM IV at ~30d expiry
-    iv_atm_90d              — ATM IV at ~90d expiry
-    iv_rv_ratio             — iv_atm_30d / rv_20d (>1 = options expensive)
+  IMPLIED VOL (FRED VIX-family — daily-published CBOE indices)
+    Lookup table (ticker → FRED series):
+      SPY → VIXCLS    (30-day VIX, the canonical equity vol index)
+      QQQ → VXNCLS    (NASDAQ-100 implied vol)
+      IWM → RVXCLS    (Russell 2000 implied vol)
+      DIA → VXDCLS    (DJIA implied vol)
+      GLD → GVZCLS    (gold ETF implied vol)
+      USO → OVXCLS    (oil ETF implied vol)
+      TLT → no direct vol index → null (use RV only)
+      IBIT → no direct vol index → null (use RV only)
+      VXX → uses VIXCLS itself (it's a VIX product)
 
-  SKEW (25-delta strikes)
-    skew_30d                — 25Δ_put_iv - 25Δ_call_iv (positive = put protection bid)
-    skew_z                  — current vs 90d mean
+  TERM STRUCTURE (where available)
+    SPY: VXVCLS (3-month VIX) - VIXCLS (30-day VIX)
+    Negative term slope = backwardation = stress
 
-  TERM STRUCTURE
-    term_slope              — iv_atm_90d - iv_atm_30d (negative = backwardation = stress)
+  IV/RV RATIO
+    Computed where IV is available
 
   REGIME CLASSIFICATION (per ticker)
-    COMPLACENT  — IV/RV<0.95, skew<2, term>0   (vol cheap, no fear)
-    NORMAL      — defaults
-    CONCERNED   — IV/RV>1.20, skew>4 OR rv_z>1.5
-    PANIC       — IV/RV>1.50 AND term<0 AND skew>6 (full stress)
+    PANIC      — IV/RV>1.50 AND term<0 AND rv_z>1.5
+    CONCERNED  — IV/RV>1.20 OR rv_z>1.5
+    COMPLACENT — IV/RV<0.95 AND rv_z<-0.5 AND term>0
+    NORMAL     — defaults
 
 CROSS-MARKET REGIME COMPOSITE
 ──────────────────────────────
-  weighted_score:  SPY (0.30), QQQ (0.20), IWM (0.10), GLD (0.10),
-                   TLT (0.15), VIX (0.15)
-  Higher = more vol stress
+  weighted by liquidity:
+  SPY (0.30), QQQ (0.20), IWM (0.10), GLD (0.10), TLT (0.15), VXX (0.15)
 
-INSTITUTIONAL-GRADE SAFEGUARDS
-───────────────────────────────
+INSTITUTIONAL-GRADE
+────────────────────
+  ✓ FRED is the gold-standard public source for CBOE vol indices
   ✓ Annualization: stdev × sqrt(252) [trading days]
   ✓ Log returns (not simple returns) — proper for vol
-  ✓ ATM strike = closest to spot, expiry = closest to target days (30/90)
-  ✓ 25-delta strikes = closest to |delta|=0.25 from greeks
-  ✓ Open Interest minimum filter — exclude illiquid contracts
-  ✓ Stale quote detection — skip contracts with last_quote > 1d old
-  ✓ Failure-safe — if options endpoint fails for one ticker, mark as null
-                    (don't propagate error, continue with other tickers)
-  ✓ Rate limit safe — sequential per-ticker calls with budget cap
+  ✓ Single FRED call per ticker (lightweight, parallel via ThreadPoolExecutor)
+  ✓ Failure-safe — RV always computed even if IV missing
+  ✓ Cross-asset coverage: equities + gold + oil + treasuries (RV only)
 """
 import json
 import math
@@ -52,6 +60,7 @@ import statistics
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
@@ -60,33 +69,67 @@ REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY_OUT = os.environ.get("S3_KEY_OUT", "data/vol-regime.json")
 POLY_KEY = os.environ.get("POLY_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
-# Core universe — always tracked
 CORE_UNIVERSE = ["SPY", "QQQ", "IWM", "DIA", "GLD", "TLT", "IBIT", "VXX"]
+
+# Map ticker → FRED VIX-family series for direct implied vol
+IV_FRED_SERIES = {
+    "SPY":  "VIXCLS",   # 30-day VIX
+    "QQQ":  "VXNCLS",   # NASDAQ-100 vol
+    "IWM":  "RVXCLS",   # Russell 2000 vol
+    "DIA":  "VXDCLS",   # DJIA vol
+    "GLD":  "GVZCLS",   # gold ETF vol
+    "USO":  "OVXCLS",   # oil ETF vol
+    "VXX":  "VIXCLS",   # VXX is a VIX product
+    # No direct vol index for: TLT, IBIT, single stocks
+}
+
+# Term structure pairs: (front-month series, longer-month series)
+TERM_STRUCTURE_PAIRS = {
+    "SPY": ("VIXCLS", "VXVCLS"),  # 30-day vs 3-month
+}
 
 S3 = boto3.client("s3", region_name=REGION)
 
 
 def http_get_json(url, timeout=20, retries=2):
-    last_err = None
     for attempt in range(retries + 1):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "vol-regime/1.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "vol-regime/2.0"})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode("utf-8"))
         except Exception as e:
-            last_err = e
             if attempt < retries:
                 time.sleep(0.5 * (attempt + 1))
-    print(f"[vol] HTTP fail after {retries+1} attempts: {url[:80]} → {last_err}")
+            else:
+                print(f"[vol] HTTP fail: {url[:80]} → {e}")
     return None
 
 
-# ─── Realized Volatility ─────────────────────────────────────────────────────
+def fetch_fred_latest(series_id, n=300):
+    """Fetch FRED series. Returns list of {date, value} sorted chronologically."""
+    qs = urllib.parse.urlencode({
+        "series_id": series_id, "api_key": FRED_KEY,
+        "file_type": "json", "limit": n, "sort_order": "desc",
+    })
+    d = http_get_json(f"https://api.stlouisfed.org/fred/series/observations?{qs}")
+    if not d:
+        return []
+    obs = []
+    for o in d.get("observations", []):
+        v = o.get("value")
+        if v and v != ".":
+            try:
+                obs.append({"date": o["date"], "value": float(v)})
+            except ValueError:
+                continue
+    return obs[::-1]
+
+
 def fetch_history(ticker, n_days=260):
-    """Pull Polygon daily bars for last n_days. Returns most-recent-first list of closes."""
     end = date.today()
-    start = end - timedelta(days=int(n_days * 1.6))  # buffer for non-trading days
+    start = end - timedelta(days=int(n_days * 1.6))
     qs = urllib.parse.urlencode({"apiKey": POLY_KEY, "adjusted": "true", "sort": "desc"})
     url = (f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/"
             f"{start.strftime('%Y-%m-%d')}/{end.strftime('%Y-%m-%d')}?{qs}")
@@ -97,27 +140,21 @@ def fetch_history(ticker, n_days=260):
 
 
 def compute_realized_vol(closes, window):
-    """Annualized realized vol using log returns × sqrt(252).
-    closes: list of (timestamp, close), most-recent-first.
-    window: number of returns to use."""
     if len(closes) < window + 1:
         return None
-    # Take window+1 most recent closes
     recent = closes[:window + 1]
     log_returns = []
     for i in range(len(recent) - 1):
-        c_now = recent[i][1]
-        c_prev = recent[i + 1][1]
+        c_now = recent[i][1]; c_prev = recent[i + 1][1]
         if c_prev and c_now and c_prev > 0:
             log_returns.append(math.log(c_now / c_prev))
     if len(log_returns) < 5:
         return None
     sd = statistics.stdev(log_returns)
-    return round(sd * math.sqrt(252) * 100, 2)  # annualized %
+    return round(sd * math.sqrt(252) * 100, 2)
 
 
 def compute_realized_vol_z(closes, window=20):
-    """z-score of current 20d RV vs trailing 1y of rolling 20d RVs."""
     rolling = []
     for start in range(0, min(220, len(closes) - window - 1)):
         sub = closes[start:start + window + 1]
@@ -142,128 +179,13 @@ def compute_realized_vol_z(closes, window=20):
     return round(current, 2), round((current - mean) / sd, 2)
 
 
-# ─── Implied Volatility (Polygon options chain) ──────────────────────────────
-def fetch_options_chain(underlying, expiry_target_days=30):
-    """Snapshot options chain for underlying. Filter to ~target_days expiry.
-    Returns list of contracts with greeks + IV."""
-    today = date.today()
-    target_date = today + timedelta(days=expiry_target_days)
-    # Polygon /v3/snapshot/options/{underlying} returns ALL chains; can be large.
-    # Use expiration_date filter to narrow.
-    expiry_min = (today + timedelta(days=expiry_target_days - 14)).strftime("%Y-%m-%d")
-    expiry_max = (today + timedelta(days=expiry_target_days + 14)).strftime("%Y-%m-%d")
-    qs = urllib.parse.urlencode({
-        "apiKey": POLY_KEY,
-        "expiration_date.gte": expiry_min,
-        "expiration_date.lte": expiry_max,
-        "limit": 250,
-    })
-    url = f"https://api.polygon.io/v3/snapshot/options/{underlying}?{qs}"
-    d = http_get_json(url, timeout=30)
-    if not d or d.get("status") not in ("OK", "DELAYED"):
-        return []
-    contracts = d.get("results") or []
-    # If next_url present, paginate up to a few pages
-    pages = 0
-    while d.get("next_url") and pages < 4:
-        next_url = d["next_url"] + ("&" if "?" in d["next_url"] else "?") + f"apiKey={POLY_KEY}"
-        d = http_get_json(next_url, timeout=30)
-        if d:
-            contracts.extend(d.get("results") or [])
-        pages += 1
-    return contracts
-
-
-def get_underlying_price(contracts):
-    """Polygon contract snapshot includes underlying_asset.price"""
-    for c in contracts:
-        ua = c.get("underlying_asset") or {}
-        p = ua.get("price")
-        if p:
-            return float(p)
-    return None
-
-
-def find_atm_iv(contracts, spot, contract_type="call"):
-    """Find IV at ATM strike for the given contract type."""
-    if not spot or not contracts:
-        return None
-    candidates = []
-    for c in contracts:
-        details = c.get("details") or {}
-        if details.get("contract_type") != contract_type:
-            continue
-        strike = details.get("strike_price")
-        if not strike:
-            continue
-        iv = c.get("implied_volatility")
-        if iv is None or iv <= 0:
-            continue
-        oi = c.get("open_interest") or 0
-        if oi < 50:  # skip illiquid
-            continue
-        candidates.append({
-            "strike": float(strike),
-            "iv": float(iv),
-            "delta": (c.get("greeks") or {}).get("delta"),
-            "oi": oi,
-        })
-    if not candidates:
-        return None
-    candidates.sort(key=lambda x: abs(x["strike"] - spot))
-    return candidates[0]  # closest to spot
-
-
-def find_25d_iv(contracts, spot, contract_type="put"):
-    """Find IV at strike closest to |delta|=0.25 for given type.
-    For puts, delta is negative ~ -0.25. For calls, delta is positive ~ +0.25."""
-    if not contracts:
-        return None
-    target_delta = -0.25 if contract_type == "put" else 0.25
-    candidates = []
-    for c in contracts:
-        details = c.get("details") or {}
-        if details.get("contract_type") != contract_type:
-            continue
-        delta = (c.get("greeks") or {}).get("delta")
-        iv = c.get("implied_volatility")
-        if delta is None or iv is None or iv <= 0:
-            continue
-        oi = c.get("open_interest") or 0
-        if oi < 25:
-            continue
-        candidates.append({
-            "strike": float(details.get("strike_price") or 0),
-            "iv": float(iv),
-            "delta": float(delta),
-            "oi": oi,
-        })
-    if not candidates:
-        return None
-    candidates.sort(key=lambda x: abs(x["delta"] - target_delta))
-    return candidates[0]
-
-
-# ─── Per-ticker assembly ─────────────────────────────────────────────────────
-def regime_classify(rv, iv_30d, iv_rv, skew, term, rv_z):
-    """Classify the current vol regime for a ticker."""
-    if iv_rv is not None and iv_rv > 1.50 and (term or 0) < 0 and (skew or 0) > 6:
-        return "PANIC"
-    if (iv_rv or 0) > 1.20 or (skew or 0) > 4 or (rv_z or 0) > 1.5:
-        return "CONCERNED"
-    if (iv_rv or 0) < 0.95 and (skew or 0) < 2 and (term or 0) > 0:
-        return "COMPLACENT"
-    return "NORMAL"
-
-
 def assemble_ticker(ticker):
-    """Compute all vol metrics for one ticker. Returns dict."""
-    out = {"ticker": ticker, "errors": []}
+    out = {"ticker": ticker}
 
-    # 1. Pull history for RV
+    # 1. RV from Polygon history
     history = fetch_history(ticker, n_days=260)
     if not history:
-        out["errors"].append("history fetch failed")
+        out["err"] = "no history"
         return out
 
     out["spot_price"] = round(history[0][1], 2) if history else None
@@ -271,53 +193,52 @@ def assemble_ticker(ticker):
     out["rv_20d"], out["rv_z"] = compute_realized_vol_z(history, 20)
     out["rv_90d"] = compute_realized_vol(history, 90)
 
-    # 2. Options chain (30d)
-    contracts_30d = fetch_options_chain(ticker, expiry_target_days=30)
-    if contracts_30d:
-        spot = get_underlying_price(contracts_30d) or out.get("spot_price")
-        atm_call = find_atm_iv(contracts_30d, spot, "call")
-        atm_put = find_atm_iv(contracts_30d, spot, "put")
-        # ATM IV = average of ATM call/put IV (more robust than just one side)
-        atm_ivs = [x["iv"] for x in (atm_call, atm_put) if x]
-        if atm_ivs:
-            out["iv_atm_30d"] = round(statistics.mean(atm_ivs) * 100, 2)
-        # 25Δ skew
-        put_25d = find_25d_iv(contracts_30d, spot, "put")
-        call_25d = find_25d_iv(contracts_30d, spot, "call")
-        if put_25d and call_25d:
-            out["skew_30d"] = round((put_25d["iv"] - call_25d["iv"]) * 100, 2)
-            out["skew_25d_put_iv"] = round(put_25d["iv"] * 100, 2)
-            out["skew_25d_call_iv"] = round(call_25d["iv"] * 100, 2)
-    else:
-        out["errors"].append("no 30d options chain")
+    # 2. IV from FRED VIX-family
+    fred_series = IV_FRED_SERIES.get(ticker)
+    if fred_series:
+        obs = fetch_fred_latest(fred_series, n=10)
+        if obs:
+            out["iv_atm_30d"] = round(obs[-1]["value"], 2)
+            out["iv_source"] = fred_series
+            out["iv_date"] = obs[-1]["date"]
 
-    # 3. Options chain (90d) for term structure
-    contracts_90d = fetch_options_chain(ticker, expiry_target_days=90)
-    if contracts_90d:
-        spot = get_underlying_price(contracts_90d) or out.get("spot_price")
-        atm_call = find_atm_iv(contracts_90d, spot, "call")
-        atm_put = find_atm_iv(contracts_90d, spot, "put")
-        atm_ivs = [x["iv"] for x in (atm_call, atm_put) if x]
-        if atm_ivs:
-            out["iv_atm_90d"] = round(statistics.mean(atm_ivs) * 100, 2)
+    # 3. Term structure (where 3-month series exists)
+    if ticker in TERM_STRUCTURE_PAIRS:
+        front_id, back_id = TERM_STRUCTURE_PAIRS[ticker]
+        front_obs = fetch_fred_latest(front_id, n=10)
+        back_obs = fetch_fred_latest(back_id, n=10)
+        if front_obs and back_obs:
+            front = front_obs[-1]["value"]
+            back = back_obs[-1]["value"]
+            out["iv_atm_90d"] = round(back, 2)
+            out["term_slope"] = round(back - front, 2)
+            out["term_structure"] = "CONTANGO" if out["term_slope"] > 0 else "BACKWARDATION"
 
-    # 4. IV/RV ratio + term slope
+    # 4. IV/RV ratio
     if out.get("iv_atm_30d") is not None and out.get("rv_20d") is not None and out["rv_20d"] > 0:
         out["iv_rv_ratio"] = round(out["iv_atm_30d"] / out["rv_20d"], 2)
-    if out.get("iv_atm_90d") is not None and out.get("iv_atm_30d") is not None:
-        out["term_slope"] = round(out["iv_atm_90d"] - out["iv_atm_30d"], 2)
-        out["term_structure"] = "CONTANGO" if out["term_slope"] > 0 else "BACKWARDATION"
 
     # 5. Regime classification
-    out["regime"] = regime_classify(
-        out.get("rv_20d"), out.get("iv_atm_30d"), out.get("iv_rv_ratio"),
-        out.get("skew_30d"), out.get("term_slope"), out.get("rv_z"),
-    )
+    iv_rv = out.get("iv_rv_ratio")
+    rv_z = out.get("rv_z")
+    term = out.get("term_slope")
+
+    if iv_rv is not None and iv_rv > 1.50 and (term or 0) < 0 and (rv_z or 0) > 1.5:
+        out["regime"] = "PANIC"
+    elif (iv_rv or 0) > 1.20 or (rv_z or 0) > 1.5:
+        out["regime"] = "CONCERNED"
+    elif iv_rv is not None and iv_rv < 0.95 and (rv_z or 0) < -0.5 and (term or 0) > 0:
+        out["regime"] = "COMPLACENT"
+    elif rv_z is not None:
+        if rv_z > 1.5:    out["regime"] = "CONCERNED"
+        elif rv_z < -1.0: out["regime"] = "COMPLACENT"
+        else:             out["regime"] = "NORMAL"
+    else:
+        out["regime"] = "NORMAL"
 
     return out
 
 
-# ─── Composite regime scoring ────────────────────────────────────────────────
 REGIME_SCORE = {"COMPLACENT": 0, "NORMAL": 25, "CONCERNED": 60, "PANIC": 100}
 WEIGHTS = {"SPY": 0.30, "QQQ": 0.20, "IWM": 0.10, "GLD": 0.10,
            "TLT": 0.15, "VXX": 0.15}
@@ -341,7 +262,6 @@ def composite_regime(per_ticker):
     return score, regime
 
 
-# ─── Watchlist load ──────────────────────────────────────────────────────────
 def load_watchlist_tickers():
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/user-watchlist.json")
@@ -355,37 +275,30 @@ def load_watchlist_tickers():
         return []
 
 
-# ─── Main handler ───────────────────────────────────────────────────────────
 def lambda_handler(event, context):
     started = time.time()
 
-    # Build universe: core + watchlist top 20
     watchlist = load_watchlist_tickers()
     universe = list(dict.fromkeys(CORE_UNIVERSE + watchlist))[:30]
     print(f"[vol] Universe: {len(universe)} tickers ({len(CORE_UNIVERSE)} core + {len(watchlist)} watchlist)")
 
     per_ticker = {}
-    for t in universe:
-        elapsed = time.time() - started
-        if elapsed > 220:  # leave 20s headroom on 240s timeout
-            print(f"[vol] Time budget — stopping at {t}")
-            break
-        try:
-            print(f"[vol] {t}…")
-            per_ticker[t] = assemble_ticker(t)
-        except Exception as e:
-            print(f"[vol] {t} fatal: {e}")
-            per_ticker[t] = {"ticker": t, "errors": [str(e)[:100]]}
+    with ThreadPoolExecutor(max_workers=4) as exe:
+        futures = {exe.submit(assemble_ticker, t): t for t in universe}
+        for fut in as_completed(futures):
+            t = futures[fut]
+            try:
+                per_ticker[t] = fut.result()
+            except Exception as e:
+                per_ticker[t] = {"ticker": t, "err": str(e)[:100]}
 
     composite_score, composite_label = composite_regime(per_ticker)
 
-    # Aggregate stats
     regime_counts = {"COMPLACENT": 0, "NORMAL": 0, "CONCERNED": 0, "PANIC": 0, "UNKNOWN": 0}
-    for t, rec in per_ticker.items():
+    for rec in per_ticker.values():
         r = rec.get("regime") or "UNKNOWN"
         regime_counts[r] = regime_counts.get(r, 0) + 1
 
-    # Tickers most concerning right now
     sorted_tickers = sorted(
         [r for r in per_ticker.values() if r.get("regime")],
         key=lambda r: REGIME_SCORE.get(r["regime"], 0) + (r.get("rv_z") or 0) * 5,
@@ -393,37 +306,35 @@ def lambda_handler(event, context):
     )
 
     payload = {
-        "schema_version": "1.0",
-        "method": "vol_regime_v1",
+        "schema_version": "2.0",
+        "method": "vol_regime_v2_fred",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "n_tickers": len(per_ticker),
-        "n_with_data": sum(1 for r in per_ticker.values() if r.get("regime")),
+        "n_with_iv": sum(1 for r in per_ticker.values() if r.get("iv_atm_30d") is not None),
         "composite_score": composite_score,
         "composite_regime": composite_label,
         "regime_counts": regime_counts,
         "weights": WEIGHTS,
+        "iv_sources_used": IV_FRED_SERIES,
         "tickers": list(per_ticker.values()),
         "most_stressed": [{"ticker": r["ticker"], "regime": r["regime"],
-                            "rv_z": r.get("rv_z"), "iv_rv": r.get("iv_rv_ratio"),
-                            "skew": r.get("skew_30d"), "term": r.get("term_slope")}
+                            "rv_z": r.get("rv_z"), "iv_rv": r.get("iv_rv_ratio")}
                            for r in sorted_tickers[:10]],
         "duration_s": round(time.time() - started, 1),
     }
-
     body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,
         ContentType="application/json", CacheControl="max-age=300",
     )
     print(f"[vol] DONE in {payload['duration_s']}s · "
-          f"{payload['n_with_data']}/{payload['n_tickers']} with data · "
+          f"{payload['n_with_iv']}/{payload['n_tickers']} with IV · "
           f"composite={composite_score} ({composite_label})")
-
     return {
         "statusCode": 200,
         "body": json.dumps({
             "ok": True,
-            "n_with_data": payload["n_with_data"],
+            "n_with_iv": payload["n_with_iv"],
             "composite_score": composite_score,
             "composite_regime": composite_label,
             "duration_s": payload["duration_s"],

@@ -262,53 +262,72 @@ def recession_section():
     return out
 
 
-# ─── Section 3: Index implied moves (SPY/QQQ) ────────────────────────────────
-def get_atm_iv(ticker, expiry_target_days):
-    """Pull options snapshot, find ATM IV ~target_days expiry."""
-    today = date.today()
-    expiry_min = (today + timedelta(days=expiry_target_days - 14)).strftime("%Y-%m-%d")
-    expiry_max = (today + timedelta(days=expiry_target_days + 14)).strftime("%Y-%m-%d")
-    qs = urllib.parse.urlencode({
-        "apiKey": POLY_KEY,
-        "expiration_date.gte": expiry_min,
-        "expiration_date.lte": expiry_max,
-        "limit": 250,
-    })
-    d = http_get_json(f"https://api.polygon.io/v3/snapshot/options/{ticker}?{qs}", timeout=30)
-    if not d:
-        return None, None
-    contracts = d.get("results") or []
-    if not contracts:
-        return None, None
+# ─── Section 3: Index implied moves (SPY/QQQ/BTC via FRED VIX-family) ────────
+# Polygon /v3/snapshot/options is paid-tier-locked (HTTP 403 NOT_AUTHORIZED).
+# FRED publishes the same CBOE vol indices daily, FREE.
+INDEX_IV_FRED = {
+    "SPY":  ("VIXCLS", "VXVCLS"),  # 30-day VIX, 3-month VIX
+    "QQQ":  ("VXNCLS", None),
+    "IWM":  ("RVXCLS", None),
+    "DIA":  ("VXDCLS", None),
+    "GLD":  ("GVZCLS", None),
+    "USO":  ("OVXCLS", None),
+    "IBIT": (None, None),  # No public BTC vol index on FRED
+}
 
-    # Find spot
-    spot = None
-    for c in contracts:
-        ua = c.get("underlying_asset") or {}
-        if ua.get("price"):
-            spot = float(ua["price"])
-            break
+
+def get_spot_price(ticker):
+    """Fetch spot via Polygon last-trade or previous-close fallback."""
+    try:
+        d = http_get_json(f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={POLY_KEY}", timeout=10)
+        if d and d.get("status") in ("OK", "DELAYED"):
+            return d.get("results", {}).get("p")
+    except Exception:
+        pass
+    try:
+        d = http_get_json(f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?apiKey={POLY_KEY}", timeout=10)
+        results = (d or {}).get("results") or []
+        if results:
+            return results[0].get("c")
+    except Exception:
+        pass
+    return None
+
+
+def get_atm_iv(ticker, expiry_target_days):
+    """Returns (spot_price, iv_decimal) from FRED VIX-family.
+    expiry_target_days: 30 → use front-month VIX; 90 → use 3-month VIX (where available)."""
+    spot = get_spot_price(ticker)
     if not spot:
         return None, None
 
-    # ATM call + put → average IV
-    candidates = []
-    for c in contracts:
-        details = c.get("details") or {}
-        iv = c.get("implied_volatility")
-        oi = c.get("open_interest") or 0
-        if iv is None or iv <= 0 or oi < 50:
-            continue
-        strike = float(details.get("strike_price") or 0)
-        if not strike:
-            continue
-        candidates.append({"strike": strike, "iv": float(iv), "type": details.get("contract_type")})
-    if not candidates:
+    if ticker not in INDEX_IV_FRED:
         return spot, None
-    candidates.sort(key=lambda c: abs(c["strike"] - spot))
-    closest = candidates[:4]  # nearest 4 (mix of C/P near ATM)
-    ivs = [c["iv"] for c in closest]
-    return spot, statistics.mean(ivs) if ivs else None
+
+    front_id, back_id = INDEX_IV_FRED[ticker]
+    series_id = back_id if (expiry_target_days >= 60 and back_id) else front_id
+
+    if not series_id:
+        return spot, None
+
+    qs = urllib.parse.urlencode({
+        "series_id": series_id, "api_key": FRED_KEY,
+        "file_type": "json", "limit": 5, "sort_order": "desc",
+    })
+    d = http_get_json(f"https://api.stlouisfed.org/fred/series/observations?{qs}")
+    if not d:
+        return spot, None
+    obs = d.get("observations", [])
+    for o in obs:
+        v = o.get("value")
+        if v and v != ".":
+            try:
+                # FRED VIX series are quoted in % terms (e.g., 16.5)
+                # We need IV as decimal for log-normal calculations
+                return spot, float(v) / 100.0
+            except ValueError:
+                continue
+    return spot, None
 
 
 def index_implied_moves(ticker):
@@ -342,42 +361,41 @@ def index_implied_moves(ticker):
 
 # ─── Section 4: Earnings implied moves ───────────────────────────────────────
 def earnings_implied_moves():
-    """For upcoming earnings, compute implied move from front-month straddle."""
+    """Single-stock IV requires Polygon options snapshot (paid-tier-only).
+    Returning empty list with explanatory note. Restore when premium tier active."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/earnings-tracker.json")
         d = json.loads(obj["Body"].read())
-    except Exception:
-        return []
-    out = []
-    today = date.today()
-    upcoming = (d.get("upcoming_14d") or [])[:10]  # cap to 10 to manage API budget
-    for u in upcoming:
-        ticker = u.get("ticker")
-        ed_str = (u.get("earnings_date") or "")[:10]
-        if not ticker or not ed_str:
-            continue
-        try:
-            ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
-        except ValueError:
-            continue
-        days_to = (ed - today).days
-        if days_to < 0 or days_to > 14:
-            continue
-        # Find IV at expiry just after earnings
-        spot, iv = get_atm_iv(ticker, max(days_to + 7, 14))
-        if spot and iv:
-            implied_move_pct = round(iv * math.sqrt((days_to + 7) / 365) * 100, 2)
+        # We can still surface upcoming earnings names + days_to (free data).
+        # Just can't compute implied move without single-stock IV.
+        out = []
+        today = date.today()
+        upcoming = (d.get("upcoming_14d") or [])[:10]
+        for u in upcoming:
+            ticker = u.get("ticker")
+            ed_str = (u.get("earnings_date") or "")[:10]
+            if not ticker or not ed_str:
+                continue
+            try:
+                ed = datetime.strptime(ed_str, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            days_to = (ed - today).days
+            if days_to < 0 or days_to > 14:
+                continue
             out.append({
                 "ticker": ticker,
                 "name": (u.get("name") or "")[:40],
                 "earnings_date": ed_str,
                 "days_to": days_to,
-                "spot": round(spot, 2),
-                "iv_pct": round(iv * 100, 2),
-                "expected_move_pct": implied_move_pct,
+                "spot": None, "iv_pct": None, "expected_move_pct": None,
+                "note": "Single-stock IV requires Polygon premium tier",
             })
-    out.sort(key=lambda r: r["days_to"])
-    return out
+        out.sort(key=lambda r: r["days_to"])
+        return out
+    except Exception as e:
+        print(f"[implied] earnings_implied_moves: {e}")
+        return []
 
 
 # ─── Main handler ────────────────────────────────────────────────────────────
