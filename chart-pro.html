@@ -237,8 +237,11 @@
   </div>
 
 <script>
-const CHART_API = 'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/';
-const CATALOG_URL = CHART_API + '?catalog=1&_v=2';
+// Same-origin via your existing CF Worker (api.justhodl.ai → /agent/chart-data).
+// Direct Lambda URLs are blocked by some adblockers/ISPs; routing through your
+// own domain solves it.
+const CHART_API = 'https://api.justhodl.ai/agent/chart-data';
+const CATALOG_URL = CHART_API + '?catalog=1&_v=3';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
 
 const STATE = {

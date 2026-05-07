@@ -41,6 +41,7 @@ const AGENT_LAMBDAS = {
   'trends':          'https://ohmu2l54tpbgm6jk7e5s6q3jpe0cqvij.lambda-url.us-east-1.on.aws/',
   'sentiment':       'https://rtfrjcj43osvg4u4vza5bhf4pm0udfmo.lambda-url.us-east-1.on.aws/',
   'secretary':       'https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/',
+  'chart-data':      'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/',
 };
 
 const ALLOWED_ORIGINS = new Set([
