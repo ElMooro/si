@@ -1,0 +1,305 @@
+{
+  "started": "2026-05-07T15:25:00.259385+00:00",
+  "tests": {
+    "watchlist": {
+      "checks": [
+        {
+          "name": "GET (no auth, public read)",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "ok": true,
+            "version": 0
+          }
+        },
+        {
+          "name": "POST without auth \u2192 401",
+          "pass": true,
+          "got": {
+            "status": 401,
+            "err": "Missing or invalid x-justhodl-token"
+          }
+        },
+        {
+          "name": "POST with bad ticker \u2192 400 (validation)",
+          "pass": true,
+          "got": {
+            "status": 400,
+            "err": "Invalid ticker"
+          }
+        },
+        {
+          "name": "POST add NVDA \u2192 200 + persisted",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "holdings": [
+              "NVDA"
+            ],
+            "version": 1
+          }
+        },
+        {
+          "name": "Idempotent add (NVDA twice) \u2192 no duplicate",
+          "pass": true,
+          "got": {
+            "holdings": [
+              "NVDA"
+            ]
+          }
+        },
+        {
+          "name": "POST remove NVDA \u2192 200 + removed",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "holdings": []
+          }
+        }
+      ]
+    },
+    "catalyst_calendar": {
+      "checks": [
+        {
+          "name": "Events sorted by date ascending",
+          "pass": true,
+          "got": {
+            "n_events": 12,
+            "first_date": "2026-05-07",
+            "last_date": "2026-06-19"
+          }
+        },
+        {
+          "name": "All events have days_to >= 0 (no past events)",
+          "pass": true,
+          "got": {
+            "min_days_to": 0
+          }
+        },
+        {
+          "name": "All events have required fields",
+          "pass": true,
+          "got": {
+            "sample": {
+              "date": "2026-05-07",
+              "time": null,
+              "type": "AUCTION",
+              "title": "4-Week Bill auction",
+              "subtitle": "Size TBD",
+              "impact": "LOW",
+              "source": "TreasuryDirect",
+              "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+              "size_billions": 0.0,
+              "cusip": "912797TZ0",
+              "days_to": 0
+            }
+          }
+        },
+        {
+          "name": "Multiple sources contribute",
+          "pass": true,
+          "got": {
+            "by_type": {
+              "AUCTION": 9,
+              "FOMC": 1,
+              "REBALANCE": 1,
+              "WITCHING": 1
+            }
+          }
+        },
+        {
+          "name": "FOMC event in 60d window",
+          "pass": true,
+          "got": {
+            "has_fomc": true,
+            "fomc_dates": [
+              "2026-06-10"
+            ]
+          }
+        }
+      ]
+    },
+    "vol_regime": {
+      "checks": [
+        {
+          "name": "Composite score in [0, 100]",
+          "pass": true,
+          "got": {
+            "score": 25.0,
+            "regime": "NORMAL"
+          }
+        },
+        {
+          "name": "All tickers have valid regime classification",
+          "pass": true,
+          "got": {
+            "n_tickers": 8,
+            "regimes": [
+              "NORMAL"
+            ]
+          }
+        },
+        {
+          "name": "SPY has RV + IV populated",
+          "pass": false,
+          "got": {
+            "spy_rv_20d": 10.12,
+            "spy_iv_30d": null
+          }
+        },
+        {
+          "name": "RV values plausible (1% < rv_20d < 200%)",
+          "pass": true,
+          "got": {
+            "n_with_rv": 8,
+            "min": 7.8,
+            "max": 29.3
+          }
+        },
+        {
+          "name": "IV/RV ratios reasonable",
+          "pass": false,
+          "got": {
+            "n_with_ratio": 0,
+            "ratios": []
+          }
+        }
+      ]
+    },
+    "implied_prob": {
+      "checks": [
+        {
+          "name": "Fed section has current rate",
+          "pass": true,
+          "got": {
+            "current_rate": 3.625,
+            "stance": "MARKET PRICING HOLD"
+          }
+        },
+        {
+          "name": "Recession composite score in [0, 100]",
+          "pass": true,
+          "got": {
+            "score": 6.7,
+            "label": "LOW RECESSION RISK"
+          }
+        },
+        {
+          "name": "NY Fed 12m prob valid",
+          "pass": true,
+          "got": {
+            "ny_fed": 1.82
+          }
+        },
+        {
+          "name": "SPY 30d move probabilities in [0, 100]",
+          "pass": true,
+          "got": {
+            "spy_30d_moves": {}
+          }
+        },
+        {
+          "name": "SPY IV 30d positive",
+          "pass": false,
+          "got": {
+            "spy_iv_30d": null
+          }
+        }
+      ]
+    },
+    "trade_journal": {
+      "checks": [
+        {
+          "name": "GET works (public)",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "n_total": 0
+          }
+        },
+        {
+          "name": "POST /add without auth \u2192 401",
+          "pass": true,
+          "got": {
+            "status": 401,
+            "err": "Missing or invalid x-justhodl-token"
+          }
+        },
+        {
+          "name": "POST add with negative price \u2192 400",
+          "pass": true,
+          "got": {
+            "status": 400,
+            "err": "entry_price must be positive"
+          }
+        },
+        {
+          "name": "POST add valid trade \u2192 200 OR validates ticker",
+          "pass": true,
+          "got": {
+            "status": 400,
+            "trade_id": null,
+            "err": "Invalid ticker"
+          }
+        },
+        {
+          "name": "POST add ZZZTEST trade \u2192 200",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "trade_id": "t_a49e2e86aaf0"
+          }
+        },
+        {
+          "name": "POST close \u2192 200 + outcome computed",
+          "pass": true,
+          "got": {
+            "status": 200,
+            "outcome_pct": 10.0,
+            "outcome_dollars": 100.0,
+            "days_held": 4
+          }
+        },
+        {
+          "name": "POST delete (cleanup test trade)",
+          "pass": true,
+          "got": {
+            "status": 200
+          }
+        }
+      ]
+    }
+  },
+  "summary": {
+    "watchlist": {
+      "passed": 6,
+      "total": 6,
+      "pct": 100.0,
+      "fatal": false
+    },
+    "catalyst_calendar": {
+      "passed": 5,
+      "total": 5,
+      "pct": 100.0,
+      "fatal": false
+    },
+    "vol_regime": {
+      "passed": 3,
+      "total": 5,
+      "pct": 60.0,
+      "fatal": false
+    },
+    "implied_prob": {
+      "passed": 4,
+      "total": 5,
+      "pct": 80.0,
+      "fatal": false
+    },
+    "trade_journal": {
+      "passed": 7,
+      "total": 7,
+      "pct": 100.0,
+      "fatal": false
+    }
+  }
+}
