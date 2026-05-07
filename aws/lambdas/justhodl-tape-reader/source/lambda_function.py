@@ -215,9 +215,21 @@ def build_baseline(n_days, universe_set):
 
 
 def score_ticker(snap, baseline_rec):
-    """Compute the score components for one ticker. Return (score, components, classifications)."""
+    """Compute the score components for one ticker. Return (score, components, classifications).
+
+    If today's session is empty (pre-market), fall back to prevDay snapshot."""
     day = snap.get("day") or {}
     today_vol = day.get("v", 0) or 0
+
+    # Fall back to previous day if today's session has no data (markets not open)
+    using_prev_day = False
+    if today_vol == 0:
+        prev = snap.get("prevDay") or {}
+        if prev.get("v"):
+            day = prev
+            today_vol = prev.get("v", 0) or 0
+            using_prev_day = True
+
     today_close = day.get("c", 0) or 0
     today_high = day.get("h", 0) or 0
     today_low = day.get("l", 0) or 0
@@ -256,6 +268,8 @@ def score_ticker(snap, baseline_rec):
         classifications.append("BLOCK_PRINTS")
     if today_dollar_vol >= 1_000_000_000:
         classifications.append("MEGA_NOTIONAL")
+    if using_prev_day:
+        classifications.append("PRE_MARKET_DATA")
 
     return round(score, 1), {
         "rel_volume": round(rel_volume, 2),
@@ -267,6 +281,7 @@ def score_ticker(snap, baseline_rec):
         "today_n_trades": today_n_trades,
         "avg_trade_size_today": round(avg_trade_size_today, 0),
         "avg_trade_size_baseline": round(avg_trade_size_base, 0),
+        "using_prev_day": using_prev_day,
     }, classifications
 
 
@@ -306,7 +321,17 @@ def lambda_handler(event, context):
     breadth = {"advance": 0, "decline": 0, "unch": 0}
     for ticker, snap in by_ticker.items():
         change_pct = snap.get("todaysChangePerc")
-        if change_pct is not None:
+        # If today's change is 0 (markets not open), derive from snapshot day vs prevDay
+        if not change_pct:
+            day = snap.get("day") or {}
+            prev = snap.get("prevDay") or {}
+            if day.get("c") and prev.get("c"):
+                change_pct = ((day["c"] - prev["c"]) / prev["c"]) * 100
+            elif prev.get("c"):
+                # Fall back: prev day's intra-day change
+                if prev.get("o"):
+                    change_pct = ((prev["c"] - prev["o"]) / prev["o"]) * 100
+        if change_pct:
             if change_pct > 0.5:
                 breadth["advance"] += 1
             elif change_pct < -0.5:
