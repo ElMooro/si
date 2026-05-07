@@ -371,10 +371,10 @@ async function loadTicker(sym){
     fetchJson("data/earnings-tracker.json"),
     fetchJson("data/short-interest.json"),
     fetchJson("data/13f-positions.json"),
-    fetchJson("data/asymmetric-setups.json"),
-    fetchJson("data/risk-sized-positions.json"),
+    fetchJson("data/asymmetric-scorer.json"),
+    fetchJson("data/risk-sizer.json"),
     fetchJson("portfolio/signal-portfolio-state.json"),
-    fetchJson("data/red-flags.json"),
+    fetchJson("data/redflag-alerts.json"),
   ]);
 
   let html = "";
