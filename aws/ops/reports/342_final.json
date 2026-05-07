@@ -1,0 +1,188 @@
+{
+  "started": "2026-05-07T17:20:49.710280+00:00",
+  "features": {
+    "watchlist": {
+      "lambda_url": "https://kzwn6o5kbm7kqdqoioiw32hd4m0rzzsr.lambda-url.us-east-1.on.aws/",
+      "page": "/watchlist.html",
+      "status": 200,
+      "duration_s": 1.2,
+      "version": 3,
+      "n_total_tickers": 0,
+      "categories": {
+        "research": 0,
+        "holdings": 0,
+        "watching": 0,
+        "exit_zone": 0
+      },
+      "checks": [
+        {
+          "name": "Lambda live + responding",
+          "pass": true
+        },
+        {
+          "name": "Schema correct (categories present)",
+          "pass": true
+        }
+      ]
+    },
+    "catalyst_calendar": {
+      "page": "/catalyst-calendar.html",
+      "as_of": "2026-05-07T17:17:44+00:00",
+      "n_events": 12,
+      "by_type": {
+        "AUCTION": 9,
+        "FOMC": 1,
+        "REBALANCE": 1,
+        "WITCHING": 1
+      },
+      "high_impact_next_7d": 0,
+      "high_impact_next_30d": 0,
+      "checks": [
+        {
+          "name": "Events present",
+          "pass": true
+        },
+        {
+          "name": "Multiple sources",
+          "pass": true
+        },
+        {
+          "name": "FOMC in window",
+          "pass": true
+        }
+      ]
+    },
+    "vol_regime": {
+      "page": "/vol-regime.html",
+      "schema": "2.0",
+      "method": "vol_regime_v2_fred",
+      "n_tickers": 8,
+      "n_with_iv": 6,
+      "composite_score": 38.5,
+      "composite_regime": "NORMAL",
+      "spy": {
+        "iv_30d": 17.39,
+        "iv_90d": 20.57,
+        "iv_rv": 1.68,
+        "regime": "CONCERNED"
+      },
+      "checks": [
+        {
+          "name": "Schema v2.0",
+          "pass": true
+        },
+        {
+          "name": "SPY IV populated (FRED VIX)",
+          "pass": true
+        },
+        {
+          "name": "Composite computed",
+          "pass": true
+        },
+        {
+          "name": "\u22656 of 8 core tickers have IV",
+          "pass": true
+        }
+      ]
+    },
+    "implied_prob": {
+      "page": "/implied-prob.html",
+      "schema": "2.0",
+      "method": "implied_prob_v2_fred",
+      "fed": {
+        "current_rate": 3.625,
+        "stance": "MARKET PRICING HOLD",
+        "implied_3m_bp": 6
+      },
+      "recession": {
+        "score": 6.7,
+        "label": "LOW RECESSION RISK"
+      },
+      "spy_iv_30d": 17.39,
+      "spy_expected_30d": 4.99,
+      "qqq_iv_30d": 23.58,
+      "btc_iv_30d": 33.6,
+      "btc_iv_proxy": "Implied vol proxied from realized vol (no public BTC vol index)",
+      "checks": [
+        {
+          "name": "Schema v2.0",
+          "pass": true
+        },
+        {
+          "name": "Fed current_rate",
+          "pass": true
+        },
+        {
+          "name": "Recession composite",
+          "pass": true
+        },
+        {
+          "name": "SPY IV via FRED",
+          "pass": true
+        },
+        {
+          "name": "QQQ IV via FRED",
+          "pass": true
+        },
+        {
+          "name": "BTC IV (RV proxy)",
+          "pass": true
+        }
+      ]
+    },
+    "trade_journal": {
+      "lambda_url": "https://c6bhlnugikpdjulunpf6qeu66q0ugtbg.lambda-url.us-east-1.on.aws/",
+      "page": "/trade-journal.html",
+      "status": 200,
+      "duration_s": 1.1,
+      "n_trades": 0,
+      "stats": {
+        "as_of": "2026-05-07T15:25:02+00:00",
+        "n_total": 0,
+        "n_open": 0,
+        "n_closed": 0
+      },
+      "checks": [
+        {
+          "name": "Lambda live + responding",
+          "pass": true
+        },
+        {
+          "name": "Stats schema present",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "summary": {
+    "watchlist": {
+      "passed": 2,
+      "total": 2,
+      "pct": 100.0
+    },
+    "catalyst_calendar": {
+      "passed": 3,
+      "total": 3,
+      "pct": 100.0
+    },
+    "vol_regime": {
+      "passed": 4,
+      "total": 4,
+      "pct": 100.0
+    },
+    "implied_prob": {
+      "passed": 6,
+      "total": 6,
+      "pct": 100.0
+    },
+    "trade_journal": {
+      "passed": 2,
+      "total": 2,
+      "pct": 100.0
+    }
+  },
+  "overall": {
+    "total_passed": 17,
+    "total": 17
+  }
+}
