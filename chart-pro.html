@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chart Pro · JustHodl.AI</title>
+<title>Chart Pro · JustHodl.AI · v3</title>
 <meta name="description" content="Multi-series historical chart explorer — FRED, ECB, OFR, Polygon, JustHodl composites. Powered by TradingView Lightweight Charts.">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   :root {
@@ -243,6 +246,9 @@
 const CHART_API = 'https://api.justhodl.ai/agent/chart-data';
 const CATALOG_URL = CHART_API + '?catalog=1&_v=3';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
+
+console.log('%c[Chart Pro v3] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
+console.log('[Chart Pro v3] CHART_API =', CHART_API);
 
 const STATE = {
   activeSeries: [],   // [{id, label, source, color, axis, data}]
