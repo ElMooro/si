@@ -1,0 +1,157 @@
+{
+  "started": "2026-05-07T17:12:41.941042+00:00",
+  "tests": {
+    "vol_regime": {
+      "schema": "2.0",
+      "method": "vol_regime_v2_fred",
+      "n_with_iv": 6,
+      "composite_score": 38.5,
+      "composite_regime": "NORMAL",
+      "duration_s": 1.7,
+      "checks": [
+        {
+          "name": "Schema bumped to 2.0",
+          "pass": true
+        },
+        {
+          "name": "Method = vol_regime_v2_fred",
+          "pass": true
+        },
+        {
+          "name": "SPY IV populated (was null in v1)",
+          "pass": true,
+          "got": {
+            "iv_atm_30d": 17.39,
+            "iv_source": "VIXCLS",
+            "iv_date": "2026-05-06"
+          }
+        },
+        {
+          "name": "SPY term structure populated",
+          "pass": true,
+          "got": {
+            "iv_30d": 17.39,
+            "iv_90d": 20.57,
+            "term_slope": 3.18,
+            "term": "CONTANGO"
+          }
+        },
+        {
+          "name": "SPY IV/RV ratio populated",
+          "pass": true,
+          "got": {
+            "iv_rv": 1.68,
+            "rv_20d": 10.38,
+            "regime": "CONCERNED"
+          }
+        },
+        {
+          "name": "QQQ IV populated",
+          "pass": true,
+          "got": {
+            "iv": 23.58,
+            "source": "VXNCLS"
+          }
+        },
+        {
+          "name": "IWM IV populated",
+          "pass": true,
+          "got": {
+            "iv": 22.2,
+            "source": "RVXCLS"
+          }
+        },
+        {
+          "name": "GLD IV populated",
+          "pass": true,
+          "got": {
+            "iv": 26.34,
+            "source": "GVZCLS"
+          }
+        }
+      ]
+    },
+    "implied_prob": {
+      "spy_spot": 733.83,
+      "spy_iv_30d": 17.39,
+      "spy_iv_90d": 20.57,
+      "qqq_iv_30d": null,
+      "checks": [
+        {
+          "name": "SPY IV 30d populated (was null in v1)",
+          "pass": true,
+          "got": {
+            "iv_30d": 17.39,
+            "spot": 733.83
+          }
+        },
+        {
+          "name": "SPY IV 90d populated",
+          "pass": true,
+          "got": {
+            "iv_90d": 20.57
+          }
+        },
+        {
+          "name": "SPY 30d move probabilities computed",
+          "pass": true,
+          "got": {
+            "p_up_5": 15.8,
+            "p_down_5": 15.799999999999997,
+            "p_up_10": 2.6,
+            "p_down_10": 1.7999999999999972,
+            "expected_move_pct": 4.99
+          }
+        },
+        {
+          "name": "SPY 90d move probabilities computed",
+          "pass": true,
+          "got": {
+            "p_up_5": 29.8,
+            "p_down_5": 32.599999999999994,
+            "p_up_10": 16.3,
+            "p_down_10": 16.299999999999997,
+            "p_up_20": 3.3,
+            "p_down_20": 1.5999999999999943,
+            "expected_move_pct": 10.21
+          }
+        },
+        {
+          "name": "QQQ IV 30d populated",
+          "pass": false,
+          "got": {
+            "iv_30d": null
+          }
+        },
+        {
+          "name": "Recession composite valid",
+          "pass": true,
+          "got": {
+            "score": 9.7,
+            "label": "LOW RECESSION RISK"
+          }
+        },
+        {
+          "name": "Fed stance valid",
+          "pass": false,
+          "got": {
+            "current_rate": 3.625,
+            "stance": null
+          }
+        }
+      ]
+    }
+  },
+  "summary": {
+    "vol_regime": {
+      "passed": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "implied_prob": {
+      "passed": 5,
+      "total": 7,
+      "pct": 71.0
+    }
+  }
+}
