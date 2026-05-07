@@ -1,0 +1,68 @@
+{
+  "started": "2026-05-07T18:53:50.738220+00:00",
+  "deploy": {
+    "action": "create",
+    "zip_kb": 6.4
+  },
+  "lambda_url": "https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/",
+  "patch_html": {
+    "replaced": true,
+    "url": "https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/"
+  },
+  "smoke": {
+    "dgs10_test": {
+      "status": 200,
+      "fn_err": null,
+      "duration_s": 0.97,
+      "n_obs": 1586,
+      "source": "FRED",
+      "last_value": {
+        "time": "2026-05-05",
+        "value": 4.43
+      }
+    },
+    "catalog_test": {
+      "status": 200,
+      "duration_s": 0.03,
+      "n_categories": 13,
+      "categories": [
+        "rates_curves",
+        "credit",
+        "equity_indices",
+        "volatility",
+        "dollar",
+        "liquidity",
+        "european_stress",
+        "ofr_primary_dealer",
+        "labor",
+        "inflation",
+        "macro",
+        "internal",
+        "recession"
+      ],
+      "n_total_series": 92
+    },
+    "multi_test": {
+      "status": 200,
+      "duration_s": 0.15,
+      "n": 3,
+      "series_results": {
+        "VIXCLS": {
+          "source": "Polygon",
+          "n_obs": null,
+          "error": "no data"
+        },
+        "SPY": {
+          "source": "Polygon",
+          "n_obs": 589,
+          "error": null
+        },
+        "DGS10": {
+          "source": "FRED",
+          "n_obs": 585,
+          "error": null
+        }
+      }
+    }
+  }
+}
