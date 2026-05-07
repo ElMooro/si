@@ -1,0 +1,416 @@
+{
+  "started": "2026-05-07T10:45:50.546136+00:00",
+  "suspects": {
+    "compound-aggregator": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "STATE_KEY",
+        "TELEGRAM_ENABLED",
+        "S3_KEY"
+      ],
+      "s3_outputs": [
+        "data/compound-signals-state.json",
+        "data/compound-signals.json"
+      ],
+      "memory": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-06T14:00:09.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "cross-asset-regime": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-06T10:41:13.645+0000",
+      "which_proposal": "META_REGIME"
+    },
+    "event-study": {
+      "exists": true,
+      "description": "Event Study Automation \u2014 algorithmic detection + forward returns",
+      "env_keys": [
+        "FRED_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-06T18:07:45.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "earnings-tracker": {
+      "exists": true,
+      "description": "Earnings calendar + beat/miss reactivity + PEAD signals",
+      "env_keys": [
+        "S3_BUCKET",
+        "FMP_KEY",
+        "POLYGON_KEY",
+        "S3_KEY",
+        "MAX_PARALLEL"
+      ],
+      "s3_outputs": [
+        "data/earnings-tracker.json"
+      ],
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-05-03T23:58:02.000+0000",
+      "which_proposal": "EARNINGS_WHISPER"
+    },
+    "earnings-pead": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-06T13:57:55.000+0000",
+      "which_proposal": "EARNINGS_WHISPER"
+    },
+    "pead-detector": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ],
+      "s3_outputs": [],
+      "memory": 2048,
+      "timeout": 600,
+      "last_modified": "2026-05-06T13:53:53.000+0000",
+      "which_proposal": "EARNINGS_WHISPER"
+    },
+    "revenue-acceleration": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-06T14:12:39.000+0000",
+      "which_proposal": "EARNINGS_WHISPER"
+    },
+    "narrative-density-tracker": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "POLY_KEY",
+        "TIMEOUT_BUDGET_S",
+        "N_WORKERS",
+        "NEWS_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-05-06T09:13:10.000+0000",
+      "which_proposal": "FED_SPEAK"
+    },
+    "news-sentiment": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "ANTHROPIC_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-04-25T10:28:20.000+0000",
+      "which_proposal": "FED_SPEAK"
+    },
+    "pre-pump-detector": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "MIN_DOLLAR_VOL",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 300,
+      "last_modified": "2026-05-06T00:15:53.000+0000",
+      "which_proposal": "EARNINGS_WHISPER"
+    },
+    "options-flow": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "FRED_KEY",
+        "AV_KEY",
+        "POLYGON_KEY",
+        "NEWS_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 300,
+      "last_modified": "2026-05-06T21:36:11.000+0000",
+      "which_proposal": "TAPE_READER"
+    },
+    "options-flow-scanner": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET",
+        "POLY_KEY",
+        "TIMEOUT_BUDGET_S",
+        "N_WORKERS",
+        "MAX_TICKERS",
+        "DAYS_BACK"
+      ],
+      "s3_outputs": [],
+      "memory": 2048,
+      "timeout": 600,
+      "last_modified": "2026-05-06T08:50:22.000+0000",
+      "which_proposal": "TAPE_READER"
+    },
+    "options-gamma": {
+      "exists": true,
+      "description": "SPY dealer gamma exposure (GEX). Pulls full options chain via Polygon, computes Black-Scholes gamma, aggregates by strike/expiry, classifies regime.",
+      "env_keys": [
+        "S3_BUCKET",
+        "POLYGON_KEY",
+        "UNDERLYING"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 300,
+      "last_modified": "2026-04-27T22:36:07.000+0000",
+      "which_proposal": "TAPE_READER"
+    },
+    "auction-crisis-detector": {
+      "exists": true,
+      "description": "Phase 10 \u2014 Treasury auction crisis detector (calibrated from 9 historical PDFs)",
+      "env_keys": [
+        "FRED_API_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 240,
+      "last_modified": "2026-04-27T12:58:37.000+0000",
+      "which_proposal": "META_REGIME"
+    },
+    "regime-anomaly": {
+      "exists": true,
+      "description": "Phase 9.2 \u2014 HMM regime detector + anomaly detection",
+      "env_keys": [],
+      "s3_outputs": [],
+      "memory": 1024,
+      "timeout": 240,
+      "last_modified": "2026-04-26T21:36:46.000+0000",
+      "which_proposal": "META_REGIME"
+    },
+    "labor-leading": {
+      "exists": true,
+      "description": "JOLTS + Challenger + Initial Claims labor market leading indicators. Computes openings/unemployed ratio, quits rate z-score, claims 4-week MA trend.",
+      "env_keys": [
+        "S3_BUCKET"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 180,
+      "last_modified": "2026-04-27T18:43:29.450+0000",
+      "which_proposal": "META_REGIME"
+    },
+    "alert-router": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "TELEGRAM_BOT_TOKEN"
+      ],
+      "s3_outputs": [],
+      "memory": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-06T18:15:25.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "redflag-alerter": {
+      "exists": true,
+      "description": "Telegram alerter for serious 8-K events. Reads data/8k-filings.json, dedupes 24h.",
+      "env_keys": [
+        "S3_BUCKET",
+        "TG_CHAT_ID_PARAM",
+        "DEDUPE_WINDOW_HOURS",
+        "S3_INPUT_KEY",
+        "LOOKBACK_MINUTES",
+        "S3_OUTPUT_KEY",
+        "TG_TOKEN_PARAM"
+      ],
+      "s3_outputs": [
+        "data/8k-filings.json",
+        "data/redflag-alerts.json"
+      ],
+      "memory": 256,
+      "timeout": 60,
+      "last_modified": "2026-04-27T21:56:29.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "watchlist-debate": {
+      "exists": true,
+      "description": "Loop 4 \u2014 nightly multi-agent debate via Batch API",
+      "env_keys": [
+        "FMP_KEY",
+        "ANTHROPIC_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 900,
+      "last_modified": "2026-04-25T12:32:55.424+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "ka-metrics": {
+      "exists": true,
+      "description": "KA Metrics \u2014 Phase 4 of Khalid\u2192KA rebrand (replaces justhodl-khalid-metrics)",
+      "env_keys": [
+        "FRED_API_KEY",
+        "POLYGON_API_KEY",
+        "S3_BUCKET",
+        "ANTHROPIC_API_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 240,
+      "last_modified": "2026-05-06T20:47:55.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "khalid-metrics": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "FRED_API_KEY",
+        "POLYGON_API_KEY",
+        "S3_BUCKET",
+        "ANTHROPIC_API_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 240,
+      "last_modified": "2026-04-25T10:27:46.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "ai-brief": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "ANTHROPIC_KEY"
+      ],
+      "s3_outputs": [],
+      "memory": 512,
+      "timeout": 180,
+      "last_modified": "2026-05-05T11:45:49.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    },
+    "intelligence": {
+      "exists": true,
+      "description": "",
+      "env_keys": [
+        "S3_BUCKET"
+      ],
+      "s3_outputs": [],
+      "memory": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-06T18:16:19.000+0000",
+      "which_proposal": "MASTER_RANKER"
+    }
+  },
+  "broken_refs": {
+    "data/asymmetric-setups.json": {
+      "html_consumers": [
+        {
+          "file": "ticker.html",
+          "line": 374,
+          "snippet": "fetchJson(\"data/asymmetric-setups.json\"),"
+        }
+      ],
+      "candidate_replacements": [
+        {
+          "candidate": "data/asymmetric-scorer.json",
+          "exists": true,
+          "size_kb": 27.9
+        },
+        {
+          "candidate": "data/asymmetric-hunter.json",
+          "exists": false
+        }
+      ]
+    },
+    "data/red-flags.json": {
+      "html_consumers": [
+        {
+          "file": "ticker.html",
+          "line": 377,
+          "snippet": "fetchJson(\"data/red-flags.json\"),"
+        }
+      ],
+      "candidate_replacements": [
+        {
+          "candidate": "data/redflag-alerts.json",
+          "exists": true,
+          "size_kb": 1.0
+        },
+        {
+          "candidate": "data/red-flag-alerts.json",
+          "exists": false
+        }
+      ]
+    },
+    "data/risk-sized-positions.json": {
+      "html_consumers": [
+        {
+          "file": "ticker.html",
+          "line": 375,
+          "snippet": "fetchJson(\"data/risk-sized-positions.json\"),"
+        }
+      ],
+      "candidate_replacements": [
+        {
+          "candidate": "data/risk-sizer.json",
+          "exists": true,
+          "size_kb": 15.7
+        },
+        {
+          "candidate": "data/sizing.json",
+          "exists": false
+        },
+        {
+          "candidate": "data/positions.json",
+          "exists": false
+        }
+      ]
+    }
+  },
+  "portfolio_state": {
+    "html_consumers": [
+      {
+        "file": "performance.html",
+        "line": 251,
+        "snippet": "fetch(`${BUCKET}/portfolio/state.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),"
+      }
+    ]
+  },
+  "duration_s": 4.9
+}
