@@ -147,7 +147,7 @@
   <div class="container">
     <div class="header">
       <div>
-        <h1>Cross-Asset Divergence Engine v2 <span class="sub">44 pairs across 8 categories</span></h1>
+        <h1>Cross-Asset Divergence Engine v2.5 <span class="sub">60+ pairs across 17 categories — labor, mfg, leading, EM, copper, eurodollar, crisis-leading</span></h1>
         <div class="meta" id="metaLine">Loading…</div>
       </div>
       <div class="meta">
@@ -192,7 +192,7 @@
 const URL_V2 = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/divergence-v2.json';
 
 const CATEGORY_TITLES = {
-  labor: '💼 Labor Market',
+  labor: '💼 Labor Market (US)',
   manufacturing: '🏭 Manufacturing',
   leading: '📈 Leading Indicators',
   em: '🌍 EM / Frontier Geography',
@@ -200,9 +200,36 @@ const CATEGORY_TITLES = {
   copper: '🟠 Copper Producers',
   eurodollar: '💵 Eurodollar Centers',
   fx: '💱 Cross-Currency',
+  crisis_leading: '⚡ CRISIS LEADING (Heavy Trucks, Permits, BAA)',
+  europe_labor: '🇪🇺 European Country Unemployment',
+  asia_labor: '🇯🇵 Asian Unemployment',
+  country_ip: '🏗️ Industrial Production by Country',
+  asia_tech: '💾 Asia Tech Supply Chain',
+  shipping: '🚢 Global Shipping / Trade',
+  commodity_ratios: '⚖️ Commodity Ratios (Regime)',
+  safe_haven: '🛡️ Safe-Haven FX',
+  credit_tiers: '💳 Corporate Credit Tiers',
 };
 
-const CATEGORY_ORDER = ['labor','manufacturing','leading','em','rotation','copper','eurodollar','fx'];
+const CATEGORY_ORDER = [
+  'crisis_leading',     // Most important — top
+  'leading',
+  'labor',
+  'europe_labor',
+  'asia_labor',
+  'manufacturing',
+  'country_ip',
+  'em',
+  'copper',
+  'asia_tech',
+  'shipping',
+  'rotation',
+  'eurodollar',
+  'commodity_ratios',
+  'fx',
+  'safe_haven',
+  'credit_tiers',
+];
 
 function fmtZ(z) {
   if (z === null || z === undefined) return '—';

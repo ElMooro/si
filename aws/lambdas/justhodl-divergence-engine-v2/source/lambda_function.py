@@ -123,17 +123,57 @@ FRED_SERIES = {
     "DEXUSEU":  {"freq": "daily",   "title": "USD/EUR"},
     "DEXJPUS":  {"freq": "daily",   "title": "JPY/USD"},
     "DEXUSUK":  {"freq": "daily",   "title": "USD/GBP"},
+    "DEXSZUS":  {"freq": "daily",   "title": "CHF/USD (Swiss Franc)"},
+    "DEXKOUS":  {"freq": "daily",   "title": "KRW/USD (Korean Won)"},
+    "DEXTAUS":  {"freq": "daily",   "title": "TWD/USD (Taiwan)"},
 
     # Money/funding
     "DGS10":    {"freq": "daily",   "title": "10Y Treasury Yield"},
     "DGS2":     {"freq": "daily",   "title": "2Y Treasury Yield"},
     "DGS3MO":   {"freq": "daily",   "title": "3M Treasury Yield"},
     "DTWEXBGS": {"freq": "daily",   "title": "Broad Dollar Index"},
+    "BAA10YM":  {"freq": "monthly", "title": "BAA-10Y Spread (corporate stress)"},
+    "AAA10YM":  {"freq": "monthly", "title": "AAA-10Y Spread"},
+    "BUSLOANS": {"freq": "weekly",  "title": "Commercial & Industrial Loans"},
+    "DRSDCIS":  {"freq": "quarterly", "title": "Credit Card Delinquencies"},
+    "DRTSCIS":  {"freq": "quarterly", "title": "All Loans Delinquency Rate"},
 
     # Commodities
     "PCOPPUSDM": {"freq": "monthly", "title": "Copper Price USD"},
     "PNICKUSDM": {"freq": "monthly", "title": "Nickel Price USD"},
     "DCOILWTICO": {"freq": "daily", "title": "WTI Crude"},
+    "DCOILBRENTEU": {"freq": "daily", "title": "Brent Crude"},
+    "GOLDPMGBD228NLBM": {"freq": "daily", "title": "Gold AM Fix"},
+
+    # Crisis-leading indicators (the big ones)
+    "HTRUCKSSAAR": {"freq": "monthly", "title": "Heavy Truck Sales SAAR (recession leader)"},
+    "PERMIT":      {"freq": "monthly", "title": "New Privately-Owned Housing Permits"},
+    "HOUST":       {"freq": "monthly", "title": "Housing Starts"},
+    "TOTALSA":     {"freq": "monthly", "title": "Total Vehicle Sales"},
+    "RSAFS":       {"freq": "monthly", "title": "Retail Sales (Advance)"},
+    "RECPROUSM156N": {"freq": "monthly", "title": "NY Fed Recession Probability"},
+
+    # OECD harmonized unemployment (country-specific)
+    "LRHUTTTTCHM156S": {"freq": "monthly", "title": "Switzerland Unemployment"},
+    "LRHUTTTTCLM156S": {"freq": "monthly", "title": "Chile Unemployment"},
+    "LRHUTTTTESM156S": {"freq": "monthly", "title": "Spain Unemployment"},
+    "LRHUTTTTITM156S": {"freq": "monthly", "title": "Italy Unemployment"},
+    "LRHUTTTTFRM156S": {"freq": "monthly", "title": "France Unemployment"},
+    "LRHUTTTTDEM156S": {"freq": "monthly", "title": "Germany Unemployment"},
+    "LRHUTTTTJPM156S": {"freq": "monthly", "title": "Japan Unemployment"},
+    "LRHUTTTTKRM156S": {"freq": "monthly", "title": "Korea Unemployment"},
+    "LRHUTTTTEZM156S": {"freq": "monthly", "title": "Eurozone Unemployment"},
+
+    # Country industrial production
+    "DEUPROINDMISMEI":  {"freq": "monthly", "title": "Germany Industrial Production"},
+    "ITAPROINDMISMEI":  {"freq": "monthly", "title": "Italy Industrial Production"},
+    "ESPPROINDMISMEI":  {"freq": "monthly", "title": "Spain Industrial Production"},
+    "FRAPROINDMISMEI":  {"freq": "monthly", "title": "France Industrial Production"},
+    "JPNPROINDMISMEI":  {"freq": "monthly", "title": "Japan Industrial Production"},
+    "KORPROINDMISMEI":  {"freq": "monthly", "title": "Korea Industrial Production"},
+    "CHNPROINDMISMEI":  {"freq": "monthly", "title": "China Industrial Production"},
+    "CHLPROINDMISMEI":  {"freq": "monthly", "title": "Chile Industrial Production"},
+    "GBRPROINDMISMEI":  {"freq": "monthly", "title": "UK Industrial Production"},
 }
 
 ETFS = [
@@ -149,12 +189,20 @@ ETFS = [
     "FM",    # Frontier Markets
     "FRN",   # Frontier Markets Bond
 
-    # Geography — Eurodollar centers
+    # Geography — Eurozone country-level
+    "EWG",   # Germany
+    "EWP",   # Spain
+    "EWI",   # Italy
+    "EWQ",   # France
     "EWN",   # Netherlands (offshore USD hub)
     "EWS",   # Singapore
     "EWH",   # Hong Kong
     "EWU",   # UK
+    "EWL",   # Switzerland (also nickel/copper proxy via EFNL alt)
     "EFNL",  # Finland (copper/nickel proxy)
+    "EWY",   # South Korea
+    "EWJ",   # Japan
+    "EWT",   # Taiwan
 
     # Copper/commodity producers
     "ECH",   # Chile (copper)
@@ -162,19 +210,21 @@ ETFS = [
     "COPX",  # Global X Copper Miners
     "PICK",  # iShares Metals & Mining
 
-    # Caps
+    # Caps + reference
     "IWC",   # iShares Microcap
     "IWM",   # Russell 2000 Small Cap
     "SPY",   # S&P 500
     "QQQ",   # Nasdaq 100
-
-    # Reference
     "TLT",   # Long Treasuries
     "GLD",   # Gold
+    "SLV",   # Silver (for gold/silver ratio)
     "USO",   # Oil
     "VIXY",  # VIX short-term
     "HYG",   # HY credit
     "DBC",   # Broad commodities
+    "WOOD",  # Lumber/timber proxy
+    "SOXX",  # Semiconductors (Taiwan beta)
+    "BDRY",  # Breakwave Dry Bulk Shipping (Baltic Dry proxy)
 ]
 
 
@@ -329,6 +379,178 @@ RELATIONSHIPS = [
      ("fred", "T10Y2Y"), ("fred", "DTWEXBGS"), -1, "fx",
      "Steepening curve usually weakens dollar (carry trade); divergence = unusual",
      60),
+
+    # ─── I. CRISIS-LEADING INDICATORS (Bernanke / Calculated Risk classics) ─
+    ("heavy_trucks_spy", "Heavy Truck Sales vs S&P 500 ⚡",
+     ("fred", "HTRUCKSSAAR"), ("etf", "SPY"), +1, "crisis_leading",
+     "HTRUCKSSAAR peaks 12-18 months before EVERY post-WWII recession. The classic CR signal.",
+     720),
+    ("heavy_trucks_unrate", "Heavy Truck Sales vs Unemployment",
+     ("fred", "HTRUCKSSAAR"), ("fred", "UNRATE"), -1, "crisis_leading",
+     "Truck demand collapses BEFORE layoffs; divergence = late-cycle warning",
+     720),
+    ("permits_spy", "Building Permits vs S&P 500",
+     ("fred", "PERMIT"), ("etf", "SPY"), +1, "crisis_leading",
+     "Permits are forward-looking; equity diverging from permits = real-economy weakness",
+     365),
+    ("permits_starts", "Building Permits vs Housing Starts",
+     ("fred", "PERMIT"), ("fred", "HOUST"), +1, "crisis_leading",
+     "Permits lead starts by 1-2 months; gap widening = builder hesitation",
+     365),
+    ("auto_sales_sentiment", "Auto Sales vs Consumer Sentiment",
+     ("fred", "TOTALSA"), ("fred", "UMCSENT"), +1, "crisis_leading",
+     "Big-ticket spending follows confidence; auto weakness leading sentiment = imminent slowdown",
+     365),
+    ("baa_spread_spy", "BAA Corporate Spread vs S&P 500",
+     ("fred", "BAA10YM"), ("etf", "SPY"), -1, "crisis_leading",
+     "Corporate credit stress leads equity selloffs by 3-6 months",
+     365),
+    ("delinquencies_spy", "Credit Card Delinquencies vs S&P 500",
+     ("fred", "DRSDCIS"), ("etf", "SPY"), -1, "crisis_leading",
+     "Consumer stress leading equity strength = late-cycle topping pattern",
+     720),
+    ("business_loans_indpro", "Bank C&I Loans vs Industrial Production",
+     ("fred", "BUSLOANS"), ("fred", "INDPRO"), +1, "crisis_leading",
+     "Lending normally tracks production; divergence = credit-tightening or production stall",
+     365),
+    ("retail_sentiment", "Retail Sales vs Consumer Sentiment",
+     ("fred", "RSAFS"), ("fred", "UMCSENT"), +1, "crisis_leading",
+     "Sentiment leading actual spend by 1-3 months",
+     365),
+    ("recession_prob_spy", "NY Fed Recession Probability vs S&P 500",
+     ("fred", "RECPROUSM156N"), ("etf", "SPY"), -1, "crisis_leading",
+     "When NY Fed model says recession coming and SPY at highs = max divergence",
+     365),
+
+    # ─── J. EUROPEAN COUNTRY UNEMPLOYMENT (specific to Khalid's request) ───
+    ("spain_unemployment", "Spain Equity (EWP) vs Spain Unemployment",
+     ("etf", "EWP"), ("fred", "LRHUTTTTESM156S"), -1, "europe_labor",
+     "Spain has structurally high unemployment; equity diverging UP while joblessness rises = bubble",
+     365),
+    ("italy_unemployment", "Italy Equity (EWI) vs Italy Unemployment",
+     ("etf", "EWI"), ("fred", "LRHUTTTTITM156S"), -1, "europe_labor",
+     "Italy political-fragility marker; unemployment rising while EWI rallies = late-cycle",
+     365),
+    ("france_unemployment", "France Equity (EWQ) vs France Unemployment",
+     ("etf", "EWQ"), ("fred", "LRHUTTTTFRM156S"), -1, "europe_labor",
+     "France labor lag indicator vs equity",
+     365),
+    ("germany_unemployment", "Germany Equity (EWG) vs Germany Unemployment",
+     ("etf", "EWG"), ("fred", "LRHUTTTTDEM156S"), -1, "europe_labor",
+     "Germany = Eurozone industrial heart; unemployment rising = continental weakness",
+     365),
+    ("switzerland_unemployment", "Switzerland Equity (EWL) vs CH Unemployment",
+     ("etf", "EWL"), ("fred", "LRHUTTTTCHM156S"), -1, "europe_labor",
+     "Switzerland labor stable historically; rises here = Eurozone contagion warning",
+     365),
+    ("eurozone_unemployment", "Germany Equity (EWG) vs Eurozone Unemployment",
+     ("etf", "EWG"), ("fred", "LRHUTTTTEZM156S"), -1, "europe_labor",
+     "Continental labor health vs largest national equity proxy",
+     365),
+
+    # ─── K. ASIAN UNEMPLOYMENT + IP DEPTH ─────────────────────────────────
+    ("japan_unemployment", "Japan (EWJ) vs Japan Unemployment",
+     ("etf", "EWJ"), ("fred", "LRHUTTTTJPM156S"), -1, "asia_labor",
+     "Japan structurally low unemployment; rises = exceptional weakness signal",
+     365),
+    ("korea_unemployment", "Korea (EWY) vs Korea Unemployment",
+     ("etf", "EWY"), ("fred", "LRHUTTTTKRM156S"), -1, "asia_labor",
+     "Korea labor leads China cycle (export channel)",
+     365),
+
+    # ─── L. INDUSTRIAL PRODUCTION BY COUNTRY ──────────────────────────────
+    ("germany_ip_equity", "Germany IP vs Germany Equity (EWG)",
+     ("fred", "DEUPROINDMISMEI"), ("etf", "EWG"), +1, "country_ip",
+     "Real production vs equity beta; divergence = earnings recalibration",
+     365),
+    ("italy_ip_equity", "Italy IP vs Italy Equity (EWI)",
+     ("fred", "ITAPROINDMISMEI"), ("etf", "EWI"), +1, "country_ip",
+     "Italy industrial activity vs FTSE MIB",
+     365),
+    ("spain_ip_equity", "Spain IP vs Spain Equity (EWP)",
+     ("fred", "ESPPROINDMISMEI"), ("etf", "EWP"), +1, "country_ip",
+     "Spain IBEX vs production",
+     365),
+    ("france_ip_equity", "France IP vs France Equity (EWQ)",
+     ("fred", "FRAPROINDMISMEI"), ("etf", "EWQ"), +1, "country_ip",
+     "France CAC40 vs production",
+     365),
+    ("japan_ip_equity", "Japan IP vs Japan Equity (EWJ)",
+     ("fred", "JPNPROINDMISMEI"), ("etf", "EWJ"), +1, "country_ip",
+     "Nikkei vs Japan IP",
+     365),
+    ("korea_ip_equity", "Korea IP vs Korea Equity (EWY)",
+     ("fred", "KORPROINDMISMEI"), ("etf", "EWY"), +1, "country_ip",
+     "Korea KOSPI vs production — semis cycle proxy",
+     365),
+    ("china_ip_fxi", "China IP vs China Equity (FXI)",
+     ("fred", "CHNPROINDMISMEI"), ("etf", "FXI"), +1, "country_ip",
+     "China IP vs Hang Seng/MSCI China",
+     365),
+    ("chile_ip_copper", "Chile IP vs Copper Price",
+     ("fred", "CHLPROINDMISMEI"), ("fred", "PCOPPUSDM"), +1, "country_ip",
+     "Chilean industrial activity tracks copper revenue ~70%",
+     365),
+    ("uk_ip_equity", "UK IP vs UK Equity (EWU)",
+     ("fred", "GBRPROINDMISMEI"), ("etf", "EWU"), +1, "country_ip",
+     "FTSE earnings vs domestic production (export-heavy index)",
+     365),
+
+    # ─── M. CHILE-SPECIFIC LABOR + COPPER ─────────────────────────────────
+    ("chile_unemployment", "Chile Equity (ECH) vs Chile Unemployment",
+     ("etf", "ECH"), ("fred", "LRHUTTTTCLM156S"), -1, "copper",
+     "Chilean equities heavy in copper miners; unemployment vs equity divergence",
+     365),
+
+    # ─── N. ASIA TECH SUPPLY CHAIN (Taiwan + Korea + semis) ───────────────
+    ("taiwan_semis", "Taiwan Equity (EWT) vs Semiconductors (SOXX)",
+     ("etf", "EWT"), ("etf", "SOXX"), +1, "asia_tech",
+     "Taiwan = TSMC + supply chain; SOXX divergence = single-stock vs sector",
+     60),
+    ("korea_semis", "Korea Equity (EWY) vs Semiconductors (SOXX)",
+     ("etf", "EWY"), ("etf", "SOXX"), +1, "asia_tech",
+     "Korea = Samsung/SK Hynix; memory cycle vs broad semis",
+     60),
+    ("krw_semis", "KRW/USD vs Semiconductors (SOXX)",
+     ("fred", "DEXKOUS"), ("etf", "SOXX"), +1, "asia_tech",
+     "Won weakness usually accompanies semi cycle bottom",
+     60),
+
+    # ─── O. SHIPPING / GLOBAL TRADE ───────────────────────────────────────
+    ("baltic_dry_commodities", "Baltic Dry Bulk Shipping vs Commodities",
+     ("etf", "BDRY"), ("etf", "DBC"), +1, "shipping",
+     "Shipping rates lead commodity demand by 2-3 months; BDRY collapse = trade slowdown",
+     60),
+    ("baltic_dry_china", "Baltic Dry Shipping vs China Equity",
+     ("etf", "BDRY"), ("etf", "FXI"), +1, "shipping",
+     "Dry bulk = iron ore/coal proxy = China industrial demand",
+     60),
+
+    # ─── P. COMMODITY RATIOS (regime indicators) ──────────────────────────
+    ("gold_silver_spy", "Gold/Silver ratio vs S&P 500",
+     ("etf", "GLD"), ("etf", "SLV"), +1, "commodity_ratios",
+     "Rising gold/silver ratio = risk-off; SPY divergence = late-cycle topping",
+     60),
+    ("lumber_houst", "Lumber (WOOD) vs Housing Starts",
+     ("etf", "WOOD"), ("fred", "HOUST"), +1, "commodity_ratios",
+     "Lumber demand leads housing starts; divergence = builder caution",
+     90),
+    ("oil_brent_wti", "WTI vs Brent (curve flattening)",
+     ("fred", "DCOILWTICO"), ("fred", "DCOILBRENTEU"), +1, "commodity_ratios",
+     "WTI-Brent spread reflects US export supply dynamics",
+     60),
+
+    # ─── Q. SAFE-HAVEN FX ──────────────────────────────────────────────────
+    ("chf_gold", "Swiss Franc (CHF) vs Gold",
+     ("fred", "DEXSZUS"), ("etf", "GLD"), -1, "safe_haven",
+     "Both safe-havens; divergence = SNB intervention or specific shock",
+     60),
+
+    # ─── R. CORPORATE CREDIT TIERS ────────────────────────────────────────
+    ("aaa_baa_spread", "AAA-10Y vs BAA-10Y Corporate Spreads",
+     ("fred", "AAA10YM"), ("fred", "BAA10YM"), +1, "credit_tiers",
+     "BAA stress without AAA stress = risk-on credit risk-taking. Both rising = systemic.",
+     365),
 ]
 
 
@@ -584,10 +806,12 @@ def lambda_handler(event, context):
 
     # Telegram alert if any extreme — rare event
     if extreme_alerts:
-        lines = ["🚨 *Divergence v2 EXTREME (>3σ)*"]
+        lines = [f"🚨 *Divergence v2.5 EXTREME (>3σ)* — {len(extreme_alerts)} signals"]
         for a in extreme_alerts[:5]:
             lines.append(f"• {a['name']}: z={a['divergence_z']} ({a['direction']} {a['polarity']:+})")
-        lines.append(f"\nCheck divergence-v2.html or compose w/ macro nowcast.")
+        if len(extreme_alerts) > 5:
+            lines.append(f"... and {len(extreme_alerts) - 5} more")
+        lines.append(f"\nComposite Index: {composite_index}/100. See divergence-v2.html.")
         send_telegram("\n".join(lines))
 
     print(f"[divv2] done in {payload['duration_s']}s — flagged={by_status['flagged']} extreme={by_status['extreme']}")
