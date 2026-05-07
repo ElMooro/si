@@ -130,32 +130,40 @@ def get_baseline_dates(n=20):
 
 
 def fetch_universe():
-    """Pull S&P 500 ticker list from existing universe.json."""
+    """Pull ticker list from existing universe.json (1,795 stocks across cap buckets)."""
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
         d = json.loads(obj["Body"].read())
-        # universe.json may have different shapes; try multiple
-        if isinstance(d, dict):
-            for key in ("sp500", "tickers", "universe", "symbols"):
-                v = d.get(key)
-                if isinstance(v, list):
-                    out = []
-                    for item in v:
-                        if isinstance(item, str):
-                            out.append(item)
-                        elif isinstance(item, dict):
-                            sym = item.get("symbol") or item.get("ticker")
-                            if sym:
-                                out.append(sym)
-                    if out:
-                        return out
-            # fallback: keys themselves are tickers
-            return list(d.keys())[:600]
-        elif isinstance(d, list):
-            return [x if isinstance(x, str) else x.get("symbol") for x in d][:600]
+        # universe-builder v3 schema: {stocks: [{symbol, name, market_cap, ...}]}
+        stocks = d.get("stocks") or []
+        # Limit to large/mid/small cap, exclude micro/nano (low quality data)
+        out = []
+        for s in stocks:
+            sym = s.get("symbol")
+            if not sym:
+                continue
+            cap_bucket = s.get("cap_bucket") or ""
+            if cap_bucket in ("mega", "large", "mid", "small"):
+                out.append(sym)
+        if out:
+            print(f"[tape] universe loaded: {len(out)} symbols (excluded micro/nano)")
+            return out
+        # If schema differs, try fallback paths
+        for key in ("sp500", "tickers", "universe", "symbols"):
+            v = d.get(key) if isinstance(d, dict) else None
+            if isinstance(v, list):
+                fb = []
+                for item in v:
+                    if isinstance(item, str):
+                        fb.append(item)
+                    elif isinstance(item, dict):
+                        fb.append(item.get("symbol") or item.get("ticker"))
+                fb = [x for x in fb if x]
+                if fb:
+                    return fb
     except Exception as e:
         print(f"[tape] universe fetch fail: {e}")
-    # Fallback: hard-coded SPY components subset (just to allow first-run)
+    # Hard-coded fallback (large-caps)
     return [
         "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "JPM",
         "V", "UNH", "XOM", "MA", "PG", "AVGO", "HD", "CVX", "MRK", "ABBV",
