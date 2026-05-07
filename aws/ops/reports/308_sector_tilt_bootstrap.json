@@ -1,0 +1,137 @@
+{
+  "started": "2026-05-07T09:49:16.135783+00:00",
+  "deploy": {
+    "action": "created",
+    "zip_bytes": 5280
+  },
+  "eb_rule": {
+    "name": "sector-tilt-4hourly",
+    "schedule": "cron(45 0/4 * * ? *)"
+  },
+  "smoke_test": {
+    "status_code": 200,
+    "function_error": null,
+    "response": {
+      "statusCode": 200,
+      "body": {
+        "ok": true,
+        "regime": "SLOWING",
+        "n_overweight": 3,
+        "n_underweight": 6,
+        "n_misaligned": 3,
+        "top_buys": [
+          "XLV",
+          "XLU",
+          "XLP"
+        ],
+        "top_fades": [],
+        "duration_s": 0.34
+      }
+    },
+    "s3_output_summary": {
+      "regime": "SLOWING",
+      "regime_raw": "SLOWING",
+      "n_tilts": 11,
+      "n_overweight": 3,
+      "n_underweight": 6,
+      "n_misaligned": 3,
+      "top_buys": [
+        "XLV",
+        "XLU",
+        "XLP"
+      ],
+      "top_fades": [],
+      "tilt_summary": [
+        {
+          "ticker": "XLP",
+          "tilt": "STRONG OVERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -6.789,
+          "alignment": "MISALIGNED",
+          "implication": "BUY_OPPORTUNITY"
+        },
+        {
+          "ticker": "XLU",
+          "tilt": "STRONG OVERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -10.84,
+          "alignment": "MISALIGNED",
+          "implication": "BUY_OPPORTUNITY"
+        },
+        {
+          "ticker": "XLV",
+          "tilt": "STRONG OVERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -11.406,
+          "alignment": "MISALIGNED",
+          "implication": "BUY_OPPORTUNITY"
+        },
+        {
+          "ticker": "XLB",
+          "tilt": "STRONG UNDERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -7.278,
+          "alignment": "ALIGNED",
+          "implication": "CONFIRMED_AVOID"
+        },
+        {
+          "ticker": "XLF",
+          "tilt": "UNDERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -7.303,
+          "alignment": "ALIGNED",
+          "implication": "CONFIRMED_AVOID"
+        },
+        {
+          "ticker": "XLE",
+          "tilt": "UNDERWEIGHT",
+          "current": "FATIGUING",
+          "rs_20d": -10.362,
+          "alignment": "ALIGNED",
+          "implication": "CONFIRMED_AVOID"
+        },
+        {
+          "ticker": "XLI",
+          "tilt": "UNDERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -4.78,
+          "alignment": "ALIGNED",
+          "implication": "CONFIRMED_AVOID"
+        },
+        {
+          "ticker": "XLRE",
+          "tilt": "UNDERWEIGHT",
+          "current": "FATIGUING",
+          "rs_20d": -3.134,
+          "alignment": "ALIGNED",
+          "implication": "CONFIRMED_AVOID"
+        },
+        {
+          "ticker": "XLY",
+          "tilt": "STRONG UNDERWEIGHT",
+          "current": "LAGGING",
+          "rs_20d": -0.387,
+          "alignment": "NEUTRAL",
+          "implication": "WATCH"
+        },
+        {
+          "ticker": "XLK",
+          "tilt": "NEUTRAL",
+          "current": "LEADER",
+          "rs_20d": 11.448,
+          "alignment": "NEUTRAL",
+          "implication": "NEUTRAL"
+        },
+        {
+          "ticker": "XLC",
+          "tilt": "NEUTRAL",
+          "current": "LAGGING",
+          "rs_20d": -5.443,
+          "alignment": "NEUTRAL",
+          "implication": "NEUTRAL"
+        }
+      ]
+    }
+  },
+  "duration_s": 10.4
+}
