@@ -238,7 +238,7 @@
 
 <script>
 const CHART_API = 'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/';
-const CATALOG_URL = CHART_API + '?catalog=1';
+const CATALOG_URL = CHART_API + '?catalog=1&_v=2';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
 
 const STATE = {
@@ -319,13 +319,21 @@ function initChart() {
 async function loadCatalog() {
   try {
     const r = await fetch(CATALOG_URL);
-    if (!r.ok) throw new Error('catalog fetch failed');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     STATE.catalog = d.catalog;
     renderCatalog();
   } catch (e) {
+    const msg = e.message || String(e);
     document.getElementById('catalogHost').innerHTML =
-      `<div style="padding:14px;color:var(--c4);font-size:11px">Catalog load failed: ${e.message}</div>`;
+      `<div style="padding:14px;color:var(--c4);font-size:11px;line-height:1.5">
+        <strong>Catalog load failed</strong><br>
+        Error: ${msg}<br><br>
+        <span style="color:var(--text-dim)">URL: ${CATALOG_URL}</span><br>
+        <span style="color:var(--text-dim)">Open DevTools → Network → reload to see exact error.</span><br><br>
+        <button class="btn" onclick="loadCatalog()">↻ Retry</button>
+      </div>`;
+    console.error('Catalog fetch:', e);
   }
 }
 

@@ -59,13 +59,18 @@ ALLOWED_ORIGINS = ["https://justhodl.ai", "https://www.justhodl.ai", "http://loc
 
 
 def cors_headers(origin):
+    """Return response headers. CORS-Allow-Origin is set by Lambda URL CORS
+    config at the AWS level — we set it here too for redundancy + serving
+    the right origin per request."""
     allow = origin if origin in ALLOWED_ORIGINS else "https://justhodl.ai"
     return {
-        "Access-Control-Allow-Origin": allow,
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Cache-Control": "public, max-age=300",
-        "Content-Type": "application/json",
+        "access-control-allow-origin": allow,
+        "access-control-allow-methods": "GET, OPTIONS",
+        "access-control-allow-headers": "content-type",
+        "access-control-max-age": "86400",
+        "cache-control": "public, max-age=300",
+        "content-type": "application/json",
+        "vary": "origin",
     }
 
 
