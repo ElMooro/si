@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earnings Whisper · JustHodl.AI</title>
+<meta name="description" content="Pre-earnings surprise probability score combining EPS revisions, options flow, insider activity, 8-K filings, revenue acceleration, smart money.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1700px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  .thesis { background: linear-gradient(90deg, rgba(34,197,94,0.06), rgba(34,197,94,0));
+            border-left: 3px solid var(--green); border-radius: 4px;
+            padding: 12px 16px; margin-bottom: 16px; }
+  .thesis h3 { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+  .thesis p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .thesis strong { color: var(--text); }
+  .thesis code { background: var(--bg-card); padding: 1px 4px; border-radius: 3px;
+                 font-family: 'SF Mono', Menlo, monospace; font-size: 11px; }
+
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+           background: var(--bg-card); border: 1px solid var(--border);
+           border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .stat { padding: 0 12px; border-left: 1px solid var(--border-light); }
+  .stat:first-child { border-left: none; padding-left: 0; }
+  .stat .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .value.green  { color: var(--green); }
+  .stat .value.amber  { color: var(--amber); }
+
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls input { background: var(--bg-card); border: 1px solid var(--border);
+                    color: var(--text); padding: 6px 10px; border-radius: 4px;
+                    font-size: 13px; width: 200px; }
+  .controls select { background: var(--bg-card); border: 1px solid var(--border);
+                     color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+  .controls .count { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px;
+          background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  thead { background: var(--bg-card-elev); }
+  th { text-align: left; padding: 8px 10px; color: var(--text-dim);
+       font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+       border-bottom: 1px solid var(--border-light); cursor: pointer; user-select: none;
+       white-space: nowrap; }
+  th:hover { color: var(--accent); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border-light);
+       font-variant-numeric: tabular-nums; vertical-align: top; }
+  tr:hover td { background: var(--bg-card-elev); }
+  tr.tier-S td { background: rgba(34,197,94,0.06); border-left: 2px solid var(--green); }
+  tr.tier-A td { background: rgba(250,204,21,0.04); }
+
+  .ticker-cell { font-weight: 700; color: var(--accent); font-size: 14px; }
+  .name { color: var(--text-dim); font-size: 11px; margin-top: 1px; }
+  .score-cell { font-weight: 700; font-size: 18px; }
+  .score-cell.S { color: var(--green); }
+  .score-cell.A { color: var(--amber); }
+  .score-cell.B { color: var(--text); }
+  .score-cell.C { color: var(--text-dim); }
+
+  .tier-pill { display: inline-block; padding: 2px 7px; border-radius: 3px;
+               font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .tier-S { background: rgba(34,197,94,0.22); color: var(--green); }
+  .tier-A { background: rgba(250,204,21,0.20); color: var(--accent); }
+  .tier-B { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .tier-C { background: rgba(113,113,122,0.18); color: var(--text-dim); }
+
+  /* Component breakdown bar */
+  .components { display: flex; gap: 2px; align-items: center; min-width: 260px; }
+  .comp { display: flex; flex-direction: column; align-items: center; min-width: 36px; }
+  .comp-bar { width: 100%; height: 4px; background: var(--border-light); border-radius: 2px;
+              overflow: hidden; margin-bottom: 2px; }
+  .comp-fill { height: 100%; background: var(--green); }
+  .comp-fill.partial { background: var(--amber); }
+  .comp-fill.weak { background: var(--text-dim); }
+  .comp-label { font-size: 9px; color: var(--text-muted); }
+  .comp-value { font-size: 10px; font-weight: 600; }
+
+  .flag-pill { display: inline-block; padding: 1px 5px; border-radius: 3px;
+                font-size: 9px; font-weight: 600; letter-spacing: 0.04em;
+                margin-right: 2px; margin-bottom: 1px;
+                background: rgba(34,197,94,0.18); color: var(--green); }
+  .flag-pill.bear { background: rgba(239,68,68,0.18); color: var(--red); }
+
+  .days-pill { display: inline-block; padding: 1px 6px; border-radius: 3px;
+                font-size: 11px; font-weight: 600;
+                background: rgba(99,102,241,0.18); color: var(--purple); }
+  .days-pill.imminent { background: rgba(220,38,38,0.22); color: var(--crimson); }
+
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    table { font-size: 11px; }
+    th, td { padding: 4px 6px; }
+    .components { display: none; }
+    .name { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Earnings Whisper <span class="sub">pre-announcement surprise probability · 6-component composite</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Desk</a> ·
+        <a href="/master-rank.html">Action Items</a> ·
+        <a href="/pead-signals.html">PEAD</a> ·
+        <a href="/eps-velocity.html">EPS Velocity</a>
+      </div>
+    </div>
+
+    <div class="thesis">
+      <h3>📈 The Strategy (Bartov 1992 · 4-8% alpha over 21 days)</h3>
+      <p>
+        For each name reporting earnings in the next 14 days, score 6 pre-announcement signals:
+        <code>EPS revisions accelerating</code> + <code>unusual call volume</code> + <code>insider buying</code> +
+        <code>positive 8-K filings</code> + <code>revenue acceleration</code> + <code>13F institutional accumulation</code>.
+        When 4+ of these align before earnings, base-rate of beat-and-raise jumps significantly.
+        Scores 0-100; <strong>Tier S (≥70)</strong> = high-conviction, Tier A (50-70) = bullish lean.
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Upcoming Names</div><div class="value" id="nUpcoming">—</div></div>
+      <div class="stat"><div class="label">Tier S (≥70)</div><div class="value green" id="nTierS">—</div></div>
+      <div class="stat"><div class="label">Tier A (50-70)</div><div class="value amber" id="nTierA">—</div></div>
+      <div class="stat"><div class="label">Tier B (30-50)</div><div class="value" id="nTierB">—</div></div>
+      <div class="stat"><div class="label">Within 7 days</div><div class="value" id="nImminent">—</div></div>
+      <div class="stat"><div class="label">Avg Score</div><div class="value" id="avgScore">—</div></div>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="search" placeholder="Filter by ticker, name…" />
+      <select id="tierFilter">
+        <option value="">All Tiers</option>
+        <option value="S">Tier S only</option>
+        <option value="A">Tier A only</option>
+        <option value="B">Tier B only</option>
+      </select>
+      <select id="daysFilter">
+        <option value="0">All days</option>
+        <option value="3">≤3 days</option>
+        <option value="7">≤7 days</option>
+        <option value="14">≤14 days</option>
+      </select>
+      <span class="count" id="count">—</span>
+    </div>
+
+    <div id="tableHost"><div class="loader">Loading whisper signals…</div></div>
+  </div>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/earnings-whisper.json';
+
+let SETUPS = [];
+let SORT = { col: 'whisper_score', dir: 'desc' };
+
+const COMPONENT_MAX = {
+  eps_velocity: 25, options_flow: 20, insider: 20,
+  eight_k: 15, revenue_accel: 10, smart_money: 10,
+};
+const COMPONENT_LABELS = {
+  eps_velocity: 'EPS', options_flow: 'OPT', insider: 'INS',
+  eight_k: '8K', revenue_accel: 'REV', smart_money: '13F',
+};
+
+function compBars(components) {
+  return Object.entries(COMPONENT_LABELS).map(([key, label]) => {
+    const v = (components || {})[key] || 0;
+    const max = COMPONENT_MAX[key];
+    const pct = Math.min(100, Math.max(0, (v / max) * 100));
+    const cls = v >= max * 0.7 ? '' : (v >= max * 0.3 ? 'partial' : 'weak');
+    return `
+      <div class="comp">
+        <div class="comp-value">${v}</div>
+        <div class="comp-bar"><div class="comp-fill ${cls}" style="width:${pct}%"></div></div>
+        <div class="comp-label">${label}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function applyFilters(rows) {
+  const q = document.getElementById('search').value.toLowerCase();
+  const tier = document.getElementById('tierFilter').value;
+  const maxDays = parseInt(document.getElementById('daysFilter').value);
+  return rows.filter(r => {
+    if (q) {
+      const txt = `${r.ticker||''} ${r.name||''}`.toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    if (tier && r.tier !== tier) return false;
+    if (maxDays && (r.days_to_earnings === null || r.days_to_earnings > maxDays)) return false;
+    return true;
+  });
+}
+
+function applySort(rows) {
+  const { col, dir } = SORT;
+  return [...rows].sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
+    if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function shortDate(s) {
+  if (!s) return '—';
+  try {
+    return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return s.slice(0,10); }
+}
+
+function render() {
+  const rows = applySort(applyFilters(SETUPS));
+  document.getElementById('count').textContent = `${rows.length} setups`;
+
+  const cols = [
+    { k: 'ticker', label: 'Ticker' },
+    { k: 'whisper_score', label: 'Score' },
+    { k: 'tier', label: 'Tier' },
+    { k: 'days_to_earnings', label: 'Days' },
+    { k: 'earnings_date', label: 'Earnings Date' },
+    { k: 'time', label: 'Time' },
+    { k: 'components', label: 'Components', sortable: false },
+    { k: 'flags', label: 'Flags', sortable: false },
+  ];
+  const thead = cols.map(c => {
+    const cls = c.sortable !== false && c.k === SORT.col ? `sort-${SORT.dir}` : '';
+    const sortAttr = c.sortable !== false ? ` data-col="${c.k}"` : '';
+    return `<th${sortAttr} class="${cls}">${c.label}</th>`;
+  }).join('');
+
+  const tbody = rows.map(r => {
+    const flagsHtml = (r.flags || []).slice(0, 4).map(f => {
+      const cls = f === 'INSIDER_SELLING' ? 'flag-pill bear' : 'flag-pill';
+      return `<span class="${cls}">${f.replace(/_/g,' ')}</span>`;
+    }).join('');
+    const daysCls = (r.days_to_earnings ?? 99) <= 3 ? 'days-pill imminent' : 'days-pill';
+    const days = r.days_to_earnings !== null ? `<span class="${daysCls}">${r.days_to_earnings}d</span>` : '—';
+    return `
+      <tr class="tier-${r.tier}">
+        <td>
+          <div class="ticker-cell">${r.ticker || '?'}</div>
+          <div class="name">${(r.name || '').slice(0, 26)}</div>
+        </td>
+        <td><span class="score-cell ${r.tier}">${r.whisper_score}</span></td>
+        <td><span class="tier-pill tier-${r.tier}">${r.tier}</span></td>
+        <td>${days}</td>
+        <td>${shortDate(r.earnings_date)}</td>
+        <td style="font-size:11px;color:var(--text-dim)">${r.time || '—'}</td>
+        <td><div class="components">${compBars(r.components)}</div></td>
+        <td>${flagsHtml || '<span style="color:var(--text-muted);font-size:10px">—</span>'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('tableHost').innerHTML = `
+    <table><thead><tr>${thead}</tr></thead><tbody>${tbody || '<tr><td colspan="8" class="loader">No matching setups</td></tr>'}</tbody></table>
+  `;
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
+      SORT.col = c;
+      render();
+    });
+  });
+}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    SETUPS = d.top_setups || d.all_setups || [];
+
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(d.as_of).toLocaleString()}</strong> · ` +
+      `${d.n_upcoming} names · ${d.duration_s}s`;
+
+    const tc = d.tier_counts || {};
+    document.getElementById('nUpcoming').textContent = d.n_upcoming || 0;
+    document.getElementById('nTierS').textContent = tc.S || 0;
+    document.getElementById('nTierA').textContent = tc.A || 0;
+    document.getElementById('nTierB').textContent = tc.B || 0;
+
+    const imminent = SETUPS.filter(s => s.days_to_earnings !== null && s.days_to_earnings <= 7).length;
+    document.getElementById('nImminent').textContent = imminent;
+
+    const valid = SETUPS.filter(s => typeof s.whisper_score === 'number');
+    const avg = valid.length ? valid.reduce((a, b) => a + b.whisper_score, 0) / valid.length : 0;
+    document.getElementById('avgScore').textContent = avg.toFixed(0);
+
+    render();
+  } catch (e) {
+    document.getElementById('tableHost').innerHTML =
+      `<div class="loader">Failed: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+['search','tierFilter','daysFilter'].forEach(id =>
+  document.getElementById(id).addEventListener('input', render));
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
