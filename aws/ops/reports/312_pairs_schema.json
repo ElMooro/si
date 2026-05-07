@@ -1,0 +1,297 @@
+{
+  "started": "2026-05-07T09:58:38.660123+00:00",
+  "size_kb": 29.6,
+  "last_modified": "2026-05-07T09:57:03+00:00",
+  "top_keys": [
+    "schema_version",
+    "method",
+    "as_of",
+    "duration_s",
+    "fetch_stats",
+    "summary",
+    "pairs"
+  ],
+  "summary": {
+    "n_pairs": 37,
+    "n_analyzed": 37,
+    "n_insufficient": 0,
+    "n_extreme": 1,
+    "n_extended": 9,
+    "n_stretched": 14,
+    "n_normal": 13,
+    "by_category": {
+      "tech_mega": {
+        "total": 3,
+        "extended": 1,
+        "extreme": 1
+      },
+      "sector_finl_vs_spy": {
+        "total": 1,
+        "extended": 1,
+        "extreme": 0
+      },
+      "style_tech_vs_market": {
+        "total": 1,
+        "extended": 1,
+        "extreme": 0
+      },
+      "payments": {
+        "total": 1,
+        "extended": 1,
+        "extreme": 0
+      },
+      "semis": {
+        "total": 3,
+        "extended": 2,
+        "extreme": 0
+      },
+      "country_piigs": {
+        "total": 1,
+        "extended": 1,
+        "extreme": 0
+      },
+      "sector_util_vs_spy": {
+        "total": 1,
+        "extended": 1,
+        "extreme": 0
+      },
+      "retail": {
+        "total": 2,
+        "extended": 1,
+        "extreme": 0
+      },
+      "consumer_brand": {
+        "total": 2,
+        "extended": 0,
+        "extreme": 0
+      },
+      "sector_staples_vs_spy": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "energy_eandp": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "style_smallcap_vs_largecap": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "country_asia_tech": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "banks_ibank": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "pharma_big": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "banks_money_center": {
+        "total": 2,
+        "extended": 0,
+        "extreme": 0
+      },
+      "style_growth_vs_value": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "sector_energy_vs_spy": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "pharma_glp1": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "bonds_hy_vs_ig": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "healthcare_managed": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "bonds_long_vs_int": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "commodities_oil_vs_broad": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "metals_gold_vs_silver": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "country_europe_core": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "home_improvement": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "style_momentum_vs_value": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "metals_miners_vs_metal": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "energy": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      },
+      "country_latam": {
+        "total": 1,
+        "extended": 0,
+        "extreme": 0
+      }
+    },
+    "top_5_dislocations": [
+      {
+        "name": "Meta vs Google",
+        "trade": "LONG META / SHORT GOOGL",
+        "spread_z": -3.013,
+        "state": "EXTREME",
+        "rr": 3.0
+      },
+      {
+        "name": "Microsoft vs Google",
+        "trade": "LONG MSFT / SHORT GOOGL",
+        "spread_z": -2.889,
+        "state": "EXTENDED",
+        "rr": 2.9
+      },
+      {
+        "name": "Financials vs S&P",
+        "trade": "LONG XLF / SHORT SPY",
+        "spread_z": -2.761,
+        "state": "EXTENDED",
+        "rr": 2.8
+      },
+      {
+        "name": "Nasdaq 100 vs S&P 500",
+        "trade": "SHORT QQQ / LONG SPY",
+        "spread_z": 2.757,
+        "state": "EXTENDED",
+        "rr": 2.8
+      },
+      {
+        "name": "Visa vs Mastercard",
+        "trade": "SHORT V / LONG MA",
+        "spread_z": 2.676,
+        "state": "EXTENDED",
+        "rr": 2.7
+      }
+    ]
+  },
+  "n_pairs": 37,
+  "sample_pair_fields": [
+    "name",
+    "ticker_a",
+    "ticker_b",
+    "category",
+    "status",
+    "ratio",
+    "mean_60d",
+    "std_60d",
+    "spread_z",
+    "abs_z",
+    "state",
+    "trade",
+    "trade_label",
+    "rr_estimate",
+    "half_life_days",
+    "correlation_252d",
+    "price_a",
+    "price_b",
+    "ret_30d_a",
+    "ret_30d_b",
+    "n_obs",
+    "rationale"
+  ],
+  "sample_pair_full": {
+    "name": "Meta vs Google",
+    "ticker_a": "META",
+    "ticker_b": "GOOGL",
+    "category": "tech_mega",
+    "status": "ok",
+    "ratio": 1.539745,
+    "mean_60d": 1.993984,
+    "std_60d": 0.150737,
+    "spread_z": -3.013,
+    "abs_z": 3.013,
+    "state": "EXTREME",
+    "trade": "LONG META / SHORT GOOGL",
+    "trade_label": "LONG_META_SHORT_GOOGL",
+    "rr_estimate": 3.0,
+    "half_life_days": 26.0,
+    "correlation_252d": -0.506,
+    "price_a": 612.88,
+    "price_b": 398.04,
+    "ret_30d_a": 0.08,
+    "ret_30d_b": 25.44,
+    "n_obs": 248,
+    "rationale": "Meta vs Google ratio is 3.01\u03c3 from 60d mean (1.5397 vs \u03bc=1.9940). 30d: META +0.1% vs GOOGL +25.4%. Mean-reversion candidate with R:R\u22483.0:1, half-life 26d."
+  },
+  "top_10_stretched": [],
+  "classification_counts": {
+    "null": 37
+  },
+  "category_counts": {
+    "tech_mega": 3,
+    "sector_finl_vs_spy": 1,
+    "style_tech_vs_market": 1,
+    "payments": 1,
+    "semis": 3,
+    "country_piigs": 1,
+    "sector_util_vs_spy": 1,
+    "retail": 2,
+    "consumer_brand": 2,
+    "sector_staples_vs_spy": 1,
+    "energy_eandp": 1,
+    "style_smallcap_vs_largecap": 1,
+    "country_asia_tech": 1,
+    "banks_ibank": 1,
+    "pharma_big": 1,
+    "banks_money_center": 2,
+    "style_growth_vs_value": 1,
+    "sector_energy_vs_spy": 1,
+    "pharma_glp1": 1,
+    "bonds_hy_vs_ig": 1,
+    "healthcare_managed": 1,
+    "bonds_long_vs_int": 1,
+    "commodities_oil_vs_broad": 1,
+    "metals_gold_vs_silver": 1,
+    "country_europe_core": 1,
+    "home_improvement": 1,
+    "style_momentum_vs_value": 1,
+    "metals_miners_vs_metal": 1,
+    "energy": 1,
+    "country_latam": 1
+  }
+}
