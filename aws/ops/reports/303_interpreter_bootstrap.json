@@ -1,0 +1,35 @@
+{
+  "started": "2026-05-07T09:07:56.337094+00:00",
+  "anthropic_key": {
+    "status": "found",
+    "first_8": "sk-ant-a..."
+  },
+  "deploy": {
+    "action": "created",
+    "zip_bytes": 5523
+  },
+  "eb_rule": {
+    "action": "created",
+    "schedule": "cron(30 0/4 * * ? *)"
+  },
+  "smoke_test": {
+    "status_code": 200,
+    "function_error": "Unhandled",
+    "response": {
+      "errorMessage": "'list' object has no attribute 'items'",
+      "errorType": "AttributeError",
+      "requestId": "41d6f80f-2ddc-4abb-abfe-fc33139d2860",
+      "stackTrace": [
+        "  File \"/var/task/lambda_function.py\", line 331, in lambda_handler\n    prompt = build_interpretation_prompt(div_data, nowcast_data)\n",
+        "  File \"/var/task/lambda_function.py\", line 136, in build_interpretation_prompt\n    f\"  Components: {json.dumps({k: round(v, 2) for k, v in components.items()})[:300]}\",\n"
+      ]
+    },
+    "s3_output_check": {
+      "regime": null,
+      "interp_chars": 0,
+      "interp_preview": "",
+      "alert_reasons": null
+    }
+  },
+  "duration_s": 12.3
+}
