@@ -1,0 +1,136 @@
+{
+  "started": "2026-05-07T10:58:13.326128+00:00",
+  "deploy": {
+    "action": "create",
+    "zip_kb": 5.1
+  },
+  "rule": {
+    "rule": "earnings-whisper-daily",
+    "schedule": "cron(15 8 * * ? *)"
+  },
+  "smoke_test": {
+    "status": 200,
+    "function_error": null,
+    "duration_s": 1.6,
+    "response": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"n_upcoming\": 28, \"tier_counts\": {\"S\": 0, \"A\": 0, \"B\": 4, \"C\": 24}, \"duration_s\": 0.6}"
+    },
+    "s3_size_kb": 37.6,
+    "n_upcoming": 28,
+    "tier_counts": {
+      "S": 0,
+      "A": 0,
+      "B": 4,
+      "C": 24
+    },
+    "feed_health": {
+      "eps_velocity": true,
+      "options_flow": true,
+      "insider_transactions": true,
+      "eight_k_filings": false,
+      "revenue_acceleration": true,
+      "smart_money": true
+    },
+    "top_5_setups": [
+      {
+        "ticker": "NVDA",
+        "score": 44,
+        "tier": "B",
+        "days_to": 13,
+        "earnings_date": "2026-05-20",
+        "components": {
+          "eps_velocity": 18,
+          "options_flow": 4,
+          "insider": 5,
+          "eight_k": 0,
+          "revenue_accel": 7,
+          "smart_money": 10
+        },
+        "flags": [
+          "EPS_REVISION_STRONG",
+          "REVENUE_ACCEL",
+          "SMART_MONEY_IN"
+        ],
+        "rationale": "TIER_A EPS revision velocity (raw=83); options flow TIER_B_FLOW_BUILDING (raw=55) ['CALL_VOL_3X', 'ABS_CPR_3X', 'SHORTS_"
+      },
+      {
+        "ticker": "DE",
+        "score": 38,
+        "tier": "B",
+        "days_to": 14,
+        "earnings_date": "2026-05-21",
+        "components": {
+          "eps_velocity": 10,
+          "options_flow": 20,
+          "insider": 5,
+          "eight_k": 0,
+          "revenue_accel": 0,
+          "smart_money": 3
+        },
+        "flags": [
+          "UNUSUAL_CALL_FLOW"
+        ],
+        "rationale": "TIER_B EPS revision velocity (raw=66); options flow TIER_A_BULLISH_FLOW (raw=85) ['CPR_SURGING', 'CALL_VOL_3X', 'ABS_CPR"
+      },
+      {
+        "ticker": "NET",
+        "score": 35,
+        "tier": "B",
+        "days_to": 0,
+        "earnings_date": "2026-05-07",
+        "components": {
+          "eps_velocity": 18,
+          "options_flow": 12,
+          "insider": 5,
+          "eight_k": 0,
+          "revenue_accel": 0,
+          "smart_money": 0
+        },
+        "flags": [
+          "EPS_REVISION_STRONG"
+        ],
+        "rationale": "TIER_A EPS revision velocity (raw=76); options flow TIER_B_FLOW_BUILDING (raw=61) ['CPR_RISING', 'CALL_VOL_2X', 'ABS_CPR"
+      },
+      {
+        "ticker": "ADI",
+        "score": 35,
+        "tier": "B",
+        "days_to": 13,
+        "earnings_date": "2026-05-20",
+        "components": {
+          "eps_velocity": 10,
+          "options_flow": 20,
+          "insider": 5,
+          "eight_k": 0,
+          "revenue_accel": 0,
+          "smart_money": 0
+        },
+        "flags": [
+          "UNUSUAL_CALL_FLOW"
+        ],
+        "rationale": "TIER_B EPS revision velocity (raw=46); options flow TIER_A_BULLISH_FLOW (raw=76) ['CPR_RISING', 'CALL_VOL_2X', 'ABS_CPR_"
+      },
+      {
+        "ticker": "MCD",
+        "score": 28,
+        "tier": "C",
+        "days_to": 0,
+        "earnings_date": "2026-05-07",
+        "components": {
+          "eps_velocity": 3,
+          "options_flow": 20,
+          "insider": 5,
+          "eight_k": 0,
+          "revenue_accel": 0,
+          "smart_money": 0
+        },
+        "flags": [
+          "UNUSUAL_CALL_FLOW"
+        ],
+        "rationale": "weak eps revision (raw=32); options flow TIER_A_BULLISH_FLOW (raw=70) ['CPR_SURGING', 'CALL_VOL_3X', 'HIGH_SHORT_SQUEEZE"
+      }
+    ]
+  },
+  "duration_s": 13.4
+}
