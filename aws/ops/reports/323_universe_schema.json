@@ -1,0 +1,103 @@
+{
+  "as_of": "2026-05-07T11:07:33.679770+00:00",
+  "size_kb": 426.5,
+  "type": "dict",
+  "top_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "duration_s",
+    "stats",
+    "cap_buckets",
+    "stocks"
+  ],
+  "per_key": {
+    "schema_version": {
+      "type": "int",
+      "value": "3"
+    },
+    "method": {
+      "type": "str",
+      "value": "universe_builder_v3_multicap"
+    },
+    "generated_at": {
+      "type": "str",
+      "value": "2026-05-07T10:30:24+00:00"
+    },
+    "duration_s": {
+      "type": "float",
+      "value": "1.0"
+    },
+    "stats": {
+      "type": "dict",
+      "n_keys": 4,
+      "sample_keys": [
+        "total_stocks",
+        "by_cap_bucket",
+        "by_sector_top_10",
+        "n_curated_seed_added"
+      ],
+      "sample_value": "1795"
+    },
+    "cap_buckets": {
+      "type": "list",
+      "len": 6,
+      "first_3": [
+        {
+          "name": "nano",
+          "low": 5000000,
+          "high": 50000000
+        },
+        {
+          "name": "micro",
+          "low": 50000000,
+          "high": 300000000
+        },
+        {
+          "name": "small",
+          "low": 300000000,
+          "high": 2000000000
+        }
+      ]
+    },
+    "stocks": {
+      "type": "list",
+      "len": 1795,
+      "first_3": [
+        {
+          "symbol": "NVDA",
+          "name": "NVIDIA Corporation",
+          "sector": "Technology",
+          "industry": "Semiconductors",
+          "exchange": "NASDAQ Global Select",
+          "market_cap": 5051308390044,
+          "price": 207.83,
+          "cap_bucket": "mega",
+          "source": "screener"
+        },
+        {
+          "symbol": "GOOGL",
+          "name": "Alphabet Inc.",
+          "sector": "Communication Services",
+          "industry": "Internet Content & Information",
+          "exchange": "NASDAQ Global Select",
+          "market_cap": 4814242171426,
+          "price": 398.04,
+          "cap_bucket": "mega",
+          "source": "screener"
+        },
+        {
+          "symbol": "GOOG",
+          "name": "Alphabet Inc.",
+          "sector": "Communication Services",
+          "industry": "Internet Content & Information",
+          "exchange": "NASDAQ Global Select",
+          "market_cap": 4779167047576,
+          "price": 395.14,
+          "cap_bucket": "mega",
+          "source": "screener"
+        }
+      ]
+    }
+  }
+}
