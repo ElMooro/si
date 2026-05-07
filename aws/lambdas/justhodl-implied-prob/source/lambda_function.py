@@ -398,6 +398,41 @@ def earnings_implied_moves():
         return []
 
 
+# ─── BTC RV proxy (no public IV index for crypto) ─────────────────────────────
+def compute_btc_rv_proxy():
+    """IBIT has no public IV index. Use realized vol from history as proxy.
+    Returns {rv_30d_pct, rv_90d_pct} annualized."""
+    end = date.today()
+    start = end - timedelta(days=180)
+    qs = urllib.parse.urlencode({"apiKey": POLY_KEY, "adjusted": "true", "sort": "desc"})
+    url = (f"https://api.polygon.io/v2/aggs/ticker/IBIT/range/1/day/"
+            f"{start.strftime('%Y-%m-%d')}/{end.strftime('%Y-%m-%d')}?{qs}")
+    d = http_get_json(url)
+    if not d or d.get("status") not in ("OK", "DELAYED"):
+        return None
+    closes = [b.get("c") for b in (d.get("results") or []) if b.get("c")]
+    if len(closes) < 30:
+        return None
+
+    def annualized_rv(window):
+        if len(closes) < window + 1:
+            return None
+        recent = closes[:window + 1]
+        log_returns = []
+        for i in range(len(recent) - 1):
+            if recent[i] > 0 and recent[i + 1] > 0:
+                log_returns.append(math.log(recent[i] / recent[i + 1]))
+        if len(log_returns) < 5:
+            return None
+        sd = statistics.stdev(log_returns)
+        return round(sd * math.sqrt(252) * 100, 2)
+
+    return {
+        "rv_30d_pct": annualized_rv(30) or annualized_rv(20),
+        "rv_90d_pct": annualized_rv(90) or annualized_rv(60),
+    }
+
+
 # ─── Main handler ────────────────────────────────────────────────────────────
 def lambda_handler(event, context):
     started = time.time()
@@ -414,8 +449,39 @@ def lambda_handler(event, context):
     print("[implied] Section 3b: QQQ implied moves…")
     qqq = index_implied_moves("QQQ")
 
-    print("[implied] Section 4: BTC implied moves…")
+    print("[implied] Section 4: BTC implied moves (IBIT)…")
     btc = index_implied_moves("IBIT")
+    # IBIT has no FRED vol index — use realized vol as IV proxy
+    if btc and btc.get("iv_30d") is None and btc.get("spot"):
+        try:
+            rv_iv = compute_btc_rv_proxy()
+            if rv_iv:
+                spot = btc["spot"]
+                btc["iv_30d"] = round(rv_iv["rv_30d_pct"], 2)
+                btc["iv_90d"] = round(rv_iv["rv_90d_pct"], 2)
+                btc["iv_proxy_note"] = "Implied vol proxied from realized vol (no public BTC vol index)"
+                btc["iv_proxy_source"] = "Polygon IBIT history × √252"
+                # Compute log-normal probabilities using RV-derived IV
+                iv_30 = rv_iv["rv_30d_pct"] / 100.0
+                iv_90 = rv_iv["rv_90d_pct"] / 100.0
+                btc["moves_30d"] = {
+                    "p_up_5":    lognormal_prob_above(spot, spot * 1.05, iv_30, 30),
+                    "p_down_5":  100 - lognormal_prob_above(spot, spot * 0.95, iv_30, 30),
+                    "p_up_10":   lognormal_prob_above(spot, spot * 1.10, iv_30, 30),
+                    "p_down_10": 100 - lognormal_prob_above(spot, spot * 0.90, iv_30, 30),
+                    "expected_move_pct": round(iv_30 * math.sqrt(30 / 365) * 100, 2),
+                }
+                btc["moves_90d"] = {
+                    "p_up_5":    lognormal_prob_above(spot, spot * 1.05, iv_90, 90),
+                    "p_down_5":  100 - lognormal_prob_above(spot, spot * 0.95, iv_90, 90),
+                    "p_up_10":   lognormal_prob_above(spot, spot * 1.10, iv_90, 90),
+                    "p_down_10": 100 - lognormal_prob_above(spot, spot * 0.90, iv_90, 90),
+                    "p_up_20":   lognormal_prob_above(spot, spot * 1.20, iv_90, 90),
+                    "p_down_20": 100 - lognormal_prob_above(spot, spot * 0.80, iv_90, 90),
+                    "expected_move_pct": round(iv_90 * math.sqrt(90 / 365) * 100, 2),
+                }
+        except Exception as e:
+            print(f"[implied] BTC RV proxy failed: {e}")
 
     earnings = []
     if time.time() - started < 180:  # only if we have time
@@ -426,8 +492,8 @@ def lambda_handler(event, context):
             print(f"[implied] earnings section failed: {e}")
 
     payload = {
-        "schema_version": "1.0",
-        "method": "implied_prob_v1",
+        "schema_version": "2.0",
+        "method": "implied_prob_v2_fred",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "fed": fed,
         "recession": rec,
