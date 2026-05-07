@@ -1,0 +1,116 @@
+{
+  "started": "2026-05-07T18:30:23.263511+00:00",
+  "diag": {
+    "ecb_keys": [
+      {
+        "key": "data/eurodollar-stress.json",
+        "size": 2428,
+        "lm": "2026-05-07 17:48:41+00:00"
+      },
+      {
+        "key": "data/plumbing-stress.json",
+        "size": 25748,
+        "lm": "2026-05-07 18:27:22+00:00"
+      }
+    ],
+    "ecb_structure": {
+      "data/eurodollar-stress.json": {
+        "top_keys": [
+          "as_of",
+          "v",
+          "composite_score",
+          "severity",
+          "regime",
+          "n_signals_used",
+          "n_signals_total",
+          "n_failures",
+          "signals",
+          "hot_signals",
+          "cold_signals",
+          "failures",
+          "thresholds",
+          "duration_s"
+        ],
+        "sample": {
+          "as_of": "str",
+          "v": "str",
+          "composite_score": "float",
+          "severity": "str",
+          "regime": "str",
+          "n_signals_used": "int",
+          "n_signals_total": "int",
+          "n_failures": "int",
+          "signals": "list",
+          "hot_signals": "list",
+          "cold_signals": "list",
+          "failures": "list",
+          "thresholds": "dict",
+          "duration_s": "float"
+        }
+      },
+      "data/plumbing-stress.json": {
+        "top_keys": [
+          "schema_version",
+          "method",
+          "as_of",
+          "n_indicators",
+          "n_with_data",
+          "composite_score",
+          "composite_label",
+          "layers",
+          "raw_indicators",
+          "alerts",
+          "duration_s"
+        ],
+        "sample": {
+          "schema_version": "str",
+          "method": "str",
+          "as_of": "str",
+          "n_indicators": "int",
+          "n_with_data": "int",
+          "composite_score": "float",
+          "composite_label": "str",
+          "layers": "dict",
+          "raw_indicators": "dict",
+          "alerts": "list",
+          "duration_s": "float"
+        }
+      }
+    },
+    "ofr_endpoints": {
+      "v1_full": {
+        "url": "https://data.financialresearch.gov/v1/series/full?mnemonic=NYPD-PD_AFtD_TOT-A",
+        "status": 200,
+        "bytes": 21534,
+        "preview": "{\"NYPD-PD_AFtD_TOT-A\": {\"timeseries\": {\"disclosure_edits\": [], \"aggregation\": [[\"2015-01-07\", 112770000000.0], [\"2015-01-14\", 139836000000.0], [\"2015-01-21\", 180819000000.0], [\"2015-01-28\", 142280000000.0], [\"2015-02-04\", 125052000000.0], [\"2015-02-11\", 109501000000.0], [\"2015-02-18\", 171721000000.0], [\"2015-02-25\", 210187000000.0], [\"2015-03-04\", 196513000000.0], [\"2015-03-11\", 103722000000.0], ["
+      },
+      "v1_ts": {
+        "url": "https://data.financialresearch.gov/v1/series/timeseries?mnemonic=NYPD-PD_AFtD_TOT-A",
+        "status": 200,
+        "bytes": 18867,
+        "preview": "[[\"2015-01-07\", 112770000000.0], [\"2015-01-14\", 139836000000.0], [\"2015-01-21\", 180819000000.0], [\"2015-01-28\", 142280000000.0], [\"2015-02-04\", 125052000000.0], [\"2015-02-11\", 109501000000.0], [\"2015-02-18\", 171721000000.0], [\"2015-02-25\", 210187000000.0], [\"2015-03-04\", 196513000000.0], [\"2015-03-11\", 103722000000.0], [\"2015-03-18\", 190087000000.0], [\"2015-03-25\", 140429000000.0], [\"2015-04-01\", "
+      },
+      "ofr_full": {
+        "url": "https://www.financialresearch.gov/short-term-funding-monitor/api/v1/series/full/?mnemonic=NYPD-PD_AFtD_TOT-A",
+        "http_err": 404,
+        "msg": "<!DOCTYPE html>\r\n<!--[if lt IE 9]> <html lang=\"en\" class=\"no-js lt-ie9\"> <![endif]-->\r\n<!--[if IE 9]><html lang=\"en\" class=\"no-js ie9\" lang=\"en\"><![endif]-->\r\n<!--[if gt IE 9]><!-->\r\n<html lang=\"en\" c"
+      },
+      "ofr_ts": {
+        "url": "https://www.financialresearch.gov/short-term-funding-monitor/api/v1/series/timeseries/NYPD-PD_AFtD_TOT-A",
+        "http_err": 404,
+        "msg": "<!DOCTYPE html>\r\n<!--[if lt IE 9]> <html lang=\"en\" class=\"no-js lt-ie9\"> <![endif]-->\r\n<!--[if IE 9]><html lang=\"en\" class=\"no-js ie9\" lang=\"en\"><![endif]-->\r\n<!--[if gt IE 9]><!-->\r\n<html lang=\"en\" c"
+      },
+      "ofr_data": {
+        "url": "https://www.financialresearch.gov/short-term-funding-monitor/api/data/NYPD-PD_AFtD_TOT-A.json",
+        "http_err": 404,
+        "msg": "<!DOCTYPE html>\r\n<!--[if lt IE 9]> <html lang=\"en\" class=\"no-js lt-ie9\"> <![endif]-->\r\n<!--[if IE 9]><html lang=\"en\" class=\"no-js ie9\" lang=\"en\"><![endif]-->\r\n<!--[if gt IE 9]><!-->\r\n<html lang=\"en\" c"
+      },
+      "ofr_root": {
+        "url": "https://data.financialresearch.gov/v1/series?mnemonic=NYPD-PD_AFtD_TOT-A",
+        "http_err": 403,
+        "msg": "{\"message\":\"Missing Authentication Token\"}"
+      }
+    }
+  },
+  "cleanup": "deleted"
+}
