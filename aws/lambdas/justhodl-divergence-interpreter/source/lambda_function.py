@@ -121,11 +121,34 @@ def build_interpretation_prompt(div_data, nowcast_data):
     with_data = [r for r in all_rels if r.get("status") in ("flagged", "extreme")]
     with_data.sort(key=lambda x: abs(x.get("divergence_z") or 0), reverse=True)
 
-    # Macro nowcast extracts
+    # Macro nowcast extracts — defensive (components may be list or dict)
     regime = nowcast_data.get("regime", "UNKNOWN")
     composite_z = nowcast_data.get("composite_z", 0)
-    components = nowcast_data.get("components") or {}
-    spy_forward_returns = nowcast_data.get("spy_forward_returns_by_regime", {})
+    components_raw = nowcast_data.get("components", {})
+
+    # Normalize components into a consistent dict for display
+    if isinstance(components_raw, dict):
+        components = {k: v for k, v in components_raw.items()
+                      if isinstance(v, (int, float))}
+    elif isinstance(components_raw, list):
+        # Each item likely has {name, z_score, weight, ...}
+        components = {}
+        for item in components_raw:
+            if isinstance(item, dict):
+                name = item.get("name") or item.get("series_id") or item.get("id")
+                z = item.get("z_score") if "z_score" in item else item.get("value")
+                if name and isinstance(z, (int, float)):
+                    components[name] = z
+    else:
+        components = {}
+
+    components_str = ", ".join(
+        f"{k}={round(v, 2)}" for k, v in list(components.items())[:8]
+    ) if components else "(no component breakdown available)"
+
+    spy_forward_returns_raw = nowcast_data.get("spy_forward_returns_by_regime", {})
+    spy_forward_returns = (spy_forward_returns_raw
+                            if isinstance(spy_forward_returns_raw, dict) else {})
 
     # Build the prompt
     prompt_parts = [
@@ -133,7 +156,7 @@ def build_interpretation_prompt(div_data, nowcast_data):
         "",
         f"## CURRENT MACRO REGIME: {regime}",
         f"  Composite z-score: {composite_z}",
-        f"  Components: {json.dumps({k: round(v, 2) for k, v in components.items()})[:300]}",
+        f"  Components: {components_str[:400]}",
         "",
         f"## SPY FORWARD RETURNS BY REGIME (from 10-year backtest)",
     ]
