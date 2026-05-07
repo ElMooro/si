@@ -1,0 +1,84 @@
+{
+  "started": "2026-05-07T21:57:02.810045+00:00",
+  "chart_data_url_config": {
+    "url": "https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/",
+    "auth": "NONE",
+    "cors": {
+      "AllowHeaders": [
+        "content-type"
+      ],
+      "AllowMethods": [
+        "*"
+      ],
+      "AllowOrigins": [
+        "https://justhodl.ai",
+        "https://www.justhodl.ai"
+      ],
+      "MaxAge": 86400
+    }
+  },
+  "diag": {
+    "live_html": {
+      "status": 200,
+      "bytes": 26311,
+      "headers": {
+        "Connection": "close",
+        "Content-Length": "26547",
+        "Server": "GitHub.com",
+        "Content-Type": "text/html; charset=utf-8",
+        "Last-Modified": "Thu, 07 May 2026 21:53:18 GMT",
+        "Access-Control-Allow-Origin": "*",
+        "Strict-Transport-Security": "max-age=31556952",
+        "ETag": "\"69fd09ce-67b3\"",
+        "expires": "Thu, 07 May 2026 22:07:09 GMT",
+        "Cache-Control": "max-age=600",
+        "x-proxy-cache": "MISS",
+        "X-GitHub-Request-Id": "A3F0:1C78:10CA545:123675D:69FD0AB5",
+        "Accept-Ranges": "bytes",
+        "Age": "0",
+        "Date": "Thu, 07 May 2026 21:57:09 GMT",
+        "Via": "1.1 varnish",
+        "X-Served-By": "cache-iad-kcgs7200132-IAD",
+        "X-Cache": "MISS",
+        "X-Cache-Hits": "0",
+        "X-Timer": "S1778191030.631895,VS0,VE10",
+        "Vary": "Accept-Encoding",
+        "X-Fastly-Request-ID": "aa157283b53c1f8ca0c0618029992ed3d132e63a"
+      },
+      "chart_api_line": "const CHART_API = 'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/';"
+    },
+    "lambda_direct": {
+      "status": 200,
+      "headers": {
+        "Date": "Thu, 07 May 2026 21:57:09 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "4913",
+        "Connection": "close",
+        "x-amzn-RequestId": "0d727b7d-c2aa-47e9-8804-b36dc55d9aae",
+        "access-control-allow-origin": "https://justhodl.ai",
+        "access-control-allow-headers": "Content-Type",
+        "Vary": "Origin",
+        "cache-control": "public, max-age=300",
+        "access-control-allow-methods": "GET, OPTIONS",
+        "X-Amzn-Trace-Id": "Root=1-69fd0ab5-44a9d94041cd97160e187be2;Parent=335cf996889a1385;Sampled=0;Lineage=1:6ef4a7b1:0"
+      },
+      "body_preview": "{\"catalog\": {\"rates_curves\": {\"label\": \"Rates & Yield Curve\", \"series\": [[\"DGS10\", \"10-Year Treasury Yield\", \"FRED\"], [\"DGS2\", \"2-Year Treasury Yield\", \"FRED\"], [\"DGS3MO\", \"3-Month Treasury Yield\", \"F",
+      "body_size": 4913
+    },
+    "preflight": {
+      "status": 200,
+      "headers": {
+        "Date": "Thu, 07 May 2026 21:57:09 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "0",
+        "Connection": "close",
+        "x-amzn-RequestId": "65dc46c2-612e-40b6-9c77-ae5dbefce0be",
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Access-Control-Allow-Headers": "content-type",
+        "Vary": "Origin",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Max-Age": "86400"
+      }
+    }
+  }
+}
