@@ -93,6 +93,9 @@ def build_brief():
     # Phase D: sector tilt + pairs scanner (sprints 5+6)
     sector_tilt = fetch_json("data/sector-tilt.json") or {}
     pairs_scan = fetch_json("data/pairs-scanner.json") or {}
+    # Phase E: Fed-speak sentiment + Global-macro per-country regime
+    fed_speak = fetch_json("data/fed-speak.json") or {}
+    global_macro = fetch_json("data/global-macro.json") or {}
 
     lines = []
     lines.append(f"*🌅 JustHodl Morning Brief — {now.strftime('%Y-%m-%d')}*")
@@ -293,6 +296,64 @@ def build_brief():
                 # Trade direction on next line for readability
                 trade = p.get("trade") or "—"
                 lines.append(f"      📍 _Trade:_ {md_escape(trade)}")
+
+    # ── Phase E: Fed Speak (FOMC sentiment via Claude NLP) ──
+    if fed_speak.get("aggregate"):
+        agg = fed_speak.get("aggregate") or {}
+        n30 = fed_speak.get("n_speeches_30d") or 0
+        if n30 > 0:
+            avg = agg.get("avg_sentiment", 0) or 0
+            interp = agg.get("interpretation") or "—"
+            hawk = agg.get("hawkish_count", 0) or 0
+            dove = agg.get("dovish_count", 0) or 0
+            neu = agg.get("neutral_count", 0) or 0
+            sign = "\\+" if avg >= 0 else ""
+            lines.append(f"*🏦 Fed Speak* \\(`{n30}` in 30d\\)")
+            lines.append(
+                f"  `{md_escape(interp)}`  avg=`{sign}{fmt_num(avg, 2)}`  "
+                f"H=`{hawk}` D=`{dove}` N=`{neu}`"
+            )
+            # Surface latest non-neutral if exists (more actionable)
+            for slot, label in (("latest_hawkish", "🔴 hawkish"),
+                                 ("latest_dovish", "🟢 dovish")):
+                ls = fed_speak.get(slot)
+                if ls and ls.get("title"):
+                    spk = ls.get("speaker") or "?"
+                    title = (ls.get("title") or "")[:65]
+                    score = ls.get("sentiment_score")
+                    score_s = (("\\+" if score >= 0 else "") +
+                                fmt_num(score, 0)) if score is not None else "?"
+                    lines.append(
+                        f"  • _Latest {label}_ \\(`{score_s}`\\) {md_escape(spk)}: "
+                        f"{md_escape(title)}"
+                    )
+
+    # ── Phase E: Global Macro (per-country composite regime) ──
+    if global_macro.get("regime_counts"):
+        rc = global_macro.get("regime_counts") or {}
+        avg = global_macro.get("global_avg_composite", 0) or 0
+        regime = global_macro.get("global_regime") or "—"
+        rk = global_macro.get("rankings") or {}
+        n = global_macro.get("n_with_data", 0) or 0
+        lines.append(f"*🌍 Global Macro* \\(`{n}` countries\\)")
+        lines.append(
+            f"  `{md_escape(regime)}`  avg=`{fmt_num(avg, 1)}`  "
+            f"HOT=`{rc.get('hot', 0)}` MIX=`{rc.get('mixed', 0)}` COLD=`{rc.get('cold', 0)}`"
+        )
+        hottest = (rk.get("hottest") or [])[:3]
+        coldest = (rk.get("coldest") or [])[:3]
+        if hottest:
+            hot_s = " · ".join(
+                f"{md_escape(c.get('name', '?')[:8])}=`{fmt_num(c.get('score', 0), 0)}`"
+                for c in hottest
+            )
+            lines.append(f"  🔥 Hottest: {hot_s}")
+        if coldest:
+            cold_s = " · ".join(
+                f"{md_escape(c.get('name', '?')[:8])}=`{fmt_num(c.get('score', 0), 0)}`"
+                for c in coldest
+            )
+            lines.append(f"  🥶 Coldest: {cold_s}")
 
     # Paper portfolio
     if portfolio:

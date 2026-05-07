@@ -138,17 +138,18 @@ def fetch_fred_series(series_id, n_obs=24):
 
 
 def fetch_fmp_history(ticker, n_days=120):
-    qs = urllib.parse.urlencode({
-        "apikey": FMP_KEY, "from": "",
-        "serietype": "line",
-    })
-    url = f"https://financialmodelingprep.com/stable/historical-price-eod?symbol={ticker}&apikey={FMP_KEY}"
+    """Fetch last n daily bars from FMP. Returns most-recent-first list.
+    Uses /stable/historical-price-eod/light — current FMP endpoint after
+    August 2025 deprecation of v3. Returns records with: symbol, date, price, volume.
+    """
+    url = (f"https://financialmodelingprep.com/stable/historical-price-eod/light"
+           f"?symbol={ticker}&apikey={FMP_KEY}")
     d = http_get_json(url, timeout=15)
     if not d:
         return None
     if isinstance(d, list):
         return d[:n_days]
-    return d.get("historical", [])[:n_days]
+    return []
 
 
 def normalize_score(value, low, high, invert=False):
@@ -200,8 +201,10 @@ def assemble_country(spec):
     if etf:
         h = fetch_fmp_history(etf, n_days=70)
         if h and len(h) >= 60:
-            latest_close = h[0].get("close") or h[0].get("adjClose")
-            three_mo_close = h[59].get("close") or h[59].get("adjClose")
+            # /stable/historical-price-eod/light returns: {symbol, date, price, volume}
+            # Keep fallback to 'close'/'adjClose' for older endpoint compatibility
+            latest_close = h[0].get("price") or h[0].get("close") or h[0].get("adjClose")
+            three_mo_close = h[59].get("price") or h[59].get("close") or h[59].get("adjClose")
             if latest_close and three_mo_close:
                 ret_pct = (latest_close - three_mo_close) / three_mo_close * 100
                 score = normalize_score(ret_pct, -15, 15)
