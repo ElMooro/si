@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Asset Divergence v2 · JustHodl.AI</title>
+<meta name="description" content="44 cross-asset divergence pairs covering labor, manufacturing, leading indicators, EM/frontier, copper-producers, and eurodollar centers.">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #131313;
+    --bg-card-elev: #181818;
+    --border: #262626;
+    --border-light: #2e2e2e;
+    --text: #e5e5e5;
+    --text-dim: #888;
+    --text-muted: #555;
+    --accent: #facc15;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --crimson: #dc2626;
+    --blue: #3b82f6;
+    --purple: #a78bfa;
+    --gray: #71717a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 18px; }
+
+  /* Header */
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 18px;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  /* Composite gauge */
+  .composite {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px;
+    margin-bottom: 18px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px;
+  }
+  .stat {
+    text-align: left;
+    padding: 8px 14px;
+    border-left: 2px solid var(--border-light);
+  }
+  .stat:first-child { border-left: none; padding-left: 0; }
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 26px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.crimson { color: var(--crimson); }
+  .stat-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Section banner — extreme alerts */
+  .alerts-banner {
+    background: linear-gradient(90deg, rgba(220,38,38,0.12), rgba(220,38,38,0));
+    border-left: 3px solid var(--crimson);
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .alerts-banner.empty { background: rgba(34,197,94,0.05); border-left-color: var(--green); }
+  .alerts-banner h2 { font-size: 14px; font-weight: 600; }
+  .alerts-banner.empty h2 { color: var(--green); }
+  .alerts-banner.extreme h2 { color: var(--crimson); }
+
+  /* Category sections */
+  .category {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+    margin-bottom: 14px;
+  }
+  .category h3 {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-dim);
+    border-bottom: 1px solid var(--border-light); padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .category h3 .count {
+    color: var(--text-muted); font-weight: 400; margin-left: 6px;
+  }
+
+  /* Relationship rows */
+  .rel-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .rel-table th {
+    text-align: left; padding: 6px 8px;
+    color: var(--text-dim); font-weight: 500;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .rel-table td {
+    padding: 8px; border-bottom: 1px solid var(--border-light);
+    font-variant-numeric: tabular-nums;
+    vertical-align: top;
+  }
+  .rel-table tr:last-child td { border-bottom: none; }
+  .rel-table tr:hover td { background: var(--bg-card-elev); }
+  .rel-name { color: var(--text); font-weight: 500; }
+  .rel-desc { color: var(--text-dim); font-size: 11px; margin-top: 2px; line-height: 1.3; }
+  .z-score { font-weight: 600; }
+  .z-score.normal { color: var(--text); }
+  .z-score.flagged { color: var(--amber); }
+  .z-score.extreme { color: var(--red); font-size: 14px; }
+  .status-pill {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .status-pill.normal { background: rgba(113,113,122,0.15); color: var(--gray); }
+  .status-pill.flagged { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .status-pill.extreme { background: rgba(220,38,38,0.18); color: var(--crimson); }
+  .status-pill.no_data, .status-pill.insufficient_data {
+    background: rgba(113,113,122,0.1); color: var(--text-muted); font-style: italic;
+  }
+  .arrow-up { color: var(--green); }
+  .arrow-down { color: var(--red); }
+
+  /* Loading */
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  /* Mobile */
+  @media (max-width: 720px) {
+    .composite { grid-template-columns: 1fr 1fr; }
+    .rel-table { font-size: 11px; }
+    .rel-table th, .rel-table td { padding: 4px 6px; }
+    .rel-desc { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Cross-Asset Divergence Engine v2 <span class="sub">44 pairs across 8 categories</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Home</a> ·
+        <a href="/regime.html">Regime</a> ·
+        <a href="/macro-data.html">Macro Nowcast</a> ·
+        <a href="/eurodollar.html">Eurodollar Stress</a>
+      </div>
+    </div>
+
+    <div class="composite" id="composite">
+      <div class="stat">
+        <div class="stat-label">Composite Divergence Index</div>
+        <div class="stat-value" id="compIdx">—</div>
+        <div class="stat-meta" id="compMeta">% of pairs flagged or extreme</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pairs Flagged (>2σ)</div>
+        <div class="stat-value amber" id="nFlagged">—</div>
+        <div class="stat-meta">significant dislocation</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pairs Extreme (>3σ)</div>
+        <div class="stat-value crimson" id="nExtreme">—</div>
+        <div class="stat-meta">rare event — alert level</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Coverage</div>
+        <div class="stat-value" id="nWithData">—</div>
+        <div class="stat-meta" id="nWithDataMeta">/ 32 pairs with data</div>
+      </div>
+    </div>
+
+    <div id="alertsBanner" class="alerts-banner empty" style="display:none;">
+      <h2 id="alertsBannerText">No extreme divergences right now</h2>
+    </div>
+
+    <div id="categories"><div class="loader">Loading divergence pairs…</div></div>
+  </div>
+
+<script>
+const URL_V2 = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/divergence-v2.json';
+
+const CATEGORY_TITLES = {
+  labor: '💼 Labor Market',
+  manufacturing: '🏭 Manufacturing',
+  leading: '📈 Leading Indicators',
+  em: '🌍 EM / Frontier Geography',
+  rotation: '🔄 Cap Rotation',
+  copper: '🟠 Copper Producers',
+  eurodollar: '💵 Eurodollar Centers',
+  fx: '💱 Cross-Currency',
+};
+
+const CATEGORY_ORDER = ['labor','manufacturing','leading','em','rotation','copper','eurodollar','fx'];
+
+function fmtZ(z) {
+  if (z === null || z === undefined) return '—';
+  const sign = z >= 0 ? '+' : '';
+  return sign + z.toFixed(2) + 'σ';
+}
+
+function fmtN(n) {
+  if (n === null || n === undefined) return '—';
+  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  if (Math.abs(n) >= 1) return n.toFixed(2);
+  return n.toFixed(4);
+}
+
+function statusClass(s) {
+  return ({normal:'normal', flagged:'flagged', extreme:'extreme',
+           no_data:'no_data', insufficient_data:'insufficient_data'})[s] || 'normal';
+}
+
+function renderRelationship(r) {
+  const sCls = statusClass(r.status);
+  const zCls = r.status === 'extreme' ? 'extreme' :
+               (r.status === 'flagged' ? 'flagged' : 'normal');
+  const arrow = r.divergence_z > 0 ? '↑' : '↓';
+  const arrowCls = r.divergence_z > 0 ? 'arrow-up' : 'arrow-down';
+
+  return `
+    <tr>
+      <td>
+        <div class="rel-name">${r.name || r.id}</div>
+        <div class="rel-desc">${r.description || ''}</div>
+      </td>
+      <td><span class="z-score ${zCls}">${fmtZ(r.z_a)}</span></td>
+      <td><span class="z-score ${zCls}">${fmtZ(r.z_b)}</span></td>
+      <td>
+        <span class="z-score ${zCls}">${fmtZ(r.divergence_z)}</span>
+        ${r.divergence_z !== null ? `<span class="${arrowCls}"> ${arrow}</span>` : ''}
+      </td>
+      <td><span class="status-pill ${sCls}">${(r.status || '').replace('_',' ')}</span></td>
+    </tr>
+  `;
+}
+
+function renderCategory(catKey, items) {
+  if (!items || items.length === 0) return '';
+  const title = CATEGORY_TITLES[catKey] || catKey;
+  return `
+    <div class="category">
+      <h3>${title} <span class="count">${items.length} pairs</span></h3>
+      <table class="rel-table">
+        <thead>
+          <tr>
+            <th>Relationship</th>
+            <th>z(A)</th>
+            <th>z(B)</th>
+            <th>Divergence</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(renderRelationship).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function load() {
+  try {
+    const resp = await fetch(URL_V2 + '?_=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const d = await resp.json();
+
+    // Header meta
+    const asOf = d.as_of ? new Date(d.as_of).toLocaleString() : '—';
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${asOf}</strong> · ${d.n_relationships} pairs · ${d.duration_s}s last run`;
+
+    // Composite stats
+    const compIdx = d.composite_divergence_index || 0;
+    document.getElementById('compIdx').textContent = compIdx.toFixed(1);
+    const compEl = document.getElementById('compIdx');
+    compEl.classList.remove('green','amber','red','crimson');
+    if (compIdx < 15) compEl.classList.add('green');
+    else if (compIdx < 30) compEl.classList.add('amber');
+    else if (compIdx < 50) compEl.classList.add('red');
+    else compEl.classList.add('crimson');
+
+    document.getElementById('nFlagged').textContent = d.n_flagged || 0;
+    document.getElementById('nExtreme').textContent = d.n_extreme || 0;
+    document.getElementById('nWithData').textContent = d.n_with_data || 0;
+    document.getElementById('nWithDataMeta').textContent = `/ ${d.n_relationships || 32} pairs with data`;
+
+    // Alerts banner
+    const banner = document.getElementById('alertsBanner');
+    const bannerText = document.getElementById('alertsBannerText');
+    if ((d.n_extreme || 0) > 0) {
+      banner.style.display = 'block';
+      banner.classList.remove('empty');
+      banner.classList.add('extreme');
+      const names = (d.extreme_alerts || []).map(a => a.name || a.id).slice(0,3).join(', ');
+      bannerText.textContent = `⚠️  ${d.n_extreme} EXTREME divergence${d.n_extreme > 1 ? 's' : ''} (>3σ): ${names}${d.extreme_alerts && d.extreme_alerts.length > 3 ? '…' : ''}`;
+    } else if ((d.n_flagged || 0) > 0) {
+      banner.style.display = 'block';
+      banner.classList.remove('empty');
+      banner.classList.add('extreme');
+      bannerText.textContent = `${d.n_flagged} significant divergence${d.n_flagged > 1 ? 's' : ''} flagged (>2σ)`;
+    } else {
+      banner.style.display = 'block';
+      banner.classList.add('empty');
+      banner.classList.remove('extreme');
+      bannerText.textContent = '✓ No extreme divergences right now — all major relationships in normal range';
+    }
+
+    // Render categories in priority order
+    const categories = d.by_category || {};
+    let html = '';
+    for (const cat of CATEGORY_ORDER) {
+      if (categories[cat] && categories[cat].length > 0) {
+        html += renderCategory(cat, categories[cat]);
+      }
+    }
+    // Add any uncategorized
+    for (const cat of Object.keys(categories)) {
+      if (!CATEGORY_ORDER.includes(cat)) {
+        html += renderCategory(cat, categories[cat]);
+      }
+    }
+    document.getElementById('categories').innerHTML = html;
+
+  } catch (e) {
+    document.getElementById('categories').innerHTML =
+      `<div class="loader">Failed to load: ${e.message}<br>Data may be initializing — try refreshing in a few minutes.</div>`;
+    console.error(e);
+  }
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);  // refresh every 5 min
+</script>
+</body>
+</html>
