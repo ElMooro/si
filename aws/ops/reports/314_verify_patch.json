@@ -1,0 +1,67 @@
+{
+  "started": "2026-05-07T10:20:51.316837+00:00",
+  "lambda_last_modified": "2026-05-07T10:13:16.000+0000",
+  "status_code": 200,
+  "function_error": null,
+  "response": {
+    "statusCode": 200,
+    "body": "{\"ok\": true, \"n_relationships\": 71, \"n_flagged\": 17, \"n_extreme\": 11, \"composite_index\": 39.4, \"duration_s\": 2.9}"
+  },
+  "s3_size_kb": 87.0,
+  "s3_last_modified": "2026-05-07T10:20:56+00:00",
+  "n_relationships": 71,
+  "n_with_data": 71,
+  "composite_index": 39.4,
+  "by_status": {
+    "normal": 43,
+    "flagged": 17,
+    "extreme": 11,
+    "no_data": 0,
+    "insufficient_data": 0
+  },
+  "fetch_errors": {
+    "fred": 0,
+    "etf": 0
+  },
+  "coverage_pct": 100.0,
+  "no_data_pairs": [],
+  "new_pairs": [
+    {
+      "id": "trucks_indpro",
+      "name": "Heavy Trucks vs Industrial Production (lead-lag)",
+      "status": "extreme",
+      "z": -3.347
+    },
+    {
+      "id": "permits_curve",
+      "name": "Building Permits vs 10Y-2Y Yield Curve",
+      "status": "flagged",
+      "z": -2.17
+    },
+    {
+      "id": "sentiment_permits",
+      "name": "Consumer Sentiment vs Building Permits",
+      "status": "normal",
+      "z": -0.067
+    },
+    {
+      "id": "coincident_spy",
+      "name": "Coincident Economic Activity vs S&P 500",
+      "status": "normal",
+      "z": -1.146
+    },
+    {
+      "id": "switzerland_unemployment",
+      "name": "Switzerland Equity (EWL) vs CH Unemployment",
+      "status": "normal",
+      "z": 1.75
+    },
+    {
+      "id": "korea_ip_china",
+      "name": "Korea IP vs China Equity (FXI)",
+      "status": "normal",
+      "z": 0.078
+    }
+  ],
+  "duration_s": 7.1
+}
