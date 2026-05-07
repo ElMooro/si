@@ -1,0 +1,118 @@
+{
+  "as_of": "2026-05-07T11:28:25.550768+00:00",
+  "tests": {
+    "snapshot_all_stocks": {
+      "ok": false,
+      "code": 404,
+      "body": "404 page not found"
+    },
+    "grouped_2026-05-06": {
+      "ok": true,
+      "status": "OK",
+      "count": 12098,
+      "first_3": [
+        {
+          "T": "PIEQ",
+          "v": 34721.2683,
+          "vw": 35.8773,
+          "o": 35.69,
+          "c": 35.96,
+          "h": 36.09,
+          "l": 35.69,
+          "t": 1778097600000,
+          "n": 199
+        },
+        {
+          "T": "CMCL",
+          "v": 129967.15808,
+          "vw": 22.9354,
+          "o": 23.09,
+          "c": 22.77,
+          "h": 23.94,
+          "l": 22.64,
+          "t": 1778097600000,
+          "n": 4352
+        },
+        {
+          "T": "XRAY",
+          "v": 7956901.429219,
+          "vw": 11.1159,
+          "o": 11.355,
+          "c": 11.14,
+          "h": 11.5,
+          "l": 10.89,
+          "t": 1778097600000,
+          "n": 59769
+        }
+      ],
+      "request_id": "1227a8abffebf831e282f5348985248b",
+      "message": null,
+      "next_url": null
+    },
+    "grouped_2026-05-05": {
+      "ok": true,
+      "status": "OK",
+      "count": 11988,
+      "first_3": [
+        {
+          "T": "CVM",
+          "v": 670259.491671,
+          "vw": 1.6822,
+          "o": 1.7,
+          "c": 1.74,
+          "h": 1.86,
+          "l": 1.5,
+          "t": 1778011200000,
+          "n": 4285
+        },
+        {
+          "T": "STN",
+          "v": 261697.839644,
+          "vw": 91.7214,
+          "o": 92.03,
+          "c": 92.17,
+          "h": 92.27,
+          "l": 90.4,
+          "t": 1778011200000,
+          "n": 6039
+        },
+        {
+          "T": "ARQQW",
+          "v": 15527,
+          "vw": 0.09212,
+          "o": 0.1,
+          "c": 0.089,
+          "h": 0.1,
+          "l": 0.0861,
+          "t": 1778011200000,
+          "n": 45
+        }
+      ],
+      "request_id": "1c0b78fcbee42351a34005b16775ab47",
+      "message": null,
+      "next_url": null
+    },
+    "grouped_2026-05-02": {
+      "ok": true,
+      "status": "OK",
+      "count": 0,
+      "first_3": [],
+      "request_id": "c28a38c8dd06466889b22e4b3612ed0a",
+      "message": null,
+      "next_url": null
+    },
+    "aapl_ref": {
+      "ok": false,
+      "err": "slice(None, 3, None)"
+    },
+    "aapl_snapshot": {
+      "ok": true,
+      "status": "OK",
+      "count": 0,
+      "first_3": [],
+      "request_id": "72a4694fb45ef545d300c8b1f8fb5cef",
+      "message": null,
+      "next_url": null
+    }
+  }
+}
