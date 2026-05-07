@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pairs Trading Scanner · JustHodl.AI</title>
+<meta name="description" content="Statistical-arbitrage pairs scanner — 37 curated pairs ranked by Z-score with mean-reversion entries.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; }
+  .container { max-width: 1600px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+
+  .thesis { background: linear-gradient(90deg, rgba(168,85,247,0.06), rgba(168,85,247,0));
+            border-left: 3px solid var(--purple); border-radius: 4px;
+            padding: 12px 16px; margin-bottom: 16px; }
+  .thesis h3 { font-size: 13px; font-weight: 600; color: var(--purple); margin-bottom: 4px; }
+  .thesis p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  .thesis strong { color: var(--text); }
+  .thesis code { background: var(--bg-card); padding: 1px 4px; border-radius: 3px;
+                 font-family: 'SF Mono', Menlo, monospace; font-size: 11px; }
+
+  /* Top extreme callout */
+  .top-callout { background: var(--bg-card); border: 1px solid var(--red);
+                 border-left: 4px solid var(--red); border-radius: 6px;
+                 padding: 14px 16px; margin-bottom: 16px; display: none; }
+  .top-callout.show { display: block; }
+  .top-callout .kicker { font-size: 10px; color: var(--red);
+                         text-transform: uppercase; letter-spacing: 0.08em;
+                         font-weight: 700; margin-bottom: 4px; }
+  .top-callout h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .top-callout .meta-line { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+  .top-callout .trade { color: var(--green); font-weight: 600; font-size: 14px; }
+  .top-callout .rationale { color: var(--text-dim); font-size: 12px; margin-top: 6px;
+                             padding-top: 6px; border-top: 1px solid var(--border-light); }
+
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+           background: var(--bg-card); border: 1px solid var(--border);
+           border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .stat { padding: 0 12px; border-left: 1px solid var(--border-light); }
+  .stat:first-child { border-left: none; padding-left: 0; }
+  .stat .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stat .value.green { color: var(--green); }
+  .stat .value.amber { color: var(--amber); }
+  .stat .value.red { color: var(--red); }
+  .stat .value.crimson { color: var(--crimson); }
+
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls input { background: var(--bg-card); border: 1px solid var(--border);
+                    color: var(--text); padding: 6px 10px; border-radius: 4px;
+                    font-size: 13px; width: 200px; }
+  .controls select { background: var(--bg-card); border: 1px solid var(--border);
+                     color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+  .controls .count { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px;
+          background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  thead { background: var(--bg-card-elev); position: sticky; top: 0; z-index: 1; }
+  th { text-align: left; padding: 8px 10px; color: var(--text-dim);
+       font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+       border-bottom: 1px solid var(--border-light); cursor: pointer; user-select: none;
+       white-space: nowrap; }
+  th:hover { color: var(--accent); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border-light);
+       font-variant-numeric: tabular-nums; vertical-align: top; }
+  tr:hover td { background: var(--bg-card-elev); }
+  tr.row-extreme td { background: rgba(220,38,38,0.06); }
+  tr.row-extreme:hover td { background: rgba(220,38,38,0.10); }
+  tr.row-extended td { background: rgba(245,158,11,0.04); }
+
+  .pair-name { font-weight: 600; color: var(--text); }
+  .pair-tickers { color: var(--accent); font-size: 12px; font-weight: 500; }
+  .pair-tickers .vs { color: var(--text-muted); margin: 0 4px; font-weight: 400; }
+
+  .state-pill { display: inline-block; padding: 2px 7px; border-radius: 3px;
+                font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .state-EXTREME { background: rgba(220,38,38,0.22); color: var(--crimson); }
+  .state-EXTENDED { background: rgba(239,68,68,0.18); color: var(--red); }
+  .state-STRETCHED { background: rgba(245,158,11,0.18); color: var(--amber); }
+  .state-NORMAL { background: rgba(113,113,122,0.18); color: var(--text-dim); }
+
+  .z-cell { display: flex; align-items: center; gap: 8px; }
+  .z-value { font-weight: 700; min-width: 60px; }
+  .z-value.extreme { color: var(--crimson); }
+  .z-value.extended { color: var(--red); }
+  .z-value.stretched { color: var(--amber); }
+  .z-value.normal { color: var(--text-dim); }
+  .z-bar { width: 60px; height: 4px; background: var(--border); border-radius: 2px;
+           overflow: hidden; position: relative; }
+  .z-bar-mid { position: absolute; left: 50%; width: 1px; height: 100%; background: var(--text-muted); }
+  .z-bar-fill { height: 100%; position: absolute; top: 0; }
+  .z-bar-fill.pos { left: 50%; background: var(--blue); }
+  .z-bar-fill.neg { right: 50%; background: var(--amber); }
+
+  .rr-pill { display: inline-block; padding: 1px 6px; border-radius: 3px;
+              font-size: 11px; font-weight: 600;
+              background: rgba(34,197,94,0.15); color: var(--green); }
+  .rr-pill.high { background: rgba(34,197,94,0.25); }
+  .rr-pill.low { background: rgba(113,113,122,0.15); color: var(--text-dim); }
+
+  .trade-cell { font-size: 11px; color: var(--green); font-weight: 600; }
+  .num-pos { color: var(--green); }
+  .num-neg { color: var(--red); }
+  .small { font-size: 11px; color: var(--text-dim); }
+  .loader { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  .category-tag { display: inline-block; padding: 1px 5px; border-radius: 2px;
+                  font-size: 10px; background: rgba(99,102,241,0.15); color: var(--purple); }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .top-callout { font-size: 12px; }
+    table { font-size: 11px; }
+    th, td { padding: 4px 6px; }
+    .small { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Pairs Trading Scanner <span class="sub">37 curated pairs · Z-score + half-life + R:R</span></h1>
+        <div class="meta" id="metaLine">Loading…</div>
+      </div>
+      <div class="meta">
+        <a href="/">← Home</a> ·
+        <a href="/sector-tilt.html">Sector Tilt</a> ·
+        <a href="/divergence-v2.html">Divergence</a> ·
+        <a href="/alpha-scoreboard.html">Scoreboard</a>
+      </div>
+    </div>
+
+    <div class="thesis">
+      <h3>📐 The Strategy (regime-agnostic alpha)</h3>
+      <p>
+        Statistical-arbitrage pairs trading is the canonical relative-value strategy. For each pair,
+        we compute the price ratio <code>r_t = close_A / close_B</code>, then track its 60-day rolling
+        Z-score. When <code>|z| &gt; 2</code> the pair is <strong>EXTENDED</strong>; <code>|z| &gt; 3</code> is
+        <strong>EXTREME</strong> — high-conviction mean-reversion entry. Half-life from
+        Ornstein-Uhlenbeck regression tells us how fast the spread typically reverts. Pairs are
+        <strong>uncorrelated with directional bets</strong>, so the strategy works in any regime
+        — bull, bear, slowdown, or expansion.
+      </p>
+    </div>
+
+    <!-- Top extreme callout -->
+    <div class="top-callout" id="topCallout">
+      <div class="kicker">⚡ Most Extreme Dislocation</div>
+      <h3 id="topName">—</h3>
+      <div class="meta-line" id="topMeta">—</div>
+      <div class="trade" id="topTrade">—</div>
+      <div class="rationale" id="topRationale">—</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat"><div class="label">Total Pairs</div><div class="value" id="nTotal">—</div></div>
+      <div class="stat"><div class="label">Extreme (|z|≥3)</div><div class="value crimson" id="nExtreme">—</div></div>
+      <div class="stat"><div class="label">Extended (|z|≥2)</div><div class="value red" id="nExtended">—</div></div>
+      <div class="stat"><div class="label">Stretched (|z|≥1)</div><div class="value amber" id="nStretched">—</div></div>
+      <div class="stat"><div class="label">Normal</div><div class="value" id="nNormal">—</div></div>
+      <div class="stat"><div class="label">Avg Half-Life</div><div class="value" id="avgHL">—</div></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <input type="text" id="search" placeholder="Filter pair, ticker, category…" />
+      <select id="stateFilter">
+        <option value="">All States</option>
+        <option value="EXTREME">EXTREME only</option>
+        <option value="EXTENDED">EXTENDED only</option>
+        <option value="STRETCHED">≥STRETCHED</option>
+      </select>
+      <select id="categoryFilter">
+        <option value="">All Categories</option>
+      </select>
+      <select id="rrFilter">
+        <option value="0">Any R:R</option>
+        <option value="2">R:R ≥ 2</option>
+        <option value="3">R:R ≥ 3</option>
+        <option value="5">R:R ≥ 5</option>
+      </select>
+      <span class="count" id="count">—</span>
+    </div>
+
+    <div id="tableHost"><div class="loader">Loading pairs…</div></div>
+  </div>
+
+<script>
+const URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/pairs-scanner.json';
+
+let PAIRS = [];
+let SORT = { col: 'abs_z', dir: 'desc' };
+
+function fmt(v, d=2) {
+  if (v === null || v === undefined || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return String(v).slice(0,30);
+  return n.toFixed(d);
+}
+
+function fmtZ(v) {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + 'σ';
+}
+
+function fmtPct(v, d=1) {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (isNaN(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(d) + '%';
+}
+
+function zCell(z, state) {
+  if (z === null || z === undefined) return '<span class="small">—</span>';
+  const cls = (state || 'NORMAL').toLowerCase();
+  const abs = Math.abs(z);
+  const fillWidth = Math.min(50, abs * 14);  // 50% bar half-width per side
+  const pos = z >= 0;
+  return `
+    <div class="z-cell">
+      <span class="z-value ${cls}">${fmtZ(z)}</span>
+      <span class="z-bar">
+        <span class="z-bar-mid"></span>
+        <span class="z-bar-fill ${pos ? 'pos' : 'neg'}" style="width:${fillWidth}%"></span>
+      </span>
+    </div>
+  `;
+}
+
+function rrPill(rr) {
+  if (rr === null || rr === undefined) return '<span class="small">—</span>';
+  const cls = rr >= 5 ? 'high' : (rr < 2 ? 'low' : '');
+  return `<span class="rr-pill ${cls}">${rr.toFixed(1)}:1</span>`;
+}
+
+function applyFilters(rows) {
+  const q = document.getElementById('search').value.toLowerCase();
+  const state = document.getElementById('stateFilter').value;
+  const cat = document.getElementById('categoryFilter').value;
+  const minRR = parseFloat(document.getElementById('rrFilter').value);
+  return rows.filter(r => {
+    if (q) {
+      const txt = `${r.name||''} ${r.ticker_a||''} ${r.ticker_b||''} ${r.category||''}`.toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    if (state === 'EXTREME' && r.state !== 'EXTREME') return false;
+    if (state === 'EXTENDED' && !(r.state === 'EXTREME' || r.state === 'EXTENDED')) return false;
+    if (state === 'STRETCHED' && r.state === 'NORMAL') return false;
+    if (cat && r.category !== cat) return false;
+    if (minRR && (r.rr_estimate || 0) < minRR) return false;
+    return true;
+  });
+}
+
+function applySort(rows) {
+  const { col, dir } = SORT;
+  return [...rows].sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
+    if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function render() {
+  const rows = applySort(applyFilters(PAIRS));
+  document.getElementById('count').textContent = `${rows.length} pairs`;
+
+  const cols = [
+    { k: 'name', label: 'Pair' },
+    { k: 'state', label: 'State' },
+    { k: 'spread_z', label: 'Z-Score' },
+    { k: 'rr_estimate', label: 'R:R' },
+    { k: 'half_life_days', label: 'Half-Life' },
+    { k: 'trade', label: 'Trade' },
+    { k: 'ret_30d_a', label: '30d A' },
+    { k: 'ret_30d_b', label: '30d B' },
+    { k: 'correlation_252d', label: 'ρ (252d)' },
+    { k: 'category', label: 'Category' },
+  ];
+  const thead = cols.map(c => {
+    const cls = c.k === SORT.col ? `sort-${SORT.dir}` : '';
+    return `<th data-col="${c.k}" class="${cls}">${c.label}</th>`;
+  }).join('');
+
+  const tbody = rows.map(r => {
+    const stateClass = `state-${r.state || 'NORMAL'}`;
+    const rowClass = r.state === 'EXTREME' ? 'row-extreme' :
+                     (r.state === 'EXTENDED' ? 'row-extended' : '');
+    return `
+      <tr class="${rowClass}">
+        <td>
+          <div class="pair-name">${r.name || '?'}</div>
+          <div class="pair-tickers">${r.ticker_a || '?'}<span class="vs">/</span>${r.ticker_b || '?'}</div>
+        </td>
+        <td><span class="state-pill ${stateClass}">${r.state || '—'}</span></td>
+        <td>${zCell(r.spread_z, r.state)}</td>
+        <td>${rrPill(r.rr_estimate)}</td>
+        <td>${fmt(r.half_life_days, 0)}d</td>
+        <td class="trade-cell">${r.trade || '—'}</td>
+        <td class="${r.ret_30d_a >= 0 ? 'num-pos' : 'num-neg'}">${fmtPct(r.ret_30d_a, 1)}</td>
+        <td class="${r.ret_30d_b >= 0 ? 'num-pos' : 'num-neg'}">${fmtPct(r.ret_30d_b, 1)}</td>
+        <td class="${r.correlation_252d >= 0 ? '' : 'num-neg'}">${fmt(r.correlation_252d, 2)}</td>
+        <td><span class="category-tag">${(r.category || '').replace(/_/g, ' ')}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('tableHost').innerHTML = `
+    <table><thead><tr>${thead}</tr></thead><tbody>${tbody || '<tr><td colspan="10" class="loader">No matching pairs</td></tr>'}</tbody></table>
+  `;
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.col;
+      SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
+      SORT.col = c;
+      render();
+    });
+  });
+}
+
+function showTopCallout(pair) {
+  if (!pair) return;
+  document.getElementById('topName').textContent = pair.name;
+  document.getElementById('topMeta').innerHTML =
+    `<span class="state-pill state-${pair.state}">${pair.state}</span> · ` +
+    `Z=${fmtZ(pair.spread_z)} · ` +
+    `R:R ${pair.rr_estimate ? pair.rr_estimate.toFixed(1) : '?'}:1 · ` +
+    `Half-life ${pair.half_life_days || '?'}d · ` +
+    `30d ${pair.ticker_a} ${fmtPct(pair.ret_30d_a)} vs ${pair.ticker_b} ${fmtPct(pair.ret_30d_b)}`;
+  document.getElementById('topTrade').textContent = `📍 ${pair.trade}`;
+  document.getElementById('topRationale').textContent = pair.rationale || '';
+  document.getElementById('topCallout').classList.add('show');
+}
+
+function populateCategoryFilter() {
+  const cats = [...new Set(PAIRS.map(p => p.category).filter(Boolean))].sort();
+  const sel = document.getElementById('categoryFilter');
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c.replace(/_/g, ' ');
+    sel.appendChild(opt);
+  });
+}
+
+async function load() {
+  try {
+    const r = await fetch(URL + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    PAIRS = (d.pairs || []).map(p => ({ ...p, abs_z: Math.abs(p.spread_z || 0) }));
+
+    const summary = d.summary || {};
+    document.getElementById('metaLine').innerHTML =
+      `As of <strong>${new Date(d.as_of).toLocaleString()}</strong> · ` +
+      `${PAIRS.length} pairs analyzed · scan ${d.duration_s}s`;
+
+    document.getElementById('nTotal').textContent = summary.n_pairs || PAIRS.length;
+    document.getElementById('nExtreme').textContent = summary.n_extreme || 0;
+    document.getElementById('nExtended').textContent = summary.n_extended || 0;
+    document.getElementById('nStretched').textContent = summary.n_stretched || 0;
+    document.getElementById('nNormal').textContent = summary.n_normal || 0;
+
+    const validHL = PAIRS.map(p => p.half_life_days).filter(v => v && v > 0 && v < 1000);
+    if (validHL.length) {
+      const avg = validHL.reduce((a, b) => a + b, 0) / validHL.length;
+      document.getElementById('avgHL').textContent = avg.toFixed(0) + 'd';
+    }
+
+    // Show top extreme pair as callout
+    const extreme = PAIRS.filter(p => p.state === 'EXTREME')
+                         .sort((a, b) => b.abs_z - a.abs_z);
+    if (extreme.length) showTopCallout(extreme[0]);
+
+    populateCategoryFilter();
+    render();
+  } catch (e) {
+    document.getElementById('tableHost').innerHTML =
+      `<div class="loader">Failed: ${e.message}</div>`;
+    console.error(e);
+  }
+}
+
+['search','stateFilter','categoryFilter','rrFilter'].forEach(id =>
+  document.getElementById(id).addEventListener('input', render));
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
