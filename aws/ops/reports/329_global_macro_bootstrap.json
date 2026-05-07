@@ -1,0 +1,254 @@
+{
+  "started": "2026-05-07T11:53:53.348643+00:00",
+  "deploy": {
+    "action": "create",
+    "zip_kb": 4.5
+  },
+  "rule": {
+    "rule": "global-macro-daily",
+    "schedule": "rate(1 day)"
+  },
+  "smoke_test": {
+    "status": 200,
+    "function_error": null,
+    "duration_s": 3.5,
+    "response": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"n_with_data\": 15, \"global_regime\": \"GLOBAL MIXED\", \"avg_composite\": 58.1, \"duration_s\": 2.8}"
+    },
+    "s3_size_kb": 7.1,
+    "n_countries": 15,
+    "n_with_data": 15,
+    "regime_counts": {
+      "hot": 6,
+      "mixed": 6,
+      "cold": 3
+    },
+    "global_avg": 58.1,
+    "global_regime": "GLOBAL MIXED",
+    "rankings": {
+      "hottest": [
+        {
+          "code": "IN",
+          "name": "India",
+          "score": 73.4
+        },
+        {
+          "code": "US",
+          "name": "United States",
+          "score": 70.0
+        },
+        {
+          "code": "MX",
+          "name": "Mexico",
+          "score": 69.3
+        },
+        {
+          "code": "JP",
+          "name": "Japan",
+          "score": 67.4
+        },
+        {
+          "code": "KR",
+          "name": "South Korea",
+          "score": 66.6
+        }
+      ],
+      "coldest": [
+        {
+          "code": "ES",
+          "name": "Spain",
+          "score": 40.4
+        },
+        {
+          "code": "CN",
+          "name": "China (proxy)",
+          "score": 42.0
+        },
+        {
+          "code": "BR",
+          "name": "Brazil",
+          "score": 43.1
+        },
+        {
+          "code": "IT",
+          "name": "Italy",
+          "score": 48.9
+        },
+        {
+          "code": "CA",
+          "name": "Canada",
+          "score": 49.2
+        }
+      ]
+    },
+    "countries_sample": [
+      {
+        "code": "US",
+        "name": "United States",
+        "composite": 70.0,
+        "regime": "HOT",
+        "n_components": 1,
+        "unemp": 4.3,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      },
+      {
+        "code": "DE",
+        "name": "Germany",
+        "composite": 63.2,
+        "regime": "MIXED",
+        "n_components": 4,
+        "unemp": 4.0,
+        "pmi": 95.5,
+        "ip_yoy": -4.44,
+        "etf_3m": null
+      },
+      {
+        "code": "GB",
+        "name": "United Kingdom",
+        "composite": 66.0,
+        "regime": "HOT",
+        "n_components": 4,
+        "unemp": 5.2,
+        "pmi": 112.5,
+        "ip_yoy": 0.53,
+        "etf_3m": null
+      },
+      {
+        "code": "IT",
+        "name": "Italy",
+        "composite": 48.9,
+        "regime": "MIXED",
+        "n_components": 3,
+        "unemp": 5.3,
+        "pmi": null,
+        "ip_yoy": -3.34,
+        "etf_3m": null
+      },
+      {
+        "code": "FR",
+        "name": "France",
+        "composite": 61.0,
+        "regime": "MIXED",
+        "n_components": 4,
+        "unemp": 7.8,
+        "pmi": 104.6,
+        "ip_yoy": 0.68,
+        "etf_3m": null
+      },
+      {
+        "code": "KR",
+        "name": "South Korea",
+        "composite": 66.6,
+        "regime": "HOT",
+        "n_components": 3,
+        "unemp": 2.9,
+        "pmi": null,
+        "ip_yoy": 2.47,
+        "etf_3m": null
+      },
+      {
+        "code": "CN",
+        "name": "China (proxy)",
+        "composite": 42.0,
+        "regime": "COLD",
+        "n_components": 1,
+        "unemp": null,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      },
+      {
+        "code": "JP",
+        "name": "Japan",
+        "composite": 67.4,
+        "regime": "HOT",
+        "n_components": 4,
+        "unemp": 2.6,
+        "pmi": 99.3,
+        "ip_yoy": -2.97,
+        "etf_3m": null
+      },
+      {
+        "code": "ES",
+        "name": "Spain",
+        "composite": 40.4,
+        "regime": "COLD",
+        "n_components": 3,
+        "unemp": 9.8,
+        "pmi": null,
+        "ip_yoy": -0.25,
+        "etf_3m": null
+      },
+      {
+        "code": "IN",
+        "name": "India",
+        "composite": 73.4,
+        "regime": "HOT",
+        "n_components": 1,
+        "unemp": null,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      },
+      {
+        "code": "CA",
+        "name": "Canada",
+        "composite": 49.2,
+        "regime": "MIXED",
+        "n_components": 3,
+        "unemp": 6.5,
+        "pmi": null,
+        "ip_yoy": 0.01,
+        "etf_3m": null
+      },
+      {
+        "code": "AU",
+        "name": "Australia",
+        "composite": 52.8,
+        "regime": "MIXED",
+        "n_components": 2,
+        "unemp": 4.28,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      },
+      {
+        "code": "BR",
+        "name": "Brazil",
+        "composite": 43.1,
+        "regime": "COLD",
+        "n_components": 2,
+        "unemp": null,
+        "pmi": null,
+        "ip_yoy": 2.27,
+        "etf_3m": null
+      },
+      {
+        "code": "MX",
+        "name": "Mexico",
+        "composite": 69.3,
+        "regime": "HOT",
+        "n_components": 2,
+        "unemp": 2.66,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      },
+      {
+        "code": "CH",
+        "name": "Switzerland",
+        "composite": 58.2,
+        "regime": "MIXED",
+        "n_components": 2,
+        "unemp": 4.96,
+        "pmi": null,
+        "ip_yoy": null,
+        "etf_3m": null
+      }
+    ]
+  },
+  "duration_s": 15.2
+}
