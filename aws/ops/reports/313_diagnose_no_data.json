@@ -1,0 +1,399 @@
+{
+  "started": "2026-05-07T10:09:43.833883+00:00",
+  "control_test": {
+    "UNRATE": {
+      "ok": true,
+      "n_obs": 5,
+      "latest_date": "2026-03-01",
+      "latest_value": "4.3",
+      "all_dates": [
+        "2026-03-01",
+        "2026-02-01",
+        "2026-01-01"
+      ]
+    },
+    "INDPRO": {
+      "ok": true,
+      "n_obs": 5,
+      "latest_date": "2026-03-01",
+      "latest_value": "101.7898",
+      "all_dates": [
+        "2026-03-01",
+        "2026-02-01",
+        "2026-01-01"
+      ]
+    },
+    "T10Y2Y": {
+      "ok": true,
+      "n_obs": 5,
+      "latest_date": "2026-05-06",
+      "latest_value": "0.49",
+      "all_dates": [
+        "2026-05-06",
+        "2026-05-05",
+        "2026-05-04"
+      ]
+    },
+    "DEXUSEU": {
+      "ok": true,
+      "n_obs": 5,
+      "latest_date": "2026-05-01",
+      "latest_value": "1.1755",
+      "all_dates": [
+        "2026-05-01",
+        "2026-04-30",
+        "2026-04-29"
+      ]
+    }
+  },
+  "diagnosis": {
+    "USSLIND": {
+      "broken_id": "USSLIND",
+      "candidates": [
+        {
+          "series_id": "USSLIND",
+          "meta_ok": true,
+          "title": "Leading Index for the United States",
+          "frequency": "Monthly",
+          "units": "%",
+          "last_updated": "2020-04-14 09:16:10-05",
+          "observation_start": "1982-01-01",
+          "observation_end": "2020-02-01",
+          "popularity": 65,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2020-02-01",
+            "latest_value": "1.72",
+            "all_dates": [
+              "2020-02-01",
+              "2020-01-01",
+              "2019-12-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "LEIBOR",
+          "meta_ok": false,
+          "err": "HTTP 400: {\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+          "code": 400,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "USPHCI",
+          "meta_ok": true,
+          "title": "Coincident Economic Activity Index for the United States",
+          "frequency": "Monthly",
+          "units": "Index 2007=100",
+          "last_updated": "2026-04-28 09:09:06-05",
+          "observation_start": "1979-01-01",
+          "observation_end": "2026-02-01",
+          "popularity": 55,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2026-02-01",
+            "latest_value": "147.85",
+            "all_dates": [
+              "2026-02-01",
+              "2026-01-01",
+              "2025-12-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "T10Y2Y",
+          "meta_ok": true,
+          "title": "10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity",
+          "frequency": "Daily",
+          "units": "%",
+          "last_updated": "2026-05-06 16:04:48-05",
+          "observation_start": "1976-06-01",
+          "observation_end": "2026-05-06",
+          "popularity": 99,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2026-05-06",
+            "latest_value": "0.49",
+            "all_dates": [
+              "2026-05-06",
+              "2026-05-05",
+              "2026-05-04"
+            ]
+          },
+          "verdict": "WORKS"
+        }
+      ],
+      "recommended_replacement": "USSLIND"
+    },
+    "USPHCI": {
+      "broken_id": "USPHCI",
+      "candidates": [
+        {
+          "series_id": "USPHCI",
+          "meta_ok": true,
+          "title": "Coincident Economic Activity Index for the United States",
+          "frequency": "Monthly",
+          "units": "Index 2007=100",
+          "last_updated": "2026-04-28 09:09:06-05",
+          "observation_start": "1979-01-01",
+          "observation_end": "2026-02-01",
+          "popularity": 55,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2026-02-01",
+            "latest_value": "147.85",
+            "all_dates": [
+              "2026-02-01",
+              "2026-01-01",
+              "2025-12-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "USPBS",
+          "meta_ok": true,
+          "title": "All Employees, Professional and Business Services",
+          "frequency": "Monthly",
+          "units": "Thous. of Persons",
+          "last_updated": "2026-04-03 08:19:12-05",
+          "observation_start": "1939-01-01",
+          "observation_end": "2026-03-01",
+          "popularity": 45,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2026-03-01",
+            "latest_value": "22417",
+            "all_dates": [
+              "2026-03-01",
+              "2026-02-01",
+              "2026-01-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "INDPRO",
+          "meta_ok": true,
+          "title": "Industrial Production: Total Index",
+          "frequency": "Monthly",
+          "units": "Index 2017=100",
+          "last_updated": "2026-04-16 08:23:16-05",
+          "observation_start": "1919-01-01",
+          "observation_end": "2026-03-01",
+          "popularity": 82,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2026-03-01",
+            "latest_value": "101.7898",
+            "all_dates": [
+              "2026-03-01",
+              "2026-02-01",
+              "2026-01-01"
+            ]
+          },
+          "verdict": "WORKS"
+        }
+      ],
+      "recommended_replacement": "USPHCI"
+    },
+    "CHNPROINDMISMEI": {
+      "broken_id": "CHNPROINDMISMEI",
+      "candidates": [
+        {
+          "series_id": "CHNPROINDMISMEI",
+          "meta_ok": false,
+          "err": "HTTP 400: {\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+          "code": 400,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "CHNPROINDQISMEI",
+          "meta_ok": false,
+          "err": "HTTP 400: {\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+          "code": 400,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "CHNCPIALLMINMEI",
+          "meta_ok": true,
+          "title": "Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total f",
+          "frequency": "Monthly",
+          "units": "Index 2015=100",
+          "last_updated": "2025-05-15 14:19:51-05",
+          "observation_start": "1993-01-01",
+          "observation_end": "2025-04-01",
+          "popularity": 52,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2025-04-01",
+            "latest_value": "115.0297",
+            "all_dates": [
+              "2025-04-01",
+              "2025-03-01",
+              "2025-02-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "CHNXTEXVA01CXMLM",
+          "meta_ok": false,
+          "err": "HTTP 400: {\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+          "code": 400,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "MKTGDPCNA646NWDB",
+          "meta_ok": true,
+          "title": "Gross Domestic Product for China",
+          "frequency": "Annual",
+          "units": "Current $",
+          "last_updated": "2025-07-02 13:56:02-05",
+          "observation_start": "1960-01-01",
+          "observation_end": "2024-01-01",
+          "popularity": 60,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2024-01-01",
+            "latest_value": "18743803170827.2",
+            "all_dates": [
+              "2024-01-01",
+              "2023-01-01",
+              "2022-01-01"
+            ]
+          },
+          "verdict": "WORKS"
+        }
+      ],
+      "recommended_replacement": "CHNCPIALLMINMEI"
+    },
+    "LRHUTTTTCHM156S": {
+      "broken_id": "LRHUTTTTCHM156S",
+      "candidates": [
+        {
+          "series_id": "LRHUTTTTCHM156S",
+          "meta_ok": false,
+          "err": "HTTP 400: {\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+          "code": 400,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "LRHUTTTTCHQ156S",
+          "meta_ok": true,
+          "title": "Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 15 Years or over",
+          "frequency": "Quarterly",
+          "units": "%",
+          "last_updated": "2026-01-15 15:18:45-06",
+          "observation_start": "1999-04-01",
+          "observation_end": "2025-07-01",
+          "popularity": 4,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2025-07-01",
+            "latest_value": "4.957693",
+            "all_dates": [
+              "2025-07-01",
+              "2025-04-01",
+              "2025-01-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "LRHUTTTTCHA156S",
+          "meta_ok": true,
+          "title": "Infra-Annual Labor Statistics: Monthly Unemployment Rate Total: 15 Years or over",
+          "frequency": "Annual",
+          "units": "%",
+          "last_updated": "2025-11-17 13:04:48-06",
+          "observation_start": "2010-01-01",
+          "observation_end": "2024-01-01",
+          "popularity": 1,
+          "obs_test": {
+            "ok": true,
+            "n_obs": 5,
+            "latest_date": "2024-01-01",
+            "latest_value": "4.340684",
+            "all_dates": [
+              "2024-01-01",
+              "2023-01-01",
+              "2022-01-01"
+            ]
+          },
+          "verdict": "WORKS"
+        },
+        {
+          "series_id": "LRUNTTTTCHM156S",
+          "meta_ok": false,
+          "err": "HTTP 429: {\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}",
+          "code": 429,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "LRUN64TTCHM156S",
+          "meta_ok": false,
+          "err": "HTTP 429: {\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}",
+          "code": 429,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        },
+        {
+          "series_id": "LRUN24TTCHM156S",
+          "meta_ok": false,
+          "err": "HTTP 429: {\"error_code\":429,\"error_message\":\"Too Many Requests.  Exceeded Rate Limit\"}",
+          "code": 429,
+          "obs_test": {
+            "ok": false,
+            "err": "no metadata"
+          },
+          "verdict": "BROKEN"
+        }
+      ],
+      "recommended_replacement": "LRHUTTTTCHQ156S"
+    }
+  },
+  "patches": {
+    "USSLIND": "STILL_WORKS_RETRY",
+    "USPHCI": "STILL_WORKS_RETRY",
+    "CHNPROINDMISMEI": "CHNCPIALLMINMEI",
+    "LRHUTTTTCHM156S": "LRHUTTTTCHQ156S"
+  }
+}
