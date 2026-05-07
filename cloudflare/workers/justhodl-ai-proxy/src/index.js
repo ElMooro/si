@@ -42,6 +42,7 @@ const AGENT_LAMBDAS = {
   'sentiment':       'https://rtfrjcj43osvg4u4vza5bhf4pm0udfmo.lambda-url.us-east-1.on.aws/',
   'secretary':       'https://nqzbtg3pnxhcyj4rdlmft2vu4y0xxfvk.lambda-url.us-east-1.on.aws/',
   'chart-data':      'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/',
+  // ↑ chart-pro.html catalog + multi-source historical chart data
 };
 
 const ALLOWED_ORIGINS = new Set([
