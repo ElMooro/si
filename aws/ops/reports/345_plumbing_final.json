@@ -1,0 +1,97 @@
+{
+  "started": "2026-05-07T18:35:20.039287+00:00",
+  "invoke": {
+    "status": 200,
+    "fn_err": null,
+    "duration_s": 6.0,
+    "body": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"composite_score\": 47.0, \"composite_label\": \"NORMAL\", \"n_with_data\": 28, \"n_alerts\": 10, \"duration_s\": 4.8}"
+    }
+  },
+  "summary": {
+    "as_of": "2026-05-07T18:35:25+00:00",
+    "composite_score": 47.0,
+    "composite_label": "NORMAL",
+    "n_total": 28,
+    "n_with_data": 28,
+    "n_errors": 0,
+    "duration_s": 4.8,
+    "alerts_n": 10,
+    "alerts_top5": [
+      {
+        "indicator": "BOGZ1FL663067003Q",
+        "label": "Broker-Dealer Margin Loans",
+        "layer": "L3",
+        "value": 609675.0,
+        "z_score": 3.7,
+        "stress_score": 100.0,
+        "severity": "CRITICAL",
+        "message": ">1\u03c3 above trend = late-cycle excess (1987, 2000, 2008)"
+      },
+      {
+        "indicator": "RMFSL",
+        "label": "Retail Money Market Fund balances",
+        "layer": "L2",
+        "value": 2235.8,
+        "z_score": 3.52,
+        "stress_score": 99.8,
+        "severity": "CRITICAL",
+        "message": "Retail flight to MMF cash = defensive positioning"
+      },
+      {
+        "indicator": "DPSFRIW027SBOG",
+        "label": "Deposits at foreign-related banks",
+        "layer": "L2",
+        "value": 1432.2467,
+        "z_score": 1.66,
+        "stress_score": 99.8,
+        "severity": "CRITICAL",
+        "message": "FX/corp deposits parking in safer balance sheets"
+      },
+      {
+        "indicator": "SBCACBW027SBOG",
+        "label": "Securities in bank credit",
+        "layer": "L2",
+        "value": 5720.8819,
+        "z_score": 1.87,
+        "stress_score": 96.6,
+        "severity": "CRITICAL",
+        "message": "Banks shifting to bonds vs loans = defensive"
+      },
+      {
+        "indicator": "RTWEXEMEGS",
+        "label": "EM Dollar Index (Real)",
+        "layer": "L4",
+        "value": 104.3925,
+        "z_score": 1.17,
+        "stress_score": 87.2,
+        "severity": "ELEVATED",
+        "message": "Real EM dollar \u2014 best EM crisis early warning"
+      }
+    ],
+    "by_layer": {
+      "L1": {
+        "n": 5,
+        "with_data": 5,
+        "errors": []
+      },
+      "L2": {
+        "n": 7,
+        "with_data": 7,
+        "errors": []
+      },
+      "L3": {
+        "n": 7,
+        "with_data": 7,
+        "errors": []
+      },
+      "L4": {
+        "n": 9,
+        "with_data": 9,
+        "errors": []
+      }
+    },
+    "all_errors": []
+  }
+}
