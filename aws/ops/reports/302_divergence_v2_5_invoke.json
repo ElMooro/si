@@ -1,0 +1,239 @@
+{
+  "started": "2026-05-07T09:03:31.245380+00:00",
+  "status_code": 200,
+  "function_error": null,
+  "response": {
+    "statusCode": 200,
+    "body": "{\"ok\": true, \"n_relationships\": 70, \"n_flagged\": 16, \"n_extreme\": 10, \"composite_index\": 40.0, \"duration_s\": 2.6}"
+  },
+  "s3_size_kb": 81.8,
+  "s3_last_modified": "2026-05-07T09:03:35+00:00",
+  "n_relationships": 70,
+  "n_with_data": 65,
+  "composite_index": 40.0,
+  "by_status": {
+    "normal": 39,
+    "flagged": 16,
+    "extreme": 10,
+    "no_data": 5,
+    "insufficient_data": 0
+  },
+  "fetch_errors": {
+    "fred": 3,
+    "etf": 0
+  },
+  "categories": {
+    "labor": {
+      "count": 5,
+      "extreme": 0,
+      "flagged": 1,
+      "no_data": 0
+    },
+    "manufacturing": {
+      "count": 5,
+      "extreme": 0,
+      "flagged": 1,
+      "no_data": 0
+    },
+    "leading": {
+      "count": 3,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 3
+    },
+    "em": {
+      "count": 7,
+      "extreme": 3,
+      "flagged": 1,
+      "no_data": 0
+    },
+    "rotation": {
+      "count": 2,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "copper": {
+      "count": 5,
+      "extreme": 1,
+      "flagged": 3,
+      "no_data": 0
+    },
+    "eurodollar": {
+      "count": 4,
+      "extreme": 1,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "fx": {
+      "count": 2,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "crisis_leading": {
+      "count": 10,
+      "extreme": 4,
+      "flagged": 3,
+      "no_data": 0
+    },
+    "europe_labor": {
+      "count": 6,
+      "extreme": 0,
+      "flagged": 1,
+      "no_data": 1
+    },
+    "asia_labor": {
+      "count": 2,
+      "extreme": 0,
+      "flagged": 1,
+      "no_data": 0
+    },
+    "country_ip": {
+      "count": 9,
+      "extreme": 1,
+      "flagged": 4,
+      "no_data": 1
+    },
+    "asia_tech": {
+      "count": 3,
+      "extreme": 0,
+      "flagged": 1,
+      "no_data": 0
+    },
+    "shipping": {
+      "count": 2,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "commodity_ratios": {
+      "count": 3,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "safe_haven": {
+      "count": 1,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    },
+    "credit_tiers": {
+      "count": 1,
+      "extreme": 0,
+      "flagged": 0,
+      "no_data": 0
+    }
+  },
+  "top_10_dislocations": [
+    {
+      "name": "NY Fed Recession Probability vs S&P 500",
+      "category": "crisis_leading",
+      "divergence_z": 5.686,
+      "z_a": 3.198,
+      "z_b": 2.489,
+      "status": "extreme"
+    },
+    {
+      "name": "Heavy Truck Sales vs S&P 500 \u26a1",
+      "category": "crisis_leading",
+      "divergence_z": -4.672,
+      "z_a": -2.183,
+      "z_b": 2.489,
+      "status": "extreme"
+    },
+    {
+      "name": "Frontier Markets (FM) vs EM (EEM)",
+      "category": "em",
+      "divergence_z": -4.554,
+      "z_a": -1.719,
+      "z_b": 2.835,
+      "status": "extreme"
+    },
+    {
+      "name": "Indonesia (EIDO) vs EM (EEM)",
+      "category": "em",
+      "divergence_z": -4.146,
+      "z_a": -1.311,
+      "z_b": 2.835,
+      "status": "extreme"
+    },
+    {
+      "name": "Italy IP vs Italy Equity (EWI)",
+      "category": "country_ip",
+      "divergence_z": -3.804,
+      "z_a": -1.706,
+      "z_b": 2.098,
+      "status": "extreme"
+    },
+    {
+      "name": "Building Permits vs S&P 500",
+      "category": "crisis_leading",
+      "divergence_z": -3.779,
+      "z_a": -1.29,
+      "z_b": 2.489,
+      "status": "extreme"
+    },
+    {
+      "name": "HK Equity (EWH) vs HKD/USD Peg",
+      "category": "eurodollar",
+      "divergence_z": 3.166,
+      "z_a": 2.242,
+      "z_b": 0.924,
+      "status": "extreme"
+    },
+    {
+      "name": "Credit Card Delinquencies vs S&P 500",
+      "category": "crisis_leading",
+      "divergence_z": 3.147,
+      "z_a": 0.658,
+      "z_b": 2.489,
+      "status": "extreme"
+    },
+    {
+      "name": "India (INDA) vs EM (EEM)",
+      "category": "em",
+      "divergence_z": -3.139,
+      "z_a": -0.304,
+      "z_b": 2.835,
+      "status": "extreme"
+    },
+    {
+      "name": "Peru (EPU) vs Copper Price",
+      "category": "copper",
+      "divergence_z": -3.055,
+      "z_a": -0.266,
+      "z_b": 2.789,
+      "status": "extreme"
+    }
+  ],
+  "no_data_pairs": [
+    {
+      "name": "Leading vs Coincident Economic Indicators",
+      "series_a": "fred:USSLIND",
+      "series_b": "fred:USPHCI"
+    },
+    {
+      "name": "LEI vs 10Y-2Y Yield Curve",
+      "series_a": "fred:USSLIND",
+      "series_b": "fred:T10Y2Y"
+    },
+    {
+      "name": "Consumer Sentiment vs LEI",
+      "series_a": "fred:UMCSENT",
+      "series_b": "fred:USSLIND"
+    },
+    {
+      "name": "Switzerland Equity (EWL) vs CH Unemployment",
+      "series_a": "etf:EWL",
+      "series_b": "fred:LRHUTTTTCHM156S"
+    },
+    {
+      "name": "China IP vs China Equity (FXI)",
+      "series_a": "fred:CHNPROINDMISMEI",
+      "series_b": "etf:FXI"
+    }
+  ],
+  "duration_s": 6.6
+}
