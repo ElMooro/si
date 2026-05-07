@@ -1,0 +1,29 @@
+{
+  "started": "2026-05-07T22:23:03.497058+00:00",
+  "test": {
+    "volatility_known": {
+      "status": 200,
+      "size": 2374,
+      "preview": "{\"timestamp\": \"2026-05-07T22:23:12.462915\", \"equity_volatility\": {\"VIX\": {\"current\": 17.39, \"date\": \"2026-05-06\", \"1d_change\": 0.010000000000001563, \"1w_change\": -0.629999999999999, \"1m_change\": -7.93",
+      "cf_ray": "9f83a0991e34e63b-IAD"
+    },
+    "dollar_known": {
+      "status": 200,
+      "size": 3501,
+      "preview": "{\"timestamp\": \"2026-05-07T22:23:19.191460\", \"dollar_indices\": {\"DXY\": {\"current\": 118.3926, \"date\": \"2026-05-01\", \"changes\": {\"1D\": -0.23459817478576062, \"1W\": -0.1752102016519319, \"1M\": -1.5656529124",
+      "cf_ray": "9f83a0b70e29c566-IAD"
+    },
+    "chart_new": {
+      "http_err": 404,
+      "body": "{\"error\":\"Unknown agent\",\"agent\":\"chart-data\",\"available\":[\"volatility\",\"dollar\",\"bonds\",\"bea\",\"manufacturing\",\"banking\",\"trends\",\"sentiment\",\"secretary\"]}"
+    },
+    "invalid_control": {
+      "http_err": 404,
+      "body": "{\"error\":\"Unknown agent\",\"agent\":\"nonexistent\",\"available\":[\"volatility\",\"dollar\",\"bonds\",\"bea\",\"manufacturing\",\"banking\",\"trends\",\"sentiment\",\"secretary\"]}"
+    },
+    "worker_root": {
+      "http_err": 405,
+      "body": "{\"error\":\"Method not allowed (use POST)\"}"
+    }
+  }
+}
