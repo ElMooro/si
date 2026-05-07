@@ -1,0 +1,29 @@
+{
+  "started": "2026-05-07T09:10:24.228739+00:00",
+  "status_code": 200,
+  "function_error": null,
+  "response": {
+    "statusCode": 200,
+    "body": "{\"ok\": true, \"regime\": \"SLOWING\", \"composite_index\": 40.0, \"n_extreme\": 10, \"n_flagged\": 16, \"alert_reasons\": [\"Extreme count crossed 5 (0\\u219210)\", \"4 crisis_leading extreme + regime=SLOWING\", \"First run / state not found\"], \"interpretation_chars\": 3149, \"duration_s\": 11.72}"
+  },
+  "interpretation": {
+    "regime": "SLOWING",
+    "composite_index": 40.0,
+    "n_extreme": 10,
+    "n_flagged": 16,
+    "alert_reasons": [
+      "Extreme count crossed 5 (0\u219210)",
+      "4 crisis_leading extreme + regime=SLOWING",
+      "First run / state not found"
+    ],
+    "claude_meta": {
+      "model": "claude-haiku-4-5-20251001",
+      "input_tokens": 1084,
+      "output_tokens": 900,
+      "duration_s": 11.22,
+      "stop_reason": "max_tokens"
+    },
+    "interpretation_full": "# MACRO REGIME ANALYSIS: SLOWING WITH EXTREME RECESSION SIGNALS\n\n## 1. REGIME CONFIRMATION/CONTRADICTION\n\n**The regime label is WRONG.** This is not \"slowing\"\u2014this is **late-cycle rollover with recession leading indicators flashing red.**\n\nThe data directly contradicts the neutral z-score composite. Of the top 12 dislocations, **5 are crisis_leading category pairs, and 4 are extreme (>3\u03c3)**. This concentration is not noise.\n\nMost critical signals given regime:\n- **NY Fed Recession Prob vs SPY (z=5.686)**: Fed model has 50%+ recession odds; SPY near highs. This is the ultimate late-cycle topping divergence.\n- **Heavy Truck Sales vs SPY (z=-4.672)**: The textbook 12-18 month pre-recession warning. HTRUCKSSAAR already rolling over while equities held.\n- **Building Permits vs SPY (z=-3.779)**: Real-side construction leading indicator has decoupled downward. This precedes employment weakness.\n- **Credit Card Delinquencies vs SPY (z=3.147)**: Consumer stress rising while equity valuations hold. Classic late-cycle trap.\n\nThe cross-asset divergence index at 40/100 with 10 extreme pairs (>3\u03c3) is **elevated but not yet crisis mode**. However, the *composition* of those pairs (all forward-looking real economy proxies vs. risk assets) suggests the market has priced zero recession risk into equities.\n\n## 2. CRISIS-LEADING CHECK\n\n**5 of top 12 are crisis_leading. 4 are extreme, 1 is flagged.**\n\nIn a \"slowing\" regime, these signals typically have a **6-12 month lead time** before labor market rolls and earnings contract visibly. We are likely in the **2-4 month window** where leading data has broken but consensus still believes in soft landing.\n\nThe truck sales signal is particularly deterministic: post-WWII track record is perfect. If HTRUCKSSAAR continues to decline over next 2 months, recession is >70% probable within 12 months.\n\n## 3. HIGH-CONVICTION CALL\n\n**BEARISH on SPY / NEUTRAL to SHORT IWM (Russell 2000) over 3-month horizon.**\n\n**Tactical trade:** Short SPY at current levels, target 10-15% downside into Q1 2025. Exit half on 8% drawdown; ride half to earnings disappointment.\n\n*Rationale:* The truck sales + permits + NY Fed trifecta is too clean. Market has zero recession premium while real-side indicators are imploding. Small-caps (IWM) are the kill-zone first\u2014they have no duration bid and first to miss earnings. \n\n**Allocation adjustment:** Reduce cyclicals (XLV underweight), overweight treasuries (TLT), accumulate gold (GLD) into weakness.\n\n## 4. WATCH LIST\n\n1. **Heavy Truck Sales month-over-month (next reading):** If it rebounds or stabilizes, recalibrate bearish conviction down to 6/10. If it declines >5% MoM, raise to 9/10.\n2. **HK Equity (EWH) vs HKD/USD peg (z=3.166, inverse direction):** If HKD breaks upper band + EWH breaks down, signals liquidity event in eurodollar system. Changes regime from \"slowing\" to \"crisis.\"\n3. **Retail Sales vs Consumer Sentiment divergence (z=2.948):** Watch next retail sales print. If it misses while sentiment has stabilized, confirms consumer is truly weakening and this is not a data lag.\n\n## 5. CONFIDENCE: 7.5/10\n\n**Justified:** The crisis_leading quartet ("
+  },
+  "duration_s": 58.5
+}
