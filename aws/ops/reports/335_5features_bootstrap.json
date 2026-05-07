@@ -1,0 +1,84 @@
+{
+  "started": "2026-05-07T15:16:58.765271+00:00",
+  "lambdas": {
+    "justhodl-watchlist": {
+      "name": "justhodl-watchlist",
+      "deploy": {
+        "action": "create",
+        "zip_kb": 4.2
+      },
+      "fatal_error": "An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]",
+      "traceback": "During handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/335_5features_bootstrap.py\", line 254, in main\n    info[\"url\"] = ensure_url(name)\n                  ^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/si/si/aws/ops/pending/335_5features_bootstrap.py\", line 170, in ensure_url\n    out = lam.create_function_url_config(\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]\n"
+    },
+    "justhodl-catalyst-calendar": {
+      "name": "justhodl-catalyst-calendar",
+      "deploy": {
+        "action": "create",
+        "zip_kb": 4.7
+      },
+      "schedule": {
+        "rule": "catalyst-calendar-hourly",
+        "schedule": "rate(1 hour)"
+      },
+      "smoke_test": {
+        "status": 200,
+        "function_error": null,
+        "duration_s": 1.5,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"ok\": true, \"n_events\": 12, \"high_impact_next_7d\": 0, \"by_type\": {\"AUCTION\": 9, \"FOMC\": 1, \"REBALANCE\": 1, \"WITCHING\": 1}, \"duration_s\": 0.7}"
+        }
+      }
+    },
+    "justhodl-vol-regime": {
+      "name": "justhodl-vol-regime",
+      "deploy": {
+        "action": "create",
+        "zip_kb": 5.6
+      },
+      "schedule": {
+        "rule": "vol-regime-hourly",
+        "schedule": "rate(1 hour)"
+      },
+      "smoke_test": {
+        "status": 200,
+        "function_error": null,
+        "duration_s": 42.3,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"ok\": true, \"n_with_data\": 8, \"composite_score\": 25.0, \"composite_regime\": \"NORMAL\", \"duration_s\": 41.4}"
+        }
+      }
+    },
+    "justhodl-implied-prob": {
+      "name": "justhodl-implied-prob",
+      "deploy": {
+        "action": "create",
+        "zip_kb": 5.4
+      },
+      "schedule": {
+        "rule": "implied-prob-4hourly",
+        "schedule": "rate(4 hours)"
+      },
+      "smoke_test": {
+        "status": 200,
+        "function_error": null,
+        "duration_s": 2.7,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"ok\": true, \"fed_stance\": \"MARKET PRICING HOLD\", \"recession_label\": \"LOW RECESSION RISK\", \"duration_s\": 1.9}"
+        }
+      }
+    },
+    "justhodl-trade-journal": {
+      "name": "justhodl-trade-journal",
+      "deploy": {
+        "action": "create",
+        "zip_kb": 5.5
+      },
+      "fatal_error": "An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]",
+      "traceback": "During handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/335_5features_bootstrap.py\", line 254, in main\n    info[\"url\"] = ensure_url(name)\n                  ^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/si/si/aws/ops/pending/335_5features_bootstrap.py\", line 170, in ensure_url\n    out = lam.create_function_url_config(\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]\n"
+    }
+  },
+  "duration_s": 95.0
+}
