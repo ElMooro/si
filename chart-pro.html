@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart Pro · JustHodl.AI</title>
+<meta name="description" content="Multi-series historical chart explorer — FRED, ECB, OFR, Polygon, JustHodl composites. Powered by TradingView Lightweight Charts.">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-elev: #181818; --bg-hover: #1f1f1f;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15;
+    --c1: #3b82f6; --c2: #10b981; --c3: #f59e0b; --c4: #ef4444;
+    --c5: #a78bfa; --c6: #06b6d4;
+    --recession: rgba(239,68,68,0.10);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.4; height: 100vh;
+         display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+
+  /* Top bar */
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+             border-bottom: 1px solid var(--border); background: var(--bg-card);
+             flex-shrink: 0; flex-wrap: wrap; }
+  .topbar h1 { font-size: 16px; font-weight: 600; }
+  .topbar h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 12px; margin-left: 6px; }
+  .topbar a { color: var(--accent); text-decoration: none; font-size: 12px; }
+  .topbar a:hover { text-decoration: underline; }
+  .topbar-spacer { flex: 1; }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+              border-bottom: 1px solid var(--border); background: var(--bg-card); flex-wrap: wrap; }
+  .btn { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text);
+          padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;
+          font-weight: 500; transition: all 0.1s; font-family: inherit; }
+  .btn:hover { background: var(--bg-hover); border-color: var(--border-light); }
+  .btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .btn.danger { background: rgba(239,68,68,0.15); color: var(--c4); border-color: rgba(239,68,68,0.3); }
+  .btn-group { display: flex; gap: 0; }
+  .btn-group .btn { border-radius: 0; }
+  .btn-group .btn:first-child { border-radius: 4px 0 0 4px; }
+  .btn-group .btn:last-child { border-radius: 0 4px 4px 0; }
+  .btn-group .btn + .btn { border-left: 0; }
+  .label { color: var(--text-dim); font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.05em; font-weight: 500; }
+  select { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text);
+            padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
+            font-family: inherit; }
+
+  /* Main area */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 320px; background: var(--bg-card); border-right: 1px solid var(--border);
+              overflow-y: auto; flex-shrink: 0; }
+  .sidebar-section { border-bottom: 1px solid var(--border); }
+  .sidebar-header { padding: 10px 14px; background: var(--bg-elev);
+                     font-size: 11px; font-weight: 600; text-transform: uppercase;
+                     letter-spacing: 0.05em; color: var(--text-dim); display: flex;
+                     justify-content: space-between; align-items: center; cursor: pointer; }
+  .sidebar-header:hover { color: var(--text); }
+  .sidebar-content { padding: 8px 0; max-height: 300px; overflow-y: auto; }
+  .sidebar-section.collapsed .sidebar-content { display: none; }
+
+  /* Series picker */
+  .search-box { padding: 8px 14px; background: var(--bg-elev); border-bottom: 1px solid var(--border); }
+  .search-box input { width: 100%; background: var(--bg); border: 1px solid var(--border);
+                       color: var(--text); padding: 6px 10px; border-radius: 4px;
+                       font-size: 12px; font-family: inherit; }
+  .search-box input:focus { outline: none; border-color: var(--accent); }
+
+  .category-block { padding: 4px 0; }
+  .category-name { padding: 4px 14px; font-size: 10px; color: var(--text-muted);
+                    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .series-row { padding: 5px 14px; cursor: pointer; display: flex;
+                 justify-content: space-between; align-items: center; font-size: 12px;
+                 transition: background 0.1s; }
+  .series-row:hover { background: var(--bg-hover); }
+  .series-row.active { background: rgba(250,204,21,0.10); border-left: 3px solid var(--accent); padding-left: 11px; }
+  .series-row .name { flex: 1; min-width: 0; }
+  .series-row .id { color: var(--text-dim); font-size: 10px; font-family: monospace;
+                     margin-top: 1px; }
+  .series-row .src { color: var(--text-muted); font-size: 9px; padding: 1px 5px;
+                      background: var(--bg-elev); border-radius: 2px; flex-shrink: 0;
+                      margin-left: 6px; text-transform: uppercase; }
+
+  /* Active series list */
+  .active-series-row { padding: 8px 14px; display: flex; align-items: center;
+                        gap: 8px; font-size: 12px; border-bottom: 1px solid var(--border-light); }
+  .color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .active-series-row .label { flex: 1; min-width: 0; overflow: hidden;
+                                text-overflow: ellipsis; white-space: nowrap;
+                                text-transform: none; letter-spacing: 0; font-size: 12px;
+                                color: var(--text); font-weight: 500; }
+  .active-series-row .axis-toggle { font-size: 9px; color: var(--text-dim);
+                                      cursor: pointer; padding: 2px 5px;
+                                      background: var(--bg-elev); border-radius: 3px;
+                                      text-transform: uppercase; letter-spacing: 0.04em; }
+  .active-series-row .axis-toggle:hover { color: var(--accent); }
+  .active-series-row .remove { color: var(--c4); cursor: pointer; font-weight: 700;
+                                font-size: 13px; padding: 2px 5px; flex-shrink: 0; }
+
+  /* Chart area */
+  .chart-area { flex: 1; position: relative; background: var(--bg); overflow: hidden; }
+  #chartContainer { width: 100%; height: 100%; }
+  .loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+             color: var(--text-dim); font-size: 13px; }
+
+  /* Status bar bottom */
+  .status { padding: 6px 16px; border-top: 1px solid var(--border); background: var(--bg-card);
+             font-size: 11px; color: var(--text-dim); flex-shrink: 0;
+             display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* Preset buttons */
+  .preset-btn { padding: 6px 14px; font-size: 11px; cursor: pointer; display: block;
+                 width: 100%; text-align: left; background: transparent; border: none;
+                 color: var(--text-dim); transition: all 0.1s; font-family: inherit; }
+  .preset-btn:hover { background: var(--bg-hover); color: var(--text); padding-left: 18px; }
+  .preset-btn.starter { color: var(--text); }
+  .preset-btn .desc { font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px; }
+
+  /* Toggle */
+  .toggle { display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+             cursor: pointer; font-size: 12px; }
+  .toggle input { cursor: pointer; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 280px; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>📈 Chart Pro <span class="sub">multi-source historical explorer</span></h1>
+    <div class="topbar-spacer"></div>
+    <a href="/">← Desk</a>
+    <a href="/charts.html">Old Charts</a>
+    <a href="/master-rank.html">Action</a>
+    <a href="/plumbing.html">Plumbing</a>
+  </div>
+
+  <div class="toolbar">
+    <span class="label">Date Range:</span>
+    <div class="btn-group">
+      <button class="btn" data-range="1y">1Y</button>
+      <button class="btn" data-range="3y">3Y</button>
+      <button class="btn active" data-range="5y">5Y</button>
+      <button class="btn" data-range="10y">10Y</button>
+      <button class="btn" data-range="20y">20Y</button>
+      <button class="btn" data-range="all">ALL</button>
+    </div>
+    <span class="label">Normalize:</span>
+    <select id="normSelect">
+      <option value="raw">Raw Values</option>
+      <option value="indexed">Index = 100</option>
+      <option value="pct">% Change from Start</option>
+      <option value="zscore">Z-Score</option>
+    </select>
+    <span class="label">Recession:</span>
+    <label class="toggle" style="padding:0">
+      <input type="checkbox" id="recessionToggle" checked> Show NBER Bands
+    </label>
+    <div style="flex:1"></div>
+    <button class="btn primary" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn danger" onclick="clearAllSeries()">🗑️ Clear</button>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <span>📌 Active Series (<span id="activeCount">0</span>)</span>
+        </div>
+        <div class="sidebar-content" id="activeList" style="max-height:200px">
+          <div style="padding:14px;color:var(--text-muted);font-size:11px;text-align:center">
+            No series selected. Pick from Catalog below or load a Preset.
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <span>⭐ Presets</span>
+        </div>
+        <div class="sidebar-content" id="presetList">
+          <button class="preset-btn starter" onclick='loadPreset(0)'>
+            SPY vs Khalid Index
+            <span class="desc">Composite vs benchmark since 2020</span>
+          </button>
+          <button class="preset-btn starter" onclick='loadPreset(1)'>
+            Yield Curve Regime
+            <span class="desc">10Y-2Y + 10Y-3M with recessions</span>
+          </button>
+          <button class="preset-btn starter" onclick='loadPreset(2)'>
+            Credit Stress Ladder
+            <span class="desc">HY composite + BB + B + CCC spreads</span>
+          </button>
+          <button class="preset-btn starter" onclick='loadPreset(3)'>
+            Fed Liquidity Regime
+            <span class="desc">WALCL + RRP + TGA</span>
+          </button>
+          <button class="preset-btn starter" onclick='loadPreset(4)'>
+            Volatility Surface
+            <span class="desc">VIX + VXN + RVX + GVZ + OVX</span>
+          </button>
+          <button class="preset-btn starter" onclick='loadPreset(5)'>
+            Dollar Regime
+            <span class="desc">Broad + EM + AFE (real)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Search 80+ indicators..." oninput="filterCatalog()">
+      </div>
+
+      <div id="catalogHost"><div style="padding:14px;color:var(--text-dim);font-size:11px">Loading catalog...</div></div>
+    </div>
+
+    <div class="chart-area">
+      <div id="chartContainer"></div>
+      <div class="loader" id="loader" style="display:none">Loading...</div>
+    </div>
+  </div>
+
+  <div class="status">
+    <span id="statusInfo">Pick series to begin</span>
+    <span id="statusRange"></span>
+    <span id="statusNorm"></span>
+    <span style="flex:1"></span>
+    <span style="color:var(--text-muted)">Engine: TradingView Lightweight Charts v4.2 · Sources: FRED · ECB SDMX · OFR · Polygon · JustHodl S3</span>
+  </div>
+
+<script>
+const CHART_API = 'https://CHART_DATA_LAMBDA_URL_PLACEHOLDER/';
+const CATALOG_URL = CHART_API + '?catalog=1';
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
+
+const STATE = {
+  activeSeries: [],   // [{id, label, source, color, axis, data}]
+  range: '5y',
+  norm: 'raw',
+  recession: true,
+  recessionData: null,
+  catalog: null,
+  chart: null,
+  series: [],
+};
+
+const PRESETS = [
+  { name: 'SPY vs Khalid Index', series: [
+    { id: 'SPY', kind: 'stock', axis: 'left' },
+    { id: 'khalid_index', kind: 'internal', axis: 'right' },
+  ]},
+  { name: 'Yield Curve Regime', series: [
+    { id: 'T10Y2Y', kind: 'fred', axis: 'left' },
+    { id: 'T10Y3M', kind: 'fred', axis: 'left' },
+    { id: 'DGS10', kind: 'fred', axis: 'right' },
+  ]},
+  { name: 'Credit Stress Ladder', series: [
+    { id: 'BAMLH0A0HYM2', kind: 'fred', axis: 'left' },
+    { id: 'BAMLH0A1HYBB', kind: 'fred', axis: 'left' },
+    { id: 'BAMLH0A2HYB', kind: 'fred', axis: 'left' },
+    { id: 'BAMLH0A3HYC', kind: 'fred', axis: 'left' },
+  ]},
+  { name: 'Fed Liquidity Regime', series: [
+    { id: 'WALCL', kind: 'fred', axis: 'left' },
+    { id: 'RRPONTSYD', kind: 'fred', axis: 'right' },
+    { id: 'WTREGEN', kind: 'fred', axis: 'right' },
+  ]},
+  { name: 'Volatility Surface', series: [
+    { id: 'VIXCLS', kind: 'fred', axis: 'left' },
+    { id: 'VXNCLS', kind: 'fred', axis: 'left' },
+    { id: 'RVXCLS', kind: 'fred', axis: 'left' },
+    { id: 'GVZCLS', kind: 'fred', axis: 'left' },
+    { id: 'OVXCLS', kind: 'fred', axis: 'left' },
+  ]},
+  { name: 'Dollar Regime', series: [
+    { id: 'RTWEXBGS', kind: 'fred', axis: 'left' },
+    { id: 'RTWEXEMEGS', kind: 'fred', axis: 'left' },
+    { id: 'RTWEXAFEGS', kind: 'fred', axis: 'left' },
+  ]},
+];
+
+// ───── Init chart ─────
+function initChart() {
+  const container = document.getElementById('chartContainer');
+  STATE.chart = LightweightCharts.createChart(container, {
+    width: container.clientWidth, height: container.clientHeight,
+    layout: {
+      background: { color: '#0a0a0a' },
+      textColor: '#888',
+      fontFamily: '-apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+    },
+    grid: {
+      vertLines: { color: '#1f1f1f' },
+      horzLines: { color: '#1f1f1f' },
+    },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed },
+      horzLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed },
+    },
+    rightPriceScale: { borderColor: '#262626', visible: true },
+    leftPriceScale: { borderColor: '#262626', visible: true },
+    timeScale: { borderColor: '#262626', timeVisible: false, secondsVisible: false, rightOffset: 5 },
+  });
+  window.addEventListener('resize', () => {
+    STATE.chart.resize(container.clientWidth, container.clientHeight);
+  });
+}
+
+// ───── Catalog rendering ─────
+async function loadCatalog() {
+  try {
+    const r = await fetch(CATALOG_URL);
+    if (!r.ok) throw new Error('catalog fetch failed');
+    const d = await r.json();
+    STATE.catalog = d.catalog;
+    renderCatalog();
+  } catch (e) {
+    document.getElementById('catalogHost').innerHTML =
+      `<div style="padding:14px;color:var(--c4);font-size:11px">Catalog load failed: ${e.message}</div>`;
+  }
+}
+
+function renderCatalog(filter = '') {
+  if (!STATE.catalog) return;
+  const filterLower = filter.toLowerCase();
+  let html = '';
+  for (const [catKey, cat] of Object.entries(STATE.catalog)) {
+    const matchedSeries = cat.series.filter(([id, label]) =>
+      !filter || id.toLowerCase().includes(filterLower) || label.toLowerCase().includes(filterLower)
+    );
+    if (!matchedSeries.length) continue;
+    html += `<div class="category-block"><div class="category-name">${cat.label}</div>`;
+    for (const [id, label, source] of matchedSeries) {
+      const isActive = STATE.activeSeries.some(s => s.id === id);
+      html += `<div class="series-row ${isActive ? 'active' : ''}" onclick="toggleSeries('${id}', '${label.replace(/'/g, "\\'")}', '${source}')">
+        <div class="name">
+          <div>${label}</div>
+          <div class="id">${id}</div>
+        </div>
+        <span class="src">${source}</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  if (!html) html = '<div style="padding:14px;color:var(--text-dim);font-size:11px">No matches.</div>';
+  document.getElementById('catalogHost').innerHTML = html;
+}
+
+function filterCatalog() {
+  renderCatalog(document.getElementById('searchInput').value);
+}
+
+// ───── Series management ─────
+async function toggleSeries(id, label, source) {
+  const existing = STATE.activeSeries.findIndex(s => s.id === id);
+  if (existing >= 0) {
+    removeSeries(id);
+    return;
+  }
+  if (STATE.activeSeries.length >= 6) {
+    alert('Max 6 series. Remove one first.');
+    return;
+  }
+  const color = COLORS[STATE.activeSeries.length];
+  const axis = STATE.activeSeries.length === 0 ? 'left' : 'right';
+  STATE.activeSeries.push({ id, label, source, color, axis, data: null });
+  await fetchSeriesData(id, source);
+  renderActiveList();
+  renderCatalog(document.getElementById('searchInput').value);
+  redraw();
+}
+
+async function fetchSeriesData(id, source) {
+  const fromDate = computeFromDate(STATE.range);
+  const kind = sourceToKind(source);
+  const url = `${CHART_API}?series=${encodeURIComponent(id)}&kind=${kind}` +
+              (fromDate ? `&from=${fromDate}` : '');
+  try {
+    showLoader(true);
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    const entry = STATE.activeSeries.find(s => s.id === id);
+    if (entry) entry.data = d.data || [];
+  } catch (e) {
+    console.error('fetch fail', id, e);
+    const entry = STATE.activeSeries.find(s => s.id === id);
+    if (entry) entry.data = [];
+  } finally {
+    showLoader(false);
+  }
+}
+
+function sourceToKind(source) {
+  const map = { 'FRED': 'fred', 'Polygon': 'stock', 'ECB': 'ecb',
+                 'OFR': 'ofr', 'Internal': 'internal' };
+  return map[source] || 'fred';
+}
+
+function removeSeries(id) {
+  STATE.activeSeries = STATE.activeSeries.filter(s => s.id !== id);
+  renderActiveList();
+  renderCatalog(document.getElementById('searchInput').value);
+  redraw();
+}
+
+function clearAllSeries() {
+  STATE.activeSeries = [];
+  renderActiveList();
+  renderCatalog(document.getElementById('searchInput').value);
+  redraw();
+}
+
+function toggleAxis(id) {
+  const s = STATE.activeSeries.find(x => x.id === id);
+  if (!s) return;
+  s.axis = s.axis === 'left' ? 'right' : 'left';
+  renderActiveList();
+  redraw();
+}
+
+function renderActiveList() {
+  const host = document.getElementById('activeList');
+  document.getElementById('activeCount').textContent = STATE.activeSeries.length;
+  if (!STATE.activeSeries.length) {
+    host.innerHTML = `<div style="padding:14px;color:var(--text-muted);font-size:11px;text-align:center">
+      No series selected. Pick from Catalog below or load a Preset.
+    </div>`;
+    return;
+  }
+  host.innerHTML = STATE.activeSeries.map(s => `
+    <div class="active-series-row">
+      <span class="color-dot" style="background:${s.color}"></span>
+      <span class="label">${s.label}</span>
+      <span class="axis-toggle" onclick="toggleAxis('${s.id}')">${s.axis === 'left' ? '◀ L' : 'R ▶'}</span>
+      <span class="remove" onclick="removeSeries('${s.id}')">✕</span>
+    </div>
+  `).join('');
+}
+
+// ───── Preset loading ─────
+async function loadPreset(idx) {
+  const preset = PRESETS[idx];
+  if (!preset) return;
+  STATE.activeSeries = [];
+  for (const [i, p] of preset.series.entries()) {
+    const sourceMap = { 'fred': 'FRED', 'stock': 'Polygon', 'ecb': 'ECB',
+                         'ofr': 'OFR', 'internal': 'Internal' };
+    let label = p.id;
+    // Look up label from catalog
+    if (STATE.catalog) {
+      for (const cat of Object.values(STATE.catalog)) {
+        const found = cat.series.find(([sid]) => sid === p.id);
+        if (found) { label = found[1]; break; }
+      }
+    }
+    STATE.activeSeries.push({
+      id: p.id, label,
+      source: sourceMap[p.kind],
+      color: COLORS[i], axis: p.axis,
+      data: null,
+    });
+  }
+  await Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source)));
+  renderActiveList();
+  renderCatalog(document.getElementById('searchInput').value);
+  redraw();
+}
+
+// ───── Date range ─────
+function computeFromDate(range) {
+  const now = new Date();
+  const d = new Date(now);
+  if (range === '1y') d.setFullYear(d.getFullYear() - 1);
+  else if (range === '3y') d.setFullYear(d.getFullYear() - 3);
+  else if (range === '5y') d.setFullYear(d.getFullYear() - 5);
+  else if (range === '10y') d.setFullYear(d.getFullYear() - 10);
+  else if (range === '20y') d.setFullYear(d.getFullYear() - 20);
+  else if (range === 'all') return '1960-01-01';
+  return d.toISOString().slice(0, 10);
+}
+
+document.querySelectorAll('[data-range]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    STATE.range = btn.dataset.range;
+    // Re-fetch all series for new range
+    await Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source)));
+    redraw();
+  });
+});
+
+document.getElementById('normSelect').addEventListener('change', (e) => {
+  STATE.norm = e.target.value;
+  redraw();
+});
+
+document.getElementById('recessionToggle').addEventListener('change', (e) => {
+  STATE.recession = e.target.checked;
+  redraw();
+});
+
+// ───── Normalization ─────
+function normalize(data, mode) {
+  if (!data || !data.length) return data;
+  if (mode === 'raw') return data;
+  const first = data[0].value;
+  if (mode === 'indexed') {
+    if (!first) return data;
+    return data.map(d => ({ time: d.time, value: 100 * d.value / first }));
+  }
+  if (mode === 'pct') {
+    if (!first) return data;
+    return data.map(d => ({ time: d.time, value: 100 * (d.value - first) / Math.abs(first) }));
+  }
+  if (mode === 'zscore') {
+    const vals = data.map(d => d.value);
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const variance = vals.reduce((acc, v) => acc + (v - mean) ** 2, 0) / vals.length;
+    const sd = Math.sqrt(variance);
+    if (!sd) return data;
+    return data.map(d => ({ time: d.time, value: (d.value - mean) / sd }));
+  }
+  return data;
+}
+
+// ───── Recession bands ─────
+async function loadRecessionData() {
+  if (STATE.recessionData) return;
+  try {
+    const r = await fetch(`${CHART_API}?series=USREC&kind=fred&from=1950-01-01`);
+    const d = await r.json();
+    STATE.recessionData = (d.data || []).filter(p => p.value === 1);
+  } catch (e) {
+    STATE.recessionData = [];
+  }
+}
+
+function buildRecessionBands(recPoints) {
+  if (!recPoints || !recPoints.length) return [];
+  const bands = [];
+  let curStart = null;
+  let prev = null;
+  for (const p of recPoints) {
+    if (curStart === null) curStart = p.time;
+    if (prev) {
+      const prevD = new Date(prev);
+      const curD = new Date(p.time);
+      const diffDays = (curD - prevD) / 86400000;
+      if (diffDays > 65) {
+        bands.push({ from: curStart, to: prev });
+        curStart = p.time;
+      }
+    }
+    prev = p.time;
+  }
+  if (curStart) bands.push({ from: curStart, to: prev });
+  return bands;
+}
+
+// ───── Redraw ─────
+function redraw() {
+  if (!STATE.chart) return;
+  // Remove old series
+  STATE.series.forEach(s => STATE.chart.removeSeries(s));
+  STATE.series = [];
+
+  // Recession bands using a histogram series (low-fi but works for shading)
+  if (STATE.recession && STATE.recessionData && STATE.recessionData.length) {
+    const recSeries = STATE.chart.addHistogramSeries({
+      color: 'rgba(239,68,68,0.18)',
+      priceScaleId: '', // overlay
+      priceFormat: { type: 'volume' },
+    });
+    recSeries.priceScale().applyOptions({ scaleMargins: { top: 0.0, bottom: 0.0 } });
+    const recData = STATE.recessionData.map(p => ({ time: p.time, value: 1, color: 'rgba(239,68,68,0.15)' }));
+    recSeries.setData(recData);
+    STATE.series.push(recSeries);
+  }
+
+  // Add each active series
+  STATE.activeSeries.forEach(s => {
+    if (!s.data || !s.data.length) return;
+    const normData = normalize(s.data, STATE.norm);
+    const lineSeries = STATE.chart.addLineSeries({
+      color: s.color,
+      lineWidth: 2,
+      priceScaleId: s.axis,
+      title: s.label,
+    });
+    // De-duplicate consecutive same-time points
+    const seen = new Set();
+    const clean = normData.filter(p => {
+      if (seen.has(p.time)) return false;
+      seen.add(p.time);
+      return true;
+    });
+    lineSeries.setData(clean);
+    STATE.series.push(lineSeries);
+  });
+
+  // Fit content
+  setTimeout(() => {
+    try { STATE.chart.timeScale().fitContent(); } catch (e) {}
+  }, 50);
+
+  // Update status bar
+  document.getElementById('statusInfo').textContent =
+    STATE.activeSeries.length ? `${STATE.activeSeries.length} series · ${STATE.activeSeries.map(s => s.id).join(', ')}` : 'No series';
+  document.getElementById('statusRange').textContent = `Range: ${STATE.range.toUpperCase()}`;
+  document.getElementById('statusNorm').textContent = `Norm: ${STATE.norm}`;
+}
+
+function showLoader(show) {
+  document.getElementById('loader').style.display = show ? 'block' : 'none';
+}
+
+// ───── Export CSV ─────
+function exportCSV() {
+  if (!STATE.activeSeries.length) {
+    alert('No active series to export.');
+    return;
+  }
+  // Build aligned matrix
+  const allDates = new Set();
+  STATE.activeSeries.forEach(s => (s.data || []).forEach(p => allDates.add(p.time)));
+  const sortedDates = [...allDates].sort();
+  const lines = ['date,' + STATE.activeSeries.map(s => s.id).join(',')];
+  for (const date of sortedDates) {
+    const row = [date];
+    for (const s of STATE.activeSeries) {
+      const point = (s.data || []).find(p => p.time === date);
+      row.push(point ? point.value : '');
+    }
+    lines.push(row.join(','));
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chart-export-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ───── Bootstrap ─────
+async function init() {
+  initChart();
+  await loadCatalog();
+  await loadRecessionData();
+  // Auto-load first preset
+  loadPreset(0);
+}
+
+init();
+</script>
+</body>
+</html>
