@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-divergence-engine-v2",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY",
+    "FRED_KEY",
+    "FMP_KEY",
+    "TIMEOUT_BUDGET_S"
+  ],
+  "layers": [],
+  "reserved_concurrency": null,
+  "function_url": null,
+  "eventbridge_rules": [
+    {
+      "name": "divergence-v2-2hourly",
+      "schedule": "rate(2 hours)",
+      "state": "ENABLED"
+    }
+  ],
+  "description": "Phase 2 cross-asset divergence engine. 32 new pairs across labor, manufacturing, leading indicators, EM/frontier geography, micro caps, copper-producers, eurodollar centers. Additive to v1 (justhodl-divergence-scanner)."
+}
