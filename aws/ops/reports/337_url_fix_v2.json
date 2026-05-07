@@ -1,0 +1,43 @@
+{
+  "started": "2026-05-07T15:21:54.238007+00:00",
+  "lambdas": {
+    "justhodl-watchlist": {
+      "name": "justhodl-watchlist",
+      "url": "https://kzwn6o5kbm7kqdqoioiw32hd4m0rzzsr.lambda-url.us-east-1.on.aws/",
+      "smoke_test": {
+        "status": 200,
+        "function_error": null,
+        "duration_s": 0.9,
+        "response": {
+          "statusCode": 200,
+          "headers": {
+            "Access-Control-Allow-Origin": "https://justhodl.ai",
+            "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ok\": true, \"watchlist\": {\"version\": 0, \"updated_at\": \"2026-05-07T15:21:57+00:00\", \"categories\": {\"watching\": [], \"exit_zone\": [], \"holdings\": [], \"research\": []}, \"tags\": {}, \"settings\": {\"default_filter\": \"all\", \"auto_filter_master_rank\": true, \"telegram_alerts_only_wl\": false}, \"history\": []}}"
+        }
+      }
+    },
+    "justhodl-trade-journal": {
+      "name": "justhodl-trade-journal",
+      "url": "https://c6bhlnugikpdjulunpf6qeu66q0ugtbg.lambda-url.us-east-1.on.aws/",
+      "smoke_test": {
+        "status": 200,
+        "function_error": null,
+        "duration_s": 1.0,
+        "response": {
+          "statusCode": 200,
+          "headers": {
+            "Access-Control-Allow-Origin": "https://justhodl.ai",
+            "Access-Control-Allow-Headers": "Content-Type, x-justhodl-token",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Content-Type": "application/json"
+          },
+          "body": "{\"ok\": true, \"trades\": {\"version\": 0, \"trades\": []}, \"stats\": {\"as_of\": \"2026-05-07T15:22:01+00:00\", \"n_total\": 0, \"n_open\": 0, \"n_closed\": 0}}"
+        }
+      }
+    }
+  }
+}
