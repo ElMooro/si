@@ -1,0 +1,118 @@
+{
+  "started": "2026-05-07T18:27:01.373557+00:00",
+  "deploy": {
+    "action": "create",
+    "zip_kb": 7.3
+  },
+  "schedule": {
+    "rule": "plumbing-agg-hourly",
+    "expr": "rate(1 hour)"
+  },
+  "smoke": {
+    "status": 200,
+    "fn_err": null,
+    "duration_s": 5.3,
+    "body": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"composite_score\": 39.5, \"composite_label\": \"NORMAL\", \"n_with_data\": 21, \"n_alerts\": 10, \"duration_s\": 4.3}"
+    }
+  },
+  "output": {
+    "schema": "1.0",
+    "method": "plumbing_aggregator_v1",
+    "as_of": "2026-05-07T18:27:15+00:00",
+    "composite_score": 39.5,
+    "composite_label": "NORMAL",
+    "n_total": 28,
+    "n_with_data": 21,
+    "by_layer": {
+      "L1": {
+        "total": 5,
+        "with_data": 1
+      },
+      "L2": {
+        "total": 7,
+        "with_data": 7
+      },
+      "L3": {
+        "total": 7,
+        "with_data": 7
+      },
+      "L4": {
+        "total": 9,
+        "with_data": 6
+      }
+    },
+    "n_alerts": 10,
+    "alerts_top3": [
+      {
+        "indicator": "BOGZ1FL663067003Q",
+        "label": "Broker-Dealer Margin Loans",
+        "layer": "L3",
+        "value": 609675.0,
+        "z_score": 3.7,
+        "stress_score": 100.0,
+        "severity": "CRITICAL",
+        "message": ">1\u03c3 above trend = late-cycle excess (1987, 2000, 2008)"
+      },
+      {
+        "indicator": "RMFSL",
+        "label": "Retail Money Market Fund balances",
+        "layer": "L2",
+        "value": 2235.8,
+        "z_score": 3.52,
+        "stress_score": 99.8,
+        "severity": "CRITICAL",
+        "message": "Retail flight to MMF cash = defensive positioning"
+      },
+      {
+        "indicator": "DPSFRIW027SBOG",
+        "label": "Deposits at foreign-related banks",
+        "layer": "L2",
+        "value": 1432.2467,
+        "z_score": 1.66,
+        "stress_score": 99.8,
+        "severity": "CRITICAL",
+        "message": "FX/corp deposits parking in safer balance sheets"
+      }
+    ],
+    "duration_s": 4.3,
+    "errors": [
+      {
+        "id": "ILM_LIAB_EUR",
+        "label": "ECB liabilities to non-EA in EUR",
+        "err": "no data"
+      },
+      {
+        "id": "ILM_CLAIMS_FX",
+        "label": "ECB claims on EA in foreign currency",
+        "err": "no data"
+      },
+      {
+        "id": "CISS_US",
+        "label": "ECB CISS \u2014 United States",
+        "err": "no data"
+      },
+      {
+        "id": "CISS_EA",
+        "label": "ECB CISS \u2014 Euro Area",
+        "err": "no data"
+      },
+      {
+        "id": "CISS_CN",
+        "label": "ECB CISS \u2014 China",
+        "err": "no data"
+      },
+      {
+        "id": "OFR_FAILS_DELIVER",
+        "label": "PD Aggregate Fails to Deliver",
+        "err": "no data"
+      },
+      {
+        "id": "OFR_FAILS_RECEIVE",
+        "label": "PD Aggregate Fails to Receive",
+        "err": "no data"
+      }
+    ]
+  }
+}
