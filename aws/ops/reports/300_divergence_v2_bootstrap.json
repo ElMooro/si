@@ -1,0 +1,22 @@
+{
+  "started": "2026-05-07T08:48:27.045517+00:00",
+  "deploy": {
+    "action": "created",
+    "zip_bytes": 8802
+  },
+  "eb_rule": {
+    "action": "created",
+    "schedule": "rate(2 hours)",
+    "rule_name": "divergence-v2-2hourly"
+  },
+  "smoke_test": {
+    "status_code": 200,
+    "executed_version": "$LATEST",
+    "function_error": null,
+    "response": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"n_relationships\": 32, \"n_flagged\": 5, \"n_extreme\": 5, \"composite_index\": 35.7, \"duration_s\": 3.1}"
+    }
+  },
+  "duration_s": 14.6
+}
