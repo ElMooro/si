@@ -1,0 +1,243 @@
+{
+  "started": "2026-05-07T17:15:52.506397+00:00",
+  "iterations": [
+    {
+      "iter": 1,
+      "duration_s": 14.7,
+      "invoke": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"fed_stance\": \"MARKET PRICING HOLD\", \"recession_label\": \"LOW RECESSION RISK\", \"duration_s\": 12.4}"
+      },
+      "spy_iv_30d": 17.39,
+      "spy_iv_90d": null,
+      "qqq_iv_30d": 23.58,
+      "qqq_iv_90d": 23.58,
+      "btc_iv_30d": null,
+      "fed_stance": "MARKET PRICING HOLD",
+      "fed_bill_3m": 3.69,
+      "fed_bill_6m": 3.75,
+      "fed_implied_3m_bp": 6,
+      "rec_label": "LOW RECESSION RISK"
+    },
+    {
+      "iter": 2,
+      "duration_s": 4.5,
+      "invoke": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"fed_stance\": \"MARKET PRICING HOLD\", \"recession_label\": \"LOW RECESSION RISK\", \"duration_s\": 2.3}"
+      },
+      "spy_iv_30d": 17.39,
+      "spy_iv_90d": 20.57,
+      "qqq_iv_30d": 23.58,
+      "qqq_iv_90d": 23.58,
+      "btc_iv_30d": null,
+      "fed_stance": "MARKET PRICING HOLD",
+      "fed_bill_3m": 3.69,
+      "fed_bill_6m": 3.75,
+      "fed_implied_3m_bp": 6,
+      "rec_label": "LOW RECESSION RISK"
+    },
+    {
+      "iter": 3,
+      "duration_s": 4.5,
+      "invoke": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"fed_stance\": null, \"recession_label\": \"LOW RECESSION RISK\", \"duration_s\": 2.3}"
+      },
+      "spy_iv_30d": 17.39,
+      "spy_iv_90d": 20.57,
+      "qqq_iv_30d": 23.58,
+      "qqq_iv_90d": 23.58,
+      "btc_iv_30d": null,
+      "fed_stance": null,
+      "fed_bill_3m": null,
+      "fed_bill_6m": null,
+      "fed_implied_3m_bp": null,
+      "rec_label": "LOW RECESSION RISK"
+    }
+  ],
+  "fred_direct": {
+    "VXNCLS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-06",
+        "value": "23.58"
+      }
+    },
+    "VIXCLS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-06",
+        "value": "17.39"
+      }
+    },
+    "RVXCLS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-06",
+        "value": "22.2"
+      }
+    },
+    "VXDCLS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-06",
+        "value": "16.33"
+      }
+    },
+    "GVZCLS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-06",
+        "value": "26.34"
+      }
+    },
+    "DGS3MO": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-06",
+        "realtime_end": "2026-05-06",
+        "date": "2026-05-05",
+        "value": "3.69"
+      }
+    },
+    "DGS6MO": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-06",
+        "realtime_end": "2026-05-06",
+        "date": "2026-05-05",
+        "value": "3.75"
+      }
+    },
+    "DGS1": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-06",
+        "realtime_end": "2026-05-06",
+        "date": "2026-05-05",
+        "value": "3.77"
+      }
+    },
+    "DGS1MO": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-06",
+        "realtime_end": "2026-05-06",
+        "date": "2026-05-05",
+        "value": "3.7"
+      }
+    },
+    "DFEDTARU": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-07",
+        "value": "3.75"
+      }
+    },
+    "DFEDTARL": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-07",
+        "realtime_end": "2026-05-07",
+        "date": "2026-05-07",
+        "value": "3.5"
+      }
+    },
+    "FEDFUNDS": {
+      "n_returned": 5,
+      "n_valid": 5,
+      "latest": {
+        "realtime_start": "2026-05-01",
+        "realtime_end": "2026-05-01",
+        "date": "2026-04-01",
+        "value": "3.64"
+      }
+    }
+  },
+  "final_state": {
+    "spy": {
+      "ticker": "SPY",
+      "spot": 733.83,
+      "iv_30d": 17.39,
+      "moves_30d": {
+        "p_up_5": 15.8,
+        "p_down_5": 15.799999999999997,
+        "p_up_10": 2.6,
+        "p_down_10": 1.7999999999999972,
+        "expected_move_pct": 4.99
+      },
+      "iv_90d": 20.57,
+      "moves_90d": {
+        "p_up_5": 29.8,
+        "p_down_5": 32.599999999999994,
+        "p_up_10": 16.3,
+        "p_down_10": 16.299999999999997,
+        "p_up_20": 3.3,
+        "p_down_20": 1.5999999999999943,
+        "expected_move_pct": 10.21
+      }
+    },
+    "qqq": {
+      "ticker": "QQQ",
+      "spot": 695.77,
+      "iv_30d": 23.58,
+      "moves_30d": {
+        "p_up_5": 22.5,
+        "p_down_5": 23.400000000000006,
+        "p_up_10": 7.4,
+        "p_down_10": 6.400000000000006,
+        "expected_move_pct": 6.76
+      },
+      "iv_90d": 23.58,
+      "moves_90d": {
+        "p_up_5": 31.7,
+        "p_down_5": 35.2,
+        "p_up_10": 19.1,
+        "p_down_10": 20.0,
+        "p_up_20": 5.3,
+        "p_down_20": 3.200000000000003,
+        "expected_move_pct": 11.71
+      }
+    },
+    "btc": {
+      "ticker": "IBIT",
+      "spot": 46.19
+    },
+    "fed": {
+      "target_upper": 3.75,
+      "target_upper_date": "2026-05-07",
+      "target_lower": 3.5,
+      "current_rate": 3.625,
+      "ffer_recent": 3.64,
+      "ffer_date": "2026-04-01",
+      "next_meeting": {
+        "date": "2026-06-10",
+        "days_to": 34
+      }
+    }
+  }
+}
