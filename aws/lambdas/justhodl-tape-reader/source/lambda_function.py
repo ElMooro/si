@@ -90,20 +90,9 @@ def _http_get_json(url, timeout=30):
         return json.loads(r.read().decode("utf-8"))
 
 
-def fetch_snapshot_all():
-    """Single bulk call — returns today's snapshot for all US stocks."""
-    qs = urllib.parse.urlencode({"apiKey": POLY_KEY})
-    url = f"https://api.polygon.io/v3/snapshot/locale/us/markets/stocks/tickers?{qs}"
-    try:
-        d = _http_get_json(url, timeout=60)
-        return d.get("tickers") or []
-    except Exception as e:
-        print(f"[tape] snapshot fail: {e}")
-        return []
-
-
 def fetch_grouped_daily(date_str):
-    """One day of OHLCV+transactions for all stocks. Returns dict ticker → bar."""
+    """One day of OHLCV+transactions for all stocks. Returns dict ticker → bar.
+    Bar: {T, v, vw, o, c, h, l, t, n}"""
     qs = urllib.parse.urlencode({"apiKey": POLY_KEY, "adjusted": "true"})
     url = f"https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/{date_str}?{qs}"
     try:
@@ -113,6 +102,21 @@ def fetch_grouped_daily(date_str):
     except Exception as e:
         print(f"[tape] grouped daily {date_str} fail: {e}")
         return {}
+
+
+def fetch_most_recent_today():
+    """Find the most recent trading day with data via grouped daily.
+    Walks backwards from today up to 5 days until we find one with results.
+    Returns (date_str, dict ticker → bar) or (None, {})."""
+    cur = datetime.now(timezone.utc).date()
+    for _ in range(7):
+        ds = cur.strftime("%Y-%m-%d")
+        bars = fetch_grouped_daily(ds)
+        if bars and len(bars) > 100:
+            print(f"[tape] today's data found: {ds} ({len(bars)} tickers)")
+            return ds, bars
+        cur -= timedelta(days=1)
+    return None, {}
 
 
 def get_baseline_dates(n=20):
@@ -174,26 +178,28 @@ def fetch_universe():
     ]
 
 
-def build_baseline(n_days, universe_set):
-    """For each baseline trading day, pull grouped daily and accumulate per ticker."""
+def build_baseline(n_days, universe_set, exclude_date=None):
+    """For each baseline trading day, pull grouped daily and accumulate per ticker.
+    Excludes exclude_date (typically today_date) so baseline is strictly historical."""
     print(f"[tape] Pulling {n_days}-day baseline (in parallel)…")
     dates = get_baseline_dates(n_days)
-    per_ticker = {}  # sym → list of bars
+    if exclude_date and exclude_date in dates:
+        dates = [d for d in dates if d != exclude_date]
+    per_ticker = {}
     successes = 0
     with ThreadPoolExecutor(max_workers=4) as exe:
         futures = {exe.submit(fetch_grouped_daily, d): d for d in dates}
         for fut in as_completed(futures):
             date_bars = fut.result()
-            if date_bars:
+            if date_bars and len(date_bars) > 100:
                 successes += 1
             for sym, bar in date_bars.items():
                 if sym in universe_set:
                     per_ticker.setdefault(sym, []).append(bar)
 
-    # Compute baselines per ticker
     baseline = {}
     for sym, bars in per_ticker.items():
-        if len(bars) < 5:  # need at least a week of data
+        if len(bars) < 5:
             continue
         vols = [b.get("v", 0) or 0 for b in bars]
         d_vols = [(b.get("v", 0) or 0) * (b.get("vw", 0) or b.get("c", 0) or 0) for b in bars]
@@ -214,28 +220,20 @@ def build_baseline(n_days, universe_set):
     return baseline
 
 
-def score_ticker(snap, baseline_rec):
-    """Compute the score components for one ticker. Return (score, components, classifications).
-
-    If today's session is empty (pre-market), fall back to prevDay snapshot."""
-    day = snap.get("day") or {}
-    today_vol = day.get("v", 0) or 0
-
-    # Fall back to previous day if today's session has no data (markets not open)
-    using_prev_day = False
-    if today_vol == 0:
-        prev = snap.get("prevDay") or {}
-        if prev.get("v"):
-            day = prev
-            today_vol = prev.get("v", 0) or 0
-            using_prev_day = True
-
-    today_close = day.get("c", 0) or 0
-    today_high = day.get("h", 0) or 0
-    today_low = day.get("l", 0) or 0
-    today_n_trades = day.get("n", 0) or 0
-    today_dollar_vol = today_vol * (day.get("vw", today_close) or today_close)
+def score_ticker(today_bar, baseline_rec):
+    """Compute score components from a grouped-daily bar.
+    today_bar fields: T (ticker), v (volume), vw (vwap), o, c, h, l, n (n_trades)
+    """
+    today_vol = today_bar.get("v", 0) or 0
+    today_close = today_bar.get("c", 0) or 0
+    today_high = today_bar.get("h", 0) or 0
+    today_low = today_bar.get("l", 0) or 0
+    today_open = today_bar.get("o", 0) or 0
+    today_n_trades = today_bar.get("n", 0) or 0
+    today_vwap = today_bar.get("vw", today_close) or today_close
+    today_dollar_vol = today_vol * today_vwap
     today_range_pct = (today_high - today_low) / today_close if today_close else 0
+    change_pct = ((today_close - today_open) / today_open * 100) if today_open else 0
 
     avg_vol = baseline_rec.get("avg_vol", 0) or 0
     avg_dollar_vol = baseline_rec.get("avg_dollar_vol", 0) or 0
@@ -243,7 +241,7 @@ def score_ticker(snap, baseline_rec):
     avg_n_txns = baseline_rec.get("avg_n_txns", 0) or 0
 
     if today_dollar_vol < MIN_DOLLAR_VOL or avg_vol == 0:
-        return 0, None, []
+        return 0, None, [], change_pct
 
     rel_volume = today_vol / max(avg_vol, 1)
     rel_dollar_vol = today_dollar_vol / max(avg_dollar_vol, 1)
@@ -252,8 +250,7 @@ def score_ticker(snap, baseline_rec):
     avg_trade_size_base = avg_vol / max(avg_n_txns, 1)
     block_ratio = avg_trade_size_today / max(avg_trade_size_base, 1)
 
-    # Score (0-100 capped)
-    s_vol = min(30, max(0, (rel_volume - 1) * 15))      # 1x=0, 3x=30
+    s_vol = min(30, max(0, (rel_volume - 1) * 15))
     s_dvol = min(25, max(0, (rel_dollar_vol - 1) * 12))
     s_range = min(20, max(0, (rel_range - 1) * 10))
     s_block = min(25, max(0, (block_ratio - 1) * 15))
@@ -268,21 +265,18 @@ def score_ticker(snap, baseline_rec):
         classifications.append("BLOCK_PRINTS")
     if today_dollar_vol >= 1_000_000_000:
         classifications.append("MEGA_NOTIONAL")
-    if using_prev_day:
-        classifications.append("PRE_MARKET_DATA")
 
     return round(score, 1), {
         "rel_volume": round(rel_volume, 2),
         "rel_dollar_volume": round(rel_dollar_vol, 2),
         "range_expansion": round(rel_range, 2),
         "block_ratio": round(block_ratio, 2),
-        "today_vol": today_vol,
+        "today_vol": int(today_vol),
         "today_dollar_vol": int(today_dollar_vol),
         "today_n_trades": today_n_trades,
         "avg_trade_size_today": round(avg_trade_size_today, 0),
         "avg_trade_size_baseline": round(avg_trade_size_base, 0),
-        "using_prev_day": using_prev_day,
-    }, classifications
+    }, classifications, round(change_pct, 2)
 
 
 def synth_rationale(ticker, components, classifications, change_pct):
@@ -304,34 +298,29 @@ def lambda_handler(event, context):
     universe_set = set(universe)
     print(f"[tape] Universe: {len(universe)} tickers")
 
-    print("[tape] Pulling all-tickers snapshot (1 call)…")
-    snapshots = fetch_snapshot_all()
-    print(f"[tape] Snapshot: {len(snapshots)} tickers")
+    print("[tape] Finding most recent trading day with data…")
+    today_date, today_bars = fetch_most_recent_today()
+    if not today_bars:
+        return {"statusCode": 200, "body": json.dumps({"ok": False, "err": "no recent grouped data"})}
+    print(f"[tape] Today = {today_date} ({len(today_bars)} tickers in market)")
 
-    # Filter to universe + index by ticker
-    by_ticker = {s.get("ticker"): s for s in snapshots
-                  if s.get("ticker") in universe_set}
-    print(f"[tape] In universe + with snapshot: {len(by_ticker)}")
+    # Filter to universe
+    today_universe = {t: b for t, b in today_bars.items() if t in universe_set}
+    print(f"[tape] In universe + with today data: {len(today_universe)}")
 
-    # Build 20-day baseline
-    baseline = build_baseline(N_BASELINE_DAYS, universe_set)
+    # Build 20-day baseline (excluding today_date)
+    baseline = build_baseline(N_BASELINE_DAYS, universe_set, exclude_date=today_date)
 
     # Score each ticker
     results = []
     breadth = {"advance": 0, "decline": 0, "unch": 0}
-    for ticker, snap in by_ticker.items():
-        change_pct = snap.get("todaysChangePerc")
-        # If today's change is 0 (markets not open), derive from snapshot day vs prevDay
-        if not change_pct:
-            day = snap.get("day") or {}
-            prev = snap.get("prevDay") or {}
-            if day.get("c") and prev.get("c"):
-                change_pct = ((day["c"] - prev["c"]) / prev["c"]) * 100
-            elif prev.get("c"):
-                # Fall back: prev day's intra-day change
-                if prev.get("o"):
-                    change_pct = ((prev["c"] - prev["o"]) / prev["o"]) * 100
-        if change_pct:
+    for ticker, bar in today_universe.items():
+        base_rec = baseline.get(ticker)
+        if not base_rec:
+            continue
+        score, components, classifications, change_pct = score_ticker(bar, base_rec)
+
+        if change_pct is not None:
             if change_pct > 0.5:
                 breadth["advance"] += 1
             elif change_pct < -0.5:
@@ -339,17 +328,13 @@ def lambda_handler(event, context):
             else:
                 breadth["unch"] += 1
 
-        base_rec = baseline.get(ticker)
-        if not base_rec:
-            continue
-        score, components, classifications = score_ticker(snap, base_rec)
         if score == 0 or components is None:
             continue
         results.append({
             "ticker": ticker,
             "score": score,
             "classifications": classifications,
-            "change_pct": round(change_pct, 2) if change_pct is not None else None,
+            "change_pct": change_pct,
             **components,
             "rationale": synth_rationale(ticker, components, classifications, change_pct),
         })
@@ -358,9 +343,10 @@ def lambda_handler(event, context):
     top = results[:30]
 
     payload = {
-        "schema_version": "1.0",
-        "method": "tape_reader_v1",
+        "schema_version": "1.1",
+        "method": "tape_reader_v1_grouped_daily",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "today_date": today_date,
         "n_universe": len(universe),
         "n_with_data": len(results),
         "top_loud_tape": top,
@@ -382,7 +368,9 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "ok": True, "n_with_data": len(results),
+            "ok": True,
+            "today_date": today_date,
+            "n_with_data": len(results),
             "n_top": len(top),
             "top_5": [r["ticker"] for r in top[:5]],
             "duration_s": payload["duration_s"],
