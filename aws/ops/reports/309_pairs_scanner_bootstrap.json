@@ -1,0 +1,172 @@
+{
+  "started": "2026-05-07T09:55:01.613257+00:00",
+  "deploy": {
+    "action": "created",
+    "zip_bytes": 6017
+  },
+  "eb_rule": {
+    "name": "pairs-scanner-6hourly",
+    "schedule": "rate(6 hours)"
+  },
+  "smoke_test": {
+    "status_code": 200,
+    "function_error": null,
+    "response": {
+      "statusCode": 200,
+      "body": {
+        "ok": true,
+        "n_pairs": 37,
+        "n_analyzed": 37,
+        "n_extreme": 1,
+        "n_extended": 9,
+        "top_5": [
+          "Meta vs Google",
+          "Microsoft vs Google",
+          "Financials vs S&P",
+          "Nasdaq 100 vs S&P 500",
+          "Visa vs Mastercard"
+        ],
+        "duration_s": 2.31
+      }
+    },
+    "s3_summary": {
+      "n_pairs": 37,
+      "n_analyzed": 37,
+      "n_extreme": 1,
+      "n_extended": 9,
+      "n_stretched": 14,
+      "n_normal": 13,
+      "fetch_duration": 2.2,
+      "top_5": [
+        {
+          "name": "Meta vs Google",
+          "trade": "LONG META / SHORT GOOGL",
+          "spread_z": -3.013,
+          "state": "EXTREME",
+          "rr": 3.0
+        },
+        {
+          "name": "Microsoft vs Google",
+          "trade": "LONG MSFT / SHORT GOOGL",
+          "spread_z": -2.889,
+          "state": "EXTENDED",
+          "rr": 2.9
+        },
+        {
+          "name": "Financials vs S&P",
+          "trade": "LONG XLF / SHORT SPY",
+          "spread_z": -2.761,
+          "state": "EXTENDED",
+          "rr": 2.8
+        },
+        {
+          "name": "Nasdaq 100 vs S&P 500",
+          "trade": "SHORT QQQ / LONG SPY",
+          "spread_z": 2.757,
+          "state": "EXTENDED",
+          "rr": 2.8
+        },
+        {
+          "name": "Visa vs Mastercard",
+          "trade": "SHORT V / LONG MA",
+          "spread_z": 2.676,
+          "state": "EXTENDED",
+          "rr": 2.7
+        }
+      ],
+      "top_10_pairs": [
+        {
+          "name": "Meta vs Google",
+          "z": -3.013,
+          "state": "EXTREME",
+          "trade": "LONG META / SHORT GOOGL",
+          "rr": 3.0,
+          "hl": 26.0,
+          "corr": -0.506
+        },
+        {
+          "name": "Microsoft vs Google",
+          "z": -2.889,
+          "state": "EXTENDED",
+          "trade": "LONG MSFT / SHORT GOOGL",
+          "rr": 2.9,
+          "hl": 20.9,
+          "corr": -0.502
+        },
+        {
+          "name": "Financials vs S&P",
+          "z": -2.761,
+          "state": "EXTENDED",
+          "trade": "LONG XLF / SHORT SPY",
+          "rr": 2.8,
+          "hl": 146.7,
+          "corr": 0.398
+        },
+        {
+          "name": "Nasdaq 100 vs S&P 500",
+          "z": 2.757,
+          "state": "EXTENDED",
+          "trade": "SHORT QQQ / LONG SPY",
+          "rr": 2.8,
+          "hl": null,
+          "corr": 0.984
+        },
+        {
+          "name": "Visa vs Mastercard",
+          "z": 2.676,
+          "state": "EXTENDED",
+          "trade": "SHORT V / LONG MA",
+          "rr": 2.7,
+          "hl": 7.5,
+          "corr": 0.893
+        },
+        {
+          "name": "Nvidia vs AMD",
+          "z": -2.616,
+          "state": "EXTENDED",
+          "trade": "LONG NVDA / SHORT AMD",
+          "rr": 2.6,
+          "hl": null,
+          "corr": 0.841
+        },
+        {
+          "name": "Spain vs Italy",
+          "z": -2.432,
+          "state": "EXTENDED",
+          "trade": "LONG EWP / SHORT EWI",
+          "rr": 2.4,
+          "hl": 10.2,
+          "corr": 0.976
+        },
+        {
+          "name": "TSMC vs Intel",
+          "z": -2.219,
+          "state": "EXTENDED",
+          "trade": "LONG TSM / SHORT INTC",
+          "rr": 2.2,
+          "hl": null,
+          "corr": 0.883
+        },
+        {
+          "name": "Utilities vs S&P",
+          "z": -2.202,
+          "state": "EXTENDED",
+          "trade": "LONG XLU / SHORT SPY",
+          "rr": 2.2,
+          "hl": 24.8,
+          "corr": 0.707
+        },
+        {
+          "name": "Amazon vs Walmart",
+          "z": 2.016,
+          "state": "EXTENDED",
+          "trade": "SHORT AMZN / LONG WMT",
+          "rr": 2.0,
+          "hl": 14.7,
+          "corr": 0.188
+        }
+      ]
+    }
+  },
+  "duration_s": 13.8
+}
