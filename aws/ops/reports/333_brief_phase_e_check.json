@@ -1,0 +1,55 @@
+{
+  "started": "2026-05-07T12:06:49.963132+00:00",
+  "lambda_last_modified": "2026-05-07T12:03:35.000+0000",
+  "s3_candidates": {
+    "data/morning-brief-latest.json": {
+      "size_kb": 3.3,
+      "age_h": 0.03,
+      "top_keys": [
+        "as_of",
+        "chat_id",
+        "ok",
+        "info",
+        "text"
+      ],
+      "msg_present": false,
+      "msg_len": 0,
+      "has_fed_marker": true,
+      "has_global_marker": true
+    },
+    "data/morning-brief.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    },
+    "data/morning-tg-brief.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    },
+    "data/morning-intel.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    }
+  },
+  "invoke": {
+    "status": 200,
+    "function_error": null,
+    "response_body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"info\\\": \\\"{\\\\\\\"ok\\\\\\\":true,\\\\\\\"result\\\\\\\":{\\\\\\\"message_id\\\\\\\":793,\\\\\\\"from\\\\\\\":{\\\\\\\"id\\\\\\\":8679881066,\\\\\\\"is_bot\\\\\\\":true,\\\\\\\"first_name\\\\\\\":\\\\\\\"AI Claude #VPN 1\\\\\\\",\\\\\\\"username\\\\\\\":\\\\\\\"Justhodl_bot\\\\\\\"},\\\\\\\"chat\\\\\\\":{\\\\\\\"id\\\\\\\":8678089260,\\\\\\\"first_name\\\\\\\":\\\\\\\"BotFather\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"private\\\\\\\"},\\\\\\\"date\\\\\\\":1778155612,\\\\\\\"text\\\\\\\":\\\\\\\"*\\\\\\\\ud83c\\\\\\\\udf05 JustHodl Morning Brief \\\\\\\\u2014 2026-05-07*\\\\\\\\n\\\\\\\\n*Regime:* `\\\\\\\\u\\\"}\"}",
+    "log_tail": "START RequestId: 34147570-3fb9-49ae-ade1-20e5226514ec Version: $LATEST\nfetch_json(data/morning-intel.json) fail: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\nMarkdownV2 send failed (400): {\"ok\":false,\"error_code\":400,\"description\":\"Bad Request: can't parse entities: Character '-' is reserved and must be escaped with the preceding '\\\\'\"}\nEND RequestId: 34147570-3fb9-49ae-ade1-20e5226514ec\nREPORT RequestId: 34147570-3fb9-49ae-ade1-20e5226514ec\tDuration: 1488.83 ms\tBilled Duration: 1489 ms\tMemory Size: 256 MB\tMax Memory Used: 101 MB\t\n"
+  },
+  "s3_after_invoke": {
+    "data/morning-brief-latest.json": {
+      "age_min": 0.0,
+      "msg_len": 0,
+      "has_fed": false,
+      "has_global": false,
+      "fed_excerpt": "",
+      "global_excerpt": ""
+    },
+    "data/morning-brief.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    },
+    "data/morning-tg-brief.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    },
+    "data/morning-intel.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specifie"
+    }
+  }
+}
