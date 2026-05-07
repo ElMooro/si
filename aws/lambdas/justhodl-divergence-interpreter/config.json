@@ -1,0 +1,30 @@
+{
+  "function_name": "justhodl-divergence-interpreter",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "environment_keys": [
+    "S3_BUCKET",
+    "S3_KEY_OUT",
+    "S3_KEY_DIVERGENCE",
+    "S3_KEY_NOWCAST",
+    "S3_KEY_STATE",
+    "ANTHROPIC_KEY_SSM",
+    "ANTHROPIC_MODEL"
+  ],
+  "layers": [],
+  "reserved_concurrency": 1,
+  "function_url": null,
+  "eventbridge_rules": [
+    {
+      "name": "divergence-interpreter-4hourly",
+      "schedule": "cron(30 0/4 * * ? *)",
+      "state": "ENABLED"
+    }
+  ],
+  "description": "Regime-conditional cross-asset divergence interpreter. Reads divergence-v2.json + macro-nowcast.json, calls Claude to produce regime-aware narrative + high-conviction tactical call. Telegram alert on regime contradiction or 5+ extreme dislocations."
+}
