@@ -1,0 +1,112 @@
+{
+  "as_of": "2026-05-07T08:48:51+00:00",
+  "composite_index": 37.9,
+  "n_relationships": 32,
+  "n_with_data": 29,
+  "by_status": {
+    "normal": 18,
+    "flagged": 6,
+    "extreme": 5,
+    "no_data": 3,
+    "insufficient_data": 0
+  },
+  "fetch_errors": {
+    "fred": 1,
+    "etf": 0
+  },
+  "extreme_alerts": [
+    {
+      "id": "india_em",
+      "name": "India (INDA) vs EM (EEM)",
+      "category": "em",
+      "z_a": -0.304,
+      "z_b": 2.835,
+      "divergence_z": -3.139,
+      "description": "India outperforms EM = domestic demand strength; underperforms = USD strain"
+    },
+    {
+      "id": "indonesia_em",
+      "name": "Indonesia (EIDO) vs EM (EEM)",
+      "category": "em",
+      "z_a": -1.311,
+      "z_b": 2.835,
+      "divergence_z": -4.146,
+      "description": "Indonesia commodity exporter; divergence = nickel/coal price action"
+    },
+    {
+      "id": "frontier_em",
+      "name": "Frontier Markets (FM) vs EM (EEM)",
+      "category": "em",
+      "z_a": -1.719,
+      "z_b": 2.835,
+      "divergence_z": -4.554,
+      "description": "FM outperforms EM late-cycle; FM lagging = liquidity contraction starting"
+    },
+    {
+      "id": "peru_copper",
+      "name": "Peru (EPU) vs Copper Price",
+      "category": "copper",
+      "z_a": -0.266,
+      "z_b": 2.789,
+      "divergence_z": -3.055,
+      "description": "Peru = #2 copper producer; political stability shock = sharp divergence"
+    },
+    {
+      "id": "hkd_peg_stress",
+      "name": "HK Equity (EWH) vs HKD/USD Peg",
+      "category": "eurodollar",
+      "z_a": 2.242,
+      "z_b": 0.924,
+      "divergence_z": 3.166,
+      "description": "HKD trades at top of band when offshore USD funding tight; EWH divergence"
+    }
+  ],
+  "flagged": [
+    {
+      "id": "claims_lead_lag",
+      "name": "Initial vs Continuing Claims (lead-lag)",
+      "category": "labor",
+      "divergence_z": -2.246
+    },
+    {
+      "id": "ip_capacity",
+      "name": "Industrial Production vs Capacity Utilization",
+      "category": "manufacturing",
+      "divergence_z": 2.142
+    },
+    {
+      "id": "vietnam_china",
+      "name": "Vietnam (VNM) vs China (FXI)",
+      "category": "em",
+      "divergence_z": 2.104
+    },
+    {
+      "id": "chile_copper",
+      "name": "Chile (ECH) vs Copper Price",
+      "category": "copper",
+      "divergence_z": -2.944
+    },
+    {
+      "id": "finland_nickel",
+      "name": "Finland (EFNL) vs Nickel Price",
+      "category": "copper",
+      "divergence_z": 2.917
+    },
+    {
+      "id": "copper_miners_metal",
+      "name": "Copper Miners (COPX) vs Copper Price",
+      "category": "copper",
+      "divergence_z": -2.534
+    }
+  ],
+  "by_category_counts": {
+    "labor": 5,
+    "manufacturing": 5,
+    "leading": 3,
+    "em": 7,
+    "rotation": 2,
+    "copper": 4,
+    "eurodollar": 4,
+    "fx": 2
+  }
+}
