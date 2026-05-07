@@ -1,0 +1,1286 @@
+{
+  "started": "2026-05-07T08:32:02.776907+00:00",
+  "lambdas": {
+    "justhodl-theme-detector": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-theme-detector-daily",
+          "schedule": "cron(0 6 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/themes-detected.json"
+      ],
+      "s3_freshness": {
+        "data/themes-detected.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:00:22+00:00",
+          "age_hours": 2.5,
+          "size_kb": 56.8
+        }
+      },
+      "frontend_consumers": {
+        "data/themes-detected.json": [
+          "themes.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-theme-tier-classifier": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-theme-tier-classifier-daily",
+          "schedule": "cron(0 8 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 4,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/theme-tiers.json",
+        "data/themes-detected.json"
+      ],
+      "s3_freshness": {
+        "data/theme-tiers.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:02:05+00:00",
+          "age_hours": 0.5,
+          "size_kb": 330.2
+        },
+        "data/themes-detected.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:00:22+00:00",
+          "age_hours": 2.5,
+          "size_kb": 56.8
+        }
+      },
+      "frontend_consumers": {
+        "data/theme-tiers.json": [],
+        "data/themes-detected.json": [
+          "themes.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-theme-rotation-engine": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-theme-rotation-engine-daily",
+          "schedule": "cron(45 13 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 3,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/theme-rotation-state.json",
+        "data/theme-rotation.json"
+      ],
+      "s3_freshness": {
+        "data/theme-rotation-state.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:45:38+00:00",
+          "age_hours": 18.8,
+          "size_kb": 6.2
+        },
+        "data/theme-rotation.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:45:38+00:00",
+          "age_hours": 18.8,
+          "size_kb": 94.2
+        }
+      },
+      "frontend_consumers": {
+        "data/theme-rotation-state.json": [],
+        "data/theme-rotation.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-asymmetric-hunter": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-asymmetric-hunter-daily",
+          "schedule": "cron(30 13 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/nobrainers.json",
+        "data/supply-inflection.json",
+        "data/theme-tiers.json",
+        "data/themes-detected.json"
+      ],
+      "s3_freshness": {
+        "data/nobrainers.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:30:21+00:00",
+          "age_hours": 19.0,
+          "size_kb": 464.4
+        },
+        "data/supply-inflection.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T07:00:20+00:00",
+          "age_hours": 1.5,
+          "size_kb": 66.6
+        },
+        "data/theme-tiers.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:02:05+00:00",
+          "age_hours": 0.5,
+          "size_kb": 330.2
+        },
+        "data/themes-detected.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:00:22+00:00",
+          "age_hours": 2.5,
+          "size_kb": 56.8
+        }
+      },
+      "frontend_consumers": {
+        "data/nobrainers.json": [
+          "nobrainers.html"
+        ],
+        "data/supply-inflection.json": [],
+        "data/theme-tiers.json": [],
+        "data/themes-detected.json": [
+          "themes.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-asymmetric-scorer": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-asymmetric-scorer-daily",
+          "schedule": "cron(30 13 ? * MON-FRI *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 7,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/8k-filings.json",
+        "data/aaii-sentiment.json",
+        "data/asymmetric-scorer.json",
+        "data/insider-trades.json",
+        "data/institutional-positions.json",
+        "data/onchain-ratios.json"
+      ],
+      "s3_freshness": {
+        "data/8k-filings.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:14:56+00:00",
+          "age_hours": 0.3,
+          "size_kb": 154.5
+        },
+        "data/aaii-sentiment.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T18:43:58+00:00",
+          "age_hours": 13.8,
+          "size_kb": 0.8
+        },
+        "data/asymmetric-scorer.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:30:14+00:00",
+          "age_hours": 19.0,
+          "size_kb": 27.9
+        },
+        "data/insider-trades.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:03:56+00:00",
+          "age_hours": 0.5,
+          "size_kb": 22.3
+        },
+        "data/institutional-positions.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T18:45:15+00:00",
+          "age_hours": 13.8,
+          "size_kb": 15.8
+        },
+        "data/onchain-ratios.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:44:05+00:00",
+          "age_hours": 1.8,
+          "size_kb": 0.4
+        }
+      },
+      "frontend_consumers": {
+        "data/8k-filings.json": [
+          "signals.html",
+          "today.html"
+        ],
+        "data/aaii-sentiment.json": [
+          "signals.html",
+          "today.html"
+        ],
+        "data/asymmetric-scorer.json": [],
+        "data/insider-trades.json": [
+          "insiders.html",
+          "research.html",
+          "signals.html",
+          "today.html",
+          "news.html"
+        ],
+        "data/institutional-positions.json": [
+          "signals.html"
+        ],
+        "data/onchain-ratios.json": [
+          "signals.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-volatility-squeeze-hunter": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-volatility-squeeze-hunter-daily",
+          "schedule": "cron(30 11 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 3,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/universe.json",
+        "data/volatility-squeeze.json"
+      ],
+      "s3_freshness": {
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        },
+        "data/volatility-squeeze.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:48:27+00:00",
+          "age_hours": 18.7,
+          "size_kb": 358.2
+        }
+      },
+      "frontend_consumers": {
+        "data/universe.json": [],
+        "data/volatility-squeeze.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-eps-revision-velocity": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-eps-revision-velocity-daily",
+          "schedule": "cron(30 9 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 4,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/eps-revision-velocity.json",
+        "data/universe.json"
+      ],
+      "s3_freshness": {
+        "data/eps-revision-velocity.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T09:30:10+00:00",
+          "age_hours": 23.0,
+          "size_kb": 143.6
+        },
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        }
+      },
+      "frontend_consumers": {
+        "data/eps-revision-velocity.json": [
+          "eps-velocity.html"
+        ],
+        "data/universe.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-earnings-pead": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-earnings-pead-daily",
+          "schedule": "cron(0 8 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 3,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/earnings-pead.json",
+        "data/universe.json"
+      ],
+      "s3_freshness": {
+        "data/earnings-pead.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:00:21+00:00",
+          "age_hours": 0.5,
+          "size_kb": 197.4
+        },
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        }
+      },
+      "frontend_consumers": {
+        "data/earnings-pead.json": [],
+        "data/universe.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-earnings-tracker": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-earnings-tracker-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 16,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/earnings-tracker.json"
+      ],
+      "s3_freshness": {
+        "data/earnings-tracker.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T05:46:34+00:00",
+          "age_hours": 2.8,
+          "size_kb": 24.8
+        }
+      },
+      "frontend_consumers": {
+        "data/earnings-tracker.json": [
+          "ticker.html",
+          "research.html",
+          "news.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-sector-earnings-diffusion": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sector-earnings-diffusion-daily",
+          "schedule": "cron(0 10 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 2,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/eps-revision-velocity.json",
+        "data/sector-earnings-diffusion-state.json",
+        "data/sector-earnings-diffusion.json",
+        "data/universe.json"
+      ],
+      "s3_freshness": {
+        "data/eps-revision-velocity.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T09:30:10+00:00",
+          "age_hours": 23.0,
+          "size_kb": 143.6
+        },
+        "data/sector-earnings-diffusion-state.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T10:00:48+00:00",
+          "age_hours": 22.5,
+          "size_kb": 1.2
+        },
+        "data/sector-earnings-diffusion.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T10:00:48+00:00",
+          "age_hours": 22.5,
+          "size_kb": 57.1
+        },
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        }
+      },
+      "frontend_consumers": {
+        "data/eps-revision-velocity.json": [
+          "eps-velocity.html"
+        ],
+        "data/sector-earnings-diffusion-state.json": [],
+        "data/sector-earnings-diffusion.json": [],
+        "data/universe.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-deep-value-screener": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-deep-value-screener-daily",
+          "schedule": "cron(0 9 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 8,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/asymmetric-scorer.json",
+        "data/deep-value.json",
+        "data/universe.json"
+      ],
+      "s3_freshness": {
+        "data/asymmetric-scorer.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:30:14+00:00",
+          "age_hours": 19.0,
+          "size_kb": 27.9
+        },
+        "data/deep-value.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T09:00:19+00:00",
+          "age_hours": 23.5,
+          "size_kb": 36.1
+        },
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        }
+      },
+      "frontend_consumers": {
+        "data/asymmetric-scorer.json": [],
+        "data/deep-value.json": [
+          "deep-value.html"
+        ],
+        "data/universe.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-valuations-agent": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "valuations-monthly-update",
+          "schedule": "cron(0 14 1 * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    },
+    "fmp-fundamentals-agent": {
+      "exists": true,
+      "eb_rules": [],
+      "metrics_7d": {
+        "invocations": 1,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    },
+    "justhodl-13f-positions": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-13f-positions-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 22,
+        "errors": 0,
+        "throttles": 13
+      },
+      "s3_keys_referenced": [
+        "data/13f-positions.json",
+        "data/institutional-positions.json"
+      ],
+      "s3_freshness": {
+        "data/13f-positions.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T04:51:20+00:00",
+          "age_hours": 3.7,
+          "size_kb": 14265.0
+        },
+        "data/institutional-positions.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T18:45:15+00:00",
+          "age_hours": 13.8,
+          "size_kb": 15.8
+        }
+      },
+      "frontend_consumers": {
+        "data/13f-positions.json": [
+          "ticker.html",
+          "13f.html"
+        ],
+        "data/institutional-positions.json": [
+          "signals.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-sec-13f": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sec-13f-daily",
+          "schedule": "rate(1 day)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 8,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/institutional-positions.json"
+      ],
+      "s3_freshness": {
+        "data/institutional-positions.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T18:45:15+00:00",
+          "age_hours": 13.8,
+          "size_kb": 15.8
+        }
+      },
+      "frontend_consumers": {
+        "data/institutional-positions.json": [
+          "signals.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-insider-cluster-scanner": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-insider-cluster-scanner-daily",
+          "schedule": "cron(30 14 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 18,
+        "errors": 5,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/insider-clusters.json"
+      ],
+      "s3_freshness": {
+        "data/insider-clusters.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T14:41:24+00:00",
+          "age_hours": 17.9,
+          "size_kb": 31.4
+        }
+      },
+      "frontend_consumers": {
+        "data/insider-clusters.json": [
+          "insider-clusters.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-insider-trades": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-insider-trades-30min",
+          "schedule": "rate(30 minutes)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 336,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/insider-trades.json"
+      ],
+      "s3_freshness": {
+        "data/insider-trades.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:03:56+00:00",
+          "age_hours": 0.5,
+          "size_kb": 22.3
+        }
+      },
+      "frontend_consumers": {
+        "data/insider-trades.json": [
+          "insiders.html",
+          "research.html",
+          "signals.html",
+          "today.html",
+          "news.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-activist-filings-scanner": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-activist-filings-daily",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "ENABLED"
+        },
+        {
+          "name": "justhodl-activist-filings-scanner-daily",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 7,
+        "errors": 1,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/activist-filings-state.json",
+        "data/activist-filings.json",
+        "data/universe.json"
+      ],
+      "s3_freshness": {
+        "data/activist-filings-state.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T12:00:32+00:00",
+          "age_hours": 20.5,
+          "size_kb": 0.1
+        },
+        "data/activist-filings.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T12:00:32+00:00",
+          "age_hours": 20.5,
+          "size_kb": 1.4
+        },
+        "data/universe.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:30:25+00:00",
+          "age_hours": 2.0,
+          "size_kb": 426.5
+        }
+      },
+      "frontend_consumers": {
+        "data/activist-filings-state.json": [],
+        "data/activist-filings.json": [],
+        "data/universe.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-sec-8k": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sec-8k-30min",
+          "schedule": "rate(30 minutes)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 336,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/8k-filings.json"
+      ],
+      "s3_freshness": {
+        "data/8k-filings.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:14:56+00:00",
+          "age_hours": 0.3,
+          "size_kb": 154.5
+        }
+      },
+      "frontend_consumers": {
+        "data/8k-filings.json": [
+          "signals.html",
+          "today.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-sec-10kq": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sec-10kq-4h",
+          "schedule": "rate(4 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 42,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/10kq-filings.json"
+      ],
+      "s3_freshness": {
+        "data/10kq-filings.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:45:04+00:00",
+          "age_hours": 1.8,
+          "size_kb": 106.4
+        }
+      },
+      "frontend_consumers": {
+        "data/10kq-filings.json": [
+          "signals.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-news-sentiment": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sentiment-daily",
+          "schedule": "cron(15 6 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 8,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    },
+    "justhodl-aaii-sentiment": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-aaii-sentiment-daily",
+          "schedule": "rate(1 day)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 7,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/aaii-sentiment.json"
+      ],
+      "s3_freshness": {
+        "data/aaii-sentiment.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T18:43:58+00:00",
+          "age_hours": 13.8,
+          "size_kb": 0.8
+        }
+      },
+      "frontend_consumers": {
+        "data/aaii-sentiment.json": [
+          "signals.html",
+          "today.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-gdelt-sentiment": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-gdelt-sentiment-30min",
+          "schedule": "rate(30 minutes)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 336,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/gdelt-news.json"
+      ],
+      "s3_freshness": {
+        "data/gdelt-news.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:13:41+00:00",
+          "age_hours": 0.3,
+          "size_kb": 5.5
+        }
+      },
+      "frontend_consumers": {
+        "data/gdelt-news.json": [
+          "signals.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-cross-asset-regime": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-cross-asset-regime-daily",
+          "schedule": "cron(15 13 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 2,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/cross-asset-regime-state.json",
+        "data/cross-asset-regime.json"
+      ],
+      "s3_freshness": {
+        "data/cross-asset-regime-state.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:15:40+00:00",
+          "age_hours": 19.3,
+          "size_kb": 0.3
+        },
+        "data/cross-asset-regime.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T13:15:40+00:00",
+          "age_hours": 19.3,
+          "size_kb": 6.1
+        }
+      },
+      "frontend_consumers": {
+        "data/cross-asset-regime-state.json": [],
+        "data/cross-asset-regime.json": []
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-divergence-scanner": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-divergence-scanner-daily",
+          "schedule": "cron(0 13 ? * MON-FRI *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 5,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/fred-cache-secretary.json",
+        "data/report.json"
+      ],
+      "s3_freshness": {
+        "data/fred-cache-secretary.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T05:25:59+00:00",
+          "age_hours": 3.1,
+          "size_kb": 9.0
+        },
+        "data/report.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T08:30:09+00:00",
+          "age_hours": 0.0,
+          "size_kb": 1714.1
+        }
+      },
+      "frontend_consumers": {
+        "data/fred-cache-secretary.json": [],
+        "data/report.json": [
+          "read.html",
+          "bonds.html",
+          "ath.html",
+          "today.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-sector-rotation": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-sector-rotation-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 13,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/etf-flows.json",
+        "data/sector-rotation.json"
+      ],
+      "s3_freshness": {
+        "data/etf-flows.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T06:18:54+00:00",
+          "age_hours": 2.2,
+          "size_kb": 29.8
+        },
+        "data/sector-rotation.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T07:24:14+00:00",
+          "age_hours": 1.1,
+          "size_kb": 13.2
+        }
+      },
+      "frontend_consumers": {
+        "data/etf-flows.json": [
+          "sectors.html"
+        ],
+        "data/sector-rotation.json": [
+          "sectors.html",
+          "research.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-compound-aggregator": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-compound-aggregator-hourly",
+          "schedule": "rate(1 hour)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 45,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [
+        "data/activist-filings.json",
+        "data/compound-signals-state.json",
+        "data/compound-signals.json",
+        "data/deep-value.json",
+        "data/eps-revision-velocity.json",
+        "data/insider-clusters.json",
+        "data/microcap-float-squeeze.json",
+        "data/momentum-breakout.json",
+        "data/nobrainers.json",
+        "data/options-flow.json",
+        "data/pead-signals.json",
+        "data/pre-pump-signals.json",
+        "data/revenue-acceleration.json",
+        "data/smart-money-clusters.json",
+        "data/volatility-squeeze.json"
+      ],
+      "s3_freshness": {
+        "data/activist-filings.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T12:00:32+00:00",
+          "age_hours": 20.5,
+          "size_kb": 1.4
+        },
+        "data/compound-signals-state.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T07:46:32+00:00",
+          "age_hours": 0.8,
+          "size_kb": 0.9
+        },
+        "data/compound-signals.json": {
+          "exists": true,
+          "last_modified": "2026-05-07T07:46:32+00:00",
+          "age_hours": 0.8,
+          "size_kb": 26.1
+        },
+        "data/deep-value.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T09:00:19+00:00",
+          "age_hours": 23.5,
+          "size_kb": 36.1
+        },
+        "data/eps-revision-velocity.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T09:30:10+00:00",
+          "age_hours": 23.0,
+          "size_kb": 143.6
+        },
+        "data/insider-clusters.json": {
+          "exists": true,
+          "last_modified": "2026-05-06T14:41:24+00:00",
+          "age_hours": 17.9,
+          "size_kb": 31.4
+        }
+      },
+      "frontend_consumers": {
+        "data/activist-filings.json": [],
+        "data/compound-signals-state.json": [],
+        "data/compound-signals.json": [
+          "compound-signals.html"
+        ],
+        "data/deep-value.json": [
+          "deep-value.html"
+        ],
+        "data/eps-revision-velocity.json": [
+          "eps-velocity.html"
+        ],
+        "data/insider-clusters.json": [
+          "insider-clusters.html"
+        ]
+      },
+      "health": "HEALTHY"
+    },
+    "justhodl-stock-screener": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-stock-screener-4h",
+          "schedule": "rate(4 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 45,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    },
+    "justhodl-backtest-engine": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-backtest-engine-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 24,
+        "errors": 0,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    },
+    "justhodl-calibrator": {
+      "exists": true,
+      "eb_rules": [
+        {
+          "name": "justhodl-calibrator-weekly",
+          "schedule": "cron(0 9 ? * SUN *)",
+          "state": "ENABLED"
+        }
+      ],
+      "metrics_7d": {
+        "invocations": 9,
+        "errors": 4,
+        "throttles": 0
+      },
+      "s3_keys_referenced": [],
+      "s3_freshness": {},
+      "frontend_consumers": {},
+      "health": "RUNNING_NO_OUTPUT"
+    }
+  },
+  "summary": {
+    "total_audited": 30,
+    "by_status": {
+      "HEALTHY": 24,
+      "RUNNING_NO_OUTPUT": 6
+    }
+  },
+  "orphaned_outputs": [
+    {
+      "lambda": "justhodl-theme-tier-classifier",
+      "s3_key": "data/theme-tiers.json",
+      "age_hours": 0.5
+    },
+    {
+      "lambda": "justhodl-theme-rotation-engine",
+      "s3_key": "data/theme-rotation-state.json",
+      "age_hours": 18.8
+    },
+    {
+      "lambda": "justhodl-theme-rotation-engine",
+      "s3_key": "data/theme-rotation.json",
+      "age_hours": 18.8
+    },
+    {
+      "lambda": "justhodl-asymmetric-hunter",
+      "s3_key": "data/supply-inflection.json",
+      "age_hours": 1.5
+    },
+    {
+      "lambda": "justhodl-asymmetric-hunter",
+      "s3_key": "data/theme-tiers.json",
+      "age_hours": 0.5
+    },
+    {
+      "lambda": "justhodl-asymmetric-scorer",
+      "s3_key": "data/asymmetric-scorer.json",
+      "age_hours": 19.0
+    },
+    {
+      "lambda": "justhodl-volatility-squeeze-hunter",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-volatility-squeeze-hunter",
+      "s3_key": "data/volatility-squeeze.json",
+      "age_hours": 18.7
+    },
+    {
+      "lambda": "justhodl-eps-revision-velocity",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-earnings-pead",
+      "s3_key": "data/earnings-pead.json",
+      "age_hours": 0.5
+    },
+    {
+      "lambda": "justhodl-earnings-pead",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-sector-earnings-diffusion",
+      "s3_key": "data/sector-earnings-diffusion-state.json",
+      "age_hours": 22.5
+    },
+    {
+      "lambda": "justhodl-sector-earnings-diffusion",
+      "s3_key": "data/sector-earnings-diffusion.json",
+      "age_hours": 22.5
+    },
+    {
+      "lambda": "justhodl-sector-earnings-diffusion",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-deep-value-screener",
+      "s3_key": "data/asymmetric-scorer.json",
+      "age_hours": 19.0
+    },
+    {
+      "lambda": "justhodl-deep-value-screener",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-activist-filings-scanner",
+      "s3_key": "data/activist-filings-state.json",
+      "age_hours": 20.5
+    },
+    {
+      "lambda": "justhodl-activist-filings-scanner",
+      "s3_key": "data/activist-filings.json",
+      "age_hours": 20.5
+    },
+    {
+      "lambda": "justhodl-activist-filings-scanner",
+      "s3_key": "data/universe.json",
+      "age_hours": 2.0
+    },
+    {
+      "lambda": "justhodl-cross-asset-regime",
+      "s3_key": "data/cross-asset-regime-state.json",
+      "age_hours": 19.3
+    },
+    {
+      "lambda": "justhodl-cross-asset-regime",
+      "s3_key": "data/cross-asset-regime.json",
+      "age_hours": 19.3
+    },
+    {
+      "lambda": "justhodl-divergence-scanner",
+      "s3_key": "data/fred-cache-secretary.json",
+      "age_hours": 3.1
+    },
+    {
+      "lambda": "justhodl-compound-aggregator",
+      "s3_key": "data/activist-filings.json",
+      "age_hours": 20.5
+    },
+    {
+      "lambda": "justhodl-compound-aggregator",
+      "s3_key": "data/compound-signals-state.json",
+      "age_hours": 0.8
+    }
+  ],
+  "duration_s": 41.3
+}
