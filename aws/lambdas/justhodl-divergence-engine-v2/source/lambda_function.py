@@ -109,7 +109,7 @@ FRED_SERIES = {
     "AMTMNO":   {"freq": "monthly", "title": "Mfg New Orders Total"},
 
     # Leading / Coincident
-    "USSLIND":  {"freq": "monthly", "title": "Leading Economic Index (St Louis)"},
+    # USSLIND removed — series stale (last data 2020-02; effectively discontinued)
     "USPHCI":   {"freq": "monthly", "title": "Coincident Economic Activity Index"},
     "UMCSENT":  {"freq": "monthly", "title": "U Mich Consumer Sentiment"},
     "T10Y2Y":   {"freq": "daily",   "title": "10Y-2Y Treasury Spread"},
@@ -154,7 +154,7 @@ FRED_SERIES = {
     "RECPROUSM156N": {"freq": "monthly", "title": "NY Fed Recession Probability"},
 
     # OECD harmonized unemployment (country-specific)
-    "LRHUTTTTCHM156S": {"freq": "monthly", "title": "Switzerland Unemployment"},
+    "LRHUTTTTCHQ156S": {"freq": "monthly", "title": "Switzerland Unemployment"},
     "LRHUTTTTCLM156S": {"freq": "monthly", "title": "Chile Unemployment"},
     "LRHUTTTTESM156S": {"freq": "monthly", "title": "Spain Unemployment"},
     "LRHUTTTTITM156S": {"freq": "monthly", "title": "Italy Unemployment"},
@@ -171,7 +171,7 @@ FRED_SERIES = {
     "FRAPROINDMISMEI":  {"freq": "monthly", "title": "France Industrial Production"},
     "JPNPROINDMISMEI":  {"freq": "monthly", "title": "Japan Industrial Production"},
     "KORPROINDMISMEI":  {"freq": "monthly", "title": "Korea Industrial Production"},
-    "CHNPROINDMISMEI":  {"freq": "monthly", "title": "China Industrial Production"},
+    # CHNPROINDMISMEI removed — series broken on FRED (HTTP 400). Use Korea IP as China proxy instead.
     "CHLPROINDMISMEI":  {"freq": "monthly", "title": "Chile Industrial Production"},
     "GBRPROINDMISMEI":  {"freq": "monthly", "title": "UK Industrial Production"},
 }
@@ -281,17 +281,21 @@ RELATIONSHIPS = [
      365),
 
     # ─── C. LEADING INDICATORS ────────────────────────────────────────────
-    ("lei_cei", "Leading vs Coincident Economic Indicators",
-     ("fred", "USSLIND"), ("fred", "USPHCI"), +1, "leading",
-     "LEI leads CEI by 6-9 months; LEI dropping while CEI flat = imminent recession",
+    ("trucks_indpro", "Heavy Trucks vs Industrial Production (lead-lag)",
+     ("fred", "HTRUCKSSAAR"), ("fred", "INDPRO"), +1, "leading",
+     "Heavy trucks lead IP by 6-9 months; trucks dropping while IP flat = imminent recession",
      720),
-    ("lei_curve", "LEI vs 10Y-2Y Yield Curve",
-     ("fred", "USSLIND"), ("fred", "T10Y2Y"), +1, "leading",
-     "Curve is component of LEI; divergence = other LEI components diverging",
+    ("permits_curve", "Building Permits vs 10Y-2Y Yield Curve",
+     ("fred", "PERMIT"), ("fred", "T10Y2Y"), +1, "leading",
+     "Both forward-looking; permits rising while curve inverting = mixed leading signals",
      720),
-    ("sentiment_lei", "Consumer Sentiment vs LEI",
-     ("fred", "UMCSENT"), ("fred", "USSLIND"), +1, "leading",
-     "Sentiment is forward; sentiment improving while LEI dropping = false dawn",
+    ("sentiment_permits", "Consumer Sentiment vs Building Permits",
+     ("fred", "UMCSENT"), ("fred", "PERMIT"), +1, "leading",
+     "Both forward-looking; sentiment rising while permits dropping = false dawn signal",
+     365),
+    ("coincident_spy", "Coincident Economic Activity vs S&P 500",
+     ("fred", "USPHCI"), ("etf", "SPY"), +1, "crisis_leading",
+     "USPHCI tracks real-time economic activity; SPY divergence = market disconnect from real economy",
      365),
 
     # ─── D. EM / FRONTIER GEOGRAPHY ───────────────────────────────────────
@@ -440,7 +444,7 @@ RELATIONSHIPS = [
      "Germany = Eurozone industrial heart; unemployment rising = continental weakness",
      365),
     ("switzerland_unemployment", "Switzerland Equity (EWL) vs CH Unemployment",
-     ("etf", "EWL"), ("fred", "LRHUTTTTCHM156S"), -1, "europe_labor",
+     ("etf", "EWL"), ("fred", "LRHUTTTTCHQ156S"), -1, "europe_labor",
      "Switzerland labor stable historically; rises here = Eurozone contagion warning",
      365),
     ("eurozone_unemployment", "Germany Equity (EWG) vs Eurozone Unemployment",
@@ -483,9 +487,9 @@ RELATIONSHIPS = [
      ("fred", "KORPROINDMISMEI"), ("etf", "EWY"), +1, "country_ip",
      "Korea KOSPI vs production — semis cycle proxy",
      365),
-    ("china_ip_fxi", "China IP vs China Equity (FXI)",
-     ("fred", "CHNPROINDMISMEI"), ("etf", "FXI"), +1, "country_ip",
-     "China IP vs Hang Seng/MSCI China",
+    ("korea_ip_china", "Korea IP vs China Equity (FXI)",
+     ("fred", "KORPROINDMISMEI"), ("etf", "FXI"), +1, "country_ip",
+     "Korea exports heavily to China; Korean industrial production = leading proxy for China demand",
      365),
     ("chile_ip_copper", "Chile IP vs Copper Price",
      ("fred", "CHLPROINDMISMEI"), ("fred", "PCOPPUSDM"), +1, "country_ip",
