@@ -1,0 +1,343 @@
+{
+  "started": "2026-05-07T10:54:10.469993+00:00",
+  "files": {
+    "data/earnings-tracker.json": {
+      "size_kb": 24.8,
+      "age_h": 5.13,
+      "top_keys": [
+        "version",
+        "generated_at",
+        "watchlist_size",
+        "upcoming_14d",
+        "n_upcoming",
+        "recent_results_30d",
+        "n_recent",
+        "pead_signals",
+        "n_pead",
+        "aggregate_stats",
+        "duration_s",
+        "data_sources"
+      ],
+      "ticker_lists": {
+        "upcoming_14d": {
+          "len": 28,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "name",
+            "earnings_date",
+            "time",
+            "eps_consensus",
+            "n_estimates",
+            "fiscal_quarter_ending",
+            "last_year_eps",
+            "market_cap"
+          ],
+          "first_full": {
+            "ticker": "MCD",
+            "name": "McDonald's Corporation",
+            "earnings_date": "2026-05-07",
+            "time": "BMO",
+            "eps_consensus": 2.74,
+            "n_estimates": "10",
+            "fiscal_quarter_ending": "Mar/2026",
+            "last_year_eps": "$2.67",
+            "market_cap": "$202,706,715,532"
+          }
+        },
+        "recent_results_30d": {
+          "len": 53,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "filing_date",
+            "period_end",
+            "eps_actual",
+            "eps_prior_quarter",
+            "revenue_actual",
+            "eps_yoy_pct",
+            "returns",
+            "pead_label",
+            "pead_score"
+          ],
+          "first_full": {
+            "ticker": "XOM",
+            "filing_date": "2026-05-04",
+            "period_end": "2026-03-31",
+            "eps_actual": 1,
+            "eps_prior_quarter": 1.54,
+            "revenue_actual": 85138000000.0,
+            "eps_yoy_pct": -35.06,
+            "returns": {
+              "1d": 0.77,
+              "5d": null,
+              "20d": null
+            },
+            "pead_label": "MISS_BUT_ROSE",
+            "pead_score": 55
+          }
+        },
+        "pead_signals": {
+          "len": 10,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "filing_date",
+            "period_end",
+            "eps_actual",
+            "eps_prior_quarter",
+            "revenue_actual",
+            "eps_yoy_pct",
+            "returns",
+            "pead_label",
+            "pead_score"
+          ],
+          "first_full": {
+            "ticker": "MSFT",
+            "filing_date": "2026-04-29",
+            "period_end": "2026-03-31",
+            "eps_actual": 4.28,
+            "eps_prior_quarter": 5.18,
+            "revenue_actual": 82886000000.0,
+            "eps_yoy_pct": -17.37,
+            "returns": {
+              "1d": -3.93,
+              "5d": -2.47,
+              "20d": null
+            },
+            "pead_label": "NEGATIVE_DRIFT",
+            "pead_score": 20
+          }
+        }
+      }
+    },
+    "data/insider-trades.json": {
+      "size_kb": 22.3,
+      "age_h": 0.34,
+      "top_keys": [
+        "generated_at",
+        "window_days",
+        "cluster_window_days",
+        "thresholds",
+        "stats",
+        "clusters",
+        "big_buys",
+        "transactions"
+      ],
+      "ticker_lists": {
+        "clusters": {
+          "len": 2,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "company",
+            "cik",
+            "insider_count",
+            "transactions",
+            "total_shares",
+            "total_value",
+            "avg_price",
+            "first_filing",
+            "last_filing",
+            "insiders"
+          ],
+          "first_full": {
+            "ticker": "N/A",
+            "company": "John Hancock GA Senior Loan Trust",
+            "cik": "0001742951",
+            "insider_count": 4,
+            "transactions": 4,
+            "total_shares": 1443386,
+            "total_value": 24373262.53,
+            "avg_price": 16.89,
+            "first_filing": "2026-04-30T13:21:20-04:00",
+            "last_filing": "2026-05-04T10:42:54-04:00",
+            "insiders": [
+              {
+                "name": "Manufacturers Life Reinsurance Ltd",
+                "role": "10% Owner",
+                "shares": 986700,
+                "value": 15994407.38
+              },
+              {
+                "name": "Manufacturers Life Insurance Co (Bermuda Branch)",
+                "role": "10% Owner",
+                "shares": 246675,
+                "value": 3998601.85
+              },
+              {
+                "name": "UNIVERSITY OF TEXAS/TEXAS AM INVESTMENT MANAGEMENT CO",
+                "role": "10% Owner",
+                "shares": 86674,
+                "value": 2380952.38
+              },
+              {
+                "name": "Manulife (Singapore) Pte. Ltd.",
+                "role": "10% Owner",
+                "shares": 123337,
+                "value": 1999300.92
+              }
+            ]
+          }
+        },
+        "big_buys": {
+          "len": 10,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "company",
+            "cik",
+            "insider",
+            "role",
+            "code",
+            "code_meaning",
+            "side",
+            "shares",
+            "price",
+            "value",
+            "txn_date",
+            "accession",
+            "filed_at"
+          ],
+          "first_full": {
+            "ticker": "N/A",
+            "company": "John Hancock GA Senior Loan Trust",
+            "cik": "0001742951",
+            "insider": "Manufacturers Life Reinsurance Ltd",
+            "role": "10% Owner",
+            "code": "P",
+            "code_meaning": "Open-market purchase",
+            "side": "buy",
+            "shares": 986700,
+            "price": 16.21,
+            "value": 15994407.38,
+            "txn_date": "2026-04-30",
+            "accession": "0001765496-26-000012",
+            "filed_at": "2026-05-04T10:42:54-04:00"
+          }
+        },
+        "transactions": {
+          "len": 46,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "company",
+            "cik",
+            "insider",
+            "role",
+            "code",
+            "code_meaning",
+            "side",
+            "shares",
+            "price",
+            "value",
+            "txn_date",
+            "accession",
+            "filed_at"
+          ],
+          "first_full": {
+            "ticker": "AMG",
+            "company": "AFFILIATED MANAGERS GROUP, INC.",
+            "cik": "0001004434",
+            "insider": "Cates G. Staley",
+            "role": "Director",
+            "code": "P",
+            "code_meaning": "Open-market purchase",
+            "side": "buy",
+            "shares": 1500,
+            "price": 305.83,
+            "value": 458745.0,
+            "txn_date": "2026-05-06",
+            "accession": "0001004434-26-000053",
+            "filed_at": "2026-05-06T19:27:06-04:00"
+          }
+        }
+      }
+    },
+    "data/news-sentiment.json": {
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    "data/8k-filings.json": {
+      "size_kb": 154.9,
+      "age_h": 0.15,
+      "top_keys": [
+        "generated_at",
+        "window_days",
+        "stats",
+        "item_labels",
+        "by_item_counts",
+        "red_flags",
+        "high_impact",
+        "filings"
+      ],
+      "ticker_lists": {}
+    },
+    "data/options-flow.json": {
+      "size_kb": 77.9,
+      "age_h": 13.4,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_lists": {
+        "all_qualifying": {
+          "len": 145,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "score",
+            "tier",
+            "flags",
+            "metrics"
+          ],
+          "first_full": {
+            "symbol": "AMD",
+            "score": 100.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "metrics": {
+              "spot": 421.39,
+              "n_call_contracts": 10,
+              "n_put_contracts": 10,
+              "avg_cpr_recent_5d": 781.83,
+              "avg_cpr_older": 269.43,
+              "cpr_change_pct": 190.2,
+              "total_call_vol_5d": 16114,
+              "total_put_vol_5d": 89,
+              "call_vol_surge": 5.91,
+              "short_metrics": {
+                "recent_avg_short_pct": 53.0,
+                "older_avg_short_pct": 58.1,
+                "short_pct_change": -5.11,
+                "avg_total_vol_5d": 24760550,
+                "n_finra_days": 20
+              }
+            }
+          }
+        }
+      }
+    },
+    "data/redflag-alerts.json": {
+      "size_kb": 1.0,
+      "age_h": 0.46,
+      "top_keys": [
+        "generated_at",
+        "alerted_accessions",
+        "log",
+        "stats"
+      ],
+      "ticker_lists": {}
+    }
+  }
+}
