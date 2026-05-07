@@ -226,56 +226,123 @@ def fetch_fred(series_id, n=1300):
 
 # ─── OFR Short-Term Funding Monitor puller ────────────────────────────────────
 def fetch_ofr_series(mnemonic):
-    """OFR API for primary dealer fails. Tries multiple endpoint patterns."""
-    endpoints = [
-        f"https://data.financialresearch.gov/v1/series/full?mnemonic={mnemonic}",
-        f"https://www.financialresearch.gov/short-term-funding-monitor/api/v1/series/full/?mnemonic={mnemonic}",
-        f"https://www.financialresearch.gov/short-term-funding-monitor/api/v1/series/timeseries/{mnemonic}",
-    ]
-    for url in endpoints:
-        body = http_get(url, timeout=15)
-        if not body:
-            continue
-        try:
-            d = json.loads(body)
-        except Exception:
-            continue
-        # OFR typically returns either {timeseries: {dates: [], values: []}}
-        # or a list of [date, value] pairs
-        ts = d.get("timeseries") or d.get("series") or d
-        # Try list-of-pairs format
-        if isinstance(ts, list) and ts and isinstance(ts[0], list):
-            obs = [{"date": p[0], "value": float(p[1])} for p in ts if p[1] is not None]
-            if obs:
-                return obs
-        # Try dict with dates/values arrays
-        if isinstance(ts, dict):
-            dates = ts.get("dates") or ts.get("date")
-            vals = ts.get("values") or ts.get("value")
-            if dates and vals and len(dates) == len(vals):
-                obs = []
-                for i, dt in enumerate(dates):
-                    v = vals[i]
-                    if v is not None:
-                        try:
-                            obs.append({"date": dt, "value": float(v)})
-                        except (ValueError, TypeError):
-                            continue
-                if obs:
-                    return obs
-        # Try aggregations array
-        if isinstance(ts, dict) and "aggregations" in ts:
-            agg = ts["aggregations"]
-            if isinstance(agg, list):
-                obs = [{"date": p.get("date") or p.get("d"),
-                         "value": float(p.get("value") or p.get("v"))}
-                        for p in agg if p.get("value") is not None]
-                if obs:
+    """OFR API for primary dealer fails.
+    
+    VERIFIED working endpoint (per ops/344 diagnostic):
+      https://data.financialresearch.gov/v1/series/timeseries?mnemonic=NYPD-PD_AFtD_TOT-A
+    Returns flat [[date, value], ...] array.
+    """
+    url = f"https://data.financialresearch.gov/v1/series/timeseries?mnemonic={mnemonic}"
+    body = http_get(url, timeout=15)
+    if not body:
+        return []
+    try:
+        d = json.loads(body)
+    except Exception:
+        return []
+    # Format: list of [date, value] pairs
+    if isinstance(d, list):
+        obs = []
+        for pair in d:
+            if isinstance(pair, list) and len(pair) >= 2 and pair[1] is not None:
+                try:
+                    obs.append({"date": pair[0], "value": float(pair[1])})
+                except (ValueError, TypeError):
+                    continue
+        return obs
+    # Fallback: full format with mnemonic key + nested timeseries
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if isinstance(v, dict) and "timeseries" in v:
+                ts = v["timeseries"]
+                # Try aggregation (singular, per actual API response)
+                agg = ts.get("aggregation") or ts.get("aggregations")
+                if isinstance(agg, list):
+                    obs = []
+                    for pair in agg:
+                        if isinstance(pair, list) and len(pair) >= 2 and pair[1] is not None:
+                            try:
+                                obs.append({"date": pair[0], "value": float(pair[1])})
+                            except (ValueError, TypeError):
+                                continue
                     return obs
     return []
 
 
-# ─── ECB S3 cache reader ──────────────────────────────────────────────────────
+# ─── ECB SDMX puller (direct API since no S3 cache exists) ────────────────────
+def fetch_ecb_series(dataset, key):
+    """Direct ECB SDMX API. Returns observations chronological.
+    
+    Example: dataset='CISS', key='D.US.Z0Z.4F.EC.SS_CI.IDX'
+    """
+    url = (f"https://data-api.ecb.europa.eu/service/data/{dataset}/{key}"
+            "?format=jsondata&detail=dataonly")
+    body = http_get(url, timeout=20, headers={
+        "User-Agent": "JustHodl plumbing-agg/1.0",
+        "Accept": "application/json",
+    })
+    if not body:
+        return []
+    try:
+        d = json.loads(body)
+    except Exception:
+        return []
+
+    # SDMX-JSON structure: dataSets[0].series."0:0:0:0:0".observations
+    try:
+        datasets = d.get("dataSets") or d.get("dataset") or []
+        if not datasets:
+            return []
+        ds = datasets[0]
+        series_dict = ds.get("series") or {}
+        # Get the first (and usually only) series
+        first_series = next(iter(series_dict.values()), None)
+        if not first_series:
+            return []
+        obs_dict = first_series.get("observations") or {}
+
+        # Time dimension is in structure.dimensions.observation
+        struct = d.get("structure", {})
+        obs_dims = struct.get("dimensions", {}).get("observation", [])
+        time_dim = None
+        for dim in obs_dims:
+            if dim.get("id") == "TIME_PERIOD":
+                time_dim = dim
+                break
+        if not time_dim:
+            return []
+        time_values = time_dim.get("values", [])
+
+        # Map index → date, then walk observations
+        obs = []
+        for idx_str, vals in obs_dict.items():
+            try:
+                idx = int(idx_str)
+                if idx >= len(time_values) or not vals or vals[0] is None:
+                    continue
+                date_str = time_values[idx].get("id") or time_values[idx].get("name", "")
+                obs.append({"date": date_str, "value": float(vals[0])})
+            except (ValueError, TypeError, IndexError):
+                continue
+        # Sort chronologically
+        obs.sort(key=lambda o: o["date"])
+        return obs
+    except Exception as e:
+        print(f"[plumbing] ECB parse fail {dataset}/{key}: {e}")
+        return []
+
+
+# ECB series mappings
+ECB_SERIES_MAP = {
+    "ILM_CLAIMS_FX":  ("ILM",  "W.U2.C.A030000.U2.Z06"),
+    "ILM_LIAB_EUR":   ("ILM",  "W.U2.C.L060000.U4.EUR"),
+    "CISS_US":        ("CISS", "D.US.Z0Z.4F.EC.SS_CI.IDX"),
+    "CISS_EA":        ("CISS", "D.U2.Z0Z.4F.EC.SS_CIN.IDX"),  # NEW CISS for EA
+    "CISS_CN":        ("CISS", "D.CN.Z0Z.4F.EC.SS_CIN.IDX"),  # NEW CISS for CN
+}
+
+
+# ─── ECB cache reader (legacy fallback if S3 cache exists later) ─────────────
 def fetch_ecb_from_cache(target_id):
     """Read pre-pulled ECB data from existing S3 caches.
     Tries multiple possible cache files."""
@@ -369,7 +436,12 @@ def assemble_indicator(spec):
         }
         obs = fetch_ofr_series(ofr_map.get(sid, sid))
     elif src == "ECB_S3":
-        obs = fetch_ecb_from_cache(sid)
+        # Direct ECB SDMX API (no S3 cache exists for these)
+        if sid in ECB_SERIES_MAP:
+            dataset, key = ECB_SERIES_MAP[sid]
+            obs = fetch_ecb_series(dataset, key)
+        else:
+            obs = []
     else:
         obs = []
 
