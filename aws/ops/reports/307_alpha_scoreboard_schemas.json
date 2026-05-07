@@ -1,0 +1,833 @@
+{
+  "started": "2026-05-07T09:32:14.845684+00:00",
+  "files": {
+    "data/compound-signals.json": {
+      "size_kb": 34.0,
+      "age_hours": 0.8,
+      "top_keys": [
+        "schema_version",
+        "generated_at",
+        "duration_s",
+        "feed_stats",
+        "stats",
+        "compound",
+        "new_alerts"
+      ],
+      "ticker_lists": [
+        {
+          "key": "compound",
+          "len": 49,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "n_systems",
+            "systems",
+            "scores",
+            "details",
+            "compound_score"
+          ],
+          "first_full": {
+            "symbol": "FCX",
+            "n_systems": 5,
+            "systems": [
+              "eps_velocity",
+              "nobrainers",
+              "options_flow",
+              "pead",
+              "smart_money"
+            ],
+            "scores": {
+              "nobrainers": 75.9,
+              "smart_money": 28.4,
+              "eps_velocity": 79.3,
+              "options_flow": 93.0,
+              "pead": 90.0
+            },
+            "details": {
+              "nobrainers": {
+                "theme": "PICK",
+                "tier": 2,
+                "flag": "TIER_B_HIGH_CONVICTION",
+                "name": "Freeport-McMoRan Inc."
+              },
+              "smart_money": {
+                "signal_types": [
+                  "LEGEND_FUND_BUY"
+                ],
+                "n_buyers": 2,
+                "n_sellers": 7,
+                "legend_buyers": [
+                  "LONE_PINE"
+                ],
+                "name": "Freeport-McMoRan"
+              },
+              "eps_velocity": {
+                "flag": "HIGH_VELOCITY_TIER_B",
+                "fy2_lift_pct": 47.2,
+                "fwd_rev_growth_pct": 21.5,
+                "company": "Freeport-McMoRan Inc."
+              },
+              "options_flow": {
+                "tier": "TIER_A_BULLISH_FLOW",
+                "flags": [
+                  "CPR_SURGING",
+                  "CALL_VOL_3X",
+                  "ABS_CPR_3X",
+                  "SHORTS_COVERING"
+                ],
+                "cpr_recent": 22.52,
+                "cpr_change_pct": 2069.3,
+                "call_vol_surge": 11.28,
+                "short_pct_change": -3.32
+              },
+              "pead": {
+                "tier": "TIER_S_DRIFTING",
+                "score": 90.0,
+                "streak": 5,
+                "avg_beat_pct": 31.44,
+                "beat_accel": 24.1,
+                "drift_pct": 0.0,
+                "days_since_earnings": 0,
+                "flags": [
+                  "STREAK_5Q+",
+                  "BIG_AVG_BEAT_25%+",
+                  "BEATS_ACCELERATING_10PP+",
+                  "DOUBLE_BEAT_4Q",
+                  "LATEST_BEAT_15%+"
+                ]
+              }
+            },
+            "compound_score": 1099.8
+          }
+        },
+        {
+          "key": "new_alerts",
+          "len": 15,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "type",
+            "n_systems",
+            "score",
+            "systems",
+            "reason"
+          ],
+          "first_full": {
+            "symbol": "PWR",
+            "type": "TIER_3_EMERGED",
+            "n_systems": 3,
+            "score": 494.0,
+            "systems": [
+              "momentum",
+              "options_flow",
+              "pead"
+            ],
+            "reason": "PWR now flagged by 3 independent systems: momentum, options_flow, pead"
+          }
+        }
+      ]
+    },
+    "data/asymmetric-scorer.json": {
+      "size_kb": 27.9,
+      "age_hours": 20.0,
+      "top_keys": [
+        "as_of",
+        "v",
+        "summary",
+        "cross_pollination",
+        "cutoffs",
+        "sector_breakdown",
+        "top_setups",
+        "value_traps",
+        "filter_logic"
+      ],
+      "ticker_lists": [
+        {
+          "key": "top_setups",
+          "len": 30,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "price",
+            "marketCap",
+            "peRatio",
+            "psRatio",
+            "evEbitda",
+            "roe",
+            "operatingMargin",
+            "netMargin",
+            "revenueGrowth",
+            "epsGrowth",
+            "fcfGrowth",
+            "debtToEquity"
+          ],
+          "first_full": {
+            "symbol": "INCY",
+            "name": "Incyte Corporation",
+            "sector": "Healthcare",
+            "price": 97.47,
+            "marketCap": 19472751540.0,
+            "peRatio": 13.57,
+            "psRatio": 3.6323,
+            "evEbitda": 8.5788,
+            "roe": 0.29,
+            "operatingMargin": 0.27,
+            "netMargin": 0.27,
+            "revenueGrowth": 0.21,
+            "epsGrowth": 40.19,
+            "fcfGrowth": 4.44,
+            "debtToEquity": 0.0061,
+            "currentRatio": 3.6816,
+            "interestCoverage": 615.89,
+            "piotroski": 9,
+            "beta": 0.797,
+            "quality_score": 88.5,
+            "safety_score": 99.9,
+            "value_score": 97.3,
+            "momentum_score": 88.9,
+            "stacked_score": 45.0,
+            "stacked_signals": [
+              "aaii_extreme_bullish (spread +50% \u2014 contrarian headwind)"
+            ],
+            "stacked_raw_pts": -5,
+            "category": "candidate",
+            "dims_passed": 5,
+            "dims_passed_list": [
+              "quality",
+              "safety",
+              "value",
+              "momentum",
+              "stacked"
+            ],
+            "composite_score": 83.9
+          }
+        },
+        {
+          "key": "value_traps",
+          "len": 15,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "name",
+            "sector",
+            "price",
+            "marketCap",
+            "peRatio",
+            "psRatio",
+            "piotroski",
+            "debtToEquity",
+            "category",
+            "trap_reason"
+          ],
+          "first_full": {
+            "symbol": "CHTR",
+            "name": "Charter Communications, Inc.",
+            "sector": "Communication Services",
+            "price": 158.23,
+            "marketCap": 19459916550.0,
+            "peRatio": 4.03,
+            "psRatio": 0.3562,
+            "piotroski": 5,
+            "debtToEquity": 5.8596,
+            "category": "value_trap",
+            "trap_reason": "piotroski_low"
+          }
+        }
+      ]
+    },
+    "data/eps-revision-velocity.json": {
+      "size_kb": 143.4,
+      "age_hours": 0.0,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_lists": [
+        {
+          "key": "all_qualifying",
+          "len": 221,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "company",
+            "score",
+            "flag",
+            "status",
+            "fundamentals",
+            "estimates",
+            "ratings_breadth",
+            "rationale"
+          ],
+          "first_full": {
+            "symbol": "PLTR",
+            "company": "Palantir Technologies Inc.",
+            "score": 88.3,
+            "flag": "HIGH_VELOCITY_TIER_B",
+            "status": "ok",
+            "fundamentals": {
+              "price": 133.79,
+              "market_cap": 306575771300,
+              "sector": "",
+              "industry": "",
+              "pct_from_52w_high": -35.5
+            },
+            "estimates": {
+              "fy1_year": "2026",
+              "fy1_eps_avg": 1.42206,
+              "fy1_rev_avg": 7597131452,
+              "fy1_n_estimates": 18,
+              "fy2_year": "2027",
+              "fy2_eps_avg": 2.01801,
+              "fy2_lift_pct": 41.9,
+              "fwd_rev_growth_pct": 44.2,
+              "dispersion": 0.2
+            },
+            "ratings_breadth": {
+              "n_recent_90d": 18,
+              "n_upgrades": 4,
+              "n_downgrades": 1,
+              "upgrade_pct": 0.22
+            },
+            "rationale": "PLTR (): EPS estimate FY27 vs FY26 = +42% forward revenue growth +44% and rising analyst sentiment (22% upgrades)."
+          }
+        }
+      ]
+    },
+    "data/insider-clusters.json": {
+      "size_kb": 31.4,
+      "age_hours": 18.8,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "lookback_days",
+        "duration_s",
+        "stats",
+        "thresholds",
+        "clusters"
+      ],
+      "ticker_lists": [
+        {
+          "key": "clusters",
+          "len": 19,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "company",
+            "cik",
+            "n_insiders",
+            "n_transactions",
+            "total_shares",
+            "total_value",
+            "avg_price",
+            "first_buy",
+            "last_buy",
+            "highest_role",
+            "has_ceo",
+            "has_cfo",
+            "has_chairman",
+            "has_director"
+          ],
+          "first_full": {
+            "ticker": "FND",
+            "company": "Floor & Decor Holdings, Inc.",
+            "cik": "0001507079",
+            "n_insiders": 2,
+            "n_transactions": 2,
+            "total_shares": 7500,
+            "total_value": 372975.0,
+            "avg_price": 49.73,
+            "first_buy": "2026-05-04",
+            "last_buy": "2026-05-04",
+            "highest_role": "Director, Chief Executive Officer",
+            "has_ceo": true,
+            "has_cfo": true,
+            "has_chairman": false,
+            "has_director": true,
+            "insiders": [
+              {
+                "name": "PAULSEN BRADLEY",
+                "role": "Director, Chief Executive Officer",
+                "n_buys": 1,
+                "total_shares": 5000,
+                "total_value": 251250.0,
+                "role_tier": 100
+              },
+              {
+                "name": "LANGLEY BRYAN",
+                "role": "EVP & CHIEF FINANCIAL OFFICER",
+                "n_buys": 1,
+                "total_shares": 2500,
+                "total_value": 121725.0,
+                "role_tier": 90
+              }
+            ],
+            "transactions": [
+              {
+                "ticker": "FND",
+                "insider_name": "PAULSEN BRADLEY",
+                "role": "Director, Chief Executive Officer",
+                "role_tier": 100,
+                "shares": 5000,
+                "price": 50.25,
+                "value": 251250.0,
+                "txn_date": "2026-05-04",
+                "filed_date": "2026050",
+                "accession": "0001628280-26-029957"
+              },
+              {
+                "ticker": "FND",
+                "insider_name": "LANGLEY BRYAN",
+                "role": "EVP & CHIEF FINANCIAL OFFICER",
+                "role_tier": 90,
+                "shares": 2500,
+                "price": 48.69,
+                "value": 121725.0,
+                "txn_date": "2026-05-04",
+                "filed_date": "2026050",
+                "accession": "0001628280-26-029998"
+              }
+            ],
+            "score": 78.5,
+            "signal_type": "smart_money_dual",
+            "fundamentals": {
+              "market_cap": 5433344910,
+              "price_now": 50.265,
+              "high_52w": 92.405,
+              "low_52w": 46.47,
+              "pct_from_52w_high": -45.6,
+              "pct_from_52w_low": 8.17,
+              "sector": "Consumer Cyclical",
+              "industry": "Home Improvement",
+              "country": "US",
+              "company_name": "Floor & Decor Holdings, Inc.",
+              "shares_outstanding": 0
+            },
+            "rationale": "CEO + CFO + 1 director(s) bought $373k of FND over 0d at $49.73 avg \u2014 stock 46% off 52w high"
+          }
+        }
+      ]
+    },
+    "data/smart-money-clusters.json": {
+      "size_kb": 149.3,
+      "age_hours": 17.5,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "as_of_quarter",
+        "stats",
+        "clusters"
+      ],
+      "ticker_lists": [
+        {
+          "key": "clusters",
+          "len": 85,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "name",
+            "score",
+            "flag",
+            "signal_types",
+            "n_funds_holding",
+            "n_buyers",
+            "n_sellers",
+            "n_new",
+            "legend_buyers",
+            "quant_buyers",
+            "total_value",
+            "pct_from_52w_high",
+            "components",
+            "rationale"
+          ],
+          "first_full": {
+            "ticker": "MOH",
+            "name": "Molina Healthcare",
+            "score": 86.0,
+            "flag": "STRONG_CONVICTION",
+            "signal_types": [
+              "NEW_INITIATION_CLUSTER",
+              "DEEP_VALUE_CONSENSUS",
+              "LEGEND_FUND_BUY"
+            ],
+            "n_funds_holding": 10,
+            "n_buyers": 6,
+            "n_sellers": 4,
+            "n_new": 3,
+            "legend_buyers": [
+              "SCION",
+              "LONE_PINE"
+            ],
+            "quant_buyers": [
+              "TWO_SIGMA",
+              "CITADEL",
+              "MILLENNIUM",
+              "POINT72"
+            ],
+            "total_value": 546774228,
+            "pct_from_52w_high": -41.0,
+            "components": {
+              "buyer_score": 30,
+              "clean_score": 12.0,
+              "new_score": 20,
+              "legend_score": 14,
+              "drawdown_score": 10
+            },
+            "rationale": "SCION, LONE_PINE initiated new positions in MOH \u2014 stock 41% off 52w high \u2014 contrarian timing",
+            "fund_actions": [
+              {
+                "fund": "BRIDGEWATER",
+                "fund_name": "Bridgewater Associates",
+                "change": "TRIM",
+                "value": 4733130,
+                "pct_of_portfolio": 0.02,
+                "delta_pct": -46.29
+              },
+              {
+                "fund": "RENAISSANCE",
+                "fund_name": "Renaissance Technologies",
+                "change": "TRIM",
+                "value": 11217105,
+                "pct_of_portfolio": 0.02,
+                "delta_pct": -81.7
+              },
+              {
+                "fund": "AQR",
+                "fund_name": "AQR Capital",
+                "change": "TRIM",
+                "value": 71221259,
+                "pct_of_portfolio": 0.04,
+                "delta_pct": -87.32
+              },
+              {
+                "fund": "TWO_SIGMA",
+                "fund_name": "Two Sigma",
+                "change": "ADD",
+                "value": 143194101,
+                "pct_of_portfolio": 0.19,
+                "delta_pct": 770.56
+              },
+              {
+                "fund": "CITADEL",
+                "fund_name": "Citadel Advisors",
+                "change": "ADD",
+                "value": 93830648,
+                "pct_of_portfolio": 0.01,
+                "delta_pct": 106.2
+              },
+              {
+                "fund": "MILLENNIUM",
+                "fund_name": "Millennium Mgmt",
+                "change": "ADD",
+                "value": 37025453,
+                "pct_of_portfolio": 0.01,
+                "delta_pct": 54.9
+              },
+              {
+                "fund": "SCION",
+                "fund_name": "Scion (Burry)",
+                "change": "NEW",
+                "value": 23920000,
+                "pct_of_portfolio": 1.73,
+                "delta_pct": null
+              },
+              {
+                "fund": "DURATION",
+                "fund_name": "Duration Capital",
+                "change": "TRIM",
+                "value": 18551426,
+                "pct_of_portfolio": 0.01,
+                "delta_pct": -36.51
+              },
+              {
+                "fund": "LONE_PINE",
+                "fund_name": "Lone Pine",
+                "change": "NEW",
+                "value": 108463000,
+                "pct_of_portfolio": 2.05,
+                "delta_pct": null
+              },
+              {
+                "fund": "POINT72",
+                "fund_name": "Point72 (Cohen)",
+                "change": "NEW",
+                "value": 34618106,
+                "pct_of_portfolio": 0.04,
+                "delta_pct": null
+              }
+            ],
+            "fundamentals": {
+              "price": 196.435,
+              "market_cap": 10234263500,
+              "year_high": 333,
+              "year_low": 121.06,
+              "pe_ratio": null,
+              "volume": 243183,
+              "exchange": "NYSE",
+              "industry": null
+            }
+          }
+        }
+      ]
+    },
+    "data/deep-value.json": {
+      "size_kb": 26.1,
+      "age_hours": 0.5,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "ticker_lists": [
+        {
+          "key": "all_qualifying",
+          "len": 30,
+          "ticker_field": "symbol",
+          "sample_keys": [
+            "symbol",
+            "company",
+            "score",
+            "flag",
+            "status",
+            "fundamentals",
+            "rationale"
+          ],
+          "first_full": {
+            "symbol": "ELV",
+            "company": "Elevance Health Inc.",
+            "score": 65.5,
+            "flag": "MARGINAL",
+            "status": "ok",
+            "fundamentals": {
+              "market_cap": 81372915410,
+              "price": 374.71,
+              "year_high": 424.24,
+              "pct_from_52w_high": -11.7,
+              "cash": 35562000000,
+              "long_investments": 12123000000,
+              "total_debt": 31842000000,
+              "net_cash": 15843000000,
+              "net_cash_pct_of_mcap": 0.195,
+              "revenue_ttm": 199125000000,
+              "revenue_yield_of_mcap": 2.447,
+              "mcap_to_rev": 0.41,
+              "operating_cf_positive_quarters": 4,
+              "operating_cf_total_quarters": 4,
+              "sector": "Healthcare",
+              "industry": "Medical - Healthcare Plans"
+            },
+            "rationale": "ELV (Healthcare) trades at $81.37B mcap with 19% net cash and 245% revenue yield (mcap/rev = 0.41\u00d7) \u2014 OCF positive 4/4 quarters."
+          }
+        }
+      ]
+    },
+    "data/macro-nowcast.json": {
+      "size_kb": 23.2,
+      "age_hours": 3.0,
+      "top_keys": [
+        "v",
+        "generated_at",
+        "duration_s",
+        "raw_score",
+        "normalized_score",
+        "regime",
+        "regime_color",
+        "coverage_pct",
+        "n_components_used",
+        "n_components_failed",
+        "components",
+        "historical_scores",
+        "historical_summary",
+        "regime_spy_performance",
+        "regime_spy_horizons",
+        "thresholds",
+        "data_sources",
+        "methodology"
+      ],
+      "ticker_lists": []
+    },
+    "data/sector-rotation.json": {
+      "size_kb": 13.2,
+      "age_hours": 2.1,
+      "top_keys": [
+        "version",
+        "generated_at",
+        "duration_s",
+        "spy_close",
+        "spy_returns",
+        "market_breadth",
+        "market_breadth_description",
+        "sectors",
+        "leaders",
+        "recovering",
+        "fatiguing",
+        "laggards",
+        "top_3_63d_rs",
+        "bottom_3_63d_rs",
+        "data_sources"
+      ],
+      "ticker_lists": [
+        {
+          "key": "sectors",
+          "len": 11,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "name",
+            "emoji",
+            "last_close",
+            "returns",
+            "rs_vs_spy",
+            "regime",
+            "regime_desc",
+            "extreme",
+            "flow_z",
+            "flow_signal",
+            "aum_billions",
+            "momentum_quintile"
+          ],
+          "first_full": {
+            "ticker": "XLK",
+            "name": "Technology",
+            "emoji": "\ud83d\udcbb",
+            "last_close": 170.03,
+            "returns": {
+              "1": 2.657,
+              "5": 6.863,
+              "20": 20.001,
+              "63": 23.103,
+              "126": 12.636,
+              "252": 57.83
+            },
+            "rs_vs_spy": {
+              "1": 1.267,
+              "5": 3.736,
+              "20": 11.448,
+              "63": 16.16,
+              "126": 5.247,
+              "252": 27.605
+            },
+            "regime": "LEADER",
+            "regime_desc": "Outperforming SPY on both 20d and 63d",
+            "extreme": "NEW_HIGH",
+            "flow_z": null,
+            "flow_signal": null,
+            "aum_billions": null,
+            "momentum_quintile": 4
+          }
+        },
+        {
+          "key": "leaders",
+          "len": 1,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "name",
+            "emoji",
+            "last_close",
+            "returns",
+            "rs_vs_spy",
+            "regime",
+            "regime_desc",
+            "extreme",
+            "flow_z",
+            "flow_signal",
+            "aum_billions",
+            "momentum_quintile"
+          ],
+          "first_full": {
+            "ticker": "XLK",
+            "name": "Technology",
+            "emoji": "\ud83d\udcbb",
+            "last_close": 170.03,
+            "returns": {
+              "1": 2.657,
+              "5": 6.863,
+              "20": 20.001,
+              "63": 23.103,
+              "126": 12.636,
+              "252": 57.83
+            },
+            "rs_vs_spy": {
+              "1": 1.267,
+              "5": 3.736,
+              "20": 11.448,
+              "63": 16.16,
+              "126": 5.247,
+              "252": 27.605
+            },
+            "regime": "LEADER",
+            "regime_desc": "Outperforming SPY on both 20d and 63d",
+            "extreme": "NEW_HIGH",
+            "flow_z": null,
+            "flow_signal": null,
+            "aum_billions": null,
+            "momentum_quintile": 4
+          }
+        },
+        {
+          "key": "fatiguing",
+          "len": 2,
+          "ticker_field": "ticker",
+          "sample_keys": [
+            "ticker",
+            "name",
+            "emoji",
+            "last_close",
+            "returns",
+            "rs_vs_spy",
+            "regime",
+            "regime_desc",
+            "extreme",
+            "flow_z",
+            "flow_signal",
+            "aum_billions",
+            "momentum_quintile"
+          ],
+          "first_full": {
+            "ticker": "XLRE",
+            "name": "Real Estate",
+            "emoji": "\ud83c\udfe2",
+            "last_close": 44.74,
+            "returns": {
+              "1": 1.29,
+              "5": 2.521,
+              "20": 5.419,
+              "63": 7.911,
+              "126": 9.576,
+              "252": 6.829
+            },
+            "rs_vs_spy": {
+              "1": -0.1,
+              "5": -0.606,
+              "20": -3.134,
+              "63": 0.968,
+              "126": 2.187,
+              "252": -23.396
+            },
+            "regime": "FATIGUING",
+            "regime_desc": "Was leading on 63d but lagging on 20d",
+            "extreme": "NEW_HIGH",
+            "flow_z": null,
+            "flow_signal": null,
+            "aum_billions": null,
+            "momentum_quintile": 4
+          }
+        }
+      ]
+    }
+  }
+}
