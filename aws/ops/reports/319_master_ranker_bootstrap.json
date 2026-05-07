@@ -1,0 +1,151 @@
+{
+  "started": "2026-05-07T10:52:13.422325+00:00",
+  "deploy": {
+    "action": "create",
+    "zip_kb": 6.6
+  },
+  "rule": {
+    "rule": "master-ranker-hourly",
+    "schedule": "cron(5 * * * ? *)"
+  },
+  "smoke_test": {
+    "status_code": 200,
+    "function_error": null,
+    "duration_s": 2.3,
+    "response": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 10, \"n_tier_3_plus\": 50, \"n_tier_5_plus\": 4, \"regime\": \"SLOWING\", \"duration_s\": 1.43}"
+    },
+    "s3_size_kb": 64.9,
+    "regime": "SLOWING",
+    "n_tickers_total": 327,
+    "n_tickers_top25": 25,
+    "n_macro_signals": 10,
+    "alerts": {
+      "n_tier_3_plus_systems": 50,
+      "n_tier_5_plus_systems": 4,
+      "n_extreme_macro": 6,
+      "calibration_active": false
+    },
+    "top_5_tickers": [
+      {
+        "rank": 1,
+        "ticker": "MU",
+        "score": 136.7,
+        "n_systems": 4,
+        "rationale": "4 systems agree (compound=136.7) [asymmetric, compound, eps_velocity, pead] \u00b7 PEAD drift +46%"
+      },
+      {
+        "rank": 2,
+        "ticker": "SNDK",
+        "score": 127.6,
+        "n_systems": 3,
+        "rationale": "3 systems agree (compound=127.6) [compound, eps_velocity, pead]"
+      },
+      {
+        "rank": 3,
+        "ticker": "NVDA",
+        "score": 126.8,
+        "n_systems": 6,
+        "rationale": "6 systems agree (compound=126.8) [asymmetric, compound, eps_velocity, pead, revenue_accel\u2026] \u00b7 legend"
+      },
+      {
+        "rank": 4,
+        "ticker": "STX",
+        "score": 123.7,
+        "n_systems": 3,
+        "rationale": "3 systems agree (compound=123.7) [compound, eps_velocity, pead]"
+      },
+      {
+        "rank": 5,
+        "ticker": "PLTR",
+        "score": 123.0,
+        "n_systems": 3,
+        "rationale": "3 systems agree (compound=123.0) [compound, eps_velocity, pead]"
+      }
+    ],
+    "top_3_macro": [
+      {
+        "type": "divergence",
+        "name": "NY Fed Recession Probability vs S&P 500",
+        "score": 100,
+        "action": "Cross-asset divergence flagging \u2014 read divergence-v2.html"
+      },
+      {
+        "type": "divergence",
+        "name": "Heavy Truck Sales vs S&P 500 \u26a1",
+        "score": 93.44,
+        "action": "Cross-asset divergence flagging \u2014 read divergence-v2.html"
+      },
+      {
+        "type": "divergence",
+        "name": "Frontier Markets (FM) vs EM (EEM)",
+        "score": 91.08000000000001,
+        "action": "Cross-asset divergence flagging \u2014 read divergence-v2.html"
+      }
+    ],
+    "feed_health": {
+      "compound": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "asymmetric": {
+        "loaded": true,
+        "size_hint": 9
+      },
+      "theme_tiers": {
+        "loaded": true,
+        "size_hint": 10
+      },
+      "eps_velocity": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "insider": {
+        "loaded": true,
+        "size_hint": 8
+      },
+      "smart_money": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "deep_value": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "pead": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "nobrainers": {
+        "loaded": true,
+        "size_hint": 10
+      },
+      "options_flow": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "momentum_breakout": {
+        "loaded": true,
+        "size_hint": 8
+      },
+      "volatility_squeeze": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "supply_inflection": {
+        "loaded": true,
+        "size_hint": 9
+      },
+      "pre_pump": {
+        "loaded": true,
+        "size_hint": 7
+      },
+      "revenue_accel": {
+        "loaded": true,
+        "size_hint": 7
+      }
+    }
+  },
+  "duration_s": 14.8
+}
