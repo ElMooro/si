@@ -1,0 +1,34 @@
+{
+  "started": "2026-05-07T09:54:21.372321+00:00",
+  "sprint5": {
+    "lambda": {
+      "name": "justhodl-sector-tilt",
+      "exists": true,
+      "runtime": "python3.12",
+      "timeout": 30,
+      "memory": 128,
+      "last_modified": "2026-05-07T09:49:16.418+0000",
+      "state": "Active"
+    },
+    "eb_rules": {},
+    "s3_output": {
+      "exists": true,
+      "size_kb": 7.6,
+      "last_modified": "2026-05-07T09:49:27+00:00",
+      "age_hours": 0.1
+    },
+    "sample": "{\n  \"schema_version\": \"1.0\",\n  \"method\": \"macro_regime_to_sector_tilt_v1\",\n  \"as_of\": \"2026-05-07T09:49:26+00:00\",\n  \"regime\": \"SLOWING\",\n  \"regime_raw\": \"SLOWING\",\n  \"regime_rationale\": \"Defensives overweight \\u2014 XLP, XLU, XLV outperform as growth deteriorates. Cyclicals (XLY, XLB, XLI) underperform as earnings get cut.\",\n  \"input_data_age\": {\n    \"macro_nowcast\": \"2026-05-07T06:33:04+00:00\",\n    \"sector_rotation\": \"2026-05-07T07:24:13.623243+00:00\"\n  },\n  \"tilts\": [\n    {\n      \"ticker\": \"XLP\",\n      \"name\": \"Consumer Staples\",\n      \"emoji\": \"\\ud83d\\uded2\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": 2,\n      \"regime_tilt_label\": \"STRONG OVERWEIGHT\",\n      \"current_state\": \"LAGGING\",\n      \"rs_20d\": -6.789,\n      \"rs_63d\": -10.104,\n      \"last_close\": 84.24,\n      \"flow_z\": null,\n      \"flow_signal\": null,\n      \"momentum_quintile\": 0,\n      \"alignment\": \"MISALIGNED\",\n      \"implication\": \"BUY_OPPORTUNITY\",\n      \"urgency\": \"HIGH\",\n      \"rationale\": \"Regime (SLOWING) calls for STRONG OVERWEIGHT on Consumer Staples (XLP), but current 20d RS is -6.8% (LAGGING). Misalignment = mean-reversion entry. The macro tailwind hasn't been priced in yet.\"\n    },\n    {\n      \"ticker\": \"XLU\",\n      \"name\": \"Utilities\",\n      \"emoji\": \"\\ud83d\\udca1\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": 2,\n      \"regime_tilt_label\": \"STRONG OVERWEIGHT\",\n      \"current_state\": \"LAGGING\",\n      \"rs_20d\": -10.84,\n      \"rs_63d\": -0.838,\n      \"last_close\": 45.71,\n      \"flow_z\": null,\n      \"flow_signal\": null,\n      \"momentum_quintile\": 3,\n      \"alignment\": \"MISALIGNED\",\n      \"implication\": \"BUY_OPPORTUNITY\",\n      \"urgency\": \"HIGH\",\n      \"rationale\": \"Regime (SLOWING) calls for STRONG OVERWEIGHT on Utilities (XLU), but current 20d RS is -10.8% (LAGGING). Misalignment = mean-reversion entry. The macro tailwind hasn't been priced in yet.\"\n    },\n    {\n      \"ticker\": \"XLV\",\n      \"name\": \"Healthcare\",\n      \"emoji\": \"\\u2695\\ufe0f\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": 2,\n      \"regime_tilt_label\": \"STRONG OVERWEIGHT\",\n      \"current_state\": \"LAGGING\",\n      \"rs_20d\": -11.406,\n      \"rs_63d\": -13.756,\n      \"last_close\": 145.4,\n      \"flow_z\": null,\n      \"flow_signal\": null,\n      \"momentum_quintile\": 0,\n      \"alignment\": \"MISALIGNED\",\n      \"implication\": \"BUY_OPPORTUNITY\",\n      \"urgency\": \"HIGH\",\n      \"rationale\": \"Regime (SLOWING) calls for STRONG OVERWEIGHT on Healthcare (XLV), but current 20d RS is -11.4% (LAGGING). Misalignment = mean-reversion entry. The macro tailwind hasn't been priced in yet.\"\n    },\n    {\n      \"ticker\": \"XLB\",\n      \"name\": \"Materials\",\n      \"emoji\": \"\\u26cf\\ufe0f\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": -2,\n      \"regime_tilt_label\": \"STRONG UNDERWEIGHT\",\n      \"current_state\": \"LAGGING\",\n      \"rs_20d\": -7.278,\n      \"rs_63d\": -5.941,\n      \"last_close\": 52.41,\n      \"flow_z\": null,\n      \"flow_signal\": null,\n      \"momentum_quintile\": 2,\n      \"alignment\": \"ALIGNED\",\n      \"implication\": \"CONFIRMED_AVOID\",\n      \"urgency\": \"MEDIUM\",\n      \"rationale\": \"Regime (SLOWING) and current momentum both negative on Materials (RS -7.3%). Stay underweight or short.\"\n    },\n    {\n      \"ticker\": \"XLF\",\n      \"name\": \"Financials\",\n      \"emoji\": \"\\ud83c\\udfe6\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": -1,\n      \"regime_tilt_label\": \"UNDERWEIGHT\",\n      \"current_state\": \"LAGGING\",\n      \"rs_20d\": -7.303,\n      \"rs_63d\": -10.872,\n      \"last_close\": 51.84,\n      \"flow_z\": null,\n      \"flow_signal\": null,\n      \"momentum_quintile\": 0,\n      \"alignment\": \"ALIGNED\",\n      \"implication\": \"CONFIRMED_AVOID\",\n      \"urgency\": \"MEDIUM\",\n      \"rationale\": \"Regime (SLOWING) and current momentum both negative on Financials (RS -7.3%). Stay underweight or short.\"\n    },\n    {\n      \"ticker\": \"XLE\",\n      \"name\": \"Energy\",\n      \"emoji\": \"\\u26fd\",\n      \"regime\": \"SLOWING\",\n      \"regime_tilt_score\": -1,\n      \"regime_tilt_label\": \"UNDERWEIGHT\",\n      \"current_state\": \"FATI\u2026"
+  },
+  "sprint6": {
+    "lambda": {
+      "name": "justhodl-pairs-scanner",
+      "exists": false,
+      "err": "ResourceNotFoundException"
+    },
+    "eb_rules": {},
+    "s3_output": {
+      "exists": false,
+      "err": "404"
+    }
+  }
+}
