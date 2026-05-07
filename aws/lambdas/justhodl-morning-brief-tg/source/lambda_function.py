@@ -87,6 +87,9 @@ def build_brief():
     portfolio = fetch_json("portfolio/signal-portfolio-state.json") or {}
     corr = fetch_json("data/correlation-surface.json") or {}
     changed = fetch_json("data/whats-changed.json") or {}
+    # Phase C: divergence v2.5 + regime-conditional interpretation
+    divergence_v2 = fetch_json("data/divergence-v2.json") or {}
+    divergence_interp = fetch_json("data/divergence-interpreted.json") or {}
 
     lines = []
     lines.append(f"*🌅 JustHodl Morning Brief — {now.strftime('%Y-%m-%d')}*")
@@ -147,6 +150,77 @@ def build_brief():
                 f"  macro\\_regime=`{md_escape(corr.get('macro_regime'))}` "
                 f"breaks=`{nb}` decouplings=`{nd}`"
             )
+
+    # ── Phase C: Divergence Engine v2.5 (cross-asset + crisis-leading) ──
+    # Only show this section if there are flagged or extreme divergences.
+    div_n_extreme = divergence_v2.get("n_extreme") or 0
+    div_n_flagged = divergence_v2.get("n_flagged") or 0
+    div_composite = divergence_v2.get("composite_divergence_index") or 0
+    if div_n_extreme > 0 or div_n_flagged > 0 or div_composite >= 25:
+        lines.append("*🚨 Divergence v2\\.5* \\(70 cross\\-asset pairs\\)")
+        # Composite index header
+        idx_marker = "🔴" if div_composite >= 50 else ("🟠" if div_composite >= 30 else "🟡")
+        lines.append(
+            f"  {idx_marker} composite=`{fmt_num(div_composite, 1)}/100`  "
+            f"extreme=`{div_n_extreme}`  flagged=`{div_n_flagged}`"
+        )
+
+        # Top 3 dislocations sorted by abs(z)
+        all_rels = divergence_v2.get("all_relationships") or []
+        dislocations = [r for r in all_rels
+                        if r.get("status") in ("flagged", "extreme")]
+        dislocations.sort(key=lambda x: abs(x.get("divergence_z") or 0), reverse=True)
+        if dislocations:
+            for r in dislocations[:3]:
+                z = r.get("divergence_z")
+                cat = r.get("category", "?")
+                name = (r.get("name") or "?")[:50]
+                icon = "⚡" if r.get("status") == "extreme" else "⚠️"
+                lines.append(
+                    f"    {icon} `{md_escape(name)}` z=`{fmt_num(z, 2, sign=True)}σ` "
+                    f"\\[{md_escape(cat)}\\]"
+                )
+
+        # Claude regime-aware interpretation snippet (high-conviction line only)
+        if divergence_interp.get("interpretation"):
+            interp = divergence_interp["interpretation"]
+            # Extract the high-conviction call line — typically right after "HIGH-CONVICTION CALL"
+            # Use a robust pattern with fallbacks
+            call_line = ""
+            for marker in ["HIGH-CONVICTION CALL", "**HIGH-CONVICTION CALL", "HIGH CONVICTION CALL"]:
+                idx = interp.find(marker)
+                if idx >= 0:
+                    # Take up to 220 chars after the marker, stop at first ##/newline-blank
+                    snippet = interp[idx + len(marker):idx + len(marker) + 350]
+                    # Find first non-whitespace line of substance
+                    for raw_line in snippet.split("\n"):
+                        cleaned = raw_line.strip().lstrip("*").lstrip(":").strip()
+                        if cleaned and len(cleaned) > 10 and not cleaned.startswith("#"):
+                            call_line = cleaned[:200]
+                            break
+                    if call_line:
+                        break
+
+            confidence = ""
+            for marker in ["CONFIDENCE:", "Confidence:", "**CONFIDENCE"]:
+                idx = interp.find(marker)
+                if idx >= 0:
+                    snippet = interp[idx:idx + 50]
+                    import re
+                    m = re.search(r"(\d+(?:\.\d+)?)/10", snippet)
+                    if m:
+                        confidence = m.group(1)
+                        break
+
+            if call_line:
+                lines.append(f"  💡 Claude: {md_escape(call_line)}")
+            if confidence:
+                lines.append(f"  Confidence: `{md_escape(confidence)}/10`")
+
+        # Alert reasons (if any triggered last interpretation)
+        alert_reasons = divergence_interp.get("alert_reasons") or []
+        if alert_reasons:
+            lines.append(f"  📍 Alerts: `{len(alert_reasons)}` triggered")
 
     # Paper portfolio
     if portfolio:
