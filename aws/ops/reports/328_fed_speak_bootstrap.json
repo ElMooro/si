@@ -1,0 +1,59 @@
+{
+  "started": "2026-05-07T11:48:21.913496+00:00",
+  "anthropic_key_present": true,
+  "deploy": {
+    "action": "create",
+    "zip_kb": 4.9
+  },
+  "rule": {
+    "rule": "fed-speak-daily",
+    "schedule": "cron(15 11 * * ? *)"
+  },
+  "smoke_test": {
+    "status": 200,
+    "function_error": null,
+    "duration_s": 11.8,
+    "response": {
+      "statusCode": 200,
+      "body": "{\"ok\": true, \"n_30d\": 6, \"n_new_classified\": 6, \"avg_sentiment\": 0.83, \"duration_s\": 10.87}"
+    },
+    "s3_size_kb": 5.8,
+    "n_speeches_30d": 6,
+    "n_new_classified": 6,
+    "aggregate": {
+      "avg_sentiment": 0.83,
+      "hawkish_count": 1,
+      "dovish_count": 0,
+      "neutral_count": 5,
+      "interpretation": "FED NEUTRAL / DATA DEPENDENT"
+    },
+    "by_speaker_n": 1,
+    "timeline_first_3": [
+      {
+        "speaker": "",
+        "title": "Bowman, A Coordinated Approach to Consumer Fraud Protection",
+        "date": "2026-05-05",
+        "score": 0,
+        "classification": "NEUTRAL",
+        "rationale": "Speech focuses on consumer protection and fraud prevention rather than monetary policy stance, making it non-substantive"
+      },
+      {
+        "speaker": "",
+        "title": "Bowman, Artificial Intelligence in the Financial System",
+        "date": "2026-05-01",
+        "score": 0,
+        "classification": "NEUTRAL",
+        "rationale": "Speech focuses on AI's implications for financial system stability and risk management rather than monetary policy stanc"
+      },
+      {
+        "speaker": "",
+        "title": "Waller, Modernizing Federal Reserve Operations in the 21st Century",
+        "date": "2026-04-21",
+        "score": 0,
+        "classification": "NEUTRAL",
+        "rationale": "Speech title and metadata indicate focus on operational modernization rather than monetary policy stance or economic con"
+      }
+    ]
+  },
+  "duration_s": 24.4
+}
