@@ -90,6 +90,9 @@ def build_brief():
     # Phase C: divergence v2.5 + regime-conditional interpretation
     divergence_v2 = fetch_json("data/divergence-v2.json") or {}
     divergence_interp = fetch_json("data/divergence-interpreted.json") or {}
+    # Phase D: sector tilt + pairs scanner (sprints 5+6)
+    sector_tilt = fetch_json("data/sector-tilt.json") or {}
+    pairs_scan = fetch_json("data/pairs-scanner.json") or {}
 
     lines = []
     lines.append(f"*🌅 JustHodl Morning Brief — {now.strftime('%Y-%m-%d')}*")
@@ -221,6 +224,75 @@ def build_brief():
         alert_reasons = divergence_interp.get("alert_reasons") or []
         if alert_reasons:
             lines.append(f"  📍 Alerts: `{len(alert_reasons)}` triggered")
+
+    # ── Phase D / Sprint 5: Sector Tilt (regime → 11 SPDR overweights) ──
+    # Only show if there are STRONG OVERWEIGHT or STRONG UNDERWEIGHT calls,
+    # OR any MISALIGNED tilts (the high-conviction mean-reversion entries).
+    if sector_tilt.get("tilts"):
+        st_regime = sector_tilt.get("regime", "—")
+        tilts = sector_tilt.get("tilts") or []
+        # MISALIGNED tilts where macro regime calls for OW but sector is LAGGING
+        # = highest-conviction mean-reversion BUY_OPPORTUNITY
+        misaligned_buy = [
+            t for t in tilts
+            if t.get("alignment") == "MISALIGNED"
+            and t.get("implication") == "BUY_OPPORTUNITY"
+            and t.get("urgency") == "HIGH"
+        ]
+        # Strong overweights/underweights regardless of alignment
+        strong_ow = [t for t in tilts if (t.get("regime_tilt_score") or 0) >= 2]
+        strong_uw = [t for t in tilts if (t.get("regime_tilt_score") or 0) <= -2]
+
+        if misaligned_buy or strong_ow or strong_uw:
+            lines.append(f"*🎯 Sector Tilt* \\(regime: `{md_escape(st_regime)}`\\)")
+            if misaligned_buy:
+                lines.append(f"  📈 *MISALIGNED BUY OPPORTUNITY* \\({len(misaligned_buy)}\\) \\— OW regime call but currently lagging:")
+                for t in misaligned_buy[:3]:
+                    rs = t.get("rs_20d")
+                    rs_str = f"{rs:+.1f}%" if isinstance(rs, (int, float)) else "?"
+                    lines.append(
+                        f"    • `{md_escape(t.get('ticker',''))}` {md_escape(t.get('name',''))} "
+                        f"\\(20d RS=`{md_escape(rs_str)}`\\)"
+                    )
+            if strong_ow:
+                ow_tickers = ", ".join(f"`{md_escape(t.get('ticker',''))}`" for t in strong_ow[:5])
+                lines.append(f"  ⬆ Strong OW: {ow_tickers}")
+            if strong_uw:
+                uw_tickers = ", ".join(f"`{md_escape(t.get('ticker',''))}`" for t in strong_uw[:5])
+                lines.append(f"  ⬇ Strong UW: {uw_tickers}")
+
+    # ── Phase D / Sprint 6: Pairs Trading Scanner (only EXTREME / EXTENDED) ──
+    if pairs_scan.get("pairs"):
+        pairs_list = pairs_scan.get("pairs") or []
+        extreme_pairs = [p for p in pairs_list if p.get("state") == "EXTREME"]
+        extended_pairs = [p for p in pairs_list if p.get("state") == "EXTENDED"]
+        # Only emit section if there's something tradeable to flag
+        if extreme_pairs or extended_pairs:
+            n_ext = len(extreme_pairs) + len(extended_pairs)
+            lines.append(
+                f"*📐 Pairs Trading* \\(`{n_ext}` actionable / `{len(pairs_list)}` total\\)"
+            )
+            # Show top 3 EXTREME first, then top 2 EXTENDED if room
+            top_pairs = sorted(
+                extreme_pairs + extended_pairs,
+                key=lambda p: abs(p.get("spread_z") or 0),
+                reverse=True
+            )[:3]
+            for p in top_pairs:
+                z = p.get("spread_z")
+                z_str = f"{z:+.2f}σ" if isinstance(z, (int, float)) else "?"
+                rr = p.get("rr_estimate")
+                rr_str = f"{rr:.1f}:1" if isinstance(rr, (int, float)) else "?"
+                hl = p.get("half_life_days")
+                hl_str = f"{int(hl)}d" if isinstance(hl, (int, float)) else "?"
+                state_emoji = "⚡" if p.get("state") == "EXTREME" else "⚠️"
+                lines.append(
+                    f"  {state_emoji} `{md_escape(p.get('name',''))}` "
+                    f"z=`{md_escape(z_str)}` R:R=`{md_escape(rr_str)}` half\\-life=`{md_escape(hl_str)}`"
+                )
+                # Trade direction on next line for readability
+                trade = p.get("trade") or "—"
+                lines.append(f"      📍 _Trade:_ {md_escape(trade)}")
 
     # Paper portfolio
     if portfolio:
