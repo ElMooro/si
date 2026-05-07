@@ -1,0 +1,50 @@
+{
+  "started": "2026-05-07T09:56:43.420443+00:00",
+  "sprint5_fix": {
+    "lambda_name": "justhodl-sector-tilt",
+    "lambda_state": "Active",
+    "existing_rules_before": [
+      {
+        "name": "sector-tilt-4hourly",
+        "schedule": "cron(45 0/4 * * ? *)",
+        "state": "ENABLED"
+      }
+    ],
+    "action": "rules_already_exist",
+    "rules": [
+      {
+        "name": "sector-tilt-4hourly",
+        "schedule": "cron(45 0/4 * * ? *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "sprint6_deploy": {
+    "lambda_name": "justhodl-pairs-scanner",
+    "zip_size_kb": 5.9,
+    "action": "update_existing",
+    "rule_result": {
+      "rule": "pairs-scanner-6hourly",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    "smoke_invoke": {
+      "status_code": 200,
+      "function_error": null,
+      "duration_s": 3.8,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"n_pairs\": 37, \"n_analyzed\": 37, \"n_extreme\": 1, \"n_extended\": 9, \"top_5\": [\"Meta vs Google\", \"Microsoft vs Google\", \"Financials vs S&P\", \"Nasdaq 100 vs S&P 500\", \"Visa vs Mastercard\"], \"duration_s\": 2.82}"
+      }
+    },
+    "s3_output": {
+      "size_kb": 29.6,
+      "n_pairs": 37,
+      "n_extreme": 1,
+      "n_extended": 9,
+      "categories": []
+    },
+    "top_5_stretched": []
+  },
+  "duration_s": 21.1
+}
