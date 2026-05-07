@@ -1,0 +1,30 @@
+{
+  "as_of": "2026-05-07T15:26:51.650011+00:00",
+  "tests": {
+    "v3_snapshot_options_SPY": {
+      "err": "HTTP 403",
+      "body": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"692fbf4fc3e79ccc3c33786b49c474a3\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    "v3_reference_contracts": {
+      "count": 10,
+      "first_record": {
+        "cfi": "OCASPS",
+        "contract_type": "call",
+        "exercise_style": "american",
+        "expiration_date": "2026-05-29",
+        "primary_exchange": "BATO",
+        "shares_per_contract": 100,
+        "strike_price": 435,
+        "ticker": "O:SPY260529C00435000",
+        "underlying_ticker": "SPY"
+      }
+    },
+    "v3_snapshot_no_filter": {
+      "status": null,
+      "count": 0,
+      "first_iv": null,
+      "first_greeks_keys": null,
+      "underlying": null
+    }
+  }
+}
