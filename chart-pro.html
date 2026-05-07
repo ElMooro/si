@@ -240,11 +240,31 @@
   </div>
 
 <script>
-// Same-origin via your existing CF Worker (api.justhodl.ai → /agent/chart-data).
-// Direct Lambda URLs are blocked by some adblockers/ISPs; routing through your
-// own domain solves it.
-const CHART_API = 'https://api.justhodl.ai/agent/chart-data';
-const CATALOG_URL = CHART_API + '?catalog=1&_v=3';
+// Static catalog embedded — no fetch needed for catalog (avoids any
+// browser-side blocking of cross-origin fetches). Series data fetches
+// try CF Worker proxy first (same-origin), fall back to direct Lambda URL.
+const CHART_API_PRIMARY = 'https://api.justhodl.ai/agent/chart-data';
+const CHART_API_FALLBACK = 'https://zsgb72zf4ayw6ajw7phbyq6wzq0haobh.lambda-url.us-east-1.on.aws/';
+
+const STATIC_CATALOG = {
+  "rates_curves": {"label": "Rates & Yield Curve", "series": [["DGS10", "10-Year Treasury Yield", "FRED"], ["DGS2", "2-Year Treasury Yield", "FRED"], ["DGS3MO", "3-Month Treasury Yield", "FRED"], ["DGS30", "30-Year Treasury Yield", "FRED"], ["T10Y2Y", "10Y-2Y Curve", "FRED"], ["T10Y3M", "10Y-3M Curve", "FRED"], ["DFF", "Effective Federal Funds Rate", "FRED"], ["DGS5", "5-Year Treasury", "FRED"], ["DGS1", "1-Year Treasury", "FRED"]]},
+  "credit": {"label": "Credit Spreads", "series": [["BAMLH0A0HYM2", "ICE BofA HY Composite Spread", "FRED"], ["BAMLC0A0CM", "ICE BofA IG Composite Spread", "FRED"], ["BAMLH0A1HYBB", "ICE BofA HY BB", "FRED"], ["BAMLH0A2HYB", "ICE BofA HY B", "FRED"], ["BAMLH0A3HYC", "ICE BofA HY CCC", "FRED"], ["BAMLC0A1CAAA", "ICE BofA IG AAA", "FRED"], ["BAMLC0A4CBBB", "ICE BofA IG BBB", "FRED"], ["BAMLEMCBPIOAS", "ICE BofA EM Corporate Spread", "FRED"]]},
+  "equity_indices": {"label": "Equity Indices & ETFs", "series": [["SPY", "S&P 500 ETF", "Polygon"], ["QQQ", "Nasdaq 100 ETF", "Polygon"], ["IWM", "Russell 2000 ETF", "Polygon"], ["DIA", "Dow Jones ETF", "Polygon"], ["XLF", "Financial Sector ETF", "Polygon"], ["XLE", "Energy Sector ETF", "Polygon"], ["XLK", "Technology Sector ETF", "Polygon"], ["GLD", "Gold ETF", "Polygon"], ["TLT", "20Y+ Treasury ETF", "Polygon"], ["VXX", "VIX Short-Term Futures ETF", "Polygon"], ["IBIT", "Bitcoin ETF", "Polygon"]]},
+  "volatility": {"label": "Volatility Indices", "series": [["VIXCLS", "VIX (S&P 500 IV)", "FRED"], ["VXNCLS", "VXN (Nasdaq IV)", "FRED"], ["RVXCLS", "RVX (Russell 2000 IV)", "FRED"], ["VXDCLS", "VXD (Dow IV)", "FRED"], ["GVZCLS", "GVZ (Gold IV)", "FRED"], ["OVXCLS", "OVX (Oil IV)", "FRED"], ["VXVCLS", "3M VIX Term Structure", "FRED"]]},
+  "dollar": {"label": "Dollar Indices", "series": [["DTWEXBGS", "Broad Dollar (Nominal)", "FRED"], ["RTWEXBGS", "Broad Dollar (Real)", "FRED"], ["DTWEXEMEGS", "EM Dollar (Nominal)", "FRED"], ["RTWEXEMEGS", "EM Dollar (Real)", "FRED"], ["DTWEXAFEGS", "AFE Dollar (Nominal)", "FRED"], ["RTWEXAFEGS", "AFE Dollar (Real)", "FRED"]]},
+  "liquidity": {"label": "Fed Liquidity & Repo", "series": [["WALCL", "Fed Balance Sheet Total", "FRED"], ["RRPONTSYD", "Reverse Repo (RRP)", "FRED"], ["WTREGEN", "Treasury General Account (TGA)", "FRED"], ["SOFR", "SOFR Overnight Rate", "FRED"], ["EFFR", "Effective Fed Funds Rate", "FRED"], ["RPONTSYD", "Repo Operations", "FRED"], ["SWP1690", "Fed Liquidity Swaps 16-90d", "FRED"], ["STLFSI4", "St Louis Fed FSI v4", "FRED"], ["NFCI", "Chicago Fed NFCI", "FRED"]]},
+  "european_stress": {"label": "ECB Stress (CISS / SovCISS)", "series": [["ciss_us", "ECB CISS US", "ECB"], ["ciss_ea", "ECB CISS Euro Area", "ECB"], ["ciss_cn", "ECB CISS China", "ECB"], ["ciss_de", "ECB CISS Germany", "ECB"], ["ciss_fr", "ECB CISS France", "ECB"], ["ciss_it", "ECB CISS Italy", "ECB"], ["ciss_gb", "ECB CISS UK", "ECB"], ["sovciss_de", "SovCISS Germany", "ECB"], ["sovciss_fr", "SovCISS France", "ECB"], ["sovciss_it", "SovCISS Italy", "ECB"], ["ilm_claims_fx", "ECB Claims in Foreign Currency", "ECB"], ["ilm_liab_eur", "ECB Liabilities in EUR (non-EA)", "ECB"]]},
+  "ofr_primary_dealer": {"label": "OFR Primary Dealer Stats", "series": [["NYPD-PD_AFtD_TOT-A", "PD Aggregate Fails to Deliver: Total", "OFR"], ["NYPD-PD_AFtR_T-A", "PD Aggregate Fails to Receive: Treasury", "OFR"]]},
+  "labor": {"label": "Labor Market", "series": [["UNRATE", "Unemployment Rate", "FRED"], ["ICSA", "Initial Jobless Claims", "FRED"], ["PAYEMS", "Total Nonfarm Payrolls", "FRED"], ["UEMP27OV", "Unemployed 27+ Weeks", "FRED"], ["LNS13025699", "Job Losers Not on Layoff", "FRED"], ["TEMPHELPS", "Temp Help Services Employment", "FRED"], ["USPBS", "Professional/Business Services", "FRED"], ["JTSJOL", "Job Openings (JOLTS)", "FRED"], ["JTSQUR", "Quits Rate", "FRED"]]},
+  "inflation": {"label": "Inflation", "series": [["CPIAUCSL", "CPI All Items", "FRED"], ["CPILFESL", "Core CPI", "FRED"], ["PCE", "PCE", "FRED"], ["PCEPILFE", "Core PCE", "FRED"], ["T5YIE", "5-Year Breakeven Inflation", "FRED"], ["T10YIE", "10-Year Breakeven Inflation", "FRED"]]},
+  "macro": {"label": "Macro / Activity", "series": [["GDP", "Real GDP", "FRED"], ["INDPRO", "Industrial Production", "FRED"], ["MCUMFN", "Manufacturing Capacity Utilization", "FRED"], ["HOUST", "Housing Starts", "FRED"], ["MORTGAGE30US", "30-Year Mortgage Rate", "FRED"], ["RSAFS", "Retail Sales", "FRED"], ["BOGZ1FL663067003Q", "Broker-Dealer Margin Loans", "FRED"]]},
+  "internal": {"label": "JustHodl Composites", "series": [["khalid_index", "Khalid Index (Composite)", "Internal"], ["macro_nowcast", "Macro Nowcast Score", "Internal"], ["eurodollar_stress", "Eurodollar Stress Composite", "Internal"], ["plumbing_stress", "Plumbing & Stress Composite", "Internal"], ["auction_crisis", "Treasury Auction Crisis Score", "Internal"]]},
+  "recession": {"label": "Recession Indicator", "series": [["USREC", "NBER Recession Indicator", "FRED"]]}
+};
+
+// Track which API endpoint actually works (set after first successful series fetch)
+let WORKING_API = null;
+
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
 
 console.log('%c[Chart Pro v3] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
@@ -324,26 +344,36 @@ function initChart() {
   });
 }
 
-// ───── Catalog rendering ─────
-async function loadCatalog() {
-  try {
-    const r = await fetch(CATALOG_URL);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    STATE.catalog = d.catalog;
-    renderCatalog();
-  } catch (e) {
-    const msg = e.message || String(e);
-    document.getElementById('catalogHost').innerHTML =
-      `<div style="padding:14px;color:var(--c4);font-size:11px;line-height:1.5">
-        <strong>Catalog load failed</strong><br>
-        Error: ${msg}<br><br>
-        <span style="color:var(--text-dim)">URL: ${CATALOG_URL}</span><br>
-        <span style="color:var(--text-dim)">Open DevTools → Network → reload to see exact error.</span><br><br>
-        <button class="btn" onclick="loadCatalog()">↻ Retry</button>
-      </div>`;
-    console.error('Catalog fetch:', e);
+// ───── Catalog rendering (static, no network) ─────
+function loadCatalog() {
+  STATE.catalog = STATIC_CATALOG;
+  renderCatalog();
+}
+
+// ───── Series fetch with smart fallback ─────
+async function tryFetch(url) {
+  const r = await fetch(url, { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+async function fetchSeriesViaApi(qs) {
+  const errors = [];
+  // 1. Try whichever API has worked before (sticky)
+  const candidates = WORKING_API
+    ? [WORKING_API, WORKING_API === CHART_API_PRIMARY ? CHART_API_FALLBACK : CHART_API_PRIMARY]
+    : [CHART_API_PRIMARY, CHART_API_FALLBACK];
+  for (const base of candidates) {
+    try {
+      const url = base + (base.endsWith('/') ? '' : '') + '?' + qs;
+      const d = await tryFetch(url);
+      WORKING_API = base;
+      return d;
+    } catch (e) {
+      errors.push(`${base.split('//')[1].split('/')[0]}: ${e.message}`);
+    }
   }
+  throw new Error('Both APIs failed — ' + errors.join(' | '));
 }
 
 function renderCatalog(filter = '') {
@@ -399,19 +429,21 @@ async function toggleSeries(id, label, source) {
 async function fetchSeriesData(id, source) {
   const fromDate = computeFromDate(STATE.range);
   const kind = sourceToKind(source);
-  const url = `${CHART_API}?series=${encodeURIComponent(id)}&kind=${kind}` +
+  const qs = `series=${encodeURIComponent(id)}&kind=${kind}` +
               (fromDate ? `&from=${fromDate}` : '');
   try {
     showLoader(true);
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
+    const d = await fetchSeriesViaApi(qs);
     const entry = STATE.activeSeries.find(s => s.id === id);
     if (entry) entry.data = d.data || [];
+    document.getElementById('statusInfo').textContent =
+      `Connected via ${WORKING_API.includes('justhodl.ai') ? 'CF Worker (same-origin)' : 'direct Lambda URL'}`;
   } catch (e) {
     console.error('fetch fail', id, e);
     const entry = STATE.activeSeries.find(s => s.id === id);
     if (entry) entry.data = [];
+    document.getElementById('statusInfo').innerHTML =
+      `<span style="color:var(--c4)">Series fetch failed: ${e.message}</span>`;
   } finally {
     showLoader(false);
   }
@@ -555,8 +587,7 @@ function normalize(data, mode) {
 async function loadRecessionData() {
   if (STATE.recessionData) return;
   try {
-    const r = await fetch(`${CHART_API}?series=USREC&kind=fred&from=1950-01-01`);
-    const d = await r.json();
+    const d = await fetchSeriesViaApi('series=USREC&kind=fred&from=1950-01-01');
     STATE.recessionData = (d.data || []).filter(p => p.value === 1);
   } catch (e) {
     STATE.recessionData = [];
@@ -673,7 +704,7 @@ function exportCSV() {
 // ───── Bootstrap ─────
 async function init() {
   initChart();
-  await loadCatalog();
+  loadCatalog();  // Static — no network
   await loadRecessionData();
   // Auto-load first preset
   loadPreset(0);
