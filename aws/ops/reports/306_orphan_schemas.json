@@ -1,0 +1,962 @@
+{
+  "started": "2026-05-07T09:25:59.680362+00:00",
+  "files": {
+    "data/theme-tiers.json": {
+      "size_kb": 330.2,
+      "last_modified": "2026-05-07T08:02:05+00:00",
+      "schema": {
+        "schema_version": "1.0",
+        "method": "theme_tier_classifier_v1",
+        "generated_at": "2026-05-07T08:02:04.263762+00:00",
+        "duration_s": "98.1",
+        "fetch_stats": {
+          "n_unique_tickers": "406",
+          "n_fundamentals_ok": "310",
+          "n_fundamentals_fail": "96",
+          "fetch_duration_s": "98.0"
+        },
+        "input_phases": "<list of 4 str>",
+        "n_themes_classified": "57",
+        "summary": {
+          "n_total_classifications": "443",
+          "top_asymmetric_leaderboard": [
+            {
+              "ticker": "<str>",
+              "name": "<str>",
+              "theme_etf": "<str>",
+              "theme_name": "<str>",
+              "theme_phase": "<str>",
+              "tier": "<int>",
+              "asymmetry_score": "<float>",
+              "flag": "<str>",
+              "mcap_to_rev": "<float>",
+              "p_s": "<float>"
+            },
+            "... (30 items total)"
+          ],
+          "tier2_leaderboard": [
+            {
+              "ticker": "<str>",
+              "name": "<str>",
+              "theme_etf": "<str>",
+              "theme_name": "<str>",
+              "theme_phase": "<str>",
+              "tier": "<int>",
+              "asymmetry_score": "<float>",
+              "flag": "<str>",
+              "mcap_to_rev": "<float>",
+              "p_s": "<float>"
+            },
+            "... (25 items total)"
+          ],
+          "mu_grade_leaderboard": [
+            {
+              "ticker": "<str>",
+              "name": "<str>",
+              "theme_etf": "<str>",
+              "theme_name": "<str>",
+              "theme_phase": "<str>",
+              "tier": "<int>",
+              "asymmetry_score": "<float>",
+              "flag": "<str>",
+              "mcap_to_rev": "<float>",
+              "p_s": "<float>"
+            },
+            "... (20 items total)"
+          ],
+          "n_deep_asymmetry": "38",
+          "n_asymmetric": "174"
+        },
+        "themes": {
+          "SOXX": {
+            "etf": "SOXX",
+            "name": "PHLX Semiconductor",
+            "category": "tech_semis",
+            "phase": "EXTENDED",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "NVDA": "<dict>",
+              "AVGO": "<dict>",
+              "AMD": "<dict>",
+              "QCOM": "<dict>",
+              "AMAT": "<dict>",
+              "TSM": "<dict>",
+              "ASML": "<dict>",
+              "INTC": "<dict>",
+              "TXN": "<dict>"
+            },
+            "n_classified": "9"
+          },
+          "REMX": {
+            "etf": "REMX",
+            "name": "Rare Earth Metals",
+            "category": "materials_rare",
+            "phase": "EXTENDED",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "MP": "<dict>",
+              "TROX": "<dict>",
+              "SQM": "<dict>",
+              "CSTM": "<dict>",
+              "REEMF": "<dict>"
+            },
+            "n_classified": "5"
+          },
+          "AIRR": {
+            "etf": "AIRR",
+            "name": "Industrial Renaissance",
+            "category": "industrials_resh",
+            "phase": "EXTENDED",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "TXN": "<dict>",
+              "WAB": "<dict>",
+              "ROK": "<dict>",
+              "EME": "<dict>",
+              "CNH": "<dict>",
+              "MLM": "<dict>",
+              "URI": "<dict>",
+              "NSC": "<dict>",
+              "GLW": "<dict>"
+            },
+            "n_classified": "9"
+          },
+          "COPX": {
+            "etf": "COPX",
+            "name": "Copper Miners",
+            "category": "materials_copper",
+            "phase": "EXTENDED",
+            "phase_score": "90",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "SCCO": "<dict>",
+              "BHP": "<dict>",
+              "TECK": "<dict>",
+              "HBM": "<dict>",
+              "ERO": "<dict>",
+              "TRQ": "<dict>"
+            },
+            "n_classified": "6"
+          },
+          "SLX": {
+            "etf": "SLX",
+            "name": "Steel",
+            "category": "materials_steel",
+            "phase": "EXTENDED",
+            "phase_score": "90",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "NUE": "<dict>",
+              "CLF": "<dict>",
+              "STLD": "<dict>",
+              "MT": "<dict>",
+              "TX": "<dict>",
+              "TS": "<dict>",
+              "ATI": "<dict>"
+            },
+            "n_classified": "7"
+          },
+          "PICK": {
+            "etf": "PICK",
+            "name": "Mining (broad)",
+            "category": "materials_mining",
+            "phase": "EXTENDED",
+            "phase_score": "90",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "BHP": "<dict>",
+              "SCCO": "<dict>",
+              "NEM": "<dict>",
+              "TECK": "<dict>",
+              "AAUKF": "<dict>"
+            },
+            "n_classified": "5"
+          },
+          "OIH": {
+            "etf": "OIH",
+            "name": "Oil Services",
+            "category": "energy_services",
+            "phase": "EXTENDED",
+            "phase_score": "85",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "SLB": "<dict>",
+              "BKR": "<dict>",
+              "HAL": "<dict>",
+              "FTI": "<dict>",
+              "CHX": "<dict>",
+              "NOV": "<dict>",
+              "RES": "<dict>",
+              "WTTR": "<dict>",
+              "NESR": "<dict>"
+            },
+            "n_classified": "9"
+          },
+          "SMH": {
+            "etf": "SMH",
+            "name": "Semiconductors",
+            "category": "tech_semis",
+            "phase": "ACCELERATING",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "NVDA": "<dict>",
+              "AVGO": "<dict>",
+              "TSM": "<dict>",
+              "AMD": "<dict>",
+              "QCOM": "<dict>",
+              "ASML": "<dict>",
+              "AMAT": "<dict>",
+              "INTC": "<dict>",
+              "MU": "<dict>"
+            },
+            "n_classified": "9"
+          },
+          "LIT": {
+            "etf": "LIT",
+            "name": "Lithium & Battery",
+            "category": "materials_lithium",
+            "phase": "ACCELERATING",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "TSLA": "<dict>",
+              "SQM": "<dict>",
+              "BYDDF": "<dict>",
+              "PLL": "<dict>",
+              "LTHM": "<dict>",
+              "MP": "<dict>",
+              "RIVN": "<dict>",
+              "LAC": "<dict>"
+            },
+            "n_classified": "8"
+          },
+          "GRID": {
+            "etf": "GRID",
+            "name": "Smart Grid",
+            "category": "industrials_grid",
+            "phase": "ACCELERATING",
+            "phase_score": "100",
+            "theme_stats": {
+              "p_s_mu": "<float>",
+              "p_s_sigma": "<float>",
+              "p_e_mu": "<float>",
+              "p_e_sigma": "<float>",
+              "mcap_to_rev_median": "<float>",
+              "n_with_p_s": "<int>",
+              "n_with_p_e": "<int>",
+              "n_with_mcr": "<int>"
+            },
+            "tickers": {
+              "ETN": "<dict>",
+              "JCI": "<dict>",
+              "ABB": "<dict>",
+              "ROK": "<dict>",
+              "EMR": "<dict>",
+              "NEE": "<dict>"
+            },
+            "n_classified": "6"
+          }
+        },
+        "schema": {
+          "description": "Layer 3 of nobrainer hunter pipeline. For each detected theme in EXTENDED/ACCELE\u2026",
+          "asymmetry_score_components": {
+            "z_p_s_vs_theme": "35%",
+            "z_p_e_vs_theme": "25%",
+            "mcap_to_rev_score": "30%",
+            "fcf_yield_score": "10%"
+          },
+          "flags": {
+            "DEEP_ASYMMETRY": ">=75",
+            "ASYMMETRIC": "60-74",
+            "FAIR_VALUE": "40-59",
+            "EXPENSIVE": "<40"
+          }
+        }
+      }
+    },
+    "data/supply-inflection.json": {
+      "size_kb": 66.6,
+      "last_modified": "2026-05-07T07:00:20+00:00",
+      "schema": {
+        "schema_version": "1.0",
+        "method": "supply_inflection_scanner_v1",
+        "generated_at": "2026-05-07T07:00:19.532719+00:00",
+        "duration_s": "5.7",
+        "fetch_stats": {
+          "n_signals": "22",
+          "n_ok": "18",
+          "n_fail": "4",
+          "fetch_duration_s": "5.7"
+        },
+        "summary": {
+          "n_signals_scored": "18",
+          "n_strong_tightening": "7",
+          "n_tightening": "8",
+          "n_easing": "7",
+          "top_signals": [
+            {
+              "name": "<str>",
+              "symbol": "<str>",
+              "score": "<float>",
+              "flag": "<str>",
+              "themes": "<list>",
+              "description": "<str>"
+            },
+            "... (15 items total)"
+          ],
+          "top_inflecting_themes": [
+            {
+              "theme": "<str>",
+              "score": "<float>",
+              "n_strong": "<int>",
+              "n_tightening": "<int>"
+            },
+            "... (15 items total)"
+          ]
+        },
+        "signals": {
+          "OIL_WTI": {
+            "name": "OIL_WTI",
+            "src": "polygon",
+            "symbol": "USO",
+            "category": "commodity_energy",
+            "direction": "up_is_tight",
+            "themes": "<list of 4 str>",
+            "description": "WTI crude proxy via USO ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "28.6",
+            "flag": "EASING"
+          },
+          "COPPER": {
+            "name": "COPPER",
+            "src": "polygon",
+            "symbol": "COPX",
+            "category": "commodity_base",
+            "direction": "up_is_tight",
+            "themes": "<list of 3 str>",
+            "description": "Copper proxy via COPX miners ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "83.2",
+            "flag": "STRONG_TIGHTENING"
+          },
+          "RARE_EARTH": {
+            "name": "RARE_EARTH",
+            "src": "polygon",
+            "symbol": "REMX",
+            "category": "commodity_strategic",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Rare earth proxy via REMX (MP, TROX, ALB)",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "99.9",
+            "flag": "STRONG_TIGHTENING"
+          },
+          "GOLD": {
+            "name": "GOLD",
+            "src": "polygon",
+            "symbol": "GLD",
+            "category": "commodity_precious",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Gold spot proxy via GLD ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "35.4",
+            "flag": "NEUTRAL"
+          },
+          "OIL_BRENT": {
+            "name": "OIL_BRENT",
+            "src": "polygon",
+            "symbol": "BNO",
+            "category": "commodity_energy",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Brent crude proxy via BNO ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "28.7",
+            "flag": "EASING"
+          },
+          "LITHIUM": {
+            "name": "LITHIUM",
+            "src": "polygon",
+            "symbol": "LIT",
+            "category": "commodity_battery",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Lithium / battery proxy via LIT ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "99.9",
+            "flag": "STRONG_TIGHTENING"
+          },
+          "NATGAS": {
+            "name": "NATGAS",
+            "src": "polygon",
+            "symbol": "UNG",
+            "category": "commodity_energy",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Henry Hub natgas proxy via UNG ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "0.8",
+            "flag": "STRONG_EASING"
+          },
+          "SILVER": {
+            "name": "SILVER",
+            "src": "polygon",
+            "symbol": "SLV",
+            "category": "commodity_precious",
+            "direction": "up_is_tight",
+            "themes": "<list of 1 str>",
+            "description": "Silver spot proxy via SLV ETF",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "69.2",
+            "flag": "TIGHTENING"
+          },
+          "URANIUM": {
+            "name": "URANIUM",
+            "src": "polygon",
+            "symbol": "URA",
+            "category": "commodity_nuclear",
+            "direction": "up_is_tight",
+            "themes": "<list of 3 str>",
+            "description": "Uranium proxy via URA ETF (CCJ + DNN top weights)",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "99.6",
+            "flag": "STRONG_TIGHTENING"
+          },
+          "STEEL_BASKET": {
+            "name": "STEEL_BASKET",
+            "src": "polygon",
+            "symbol": "SLX",
+            "category": "commodity_industrial",
+            "direction": "up_is_tight",
+            "themes": "<list of 2 str>",
+            "description": "Steel proxy via SLX ETF (NUE, STLD, X)",
+            "metrics": {
+              "latest_value": "<float>",
+              "latest_date": "<str>",
+              "n_bars": "<int>",
+              "pct_change_30d": "<float>",
+              "pct_change_90d": "<float>",
+              "pct_change_180d": "<float>",
+              "pct_change_365d": "<float>",
+              "percentile_90d": "<float>",
+              "percentile_365d": "<float>",
+              "realized_vol_90d": "<float>"
+            },
+            "score": "99.9",
+            "flag": "STRONG_TIGHTENING"
+          }
+        },
+        "by_theme": {
+          "XLE": {
+            "composite_inflection_score": "25.0",
+            "max_signal_score": "28.7",
+            "avg_signal_score": "19.4",
+            "n_signals": "3",
+            "n_strong_tightening": "0",
+            "n_tightening": "0",
+            "top_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ]
+          },
+          "XOP": {
+            "composite_inflection_score": "28.7",
+            "max_signal_score": "28.7",
+            "avg_signal_score": "28.6",
+            "n_signals": "2",
+            "n_strong_tightening": "0",
+            "n_tightening": "0",
+            "top_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ]
+          },
+          "OIH": {
+            "composite_inflection_score": "28.6",
+            "max_signal_score": "28.6",
+            "avg_signal_score": "28.6",
+            "n_signals": "1",
+            "n_strong_tightening": "0",
+            "n_tightening": "0",
+            "top_signals": [
+              "<dict>",
+              "... (1 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (1 items total)"
+            ]
+          },
+          "AMLP": {
+            "composite_inflection_score": "23.0",
+            "max_signal_score": "28.6",
+            "avg_signal_score": "14.7",
+            "n_signals": "2",
+            "n_strong_tightening": "0",
+            "n_tightening": "0",
+            "top_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ]
+          },
+          "COPX": {
+            "composite_inflection_score": "83.2",
+            "max_signal_score": "83.2",
+            "avg_signal_score": "83.2",
+            "n_signals": "1",
+            "n_strong_tightening": "1",
+            "n_tightening": "1",
+            "top_signals": [
+              "<dict>",
+              "... (1 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (1 items total)"
+            ]
+          },
+          "PICK": {
+            "composite_inflection_score": "96.6",
+            "max_signal_score": "99.9",
+            "avg_signal_score": "91.6",
+            "n_signals": "2",
+            "n_strong_tightening": "2",
+            "n_tightening": "2",
+            "top_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ]
+          },
+          "GRID": {
+            "composite_inflection_score": "73.7",
+            "max_signal_score": "83.2",
+            "avg_signal_score": "59.5",
+            "n_signals": "2",
+            "n_strong_tightening": "1",
+            "n_tightening": "1",
+            "top_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ]
+          },
+          "REMX": {
+            "composite_inflection_score": "91.9",
+            "max_signal_score": "99.9",
+            "avg_signal_score": "79.9",
+            "n_signals": "3",
+            "n_strong_tightening": "2",
+            "n_tightening": "2",
+            "top_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ]
+          },
+          "ITA": {
+            "composite_inflection_score": "84.1",
+            "max_signal_score": "99.9",
+            "avg_signal_score": "60.4",
+            "n_signals": "2",
+            "n_strong_tightening": "1",
+            "n_tightening": "1",
+            "top_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (2 items total)"
+            ]
+          },
+          "GDX": {
+            "composite_inflection_score": "37.1",
+            "max_signal_score": "39.9",
+            "avg_signal_score": "32.8",
+            "n_signals": "3",
+            "n_strong_tightening": "0",
+            "n_tightening": "0",
+            "top_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ],
+            "all_signals": [
+              "<dict>",
+              "... (3 items total)"
+            ]
+          }
+        },
+        "schema": {
+          "description": "Layer 2 of nobrainer hunter pipeline. Pulls 22 hard-data inputs (commodity price\u2026",
+          "score_components": {
+            "magnitude_30d": "30%",
+            "persistence_30d_90d_180d": "25%",
+            "percentile_vs_1yr": "30%",
+            "acceleration_30d_vs_90d": "15%"
+          },
+          "flags": {
+            "STRONG_TIGHTENING": ">=75",
+            "TIGHTENING": "55-74",
+            "NEUTRAL": "35-54",
+            "EASING": "20-34",
+            "STRONG_EASING": "<20"
+          }
+        }
+      }
+    },
+    "data/pead-signals.json": {
+      "size_kb": 136.7,
+      "last_modified": "2026-05-07T08:00:18+00:00",
+      "schema": {
+        "schema_version": "1",
+        "method": "pead_detector_v1",
+        "generated_at": "2026-05-07T08:00:17+00:00",
+        "duration_s": "6.7",
+        "stats": {
+          "n_universe": "1500",
+          "n_evaluated": "139",
+          "n_no_data": "1361",
+          "n_tier_s": "31",
+          "n_tier_a": "34",
+          "n_tier_b": "20",
+          "n_pre_earnings_setups": "8",
+          "by_cap_bucket": {
+            "nano": "0",
+            "micro": "0",
+            "small": "0",
+            "mid": "0",
+            "large": "50",
+            "mega": "35"
+          }
+        },
+        "summary": {
+          "top_30_overall": [
+            {
+              "symbol": "<str>",
+              "score": "<int>",
+              "tier": "<str>",
+              "streak": "<int>",
+              "avg_beat_pct": "<float>",
+              "beat_accel": "<float>",
+              "latest_beat_pct": "<float>",
+              "days_since_earnings": "<int>",
+              "days_to_next": "<int>",
+              "drift_pct": "<float>"
+            },
+            "... (30 items total)"
+          ],
+          "tier_s": "<list of 30 str>",
+          "best_microcap": "[]",
+          "best_smallcap": "[]",
+          "pre_earnings_setups": [
+            {
+              "symbol": "<str>",
+              "score": "<float>",
+              "streak": "<int>",
+              "next_earnings": "<str>",
+              "days_to_next": "<int>"
+            },
+            "... (8 items total)"
+          ]
+        },
+        "all_qualifying": [
+          {
+            "symbol": "MU",
+            "score": "100",
+            "tier": "TIER_S_DRIFTING",
+            "flags": "<list of 7 str>",
+            "metrics": {
+              "streak": "<int>",
+              "avg_beat_pct": "<float>",
+              "beat_acceleration": "<float>",
+              "latest_beat_pct": "<float>",
+              "days_since_earnings": "<int>",
+              "days_to_next_earnings": "<int>",
+              "next_earnings_date": "<str>",
+              "post_earnings_drift_pct": "<float>",
+              "cap_bucket": "<str>",
+              "market_cap": "<int>"
+            },
+            "history": [
+              "<dict>",
+              "... (6 items total)"
+            ]
+          },
+          "... (139 items total)"
+        ]
+      },
+      "sample_of_all_qualifying": {
+        "symbol": "MU",
+        "score": 100,
+        "tier": "TIER_S_DRIFTING",
+        "flags": [
+          "STREAK_5Q+",
+          "STRONG_AVG_BEAT_15%+",
+          "BEATS_ACCELERATING_10PP+",
+          "DOUBLE_BEAT_4Q",
+          "LATEST_BEAT_30%+",
+          "PEAD_PEAK_WINDOW",
+          "DRIFT_UP_10%+"
+        ],
+        "metrics": {
+          "streak": 8,
+          "avg_beat_pct": 19.69,
+          "beat_acceleration": 14.07,
+          "latest_beat_pct": 32.75,
+          "days_since_earnings": 15,
+          "days_to_next_earnings": 47,
+          "next_earnings_date": "2026-06-24",
+          "post_earnings_drift_pct": 46.11,
+          "cap_bucket": "mega",
+          "market_cap": 751733540700,
+          "sector": "Technology"
+        },
+        "history": [
+          {
+            "qtr_end": "2026-03-18",
+            "actual": 12.2,
+            "estimate": 9.19,
+            "beat_pct": 32.75
+          },
+          {
+            "qtr_end": "2025-12-17",
+            "actual": 4.78,
+            "estimate": 3.96,
+            "beat_pct": 20.71
+          },
+          {
+            "qtr_end": "2025-09-23",
+            "actual": 3.03,
+            "estimate": 2.86,
+            "beat_pct": 5.94
+          },
+          {
+            "qtr_end": "2025-06-25",
+            "actual": 1.91,
+            "estimate": 1.6,
+            "beat_pct": 19.37
+          },
+          {
+            "qtr_end": "2025-03-20",
+            "actual": 1.56,
+            "estimate": 1.43,
+            "beat_pct": 9.09
+          },
+          {
+            "qtr_end": "2024-12-18",
+            "actual": 1.79,
+            "estimate": 1.75,
+            "beat_pct": 2.29
+          }
+        ]
+      }
+    }
+  }
+}
