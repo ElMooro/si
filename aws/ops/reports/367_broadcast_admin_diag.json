@@ -1,0 +1,89 @@
+{
+  "started": "2026-05-08T21:52:10.151195+00:00",
+  "test": {
+    "1_ssm_admin_token_read": {
+      "ok": true,
+      "length": 64,
+      "preview": "e0362a05...54d5"
+    },
+    "2_broadcast_admin": {
+      "status": 401,
+      "body": "{\"error\": \"unauthorized\"}"
+    },
+    "3_recent_logs": [
+      {
+        "ts": 1778277006218,
+        "msg": "END RequestId: 94aa76d9-a3c6-4caf-973d-8b74219de239"
+      },
+      {
+        "ts": 1778277006218,
+        "msg": "REPORT RequestId: 94aa76d9-a3c6-4caf-973d-8b74219de239\tDuration: 407.67 ms\tBilled Duration: 408 ms\tMemory Size: 512 MB\tMax Memory Used: 119 MB"
+      },
+      {
+        "ts": 1778277005810,
+        "msg": "START RequestId: 94aa76d9-a3c6-4caf-973d-8b74219de239 Version: $LATEST"
+      },
+      {
+        "ts": 1778276919937,
+        "msg": "END RequestId: ce802276-ed4a-4317-9935-81961a430a20"
+      },
+      {
+        "ts": 1778276919937,
+        "msg": "REPORT RequestId: ce802276-ed4a-4317-9935-81961a430a20\tDuration: 96.13 ms\tBilled Duration: 97 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB"
+      },
+      {
+        "ts": 1778276919840,
+        "msg": "START RequestId: ce802276-ed4a-4317-9935-81961a430a20 Version: $LATEST"
+      },
+      {
+        "ts": 1778276910716,
+        "msg": "END RequestId: ccdd5ea2-2401-41ac-bfcb-96b22f2dad07"
+      },
+      {
+        "ts": 1778276910716,
+        "msg": "REPORT RequestId: ccdd5ea2-2401-41ac-bfcb-96b22f2dad07\tDuration: 61.92 ms\tBilled Duration: 62 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB"
+      },
+      {
+        "ts": 1778276910654,
+        "msg": "START RequestId: ccdd5ea2-2401-41ac-bfcb-96b22f2dad07 Version: $LATEST"
+      },
+      {
+        "ts": 1778276910574,
+        "msg": "END RequestId: f9096a4b-98f7-48c8-bf9a-a2ea540728e9"
+      },
+      {
+        "ts": 1778276910574,
+        "msg": "REPORT RequestId: f9096a4b-98f7-48c8-bf9a-a2ea540728e9\tDuration: 1.20 ms\tBilled Duration: 2 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB"
+      },
+      {
+        "ts": 1778276910573,
+        "msg": "START RequestId: f9096a4b-98f7-48c8-bf9a-a2ea540728e9 Version: $LATEST"
+      },
+      {
+        "ts": 1778276910546,
+        "msg": "END RequestId: 1c94ffd9-4768-4bd2-b4f4-e6456e79f916"
+      },
+      {
+        "ts": 1778276910546,
+        "msg": "REPORT RequestId: 1c94ffd9-4768-4bd2-b4f4-e6456e79f916\tDuration: 60.17 ms\tBilled Duration: 61 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB"
+      },
+      {
+        "ts": 1778276910485,
+        "msg": "START RequestId: 1c94ffd9-4768-4bd2-b4f4-e6456e79f916 Version: $LATEST"
+      }
+    ],
+    "4_lambda_config": {
+      "handler": "lambda_function.broadcast_handler",
+      "runtime": "python3.11",
+      "role": "arn:aws:iam::857687956942:role/websocket-lambda-role",
+      "env": {
+        "DDB_TABLE": "WebSocketConnections",
+        "WS_API_ID": "q7vco36knh",
+        "WS_STAGE": "prod"
+      },
+      "last_modified": "2026-05-08T21:45:29.000+0000",
+      "code_size": 3524
+    }
+  },
+  "finished": "2026-05-08T21:52:16.130650+00:00"
+}
