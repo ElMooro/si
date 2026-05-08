@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chart Pro · JustHodl.AI · v3</title>
+<title>Chart Pro · JustHodl.AI · v9</title>
 <meta name="description" content="Multi-series historical chart explorer — FRED, ECB, OFR, Polygon, JustHodl composites. Powered by TradingView Lightweight Charts.">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -283,17 +283,111 @@
   @media (max-width: 900px) {
     .sidebar { width: 280px; }
   }
+
+  /* ── v9.3 AI co-pilot pane ── */
+  .ai-pane { position: fixed; right: 0; top: 64px; bottom: 0; width: 380px; background: var(--bg-card);
+             border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50;
+             transform: translateX(100%); transition: transform 0.25s ease; }
+  .ai-pane.open { transform: translateX(0); }
+  .ai-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .ai-header .ai-status { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+  .ai-body { flex: 1; overflow-y: auto; padding: 14px; }
+  .ai-msg { margin-bottom: 14px; font-size: 12px; line-height: 1.55; }
+  .ai-msg.user { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 10px; }
+  .ai-msg.assistant { color: var(--text); }
+  .ai-msg .role { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ai-input-row { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+  .ai-input { flex: 1; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-light);
+              border-radius: 4px; padding: 8px 10px; font-size: 12px; font-family: inherit; resize: none; }
+  .ai-send { background: var(--accent); color: #000; border: none; border-radius: 4px; padding: 0 12px;
+             font-weight: 600; cursor: pointer; font-size: 12px; }
+  .ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ai-suggestions { padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--border); }
+  .ai-sug { background: var(--bg-elev); color: var(--text-dim); border: 1px solid var(--border-light);
+            border-radius: 12px; padding: 4px 10px; font-size: 10px; cursor: pointer; }
+  .ai-sug:hover { background: var(--bg-hover); color: var(--text); border-color: var(--accent); }
+  .ai-toggle-btn { position: fixed; right: 12px; top: 12px; z-index: 51; background: var(--accent); color: #000;
+                   border: none; border-radius: 6px; padding: 6px 12px; font-weight: 700; cursor: pointer;
+                   box-shadow: 0 2px 8px rgba(250,204,21,0.4); }
+  .typing-dots { display: inline-block; }
+  .typing-dots span { display: inline-block; width: 6px; height: 6px; margin: 0 1px; background: var(--accent);
+                     border-radius: 50%; opacity: 0.4; animation: typing 1.4s infinite; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing { 0%, 60%, 100% { opacity: 0.4 } 30% { opacity: 1 } }
+
+  /* ── v9.3 Symbol info cards (top of chart) ── */
+  .symbol-cards { display: flex; gap: 8px; padding: 8px 12px; background: var(--bg-card);
+                  border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .sym-card { background: var(--bg-elev); border: 1px solid var(--border-light); border-radius: 6px;
+              padding: 6px 12px; min-width: 140px; font-size: 11px; flex-shrink: 0; cursor: pointer; }
+  .sym-card:hover { border-color: var(--accent); }
+  .sym-card .sc-name { color: var(--text-dim); font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sym-card .sc-val { color: var(--text); font-weight: 700; font-size: 14px; margin: 2px 0; }
+  .sym-card .sc-ch { font-size: 10px; }
+  .sym-card .sc-ch.up { color: #10b981; }
+  .sym-card .sc-ch.dn { color: #ef4444; }
+  .sym-card .sc-color { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  /* ── v9.3 Replay bar (bar-by-bar replay) ── */
+  .replay-bar { display: none; background: var(--bg-card); border-top: 1px solid var(--border); padding: 8px 14px;
+                gap: 8px; align-items: center; font-size: 11px; }
+  .replay-bar.open { display: flex; }
+  .replay-bar input[type=range] { flex: 1; accent-color: var(--accent); }
+  .replay-btn { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-light);
+                border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 11px; }
+  .replay-btn.active { background: var(--accent); color: #000; }
+  .replay-info { color: var(--text-muted); font-size: 10px; margin-left: 8px; }
+
+  /* ── v9.3 Regime overlay banner ── */
+  .regime-banner { display: flex; align-items: center; gap: 12px; padding: 6px 14px; background: var(--bg-card);
+                   border-bottom: 1px solid var(--border); font-size: 11px; }
+  .regime-pill { padding: 3px 10px; border-radius: 12px; font-weight: 700; font-size: 10px; letter-spacing: 0.05em; }
+  .regime-pill.STRONG_EXP { background: rgba(16,185,129,0.2); color: #10b981; }
+  .regime-pill.EXPANSION { background: rgba(132,204,22,0.2); color: #84cc16; }
+  .regime-pill.MUDDLE_THROUGH { background: rgba(250,204,21,0.2); color: #facc15; }
+  .regime-pill.SLOWING { background: rgba(251,146,60,0.2); color: #fb923c; }
+  .regime-pill.CONTRACTION { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+  /* ── v9.3 Command palette (Cmd+K) ── */
+  .cmd-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none;
+                 align-items: flex-start; justify-content: center; padding-top: 100px; }
+  .cmd-overlay.open { display: flex; }
+  .cmd-modal { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px;
+               width: 600px; max-width: 90vw; max-height: 70vh; display: flex; flex-direction: column;
+               box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .cmd-input { background: transparent; color: var(--text); border: none; padding: 16px 20px; font-size: 16px;
+               outline: none; border-bottom: 1px solid var(--border); font-family: inherit; }
+  .cmd-list { overflow-y: auto; max-height: 50vh; }
+  .cmd-item { padding: 10px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+              font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .cmd-item:hover, .cmd-item.selected { background: var(--bg-hover); }
+  .cmd-item .cmd-cat { color: var(--text-muted); font-size: 10px; margin-left: auto; }
 </style>
 </head>
 <body>
   <div class="topbar">
-    <h1>📈 Chart Pro <span class="sub">multi-source historical explorer</span></h1>
+    <h1>📈 Chart Pro <span class="sub">multi-source historical explorer · v9</span></h1>
     <div class="topbar-spacer"></div>
     <a href="/">← Desk</a>
     <a href="/charts.html">Old Charts</a>
     <a href="/master-rank.html">Action</a>
     <a href="/plumbing.html">Plumbing</a>
   </div>
+
+  <!-- v9.3 Regime banner -->
+  <div class="regime-banner" id="regimeBanner" style="display:none">
+    <span style="color:var(--text-dim)">📊 Macro Regime:</span>
+    <span class="regime-pill" id="regimePill">—</span>
+    <span style="color:var(--text-muted)" id="regimeDate">—</span>
+    <span style="flex:1"></span>
+    <span id="regimeForward" style="color:var(--text-dim);font-size:10px">—</span>
+    <button class="btn" id="regimeOverlayBtn" style="padding:3px 10px;font-size:10px" title="Toggle regime band overlay on chart">Show on chart</button>
+    <a href="/macro-data.html" style="color:var(--accent);font-size:10px;text-decoration:none">Full nowcast →</a>
+  </div>
+
+  <!-- v9.3 Symbol info cards -->
+  <div class="symbol-cards" id="symbolCards" style="display:none"></div>
 
   <div class="toolbar">
     <span class="label">Date Range:</span>
@@ -330,6 +424,8 @@
     <button class="btn" id="loadWsBtn" onclick="toggleWorkspaceMenu(event)" title="Load saved workspace">📂 Load</button>
     <button class="btn" onclick="exportPNG()" title="Export chart as PNG image">🖼️ PNG</button>
     <button class="btn primary" onclick="exportCSV()" title="Export aligned data as CSV">📥 CSV</button>
+    <button class="btn" id="replayBtn" onclick="toggleReplay()" title="Bar-by-bar replay (R)">▶ Replay</button>
+    <button class="btn" id="aiToggleBtn" onclick="toggleAIPane()" title="AI Analyst (⌘J)">🤖 AI</button>
     <button class="btn danger" onclick="clearAllSeries()" title="Clear all series">🗑️</button>
     <div id="wsMenu" class="ws-menu"></div>
   </div>
@@ -420,12 +516,22 @@
       <div class="chart-tooltip" id="chartTooltip"></div>
       <svg id="drawSvg" class="draw-svg"></svg>
       <div class="drawing-bar" id="drawingBar">
-        <button class="draw-btn active" data-tool="cursor" title="Cursor (no drawing)">↖</button>
+        <button class="draw-btn active" data-tool="cursor" title="Cursor (Esc)">↖</button>
         <div class="draw-divider"></div>
         <button class="draw-btn" data-tool="hline" title="Horizontal price line (H)">━</button>
+        <button class="draw-btn" data-tool="vline" title="Vertical line (V)">│</button>
         <button class="draw-btn" data-tool="trendline" title="Trend line (T)">╱</button>
+        <button class="draw-btn" data-tool="ray" title="Ray (R)">↗</button>
+        <button class="draw-btn" data-tool="channel" title="Parallel Channel (C)">▤</button>
+        <div class="draw-divider"></div>
+        <button class="draw-btn" data-tool="fib" title="Fibonacci Retracement (F)">𝐹</button>
+        <button class="draw-btn" data-tool="fibext" title="Fibonacci Extension (Shift+F)">𝐹⁺</button>
+        <div class="draw-divider"></div>
+        <button class="draw-btn" data-tool="rect" title="Rectangle / Zone (X)">▭</button>
+        <button class="draw-btn" data-tool="measure" title="Measure tool (M)">📏</button>
         <button class="draw-btn" data-tool="annotation" title="Text annotation (A)">📝</button>
         <div class="draw-divider"></div>
+        <button class="draw-btn" id="undoDrawBtn" title="Undo last drawing (⌘Z)">↶</button>
         <button class="draw-btn" id="clearDrawBtn" title="Clear all drawings">🗑️</button>
       </div>
       <div class="loader" id="loader" style="display:none">Loading...</div>
@@ -516,6 +622,61 @@
     <span style="color:var(--text-muted)">Engine: TradingView Lightweight Charts v4.2 · Sources: FRED · ECB SDMX · OFR · Polygon · JustHodl S3</span>
   </div>
 
+  <!-- v9.3 Replay bar -->
+  <div class="replay-bar" id="replayBar">
+    <button class="replay-btn" id="replayPlayBtn" onclick="replayPlay()">▶ Play</button>
+    <button class="replay-btn" id="replayStepBtn" onclick="replayStep(1)">⏭</button>
+    <button class="replay-btn" onclick="replayStep(-1)">⏮</button>
+    <input type="range" id="replaySlider" min="0" max="100" value="100" oninput="replayScrub(this.value)">
+    <select id="replaySpeed" onchange="STATE.replay.speed = parseInt(this.value)">
+      <option value="800">0.5x</option>
+      <option value="400" selected>1x</option>
+      <option value="200">2x</option>
+      <option value="100">4x</option>
+      <option value="40">10x</option>
+    </select>
+    <span class="replay-info" id="replayInfo">—</span>
+    <button class="replay-btn" onclick="toggleReplay()" style="margin-left:auto">✕ Exit</button>
+  </div>
+
+  <!-- v9.3 AI Co-pilot pane -->
+  <div class="ai-pane" id="aiPane">
+    <div class="ai-header">
+      <span>🤖 AI Analyst</span>
+      <span class="ai-status" id="aiStatus">Ready</span>
+      <button onclick="toggleAIPane()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div class="ai-suggestions">
+      <span class="ai-sug" onclick="askAI('What pattern do you see in the chart right now?')">Pattern read</span>
+      <span class="ai-sug" onclick="askAI('Trade this. Long or short, with stops and targets.')">Trade idea</span>
+      <span class="ai-sug" onclick="askAI('Compare current regime to the 2007 setup.')">vs 2007</span>
+      <span class="ai-sug" onclick="askAI('What does this chart tell me about Fed policy?')">Fed read</span>
+      <span class="ai-sug" onclick="askAI('Where do I add or trim?')">Sizing</span>
+    </div>
+    <div class="ai-body" id="aiBody">
+      <div class="ai-msg assistant">
+        <div class="role">Analyst</div>
+        Hi Khalid. I see your chart context live — tell me what to look at, or click a quick prompt above.
+        <div style="color:var(--text-muted);font-size:10px;margin-top:6px">
+          Powered by Claude Haiku 4.5 · uses your active series + indicators + visible range as context.
+        </div>
+      </div>
+    </div>
+    <div class="ai-input-row">
+      <textarea class="ai-input" id="aiInput" placeholder="Ask about the chart..." rows="2"
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();askAI(this.value);this.value=''}"></textarea>
+      <button class="ai-send" id="aiSendBtn" onclick="const i=document.getElementById('aiInput'); askAI(i.value); i.value='';">Send</button>
+    </div>
+  </div>
+
+  <!-- v9.3 Command palette -->
+  <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target.id==='cmdOverlay') closeCommandPalette()">
+    <div class="cmd-modal">
+      <input class="cmd-input" id="cmdInput" placeholder="Search indicators, series, presets, actions... (↑↓ to navigate, Enter to run)" oninput="renderCommandPalette()">
+      <div class="cmd-list" id="cmdList"></div>
+    </div>
+  </div>
+
 <script>
 // Static catalog embedded — no fetch needed for catalog (avoids any
 // browser-side blocking of cross-origin fetches). Series data fetches
@@ -545,8 +706,9 @@ let WORKING_API = null;
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
 
-console.log('%c[Chart Pro v4] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
-console.log('[Chart Pro v4] APIs:', { primary: CHART_API_PRIMARY, fallback: CHART_API_FALLBACK });
+console.log('%c[Chart Pro v9] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
+console.log('[Chart Pro v9] APIs:', { primary: CHART_API_PRIMARY, fallback: CHART_API_FALLBACK });
+console.log('[Chart Pro v9] Features: 16 indicators · 10 drawing tools · AI co-pilot · regime overlay · bar replay · cmd-K palette');
 
 const STATE = {
   activeSeries: [],   // [{id, label, source, color, axis, data}]
@@ -1343,8 +1505,15 @@ const INDICATORS = [
   { key: 'ema12',  name: 'EMA 12',         period: 12,  color: '#10b981', overlay: true },
   { key: 'ema26',  name: 'EMA 26',         period: 26,  color: '#ef4444', overlay: true },
   { key: 'bb20',   name: 'Bollinger Bands (20, 2σ)', period: 20, color: '#a78bfa', overlay: true },
-  { key: 'rsi14',  name: 'RSI (14)',       period: 14,  color: '#facc15', overlay: false },
-  { key: 'macd',   name: 'MACD (12, 26, 9)', period: 0, color: '#3b82f6', overlay: false },
+  { key: 'kc20',   name: 'Keltner Channel (20)',     period: 20, color: '#22d3ee', overlay: true },
+  { key: 'dc20',   name: 'Donchian Channel (20)',    period: 20, color: '#f97316', overlay: true },
+  { key: 'ichi',   name: 'Ichimoku Cloud',           period: 26, color: '#10b981', overlay: true },
+  { key: 'vwap',   name: 'VWAP (anchored)',          period: 0,  color: '#fde047', overlay: true },
+  { key: 'rsi14',  name: 'RSI (14)',                 period: 14, color: '#facc15', overlay: false },
+  { key: 'macd',   name: 'MACD (12, 26, 9)',         period: 0,  color: '#3b82f6', overlay: false },
+  { key: 'atr14',  name: 'ATR (14) — Volatility',    period: 14, color: '#fb923c', overlay: false },
+  { key: 'adx14',  name: 'ADX (14) — Trend Strength', period: 14, color: '#a78bfa', overlay: false },
+  { key: 'stoch',  name: 'Stochastic (14, 3, 3)',    period: 14, color: '#22d3ee', overlay: false },
 ];
 
 STATE.activeIndicators = new Set();
@@ -1436,6 +1605,183 @@ function macdSeries(data, fast = 12, slow = 26, signal = 9) {
     }
   }
   return { macd, signal: sig, histogram: hist };
+}
+
+// ───── New v9 indicators (close-only approximations where OHLC unavailable) ─────
+function atrSeries(data, period = 14) {
+  // Close-only ATR proxy: average of |Δclose| over period
+  if (data.length < period + 1) return [];
+  const tr = [];
+  for (let i = 1; i < data.length; i++) {
+    tr.push({ time: data[i].time, value: Math.abs(data[i].value - data[i - 1].value) });
+  }
+  // Wilder smoothing
+  const out = [];
+  let sum = 0;
+  for (let i = 0; i < period; i++) sum += tr[i].value;
+  let prev = sum / period;
+  out.push({ time: tr[period - 1].time, value: prev });
+  for (let i = period; i < tr.length; i++) {
+    prev = (prev * (period - 1) + tr[i].value) / period;
+    out.push({ time: tr[i].time, value: prev });
+  }
+  return out;
+}
+
+function adxSeries(data, period = 14) {
+  // Close-only ADX proxy: directional movement based on close changes
+  if (data.length < period * 2) return { adx: [], plusDI: [], minusDI: [] };
+  const dmPlus = [], dmMinus = [], tr = [];
+  for (let i = 1; i < data.length; i++) {
+    const ch = data[i].value - data[i - 1].value;
+    dmPlus.push(ch > 0 ? ch : 0);
+    dmMinus.push(ch < 0 ? -ch : 0);
+    tr.push(Math.abs(ch));
+  }
+  // Wilder smoothing helper
+  function wsmooth(arr, p) {
+    const r = [];
+    let sum = 0;
+    for (let i = 0; i < p; i++) sum += arr[i];
+    r.push(sum);
+    for (let i = p; i < arr.length; i++) {
+      sum = sum - sum / p + arr[i];
+      r.push(sum);
+    }
+    return r;
+  }
+  const trS = wsmooth(tr, period);
+  const dmpS = wsmooth(dmPlus, period);
+  const dmmS = wsmooth(dmMinus, period);
+  const plusDI = [], minusDI = [], dx = [];
+  for (let i = 0; i < trS.length; i++) {
+    const pdi = trS[i] === 0 ? 0 : (dmpS[i] / trS[i]) * 100;
+    const mdi = trS[i] === 0 ? 0 : (dmmS[i] / trS[i]) * 100;
+    plusDI.push({ time: data[i + period].time, value: pdi });
+    minusDI.push({ time: data[i + period].time, value: mdi });
+    const sumDi = pdi + mdi;
+    dx.push(sumDi === 0 ? 0 : (Math.abs(pdi - mdi) / sumDi) * 100);
+  }
+  // ADX = Wilder smoothing of DX
+  const adx = [];
+  if (dx.length >= period) {
+    let sum = 0;
+    for (let i = 0; i < period; i++) sum += dx[i];
+    let prev = sum / period;
+    adx.push({ time: plusDI[period - 1].time, value: prev });
+    for (let i = period; i < dx.length; i++) {
+      prev = (prev * (period - 1) + dx[i]) / period;
+      adx.push({ time: plusDI[i].time, value: prev });
+    }
+  }
+  return { adx, plusDI, minusDI };
+}
+
+function ichimokuSeries(data) {
+  // Tenkan(9), Kijun(26), Senkou A/B, Chikou — close-only approximations using rolling window
+  if (data.length < 52) return null;
+  function rollHL(d, p) {
+    const r = [];
+    for (let i = p - 1; i < d.length; i++) {
+      let hi = -Infinity, lo = Infinity;
+      for (let j = 0; j < p; j++) {
+        const v = d[i - j].value;
+        if (v > hi) hi = v;
+        if (v < lo) lo = v;
+      }
+      r.push({ time: d[i].time, value: (hi + lo) / 2 });
+    }
+    return r;
+  }
+  const tenkan = rollHL(data, 9);
+  const kijun = rollHL(data, 26);
+  // Senkou A = (Tenkan+Kijun)/2 shifted forward 26
+  const senkouA = [];
+  const tMap = new Map(tenkan.map(d => [d.time, d.value]));
+  const kMap = new Map(kijun.map(d => [d.time, d.value]));
+  const times = data.map(d => d.time);
+  for (let i = 0; i < kijun.length; i++) {
+    const t = kijun[i].time;
+    if (tMap.has(t)) {
+      const idx = times.indexOf(t);
+      if (idx + 26 < times.length) {
+        senkouA.push({ time: times[idx + 26], value: (tMap.get(t) + kMap.get(t)) / 2 });
+      }
+    }
+  }
+  const senkouBRaw = rollHL(data, 52);
+  const senkouB = [];
+  for (let i = 0; i < senkouBRaw.length; i++) {
+    const idx = times.indexOf(senkouBRaw[i].time);
+    if (idx + 26 < times.length) {
+      senkouB.push({ time: times[idx + 26], value: senkouBRaw[i].value });
+    }
+  }
+  return { tenkan, kijun, senkouA, senkouB };
+}
+
+function vwapAnchored(data) {
+  // Anchored VWAP from first visible point — without volume, falls back to TWAP
+  // (time-weighted average price). Useful as an institutional reference line.
+  if (!data.length) return [];
+  const out = [];
+  let sum = 0, count = 0;
+  for (const d of data) {
+    sum += d.value;
+    count++;
+    out.push({ time: d.time, value: sum / count });
+  }
+  return out;
+}
+
+function keltnerChannel(data, period = 20, mult = 2) {
+  // KC = EMA(20) ± mult * ATR(20)
+  if (data.length < period + 1) return null;
+  const ema = emaSeries(data, period);
+  const atr = atrSeries(data, period);
+  const atrMap = new Map(atr.map(d => [d.time, d.value]));
+  const upper = [], lower = [];
+  for (const d of ema) {
+    if (atrMap.has(d.time)) {
+      upper.push({ time: d.time, value: d.value + mult * atrMap.get(d.time) });
+      lower.push({ time: d.time, value: d.value - mult * atrMap.get(d.time) });
+    }
+  }
+  return { middle: ema, upper, lower };
+}
+
+function donchianChannel(data, period = 20) {
+  if (data.length < period) return null;
+  const upper = [], lower = [], middle = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let hi = -Infinity, lo = Infinity;
+    for (let j = 0; j < period; j++) {
+      const v = data[i - j].value;
+      if (v > hi) hi = v;
+      if (v < lo) lo = v;
+    }
+    upper.push({ time: data[i].time, value: hi });
+    lower.push({ time: data[i].time, value: lo });
+    middle.push({ time: data[i].time, value: (hi + lo) / 2 });
+  }
+  return { middle, upper, lower };
+}
+
+function stochSeries(data, kPeriod = 14, dPeriod = 3) {
+  if (data.length < kPeriod) return { k: [], d: [] };
+  const k = [];
+  for (let i = kPeriod - 1; i < data.length; i++) {
+    let hi = -Infinity, lo = Infinity;
+    for (let j = 0; j < kPeriod; j++) {
+      const v = data[i - j].value;
+      if (v > hi) hi = v;
+      if (v < lo) lo = v;
+    }
+    const kv = hi === lo ? 50 : ((data[i].value - lo) / (hi - lo)) * 100;
+    k.push({ time: data[i].time, value: kv });
+  }
+  const d = smaSeries(k, dPeriod);
+  return { k, d };
 }
 
 function renderIndicatorPanel() {
@@ -1538,6 +1884,79 @@ function applyIndicators(baseSeries, baseData) {
       } catch (e) {
         console.warn('MACD pane support requires Lightweight Charts v4.2+:', e);
       }
+    } else if (ind.key === 'vwap') {
+      const data = vwapAnchored(baseData);
+      const s = STATE.chart.addLineSeries({
+        color: ind.color, lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Solid,
+        priceScaleId: baseSeries.axis, title: 'VWAP', priceLineVisible: false, lastValueVisible: true,
+      });
+      s.setData(data);
+      STATE.series.push(s);
+      STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'ichi') {
+      const ichi = ichimokuSeries(baseData);
+      if (ichi) {
+        const tk = STATE.chart.addLineSeries({ color: '#ef4444', lineWidth: 1.5, priceScaleId: baseSeries.axis, title: 'Tenkan(9)', priceLineVisible: false });
+        const kj = STATE.chart.addLineSeries({ color: '#3b82f6', lineWidth: 1.5, priceScaleId: baseSeries.axis, title: 'Kijun(26)', priceLineVisible: false });
+        const sa = STATE.chart.addLineSeries({ color: 'rgba(16,185,129,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'Senkou A', priceLineVisible: false });
+        const sb = STATE.chart.addLineSeries({ color: 'rgba(239,68,68,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'Senkou B', priceLineVisible: false });
+        tk.setData(ichi.tenkan); kj.setData(ichi.kijun); sa.setData(ichi.senkouA); sb.setData(ichi.senkouB);
+        STATE.series.push(tk, kj, sa, sb);
+        STATE.indicatorSeries[ind.key] = [tk, kj, sa, sb];
+      }
+    } else if (ind.key === 'kc20') {
+      const kc = keltnerChannel(baseData, 20, 2);
+      if (kc) {
+        const u = STATE.chart.addLineSeries({ color: 'rgba(34,211,238,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'KC Upper', priceLineVisible: false });
+        const m = STATE.chart.addLineSeries({ color: 'rgba(34,211,238,0.8)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted, priceScaleId: baseSeries.axis, title: 'KC Mid', priceLineVisible: false });
+        const l = STATE.chart.addLineSeries({ color: 'rgba(34,211,238,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'KC Lower', priceLineVisible: false });
+        u.setData(kc.upper); m.setData(kc.middle); l.setData(kc.lower);
+        STATE.series.push(u, m, l);
+        STATE.indicatorSeries[ind.key] = [u, m, l];
+      }
+    } else if (ind.key === 'dc20') {
+      const dc = donchianChannel(baseData, 20);
+      if (dc) {
+        const u = STATE.chart.addLineSeries({ color: 'rgba(249,115,22,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'DC Upper', priceLineVisible: false });
+        const m = STATE.chart.addLineSeries({ color: 'rgba(249,115,22,0.8)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted, priceScaleId: baseSeries.axis, title: 'DC Mid', priceLineVisible: false });
+        const l = STATE.chart.addLineSeries({ color: 'rgba(249,115,22,0.6)', lineWidth: 1, priceScaleId: baseSeries.axis, title: 'DC Lower', priceLineVisible: false });
+        u.setData(dc.upper); m.setData(dc.middle); l.setData(dc.lower);
+        STATE.series.push(u, m, l);
+        STATE.indicatorSeries[ind.key] = [u, m, l];
+      }
+    } else if (ind.key === 'atr14') {
+      const data = atrSeries(baseData, 14);
+      try {
+        const s = STATE.chart.addLineSeries({
+          color: ind.color, lineWidth: 1.5, priceScaleId: 'atr-pane',
+          title: 'ATR(14)', pane: 3, priceLineVisible: false,
+        });
+        s.setData(data);
+        STATE.series.push(s);
+        STATE.indicatorSeries[ind.key] = [s];
+      } catch (e) { console.warn('ATR pane:', e); }
+    } else if (ind.key === 'adx14') {
+      const a = adxSeries(baseData, 14);
+      try {
+        const adx = STATE.chart.addLineSeries({ color: '#a78bfa', lineWidth: 2, priceScaleId: 'adx-pane', pane: 4, title: 'ADX', priceLineVisible: false });
+        const pdi = STATE.chart.addLineSeries({ color: '#10b981', lineWidth: 1, priceScaleId: 'adx-pane', pane: 4, title: '+DI', priceLineVisible: false });
+        const mdi = STATE.chart.addLineSeries({ color: '#ef4444', lineWidth: 1, priceScaleId: 'adx-pane', pane: 4, title: '-DI', priceLineVisible: false });
+        adx.setData(a.adx); pdi.setData(a.plusDI); mdi.setData(a.minusDI);
+        adx.createPriceLine({ price: 25, color: 'rgba(167,139,250,0.4)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '25' });
+        STATE.series.push(adx, pdi, mdi);
+        STATE.indicatorSeries[ind.key] = [adx, pdi, mdi];
+      } catch (e) { console.warn('ADX pane:', e); }
+    } else if (ind.key === 'stoch') {
+      const st = stochSeries(baseData, 14, 3);
+      try {
+        const k = STATE.chart.addLineSeries({ color: '#22d3ee', lineWidth: 1.5, priceScaleId: 'stoch-pane', pane: 5, title: '%K', priceLineVisible: false });
+        const d = STATE.chart.addLineSeries({ color: '#fb923c', lineWidth: 1, priceScaleId: 'stoch-pane', pane: 5, title: '%D', priceLineVisible: false });
+        k.setData(st.k); d.setData(st.d);
+        k.createPriceLine({ price: 80, color: 'rgba(239,68,68,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '80' });
+        k.createPriceLine({ price: 20, color: 'rgba(34,197,94,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '20' });
+        STATE.series.push(k, d);
+        STATE.indicatorSeries[ind.key] = [k, d];
+      } catch (e) { console.warn('Stoch pane:', e); }
     }
   }
 }
@@ -1572,6 +1991,17 @@ function clearAllDrawings() {
   STATE.priceLines = [];
   STATE.trendLines.forEach(t => t.elem && t.elem.remove());
   STATE.trendLines = [];
+  // v9 drawings
+  if (STATE.drawings) {
+    STATE.drawings.forEach(d => {
+      if (d.priceLine && d.series) { try { d.series.removePriceLine(d.priceLine); } catch (e) {} }
+      else if (d.elem) d.elem.remove();
+    });
+    STATE.drawings = [];
+  }
+  // Clear preview if any
+  const preview = document.getElementById('drawPreview');
+  if (preview) preview.remove();
   showToast('All drawings cleared');
 }
 
@@ -1590,7 +2020,7 @@ function ctxResetZoom() {
   if (STATE.chart) STATE.chart.timeScale().fitContent();
 }
 
-// ───── Drawing tools ─────
+// ───── Drawing tools — full SVG engine (v9) ─────
 function setupDrawingTools() {
   const buttons = document.querySelectorAll('.draw-btn[data-tool]');
   buttons.forEach(btn => {
@@ -1599,10 +2029,289 @@ function setupDrawingTools() {
       btn.classList.add('active');
       STATE.drawTool = btn.dataset.tool;
       const svg = document.getElementById('drawSvg');
-      svg.classList.toggle('active', STATE.drawTool === 'trendline');
+      const drawingTools = ['trendline', 'ray', 'channel', 'fib', 'fibext', 'rect', 'measure', 'vline', 'annotation'];
+      svg.classList.toggle('active', drawingTools.includes(STATE.drawTool));
     });
   });
   document.getElementById('clearDrawBtn').addEventListener('click', clearAllDrawings);
+  document.getElementById('undoDrawBtn').addEventListener('click', undoDrawing);
+  setupDrawingCanvas();
+}
+
+STATE.drawings = [];           // list of all drawings {type, points, elem}
+STATE.currentDraw = null;       // in-progress drawing
+
+function setupDrawingCanvas() {
+  const svg = document.getElementById('drawSvg');
+  const container = document.getElementById('chartContainer');
+
+  // Get coords helper (chart pixel → time/price pair)
+  function getCoords(e) {
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    let price = null, time = null;
+    try {
+      if (STATE.activeSeries.length && STATE.seriesById) {
+        const fs = STATE.seriesById[STATE.activeSeries[0].id];
+        if (fs) price = fs.coordinateToPrice(y);
+      }
+      if (STATE.chart) time = STATE.chart.timeScale().coordinateToTime(x);
+    } catch (err) {}
+    return { x, y, price, time };
+  }
+
+  svg.addEventListener('click', (e) => {
+    if (STATE.drawTool === 'cursor') return;
+    const c = getCoords(e);
+    if (STATE.drawTool === 'hline') {
+      addHorizontalLine(c.price);
+      resetTool();
+    } else if (STATE.drawTool === 'vline') {
+      addVerticalLine(c.x, c.time);
+      resetTool();
+    } else if (STATE.drawTool === 'annotation') {
+      const txt = prompt('Annotation text:');
+      if (txt) addAnnotation(c.x, c.y, txt);
+      resetTool();
+    } else if (['trendline', 'ray', 'fib', 'fibext', 'rect', 'measure'].includes(STATE.drawTool)) {
+      // 2-point drawings
+      if (!STATE.currentDraw) {
+        STATE.currentDraw = { type: STATE.drawTool, p1: c, elem: null };
+      } else {
+        STATE.currentDraw.p2 = c;
+        finalizeDraw(STATE.currentDraw);
+        STATE.currentDraw = null;
+        resetTool();
+      }
+    } else if (STATE.drawTool === 'channel') {
+      // 3-point drawing (line + parallel offset)
+      if (!STATE.currentDraw) {
+        STATE.currentDraw = { type: 'channel', p1: c };
+      } else if (!STATE.currentDraw.p2) {
+        STATE.currentDraw.p2 = c;
+      } else {
+        STATE.currentDraw.p3 = c;
+        finalizeDraw(STATE.currentDraw);
+        STATE.currentDraw = null;
+        resetTool();
+      }
+    }
+  });
+
+  // Live preview while drawing
+  svg.addEventListener('mousemove', (e) => {
+    if (!STATE.currentDraw) return;
+    const c = getCoords(e);
+    drawPreview(STATE.currentDraw, c);
+  });
+}
+
+function resetTool() {
+  document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.draw-btn[data-tool="cursor"]').classList.add('active');
+  STATE.drawTool = 'cursor';
+  document.getElementById('drawSvg').classList.remove('active');
+  // Clear preview
+  const preview = document.getElementById('drawPreview');
+  if (preview) preview.remove();
+}
+
+function addHorizontalLine(price) {
+  if (price === null || !STATE.activeSeries.length) return;
+  const fs = STATE.seriesById[STATE.activeSeries[0].id];
+  if (!fs) return;
+  const line = fs.createPriceLine({
+    price, color: '#facc15', lineWidth: 2,
+    lineStyle: LightweightCharts.LineStyle.Solid,
+    axisLabelVisible: true, title: price.toFixed(2),
+  });
+  STATE.priceLines.push({ series: fs, line });
+  STATE.drawings.push({ type: 'hline', priceLine: line, series: fs });
+  showToast(`H-line @ ${price.toFixed(2)}`);
+}
+
+function addVerticalLine(x, time) {
+  const svg = document.getElementById('drawSvg');
+  const ns = 'http://www.w3.org/2000/svg';
+  const line = document.createElementNS(ns, 'line');
+  line.setAttribute('x1', x); line.setAttribute('y1', 0);
+  line.setAttribute('x2', x); line.setAttribute('y2', '100%');
+  line.setAttribute('stroke', '#06b6d4'); line.setAttribute('stroke-width', 1.5);
+  line.setAttribute('stroke-dasharray', '4 2');
+  svg.appendChild(line);
+  STATE.drawings.push({ type: 'vline', elem: line });
+  showToast(`V-line @ ${time || ''}`);
+}
+
+function addAnnotation(x, y, text) {
+  const svg = document.getElementById('drawSvg');
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(ns, 'g');
+  const rect = document.createElementNS(ns, 'rect');
+  const t = document.createElementNS(ns, 'text');
+  t.textContent = text;
+  t.setAttribute('x', x + 6); t.setAttribute('y', y + 4);
+  t.setAttribute('fill', '#fde047'); t.setAttribute('font-size', 11); t.setAttribute('font-family', 'Inter, system-ui, sans-serif');
+  rect.setAttribute('x', x); rect.setAttribute('y', y - 10);
+  rect.setAttribute('width', text.length * 7 + 14); rect.setAttribute('height', 20);
+  rect.setAttribute('fill', 'rgba(0,0,0,0.7)'); rect.setAttribute('stroke', '#fde047'); rect.setAttribute('rx', 3);
+  g.appendChild(rect); g.appendChild(t);
+  svg.appendChild(g);
+  STATE.drawings.push({ type: 'annotation', elem: g });
+}
+
+function drawPreview(d, c) {
+  let preview = document.getElementById('drawPreview');
+  const svg = document.getElementById('drawSvg');
+  const ns = 'http://www.w3.org/2000/svg';
+  if (preview) preview.remove();
+  preview = document.createElementNS(ns, 'g');
+  preview.id = 'drawPreview';
+  preview.setAttribute('opacity', 0.6);
+  if (['trendline', 'ray', 'measure'].includes(d.type)) {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', d.p1.x); line.setAttribute('y1', d.p1.y);
+    line.setAttribute('x2', c.x); line.setAttribute('y2', c.y);
+    line.setAttribute('stroke', '#facc15'); line.setAttribute('stroke-width', 2);
+    line.setAttribute('stroke-dasharray', '5 3');
+    preview.appendChild(line);
+  } else if (d.type === 'rect') {
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', Math.min(d.p1.x, c.x)); rect.setAttribute('y', Math.min(d.p1.y, c.y));
+    rect.setAttribute('width', Math.abs(c.x - d.p1.x)); rect.setAttribute('height', Math.abs(c.y - d.p1.y));
+    rect.setAttribute('fill', 'rgba(250,204,21,0.1)'); rect.setAttribute('stroke', '#facc15'); rect.setAttribute('stroke-width', 1.5);
+    preview.appendChild(rect);
+  } else if (d.type === 'fib' || d.type === 'fibext') {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', d.p1.x); line.setAttribute('y1', d.p1.y);
+    line.setAttribute('x2', c.x); line.setAttribute('y2', c.y);
+    line.setAttribute('stroke', '#a78bfa'); line.setAttribute('stroke-width', 1.5);
+    preview.appendChild(line);
+  }
+  svg.appendChild(preview);
+}
+
+function finalizeDraw(d) {
+  const svg = document.getElementById('drawSvg');
+  const ns = 'http://www.w3.org/2000/svg';
+  const preview = document.getElementById('drawPreview');
+  if (preview) preview.remove();
+  const g = document.createElementNS(ns, 'g');
+  g.setAttribute('class', 'draw-' + d.type);
+
+  if (d.type === 'trendline') {
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', d.p1.x); line.setAttribute('y1', d.p1.y);
+    line.setAttribute('x2', d.p2.x); line.setAttribute('y2', d.p2.y);
+    line.setAttribute('stroke', '#facc15'); line.setAttribute('stroke-width', 2);
+    g.appendChild(line);
+    // Slope label
+    const dp = (d.p2.price - d.p1.price);
+    const lbl = document.createElementNS(ns, 'text');
+    lbl.textContent = `Δ ${dp >= 0 ? '+' : ''}${dp.toFixed(2)}`;
+    lbl.setAttribute('x', d.p2.x + 6); lbl.setAttribute('y', d.p2.y);
+    lbl.setAttribute('fill', '#facc15'); lbl.setAttribute('font-size', 10);
+    g.appendChild(lbl);
+  } else if (d.type === 'ray') {
+    // Extend line beyond p2
+    const dx = d.p2.x - d.p1.x, dy = d.p2.y - d.p1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx/len, uy = dy/len;
+    const farX = d.p2.x + ux * 5000;
+    const farY = d.p2.y + uy * 5000;
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', d.p1.x); line.setAttribute('y1', d.p1.y);
+    line.setAttribute('x2', farX); line.setAttribute('y2', farY);
+    line.setAttribute('stroke', '#22d3ee'); line.setAttribute('stroke-width', 2);
+    g.appendChild(line);
+  } else if (d.type === 'measure') {
+    const rect = document.createElementNS(ns, 'rect');
+    const x1 = Math.min(d.p1.x, d.p2.x), y1 = Math.min(d.p1.y, d.p2.y);
+    const w = Math.abs(d.p2.x - d.p1.x), h = Math.abs(d.p2.y - d.p1.y);
+    const dp = d.p2.price - d.p1.price;
+    const pct = (dp / d.p1.price) * 100;
+    const fill = dp >= 0 ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+    const stroke = dp >= 0 ? '#10b981' : '#ef4444';
+    rect.setAttribute('x', x1); rect.setAttribute('y', y1);
+    rect.setAttribute('width', w); rect.setAttribute('height', h);
+    rect.setAttribute('fill', fill); rect.setAttribute('stroke', stroke); rect.setAttribute('stroke-width', 1);
+    g.appendChild(rect);
+    // Bubble with stats
+    const bg = document.createElementNS(ns, 'rect');
+    const tx = x1 + w/2 - 60, ty = y1 - 26;
+    bg.setAttribute('x', tx); bg.setAttribute('y', ty);
+    bg.setAttribute('width', 120); bg.setAttribute('height', 22);
+    bg.setAttribute('fill', 'rgba(0,0,0,0.85)'); bg.setAttribute('stroke', stroke); bg.setAttribute('rx', 3);
+    const t = document.createElementNS(ns, 'text');
+    t.textContent = `${dp >= 0 ? '+' : ''}${dp.toFixed(2)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)`;
+    t.setAttribute('x', tx + 6); t.setAttribute('y', ty + 15);
+    t.setAttribute('fill', stroke); t.setAttribute('font-size', 11); t.setAttribute('font-weight', 'bold');
+    g.appendChild(bg); g.appendChild(t);
+  } else if (d.type === 'rect') {
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', Math.min(d.p1.x, d.p2.x)); rect.setAttribute('y', Math.min(d.p1.y, d.p2.y));
+    rect.setAttribute('width', Math.abs(d.p2.x - d.p1.x)); rect.setAttribute('height', Math.abs(d.p2.y - d.p1.y));
+    rect.setAttribute('fill', 'rgba(250,204,21,0.10)'); rect.setAttribute('stroke', '#facc15'); rect.setAttribute('stroke-width', 1.5);
+    g.appendChild(rect);
+  } else if (d.type === 'fib' || d.type === 'fibext') {
+    // Fibonacci levels
+    const levels = d.type === 'fib'
+      ? [{ pct: 0, lbl: '0' }, { pct: 0.236, lbl: '0.236' }, { pct: 0.382, lbl: '0.382' }, { pct: 0.5, lbl: '0.5' }, { pct: 0.618, lbl: '0.618' }, { pct: 0.786, lbl: '0.786' }, { pct: 1, lbl: '1' }]
+      : [{ pct: 0, lbl: '0' }, { pct: 0.382, lbl: '0.382' }, { pct: 0.618, lbl: '0.618' }, { pct: 1, lbl: '1' }, { pct: 1.272, lbl: '1.272' }, { pct: 1.618, lbl: '1.618' }, { pct: 2.0, lbl: '2.0' }, { pct: 2.618, lbl: '2.618' }];
+    const colors = ['#ef4444','#f97316','#facc15','#84cc16','#22c55e','#06b6d4','#3b82f6','#a78bfa'];
+    const minX = Math.min(d.p1.x, d.p2.x), maxX = Math.max(d.p1.x, d.p2.x);
+    levels.forEach((lv, i) => {
+      const y = d.p1.y + (d.p2.y - d.p1.y) * lv.pct;
+      const price = d.p1.price + (d.p2.price - d.p1.price) * lv.pct;
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', minX); line.setAttribute('y1', y);
+      line.setAttribute('x2', maxX); line.setAttribute('y2', y);
+      line.setAttribute('stroke', colors[i % colors.length]); line.setAttribute('stroke-width', 1);
+      line.setAttribute('stroke-dasharray', i === 0 || i === levels.length - 1 ? '0' : '3 2');
+      g.appendChild(line);
+      const t = document.createElementNS(ns, 'text');
+      t.textContent = `${lv.lbl} (${price.toFixed(2)})`;
+      t.setAttribute('x', maxX + 4); t.setAttribute('y', y + 3);
+      t.setAttribute('fill', colors[i % colors.length]); t.setAttribute('font-size', 10);
+      g.appendChild(t);
+    });
+  } else if (d.type === 'channel') {
+    // Parallel channel: line p1-p2, parallel through p3
+    const line1 = document.createElementNS(ns, 'line');
+    line1.setAttribute('x1', d.p1.x); line1.setAttribute('y1', d.p1.y);
+    line1.setAttribute('x2', d.p2.x); line1.setAttribute('y2', d.p2.y);
+    line1.setAttribute('stroke', '#10b981'); line1.setAttribute('stroke-width', 2);
+    g.appendChild(line1);
+    // Parallel line: same slope, anchored at p3
+    const dx = d.p2.x - d.p1.x, dy = d.p2.y - d.p1.y;
+    const offY = d.p3.y - (d.p1.y + (d.p3.x - d.p1.x) * (dy / dx));
+    const line2 = document.createElementNS(ns, 'line');
+    line2.setAttribute('x1', d.p1.x); line2.setAttribute('y1', d.p1.y + offY);
+    line2.setAttribute('x2', d.p2.x); line2.setAttribute('y2', d.p2.y + offY);
+    line2.setAttribute('stroke', '#10b981'); line2.setAttribute('stroke-width', 2);
+    line2.setAttribute('stroke-dasharray', '4 3');
+    g.appendChild(line2);
+    // Fill between
+    const poly = document.createElementNS(ns, 'polygon');
+    poly.setAttribute('points', `${d.p1.x},${d.p1.y} ${d.p2.x},${d.p2.y} ${d.p2.x},${d.p2.y + offY} ${d.p1.x},${d.p1.y + offY}`);
+    poly.setAttribute('fill', 'rgba(16,185,129,0.08)');
+    g.appendChild(poly);
+  }
+
+  svg.appendChild(g);
+  STATE.drawings.push({ type: d.type, elem: g });
+}
+
+function undoDrawing() {
+  const last = STATE.drawings.pop();
+  if (!last) { showToast('Nothing to undo'); return; }
+  if (last.priceLine && last.series) {
+    try { last.series.removePriceLine(last.priceLine); } catch (e) {}
+  } else if (last.elem) {
+    last.elem.remove();
+  }
+  showToast('Undone');
 }
 
 // ───── Right-click context menu ─────
@@ -1661,6 +2370,15 @@ function setupKeyboardShortcuts() {
     if (e.key === 't') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="trendline"]').click(); return; }
     if (e.key === 'h') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="hline"]').click(); return; }
     if (e.key === 'a') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="annotation"]').click(); return; }
+    if (e.key === 'v' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="vline"]').click(); return; }
+    if (e.key === 'c' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="channel"]').click(); return; }
+    if (e.key === 'm' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="measure"]').click(); return; }
+    if (e.key === 'x' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="rect"]').click(); return; }
+    if (e.key === 'F' && e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="fibext"]').click(); return; }
+    if (e.key === 'f' && !cmd && !e.shiftKey) { /* don't capture - existing fullscreen */ }
+    if (e.key === 'd' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="fib"]').click(); return; }
+    if (cmd && e.key === 'z') { e.preventDefault(); undoDrawing(); return; }
+    if (e.key === 'k' && cmd) { e.preventDefault(); openCommandPalette(); return; }
     
     // Range cycle with [ and ]
     const ranges = ['1y','3y','5y','10y','20y','all'];
@@ -1946,8 +2664,363 @@ window.redraw = function() {
   document.getElementById('statusNorm').textContent = `Norm: ${STATE.norm}`;
 
   renderStats();
+  renderSymbolCards();  // v9.3 — keep info cards in sync
   updateUrlHash();
 };
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v9.3 AI CO-PILOT ════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+const AI_ENDPOINT = 'https://api.justhodl.ai/ai-chat';
+const AI_FALLBACK = 'https://justhodl-ai-proxy.raafouis.workers.dev/';
+STATE.aiHistory = [];
+
+function toggleAIPane() {
+  const pane = document.getElementById('aiPane');
+  pane.classList.toggle('open');
+  if (pane.classList.contains('open')) {
+    setTimeout(() => document.getElementById('aiInput').focus(), 250);
+  }
+}
+
+function buildAIContext() {
+  // Compact snapshot of what's on screen so the AI has rich context
+  const series = STATE.activeSeries.filter(s => !s.hidden).map(s => {
+    const data = s.data || [];
+    const first = data[0]; const last = data[data.length - 1];
+    const stats = computeStats(data);
+    return {
+      label: s.label, source: s.source,
+      first_date: first?.time, last_date: last?.time,
+      first_value: first?.value, last_value: last?.value,
+      pct_change: stats.pctChange, min: stats.min, max: stats.max, mean: stats.mean,
+    };
+  });
+  const inds = [...STATE.activeIndicators];
+  const regime = STATE.regimeData ? {
+    state: STATE.regimeData.regime,
+    forward_returns: STATE.regimeData.forward_returns_by_regime?.[STATE.regimeData.regime] || null,
+  } : null;
+  return {
+    range: STATE.range, normalization: STATE.norm,
+    series, indicators: inds, regime,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async function askAI(question) {
+  if (!question || !question.trim()) return;
+  const body = document.getElementById('aiBody');
+  const status = document.getElementById('aiStatus');
+  const sendBtn = document.getElementById('aiSendBtn');
+
+  // Render user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'ai-msg user';
+  userMsg.innerHTML = `<div class="role">You</div>${escapeHtml(question)}`;
+  body.appendChild(userMsg);
+
+  // Render typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'ai-msg assistant';
+  typing.id = 'aiTyping';
+  typing.innerHTML = `<div class="role">Analyst</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  body.appendChild(typing);
+  body.scrollTop = body.scrollHeight;
+  status.textContent = 'Thinking...';
+  sendBtn.disabled = true;
+
+  STATE.aiHistory.push({ role: 'user', content: question });
+  const ctx = buildAIContext();
+
+  // Try primary then fallback
+  let answer = null, err = null;
+  for (const ep of [AI_ENDPOINT, AI_FALLBACK]) {
+    try {
+      const r = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: question,
+          history: STATE.aiHistory.slice(-10),
+          chart_context: ctx,
+          source: 'chart-pro-v9',
+        }),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      answer = j.response || j.message || j.answer || j.content || JSON.stringify(j).slice(0, 800);
+      break;
+    } catch (e) { err = e; }
+  }
+
+  document.getElementById('aiTyping')?.remove();
+  if (answer) {
+    STATE.aiHistory.push({ role: 'assistant', content: answer });
+    const a = document.createElement('div');
+    a.className = 'ai-msg assistant';
+    a.innerHTML = `<div class="role">Analyst</div>${formatAIResponse(answer)}`;
+    body.appendChild(a);
+    status.textContent = 'Ready';
+  } else {
+    const e = document.createElement('div');
+    e.className = 'ai-msg assistant';
+    e.style.color = 'var(--c4)';
+    e.innerHTML = `<div class="role">Error</div>AI endpoint unreachable: ${err?.message || 'unknown'}<br><span style="color:var(--text-muted);font-size:10px">Tried ${AI_ENDPOINT} + fallback. Check ai-chat Lambda is deployed.</span>`;
+    body.appendChild(e);
+    status.textContent = 'Error';
+  }
+  body.scrollTop = body.scrollHeight;
+  sendBtn.disabled = false;
+}
+
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatAIResponse(s) {
+  // Light markdown: **bold**, line breaks, bullets
+  let html = escapeHtml(s);
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/^- (.+)$/gm, '<div style="margin:2px 0">• $1</div>');
+  html = html.replace(/\n\n/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v9.3 REGIME OVERLAY ═════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+async function loadRegime() {
+  try {
+    const r = await fetch('https://s3.amazonaws.com/justhodl-dashboard-live/data/macro-nowcast.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json();
+    STATE.regimeData = data;
+    renderRegimeBanner(data);
+  } catch (e) { console.warn('Regime load:', e); }
+}
+
+function renderRegimeBanner(d) {
+  const banner = document.getElementById('regimeBanner');
+  const pill = document.getElementById('regimePill');
+  const date = document.getElementById('regimeDate');
+  const fwd = document.getElementById('regimeForward');
+  if (!d || !d.regime) return;
+  banner.style.display = 'flex';
+  pill.textContent = d.regime.replace(/_/g, ' ');
+  pill.className = 'regime-pill ' + d.regime;
+  date.textContent = `as of ${d.as_of_date || d.timestamp?.slice(0, 10) || '—'}`;
+  const f = d.forward_returns_by_regime?.[d.regime];
+  if (f) {
+    const fmt = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(1)}%`;
+    fwd.textContent = `Historical SPY in ${d.regime}: ${fmt(f.fwd_1m_mean)} (1m) · ${fmt(f.fwd_6m_mean)} (6m) · ${fmt(f.fwd_12m_mean)} (12m) · hit ${(f.fwd_12m_hit * 100).toFixed(0)}%`;
+  }
+}
+
+STATE.regimeOverlayOn = false;
+function toggleRegimeOverlay() {
+  STATE.regimeOverlayOn = !STATE.regimeOverlayOn;
+  const btn = document.getElementById('regimeOverlayBtn');
+  btn.textContent = STATE.regimeOverlayOn ? 'Hide on chart' : 'Show on chart';
+  redraw();
+}
+
+function buildRegimeBands() {
+  // Use regime history to color the chart background
+  if (!STATE.regimeOverlayOn || !STATE.regimeData?.history) return [];
+  const history = STATE.regimeData.history;
+  const colors = {
+    STRONG_EXP: 'rgba(16,185,129,0.06)',
+    EXPANSION: 'rgba(132,204,22,0.06)',
+    MUDDLE_THROUGH: 'rgba(250,204,21,0.05)',
+    SLOWING: 'rgba(251,146,60,0.06)',
+    CONTRACTION: 'rgba(239,68,68,0.08)',
+  };
+  const series = STATE.chart.addAreaSeries({
+    topColor: 'transparent', bottomColor: 'transparent', lineColor: 'transparent',
+    priceScaleId: 'regime-bg', priceLineVisible: false, lastValueVisible: false,
+  });
+  // For now we don't have proper history shape mapping; banner is the primary UX
+  return [];
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v9.3 BAR-BY-BAR REPLAY ═════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+STATE.replay = { on: false, idx: 0, max: 0, playing: false, speed: 400, originalData: null };
+
+function toggleReplay() {
+  STATE.replay.on = !STATE.replay.on;
+  const bar = document.getElementById('replayBar');
+  const btn = document.getElementById('replayBtn');
+  if (STATE.replay.on) {
+    if (!STATE.activeSeries.length) { showToast('Add series first'); STATE.replay.on = false; return; }
+    bar.classList.add('open');
+    btn.classList.add('primary');
+    // Save current data
+    STATE.replay.originalData = STATE.activeSeries.map(s => [...(s.data || [])]);
+    STATE.replay.max = Math.min(...STATE.replay.originalData.map(d => d.length)) - 1;
+    STATE.replay.idx = STATE.replay.max;
+    document.getElementById('replaySlider').max = STATE.replay.max;
+    document.getElementById('replaySlider').value = STATE.replay.idx;
+    updateReplayInfo();
+  } else {
+    bar.classList.remove('open');
+    btn.classList.remove('primary');
+    if (STATE.replay.playing) replayPause();
+    if (STATE.replay.originalData) {
+      STATE.activeSeries.forEach((s, i) => { s.data = STATE.replay.originalData[i]; });
+      STATE.replay.originalData = null;
+      redraw();
+    }
+  }
+}
+
+function replayScrub(val) {
+  STATE.replay.idx = parseInt(val);
+  applyReplayData();
+}
+
+function replayStep(dir) {
+  STATE.replay.idx = Math.max(0, Math.min(STATE.replay.max, STATE.replay.idx + dir));
+  document.getElementById('replaySlider').value = STATE.replay.idx;
+  applyReplayData();
+}
+
+function applyReplayData() {
+  if (!STATE.replay.originalData) return;
+  STATE.activeSeries.forEach((s, i) => {
+    s.data = STATE.replay.originalData[i].slice(0, STATE.replay.idx + 1);
+  });
+  redraw();
+  updateReplayInfo();
+}
+
+function updateReplayInfo() {
+  const od = STATE.replay.originalData?.[0];
+  if (!od) return;
+  const cur = od[STATE.replay.idx];
+  document.getElementById('replayInfo').textContent = `Bar ${STATE.replay.idx + 1}/${STATE.replay.max + 1} · ${cur?.time || '—'}`;
+}
+
+function replayPlay() {
+  if (STATE.replay.playing) { replayPause(); return; }
+  STATE.replay.playing = true;
+  document.getElementById('replayPlayBtn').textContent = '⏸ Pause';
+  STATE.replay.timer = setInterval(() => {
+    if (STATE.replay.idx >= STATE.replay.max) { replayPause(); return; }
+    replayStep(1);
+  }, STATE.replay.speed);
+}
+
+function replayPause() {
+  STATE.replay.playing = false;
+  document.getElementById('replayPlayBtn').textContent = '▶ Play';
+  clearInterval(STATE.replay.timer);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v9.3 SYMBOL INFO CARDS ═════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+function renderSymbolCards() {
+  const host = document.getElementById('symbolCards');
+  if (!STATE.activeSeries.length) { host.style.display = 'none'; return; }
+  host.style.display = 'flex';
+  host.innerHTML = STATE.activeSeries.map(s => {
+    const d = s.data || [];
+    if (!d.length) return '';
+    const last = d[d.length - 1];
+    const first = d[0];
+    const ch = last.value - first.value;
+    const pct = (ch / first.value) * 100;
+    const cls = ch >= 0 ? 'up' : 'dn';
+    return `<div class="sym-card" onclick="STATE.chart && STATE.chart.timeScale().fitContent()">
+      <div class="sc-name"><span class="sc-color" style="background:${s.color}"></span>${escapeHtml(s.label.slice(0, 30))}</div>
+      <div class="sc-val">${last.value.toFixed(2)}</div>
+      <div class="sc-ch ${cls}">${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch).toFixed(2)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v9.3 COMMAND PALETTE (Cmd+K) ═══════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+STATE.cmdSelected = 0;
+function openCommandPalette() {
+  document.getElementById('cmdOverlay').classList.add('open');
+  document.getElementById('cmdInput').value = '';
+  document.getElementById('cmdInput').focus();
+  STATE.cmdSelected = 0;
+  renderCommandPalette();
+}
+function closeCommandPalette() {
+  document.getElementById('cmdOverlay').classList.remove('open');
+}
+function buildCommandList() {
+  const list = [];
+  // Indicators
+  INDICATORS.forEach(i => list.push({ cat: 'Indicator', label: i.name, run: () => { toggleIndicator(i.key); } }));
+  // Catalog series
+  if (STATE.catalog) {
+    Object.entries(STATE.catalog).forEach(([catKey, cat]) => {
+      cat.series.forEach(([id, name, source]) => {
+        list.push({ cat: cat.label || catKey, label: `${name} (${id})`, run: () => toggleSeries(id, name, source) });
+      });
+    });
+  }
+  // Presets
+  for (let i = 0; i < (PRESETS?.length || 0); i++) {
+    list.push({ cat: 'Preset', label: `Preset: ${PRESETS[i].name}`, run: () => loadPreset(i) });
+  }
+  // Actions
+  list.push({ cat: 'Action', label: 'Save workspace', run: saveWorkspace });
+  list.push({ cat: 'Action', label: 'Export PNG', run: exportPNG });
+  list.push({ cat: 'Action', label: 'Export CSV', run: exportCSV });
+  list.push({ cat: 'Action', label: 'Toggle log scale', run: () => document.getElementById('logScaleBtn').click() });
+  list.push({ cat: 'Action', label: 'Toggle fullscreen', run: () => document.getElementById('fullscreenBtn').click() });
+  list.push({ cat: 'Action', label: 'Toggle AI Analyst', run: toggleAIPane });
+  list.push({ cat: 'Action', label: 'Bar-by-bar replay', run: toggleReplay });
+  list.push({ cat: 'Action', label: 'Clear all series', run: clearAllSeries });
+  list.push({ cat: 'Action', label: 'Reset zoom', run: ctxResetZoom });
+  return list;
+}
+function renderCommandPalette() {
+  const q = document.getElementById('cmdInput').value.toLowerCase();
+  const all = buildCommandList();
+  const filtered = q ? all.filter(c => c.label.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q)) : all.slice(0, 50);
+  STATE.cmdResults = filtered;
+  STATE.cmdSelected = 0;
+  document.getElementById('cmdList').innerHTML = filtered.slice(0, 30).map((c, i) =>
+    `<div class="cmd-item ${i === 0 ? 'selected' : ''}" data-i="${i}" onclick="runCommand(${i})">
+      <span>${escapeHtml(c.label)}</span><span class="cmd-cat">${c.cat}</span>
+    </div>`).join('');
+}
+function runCommand(i) {
+  const cmd = STATE.cmdResults?.[i];
+  if (cmd) { closeCommandPalette(); cmd.run(); }
+}
+
+// Command palette keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('cmdOverlay').classList.contains('open')) return;
+  if (e.key === 'Escape') { closeCommandPalette(); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    STATE.cmdSelected = Math.min((STATE.cmdResults?.length || 0) - 1, STATE.cmdSelected + 1);
+    document.querySelectorAll('.cmd-item').forEach((el, i) => el.classList.toggle('selected', i === STATE.cmdSelected));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    STATE.cmdSelected = Math.max(0, STATE.cmdSelected - 1);
+    document.querySelectorAll('.cmd-item').forEach((el, i) => el.classList.toggle('selected', i === STATE.cmdSelected));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    runCommand(STATE.cmdSelected);
+  }
+});
+
+// Register regime overlay button click
+document.addEventListener('DOMContentLoaded', () => {
+  const rb = document.getElementById('regimeOverlayBtn');
+  if (rb) rb.addEventListener('click', toggleRegimeOverlay);
+});
 
 // ───── Bootstrap ─────
 async function init() {
@@ -1959,6 +3032,7 @@ async function init() {
   setupDrawingTools();
   setupCustomDate();
   await loadRecessionData();
+  loadRegime();  // v9.3
   // Try to restore from URL hash, otherwise load default preset
   if (!restoreFromUrl()) loadPreset(0);
 }
