@@ -1,0 +1,22 @@
+{
+  "started": "2026-05-08T20:53:11.391818+00:00",
+  "fn": "justhodl-push-api",
+  "zip_bytes": 4292,
+  "preexisting": false,
+  "action": "created",
+  "function_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-push-api",
+  "test_invoke": {
+    "statusCode": 200,
+    "service": "justhodl-push-api",
+    "endpoints": [
+      "/vapid-public-key",
+      "/subscribe",
+      "/unsubscribe",
+      "/send",
+      "/send-test"
+    ],
+    "vapid_configured": true
+  },
+  "status": "success",
+  "finished": "2026-05-08T20:53:16.785712+00:00"
+}
