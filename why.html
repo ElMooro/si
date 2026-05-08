@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why · JustHodl.AI</title>
+<meta name="description" content="Cross-signal anomaly tracer. For any ticker, walk back the dependency chain — which signals fired, what they contributed to the conviction score, and the historical hit-rate per signal.">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818; --bg-hover: #1f1f1f;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa; --cyan: #22d3ee;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; font-size: 13px; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .nav { display: flex; gap: 16px; font-size: 12px; }
+  .nav a { color: var(--text-dim); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+
+  /* Picker bar */
+  .picker { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 14px 18px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center;
+            flex-wrap: wrap; }
+  .picker .label { color: var(--text-dim); font-size: 11px; text-transform: uppercase;
+                   letter-spacing: 0.05em; }
+  .picker input { background: var(--bg-card-elev); color: var(--text); border: 1px solid var(--border-light);
+                  border-radius: 4px; padding: 8px 12px; font-size: 14px; font-weight: 700;
+                  font-family: inherit; min-width: 140px; text-transform: uppercase; }
+  .picker input:focus { outline: none; border-color: var(--accent); }
+  .picker .quick { display: flex; gap: 6px; flex-wrap: wrap; }
+  .quick-btn { background: var(--bg-card-elev); color: var(--text-dim); border: 1px solid var(--border-light);
+               border-radius: 4px; padding: 5px 10px; font-size: 11px; cursor: pointer;
+               font-family: inherit; }
+  .quick-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
+
+  /* Hero conviction */
+  .conviction-hero { background: var(--bg-card); border: 1px solid var(--border);
+                     border-left: 5px solid var(--accent); border-radius: 8px;
+                     padding: 24px 28px; margin-bottom: 16px; display: grid;
+                     grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+  .conv-score { text-align: center; min-width: 200px; }
+  .conv-score .ticker { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); }
+  .conv-score .num { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: var(--text); margin: 4px 0; }
+  .conv-score .num.high { color: var(--green); }
+  .conv-score .num.medium { color: var(--amber); }
+  .conv-score .num.low { color: var(--text-dim); }
+  .conv-score .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .conv-summary h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .conv-summary p { color: var(--text-dim); line-height: 1.6; }
+  .conv-systems { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .sys-pill { background: var(--bg-card-elev); border: 1px solid var(--border-light);
+              border-radius: 4px; padding: 4px 10px; font-size: 11px; color: var(--text); }
+  .sys-pill .emoji { margin-right: 4px; }
+
+  /* Section */
+  .section { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .section-header { padding: 12px 18px; border-bottom: 1px solid var(--border);
+                    display: flex; justify-content: space-between; align-items: center; }
+  .section-header h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .section-header .sub { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+  .section-body { padding: 14px 18px; }
+
+  /* Contribution rows */
+  .contrib-row { display: grid; grid-template-columns: 28px 200px 1fr 80px 80px 80px;
+                 gap: 14px; padding: 14px 18px; align-items: center;
+                 border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .contrib-row:last-child { border-bottom: none; }
+  .contrib-row:hover { background: var(--bg-hover); }
+  .contrib-icon { font-size: 18px; text-align: center; }
+  .contrib-name { font-weight: 600; color: var(--text); }
+  .contrib-name .sub { display: block; font-size: 11px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
+  .contrib-detail { color: var(--text-dim); font-size: 12px; line-height: 1.5; }
+  .contrib-detail strong { color: var(--text); }
+  .contrib-pts { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .contrib-pts.pos { color: var(--green); }
+  .contrib-pts.neg { color: var(--red); }
+  .contrib-bar { height: 6px; background: var(--bg-card-elev); border-radius: 3px; overflow: hidden; }
+  .contrib-bar-fill { height: 100%; background: var(--green); }
+  .contrib-bar-fill.neg { background: var(--red); }
+  .contrib-hit { text-align: right; font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .contrib-hit strong { color: var(--text); }
+
+  /* Not found */
+  .not-found { padding: 40px; text-align: center; color: var(--text-dim); }
+  .not-found h3 { color: var(--text); margin-bottom: 8px; }
+
+  /* Loading */
+  .loading { padding: 30px; text-align: center; color: var(--text-dim); font-size: 13px; }
+  .error { padding: 14px 18px; background: rgba(239,68,68,0.1); border: 1px solid var(--red);
+           border-radius: 6px; color: var(--red); font-size: 12px; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 18px; }
+  .info-card { background: var(--bg-card-elev); border: 1px solid var(--border-light);
+               border-radius: 6px; padding: 10px 14px; }
+  .info-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .info-value { font-size: 16px; font-weight: 700; color: var(--text); }
+  .info-sub { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+  @media (max-width: 1100px) {
+    .conviction-hero { grid-template-columns: 1fr; text-align: center; }
+    .conv-score .num { font-size: 48px; }
+    .contrib-row { grid-template-columns: 28px 1fr 80px; }
+    .contrib-detail, .contrib-hit { display: none; }
+    .info-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🧭 Why <span class="sub">cross-signal explainer · walks the dependency chain for any ticker</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/master-rank.html">Action</a>
+      <a href="/alpha-scoreboard.html">Scoreboard</a>
+      <a href="/compound-signals.html">Compound</a>
+      <a href="/portfolio.html">Portfolio</a>
+    </div>
+  </div>
+
+  <div class="picker">
+    <span class="label">Ticker:</span>
+    <input id="tickerInput" type="text" placeholder="TX" autocomplete="off">
+    <button class="quick-btn" onclick="explain(document.getElementById('tickerInput').value)">Explain →</button>
+    <span class="label" style="margin-left:14px">Top picks:</span>
+    <div class="quick" id="quickPicks">
+      <span class="loading" style="font-size:11px;padding:0">loading top tickers…</span>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="section">
+      <div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">
+        Pick a ticker above to see why the system has conviction (or doesn't). Defaults to top compound-signal pick on page load.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BUCKET_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com";
+const URLS = {
+  compound: BUCKET_BASE + "/data/compound-signals.json",
+  asymmetric: BUCKET_BASE + "/data/asymmetric-scorer.json",
+  master: BUCKET_BASE + "/data/master-rank.json",
+  nobrainers: BUCKET_BASE + "/data/nobrainers.json",
+  insiders: BUCKET_BASE + "/data/insider-trades.json",
+  eps: BUCKET_BASE + "/data/eps-velocity.json",
+  momentum: BUCKET_BASE + "/data/momentum.json",
+  prePump: BUCKET_BASE + "/data/pre-pump.json",
+  smartMoney: BUCKET_BASE + "/data/smart-money.json",
+  deepValue: BUCKET_BASE + "/data/deep-value.json",
+  optionsFlow: BUCKET_BASE + "/flow-data.json",
+  microcap: BUCKET_BASE + "/data/microcap-squeeze.json",
+  pead: BUCKET_BASE + "/data/pead-signals.json",
+  volSqueeze: BUCKET_BASE + "/data/vol-squeeze.json",
+  themes: BUCKET_BASE + "/data/themes.json",
+  themeTiers: BUCKET_BASE + "/data/theme-tiers.json",
+  revenue: BUCKET_BASE + "/data/revenue-acceleration.json",
+  filings: BUCKET_BASE + "/data/8k-filings.json",
+};
+
+let DATA = {};
+
+const SIG_META = {
+  insiders:    { name: "Insider activity",         icon: "👀", source: "insider-cluster-scanner + insider-trades", weight: 25 },
+  smart_money: { name: "Smart money cluster",      icon: "💼", source: "smart-money-cluster", weight: 20 },
+  nobrainers:  { name: "Asymmetric (no-brainer)",  icon: "🎯", source: "asymmetric-hunter (Tier-A)", weight: 30 },
+  deep_value:  { name: "Deep value",               icon: "💎", source: "deep-value-screener", weight: 15 },
+  eps_velocity:{ name: "EPS revision velocity",    icon: "📈", source: "eps-revision-velocity", weight: 18 },
+  momentum:    { name: "Momentum breakout",        icon: "🚀", source: "momentum-breakout", weight: 15 },
+  pre_pump:    { name: "Pre-pump detector",        icon: "🌱", source: "pre-pump-detector", weight: 12 },
+  options_flow:{ name: "Options flow",             icon: "📞", source: "options-flow", weight: 22 },
+  activist:    { name: "Activist filings",         icon: "🏛️", source: "activist-filings-scanner", weight: 20 },
+  vol_squeeze: { name: "Volatility squeeze",       icon: "🔋", source: "volatility-squeeze-hunter", weight: 12 },
+  rev_accel:   { name: "Revenue acceleration",     icon: "📊", source: "revenue-acceleration", weight: 18 },
+  microcap_sq: { name: "Microcap float squeeze",   icon: "🔥", source: "microcap-float-squeeze", weight: 15 },
+  pead:        { name: "Post-earnings drift",      icon: "📅", source: "pead-detector", weight: 14 },
+};
+
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+async function init() {
+  // Pull the master JSONs in parallel
+  const entries = await Promise.all(
+    Object.entries(URLS).map(async ([k, u]) => [k, await fetchJSON(u)])
+  );
+  DATA = Object.fromEntries(entries);
+  // Populate quick picks
+  populateQuickPicks();
+  // Auto-explain top compound pick on load
+  const url = new URL(window.location);
+  let initialTicker = url.searchParams.get("ticker");
+  if (!initialTicker && DATA.compound?.ranked?.length) initialTicker = DATA.compound.ranked[0].symbol;
+  if (initialTicker) {
+    document.getElementById("tickerInput").value = initialTicker;
+    explain(initialTicker);
+  }
+  // Wire enter key
+  document.getElementById("tickerInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") explain(e.target.value);
+  });
+}
+
+function populateQuickPicks() {
+  const top = (DATA.compound?.ranked || []).slice(0, 6).map(r => r.symbol);
+  const setups = (DATA.asymmetric?.top_setups || []).slice(0, 3).map(s => s.symbol).filter(s => !top.includes(s));
+  const picks = [...top, ...setups].slice(0, 8);
+  if (!picks.length) {
+    document.getElementById("quickPicks").innerHTML = '<span class="loading" style="font-size:11px;padding:0">no compound data yet</span>';
+    return;
+  }
+  document.getElementById("quickPicks").innerHTML = picks.map(t =>
+    `<button class="quick-btn" onclick="explain('${t}')">${t}</button>`
+  ).join("");
+}
+
+function explain(rawTicker) {
+  const ticker = (rawTicker || "").trim().toUpperCase();
+  if (!ticker) return;
+  document.getElementById("tickerInput").value = ticker;
+  const url = new URL(window.location);
+  url.searchParams.set("ticker", ticker);
+  window.history.replaceState({}, "", url);
+
+  // 1. Find ticker in compound-signals
+  const compoundRow = (DATA.compound?.ranked || []).find(r => r.symbol === ticker);
+  // 2. Find in asymmetric-scorer top setups
+  const asymRow = (DATA.asymmetric?.top_setups || []).find(s => s.symbol === ticker);
+  // 3. Find in master rank
+  const masterRow = (DATA.master?.ranked || DATA.master?.rows || []).find(r =>
+    (r.symbol || r.ticker) === ticker);
+  // 4. Find in nobrainers
+  const nobrainerRow = findInNobrainers(ticker);
+
+  const hasAny = compoundRow || asymRow || masterRow || nobrainerRow;
+  if (!hasAny) {
+    document.getElementById("content").innerHTML = `
+      <div class="section">
+        <div class="not-found">
+          <h3>${ticker} not found in active signal feeds</h3>
+          <p>This ticker isn't currently surfacing in compound-signals, asymmetric-scorer, master-rank, or nobrainers. Either it's not in the universe or no signals are firing on it right now.</p>
+          <p style="margin-top:12px;font-size:11px">Try one of the quick-picks above, or check <a href="/master-rank.html" style="color:var(--accent)">master-rank.html</a> for the full universe.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById("content").innerHTML = [
+    renderConvictionHero(ticker, compoundRow, asymRow, masterRow, nobrainerRow),
+    renderContributions(ticker, compoundRow),
+    renderAsymmetricBreakdown(ticker, asymRow),
+    renderRelatedFlags(ticker),
+    renderRawData(ticker, compoundRow, asymRow, masterRow, nobrainerRow),
+  ].join("");
+}
+
+function findInNobrainers(ticker) {
+  const data = DATA.nobrainers;
+  if (!data) return null;
+  // Could be in tier_a, tier_b, or top_picks
+  for (const key of ["tier_a", "tier_b", "top_picks", "candidates", "results"]) {
+    const arr = data[key];
+    if (Array.isArray(arr)) {
+      const match = arr.find(r => (r.symbol || r.ticker) === ticker);
+      if (match) return { ...match, _tier: key };
+    }
+  }
+  return null;
+}
+
+function renderConvictionHero(ticker, compound, asym, master, nb) {
+  const score = compound?.score ?? null;
+  const cls = score === null ? "low" : score >= 200 ? "high" : score >= 100 ? "medium" : "low";
+  const systems = compound?.systems || [];
+
+  // Build a one-line plain-English summary
+  let summary = "";
+  if (compound) {
+    const n = systems.length;
+    summary = `<strong>${ticker}</strong> shows up across ${n} independent signal system${n === 1 ? "" : "s"} with a combined compound score of <strong style="color:var(--accent)">${Math.round(compound.score)}</strong>.`;
+    if (compound.score >= 300) summary += " <span style='color:var(--green)'>EXCEPTIONAL stacking — rare event, often precedes major moves.</span>";
+    else if (compound.score >= 200) summary += " <span style='color:var(--green)'>HIGH conviction — multiple systems independently aligned.</span>";
+    else if (compound.score >= 100) summary += " <span style='color:var(--amber)'>Moderate stacking — some confluence but not exceptional.</span>";
+    else summary += " <span style='color:var(--text-dim)'>Light stacking — weak edge.</span>";
+  } else if (asym) {
+    summary = `<strong>${ticker}</strong> doesn't show in compound-signals but is in <strong>asymmetric-scorer</strong> with composite ${asym.composite_score} and ${(asym.dims_passed_list || []).length}/5 dimensions passed.`;
+  } else if (nb) {
+    summary = `<strong>${ticker}</strong> is in nobrainers (${nb._tier || "unknown tier"}) but not in compound-signals.`;
+  } else {
+    summary = `<strong>${ticker}</strong> appears in master-rank but not in any compound signals.`;
+  }
+
+  const systemPills = systems.map(s => {
+    const meta = SIG_META[s] || { name: s, icon: "•" };
+    return `<span class="sys-pill"><span class="emoji">${meta.icon}</span>${meta.name}</span>`;
+  }).join("");
+
+  return `
+  <div class="conviction-hero">
+    <div class="conv-score">
+      <div class="ticker">${ticker}</div>
+      <div class="num ${cls}">${score !== null ? Math.round(score) : "—"}</div>
+      <div class="lbl">compound score</div>
+    </div>
+    <div class="conv-summary">
+      <h2>The chain of evidence</h2>
+      <p>${summary}</p>
+      ${systemPills ? `<div class="conv-systems">${systemPills}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+function renderContributions(ticker, compound) {
+  if (!compound) {
+    return `<div class="section">
+      <div class="section-header"><h3>📊 Per-signal contribution</h3></div>
+      <div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">
+        ${ticker} has no compound-signals entry — no per-system contribution data available.
+      </div>
+    </div>`;
+  }
+  const details = compound.details || {};
+  const systems = compound.systems || [];
+  const totalScore = compound.score || 0;
+
+  const rows = systems.map(sys => {
+    const meta = SIG_META[sys] || { name: sys, icon: "•", source: sys, weight: 10 };
+    const d = details[sys] || {};
+    // Best-effort detail summary per system
+    let detailHTML = "";
+    if (sys === "insiders" && d.rationale) detailHTML = d.rationale;
+    else if (sys === "eps_velocity" && d.fy2_lift_pct !== undefined) {
+      detailHTML = `EPS lift <strong>${d.fy2_lift_pct >= 0 ? "+" : ""}${d.fy2_lift_pct?.toFixed(1)}%</strong> · revenue growth <strong>${d.fwd_rev_growth_pct >= 0 ? "+" : ""}${d.fwd_rev_growth_pct?.toFixed(1)}%</strong>`;
+    } else if (sys === "smart_money" && d.n_funds) {
+      detailHTML = `<strong>${d.n_funds}</strong> funds positioned · <strong>${d.cluster_strength || "—"}</strong> conviction`;
+    } else if (sys === "options_flow" && d.bullish_flow) {
+      detailHTML = `bullish flow <strong>$${(d.bullish_flow / 1e6).toFixed(1)}M</strong>`;
+    } else if (sys === "momentum" && d.breakout_score) {
+      detailHTML = `breakout score <strong>${d.breakout_score}</strong>`;
+    } else if (sys === "deep_value" && d.score !== undefined) {
+      detailHTML = `value score <strong>${d.score}</strong> · P/E <strong>${d.peRatio?.toFixed(1) || "—"}</strong>`;
+    } else if (sys === "nobrainers" && d.tier) {
+      detailHTML = `${d.tier} (${d.tier_score || "—"})`;
+    } else if (sys === "pead" && d.surprise_pct) {
+      detailHTML = `earnings surprise <strong>${d.surprise_pct >= 0 ? "+" : ""}${d.surprise_pct?.toFixed(1)}%</strong>, drift signal active`;
+    } else if (Object.keys(d).length) {
+      detailHTML = Object.entries(d).slice(0, 3).map(([k, v]) =>
+        `<span style="color:var(--text-muted)">${k}:</span> <strong>${typeof v === 'number' ? v.toFixed(2) : (typeof v === 'string' ? v.slice(0, 40) : JSON.stringify(v).slice(0, 40))}</strong>`
+      ).join(" · ");
+    } else {
+      detailHTML = "<em style='color:var(--text-muted)'>signal fired (no detail metadata)</em>";
+    }
+
+    const weight = meta.weight || 10;
+    const pct = Math.min(100, (weight / 30) * 100);
+    return `<div class="contrib-row">
+      <div class="contrib-icon">${meta.icon}</div>
+      <div class="contrib-name">
+        ${meta.name}
+        <span class="sub">${meta.source}</span>
+      </div>
+      <div class="contrib-detail">${detailHTML}</div>
+      <div class="contrib-pts pos">+${weight}</div>
+      <div class="contrib-bar"><div class="contrib-bar-fill" style="width:${pct}%"></div></div>
+      <div class="contrib-hit"><strong>${weight}</strong>pts</div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📊 Per-signal contribution to ${ticker}'s compound score</h3>
+      <span class="sub">${systems.length} signals firing · ${Math.round(totalScore)} compound points</span>
+    </div>
+    ${rows || '<div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">No system details available.</div>'}
+  </div>`;
+}
+
+function renderAsymmetricBreakdown(ticker, asym) {
+  if (!asym) return "";
+  const dims = asym.dims_passed_list || [];
+  const composite = asym.composite_score;
+  const stacked = asym.stacked_conviction_score;
+  const stackedDetails = asym.stacking_signals || [];
+
+  const dimLabels = {
+    quality: "Quality (Piotroski + safety)",
+    safety: "Safety (debt/equity, current ratio)",
+    value: "Value (P/E vs sector)",
+    momentum: "Momentum (50/200 trend)",
+    growth: "Growth (revenue + EPS)",
+  };
+
+  const dimHTML = ["quality", "safety", "value", "momentum", "growth"].map(d => {
+    const passed = dims.includes(d);
+    return `<div class="info-card" style="border-left:3px solid ${passed ? 'var(--green)' : 'var(--text-muted)'}">
+      <div class="info-label">${dimLabels[d] || d}</div>
+      <div class="info-value" style="color:${passed ? 'var(--green)' : 'var(--text-dim)'}">${passed ? "✓ pass" : "✗"}</div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>🎯 Asymmetric-scorer breakdown</h3>
+      <span class="sub">composite ${composite} · ${dims.length}/5 dims passed${stacked !== undefined ? ' · stacked conviction ' + stacked : ''}</span>
+    </div>
+    <div class="info-grid" style="grid-template-columns:repeat(5,1fr)">${dimHTML}</div>
+    ${stackedDetails.length ? `
+      <div class="section-body" style="border-top:1px solid var(--border)">
+        <div style="color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Stacked conviction signals</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${stackedDetails.map(s => `<span class="sys-pill" style="border-color:${s.points >= 0 ? 'var(--green)' : 'var(--red)'};color:${s.points >= 0 ? 'var(--green)' : 'var(--red)'}">${s.label || s.kind} ${s.points >= 0 ? '+' : ''}${s.points}</span>`).join("")}
+        </div>
+      </div>` : ''}
+  </div>`;
+}
+
+function renderRelatedFlags(ticker) {
+  // Show whether the ticker is flagged by individual signal Lambdas (cross-check)
+  const flags = [
+    { feed: DATA.insiders, key: "insiders", label: "Insider buys/sells", finder: (d) => (d.activity || d.events || d.records || []).filter(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.eps, key: "eps", label: "EPS revision velocity", finder: (d) => (d.results || d.tickers || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.smartMoney, key: "smart_money", label: "Smart-money cluster", finder: (d) => (d.clusters || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.deepValue, key: "deep_value", label: "Deep value screener", finder: (d) => (d.results || d.picks || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.momentum, key: "momentum", label: "Momentum breakout", finder: (d) => (d.results || d.breakouts || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.optionsFlow, key: "options", label: "Options flow", finder: (d) => (d.unusual || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.microcap, key: "microcap", label: "Microcap squeeze", finder: (d) => (d.candidates || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
+    { feed: DATA.revenue, key: "revenue", label: "Revenue acceleration", finder: (d) => (d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
+  ];
+
+  const hits = flags.map(f => {
+    if (!f.feed) return null;
+    try {
+      const found = f.finder(f.feed);
+      if (Array.isArray(found) ? found.length > 0 : !!found) {
+        return { label: f.label, key: f.key };
+      }
+    } catch (e) {}
+    return null;
+  }).filter(Boolean);
+
+  if (!hits.length) {
+    return `<div class="section">
+      <div class="section-header"><h3>🔗 Related signal feeds</h3></div>
+      <div class="section-body" style="color:var(--text-dim);text-align:center;padding:24px">
+        No direct hits in any individual signal feed for ${ticker} (cross-checks complete).
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>🔗 Cross-check: ${hits.length} other signal feeds also have ${ticker}</h3>
+      <span class="sub">independent confirmation from raw signal Lambdas</span>
+    </div>
+    <div class="section-body">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${hits.map(h => `<span class="sys-pill" style="border-color:var(--green);color:var(--green)">✓ ${h.label}</span>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderRawData(ticker, compound, asym, master, nb) {
+  const sources = [];
+  if (compound) sources.push({ label: "compound-signals", data: compound });
+  if (asym) sources.push({ label: "asymmetric-scorer", data: asym });
+  if (master) sources.push({ label: "master-rank", data: master });
+  if (nb) sources.push({ label: "nobrainers", data: nb });
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>🗃 Raw source data</h3>
+      <span class="sub">${sources.length} feeds · click to expand</span>
+    </div>
+    ${sources.map(s => `
+      <details style="border-bottom:1px solid var(--border)">
+        <summary style="padding:10px 18px;cursor:pointer;color:var(--text);font-size:12px">${s.label}</summary>
+        <pre style="padding:14px 18px;background:var(--bg);overflow-x:auto;font-size:11px;color:var(--text-dim);font-family:'SF Mono', Menlo, monospace;line-height:1.5">${JSON.stringify(s.data, null, 2)}</pre>
+      </details>
+    `).join("")}
+  </div>`;
+}
+
+init();
+</script>
+
+</body>
+</html>
