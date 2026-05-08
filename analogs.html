@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historical Analogs · JustHodl.AI</title>
+<meta name="description" content="Find historical dates whose macro state vector most closely resembles today, and see what happened in the following weeks. Powered by 25y FRED data across 6 dimensions.">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818; --bg-hover: #1f1f1f;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; font-size: 13px; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .nav { display: flex; gap: 16px; font-size: 12px; }
+  .nav a { color: var(--text-dim); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+
+  /* Directional call hero — biggest thing on page */
+  .call-hero { background: var(--bg-card); border: 1px solid var(--border);
+               border-left: 5px solid var(--accent); border-radius: 8px;
+               padding: 24px 28px; margin-bottom: 16px; }
+  .call-hero.BULLISH { border-left-color: var(--green); }
+  .call-hero.BEARISH { border-left-color: var(--red); }
+  .call-hero.MIXED { border-left-color: var(--amber); }
+  .call-line { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .call-line .label { color: var(--text-dim); font-weight: 400; font-size: 14px; margin-right: 14px; }
+  .call-line .value.BULLISH { color: var(--green); }
+  .call-line .value.BEARISH { color: var(--red); }
+  .call-line .value.MIXED { color: var(--amber); }
+  .call-desc { color: var(--text); font-size: 14px; line-height: 1.55; max-width: 950px; }
+  .call-meta { color: var(--text-muted); font-size: 11px; margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* Today snapshot grid */
+  .snapshot { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+  .snap-card { background: var(--bg-card); border: 1px solid var(--border);
+               border-radius: 6px; padding: 12px 14px; }
+  .snap-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+                letter-spacing: 0.05em; margin-bottom: 6px; }
+  .snap-value { font-size: 18px; font-weight: 700; color: var(--text); }
+  .snap-z { font-size: 10px; margin-top: 4px; }
+  .snap-z.high { color: var(--red); }
+  .snap-z.low { color: var(--blue); }
+  .snap-z.mid { color: var(--text-dim); }
+
+  /* Section */
+  .section { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .section-header { padding: 12px 18px; border-bottom: 1px solid var(--border);
+                    display: flex; justify-content: space-between; align-items: center; }
+  .section-header h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .section-header .sub { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+
+  /* Forward distribution boxes */
+  .fwd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .fwd-box { padding: 18px 20px; border-right: 1px solid var(--border); }
+  .fwd-box:last-child { border-right: none; }
+  .fwd-horizon { font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+                 letter-spacing: 0.05em; margin-bottom: 8px; }
+  .fwd-mean { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; line-height: 1; }
+  .fwd-mean.up { color: var(--green); }
+  .fwd-mean.dn { color: var(--red); }
+  .fwd-mean.flat { color: var(--text-dim); }
+  .fwd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px;
+               margin-top: 12px; font-size: 11px; color: var(--text-dim); }
+  .fwd-stats span strong { color: var(--text); }
+  .fwd-bar { margin-top: 10px; background: var(--bg-card-elev); border-radius: 3px;
+             height: 6px; position: relative; overflow: hidden; }
+  .fwd-bar-fill { height: 100%; background: var(--green); border-radius: 3px; }
+  .fwd-bar-fill.dn { background: var(--red); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--bg-card-elev); }
+  th { padding: 9px 12px; text-align: left; font-size: 10px; color: var(--text-dim);
+       text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+       border-bottom: 1px solid var(--border); }
+  th.right { text-align: right; }
+  td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+       color: var(--text); white-space: nowrap; }
+  td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:hover { background: var(--bg-hover); }
+  tr:last-child td { border-bottom: none; }
+  .pnl-up { color: var(--green); }
+  .pnl-dn { color: var(--red); }
+  .pnl-flat { color: var(--text-dim); }
+  .similarity-bar { display: inline-block; width: 60px; height: 10px;
+                    background: var(--bg-card-elev); border-radius: 2px; vertical-align: middle;
+                    margin-right: 6px; overflow: hidden; }
+  .similarity-fill { height: 100%; background: linear-gradient(to right, var(--blue), var(--accent)); }
+
+  /* Distribution chart */
+  #distChart { width: 100%; height: 380px; }
+
+  /* Loading + error */
+  .loading { padding: 30px 20px; text-align: center; color: var(--text-dim); font-size: 13px; }
+  .error { padding: 16px; background: rgba(239,68,68,0.1); border: 1px solid var(--red);
+           border-radius: 6px; color: var(--red); font-size: 12px; }
+
+  .status-bar { padding: 10px 18px; background: var(--bg-card); border: 1px solid var(--border);
+                border-radius: 6px; font-size: 11px; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 1100px) {
+    .snapshot { grid-template-columns: repeat(3, 1fr); }
+    .fwd-grid { grid-template-columns: repeat(2, 1fr); }
+    .fwd-box { border-bottom: 1px solid var(--border); }
+    .call-line { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🔍 Historical Analogs <span class="sub">"this looks like ___" · 25y FRED across 6 macro dimensions</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/portfolio.html">Portfolio</a>
+      <a href="/macro-data.html">Regime</a>
+      <a href="/master-rank.html">Action</a>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading historical-analogs Lambda output…</div>
+  </div>
+</div>
+
+<script>
+const URL_HISTORY = "https://justhodl-dashboard-live.s3.amazonaws.com/data/historical-analogs.json";
+
+const FEATURE_LABELS = {
+  vix: "VIX",
+  twos_tens_bps: "2s10s slope (bps)",
+  hy_oas_pct: "HY credit OAS (%)",
+  usd_index: "USD index (DTWEXBGS)",
+  ten_year_yield_pct: "10Y yield (%)",
+  spx_1m_return_pct: "SPX 1m return (%)",
+};
+const FEATURE_ORDER_DEFAULT = ["vix", "twos_tens_bps", "hy_oas_pct", "usd_index", "ten_year_yield_pct", "spx_1m_return_pct"];
+
+async function load() {
+  let data = null;
+  try {
+    const r = await fetch(URL_HISTORY + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    data = await r.json();
+  } catch (e) {
+    document.getElementById("content").innerHTML = `<div class="error">⚠ Could not load historical-analogs.json: ${e.message}</div>`;
+    return;
+  }
+  render(data);
+}
+
+function fmt(n, dp = 2) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+function fmtPct(n, dp = 2) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return (n >= 0 ? "+" : "") + Number(n).toFixed(dp) + "%";
+}
+function pnlCls(v) {
+  if (v === null || v === undefined || isNaN(v)) return "pnl-flat";
+  if (v > 0.5) return "pnl-up";
+  if (v < -0.5) return "pnl-dn";
+  return "pnl-flat";
+}
+
+function render(d) {
+  const html = [
+    renderCallHero(d),
+    renderTodaySnapshot(d),
+    renderForwardDistribution(d),
+    renderDistChart(d),
+    renderAnalogsTable(d),
+    renderStatusBar(d),
+  ].join("");
+  document.getElementById("content").innerHTML = html;
+  drawDistChart(d);
+}
+
+function renderCallHero(d) {
+  const call = d.directional_call || "MIXED";
+  const desc = d.directional_description || "—";
+  const k = d.k_neighbors || 15;
+  const total = d.n_historical_dates_evaluated || "—";
+  return `
+  <div class="call-hero ${call}">
+    <div class="call-line">
+      <span class="label">Forward call:</span>
+      <span class="value ${call}">${call}</span>
+    </div>
+    <div class="call-desc">${desc}</div>
+    <div class="call-meta">
+      <span><strong>${k}</strong> nearest neighbors out of ${total ? Number(total).toLocaleString() : "—"} historical dates</span>
+      <span><strong>Method:</strong> ${d.methodology || "—"}</span>
+      <span><strong>Source:</strong> ${(d.data_sources && d.data_sources.all) || "FRED"}</span>
+      <span><strong>Generated:</strong> ${d.generated_at ? new Date(d.generated_at).toLocaleString() : "—"}</span>
+    </div>
+  </div>`;
+}
+
+function renderTodaySnapshot(d) {
+  const t = d.today || {};
+  const z = t.z_scores || {};
+  const items = (d.feature_order || FEATURE_ORDER_DEFAULT).map(f => {
+    const label = FEATURE_LABELS[f] || f;
+    let v;
+    if (f === "vix") v = t.vix;
+    else if (f === "twos_tens_bps") v = t.twos_tens_bps;
+    else if (f === "hy_oas_pct") v = t.hy_oas_pct;
+    else if (f === "usd_index") v = t.usd_index;
+    else if (f === "ten_year_yield_pct") v = t.ten_year_yield_pct;
+    else if (f === "spx_1m_return_pct") v = t.spx_1m_return_pct;
+    else v = null;
+    const zVal = z[f];
+    let zCls = "mid";
+    if (zVal !== undefined && zVal !== null) {
+      if (zVal > 1.5) zCls = "high";
+      else if (zVal < -1.5) zCls = "low";
+    }
+    let display;
+    if (f === "twos_tens_bps") display = v !== null && v !== undefined ? Math.round(v) + " bp" : "—";
+    else if (f === "hy_oas_pct" || f === "ten_year_yield_pct" || f === "spx_1m_return_pct") display = v !== null && v !== undefined ? fmt(v, 2) + "%" : "—";
+    else display = fmt(v, 2);
+    return `<div class="snap-card">
+      <div class="snap-label">${label}</div>
+      <div class="snap-value">${display}</div>
+      <div class="snap-z ${zCls}">z-score: ${zVal !== undefined && zVal !== null ? (zVal >= 0 ? "+" : "") + zVal.toFixed(2) : "—"}</div>
+    </div>`;
+  }).join("");
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📍 Today's State Vector <span class="sub">— ${t.date || "today"} · z-scores normalized vs trailing 252d</span></h3>
+    </div>
+    <div style="padding: 14px 18px;">
+      <div class="snapshot">${items}</div>
+    </div>
+  </div>`;
+}
+
+function renderForwardDistribution(d) {
+  const fd = d.forward_distribution || {};
+  const horizons = ["5d", "21d", "63d", "126d"];
+  const horizonLabels = { "5d": "1 week", "21d": "1 month", "63d": "3 months", "126d": "6 months" };
+  const boxes = horizons.map(h => {
+    const stats = fd[h];
+    if (!stats) return `<div class="fwd-box"><div class="fwd-horizon">${horizonLabels[h]} (${h})</div><div class="fwd-mean flat">—</div></div>`;
+    const cls = stats.mean_pct > 0.3 ? "up" : stats.mean_pct < -0.3 ? "dn" : "flat";
+    const hitWidth = Math.min(100, Math.max(0, stats.hit_rate_pct));
+    const hitCls = stats.hit_rate_pct >= 50 ? "" : "dn";
+    return `<div class="fwd-box">
+      <div class="fwd-horizon">${horizonLabels[h]} (${h})</div>
+      <div class="fwd-mean ${cls}">${fmtPct(stats.mean_pct)}</div>
+      <div class="fwd-stats">
+        <span>Hit rate: <strong>${stats.hit_rate_pct.toFixed(0)}%</strong></span>
+        <span>Median: <strong>${fmtPct(stats.median_pct)}</strong></span>
+        <span>Range: <strong>${fmtPct(stats.min_pct)} → ${fmtPct(stats.max_pct)}</strong></span>
+        <span>Stdev: <strong>${fmt(stats.stdev_pct, 2)}%</strong></span>
+        <span>n = ${stats.n}</span>
+      </div>
+      <div class="fwd-bar"><div class="fwd-bar-fill ${hitCls}" style="width:${hitWidth}%"></div></div>
+    </div>`;
+  }).join("");
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📈 Forward SPY Returns <span class="sub">— mean across the ${d.k_neighbors || 15} nearest analogs</span></h3>
+    </div>
+    <div class="fwd-grid">${boxes}</div>
+  </div>`;
+}
+
+function renderDistChart(d) {
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📊 Distribution by Horizon <span class="sub">— individual analog forward returns plotted as scatter</span></h3>
+    </div>
+    <div style="padding: 14px 18px;">
+      <div id="distChart"></div>
+    </div>
+  </div>`;
+}
+
+function drawDistChart(d) {
+  const analogs = d.analogs || [];
+  if (!analogs.length) return;
+  const horizons = ["5d", "21d", "63d", "126d"];
+  const series = horizons.map((h, idx) => {
+    const data = analogs.map((a, i) => {
+      const v = a[`fwd_${h}_pct`] ?? a[`fwd_${h}d_pct`] ?? null;
+      return v !== null && v !== undefined ? [idx, v, a.date, a.similarity ?? null] : null;
+    }).filter(Boolean);
+    return { name: h, type: "scatter", data, symbolSize: 8,
+             itemStyle: { color: idx === 0 ? "#facc15" : idx === 1 ? "#22d3ee" : idx === 2 ? "#a78bfa" : "#22c55e" } };
+  });
+  // Mean line as reference
+  const fd = d.forward_distribution || {};
+  const meanLine = horizons.map((h, idx) => {
+    const m = fd[h]?.mean_pct;
+    return m !== null && m !== undefined ? [idx, m] : null;
+  }).filter(Boolean);
+  series.push({
+    name: "Mean", type: "scatter", data: meanLine, symbolSize: 18, symbol: "diamond",
+    itemStyle: { color: "#fff", borderColor: "#000", borderWidth: 2 },
+  });
+
+  const chart = echarts.init(document.getElementById("distChart"), null, { renderer: "canvas" });
+  chart.setOption({
+    backgroundColor: "transparent",
+    grid: { left: 60, right: 24, top: 30, bottom: 50 },
+    tooltip: {
+      trigger: "item", backgroundColor: "rgba(20,20,20,0.95)", borderColor: "#262626",
+      textStyle: { color: "#e5e5e5", fontSize: 12 },
+      formatter: (p) => {
+        if (p.seriesName === "Mean") return `<b>${horizons[p.value[0]]} mean</b><br/>${fmtPct(p.value[1])}`;
+        return `<b>${p.value[2] || "?"}</b><br/>${horizons[p.value[0]]} return: <b>${fmtPct(p.value[1])}</b><br/>similarity: ${(p.value[3] || 0).toFixed(2)}`;
+      },
+    },
+    xAxis: {
+      type: "category", data: horizons,
+      axisLine: { lineStyle: { color: "#262626" } },
+      axisLabel: { color: "#888", fontSize: 11 },
+      splitLine: { show: false },
+      name: "Horizon", nameLocation: "middle", nameGap: 28,
+      nameTextStyle: { color: "#888", fontSize: 11 },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { lineStyle: { color: "#262626" } },
+      axisLabel: { color: "#888", fontSize: 11, formatter: (v) => v.toFixed(0) + "%" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } },
+      name: "Return %", nameLocation: "middle", nameGap: 40,
+      nameTextStyle: { color: "#888", fontSize: 11 },
+    },
+    series,
+  });
+  window.addEventListener("resize", () => chart.resize());
+}
+
+function renderAnalogsTable(d) {
+  const analogs = d.analogs || [];
+  if (!analogs.length) return "";
+  const rows = analogs.slice(0, 20).map((a, i) => {
+    const sim = a.similarity ?? 0;
+    const fwd5 = a.fwd_5d_pct ?? a["fwd_5d_pct"] ?? null;
+    const fwd21 = a.fwd_21d_pct ?? null;
+    const fwd63 = a.fwd_63d_pct ?? null;
+    const fwd126 = a.fwd_126d_pct ?? null;
+    return `<tr>
+      <td><strong>#${i + 1}</strong></td>
+      <td>${a.date}</td>
+      <td><span class="similarity-bar"><span class="similarity-fill" style="width:${(sim * 100).toFixed(0)}%"></span></span> ${(sim * 100).toFixed(0)}%</td>
+      <td class="right">${fmt(a.distance, 2)}</td>
+      <td class="right ${pnlCls(fwd5)}">${fmtPct(fwd5)}</td>
+      <td class="right ${pnlCls(fwd21)}">${fmtPct(fwd21)}</td>
+      <td class="right ${pnlCls(fwd63)}">${fmtPct(fwd63)}</td>
+      <td class="right ${pnlCls(fwd126)}">${fmtPct(fwd126)}</td>
+    </tr>`;
+  }).join("");
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📅 Top ${Math.min(20, analogs.length)} Analogs <span class="sub">— historical dates with the closest macro state to today</span></h3>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Rank</th><th>Date</th>
+        <th>Similarity</th><th class="right">Distance</th>
+        <th class="right">+5d SPY</th><th class="right">+21d SPY</th>
+        <th class="right">+63d SPY</th><th class="right">+126d SPY</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderStatusBar(d) {
+  return `
+  <div class="status-bar">
+    <span><strong>Generated:</strong> ${d.generated_at ? new Date(d.generated_at).toLocaleString() : "—"}</span>
+    <span><strong>Lambda runtime:</strong> ${d.duration_s || "—"}s</span>
+    <span><strong>Universe:</strong> ${d.n_historical_dates_evaluated ? Number(d.n_historical_dates_evaluated).toLocaleString() : "—"} historical dates</span>
+    <span><strong>K-neighbors:</strong> ${d.k_neighbors || "—"}</span>
+    <span><strong>Features:</strong> ${(d.feature_order || []).length}</span>
+    <span style="flex:1"></span>
+    <span style="color:var(--text-muted)">Powered by data/historical-analogs.json</span>
+  </div>`;
+}
+
+load();
+setInterval(load, 30 * 60 * 1000);  // refresh every 30 min
+</script>
+
+</body>
+</html>
