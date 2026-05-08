@@ -1,0 +1,84 @@
+{
+  "started": "2026-05-08T20:59:15.705440+00:00",
+  "test": {
+    "1_vapid_endpoint": {
+      "status": 200,
+      "publicKey_length": 87,
+      "ok": true
+    },
+    "2_subscribe": {
+      "status": 200,
+      "endpoint_hash": "1aafafdb0908ca3355d43de7623a54fc",
+      "ok": true
+    },
+    "3_ddb_has_item": {
+      "ok": true,
+      "ua": "verify-361"
+    },
+    "4_unsubscribe": {
+      "status": 200,
+      "ok": true
+    },
+    "4b_ddb_item_removed": {
+      "ok": true
+    },
+    "5_send_no_token": {
+      "status": 401,
+      "ok": true
+    },
+    "6_send_bad_token": {
+      "status": 401,
+      "ok": true
+    },
+    "7_ssm_keys": {
+      "/justhodl/push/vapid-public-key": {
+        "length": 87,
+        "ok": true
+      },
+      "/justhodl/push/vapid-private-key": {
+        "length": 64,
+        "ok": true
+      },
+      "/justhodl/push/vapid-subject": {
+        "length": 26,
+        "ok": true
+      },
+      "/justhodl/push/admin-token": {
+        "length": 64,
+        "ok": true
+      }
+    },
+    "8_pages": {
+      "/manifest.json": {
+        "status": 200,
+        "size": 2137
+      },
+      "/service-worker.js": {
+        "status": 200,
+        "size": 3939
+      },
+      "/notifications.html": {
+        "status": 200,
+        "size": 15402
+      },
+      "/portfolio.html": {
+        "status": 200,
+        "size": 23553
+      },
+      "/analogs.html": {
+        "status": 200,
+        "size": 18666
+      },
+      "/why.html": {
+        "status": 200,
+        "size": 26663
+      }
+    },
+    "summary": {
+      "passed": 7,
+      "total": 7,
+      "rate": "7/7"
+    }
+  },
+  "finished": "2026-05-08T20:59:25.017015+00:00"
+}
