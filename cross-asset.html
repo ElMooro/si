@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Asset Regime · JustHodl.AI</title>
+<meta name="description" content="Multi-window cross-asset regime classification (5d / 20d / 60d) across 8 assets, with full 30d/90d correlation matrices.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root{--bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;--border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;--accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1500px;margin:0 auto;padding:18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  .regime-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .regime-card{background:var(--bg-card);border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:8px;padding:18px 22px;}
+  .regime-card.RISK_ON,.regime-card.STRONG_RISK_ON,.regime-card.REFLATION{border-left-color:var(--green);}
+  .regime-card.RISK_OFF,.regime-card.STRONG_RISK_OFF,.regime-card.STAGFLATION{border-left-color:var(--red);}
+  .regime-card.TIGHTENING{border-left-color:var(--amber);}
+  .regime-card.NEUTRAL,.regime-card.MUDDLE{border-left-color:var(--blue);}
+  .regime-window{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+  .regime-name{font-size:24px;font-weight:800;letter-spacing:-0.01em;margin-bottom:6px;}
+  .regime-name.RISK_ON,.regime-name.STRONG_RISK_ON,.regime-name.REFLATION{color:var(--green);}
+  .regime-name.RISK_OFF,.regime-name.STRONG_RISK_OFF,.regime-name.STAGFLATION{color:var(--red);}
+  .regime-name.TIGHTENING{color:var(--amber);}
+  .regime-name.NEUTRAL,.regime-name.MUDDLE{color:var(--blue);}
+  .regime-conf{font-size:11px;color:var(--text-dim);}
+  .regime-rationale{margin-top:12px;color:var(--text);line-height:1.55;font-size:13px;}
+  .regime-risk{margin-top:10px;font-size:11px;}
+  .regime-risk strong{color:var(--text);}
+
+  .returns-table{margin-top:14px;font-size:12px;}
+  .returns-row{display:grid;grid-template-columns:60px 1fr 70px;gap:10px;padding:4px 0;align-items:center;}
+  .returns-row .ticker{font-weight:700;color:var(--accent);}
+  .returns-row .bar{position:relative;background:var(--bg-card-elev);height:8px;border-radius:4px;overflow:hidden;}
+  .returns-row .bar-fill{position:absolute;top:0;height:100%;background:var(--green);}
+  .returns-row .bar-fill.dn{background:var(--red);}
+  .returns-row .pct{text-align:right;font-variant-numeric:tabular-nums;}
+  .returns-row .pct.up{color:var(--green);} .returns-row .pct.dn{color:var(--red);}
+
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .section-header h3{font-size:13px;font-weight:600;}
+  .section-header .sub{color:var(--text-dim);font-size:11px;}
+  .section-body{padding:18px;}
+
+  /* correlation heatmap */
+  .heatmap{display:grid;gap:1px;background:var(--border);border-radius:4px;overflow:hidden;}
+  .heatmap-cell{padding:8px 4px;text-align:center;font-variant-numeric:tabular-nums;font-size:11px;}
+  .heatmap-cell.label{font-weight:700;background:var(--bg-card-elev);color:var(--text-dim);font-size:11px;}
+  .toggle{display:flex;gap:8px;}
+  .toggle button{background:var(--bg-card-elev);color:var(--text-dim);border:1px solid var(--border-light);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .toggle button.on{background:var(--accent);color:#000;border-color:var(--accent);}
+
+  .breaks{display:grid;gap:8px;}
+  .break-card{background:var(--bg-card-elev);border:1px solid var(--border-light);border-radius:6px;padding:12px 14px;font-size:12px;}
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:1100px){.regime-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🌐 Cross-Asset Regime <span class="sub">— 5d / 20d / 60d classification across 8 assets</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/macro-data.html">Regime</a>
+      <a href="/correlation.html">Correlation</a>
+      <a href="/sectors.html">Sectors</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading cross-asset-regime.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/cross-asset-regime.json";
+let DATA = null;
+let activeMatrix = "30d";
+
+async function load(){
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;DATA=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/cross-asset-regime.json</div>`;return;}
+  render();
+}
+
+function fmtPct(v,dp=2){if(v==null||isNaN(v))return "—";return (v>=0?"+":"")+Number(v).toFixed(dp)+"%";}
+
+function render(){
+  const r5=DATA.regime_5d||{}, r20=DATA.regime_20d||{}, r60=DATA.regime_60d||{};
+  document.getElementById("content").innerHTML=`
+    <div class="regime-grid">
+      ${renderRegimeCard("5-day", r5)}
+      ${renderRegimeCard("20-day", r20)}
+      ${renderRegimeCard("60-day", r60)}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>🧮 Correlation matrix</h3>
+        <div class="toggle">
+          <button class="${activeMatrix==='30d'?'on':''}" onclick="switchMatrix('30d')">30d</button>
+          <button class="${activeMatrix==='90d'?'on':''}" onclick="switchMatrix('90d')">90d</button>
+        </div>
+      </div>
+      <div class="section-body">${renderHeatmap()}</div>
+    </div>
+
+    ${renderBreaks()}
+
+    <div class="status-bar">
+      <span><strong>Generated:</strong> ${DATA.generated_at?new Date(DATA.generated_at).toLocaleString():"—"}</span>
+      <span><strong>Method:</strong> ${DATA.method||"—"}</span>
+      <span><strong>Assets:</strong> ${(DATA.asset_universe||[]).length}</span>
+      <span><strong>Correlation breaks:</strong> ${DATA.stats?.n_correlation_breaks||0}</span>
+      <span><strong>Alerts:</strong> ${DATA.stats?.n_alerts||0}</span>
+      <span style="flex:1"></span>
+      <span style="color:var(--text-muted)">data/cross-asset-regime.json</span>
+    </div>`;
+}
+
+function renderRegimeCard(label, r){
+  const reg=r.regime||"NEUTRAL";
+  const rationale=(r.rationale||["No rationale"]).join(" · ");
+  const ret=r.lookback_returns_pct||{};
+  const universe=DATA.asset_universe||[];
+  const maxAbs=Math.max(...Object.values(ret).map(v=>Math.abs(v)),0.1);
+  const rows=universe.map(a=>{
+    const v=ret[a.ticker];
+    if(v==null) return "";
+    const cls=v>=0?"up":"dn";
+    const w=Math.abs(v)/maxAbs*100;
+    const offset=v>=0?50:50-w/2;
+    return `<div class="returns-row">
+      <span class="ticker">${a.ticker}</span>
+      <div class="bar"><div class="bar-fill ${v<0?'dn':''}" style="left:${v>=0?50:50-w}%;width:${w/2}%"></div></div>
+      <span class="pct ${cls}">${fmtPct(v)}</span>
+    </div>`;
+  }).join("");
+  return `<div class="regime-card ${reg}">
+    <div class="regime-window">${label} window</div>
+    <div class="regime-name ${reg}">${reg.replace(/_/g,' ')}</div>
+    <div class="regime-conf">confidence ${r.confidence||0}%</div>
+    <div class="regime-rationale">${rationale}</div>
+    <div class="regime-risk"><strong>Risk:</strong> ${r.risk_label||"—"} (score ${r.risk_score?r.risk_score.toFixed(2):"—"})</div>
+    <div class="returns-table">${rows}</div>
+  </div>`;
+}
+
+function renderHeatmap(){
+  const matrix=DATA[`correlation_matrix_${activeMatrix}`];
+  if(!matrix)return `<div style="color:var(--text-dim);text-align:center;padding:20px">No ${activeMatrix} matrix available</div>`;
+  const tickers=Object.keys(matrix);
+  const n=tickers.length;
+  const cells=[];
+  // Header row
+  cells.push(`<div class="heatmap-cell label"></div>`);
+  tickers.forEach(t=>cells.push(`<div class="heatmap-cell label">${t}</div>`));
+  // Data rows
+  tickers.forEach(rowT=>{
+    cells.push(`<div class="heatmap-cell label">${rowT}</div>`);
+    tickers.forEach(colT=>{
+      const v=matrix[rowT][colT];
+      const c=corrColor(v);
+      cells.push(`<div class="heatmap-cell" style="background:${c.bg};color:${c.fg}">${v!=null?v.toFixed(2):"—"}</div>`);
+    });
+  });
+  return `<div class="heatmap" style="grid-template-columns:repeat(${n+1},1fr)">${cells.join("")}</div>
+    <div style="margin-top:14px;font-size:11px;color:var(--text-dim);text-align:center">
+      Pearson correlation over rolling ${activeMatrix}.
+      <span style="margin-left:14px">🟢 strong positive (>0.7)</span>
+      <span style="margin-left:14px">⚪ uncorrelated (~0)</span>
+      <span style="margin-left:14px">🔴 strong negative (<-0.7)</span>
+    </div>`;
+}
+
+function corrColor(v){
+  if(v==null)return {bg:"var(--bg-card-elev)",fg:"var(--text-dim)"};
+  if(v===1)return {bg:"#facc15",fg:"#000"};
+  // interpolate green (1) → black (0) → red (-1)
+  if(v>0){
+    const a=v;
+    return {bg:`rgba(34,197,94,${0.15+a*0.55})`,fg:a>0.6?"#000":"var(--text)"};
+  }else{
+    const a=-v;
+    return {bg:`rgba(239,68,68,${0.15+a*0.55})`,fg:a>0.6?"#fff":"var(--text)"};
+  }
+}
+
+function switchMatrix(m){activeMatrix=m;render();}
+window.switchMatrix=switchMatrix;
+
+function renderBreaks(){
+  const breaks=DATA.correlation_breaks||DATA.alerts||[];
+  if(!breaks.length){
+    return `<div class="section">
+      <div class="section-header"><h3>⚠ Correlation breaks</h3><span class="sub">no breaks detected</span></div>
+      <div class="section-body" style="color:var(--text-dim);text-align:center">All cross-asset correlations are within their normal historical range.</div>
+    </div>`;
+  }
+  return `<div class="section">
+    <div class="section-header"><h3>⚠ Correlation breaks</h3><span class="sub">${breaks.length} alerts</span></div>
+    <div class="section-body"><div class="breaks">
+      ${breaks.map(b=>`<div class="break-card">
+        <strong>${b.pair||b.symbol||"?"}</strong>: ${b.message||b.description||JSON.stringify(b)}
+      </div>`).join("")}
+    </div></div>
+  </div>`;
+}
+
+load();
+setInterval(load,15*60*1000);
+</script>
+</body>
+</html>

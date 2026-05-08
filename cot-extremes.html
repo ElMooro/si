@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COT Extremes · JustHodl.AI</title>
+<meta name="description" content="CFTC Commitments of Traders speculator positioning extremes — 29 contracts ranked by historical percentile of net spec / open interest ratio.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root{--bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;--border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;--accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1500px;margin:0 auto;padding:18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  .hero{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+  .stat-value.green{color:var(--green);} .stat-value.red{color:var(--red);} .stat-value.amber{color:var(--amber);}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .section-header h3{font-size:13px;font-weight:600;}
+  .section-header .sub{color:var(--text-dim);font-size:11px;}
+
+  .filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--bg-card-elev);}
+  .filter-btn{background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border-light);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .filter-btn.on{background:var(--accent);color:#000;border-color:var(--accent);}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead{background:var(--bg-card-elev);}
+  th{padding:9px 12px;text-align:left;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border-bottom:1px solid var(--border);}
+  th.right{text-align:right;}
+  td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);white-space:nowrap;}
+  td.right{text-align:right;font-variant-numeric:tabular-nums;}
+  tr:hover{background:var(--bg-hover);}
+
+  .pctile-bar{display:inline-block;width:100px;height:8px;background:var(--bg-card-elev);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:6px;}
+  .pctile-fill{height:100%;background:var(--blue);}
+  .pctile-fill.high{background:var(--green);}
+  .pctile-fill.low{background:var(--red);}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+  .pill.high{background:rgba(34,197,94,0.18);color:var(--green);}
+  .pill.low{background:rgba(239,68,68,0.18);color:var(--red);}
+  .pill.cat{background:var(--bg-card-elev);color:var(--text-dim);}
+
+  .cluster-alert{padding:14px 18px;background:rgba(245,158,11,0.1);border-left:3px solid var(--amber);margin-bottom:8px;border-radius:0 6px 6px 0;font-size:12px;}
+  .cluster-alert.high{background:rgba(34,197,94,0.1);border-left-color:var(--green);}
+  .cluster-alert.low{background:rgba(239,68,68,0.1);border-left-color:var(--red);}
+
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:1100px){.hero{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📊 COT Extremes <span class="sub">— CFTC speculator positioning, percentile-ranked across history</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/auctions.html">Auctions</a>
+      <a href="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/cot/all">Raw COT</a>
+      <a href="/cross-asset.html">Cross-Asset</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading cot/extremes/current.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json";
+let DATA = null;
+let activeFilter = "all";
+
+async function load(){
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;DATA=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load cot/extremes/current.json</div>`;return;}
+  render();
+}
+
+function render(){
+  const s=DATA.summary||{};
+  const contracts=DATA.contracts||[];
+  const clusterAlerts=DATA.cluster_alerts||[];
+  const categories=[...new Set(contracts.map(c=>c.category).filter(Boolean))].sort();
+  const cl=Array.isArray(clusterAlerts)?clusterAlerts:[];
+
+  document.getElementById("content").innerHTML=`
+    <div class="hero">
+      <div class="stat-card"><div class="stat-label">Contracts tracked</div><div class="stat-value">${s.n_contracts_total||29}</div><div class="stat-sub">across 7 categories</div></div>
+      <div class="stat-card"><div class="stat-label">Currently extreme</div><div class="stat-value ${s.n_extreme>0?'amber':''}">${s.n_extreme||0}</div><div class="stat-sub">≥95th or ≤5th percentile</div></div>
+      <div class="stat-card"><div class="stat-label">Cluster alerts</div><div class="stat-value ${cl.length>0?'red':''}">${cl.length}</div><div class="stat-sub">≥3 in same category</div></div>
+      <div class="stat-card"><div class="stat-label">Errors</div><div class="stat-value">${s.n_errors||0}</div><div class="stat-sub">fetch failures</div></div>
+      <div class="stat-card"><div class="stat-label">Updated</div><div class="stat-value" style="font-size:14px">${DATA.as_of?new Date(DATA.as_of).toLocaleDateString():"—"}</div><div class="stat-sub">CFTC updates Fridays 6PM UTC</div></div>
+    </div>
+
+    ${cl.length>0 ? `<div class="section">
+      <div class="section-header"><h3>🚨 Cluster extremes</h3><span class="sub">categories with ≥3 contracts at extremes</span></div>
+      <div style="padding:14px 18px">
+        ${cl.map(a=>`<div class="cluster-alert ${a.direction}">
+          <strong>${a.category}</strong>: ${a.n} contracts ${a.direction==="high"?"BULLISH ≥95th pct":"BEARISH ≤5th pct"}
+          <span style="color:var(--text-dim)">— ${(a.contracts||[]).join(", ")}</span>
+        </div>`).join("")}
+      </div>
+    </div>` : ""}
+
+    <div class="section">
+      <div class="section-header"><h3>📈 Contracts by speculator positioning</h3>
+        <span class="sub">net spec / OI ratio, percentile-ranked</span>
+      </div>
+      <div class="filters">
+        <button class="filter-btn ${activeFilter==='all'?'on':''}" onclick="setFilter('all')">All ${contracts.length}</button>
+        <button class="filter-btn ${activeFilter==='extreme'?'on':''}" onclick="setFilter('extreme')">Extreme only</button>
+        <button class="filter-btn ${activeFilter==='high'?'on':''}" onclick="setFilter('high')">≥95th pct</button>
+        <button class="filter-btn ${activeFilter==='low'?'on':''}" onclick="setFilter('low')">≤5th pct</button>
+        ${categories.map(c=>`<button class="filter-btn ${activeFilter===c?'on':''}" onclick="setFilter('${c}')">${c}</button>`).join("")}
+      </div>
+      <table>
+        <thead><tr>
+          <th>Contract</th><th>Name</th><th>Category</th>
+          <th>Percentile</th><th class="right">Spec net</th><th class="right">Open int</th>
+          <th class="right">Trend 4w</th><th>Report date</th><th>Extreme</th>
+        </tr></thead>
+        <tbody>${contracts.filter(filterMatch).map(rowOf).join("")}</tbody>
+      </table>
+      <div class="status-bar">
+        <span><strong>As of:</strong> ${DATA.as_of?new Date(DATA.as_of).toLocaleString():"—"}</span>
+        <span><strong>Threshold high:</strong> ${DATA.thresholds?.extreme_high_pct||95}th pct</span>
+        <span><strong>Threshold low:</strong> ${DATA.thresholds?.extreme_low_pct||5}th pct</span>
+        <span style="flex:1"></span>
+        <span style="color:var(--text-muted)">cot/extremes/current.json</span>
+      </div>
+    </div>`;
+}
+
+function filterMatch(c){
+  if(activeFilter==="all")return true;
+  if(activeFilter==="extreme")return c.extreme==="high"||c.extreme==="low";
+  if(activeFilter==="high")return c.extreme==="high";
+  if(activeFilter==="low")return c.extreme==="low";
+  return c.category===activeFilter;
+}
+
+function rowOf(c){
+  if(c.status!=="ok"){
+    return `<tr><td><strong>${c.contract||"?"}</strong></td><td colspan="8" style="color:var(--text-dim)">${c.status||"unknown"}</td></tr>`;
+  }
+  const pct=c.percentile||0;
+  const cls=c.extreme==="high"?"high":c.extreme==="low"?"low":"";
+  const trend=c.trend_4w;
+  const trendCls=trend>0?"pnl-up":trend<0?"pnl-dn":"";
+  return `<tr>
+    <td><strong style="color:var(--accent)">${c.contract}</strong></td>
+    <td>${c.name||"—"}</td>
+    <td><span class="pill cat">${c.category||"—"}</span></td>
+    <td><span class="pctile-bar"><span class="pctile-fill ${cls}" style="width:${pct}%"></span></span>${pct.toFixed(1)}%</td>
+    <td class="right">${(c.spec_net||0).toLocaleString()}</td>
+    <td class="right">${(c.open_int||0).toLocaleString()}</td>
+    <td class="right" style="color:${trend>0?'var(--green)':trend<0?'var(--red)':'var(--text-dim)'}">${trend!=null?(trend>=0?"+":"")+trend.toFixed(4):"—"}</td>
+    <td>${c.report_date||"—"}</td>
+    <td>${c.extreme?`<span class="pill ${c.extreme}">${c.extreme.toUpperCase()}</span>`:"—"}</td>
+  </tr>`;
+}
+
+function setFilter(f){activeFilter=f;render();}
+window.setFilter=setFilter;
+
+load();
+setInterval(load,60*60*1000);
+</script>
+</body>
+</html>

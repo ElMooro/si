@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Narrative Density · JustHodl.AI</title>
+<meta name="description" content="Narrative density tracker — which themes are accelerating in the news cycle, with co-mentioned tickers and acceleration ratios.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root {
+    --bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;
+    --border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;
+    --accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+       background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1500px;margin:0 auto;padding:18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;
+          border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  .hero{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.01em;}
+  .stat-value.green{color:var(--green);} .stat-value.red{color:var(--red);} .stat-value.amber{color:var(--amber);}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .section-header h3{font-size:13px;font-weight:600;color:var(--text);}
+  .section-header .sub{color:var(--text-dim);font-size:11px;font-weight:400;}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead{background:var(--bg-card-elev);}
+  th{padding:9px 12px;text-align:left;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border-bottom:1px solid var(--border);}
+  th.right{text-align:right;}
+  td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);white-space:nowrap;}
+  td.right{text-align:right;font-variant-numeric:tabular-nums;}
+  tr.theme-row{cursor:pointer;}
+  tr.theme-row:hover{background:var(--bg-hover);}
+  tr.expanded{background:rgba(250,204,21,0.04);}
+  tr.detail-row td{padding:14px 18px;background:var(--bg-card-elev);white-space:normal;}
+  tr.detail-row .titles li{margin-bottom:6px;color:var(--text);line-height:1.45;}
+  tr.detail-row .titles li .pub{color:var(--text-muted);font-size:11px;}
+  tr.detail-row .co-tickers{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+  tr.detail-row .co-tickers .pill{background:var(--bg-card);font-size:11px;padding:2px 8px;border-radius:3px;color:var(--text-dim);}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.03em;}
+  .tier-A,.pill.TIER_A_BREAKING{background:rgba(34,197,94,0.18);color:var(--green);}
+  .tier-B,.pill.TIER_B_BUILDING{background:rgba(245,158,11,0.18);color:var(--amber);}
+  .tier-C,.pill.TIER_C{background:var(--bg-card-elev);color:var(--text-dim);}
+  .ticker-pill{font-weight:700;color:var(--accent);background:var(--bg-card-elev);padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;}
+  .flag{display:inline-block;font-size:9px;color:var(--text-dim);background:var(--bg-card-elev);padding:1px 6px;border-radius:3px;margin-right:3px;}
+  .flag.hot{color:var(--red);background:rgba(239,68,68,0.12);}
+
+  .accel-bar{display:inline-block;height:5px;background:var(--bg-card-elev);border-radius:2px;width:80px;overflow:hidden;vertical-align:middle;margin-right:6px;}
+  .accel-fill{height:100%;background:var(--green);}
+  .accel-fill.high{background:var(--red);}
+  .accel-fill.med{background:var(--amber);}
+
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px 18px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:12px;}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:1100px){.hero{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📰 Narrative Density <span class="sub">— which themes are accelerating in the news cycle</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/themes.html">Themes</a>
+      <a href="/nobrainers.html">No-brainers</a>
+      <a href="/why.html">Why</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading narrative-density.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/narrative-density.json";
+
+async function load(){
+  let d=null;
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);d=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ ${e.message}</div>`;return;}
+  render(d);
+}
+
+function fmtAccel(v){
+  if(v===null||v===undefined||isNaN(v))return "—";
+  return (v>=1?"+":"")+v.toFixed(2)+"x";
+}
+function accelClass(v){
+  if(v===null||v===undefined)return "";
+  if(v>=5)return "high";
+  if(v>=2)return "med";
+  return "";
+}
+
+function render(d){
+  const stats=d.stats||{};
+  const themes=d.all_themes||(d.summary?.top_15_themes)||[];
+  document.getElementById("content").innerHTML=`
+    <div class="hero">
+      <div class="stat-card"><div class="stat-label">Articles scanned</div><div class="stat-value">${(stats.n_articles_total||0).toLocaleString()}</div><div class="stat-sub">over last 30 days</div></div>
+      <div class="stat-card"><div class="stat-label">Themes tracked</div><div class="stat-value">${stats.n_themes_total||0}</div><div class="stat-sub">narrative dictionary</div></div>
+      <div class="stat-card"><div class="stat-label">Tier A · Breaking</div><div class="stat-value ${stats.n_tier_a>0?'red':''}">${stats.n_tier_a||0}</div><div class="stat-sub">5x+ baseline today</div></div>
+      <div class="stat-card"><div class="stat-label">Tier B · Building</div><div class="stat-value amber">${stats.n_tier_b||0}</div><div class="stat-sub">2-5x baseline</div></div>
+      <div class="stat-card"><div class="stat-label">Pages fetched</div><div class="stat-value">${stats.pages_fetched||0}</div><div class="stat-sub">Polygon news API</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>🔥 Top ${themes.length} themes by score</h3>
+        <span class="sub">click a row to expand · sorted by accel × volume</span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Theme</th><th>Tickers</th><th>Tier</th>
+          <th class="right">Score</th><th class="right">Today</th>
+          <th class="right">7d avg</th><th class="right">30d avg</th>
+          <th>Accel today vs 7d</th><th>Flags</th>
+        </tr></thead>
+        <tbody>${themes.map((t,i)=>renderRow(t,i)).join("")}</tbody>
+      </table>
+      <div class="status-bar">
+        <span><strong>Generated:</strong> ${d.generated_at?new Date(d.generated_at).toLocaleString():"—"}</span>
+        <span><strong>Lambda runtime:</strong> ${d.duration_s||"—"}s</span>
+        <span><strong>Method:</strong> ${d.method||"—"}</span>
+        <span style="flex:1"></span>
+        <span style="color:var(--text-muted)">data/narrative-density.json</span>
+      </div>
+    </div>`;
+  // Wire row clicks
+  document.querySelectorAll(".theme-row").forEach(r=>r.addEventListener("click",()=>toggle(r)));
+}
+
+function renderRow(t,i){
+  const tier=(t.tier||"").replace("TIER_","").replace("_BREAKING","").replace("_BUILDING","");
+  const tierCls=t.tier==="TIER_A_BREAKING"?"tier-A":t.tier==="TIER_B_BUILDING"?"tier-B":"tier-C";
+  const tickers=(t.tickers||[]).slice(0,4).map(tk=>`<span class="ticker-pill">${tk}</span>`).join("")+
+    ((t.tickers||[]).length>4?` <span style="color:var(--text-muted)">+${t.tickers.length-4}</span>`:"");
+  const m=t.metrics||{};
+  const accelToday=m.accel_today_vs_7d;
+  const accelWidth=Math.min(100,Math.max(0,(accelToday||0)*15));
+  const flags=(t.flags||[]).slice(0,3).map(f=>{
+    const hot=f.includes("5X")||f.includes("10X")||f.includes("BREAKING");
+    return `<span class="flag ${hot?'hot':''}">${f.replace(/_/g," ")}</span>`;
+  }).join("");
+  return `<tr class="theme-row" data-id="${t.theme_id}">
+    <td><strong>${i+1}</strong></td>
+    <td><strong>${t.name||t.theme_id}</strong></td>
+    <td>${tickers||"—"}</td>
+    <td><span class="pill ${tierCls}">${tier||"C"}</span></td>
+    <td class="right"><strong>${t.score||0}</strong></td>
+    <td class="right">${m.n_today??"—"}</td>
+    <td class="right">${(m.avg_per_day_7d_excl_today??"—")}</td>
+    <td class="right">${(m.avg_per_day_30d??"—")}</td>
+    <td><span class="accel-bar"><span class="accel-fill ${accelClass(accelToday)}" style="width:${accelWidth}%"></span></span>${fmtAccel(accelToday)}</td>
+    <td>${flags||"—"}</td>
+  </tr>
+  <tr class="detail-row" id="detail-${t.theme_id}" style="display:none">
+    <td colspan="10">
+      <div><strong style="color:var(--text-dim);text-transform:uppercase;font-size:10px;letter-spacing:0.05em">Sample headlines</strong></div>
+      <ul class="titles" style="list-style:none;margin-top:8px">
+        ${(t.sample_titles||[]).map(s=>`<li>• ${s.title} <span class="pub">— ${s.publisher} · ${s.published?new Date(s.published).toLocaleDateString():""}</span></li>`).join("")||"<li>No sample titles</li>"}
+      </ul>
+      <div style="margin-top:12px"><strong style="color:var(--text-dim);text-transform:uppercase;font-size:10px;letter-spacing:0.05em">Co-mentioned tickers</strong></div>
+      <div class="co-tickers">
+        ${(t.top_co_mentioned_tickers||[]).map(c=>`<span class="pill">${c.ticker} <span style="color:var(--text-muted)">×${c.n}</span></span>`).join("")||"<span style='color:var(--text-muted)'>none</span>"}
+      </div>
+    </td>
+  </tr>`;
+}
+
+function toggle(row){
+  const id=row.dataset.id;
+  const detail=document.getElementById("detail-"+id);
+  if(!detail)return;
+  const open=detail.style.display!=="none";
+  // Close all others
+  document.querySelectorAll(".detail-row").forEach(d=>d.style.display="none");
+  document.querySelectorAll(".theme-row").forEach(r=>r.classList.remove("expanded"));
+  if(!open){detail.style.display="";row.classList.add("expanded");}
+}
+
+load();
+setInterval(load,15*60*1000);
+</script>
+</body>
+</html>
