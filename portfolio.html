@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio · JustHodl.AI</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JustHodl">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <meta name="description" content="Live book dashboard — open positions, sizing recommendations, equity curve, decisive system call. Powered by signal-portfolio-state, sizer-v2, and pnl-tracker Lambdas.">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications · JustHodl.AI</title>
+<meta name="description" content="Enable push notifications on this device. Get alerts directly on iOS / Android / desktop without Telegram.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818; --bg-hover: #1f1f1f;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; font-size: 13px; }
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .nav { display: flex; gap: 16px; font-size: 12px; }
+  .nav a { color: var(--text-dim); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border);
+          border-radius: 8px; padding: 24px 28px; margin-bottom: 16px; }
+  .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+  .card p { color: var(--text-dim); margin-bottom: 12px; line-height: 1.65; }
+  .card p strong { color: var(--text); }
+
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px;
+                 border-radius: 16px; font-size: 11px; font-weight: 600;
+                 background: var(--bg-card-elev); color: var(--text-dim); }
+  .status-pill.granted { background: rgba(34,197,94,0.15); color: var(--green); }
+  .status-pill.denied { background: rgba(239,68,68,0.15); color: var(--red); }
+  .status-pill.unsupported { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .status-pill.subscribed { background: rgba(34,197,94,0.18); color: var(--green); }
+  .status-pill::before { content: "●"; }
+
+  .btn { background: var(--accent); color: #000; border: none; padding: 12px 22px;
+         font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer;
+         font-family: inherit; }
+  .btn:hover:not(:disabled) { background: #fde047; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.secondary { background: var(--bg-card-elev); color: var(--text); border: 1px solid var(--border-light); }
+  .btn.danger { background: var(--red); color: #fff; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .meta { color: var(--text-muted); font-size: 11px; margin-top: 14px; }
+  .meta strong { color: var(--text-dim); }
+
+  .compat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+  .compat-card { background: var(--bg-card-elev); border: 1px solid var(--border-light);
+                 border-radius: 6px; padding: 10px 12px; font-size: 12px; }
+  .compat-card .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .compat-card .val.yes { color: var(--green); }
+  .compat-card .val.no { color: var(--red); }
+
+  .install-hint { display: none; padding: 14px 18px; background: rgba(59,130,246,0.1);
+                  border: 1px solid var(--blue); border-radius: 6px; color: var(--blue);
+                  font-size: 12px; margin-top: 14px; line-height: 1.55; }
+  .install-hint.show { display: block; }
+
+  .log { background: var(--bg-card-elev); border: 1px solid var(--border-light);
+         border-radius: 4px; padding: 10px 14px; margin-top: 12px;
+         font-family: 'SF Mono', Menlo, monospace; font-size: 11px;
+         color: var(--text-dim); max-height: 180px; overflow-y: auto; }
+  .log .ok { color: var(--green); }
+  .log .err { color: var(--red); }
+
+  @media (max-width: 600px) { .compat { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🔔 Notifications <span class="sub">push alerts to this device</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/portfolio.html">Portfolio</a>
+      <a href="/master-rank.html">Action</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Get JustHodl alerts on this device</h2>
+    <p>
+      Install the app and enable push notifications to receive compound-signal alerts,
+      regime-change calls, EXIT directives, and nobrainer Tier-A picks <strong>directly on your phone or desktop</strong> —
+      no Telegram, no email, no waiting. Works offline (cached shell).
+    </p>
+
+    <div class="row" style="margin-top:18px">
+      <span class="status-pill" id="permStatus">Checking…</span>
+      <span class="status-pill" id="subStatus">—</span>
+      <span class="status-pill" id="installStatus">—</span>
+    </div>
+
+    <div class="row" style="margin-top:20px">
+      <button class="btn" id="enableBtn" onclick="enablePush()">Enable push notifications</button>
+      <button class="btn secondary" id="installBtn" onclick="installPWA()" style="display:none">Install app</button>
+      <button class="btn danger" id="disableBtn" onclick="disablePush()" style="display:none">Disable</button>
+      <button class="btn secondary" onclick="testNotif()">Test (local)</button>
+    </div>
+
+    <div class="install-hint" id="iosHint">
+      <strong>iOS install:</strong> Tap the <strong>Share</strong> icon ↑ in Safari, then "Add to Home Screen".
+      Push notifications require iOS 16.4+ and require the app to be installed first.
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card">
+    <h2>What you'll receive</h2>
+    <p>Push notifications fire on these events (mirrors the Telegram bot but on your device directly):</p>
+    <ul style="color:var(--text-dim);padding-left:20px;line-height:1.8">
+      <li><strong>Compound score crosses 200/300:</strong> exceptional stacking events</li>
+      <li><strong>New Tier-A nobrainer:</strong> 9-dim convergence on a ticker</li>
+      <li><strong>Regime change:</strong> SLOWING → CONTRACTION etc. (state transition)</li>
+      <li><strong>EXIT directive:</strong> sizer flips to <code>EXIT_ALL_RISK</code></li>
+      <li><strong>Insider cluster:</strong> 3+ insider buys ≥$100k in 30d on a single ticker</li>
+      <li><strong>Eurodollar stress score crosses 70:</strong> liquidity warning</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Compatibility</h2>
+    <div class="compat" id="compat"></div>
+    <div class="meta" style="margin-top:14px">
+      <strong>How it works:</strong> Browser-native Web Push API (W3C standard). Subscriptions stored in
+      <code>justhodl-push-subscriptions</code> DynamoDB table. Server signs with VAPID keys (P-256 ECDSA),
+      delivers via FCM/APNs/etc. through the browser's push service. Encrypted end-to-end.
+    </div>
+  </div>
+</div>
+
+<script>
+const PUSH_API = "https://justhodl-push-api.lambda-url.us-east-1.on.aws";  // To be deployed
+const VAPID_PUBLIC_KEY_FETCH = PUSH_API + "/vapid-public-key";
+
+let registration = null;
+let currentSubscription = null;
+let deferredInstallEvent = null;
+
+function log(msg, cls = "") {
+  const el = document.getElementById("log");
+  const line = document.createElement("div");
+  line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return new Uint8Array([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+async function checkSupport() {
+  const compat = {
+    "Service Worker": "serviceWorker" in navigator,
+    "Push Manager": "PushManager" in window,
+    "Notifications": "Notification" in window,
+    "Permission API": "permissions" in navigator,
+  };
+  const grid = Object.entries(compat).map(([k, v]) =>
+    `<div class="compat-card"><div class="lbl">${k}</div><div class="val ${v ? "yes" : "no"}">${v ? "✓ yes" : "✗ no"}</div></div>`
+  ).join("");
+  document.getElementById("compat").innerHTML = grid;
+  return Object.values(compat).every(Boolean);
+}
+
+async function init() {
+  await checkSupport();
+
+  // iOS hint
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  if (isIOS && !isStandalone) {
+    document.getElementById("iosHint").classList.add("show");
+  }
+
+  // Register service worker
+  if (!("serviceWorker" in navigator)) {
+    document.getElementById("permStatus").textContent = "Service workers unsupported";
+    document.getElementById("permStatus").classList.add("unsupported");
+    document.getElementById("enableBtn").disabled = true;
+    log("Browser does not support service workers", "err");
+    return;
+  }
+
+  try {
+    registration = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
+    log("Service worker registered ✓", "ok");
+  } catch (e) {
+    log("SW registration failed: " + e.message, "err");
+    document.getElementById("permStatus").textContent = "SW registration failed";
+    document.getElementById("permStatus").classList.add("denied");
+    return;
+  }
+
+  // Update permission status
+  updatePermStatus();
+
+  // Check existing subscription
+  if ("PushManager" in window) {
+    try {
+      currentSubscription = await registration.pushManager.getSubscription();
+      updateSubStatus();
+    } catch (e) {
+      log("Could not check subscription: " + e.message, "err");
+    }
+  }
+
+  // Install prompt
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallEvent = e;
+    document.getElementById("installBtn").style.display = "";
+    document.getElementById("installStatus").textContent = "Installable";
+  });
+
+  if (isStandalone) {
+    document.getElementById("installStatus").textContent = "Installed ✓";
+    document.getElementById("installStatus").classList.add("granted");
+  }
+}
+
+function updatePermStatus() {
+  const perm = Notification.permission;
+  const el = document.getElementById("permStatus");
+  el.classList.remove("granted", "denied", "unsupported");
+  if (perm === "granted") {
+    el.textContent = "Permission: granted";
+    el.classList.add("granted");
+  } else if (perm === "denied") {
+    el.textContent = "Permission: denied (reset in browser settings)";
+    el.classList.add("denied");
+  } else {
+    el.textContent = "Permission: not yet requested";
+  }
+}
+
+function updateSubStatus() {
+  const el = document.getElementById("subStatus");
+  el.classList.remove("subscribed", "denied");
+  if (currentSubscription) {
+    el.textContent = "Subscribed ✓";
+    el.classList.add("subscribed");
+    document.getElementById("disableBtn").style.display = "";
+    document.getElementById("enableBtn").textContent = "Re-enable";
+  } else {
+    el.textContent = "Not subscribed";
+    document.getElementById("disableBtn").style.display = "none";
+    document.getElementById("enableBtn").textContent = "Enable push notifications";
+  }
+}
+
+async function enablePush() {
+  log("Requesting permission...");
+  try {
+    const perm = await Notification.requestPermission();
+    updatePermStatus();
+    if (perm !== "granted") {
+      log("Permission denied", "err");
+      return;
+    }
+    log("Permission granted ✓", "ok");
+
+    // Get VAPID public key from backend
+    log("Fetching VAPID public key...");
+    let vapidKey = null;
+    try {
+      const r = await fetch(VAPID_PUBLIC_KEY_FETCH);
+      if (r.ok) vapidKey = (await r.json()).publicKey;
+    } catch (e) {
+      log("Backend push API not deployed yet — registering notification permission only (browser-local)", "err");
+      log("Local notifications will work via 'Test' button. Server-pushed alerts require the push API Lambda to be deployed.", "err");
+      return;
+    }
+    if (!vapidKey) {
+      log("VAPID public key unavailable from backend", "err");
+      return;
+    }
+    log("VAPID public key ✓", "ok");
+
+    // Subscribe to push
+    log("Subscribing to push manager...");
+    const sub = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    log("Push subscription created ✓", "ok");
+
+    // Send subscription to backend
+    log("Registering subscription with backend...");
+    const r = await fetch(PUSH_API + "/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+      }),
+    });
+    if (r.ok) {
+      log("Subscription registered with backend ✓", "ok");
+      currentSubscription = sub;
+      updateSubStatus();
+    } else {
+      log("Backend register failed: " + r.status, "err");
+    }
+  } catch (e) {
+    log("Error: " + e.message, "err");
+  }
+}
+
+async function disablePush() {
+  if (!currentSubscription) return;
+  log("Unsubscribing...");
+  try {
+    const endpoint = currentSubscription.endpoint;
+    await currentSubscription.unsubscribe();
+    log("Unsubscribed locally ✓", "ok");
+    try {
+      await fetch(PUSH_API + "/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint }),
+      });
+      log("Removed from backend ✓", "ok");
+    } catch (e) {
+      log("Backend unsubscribe failed (ok if backend not deployed): " + e.message, "err");
+    }
+    currentSubscription = null;
+    updateSubStatus();
+  } catch (e) {
+    log("Error unsubscribing: " + e.message, "err");
+  }
+}
+
+async function testNotif() {
+  if (Notification.permission !== "granted") {
+    const p = await Notification.requestPermission();
+    if (p !== "granted") { log("Need permission first", "err"); return; }
+    updatePermStatus();
+  }
+  // Use SW notification so click handler works
+  if (registration) {
+    registration.showNotification("JustHodl test 🎯", {
+      body: "Test notification — push pipeline is alive on this device",
+      icon: "/manifest.json",
+      tag: "test",
+      data: { url: "/portfolio.html" },
+    });
+  } else {
+    new Notification("JustHodl test 🎯", { body: "Test notification — registered" });
+  }
+  log("Test notification fired ✓", "ok");
+}
+
+async function installPWA() {
+  if (!deferredInstallEvent) {
+    log("No install prompt available (already installed or unsupported)", "err");
+    return;
+  }
+  deferredInstallEvent.prompt();
+  const { outcome } = await deferredInstallEvent.userChoice;
+  log("Install: " + outcome, outcome === "accepted" ? "ok" : "err");
+  deferredInstallEvent = null;
+}
+
+init();
+</script>
+
+</body>
+</html>
