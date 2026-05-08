@@ -1,0 +1,147 @@
+{
+  "started": "2026-05-08T20:16:46.411110+00:00",
+  "test": {
+    "portfolio/signal-portfolio-state.json": {
+      "size_bytes": 13587,
+      "last_modified": "2026-05-07 22:30:05+00:00",
+      "schema": {
+        "version": "1.0",
+        "generated_at": "2026-05-07T22:30:04.129131+00:00",
+        "as_of_date": "2026-05-07",
+        "first_seen": "2026-05-04",
+        "last_run_date": "2026-05-07",
+        "initial_nav": 100000.0,
+        "current_nav": 98825.1,
+        "current_nav_pct_chg": -1.17,
+        "__more_keys__": [
+          "unrealized_pnl_dollars",
+          "open_positions",
+          "recently_closed",
+          "all_closed_positions",
+          "stats",
+          "duration_s"
+        ]
+      }
+    },
+    "portfolio/sizer-v2.json": {
+      "size_bytes": 11039,
+      "last_modified": "2026-05-08 14:00:09+00:00",
+      "schema": {
+        "v": "1.0",
+        "generated_at": "2026-05-08T14:00:08.257892+00:00",
+        "method": "horizon_aware_kelly_v1",
+        "kelly_fraction": 0.25,
+        "max_single_position_pct": 0.08,
+        "decisive_call": "EXIT_ALL_RISK",
+        "risk_multiplier": 0.0,
+        "summary": {
+          "n_open_positions": 16,
+          "n_setups_evaluated": 15,
+          "total_current_exposure_pct": 3.928,
+          "total_recommended_exposure_pct": 0.0,
+          "exposure_change_pp": -3.928,
+          "actions": {
+            "EXIT": 16
+          },
+          "n_horizon_aware": 0,
+          "n_flat_fallback": 15
+        },
+        "__more_keys__": [
+          "positions",
+          "setups"
+        ]
+      }
+    },
+    "portfolio/pnl-daily.json": {
+      "size_bytes": 1521,
+      "last_modified": "2026-05-07 22:00:05+00:00",
+      "schema": {
+        "as_of": "2026-05-07",
+        "generated_at": "2026-05-07T22:00:03.906376+00:00",
+        "inception": "2026-04-25",
+        "days_since_inception": 12,
+        "starting_value_usd": 100000,
+        "current_phase": "PRE-CRISIS",
+        "current_regime": "NEUTRAL",
+        "current_action_required": "REDUCE ALL RISK. Raise cash to 40%+. Exit leveraged and speculative positions.",
+        "__more_keys__": [
+          "buy_and_hold",
+          "khalid_strategy",
+          "delta_pct",
+          "system_alpha",
+          "prices",
+          "v",
+          "DISCLAIMER",
+          "ka_strategy"
+        ]
+      }
+    },
+    "portfolio/pnl-history.json": {
+      "size_bytes": 3734,
+      "last_modified": "2026-05-07 22:00:05+00:00",
+      "schema": {
+        "v": "1.0",
+        "snapshots": {
+          "__type__": "list",
+          "__len__": 13,
+          "__sample__": {
+            "as_of": "2026-04-25",
+            "buy_and_hold_value_usd": 100000.0,
+            "khalid_strategy_value_usd": 100000.0,
+            "buy_and_hold_return_pct": 0.0,
+            "khalid_return_pct": 0.0,
+            "delta_pct": 0.0,
+            "regime": "BEAR",
+            "phase": "PRE-CRISIS",
+            "__more_keys__": [
+              "ka_strategy_value_usd",
+              "ka_return_pct"
+            ]
+          }
+        },
+        "last_updated": "2026-05-07T22:00:03.906376+00:00"
+      }
+    },
+    "portfolio/state.json": {
+      "size_bytes": 396,
+      "last_modified": "2026-04-25 12:27:28+00:00",
+      "schema": {
+        "v": "1.0",
+        "as_of": "2026-04-25",
+        "starting_value_usd": 100000,
+        "allocations": {
+          "SPY": 0.6,
+          "TLT": 0.2,
+          "GLD": 0.1,
+          "CASH": 0.1
+        },
+        "baseline_prices": {
+          "SPY": 713.94,
+          "TLT": 86.71,
+          "GLD": 433.25
+        },
+        "managed_by": "loop2_pnl_tracker_v1",
+        "_note": "<str:149> Hypothetical $100k starting portfolio. Edit allocations to match your real alloc..."
+      }
+    },
+    "portfolio/position-monitor-state.json": {
+      "size_bytes": 250,
+      "last_modified": "2026-05-08 20:15:01+00:00",
+      "schema": {
+        "v": "1.0",
+        "alerts": {
+          "41b41955453fc142:near_stop": {
+            "sent_at": "2026-05-08T17:45:00.204830+00:00",
+            "ticker": "NOW",
+            "kind": "near_stop",
+            "severity": "warning",
+            "ok": true
+          }
+        },
+        "last_call_verb": "EXIT",
+        "last_run": "2026-05-08T20:15:00.075166+00:00"
+      }
+    }
+  },
+  "finished": "2026-05-08T20:16:54.028117+00:00"
+}
