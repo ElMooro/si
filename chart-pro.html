@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chart Pro · JustHodl.AI · v9</title>
+<title>Chart Pro · JustHodl.AI · v10</title>
 <meta name="description" content="Multi-series historical chart explorer — FRED, ECB, OFR, Polygon, JustHodl composites. Powered by TradingView Lightweight Charts.">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -363,6 +363,45 @@
               font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
   .cmd-item:hover, .cmd-item.selected { background: var(--bg-hover); }
   .cmd-item .cmd-cat { color: var(--text-muted); font-size: 10px; margin-left: auto; }
+
+  /* ── v10 Drawing properties panel ── */
+  .draw-props { position: absolute; left: 56px; top: 12px; z-index: 12;
+                background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 6px;
+                display: none; gap: 6px; align-items: center; padding: 6px 10px; font-size: 11px; }
+  .draw-props.active { display: flex; }
+  .draw-props .dp-label { color: var(--text-dim); }
+  .draw-props input[type=color] { width: 28px; height: 22px; border: 1px solid var(--border); border-radius: 3px; padding: 0; background: transparent; cursor: pointer; }
+  .draw-props select { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-light); border-radius: 3px; padding: 2px 6px; font-size: 11px; }
+
+  /* ── v10 Chart type switcher ── */
+  .chart-type-bar { position: absolute; right: 12px; top: 12px; z-index: 12;
+                    background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 6px;
+                    display: flex; gap: 2px; padding: 4px; }
+  .ct-btn { background: transparent; color: var(--text-dim); border: none; padding: 4px 8px; cursor: pointer;
+            border-radius: 3px; font-size: 14px; }
+  .ct-btn:hover { background: var(--bg-hover); color: var(--text); }
+  .ct-btn.active { background: var(--accent); color: #000; }
+
+  /* ── v10 Drawings sidebar panel ── */
+  .drawings-panel { background: var(--bg-card); border-bottom: 1px solid var(--border); }
+  .drawings-row { padding: 6px 14px; display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer; }
+  .drawings-row:hover { background: var(--bg-hover); }
+  .drawings-row .dr-icon { color: var(--accent); font-weight: bold; }
+  .drawings-row .dr-label { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drawings-row .dr-x { color: var(--text-muted); cursor: pointer; padding: 2px 4px; }
+  .drawings-row .dr-x:hover { color: var(--c4); }
+
+  /* ── v10 Layouts manager ── */
+  .layouts-row { padding: 8px 14px; display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; }
+  .layouts-row:hover { background: var(--bg-hover); }
+  .layouts-row .lr-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .layouts-row .lr-meta { color: var(--text-muted); font-size: 9px; }
+
+  /* ── v10 Event markers ── */
+  .event-marker { stroke: rgba(168,139,250,0.4); stroke-width: 1; stroke-dasharray: 2 2; }
+
+  /* ── v10 Toggle states for magnet/stay ── */
+  .draw-btn.toggled { background: var(--accent); color: #000; }
 </style>
 </head>
 <body>
@@ -425,6 +464,9 @@
     <button class="btn" onclick="exportPNG()" title="Export chart as PNG image">🖼️ PNG</button>
     <button class="btn primary" onclick="exportCSV()" title="Export aligned data as CSV">📥 CSV</button>
     <button class="btn" id="replayBtn" onclick="toggleReplay()" title="Bar-by-bar replay (R)">▶ Replay</button>
+    <button class="btn" id="compareBtn" onclick="toggleCompareMode()" title="Compare mode (auto-normalize to 100)">⚖ Compare</button>
+    <button class="btn" id="vpBtn" onclick="toggleVolumeProfile()" title="Volume Profile (visible-range histogram)">📊 VP</button>
+    <button class="btn" id="eventMarkersBtn" onclick="toggleEventMarkers()" title="Event markers (FOMC, NBER, elections)">🎯 Events</button>
     <button class="btn" id="aiToggleBtn" onclick="toggleAIPane()" title="AI Analyst (⌘J)">🤖 AI</button>
     <button class="btn danger" onclick="clearAllSeries()" title="Clear all series">🗑️</button>
     <div id="wsMenu" class="ws-menu"></div>
@@ -503,6 +545,28 @@
         <div class="sidebar-content" id="indicatorList" style="max-height:280px"></div>
       </div>
 
+      <!-- v10 Drawings panel -->
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <span>✏ Drawings (<span id="drawingsCount">0</span>)</span>
+          <span style="color:var(--text-muted);font-size:9px">click ✕ to delete</span>
+        </div>
+        <div class="sidebar-content drawings-panel" id="drawingsList" style="max-height:160px">
+          <div style="padding:10px 14px;color:var(--text-muted);font-size:11px">No drawings yet. Pick a tool to start.</div>
+        </div>
+      </div>
+
+      <!-- v10 Layouts manager -->
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <span>🗂 Layouts</span>
+          <span class="dr-x" onclick="saveLayout()" style="color:var(--accent);cursor:pointer;font-size:10px">+ Save</span>
+        </div>
+        <div class="sidebar-content" id="layoutsList" style="max-height:140px">
+          <div style="padding:10px 14px;color:var(--text-muted);font-size:11px">No layouts saved yet.</div>
+        </div>
+      </div>
+
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="🔍 Search 80+ indicators..." oninput="filterCatalog()">
       </div>
@@ -520,19 +584,45 @@
         <div class="draw-divider"></div>
         <button class="draw-btn" data-tool="hline" title="Horizontal price line (H)">━</button>
         <button class="draw-btn" data-tool="vline" title="Vertical line (V)">│</button>
+        <button class="draw-btn" data-tool="cross" title="Cross line (X)">✚</button>
         <button class="draw-btn" data-tool="trendline" title="Trend line (T)">╱</button>
-        <button class="draw-btn" data-tool="ray" title="Ray (R)">↗</button>
+        <button class="draw-btn" data-tool="ray" title="Ray (Y)">↗</button>
         <button class="draw-btn" data-tool="channel" title="Parallel Channel (C)">▤</button>
+        <button class="draw-btn" data-tool="pitchfork" title="Andrews' Pitchfork (P)">⋔</button>
+        <button class="draw-btn" data-tool="path" title="Multi-segment path (Shift+P)">⌇</button>
         <div class="draw-divider"></div>
         <button class="draw-btn" data-tool="fib" title="Fibonacci Retracement (F)">𝐹</button>
         <button class="draw-btn" data-tool="fibext" title="Fibonacci Extension (Shift+F)">𝐹⁺</button>
+        <button class="draw-btn" data-tool="gann" title="Gann Fan (G)">⩘</button>
         <div class="draw-divider"></div>
-        <button class="draw-btn" data-tool="rect" title="Rectangle / Zone (X)">▭</button>
+        <button class="draw-btn" data-tool="rect" title="Rectangle / Zone (R)">▭</button>
+        <button class="draw-btn" data-tool="position" title="Long/Short Position with R:R (L)">◧</button>
         <button class="draw-btn" data-tool="measure" title="Measure tool (M)">📏</button>
         <button class="draw-btn" data-tool="annotation" title="Text annotation (A)">📝</button>
         <div class="draw-divider"></div>
-        <button class="draw-btn" id="undoDrawBtn" title="Undo last drawing (⌘Z)">↶</button>
+        <button class="draw-btn" id="magnetBtn" title="Magnet snap to bars">🧲</button>
+        <button class="draw-btn" id="stayBtn" title="Stay in tool after drawing">⇄</button>
+        <button class="draw-btn" id="undoDrawBtn" title="Undo (⌘Z)">↶</button>
         <button class="draw-btn" id="clearDrawBtn" title="Clear all drawings">🗑️</button>
+      </div>
+
+      <!-- v10 Drawing properties panel -->
+      <div class="draw-props" id="drawProps">
+        <span class="dp-label">Color:</span>
+        <input type="color" id="dpColor" value="#facc15">
+        <span class="dp-label">Width:</span>
+        <select id="dpWidth"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select>
+        <span class="dp-label">Style:</span>
+        <select id="dpStyle"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select>
+      </div>
+
+      <!-- v10 Chart type switcher (top-right corner of chart) -->
+      <div class="chart-type-bar" id="chartTypeBar">
+        <button class="ct-btn active" data-type="line" title="Line (close)">📈</button>
+        <button class="ct-btn" data-type="area" title="Area">⛰</button>
+        <button class="ct-btn" data-type="baseline" title="Baseline (above/below mean)">⌽</button>
+        <button class="ct-btn" data-type="heikin" title="Heikin Ashi (synthetic)">🕯</button>
+        <button class="ct-btn" data-type="candle" title="Candle (synthetic OHLC)">📊</button>
       </div>
       <div class="loader" id="loader" style="display:none">Loading...</div>
     </div>
@@ -706,9 +796,9 @@ let WORKING_API = null;
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4'];
 
-console.log('%c[Chart Pro v9] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
-console.log('[Chart Pro v9] APIs:', { primary: CHART_API_PRIMARY, fallback: CHART_API_FALLBACK });
-console.log('[Chart Pro v9] Features: 16 indicators · 10 drawing tools · AI co-pilot · regime overlay · bar replay · cmd-K palette');
+console.log('%c[Chart Pro v10] Loaded ' + new Date().toISOString(), 'color:#facc15;font-weight:bold');
+console.log('[Chart Pro v10] APIs:', { primary: CHART_API_PRIMARY, fallback: CHART_API_FALLBACK });
+console.log('[Chart Pro v10] Features: 28 indicators · 18 drawing tools · 5 chart types · AI co-pilot · regime overlay · bar replay · cmd-K palette · volume profile · event markers · compare mode · layouts manager · drawings panel · magnet snap · stay-in-tool · drawing properties');
 
 const STATE = {
   activeSeries: [],   // [{id, label, source, color, axis, data}]
@@ -1498,22 +1588,40 @@ function exportCSV() {
 
 // ───── Technical Indicators ─────
 const INDICATORS = [
-  { key: 'sma20',  name: 'SMA 20',         period: 20,  color: '#facc15', overlay: true },
-  { key: 'sma50',  name: 'SMA 50',         period: 50,  color: '#fb923c', overlay: true },
-  { key: 'sma100', name: 'SMA 100',        period: 100, color: '#a78bfa', overlay: true },
-  { key: 'sma200', name: 'SMA 200',        period: 200, color: '#06b6d4', overlay: true },
-  { key: 'ema12',  name: 'EMA 12',         period: 12,  color: '#10b981', overlay: true },
-  { key: 'ema26',  name: 'EMA 26',         period: 26,  color: '#ef4444', overlay: true },
-  { key: 'bb20',   name: 'Bollinger Bands (20, 2σ)', period: 20, color: '#a78bfa', overlay: true },
-  { key: 'kc20',   name: 'Keltner Channel (20)',     period: 20, color: '#22d3ee', overlay: true },
-  { key: 'dc20',   name: 'Donchian Channel (20)',    period: 20, color: '#f97316', overlay: true },
-  { key: 'ichi',   name: 'Ichimoku Cloud',           period: 26, color: '#10b981', overlay: true },
-  { key: 'vwap',   name: 'VWAP (anchored)',          period: 0,  color: '#fde047', overlay: true },
-  { key: 'rsi14',  name: 'RSI (14)',                 period: 14, color: '#facc15', overlay: false },
-  { key: 'macd',   name: 'MACD (12, 26, 9)',         period: 0,  color: '#3b82f6', overlay: false },
-  { key: 'atr14',  name: 'ATR (14) — Volatility',    period: 14, color: '#fb923c', overlay: false },
-  { key: 'adx14',  name: 'ADX (14) — Trend Strength', period: 14, color: '#a78bfa', overlay: false },
-  { key: 'stoch',  name: 'Stochastic (14, 3, 3)',    period: 14, color: '#22d3ee', overlay: false },
+  // Moving Averages (overlay)
+  { key: 'sma20',  name: 'SMA 20',                       period: 20,  color: '#facc15', overlay: true, cat: 'MA' },
+  { key: 'sma50',  name: 'SMA 50',                       period: 50,  color: '#fb923c', overlay: true, cat: 'MA' },
+  { key: 'sma100', name: 'SMA 100',                      period: 100, color: '#a78bfa', overlay: true, cat: 'MA' },
+  { key: 'sma200', name: 'SMA 200',                      period: 200, color: '#06b6d4', overlay: true, cat: 'MA' },
+  { key: 'ema12',  name: 'EMA 12',                       period: 12,  color: '#10b981', overlay: true, cat: 'MA' },
+  { key: 'ema26',  name: 'EMA 26',                       period: 26,  color: '#ef4444', overlay: true, cat: 'MA' },
+  { key: 'wma20',  name: 'WMA 20 (Weighted)',            period: 20,  color: '#84cc16', overlay: true, cat: 'MA' },
+  { key: 'hull20', name: 'Hull MA 20',                   period: 20,  color: '#f472b6', overlay: true, cat: 'MA' },
+  { key: 'tema20', name: 'TEMA 20 (Triple EMA)',         period: 20,  color: '#22d3ee', overlay: true, cat: 'MA' },
+  { key: 'kama10', name: "KAMA 10 (Kaufman Adaptive)",   period: 10,  color: '#fde047', overlay: true, cat: 'MA' },
+  // Bands & Channels (overlay)
+  { key: 'bb20',   name: 'Bollinger Bands (20, 2σ)',     period: 20,  color: '#a78bfa', overlay: true, cat: 'Bands' },
+  { key: 'kc20',   name: 'Keltner Channel (20, 2)',      period: 20,  color: '#22d3ee', overlay: true, cat: 'Bands' },
+  { key: 'dc20',   name: 'Donchian Channel (20)',        period: 20,  color: '#f97316', overlay: true, cat: 'Bands' },
+  { key: 'ichi',   name: 'Ichimoku Cloud',               period: 26,  color: '#10b981', overlay: true, cat: 'Bands' },
+  { key: 'psar',   name: 'Parabolic SAR (0.02, 0.2)',    period: 0,   color: '#fb923c', overlay: true, cat: 'Bands' },
+  { key: 'super',  name: 'SuperTrend (10, 3)',           period: 10,  color: '#22c55e', overlay: true, cat: 'Bands' },
+  // Anchored / VWAP
+  { key: 'vwap',   name: 'VWAP (anchored)',              period: 0,   color: '#fde047', overlay: true, cat: 'VWAP' },
+  // Momentum oscillators (separate panes)
+  { key: 'rsi14',  name: 'RSI (14)',                     period: 14,  color: '#facc15', overlay: false, cat: 'Momentum' },
+  { key: 'macd',   name: 'MACD (12, 26, 9)',             period: 0,   color: '#3b82f6', overlay: false, cat: 'Momentum' },
+  { key: 'stoch',  name: 'Stochastic (14, 3, 3)',        period: 14,  color: '#22d3ee', overlay: false, cat: 'Momentum' },
+  { key: 'cci20',  name: 'CCI (20)',                     period: 20,  color: '#f59e0b', overlay: false, cat: 'Momentum' },
+  { key: 'willr',  name: 'Williams %R (14)',             period: 14,  color: '#ec4899', overlay: false, cat: 'Momentum' },
+  { key: 'roc12',  name: 'Rate of Change (12)',          period: 12,  color: '#84cc16', overlay: false, cat: 'Momentum' },
+  { key: 'aroon',  name: 'Aroon (25)',                   period: 25,  color: '#06b6d4', overlay: false, cat: 'Momentum' },
+  { key: 'trix',   name: 'TRIX (15, 9)',                 period: 15,  color: '#a78bfa', overlay: false, cat: 'Momentum' },
+  // Volatility / Trend strength (separate panes)
+  { key: 'atr14',  name: 'ATR (14)',                     period: 14,  color: '#fb923c', overlay: false, cat: 'Volatility' },
+  { key: 'adx14',  name: 'ADX (14) + DI±',               period: 14,  color: '#a78bfa', overlay: false, cat: 'Volatility' },
+  // Structure (overlay)
+  { key: 'zigzag', name: 'ZigZag (5%)',                  period: 5,   color: '#facc15', overlay: true,  cat: 'Structure' },
 ];
 
 STATE.activeIndicators = new Set();
@@ -1784,17 +1892,238 @@ function stochSeries(data, kPeriod = 14, dPeriod = 3) {
   return { k, d };
 }
 
+// ───── v10 indicators ─────
+function wmaSeries(data, period) {
+  if (data.length < period) return [];
+  const result = [];
+  const denom = period * (period + 1) / 2;
+  for (let i = period - 1; i < data.length; i++) {
+    let num = 0;
+    for (let j = 0; j < period; j++) num += data[i - j].value * (period - j);
+    result.push({ time: data[i].time, value: num / denom });
+  }
+  return result;
+}
+
+function hullSeries(data, period) {
+  // Hull MA = WMA(2*WMA(n/2) - WMA(n), sqrt(n))
+  if (data.length < period) return [];
+  const half = Math.floor(period / 2);
+  const sqrtN = Math.floor(Math.sqrt(period));
+  const wmaHalf = wmaSeries(data, half);
+  const wmaFull = wmaSeries(data, period);
+  const fullMap = new Map(wmaFull.map(d => [d.time, d.value]));
+  const diff = [];
+  for (const d of wmaHalf) {
+    if (fullMap.has(d.time)) diff.push({ time: d.time, value: 2 * d.value - fullMap.get(d.time) });
+  }
+  return wmaSeries(diff, sqrtN);
+}
+
+function temaSeries(data, period) {
+  if (data.length < period * 3) return [];
+  const ema1 = emaSeries(data, period);
+  const ema2 = emaSeries(ema1, period);
+  const ema3 = emaSeries(ema2, period);
+  const m2 = new Map(ema2.map(d => [d.time, d.value]));
+  const m3 = new Map(ema3.map(d => [d.time, d.value]));
+  const result = [];
+  for (const d of ema1) {
+    if (m2.has(d.time) && m3.has(d.time)) {
+      result.push({ time: d.time, value: 3 * d.value - 3 * m2.get(d.time) + m3.get(d.time) });
+    }
+  }
+  return result;
+}
+
+function kamaSeries(data, period = 10, fast = 2, slow = 30) {
+  if (data.length < period + 1) return [];
+  const fastSC = 2 / (fast + 1);
+  const slowSC = 2 / (slow + 1);
+  const result = [];
+  let kama = data[period].value;
+  result.push({ time: data[period].time, value: kama });
+  for (let i = period + 1; i < data.length; i++) {
+    const change = Math.abs(data[i].value - data[i - period].value);
+    let volatility = 0;
+    for (let j = 0; j < period; j++) volatility += Math.abs(data[i - j].value - data[i - j - 1].value);
+    const er = volatility === 0 ? 0 : change / volatility;
+    const sc = Math.pow(er * (fastSC - slowSC) + slowSC, 2);
+    kama = kama + sc * (data[i].value - kama);
+    result.push({ time: data[i].time, value: kama });
+  }
+  return result;
+}
+
+function parabolicSAR(data, accel = 0.02, maxAccel = 0.2) {
+  // Close-only PSAR proxy
+  if (data.length < 3) return [];
+  const result = [];
+  let isLong = data[1].value > data[0].value;
+  let af = accel;
+  let ep = isLong ? data[1].value : data[0].value;
+  let sar = isLong ? data[0].value : data[1].value;
+  for (let i = 2; i < data.length; i++) {
+    sar = sar + af * (ep - sar);
+    if (isLong) {
+      if (data[i].value < sar) {
+        isLong = false; sar = ep; ep = data[i].value; af = accel;
+      } else {
+        if (data[i].value > ep) { ep = data[i].value; af = Math.min(af + accel, maxAccel); }
+      }
+    } else {
+      if (data[i].value > sar) {
+        isLong = true; sar = ep; ep = data[i].value; af = accel;
+      } else {
+        if (data[i].value < ep) { ep = data[i].value; af = Math.min(af + accel, maxAccel); }
+      }
+    }
+    result.push({ time: data[i].time, value: sar, dir: isLong ? 'up' : 'dn' });
+  }
+  return result;
+}
+
+function superTrendSeries(data, period = 10, mult = 3) {
+  if (data.length < period + 1) return { up: [], dn: [] };
+  const atr = atrSeries(data, period);
+  const atrMap = new Map(atr.map(d => [d.time, d.value]));
+  const up = [], dn = [];
+  let isUptrend = true;
+  let prevST = data[period].value;
+  for (const d of data) {
+    if (!atrMap.has(d.time)) continue;
+    const a = atrMap.get(d.time);
+    const upper = d.value + mult * a;
+    const lower = d.value - mult * a;
+    if (d.value > prevST) { isUptrend = true; prevST = lower; }
+    else if (d.value < prevST) { isUptrend = false; prevST = upper; }
+    if (isUptrend) up.push({ time: d.time, value: prevST });
+    else dn.push({ time: d.time, value: prevST });
+  }
+  return { up, dn };
+}
+
+function cciSeries(data, period = 20) {
+  // Close-only CCI
+  if (data.length < period) return [];
+  const result = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = 0; j < period; j++) sum += data[i - j].value;
+    const sma = sum / period;
+    let meanDev = 0;
+    for (let j = 0; j < period; j++) meanDev += Math.abs(data[i - j].value - sma);
+    meanDev /= period;
+    const cci = meanDev === 0 ? 0 : (data[i].value - sma) / (0.015 * meanDev);
+    result.push({ time: data[i].time, value: cci });
+  }
+  return result;
+}
+
+function williamsR(data, period = 14) {
+  if (data.length < period) return [];
+  const result = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let hi = -Infinity, lo = Infinity;
+    for (let j = 0; j < period; j++) {
+      const v = data[i - j].value;
+      if (v > hi) hi = v;
+      if (v < lo) lo = v;
+    }
+    const wr = hi === lo ? -50 : ((hi - data[i].value) / (hi - lo)) * -100;
+    result.push({ time: data[i].time, value: wr });
+  }
+  return result;
+}
+
+function rocSeries(data, period = 12) {
+  if (data.length < period + 1) return [];
+  const result = [];
+  for (let i = period; i < data.length; i++) {
+    const prev = data[i - period].value;
+    if (prev === 0) continue;
+    result.push({ time: data[i].time, value: ((data[i].value - prev) / prev) * 100 });
+  }
+  return result;
+}
+
+function aroonSeries(data, period = 25) {
+  if (data.length < period + 1) return { up: [], dn: [] };
+  const up = [], dn = [];
+  for (let i = period; i < data.length; i++) {
+    let hiIdx = 0, loIdx = 0;
+    for (let j = 0; j <= period; j++) {
+      if (data[i - j].value >= data[i - hiIdx].value) hiIdx = j;
+      if (data[i - j].value <= data[i - loIdx].value) loIdx = j;
+    }
+    up.push({ time: data[i].time, value: ((period - hiIdx) / period) * 100 });
+    dn.push({ time: data[i].time, value: ((period - loIdx) / period) * 100 });
+  }
+  return { up, dn };
+}
+
+function trixSeries(data, period = 15, signalPeriod = 9) {
+  if (data.length < period * 3) return { trix: [], signal: [] };
+  const e1 = emaSeries(data, period);
+  const e2 = emaSeries(e1, period);
+  const e3 = emaSeries(e2, period);
+  const trix = [];
+  for (let i = 1; i < e3.length; i++) {
+    const prev = e3[i - 1].value;
+    if (prev === 0) continue;
+    trix.push({ time: e3[i].time, value: ((e3[i].value - prev) / prev) * 100 });
+  }
+  const signal = emaSeries(trix, signalPeriod);
+  return { trix, signal };
+}
+
+function zigZagSeries(data, percent = 5) {
+  // Simple ZigZag: mark turning points where price has reversed by percent%
+  if (!data.length) return [];
+  const result = [];
+  let last = data[0];
+  let dir = 0;  // 0 unknown, 1 up, -1 down
+  result.push({ time: last.time, value: last.value });
+  for (let i = 1; i < data.length; i++) {
+    const change = ((data[i].value - last.value) / last.value) * 100;
+    if (dir === 0) {
+      if (Math.abs(change) >= percent) { dir = change > 0 ? 1 : -1; last = data[i]; result.push({ time: last.time, value: last.value }); }
+    } else if (dir === 1) {
+      if (data[i].value > last.value) { last = data[i]; result[result.length - 1] = { time: last.time, value: last.value }; }
+      else if (((last.value - data[i].value) / last.value) * 100 >= percent) { dir = -1; last = data[i]; result.push({ time: last.time, value: last.value }); }
+    } else {
+      if (data[i].value < last.value) { last = data[i]; result[result.length - 1] = { time: last.time, value: last.value }; }
+      else if (((data[i].value - last.value) / last.value) * 100 >= percent) { dir = 1; last = data[i]; result.push({ time: last.time, value: last.value }); }
+    }
+  }
+  return result;
+}
+
 function renderIndicatorPanel() {
   const host = document.getElementById('indicatorList');
-  host.innerHTML = INDICATORS.map(ind => {
-    const active = STATE.activeIndicators.has(ind.key) ? 'active' : '';
-    const checkmark = STATE.activeIndicators.has(ind.key) ? '✓' : '';
-    return `<div class="ind-row ${active}" onclick="toggleIndicator('${ind.key}')">
-      <span class="ind-toggle">${checkmark}</span>
-      <span class="ind-name" style="color:${active ? 'var(--text)' : ''}">${ind.name}</span>
-      <span class="ind-config" style="color:${ind.color}">●</span>
-    </div>`;
-  }).join('');
+  // Group by category for the v10 expanded list
+  const cats = {};
+  INDICATORS.forEach(ind => {
+    const c = ind.cat || 'Other';
+    if (!cats[c]) cats[c] = [];
+    cats[c].push(ind);
+  });
+  const order = ['MA', 'Bands', 'VWAP', 'Momentum', 'Volatility', 'Structure', 'Other'];
+  let html = '';
+  for (const cat of order) {
+    if (!cats[cat]) continue;
+    html += `<div style="padding:6px 14px 2px;color:var(--text-muted);font-size:9px;text-transform:uppercase;letter-spacing:0.05em">${cat}</div>`;
+    html += cats[cat].map(ind => {
+      const active = STATE.activeIndicators.has(ind.key) ? 'active' : '';
+      const checkmark = STATE.activeIndicators.has(ind.key) ? '✓' : '';
+      return `<div class="ind-row ${active}" onclick="toggleIndicator('${ind.key}')">
+        <span class="ind-toggle">${checkmark}</span>
+        <span class="ind-name" style="color:${active ? 'var(--text)' : ''}">${ind.name}</span>
+        <span class="ind-config" style="color:${ind.color}">●</span>
+      </div>`;
+    }).join('');
+  }
+  host.innerHTML = html;
 }
 
 function toggleIndicator(key) {
@@ -1957,6 +2286,91 @@ function applyIndicators(baseSeries, baseData) {
         STATE.series.push(k, d);
         STATE.indicatorSeries[ind.key] = [k, d];
       } catch (e) { console.warn('Stoch pane:', e); }
+    } else if (ind.key === 'wma20') {
+      const data = wmaSeries(baseData, 20);
+      const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1, priceScaleId: baseSeries.axis, title: 'WMA(20)', priceLineVisible: false });
+      s.setData(data); STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'hull20') {
+      const data = hullSeries(baseData, 20);
+      const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 2, priceScaleId: baseSeries.axis, title: 'Hull(20)', priceLineVisible: false });
+      s.setData(data); STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'tema20') {
+      const data = temaSeries(baseData, 20);
+      const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: baseSeries.axis, title: 'TEMA(20)', priceLineVisible: false });
+      s.setData(data); STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'kama10') {
+      const data = kamaSeries(baseData, 10);
+      const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: baseSeries.axis, title: 'KAMA(10)', priceLineVisible: false });
+      s.setData(data); STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'psar') {
+      const psar = parabolicSAR(baseData);
+      const upPts = psar.filter(p => p.dir === 'up').map(p => ({ time: p.time, value: p.value }));
+      const dnPts = psar.filter(p => p.dir === 'dn').map(p => ({ time: p.time, value: p.value }));
+      const sUp = STATE.chart.addLineSeries({ color: '#22c55e', lineWidth: 0, lineType: 0, priceScaleId: baseSeries.axis, title: 'PSAR up', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      const sDn = STATE.chart.addLineSeries({ color: '#ef4444', lineWidth: 0, lineType: 0, priceScaleId: baseSeries.axis, title: 'PSAR dn', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      // Render dots via markers
+      const allMarkers = psar.map(p => ({
+        time: p.time, position: p.dir === 'up' ? 'belowBar' : 'aboveBar',
+        color: p.dir === 'up' ? '#22c55e' : '#ef4444', shape: 'circle', size: 0.5,
+      }));
+      try { baseSeries && STATE.seriesById[STATE.activeSeries[0].id]?.setMarkers(allMarkers); } catch (e) {}
+      sUp.setData(upPts); sDn.setData(dnPts);
+      STATE.series.push(sUp, sDn);
+      STATE.indicatorSeries[ind.key] = [sUp, sDn];
+    } else if (ind.key === 'super') {
+      const st = superTrendSeries(baseData, 10, 3);
+      const sUp = STATE.chart.addLineSeries({ color: '#22c55e', lineWidth: 2, priceScaleId: baseSeries.axis, title: 'SuperTrend ↑', priceLineVisible: false });
+      const sDn = STATE.chart.addLineSeries({ color: '#ef4444', lineWidth: 2, priceScaleId: baseSeries.axis, title: 'SuperTrend ↓', priceLineVisible: false });
+      sUp.setData(st.up); sDn.setData(st.dn);
+      STATE.series.push(sUp, sDn); STATE.indicatorSeries[ind.key] = [sUp, sDn];
+    } else if (ind.key === 'cci20') {
+      const data = cciSeries(baseData, 20);
+      try {
+        const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: 'cci-pane', pane: 6, title: 'CCI(20)', priceLineVisible: false });
+        s.setData(data);
+        s.createPriceLine({ price: 100, color: 'rgba(239,68,68,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '+100' });
+        s.createPriceLine({ price: -100, color: 'rgba(34,197,94,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '-100' });
+        STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+      } catch (e) { console.warn('CCI pane:', e); }
+    } else if (ind.key === 'willr') {
+      const data = williamsR(baseData, 14);
+      try {
+        const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: 'willr-pane', pane: 7, title: 'Williams %R', priceLineVisible: false });
+        s.setData(data);
+        s.createPriceLine({ price: -20, color: 'rgba(239,68,68,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '-20' });
+        s.createPriceLine({ price: -80, color: 'rgba(34,197,94,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '-80' });
+        STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+      } catch (e) { console.warn('Williams pane:', e); }
+    } else if (ind.key === 'roc12') {
+      const data = rocSeries(baseData, 12);
+      try {
+        const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: 'roc-pane', pane: 8, title: 'ROC(12)', priceLineVisible: false });
+        s.setData(data);
+        s.createPriceLine({ price: 0, color: 'rgba(136,136,136,0.4)', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 1, axisLabelVisible: false });
+        STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
+      } catch (e) { console.warn('ROC pane:', e); }
+    } else if (ind.key === 'aroon') {
+      const a = aroonSeries(baseData, 25);
+      try {
+        const u = STATE.chart.addLineSeries({ color: '#22c55e', lineWidth: 1.5, priceScaleId: 'aroon-pane', pane: 9, title: 'Aroon Up', priceLineVisible: false });
+        const d = STATE.chart.addLineSeries({ color: '#ef4444', lineWidth: 1.5, priceScaleId: 'aroon-pane', pane: 9, title: 'Aroon Dn', priceLineVisible: false });
+        u.setData(a.up); d.setData(a.dn);
+        STATE.series.push(u, d); STATE.indicatorSeries[ind.key] = [u, d];
+      } catch (e) { console.warn('Aroon pane:', e); }
+    } else if (ind.key === 'trix') {
+      const t = trixSeries(baseData, 15, 9);
+      try {
+        const ts = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, priceScaleId: 'trix-pane', pane: 10, title: 'TRIX', priceLineVisible: false });
+        const ss = STATE.chart.addLineSeries({ color: '#fb923c', lineWidth: 1, priceScaleId: 'trix-pane', pane: 10, title: 'Signal', priceLineVisible: false });
+        ts.setData(t.trix); ss.setData(t.signal);
+        ts.createPriceLine({ price: 0, color: 'rgba(136,136,136,0.4)', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 1, axisLabelVisible: false });
+        STATE.series.push(ts, ss); STATE.indicatorSeries[ind.key] = [ts, ss];
+      } catch (e) { console.warn('TRIX pane:', e); }
+    } else if (ind.key === 'zigzag') {
+      const data = zigZagSeries(baseData, 5);
+      const s = STATE.chart.addLineSeries({ color: ind.color, lineWidth: 1.5, lineStyle: LightweightCharts.LineStyle.Solid, priceScaleId: baseSeries.axis, title: 'ZigZag(5%)', priceLineVisible: false });
+      s.setData(data);
+      STATE.series.push(s); STATE.indicatorSeries[ind.key] = [s];
     }
   }
 }
@@ -2020,7 +2434,7 @@ function ctxResetZoom() {
   if (STATE.chart) STATE.chart.timeScale().fitContent();
 }
 
-// ───── Drawing tools — full SVG engine (v9) ─────
+// ───── Drawing tools — full SVG engine (v9 + v10) ─────
 function setupDrawingTools() {
   const buttons = document.querySelectorAll('.draw-btn[data-tool]');
   buttons.forEach(btn => {
@@ -2029,27 +2443,52 @@ function setupDrawingTools() {
       btn.classList.add('active');
       STATE.drawTool = btn.dataset.tool;
       const svg = document.getElementById('drawSvg');
-      const drawingTools = ['trendline', 'ray', 'channel', 'fib', 'fibext', 'rect', 'measure', 'vline', 'annotation'];
+      const drawingTools = ['trendline', 'ray', 'channel', 'fib', 'fibext', 'rect', 'measure', 'vline', 'cross', 'annotation', 'pitchfork', 'position', 'path', 'gann'];
       svg.classList.toggle('active', drawingTools.includes(STATE.drawTool));
+      // Show drawing properties panel for relevant tools
+      const useDP = drawingTools.includes(STATE.drawTool) && STATE.drawTool !== 'annotation';
+      document.getElementById('drawProps').classList.toggle('active', useDP);
     });
   });
   document.getElementById('clearDrawBtn').addEventListener('click', clearAllDrawings);
   document.getElementById('undoDrawBtn').addEventListener('click', undoDrawing);
+  // v10 magnet + stay-in-mode toggles
+  document.getElementById('magnetBtn').addEventListener('click', (e) => {
+    STATE.magnetOn = !STATE.magnetOn;
+    e.currentTarget.classList.toggle('toggled', STATE.magnetOn);
+    showToast(STATE.magnetOn ? 'Magnet ON — drawings snap to bars' : 'Magnet OFF');
+  });
+  document.getElementById('stayBtn').addEventListener('click', (e) => {
+    STATE.stayInTool = !STATE.stayInTool;
+    e.currentTarget.classList.toggle('toggled', STATE.stayInTool);
+    showToast(STATE.stayInTool ? 'Stay-in-tool ON' : 'Stay-in-tool OFF');
+  });
+  // v10 chart type switcher
+  document.querySelectorAll('.ct-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ct-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.chartType = btn.dataset.type;
+      redraw();
+    });
+  });
   setupDrawingCanvas();
 }
 
-STATE.drawings = [];           // list of all drawings {type, points, elem}
-STATE.currentDraw = null;       // in-progress drawing
+STATE.drawings = [];
+STATE.currentDraw = null;
+STATE.magnetOn = false;
+STATE.stayInTool = false;
+STATE.chartType = 'line';
 
 function setupDrawingCanvas() {
   const svg = document.getElementById('drawSvg');
   const container = document.getElementById('chartContainer');
 
-  // Get coords helper (chart pixel → time/price pair)
   function getCoords(e) {
     const rect = container.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
     let price = null, time = null;
     try {
       if (STATE.activeSeries.length && STATE.seriesById) {
@@ -2058,48 +2497,89 @@ function setupDrawingCanvas() {
       }
       if (STATE.chart) time = STATE.chart.timeScale().coordinateToTime(x);
     } catch (err) {}
+    // v10 magnet: snap to nearest bar
+    if (STATE.magnetOn && STATE.activeSeries.length) {
+      try {
+        const data = STATE.activeSeries[0].data || [];
+        if (data.length) {
+          // Find nearest bar by x coord
+          let bestIdx = 0, bestDist = Infinity;
+          for (let i = 0; i < data.length; i++) {
+            const bx = STATE.chart.timeScale().timeToCoordinate(data[i].time);
+            if (bx === null) continue;
+            const dist = Math.abs(bx - x);
+            if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+          }
+          const bx = STATE.chart.timeScale().timeToCoordinate(data[bestIdx].time);
+          const fs = STATE.seriesById[STATE.activeSeries[0].id];
+          const by = fs ? fs.priceToCoordinate(data[bestIdx].value) : y;
+          if (bx !== null && by !== null) {
+            x = bx; y = by;
+            price = data[bestIdx].value;
+            time = data[bestIdx].time;
+          }
+        }
+      } catch (err) {}
+    }
     return { x, y, price, time };
   }
 
   svg.addEventListener('click', (e) => {
     if (STATE.drawTool === 'cursor') return;
     const c = getCoords(e);
+    const single = ['hline', 'vline', 'cross', 'annotation'];
+    const twoPt = ['trendline', 'ray', 'fib', 'fibext', 'rect', 'measure', 'gann'];
+    const threePt = ['channel', 'pitchfork', 'position'];
+    const multiPt = ['path'];
+
     if (STATE.drawTool === 'hline') {
-      addHorizontalLine(c.price);
-      resetTool();
+      addHorizontalLine(c.price); finishOrStay();
     } else if (STATE.drawTool === 'vline') {
-      addVerticalLine(c.x, c.time);
-      resetTool();
+      addVerticalLine(c.x, c.time); finishOrStay();
+    } else if (STATE.drawTool === 'cross') {
+      addHorizontalLine(c.price); addVerticalLine(c.x, c.time); finishOrStay();
     } else if (STATE.drawTool === 'annotation') {
       const txt = prompt('Annotation text:');
       if (txt) addAnnotation(c.x, c.y, txt);
-      resetTool();
-    } else if (['trendline', 'ray', 'fib', 'fibext', 'rect', 'measure'].includes(STATE.drawTool)) {
-      // 2-point drawings
+      finishOrStay();
+    } else if (twoPt.includes(STATE.drawTool)) {
       if (!STATE.currentDraw) {
-        STATE.currentDraw = { type: STATE.drawTool, p1: c, elem: null };
+        STATE.currentDraw = { type: STATE.drawTool, p1: c };
       } else {
         STATE.currentDraw.p2 = c;
         finalizeDraw(STATE.currentDraw);
         STATE.currentDraw = null;
-        resetTool();
+        finishOrStay();
       }
-    } else if (STATE.drawTool === 'channel') {
-      // 3-point drawing (line + parallel offset)
+    } else if (threePt.includes(STATE.drawTool)) {
       if (!STATE.currentDraw) {
-        STATE.currentDraw = { type: 'channel', p1: c };
+        STATE.currentDraw = { type: STATE.drawTool, p1: c };
       } else if (!STATE.currentDraw.p2) {
         STATE.currentDraw.p2 = c;
       } else {
         STATE.currentDraw.p3 = c;
         finalizeDraw(STATE.currentDraw);
         STATE.currentDraw = null;
-        resetTool();
+        finishOrStay();
+      }
+    } else if (STATE.drawTool === 'path') {
+      if (!STATE.currentDraw) {
+        STATE.currentDraw = { type: 'path', points: [c] };
+      } else {
+        STATE.currentDraw.points.push(c);
       }
     }
   });
 
-  // Live preview while drawing
+  // Double-click ends path tool
+  svg.addEventListener('dblclick', () => {
+    if (STATE.drawTool === 'path' && STATE.currentDraw && STATE.currentDraw.points.length >= 2) {
+      finalizeDraw(STATE.currentDraw);
+      STATE.currentDraw = null;
+      finishOrStay();
+    }
+  });
+
   svg.addEventListener('mousemove', (e) => {
     if (!STATE.currentDraw) return;
     const c = getCoords(e);
@@ -2107,14 +2587,35 @@ function setupDrawingCanvas() {
   });
 }
 
+function finishOrStay() {
+  if (!STATE.stayInTool) resetTool();
+}
+
 function resetTool() {
   document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.draw-btn[data-tool="cursor"]').classList.add('active');
   STATE.drawTool = 'cursor';
   document.getElementById('drawSvg').classList.remove('active');
-  // Clear preview
+  document.getElementById('drawProps').classList.remove('active');
   const preview = document.getElementById('drawPreview');
   if (preview) preview.remove();
+  // Re-toggle persistent buttons
+  if (STATE.magnetOn) document.getElementById('magnetBtn').classList.add('toggled');
+  if (STATE.stayInTool) document.getElementById('stayBtn').classList.add('toggled');
+  renderDrawingsPanel();
+}
+
+function getDrawProps() {
+  return {
+    color: document.getElementById('dpColor')?.value || '#facc15',
+    width: parseInt(document.getElementById('dpWidth')?.value || '2'),
+    style: document.getElementById('dpStyle')?.value || 'solid',
+  };
+}
+function styleToDash(style) {
+  if (style === 'dashed') return '5 3';
+  if (style === 'dotted') return '2 2';
+  return '0';
 }
 
 function addHorizontalLine(price) {
@@ -2297,10 +2798,124 @@ function finalizeDraw(d) {
     poly.setAttribute('points', `${d.p1.x},${d.p1.y} ${d.p2.x},${d.p2.y} ${d.p2.x},${d.p2.y + offY} ${d.p1.x},${d.p1.y + offY}`);
     poly.setAttribute('fill', 'rgba(16,185,129,0.08)');
     g.appendChild(poly);
+  } else if (d.type === 'pitchfork') {
+    // Andrews' Pitchfork: median line from p1 through midpoint of p2-p3, plus parallel lines through p2 and p3
+    const props = getDrawProps();
+    const mx = (d.p2.x + d.p3.x) / 2;
+    const my = (d.p2.y + d.p3.y) / 2;
+    // Direction vector from p1 → midpoint, extended out
+    const ext = 5000;
+    const len = Math.sqrt((mx - d.p1.x) ** 2 + (my - d.p1.y) ** 2);
+    if (len === 0) return;
+    const ux = (mx - d.p1.x) / len, uy = (my - d.p1.y) / len;
+    const farX = mx + ux * ext, farY = my + uy * ext;
+    // Median line
+    const median = document.createElementNS(ns, 'line');
+    median.setAttribute('x1', d.p1.x); median.setAttribute('y1', d.p1.y);
+    median.setAttribute('x2', farX); median.setAttribute('y2', farY);
+    median.setAttribute('stroke', props.color); median.setAttribute('stroke-width', props.width); median.setAttribute('stroke-dasharray', styleToDash(props.style));
+    g.appendChild(median);
+    // Parallel through p2
+    const p2X = d.p2.x + ux * ext, p2Y = d.p2.y + uy * ext;
+    const par2 = document.createElementNS(ns, 'line');
+    par2.setAttribute('x1', d.p2.x); par2.setAttribute('y1', d.p2.y);
+    par2.setAttribute('x2', p2X); par2.setAttribute('y2', p2Y);
+    par2.setAttribute('stroke', props.color); par2.setAttribute('stroke-width', 1); par2.setAttribute('opacity', 0.7);
+    g.appendChild(par2);
+    // Parallel through p3
+    const p3X = d.p3.x + ux * ext, p3Y = d.p3.y + uy * ext;
+    const par3 = document.createElementNS(ns, 'line');
+    par3.setAttribute('x1', d.p3.x); par3.setAttribute('y1', d.p3.y);
+    par3.setAttribute('x2', p3X); par3.setAttribute('y2', p3Y);
+    par3.setAttribute('stroke', props.color); par3.setAttribute('stroke-width', 1); par3.setAttribute('opacity', 0.7);
+    g.appendChild(par3);
+    // Connecting line p2-p3
+    const conn = document.createElementNS(ns, 'line');
+    conn.setAttribute('x1', d.p2.x); conn.setAttribute('y1', d.p2.y);
+    conn.setAttribute('x2', d.p3.x); conn.setAttribute('y2', d.p3.y);
+    conn.setAttribute('stroke', props.color); conn.setAttribute('stroke-width', 1); conn.setAttribute('opacity', 0.4);
+    g.appendChild(conn);
+    // Fill between channels
+    const fill = document.createElementNS(ns, 'polygon');
+    fill.setAttribute('points', `${d.p2.x},${d.p2.y} ${p2X},${p2Y} ${p3X},${p3Y} ${d.p3.x},${d.p3.y}`);
+    fill.setAttribute('fill', props.color); fill.setAttribute('fill-opacity', 0.05);
+    g.appendChild(fill);
+  } else if (d.type === 'position') {
+    // Long/Short Position with R:R visualization
+    // p1 = entry, p2 = stop (price), p3 = target (price)
+    const isLong = d.p3.price > d.p1.price;
+    const minX = Math.min(d.p1.x, d.p2.x, d.p3.x);
+    const maxX = Math.max(d.p1.x, d.p2.x, d.p3.x);
+    const w = maxX - minX;
+    const greenColor = isLong ? '#10b981' : '#ef4444';
+    const redColor = isLong ? '#ef4444' : '#10b981';
+    // Reward zone (entry → target)
+    const rewardRect = document.createElementNS(ns, 'rect');
+    rewardRect.setAttribute('x', minX); rewardRect.setAttribute('width', w);
+    rewardRect.setAttribute('y', Math.min(d.p1.y, d.p3.y));
+    rewardRect.setAttribute('height', Math.abs(d.p3.y - d.p1.y));
+    rewardRect.setAttribute('fill', greenColor); rewardRect.setAttribute('fill-opacity', 0.15);
+    rewardRect.setAttribute('stroke', greenColor); rewardRect.setAttribute('stroke-width', 1);
+    g.appendChild(rewardRect);
+    // Risk zone (entry → stop)
+    const riskRect = document.createElementNS(ns, 'rect');
+    riskRect.setAttribute('x', minX); riskRect.setAttribute('width', w);
+    riskRect.setAttribute('y', Math.min(d.p1.y, d.p2.y));
+    riskRect.setAttribute('height', Math.abs(d.p2.y - d.p1.y));
+    riskRect.setAttribute('fill', redColor); riskRect.setAttribute('fill-opacity', 0.15);
+    riskRect.setAttribute('stroke', redColor); riskRect.setAttribute('stroke-width', 1);
+    g.appendChild(riskRect);
+    // Entry line
+    const entry = document.createElementNS(ns, 'line');
+    entry.setAttribute('x1', minX); entry.setAttribute('y1', d.p1.y);
+    entry.setAttribute('x2', maxX); entry.setAttribute('y2', d.p1.y);
+    entry.setAttribute('stroke', '#facc15'); entry.setAttribute('stroke-width', 2);
+    g.appendChild(entry);
+    // Compute R:R and labels
+    const risk = Math.abs(d.p1.price - d.p2.price);
+    const reward = Math.abs(d.p3.price - d.p1.price);
+    const rr = risk === 0 ? 0 : reward / risk;
+    // Label box
+    const lbl = document.createElementNS(ns, 'text');
+    lbl.textContent = `${isLong ? 'LONG' : 'SHORT'} · Entry ${d.p1.price.toFixed(2)} · Stop ${d.p2.price.toFixed(2)} · Target ${d.p3.price.toFixed(2)} · R:R ${rr.toFixed(2)}`;
+    lbl.setAttribute('x', minX + 6); lbl.setAttribute('y', Math.min(d.p1.y, d.p2.y, d.p3.y) - 6);
+    lbl.setAttribute('fill', '#facc15'); lbl.setAttribute('font-size', 11); lbl.setAttribute('font-weight', 'bold');
+    g.appendChild(lbl);
+  } else if (d.type === 'gann') {
+    // Gann Fan: 9 lines from p1 at 1x1, 1x2, 1x3, 1x4, 1x8, 2x1, 3x1, 4x1, 8x1 angles
+    const props = getDrawProps();
+    const dx = d.p2.x - d.p1.x;
+    const dy = d.p2.y - d.p1.y;
+    const baseAngle = Math.atan2(dy, dx);
+    // Standard Gann angles (in degrees from baseline): 7.5, 15, 26.25, 45, 63.75, 75, 82.5
+    const angles = [-37.5, -22.5, -11.25, 0, 11.25, 22.5, 37.5];  // relative to user-drawn baseline
+    const ext = 5000;
+    angles.forEach((deg, i) => {
+      const rad = baseAngle + (deg * Math.PI / 180);
+      const x2 = d.p1.x + Math.cos(rad) * ext;
+      const y2 = d.p1.y + Math.sin(rad) * ext;
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', d.p1.x); line.setAttribute('y1', d.p1.y);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      line.setAttribute('stroke', props.color); line.setAttribute('stroke-width', deg === 0 ? 2 : 1);
+      line.setAttribute('opacity', deg === 0 ? 1 : 0.6);
+      g.appendChild(line);
+    });
+  } else if (d.type === 'path') {
+    // Multi-segment path
+    const props = getDrawProps();
+    if (d.points.length < 2) return;
+    const pts = d.points.map(p => `${p.x},${p.y}`).join(' ');
+    const line = document.createElementNS(ns, 'polyline');
+    line.setAttribute('points', pts);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', props.color); line.setAttribute('stroke-width', props.width); line.setAttribute('stroke-dasharray', styleToDash(props.style));
+    g.appendChild(line);
   }
 
   svg.appendChild(g);
   STATE.drawings.push({ type: d.type, elem: g });
+  renderDrawingsPanel();
 }
 
 function undoDrawing() {
@@ -2312,6 +2927,316 @@ function undoDrawing() {
     last.elem.remove();
   }
   showToast('Undone');
+  renderDrawingsPanel();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 CHART TYPE RENDERER ═════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+function synthesizeOHLCFromClose(data) {
+  // Manufacture OHLC from close-only series using rolling windows
+  // O = previous close, H/L = max/min of [prev, curr], C = current close
+  const ohlc = [];
+  for (let i = 1; i < data.length; i++) {
+    const o = data[i - 1].value;
+    const c = data[i].value;
+    const h = Math.max(o, c);
+    const l = Math.min(o, c);
+    ohlc.push({ time: data[i].time, open: o, high: h, low: l, close: c });
+  }
+  return ohlc;
+}
+
+function heikinAshiFromOHLC(ohlc) {
+  if (!ohlc.length) return [];
+  const ha = [];
+  let prevHA = { open: ohlc[0].open, close: ohlc[0].close };
+  for (let i = 0; i < ohlc.length; i++) {
+    const c = (ohlc[i].open + ohlc[i].high + ohlc[i].low + ohlc[i].close) / 4;
+    const o = i === 0 ? (ohlc[i].open + ohlc[i].close) / 2 : (prevHA.open + prevHA.close) / 2;
+    const h = Math.max(ohlc[i].high, o, c);
+    const l = Math.min(ohlc[i].low, o, c);
+    ha.push({ time: ohlc[i].time, open: o, high: h, low: l, close: c });
+    prevHA = { open: o, close: c };
+  }
+  return ha;
+}
+
+function buildSeriesByType(s, normData) {
+  // Returns the lightweight-charts series config based on STATE.chartType
+  const type = STATE.chartType || 'line';
+  if (type === 'area') {
+    const ser = STATE.chart.addAreaSeries({
+      lineColor: s.color, topColor: s.color + '40', bottomColor: s.color + '00',
+      lineWidth: 2, priceScaleId: s.axis, title: s.label,
+      priceLineVisible: false, lastValueVisible: true,
+    });
+    ser.setData(normData);
+    return ser;
+  }
+  if (type === 'baseline') {
+    const baseValue = normData[0]?.value || 0;
+    const ser = STATE.chart.addBaselineSeries({
+      baseValue: { type: 'price', price: baseValue },
+      topLineColor: '#22c55e', topFillColor1: 'rgba(34,197,94,0.28)', topFillColor2: 'rgba(34,197,94,0.00)',
+      bottomLineColor: '#ef4444', bottomFillColor1: 'rgba(239,68,68,0.00)', bottomFillColor2: 'rgba(239,68,68,0.28)',
+      lineWidth: 2, priceScaleId: s.axis, title: s.label,
+      priceLineVisible: false, lastValueVisible: true,
+    });
+    ser.setData(normData);
+    return ser;
+  }
+  if (type === 'candle' || type === 'heikin') {
+    const ohlc = synthesizeOHLCFromClose(normData);
+    const data = type === 'heikin' ? heikinAshiFromOHLC(ohlc) : ohlc;
+    const ser = STATE.chart.addCandlestickSeries({
+      upColor: '#22c55e', downColor: '#ef4444',
+      borderUpColor: '#22c55e', borderDownColor: '#ef4444',
+      wickUpColor: '#22c55e', wickDownColor: '#ef4444',
+      priceScaleId: s.axis, title: s.label,
+      priceLineVisible: false, lastValueVisible: true,
+    });
+    ser.setData(data);
+    return ser;
+  }
+  // Default: line
+  const ser = STATE.chart.addLineSeries({
+    color: s.color, lineWidth: 2,
+    priceScaleId: s.axis, title: s.label,
+    lineType: LightweightCharts.LineType.Simple,
+    priceLineVisible: false, lastValueVisible: true,
+    crosshairMarkerVisible: true, crosshairMarkerRadius: 4,
+    crosshairMarkerBorderColor: s.color, crosshairMarkerBackgroundColor: '#0a0a0a',
+  });
+  ser.setData(normData);
+  return ser;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 DRAWINGS SIDEBAR PANEL ══════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+function renderDrawingsPanel() {
+  const host = document.getElementById('drawingsList');
+  if (!host) return;
+  if (!STATE.drawings.length) {
+    host.innerHTML = '<div style="padding:10px 14px;color:var(--text-muted);font-size:11px">No drawings yet. Pick a tool to start.</div>';
+    document.getElementById('drawingsCount').textContent = '0';
+    return;
+  }
+  const icons = { trendline: '╱', ray: '↗', channel: '▤', hline: '━', vline: '│', cross: '✚',
+                  fib: '𝐹', fibext: '𝐹⁺', rect: '▭', measure: '📏', annotation: '📝',
+                  pitchfork: '⋔', position: '◧', path: '⌇', gann: '⩘' };
+  const labels = { trendline: 'Trend line', ray: 'Ray', channel: 'Channel', hline: 'Horizontal',
+                   vline: 'Vertical', cross: 'Cross', fib: 'Fib Retrace', fibext: 'Fib Ext',
+                   rect: 'Rectangle', measure: 'Measure', annotation: 'Annotation',
+                   pitchfork: 'Pitchfork', position: 'Position', path: 'Path', gann: 'Gann Fan' };
+  host.innerHTML = STATE.drawings.map((d, i) =>
+    `<div class="drawings-row">
+      <span class="dr-icon">${icons[d.type] || '•'}</span>
+      <span class="dr-label">${labels[d.type] || d.type}</span>
+      <span class="dr-x" onclick="deleteDrawing(${i})" title="Delete">✕</span>
+    </div>`).join('');
+  document.getElementById('drawingsCount').textContent = STATE.drawings.length;
+}
+function deleteDrawing(i) {
+  const d = STATE.drawings[i];
+  if (!d) return;
+  if (d.priceLine && d.series) { try { d.series.removePriceLine(d.priceLine); } catch (e) {} }
+  else if (d.elem) d.elem.remove();
+  STATE.drawings.splice(i, 1);
+  renderDrawingsPanel();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 CHART LAYOUTS MANAGER ═══════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+function listLayouts() {
+  try {
+    return JSON.parse(localStorage.getItem('chartpro_layouts') || '{}');
+  } catch (e) { return {}; }
+}
+function saveLayout() {
+  const name = prompt('Save layout as:');
+  if (!name) return;
+  const layout = {
+    name, savedAt: new Date().toISOString(),
+    series: STATE.activeSeries.map(s => ({ id: s.id, label: s.label, source: s.source, color: s.color, axis: s.axis, hidden: s.hidden })),
+    indicators: [...STATE.activeIndicators],
+    range: STATE.range, norm: STATE.norm, chartType: STATE.chartType,
+    logScale: STATE.logScale,
+  };
+  const all = listLayouts();
+  all[name] = layout;
+  localStorage.setItem('chartpro_layouts', JSON.stringify(all));
+  showToast(`Layout saved: ${name}`);
+  renderLayoutsPanel();
+}
+async function loadLayout(name) {
+  const all = listLayouts();
+  const lo = all[name];
+  if (!lo) return;
+  STATE.range = lo.range || '5y';
+  STATE.norm = lo.norm || 'raw';
+  STATE.chartType = lo.chartType || 'line';
+  STATE.logScale = lo.logScale || false;
+  STATE.activeSeries = [];
+  for (const s of (lo.series || [])) {
+    STATE.activeSeries.push({ ...s, data: null });
+  }
+  await Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source)));
+  STATE.activeIndicators = new Set(lo.indicators || []);
+  renderActiveList(); renderIndicatorPanel();
+  // Update chart-type buttons
+  document.querySelectorAll('.ct-btn').forEach(b => b.classList.toggle('active', b.dataset.type === STATE.chartType));
+  redraw();
+  showToast(`Loaded: ${name}`);
+}
+function deleteLayout(name) {
+  if (!confirm(`Delete layout "${name}"?`)) return;
+  const all = listLayouts();
+  delete all[name];
+  localStorage.setItem('chartpro_layouts', JSON.stringify(all));
+  renderLayoutsPanel();
+}
+function renderLayoutsPanel() {
+  const host = document.getElementById('layoutsList');
+  if (!host) return;
+  const all = listLayouts();
+  const names = Object.keys(all);
+  if (!names.length) {
+    host.innerHTML = '<div style="padding:10px 14px;color:var(--text-muted);font-size:11px">No layouts saved. Click Save Layout to capture current chart.</div>';
+    return;
+  }
+  host.innerHTML = names.map(n => {
+    const lo = all[n];
+    const date = (lo.savedAt || '').slice(0, 10);
+    return `<div class="layouts-row">
+      <span class="lr-name" onclick="loadLayout('${n.replace(/'/g, "\\'")}')">${escapeHtml(n)}</span>
+      <span class="lr-meta">${date} · ${lo.series?.length || 0}s · ${lo.indicators?.length || 0}i</span>
+      <span class="dr-x" onclick="deleteLayout('${n.replace(/'/g, "\\'")}')">✕</span>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 EVENT MARKERS (FOMC / NBER / Elections) ════════════════
+// ════════════════════════════════════════════════════════════════════
+const EVENT_MARKERS = [
+  // Major FOMC events (rate decisions)
+  { date: '2008-09-15', label: 'Lehman', cat: 'crisis' },
+  { date: '2008-12-16', label: 'ZIRP', cat: 'fed' },
+  { date: '2015-12-16', label: 'First hike', cat: 'fed' },
+  { date: '2020-03-15', label: 'COVID emergency cut', cat: 'fed' },
+  { date: '2022-03-16', label: 'Hike start', cat: 'fed' },
+  { date: '2024-09-18', label: 'First cut', cat: 'fed' },
+  // Elections
+  { date: '2008-11-04', label: 'Obama', cat: 'election' },
+  { date: '2016-11-08', label: 'Trump', cat: 'election' },
+  { date: '2020-11-03', label: 'Biden', cat: 'election' },
+  { date: '2024-11-05', label: 'Trump 2', cat: 'election' },
+];
+STATE.eventMarkersOn = false;
+function toggleEventMarkers() {
+  STATE.eventMarkersOn = !STATE.eventMarkersOn;
+  const btn = document.getElementById('eventMarkersBtn');
+  if (btn) btn.classList.toggle('toggled', STATE.eventMarkersOn);
+  redraw();
+}
+function applyEventMarkers() {
+  if (!STATE.eventMarkersOn || !STATE.activeSeries.length) return;
+  const fs = STATE.seriesById?.[STATE.activeSeries[0].id];
+  if (!fs) return;
+  const markers = EVENT_MARKERS.map(e => ({
+    time: e.date,
+    position: 'aboveBar',
+    color: e.cat === 'crisis' ? '#ef4444' : e.cat === 'fed' ? '#facc15' : '#a78bfa',
+    shape: 'arrowDown',
+    text: e.label,
+    size: 1,
+  }));
+  try { fs.setMarkers(markers); } catch (e) { console.warn('markers:', e); }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 VOLUME PROFILE (visible-range histogram) ═══════════════
+// ════════════════════════════════════════════════════════════════════
+STATE.volumeProfileOn = false;
+function toggleVolumeProfile() {
+  STATE.volumeProfileOn = !STATE.volumeProfileOn;
+  const btn = document.getElementById('vpBtn');
+  if (btn) btn.classList.toggle('toggled', STATE.volumeProfileOn);
+  renderVolumeProfile();
+}
+function renderVolumeProfile() {
+  // Render a price-distribution histogram of the visible range as an overlay SVG
+  const svg = document.getElementById('drawSvg');
+  const existing = document.getElementById('volumeProfile');
+  if (existing) existing.remove();
+  if (!STATE.volumeProfileOn || !STATE.activeSeries.length) return;
+  const data = STATE.activeSeries[0].data || [];
+  if (!data.length) return;
+  const fs = STATE.seriesById?.[STATE.activeSeries[0].id];
+  if (!fs) return;
+  // Visible range
+  let visibleData = data;
+  try {
+    const range = STATE.chart.timeScale().getVisibleRange();
+    if (range) {
+      visibleData = data.filter(d => d.time >= range.from && d.time <= range.to);
+    }
+  } catch (e) {}
+  if (!visibleData.length) return;
+  // Build histogram by price bucket
+  const prices = visibleData.map(d => d.value);
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const buckets = 30;
+  const width = (max - min) / buckets;
+  if (width === 0) return;
+  const hist = new Array(buckets).fill(0);
+  for (const v of prices) {
+    const idx = Math.min(Math.floor((v - min) / width), buckets - 1);
+    hist[idx]++;
+  }
+  const maxCount = Math.max(...hist);
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(ns, 'g');
+  g.id = 'volumeProfile';
+  const container = document.getElementById('chartContainer');
+  const W = container.clientWidth;
+  const VP_WIDTH = 80;  // pixel width of profile on right side
+  for (let i = 0; i < buckets; i++) {
+    const bucketLow = min + i * width;
+    const bucketHi = min + (i + 1) * width;
+    const yLow = fs.priceToCoordinate(bucketHi);
+    const yHi = fs.priceToCoordinate(bucketLow);
+    if (yLow === null || yHi === null) continue;
+    const barW = (hist[i] / maxCount) * VP_WIDTH;
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', W - barW - 60);
+    rect.setAttribute('y', yLow);
+    rect.setAttribute('width', barW);
+    rect.setAttribute('height', Math.abs(yHi - yLow));
+    rect.setAttribute('fill', 'rgba(250,204,21,0.25)');
+    rect.setAttribute('stroke', 'rgba(250,204,21,0.4)');
+    rect.setAttribute('stroke-width', 0.5);
+    g.appendChild(rect);
+  }
+  svg.appendChild(g);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ═════ v10 COMPARE MODE (anchor & auto-normalize-100) ═════════════
+// ════════════════════════════════════════════════════════════════════
+function toggleCompareMode() {
+  STATE.compareMode = !STATE.compareMode;
+  const btn = document.getElementById('compareBtn');
+  if (btn) btn.classList.toggle('toggled', STATE.compareMode);
+  if (STATE.compareMode) {
+    document.getElementById('normSelect').value = 'indexed';
+    STATE.norm = 'indexed';
+  }
+  redraw();
+  showToast(STATE.compareMode ? 'Compare mode ON — all series normalized to 100' : 'Compare mode OFF');
 }
 
 // ───── Right-click context menu ─────
@@ -2373,9 +3298,14 @@ function setupKeyboardShortcuts() {
     if (e.key === 'v' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="vline"]').click(); return; }
     if (e.key === 'c' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="channel"]').click(); return; }
     if (e.key === 'm' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="measure"]').click(); return; }
-    if (e.key === 'x' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="rect"]').click(); return; }
+    if (e.key === 'x' && !cmd && !e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="rect"]').click(); return; }
+    if (e.key === 'X' && e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="cross"]').click(); return; }
+    if (e.key === 'y' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="ray"]').click(); return; }
+    if (e.key === 'p' && !cmd && !e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="pitchfork"]').click(); return; }
+    if (e.key === 'P' && e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="path"]').click(); return; }
+    if (e.key === 'L' && e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="position"]').click(); return; }
+    if (e.key === 'g' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="gann"]').click(); return; }
     if (e.key === 'F' && e.shiftKey) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="fibext"]').click(); return; }
-    if (e.key === 'f' && !cmd && !e.shiftKey) { /* don't capture - existing fullscreen */ }
     if (e.key === 'd' && !cmd) { e.preventDefault(); document.querySelector('.draw-btn[data-tool="fib"]').click(); return; }
     if (cmd && e.key === 'z') { e.preventDefault(); undoDrawing(); return; }
     if (e.key === 'k' && cmd) { e.preventDefault(); openCommandPalette(); return; }
@@ -2637,15 +3567,8 @@ window.redraw = function() {
     });
     const normData = normalize(dedup, STATE.norm);
     if (!normData.length) return;
-    const lineSeries = STATE.chart.addLineSeries({
-      color: s.color, lineWidth: 2,
-      priceScaleId: s.axis, title: s.label,
-      lineType: LightweightCharts.LineType.Simple,
-      priceLineVisible: false, lastValueVisible: true,
-      crosshairMarkerVisible: true, crosshairMarkerRadius: 4,
-      crosshairMarkerBorderColor: s.color, crosshairMarkerBackgroundColor: '#0a0a0a',
-    });
-    lineSeries.setData(normData);
+    // v10: chart type chosen via buildSeriesByType
+    const lineSeries = buildSeriesByType(s, normData);
     STATE.series.push(lineSeries);
     STATE.seriesById[s.id] = lineSeries;
     if (!firstVisibleData) { firstVisibleData = dedup; firstVisibleSeries = s; }
@@ -2655,6 +3578,10 @@ window.redraw = function() {
   if (firstVisibleSeries && firstVisibleData && STATE.activeIndicators.size > 0) {
     applyIndicators(firstVisibleSeries, firstVisibleData);
   }
+
+  // v10: event markers + volume profile
+  applyEventMarkers();
+  setTimeout(renderVolumeProfile, 100);
 
   setTimeout(() => { try { STATE.chart.timeScale().fitContent(); } catch (e) {} }, 50);
 
@@ -3033,6 +3960,8 @@ async function init() {
   setupCustomDate();
   await loadRecessionData();
   loadRegime();  // v9.3
+  renderLayoutsPanel();   // v10
+  renderDrawingsPanel();  // v10
   // Try to restore from URL hash, otherwise load default preset
   if (!restoreFromUrl()) loadPreset(0);
 }
