@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Flow Scanner · JustHodl.AI</title>
+<meta name="description" content="Options-flow scanner — call/put ratio surges, volume spikes, FINRA short-interest changes. 144 tickers evaluated, 53 Tier-A.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root{--bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;--border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;--accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1500px;margin:0 auto;padding:18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+  .stat-value.green{color:var(--green);} .stat-value.red{color:var(--red);} .stat-value.amber{color:var(--amber);}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .section-header h3{font-size:13px;font-weight:600;}
+  .section-header .sub{color:var(--text-dim);font-size:11px;}
+
+  .filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--bg-card-elev);}
+  .filter-btn{background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border-light);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;}
+  .filter-btn.on{background:var(--accent);color:#000;border-color:var(--accent);}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead{background:var(--bg-card-elev);}
+  th{padding:9px 12px;text-align:left;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border-bottom:1px solid var(--border);cursor:pointer;}
+  th:hover{color:var(--accent);}
+  th.right{text-align:right;}
+  td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);white-space:nowrap;}
+  td.right{text-align:right;font-variant-numeric:tabular-nums;}
+  tr.tk-row{cursor:pointer;}
+  tr.tk-row:hover{background:var(--bg-hover);}
+  tr.detail-row td{padding:14px 18px;background:var(--bg-card-elev);white-space:normal;}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
+  .pill.tier-a,.pill.TIER_A_BULLISH_FLOW{background:rgba(34,197,94,0.18);color:var(--green);}
+  .pill.tier-b,.pill.TIER_B{background:rgba(245,158,11,0.18);color:var(--amber);}
+  .pill.flag{background:var(--bg-card-elev);color:var(--text-dim);font-size:9px;margin-right:3px;}
+
+  .score-bar{display:inline-block;width:60px;height:8px;background:var(--bg-card-elev);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:6px;}
+  .score-fill{height:100%;background:var(--green);}
+  .score-fill.med{background:var(--amber);}
+  .score-fill.low{background:var(--text-muted);}
+
+  .ticker-cell{font-weight:700;color:var(--accent);}
+  .pct-up{color:var(--green);} .pct-dn{color:var(--red);} .pct-flat{color:var(--text-dim);}
+
+  .detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .detail-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:4px;padding:10px 12px;}
+  .detail-card .lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+  .detail-card .val{font-size:14px;font-weight:700;}
+
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr);}.detail-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📞 Options Flow Scanner <span class="sub">— call/put ratio surges + FINRA short-interest changes</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/flow.html">Flow</a>
+      <a href="/vol.html">Vol</a>
+      <a href="/why.html">Why</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading data/options-flow.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/options-flow.json";
+let DATA=null;
+let activeFilter="tier_a";
+let sortKey="score";
+let sortDir=-1;
+let expanded=null;
+
+async function load(){
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;DATA=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/options-flow.json</div>`;return;}
+  render();
+}
+
+function fmtPct(v,dp=1){if(v==null||isNaN(v))return "—";return (v>=0?"+":"")+Number(v).toFixed(dp)+"%";}
+function fmtNum(v){if(v==null||isNaN(v))return "—";return Number(v).toLocaleString(undefined,{maximumFractionDigits:2});}
+
+function getList(){
+  const all=DATA.all_qualifying||[];
+  let list=all;
+  if(activeFilter==="tier_a")list=all.filter(t=>t.tier==="TIER_A_BULLISH_FLOW");
+  else if(activeFilter==="tier_b")list=all.filter(t=>t.tier&&t.tier.startsWith("TIER_B"));
+  else if(activeFilter==="cpr_surging")list=all.filter(t=>(t.flags||[]).includes("CPR_SURGING"));
+  else if(activeFilter==="vol_surge")list=all.filter(t=>(t.flags||[]).some(f=>f.includes("VOL_SURGE")));
+  else if(activeFilter==="short_drop")list=all.filter(t=>(t.metrics?.short_metrics?.short_pct_change||0)<-2);
+  // sort
+  list=[...list].sort((a,b)=>{
+    const av=getSortVal(a,sortKey), bv=getSortVal(b,sortKey);
+    if(av==null)return 1;if(bv==null)return -1;
+    return (av>bv?1:av<bv?-1:0)*sortDir;
+  });
+  return list;
+}
+
+function getSortVal(t,k){
+  if(k==="score"||k==="symbol"||k==="tier")return t[k];
+  const m=t.metrics||{};
+  if(k==="spot")return m.spot;
+  if(k==="cpr_change_pct")return m.cpr_change_pct;
+  if(k==="call_vol_surge")return m.call_vol_surge;
+  if(k==="short_pct_change")return m.short_metrics?.short_pct_change;
+  return null;
+}
+
+function render(){
+  const s=DATA.stats||{};
+  const list=getList();
+  document.getElementById("content").innerHTML=`
+    <div class="stats">
+      <div class="stat-card"><div class="stat-label">Universe</div><div class="stat-value">${s.n_universe||0}</div><div class="stat-sub">tickers scanned</div></div>
+      <div class="stat-card"><div class="stat-label">Evaluated</div><div class="stat-value">${s.n_evaluated||0}</div><div class="stat-sub">had data</div></div>
+      <div class="stat-card"><div class="stat-label">Tier A bullish</div><div class="stat-value green">${s.n_tier_a||0}</div><div class="stat-sub">CPR surge + flow</div></div>
+      <div class="stat-card"><div class="stat-label">Tier B</div><div class="stat-value amber">${s.n_tier_b||0}</div><div class="stat-sub">moderate signal</div></div>
+      <div class="stat-card"><div class="stat-label">FINRA tickers</div><div class="stat-value">${(s.n_finra_tickers||0).toLocaleString()}</div><div class="stat-sub">short data joined</div></div>
+      <div class="stat-card"><div class="stat-label">Runtime</div><div class="stat-value">${DATA.duration_s||0}s</div><div class="stat-sub">last scan</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>🎯 Qualifying tickers</h3>
+        <span class="sub">${list.length} matching · ${activeFilter.replace("_"," ")} · sorted ${sortDir<0?"↓":"↑"} ${sortKey}</span>
+      </div>
+      <div class="filters">
+        <button class="filter-btn ${activeFilter==='tier_a'?'on':''}" onclick="setF('tier_a')">Tier A (${(DATA.summary?.tier_a||[]).length})</button>
+        <button class="filter-btn ${activeFilter==='tier_b'?'on':''}" onclick="setF('tier_b')">Tier B</button>
+        <button class="filter-btn ${activeFilter==='all'?'on':''}" onclick="setF('all')">All ${(DATA.all_qualifying||[]).length}</button>
+        <button class="filter-btn ${activeFilter==='cpr_surging'?'on':''}" onclick="setF('cpr_surging')">CPR surging</button>
+        <button class="filter-btn ${activeFilter==='vol_surge'?'on':''}" onclick="setF('vol_surge')">Vol surge</button>
+        <button class="filter-btn ${activeFilter==='short_drop'?'on':''}" onclick="setF('short_drop')">Short dropping</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th onclick="sort('symbol')">Ticker</th>
+          <th onclick="sort('score')">Score</th>
+          <th>Tier</th>
+          <th>Flags</th>
+          <th class="right" onclick="sort('spot')">Spot</th>
+          <th class="right" onclick="sort('cpr_change_pct')">C/P ratio Δ</th>
+          <th class="right" onclick="sort('call_vol_surge')">Call vol surge</th>
+          <th class="right" onclick="sort('short_pct_change')">Short Δ</th>
+        </tr></thead>
+        <tbody>${list.slice(0,80).map(rowOf).join("")}</tbody>
+      </table>
+      <div class="status-bar">
+        <span><strong>Generated:</strong> ${DATA.generated_at?new Date(DATA.generated_at).toLocaleString():"—"}</span>
+        <span><strong>Method:</strong> ${DATA.method||"—"}</span>
+        <span><strong>Showing:</strong> top 80 of ${list.length}</span>
+        <span style="flex:1"></span>
+        <span style="color:var(--text-muted)">data/options-flow.json</span>
+      </div>
+    </div>`;
+}
+
+function rowOf(t){
+  const m=t.metrics||{};
+  const sm=m.short_metrics||{};
+  const tierCls=t.tier==="TIER_A_BULLISH_FLOW"?"tier-a":t.tier&&t.tier.startsWith("TIER_B")?"tier-b":"";
+  const score=t.score||0;
+  const scoreCls=score>=80?"":score>=50?"med":"low";
+  const flags=(t.flags||[]).slice(0,3).map(f=>`<span class="pill flag">${f.replace(/_/g," ")}</span>`).join("");
+  const cprΔ=m.cpr_change_pct, vΔ=m.call_vol_surge, sΔ=sm.short_pct_change;
+  const expandedRow=expanded===t.symbol?renderDetail(t):"";
+  return `<tr class="tk-row" onclick="toggleExp('${t.symbol}')">
+    <td><span class="ticker-cell">${t.symbol}</span></td>
+    <td><span class="score-bar"><span class="score-fill ${scoreCls}" style="width:${score}%"></span></span><strong>${score.toFixed(0)}</strong></td>
+    <td><span class="pill ${tierCls}">${(t.tier||"").replace(/_/g," ")}</span></td>
+    <td>${flags||"—"}</td>
+    <td class="right">${m.spot?"$"+m.spot.toFixed(2):"—"}</td>
+    <td class="right ${cprΔ>0?'pct-up':cprΔ<0?'pct-dn':'pct-flat'}">${fmtPct(cprΔ)}</td>
+    <td class="right ${vΔ>0?'pct-up':vΔ<0?'pct-dn':'pct-flat'}">${fmtPct(vΔ)}</td>
+    <td class="right ${sΔ<0?'pct-up':sΔ>0?'pct-dn':'pct-flat'}">${fmtPct(sΔ)}</td>
+  </tr>${expandedRow}`;
+}
+
+function renderDetail(t){
+  const m=t.metrics||{};
+  const sm=m.short_metrics||{};
+  return `<tr class="detail-row"><td colspan="8">
+    <div class="detail-grid">
+      <div class="detail-card"><div class="lbl">Call contracts (5d)</div><div class="val">${m.n_call_contracts||"—"}</div></div>
+      <div class="detail-card"><div class="lbl">Put contracts (5d)</div><div class="val">${m.n_put_contracts||"—"}</div></div>
+      <div class="detail-card"><div class="lbl">Total call vol 5d</div><div class="val">${fmtNum(m.total_call_vol_5d)}</div></div>
+      <div class="detail-card"><div class="lbl">Total put vol 5d</div><div class="val">${fmtNum(m.total_put_vol_5d)}</div></div>
+      <div class="detail-card"><div class="lbl">CPR recent (5d avg)</div><div class="val">${fmtNum(m.avg_cpr_recent_5d)}</div></div>
+      <div class="detail-card"><div class="lbl">CPR older avg</div><div class="val">${fmtNum(m.avg_cpr_older)}</div></div>
+      <div class="detail-card"><div class="lbl">Recent short %</div><div class="val">${sm.recent_avg_short_pct?sm.recent_avg_short_pct.toFixed(1)+"%":"—"}</div></div>
+      <div class="detail-card"><div class="lbl">Older short %</div><div class="val">${sm.older_avg_short_pct?sm.older_avg_short_pct.toFixed(1)+"%":"—"}</div></div>
+    </div>
+    <div style="margin-top:12px;color:var(--text-dim);font-size:11px">All flags: ${(t.flags||[]).map(f=>`<span class="pill flag">${f.replace(/_/g," ")}</span>`).join(" ")}</div>
+    <div style="margin-top:8px"><a href="/why.html?ticker=${t.symbol}" style="color:var(--accent);font-size:12px">Trace this ticker on /why.html →</a></div>
+  </td></tr>`;
+}
+
+function setF(f){activeFilter=f;expanded=null;render();}
+function sort(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}render();}
+function toggleExp(s){expanded=expanded===s?null:s;render();}
+window.setF=setF;window.sort=sort;window.toggleExp=toggleExp;
+
+load();
+setInterval(load,15*60*1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GDELT Sentiment · JustHodl.AI</title>
+<meta name="description" content="GDELT geopolitical news sentiment — financial article tone, theme breakdown, asset mention sentiment, top headlines by extremity.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root{--bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;--border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;--accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1500px;margin:0 auto;padding:18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  /* Tone gauge */
+  .tone-gauge{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px 28px;margin-bottom:16px;}
+  .tone-gauge h2{font-size:14px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;}
+  .tone-line{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;}
+  .tone-bar{position:relative;height:40px;background:linear-gradient(to right,#ef4444 0%,#ef4444 25%,#888 50%,#22c55e 75%,#22c55e 100%);border-radius:6px;overflow:hidden;}
+  .tone-marker{position:absolute;top:-4px;bottom:-4px;width:5px;background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.6);border-radius:3px;}
+  .tone-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-top:6px;}
+  .tone-value-big{font-size:42px;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+  .tone-value-big.dn{color:var(--red);} .tone-value-big.up{color:var(--green);} .tone-value-big.flat{color:var(--text-dim);}
+  .tone-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;text-align:right;}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+  .stat-value.green{color:var(--green);} .stat-value.red{color:var(--red);} .stat-value.amber{color:var(--amber);}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);}
+  .section-header h3{font-size:13px;font-weight:600;}
+  .section-header .sub{color:var(--text-dim);font-size:11px;}
+  .section-body{padding:14px 18px;}
+
+  .theme-row{display:grid;grid-template-columns:1fr auto auto;gap:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);align-items:center;}
+  .theme-row:last-child{border-bottom:none;}
+  .theme-name{font-weight:600;}
+  .theme-count{color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .theme-tone{font-weight:700;font-variant-numeric:tabular-nums;}
+  .theme-tone.up{color:var(--green);} .theme-tone.dn{color:var(--red);} .theme-tone.flat{color:var(--text-dim);}
+
+  .asset-card{background:var(--bg-card-elev);border:1px solid var(--border-light);border-radius:6px;padding:12px 14px;margin-bottom:10px;}
+  .asset-card h4{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .asset-card h4 .ticker{font-weight:700;color:var(--accent);}
+  .asset-card h4 .meta{color:var(--text-dim);font-size:11px;font-weight:400;}
+  .asset-card .headlines li{font-size:12px;color:var(--text);margin-bottom:6px;line-height:1.4;}
+  .asset-card .headlines li .src{color:var(--text-muted);font-size:10px;display:block;margin-top:2px;}
+  .asset-card .headlines li .tone{font-weight:700;}
+
+  .headline-list{list-style:none;}
+  .headline-list li{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;line-height:1.5;}
+  .headline-list li:last-child{border-bottom:none;}
+  .headline-list a{color:var(--text);text-decoration:none;}
+  .headline-list a:hover{color:var(--accent);}
+  .headline-list .meta{color:var(--text-muted);font-size:10px;display:block;margin-top:3px;}
+  .tone-pill{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-right:6px;font-variant-numeric:tabular-nums;}
+  .tone-pill.dn{background:rgba(239,68,68,0.18);color:var(--red);}
+  .tone-pill.up{background:rgba(34,197,94,0.18);color:var(--green);}
+
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:1100px){.grid{grid-template-columns:1fr;}.stats{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🌍 GDELT Sentiment <span class="sub">— global news tone for financial articles</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/news.html">News</a>
+      <a href="/sentiment.html">Sentiment</a>
+      <a href="/today.html">Today</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading data/gdelt-news.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/gdelt-news.json";
+
+async function load(){
+  let d=null;
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;d=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/gdelt-news.json</div>`;return;}
+  render(d);
+}
+
+function toneCls(t){if(t==null)return "flat";if(t>0.5)return "up";if(t<-0.5)return "dn";return "flat";}
+function fmtTone(t){if(t==null)return "—";return (t>=0?"+":"")+Number(t).toFixed(2);}
+
+function render(d){
+  const stats=d.stats||{};
+  const themes=d.themes||{};
+  const assets=d.asset_sentiment||{};
+  const tone=stats.avg_tone||0;
+  // Map tone (-10..+10) to 0..100 marker position
+  const markerPos=Math.max(0,Math.min(100,(tone+10)/20*100));
+  const cls=toneCls(tone);
+
+  document.getElementById("content").innerHTML=`
+    <div class="tone-gauge">
+      <h2>Overall financial tone (last GDELT update)</h2>
+      <div class="tone-line">
+        <div>
+          <div class="tone-bar"><div class="tone-marker" style="left:${markerPos}%"></div></div>
+          <div class="tone-scale">
+            <span>-10 extreme negative</span><span>-5</span><span>0 neutral</span><span>+5</span><span>+10 extreme positive</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="tone-value-big ${cls}">${fmtTone(tone)}</div>
+          <div class="tone-label">avg tone</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><div class="stat-label">Articles total</div><div class="stat-value">${(stats.articles_total||0).toLocaleString()}</div><div class="stat-sub">in window</div></div>
+      <div class="stat-card"><div class="stat-label">Financial filtered</div><div class="stat-value">${stats.financial_articles||0}</div><div class="stat-sub">economic / market themes</div></div>
+      <div class="stat-card"><div class="stat-label">Extreme negative</div><div class="stat-value ${stats.extreme_negative>0?'red':''}">${stats.extreme_negative||0}</div><div class="stat-sub">tone &lt; -5</div></div>
+      <div class="stat-card"><div class="stat-label">Extreme positive</div><div class="stat-value ${stats.extreme_positive>0?'green':''}">${stats.extreme_positive||0}</div><div class="stat-sub">tone &gt; +5</div></div>
+      <div class="stat-card"><div class="stat-label">Fetch time</div><div class="stat-value">${stats.fetch_duration_s||0}s</div><div class="stat-sub">last run</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="section">
+        <div class="section-header"><h3>📊 Themes by mentions</h3><span class="sub">${Object.keys(themes).length} ECON_* themes</span></div>
+        <div class="section-body">
+          ${Object.entries(themes).sort((a,b)=>b[1].count-a[1].count).map(([name,info])=>`
+            <div class="theme-row">
+              <div class="theme-name">${name.replace("ECON_","")}</div>
+              <div class="theme-count">${info.count} articles</div>
+              <div class="theme-tone ${toneCls(info.avg_tone)}">${fmtTone(info.avg_tone)}</div>
+            </div>`).join("")||'<div style="color:var(--text-dim)">no themes detected</div>'}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header"><h3>📈 Asset mention sentiment</h3><span class="sub">${Object.keys(assets).length} tickers/indices mentioned</span></div>
+        <div class="section-body">
+          ${Object.entries(assets).map(([tk,info])=>`
+            <div class="asset-card">
+              <h4><span class="ticker">${tk}</span> <span class="meta">${info.mentions} mentions · avg tone <span class="theme-tone ${toneCls(info.avg_tone)}">${fmtTone(info.avg_tone)}</span></span></h4>
+              <ul class="headlines" style="list-style:none">
+                ${(info.headlines||[]).slice(0,3).map(h=>`
+                  <li>
+                    <span class="tone ${toneCls(h.tone)}">${fmtTone(h.tone)}</span> 
+                    <a href="${h.url}" target="_blank" style="color:var(--text);text-decoration:none">${h.headline}</a>
+                    <span class="src">${h.source}</span>
+                  </li>`).join("")}
+              </ul>
+            </div>`).join("")||'<div style="color:var(--text-dim)">no asset mentions</div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="section">
+        <div class="section-header"><h3>🔻 Most negative headlines</h3></div>
+        <div class="section-body"><ul class="headline-list">
+          ${(d.headlines_by_tone?.most_negative||[]).map(h=>`
+            <li>
+              <span class="tone-pill dn">${fmtTone(h.tone)}</span>
+              <a href="${h.url}" target="_blank">${h.headline}</a>
+              <span class="meta">${h.source}</span>
+            </li>`).join("")}
+        </ul></div>
+      </div>
+      <div class="section">
+        <div class="section-header"><h3>🔺 Most positive headlines</h3></div>
+        <div class="section-body"><ul class="headline-list">
+          ${(d.headlines_by_tone?.most_positive||[]).map(h=>`
+            <li>
+              <span class="tone-pill up">${fmtTone(h.tone)}</span>
+              <a href="${h.url}" target="_blank">${h.headline}</a>
+              <span class="meta">${h.source}</span>
+            </li>`).join("")}
+        </ul></div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span><strong>Generated:</strong> ${d.generated_at?new Date(d.generated_at).toLocaleString():"—"}</span>
+      <span><strong>GDELT timestamp:</strong> ${d.gdelt_timestamp||"—"}</span>
+      <span><strong>Articles:</strong> ${(stats.articles_total||0).toLocaleString()}</span>
+      <span style="flex:1"></span>
+      <span style="color:var(--text-muted)">data/gdelt-news.json</span>
+    </div>`;
+}
+
+load();
+setInterval(load,15*60*1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NY Fed Dealer Survey · JustHodl.AI</title>
+<meta name="description" content="NY Fed Survey of Primary Dealers — discovery tracking. Detailed expectation extraction pending PDF parsing layer.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<style>
+  :root{--bg:#0a0a0a;--bg-card:#131313;--bg-card-elev:#181818;--bg-hover:#1f1f1f;--border:#262626;--border-light:#2e2e2e;--text:#e5e5e5;--text-dim:#888;--text-muted:#555;--accent:#facc15;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--blue:#3b82f6;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+  .container{max-width:1100px;margin:0 auto;padding:24px 18px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+  .header h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;}
+  .header h1 .sub{color:var(--text-dim);font-weight:400;font-size:13px;margin-left:8px;}
+  .nav{display:flex;gap:16px;font-size:12px;}
+  .nav a{color:var(--text-dim);text-decoration:none;}
+  .nav a:hover{color:var(--accent);}
+
+  .info-banner{background:rgba(245,158,11,0.08);border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:16px;color:var(--text);font-size:13px;line-height:1.6;}
+  .info-banner strong{color:var(--amber);}
+
+  .latest-card{background:var(--bg-card);border:1px solid var(--border);border-left:5px solid var(--blue);border-radius:8px;padding:24px 28px;margin-bottom:16px;}
+  .latest-card h2{font-size:18px;font-weight:600;margin-bottom:14px;}
+  .latest-card .row{display:grid;grid-template-columns:140px 1fr;gap:16px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;}
+  .latest-card .row:last-child{border-bottom:none;}
+  .latest-card .row .label{color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;}
+  .latest-card a{color:var(--accent);}
+  .latest-card .url{font-family:'SF Mono',Menlo,monospace;font-size:11px;word-break:break-all;color:var(--text-dim);}
+
+  .section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+  .section-header{padding:12px 18px;border-bottom:1px solid var(--border);}
+  .section-header h3{font-size:13px;font-weight:600;}
+  .section-header .sub{color:var(--text-dim);font-size:11px;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  thead{background:var(--bg-card-elev);}
+  th{padding:9px 12px;text-align:left;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;border-bottom:1px solid var(--border);}
+  td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+  tr:hover{background:var(--bg-hover);}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+  .loading{padding:30px;text-align:center;color:var(--text-dim);}
+  .error{padding:14px;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:6px;color:var(--red);}
+  .status-bar{padding:8px 14px;background:var(--bg-card);border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);display:flex;gap:14px;flex-wrap:wrap;}
+  .roadmap{background:var(--bg-card-elev);border:1px solid var(--border-light);border-radius:6px;padding:14px 18px;margin-bottom:16px;}
+  .roadmap h4{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+  .roadmap ul{padding-left:22px;color:var(--text-dim);line-height:1.8;}
+  .roadmap li strong{color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🏛️ NY Fed Dealer Survey <span class="sub">— primary dealer expectations tracker</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/ny-fed.html">NY Fed</a>
+      <a href="/auctions.html">Auctions</a>
+      <a href="/repo.html">Repo</a>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Loading data/dealer-survey.json…</div></div>
+</div>
+
+<script>
+const URL_DATA = "https://justhodl-dashboard-live.s3.amazonaws.com/data/dealer-survey.json";
+
+async function load(){
+  let d=null;
+  try{const r=await fetch(URL_DATA+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;d=await r.json();}
+  catch(e){document.getElementById("content").innerHTML=`<div class="error">⚠ Could not load data/dealer-survey.json</div>`;return;}
+  render(d);
+}
+
+function render(d){
+  const latest=d.latest_survey||{};
+  const history=d.history||[];
+  document.getElementById("content").innerHTML=`
+    <div class="info-banner">
+      <strong>What this tracks.</strong> The NY Fed surveys 25 primary dealers before each FOMC meeting, asking them to forecast policy rate paths, balance-sheet trajectory, and inflation expectations. Their consensus has historically pre-figured Fed actions. This Lambda discovers new survey PDFs as they're published; the detailed expectation extraction is currently a roadmap item (PDF parsing layer).
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><div class="stat-label">Surveys discovered</div><div class="stat-value">${history.length}</div><div class="stat-sub">total tracked</div></div>
+      <div class="stat-card"><div class="stat-label">Last check</div><div class="stat-value" style="font-size:14px">${d.last_check?new Date(d.last_check).toLocaleDateString():"—"}</div><div class="stat-sub">${d.last_check_status||"—"}</div></div>
+      <div class="stat-card"><div class="stat-label">Fetch duration</div><div class="stat-value">${d.fetch_duration_s||0}s</div><div class="stat-sub">last run</div></div>
+    </div>
+
+    <div class="latest-card">
+      <h2>📄 Latest survey</h2>
+      <div class="row">
+        <div class="label">FOMC date</div>
+        <div>${latest.fomc_date||"<em style='color:var(--text-muted)'>not extracted (PDF parsing pending)</em>"}</div>
+      </div>
+      <div class="row">
+        <div class="label">Discovered at</div>
+        <div>${latest.discovered_at?new Date(latest.discovered_at).toLocaleString():"—"}</div>
+      </div>
+      <div class="row">
+        <div class="label">Source URL</div>
+        <div>${latest.source_url ? `<a href="${latest.source_url}" target="_blank">Open PDF →</a><div class="url">${latest.source_url}</div>` : "—"}</div>
+      </div>
+      <div class="row">
+        <div class="label">Status</div>
+        <div style="color:var(--text-dim)">${latest.note||"—"}</div>
+      </div>
+    </div>
+
+    ${history.length>1 ? `<div class="section">
+      <div class="section-header"><h3>📚 Discovery history <span class="sub">— ${history.length} surveys</span></h3></div>
+      <table>
+        <thead><tr><th>Discovered</th><th>FOMC date</th><th>URL</th></tr></thead>
+        <tbody>${history.map(h=>`<tr>
+          <td>${h.discovered_at?new Date(h.discovered_at).toLocaleDateString():"—"}</td>
+          <td>${h.fomc_date||"<em style='color:var(--text-muted)'>—</em>"}</td>
+          <td>${h.source_url?`<a href="${h.source_url}" target="_blank">PDF →</a>`:"—"}</td>
+        </tr>`).join("")}</tbody>
+      </table>
+    </div>` : ""}
+
+    <div class="roadmap">
+      <h4>🛣 Roadmap</h4>
+      <ul>
+        <li><strong>PDF text extraction</strong> — parse the discovered PDF on detection (AWS Textract or pdfplumber Lambda layer)</li>
+        <li><strong>Question structure</strong> — extract the 12-question template (rate path quartiles, runoff schedule, terminal rate)</li>
+        <li><strong>Median expectations</strong> — compute consensus across responses, compare with previous survey</li>
+        <li><strong>Surprise scoring</strong> — when median rate-path differs from market-implied (Fed funds futures), flag a divergence</li>
+        <li><strong>Telegram alert</strong> — fire when a new survey publishes OR when median differs from market by &gt;25bps</li>
+      </ul>
+    </div>
+
+    <div class="status-bar">
+      <span><strong>Generated:</strong> ${d.generated_at?new Date(d.generated_at).toLocaleString():"—"}</span>
+      <span><strong>Last check:</strong> ${d.last_check?new Date(d.last_check).toLocaleString():"—"}</span>
+      <span><strong>Status:</strong> ${d.last_check_status||"—"}</span>
+      <span style="flex:1"></span>
+      <span style="color:var(--text-muted)">data/dealer-survey.json</span>
+    </div>`;
+}
+
+load();
+setInterval(load,60*60*1000);
+</script>
+</body>
+</html>
