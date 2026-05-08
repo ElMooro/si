@@ -141,8 +141,12 @@ ECB_DATASETS = {
 
 
 def fetch_ecb(series_key):
-    """Direct ECB SDMX API fetch."""
+    """Direct ECB SDMX API fetch. Returns observations chronological.
+    
+    Mirrors the proven-working implementation from plumbing-aggregator.
+    """
     if series_key not in ECB_DATASETS:
+        print(f"[chart] ECB unknown series_key: {series_key}")
         return None
     dataset, key = ECB_DATASETS[series_key]
     url = (f"https://data-api.ecb.europa.eu/service/data/{dataset}/{key}"
@@ -152,23 +156,33 @@ def fetch_ecb(series_key):
         "Accept": "application/json",
     })
     if not body:
+        print(f"[chart] ECB empty body for {series_key} ({dataset}/{key})")
         return None
     try:
         d = json.loads(body)
-        datasets = d.get("dataSets") or []
+    except Exception as e:
+        print(f"[chart] ECB JSON parse fail {series_key}: {e}")
+        return None
+
+    # SDMX-JSON structure: dataSets[0].series."<key>".observations
+    try:
+        datasets = d.get("dataSets") or d.get("dataset") or []
         if not datasets:
+            print(f"[chart] ECB no datasets in response for {series_key}")
             return None
         ds = datasets[0]
         series_dict = ds.get("series") or {}
-        first = next(iter(series_dict.values()), None)
-        if not first:
+        first_series = next(iter(series_dict.values()), None)
+        if not first_series:
+            print(f"[chart] ECB no series in dataset for {series_key}")
             return None
-        obs_dict = first.get("observations") or {}
+        obs_dict = first_series.get("observations") or {}
 
         struct = d.get("structure", {})
         obs_dims = struct.get("dimensions", {}).get("observation", [])
         time_dim = next((dim for dim in obs_dims if dim.get("id") == "TIME_PERIOD"), None)
         if not time_dim:
+            print(f"[chart] ECB no TIME_PERIOD dim for {series_key}")
             return None
         time_values = time_dim.get("values", [])
 
@@ -183,10 +197,42 @@ def fetch_ecb(series_key):
             except (ValueError, TypeError, IndexError):
                 continue
         obs.sort(key=lambda o: o["time"])
+        print(f"[chart] ECB {series_key}: {len(obs)} observations")
         return obs
     except Exception as e:
-        print(f"[chart] ECB parse fail: {e}")
+        print(f"[chart] ECB parse fail {series_key}: {e}")
         return None
+
+
+# ─── Polygon crypto (BTC, ETH, SOL etc) ──────────────────────────────────────
+def fetch_polygon_crypto(ticker, start_date=None, end_date=None):
+    """Crypto pairs via Polygon. Tickers must start with 'X:' (e.g., X:BTCUSD)."""
+    if not ticker.upper().startswith("X:"):
+        ticker = "X:" + ticker.upper()
+    if not start_date:
+        start_date = "2014-01-01"  # Most major crypto starts ~2014-2017
+    if not end_date:
+        end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    url = (f"https://api.polygon.io/v2/aggs/ticker/{ticker.upper()}/range/1/day/"
+            f"{start_date}/{end_date}?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
+    body = http_get(url, timeout=30)
+    if not body:
+        return None
+    try:
+        d = json.loads(body)
+    except Exception:
+        return None
+    if d.get("status") not in ("OK", "DELAYED") or not d.get("results"):
+        print(f"[chart] Polygon crypto {ticker}: status={d.get('status')} count={d.get('resultsCount')}")
+        return None
+    obs = []
+    for bar in d["results"]:
+        try:
+            ts = datetime.fromtimestamp(bar["t"] / 1000, tz=timezone.utc)
+            obs.append({"time": ts.strftime("%Y-%m-%d"), "value": float(bar["c"])})
+        except (KeyError, ValueError, TypeError):
+            continue
+    return obs
 
 
 # ─── Polygon stocks/ETFs ─────────────────────────────────────────────────────
@@ -329,7 +375,17 @@ CATALOG = {
         ("GLD", "Gold ETF", "Polygon"),
         ("TLT", "20Y+ Treasury ETF", "Polygon"),
         ("VXX", "VIX Short-Term Futures ETF", "Polygon"),
-        ("IBIT", "Bitcoin ETF", "Polygon"),
+        ("IBIT", "Bitcoin ETF (BlackRock)", "Polygon"),
+    ]},
+    "crypto": {"label": "Cryptocurrencies", "series": [
+        ("X:BTCUSD", "Bitcoin (BTC/USD)", "Crypto"),
+        ("X:ETHUSD", "Ethereum (ETH/USD)", "Crypto"),
+        ("X:SOLUSD", "Solana (SOL/USD)", "Crypto"),
+        ("X:XRPUSD", "XRP (XRP/USD)", "Crypto"),
+        ("X:DOGEUSD", "Dogecoin (DOGE/USD)", "Crypto"),
+        ("X:AVAXUSD", "Avalanche (AVAX/USD)", "Crypto"),
+        ("X:LINKUSD", "Chainlink (LINK/USD)", "Crypto"),
+        ("X:ADAUSD", "Cardano (ADA/USD)", "Crypto"),
     ]},
     "volatility": {"label": "Volatility Indices", "series": [
         ("VIXCLS", "VIX (S&P 500 IV)", "FRED"),
@@ -422,7 +478,19 @@ CATALOG = {
 _SOURCE_LOOKUP = {}
 for cat in CATALOG.values():
     for sid, label, source in cat["series"]:
-        _SOURCE_LOOKUP[sid] = source.lower().replace("polygon", "stock").replace("fred", "fred").replace("ecb", "ecb").replace("ofr", "ofr").replace("internal", "internal")
+        s = source.lower()
+        if "polygon" in s:
+            _SOURCE_LOOKUP[sid] = "stock"
+        elif "crypto" in s:
+            _SOURCE_LOOKUP[sid] = "crypto"
+        elif "fred" in s:
+            _SOURCE_LOOKUP[sid] = "fred"
+        elif "ecb" in s:
+            _SOURCE_LOOKUP[sid] = "ecb"
+        elif "ofr" in s:
+            _SOURCE_LOOKUP[sid] = "ofr"
+        elif "internal" in s:
+            _SOURCE_LOOKUP[sid] = "internal"
 
 
 # ─── Universal series resolver ───────────────────────────────────────────────
@@ -431,14 +499,14 @@ def fetch_series(series_id, kind=None, start_date=None, end_date=None):
     
     Resolution order:
       1. Explicit kind param wins
-      2. Catalog lookup (covers 92 known indicators)
-      3. Pattern heuristics (FRED, OFR mnemonic, internal, stock fallback)
+      2. Catalog lookup (covers all known indicators)
+      3. Pattern heuristics
     """
     if not kind:
-        # 2. Catalog lookup
         if series_id in _SOURCE_LOOKUP:
             kind = _SOURCE_LOOKUP[series_id]
-        # 3. Pattern heuristics
+        elif series_id.upper().startswith("X:"):
+            kind = "crypto"
         elif series_id.startswith("ciss_") or series_id.startswith("sovciss_") \
              or series_id.startswith("clifs_") or series_id.startswith("ilm_"):
             kind = "ecb"
@@ -447,14 +515,14 @@ def fetch_series(series_id, kind=None, start_date=None, end_date=None):
         elif series_id in INTERNAL_SERIES_MAP:
             kind = "internal"
         else:
-            # FRED is the most common — default there for unknown alphanumeric IDs
-            # Stocks (Polygon) only when explicitly requested via kind=stock
             kind = "fred"
 
     if kind == "fred":
         return fetch_fred(series_id, start_date, end_date), "FRED"
     if kind == "stock":
         return fetch_polygon_stock(series_id, start_date, end_date), "Polygon"
+    if kind == "crypto":
+        return fetch_polygon_crypto(series_id, start_date, end_date), "Crypto"
     if kind == "ecb":
         return fetch_ecb(series_id), "ECB"
     if kind == "ofr":
