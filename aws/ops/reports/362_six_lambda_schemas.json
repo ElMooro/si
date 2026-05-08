@@ -1,0 +1,626 @@
+{
+  "started": "2026-05-08T21:10:11.183541+00:00",
+  "test": {
+    "data/narrative-density.json": {
+      "size_bytes": 75250,
+      "last_modified": "2026-05-08 11:00:45+00:00",
+      "schema": {
+        "schema_version": 2,
+        "method": "narrative_density_polygon_v2",
+        "generated_at": "2026-05-08T11:00:44+00:00",
+        "duration_s": 10.4,
+        "stats": {
+          "n_articles_total": 6000,
+          "n_themes_total": 53,
+          "n_tier_a": 0,
+          "n_tier_b": 4,
+          "pages_fetched": 30
+        },
+        "summary": {
+          "top_15_themes": {
+            "__type__": "list",
+            "__len__": 15,
+            "__sample__": {
+              "theme_id": "alzheimer",
+              "name": "Alzheimer's drugs",
+              "tickers": {
+                "__type__": "list",
+                "__len__": 2,
+                "__sample__": "<truncated: str>"
+              },
+              "score": 56,
+              "tier": "TIER_B_BUILDING",
+              "flags": {
+                "__type__": "list",
+                "__len__": 2,
+                "__sample__": "<truncated: str>"
+              },
+              "metrics": {
+                "n_today": "<truncated: int>",
+                "n_7d": "<truncated: int>",
+                "n_30d": "<truncated: int>",
+                "avg_per_day_7d_excl_today": "<truncated: float>",
+                "avg_per_day_30d": "<truncated: float>",
+                "accel_today_vs_7d": "<truncated: float>",
+                "accel_7d_vs_30d": "<truncated: float>"
+              },
+              "top_co_mentioned_tickers": {
+                "__type__": "list",
+                "__len__": 8,
+                "__sample__": "<truncated: dict>"
+              },
+              "sample_titles": {
+                "__type__": "list",
+                "__len__": 3,
+                "__sample__": "<truncated: dict>"
+              }
+            }
+          },
+          "tier_a": "[]"
+        },
+        "all_themes": {
+          "__type__": "list",
+          "__len__": 53,
+          "__sample__": {
+            "theme_id": "alzheimer",
+            "name": "Alzheimer's drugs",
+            "tickers": {
+              "__type__": "list",
+              "__len__": 2,
+              "__sample__": "BIIB"
+            },
+            "score": 56,
+            "tier": "TIER_B_BUILDING",
+            "flags": {
+              "__type__": "list",
+              "__len__": 2,
+              "__sample__": "TODAY_5X_BASELINE"
+            },
+            "metrics": {
+              "n_today": 3,
+              "n_7d": 5,
+              "n_30d": 10,
+              "avg_per_day_7d_excl_today": 0.33,
+              "avg_per_day_30d": 0.33,
+              "accel_today_vs_7d": 6.0,
+              "accel_7d_vs_30d": 2.14
+            },
+            "top_co_mentioned_tickers": {
+              "__type__": "list",
+              "__len__": 8,
+              "__sample__": {
+                "ticker": "<truncated: str>",
+                "n": "<truncated: int>"
+              }
+            },
+            "sample_titles": {
+              "__type__": "list",
+              "__len__": 3,
+              "__sample__": {
+                "title": "<truncated: str>",
+                "publisher": "<truncated: str>",
+                "published": "<truncated: str>",
+                "tickers": "<truncated: list>"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data/cross-asset-regime.json": {
+      "size_bytes": 6308,
+      "last_modified": "2026-05-08 13:15:41+00:00",
+      "schema": {
+        "schema_version": 1,
+        "method": "cross_asset_regime_v1",
+        "generated_at": "2026-05-08T13:15:40+00:00",
+        "duration_s": 1.0,
+        "asset_universe": {
+          "__type__": "list",
+          "__len__": 8,
+          "__sample__": {
+            "ticker": "SPY",
+            "name": "S&P 500",
+            "class": "EQUITY"
+          }
+        },
+        "stats": {
+          "n_assets_loaded": 8,
+          "n_correlation_breaks": 7,
+          "n_alerts": 3
+        },
+        "regime_5d": {
+          "regime": "RISK_ON",
+          "confidence": 65,
+          "rationale": {
+            "__type__": "list",
+            "__len__": 1,
+            "__sample__": "Equities + crypto rallying together"
+          },
+          "lookback_returns_pct": {
+            "SPY": 1.8,
+            "TLT": 0.04,
+            "GLD": 1.89,
+            "UUP": 0.18,
+            "HYG": -0.65,
+            "USO": -8.24,
+            "VIXY": -1.36,
+            "BITO": 4.68
+          },
+          "risk_score": 1.44,
+          "risk_label": "NEUTRAL"
+        },
+        "regime_20d": {
+          "regime": "REFLATION",
+          "confidence": 85,
+          "rationale": {
+            "__type__": "list",
+            "__len__": 1,
+            "__sample__": "Risk assets rallying, bonds + dollar declining"
+          },
+          "lookback_returns_pct": {
+            "SPY": 7.6,
+            "TLT": -1.21,
+            "GLD": -1.42,
+            "UUP": -0.25,
+            "HYG": -0.52,
+            "USO": 6.31,
+            "VIXY": -8.67,
+            "BITO": 10.71
+          },
+          "risk_score": 19.95,
+          "risk_label": "STRONG_RISK_ON"
+        },
+        "regime_60d": {
+          "regime": "TIGHTENING",
+          "confidence": 80,
+          "rationale": {
+            "__type__": "list",
+            "__len__": 1,
+            "__sample__": "Dollar +2.3%, TLT -3.3%"
+          },
+          "lookback_returns_pct": {
+            "SPY": 5.7,
+            "TLT": -3.25,
+            "GLD": -6.64,
+            "UUP": 2.28,
+            "HYG": -1.21,
+            "USO": 72.97,
+            "VIXY": 1.94,
+            "BITO": 15.25
+          },
+          "risk_score": 37.26,
+          "risk_label": "STRONG_RISK_ON"
+        },
+        "regime_change": null,
+        "correlation_matrix_30d": {
+          "SPY": {
+            "SPY": 1.0,
+            "BITO": 0.666279066529246,
+            "VIXY": -0.8519550254799233,
+            "GLD": 0.5536323150201874,
+            "TLT": 0.4186287419602985,
+            "UUP": -0.7373908307362601,
+            "HYG": 0.838479573219415,
+            "USO": -0.6822103502879744
+          },
+          "BITO": {
+            "SPY": 0.666279066529246,
+            "BITO": 1.0,
+            "VIXY": -0.5698255347827105,
+            "GLD": 0.28208810859470385,
+            "TLT": 0.3434775058423217,
+            "UUP": -0.3624685619528605,
+            "HYG": 0.45421161491931117,
+            "USO": -0.5594166174528579
+          },
+          "VIXY": {
+            "SPY": -0.8519550254799233,
+            "BITO": -0.5698255347827105,
+            "VIXY": 1.0,
+            "GLD": -0.3489521872861648,
+            "TLT": -0.32826107179085284,
+            "UUP": 0.6075220013413423,
+            "HYG": -0.7673557656158807,
+            "USO": 0.48969053252277395
+          },
+          "GLD": {
+            "SPY": 0.5536323150201874,
+            "BITO": 0.28208810859470385,
+            "VIXY": -0.3489521872861648,
+            "GLD": 1.0,
+            "TLT": 0.33352661509759607,
+            "UUP": -0.634011832458843,
+            "HYG": 0.5586384157621106,
+            "USO": -0.5346098943708447
+          },
+          "TLT": {
+            "SPY": 0.4186287419602985,
+            "BITO": 0.3434775058423217,
+            "VIXY": -0.32826107179085284,
+            "GLD": 0.33352661509759607,
+            "TLT": 1.0,
+            "UUP": -0.16256263065247695,
+            "HYG": 0.5982135680808305,
+            "USO": -0.34408451688222363
+          },
+          "UUP": {
+            "SPY": -0.7373908307362601,
+            "BITO": -0.3624685619528605,
+            "VIXY": 0.6075220013413423,
+            "GLD": -0.634011832458843,
+            "TLT": -0.16256263065247695,
+            "UUP": 1.0,
+            "HYG": -0.653838771548393,
+            "USO": 0.6915052876184852
+          },
+          "HYG": {
+            "SPY": 0.838479573219415,
+            "BITO": 0.45421161491931117,
+            "VIXY": -0.7673557656158807,
+            "GLD": 0.5586384157621106,
+            "TLT": 0.5982135680808305,
+            "UUP": -0.653838771548393,
+            "HYG": 1.0,
+            "USO": -0.434449646603703
+          },
+          "USO": {
+            "SPY": -0.6822103502879744,
+            "BITO": -0.5594166174528579,
+            "VIXY": 0.48969053252277395,
+            "GLD": -0.5346098943708447,
+            "TLT": -0.34408451688222363,
+            "UUP": 0.6915052876184852,
+            "HYG": -0.434449646603703,
+            "USO": 1.0
+          }
+        },
+        "correlation_matrix_90d": {
+          "SPY": {
+            "SPY": 1.0,
+            "BITO": 0.5618185857846166,
+            "VIXY": -0.8351196509271808,
+            "GLD": 0.3066944672328545,
+            "TLT": 0.29260604767639375,
+            "UUP": -0.3794929486878676,
+            "HYG": 0.7489470407744566,
+            "USO": -0.5117724023801927
+          },
+          "BITO": {
+            "SPY": 0.5618185857846166,
+            "BITO": 1.0,
+            "VIXY": -0.4582194563788633,
+            "GLD": 0.24105588875178824,
+            "TLT": 0.016930878866675228,
+            "UUP": -0.18027611176198083,
+            "HYG": 0.3808495514444499,
+            "USO": -0.13940791295528124
+          },
+          "VIXY": {
+            "SPY": -0.8351196509271808,
+            "BITO": -0.4582194563788633,
+            "VIXY": 1.0,
+            "GLD": -0.09274051462757857,
+            "TLT": -0.2772790585245011,
+            "UUP": 0.2464855979955544,
+            "HYG": -0.6973386815612443,
+            "USO": 0.5088505789610535
+          },
+          "GLD": {
+            "SPY": 0.3066944672328545,
+            "BITO": 0.24105588875178824,
+            "VIXY": -0.09274051462757857,
+            "GLD": 1.0,
+            "TLT": 0.09556412576186424,
+            "UUP": -0.4253172782824651,
+            "HYG": 0.24782902277138985,
+            "USO": -0.04388866961706048
+          },
+          "TLT": {
+            "SPY": 0.29260604767639375,
+            "BITO": 0.016930878866675228,
+            "VIXY": -0.2772790585245011,
+            "GLD": 0.09556412576186424,
+            "TLT": 1.0,
+            "UUP": -0.2331457453361111,
+            "HYG": 0.5669852958769644,
+            "USO": -0.36873197115044576
+          },
+          "UUP": {
+            "SPY": -0.3794929486878676,
+            "BITO": -0.18027611176198083,
+            "VIXY": 0.2464855979955544,
+            "GLD": -0.4253172782824651,
+            "TLT": -0.2331457453361111,
+            "UUP": 1.0,
+            "HYG": -0.4821416303749165,
+            "USO": 0.38761504926140866
+          },
+          "HYG": {
+            "SPY": 0.7489470407744566,
+            "BITO": 0.3808495514444499,
+            "VIXY": -0.6973386815612443,
+            "GLD": 0.24782902277138985,
+            "TLT": 0.5669852958769644,
+            "UUP": -0.4821416303749165,
+            "HYG": 1.0,
+            "USO": -0.4876085424490163
+          },
+          "USO": {
+            "SPY": -0.5117724023801927,
+            "BITO": -0.13940791295528124,
+            "VIXY": 0.5088505789610535,
+            "GLD": -0.04388866961706048,
+            "TLT": -0.36873197115044576,
+            "UUP": 0.38761504926140866,
+            "HYG": -0.4876085424490163,
+            "USO": 1.0
+          }
+        },
+        "__more_keys__": [
+          "correlation_breaks",
+          "alerts"
+        ]
+      }
+    },
+    "data/cross-asset-regime-state.json": {
+      "size_bytes": 357,
+      "last_modified": "2026-05-08 13:15:41+00:00",
+      "schema": {
+        "generated_at": "2026-05-08T13:15:40+00:00",
+        "regime_20d": {
+          "regime": "REFLATION",
+          "confidence": 85,
+          "rationale": {
+            "__type__": "list",
+            "__len__": 1,
+            "__sample__": "Risk assets rallying, bonds + dollar declining"
+          },
+          "lookback_returns_pct": {
+            "SPY": 7.6,
+            "TLT": -1.21,
+            "GLD": -1.42,
+            "UUP": -0.25,
+            "HYG": -0.52,
+            "USO": 6.31,
+            "VIXY": -8.67,
+            "BITO": 10.71
+          },
+          "risk_score": 19.95,
+          "risk_label": "STRONG_RISK_ON"
+        }
+      }
+    },
+    "cot/extremes/current.json": {
+      "size_bytes": 8334,
+      "last_modified": "2026-05-08 19:01:01+00:00",
+      "schema": {
+        "as_of": "2026-05-08T19:00:37.115539+00:00",
+        "v": "1.0",
+        "summary": {
+          "n_contracts_total": 29,
+          "n_processed": 29,
+          "n_errors": 0,
+          "n_extreme": 1,
+          "n_cluster_alerts": 0
+        },
+        "cluster_alerts": "[]",
+        "contracts": {
+          "__type__": "list",
+          "__len__": 29,
+          "__sample__": {
+            "contract": "HG",
+            "name": "Copper",
+            "category": "metals",
+            "report_type": "disagg",
+            "status": "ok",
+            "current_ratio": 0.26426,
+            "spec_net": 60937,
+            "open_int": 230596,
+            "report_date": "2026-04-28",
+            "percentile": 98.5,
+            "extreme": "high",
+            "trend_4w": 0.08682,
+            "__more_keys__": [
+              "n_weeks_history"
+            ]
+          }
+        },
+        "thresholds": {
+          "extreme_high_pct": 95.0,
+          "extreme_low_pct": 5.0,
+          "min_category_cluster": 3
+        }
+      }
+    },
+    "data/dealer-survey.json": {
+      "size_bytes": 776,
+      "last_modified": "2026-05-04 18:43:47+00:00",
+      "schema": {
+        "generated_at": "2026-04-27T18:43:43+00:00",
+        "latest_survey": {
+          "source_url": "<str:109> https://www.newyorkfed.org/medialibrary/media/markets/survey/2020/december-2020-survey-of-primary-de...",
+          "fomc_date": null,
+          "discovered_at": "2026-04-27T18:43:43+00:00",
+          "note": "PDF URL recorded. Detailed expectation extraction requires PDF parsing layer (deferred)."
+        },
+        "history": {
+          "__type__": "list",
+          "__len__": 1,
+          "__sample__": {
+            "source_url": "<str:109> https://www.newyorkfed.org/medialibrary/media/markets/survey/2020/december-2020-survey-of-primary-de...",
+            "fomc_date": null,
+            "discovered_at": "2026-04-27T18:43:43+00:00",
+            "note": "PDF URL recorded. Detailed expectation extraction requires PDF parsing layer (deferred)."
+          }
+        },
+        "fetch_duration_s": 0.8,
+        "last_check": "2026-05-04T18:43:46.991576+00:00",
+        "last_check_status": "no_new_survey"
+      }
+    },
+    "data/gdelt-news.json": {
+      "size_bytes": 6229,
+      "last_modified": "2026-05-08 20:43:42+00:00",
+      "schema": {
+        "generated_at": "2026-05-08T20:43:41+00:00",
+        "gdelt_timestamp": "20260508204500",
+        "stats": {
+          "articles_total": 1525,
+          "financial_articles": 43,
+          "avg_tone": -1.7,
+          "extreme_negative": 4,
+          "extreme_positive": 0,
+          "fetch_duration_s": 1.1
+        },
+        "themes": {
+          "ECON_INFLATION": {
+            "count": 25,
+            "avg_tone": -1.34
+          },
+          "ECON_INTEREST_RATES": {
+            "count": 11,
+            "avg_tone": -1.02
+          },
+          "ECON_DEBT": {
+            "count": 13,
+            "avg_tone": -2.7
+          },
+          "ECON_BANKRUPTCY": {
+            "count": 1,
+            "avg_tone": 0.25
+          }
+        },
+        "asset_sentiment": {
+          "QQQ": {
+            "mentions": 9,
+            "avg_tone": -1.23,
+            "headlines": {
+              "__type__": "list",
+              "__len__": 5,
+              "__sample__": {
+                "headline": "<truncated: str>",
+                "source": "<truncated: str>",
+                "tone": "<truncated: float>",
+                "url": "<truncated: str>"
+              }
+            }
+          },
+          "DJI": {
+            "mentions": 4,
+            "avg_tone": -1.55,
+            "headlines": {
+              "__type__": "list",
+              "__len__": 4,
+              "__sample__": {
+                "headline": "<truncated: str>",
+                "source": "<truncated: str>",
+                "tone": "<truncated: float>",
+                "url": "<truncated: str>"
+              }
+            }
+          }
+        },
+        "headlines_by_tone": {
+          "most_negative": {
+            "__type__": "list",
+            "__len__": 8,
+            "__sample__": {
+              "headline": "surrey men convicted of killing senior abbotsford couple",
+              "source": "missioncityrecord.com",
+              "tone": -7.77,
+              "url": "https://missioncityrecord.com/2026/05/08/3-surrey-men-convicted-of-killing-senior-abbotsford-couple/"
+            }
+          },
+          "most_positive": {
+            "__type__": "list",
+            "__len__": 7,
+            "__sample__": {
+              "headline": "stocks on jim cramers mad money recap ibm corning and ai rally strength",
+              "source": "insidermonkey.com",
+              "tone": 2.31,
+              "url": "<str:117> https://www.insidermonkey.com/blog/8-stocks-on-jim-cramers-mad-money-recap-ibm-corning-and-ai-rally-..."
+            }
+          }
+        }
+      }
+    },
+    "data/options-flow.json": {
+      "size_bytes": 78865,
+      "last_modified": "2026-05-07 21:30:24+00:00",
+      "schema": {
+        "schema_version": 1,
+        "method": "options_flow_scanner_v1",
+        "generated_at": "2026-05-07T21:30:23+00:00",
+        "duration_s": 20.4,
+        "stats": {
+          "n_universe": 150,
+          "n_evaluated": 144,
+          "n_no_data": 6,
+          "n_tier_a": 53,
+          "n_tier_b": 32,
+          "n_finra_tickers": 12537
+        },
+        "summary": {
+          "top_25_overall": {
+            "__type__": "list",
+            "__len__": 25,
+            "__sample__": {
+              "symbol": "AMD",
+              "score": 100.0,
+              "tier": "TIER_A_BULLISH_FLOW",
+              "flags": {
+                "__type__": "list",
+                "__len__": 5,
+                "__sample__": "<truncated: str>"
+              },
+              "spot": 408.46,
+              "cpr_recent": 502.21,
+              "cpr_change_pct": 352.6,
+              "call_vol_surge": 28.0,
+              "short_pct_change": -3.83
+            }
+          },
+          "tier_a": {
+            "__type__": "list",
+            "__len__": 53,
+            "__sample__": "AMD"
+          }
+        },
+        "all_qualifying": {
+          "__type__": "list",
+          "__len__": 144,
+          "__sample__": {
+            "symbol": "AMD",
+            "score": 100.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": {
+              "__type__": "list",
+              "__len__": 5,
+              "__sample__": "CPR_SURGING"
+            },
+            "metrics": {
+              "spot": 408.46,
+              "n_call_contracts": 10,
+              "n_put_contracts": 10,
+              "avg_cpr_recent_5d": 502.21,
+              "avg_cpr_older": 110.96,
+              "cpr_change_pct": 352.6,
+              "total_call_vol_5d": 49175,
+              "total_put_vol_5d": 43780,
+              "call_vol_surge": 28.0,
+              "short_metrics": {
+                "recent_avg_short_pct": "<truncated: float>",
+                "older_avg_short_pct": "<truncated: float>",
+                "short_pct_change": "<truncated: float>",
+                "avg_total_vol_5d": "<truncated: int>",
+                "n_finra_days": "<truncated: int>"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "finished": "2026-05-08T21:10:18.663962+00:00"
+}
