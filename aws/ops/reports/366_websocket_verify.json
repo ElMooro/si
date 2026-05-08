@@ -1,5 +1,5 @@
 {
-  "started": "2026-05-08T21:42:24.135555+00:00",
+  "started": "2026-05-08T21:48:22.442916+00:00",
   "test": {
     "1_ssm_endpoint": {
       "value": "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod",
@@ -12,14 +12,25 @@
       "ok": true
     },
     "3_broadcast_health": {
-      "error": "Expecting value: line 1 column 1 (char 0)"
+      "status": 200,
+      "service": "openbb-websocket-broadcast",
+      "ws_api_id": "q7vco36knh",
+      "stage": "prod",
+      "connections": 0,
+      "channels": 10,
+      "tracked_keys": 8,
+      "ok": true
     },
     "4_send_no_token": {
-      "status": 502,
-      "ok": false
+      "status": 401,
+      "ok": true
     },
     "5_admin_broadcast": {
-      "error": "Expecting value: line 1 column 1 (char 0)"
+      "status": 401,
+      "channel": null,
+      "sent": null,
+      "scanned": null,
+      "ok": false
     },
     "6_ddb": {
       "status": "ACTIVE",
@@ -36,9 +47,9 @@
     "9_frontend": {
       "/wss-client.js": {
         "status": 200,
-        "size": 5750,
+        "size": 5573,
         "has_placeholder": true,
-        "has_real_url": false,
+        "has_real_url": true,
         "has_live_pill": null
       },
       "/index.html": {
@@ -50,10 +61,10 @@
       }
     },
     "summary": {
-      "passed": 4,
+      "passed": 6,
       "total": 8,
-      "rate": "4/8"
+      "rate": "6/8"
     }
   },
-  "finished": "2026-05-08T21:42:35.099973+00:00"
+  "finished": "2026-05-08T21:48:31.388657+00:00"
 }
