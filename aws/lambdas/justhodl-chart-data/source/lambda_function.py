@@ -140,10 +140,63 @@ ECB_DATASETS = {
 }
 
 
+def normalize_ecb_date(date_str):
+    """Convert ECB SDMX date formats to ISO YYYY-MM-DD.
+    
+    ECB returns dates in multiple formats depending on series frequency:
+      - Daily:    "2026-05-07"        (already ISO)
+      - Weekly:   "2026-W18"          (ISO week of year)  
+      - Monthly:  "2026-04"           (year-month)
+      - Quarterly:"2026-Q2"           (year-quarter)
+      - Annual:   "2026"              (year only)
+    
+    Lightweight Charts requires real ISO dates so we convert all to that.
+    """
+    if not date_str:
+        return date_str
+    s = str(date_str).strip()
+    # Daily: YYYY-MM-DD
+    if len(s) == 10 and s[4] == '-' and s[7] == '-':
+        return s
+    # Weekly: YYYY-Www (ISO week)
+    if 'W' in s.upper() and 'Q' not in s.upper():
+        try:
+            year_str, wk_str = s.upper().split('-W')
+            year = int(year_str)
+            week = int(wk_str)
+            # ISO week 1 is the week containing Jan 4
+            from datetime import date, timedelta
+            jan4 = date(year, 1, 4)
+            week_1_monday = jan4 - timedelta(days=jan4.weekday())
+            target = week_1_monday + timedelta(weeks=week - 1)
+            return target.strftime('%Y-%m-%d')
+        except Exception:
+            return s
+    # Quarterly: YYYY-Qq → first day of quarter
+    if 'Q' in s.upper():
+        try:
+            year_str, q_str = s.upper().split('-Q')
+            year = int(year_str)
+            q = int(q_str)
+            month = (q - 1) * 3 + 1
+            return f"{year:04d}-{month:02d}-01"
+        except Exception:
+            return s
+    # Monthly: YYYY-MM
+    if len(s) == 7 and s[4] == '-':
+        return s + "-01"
+    # Annual: YYYY
+    if len(s) == 4 and s.isdigit():
+        return s + "-01-01"
+    return s
+
+
 def fetch_ecb(series_key):
     """Direct ECB SDMX API fetch. Returns observations chronological.
     
-    Mirrors the proven-working implementation from plumbing-aggregator.
+    All dates are normalized to ISO YYYY-MM-DD via normalize_ecb_date()
+    so they render correctly in Lightweight Charts (which can't parse
+    ISO week format like '2026-W18').
     """
     if series_key not in ECB_DATASETS:
         print(f"[chart] ECB unknown series_key: {series_key}")
@@ -164,17 +217,14 @@ def fetch_ecb(series_key):
         print(f"[chart] ECB JSON parse fail {series_key}: {e}")
         return None
 
-    # SDMX-JSON structure: dataSets[0].series."<key>".observations
     try:
         datasets = d.get("dataSets") or d.get("dataset") or []
         if not datasets:
-            print(f"[chart] ECB no datasets in response for {series_key}")
             return None
         ds = datasets[0]
         series_dict = ds.get("series") or {}
         first_series = next(iter(series_dict.values()), None)
         if not first_series:
-            print(f"[chart] ECB no series in dataset for {series_key}")
             return None
         obs_dict = first_series.get("observations") or {}
 
@@ -182,7 +232,6 @@ def fetch_ecb(series_key):
         obs_dims = struct.get("dimensions", {}).get("observation", [])
         time_dim = next((dim for dim in obs_dims if dim.get("id") == "TIME_PERIOD"), None)
         if not time_dim:
-            print(f"[chart] ECB no TIME_PERIOD dim for {series_key}")
             return None
         time_values = time_dim.get("values", [])
 
@@ -192,12 +241,13 @@ def fetch_ecb(series_key):
                 idx = int(idx_str)
                 if idx >= len(time_values) or not vals or vals[0] is None:
                     continue
-                date_str = time_values[idx].get("id") or time_values[idx].get("name", "")
-                obs.append({"time": date_str, "value": float(vals[0])})
+                raw_date = time_values[idx].get("id") or time_values[idx].get("name", "")
+                iso_date = normalize_ecb_date(raw_date)
+                obs.append({"time": iso_date, "value": float(vals[0])})
             except (ValueError, TypeError, IndexError):
                 continue
         obs.sort(key=lambda o: o["time"])
-        print(f"[chart] ECB {series_key}: {len(obs)} observations")
+        print(f"[chart] ECB {series_key}: {len(obs)} obs ({obs[0]['time'] if obs else '?'} → {obs[-1]['time'] if obs else '?'})")
         return obs
     except Exception as e:
         print(f"[chart] ECB parse fail {series_key}: {e}")

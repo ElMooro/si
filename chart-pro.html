@@ -114,6 +114,60 @@
   .loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
              color: var(--text-dim); font-size: 13px; }
 
+  /* Crosshair tooltip — shows all series values at hover point */
+  .chart-tooltip { position: absolute; display: none; background: rgba(15,15,15,0.97);
+                    border: 1px solid var(--border-light); padding: 8px 11px; border-radius: 5px;
+                    font-size: 11px; font-family: 'SF Mono', Monaco, Menlo, monospace;
+                    pointer-events: none; z-index: 1000; min-width: 210px;
+                    backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .chart-tooltip .tt-time { color: var(--accent); font-weight: 600; margin-bottom: 5px;
+                              padding-bottom: 4px; border-bottom: 1px solid var(--border-light); font-size: 10px; }
+  .chart-tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+  .chart-tooltip .tt-label { color: var(--text-dim); }
+  .chart-tooltip .tt-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Watermark — subtle JustHodl branding */
+  .chart-watermark { position: absolute; bottom: 36px; right: 18px; font-size: 36px;
+                      font-weight: 800; color: rgba(250,204,21,0.07); pointer-events: none;
+                      letter-spacing: -0.02em; user-select: none; z-index: 1; }
+
+  /* Stats panel — min/max/avg/change for active series */
+  .stats-panel { background: var(--bg-card); border-top: 1px solid var(--border);
+                  flex-shrink: 0; max-height: 200px; overflow-y: auto;
+                  transition: max-height 0.2s; }
+  .stats-panel.collapsed { max-height: 28px; }
+  .stats-header { padding: 6px 14px; background: var(--bg-elev); border-bottom: 1px solid var(--border-light);
+                   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+                   color: var(--text-dim); cursor: pointer; display: flex; justify-content: space-between; }
+  .stats-grid { display: grid; grid-template-columns: 200px repeat(8, 1fr); gap: 0;
+                font-size: 11px; font-family: 'SF Mono', Monaco, Menlo, monospace; }
+  .stats-grid .h { padding: 6px 10px; color: var(--text-muted); font-size: 10px;
+                   text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border-light);
+                   background: var(--bg-elev); }
+  .stats-grid .c { padding: 5px 10px; border-bottom: 1px solid var(--border-light);
+                    font-variant-numeric: tabular-nums; }
+  .stats-grid .label-cell { display: flex; align-items: center; gap: 6px; font-family: -apple-system, sans-serif; font-weight: 600; }
+  .stats-grid .label-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stats-grid .pos { color: var(--green); }
+  .stats-grid .neg { color: var(--red); }
+
+  /* Toolbar enhancements */
+  .toolbar-divider { width: 1px; height: 22px; background: var(--border-light); margin: 0 6px; }
+
+  /* Workspaces dropdown */
+  .ws-menu { position: absolute; background: var(--bg-card); border: 1px solid var(--border);
+              border-radius: 4px; padding: 6px 0; min-width: 250px; max-height: 350px;
+              overflow-y: auto; z-index: 100; box-shadow: 0 8px 20px rgba(0,0,0,0.5); display: none; }
+  .ws-menu.open { display: block; }
+  .ws-item { padding: 7px 12px; font-size: 11px; cursor: pointer; display: flex;
+              justify-content: space-between; align-items: center; }
+  .ws-item:hover { background: var(--bg-hover); }
+  .ws-item .ws-info { display: flex; flex-direction: column; gap: 1px; }
+  .ws-item .ws-name { font-weight: 600; }
+  .ws-item .ws-meta { color: var(--text-muted); font-size: 9px; }
+  .ws-item .ws-del { color: var(--c4); cursor: pointer; padding: 2px 5px; }
+  .ws-empty { padding: 14px; color: var(--text-dim); font-size: 11px; text-align: center; }
+
   /* Status bar bottom */
   .status { padding: 6px 16px; border-top: 1px solid var(--border); background: var(--bg-card);
              font-size: 11px; color: var(--text-dim); flex-shrink: 0;
@@ -172,8 +226,17 @@
       <input type="checkbox" id="recessionToggle" checked> Show NBER Bands
     </label>
     <div style="flex:1"></div>
-    <button class="btn primary" onclick="exportCSV()">📥 Export CSV</button>
-    <button class="btn danger" onclick="clearAllSeries()">🗑️ Clear</button>
+    <div class="btn-group">
+      <button class="btn" id="logScaleBtn" title="Toggle log scale">📊 Log</button>
+      <button class="btn" id="fullscreenBtn" title="Fullscreen">⛶ Full</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <button class="btn" onclick="saveWorkspace()" title="Save current chart as workspace">💾 Save</button>
+    <button class="btn" id="loadWsBtn" onclick="toggleWorkspaceMenu(event)" title="Load saved workspace">📂 Load</button>
+    <button class="btn" onclick="exportPNG()" title="Export chart as PNG image">🖼️ PNG</button>
+    <button class="btn primary" onclick="exportCSV()" title="Export aligned data as CSV">📥 CSV</button>
+    <button class="btn danger" onclick="clearAllSeries()" title="Clear all series">🗑️</button>
+    <div id="wsMenu" class="ws-menu"></div>
   </div>
 
   <div class="main">
@@ -250,8 +313,18 @@
 
     <div class="chart-area">
       <div id="chartContainer"></div>
+      <div class="chart-watermark">JUSTHODL</div>
+      <div class="chart-tooltip" id="chartTooltip"></div>
       <div class="loader" id="loader" style="display:none">Loading...</div>
     </div>
+  </div>
+
+  <div class="stats-panel" id="statsPanel">
+    <div class="stats-header" onclick="document.getElementById('statsPanel').classList.toggle('collapsed')">
+      <span>📊 Statistics — Selected Range</span>
+      <span style="color:var(--text-muted)" id="statsToggleHint">click to collapse</span>
+    </div>
+    <div id="statsBody" class="stats-grid"></div>
   </div>
 
   <div class="status">
@@ -303,6 +376,8 @@ const STATE = {
   catalog: null,
   chart: null,
   series: [],
+  seriesById: {},  // map id → chart series object (for tooltip + redraw)
+  logScale: false,
 };
 
 const PRESETS = [
@@ -380,13 +455,53 @@ function initChart() {
     },
     crosshair: {
       mode: LightweightCharts.CrosshairMode.Normal,
-      vertLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed },
-      horzLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed },
+      vertLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#facc15' },
+      horzLine: { color: '#facc15', width: 1, style: LightweightCharts.LineStyle.Dashed, labelBackgroundColor: '#facc15' },
     },
-    rightPriceScale: { borderColor: '#262626', visible: true },
-    leftPriceScale: { borderColor: '#262626', visible: true },
+    rightPriceScale: { borderColor: '#262626', visible: true, mode: 0 },
+    leftPriceScale: { borderColor: '#262626', visible: true, mode: 0 },
     timeScale: { borderColor: '#262626', timeVisible: false, secondsVisible: false, rightOffset: 5 },
+    handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
+    handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
   });
+
+  // Crosshair tooltip — show all active series values at hover point
+  const tooltip = document.getElementById('chartTooltip');
+  STATE.chart.subscribeCrosshairMove(param => {
+    if (!param || !param.time || !param.point || !param.seriesData || param.seriesData.size === 0) {
+      tooltip.style.display = 'none';
+      return;
+    }
+    let html = `<div class="tt-time">${param.time}</div>`;
+    let hasData = false;
+    STATE.activeSeries.forEach(s => {
+      // Find matching chart series object
+      const chartSeries = STATE.seriesById && STATE.seriesById[s.id];
+      if (!chartSeries) return;
+      const data = param.seriesData.get(chartSeries);
+      if (!data) return;
+      hasData = true;
+      const v = data.value;
+      const fmt = Math.abs(v) > 1000 ? v.toFixed(0) :
+                   Math.abs(v) > 10 ? v.toFixed(2) :
+                   Math.abs(v) > 0.01 ? v.toFixed(4) : v.toFixed(6);
+      html += `<div class="tt-row">
+        <span class="tt-label" style="color:${s.color}">● ${s.label}</span>
+        <span class="tt-value">${fmt}</span>
+      </div>`;
+    });
+    if (!hasData) { tooltip.style.display = 'none'; return; }
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    const containerRect = container.getBoundingClientRect();
+    let left = param.point.x + 18;
+    let top = param.point.y + 18;
+    if (left + 240 > containerRect.width) left = param.point.x - 250;
+    if (top + 200 > containerRect.height) top = param.point.y - 200;
+    tooltip.style.left = Math.max(8, left) + 'px';
+    tooltip.style.top = Math.max(8, top) + 'px';
+  });
+
   window.addEventListener('resize', () => {
     STATE.chart.resize(container.clientWidth, container.clientHeight);
   });
@@ -711,12 +826,13 @@ function redraw() {
   // Remove old series
   STATE.series.forEach(s => STATE.chart.removeSeries(s));
   STATE.series = [];
+  STATE.seriesById = {};
 
-  // Recession bands using a histogram series (low-fi but works for shading)
+  // Recession bands
   if (STATE.recession && STATE.recessionData && STATE.recessionData.length) {
     const recSeries = STATE.chart.addHistogramSeries({
       color: 'rgba(239,68,68,0.18)',
-      priceScaleId: '', // overlay
+      priceScaleId: '',
       priceFormat: { type: 'volume' },
     });
     recSeries.priceScale().applyOptions({ scaleMargins: { top: 0.0, bottom: 0.0 } });
@@ -725,11 +841,17 @@ function redraw() {
     STATE.series.push(recSeries);
   }
 
+  // Apply log scale if selected
+  STATE.chart.priceScale('left').applyOptions({
+    mode: STATE.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+  });
+  STATE.chart.priceScale('right').applyOptions({
+    mode: STATE.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+  });
+
   // Add each active series
   STATE.activeSeries.forEach(s => {
     if (!s.data || !s.data.length) return;
-    // Sort ascending by time + dedupe before normalization (defensive against
-    // any data issues from upstream APIs returning unordered or duplicate dates).
     const sorted = [...s.data].sort((a, b) => a.time.localeCompare(b.time));
     const seen = new Set();
     const dedup = sorted.filter(p => {
@@ -749,9 +871,13 @@ function redraw() {
       priceLineVisible: false,
       lastValueVisible: true,
       crosshairMarkerVisible: true,
+      crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: s.color,
+      crosshairMarkerBackgroundColor: '#0a0a0a',
     });
     lineSeries.setData(normData);
     STATE.series.push(lineSeries);
+    STATE.seriesById[s.id] = lineSeries;
   });
 
   // Fit content
@@ -759,11 +885,236 @@ function redraw() {
     try { STATE.chart.timeScale().fitContent(); } catch (e) {}
   }, 50);
 
-  // Update status bar
+  // Update status bar + stats
   document.getElementById('statusInfo').textContent =
     STATE.activeSeries.length ? `${STATE.activeSeries.length} series · ${STATE.activeSeries.map(s => s.id).join(', ')}` : 'No series';
   document.getElementById('statusRange').textContent = `Range: ${STATE.range.toUpperCase()}`;
   document.getElementById('statusNorm').textContent = `Norm: ${STATE.norm}`;
+
+  renderStats();
+}
+
+// ───── Statistics panel ─────
+function computeStats(data) {
+  if (!data || data.length < 2) return null;
+  const vals = data.map(d => d.value).filter(v => v !== null && !isNaN(v));
+  if (vals.length < 2) return null;
+  const sorted = [...vals].sort((a, b) => a - b);
+  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const variance = vals.reduce((acc, v) => acc + (v - mean) ** 2, 0) / vals.length;
+  return {
+    n: vals.length,
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    median: sorted[Math.floor(sorted.length / 2)],
+    avg: mean,
+    std: Math.sqrt(variance),
+    first: vals[0],
+    last: vals[vals.length - 1],
+    change: vals[vals.length - 1] - vals[0],
+    changePct: vals[0] !== 0 ? 100 * (vals[vals.length - 1] - vals[0]) / Math.abs(vals[0]) : 0,
+  };
+}
+
+function fmtN(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  const a = Math.abs(v);
+  if (a >= 1e9) return (v/1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return (v/1e6).toFixed(2) + 'M';
+  if (a >= 1e3) return (v/1e3).toFixed(2) + 'K';
+  if (a >= 100) return v.toFixed(1);
+  if (a >= 1) return v.toFixed(2);
+  if (a >= 0.001) return v.toFixed(4);
+  return v.toFixed(6);
+}
+
+function renderStats() {
+  const body = document.getElementById('statsBody');
+  if (!STATE.activeSeries.length) {
+    body.innerHTML = '<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text-muted);font-size:11px">No active series — pick from catalog or load a preset.</div>';
+    return;
+  }
+  const headers = ['Series', 'N obs', 'Latest', 'First', 'Change', 'Change %', 'Min', 'Max', 'Std'];
+  let html = headers.map(h => `<div class="h">${h}</div>`).join('');
+  for (const s of STATE.activeSeries) {
+    const stats = computeStats(s.data);
+    if (!stats) {
+      html += `<div class="c label-cell"><span class="label-dot" style="background:${s.color}"></span>${s.label}</div>` +
+              '<div class="c" style="grid-column:span 8;color:var(--text-muted)">No data</div>';
+      continue;
+    }
+    const changeClass = stats.change >= 0 ? 'pos' : 'neg';
+    const sign = stats.change >= 0 ? '+' : '';
+    html += `<div class="c label-cell"><span class="label-dot" style="background:${s.color}"></span>${s.label}</div>`;
+    html += `<div class="c">${stats.n.toLocaleString()}</div>`;
+    html += `<div class="c"><strong>${fmtN(stats.last)}</strong></div>`;
+    html += `<div class="c">${fmtN(stats.first)}</div>`;
+    html += `<div class="c ${changeClass}">${sign}${fmtN(stats.change)}</div>`;
+    html += `<div class="c ${changeClass}"><strong>${sign}${stats.changePct.toFixed(2)}%</strong></div>`;
+    html += `<div class="c">${fmtN(stats.min)}</div>`;
+    html += `<div class="c">${fmtN(stats.max)}</div>`;
+    html += `<div class="c">${fmtN(stats.std)}</div>`;
+  }
+  body.innerHTML = html;
+}
+
+// ───── Log scale toggle ─────
+document.getElementById('logScaleBtn').addEventListener('click', () => {
+  STATE.logScale = !STATE.logScale;
+  document.getElementById('logScaleBtn').classList.toggle('active', STATE.logScale);
+  redraw();
+});
+
+// ───── Fullscreen toggle ─────
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  const elem = document.documentElement;
+  if (!document.fullscreenElement) {
+    (elem.requestFullscreen || elem.webkitRequestFullscreen || elem.msRequestFullscreen).call(elem);
+    document.getElementById('fullscreenBtn').classList.add('active');
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+    document.getElementById('fullscreenBtn').classList.remove('active');
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('fullscreenBtn').classList.toggle('active', !!document.fullscreenElement);
+});
+
+// ───── Export PNG ─────
+function exportPNG() {
+  if (!STATE.chart || !STATE.activeSeries.length) {
+    alert('Add at least one series before exporting.');
+    return;
+  }
+  try {
+    const canvas = STATE.chart.takeScreenshot();
+    const link = document.createElement('a');
+    const ts = new Date().toISOString().slice(0,16).replace(/[:T]/g, '-');
+    link.download = `chart-${ts}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) {
+    console.error('PNG export failed:', e);
+    alert('Export failed — see console for details.');
+  }
+}
+
+// ───── Workspaces (save/load to localStorage) ─────
+function loadWorkspaces() {
+  try { return JSON.parse(localStorage.getItem('chartpro_workspaces') || '[]'); }
+  catch { return []; }
+}
+
+function saveWorkspaces(list) {
+  localStorage.setItem('chartpro_workspaces', JSON.stringify(list));
+}
+
+function saveWorkspace() {
+  if (!STATE.activeSeries.length) {
+    alert('Add at least one series before saving.');
+    return;
+  }
+  const defaultName = STATE.activeSeries.map(s => s.id).slice(0, 3).join('-');
+  const name = prompt('Workspace name:', defaultName);
+  if (!name) return;
+  const ws = {
+    name, saved: new Date().toISOString(),
+    series: STATE.activeSeries.map(s => ({
+      id: s.id, label: s.label, source: s.source, color: s.color, axis: s.axis,
+    })),
+    range: STATE.range,
+    norm: STATE.norm,
+    recession: STATE.recession,
+    logScale: STATE.logScale,
+  };
+  const all = loadWorkspaces();
+  const existingIdx = all.findIndex(w => w.name === name);
+  if (existingIdx >= 0) all[existingIdx] = ws;
+  else all.push(ws);
+  saveWorkspaces(all);
+  showToast(`Workspace "${name}" saved.`);
+}
+
+function toggleWorkspaceMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('wsMenu');
+  if (menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    return;
+  }
+  const all = loadWorkspaces();
+  if (!all.length) {
+    menu.innerHTML = '<div class="ws-empty">No saved workspaces yet.<br>Click 💾 Save first.</div>';
+  } else {
+    menu.innerHTML = all.sort((a,b) => b.saved.localeCompare(a.saved)).map((w, i) => `
+      <div class="ws-item" onclick="restoreWorkspace(${i})">
+        <div class="ws-info">
+          <span class="ws-name">${w.name}</span>
+          <span class="ws-meta">${w.series.length} series · ${w.range.toUpperCase()} · ${new Date(w.saved).toLocaleDateString()}</span>
+        </div>
+        <span class="ws-del" onclick="event.stopPropagation();deleteWorkspace(${i})" title="Delete">✕</span>
+      </div>
+    `).join('');
+  }
+  // Position below the button
+  const btn = document.getElementById('loadWsBtn');
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 4) + 'px';
+  menu.style.left = (rect.left - 100) + 'px';
+  menu.classList.add('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('wsMenu').classList.remove('open');
+});
+
+async function restoreWorkspace(idx) {
+  const all = loadWorkspaces().sort((a,b) => b.saved.localeCompare(a.saved));
+  const ws = all[idx];
+  if (!ws) return;
+  STATE.range = ws.range || '5y';
+  STATE.norm = ws.norm || 'raw';
+  STATE.recession = ws.recession !== false;
+  STATE.logScale = !!ws.logScale;
+  document.querySelectorAll('[data-range]').forEach(b => b.classList.toggle('active', b.dataset.range === STATE.range));
+  document.getElementById('normSelect').value = STATE.norm;
+  document.getElementById('recessionToggle').checked = STATE.recession;
+  document.getElementById('logScaleBtn').classList.toggle('active', STATE.logScale);
+  STATE.activeSeries = ws.series.map((s, i) => ({
+    id: s.id, label: s.label, source: s.source,
+    color: s.color || COLORS[i], axis: s.axis || (i === 0 ? 'left' : 'right'),
+    data: null,
+  }));
+  await Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source)));
+  renderActiveList();
+  renderCatalog(document.getElementById('searchInput').value);
+  redraw();
+  document.getElementById('wsMenu').classList.remove('open');
+  showToast(`Loaded "${ws.name}"`);
+}
+
+function deleteWorkspace(idx) {
+  if (!confirm('Delete this workspace?')) return;
+  const all = loadWorkspaces().sort((a,b) => b.saved.localeCompare(a.saved));
+  all.splice(idx, 1);
+  saveWorkspaces(all);
+  toggleWorkspaceMenu({ stopPropagation: () => {} });
+  // Re-open
+  document.getElementById('wsMenu').classList.remove('open');
+}
+
+// ───── Toast notification ─────
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:48px;left:50%;transform:translateX(-50%);background:rgba(15,15,15,0.97);border:1px solid var(--accent);color:var(--accent);padding:8px 18px;border-radius:5px;font-size:12px;font-weight:600;z-index:2000;display:none;backdrop-filter:blur(4px);box-shadow:0 6px 16px rgba(0,0,0,0.5)';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
 }
 
 function showLoader(show) {
