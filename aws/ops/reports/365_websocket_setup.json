@@ -1,9 +1,32 @@
 {
-  "started": "2026-05-08T21:32:15.738671+00:00",
+  "started": "2026-05-08T21:39:25.668169+00:00",
   "steps": {
-    "ddb": "created"
+    "ddb": "already_exists",
+    "wss_api": {
+      "id": "q7vco36knh",
+      "endpoint": "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com",
+      "preexisting": false
+    },
+    "integration_id": "1v98b15",
+    "routes": {
+      "$connect": "created",
+      "$disconnect": "created",
+      "$default": "created"
+    },
+    "lambda_invoke_perm": "added",
+    "iam": "policies_attached",
+    "lambda_envs": "updated",
+    "stage": "created",
+    "broadcast_function_url": {
+      "created": false,
+      "url": "https://p6kvtojb2y6r4orgbtxh7ld3nu0pfktz.lambda-url.us-east-1.on.aws/"
+    },
+    "broadcast_public_perm": "already_exists",
+    "s3_lambda_perm": "added",
+    "s3_event_configs": 8,
+    "wss_endpoint": "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod",
+    "wss_client_patched": "yes"
   },
-  "status": "error",
-  "error": "AccessDeniedException: An error occurred (AccessDeniedException) when calling the GetApis operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: apigateway:GET on resource: arn:aws:apigateway:us-east-1::/apis because no identity-based policy allows the apigateway:GET action",
-  "finished": "2026-05-08T21:32:36.590184+00:00"
+  "status": "success",
+  "finished": "2026-05-08T21:39:31.973447+00:00"
 }
