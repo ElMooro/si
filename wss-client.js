@@ -29,11 +29,14 @@
 (function () {
   // Endpoint discovery: hard-coded for now; can be replaced with a fetch
   // to /wss-endpoint.json or similar later. Replaced by ops 365.
-  const WSS_ENDPOINT = "wss://__WS_API_ID__.execute-api.us-east-1.amazonaws.com/prod";
+  const WSS_ENDPOINT = "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod";
 
   const RECONNECT_BACKOFF_MS = [1000, 2000, 4000, 8000, 16000, 30000];
   const MAX_FAILURES = 5;
   const PING_INTERVAL_MS = 60000;
+
+  // Sentinel kept here for the deploy-time injector to detect "patched":
+  // marker:__WS_API_ID__-replaced
 
   const subscribers = new Map();   // channel → Set<callback>
   let socket = null;
@@ -56,12 +59,6 @@
 
   function connect() {
     if (givenUp || socket) return;
-    // The endpoint placeholder is replaced at deploy time. If still placeholder,
-    // skip silently — the page still works on S3 polling.
-    if (WSS_ENDPOINT.includes("__WS_API_ID__")) {
-      log("WSS endpoint not configured — skipping (page will poll S3)");
-      return;
-    }
     try {
       socket = new WebSocket(WSS_ENDPOINT);
     } catch (e) {
