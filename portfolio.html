@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio · JustHodl.AI</title>
+<meta name="description" content="Live book dashboard — open positions, sizing recommendations, equity curve, decisive system call. Powered by signal-portfolio-state, sizer-v2, and pnl-tracker Lambdas.">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818; --bg-hover: #1f1f1f;
+    --border: #262626; --border-light: #2e2e2e;
+    --text: #e5e5e5; --text-dim: #888; --text-muted: #555;
+    --accent: #facc15; --green: #22c55e; --amber: #f59e0b;
+    --red: #ef4444; --crimson: #dc2626; --blue: #3b82f6; --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; font-size: 13px; }
+  .container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .sub { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .meta { color: var(--text-dim); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  .nav { display: flex; gap: 16px; font-size: 12px; }
+  .nav a { color: var(--text-dim); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+
+  /* Hero stats grid */
+  .hero { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--border);
+               border-radius: 6px; padding: 14px 16px; }
+  .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+                letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Decisive call banner */
+  .call-banner { background: var(--bg-card); border: 1px solid var(--border);
+                 border-left: 5px solid var(--accent);
+                 border-radius: 8px; padding: 18px 22px; margin-bottom: 16px; }
+  .call-banner.EXIT_ALL_RISK, .call-banner.REDUCE_RISK { border-left-color: var(--crimson); }
+  .call-banner.HOLD { border-left-color: var(--amber); }
+  .call-banner.ADD_RISK, .call-banner.ALL_IN { border-left-color: var(--green); }
+  .call-line { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .call-line .label { color: var(--text-dim); font-weight: 400; font-size: 13px; margin-right: 10px; }
+  .call-line .value.EXIT_ALL_RISK, .call-line .value.REDUCE_RISK { color: var(--red); }
+  .call-line .value.HOLD { color: var(--amber); }
+  .call-line .value.ADD_RISK, .call-line .value.ALL_IN { color: var(--green); }
+  .call-action { color: var(--text); font-size: 13px; line-height: 1.55; margin-top: 6px; }
+  .call-meta { color: var(--text-muted); font-size: 11px; margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* Section */
+  .section { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .section-header { padding: 12px 18px; border-bottom: 1px solid var(--border);
+                    display: flex; justify-content: space-between; align-items: center; }
+  .section-header h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .section-header .sub { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+  .section-body { padding: 14px 18px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead { background: var(--bg-card-elev); }
+  th { padding: 9px 12px; text-align: left; font-size: 10px; color: var(--text-dim);
+       text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+       border-bottom: 1px solid var(--border); }
+  th.right { text-align: right; }
+  td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+       color: var(--text); white-space: nowrap; }
+  td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:hover { background: var(--bg-hover); }
+  tr:last-child td { border-bottom: none; }
+  .ticker { font-weight: 700; color: var(--accent); }
+  .pnl-up { color: var(--green); }
+  .pnl-dn { color: var(--red); }
+  .pnl-flat { color: var(--text-dim); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px;
+          font-weight: 600; letter-spacing: 0.03em; }
+  .pill.long { background: rgba(34,197,94,0.15); color: var(--green); }
+  .pill.short { background: rgba(239,68,68,0.15); color: var(--red); }
+  .pill.exit { background: rgba(239,68,68,0.18); color: var(--red); }
+  .pill.add { background: rgba(34,197,94,0.18); color: var(--green); }
+  .pill.hold { background: rgba(250,204,21,0.18); color: var(--accent); }
+  .pill.trim { background: rgba(245,158,11,0.18); color: var(--amber); }
+
+  /* Equity curve */
+  #equityChart { width: 100%; height: 380px; }
+
+  /* Loading + error */
+  .loading { padding: 30px 20px; text-align: center; color: var(--text-dim); font-size: 13px; }
+  .error { padding: 16px; background: rgba(239,68,68,0.1); border: 1px solid var(--red);
+           border-radius: 6px; color: var(--red); font-size: 12px; }
+
+  /* Status */
+  .status-bar { display: flex; gap: 16px; padding: 8px 14px; background: var(--bg-card);
+                border-top: 1px solid var(--border); border-radius: 0 0 6px 6px;
+                font-size: 11px; color: var(--text-muted); margin-top: -16px; margin-bottom: 16px; }
+
+  /* Two-col grid for tables */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } .hero { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📋 Portfolio <span class="sub">live book — positions, sizing, P&amp;L, decisive call</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/master-rank.html">Action</a>
+      <a href="/alpha-scoreboard.html">Scoreboard</a>
+      <a href="/nobrainers.html">No-brainers</a>
+      <a href="/macro-data.html">Regime</a>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading portfolio state from 4 Lambdas...</div>
+  </div>
+</div>
+
+<script>
+const BUCKET_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com";
+const ENDPOINTS = {
+  state: BUCKET_BASE + "/portfolio/signal-portfolio-state.json",
+  sizer: BUCKET_BASE + "/portfolio/sizer-v2.json",
+  pnlDaily: BUCKET_BASE + "/portfolio/pnl-daily.json",
+  pnlHistory: BUCKET_BASE + "/portfolio/pnl-history.json",
+};
+
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    console.warn("Fetch failed:", url, e);
+    return null;
+  }
+}
+
+function fmt(n, dp = 2) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+function fmtPct(n, dp = 2) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return (n >= 0 ? "+" : "") + Number(n).toFixed(dp) + "%";
+}
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  const sign = n < 0 ? "-" : "";
+  return sign + "$" + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function pnlClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return "pnl-flat";
+  if (v > 0.05) return "pnl-up";
+  if (v < -0.05) return "pnl-dn";
+  return "pnl-flat";
+}
+
+async function load() {
+  const [state, sizer, pnlDaily, pnlHistory] = await Promise.all([
+    fetchJSON(ENDPOINTS.state),
+    fetchJSON(ENDPOINTS.sizer),
+    fetchJSON(ENDPOINTS.pnlDaily),
+    fetchJSON(ENDPOINTS.pnlHistory),
+  ]);
+
+  if (!state && !sizer && !pnlDaily) {
+    document.getElementById("content").innerHTML = `
+      <div class="error">⚠ Could not load any portfolio data. The 3 Lambdas may not have run yet, or S3 is unreachable.</div>`;
+    return;
+  }
+
+  const html = [
+    renderHero(state, pnlDaily),
+    renderDecisiveCall(sizer, pnlDaily),
+    renderEquityChart(pnlHistory),
+    renderTwoCol(state, sizer),
+    renderClosedAndStats(state),
+    renderStatusBar(state, sizer, pnlDaily, pnlHistory),
+  ].join("");
+
+  document.getElementById("content").innerHTML = html;
+
+  // Render equity curve after DOM exists
+  if (pnlHistory && pnlHistory.snapshots && pnlHistory.snapshots.length) {
+    renderEquityCurveECharts(pnlHistory);
+  }
+}
+
+function renderHero(state, pnlDaily) {
+  const nav = state?.current_nav ?? pnlDaily?.khalid_strategy?.value_usd ?? null;
+  const initialNav = state?.initial_nav ?? pnlDaily?.starting_value_usd ?? 100000;
+  const navPctChg = state?.current_nav_pct_chg ?? null;
+  const unrealized = state?.unrealized_pnl_dollars ?? null;
+  const phase = pnlDaily?.current_phase ?? "—";
+  const regime = pnlDaily?.current_regime ?? "—";
+  const days = pnlDaily?.days_since_inception ?? null;
+  const inception = pnlDaily?.inception ?? state?.first_seen ?? "—";
+  const openPositions = (state?.open_positions || []).length;
+
+  const navCls = (navPctChg ?? 0) > 0 ? "green" : (navPctChg ?? 0) < 0 ? "red" : "";
+  const unrealCls = (unrealized ?? 0) > 0 ? "green" : (unrealized ?? 0) < 0 ? "red" : "";
+
+  return `
+  <div class="hero">
+    <div class="stat-card">
+      <div class="stat-label">Current NAV</div>
+      <div class="stat-value">${fmtMoney(nav)}</div>
+      <div class="stat-sub">vs ${fmtMoney(initialNav)} start</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total P&amp;L</div>
+      <div class="stat-value ${navCls}">${fmtPct(navPctChg)}</div>
+      <div class="stat-sub">since ${inception}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unrealized P&amp;L</div>
+      <div class="stat-value ${unrealCls}">${fmtMoney(unrealized)}</div>
+      <div class="stat-sub">on ${openPositions} open positions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Regime / Phase</div>
+      <div class="stat-value" style="font-size:15px;line-height:1.3">${regime}</div>
+      <div class="stat-sub">${phase}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Days Active</div>
+      <div class="stat-value">${days ?? "—"}</div>
+      <div class="stat-sub">since ${inception}</div>
+    </div>
+  </div>`;
+}
+
+function renderDecisiveCall(sizer, pnlDaily) {
+  const call = sizer?.decisive_call || "HOLD";
+  const action = pnlDaily?.current_action_required || sizer?.summary?.action_summary || "No active directive.";
+  const riskMult = sizer?.risk_multiplier ?? 1.0;
+  const summary = sizer?.summary || {};
+  const exposureNow = summary.total_current_exposure_pct ?? null;
+  const exposureRecommended = summary.total_recommended_exposure_pct ?? null;
+  const change = summary.exposure_change_pp ?? null;
+  const actions = summary.actions || {};
+  const actionsStr = Object.entries(actions).map(([k, v]) => `<strong>${v}× ${k}</strong>`).join(", ") || "—";
+
+  return `
+  <div class="call-banner ${call}">
+    <div class="call-line">
+      <span class="label">Decisive call:</span>
+      <span class="value ${call}">${call.replace(/_/g, " ")}</span>
+      <span style="color:var(--text-muted);font-weight:400;font-size:12px;margin-left:14px">
+        risk multiplier ${(riskMult * 100).toFixed(0)}%
+      </span>
+    </div>
+    <div class="call-action">${action}</div>
+    <div class="call-meta">
+      <span><strong>Now exposed:</strong> ${exposureNow !== null ? exposureNow.toFixed(2) + "%" : "—"}</span>
+      <span><strong>Recommended:</strong> ${exposureRecommended !== null ? exposureRecommended.toFixed(2) + "%" : "—"}</span>
+      <span><strong>Change:</strong> ${change !== null ? (change >= 0 ? "+" : "") + change.toFixed(2) + "pp" : "—"}</span>
+      <span><strong>Actions:</strong> ${actionsStr}</span>
+      <span><strong>Method:</strong> ${sizer?.method || "—"}</span>
+      <span><strong>Kelly:</strong> ${sizer?.kelly_fraction ?? "—"}</span>
+      <span><strong>Max single:</strong> ${sizer?.max_single_position_pct ? (sizer.max_single_position_pct * 100).toFixed(1) + "%" : "—"}</span>
+    </div>
+  </div>`;
+}
+
+function renderEquityChart(pnlHistory) {
+  if (!pnlHistory || !pnlHistory.snapshots || !pnlHistory.snapshots.length) return "";
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📈 Equity Curve <span class="sub">— Khalid strategy vs Buy & Hold (since inception)</span></h3>
+      <span class="sub" id="eq-meta">${pnlHistory.snapshots.length} daily snapshots</span>
+    </div>
+    <div class="section-body">
+      <div id="equityChart"></div>
+    </div>
+  </div>`;
+}
+
+function renderEquityCurveECharts(pnlHistory) {
+  const snaps = pnlHistory.snapshots;
+  const dates = snaps.map(s => s.as_of);
+  const khalid = snaps.map(s => s.khalid_strategy_value_usd);
+  const buyhold = snaps.map(s => s.buy_and_hold_value_usd);
+  const ka = snaps.map(s => s.ka_strategy_value_usd);
+  const hasKA = ka.some(v => v !== null && v !== undefined);
+
+  const chart = echarts.init(document.getElementById("equityChart"), null, { renderer: "canvas" });
+  const series = [
+    {
+      name: "Khalid Strategy", type: "line", data: khalid, smooth: false,
+      lineStyle: { width: 2.5, color: "#facc15" }, itemStyle: { color: "#facc15" },
+      areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [
+        { offset: 0, color: "rgba(250,204,21,0.18)" },
+        { offset: 1, color: "rgba(250,204,21,0)" }] } },
+    },
+    {
+      name: "Buy & Hold (60/40 SPY+TLT)", type: "line", data: buyhold,
+      lineStyle: { width: 1.5, color: "#888", type: "dashed" }, itemStyle: { color: "#888" },
+    },
+  ];
+  if (hasKA) series.push({
+    name: "Khalid Allocator", type: "line", data: ka,
+    lineStyle: { width: 1.5, color: "#22d3ee" }, itemStyle: { color: "#22d3ee" },
+  });
+
+  chart.setOption({
+    backgroundColor: "transparent",
+    grid: { left: 60, right: 24, top: 30, bottom: 40 },
+    tooltip: {
+      trigger: "axis", backgroundColor: "rgba(20,20,20,0.95)", borderColor: "#262626",
+      textStyle: { color: "#e5e5e5", fontSize: 12 },
+      formatter: (params) => {
+        const d = params[0].axisValue;
+        let lines = [`<b>${d}</b>`];
+        params.forEach(p => {
+          lines.push(`<span style="color:${p.color}">●</span> ${p.seriesName}: <b>$${p.value?.toLocaleString()}</b>`);
+        });
+        return lines.join("<br>");
+      },
+    },
+    legend: {
+      data: series.map(s => s.name), top: 0, right: 24,
+      textStyle: { color: "#888", fontSize: 11 },
+      itemWidth: 16, itemHeight: 8,
+    },
+    xAxis: {
+      type: "category", data: dates,
+      axisLine: { lineStyle: { color: "#262626" } },
+      axisLabel: { color: "#888", fontSize: 10 },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { lineStyle: { color: "#262626" } },
+      axisLabel: { color: "#888", fontSize: 10, formatter: (v) => "$" + (v / 1000).toFixed(0) + "k" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } },
+    },
+    series,
+  });
+  window.addEventListener("resize", () => chart.resize());
+}
+
+function renderTwoCol(state, sizer) {
+  return `<div class="two-col">
+    ${renderOpenPositions(state, sizer)}
+    ${renderSetups(sizer)}
+  </div>`;
+}
+
+function renderOpenPositions(state, sizer) {
+  const positions = state?.open_positions || [];
+  if (!positions.length) {
+    return `<div class="section">
+      <div class="section-header"><h3>📍 Open Positions</h3></div>
+      <div class="section-body"><div class="loading">No open positions.</div></div>
+    </div>`;
+  }
+  const sizerPositions = sizer?.positions || [];
+  const sizerByTicker = {};
+  for (const sp of sizerPositions) sizerByTicker[sp.ticker || sp.position_id] = sp;
+
+  const rows = positions.map(p => {
+    const ticker = p.ticker || p.symbol || "?";
+    const dir = p.direction || (p.side === "short" ? "SHORT" : "LONG");
+    const entry = p.entry_price;
+    const stop = p.stop_price;
+    const target = p.target_price;
+    const cur = p.current_price;
+    const pnlPct = p.current_pnl_pct;
+    const sp = sizerByTicker[ticker] || {};
+    const action = (sp.action || "HOLD").toUpperCase();
+    const recSize = sp.recommended_position_pct ?? null;
+    const curSize = sp.current_position_pct ?? p.position_size_pct ?? null;
+
+    return `<tr>
+      <td><span class="ticker">${ticker}</span></td>
+      <td><span class="pill ${dir.toLowerCase()}">${dir}</span></td>
+      <td class="right">${fmt(entry)}</td>
+      <td class="right">${fmt(cur)}</td>
+      <td class="right">${fmt(stop)}</td>
+      <td class="right">${fmt(target)}</td>
+      <td class="right ${pnlClass(pnlPct)}">${fmtPct(pnlPct)}</td>
+      <td class="right">${curSize !== null ? (curSize * 100).toFixed(2) + "%" : "—"}</td>
+      <td><span class="pill ${action.toLowerCase()}">${action}</span></td>
+      <td class="right">${recSize !== null ? (recSize * 100).toFixed(2) + "%" : "—"}</td>
+    </tr>`;
+  }).join("");
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📍 Open Positions <span class="sub">— ${positions.length} active · sized via Kelly + horizon weights</span></h3>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Ticker</th><th>Side</th>
+        <th class="right">Entry</th><th class="right">Current</th>
+        <th class="right">Stop</th><th class="right">Target</th>
+        <th class="right">P&amp;L</th><th class="right">Current %</th>
+        <th>Action</th><th class="right">Recommended %</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderSetups(sizer) {
+  const setups = sizer?.setups || [];
+  if (!setups.length) {
+    return `<div class="section">
+      <div class="section-header"><h3>🎯 Pending Setups</h3></div>
+      <div class="section-body"><div class="loading">No setups currently evaluated. Sizer last ran ${sizer?.generated_at ? new Date(sizer.generated_at).toLocaleString() : "—"}.</div></div>
+    </div>`;
+  }
+  const rows = setups.slice(0, 30).map(s => {
+    const ticker = s.ticker || s.symbol || "?";
+    const conv = s.conviction_pct ?? s.confidence ?? null;
+    const horizon = s.horizon_days || s.horizon || "—";
+    const recSize = s.recommended_size_pct ?? null;
+    const sigType = s.signal_type || s.source || "—";
+    const action = (s.action || "WATCH").toUpperCase();
+    return `<tr>
+      <td><span class="ticker">${ticker}</span></td>
+      <td>${sigType}</td>
+      <td class="right">${conv !== null ? conv.toFixed(0) + "%" : "—"}</td>
+      <td class="right">${horizon}d</td>
+      <td class="right">${recSize !== null ? (recSize * 100).toFixed(2) + "%" : "—"}</td>
+      <td><span class="pill ${action.toLowerCase()}">${action}</span></td>
+    </tr>`;
+  }).join("");
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>🎯 Pending Setups <span class="sub">— ${setups.length} evaluated · top ${Math.min(30, setups.length)} by conviction</span></h3>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Ticker</th><th>Signal</th>
+        <th class="right">Conviction</th><th class="right">Horizon</th>
+        <th class="right">Rec Size</th><th>Action</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderClosedAndStats(state) {
+  const closed = state?.recently_closed || [];
+  const stats = state?.stats || {};
+  const closedRows = closed.slice(0, 20).map(p => {
+    const ticker = p.ticker || p.symbol || "?";
+    const realized = p.realized_pnl_pct ?? p.final_pnl_pct ?? null;
+    const reason = p.exit_reason || p.exit_kind || "—";
+    const days = p.days_held ?? null;
+    return `<tr>
+      <td><span class="ticker">${ticker}</span></td>
+      <td>${p.entry_date || "—"}</td>
+      <td>${p.exit_date || "—"}</td>
+      <td class="right">${days ?? "—"}d</td>
+      <td>${reason}</td>
+      <td class="right ${pnlClass(realized)}">${fmtPct(realized)}</td>
+    </tr>`;
+  }).join("");
+
+  let statsHtml = "";
+  if (Object.keys(stats).length) {
+    const order = ["n_open", "n_closed_total", "n_winners", "n_losers", "win_rate", "avg_winner_pct", "avg_loser_pct", "avg_hold_days", "total_realized_pnl_pct", "best_trade_pct", "worst_trade_pct", "expectancy_pct"];
+    const items = order.filter(k => k in stats).map(k => {
+      const v = stats[k];
+      let display;
+      if (k.includes("_pct") || k === "win_rate") display = (typeof v === "number" ? (v < 1 ? (v * 100).toFixed(1) + "%" : v.toFixed(1) + "%") : v);
+      else if (typeof v === "number") display = v.toFixed(1);
+      else display = v;
+      return `<div class="stat-card"><div class="stat-label">${k.replace(/_/g, " ")}</div><div class="stat-value" style="font-size:18px">${display}</div></div>`;
+    }).join("");
+    statsHtml = `<div class="hero" style="grid-template-columns:repeat(4,1fr);margin-top:16px">${items}</div>`;
+  }
+
+  return `
+  <div class="section">
+    <div class="section-header">
+      <h3>📕 Recently Closed <span class="sub">— ${closed.length} closed positions · top 20 most recent</span></h3>
+    </div>
+    ${closed.length ? `<table>
+      <thead><tr>
+        <th>Ticker</th><th>Entry</th><th>Exit</th>
+        <th class="right">Days</th><th>Exit reason</th>
+        <th class="right">Realized P&amp;L</th>
+      </tr></thead>
+      <tbody>${closedRows}</tbody>
+    </table>` : `<div class="section-body"><div class="loading">No recently closed positions.</div></div>`}
+  </div>
+  ${statsHtml}`;
+}
+
+function renderStatusBar(state, sizer, pnlDaily, pnlHistory) {
+  const fmtTime = (s) => s ? new Date(s).toLocaleString() : "—";
+  return `
+  <div class="status-bar">
+    <span><strong>State:</strong> ${fmtTime(state?.generated_at)}</span>
+    <span><strong>Sizer:</strong> ${fmtTime(sizer?.generated_at)}</span>
+    <span><strong>P&amp;L:</strong> ${fmtTime(pnlDaily?.generated_at)}</span>
+    <span><strong>History:</strong> ${pnlHistory?.snapshots?.length ?? 0} snapshots, last ${fmtTime(pnlHistory?.last_updated)}</span>
+    <span style="flex:1"></span>
+    <span style="color:var(--text-muted)">Powered by signal-portfolio-state.json · sizer-v2.json · pnl-daily.json · pnl-history.json</span>
+  </div>`;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);  // refresh every 5 min
+</script>
+
+</body>
+</html>
