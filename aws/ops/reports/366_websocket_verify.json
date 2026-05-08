@@ -1,0 +1,59 @@
+{
+  "started": "2026-05-08T21:42:24.135555+00:00",
+  "test": {
+    "1_ssm_endpoint": {
+      "value": "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod",
+      "ok": true
+    },
+    "2_ws_handshake": {
+      "status_line": "HTTP/1.1 101 Switching Protocols",
+      "got_101": true,
+      "head_bytes": 166,
+      "ok": true
+    },
+    "3_broadcast_health": {
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    "4_send_no_token": {
+      "status": 502,
+      "ok": false
+    },
+    "5_admin_broadcast": {
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    "6_ddb": {
+      "status": "ACTIVE",
+      "items": 0,
+      "ok": true
+    },
+    "7_s3_events": {
+      "count": 8,
+      "ok": true
+    },
+    "8_api_gateway": {
+      "error": "An error occurred (AccessDeniedException) when calling the GetApis operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-wss-verify is not authorized to perform: apigateway:GET on resource: arn:aws:apigateway:us-east-1::/apis because no identity-based policy allows the apigateway:GET action"
+    },
+    "9_frontend": {
+      "/wss-client.js": {
+        "status": 200,
+        "size": 5750,
+        "has_placeholder": true,
+        "has_real_url": false,
+        "has_live_pill": null
+      },
+      "/index.html": {
+        "status": 200,
+        "size": 69371,
+        "has_placeholder": false,
+        "has_real_url": null,
+        "has_live_pill": true
+      }
+    },
+    "summary": {
+      "passed": 4,
+      "total": 8,
+      "rate": "4/8"
+    }
+  },
+  "finished": "2026-05-08T21:42:35.099973+00:00"
+}
