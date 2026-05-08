@@ -19,7 +19,7 @@ lam = boto3.client("lambda", region_name="us-east-1")
 
 CORS_CONFIG = {
     "AllowOrigins": ["https://justhodl.ai", "https://www.justhodl.ai"],
-    "AllowMethods": ["GET", "POST", "OPTIONS"],
+    "AllowMethods": ["GET", "POST"],  # OPTIONS handled automatically; >6-char strings rejected
     "AllowHeaders": ["Content-Type", "X-Justhodl-Admin-Token"],
     "ExposeHeaders": [],
     "MaxAge": 3600,
