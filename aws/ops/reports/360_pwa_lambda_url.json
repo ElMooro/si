@@ -1,8 +1,7 @@
 {
-  "started": "2026-05-08T20:41:57.107567+00:00",
+  "started": "2026-05-08T20:54:49.194554+00:00",
   "fn": "justhodl-push-api",
-  "status": "function_not_deployed_in_180s",
-  "error": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-push-api",
-  "hint": "deploy-lambdas.yml took longer than 180s; rerun this op",
-  "finished": "2026-05-08T20:44:59.048991+00:00"
+  "status": "error",
+  "error": "ClientError: An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must have length greater than or equal to 0, Member must satisfy regular expression pattern: .*, Member must not be null]",
+  "finished": "2026-05-08T20:54:49.591941+00:00"
 }
