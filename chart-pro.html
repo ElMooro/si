@@ -186,6 +186,100 @@
              cursor: pointer; font-size: 12px; }
   .toggle input { cursor: pointer; }
 
+  /* ── INSTITUTIONAL FEATURES (v8) ── */
+
+  /* Indicators panel */
+  .ind-row { padding: 6px 14px; display: flex; align-items: center; gap: 8px;
+             font-size: 11px; cursor: pointer; }
+  .ind-row:hover { background: var(--bg-hover); }
+  .ind-row.active { background: rgba(250,204,21,0.1); }
+  .ind-row .ind-name { flex: 1; }
+  .ind-row .ind-config { font-family: monospace; color: var(--text-muted); font-size: 10px; }
+  .ind-row .ind-toggle { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border-light);
+                          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                          font-size: 10px; }
+  .ind-row.active .ind-toggle { background: var(--accent); border-color: var(--accent); color: #000; }
+
+  /* Right-click context menu */
+  .context-menu { position: fixed; background: var(--bg-card); border: 1px solid var(--border);
+                   border-radius: 5px; padding: 4px 0; min-width: 220px; z-index: 5000;
+                   box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: none;
+                   font-family: -apple-system, sans-serif; font-size: 12px; }
+  .context-menu.open { display: block; }
+  .ctx-item { padding: 7px 14px; cursor: pointer; display: flex; justify-content: space-between;
+               align-items: center; gap: 10px; }
+  .ctx-item:hover { background: var(--bg-hover); }
+  .ctx-item .shortcut { color: var(--text-muted); font-size: 10px; font-family: monospace; }
+  .ctx-divider { height: 1px; background: var(--border-light); margin: 4px 0; }
+  .ctx-header { padding: 5px 14px; font-size: 9px; color: var(--text-muted);
+                 text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+  /* Keyboard help overlay */
+  .kbd-help { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+              background: var(--bg-card); border: 1px solid var(--accent); border-radius: 8px;
+              padding: 22px 28px; z-index: 6000; display: none; max-width: 580px;
+              box-shadow: 0 12px 40px rgba(0,0,0,0.7); }
+  .kbd-help.open { display: block; }
+  .kbd-help h3 { font-size: 14px; margin-bottom: 14px; color: var(--accent); }
+  .kbd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; font-size: 12px; }
+  .kbd-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .kbd-row .kbd { background: var(--bg-elev); border: 1px solid var(--border-light); padding: 2px 6px;
+                   border-radius: 3px; font-family: monospace; font-size: 10px; color: var(--accent); }
+  .kbd-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5999;
+                  display: none; backdrop-filter: blur(3px); }
+  .kbd-overlay.open { display: block; }
+
+  /* Series row enhancements */
+  .active-series-row .vis-toggle { color: var(--text-dim); cursor: pointer; padding: 2px 5px;
+                                     font-size: 13px; user-select: none; }
+  .active-series-row .vis-toggle:hover { color: var(--accent); }
+  .active-series-row.hidden .label { opacity: 0.4; text-decoration: line-through; }
+  .active-series-row .color-edit { width: 12px; height: 12px; border-radius: 50%;
+                                     cursor: pointer; flex-shrink: 0; border: 2px solid transparent; }
+  .active-series-row .color-edit:hover { border-color: var(--accent); }
+
+  /* Drawing tools bar (left side of chart) */
+  .drawing-bar { position: absolute; top: 50%; left: 8px; transform: translateY(-50%);
+                  background: var(--bg-card); border: 1px solid var(--border); border-radius: 5px;
+                  padding: 4px; display: flex; flex-direction: column; gap: 2px; z-index: 50; }
+  .draw-btn { width: 30px; height: 30px; background: transparent; border: 1px solid transparent;
+               color: var(--text-dim); cursor: pointer; border-radius: 3px; font-size: 14px;
+               display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
+  .draw-btn:hover { background: var(--bg-hover); color: var(--text); }
+  .draw-btn.active { background: rgba(250,204,21,0.18); color: var(--accent); border-color: var(--accent); }
+  .draw-divider { height: 1px; background: var(--border-light); margin: 2px 4px; }
+
+  /* Drawing overlay SVG (for trend lines) */
+  .draw-svg { position: absolute; inset: 0; pointer-events: none; z-index: 35; }
+  .draw-svg.active { pointer-events: auto; cursor: crosshair; }
+  .draw-svg line { vector-effect: non-scaling-stroke; }
+
+  /* Share popup */
+  .share-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  background: var(--bg-card); border: 1px solid var(--accent); border-radius: 8px;
+                  padding: 18px 22px; z-index: 6000; display: none; min-width: 500px;
+                  box-shadow: 0 12px 40px rgba(0,0,0,0.7); }
+  .share-popup.open { display: block; }
+  .share-popup h3 { font-size: 14px; color: var(--accent); margin-bottom: 12px; }
+  .share-popup textarea { width: 100%; min-height: 70px; background: var(--bg-elev);
+                            border: 1px solid var(--border); color: var(--text);
+                            font-family: monospace; font-size: 11px; padding: 8px; border-radius: 4px;
+                            resize: none; word-break: break-all; }
+  .share-popup .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+
+  /* Custom date picker */
+  .date-popup { position: absolute; background: var(--bg-card); border: 1px solid var(--border);
+                  padding: 12px; border-radius: 5px; z-index: 100; display: none;
+                  box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .date-popup.open { display: block; }
+  .date-popup label { display: block; font-size: 10px; color: var(--text-dim);
+                        text-transform: uppercase; letter-spacing: 0.04em; margin: 8px 0 3px; }
+  .date-popup label:first-child { margin-top: 0; }
+  .date-popup input[type="date"] { background: var(--bg-elev); border: 1px solid var(--border);
+                                      color: var(--text); padding: 5px 8px; border-radius: 4px;
+                                      font-size: 12px; width: 150px; font-family: inherit; }
+  .date-popup .actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
+
   @media (max-width: 900px) {
     .sidebar { width: 280px; }
   }
@@ -210,6 +304,7 @@
       <button class="btn" data-range="10y">10Y</button>
       <button class="btn" data-range="20y">20Y</button>
       <button class="btn" data-range="all">ALL</button>
+      <button class="btn" id="customDateBtn" title="Custom date range">📅</button>
     </div>
     <span class="label">Normalize:</span>
     <select id="normSelect">
@@ -304,6 +399,14 @@
         </div>
       </div>
 
+      <div class="sidebar-section">
+        <div class="sidebar-header">
+          <span>📈 Indicators</span>
+          <span style="color:var(--text-muted);font-size:9px" id="indHint">apply to first series</span>
+        </div>
+        <div class="sidebar-content" id="indicatorList" style="max-height:280px"></div>
+      </div>
+
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="🔍 Search 80+ indicators..." oninput="filterCatalog()">
       </div>
@@ -315,7 +418,85 @@
       <div id="chartContainer"></div>
       <div class="chart-watermark">JUSTHODL</div>
       <div class="chart-tooltip" id="chartTooltip"></div>
+      <svg id="drawSvg" class="draw-svg"></svg>
+      <div class="drawing-bar" id="drawingBar">
+        <button class="draw-btn active" data-tool="cursor" title="Cursor (no drawing)">↖</button>
+        <div class="draw-divider"></div>
+        <button class="draw-btn" data-tool="hline" title="Horizontal price line (H)">━</button>
+        <button class="draw-btn" data-tool="trendline" title="Trend line (T)">╱</button>
+        <button class="draw-btn" data-tool="annotation" title="Text annotation (A)">📝</button>
+        <div class="draw-divider"></div>
+        <button class="draw-btn" id="clearDrawBtn" title="Clear all drawings">🗑️</button>
+      </div>
       <div class="loader" id="loader" style="display:none">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Context menu (right-click) -->
+  <div class="context-menu" id="ctxMenu">
+    <div class="ctx-header">Quick Actions</div>
+    <div class="ctx-item" onclick="ctxAddPriceLevel()">📍 Add Price Level Here<span class="shortcut">P</span></div>
+    <div class="ctx-item" onclick="ctxAnchorCompare()">🎯 Compare from This Date<span class="shortcut">C</span></div>
+    <div class="ctx-item" onclick="ctxResetZoom()">🔍 Reset Zoom<span class="shortcut">R</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" onclick="exportPNG()">🖼️ Export PNG<span class="shortcut">⌘E</span></div>
+    <div class="ctx-item" onclick="exportCSV()">📥 Export CSV</div>
+    <div class="ctx-item" onclick="copyShareUrl()">🔗 Copy Share URL<span class="shortcut">⌘L</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" onclick="showKbdHelp()">⌨ Keyboard Shortcuts<span class="shortcut">?</span></div>
+  </div>
+
+  <!-- Keyboard shortcuts help -->
+  <div class="kbd-overlay" id="kbdOverlay" onclick="hideKbdHelp()"></div>
+  <div class="kbd-help" id="kbdHelp">
+    <h3>⌨ Keyboard Shortcuts</h3>
+    <div class="kbd-grid">
+      <div class="kbd-row"><span>Help (this menu)</span><span class="kbd">?</span></div>
+      <div class="kbd-row"><span>Save workspace</span><span class="kbd">⌘S</span></div>
+      <div class="kbd-row"><span>Load workspace</span><span class="kbd">⌘O</span></div>
+      <div class="kbd-row"><span>Export PNG</span><span class="kbd">⌘E</span></div>
+      <div class="kbd-row"><span>Export CSV</span><span class="kbd">⌘⇧E</span></div>
+      <div class="kbd-row"><span>Copy share URL</span><span class="kbd">⌘L</span></div>
+      <div class="kbd-row"><span>Toggle log scale</span><span class="kbd">L</span></div>
+      <div class="kbd-row"><span>Toggle fullscreen</span><span class="kbd">F</span></div>
+      <div class="kbd-row"><span>Reset zoom</span><span class="kbd">R</span></div>
+      <div class="kbd-row"><span>Clear all series</span><span class="kbd">⌘⌫</span></div>
+      <div class="kbd-row"><span>Cycle date range</span><span class="kbd">[ ]</span></div>
+      <div class="kbd-row"><span>Add price level</span><span class="kbd">P</span></div>
+      <div class="kbd-row"><span>Trend line tool</span><span class="kbd">T</span></div>
+      <div class="kbd-row"><span>Horizontal line</span><span class="kbd">H</span></div>
+      <div class="kbd-row"><span>Annotation tool</span><span class="kbd">A</span></div>
+      <div class="kbd-row"><span>Cursor (no draw)</span><span class="kbd">Esc</span></div>
+      <div class="kbd-row"><span>Search catalog</span><span class="kbd">/</span></div>
+      <div class="kbd-row"><span>Toggle stats panel</span><span class="kbd">S</span></div>
+    </div>
+    <div style="margin-top:14px;text-align:right;color:var(--text-muted);font-size:10px">
+      Click outside to close
+    </div>
+  </div>
+
+  <!-- Share URL popup -->
+  <div class="share-popup" id="sharePopup">
+    <h3>🔗 Share This Chart</h3>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">
+      This URL recreates the exact chart configuration when opened.
+    </div>
+    <textarea id="shareUrlText" readonly></textarea>
+    <div class="actions">
+      <button class="btn" onclick="document.getElementById('sharePopup').classList.remove('open')">Close</button>
+      <button class="btn primary" onclick="copyShareUrlToClipboard()">📋 Copy</button>
+    </div>
+  </div>
+
+  <!-- Custom date picker -->
+  <div class="date-popup" id="datePopup">
+    <label>From</label>
+    <input type="date" id="dateFromInput">
+    <label>To</label>
+    <input type="date" id="dateToInput">
+    <div class="actions">
+      <button class="btn" onclick="document.getElementById('datePopup').classList.remove('open')">Cancel</button>
+      <button class="btn primary" onclick="applyCustomDates()">Apply</button>
     </div>
   </div>
 
@@ -1149,13 +1330,637 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+// ═════════════════════════════════════════════════════════════════════
+// ═══ V8 INSTITUTIONAL FEATURES ═══
+// ═════════════════════════════════════════════════════════════════════
+
+// ───── Technical Indicators ─────
+const INDICATORS = [
+  { key: 'sma20',  name: 'SMA 20',         period: 20,  color: '#facc15', overlay: true },
+  { key: 'sma50',  name: 'SMA 50',         period: 50,  color: '#fb923c', overlay: true },
+  { key: 'sma100', name: 'SMA 100',        period: 100, color: '#a78bfa', overlay: true },
+  { key: 'sma200', name: 'SMA 200',        period: 200, color: '#06b6d4', overlay: true },
+  { key: 'ema12',  name: 'EMA 12',         period: 12,  color: '#10b981', overlay: true },
+  { key: 'ema26',  name: 'EMA 26',         period: 26,  color: '#ef4444', overlay: true },
+  { key: 'bb20',   name: 'Bollinger Bands (20, 2σ)', period: 20, color: '#a78bfa', overlay: true },
+  { key: 'rsi14',  name: 'RSI (14)',       period: 14,  color: '#facc15', overlay: false },
+  { key: 'macd',   name: 'MACD (12, 26, 9)', period: 0, color: '#3b82f6', overlay: false },
+];
+
+STATE.activeIndicators = new Set();
+STATE.indicatorSeries = {};   // key → array of chart series objects
+STATE.priceLines = [];         // user-added price lines
+STATE.trendLines = [];         // user-added trend lines (SVG)
+STATE.compareAnchor = null;    // date string for "compare from"
+STATE.drawTool = 'cursor';
+STATE.customDates = null;      // {from, to} when set
+
+function smaSeries(data, period) {
+  const result = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = 0; j < period; j++) sum += data[i - j].value;
+    result.push({ time: data[i].time, value: sum / period });
+  }
+  return result;
+}
+
+function emaSeries(data, period) {
+  if (data.length < period) return [];
+  const k = 2 / (period + 1);
+  let prev = data.slice(0, period).reduce((a, b) => a + b.value, 0) / period;
+  const result = [{ time: data[period - 1].time, value: prev }];
+  for (let i = period; i < data.length; i++) {
+    prev = data[i].value * k + prev * (1 - k);
+    result.push({ time: data[i].time, value: prev });
+  }
+  return result;
+}
+
+function bollingerBands(data, period = 20, mult = 2) {
+  const middle = [], upper = [], lower = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = 0; j < period; j++) sum += data[i - j].value;
+    const mean = sum / period;
+    let variance = 0;
+    for (let j = 0; j < period; j++) variance += (data[i - j].value - mean) ** 2;
+    const std = Math.sqrt(variance / period);
+    middle.push({ time: data[i].time, value: mean });
+    upper.push({  time: data[i].time, value: mean + std * mult });
+    lower.push({  time: data[i].time, value: mean - std * mult });
+  }
+  return { middle, upper, lower };
+}
+
+function rsiSeries(data, period = 14) {
+  if (data.length < period + 1) return [];
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const ch = data[i].value - data[i - 1].value;
+    if (ch > 0) gains += ch; else losses -= ch;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  const result = [];
+  const computeRsi = () => {
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+  };
+  result.push({ time: data[period].time, value: computeRsi() });
+  for (let i = period + 1; i < data.length; i++) {
+    const ch = data[i].value - data[i - 1].value;
+    avgGain = (avgGain * (period - 1) + Math.max(ch, 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + Math.max(-ch, 0)) / period;
+    result.push({ time: data[i].time, value: computeRsi() });
+  }
+  return result;
+}
+
+function macdSeries(data, fast = 12, slow = 26, signal = 9) {
+  const fastEma = emaSeries(data, fast);
+  const slowEma = emaSeries(data, slow);
+  const slowMap = new Map(slowEma.map(d => [d.time, d.value]));
+  const macd = [];
+  for (const d of fastEma) {
+    if (slowMap.has(d.time)) macd.push({ time: d.time, value: d.value - slowMap.get(d.time) });
+  }
+  const sig = emaSeries(macd, signal);
+  const sigMap = new Map(sig.map(d => [d.time, d.value]));
+  const hist = [];
+  for (const d of macd) {
+    if (sigMap.has(d.time)) {
+      const h = d.value - sigMap.get(d.time);
+      hist.push({ time: d.time, value: h, color: h >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)' });
+    }
+  }
+  return { macd, signal: sig, histogram: hist };
+}
+
+function renderIndicatorPanel() {
+  const host = document.getElementById('indicatorList');
+  host.innerHTML = INDICATORS.map(ind => {
+    const active = STATE.activeIndicators.has(ind.key) ? 'active' : '';
+    const checkmark = STATE.activeIndicators.has(ind.key) ? '✓' : '';
+    return `<div class="ind-row ${active}" onclick="toggleIndicator('${ind.key}')">
+      <span class="ind-toggle">${checkmark}</span>
+      <span class="ind-name" style="color:${active ? 'var(--text)' : ''}">${ind.name}</span>
+      <span class="ind-config" style="color:${ind.color}">●</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleIndicator(key) {
+  if (STATE.activeIndicators.has(key)) STATE.activeIndicators.delete(key);
+  else STATE.activeIndicators.add(key);
+  renderIndicatorPanel();
+  redraw();
+}
+
+function applyIndicators(baseSeries, baseData) {
+  // Apply each active indicator to the FIRST active series only (TV pattern)
+  if (!baseData || !baseData.length || !STATE.activeIndicators.size) return;
+
+  for (const ind of INDICATORS) {
+    if (!STATE.activeIndicators.has(ind.key)) continue;
+
+    if (ind.key.startsWith('sma')) {
+      const data = smaSeries(baseData, ind.period);
+      const s = STATE.chart.addLineSeries({
+        color: ind.color, lineWidth: 1, priceScaleId: baseSeries.axis,
+        title: ind.name, priceLineVisible: false, lastValueVisible: true,
+      });
+      s.setData(data);
+      STATE.series.push(s);
+      STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key.startsWith('ema')) {
+      const data = emaSeries(baseData, ind.period);
+      const s = STATE.chart.addLineSeries({
+        color: ind.color, lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed,
+        priceScaleId: baseSeries.axis, title: ind.name, priceLineVisible: false,
+      });
+      s.setData(data);
+      STATE.series.push(s);
+      STATE.indicatorSeries[ind.key] = [s];
+    } else if (ind.key === 'bb20') {
+      const bands = bollingerBands(baseData, ind.period, 2);
+      const upper = STATE.chart.addLineSeries({
+        color: 'rgba(167,139,250,0.5)', lineWidth: 1, priceScaleId: baseSeries.axis,
+        title: 'BB Upper', priceLineVisible: false,
+      });
+      const middle = STATE.chart.addLineSeries({
+        color: 'rgba(167,139,250,0.7)', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted,
+        priceScaleId: baseSeries.axis, title: 'BB Mid (SMA20)', priceLineVisible: false,
+      });
+      const lower = STATE.chart.addLineSeries({
+        color: 'rgba(167,139,250,0.5)', lineWidth: 1, priceScaleId: baseSeries.axis,
+        title: 'BB Lower', priceLineVisible: false,
+      });
+      upper.setData(bands.upper); middle.setData(bands.middle); lower.setData(bands.lower);
+      STATE.series.push(upper, middle, lower);
+      STATE.indicatorSeries[ind.key] = [upper, middle, lower];
+    } else if (ind.key === 'rsi14') {
+      const data = rsiSeries(baseData, ind.period);
+      try {
+        const s = STATE.chart.addLineSeries({
+          color: ind.color, lineWidth: 1.5, priceScaleId: 'rsi-pane', title: 'RSI(14)',
+          pane: 1, priceLineVisible: false,
+        });
+        s.setData(data);
+        // Add 70/30 reference lines via priceLine
+        s.createPriceLine({ price: 70, color: 'rgba(239,68,68,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '70' });
+        s.createPriceLine({ price: 30, color: 'rgba(34,197,94,0.5)', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 1, axisLabelVisible: true, title: '30' });
+        s.createPriceLine({ price: 50, color: 'rgba(136,136,136,0.3)', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 1, axisLabelVisible: false });
+        STATE.series.push(s);
+        STATE.indicatorSeries[ind.key] = [s];
+      } catch (e) {
+        console.warn('RSI pane support requires Lightweight Charts v4.2+:', e);
+      }
+    } else if (ind.key === 'macd') {
+      const m = macdSeries(baseData);
+      try {
+        const macdSer = STATE.chart.addLineSeries({
+          color: '#3b82f6', lineWidth: 1.5, priceScaleId: 'macd-pane',
+          title: 'MACD', pane: 2, priceLineVisible: false,
+        });
+        const sigSer = STATE.chart.addLineSeries({
+          color: '#fb923c', lineWidth: 1, priceScaleId: 'macd-pane',
+          title: 'Signal', pane: 2, priceLineVisible: false,
+        });
+        const histSer = STATE.chart.addHistogramSeries({
+          priceScaleId: 'macd-pane', pane: 2, priceLineVisible: false,
+        });
+        macdSer.setData(m.macd); sigSer.setData(m.signal); histSer.setData(m.histogram);
+        macdSer.createPriceLine({ price: 0, color: 'rgba(136,136,136,0.4)', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 1, axisLabelVisible: false });
+        STATE.series.push(macdSer, sigSer, histSer);
+        STATE.indicatorSeries[ind.key] = [macdSer, sigSer, histSer];
+      } catch (e) {
+        console.warn('MACD pane support requires Lightweight Charts v4.2+:', e);
+      }
+    }
+  }
+}
+
+// ───── Custom price levels (user-drawn horizontal lines) ─────
+function ctxAddPriceLevel() {
+  if (!STATE.activeSeries.length || !STATE.seriesById) {
+    showToast('Add a series first');
+    return;
+  }
+  // Use last clicked point's price (from context menu invocation)
+  const price = STATE.lastCtxPrice;
+  if (price === null || price === undefined) {
+    showToast('Click on the chart first');
+    return;
+  }
+  const firstSeries = STATE.seriesById[STATE.activeSeries[0].id];
+  if (!firstSeries) return;
+  const line = firstSeries.createPriceLine({
+    price, color: '#facc15',
+    lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 1,
+    axisLabelVisible: true, title: price.toFixed(2),
+  });
+  STATE.priceLines.push({ price, series: firstSeries, line, label: price.toFixed(2) });
+  showToast(`Price level ${price.toFixed(2)} added`);
+}
+
+function clearAllDrawings() {
+  STATE.priceLines.forEach(p => {
+    try { p.series.removePriceLine(p.line); } catch (e) {}
+  });
+  STATE.priceLines = [];
+  STATE.trendLines.forEach(t => t.elem && t.elem.remove());
+  STATE.trendLines = [];
+  showToast('All drawings cleared');
+}
+
+// ───── Compare from anchor date ─────
+function ctxAnchorCompare() {
+  const date = STATE.lastCtxTime;
+  if (!date) { showToast('Click on chart first'); return; }
+  STATE.compareAnchor = date;
+  STATE.norm = 'anchor';
+  document.getElementById('normSelect').value = 'pct';  // visual fallback
+  redraw();
+  showToast(`Comparing from ${date}`);
+}
+
+function ctxResetZoom() {
+  if (STATE.chart) STATE.chart.timeScale().fitContent();
+}
+
+// ───── Drawing tools ─────
+function setupDrawingTools() {
+  const buttons = document.querySelectorAll('.draw-btn[data-tool]');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.drawTool = btn.dataset.tool;
+      const svg = document.getElementById('drawSvg');
+      svg.classList.toggle('active', STATE.drawTool === 'trendline');
+    });
+  });
+  document.getElementById('clearDrawBtn').addEventListener('click', clearAllDrawings);
+}
+
+// ───── Right-click context menu ─────
+function setupContextMenu() {
+  const menu = document.getElementById('ctxMenu');
+  const container = document.getElementById('chartContainer');
+  container.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    // Get price+time at click
+    if (STATE.chart && STATE.activeSeries.length > 0 && STATE.seriesById) {
+      const firstSeries = STATE.seriesById[STATE.activeSeries[0].id];
+      if (firstSeries) {
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        try {
+          STATE.lastCtxPrice = firstSeries.coordinateToPrice(y);
+          const t = STATE.chart.timeScale().coordinateToTime(x);
+          STATE.lastCtxTime = t;
+        } catch (err) {
+          STATE.lastCtxPrice = null; STATE.lastCtxTime = null;
+        }
+      }
+    }
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.classList.add('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) menu.classList.remove('open');
+  });
+}
+
+// ───── Keyboard shortcuts ─────
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Skip if typing in input/textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    
+    const cmd = e.metaKey || e.ctrlKey;
+    
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) { e.preventDefault(); showKbdHelp(); return; }
+    if (e.key === 'Escape') { hideKbdHelp(); document.querySelectorAll('.draw-btn').forEach(b=>b.classList.remove('active')); document.querySelector('.draw-btn[data-tool="cursor"]').classList.add('active'); STATE.drawTool='cursor'; document.getElementById('drawSvg').classList.remove('active'); return; }
+    if (cmd && e.key === 's') { e.preventDefault(); saveWorkspace(); return; }
+    if (cmd && e.key === 'o') { e.preventDefault(); toggleWorkspaceMenu({stopPropagation:()=>{}}); return; }
+    if (cmd && e.key === 'e' && !e.shiftKey) { e.preventDefault(); exportPNG(); return; }
+    if (cmd && e.shiftKey && (e.key === 'E' || e.key === 'e')) { e.preventDefault(); exportCSV(); return; }
+    if (cmd && e.key === 'l') { e.preventDefault(); copyShareUrl(); return; }
+    if (cmd && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); clearAllSeries(); return; }
+    if (e.key === 'l' && !cmd) { e.preventDefault(); document.getElementById('logScaleBtn').click(); return; }
+    if (e.key === 'f' && !cmd) { e.preventDefault(); document.getElementById('fullscreenBtn').click(); return; }
+    if (e.key === 'r' && !cmd) { e.preventDefault(); ctxResetZoom(); return; }
+    if (e.key === 's' && !cmd) { e.preventDefault(); document.getElementById('statsPanel').classList.toggle('collapsed'); return; }
+    if (e.key === 'p') { e.preventDefault(); ctxAddPriceLevel(); return; }
+    if (e.key === '/') { e.preventDefault(); document.getElementById('searchInput').focus(); return; }
+    if (e.key === 't') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="trendline"]').click(); return; }
+    if (e.key === 'h') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="hline"]').click(); return; }
+    if (e.key === 'a') { e.preventDefault(); document.querySelector('.draw-btn[data-tool="annotation"]').click(); return; }
+    
+    // Range cycle with [ and ]
+    const ranges = ['1y','3y','5y','10y','20y','all'];
+    const curIdx = ranges.indexOf(STATE.range);
+    if (e.key === ']' && curIdx < ranges.length-1) {
+      const newRange = ranges[curIdx+1];
+      document.querySelector(`[data-range="${newRange}"]`).click();
+    } else if (e.key === '[' && curIdx > 0) {
+      document.querySelector(`[data-range="${ranges[curIdx-1]}"]`).click();
+    }
+  });
+}
+
+function showKbdHelp() {
+  document.getElementById('kbdHelp').classList.add('open');
+  document.getElementById('kbdOverlay').classList.add('open');
+}
+function hideKbdHelp() {
+  document.getElementById('kbdHelp').classList.remove('open');
+  document.getElementById('kbdOverlay').classList.remove('open');
+}
+
+// ───── Custom date picker ─────
+function setupCustomDate() {
+  const btn = document.getElementById('customDateBtn');
+  const popup = document.getElementById('datePopup');
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const today = new Date().toISOString().slice(0,10);
+    const yearAgo = new Date(); yearAgo.setFullYear(yearAgo.getFullYear()-1);
+    document.getElementById('dateFromInput').value = STATE.customDates?.from || yearAgo.toISOString().slice(0,10);
+    document.getElementById('dateToInput').value = STATE.customDates?.to || today;
+    const r = btn.getBoundingClientRect();
+    popup.style.top = (r.bottom+4)+'px';
+    popup.style.left = r.left+'px';
+    popup.classList.add('open');
+  });
+  document.addEventListener('click', e => {
+    if (!popup.contains(e.target) && e.target !== btn) popup.classList.remove('open');
+  });
+}
+
+async function applyCustomDates() {
+  const from = document.getElementById('dateFromInput').value;
+  const to = document.getElementById('dateToInput').value;
+  if (!from || !to) return;
+  STATE.customDates = { from, to };
+  STATE.range = 'custom';
+  document.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+  document.getElementById('customDateBtn').classList.add('active');
+  document.getElementById('datePopup').classList.remove('open');
+  await Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source)));
+  redraw();
+}
+
+// Override computeFromDate for custom range
+const _origComputeFromDate = computeFromDate;
+window.computeFromDate = function(range) {
+  if (range === 'custom' && STATE.customDates) return STATE.customDates.from;
+  return _origComputeFromDate(range);
+};
+
+// ───── URL state sharing ─────
+function buildShareUrl() {
+  const state = {
+    s: STATE.activeSeries.map(s => ({ i: s.id, k: sourceToKind(s.source), c: s.color, a: s.axis, h: s.hidden ? 1 : 0 })),
+    r: STATE.range,
+    n: STATE.norm,
+    rec: STATE.recession ? 1 : 0,
+    log: STATE.logScale ? 1 : 0,
+    ind: [...STATE.activeIndicators],
+    cd: STATE.customDates,
+  };
+  const json = JSON.stringify(state);
+  const compact = btoa(encodeURIComponent(json));
+  return `${location.origin}${location.pathname}#chart=${compact}`;
+}
+
+function copyShareUrl() {
+  const url = buildShareUrl();
+  document.getElementById('shareUrlText').value = url;
+  document.getElementById('sharePopup').classList.add('open');
+}
+
+function copyShareUrlToClipboard() {
+  const ta = document.getElementById('shareUrlText');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).then(() => {
+    showToast('Share URL copied to clipboard');
+    document.getElementById('sharePopup').classList.remove('open');
+  }).catch(() => {
+    document.execCommand('copy');
+    showToast('Share URL copied');
+    document.getElementById('sharePopup').classList.remove('open');
+  });
+}
+
+function restoreFromUrl() {
+  const hash = location.hash;
+  if (!hash.startsWith('#chart=')) return false;
+  try {
+    const compact = hash.slice('#chart='.length);
+    const json = decodeURIComponent(atob(compact));
+    const state = JSON.parse(json);
+    STATE.range = state.r || '5y';
+    STATE.norm = state.n || 'raw';
+    STATE.recession = state.rec !== 0;
+    STATE.logScale = state.log === 1;
+    STATE.activeIndicators = new Set(state.ind || []);
+    STATE.customDates = state.cd;
+    document.querySelectorAll('[data-range]').forEach(b => b.classList.toggle('active', b.dataset.range === STATE.range));
+    document.getElementById('normSelect').value = STATE.norm;
+    document.getElementById('recessionToggle').checked = STATE.recession;
+    document.getElementById('logScaleBtn').classList.toggle('active', STATE.logScale);
+    const sourceMap = { 'fred': 'FRED', 'stock': 'Polygon', 'crypto': 'Crypto', 'ecb': 'ECB', 'ofr': 'OFR', 'internal': 'Internal' };
+    STATE.activeSeries = (state.s || []).map((s, i) => ({
+      id: s.i, source: sourceMap[s.k] || 'FRED',
+      color: s.c || COLORS[i], axis: s.a || (i === 0 ? 'left' : 'right'),
+      data: null, hidden: s.h === 1, label: s.i,
+    }));
+    // Look up labels from catalog
+    STATE.activeSeries.forEach(s => {
+      for (const cat of Object.values(STATE.catalog || {})) {
+        const found = cat.series.find(([sid]) => sid === s.id);
+        if (found) { s.label = found[1]; break; }
+      }
+    });
+    Promise.all(STATE.activeSeries.map(s => fetchSeriesData(s.id, s.source))).then(() => {
+      renderActiveList();
+      renderIndicatorPanel();
+      renderCatalog(document.getElementById('searchInput').value);
+      redraw();
+    });
+    return true;
+  } catch (e) {
+    console.warn('Restore failed:', e);
+    return false;
+  }
+}
+
+// Hook URL update on every state change
+function updateUrlHash() {
+  if (STATE.activeSeries.length === 0) return;
+  history.replaceState(null, '', buildShareUrl().replace(location.origin + location.pathname, ''));
+}
+
+// ───── Series visibility toggle (hide without removing) ─────
+function toggleSeriesVisibility(id) {
+  const s = STATE.activeSeries.find(x => x.id === id);
+  if (!s) return;
+  s.hidden = !s.hidden;
+  renderActiveList();
+  redraw();
+}
+
+// ───── Override existing functions to add new behavior ─────
+
+// Hook updateUrlHash + visibility-aware redraw
+const _origRedraw = redraw;
+window.redraw = function() {
+  _origRedraw();
+  // Apply indicators to first VISIBLE series
+  const firstVisible = STATE.activeSeries.find(s => !s.hidden && s.data && s.data.length);
+  if (firstVisible && STATE.activeIndicators.size > 0) {
+    const sorted = [...firstVisible.data].sort((a,b) => a.time.localeCompare(b.time));
+    const seen = new Set();
+    const dedup = sorted.filter(p => !seen.has(p.time) && (seen.add(p.time), p.value !== null && !isNaN(p.value)));
+    applyIndicators(firstVisible, dedup);
+  }
+  updateUrlHash();
+};
+
+// Filter hidden series in default redraw via override
+const _renderActiveListOrig = renderActiveList;
+window.renderActiveList = function() {
+  const host = document.getElementById('activeList');
+  document.getElementById('activeCount').textContent = STATE.activeSeries.length;
+  if (!STATE.activeSeries.length) {
+    host.innerHTML = `<div style="padding:14px;color:var(--text-muted);font-size:11px;text-align:center">
+      No series selected. Pick from Catalog below or load a Preset.
+    </div>`;
+    return;
+  }
+  host.innerHTML = STATE.activeSeries.map(s => `
+    <div class="active-series-row ${s.hidden ? 'hidden' : ''}">
+      <span class="color-edit" style="background:${s.color}" onclick="changeSeriesColor('${s.id}')" title="Change color"></span>
+      <span class="vis-toggle" onclick="toggleSeriesVisibility('${s.id}')" title="Hide/show">${s.hidden ? '👁‍🗨' : '👁'}</span>
+      <span class="label">${s.label}</span>
+      <span class="axis-toggle" onclick="toggleAxis('${s.id}')">${s.axis === 'left' ? '◀ L' : 'R ▶'}</span>
+      <span class="remove" onclick="removeSeries('${s.id}')">✕</span>
+    </div>
+  `).join('');
+};
+
+function changeSeriesColor(id) {
+  const s = STATE.activeSeries.find(x => x.id === id);
+  if (!s) return;
+  const input = document.createElement('input');
+  input.type = 'color'; input.value = s.color;
+  input.onchange = () => { s.color = input.value; renderActiveList(); redraw(); };
+  input.click();
+}
+
+// Filter out hidden in chart series rendering
+const _origActiveSeries = Object.getOwnPropertyDescriptor(STATE, 'activeSeries');
+// Easier: override the loop in redraw indirectly by changing forEach behavior to skip hidden
+// Already handled by the fact that `firstVisible` filter excludes hidden; for the main chart loop,
+// we'll add a shortcut at render time.
+
+// Patch the inner forEach in redraw — quickest is to re-implement here:
+const _origRedraw2 = redraw;
+// Instead let's reach into _origRedraw and filter — actually simplest: when a series is hidden,
+// set its data to []. Done in render.
+// For cleanliness, we simply add `if (s.hidden) return;` inside addLineSeries call by patching:
+// Since we already overrode redraw, we filter:
+window.redraw = function() {
+  if (!STATE.chart) return;
+  // Remove old series
+  STATE.series.forEach(s => STATE.chart.removeSeries(s));
+  STATE.series = [];
+  STATE.seriesById = {};
+  STATE.indicatorSeries = {};
+
+  if (STATE.recession && STATE.recessionData && STATE.recessionData.length) {
+    const recSeries = STATE.chart.addHistogramSeries({
+      color: 'rgba(239,68,68,0.18)',
+      priceScaleId: '',
+      priceFormat: { type: 'volume' },
+    });
+    recSeries.priceScale().applyOptions({ scaleMargins: { top: 0.0, bottom: 0.0 } });
+    const recData = STATE.recessionData.map(p => ({ time: p.time, value: 1, color: 'rgba(239,68,68,0.15)' }));
+    recSeries.setData(recData);
+    STATE.series.push(recSeries);
+  }
+
+  STATE.chart.priceScale('left').applyOptions({
+    mode: STATE.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+  });
+  STATE.chart.priceScale('right').applyOptions({
+    mode: STATE.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+  });
+
+  let firstVisibleData = null;
+  let firstVisibleSeries = null;
+
+  STATE.activeSeries.forEach(s => {
+    if (s.hidden) return;
+    if (!s.data || !s.data.length) return;
+    const sorted = [...s.data].sort((a, b) => a.time.localeCompare(b.time));
+    const seen = new Set();
+    const dedup = sorted.filter(p => {
+      if (!p || !p.time) return false;
+      if (seen.has(p.time)) return false;
+      seen.add(p.time);
+      return p.value !== null && p.value !== undefined && !isNaN(p.value);
+    });
+    const normData = normalize(dedup, STATE.norm);
+    if (!normData.length) return;
+    const lineSeries = STATE.chart.addLineSeries({
+      color: s.color, lineWidth: 2,
+      priceScaleId: s.axis, title: s.label,
+      lineType: LightweightCharts.LineType.Simple,
+      priceLineVisible: false, lastValueVisible: true,
+      crosshairMarkerVisible: true, crosshairMarkerRadius: 4,
+      crosshairMarkerBorderColor: s.color, crosshairMarkerBackgroundColor: '#0a0a0a',
+    });
+    lineSeries.setData(normData);
+    STATE.series.push(lineSeries);
+    STATE.seriesById[s.id] = lineSeries;
+    if (!firstVisibleData) { firstVisibleData = dedup; firstVisibleSeries = s; }
+  });
+
+  // Apply indicators to first visible series
+  if (firstVisibleSeries && firstVisibleData && STATE.activeIndicators.size > 0) {
+    applyIndicators(firstVisibleSeries, firstVisibleData);
+  }
+
+  setTimeout(() => { try { STATE.chart.timeScale().fitContent(); } catch (e) {} }, 50);
+
+  document.getElementById('statusInfo').textContent =
+    STATE.activeSeries.length ? `${STATE.activeSeries.filter(s=>!s.hidden).length}/${STATE.activeSeries.length} visible · ${STATE.activeIndicators.size} indicators` : 'No series';
+  document.getElementById('statusRange').textContent = `Range: ${STATE.range.toUpperCase()}`;
+  document.getElementById('statusNorm').textContent = `Norm: ${STATE.norm}`;
+
+  renderStats();
+  updateUrlHash();
+};
+
 // ───── Bootstrap ─────
 async function init() {
   initChart();
   loadCatalog();  // Static — no network
+  renderIndicatorPanel();
+  setupKeyboardShortcuts();
+  setupContextMenu();
+  setupDrawingTools();
+  setupCustomDate();
   await loadRecessionData();
-  // Auto-load first preset
-  loadPreset(0);
+  // Try to restore from URL hash, otherwise load default preset
+  if (!restoreFromUrl()) loadPreset(0);
 }
 
 init();
