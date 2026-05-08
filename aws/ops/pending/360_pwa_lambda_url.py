@@ -27,15 +27,29 @@ CORS_CONFIG = {
 
 def main():
     out = {"started": datetime.now(timezone.utc).isoformat(), "fn": FN_NAME}
-    try:
-        # Wait until the function exists (deploy-lambdas.yml may have just created it)
-        lam.get_function(FunctionName=FN_NAME)
-    except ClientError as e:
-        out["status"] = "function_not_deployed_yet"
-        out["error"] = str(e)
-        out["hint"] = "deploy-lambdas.yml must run first; push-api Lambda source must be in main"
+    # Poll up to 180s for the function to appear (deploy-lambdas.yml may
+    # still be running; we tolerate the race by retrying every 10s).
+    import time as _time
+    deadline = _time.time() + 180
+    last_err = None
+    while _time.time() < deadline:
+        try:
+            lam.get_function(FunctionName=FN_NAME)
+            break
+        except ClientError as e:
+            last_err = e
+            if e.response["Error"]["Code"] != "ResourceNotFoundException":
+                out["status"] = "lambda_lookup_error"
+                out["error"] = str(e)
+                _write(out)
+                raise
+            _time.sleep(10)
+    else:
+        out["status"] = "function_not_deployed_in_180s"
+        out["error"] = str(last_err)
+        out["hint"] = "deploy-lambdas.yml took longer than 180s; rerun this op"
         _write(out)
-        raise
+        raise RuntimeError(out["status"])
 
     # Try create
     try:
