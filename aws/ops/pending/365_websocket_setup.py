@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Step 365 — bootstrap WebSocket pipeline.
+(retry — 365b granted github-actions IAM perms; idempotent steps re-checked)
 
   1. Create DynamoDB table WebSocketConnections (PK=connectionId, on-demand)
   2. Create API Gateway v2 WebSocket API "justhodl-wss"
