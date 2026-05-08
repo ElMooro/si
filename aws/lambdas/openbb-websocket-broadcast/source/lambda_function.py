@@ -193,6 +193,18 @@ def _build_summary(key, body_bytes):
 
 def lambda_handler(event, context):
     """Dispatcher — figures out S3 vs HTTP."""
+    return _dispatch(event, context)
+
+
+def broadcast_handler(event, context):
+    """Legacy alias — old Lambda config used 'lambda_function.broadcast_handler'.
+    Keeps the function loadable regardless of which handler the Function
+    config points to.
+    """
+    return _dispatch(event, context)
+
+
+def _dispatch(event, context):
     # ─── S3 event ───
     if "Records" in event and event["Records"] and "s3" in (event["Records"][0] or {}):
         results = []
