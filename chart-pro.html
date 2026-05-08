@@ -163,6 +163,9 @@
       <option value="indexed">Index = 100</option>
       <option value="pct">% Change from Start</option>
       <option value="zscore">Z-Score</option>
+      <option value="mom">% Change MoM (1 month)</option>
+      <option value="qoq">% Change QoQ (3 month)</option>
+      <option value="yoy">% Change YoY (1 year)</option>
     </select>
     <span class="label">Recession:</span>
     <label class="toggle" style="padding:0">
@@ -534,8 +537,46 @@ function computeFromDate(range) {
   else if (range === '5y') d.setFullYear(d.getFullYear() - 5);
   else if (range === '10y') d.setFullYear(d.getFullYear() - 10);
   else if (range === '20y') d.setFullYear(d.getFullYear() - 20);
-  else if (range === 'all') return '1960-01-01';
+  else if (range === 'all') return '1947-01-01';  // FRED's earliest for many series
   return d.toISOString().slice(0, 10);
+}
+
+// ───── Normalization helpers ─────
+
+// Binary search: find the LAST observation whose date is <= targetDate
+function findIndexAtOrBefore(data, targetDate) {
+  let lo = 0, hi = data.length - 1, best = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid].time <= targetDate) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return best;
+}
+
+function pctChangeFromLookback(data, daysBack, label) {
+  // For each observation, find value approximately `daysBack` days earlier
+  // and compute % change. Skips points where lookback isn't available.
+  if (!data || data.length < 2) return [];
+  const result = [];
+  for (const point of data) {
+    const targetD = new Date(point.time);
+    targetD.setDate(targetD.getDate() - daysBack);
+    const targetStr = targetD.toISOString().slice(0, 10);
+    const idx = findIndexAtOrBefore(data, targetStr);
+    if (idx < 0) continue;  // not enough history yet
+    const past = data[idx].value;
+    if (past === null || past === undefined || past === 0) continue;
+    result.push({
+      time: point.time,
+      value: 100 * (point.value - past) / Math.abs(past),
+    });
+  }
+  return result;
 }
 
 document.querySelectorAll('[data-range]').forEach(btn => {
@@ -580,6 +621,9 @@ function normalize(data, mode) {
     if (!sd) return data;
     return data.map(d => ({ time: d.time, value: (d.value - mean) / sd }));
   }
+  if (mode === 'mom') return pctChangeFromLookback(data, 30);
+  if (mode === 'qoq') return pctChangeFromLookback(data, 91);
+  if (mode === 'yoy') return pctChangeFromLookback(data, 365);
   return data;
 }
 
@@ -639,21 +683,29 @@ function redraw() {
   // Add each active series
   STATE.activeSeries.forEach(s => {
     if (!s.data || !s.data.length) return;
-    const normData = normalize(s.data, STATE.norm);
+    // Sort ascending by time + dedupe before normalization (defensive against
+    // any data issues from upstream APIs returning unordered or duplicate dates).
+    const sorted = [...s.data].sort((a, b) => a.time.localeCompare(b.time));
+    const seen = new Set();
+    const dedup = sorted.filter(p => {
+      if (!p || !p.time) return false;
+      if (seen.has(p.time)) return false;
+      seen.add(p.time);
+      return p.value !== null && p.value !== undefined && !isNaN(p.value);
+    });
+    const normData = normalize(dedup, STATE.norm);
+    if (!normData.length) return;
     const lineSeries = STATE.chart.addLineSeries({
       color: s.color,
       lineWidth: 2,
       priceScaleId: s.axis,
       title: s.label,
+      lineType: LightweightCharts.LineType.Simple,
+      priceLineVisible: false,
+      lastValueVisible: true,
+      crosshairMarkerVisible: true,
     });
-    // De-duplicate consecutive same-time points
-    const seen = new Set();
-    const clean = normData.filter(p => {
-      if (seen.has(p.time)) return false;
-      seen.add(p.time);
-      return true;
-    });
-    lineSeries.setData(clean);
+    lineSeries.setData(normData);
     STATE.series.push(lineSeries);
   });
 
