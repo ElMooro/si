@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Step 360 — Create Lambda Function URL for justhodl-push-api.
+(retry — Lambda was created by 360c after deploy-lambdas couldn't update a non-existent function)
 Auth: NONE (subscribe is public; admin endpoints check X-Justhodl-Admin-Token header).
 CORS: justhodl.ai + www.justhodl.ai allowed; GET, POST, OPTIONS.
 Idempotent — if URL already exists, returns existing config.
