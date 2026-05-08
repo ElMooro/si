@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-08T21:26:24.837150+00:00",
+  "test": {
+    "ddb_table": {
+      "exists": false
+    },
+    "api_gateway_websockets": {
+      "error": "An error occurred (AccessDeniedException) when calling the GetApis operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-ws-audit is not authorized to perform: apigateway:GET on resource: arn:aws:apigateway:us-east-1::/apis because no identity-based policy allows the apigateway:GET action"
+    },
+    "lambda_openbb-websocket-handler": {
+      "exists": true,
+      "runtime": "python3.11",
+      "code_size": 1102,
+      "last_modified": "2025-06-15T11:02:40.000+0000",
+      "policy_statements": []
+    },
+    "lambda_openbb-websocket-broadcast": {
+      "exists": true,
+      "runtime": "python3.11",
+      "code_size": 560,
+      "last_modified": "2025-05-30T03:21:51.000+0000",
+      "policy_statements": []
+    },
+    "eventbridge_rules": [],
+    "broadcast_candidate_keys": {
+      "data/report.json": {
+        "size": 1753758,
+        "modified": "2026-05-08 21:25:15+00:00"
+      },
+      "data/compound-signals.json": {
+        "size": 32636,
+        "modified": "2026-05-08 20:46:31+00:00"
+      },
+      "data/master-rank.json": {
+        "missing": true
+      },
+      "data/cross-asset-regime.json": {
+        "size": 6308,
+        "modified": "2026-05-08 13:15:41+00:00"
+      },
+      "data/macro-nowcast.json": {
+        "size": 23742,
+        "modified": "2026-05-08 18:33:05+00:00"
+      },
+      "data/eurodollar-stress.json": {
+        "size": 2430,
+        "modified": "2026-05-08 20:48:38+00:00"
+      },
+      "data/options-flow.json": {
+        "size": 78865,
+        "modified": "2026-05-07 21:30:24+00:00"
+      },
+      "data/historical-analogs.json": {
+        "size": 5853,
+        "modified": "2026-05-07 13:00:42+00:00"
+      }
+    }
+  },
+  "finished": "2026-05-08T21:26:34.438913+00:00"
+}
