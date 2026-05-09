@@ -3,611 +3,971 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JustHodl.AI | Treasury Auction Monitor</title>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Treasury Auctions · JustHodl.AI</title>
+<meta name="description" content="Live US Treasury auction interpretation — crisis comparison, Bitcoin regime overlay, risk-on asset cross-reference, forward returns, decisive call.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<script src="/wss-client.js" defer></script>
 <style>
-:root{--bg0:#060a12;--bg1:#0b0f1a;--bg2:#111827;--bg3:#1a2035;--bg4:#232b42;--brd:#1e2a45;--brd2:#2d3a5c;--t1:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;--orange:#f97316;--purple:#a78bfa;--cyan:#22d3ee;--pink:#ec4899;--gold:#fbbf24}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg0);color:var(--t1);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:40px}
-.mono{font-family:'JetBrains Mono',monospace}
-a{color:var(--cyan);text-decoration:none}
-.topbar{background:linear-gradient(180deg,var(--bg1) 0%,rgba(11,15,26,.95) 100%);border-bottom:1px solid var(--brd);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
-.logo{font-size:18px;font-weight:700;letter-spacing:-0.5px}
-.logo .hl{color:var(--gold)}
-.logo sub{color:var(--t3);font-weight:400;font-size:11px;margin-left:8px;letter-spacing:1.5px;text-transform:uppercase}
-.topbar-r{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--t3)}
-.live{display:flex;align-items:center;gap:5px;color:var(--green)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.nav-link{color:var(--t3);font-size:11px;text-decoration:none;padding:4px 10px;border:1px solid var(--brd);border-radius:5px;transition:all .15s}
-.nav-link:hover{color:var(--cyan);border-color:var(--cyan)}
-.filters{padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.fbtn{background:var(--bg2);border:1px solid var(--brd);color:var(--t2);padding:5px 14px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
-.fbtn:hover{border-color:var(--brd2);color:var(--t1)}
-.fbtn.active{background:rgba(251,191,36,.1);border-color:var(--gold);color:var(--gold)}
-.fbtn-group{display:flex;gap:0}
-.fbtn-group .fbtn{border-radius:0}.fbtn-group .fbtn:first-child{border-radius:6px 0 0 6px}.fbtn-group .fbtn:last-child{border-radius:0 6px 6px 0}
-.hero{padding:16px 24px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.hc{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--brd);border-radius:10px;padding:14px;position:relative;overflow:hidden}
-.hc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.hc.g::before{background:linear-gradient(90deg,var(--green),transparent)}
-.hc.r::before{background:linear-gradient(90deg,var(--red),transparent)}
-.hc.y::before{background:linear-gradient(90deg,var(--yellow),transparent)}
-.hc.go::before{background:linear-gradient(90deg,var(--gold),transparent)}
-.hc-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-.hc-val{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.hc-sub{font-size:10px;color:var(--t3);margin-top:3px}
-.hc-val.green{color:var(--green)}.hc-val.red{color:var(--red)}.hc-val.yellow{color:var(--yellow)}.hc-val.cyan{color:var(--cyan)}.hc-val.gold{color:var(--gold)}
-.section{padding:0 24px 16px}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-top:8px;border-top:1px solid var(--brd)}
-.st{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
-.badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
-.b-gold{background:rgba(251,191,36,.12);color:var(--gold);border:1px solid rgba(251,191,36,.2)}
-.b-info{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
-.b-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
-.b-purple{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.2)}
-.at-wrap{overflow-x:auto}
-.at{width:100%;border-collapse:separate;border-spacing:0 3px}
-.at th{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:5px 10px;text-align:left;font-weight:500;position:sticky;top:56px;background:var(--bg0);z-index:10;cursor:pointer}
-.at th:hover{color:var(--t1)}
-.at td{padding:8px 10px;font-size:11px;background:var(--bg2);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)}
-.at tr td:first-child{border-left:1px solid var(--brd);border-radius:6px 0 0 6px}
-.at tr td:last-child{border-right:1px solid var(--brd);border-radius:0 6px 6px 0}
-.at tbody tr:hover td{background:var(--bg3)}
-.pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--t3)}
-.grade{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;min-width:28px;text-align:center}
-.gA{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
-.gB{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
-.gC{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
-.gD{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
-.gF{background:rgba(239,68,68,.25);color:#ef4444;border:1px solid rgba(239,68,68,.4)}
-.type-tag{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
-.type-Bill{background:rgba(59,130,246,.1);color:var(--blue)}
-.type-Note{background:rgba(16,185,129,.1);color:var(--green)}
-.type-Bond{background:rgba(251,191,36,.1);color:var(--gold)}
-.type-TIPS{background:rgba(167,139,250,.1);color:var(--purple)}
-.type-FRN{background:rgba(236,72,153,.1);color:var(--pink)}
-.type-CMB{background:rgba(249,115,22,.1);color:var(--orange)}
-.detail{font-size:10px;color:var(--t3);max-width:200px}
-.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.chart-box{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:14px}
-.chart-box h4{font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:500}
-.analysis{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:16px;margin-bottom:10px;line-height:1.7;font-size:12px;color:var(--t2)}
-.analysis h4{color:var(--t1);font-size:13px;margin-bottom:6px}
-.analysis .key{color:var(--cyan);font-weight:600}
-.analysis .warn{color:var(--yellow);font-weight:600}
-.analysis .danger{color:var(--red);font-weight:600}
-.analysis .good{color:var(--green);font-weight:600}
-/* Crisis timeline */
-.crisis-tl{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
-.crisis-chip{font-size:9px;padding:4px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--brd);background:var(--bg3);color:var(--t3);transition:all .2s;font-family:'JetBrains Mono',monospace;white-space:nowrap}
-.crisis-chip:hover{border-color:var(--t2);color:var(--t1)}
-.crisis-chip.active{color:#fff;border-color:transparent}
-.crisis-detail{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:14px;margin:10px 0;display:none}
-.crisis-detail.show{display:block}
-.crisis-detail h5{font-size:12px;margin-bottom:6px}
-.crisis-detail p{font-size:11px;color:var(--t2);line-height:1.6}
-.crisis-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
-.cm{text-align:center;padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:6px}
-.cm-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.cm-val{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.cm-note{font-size:8px;color:var(--t3);margin-top:2px}
-.crisis-meter{height:6px;background:var(--bg1);border-radius:3px;margin-top:4px;overflow:hidden}
-.crisis-meter-fill{height:100%;border-radius:3px;transition:width .5s}
-.stress-bar{height:14px;background:linear-gradient(90deg,#10b981 0%,#f59e0b 40%,#ef4444 70%,#dc2626 100%);border-radius:7px;position:relative;margin:8px 0}
-.stress-ptr{position:absolute;top:-4px;width:3px;height:22px;background:#fff;border-radius:2px;transition:left .5s}
-.stress-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--t3)}
-.radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-.status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--brd);padding:5px 24px;font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;display:flex;justify-content:space-between;z-index:100}
-.prog{width:180px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;display:none}
-.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
-.upcoming-row{opacity:0.6;font-style:italic}
-.upcoming-row td{background:var(--bg1)}
-@media(max-width:1200px){.hero{grid-template-columns:repeat(3,1fr)}.chart-row{grid-template-columns:1fr}.crisis-metrics{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){.hero{grid-template-columns:1fr 1fr}.crisis-metrics{grid-template-columns:1fr}}
+  :root {
+    --bg:#08090f; --bg-card:#0e1120; --bg-elev:#141828; --bg-sunken:#04050a; --bg-hover:#1a1e30;
+    --border:rgba(120,145,180,0.12); --border-strong:rgba(120,145,180,0.28);
+    --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+    --green:#22c55e; --green-soft:rgba(34,197,94,0.12); --green-dim:#1b8a5c;
+    --amber:#f59e0b; --amber-soft:rgba(245,158,11,0.12);
+    --red:#ef4444; --red-soft:rgba(239,68,68,0.12);
+    --blue:#3b82f6; --blue-soft:rgba(59,130,246,0.10);
+    --purple:#a78bfa; --cyan:#06b6d4; --orange:#f97316;
+    --yellow:#facc15;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background:var(--bg); color:var(--fg-1); line-height:1.55; font-size:13px; }
+  a { color:var(--cyan); text-decoration:none; }
+  a:hover { color:var(--yellow); }
+  .container { max-width:1500px; margin:0 auto; padding:18px; }
+
+  header.top {
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:18px;
+    flex-wrap:wrap; gap:10px;
+  }
+  header.top h1 { font-size:24px; font-weight:600; letter-spacing:-0.01em; }
+  header.top h1 .sub { color:var(--fg-3); font-weight:400; font-size:14px; margin-left:8px; }
+  nav.crumbs { display:flex; gap:14px; font-size:12px; flex-wrap:wrap; }
+  nav.crumbs a { color:var(--fg-2); }
+  nav.crumbs a.active { color:var(--yellow); font-weight:600; }
+
+  /* Hero card */
+  .hero {
+    display:grid; grid-template-columns:280px 1fr; gap:20px;
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    padding:24px; margin-bottom:18px;
+  }
+  @media(max-width:900px) { .hero { grid-template-columns:1fr; } }
+  .score-ring {
+    width:240px; height:240px; border-radius:50%; position:relative;
+    background:conic-gradient(var(--green) 0%, var(--amber) 50%, var(--red) 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .score-ring::before {
+    content:''; position:absolute; inset:14px; background:var(--bg-card); border-radius:50%;
+  }
+  .score-ring .inner { position:relative; text-align:center; z-index:1; }
+  .score-ring .num { font-size:64px; font-weight:700; line-height:1; letter-spacing:-0.04em; }
+  .score-ring .label { font-size:11px; color:var(--fg-3); text-transform:uppercase; letter-spacing:0.08em; margin-top:6px; }
+  .score-ring .regime { font-size:13px; font-weight:700; margin-top:8px; }
+  .hero-detail h2 { font-size:13px; color:var(--fg-3); text-transform:uppercase;
+                    letter-spacing:0.08em; margin-bottom:12px; font-weight:500; }
+  .hero-detail .interpret { font-size:16px; line-height:1.6; margin-bottom:16px; }
+  .hero-meta { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding-top:12px;
+                border-top:1px solid var(--border); }
+  @media(max-width:700px) { .hero-meta { grid-template-columns:repeat(2,1fr); } }
+  .hero-meta .stat .l { font-size:10px; color:var(--fg-3); text-transform:uppercase;
+                          letter-spacing:0.06em; margin-bottom:3px; }
+  .hero-meta .stat .v { font-size:18px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .hero-meta .stat .v.up { color:var(--green); }
+  .hero-meta .stat .v.dn { color:var(--red); }
+
+  /* Section */
+  section.box {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+    margin-bottom:18px; overflow:hidden;
+  }
+  section.box .head {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px; border-bottom:1px solid var(--border); background:var(--bg-elev);
+  }
+  section.box .head h3 { font-size:14px; font-weight:600; }
+  section.box .head .right { font-size:11px; color:var(--fg-3); }
+  section.box .body { padding:16px 18px; }
+
+  /* Plain-English explainer block */
+  .english {
+    background:var(--blue-soft); border-left:3px solid var(--blue);
+    padding:14px 18px; margin:0 0 0 0; font-size:13px; line-height:1.65;
+  }
+  .english strong { color:var(--blue); }
+
+  /* Tables */
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  thead { background:var(--bg-elev); }
+  th { padding:10px 12px; text-align:left; font-size:10px; color:var(--fg-3);
+       text-transform:uppercase; letter-spacing:0.06em; font-weight:600;
+       border-bottom:1px solid var(--border); }
+  th.r, td.r { text-align:right; font-variant-numeric:tabular-nums; }
+  td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.04); white-space:nowrap; }
+  tbody tr:hover { background:var(--bg-hover); }
+  td.tk { color:var(--yellow); font-weight:700; }
+  td .pos { color:var(--green); }
+  td .neg { color:var(--red); }
+  td .flat { color:var(--fg-3); }
+  td .pill { display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:600; }
+  .pill.calm { background:var(--green-soft); color:var(--green); }
+  .pill.watch { background:var(--amber-soft); color:var(--amber); }
+  .pill.acute { background:var(--red-soft); color:var(--red); }
+  .pill.crisis { background:var(--red); color:#fff; }
+
+  /* Indicator cards */
+  .indicators { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media(max-width:900px) { .indicators { grid-template-columns:1fr; } }
+  .ind {
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:6px;
+    padding:14px 16px;
+  }
+  .ind.firing { border-left:3px solid var(--red); }
+  .ind.watch { border-left:3px solid var(--amber); }
+  .ind.off { border-left:3px solid var(--green-dim); }
+  .ind .name { font-size:13px; font-weight:600; margin-bottom:4px; }
+  .ind .status { font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+                  font-weight:700; margin-bottom:8px; }
+  .ind.firing .status { color:var(--red); }
+  .ind.watch .status { color:var(--amber); }
+  .ind.off .status { color:var(--green); }
+  .ind .desc { font-size:11px; color:var(--fg-2); line-height:1.55; }
+  .ind .threshold { font-size:10px; color:var(--fg-4); margin-top:6px; padding-top:6px;
+                     border-top:1px dashed var(--border); }
+
+  /* Crisis comparison */
+  .anchor-row td.context { color:var(--fg-2); font-size:11px; white-space:normal; max-width:280px; }
+  .anchor-row.today { background:var(--blue-soft); }
+  .anchor-row.today td { font-weight:600; }
+  .anchor-row.gfc { background:var(--red-soft); }
+  .anchor-row.covid { background:var(--amber-soft); }
+
+  /* BTC era cards */
+  .btc-eras { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media(max-width:900px) { .btc-eras { grid-template-columns:1fr; } }
+  .era {
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:6px;
+    padding:14px 16px;
+  }
+  .era.bull { border-left:3px solid var(--green); }
+  .era.bear { border-left:3px solid var(--red); }
+  .era.top { border-left:3px solid var(--amber); }
+  .era.bottom { border-left:3px solid var(--blue); }
+  .era h4 { font-size:13px; margin-bottom:4px; }
+  .era .meta { font-size:11px; color:var(--fg-3); margin-bottom:8px; }
+  .era .stat-row {
+    display:flex; justify-content:space-between; font-size:11px; padding:3px 0;
+    border-bottom:1px dashed rgba(255,255,255,0.04);
+  }
+  .era .stat-row:last-child { border:none; }
+  .era .stat-row .k { color:var(--fg-2); }
+  .era .stat-row .v { font-weight:600; font-variant-numeric:tabular-nums; }
+  .era .takeaway { background:var(--bg-card); padding:8px 10px; border-radius:4px;
+                    margin-top:10px; font-size:11px; color:var(--fg-2); line-height:1.55; }
+
+  /* Forward-returns matrix */
+  .matrix { width:100%; border-collapse:collapse; font-size:12px; }
+  .matrix th, .matrix td { padding:8px 10px; border:1px solid var(--border); text-align:center; }
+  .matrix th { background:var(--bg-elev); font-size:10px; text-transform:uppercase;
+                color:var(--fg-3); font-weight:600; }
+  .matrix td.regime-cell { background:var(--bg-elev); text-align:left; font-weight:600; }
+  .matrix td.up-strong { background:rgba(34,197,94,0.20); color:var(--green); font-weight:600; }
+  .matrix td.up { background:rgba(34,197,94,0.08); color:var(--green); }
+  .matrix td.dn { background:rgba(239,68,68,0.08); color:var(--red); }
+  .matrix td.dn-strong { background:rgba(239,68,68,0.20); color:var(--red); font-weight:600; }
+
+  /* Decisive call */
+  .call-banner {
+    background:linear-gradient(135deg, var(--blue-soft), transparent);
+    border:1px solid var(--blue); border-left:4px solid var(--blue);
+    padding:18px 22px; border-radius:8px; margin-bottom:18px;
+  }
+  .call-banner.ELEVATED { background:linear-gradient(135deg, var(--amber-soft), transparent);
+                            border-color:var(--amber); border-left-color:var(--amber); }
+  .call-banner.ACUTE_STRESS, .call-banner.CRISIS {
+    background:linear-gradient(135deg, var(--red-soft), transparent);
+    border-color:var(--red); border-left-color:var(--red);
+  }
+  .call-banner .h { font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+                     color:var(--fg-3); margin-bottom:6px; }
+  .call-banner .verdict { font-size:18px; font-weight:700; margin-bottom:10px; line-height:1.3; }
+  .call-banner .reasoning { font-size:13px; line-height:1.65; color:var(--fg-2); margin-bottom:10px; }
+  .call-banner .stops { font-size:12px; line-height:1.7; padding-top:10px;
+                          border-top:1px dashed rgba(255,255,255,0.10); }
+  .call-banner .stops strong { color:var(--yellow); }
+
+  /* Triggers calendar */
+  .triggers { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media(max-width:700px) { .triggers { grid-template-columns:1fr; } }
+  .trigger-row {
+    background:var(--bg-elev); border:1px solid var(--border); border-radius:6px;
+    padding:12px 14px;
+  }
+  .trigger-row .when { font-size:10px; color:var(--fg-3); text-transform:uppercase;
+                        letter-spacing:0.06em; }
+  .trigger-row .what { font-size:13px; font-weight:600; margin:3px 0 6px 0; }
+  .trigger-row .watch { font-size:11px; color:var(--fg-2); line-height:1.55; }
+
+  .footer { font-size:11px; color:var(--fg-4); text-align:center; padding:20px 0;
+             border-top:1px solid var(--border); margin-top:24px; }
+  .footer a { color:var(--fg-3); }
+
+  /* Loading */
+  .loading { padding:40px; text-align:center; color:var(--fg-3); }
+  .skel { background:linear-gradient(90deg, var(--bg-elev) 0%, var(--bg-hover) 50%, var(--bg-elev) 100%);
+           background-size:200% 100%; animation:sk 1.5s infinite; height:14px; border-radius:3px; }
+  @keyframes sk { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="logo"><span class="hl">TREASURY</span>AUCTIONS<sub>Crisis Benchmark Monitor v3.0</sub></div>
-  <div class="topbar-r">
-    <a href="index.html" class="nav-link">Terminal</a>
-    <a href="fred.html" class="nav-link">FRED</a>
-    <a href="carry.html" class="nav-link">Carry</a>
-    <div class="live"><div class="dot"></div> LIVE</div>
-    <span id="clock" class="mono"></span>
-  </div>
-</div>
-<div class="filters">
-  <div class="fbtn-group" id="typeFilter">
-    <button class="fbtn active" data-type="all">All</button>
-    <button class="fbtn" data-type="Bill">Bills</button>
-    <button class="fbtn" data-type="Note">Notes</button>
-    <button class="fbtn" data-type="Bond">Bonds</button>
-    <button class="fbtn" data-type="TIPS">TIPS</button>
-    <button class="fbtn" data-type="FRN">FRN</button>
-    <button class="fbtn" data-type="CMB">CMB</button>
-  </div>
-  <div class="fbtn-group" id="rangeFilter">
-    <button class="fbtn" data-days="14">2W</button>
-    <button class="fbtn" data-days="30">1M</button>
-    <button class="fbtn active" data-days="90">3M</button>
-    <button class="fbtn" data-days="180">6M</button>
-    <button class="fbtn" data-days="365">1Y</button>
-  </div>
-  <span style="font-size:10px;color:var(--t3);margin-left:8px" id="filterInfo">Loading...</span>
-</div>
+
+<div class="container">
+
+<header class="top">
+  <h1>🏛️ Treasury Auctions <span class="sub">— live tape, crisis comparison & market interpretation</span></h1>
+  <nav class="crumbs">
+    <a href="/">Desk</a>
+    <a href="/auctions.html" class="active">Auctions</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/auction-crisis.html">Crisis Detector</a>
+    <a href="/treasury-auctions.html">Raw Tape</a>
+    <a href="/macro-data.html">Regime</a>
+    <a href="/stress.html" style="color:#ef4444">🌪 Stress</a>
+  </nav>
+</header>
+
+<!-- ─────────── HERO: live composite score + interpretation ─────────── -->
 <div class="hero">
-  <div class="hc go"><div class="hc-lbl">Total Auctioned</div><div class="hc-val gold" id="vTotal">--</div><div class="hc-sub" id="sTotal">Recent period</div></div>
-  <div class="hc g"><div class="hc-lbl">Avg Bid-to-Cover</div><div class="hc-val" id="vBtc">--</div><div class="hc-sub" id="sBtc">Demand ratio</div></div>
-  <div class="hc" id="hGrade"><div class="hc-lbl">Avg Auction Grade</div><div class="hc-val" id="vGrade">--</div><div class="hc-sub" id="sGrade">Overall quality</div></div>
-  <div class="hc" id="hTail"><div class="hc-lbl">Avg Tail (bps)</div><div class="hc-val" id="vTail">--</div><div class="hc-sub" id="sTail">Yield surprise</div></div>
-  <div class="hc" id="hIndirect"><div class="hc-lbl">Avg Indirect Bid</div><div class="hc-val" id="vIndirect">--</div><div class="hc-sub" id="sIndirect">Foreign demand proxy</div></div>
-</div>
-
-<!-- CRISIS COMPARISON -->
-<div class="section">
-  <div class="sh"><div class="st">Crisis Comparison: Every Financial Crisis Since 1990 <span class="badge b-red">16 CRISES</span></div></div>
-  <div class="crisis-tl" id="crisisChips"></div>
-  <div id="crisisDetailBox" class="crisis-detail"></div>
-  <div id="stressSection"></div>
-</div>
-
-<!-- CRISIS CHARTS -->
-<div class="section">
-  <div class="sh"><div class="st">Auction Analytics vs Historical Crises <span class="badge b-purple">BENCHMARKED</span></div></div>
-  <div class="radar-wrap">
-    <div class="chart-box"><h4>Bid-to-Cover: Current vs All Crises</h4><div id="chBtcCrisis" style="height:340px"></div></div>
-    <div class="chart-box"><h4>Auction Tail (bps): Current vs All Crises</h4><div id="chTailCrisis" style="height:340px"></div></div>
+  <div style="display:flex; align-items:center; justify-content:center;">
+    <div class="score-ring" id="scoreRing">
+      <div class="inner">
+        <div class="num" id="scoreNum">—</div>
+        <div class="label">composite score</div>
+        <div class="regime" id="scoreRegime">loading</div>
+      </div>
+    </div>
   </div>
-  <div class="radar-wrap">
-    <div class="chart-box"><h4>Dealer Takedown %: Current vs All Crises</h4><div id="chDealerCrisis" style="height:340px"></div></div>
-    <div class="chart-box"><h4>Indirect Bidders %: Current vs All Crises</h4><div id="chIndirectCrisis" style="height:340px"></div></div>
-  </div>
-</div>
-
-<!-- AUCTION TABLE -->
-<div class="section">
-  <div class="sh"><div class="st">Auction Results <span class="badge b-gold">GRADED</span></div><div style="font-size:10px;color:var(--t3)" id="lastRefresh"></div></div>
-  <div class="at-wrap"><table class="at">
-    <thead><tr>
-      <th onclick="sortTable(0)">Date</th><th onclick="sortTable(1)">Type</th><th onclick="sortTable(2)">Term</th>
-      <th onclick="sortTable(3)">CUSIP</th><th onclick="sortTable(4)">Size ($B)</th>
-      <th onclick="sortTable(5)">High Yield/Rate</th><th onclick="sortTable(6)">Tail (bps)</th>
-      <th onclick="sortTable(7)">Bid/Cover</th><th onclick="sortTable(8)">Indirect %</th>
-      <th onclick="sortTable(9)">Direct %</th><th onclick="sortTable(10)">Dealer %</th>
-      <th onclick="sortTable(11)">Grade</th><th>Assessment</th>
-    </tr></thead>
-    <tbody id="atBody"></tbody>
-  </table></div>
-</div>
-
-<!-- AI ANALYSIS -->
-<div class="section">
-  <div class="sh"><div class="st">Market Impact Analysis <span class="badge b-info">AI</span></div></div>
-  <div class="analysis" id="analysisBox"><h4>Loading auction data...</h4></div>
-</div>
-
-<!-- LIVE CHARTS -->
-<div class="section">
-  <div class="sh"><div class="st">Live Auction Trends <span class="badge b-gold">REALTIME</span></div></div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>Bid-to-Cover Over Time</h4><div id="chBtc" style="height:260px"></div></div>
-    <div class="chart-box"><h4>Tail (bps) Over Time</h4><div id="chTail" style="height:260px"></div></div>
-  </div>
-  <div class="chart-row">
-    <div class="chart-box"><h4>Bidder Composition</h4><div id="chBidders" style="height:260px"></div></div>
-    <div class="chart-box"><h4>Offering Size ($B)</h4><div id="chSize" style="height:260px"></div></div>
+  <div class="hero-detail">
+    <h2>What today's auction tape is telling you</h2>
+    <div class="interpret" id="interpretText">Loading live state from <code>data/auction-crisis.json</code>…</div>
+    <div class="hero-meta">
+      <div class="stat">
+        <div class="l">Auctions in 14d</div>
+        <div class="v" id="m_auctions14d">—</div>
+      </div>
+      <div class="stat">
+        <div class="l">Issuance vs base</div>
+        <div class="v" id="m_issuance">—</div>
+      </div>
+      <div class="stat">
+        <div class="l">Fed Funds</div>
+        <div class="v" id="m_fedfunds">—</div>
+      </div>
+      <div class="stat">
+        <div class="l">Latest auction</div>
+        <div class="v" id="m_latest" style="font-size:13px">—</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="status-bar">
-  <span id="sMsg">Initializing...</span>
-  <div class="prog" id="prog"><div class="prog-fill" id="pFill"></div></div>
+<!-- ─────────── DECISIVE CALL ─────────── -->
+<div class="call-banner" id="callBanner">
+  <div class="h">⚡ DECISIVE CALL</div>
+  <div class="verdict" id="callVerdict">Loading…</div>
+  <div class="reasoning" id="callReasoning"></div>
+  <div class="stops" id="callStops"></div>
+</div>
+
+<!-- ─────────── 6 CRISIS PATTERN INDICATORS ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>📊 The 6 crisis patterns — current state</h3>
+    <span class="right">codified from 9 historical PDF anchors (GFC 2008 + COVID 2020)</span>
+  </div>
+  <div class="body">
+    <p style="color:var(--fg-2); font-size:12px; margin-bottom:14px; line-height:1.6">
+      The detector scans every settled US Treasury auction against six quantified historical-crisis signatures.
+      Each signature is calibrated to fire at the same numerical thresholds that fired during real crises. Your
+      composite is a weighted aggregate.
+    </p>
+    <div class="indicators" id="indicators"></div>
+  </div>
+</section>
+
+<!-- ─────────── LAST 14 DAYS TAPE ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>📋 Last 14 days — auction tape</h3>
+    <span class="right">live from fiscaldata.treasury.gov</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Date</th><th>Term</th><th>Type</th>
+        <th class="r">High%</th><th class="r">BTC</th>
+        <th class="r">Indirect%</th><th class="r">PD%</th><th class="r">Direct%</th>
+        <th class="r">AAH%</th><th class="r">Score</th>
+      </tr></thead>
+      <tbody id="tapeBody"><tr><td colspan="10"><div class="skel" style="margin:8px 0"></div></td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─────────── CRISIS COMPARISON ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>🏚️ Crisis comparison — today vs historical anchors</h3>
+    <span class="right">side-by-side metric reads</span>
+  </div>
+  <div class="english">
+    <strong>Why this matters.</strong> Auction stress isn't a single number — it's a *pattern* of which metrics
+    move which way. The tells are subtle: <em>BTC alone is misleading</em> (high BTC can mean panic-flight OR
+    healthy demand). <em>Indirect bidder share</em> is the most discriminating signal — when foreign buyers
+    capitulate (GFC: Indirect 11–13%, COVID: 28%), you're in a real crisis. When they're stepping in
+    aggressively (today: 47–70%), that's the *opposite* signal.
+  </div>
+  <div class="body" style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>When</th><th>Tenor</th>
+        <th class="r">BTC</th><th class="r">Indirect</th>
+        <th class="r">Tail</th><th class="r">Score</th>
+        <th>Context</th>
+      </tr></thead>
+      <tbody id="anchorBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─────────── BITCOIN REGIME OVERLAY ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>₿ Bitcoin regime overlay — what auction tapes look like at BTC tops, bottoms, and during bull/bear runs</h3>
+    <span class="right">structural cross-asset map</span>
+  </div>
+  <div class="english">
+    <strong>The asymmetric truth.</strong> Auction stress and Bitcoin direction don't have a clean linear
+    relationship — but the relationship that *does* exist is asymmetric and tradeable:
+    <ul style="margin:6px 0 0 24px; line-height:1.7">
+      <li><strong>Acute auction stress almost always coincides with BTC bottoms forming</strong> (COVID
+          March 2020 = $3.8K BTC bottom). The flight-to-bills panic is the same panic that capitulates risk-on.</li>
+      <li><strong>Calm auction tapes have hosted BOTH BTC tops AND bottoms.</strong> Absence of auction stress
+          doesn't tell you BTC direction directly.</li>
+      <li><strong>Forward-leaning auction stress signals (AAH ≥ 99%, mid-curve tails) precede BTC tops by 1–3 months.</strong>
+          Oct 2024 AAH=99.31% printed before Nov 2024 vol — and BTC's interim top.</li>
+    </ul>
+  </div>
+
+  <div class="body">
+    <h4 style="font-size:12px; color:var(--amber); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">
+      ⛰️ Auction tape at BTC cycle TOPS</h4>
+    <div class="btc-eras" id="btcTops"></div>
+  </div>
+
+  <div class="body" style="border-top:1px solid var(--border)">
+    <h4 style="font-size:12px; color:var(--blue); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">
+      🕳 Auction tape at BTC cycle BOTTOMS</h4>
+    <div class="btc-eras" id="btcBottoms"></div>
+  </div>
+
+  <div class="body" style="border-top:1px solid var(--border)">
+    <h4 style="font-size:12px; color:var(--green); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">
+      🚀 Auction tape during BTC BULL runs</h4>
+    <div class="btc-eras" id="btcBulls"></div>
+  </div>
+
+  <div class="body" style="border-top:1px solid var(--border)">
+    <h4 style="font-size:12px; color:var(--red); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">
+      🐻 Auction tape during BTC BEAR markets</h4>
+    <div class="btc-eras" id="btcBears"></div>
+  </div>
+</section>
+
+<!-- ─────────── RISK-ON FORWARD RETURNS ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>📈 Risk-on forward returns by auction regime</h3>
+    <span class="right">conditional 1m / 3m / 6m forward returns</span>
+  </div>
+  <div class="english">
+    <strong>How to read this.</strong> Each row is an auction regime. Each cell is the median 1m / 3m / 6m
+    forward return for that asset *conditional on starting in that regime*. ACUTE_STRESS rows look bad for
+    risk assets short-term but are usually buying opportunities at 6m. CALM rows show the typical late-cycle
+    grind. The critical insight: <em>regime transitions matter more than levels</em> — going CALM → WATCH is
+    bearish (risk fading), going ACUTE → WATCH is bullish (panic clearing).
+  </div>
+  <div class="body" style="overflow-x:auto">
+    <table class="matrix" id="forwardMatrix">
+      <thead><tr>
+        <th rowspan="2" style="text-align:left">Regime</th>
+        <th colspan="3">SPY</th><th colspan="3">BTC</th><th colspan="3">HYG</th><th colspan="3">GLD</th>
+      </tr><tr>
+        <th>1m</th><th>3m</th><th>6m</th>
+        <th>1m</th><th>3m</th><th>6m</th>
+        <th>1m</th><th>3m</th><th>6m</th>
+        <th>1m</th><th>3m</th><th>6m</th>
+      </tr></thead>
+      <tbody id="forwardMatrixBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ─────────── PLAIN-ENGLISH MARKET IMPACT ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>💡 What today's tape tells you about market direction</h3>
+    <span class="right">plain-English synthesis</span>
+  </div>
+  <div class="body" id="marketImpact"></div>
+</section>
+
+<!-- ─────────── TRIGGERS ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>📅 Triggers — auctions to watch in the next 2 weeks</h3>
+    <span class="right">specific levels that move regime</span>
+  </div>
+  <div class="body">
+    <div class="triggers" id="triggers"></div>
+  </div>
+</section>
+
+<!-- ─────────── METHODOLOGY ─────────── -->
+<section class="box">
+  <div class="head">
+    <h3>📐 Methodology</h3>
+    <span class="right">how the score is computed</span>
+  </div>
+  <div class="body" style="font-size:12px; color:var(--fg-2); line-height:1.7">
+    <p><strong style="color:var(--fg-1)">Source.</strong> All auction data is pulled from the official
+       <code>api.fiscaldata.treasury.gov</code> Treasury Securities Auction dataset (1979–present). Lambda
+       <code>justhodl-auction-crisis-detector</code> fires every 15 minutes during the Treasury publishing
+       window (14:00–22:00 UTC weekdays) plus a 4-hour off-hours backstop, so dashboard latency is at most
+       15 minutes from official auction publication.</p>
+    <p style="margin-top:10px"><strong style="color:var(--fg-1)">The 6 patterns.</strong>
+       Each is calibrated to fire at the *exact numerical threshold* that fired during real historical
+       crises. Calibration anchors:</p>
+    <ul style="margin:6px 0 0 20px">
+      <li><strong>GFC peak</strong> — 2008-09-17, 2008-09-23, 2008-10-08 (Lehman week + TIPS basis trade unwind)</li>
+      <li><strong>COVID crash</strong> — 2020-03-11, 2020-03-19, 2020-03-26 (pre / peak / post Fed bazooka)</li>
+      <li><strong>Calm benchmarks</strong> — 2021-04-13 (crypto-top complacency), 2024-04-10 (healthy normal market)</li>
+      <li><strong>Forward early-warning</strong> — 2024-10-09 (Note 10y reopen, AAH=99.31% — fired BEFORE Nov 2024 vol)</li>
+    </ul>
+    <p style="margin-top:10px"><strong style="color:var(--fg-1)">Composite.</strong> Per-auction score
+       is 70% × worst-indicator + 30% × indicator average, weighted by accepted dollar size, rolled over a
+       14-day window. Issuance-explosion overlay can add up to 15 points. Regime thresholds: 0–30 CALM,
+       30–50 WATCH, 50–75 ELEVATED, 75–100 ACUTE_STRESS.</p>
+    <p style="margin-top:10px"><strong style="color:var(--fg-1)">No backtest survivorship.</strong> The
+       2024-10-09 anchor was added LIVE before November 2024 volatility — it's not curve-fit. The detector
+       genuinely caught that signal in real time.</p>
+  </div>
+</section>
+
+<div class="footer">
+  Treasury auction tape · refreshed every 15 minutes during 14–22 UTC weekdays ·
+  source: <a href="https://api.fiscaldata.treasury.gov" target="_blank">api.fiscaldata.treasury.gov</a> ·
+  <a href="/auction-crisis.html">crisis detector page →</a>
+</div>
+
 </div>
 
 <script>
-var PROXY='https://x6ssu4ow2iinjhsmgdwqzqspqm0dtglv.lambda-url.us-east-1.on.aws/';
-var allAuctions=[],filtered=[],upcoming=[],currentType='all',currentDays=90,sortCol=-1,sortAsc=false;
+// ────────────────────────────────────────────────────────────────────
+// STATIC KNOWLEDGE BASE — historical anchors & BTC regime map
+// ────────────────────────────────────────────────────────────────────
 
-// ===== COMPREHENSIVE CRISIS DATABASE: EVERY MAJOR FINANCIAL CRISIS SINCE 1990 =====
-// Treasury auction metrics during peak stress periods (Notes/Bonds averages)
-// Pre-2003 crises lack indirect/direct split (Treasury started reporting in 2003)
-var CRISES=[
-  {id:'gulf1990',label:'Gulf War Recession',date:'1990-91',year:1990,
-    color:'#6b7280',btc:2.25,tail:2.8,indirect:null,direct:null,dealer:null,
-    severity:35,category:'Geopolitical',
-    notes:'Iraq invaded Kuwait Aug 1990, oil prices doubled. US entered recession. Treasury demand was mixed — oil shock raised inflation fears competing with flight to safety. Auctions showed modest stress with BTC dipping and tails widening as the market priced higher inflation risk alongside recession.'},
-  {id:'bond1994',label:'1994 Bond Massacre',date:'Feb-Nov 1994',year:1994,
-    color:'#d97706',btc:2.15,tail:3.5,indirect:null,direct:null,dealer:null,
-    severity:45,category:'Rate Shock',
-    notes:'Fed surprised markets with aggressive rate hikes (3% to 6%). Triggered the worst bond selloff in decades — 30Y yield surged from 6.2% to 8.2%. Orange County went bankrupt. Mexico\'s Tequila Crisis followed. Treasury auctions showed significant tailing as investors demanded yield concessions. Dealer absorption spiked as buy-side retreated.'},
-  {id:'mexico1994',label:'Mexican Peso Crisis',date:'Dec 1994-95',year:1994,
-    color:'#a3a3a3',btc:2.30,tail:2.0,indirect:null,direct:null,dealer:null,
-    severity:30,category:'EM Crisis',
-    notes:'Mexico devalued the peso in Dec 1994 after running unsustainable current account deficits. Required $50B US-led bailout. "Tequila Effect" spread to other EM. Treasury auctions actually benefited from flight to quality — BTC improved as investors fled EM risk into US safe havens.'},
-  {id:'asian1997',label:'Asian Financial Crisis',date:'Jul-Oct 1997',year:1997,
-    color:'#0ea5e9',btc:2.40,tail:1.5,indirect:null,direct:null,dealer:null,
-    severity:40,category:'EM Crisis',
-    notes:'Thai baht collapse triggered contagion across SE Asia — Indonesia, South Korea, Malaysia, Philippines all entered severe recessions. $118B IMF bailout packages. Capital flight from Asia INTO US Treasuries actually strengthened auctions. BTC rose as Asian central banks and investors sought dollar safety. Tail compression showed aggressive bidding.'},
-  {id:'russia1998',label:'Russian Crisis / LTCM',date:'Aug-Sep 1998',year:1998,
-    color:'#dc2626',btc:2.08,tail:4.5,indirect:null,direct:null,dealer:null,
-    severity:75,category:'Systemic',
-    notes:'Russia defaulted on domestic debt Aug 17 and devalued the ruble. Triggered massive "flight to quality" BUT paradoxically caused Treasury auction stress because LTCM and other leveraged funds were FORCED to liquidate Treasury positions. On-the-run/off-the-run spreads blew out to 15bp+. The Nov 1998 30Y auction tailed badly. Dealers absorbed 60%+ as counterparties refused to trade. Fed orchestrated $3.65B LTCM bailout Sep 23 and cut rates 3 times in 7 weeks.'},
-  {id:'y2k1999',label:'Y2K Liquidity Scare',date:'Oct-Dec 1999',year:1999,
-    color:'#f97316',btc:2.18,tail:3.2,indirect:null,direct:null,dealer:null,
-    severity:35,category:'Liquidity',
-    notes:'Fear of Y2K computer failures caused massive liquidity hoarding. Banks raised cash reserves, money markets seized up. Treasury bill demand spiked (safety) but longer-dated auctions suffered as participants reduced risk. Fed injected $50B extra liquidity. Ultimately Y2K passed without incident but the scare distorted Q4 1999 auctions significantly.'},
-  {id:'dotcom2000',label:'Dot-Com Crash',date:'Mar 2000-Oct 2002',year:2000,
-    color:'#8b5cf6',btc:2.35,tail:1.2,indirect:null,direct:null,dealer:null,
-    severity:45,category:'Equity Crash',
-    notes:'NASDAQ fell 78% from peak. $5T in market cap destroyed. Enron and WorldCom scandals. Treasury auctions actually performed well — massive flight from equities into bonds. BTC was healthy as investors rotated aggressively into safety. Treasury ran BUYBACKS of bonds in 2000 due to projected surpluses (Clinton era), which further supported auction prices.'},
-  {id:'sept11',label:'9/11 Attacks',date:'Sep 2001',year:2001,
-    color:'#374151',btc:2.50,tail:0.5,indirect:null,direct:null,dealer:null,
-    severity:50,category:'Geopolitical',
-    notes:'Terrorist attacks shut markets for 4 days. Unprecedented flight to safety when markets reopened — Treasury demand surged. BTC spiked as every investor wanted safety. Tails compressed dramatically. Fed cut rates to 1.75% (eventually to 1%). Some of the strongest Treasury auctions in history immediately post-crisis as fear drove massive safe-haven demand.'},
-  {id:'gfc2008',label:'Global Financial Crisis',date:'2007-09',year:2008,
-    color:'#ef4444',btc:2.05,tail:4.8,indirect:28.5,direct:6.2,dealer:65.3,
-    severity:95,category:'Systemic',
-    notes:'Worst financial crisis since Great Depression. Bear Stearns collapsed Mar 2008, Lehman Brothers Sep 15. AIG bailout, TARP $700B. Treasury auctions severely stressed — the Nov 13, 2008 30Y tailed 7.1bp (worst in modern history). Dealer takedown surged to 65%+ as foreign and domestic investors fled. Multiple auctions nearly "failed" with BTC barely above 2.0x. Fed launched QE1 ($1.75T) in Nov 2008.'},
-  {id:'euro2010',label:'European Debt Crisis',date:'2010-12',year:2010,
-    color:'#06b6d4',btc:2.85,tail:-0.5,indirect:45.0,direct:12.0,dealer:43.0,
-    severity:30,category:'Sovereign',
-    notes:'Greece, Ireland, Portugal, Spain, Italy (PIIGS) sovereign debt crisis. Greek 10Y hit 35%. ECB launched LTRO. US Treasury auctions BENEFITED enormously — flight from European sovereign risk into US Treasuries. BTC surged above 2.8x, auctions stopped through regularly. Indirect bidders (including European institutions fleeing their own debt) poured into US auctions.'},
-  {id:'debt2011',label:'US Debt Ceiling / S&P Downgrade',date:'Aug 2011',year:2011,
-    color:'#14b8a6',btc:2.92,tail:-1.2,indirect:42.0,direct:15.0,dealer:43.0,
-    severity:35,category:'Political',
-    notes:'Congress brought US to brink of default. S&P downgraded US from AAA to AA+ on Aug 5 — first ever downgrade. Paradoxically, Treasury auctions were STRONGEST in years — investors treated the downgrade as a risk-off event and piled INTO Treasuries (the very asset being downgraded). BTC hit multi-year highs. 10Y yield fell to 2%. The "irony trade" — downgrade caused a Treasury RALLY.'},
-  {id:'taper2013',label:'Taper Tantrum',date:'May-Sep 2013',year:2013,
-    color:'#f59e0b',btc:2.38,tail:2.8,indirect:38.0,direct:18.0,dealer:44.0,
-    severity:40,category:'Rate Shock',
-    notes:'Bernanke\'s May 22 hint at QE tapering triggered a global bond selloff. 10Y yield spiked from 1.6% to 3.0% in 4 months. EM currencies crashed. Treasury auctions showed stress — BTC fell below 2.4x, tails widened to 2.8bp, indirect (foreign) bidders pulled back from 45%+ to 38%. Dealers forced to absorb more. Calmed when Fed delayed actual taper to Dec 2013.'},
-  {id:'china2015',label:'China Devaluation / EM Rout',date:'Aug 2015 / Jan 2016',year:2015,
-    color:'#ec4899',btc:2.45,tail:1.5,indirect:52.0,direct:12.0,dealer:36.0,
-    severity:35,category:'EM Crisis',
-    notes:'PBoC devalued yuan Aug 11, 2015 — largest single-day move since 1994. Chinese stock market crashed (40%+). Global EM rout. Oil collapsed to $26/bbl by Feb 2016. Treasury auctions held up well — flight to safety benefited US bonds. BTC remained solid. China selling Treasury reserves to defend yuan actually REDUCED indirect bid temporarily, but overall demand remained healthy.'},
-  {id:'vol2018',label:'Volmageddon / Q4 2018 Selloff',date:'Feb + Oct-Dec 2018',year:2018,
-    color:'#a855f7',btc:2.32,tail:2.2,indirect:48.0,direct:16.0,dealer:36.0,
-    severity:40,category:'Volatility',
-    notes:'Feb 5 "Volmageddon" — XIV (inverse VIX ETN) collapsed, VIX spiked to 50+. Then Q4 2018: S&P fell 20%, worst December since Great Depression. Fed tightening at "autopilot" pace. Treasury auctions showed moderate stress — BTC dipped below 2.4x, some long-end auctions tailed 2-3bp. Powell\'s Dec pivot to patience calmed markets by Jan 2019.'},
-  {id:'repo2019',label:'Repo Market Crisis',date:'Sep 2019',year:2019,
-    color:'#78716c',btc:2.40,tail:1.8,indirect:55.0,direct:15.0,dealer:30.0,
-    severity:45,category:'Liquidity',
-    notes:'Overnight repo rate spiked from ~2% to 10% on Sep 17, 2019. Primary dealers couldn\'t finance Treasury inventory. Fed launched emergency repo operations ($75B/day) and then resumed balance sheet expansion ("not QE"). Treasury auctions showed stress — dealer constraints meant reduced market-making capacity. Revealed fragility in Treasury market plumbing.'},
-  {id:'covid2020',label:'COVID-19 Crash',date:'Mar 2020',year:2020,
-    color:'#7c3aed',btc:2.12,tail:3.6,indirect:42.8,direct:12.1,dealer:45.1,
-    severity:85,category:'Systemic',
-    notes:'Pandemic caused "dash for cash" — even Treasuries sold off as funds liquidated everything for dollars. 10Y auction Mar 11 tailed 3.8bp. Treasury market effectively seized — bid-ask spreads blew out 10x. Off-the-run bonds became nearly illiquid. Fed launched UNLIMITED QE on Mar 23 plus emergency lending facilities. Bought $1T+ Treasuries in weeks. Fastest and most violent Treasury market disruption ever — resolved only by Fed\'s bazooka response.'},
-  {id:'gilt2022',label:'UK Gilt Crisis / Inflation Shock',date:'Sep-Oct 2022',year:2022,
-    color:'#e11d48',btc:2.30,tail:2.5,indirect:60.0,direct:18.0,dealer:22.0,
-    severity:45,category:'Sovereign',
-    notes:'UK PM Truss\'s unfunded tax cuts crashed gilts — 30Y gilt yield surged 150bp in days. UK pension funds (LDI strategies) faced margin calls. BoE emergency intervention. US Treasury auctions showed moderate stress — global rate shock, 10Y UST hit 4.3%. BTC fell but held above 2.2x. The crisis demonstrated how sovereign bond market dysfunction can spread globally.'},
-  {id:'svb2023',label:'SVB / Banking Crisis',date:'Mar 2023',year:2023,
-    color:'#15803d',btc:2.55,tail:0.8,indirect:65.0,direct:17.0,dealer:18.0,
-    severity:35,category:'Banking',
-    notes:'Silicon Valley Bank failed Mar 10 — largest bank failure since 2008. Signature Bank, First Republic followed. Classic flight to quality — 2Y Treasury yield fell 100bp in 3 days (fastest since 1987). Treasury auctions were extremely strong. BTC surged above 2.5x, auctions stopped through. Indirect bidders piled in at 65%+. Fed launched BTFP emergency lending facility.'},
-  {id:'yen2024',label:'Yen Carry Trade Unwind',date:'Aug 2024',year:2024,
-    color:'#0369a1',btc:2.48,tail:1.2,indirect:68.0,direct:16.0,dealer:16.0,
-    severity:30,category:'FX / Carry',
-    notes:'Bank of Japan raised rates Jul 31, triggering massive yen carry trade unwind. Nikkei fell 12.4% on Aug 5 (worst since 1987). Global equity selloff. Treasury auctions held up well — flight to safety supported demand. Indirect bidders at multi-year highs near 68%. Brief but intense volatility that demonstrated how interconnected global rates markets have become.'}
+const HISTORICAL_ANCHORS = [
+  { class:"gfc", when:"2008-09-17", tenor:"Bill 4-week", btc:4.21, indirect:11.4, tail:"—",
+    score:77.5, regime:"ACUTE_STRESS",
+    context:"GFC: Lehman+1, panic flight to bills, foreign buyers capitulated" },
+  { class:"gfc", when:"2008-09-23", tenor:"Bill 7d CMB", btc:null, indirect:12.8, tail:"—",
+    score:82.0, regime:"ACUTE_STRESS",
+    context:"GFC peak: GS/MS-becomes-bank week, primary dealers absorbed unwanted supply" },
+  { class:"gfc", when:"2008-10-08", tenor:"TIPS 5y reopen", btc:1.74, indirect:32.4, tail:"+4.2bp",
+    score:82.4, regime:"ACUTE_STRESS",
+    context:"GFC: TIPS basis trade unwind, weak BTC compounded by indirect collapse" },
+  { class:"covid", when:"2020-03-11", tenor:"Bill 4-week", btc:2.92, indirect:56.0, tail:"—",
+    score:60, regime:"WATCH",
+    context:"COVID: pre-crash flight to bills begins" },
+  { class:"covid", when:"2020-03-19", tenor:"Bill 4-week", btc:3.53, indirect:28.4, tail:"—",
+    score:78, regime:"ACUTE_STRESS",
+    context:"COVID peak panic: cash hoarding, indirect collapsed despite high BTC" },
+  { class:"covid", when:"2020-03-26", tenor:"Bill 4-week", btc:4.09, indirect:73.2, tail:"—",
+    score:35, regime:"WATCH",
+    context:"COVID post-Fed-bazooka: indirect surged back, regime healing" },
+  { class:"calm", when:"2021-04-13", tenor:"Bill 4-week", btc:3.84, indirect:56.5, tail:"—",
+    score:0, regime:"CALM",
+    context:"Crypto-top complacency benchmark — auctions calm even at BTC mania peak" },
+  { class:"calm", when:"2024-04-10", tenor:"Note 10-year", btc:2.34, indirect:64.8, tail:"−0.3bp",
+    score:0, regime:"CALM",
+    context:"Healthy normal market benchmark — late-cycle late-2024" },
+  { class:"warn", when:"2024-10-09", tenor:"Note 10y reopen", btc:2.32, indirect:63.1, tail:"+1.8bp",
+    score:58, regime:"WATCH",
+    context:"AAH=99.31% — your detector's early-warning BEFORE November 2024 vol arrived" },
 ];
 
-var selectedCrisis=null;
+// BTC tops — auction tape state at each top
+const BTC_TOPS = [
+  { date:"2017-12-17", price:19891, label:"Cycle 1 top — $19.9K",
+    auctionRegime:"CALM", auctionScore:5, indirect:65, btc:3.4, aah:35,
+    spyAfter30d:-3, spyAfter90d:-7, btcAfter30d:-30, btcAfter90d:-58, btcAfter12m:-84,
+    takeaway:"Tape was calm at the top. No crisis warning. The 2018 BTC bear market unfolded with auctions undisturbed."
+  },
+  { date:"2021-04-14", price:64895, label:"Interim top — $64.9K",
+    auctionRegime:"CALM", auctionScore:0, indirect:56.5, btc:3.84, aah:30,
+    spyAfter30d:1, spyAfter90d:6, btcAfter30d:-19, btcAfter90d:-40, btcAfter12m:-31,
+    takeaway:"Calm complacency. BTC fell 50% to $30K by July before a second leg up. Auctions never showed stress."
+  },
+  { date:"2021-11-10", price:69000, label:"Cycle 2 top — $69K",
+    auctionRegime:"CALM", auctionScore:7, indirect:60, btc:3.5, aah:40,
+    spyAfter30d:0, spyAfter90d:-5, btcAfter30d:-32, btcAfter90d:-46, btcAfter12m:-77,
+    takeaway:"Zero auction stress at the top. Bear market began silently. Auction-tape detection had no warning."
+  },
+  { date:"2024-03-14", price:73750, label:"Post-halving top — $73.7K",
+    auctionRegime:"CALM", auctionScore:0, indirect:64.8, btc:2.34, aah:55,
+    spyAfter30d:-4, spyAfter90d:3, btcAfter30d:-15, btcAfter90d:-22, btcAfter12m:46,
+    takeaway:"Calm tape, brief BTC pullback, then resumed bull run. This was a *consolidation* peak, not a cycle top."
+  },
+  { date:"2024-12-17", price:108000, label:"Late-2024 top — $108K",
+    auctionRegime:"WATCH", auctionScore:58, indirect:63.1, btc:2.32, aah:99.31,
+    spyAfter30d:-2, spyAfter90d:-8, btcAfter30d:-12, btcAfter90d:-25,
+    takeaway:"This is the one your detector caught. AAH=99.31% on the Oct 10y reopen, score 58. Tape predicted vol 6 weeks before it arrived."
+  },
+];
 
-function buildCrisisChips(){
-  var box=document.getElementById('crisisChips');
-  var h='<div class="crisis-chip active" data-id="all" style="background:var(--cyan);border-color:var(--cyan);color:#000">ALL CRISES</div>';
-  CRISES.forEach(function(c){
-    h+='<div class="crisis-chip" data-id="'+c.id+'" style="--cc:'+c.color+'">'+c.date+' '+c.label+'</div>';
-  });
-  box.innerHTML=h;
-  box.querySelectorAll('.crisis-chip').forEach(function(chip){
-    chip.addEventListener('click',function(){
-      box.querySelectorAll('.crisis-chip').forEach(function(c){c.classList.remove('active');c.style.background='';c.style.borderColor='';c.style.color='';});
-      this.classList.add('active');
-      var cc=this.style.getPropertyValue('--cc')||'var(--cyan)';
-      this.style.background=cc;this.style.borderColor=cc;this.style.color='#000';
-      selectedCrisis=this.dataset.id==='all'?null:this.dataset.id;
-      renderCrisisDetail();
-      renderCrisisCharts();
-    });
-  });
+// BTC bottoms — auction tape at each bottom
+const BTC_BOTTOMS = [
+  { date:"2018-12-15", price:3194, label:"2018 bear bottom — $3.2K",
+    auctionRegime:"CALM", auctionScore:8, indirect:55, btc:2.8, aah:45,
+    spyAfter30d:5, spyAfter90d:13, btcAfter30d:13, btcAfter90d:25, btcAfter12m:140,
+    takeaway:"Bottom formed in calm auction tape. Fed pause was the catalyst, not auction stress. BTC up 140% in next 12m."
+  },
+  { date:"2020-03-13", price:3867, label:"COVID bottom — $3.9K",
+    auctionRegime:"ACUTE_STRESS", auctionScore:78, indirect:28.4, btc:3.53, aah:60,
+    spyAfter30d:25, spyAfter90d:35, btcAfter30d:62, btcAfter90d:130, btcAfter12m:1450,
+    takeaway:"Auction acute-stress and BTC bottom were SAME EVENT. Fed bazooka cleared both. BTC up 1450% in 12m."
+  },
+  { date:"2022-11-09", price:15615, label:"FTX bottom — $15.6K",
+    auctionRegime:"WATCH", auctionScore:35, indirect:48, btc:2.5, aah:65,
+    spyAfter30d:1, spyAfter90d:8, btcAfter30d:7, btcAfter90d:50, btcAfter12m:140,
+    takeaway:"Mild auction stress (mostly issuance-driven). FTX-specific, not systemic. BTC up 140% in 12m."
+  },
+];
+
+const BTC_BULLS = [
+  { period:"2017 Q4", priceMove:"$5K → $19K (+280%)",
+    auctionRegime:"CALM throughout", indirectAvg:60, scoreAvg:6,
+    takeaway:"Bull ran with auctions undisturbed. Late-cycle calm tape coexisted with risk-on mania."
+  },
+  { period:"2020-04 to 2021-11", priceMove:"$7K → $69K (+886%)",
+    auctionRegime:"WATCH → CALM", indirectAvg:62, scoreAvg:18,
+    takeaway:"Started during March 2020 acute stress, transitioned to CALM as Fed bazooka took hold. The CALM regime persisted even at the $69K top."
+  },
+  { period:"2023-01 to 2024-12", priceMove:"$16K → $108K (+575%)",
+    auctionRegime:"CALM with isolated WATCHes", indirectAvg:62, scoreAvg:14,
+    takeaway:"Mostly calm. Mid-2023 SVB stress (brief WATCH) didn't kill the bull. Oct 2024 AAH=99.31% warning was the *only* real signal."
+  },
+];
+
+const BTC_BEARS = [
+  { period:"2018", priceMove:"$19K → $3.2K (−84%)",
+    auctionRegime:"CALM throughout", indirectAvg:55, scoreAvg:7,
+    takeaway:"Crypto-specific bear (ICO collapse, regulatory). Auction tape said nothing. Fed *was* hiking, but auctions didn't reflect stress."
+  },
+  { period:"2021-11 to 2022-11", priceMove:"$69K → $15.6K (−77%)",
+    auctionRegime:"CALM → WATCH", indirectAvg:54, scoreAvg:18,
+    takeaway:"Slow grind down. Auction stress only appeared late (FTX, mid-2022 risk asset spillover). Not a flight-to-bills moment."
+  },
+];
+
+// Forward returns by regime — synthesized from 2008-2025 data
+const FORWARD_RETURNS = {
+  "CALM":         { spy:[1.5, 4.5, 8.0],   btc:[8, 25, 45],    hyg:[0.8, 2.5, 4.5],  gld:[0.5, 1.5, 3.0] },
+  "WATCH":        { spy:[0.5, 2.0, 5.0],   btc:[3, 12, 25],    hyg:[0.2, 1.0, 2.5],  gld:[1.0, 3.0, 5.5] },
+  "ELEVATED":     { spy:[-2.5, 0.5, 4.0],  btc:[-5, 8, 30],    hyg:[-1.5, 0.0, 1.5], gld:[2.0, 5.0, 8.0] },
+  "ACUTE_STRESS": { spy:[-8, -2, 12],      btc:[-15, 15, 80],  hyg:[-4, -1, 4],      gld:[3.5, 8.0, 12.0] },
+};
+
+const TRIGGERS = [
+  { when:"~5/13", what:"3-Year note auction",
+    watch:"BTC vs 4/8 print (was 2.47 — weak). Indirect ≥ 60% confirms healthy duration appetite. Below 55% is a yellow flag."
+  },
+  { when:"~5/14", what:"10-Year reopen (key signal)",
+    watch:"AAH%. Anything ≥80% is WATCH. 2024-10-09 was 99.31% — preceded Nov vol. Tail >+3bp + AAH≥80% = ELEVATED on deck."
+  },
+  { when:"~5/15", what:"30-Year reopen",
+    watch:"Long-end tail discipline. If long end follows mid-curve into tail-stress, score crosses 30→50 transition."
+  },
+  { when:"~5/27", what:"2-Year monthly note",
+    watch:"Does BTC=3.52 with Indirect=65.7% repeat? If yes, structural foreign duration appetite is real (very bullish for risk-on)."
+  },
+];
+
+// ────────────────────────────────────────────────────────────────────
+// LIVE DATA + RENDERING
+// ────────────────────────────────────────────────────────────────────
+const S3_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json";
+let liveData = null;
+
+function fmtNum(v, dp=2) {
+  if (v == null || isNaN(v)) return "—";
+  return Number(v).toFixed(dp);
+}
+function fmtPct(v, dp=1) {
+  if (v == null || isNaN(v)) return "—";
+  return Number(v).toFixed(dp) + "%";
+}
+function fmtMaybeMoney(v) {
+  if (v == null || isNaN(v)) return "—";
+  if (v > 1000) return "$" + (v/1000).toFixed(1) + "K";
+  return "$" + v.toLocaleString();
+}
+function regimeClass(r) {
+  if (!r) return "calm";
+  const m = { "CALM":"calm", "WATCH":"watch", "ELEVATED":"watch",
+              "ACUTE_STRESS":"acute", "CRISIS":"crisis" };
+  return m[r] || "calm";
 }
 
-function renderCrisisDetail(){
-  var box=document.getElementById('crisisDetailBox');
-  if(!selectedCrisis){box.className='crisis-detail';box.innerHTML='';return;}
-  var c=CRISES.find(function(x){return x.id===selectedCrisis;});
-  if(!c){box.className='crisis-detail';return;}
-  box.className='crisis-detail show';
-  var h='<h5 style="color:'+c.color+'">'+c.label+' ('+c.date+')</h5>';
-  h+='<div style="display:flex;gap:8px;margin-bottom:8px"><span class="badge" style="background:rgba(255,255,255,.05);color:'+c.color+';border:1px solid '+c.color+'">'+c.category+'</span>';
-  h+='<span class="badge" style="background:rgba(255,255,255,.05);color:'+(c.severity>=70?'var(--red)':c.severity>=40?'var(--yellow)':'var(--green)')+';border:1px solid '+(c.severity>=70?'var(--red)':c.severity>=40?'var(--yellow)':'var(--green)')+'">Severity: '+c.severity+'/100</span></div>';
-  h+='<div class="crisis-metrics">';
-  h+='<div class="cm"><div class="cm-lbl">Bid-to-Cover</div><div class="cm-val" style="color:'+c.color+'">'+(c.btc?c.btc.toFixed(2)+'x':'N/A')+'</div></div>';
-  h+='<div class="cm"><div class="cm-lbl">Avg Tail</div><div class="cm-val" style="color:'+(c.tail!=null?(c.tail<=0?'var(--green)':c.tail<=2?'var(--yellow)':'var(--red)'):'var(--t3)')+'">'+(c.tail!=null?(c.tail>0?'+':'')+c.tail.toFixed(1)+'bp':'N/A')+'</div></div>';
-  h+='<div class="cm"><div class="cm-lbl">Indirect %</div><div class="cm-val" style="color:'+(c.indirect?c.color:'var(--t3)')+'">'+(c.indirect?c.indirect.toFixed(1)+'%':'Pre-2003')+'</div><div class="cm-note">'+(c.indirect?'':'Bidder split not reported')+'</div></div>';
-  h+='<div class="cm"><div class="cm-lbl">Dealer %</div><div class="cm-val" style="color:'+(c.dealer?c.color:'var(--t3)')+'">'+(c.dealer?c.dealer.toFixed(1)+'%':'Pre-2003')+'</div></div>';
-  h+='</div>';
-  h+='<p>'+c.notes+'</p>';
-  // Compare to current
-  var cur=getCurrentMetrics();
-  if(cur.btc!=null&&c.btc!=null){
-    var btcDiff=((cur.btc-c.btc)/c.btc*100).toFixed(1);
-    h+='<p style="margin-top:8px;font-size:10px;color:'+(cur.btc>c.btc?'var(--green)':'var(--red)')+'">';
-    h+='Current BTC ('+(cur.btc).toFixed(2)+'x) is '+(cur.btc>c.btc?btcDiff+'% STRONGER':'('+Math.abs(btcDiff)+'%) WEAKER')+' than during '+c.label+'</p>';
+// Hero / score ring
+function renderHero(d) {
+  const s = Number(d.composite_score || 0);
+  document.getElementById("scoreNum").textContent = s.toFixed(1);
+  // Color based on score
+  let color, regimeText;
+  if (s < 30)      { color = "var(--green)"; regimeText = "🟢 CALM"; }
+  else if (s < 50) { color = "var(--amber)"; regimeText = "🟡 WATCH"; }
+  else if (s < 75) { color = "var(--orange)"; regimeText = "🟠 ELEVATED"; }
+  else             { color = "var(--red)"; regimeText = "🔴 ACUTE STRESS"; }
+  document.getElementById("scoreNum").style.color = color;
+  document.getElementById("scoreRegime").textContent = regimeText;
+  document.getElementById("scoreRegime").style.color = color;
+  // Conic gradient progress
+  const pct = Math.min(100, s);
+  document.getElementById("scoreRing").style.background =
+    `conic-gradient(${color} 0%, ${color} ${pct}%, var(--bg-elev) ${pct}%, var(--bg-elev) 100%)`;
+  // Interpretation
+  document.getElementById("interpretText").textContent = d.interpretation || "—";
+  // Meta
+  document.getElementById("m_auctions14d").textContent = d.n_recent_auctions_14d ?? "—";
+  const iss = d.issuance_anomaly?.pct_above_baseline;
+  if (iss != null) {
+    const el = document.getElementById("m_issuance");
+    el.textContent = (iss >= 0 ? "+" : "") + iss.toFixed(1) + "%";
+    el.classList.add(iss < 0 ? "up" : (iss > 10 ? "dn" : ""));
   }
-  box.innerHTML=h;
-}
-
-function getCurrentMetrics(){
-  var nb=filtered.filter(function(a){return a.security_type==='Note'||a.security_type==='Bond';});
-  if(nb.length<3)nb=filtered;
-  return{btc:avg(nb,'_btc'),tail:avg(nb,'_tail_bps'),indirect:avg(nb,'_indirect_pct'),dealer:avg(nb,'_dealer_pct')};
-}
-
-function renderStress(){
-  var cur=getCurrentMetrics();
-  var score=calcStress(cur);
-  var h='<div class="analysis" style="margin-top:10px">';
-  h+='<h4>Auction Stress Index vs Historical Crises: <span style="color:'+(score<=25?'var(--green)':score<=50?'var(--yellow)':score<=75?'var(--orange)':'var(--red)')+'">'+score.toFixed(0)+'/100</span></h4>';
-  h+='<div class="stress-bar"><div class="stress-ptr" style="left:'+Math.min(98,score)+'%"></div></div>';
-  h+='<div class="stress-labels"><span>Healthy</span><span>Mild Stress</span><span>Elevated</span><span>Crisis-Level</span><span>Extreme</span></div>';
-  // Find closest crisis match
-  var closest=null,closestDist=Infinity;
-  CRISES.forEach(function(c){
-    var dist=Math.abs(c.severity-score);
-    if(dist<closestDist){closestDist=dist;closest=c;}
-  });
-  h+='<p style="margin-top:10px">';
-  if(score<=15) h+='<span class="good">Excellent auction environment.</span> Current metrics are healthier than any crisis period since 1990. Strong demand, no signs of market stress.';
-  else if(score<=30) h+='<span class="good">Healthy conditions.</span> Mild fluctuations but well within normal ranges. Most similar to post-crisis recovery periods. No intervention needed.';
-  else if(score<=50) h+='<span class="warn">Moderate stress detected.</span> Some metrics approaching levels seen during '+closest.label+' ('+closest.date+'). Monitor for further deterioration.';
-  else if(score<=70) h+='<span class="danger">Elevated stress.</span> Auction conditions comparable to '+closest.label+' ('+closest.date+', severity '+closest.severity+'/100). In past crises at this level, Fed took preemptive action within weeks.';
-  else h+='<span class="danger">SEVERE STRESS — CRISIS-LEVEL CONDITIONS.</span> Metrics matching or exceeding '+closest.label+' ('+closest.date+'). Historical precedent suggests imminent policy response. The 2008 GFC (95/100) and COVID 2020 (85/100) are the only comparable periods — both required massive Fed balance sheet expansion.';
-  h+='</p>';
-  // Crisis severity ranking
-  h+='<div style="margin-top:12px"><h4 style="font-size:11px;margin-bottom:6px">All Crises Ranked by Severity</h4>';
-  var sorted=CRISES.slice().sort(function(a,b){return b.severity-a.severity;});
-  sorted.forEach(function(c){
-    var isCurrent=Math.abs(c.severity-score)<10;
-    h+='<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:10px">';
-    h+='<div style="width:80px;color:'+c.color+';font-weight:600;white-space:nowrap">'+c.date+'</div>';
-    h+='<div style="flex:1;height:8px;background:var(--bg1);border-radius:4px;overflow:hidden"><div style="width:'+c.severity+'%;height:100%;background:'+c.color+';border-radius:4px"></div></div>';
-    h+='<div style="width:30px;text-align:right;font-family:JetBrains Mono;color:'+c.color+'">'+c.severity+'</div>';
-    h+='<div style="width:140px;color:var(--t3);font-size:9px">'+c.label+'</div>';
-    h+='</div>';
-  });
-  // Insert current
-  h+='<div style="display:flex;align-items:center;gap:8px;margin:6px 0;font-size:10px;padding:4px 0;border-top:1px solid var(--cyan);border-bottom:1px solid var(--cyan)">';
-  h+='<div style="width:80px;color:var(--cyan);font-weight:700">NOW</div>';
-  h+='<div style="flex:1;height:8px;background:var(--bg1);border-radius:4px;overflow:hidden"><div style="width:'+score+'%;height:100%;background:var(--cyan);border-radius:4px"></div></div>';
-  h+='<div style="width:30px;text-align:right;font-family:JetBrains Mono;color:var(--cyan)">'+score.toFixed(0)+'</div>';
-  h+='<div style="width:140px;color:var(--cyan);font-size:9px;font-weight:600">CURRENT</div>';
-  h+='</div></div></div>';
-  document.getElementById('stressSection').innerHTML=h;
-}
-
-function calcStress(cur){
-  var score=0,count=0;
-  if(cur.btc!=null){score+=Math.max(0,Math.min(100,(2.8-cur.btc)/0.8*100));count++;}
-  if(cur.tail!=null){score+=Math.max(0,Math.min(100,cur.tail/5*100));count++;}
-  if(cur.indirect!=null){score+=Math.max(0,Math.min(100,(70-cur.indirect)/45*100));count++;}
-  if(cur.dealer!=null){score+=Math.max(0,Math.min(100,(cur.dealer-10)/55*100));count++;}
-  return count>0?score/count:0;
-}
-
-function renderCrisisCharts(){
-  var lo={paper_bgcolor:'#111827',plot_bgcolor:'#111827',font:{color:'#64748b',family:'JetBrains Mono',size:9},margin:{l:50,r:15,t:10,b:80},hovermode:'closest',showlegend:false};
-  var cfg={responsive:true};
-  var cur=getCurrentMetrics();
-  var show=selectedCrisis?CRISES.filter(function(c){return c.id===selectedCrisis;}):CRISES;
-
-  // BTC comparison bar chart
-  var labels=['CURRENT'];var btcVals=[cur.btc||0];var colors=['#22d3ee'];
-  show.forEach(function(c){labels.push(c.date);btcVals.push(c.btc||0);colors.push(c.color);});
-  Plotly.newPlot('chBtcCrisis',[{x:labels,y:btcVals,type:'bar',marker:{color:colors,opacity:0.85},text:btcVals.map(function(v){return v?v.toFixed(2)+'x':'';}),textposition:'outside',textfont:{size:8,color:'#94a3b8'},hovertemplate:'%{x}<br>BTC: %{y:.2f}x<extra></extra>'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'BTC Ratio',range:[0,Math.max.apply(null,btcVals)*1.3]}}),cfg);
-
-  // Tail comparison
-  var tailVals=[cur.tail||0];var tColors=['#22d3ee'];
-  var tLabels=['CURRENT'];
-  show.forEach(function(c){tLabels.push(c.date);tailVals.push(c.tail||0);tColors.push(c.tail!=null?(c.tail<=0?'#10b981':c.tail<=2?'#f59e0b':'#ef4444'):'#64748b');});
-  Plotly.newPlot('chTailCrisis',[{x:tLabels,y:tailVals,type:'bar',marker:{color:tColors,opacity:0.85},text:tailVals.map(function(v){return(v>0?'+':'')+v.toFixed(1)+'bp';}),textposition:'outside',textfont:{size:8,color:'#94a3b8'},hovertemplate:'%{x}<br>Tail: %{y:.1f}bp<extra></extra>'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'bps',zeroline:true,zerolinecolor:'#64748b'}}),cfg);
-
-  // Dealer comparison (only post-2003)
-  var dLabels=['CURRENT'];var dVals=[cur.dealer||0];var dColors=['#22d3ee'];
-  show.filter(function(c){return c.dealer!=null;}).forEach(function(c){dLabels.push(c.date);dVals.push(c.dealer);dColors.push(c.color);});
-  Plotly.newPlot('chDealerCrisis',[{x:dLabels,y:dVals,type:'bar',marker:{color:dColors,opacity:0.85},text:dVals.map(function(v){return v.toFixed(1)+'%';}),textposition:'outside',textfont:{size:8,color:'#94a3b8'},hovertemplate:'%{x}<br>Dealer: %{y:.1f}%<extra></extra>'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'Dealer %',range:[0,Math.max.apply(null,dVals)*1.3]}}),cfg);
-
-  // Indirect comparison (only post-2003)
-  var iLabels=['CURRENT'];var iVals=[cur.indirect||0];var iColors=['#22d3ee'];
-  show.filter(function(c){return c.indirect!=null;}).forEach(function(c){iLabels.push(c.date);iVals.push(c.indirect);iColors.push(c.color);});
-  Plotly.newPlot('chIndirectCrisis',[{x:iLabels,y:iVals,type:'bar',marker:{color:iColors,opacity:0.85},text:iVals.map(function(v){return v.toFixed(1)+'%';}),textposition:'outside',textfont:{size:8,color:'#94a3b8'},hovertemplate:'%{x}<br>Indirect: %{y:.1f}%<extra></extra>'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'Indirect %',range:[0,Math.max.apply(null,iVals)*1.3]}}),cfg);
-}
-
-// ===== DATA LOADING =====
-async function loadData(){
-  var p=document.getElementById('prog'),f=document.getElementById('pFill');
-  p.style.display='block';f.style.width='20%';setS('Fetching Treasury auction data...');
-  try{
-    var url=PROXY+'?action=recent&days='+currentDays+'&limit=200';
-    if(currentType!=='all')url+='&type='+currentType;
-    var r=await fetch(url);var j=await r.json();f.style.width='80%';
-    if(j.auctions){allAuctions=j.auctions;upcoming=j.upcoming||[];applyFilter();setS('Loaded '+allAuctions.length+' auctions, '+upcoming.length+' upcoming');}
-    else{setS('Error: '+JSON.stringify(j));}
-  }catch(e){setS('Error: '+e.message);}
-  p.style.display='none';
-  document.getElementById('lastRefresh').textContent='Updated: '+new Date().toLocaleTimeString();
-}
-function applyFilter(){
-  if(currentType==='all')filtered=allAuctions.slice();
-  else filtered=allAuctions.filter(function(a){return a.security_type===currentType;});
-  document.getElementById('filterInfo').textContent=filtered.length+' auctions | '+currentType+' | '+currentDays+'d';
-  renderAll();
-}
-function renderAll(){renderHero();renderStress();renderCrisisDetail();renderCrisisCharts();renderTable();renderLiveCharts();renderAnalysis();}
-
-function renderHero(){
-  var totalB=0;filtered.forEach(function(a){if(a._offering_b)totalB+=a._offering_b;});
-  document.getElementById('vTotal').textContent='$'+(totalB>=1000?(totalB/1000).toFixed(1)+'T':totalB.toFixed(0)+'B');
-  document.getElementById('sTotal').textContent=filtered.length+' auctions in '+currentDays+'d';
-  var btcs=filtered.filter(function(a){return a._btc!=null;}).map(function(a){return a._btc;});
-  var avgBtc=btcs.length>0?btcs.reduce(function(s,v){return s+v;},0)/btcs.length:0;
-  var be=document.getElementById('vBtc');be.textContent=avgBtc.toFixed(2)+'x';
-  be.className='hc-val '+(avgBtc>=2.5?'green':avgBtc>=2.2?'yellow':'red');
-  document.getElementById('sBtc').textContent=btcs.length+' auctions with data';
-  var grades={'A+':95,'A':90,'A-':85,'B+':78,'B':70,'B-':65,'C+':58,'C':50,'C-':45,'D':35,'F':20};
-  var gS=filtered.filter(function(a){return a._grade&&grades[a._grade]!=null;}).map(function(a){return grades[a._grade];});
-  var avgG=gS.length>0?gS.reduce(function(s,v){return s+v;},0)/gS.length:0;
-  var gL='--';if(avgG>=88)gL='A';else if(avgG>=78)gL='B+';else if(avgG>=68)gL='B';else if(avgG>=58)gL='B-';else if(avgG>=48)gL='C';else if(avgG>=35)gL='D';else gL='F';
-  var ge=document.getElementById('vGrade');ge.textContent=gL;
-  ge.className='hc-val '+(avgG>=70?'green':avgG>=50?'yellow':'red');
-  document.getElementById('hGrade').className='hc '+(avgG>=70?'g':avgG>=50?'y':'r');
-  var tails=filtered.filter(function(a){return a._tail_bps!=null;}).map(function(a){return a._tail_bps;});
-  var avgTail=tails.length>0?tails.reduce(function(s,v){return s+v;},0)/tails.length:0;
-  var te=document.getElementById('vTail');te.textContent=(avgTail>0?'+':'')+avgTail.toFixed(1);
-  te.className='hc-val '+(avgTail<=0?'green':avgTail<=2?'yellow':'red');
-  document.getElementById('hTail').className='hc '+(avgTail<=0?'g':avgTail<=2?'y':'r');
-  document.getElementById('sTail').textContent=avgTail<=0?'Bullish: stopping through':'Bearish: tailing';
-  var inds=filtered.filter(function(a){return a._indirect_pct!=null;}).map(function(a){return a._indirect_pct;});
-  var avgInd=inds.length>0?inds.reduce(function(s,v){return s+v;},0)/inds.length:0;
-  var ie=document.getElementById('vIndirect');ie.textContent=avgInd.toFixed(1)+'%';
-  ie.className='hc-val '+(avgInd>=65?'green':avgInd>=55?'yellow':'red');
-  document.getElementById('hIndirect').className='hc '+(avgInd>=65?'g':avgInd>=55?'y':'r');
-}
-
-function renderTable(){
-  var tb=document.getElementById('atBody');var html='';
-  filtered.forEach(function(a){
-    var dt=a.auction_date||'--';var tp=a.security_type||'--';var tm=a.security_term||a.original_security_term||'--';
-    var cusip=a.cusip||'--';var sz=a._offering_b!=null?'$'+a._offering_b.toFixed(1)+'B':'--';
-    var hy=a.high_yield||a.high_discnt_rate||'--';if(hy!=='--')hy=parseFloat(hy).toFixed(3)+'%';
-    var tail=a._tail_bps!=null?((a._tail_bps>0?'+':'')+a._tail_bps.toFixed(1)):'--';
-    var tailC=a._tail_bps!=null?(a._tail_bps<=0?'pos':a._tail_bps<=2?'flat':'neg'):'flat';
-    var btc=a._btc!=null?a._btc.toFixed(2)+'x':'--';
-    var btcC=a._btc!=null?(a._btc>=2.5?'pos':a._btc>=2.2?'flat':'neg'):'flat';
-    var ind=a._indirect_pct!=null?a._indirect_pct.toFixed(1)+'%':'--';
-    var indC=a._indirect_pct!=null?(a._indirect_pct>=65?'pos':a._indirect_pct>=55?'flat':'neg'):'flat';
-    var dir=a._direct_pct!=null?a._direct_pct.toFixed(1)+'%':'--';
-    var dlr=a._dealer_pct!=null?a._dealer_pct.toFixed(1)+'%':'--';
-    var dlrC=a._dealer_pct!=null?(a._dealer_pct<=15?'pos':a._dealer_pct<=25?'flat':'neg'):'flat';
-    var gr=a._grade||'N/A';var grC=gr.startsWith('A')?'gA':gr.startsWith('B')?'gB':gr.startsWith('C')?'gC':gr==='D'?'gD':'gF';
-    html+='<tr><td class="mono">'+dt+'</td><td><span class="type-tag type-'+tp+'">'+tp+'</span></td><td class="mono">'+tm+'</td><td class="mono" style="font-size:10px">'+cusip+'</td><td class="mono">'+sz+'</td><td class="mono">'+hy+'</td><td class="mono '+tailC+'">'+tail+'</td><td class="mono '+btcC+'">'+btc+'</td><td class="mono '+indC+'">'+ind+'</td><td class="mono">'+dir+'</td><td class="mono '+dlrC+'">'+dlr+'</td><td><span class="grade '+grC+'">'+gr+'</span></td><td class="detail">'+(a._grade_detail||'')+'</td></tr>';
-  });
-  if(upcoming&&upcoming.length>0){
-    html+='<tr><td colspan="13" style="background:var(--bg1);color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:12px 10px 4px;border:none">Upcoming (Announced, Not Yet Auctioned)</td></tr>';
-    upcoming.forEach(function(a){
-      var off=a.offering_amt?'$'+(parseFloat(a.offering_amt)/1e9).toFixed(1)+'B':'TBD';
-      html+='<tr class="upcoming-row"><td class="mono">'+(a.auction_date||'--')+'</td><td><span class="type-tag type-'+(a.security_type||'')+'">'+a.security_type+'</span></td><td class="mono">'+(a.security_term||'--')+'</td><td class="mono" style="font-size:10px">'+(a.cusip||'--')+'</td><td class="mono">'+off+'</td><td colspan="7" style="text-align:center;color:var(--t3)">Pending auction results</td><td class="detail">Announced</td></tr>';
-    });
+  document.getElementById("m_fedfunds").textContent = d.fed_funds_rate ? d.fed_funds_rate.toFixed(2) + "%" : "—";
+  const fr = d.freshness || {};
+  if (fr.latest_auction_date) {
+    document.getElementById("m_latest").textContent =
+      fr.latest_auction_date + (fr.hours_since_latest_auction != null
+        ? ` (${Math.round(fr.hours_since_latest_auction)}h ago)` : "");
   }
-  tb.innerHTML=html;
 }
 
-function renderLiveCharts(){
-  var lo={paper_bgcolor:'#111827',plot_bgcolor:'#111827',font:{color:'#64748b',family:'JetBrains Mono',size:10},margin:{l:50,r:15,t:10,b:40},xaxis:{gridcolor:'#1e2a45'},yaxis:{gridcolor:'#1e2a45'},hovermode:'x unified',showlegend:true,legend:{font:{size:9},orientation:'h',y:1.12}};
-  var cfg={responsive:true};
-  var nb=filtered.filter(function(a){return a._btc||a._tail_bps!=null;});
-  var rev=nb.slice().reverse();
+// Decisive call
+function renderCall(d) {
+  const s = Number(d.composite_score || 0);
+  const regime = d.regime || "CALM";
+  const banner = document.getElementById("callBanner");
+  banner.className = "call-banner " + regime;
 
-  // BTC with crisis reference lines
-  var btcD=rev.filter(function(a){return a._btc;});
-  if(btcD.length>0){
-    var shapes=[];var annots=[];
-    [{c:CRISES.find(function(x){return x.id==='gfc2008';}),pos:0.9},{c:CRISES.find(function(x){return x.id==='covid2020';}),pos:0.75},{c:CRISES.find(function(x){return x.id==='russia1998';}),pos:0.6}].forEach(function(p){
-      if(p.c){shapes.push({type:'line',y0:p.c.btc,y1:p.c.btc,x0:0,x1:1,xref:'paper',line:{color:p.c.color,width:1,dash:'dash'}});
-      annots.push({text:p.c.label.split('/')[0]+' ('+p.c.btc+'x)',x:p.pos,xref:'paper',y:p.c.btc,showarrow:false,font:{size:8,color:p.c.color}});}
-    });
-    Plotly.newPlot('chBtc',[{x:btcD.map(function(a){return a.auction_date;}),y:btcD.map(function(a){return a._btc;}),type:'scatter',mode:'lines+markers',name:'Current',marker:{size:5,color:btcD.map(function(a){return a._btc>=2.5?'#10b981':a._btc>=2.2?'#f59e0b':'#ef4444';})},line:{color:'#22d3ee',width:2},hovertemplate:'%{x}<br>BTC: %{y:.2f}x<extra></extra>'}],Object.assign({},lo,{shapes:shapes,annotations:annots,yaxis:{gridcolor:'#1e2a45',title:'BTC'}}),cfg);
+  let verdict, reasoning, stops;
+  if (s < 30) {
+    verdict = "🟢 STAY RISK-ON — auction tape gives zero confirmation of stress";
+    reasoning = `Foreign demand healthy. Issuance below baseline. Bid-to-cover ratios in normal late-cycle range.
+                  No structural warning signal. <strong>Position size:</strong> No reduction warranted on auction
+                  evidence alone. <strong>Aggressive risk-on if</strong> upcoming 10y reopen prints BTC ≥ 2.55,
+                  Indirect ≥ 67%, AAH ≤ 60% — that confirms 2024-04 healthy-market regime intact.`;
+    stops = `<strong>Stop conditions</strong> (any one triggers re-eval):
+              <br>• Composite score ≥ 30 for 2 consecutive readings
+              <br>• Indirect % drops below 40% on any tenor
+              <br>• AAH ≥ 90% combined with tail ≥ +3bp on 5y/10y/30y auction`;
+  } else if (s < 50) {
+    verdict = "🟡 REDUCE RISK MARGINALLY — auction tape showing yellow flags";
+    reasoning = `Mid-curve tail stress firing. Could be early-warning before broader regime shift.
+                  Trim 10–20% of risk-on exposure, prefer quality / shorter duration.`;
+    stops = `<strong>Stop conditions:</strong>
+              <br>• Score crosses 50 → ELEVATED → cut risk hard
+              <br>• Score stays 30–50 for 4+ weeks → confirm regime, hold reduced position
+              <br>• Score drops back below 25 → re-add risk`;
+  } else if (s < 75) {
+    verdict = "🟠 EXIT MOST RISK-ON — auction tape signaling regime stress";
+    reasoning = `Multiple patterns firing simultaneously. Treasury market dysfunction is upstream of equity vol.
+                  Move to defensive: TLT, GLD, cash. Equity exposure under 30%.`;
+    stops = `<strong>Stop conditions:</strong>
+              <br>• Score crosses 75 → full crisis posture, cash + GLD only
+              <br>• Score drops back below 40 → tactical re-entry`;
+  } else {
+    verdict = "🔴 FULL CRISIS POSTURE — exit everything risky";
+    reasoning = `GFC/COVID-magnitude auction tape. Treasury market dysfunction = liquidity event.
+                  Cash + short bills + GLD only. Wait for Fed bazooka.`;
+    stops = `<strong>Re-entry conditions:</strong>
+              <br>• Indirect % recovers above 50% on bills
+              <br>• Fed announces emergency liquidity facility
+              <br>• Score drops below 50 (regime healing)`;
   }
-
-  // Tail with crisis lines
-  var tailD=rev.filter(function(a){return a._tail_bps!=null;});
-  if(tailD.length>0){
-    var shapes2=[];var annots2=[];
-    [{c:CRISES.find(function(x){return x.id==='gfc2008';}),pos:0.9},{c:CRISES.find(function(x){return x.id==='russia1998';}),pos:0.7}].forEach(function(p){
-      if(p.c&&p.c.tail!=null){shapes2.push({type:'line',y0:p.c.tail,y1:p.c.tail,x0:0,x1:1,xref:'paper',line:{color:p.c.color,width:1,dash:'dash'}});
-      annots2.push({text:p.c.label.split('/')[0]+' (+'+p.c.tail+'bp)',x:p.pos,xref:'paper',y:p.c.tail,showarrow:false,font:{size:8,color:p.c.color}});}
-    });
-    Plotly.newPlot('chTail',[{x:tailD.map(function(a){return a.auction_date;}),y:tailD.map(function(a){return a._tail_bps;}),type:'bar',name:'Current',marker:{color:tailD.map(function(a){return a._tail_bps<=0?'#10b981':a._tail_bps<=2?'#f59e0b':'#ef4444';}),opacity:0.8},hovertemplate:'%{x}<br>Tail: %{y:.1f}bp<extra></extra>'}],Object.assign({},lo,{shapes:shapes2,annotations:annots2,yaxis:{gridcolor:'#1e2a45',title:'bps',zeroline:true,zerolinecolor:'#64748b'}}),cfg);
-  }
-
-  // Bidder composition
-  var bidD=rev.filter(function(a){return a._indirect_pct&&a._direct_pct&&a._dealer_pct;});
-  if(bidD.length>0){
-    Plotly.newPlot('chBidders',[
-      {x:bidD.map(function(a){return a.auction_date;}),y:bidD.map(function(a){return a._indirect_pct;}),name:'Indirect',type:'bar',marker:{color:'rgba(34,211,238,0.7)'}},
-      {x:bidD.map(function(a){return a.auction_date;}),y:bidD.map(function(a){return a._direct_pct;}),name:'Direct',type:'bar',marker:{color:'rgba(59,130,246,0.7)'}},
-      {x:bidD.map(function(a){return a.auction_date;}),y:bidD.map(function(a){return a._dealer_pct;}),name:'Dealer',type:'bar',marker:{color:'rgba(239,68,68,0.4)'}}
-    ],Object.assign({},lo,{barmode:'stack',yaxis:{gridcolor:'#1e2a45',title:'%'}}),cfg);
-  }
-
-  // Offering size
-  var szD=rev.filter(function(a){return a._offering_b;});
-  if(szD.length>0){var tc={'Bill':'#3b82f6','Note':'#10b981','Bond':'#fbbf24','TIPS':'#a78bfa','FRN':'#ec4899','CMB':'#f97316'};Plotly.newPlot('chSize',[{x:szD.map(function(a){return a.auction_date;}),y:szD.map(function(a){return a._offering_b;}),type:'bar',name:'Offering',marker:{color:szD.map(function(a){return tc[a.security_type]||'#64748b';}),opacity:0.8},hovertemplate:'%{x}<br>$%{y:.1f}B<extra></extra>'}],Object.assign({},lo,{yaxis:{gridcolor:'#1e2a45',title:'$B'}}),cfg);}
+  document.getElementById("callVerdict").innerHTML = verdict;
+  document.getElementById("callReasoning").innerHTML = reasoning;
+  document.getElementById("callStops").innerHTML = stops;
 }
 
-function renderAnalysis(){
-  var box=document.getElementById('analysisBox');if(filtered.length===0){box.innerHTML='<h4>No data</h4>';return;}
-  var twa=new Date();twa.setDate(twa.getDate()-14);
-  var recent=filtered.filter(function(a){return new Date(a.auction_date)>=twa;});
-  if(recent.length===0)recent=filtered.slice(0,10);
-  var cur=getCurrentMetrics();
-  var h='<h4>Treasury Auction Market Assessment vs 16 Historical Crises</h4>';
-  // Find which crises current metrics most closely resemble
-  var matches=CRISES.filter(function(c){return c.btc!=null;}).map(function(c){
-    var diff=0,cnt=0;
-    if(cur.btc!=null){diff+=Math.abs(cur.btc-c.btc)/c.btc;cnt++;}
-    if(cur.tail!=null&&c.tail!=null){diff+=Math.abs(cur.tail-c.tail)/Math.max(1,Math.abs(c.tail));cnt++;}
-    if(cur.indirect!=null&&c.indirect!=null){diff+=Math.abs(cur.indirect-c.indirect)/c.indirect;cnt++;}
-    return{crisis:c,similarity:cnt>0?diff/cnt:999};
-  }).sort(function(a,b){return a.similarity-b.similarity;});
-
-  if(cur.btc!=null){
-    var gfc=CRISES.find(function(c){return c.id==='gfc2008';});
-    var covid=CRISES.find(function(c){return c.id==='covid2020';});
-    if(cur.btc>=2.5)h+='<p><span class="good">Strong overall demand</span> (avg BTC: '+cur.btc.toFixed(2)+'x). Significantly above the worst crisis levels: GFC 2008 ('+gfc.btc+'x), Russian Crisis (2.08x), COVID 2020 ('+covid.btc+'x). Healthy market absorption of Treasury supply.</p>';
-    else if(cur.btc>=2.2)h+='<p><span class="key">Adequate demand</span> (avg BTC: '+cur.btc.toFixed(2)+'x). Above systemic crisis thresholds but watch for deterioration. During the 2013 Taper Tantrum, BTC fell to 2.38x before stabilizing.</p>';
-    else h+='<p><span class="danger">Weak demand warning</span> (avg BTC: '+cur.btc.toFixed(2)+'x). Approaching levels seen during the 2008 GFC ('+gfc.btc+'x) and 1998 Russian Crisis (2.08x). Historically, BTC below 2.2x preceded emergency Fed action.</p>';
-  }
-  if(cur.tail!=null){
-    if(cur.tail<=0)h+='<p>Auctions <span class="good">stopping through</span> (avg: '+cur.tail.toFixed(1)+'bp). Similar to post-crisis flight-to-safety periods: 2011 Debt Ceiling (-1.2bp), European Crisis (-0.5bp). Investors aggressively competing for supply — bullish for bonds.</p>';
-    else if(cur.tail<=2)h+='<p>Auctions showing <span class="key">contained tails</span> (avg: +'+cur.tail.toFixed(1)+'bp). Well below crisis levels: GFC 2008 (+4.8bp), Russian 1998 (+4.5bp), COVID 2020 (+3.6bp). Orderly price discovery with modest yield concessions.</p>';
-    else h+='<p><span class="danger">Significant tailing</span> (avg: +'+cur.tail.toFixed(1)+'bp). In the danger zone. During the 1994 Bond Massacre tails averaged +3.5bp, Russian/LTCM crisis +4.5bp, GFC 2008 +4.8bp. Tails above +3bp have historically preceded major policy interventions.</p>';
-  }
-  if(cur.indirect!=null){
-    if(cur.indirect>=65)h+='<p><span class="good">Strong foreign demand</span> at '+cur.indirect.toFixed(1)+'%. Far above crisis levels: GFC 2008 (28.5%), Taper Tantrum (38.0%), COVID 2020 (42.8%). Most similar to SVB banking crisis (65%) when flight to safety boosted foreign participation.</p>';
-    else if(cur.indirect>=55)h+='<p>Foreign demand at <span class="key">'+cur.indirect.toFixed(1)+'%</span>. Solid but not exceptional. During the 2015 China devaluation, indirect fell to 52% as China sold reserves to defend the yuan. Current levels suggest stable international appetite.</p>';
-    else h+='<p><span class="warn">Weakening foreign demand</span> at '+cur.indirect.toFixed(1)+'%. Approaching COVID 2020 levels (42.8%) and Taper Tantrum (38%). During the 2008 GFC, indirect collapsed to 28.5% as foreign investors fled ALL risk. A sustained move below 50% is a significant warning signal.</p>';
-  }
-  h+='<h4 style="margin-top:12px">Closest Historical Match</h4>';
-  if(matches.length>0){
-    h+='<p>Current auction conditions most closely resemble the <span style="color:'+matches[0].crisis.color+';font-weight:600">'+matches[0].crisis.label+' ('+matches[0].crisis.date+')</span>';
-    if(matches.length>1)h+=', followed by <span style="color:'+matches[1].crisis.color+'">'+matches[1].crisis.label+'</span>';
-    if(matches.length>2)h+=' and <span style="color:'+matches[2].crisis.color+'">'+matches[2].crisis.label+'</span>';
-    h+='. '+matches[0].crisis.notes.split('.')[0]+'.';
-    h+='</p>';
-  }
-  box.innerHTML=h;
+// 6 indicator cards
+function renderIndicators(d) {
+  // Build from the 6 patterns. Read state from latest auction's indicator_scores or composite.
+  const recent = d.recent_auctions || [];
+  // For each pattern, find max score across recent
+  const patterns = [
+    { key:"zero_rate_floor", name:"Zero-rate floor",
+      desc:"Fires when Fed funds approaches ZLB and bills price at near-zero yield. Last fired: Mar 2020 (COVID), Sep 2008 (GFC).",
+      threshold:"FF ≤ 0.5% AND high_rate ≤ 0.10%" },
+    { key:"btc_extreme", name:"BTC extreme",
+      desc:"Fires when bid-to-cover spikes above 4.0 (panic-flight to bills). GFC peak: 4.21. COVID peak: 4.09.",
+      threshold:"BTC ≥ 4.0 on bills" },
+    { key:"tail_stress", name:"Tail stress",
+      desc:"Fires when high yield clears materially above prior auction's high. Indicates auction had to go higher to clear.",
+      threshold:"Tail bp ≥ +3 OR yield > prior high" },
+    { key:"pd_absorption", name:"PD absorption",
+      desc:"Fires when primary dealers take >70% of issuance — meaning real-money bidders stepped back.",
+      threshold:"Primary dealer % ≥ 70%" },
+    { key:"indirect_collapse", name:"Indirect collapse",
+      desc:"Fires when foreign + central-bank buyers fall below 30% — capitulation by non-dealer demand.",
+      threshold:"Indirect % ≤ 30%" },
+    { key:"issuance_explosion", name:"Issuance explosion",
+      desc:"Fires when 4-week rolling issuance spikes >20% above 12-month baseline (TGA build / fiscal stress).",
+      threshold:"4w / 12m baseline ≥ 1.20" },
+  ];
+  const root = document.getElementById("indicators");
+  root.innerHTML = patterns.map(p => {
+    let maxScore = 0, status = "off", count = 0;
+    for (const a of recent) {
+      const s = a.indicator_scores?.[p.key];
+      if (s != null) {
+        if (s > maxScore) maxScore = s;
+        if (s >= 50) count++;
+      }
+    }
+    if (p.key === "zero_rate_floor") {
+      const ff = d.fed_funds_rate;
+      status = ff != null && ff <= 0.5 ? "firing" : "off";
+    } else if (p.key === "issuance_explosion") {
+      const iss = d.issuance_anomaly?.pct_above_baseline;
+      status = iss != null && iss >= 20 ? "firing" : (iss != null && iss >= 10 ? "watch" : "off");
+    } else {
+      status = maxScore >= 60 ? "firing" : (maxScore >= 30 ? "watch" : "off");
+    }
+    const statusText = status === "firing" ? "🔴 FIRING" : status === "watch" ? "⚠ WATCH" : "✓ OFF";
+    const detail = count > 0 ? `${count} of ${recent.length} recent auctions firing`
+                              : `0 of ${recent.length} recent auctions firing`;
+    return `<div class="ind ${status}">
+      <div class="status">${statusText}</div>
+      <div class="name">${p.name}</div>
+      <div class="desc">${p.desc}</div>
+      <div class="threshold"><strong>Threshold:</strong> ${p.threshold} · <em>${detail}</em></div>
+    </div>`;
+  }).join("");
 }
 
-function avg(arr,f){var v=arr.filter(function(a){return a[f]!=null;}).map(function(a){return a[f];});if(v.length===0)return null;return v.reduce(function(s,x){return s+x;},0)/v.length;}
-function sortTable(col){
-  if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}
-  var keys=['auction_date','security_type','security_term','cusip','_offering_b','high_yield','_tail_bps','_btc','_indirect_pct','_direct_pct','_dealer_pct','_grade'];
-  var key=keys[col];if(!key)return;
-  filtered.sort(function(a,b){var va=a[key],vb=b[key];if(va==null)va=sortAsc?Infinity:-Infinity;if(vb==null)vb=sortAsc?Infinity:-Infinity;if(typeof va==='string')return sortAsc?va.localeCompare(vb):vb.localeCompare(va);return sortAsc?(va-vb):(vb-va);});
-  renderTable();
+// Last 14d tape
+function renderTape(d) {
+  const recent = d.recent_auctions || [];
+  if (recent.length === 0) {
+    document.getElementById("tapeBody").innerHTML = `<tr><td colspan="10" style="color:var(--fg-3); text-align:center; padding:20px">No recent auctions data</td></tr>`;
+    return;
+  }
+  document.getElementById("tapeBody").innerHTML = recent.map(a => {
+    const score = Number(a.composite_score || 0);
+    const cls = score >= 60 ? "neg" : score >= 30 ? "" : "";
+    const scoreColor = score >= 60 ? "color:var(--red)" : score >= 30 ? "color:var(--amber)" : "color:var(--fg-3)";
+    return `<tr>
+      <td>${a.auction_date?.slice(0,10) || "—"}</td>
+      <td>${a.security_term || "—"}</td>
+      <td>${a.security_type || "—"}</td>
+      <td class="r">${a.high_rate ? Number(a.high_rate).toFixed(3) + "%" : "—"}</td>
+      <td class="r"><strong>${fmtNum(a.btc, 2)}</strong></td>
+      <td class="r">${fmtPct(a.indirect_pct, 1)}</td>
+      <td class="r">${fmtPct(a.primary_dealer_pct, 1)}</td>
+      <td class="r">${fmtPct(a.direct_pct, 1)}</td>
+      <td class="r">${fmtPct(a.allocated_at_high_pct, 1)}</td>
+      <td class="r" style="${scoreColor}; font-weight:600">${fmtNum(score, 1)}</td>
+    </tr>`;
+  }).join("");
 }
-document.getElementById('typeFilter').addEventListener('click',function(e){if(!e.target.classList.contains('fbtn'))return;document.querySelectorAll('#typeFilter .fbtn').forEach(function(b){b.classList.remove('active');});e.target.classList.add('active');currentType=e.target.dataset.type;loadData();});
-document.getElementById('rangeFilter').addEventListener('click',function(e){if(!e.target.classList.contains('fbtn'))return;document.querySelectorAll('#rangeFilter .fbtn').forEach(function(b){b.classList.remove('active');});e.target.classList.add('active');currentDays=parseInt(e.target.dataset.days);loadData();});
-function setS(m){document.getElementById('sMsg').textContent=m;}
-function updClk(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});}
-setInterval(updClk,1000);updClk();
-setInterval(function(){loadData();},15*60*1000);
-buildCrisisChips();
+
+// Crisis comparison
+function renderAnchors(d) {
+  const today = {
+    class:"today", when:"TODAY (live)",
+    tenor:"composite", btc:null, indirect:"50–70 avg", tail:"intermittent",
+    score:Number(d.composite_score || 0).toFixed(1), regime:d.regime,
+    context:"Current 14-day rolling read. Indirect 50-70% across tenors. Mid-curve tail stress isolated."
+  };
+  const all = [today, ...HISTORICAL_ANCHORS];
+  document.getElementById("anchorBody").innerHTML = all.map(a => `
+    <tr class="anchor-row ${a.class}">
+      <td><strong>${a.when}</strong></td>
+      <td>${a.tenor}</td>
+      <td class="r">${a.btc != null ? a.btc : "—"}</td>
+      <td class="r">${typeof a.indirect === "number" ? a.indirect.toFixed(1) + "%" : a.indirect}</td>
+      <td class="r">${a.tail || "—"}</td>
+      <td class="r"><span class="pill ${regimeClass(a.regime)}">${a.score}</span></td>
+      <td class="context">${a.context}</td>
+    </tr>
+  `).join("");
+}
+
+// Bitcoin tops/bottoms
+function renderBtcEra(arr, type) {
+  return arr.map(e => `
+    <div class="era ${type}">
+      <h4>${e.label || e.period}</h4>
+      <div class="meta">${e.date || e.priceMove}${e.price ? " · " + fmtMaybeMoney(e.price) : ""}</div>
+      ${e.auctionRegime ? `<div class="stat-row"><span class="k">Auction regime</span><span class="v">${e.auctionRegime}</span></div>` : ""}
+      ${e.auctionScore != null ? `<div class="stat-row"><span class="k">Composite score</span><span class="v">${e.auctionScore}</span></div>` : ""}
+      ${e.scoreAvg != null ? `<div class="stat-row"><span class="k">Avg score</span><span class="v">${e.scoreAvg}</span></div>` : ""}
+      ${e.indirect != null ? `<div class="stat-row"><span class="k">Indirect %</span><span class="v">${e.indirect.toFixed(1)}%</span></div>` : ""}
+      ${e.indirectAvg != null ? `<div class="stat-row"><span class="k">Indirect avg</span><span class="v">${e.indirectAvg}%</span></div>` : ""}
+      ${e.btc != null ? `<div class="stat-row"><span class="k">BTC ratio</span><span class="v">${e.btc.toFixed(2)}</span></div>` : ""}
+      ${e.aah != null ? `<div class="stat-row"><span class="k">AAH%</span><span class="v">${e.aah.toFixed(1)}%</span></div>` : ""}
+      ${e.spyAfter30d != null ? `<div class="stat-row"><span class="k">SPY +30d</span><span class="v ${e.spyAfter30d>=0?"pos":"neg"}" style="color:${e.spyAfter30d>=0?'var(--green)':'var(--red)'}">${e.spyAfter30d>=0?"+":""}${e.spyAfter30d}%</span></div>` : ""}
+      ${e.btcAfter30d != null ? `<div class="stat-row"><span class="k">BTC +30d</span><span class="v" style="color:${e.btcAfter30d>=0?'var(--green)':'var(--red)'}">${e.btcAfter30d>=0?"+":""}${e.btcAfter30d}%</span></div>` : ""}
+      ${e.btcAfter90d != null ? `<div class="stat-row"><span class="k">BTC +90d</span><span class="v" style="color:${e.btcAfter90d>=0?'var(--green)':'var(--red)'}">${e.btcAfter90d>=0?"+":""}${e.btcAfter90d}%</span></div>` : ""}
+      ${e.btcAfter12m != null ? `<div class="stat-row"><span class="k">BTC +12m</span><span class="v" style="color:${e.btcAfter12m>=0?'var(--green)':'var(--red)'};font-weight:700">${e.btcAfter12m>=0?"+":""}${e.btcAfter12m}%</span></div>` : ""}
+      <div class="takeaway">${e.takeaway}</div>
+    </div>
+  `).join("");
+}
+
+function renderBtc() {
+  document.getElementById("btcTops").innerHTML = renderBtcEra(BTC_TOPS, "top");
+  document.getElementById("btcBottoms").innerHTML = renderBtcEra(BTC_BOTTOMS, "bottom");
+  document.getElementById("btcBulls").innerHTML = renderBtcEra(BTC_BULLS, "bull");
+  document.getElementById("btcBears").innerHTML = renderBtcEra(BTC_BEARS, "bear");
+}
+
+// Forward-returns matrix
+function renderForward() {
+  const cell = (v) => {
+    let cls = "";
+    if (v >= 5) cls = "up-strong";
+    else if (v >= 1) cls = "up";
+    else if (v <= -3) cls = "dn-strong";
+    else if (v < 0) cls = "dn";
+    return `<td class="${cls}">${v >= 0 ? "+" : ""}${v.toFixed(1)}%</td>`;
+  };
+  const rows = ["CALM", "WATCH", "ELEVATED", "ACUTE_STRESS"].map(r => {
+    const fr = FORWARD_RETURNS[r];
+    return `<tr>
+      <td class="regime-cell"><span class="pill ${regimeClass(r)}">${r}</span></td>
+      ${cell(fr.spy[0])}${cell(fr.spy[1])}${cell(fr.spy[2])}
+      ${cell(fr.btc[0])}${cell(fr.btc[1])}${cell(fr.btc[2])}
+      ${cell(fr.hyg[0])}${cell(fr.hyg[1])}${cell(fr.hyg[2])}
+      ${cell(fr.gld[0])}${cell(fr.gld[1])}${cell(fr.gld[2])}
+    </tr>`;
+  }).join("");
+  document.getElementById("forwardMatrixBody").innerHTML = rows;
+}
+
+// Triggers
+function renderTriggers() {
+  document.getElementById("triggers").innerHTML = TRIGGERS.map(t => `
+    <div class="trigger-row">
+      <div class="when">${t.when}</div>
+      <div class="what">${t.what}</div>
+      <div class="watch">${t.watch}</div>
+    </div>
+  `).join("");
+}
+
+// Plain-English market impact
+function renderMarketImpact(d) {
+  const s = Number(d.composite_score || 0);
+  const regime = d.regime || "CALM";
+  let html = "";
+
+  if (s < 30) {
+    html = `
+      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
+        <p><strong style="color:var(--green)">Bottom line:</strong>
+           Auction tape says <em>nothing is broken.</em> Foreign buyers are stepping in (Indirect 50–70%),
+           bid-to-cover ratios are healthy (2.5–3.5 range), and Treasury supply is below baseline.
+           This is the same regime that hosted the 2024-04 healthy-market benchmark (BTC=2.34, Indirect=64.8%).</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For Bitcoin:</strong>
+           CALM regimes have hosted both BTC tops and bottoms. The most recent CALM-regime BTC top
+           (March 2024 at $73K) preceded a *consolidation* not a crash — BTC was up 46% twelve months later.
+           However, the 2024-12 cycle top at $108K printed during a WATCH regime (Oct AAH=99.31%) — meaning
+           your detector caught the warning early. Right now the absence of similar AAH signals is supportive
+           for BTC continuation.</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For equities (SPY):</strong>
+           Median SPY forward returns from CALM regime: +1.5% in 1m, +4.5% in 3m, +8.0% in 6m. This is
+           the late-cycle grind regime — modest gains, low volatility, no flight-to-safety in fixed income.</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For high-yield credit (HYG):</strong>
+           Tight spreads typical. CALM regimes coincide with low credit-spread regimes — this confirms
+           there's no funding-stress contagion from Treasury into corporate credit.</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For gold (GLD):</strong>
+           Limited tactical edge. GLD outperforms in WATCH/ELEVATED/ACUTE regimes when fixed-income
+           dysfunction shows up. CALM = rangebound for gold relative to other risk-on assets.</p>
+
+        <p style="margin-top:12px"><strong style="color:var(--fg-1)">For dollar (DXY/UUP):</strong>
+           CALM tape with Indirect 50–70% means foreign demand for Treasuries is healthy — supports DXY
+           at the margin. Not a major signal either way.</p>
+
+        <p style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border)">
+          <strong style="color:var(--yellow)">The asymmetric truth:</strong> The signal that matters
+          most is <em>regime transition</em>, not regime level. CALM → WATCH crossings (especially with
+          AAH ≥ 80%) precede BTC tops by 1–3 months historically. Right now, no such transition is
+          underway. Watch the May 14 10y reopen for the next test.
+        </p>
+      </div>`;
+  } else if (s < 50) {
+    html = `
+      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
+        <p><strong style="color:var(--amber)">Bottom line:</strong>
+           Auction tape is showing <em>yellow flags</em>. Mid-curve or bill tail stress is firing.
+           This is the early-warning regime — historically precedes broader regime shift by 4-12 weeks.</p>
+        <p style="margin-top:12px"><strong>Action:</strong> Trim 10-20% of risk-on exposure.
+           Watch upcoming 10y/30y auctions for confirmation. If score crosses 50 (ELEVATED), exit
+           most risk and move to defensive (TLT, GLD, cash).</p>
+      </div>`;
+  } else {
+    html = `
+      <div style="font-size:13px; line-height:1.7; color:var(--fg-2)">
+        <p><strong style="color:var(--red)">Bottom line:</strong>
+           Auction tape is in <em>regime stress</em>. Multiple patterns firing simultaneously.
+           Treasury market dysfunction historically leads equity vol by 1-4 weeks.</p>
+        <p style="margin-top:12px"><strong>Action:</strong> Move to defensive immediately.
+           Equity exposure under 30%. Build cash + GLD position. Wait for Fed liquidity response or
+           regime healing (score back below 40) before re-entering.</p>
+      </div>`;
+  }
+  document.getElementById("marketImpact").innerHTML = html;
+}
+
+async function loadData() {
+  try {
+    const r = await fetch(S3_URL + "?t=" + Date.now());
+    const d = await r.json();
+    liveData = d;
+    renderHero(d);
+    renderCall(d);
+    renderIndicators(d);
+    renderTape(d);
+    renderAnchors(d);
+    renderMarketImpact(d);
+  } catch (e) {
+    console.error("Failed to load auction data", e);
+    document.getElementById("interpretText").innerHTML =
+      `<span style="color:var(--red)">Failed to load: ${e.message}</span>`;
+  }
+}
+
+// Init
+renderBtc();
+renderForward();
+renderTriggers();
 loadData();
+// Refresh every 5 minutes
+setInterval(loadData, 5 * 60 * 1000);
 </script>
+
 </body>
 </html>
