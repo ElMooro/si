@@ -531,6 +531,70 @@ function renderFundingCredit(fcs) {
   grid.innerHTML = html || '<div class="card">No funding/credit signals</div>';
 }
 
+function renderYieldCurve(yc) {
+  const grid = document.getElementById('yc-grid');
+  if (!grid) return;
+  if (!yc) { grid.innerHTML = '<div class="card">No yield-curve data</div>'; return; }
+
+  const SPREAD_META = {
+    T10Y2Y: { name: '10Y – 2Y Spread',
+              meta: 'Classic recession indicator. Inversion (<0) historically precedes US recessions by 6–18 months. The "shape of the bond market\'s opinion."',
+              fred: 'FRED: T10Y2Y' },
+    T10Y3M: { name: '10Y – 3M Spread',
+              meta: 'NY Fed\'s preferred recession-probability spread. Tracks term-premium + Fed policy stance. Inversion is the strongest single statistical recession predictor.',
+              fred: 'FRED: T10Y3M' },
+  };
+
+  let html = '';
+  for (const key of ['T10Y2Y', 'T10Y3M']) {
+    const d = yc[key];
+    if (!d || !d.available) continue;
+    const meta = SPREAD_META[key] || { name: key, meta: '', fred: '' };
+    const v = d.latest_value;
+    const inv = d.is_inverted;
+    const delta30 = d.delta_30d;
+
+    // Signal classification — magnitude AND direction matter
+    // Inverted → CRISIS regime risk; flattening fast → ELEVATED watch; steepening → NORMAL
+    let signal = 'NORMAL';
+    if (inv) {
+      // Already inverted
+      signal = v <= -0.5 ? 'CRISIS' : v <= -0.1 ? 'ELEVATED' : 'WATCH';
+    } else if (v != null && v < 0.25) {
+      // Very flat curve — close to inversion
+      signal = 'WATCH';
+    } else if (delta30 != null && delta30 < -0.30) {
+      // Rapid flattening
+      signal = 'WATCH';
+    }
+    const cardCls = signal === 'CRISIS' ? 'crisis' : signal === 'ELEVATED' ? 'elevated'
+                     : signal === 'WATCH' ? 'flagged' : '';
+
+    const sign = v != null && v >= 0 ? '+' : '';
+    const valueText = v != null ? `${sign}${(v * 100).toFixed(0)} bp` : '—';
+    const deltaSign = delta30 != null && delta30 >= 0 ? '+' : '';
+    const deltaText = delta30 != null ? `${deltaSign}${(delta30 * 100).toFixed(0)} bp 30d` : '—';
+    const stateText = inv
+      ? `<span style="color:#ff5c7a;font-weight:700">INVERTED</span> — recession-probability flag active`
+      : v != null && v < 0.25
+        ? `<span style="color:#fbbf24">Near inversion</span> — flatness signals late-cycle pricing`
+        : v != null && delta30 != null && delta30 < -0.30
+          ? `<span style="color:#fbbf24">Flattening rapidly</span> — momentum toward inversion`
+          : `<span style="color:#22c55e">Positive slope</span> — normal expansion-phase shape`;
+
+    html += `<div class="card ${cardCls}">
+      <div class="name">${meta.name}</div>
+      <div class="value">${valueText}</div>
+      <div class="delta">${deltaText} · last ${d.latest_date || '—'}</div>
+      <div class="meta">${stateText}</div>
+      <div class="threshold-meta">${meta.meta}<br/>${meta.fred}</div>
+      <div style="margin-top:10px"><span class="signal-pill ${signal}">${signal}</span></div>
+    </div>`;
+  }
+
+  grid.innerHTML = html || '<div class="card">No yield-curve data</div>';
+}
+
 function renderXCC(xcc) {
   const grid = document.getElementById('xcc-grid');
   if (!xcc) { grid.innerHTML = ''; return; }
