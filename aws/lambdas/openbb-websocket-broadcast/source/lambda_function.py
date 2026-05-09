@@ -52,18 +52,15 @@ def _now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def _cors_headers(origin):
-    allow = origin if origin in ALLOWED_ORIGINS else "https://justhodl.ai"
-    return {
-        "Access-Control-Allow-Origin": allow,
-        "Access-Control-Allow-Methods": "GET, POST",
-        "Access-Control-Allow-Headers": "Content-Type, X-Justhodl-Admin-Token",
-        "Content-Type": "application/json",
-    }
-
-
 def _resp(status, body, origin=None):
-    return {"statusCode": status, "headers": _cors_headers(origin), "body": json.dumps(body, default=str)}
+    """Function-URL-shaped response. AWS Function URL CORS config injects
+    Access-Control-* headers — emitting them here too produces duplicate
+    headers and strict-CORS browser failures."""
+    return {
+        "statusCode": status,
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(body, default=str),
+    }
 
 
 def _verify_admin(headers):
