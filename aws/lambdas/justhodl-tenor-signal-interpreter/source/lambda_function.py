@@ -158,18 +158,35 @@ def fetch_auctions_window(days_back=120):
         if page > 20:
             break
 
-    # Coerce numeric fields. Field name `allotted_pct_at_high` matches Treasury
-    # fiscaldata schema (per the working auction-crisis-detector).
+    # Coerce numeric fields. Field names match fiscaldata.treasury.gov schema:
+    #   high_yield / high_discnt_rate (raw rates, not pct-suffixed)
+    #   primary_dealer_accepted / direct_bidder_accepted / indirect_bidder_accepted
+    #     (DOLLAR AMOUNTS — must be divided by total_accepted to get %)
+    #   allocation_pctage (% allotted at high yield)
     for r in all_records:
-        for k in ["high_yield_pct", "high_discnt_rate_pct", "bid_to_cover_ratio",
-                   "indirect_bidder_accept_pct", "direct_bidder_accept_pct",
-                   "primary_dealer_accept_pct", "allotted_pct_at_high",
-                   "tot_accepted"]:
+        for k in ["high_yield", "high_discnt_rate", "low_yield", "low_discnt_rate",
+                   "median_yield", "median_discnt_rate", "bid_to_cover_ratio",
+                   "indirect_bidder_accepted", "direct_bidder_accepted",
+                   "primary_dealer_accepted", "allocation_pctage", "total_accepted"]:
             v = r.get(k)
             try:
                 r[k] = float(v) if v not in (None, "", "null") else None
             except (TypeError, ValueError):
                 r[k] = None
+        # Derive participation percentages from dollar amounts (matches working detector)
+        pd = r.get("primary_dealer_accepted") or 0
+        di = r.get("direct_bidder_accepted") or 0
+        ind = r.get("indirect_bidder_accepted") or 0
+        total_competitive = pd + di + ind
+        if total_competitive > 0:
+            r["indirect_bidder_accept_pct"] = ind / total_competitive * 100
+            r["direct_bidder_accept_pct"] = di / total_competitive * 100
+            r["primary_dealer_accept_pct"] = pd / total_competitive * 100
+        else:
+            r["indirect_bidder_accept_pct"] = None
+            r["direct_bidder_accept_pct"] = None
+            r["primary_dealer_accept_pct"] = None
+        r["allotted_pct_at_high"] = r.get("allocation_pctage")
     return all_records
 
 
@@ -181,11 +198,11 @@ def filter_by_tenor(auctions, tenor_list):
 
 
 def get_yield(auction):
-    """Get the 'rate' for an auction — coupon notes use high_yield_pct,
-       bills use high_discnt_rate_pct."""
-    y = auction.get("high_yield_pct")
-    if y is None or y == 0:
-        y = auction.get("high_discnt_rate_pct")
+    """Get the auction's clearing rate. Coupon notes/bonds use 'high_yield';
+       bills use 'high_discnt_rate' (discount rate). Schema matches fiscaldata."""
+    y = auction.get("high_yield")
+    if y is None:
+        y = auction.get("high_discnt_rate")
     return y
 
 
