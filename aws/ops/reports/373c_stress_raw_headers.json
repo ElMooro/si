@@ -1,12 +1,12 @@
 {
-  "started": "2026-05-09T11:53:58.658663+00:00",
+  "started": "2026-05-09T11:58:45.126412+00:00",
   "test": {
     "1_get_with_origin": {
       "status": 200,
       "all_headers": [
         [
           "Date",
-          "Sat, 09 May 2026 11:54:03 GMT"
+          "Sat, 09 May 2026 11:58:52 GMT"
         ],
         [
           "Content-Type",
@@ -22,41 +22,29 @@
         ],
         [
           "x-amzn-RequestId",
-          "234f5cd5-bb24-43e9-826f-49a6ce15c626"
+          "22250352-3dfc-496c-8cd0-01a348105f16"
         ],
         [
-          "access-control-allow-origin",
+          "Access-Control-Allow-Origin",
           "https://justhodl.ai"
-        ],
-        [
-          "access-control-allow-origin",
-          "https://justhodl.ai"
-        ],
-        [
-          "access-control-allow-headers",
-          "Content-Type, X-Justhodl-Admin-Token"
         ],
         [
           "Vary",
           "Origin"
         ],
         [
-          "access-control-allow-methods",
-          "GET, POST, OPTIONS"
-        ],
-        [
           "X-Amzn-Trace-Id",
-          "Root=1-69ff205b-1ddc64582c195964561d7d51;Parent=13abbf3c67fd99eb;Sampled=0;Lineage=1:6ed0448a:0"
+          "Root=1-69ff217b-27f420597ca5bf0a157a0403;Parent=61d83fc8a0179a04;Sampled=0;Lineage=1:6ed0448a:0"
         ]
       ],
-      "body_first_120": "{\"service\": \"justhodl-stress-simulator\", \"version\": \"1.0\", \"as_of\": \"2026-05-09T11:54:03.141772+00:00\", \"current_regime\""
+      "body_first_120": "{\"service\": \"justhodl-stress-simulator\", \"version\": \"1.0\", \"as_of\": \"2026-05-09T11:58:52.710907+00:00\", \"current_regime\""
     },
     "2_post_with_origin": {
       "status": 200,
       "all_headers": [
         [
           "Date",
-          "Sat, 09 May 2026 11:54:03 GMT"
+          "Sat, 09 May 2026 11:58:53 GMT"
         ],
         [
           "Content-Type",
@@ -72,41 +60,29 @@
         ],
         [
           "x-amzn-RequestId",
-          "54371954-95b5-4fc4-a078-da6f644edb5b"
+          "625cf835-74be-45cf-8e5f-02d026634e2b"
         ],
         [
-          "access-control-allow-origin",
+          "Access-Control-Allow-Origin",
           "https://justhodl.ai"
-        ],
-        [
-          "access-control-allow-origin",
-          "https://justhodl.ai"
-        ],
-        [
-          "access-control-allow-headers",
-          "Content-Type, X-Justhodl-Admin-Token"
         ],
         [
           "Vary",
           "Origin"
         ],
         [
-          "access-control-allow-methods",
-          "GET, POST, OPTIONS"
-        ],
-        [
           "X-Amzn-Trace-Id",
-          "Root=1-69ff205b-5242c0bc26622764335b4614;Parent=4d421550ccebf60e;Sampled=0;Lineage=1:6ed0448a:0"
+          "Root=1-69ff217c-79d25c960f01ebdb62995c67;Parent=26b53b161826b0bc;Sampled=0;Lineage=1:6ed0448a:0"
         ]
       ],
-      "body_first_120": "{\"as_of\": \"2026-05-09T11:54:03.421731+00:00\", \"shocks_applied\": {\"equity_pct\": -15.0, \"vol_pts\": 30.0, \"rates_bps\": -75."
+      "body_first_120": "{\"as_of\": \"2026-05-09T11:58:53.071897+00:00\", \"shocks_applied\": {\"equity_pct\": -15.0, \"vol_pts\": 30.0, \"rates_bps\": -75."
     },
     "3_post_no_origin": {
       "status": 200,
       "all_headers": [
         [
           "Date",
-          "Sat, 09 May 2026 11:54:03 GMT"
+          "Sat, 09 May 2026 11:58:53 GMT"
         ],
         [
           "Content-Type",
@@ -122,33 +98,21 @@
         ],
         [
           "x-amzn-RequestId",
-          "d5a5c862-a61d-4924-8a0a-ba2ced1d1acf"
-        ],
-        [
-          "access-control-allow-origin",
-          "https://justhodl.ai"
-        ],
-        [
-          "access-control-allow-headers",
-          "Content-Type, X-Justhodl-Admin-Token"
-        ],
-        [
-          "access-control-allow-methods",
-          "GET, POST, OPTIONS"
+          "c9d58403-92a9-4ca8-ae4d-3500c07e678a"
         ],
         [
           "X-Amzn-Trace-Id",
-          "Root=1-69ff205b-65d9fb7617ab4fe62ac77d57;Parent=13e1a954a7ceac69;Sampled=0;Lineage=1:6ed0448a:0"
+          "Root=1-69ff217d-0b098a865317ca26126541be;Parent=08eecd4b6b0efc15;Sampled=0;Lineage=1:6ed0448a:0"
         ]
       ],
-      "body_first_120": "{\"as_of\": \"2026-05-09T11:54:03.643629+00:00\", \"shocks_applied\": {\"equity_pct\": -22.0, \"vol_pts\": 50.0, \"rates_bps\": -50."
+      "body_first_120": "{\"as_of\": \"2026-05-09T11:58:53.326333+00:00\", \"shocks_applied\": {\"equity_pct\": -22.0, \"vol_pts\": 50.0, \"rates_bps\": -50."
     },
     "4_options_preflight": {
       "status": 200,
       "all_headers": [
         [
           "Date",
-          "Sat, 09 May 2026 11:54:03 GMT"
+          "Sat, 09 May 2026 11:58:53 GMT"
         ],
         [
           "Content-Type",
@@ -164,7 +128,7 @@
         ],
         [
           "x-amzn-RequestId",
-          "086bf304-637b-4242-af58-3d4730718e31"
+          "e18e3885-51b9-478e-84a3-3ac1a54b9b8f"
         ],
         [
           "Access-Control-Allow-Origin",
@@ -189,5 +153,5 @@
       ]
     }
   },
-  "finished": "2026-05-09T11:54:03.958240+00:00"
+  "finished": "2026-05-09T11:58:53.628877+00:00"
 }
