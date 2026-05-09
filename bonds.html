@@ -564,8 +564,33 @@ let REPORT = null, REGIME = null, CRISIS = null;
 
 function fmtAge(iso){if(!iso)return'—';const m=(Date.now()-new Date(iso).getTime())/60000;if(m<60)return Math.round(m)+'m ago';const h=m/60;return h<24?h.toFixed(1)+'h ago':(h/24).toFixed(1)+'d ago';}
 function setError(msg){const b=document.getElementById('errorBanner');b.textContent='⚠️ '+msg;b.style.display='block';}
-function gv(report, group, sid){return report?.fred_data?.[group]?.[sid]?.current;}
-function gv30(report, group, sid){return report?.fred_data?.[group]?.[sid]?.value_30d_ago;}
+function gv(report, group, sid){return report?.fred?.[group]?.[sid]?.current;}
+function gv30(report, group, sid){
+  const node = report?.fred?.[group]?.[sid];
+  if (!node) return undefined;
+  // Schema doesn't store value_30d_ago directly — derive from history array.
+  const hist = node.history;
+  if (Array.isArray(hist) && hist.length > 0) {
+    // history is sorted; find entry ~30 days ago
+    const target = new Date();
+    target.setDate(target.getDate() - 30);
+    const targetStr = target.toISOString().slice(0, 10);
+    // Find closest entry on or before target date
+    let best = null;
+    for (const h of hist) {
+      if (h.date <= targetStr) {
+        if (!best || h.date > best.date) best = h;
+      }
+    }
+    if (best) return best.value;
+    // Fallback: use month_pct to back-compute
+  }
+  // Fallback: derive from month_pct change
+  if (node.current != null && node.month_pct != null) {
+    return node.current / (1 + node.month_pct / 100);
+  }
+  return node.prev;
+}
 
 /* ─────────────── REGIME BANNER ─────────────── */
 function renderRegimeBanner(){
@@ -602,7 +627,7 @@ function renderKeyMetrics(){
   const t10y2y = gv(REPORT,'treasury','T10Y2Y');
   const t10yie = gv(REPORT,'treasury','T10YIE');
   const dfii10 = gv(REPORT,'treasury','DFII10');
-  const moveIdx = REPORT?.fred_data?.risk?.MOVE?.current || gv(REPORT,'risk','MOVE');
+  const moveIdx = REPORT?.fred?.risk?.MOVE?.current || gv(REPORT,'risk','MOVE');
 
   cards.push({name:'10Y YIELD',value:dgs10!=null?dgs10.toFixed(2)+'%':'—',
     meta:dgs10!=null&&dgs10_30d!=null?(dgs10>dgs10_30d?'+':'')+(dgs10-dgs10_30d).toFixed(2)+'pp vs 30d ago':'',
@@ -1029,7 +1054,7 @@ function renderTriggers(){
   const yieldChg = dgs10!=null && dgs10_30d!=null ? dgs10 - dgs10_30d : null;
   const dfii10 = gv(REPORT,'treasury','DFII10');
   const t10yie = gv(REPORT,'treasury','T10YIE');
-  const moveIdx = REPORT?.fred_data?.risk?.MOVE?.current;
+  const moveIdx = REPORT?.fred?.risk?.MOVE?.current;
   const hyOas = CRISIS?.funding_credit_signals?.HY_OAS;
   const hyZ = hyOas?.z_score_1y;
 
