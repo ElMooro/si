@@ -1,0 +1,103 @@
+{
+  "started": "2026-05-09T11:41:27.957215+00:00",
+  "test": {
+    "0_url": {
+      "value": "https://zmwuxvqqwexxzzgrw7g2ayql6i0fqrpi.lambda-url.us-east-1.on.aws",
+      "ok": true
+    },
+    "1_health": {
+      "status": 200,
+      "service": "justhodl-stress-simulator",
+      "factor_keys": [
+        "equity_pct",
+        "vol_pts",
+        "rates_bps",
+        "dollar_pct",
+        "commodity_pct"
+      ],
+      "n_assets": 10,
+      "n_presets": 10,
+      "betas_source": "computed",
+      "ok": true
+    },
+    "2_presets": {
+      "status": 200,
+      "n": 10,
+      "names": [
+        "gfc_2008",
+        "covid_march_2020",
+        "volmageddon_2018",
+        "stagflation_1970s",
+        "fed_pivot_dovish",
+        "fed_hawkish_surprise",
+        "china_lehman",
+        "dollar_breakdown",
+        "geopolitical_shock",
+        "tech_bubble_burst"
+      ],
+      "ok": true
+    },
+    "3_preset_gfc": {
+      "status": 200,
+      "preset": "gfc_2008",
+      "total_pnl": -12275.61,
+      "total_pnl_pct": -12.276,
+      "regime": "SLOWING",
+      "betas_source": "computed",
+      "n_per_asset": 10,
+      "spy_return": -39.023,
+      "vixy_return": 113.705,
+      "tlt_return": 2.857,
+      "ki_before": 48,
+      "ki_after": 10.0,
+      "regime_change_p": 0.95,
+      "ok": true
+    },
+    "4_custom": {
+      "status": 200,
+      "total_pnl_pct": -0.727,
+      "tlt_pnl": -232.66,
+      "ok": true
+    },
+    "5_bad_preset": {
+      "status": 400,
+      "ok": true
+    },
+    "7_loadings_s3": {
+      "size_bytes": 3080,
+      "n_obs": 1142,
+      "n_tickers": 10,
+      "stale": false,
+      "spy_betas": {
+        "equity_pct": 1.0,
+        "vol_pts": -0.466246,
+        "rates_bps": -0.006435,
+        "dollar_pct": -0.515269,
+        "commodity_pct": 0.116763
+      },
+      "spy_r2": {
+        "equity_pct": 1.0,
+        "vol_pts": 0.5715,
+        "rates_bps": 0.0068,
+        "dollar_pct": 0.0599,
+        "commodity_pct": 0.0205
+      },
+      "ok": true
+    },
+    "8_page": {
+      "status": 200,
+      "size": 21547,
+      "has_real_url": true,
+      "has_pwa": true,
+      "has_wss": true,
+      "has_sliders": true,
+      "has_presets": true,
+      "ok": true
+    },
+    "summary": {
+      "passed": 7,
+      "total": 7
+    }
+  },
+  "finished": "2026-05-09T11:41:36.380503+00:00"
+}
