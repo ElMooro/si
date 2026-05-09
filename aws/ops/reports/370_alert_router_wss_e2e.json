@@ -1,0 +1,99 @@
+{
+  "started": "2026-05-09T11:22:14.904405+00:00",
+  "test": {
+    "1_token": {
+      "ok": true,
+      "length": 64
+    },
+    "2_broadcast_lambda": {
+      "role": "lambda-execution-role",
+      "handler": "lambda_function.lambda_handler",
+      "runtime": "python3.12",
+      "last_modified": "2026-05-09T11:11:26.000+0000",
+      "code_size": 3524,
+      "ok": true
+    },
+    "3_alert_router_lambda": {
+      "role": "lambda-execution-role",
+      "runtime": "python3.12",
+      "last_modified": "2026-05-09T11:21:22.000+0000",
+      "code_size": 9902
+    },
+    "4_synthetic_alert": {
+      "status": 200,
+      "channel": "alerts",
+      "sent": 0,
+      "scanned": 0,
+      "removed_dead": 0,
+      "ok": true
+    },
+    "5_system_ping": {
+      "status": 200,
+      "channel": "system",
+      "sent": 0,
+      "ok": true
+    },
+    "6_ddb": {
+      "status": "ACTIVE",
+      "items": 0
+    },
+    "7_all_channels": {
+      "report": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "regime": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "compound": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "cross_asset": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "options_flow": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "eurodollar": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "nobrainers": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "narrative": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "alerts": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      },
+      "system": {
+        "status": 200,
+        "sent": 0,
+        "ok": true
+      }
+    },
+    "7_all_channels_passed": 10,
+    "summary": {
+      "passed": 5,
+      "total": 5
+    }
+  },
+  "finished": "2026-05-09T11:22:21.024585+00:00"
+}
