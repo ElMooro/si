@@ -150,6 +150,7 @@
     <div class="nav">
       <a href="/">Desk</a>
       <a href="/risk.html">Risk</a>
+    <a href="/stress.html" style="color:#ef4444;font-weight:600">🌪 STRESS</a>
       <a href="/macro-data.html">Regime</a>
       <a href="/why.html">Why</a>
     </div>
@@ -460,7 +461,14 @@ function toggleDetail(tk) {
 
 // Init
 buildSliders();
-loadPresets();
+loadPresets().then(() => {
+  // Deep-link support: /stress.html?preset=gfc_2008 auto-runs that preset on load
+  const params = new URLSearchParams(window.location.search);
+  const presetFromUrl = params.get("preset");
+  if (presetFromUrl && presetData[presetFromUrl]) {
+    applyPreset(presetFromUrl);
+  }
+});
 </script>
 </body>
 </html>

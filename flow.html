@@ -377,5 +377,11 @@ loadData();
 const now=new Date();const h=now.getUTCHours(),day=now.getUTCDay();
 if(day>0&&day<6&&h>=13&&h<=21){setInterval(loadData,300000)}else{setInterval(loadData,900000)}
 </script>
+
+<a href="/stress.html" style="position:fixed;bottom:20px;right:20px;z-index:9999;
+                                  background:#ef4444;color:#fff;padding:10px 16px;
+                                  border-radius:8px;text-decoration:none;font-weight:600;
+                                  font-family:system-ui,sans-serif;font-size:13px;
+                                  box-shadow:0 4px 12px rgba(239,68,68,0.4);">🌪 Stress Test</a>
 </body>
 </html>
