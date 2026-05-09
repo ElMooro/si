@@ -1,0 +1,64 @@
+{
+  "started": "2026-05-09T13:19:44.370625+00:00",
+  "test": {
+    "invoke": {
+      "status": 200,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"composite_score\\\": 0, \\\"states\\\": {\\\"fed_path\\\": \\\"OFF\\\", \\\"eurodollar\\\": \\\"OFF\\\", \\\"qe_imminence\\\": \\\"OFF\\\"}, \\\"transitions_count\\\": 0}\"}"
+    },
+    "s3_output": {
+      "size_bytes": 2065,
+      "last_modified": "2026-05-09 13:19:53+00:00",
+      "schema_version": "1.0",
+      "composite_score": 0,
+      "any_firing": false,
+      "any_watch": false,
+      "fed_funds_rate": 3.63,
+      "n_auctions_in_window": 142,
+      "transitions_count": 0,
+      "states": {
+        "fed_path": "OFF",
+        "eurodollar": "OFF",
+        "qe_imminence": "OFF"
+      },
+      "fed_path_metrics": {},
+      "fed_path_interpretation": "Missing yield data on most recent 2y auctions",
+      "eurodollar_metrics": {
+        "tenor_breakdown": [
+          {
+            "tenor": "1m",
+            "latest_term": "8-Week",
+            "latest_date": "2026-05-07",
+            "latest_indirect_pct": null,
+            "avg_prior_indirect_pct": null,
+            "indirect_drop_pts": 0,
+            "latest_btc": 2.91,
+            "avg_prior_btc": 2.82,
+            "btc_spike": 0.09,
+            "state": "OFF"
+          },
+          {
+            "tenor": "3m",
+            "latest_term": "17-Week",
+            "latest_date": "2026-05-06",
+            "latest_indirect_pct": null,
+            "avg_prior_indirect_pct": null,
+            "indirect_drop_pts": 0,
+            "latest_btc": 3.13,
+            "avg_prior_btc": 2.85,
+            "btc_spike": 0.27,
+            "state": "OFF"
+          }
+        ]
+      },
+      "eurodollar_interpretation": "Bill auction tape shows healthy foreign (Indirect) participation. No offshore dollar funding stress visible. Cross-currency basis presumed stable.",
+      "qe_metrics": {},
+      "qe_interpretation": "Missing 30y yield data"
+    },
+    "js_module_live": {
+      "status": 200,
+      "size": 8261,
+      "has_pill": true
+    }
+  },
+  "finished": "2026-05-09T13:19:52.847034+00:00"
+}
