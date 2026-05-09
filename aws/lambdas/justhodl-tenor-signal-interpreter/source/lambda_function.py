@@ -190,9 +190,35 @@ def fetch_auctions_window(days_back=120):
     return all_records
 
 
-def filter_by_tenor(auctions, tenor_list):
-    """Filter auctions to one of the tenors in tenor_list. Returns sorted desc by date."""
-    out = [a for a in auctions if (a.get("security_term") or "") in tenor_list]
+def filter_by_tenor(auctions, tenor_list, exclude_tips=True, min_accepted_b=None):
+    """Filter auctions to one of the tenors. Returns sorted desc by date.
+
+    exclude_tips: skip TIPS (Treasury Inflation-Protected). At long tenors,
+        TIPS share security_term="30-Year" with nominal bonds but auction
+        smaller sizes (~$5-10B vs $20-32B nominal) and report real yields
+        (~1-3%) vs nominal (~4-5%). Distinguishing reliably requires both
+        size threshold and skipping non-Bond/non-Note types.
+
+    min_accepted_b: minimum total_accepted in $B. Filters out:
+      - 30y TIPS reopenings (~$8-10B vs $20-32B nominal)
+      - 2y FRN auctions (~$28-33B vs $69-77B regular 2y note)
+    """
+    out = []
+    for a in auctions:
+        term = (a.get("security_term") or "").strip()
+        if term not in tenor_list:
+            continue
+        sec_type = (a.get("security_type") or "").upper()
+        if exclude_tips and ("TIPS" in sec_type or "INFLATION" in sec_type or "TIIN" in sec_type):
+            continue
+        # Skip records with null clearing rate (FRNs, malformed entries)
+        if get_yield(a) is None:
+            continue
+        if min_accepted_b is not None:
+            total = a.get("total_accepted") or 0
+            if total < min_accepted_b * 1e9:
+                continue
+        out.append(a)
     out.sort(key=lambda a: a.get("auction_date", ""), reverse=True)
     return out
 
@@ -214,8 +240,9 @@ def severity_pill(state):
 # Signal #1 — Fed path (2-year note)
 # ────────────────────────────────────────────────────────────────────────
 def compute_fed_path(auctions, fed_funds):
-    """Detect Fed rate-cut / hike pricing pressure from 2y note auctions."""
-    notes_2y = filter_by_tenor(auctions, NOTE_2Y)
+    """Detect Fed rate-cut / hike pricing pressure from 2y note auctions.
+       Filter to nominal 2-year notes only ($50B+ size to exclude FRNs)."""
+    notes_2y = filter_by_tenor(auctions, NOTE_2Y, min_accepted_b=50)
     th = THRESHOLDS["fed_path"]
 
     sig = {
@@ -404,8 +431,9 @@ def compute_eurodollar(auctions):
 # Signal #3 — QE imminence (30-year bond)
 # ────────────────────────────────────────────────────────────────────────
 def compute_qe_imminence(auctions, fed_funds):
-    """Detect QE-being-priced via 30y rally with Fed funds elevated."""
-    bonds_30y = filter_by_tenor(auctions, BOND_30Y)
+    """Detect QE-being-priced via 30y rally with Fed funds elevated.
+       Filter to nominal 30-year bonds only ($15B+ size; excludes TIPS reopenings ~$5-10B)."""
+    bonds_30y = filter_by_tenor(auctions, BOND_30Y, min_accepted_b=15)
     th = THRESHOLDS["qe_imminence"]
     sig = {
         "channel": "qe_imminence",
