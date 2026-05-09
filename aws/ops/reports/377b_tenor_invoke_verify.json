@@ -1,27 +1,31 @@
 {
-  "started": "2026-05-09T13:23:40.541296+00:00",
+  "started": "2026-05-09T13:30:29.298002+00:00",
   "test": {
     "invoke": {
       "status": 200,
-      "body": "{\"statusCode\": 200, \"body\": \"{\\\"composite_score\\\": 72.0, \\\"states\\\": {\\\"fed_path\\\": \\\"OFF\\\", \\\"eurodollar\\\": \\\"OFF\\\", \\\"qe_imminence\\\": \\\"EXTREME\\\"}, \\\"transitions_count\\\": 1}\"}"
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"composite_score\\\": 0, \\\"states\\\": {\\\"fed_path\\\": \\\"OFF\\\", \\\"eurodollar\\\": \\\"OFF\\\", \\\"qe_imminence\\\": \\\"OFF\\\"}, \\\"transitions_count\\\": 1}\"}"
     },
     "s3_output": {
-      "size_bytes": 3336,
-      "last_modified": "2026-05-09 13:23:50+00:00",
+      "size_bytes": 2723,
+      "last_modified": "2026-05-09 13:30:39+00:00",
       "schema_version": "1.0",
-      "composite_score": 72.0,
-      "any_firing": true,
+      "composite_score": 0,
+      "any_firing": false,
       "any_watch": false,
-      "fed_funds_rate": 3.63,
+      "fed_funds_rate": null,
       "n_auctions_in_window": 142,
       "transitions_count": 1,
       "states": {
         "fed_path": "OFF",
         "eurodollar": "OFF",
-        "qe_imminence": "EXTREME"
+        "qe_imminence": "OFF"
       },
-      "fed_path_metrics": {},
-      "fed_path_interpretation": "Missing yield data on most recent 2y auctions",
+      "fed_path_metrics": {
+        "yield_change_bp": -12.4,
+        "spread_to_ff_bp": null,
+        "fed_funds_pct": null
+      },
+      "fed_path_interpretation": "2y stable, no directional signal.",
       "eurodollar_metrics": {
         "tenor_breakdown": [
           {
@@ -51,12 +55,8 @@
         ]
       },
       "eurodollar_interpretation": "Bill auction tape shows healthy foreign (Indirect) participation. No offshore dollar funding stress visible. Cross-currency basis presumed stable.",
-      "qe_metrics": {
-        "yield_drop_bp": 227.7,
-        "fed_funds_pct": 3.63,
-        "indirect_pct": 78.3
-      },
-      "qe_interpretation": "30y yield dropped 228bp vs prior auction with Fed funds at 3.63% and Indirect at 78.3%. Historical playbook: this combination preceded QE1 (Nov 2008), QE3 (2012), and the COVID Fed-bazooka (March 2020). Long duration, gold, and BTC are typical outperformers in next 3-6 months."
+      "qe_metrics": {},
+      "qe_interpretation": "Insufficient 30y auction data (need \u22652; quarterly cadence)"
     },
     "js_module_live": {
       "status": 200,
@@ -64,5 +64,5 @@
       "has_pill": true
     }
   },
-  "finished": "2026-05-09T13:23:49.670899+00:00"
+  "finished": "2026-05-09T13:30:38.705198+00:00"
 }
