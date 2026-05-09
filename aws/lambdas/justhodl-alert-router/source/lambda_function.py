@@ -400,6 +400,49 @@ def check_auction_crisis(alerts):
         })
 
 
+def check_tenor_signals(alerts):
+    """Tenor-specific Treasury signals: 2y (Fed path), 1m/3m (eurodollar), 30y (QE).
+       Fires on any state transition WATCH/FIRING/EXTREME."""
+    d = load_json("data/auction-tenor-signals.json")
+    if not d:
+        return
+    transitions = d.get("transitions", []) or []
+    sev_map = {"WATCH": "MEDIUM", "FIRING": "HIGH", "EXTREME": "HIGH", "OFF": "LOW"}
+    icon_map = {"fed_path": "📊", "eurodollar": "💵", "qe_imminence": "🏦"}
+
+    for t in transitions:
+        new_state = t.get("new_state")
+        if new_state in ("OFF",):
+            # Healing transitions get a low-severity informational alert
+            alerts.append({
+                "id": f"tenor_{t['channel']}_clear",
+                "category": "TREASURY",
+                "severity": "LOW",
+                "title": f"{icon_map.get(t['channel'], '📡')} {t.get('label')} → CLEARED",
+                "detail": f"State: {t['prior_state']} → {new_state}. {t.get('interpretation','')}",
+            })
+            continue
+        alerts.append({
+            "id": f"tenor_{t['channel']}_{new_state.lower()}",
+            "category": "TREASURY",
+            "severity": sev_map.get(new_state, "MEDIUM"),
+            "title": f"{icon_map.get(t['channel'], '📡')} {t.get('label')} → {new_state}",
+            "detail": f"State: {t['prior_state']} → {new_state}. {t.get('interpretation','')}",
+        })
+
+    # Also fire a sticky alert if any channel currently EXTREME (even without transition)
+    signals = d.get("signals", {}) or {}
+    for ch_key, sig in signals.items():
+        if sig.get("state") == "EXTREME":
+            alerts.append({
+                "id": f"tenor_{ch_key}_extreme_state",
+                "category": "TREASURY",
+                "severity": "HIGH",
+                "title": f"🚨 {sig.get('label')} — EXTREME",
+                "detail": sig.get("interpretation", "")[:280],
+            })
+
+
 def check_vix_curve(alerts):
     d = load_json("data/vix-curve.json")
     structure = d.get("term_structure") or d.get("vix_curve_state")
@@ -559,6 +602,7 @@ def lambda_handler(event=None, context=None):
         ("yield_curve", check_yield_curve),
         ("eurodollar_stress", check_eurodollar_stress),
         ("auction_crisis", check_auction_crisis),
+        ("tenor_signals", check_tenor_signals),
         ("vix_curve", check_vix_curve),
         ("earnings", check_earnings),
         ("short_interest", check_short_interest),

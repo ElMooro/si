@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#facc15">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <script src="/wss-client.js" defer></script>
+<script src="/tenor-signals.js" defer></script>
 <style>
   :root {
     --bg:#08090f; --bg-card:#0e1120; --bg-elev:#141828; --bg-sunken:#04050a; --bg-hover:#1a1e30;
@@ -458,6 +459,10 @@
   </div>
 </section>
 
+
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="tenor-signals-panel"></div>
+</div>
 <div class="footer">
   Treasury auction tape · refreshed every 15 minutes during 14–22 UTC weekdays ·
   source: <a href="https://api.fiscaldata.treasury.gov" target="_blank">api.fiscaldata.treasury.gov</a> ·
