@@ -1,0 +1,140 @@
+{
+  "started": "2026-05-09T14:41:12.871647+00:00",
+  "test": {
+    "keys": {
+      "data/report.json": {
+        "exists": true,
+        "size": 1753787,
+        "last_modified": "2026-05-09 14:40:10+00:00"
+      },
+      "regime/current.json": {
+        "exists": true,
+        "size": 1426,
+        "last_modified": "2026-05-09 12:00:37+00:00"
+      },
+      "data/crisis-plumbing.json": {
+        "exists": true,
+        "size": 7883,
+        "last_modified": "2026-05-09 09:03:52+00:00"
+      },
+      "data/auction-crisis.json": {
+        "exists": true,
+        "size": 11647,
+        "last_modified": "2026-05-09 12:58:57+00:00"
+      },
+      "data/auction-tenor-signals.json": {
+        "exists": true,
+        "size": 3220,
+        "last_modified": "2026-05-09 13:35:13+00:00"
+      }
+    },
+    "https": {
+      "data/report.json": {
+        "status": 200,
+        "size": 1753787
+      },
+      "regime/current.json": {
+        "status": 200,
+        "size": 1426
+      },
+      "data/crisis-plumbing.json": {
+        "status": 200,
+        "size": 7883
+      },
+      "data/auction-crisis.json": {
+        "status": 200,
+        "size": 11647
+      },
+      "data/auction-tenor-signals.json": {
+        "status": 200,
+        "size": 3220
+      }
+    },
+    "report_shape": {
+      "size_bytes": 1753787,
+      "keys": [
+        "version",
+        "generated_at",
+        "fetch_time_seconds",
+        "cftc_positioning",
+        "khalid_index",
+        "risk_dashboard",
+        "net_liquidity",
+        "sectors",
+        "signals",
+        "market_flow",
+        "ath_breakouts",
+        "fred",
+        "stocks",
+        "crypto",
+        "crypto_global",
+        "ecb_ciss",
+        "news",
+        "ai_analysis",
+        "ticker_names",
+        "stats",
+        "ka_index"
+      ],
+      "has_yields": false,
+      "has_2y_10y": false,
+      "has_generated_at": true,
+      "has_khalid_index": true,
+      "sample_top_level": {
+        "version": "V10",
+        "generated_at": "2026-05-09T14:40:02.862724Z",
+        "fetch_time_seconds": "73.3",
+        "cftc_positioning": "dict(len=9)",
+        "khalid_index": "dict(len=4)",
+        "risk_dashboard": "dict(len=7)",
+        "net_liquidity": "dict(len=4)",
+        "sectors": "dict(len=11)",
+        "signals": "dict(len=3)",
+        "market_flow": "dict(len=7)",
+        "ath_breakouts": "dict(len=5)",
+        "fred": "dict(len=14)",
+        "stocks": "dict(len=193)",
+        "crypto": "dict(len=25)",
+        "crypto_global": "dict(len=6)"
+      }
+    },
+    "regime_shape": {
+      "size_bytes": 1426,
+      "keys": [
+        "as_of",
+        "regime",
+        "regime_strength",
+        "indicators_extreme",
+        "indicators_total",
+        "n_risk_off",
+        "n_risk_on",
+        "consensus_direction",
+        "signals",
+        "thresholds",
+        "v",
+        "previous_regime",
+        "regime_changed",
+        "days_in_regime"
+      ],
+      "regime": "NEUTRAL",
+      "regime_strength": 54.2
+    },
+    "crisis_shape": {
+      "size_bytes": 7883,
+      "keys": [
+        "schema_version",
+        "generated_at",
+        "fetch_time_sec",
+        "composite",
+        "crisis_indices",
+        "plumbing_tier2",
+        "mmf_composition",
+        "funding_credit_signals",
+        "xcc_basis_proxy",
+        "yield_curve",
+        "n_series_fetched",
+        "data_sources"
+      ]
+    }
+  },
+  "finished": "2026-05-09T14:41:20.949168+00:00"
+}
