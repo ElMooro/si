@@ -1,0 +1,16 @@
+{
+  "started": "2026-05-09T13:14:40.575522+00:00",
+  "steps": {
+    "lambda": "created",
+    "eventbridge": {
+      "active": "tenor-signals-active",
+      "backstop": "tenor-signals-backstop"
+    },
+    "initial_run": {
+      "status": 200,
+      "body": "{\"errorMessage\": \"HTTP Error 400: Bad Request\", \"errorType\": \"HTTPError\", \"requestId\": \"753cb2fa-6884-4fac-8a10-e0756b944dee\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 506, in lambda_handler\\n    auctions = fetch_auctions_window(120)\\n\", \"  File \\\"/var/task/lambda_function.py\\\", line 142, in fetch_auctions_window\\n    with urllib.request.urlopen(req, timeout=30) as r:\\n\", \"  File \\\"/var/lang/lib/python3.12/urllib/request.py\\\", line 215, in urlopen\\n    return opener.open(url"
+    }
+  },
+  "status": "success",
+  "finished": "2026-05-09T13:14:46.529733+00:00"
+}
