@@ -1,0 +1,38 @@
+{
+  "started": "2026-05-09T16:01:54.484088+00:00",
+  "test": {
+    "top_level_keys": [
+      "schema_version",
+      "generated_at",
+      "fetch_time_sec",
+      "composite",
+      "crisis_indices",
+      "plumbing_tier2",
+      "mmf_composition",
+      "funding_credit_signals",
+      "xcc_basis_proxy",
+      "yield_curve",
+      "n_series_fetched",
+      "data_sources"
+    ],
+    "yield_curve": {
+      "T10Y2Y": {
+        "available": true,
+        "latest_date": "2026-05-08",
+        "latest_value": 0.48,
+        "is_inverted": false,
+        "value_30d_ago": 0.5,
+        "delta_30d": -0.02
+      },
+      "T10Y3M": {
+        "available": true,
+        "latest_date": "2026-05-08",
+        "latest_value": 0.69,
+        "is_inverted": false,
+        "value_30d_ago": 0.6,
+        "delta_30d": 0.09
+      }
+    }
+  },
+  "finished": "2026-05-09T16:02:01.394142+00:00"
+}
