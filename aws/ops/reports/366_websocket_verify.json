@@ -1,5 +1,5 @@
 {
-  "started": "2026-05-08T21:48:22.442916+00:00",
+  "started": "2026-05-09T11:13:27.426818+00:00",
   "test": {
     "1_ssm_endpoint": {
       "value": "wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod",
@@ -26,11 +26,11 @@
       "ok": true
     },
     "5_admin_broadcast": {
-      "status": 401,
-      "channel": null,
-      "sent": null,
-      "scanned": null,
-      "ok": false
+      "status": 200,
+      "channel": "system",
+      "sent": 0,
+      "scanned": 0,
+      "ok": true
     },
     "6_ddb": {
       "status": "ACTIVE",
@@ -61,10 +61,10 @@
       }
     },
     "summary": {
-      "passed": 6,
+      "passed": 7,
       "total": 8,
-      "rate": "6/8"
+      "rate": "7/8"
     }
   },
-  "finished": "2026-05-08T21:48:31.388657+00:00"
+  "finished": "2026-05-09T11:13:34.659227+00:00"
 }
