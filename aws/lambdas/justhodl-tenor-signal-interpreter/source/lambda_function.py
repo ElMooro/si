@@ -565,8 +565,8 @@ def lambda_handler(event=None, context=None):
     fed_funds = fetch_fred_fed_funds()
     print(f"[tenor] fed_funds={fed_funds}")
 
-    auctions = fetch_auctions_window(120)
-    print(f"[tenor] pulled {len(auctions)} auctions in 120-day window")
+    auctions = fetch_auctions_window(180)
+    print(f"[tenor] pulled {len(auctions)} auctions in 180-day window")
 
     # Compute signals
     sig_fed_path = compute_fed_path(auctions, fed_funds)
