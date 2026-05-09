@@ -1,0 +1,513 @@
+{
+  "started": "2026-05-09T12:17:39.212464+00:00",
+  "test": {
+    "as_of": "2026-05-09T12:17:45.956381+00:00",
+    "anchors": {
+      "2008-09-17": {
+        "tenor": "Bill 4-week",
+        "btc": 4.21,
+        "indirect_pct": 11.4,
+        "tail_bps": 0,
+        "context": "GFC: Lehman+1, panic-buy",
+        "regime": "ACUTE_STRESS"
+      },
+      "2008-09-23": {
+        "tenor": "Bill 7-day CMB",
+        "btc": null,
+        "indirect_pct": 12.8,
+        "tail_bps": null,
+        "context": "GFC peak: Goldman/Morgan-becomes-bank-week",
+        "regime": "ACUTE_STRESS"
+      },
+      "2008-10-08": {
+        "tenor": "TIPS 5-year reopen",
+        "btc": 1.74,
+        "indirect_pct": 32.4,
+        "tail_bps": 4.2,
+        "context": "GFC: TIPS basis trade unwind, PD absorbed",
+        "regime": "ACUTE_STRESS"
+      },
+      "2020-03-11": {
+        "tenor": "Bill 4-week",
+        "btc": 2.92,
+        "indirect_pct": 56.0,
+        "tail_bps": null,
+        "context": "COVID: pre-crash flight to bills",
+        "regime": "WATCH"
+      },
+      "2020-03-19": {
+        "tenor": "Bill 4-week",
+        "btc": 3.53,
+        "indirect_pct": 28.4,
+        "tail_bps": null,
+        "context": "COVID: cash hoarding peak, indirect collapsed",
+        "regime": "ACUTE_STRESS"
+      },
+      "2020-03-26": {
+        "tenor": "Bill 4-week",
+        "btc": 4.09,
+        "indirect_pct": 73.2,
+        "tail_bps": null,
+        "context": "COVID: post-Fed bazooka recovery",
+        "regime": "WATCH"
+      },
+      "2021-04-13": {
+        "tenor": "Bill 4-week",
+        "btc": 3.84,
+        "indirect_pct": 56.5,
+        "tail_bps": null,
+        "context": "Crypto-top complacency benchmark",
+        "regime": "CALM"
+      },
+      "2024-04-10": {
+        "tenor": "Note 10-year",
+        "btc": 2.34,
+        "indirect_pct": 64.8,
+        "tail_bps": -0.3,
+        "context": "Healthy normal market benchmark",
+        "regime": "CALM"
+      },
+      "2024-10-09": {
+        "tenor": "Note 10-year reopen",
+        "btc": 2.32,
+        "indirect_pct": 63.1,
+        "tail_bps": 1.8,
+        "context": "AAH=99.31% early warning before Nov vol",
+        "regime": "WATCH"
+      }
+    },
+    "khalid_score": {
+      "size_bytes": 11648,
+      "last_modified": "2026-05-09 08:58:57+00:00",
+      "data": {
+        "schema_version": "1.1",
+        "generated_at": "2026-05-09T08:58:56.027932+00:00",
+        "elapsed_sec": 3.01,
+        "regime": "CALM",
+        "composite_score": 17.1,
+        "interpretation": "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern.",
+        "n_recent_auctions_14d": 16,
+        "issuance_anomaly": {
+          "score": 0,
+          "pct_above_baseline": -6.7
+        },
+        "fed_funds_rate": 3.63,
+        "freshness": {
+          "latest_auction_date": "2026-05-07",
+          "latest_cusip": "912797UN5",
+          "hours_since_latest_auction": 57.0,
+          "previous_latest_cusip": "912797UN5",
+          "is_new_auction_this_run": false,
+          "n_total_auctions_pulled": 478,
+          "data_window_start": "2025-04-04",
+          "data_window_end": "2026-05-09",
+          "fetched_via": "https://api.fiscaldata.treasury.gov (no-cache headers, format=json)"
+        },
+        "recent_auctions": [
+          {
+            "auction_date": "2026-05-07",
+            "issue_date": "2026-05-12",
+            "security_type": "Bill",
+            "security_term": "8-Week",
+            "cusip": "912797UN5",
+            "tenor_bucket": "bills_lt_90d",
+            "high_rate": 3.595,
+            "low_rate": 3.5,
+            "median_rate": null,
+            "allocated_at_high_pct": 90.77,
+            "btc": 2.91,
+            "primary_dealer_pct": 29.197663757902014,
+            "indirect_pct": 64.22628988551462,
+            "direct_pct": 6.576046356583364,
+            "tail_bp": null,
+            "accepted_billions": 85.7936087,
+            "indicator_scores": {
+              "zero_rate_floor": 0,
+              "btc_extreme": 0,
+              "tail_stress": 50,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 50,
+            "avg_indicator_score": 12.5,
+            "composite_score": 38.8
+          },
+          {
+            "auction_date": "2026-05-07",
+            "issue_date": "2026-05-12",
+            "security_type": "Bill",
+            "security_term": "4-Week",
+            "cusip": "912797TZ0",
+            "tenor_bucket": "bills_lt_90d",
+            "high_rate": 3.61,
+            "low_rate": 3.49,
+            "median_rate": null,
+            "allocated_at_high_pct": 22.66,
+            "btc": 2.59,
+            "primary_dealer_pct": 46.611418609574855,
+            "indirect_pct": 47.092257510646704,
+            "direct_pct": 6.296323879778433,
+            "tail_bp": null,
+            "accepted_billions": 90.8407127,
+            "indicator_scores": {
+              "zero_rate_floor": 0,
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-05-06",
+            "issue_date": "2026-05-12",
+            "security_type": "Bill",
+            "security_term": "17-Week",
+            "cusip": "912797VB0",
+            "tenor_bucket": "bills_gte_90d",
+            "high_rate": 3.605,
+            "low_rate": 3.4,
+            "median_rate": null,
+            "allocated_at_high_pct": 70.08,
+            "btc": 3.13,
+            "primary_dealer_pct": 44.2141685050812,
+            "indirect_pct": 50.28058002002865,
+            "direct_pct": 5.505251474890143,
+            "tail_bp": null,
+            "accepted_billions": 69.6455601,
+            "indicator_scores": {
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-05-05",
+            "issue_date": "2026-05-07",
+            "security_type": "Bill",
+            "security_term": "6-Week",
+            "cusip": "912797TD9",
+            "tenor_bucket": "bills_lt_90d",
+            "high_rate": 3.595,
+            "low_rate": 3.4,
+            "median_rate": null,
+            "allocated_at_high_pct": 58.71,
+            "btc": 3.07,
+            "primary_dealer_pct": 28.995117566826035,
+            "indirect_pct": 64.106313321089,
+            "direct_pct": 6.898569112084964,
+            "tail_bp": null,
+            "accepted_billions": 79.7546898,
+            "indicator_scores": {
+              "zero_rate_floor": 0,
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-05-04",
+            "issue_date": "2026-05-07",
+            "security_type": "Bill",
+            "security_term": "13-Week",
+            "cusip": "912797RG4",
+            "tenor_bucket": "bills_gte_90d",
+            "high_rate": 3.61,
+            "low_rate": 3.5,
+            "median_rate": null,
+            "allocated_at_high_pct": 14.97,
+            "btc": 2.76,
+            "primary_dealer_pct": 42.78118833406547,
+            "indirect_pct": 49.2675937872273,
+            "direct_pct": 7.951217878707231,
+            "tail_bp": null,
+            "accepted_billions": 94.6421177,
+            "indicator_scores": {
+              "btc_extreme": 0,
+              "tail_stress": 60,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 60,
+            "avg_indicator_score": 20.0,
+            "composite_score": 48.0
+          },
+          {
+            "auction_date": "2026-05-04",
+            "issue_date": "2026-05-07",
+            "security_type": "Bill",
+            "security_term": "26-Week",
+            "cusip": "912797UM7",
+            "tenor_bucket": "bills_gte_90d",
+            "high_rate": 3.61,
+            "low_rate": 3.5,
+            "median_rate": null,
+            "allocated_at_high_pct": 2.03,
+            "btc": 2.79,
+            "primary_dealer_pct": 35.84198890309167,
+            "indirect_pct": 53.88645200885621,
+            "direct_pct": 10.271559088052124,
+            "tail_bp": null,
+            "accepted_billions": 81.8819488,
+            "indicator_scores": {
+              "btc_extreme": 0,
+              "tail_stress": 60,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 60,
+            "avg_indicator_score": 20.0,
+            "composite_score": 48.0
+          },
+          {
+            "auction_date": "2026-04-30",
+            "issue_date": "2026-05-05",
+            "security_type": "Bill",
+            "security_term": "4-Week",
+            "cusip": "912797TU1",
+            "tenor_bucket": "bills_lt_90d",
+            "high_rate": 3.6,
+            "low_rate": 3.5,
+            "median_rate": null,
+            "allocated_at_high_pct": 44.81,
+            "btc": 2.92,
+            "primary_dealer_pct": 28.00910130961097,
+            "indirect_pct": 69.59325835676006,
+            "direct_pct": 2.397640333628978,
+            "tail_bp": null,
+            "accepted_billions": 82.2896852,
+            "indicator_scores": {
+              "zero_rate_floor": 0,
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-04-30",
+            "issue_date": "2026-05-05",
+            "security_type": "Bill",
+            "security_term": "8-Week",
+            "cusip": "912797UC9",
+            "tenor_bucket": "bills_lt_90d",
+            "high_rate": 3.62,
+            "low_rate": 3.52,
+            "median_rate": null,
+            "allocated_at_high_pct": 23.67,
+            "btc": 2.79,
+            "primary_dealer_pct": 38.07662671733428,
+            "indirect_pct": 59.83082921284759,
+            "direct_pct": 2.092544069818136,
+            "tail_bp": null,
+            "accepted_billions": 77.1468082,
+            "indicator_scores": {
+              "zero_rate_floor": 0,
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-04-29",
+            "issue_date": "2026-05-05",
+            "security_type": "Bill",
+            "security_term": "17-Week",
+            "cusip": "912797UW5",
+            "tenor_bucket": "bills_gte_90d",
+            "high_rate": 3.62,
+            "low_rate": 3.4,
+            "median_rate": null,
+            "allocated_at_high_pct": 41.15,
+            "btc": 2.78,
+            "primary_dealer_pct": 50.19308257806377,
+            "indirect_pct": 44.05408181803496,
+            "direct_pct": 5.752835603901272,
+            "tail_bp": null,
+            "accepted_billions": 70.9754222,
+            "indicator_scores": {
+              "btc_extreme": 0,
+              "tail_stress": 0,
+              "pd_absorption": 0
+            },
+            "max_indicator_score": 0,
+            "avg_indicator_score": 0.0,
+            "composite_score": 0.0
+          },
+          {
+            "auction_date": "2026-04-28",
+            "issue_date": "2026-04-30",
+            "security_type": "Note",
+            "security_term": "2-Year",
+            "cusip": "91282CQM6",
+            "tenor_bucket": "coupons_lt_3y",
+            "high_rate": null,
+            "low_rate": null,
+            "median_rate": null,
+            "allocated_at_high_pct": 10.51,
+            "btc": 3.52,
+            "primary_dealer_pct": 34.28788703387509,
+            "indirect_pct": 65.71211296612492,
+            "direct_pct": 0.0,
+            "tail_bp": null,
+            "accepted_billions": 33.7758658,
+            "indicator_scores": {
+              "btc_extreme": 0,
+              "tail_stress": 70,
+              "pd_absorption": 35,
+              "indirect_collapse": 0
+            },
+            "max_indicator_score": 70,
+            "avg_indicator_score": 26.2,
+            "composite_score": 56.9
+          }
+        ],
+        "indicator_aggregate_14d": {
+          "tail_stress": {
+            "n_fired": 6,
+            "max_score": 70,
+            "auctions": [
+              {
+                "date": "2026-05-07",
+                "term": "8-Week",
+                "score": 50
+              },
+              {
+                "date": "2026-05-04",
+                "term": "13-Week",
+                "score": 60
+              },
+              {
+                "date": "2026-05-04",
+                "term": "26-Week",
+                "score": 60
+              },
+              {
+                "date": "2026-04-28",
+                "term": "2-Year",
+                "score": 70
+              },
+              {
+                "date": "2026-04-28",
+                "term": "7-Year",
+                "score": 70
+              },
+              {
+                "date": "2026-04-27",
+                "term": "2-Year",
+                "score": 70
+              }
+            ]
+          }
+        },
+        "historical_reference": [
+          {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          }
+        ],
+        "data_source": "https://api.fiscaldata.treasury.gov (auctions_query)",
+        "methodology": "Crisis pattern signatures extracted from 9 historical auction PDFs covering 2008-09-17 through 2024-10-09. Each live auction is scored 0-100 against 6 patterns: zero-rate floor, BTC extremes, AAH tail, PD absorption, indirect collapse, issuance explosion. Composite = 70% max-indicator + 30% avg-indicator, weighted by auction size over trailing 14 days."
+      }
+    },
+    "treasury_recent": {
+      "error": "HTTP Error 400: Bad Request"
+    }
+  },
+  "finished": "2026-05-09T12:17:46.802320+00:00"
+}
