@@ -1,0 +1,24 @@
+{
+  "started": "2026-05-09T11:11:19.984409+00:00",
+  "fns": {
+    "openbb-websocket-handler": {
+      "old_role": "arn:aws:iam::857687956942:role/websocket-lambda-role",
+      "old_handler": "lambda_function.lambda_handler",
+      "old_runtime": "python3.11",
+      "new_role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "new_handler": "lambda_function.lambda_handler",
+      "new_runtime": "python3.12",
+      "ok": true
+    },
+    "openbb-websocket-broadcast": {
+      "old_role": "arn:aws:iam::857687956942:role/websocket-lambda-role",
+      "old_handler": "lambda_function.broadcast_handler",
+      "old_runtime": "python3.11",
+      "new_role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "new_handler": "lambda_function.lambda_handler",
+      "new_runtime": "python3.12",
+      "ok": true
+    }
+  },
+  "finished": "2026-05-09T11:11:32.312718+00:00"
+}
