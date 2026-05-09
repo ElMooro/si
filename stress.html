@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stress-Test Simulator · JustHodl.AI</title>
+<meta name="description" content="What-if scenario engine — shock the market on 5 macro factors and see per-asset P&L, regime-change probability, Khalid Index reprojection, and historical analogs.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<script src="/wss-client.js" defer></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --bg-card:#131313; --bg-card-elev:#181818; --bg-hover:#1f1f1f;
+    --border:#262626; --border-light:#2e2e2e;
+    --text:#e5e5e5; --text-dim:#888; --text-muted:#555;
+    --accent:#facc15; --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+    --blue:#3b82f6; --purple:#a78bfa; --cyan:#06b6d4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background:var(--bg); color:var(--text); line-height:1.5; font-size:13px; }
+  .container { max-width:1500px; margin:0 auto; padding:18px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-end;
+            border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;
+            flex-wrap:wrap; gap:8px; }
+  .header h1 { font-size:22px; font-weight:600; letter-spacing:-0.01em; }
+  .header h1 .sub { color:var(--text-dim); font-weight:400; font-size:13px; margin-left:8px; }
+  .nav { display:flex; gap:16px; font-size:12px; }
+  .nav a { color:var(--text-dim); text-decoration:none; }
+  .nav a:hover { color:var(--accent); }
+
+  .grid { display:grid; grid-template-columns:380px 1fr; gap:16px; }
+  @media (max-width:1100px) { .grid { grid-template-columns:1fr; } }
+
+  /* ─── left column — scenario builder ─── */
+  .panel { background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+           overflow:hidden; margin-bottom:16px; }
+  .panel-header { padding:12px 16px; border-bottom:1px solid var(--border);
+                  display:flex; justify-content:space-between; align-items:center; }
+  .panel-header h3 { font-size:13px; font-weight:600; }
+  .panel-header .sub { font-size:11px; color:var(--text-dim); }
+  .panel-body { padding:16px; }
+
+  .preset-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; padding:10px 12px; }
+  .preset-btn { background:var(--bg-card-elev); border:1px solid var(--border-light);
+                color:var(--text); padding:8px 10px; border-radius:5px; font-size:11px;
+                cursor:pointer; text-align:left; line-height:1.35; transition:0.15s;
+                font-family:inherit; }
+  .preset-btn:hover { background:var(--bg-hover); border-color:var(--accent); }
+  .preset-btn.on { background:rgba(250,204,21,0.12); border-color:var(--accent); color:var(--accent); }
+  .preset-btn .small { display:block; color:var(--text-muted); font-size:10px; margin-top:2px; font-weight:400; }
+
+  .slider-row { padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .slider-row:last-child { border:none; }
+  .slider-label { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .slider-label .name { font-weight:600; font-size:12px; }
+  .slider-label .desc { color:var(--text-muted); font-size:10px; margin-left:6px; font-weight:400; }
+  .slider-label .value { font-variant-numeric:tabular-nums; font-weight:700; padding:1px 8px;
+                          border-radius:4px; background:var(--bg-card-elev); font-size:11px; }
+  .slider-label .value.up { color:var(--green); }
+  .slider-label .value.dn { color:var(--red); }
+  .slider-label .value.flat { color:var(--text-dim); }
+  input[type=range] { width:100%; height:4px; -webkit-appearance:none; appearance:none;
+                      background:var(--bg-card-elev); border-radius:2px; outline:none; cursor:pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none;
+                                            width:14px; height:14px; border-radius:50%;
+                                            background:var(--accent); border:2px solid #0a0a0a; cursor:pointer; }
+  input[type=range]::-moz-range-thumb { width:14px; height:14px; border-radius:50%;
+                                         background:var(--accent); border:2px solid #0a0a0a; cursor:pointer; }
+  .slider-extent { display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted);
+                    margin-top:3px; }
+
+  .action-bar { padding:14px 16px; display:flex; gap:8px; border-top:1px solid var(--border);
+                background:var(--bg-card-elev); }
+  .btn { flex:1; padding:10px 14px; border:1px solid var(--border-light); background:var(--bg-card);
+         color:var(--text); font-size:12px; font-weight:600; border-radius:5px;
+         cursor:pointer; font-family:inherit; transition:0.15s; }
+  .btn.primary { background:var(--accent); color:#000; border-color:var(--accent); }
+  .btn.primary:hover { filter:brightness(1.08); }
+  .btn:hover { background:var(--bg-hover); border-color:var(--accent); }
+
+  /* ─── right column — results ─── */
+  .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+  .stat { background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+          padding:14px 16px; }
+  .stat-label { font-size:10px; color:var(--text-dim); text-transform:uppercase;
+                letter-spacing:0.05em; margin-bottom:6px; }
+  .stat-value { font-size:22px; font-weight:700; letter-spacing:-0.01em; }
+  .stat-value.up { color:var(--green); } .stat-value.dn { color:var(--red); }
+  .stat-value.amber { color:var(--amber); } .stat-value.blue { color:var(--blue); }
+  .stat-sub { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+  /* per-asset table */
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  thead { background:var(--bg-card-elev); }
+  th { padding:9px 12px; text-align:left; font-size:10px; color:var(--text-dim);
+       text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+       border-bottom:1px solid var(--border); }
+  th.right { text-align:right; }
+  td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.04); white-space:nowrap; }
+  td.right { text-align:right; font-variant-numeric:tabular-nums; }
+  tr.row { cursor:pointer; }
+  tr.row:hover { background:var(--bg-hover); }
+  tr.detail-row td { background:var(--bg-card-elev); padding:14px 18px; white-space:normal; }
+  .ticker-cell { font-weight:700; color:var(--accent); }
+  .pnl-bar { display:inline-block; width:100px; height:6px; background:var(--bg-card-elev);
+             border-radius:3px; overflow:hidden; vertical-align:middle; margin-right:6px;
+             position:relative; }
+  .pnl-fill { position:absolute; top:0; bottom:0; }
+  .pnl-fill.up { background:var(--green); left:50%; }
+  .pnl-fill.dn { background:var(--red); right:50%; }
+  .pnl-pos { color:var(--green); font-weight:700; }
+  .pnl-neg { color:var(--red); font-weight:700; }
+  .pnl-flat { color:var(--text-dim); }
+
+  /* factor contribution chips inside detail row */
+  .contrib { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip { background:var(--bg-card); border:1px solid var(--border-light); padding:4px 8px;
+          border-radius:4px; font-size:10px; }
+  .chip strong { color:var(--text); }
+  .chip .v.up { color:var(--green); }
+  .chip .v.dn { color:var(--red); }
+
+  /* analogs panel */
+  .analog-card { background:var(--bg-card-elev); border:1px solid var(--border-light);
+                  border-radius:5px; padding:10px 12px; margin-bottom:8px; font-size:12px; }
+  .analog-card h4 { font-size:12px; color:var(--text); margin-bottom:4px; }
+  .analog-card .meta { color:var(--text-dim); font-size:11px; }
+
+  .loading { padding:30px; text-align:center; color:var(--text-dim); }
+  .error { padding:14px; background:rgba(239,68,68,0.1); border:1px solid var(--red);
+            border-radius:6px; color:var(--red); }
+  .info-banner { background:rgba(59,130,246,0.08); border-left:3px solid var(--blue);
+                  border-radius:0 6px 6px 0; padding:12px 16px; margin-bottom:16px;
+                  font-size:12px; line-height:1.55; }
+  .info-banner strong { color:var(--blue); }
+  .status-bar { padding:8px 14px; background:var(--bg-card); border-top:1px solid var(--border);
+                font-size:11px; color:var(--text-muted); display:flex; gap:14px; flex-wrap:wrap; }
+
+  @media (max-width:1100px) { .summary-grid { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🌪 Stress-Test Simulator <span class="sub">— what-if scenario engine</span></h1>
+    <div class="nav">
+      <a href="/">Desk</a>
+      <a href="/risk.html">Risk</a>
+      <a href="/macro-data.html">Regime</a>
+      <a href="/why.html">Why</a>
+    </div>
+  </div>
+
+  <div class="info-banner">
+    <strong>What this does.</strong> Apply a hypothetical shock to 5 macro factors (equity, vol, rates, dollar, commodity)
+    and see the projected impact on a $100k equal-weight portfolio across 10 cross-asset positions. Per-asset moves use
+    historical OLS factor betas (5y of daily Polygon data, weekly recompute) and are amplified by the current macro
+    regime (CONTRACTION/CRISIS amplifies down-shocks; EXPANSION dampens). The Khalid Index is also reprojected.
+    Pick a preset to start, or build a custom scenario with the sliders.
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: scenario builder -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📚 Preset scenarios</h3>
+          <span class="sub">click to load</span>
+        </div>
+        <div id="presets" class="preset-grid">
+          <div class="loading">Loading…</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🎚 Custom shocks</h3>
+          <span class="sub">all values are deltas</span>
+        </div>
+        <div class="panel-body" id="sliders">
+          <!-- sliders inserted by JS -->
+        </div>
+        <div class="action-bar">
+          <button class="btn primary" onclick="runSimulation()">▶ Run scenario</button>
+          <button class="btn" onclick="resetShocks()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div id="results">
+      <div class="loading">Pick a preset or set custom shocks, then run.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://justhodl-stress-simulator.PLACEHOLDER.lambda-url.us-east-1.on.aws";
+const FACTOR_META = {
+  equity_pct:    { label: "📉 Equity %",    desc: "broad SPY move",         min: -25, max: 10,  step: 0.5, unit: "%" },
+  vol_pts:       { label: "📊 VIX pts",     desc: "absolute VIX move",      min: -10, max: 50,  step: 1,   unit: "pt" },
+  rates_bps:     { label: "💵 10Y bp",      desc: "10y yield change",       min: -100,max: 100, step: 5,   unit: "bp" },
+  dollar_pct:    { label: "🟢 DXY %",       desc: "dollar index",           min: -12, max: 12,  step: 0.5, unit: "%" },
+  commodity_pct: { label: "🛢️ Commodity %",desc: "(USO+GLD)/2 composite",  min: -25, max: 25,  step: 0.5, unit: "%" },
+};
+const DEFAULT_SHOCKS = { equity_pct: 0, vol_pts: 0, rates_bps: 0, dollar_pct: 0, commodity_pct: 0 };
+let currentShocks = { ...DEFAULT_SHOCKS };
+let activePreset = null;
+let presetData = {};
+
+// Build sliders
+function buildSliders() {
+  const root = document.getElementById("sliders");
+  let html = "";
+  for (const [k, m] of Object.entries(FACTOR_META)) {
+    html += `
+      <div class="slider-row">
+        <div class="slider-label">
+          <div><span class="name">${m.label}</span><span class="desc">${m.desc}</span></div>
+          <span class="value flat" id="val_${k}">0${m.unit}</span>
+        </div>
+        <input type="range" id="s_${k}" min="${m.min}" max="${m.max}" step="${m.step}" value="0"
+               oninput="onSlider('${k}', this.value)">
+        <div class="slider-extent"><span>${m.min}${m.unit}</span><span>0</span><span>+${m.max}${m.unit}</span></div>
+      </div>`;
+  }
+  root.innerHTML = html;
+}
+
+function onSlider(k, val) {
+  currentShocks[k] = parseFloat(val);
+  const meta = FACTOR_META[k];
+  const el = document.getElementById(`val_${k}`);
+  const v = parseFloat(val);
+  el.textContent = `${v >= 0 ? "+" : ""}${v.toFixed(meta.step >= 1 ? 0 : 1)}${meta.unit}`;
+  el.className = "value " + (v > 0 ? "up" : v < 0 ? "dn" : "flat");
+  // Clear preset highlight when manually adjusting
+  if (activePreset) {
+    activePreset = null;
+    document.querySelectorAll(".preset-btn.on").forEach(b => b.classList.remove("on"));
+  }
+}
+
+function resetShocks() {
+  currentShocks = { ...DEFAULT_SHOCKS };
+  for (const k of Object.keys(FACTOR_META)) {
+    document.getElementById(`s_${k}`).value = 0;
+    onSlider(k, 0);
+  }
+  activePreset = null;
+  document.querySelectorAll(".preset-btn.on").forEach(b => b.classList.remove("on"));
+}
+
+function applyPreset(name) {
+  const p = presetData[name];
+  if (!p) return;
+  currentShocks = { ...DEFAULT_SHOCKS, ...p.shocks };
+  for (const [k, v] of Object.entries(currentShocks)) {
+    const slider = document.getElementById(`s_${k}`);
+    if (slider) {
+      slider.value = v;
+      onSlider(k, v);
+    }
+  }
+  activePreset = name;
+  document.querySelectorAll(".preset-btn").forEach(b => {
+    b.classList.toggle("on", b.dataset.name === name);
+  });
+  // Auto-run when a preset is picked
+  runSimulation();
+}
+
+async function loadPresets() {
+  try {
+    const r = await fetch(API_URL + "/presets", { method: "GET" });
+    const j = await r.json();
+    presetData = j.presets || {};
+    const root = document.getElementById("presets");
+    root.innerHTML = Object.entries(presetData).map(([name, p]) => `
+      <button class="preset-btn" data-name="${name}" onclick="applyPreset('${name}')">
+        ${p.label}
+        <span class="small">${p.description}</span>
+      </button>
+    `).join("");
+  } catch (e) {
+    document.getElementById("presets").innerHTML = `<div class="error">Could not load presets: ${e.message}</div>`;
+  }
+}
+
+async function runSimulation() {
+  const root = document.getElementById("results");
+  root.innerHTML = `<div class="loading">Running scenario…</div>`;
+  try {
+    const body = activePreset
+      ? { preset: activePreset }
+      : { shocks: currentShocks, label: "custom" };
+    const r = await fetch(API_URL + "/simulate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    renderResults(j);
+  } catch (e) {
+    root.innerHTML = `<div class="error">Simulation failed: ${e.message}</div>`;
+  }
+}
+
+function fmtMoney(v) {
+  if (v == null) return "—";
+  const sign = v >= 0 ? "+" : "−";
+  return sign + "$" + Math.abs(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function fmtPct(v, dp = 2) {
+  if (v == null || isNaN(v)) return "—";
+  return (v >= 0 ? "+" : "") + Number(v).toFixed(dp) + "%";
+}
+
+function renderResults(j) {
+  const root = document.getElementById("results");
+  if (j.error) {
+    root.innerHTML = `<div class="error">${j.error}</div>`;
+    return;
+  }
+
+  const pnlCls = j.total_pnl >= 0 ? "up" : "dn";
+  const pnlPct = j.total_pnl_pct;
+  const aggPnlCls = j.aggressive_total_pnl >= 0 ? "up" : "dn";
+  const ki = j.khalid_index || {};
+  const kiCls = (ki.delta || 0) >= 0 ? "up" : "dn";
+
+  // Summary cards
+  let html = `
+    <div class="summary-grid">
+      <div class="stat">
+        <div class="stat-label">Portfolio P&L</div>
+        <div class="stat-value ${pnlCls}">${fmtMoney(j.total_pnl)}</div>
+        <div class="stat-sub">${fmtPct(pnlPct)} of $${(j.portfolio_baseline_value || 0).toLocaleString()}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Bear-case P&L</div>
+        <div class="stat-value ${aggPnlCls}">${fmtMoney(j.aggressive_total_pnl)}</div>
+        <div class="stat-sub">${fmtPct(j.aggressive_pnl_pct)} (90th-pct stress)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Khalid Index</div>
+        <div class="stat-value">${ki.before != null ? ki.before.toFixed(0) : "—"} → ${ki.after != null ? ki.after.toFixed(0) : "—"}</div>
+        <div class="stat-sub ${kiCls}">${ki.delta != null ? fmtPct(ki.delta, 1) + " shift" : "—"}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Regime change probability</div>
+        <div class="stat-value amber">${((j.regime_change_probability || 0) * 100).toFixed(0)}%</div>
+        <div class="stat-sub">shock magnitude ${(j.shock_magnitude_score || 0).toFixed(1)}</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>📊 Per-asset P&L</h3>
+        <span class="sub">10 cross-asset positions · click row for factor breakdown</span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Ticker</th><th>Class</th><th class="right">Weight</th>
+          <th class="right">Shocked %</th><th class="right">Bear %</th>
+          <th>Move</th><th class="right">P&L ($)</th>
+        </tr></thead>
+        <tbody>${renderAssetRows(j.per_asset || {})}</tbody>
+      </table>
+    </div>`;
+
+  // Historical analogs
+  const analogs = j.historical_analogs || [];
+  if (analogs.length > 0) {
+    html += `
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🔍 Historical analogs</h3>
+          <span class="sub">closest matches from past data</span>
+        </div>
+        <div class="panel-body">
+          ${analogs.map(a => `
+            <div class="analog-card">
+              <h4>${a.label || a.title || a.period || "Match"}</h4>
+              <div class="meta">${a.description || a.summary || a.note || JSON.stringify(a).slice(0, 200)}</div>
+            </div>`).join("")}
+        </div>
+      </div>`;
+  }
+
+  html += `
+    <div class="status-bar">
+      <span><strong>Regime:</strong> ${j.regime?.regime || "—"}${j.regime?.confidence ? ` (${j.regime.confidence}%)` : ""}</span>
+      <span><strong>Betas:</strong> ${j.betas_source?.source || "—"}${j.betas_source?.stale ? " · stale" : ""}</span>
+      <span><strong>Generated:</strong> ${j.as_of ? new Date(j.as_of).toLocaleString() : "—"}</span>
+      ${j.preset ? `<span><strong>Preset:</strong> ${j.preset}</span>` : ""}
+      <span style="flex:1"></span>
+      <span style="color:var(--text-muted)">justhodl-stress-simulator</span>
+    </div>`;
+  root.innerHTML = html;
+
+  // Wire row clicks
+  document.querySelectorAll("tr.row").forEach(r => r.addEventListener("click", () => toggleDetail(r.dataset.tk)));
+}
+
+function renderAssetRows(perAsset) {
+  const ASSET_CLASS = {
+    SPY:"EQUITY", QQQ:"EQUITY", IWM:"EQUITY", TLT:"RATES", HYG:"CREDIT",
+    GLD:"COMMODITY", USO:"COMMODITY", UUP:"FX", VIXY:"VOL", BITO:"CRYPTO",
+  };
+  // Sort by absolute pct return (largest moves first)
+  const rows = Object.entries(perAsset)
+    .map(([tk, d]) => ({ tk, ...d }))
+    .sort((a, b) => Math.abs(b.shocked_return_pct || 0) - Math.abs(a.shocked_return_pct || 0));
+  // Find max absolute return for bar scaling
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.shocked_return_pct || 0)), 1);
+  return rows.map(r => {
+    const ret = r.shocked_return_pct;
+    const barW = (Math.abs(ret || 0) / maxAbs) * 50;
+    const cls = ret > 0 ? "up" : ret < 0 ? "dn" : "flat";
+    return `<tr class="row" data-tk="${r.tk}">
+      <td><span class="ticker-cell">${r.tk}</span></td>
+      <td style="color:var(--text-dim);font-size:10px">${ASSET_CLASS[r.tk] || ""}</td>
+      <td class="right">${r.weight_pct ? r.weight_pct.toFixed(1) + "%" : "—"}</td>
+      <td class="right pnl-${cls === "up" ? "pos" : cls === "dn" ? "neg" : "flat"}">${fmtPct(ret)}</td>
+      <td class="right pnl-flat">${fmtPct(r.aggressive_return_pct)}</td>
+      <td><span class="pnl-bar"><span class="pnl-fill ${cls}" style="width:${barW}%"></span></span></td>
+      <td class="right pnl-${cls === "up" ? "pos" : cls === "dn" ? "neg" : "flat"}">${fmtMoney(r.pnl)}</td>
+    </tr>
+    <tr class="detail-row" id="detail-${r.tk}" style="display:none">
+      <td colspan="7">
+        <strong style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em">Factor contributions</strong>
+        <div class="contrib">${renderContrib(r.factor_contributions || [])}</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+          Gross return: ${fmtPct(r.gross_return_pct)} ·
+          Regime amplifier: ${r.regime_amplifier ? r.regime_amplifier.toFixed(2) + "×" : "—"} ·
+          Final: ${fmtPct(r.shocked_return_pct)}
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function renderContrib(contribs) {
+  return contribs.map(c => {
+    const cls = c.pct_contrib > 0 ? "up" : c.pct_contrib < 0 ? "dn" : "flat";
+    return `<span class="chip"><strong>${c.factor}</strong>: β=${c.beta} × shock=${c.shock} → <span class="v ${cls}">${fmtPct(c.pct_contrib)}</span></span>`;
+  }).join("");
+}
+
+function toggleDetail(tk) {
+  const detail = document.getElementById(`detail-${tk}`);
+  if (!detail) return;
+  detail.style.display = detail.style.display === "none" ? "" : "none";
+}
+
+// Init
+buildSliders();
+loadPresets();
+</script>
+</body>
+</html>
