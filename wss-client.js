@@ -153,6 +153,73 @@
   // Public API
   window.justhodlWss = { subscribe, unsubscribe, state, send, connect };
 
+  // ────────────────────────────────────────────────────────────────────
+  // Self-injecting LIVE status pill (top-right). Pages opt out by setting
+  // window.JUSTHODL_WSS_NO_PILL = true *before* loading this script.
+  // ────────────────────────────────────────────────────────────────────
+  function injectPill() {
+    if (window.JUSTHODL_WSS_NO_PILL) return;
+    if (document.getElementById("wss-status")) return;  // already present (e.g. index.html)
+    if (!document.body) return;
+
+    // Inject CSS once
+    if (!document.getElementById("wss-pill-style")) {
+      const style = document.createElement("style");
+      style.id = "wss-pill-style";
+      style.textContent = `
+        #wss-status {
+          position: fixed; top: 10px; right: 12px; z-index: 999;
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 4px 10px; border-radius: 12px;
+          font: 600 10px/1.2 -apple-system, system-ui, sans-serif;
+          letter-spacing: 0.04em; text-transform: uppercase;
+          background: rgba(20, 20, 20, 0.85); color: #888;
+          border: 1px solid #2a2a2a; backdrop-filter: blur(6px);
+          transition: all 0.2s; pointer-events: none; user-select: none;
+        }
+        #wss-status::before { content: "●"; font-size: 12px; }
+        #wss-status.connected { color: #22c55e; border-color: rgba(34,197,94,0.3); }
+        #wss-status.connecting { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+        #wss-status.polling { color: #888; }
+        #wss-status.connected::before { animation: wssPulse 2s ease-in-out infinite; }
+        @keyframes wssPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const pill = document.createElement("div");
+    pill.id = "wss-status";
+    pill.className = "polling";
+    pill.title = "Real-time data link status";
+    pill.textContent = "POLLING";
+    document.body.appendChild(pill);
+
+    function updatePill() {
+      const s = state();
+      if (s.connected) {
+        pill.textContent = "LIVE";
+        pill.className = "connected";
+        pill.title = `WS connected · ${s.channels.length} channels`;
+      } else if (!s.given_up && s.retries > 0) {
+        pill.textContent = "RECONNECTING";
+        pill.className = "connecting";
+        pill.title = `Attempt ${s.retries}`;
+      } else {
+        pill.textContent = "POLLING";
+        pill.className = "polling";
+        pill.title = "Falling back to S3 polling";
+      }
+    }
+    setInterval(updatePill, 2000);
+    updatePill();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectPill);
+  } else {
+    injectPill();
+  }
+
   // Auto-connect on load (if on the right host)
   if (shouldConnect()) {
     if (document.readyState === "complete") connect();

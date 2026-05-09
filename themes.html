@@ -82,6 +82,11 @@ nav a:hover{color:var(--green)}
 .gen-info{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.callouts{grid-template-columns:repeat(2,1fr)}.theme-grid{grid-template-columns:1fr}}
 </style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<script src="/wss-client.js" defer></script>
 </head>
 <body>
 
