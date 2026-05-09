@@ -1,0 +1,56 @@
+{
+  "started": "2026-05-09T11:48:35.821005+00:00",
+  "test": {
+    "1_page_live": {
+      "status": 200,
+      "size": 21547,
+      "content_type": "text/html; charset=utf-8",
+      "has_real_url": true,
+      "has_placeholder": false,
+      "first_200": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Stress-Test Simulator \u00b7 JustHodl.AI</title>\n<meta name=\"des"
+    },
+    "2_nav_link": {
+      "status": 200,
+      "has_stress_link": false
+    },
+    "3_get_health": {
+      "status": 200,
+      "cors_origin": null,
+      "cors_methods": null,
+      "first_300": "{\"service\": \"justhodl-stress-simulator\", \"version\": \"1.0\", \"as_of\": \"2026-05-09T11:48:40.744330+00:00\", \"current_regime\": {\"regime\": \"SLOWING\", \"confidence\": null}, \"factor_keys\": [\"equity_pct\", \"vol_pts\", \"rates_bps\", \"dollar_pct\", \"commodity_pct\"], \"asset_universe\": [{\"ticker\": \"SPY\", \"name\": \"S&P"
+    },
+    "4_cors_preflight": {
+      "status": 200,
+      "all_headers": {
+        "Access-Control-Allow-Origin": "https://justhodl.ai",
+        "Access-Control-Allow-Headers": "content-type,x-justhodl-admin-token",
+        "Vary": "Origin",
+        "Access-Control-Allow-Methods": "GET,POST",
+        "Access-Control-Max-Age": "3600"
+      },
+      "body": ""
+    },
+    "5_post_simulate": {
+      "status": 200,
+      "cors_origin": null,
+      "body_first_400": "{\"as_of\": \"2026-05-09T11:48:41.083884+00:00\", \"shocks_applied\": {\"equity_pct\": -15.0, \"vol_pts\": 30.0, \"rates_bps\": -75.0, \"dollar_pct\": 3.0, \"commodity_pct\": -10.0}, \"regime\": {\"regime\": \"SLOWING\", \"confidence\": null}, \"betas_source\": {\"source\": \"computed\", \"as_of\": \"2026-05-09T11:39:09.917297+00:00\", \"stale\": false}, \"portfolio_baseline_value\": 100000.0, \"total_pnl\": -12275.61, \"total_pnl_pct\": "
+    },
+    "6_post_no_origin": {
+      "status": 200,
+      "cors_origin": null,
+      "body_first_300": "{\"as_of\": \"2026-05-09T11:48:41.318832+00:00\", \"shocks_applied\": {\"equity_pct\": -22.0, \"vol_pts\": 50.0, \"rates_bps\": -50.0, \"dollar_pct\": 4.0, \"commodity_pct\": -25.0}, \"regime\": {\"regime\": \"SLOWING\", \"confidence\": null}, \"betas_source\": {\"source\": \"computed\", \"as_of\": \"2026-05-09T11:39:09.917297+00:0"
+    },
+    "7_url_config": {
+      "error": "An error occurred (AccessDeniedException) when calling the GetFunctionUrlConfig operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-stress-diag is not authorized to perform: lambda:GetFunctionUrlConfig on resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-stress-simulator because no identity-based policy allows the lambda:GetFunctionUrlConfig action"
+    },
+    "8_lambda_status": {
+      "state": "Active",
+      "last_update_status": "Successful",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "last_modified": "2026-05-09T11:38:48.000+0000",
+      "code_size": 6661
+    }
+  },
+  "finished": "2026-05-09T11:48:41.801084+00:00"
+}
