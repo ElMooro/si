@@ -43,6 +43,60 @@ DEDUP_HOURS = 6
 HISTORY_KEY = "data/alert-history.json"
 STATE_KEY = "alerts-state.json"
 
+# WebSocket broadcast endpoint — fans alerts out to all subscribed clients
+# in real time (parallel to the existing Telegram path).
+WSS_BROADCAST_URL = os.environ.get(
+    "WSS_BROADCAST_URL",
+    "https://p6kvtojb2y6r4orgbtxh7ld3nu0pfktz.lambda-url.us-east-1.on.aws/",
+)
+_WSS_TOKEN_CACHE = {"token": None}
+
+
+def _get_wss_admin_token():
+    if _WSS_TOKEN_CACHE["token"]:
+        return _WSS_TOKEN_CACHE["token"]
+    try:
+        t = SSM.get_parameter(Name="/justhodl/push/admin-token", WithDecryption=True)["Parameter"]["Value"]
+        _WSS_TOKEN_CACHE["token"] = t
+        return t
+    except Exception as e:
+        print(f"[wss] could not load admin token: {e}")
+        return None
+
+
+def broadcast_alert_to_wss(alert: dict):
+    """Push alert to /alerts WSS channel. Best-effort, never raises."""
+    token = _get_wss_admin_token()
+    if not token:
+        return False, "no_token"
+    try:
+        # Compact payload — full detail is in the alert; clients can fetch
+        # data/alert-history.json if they need older alerts.
+        payload = {
+            "channel": "alerts",
+            "id": alert.get("id"),
+            "severity": alert.get("severity"),
+            "category": alert.get("category"),
+            "title": alert.get("title"),
+            "detail": alert.get("detail"),
+            "ts": datetime.now(timezone.utc).isoformat(),
+        }
+        body = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            WSS_BROADCAST_URL, data=body, method="POST",
+            headers={"Content-Type": "application/json",
+                     "X-Justhodl-Admin-Token": token},
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            resp_body = r.read().decode("utf-8")
+            try:
+                j = json.loads(resp_body)
+                return True, f"sent={j.get('sent', 0)} scanned={j.get('scanned', 0)}"
+            except Exception:
+                return r.status == 200, resp_body[:120]
+    except Exception as e:
+        return False, f"{type(e).__name__}: {str(e)[:120]}"
+
 
 def get_chat_id():
     try:
@@ -531,6 +585,8 @@ def lambda_handler(event=None, context=None):
     suppressed = []
     n_webhook_attempts = 0
     n_webhook_ok = 0
+    n_wss_attempts = 0
+    n_wss_ok = 0
     for a in alerts:
         aid = a["id"]
         if is_recent_dup(state, aid):
@@ -550,6 +606,14 @@ def lambda_handler(event=None, context=None):
             n_webhook_attempts += len(wh_results)
             n_webhook_ok += sum(1 for r in wh_results if r["ok"])
 
+        # WebSocket broadcast — fan out to all subscribers of 'alerts' channel
+        wss_ok, wss_info = broadcast_alert_to_wss(a)
+        a["wss_broadcast_sent"] = wss_ok
+        a["wss_broadcast_info"] = wss_info
+        n_wss_attempts += 1
+        if wss_ok:
+            n_wss_ok += 1
+
         sent.append(a)
         state[aid] = a["sent_at"]
         time.sleep(0.5)  # rate limit
@@ -564,6 +628,8 @@ def lambda_handler(event=None, context=None):
         "webhooks_configured": len(webhook_targets),
         "webhook_attempts": n_webhook_attempts,
         "webhook_ok": n_webhook_ok,
+        "wss_attempts": n_wss_attempts,
+        "wss_ok": n_wss_ok,
     }
 
     write_json(HISTORY_KEY, history)
