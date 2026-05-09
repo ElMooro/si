@@ -116,44 +116,61 @@ def fetch_fred_fed_funds():
 def fetch_auctions_window(days_back=120):
     """Pull last N days of auctions from fiscaldata.treasury.gov.
 
-    120-day window is enough to capture 30y quarterly cadence (last 1-2 prints)
-    plus monthly 2y, plus weekly bills.
+    Uses the same pattern as the working justhodl-auction-crisis-detector:
+    no fields filter (get all fields), paginated, no cache headers.
+    120-day window covers 30y quarterly cadence + monthly 2y + weekly bills.
     """
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=days_back)
-    params = {
-        "fields": ("auction_date,security_type,security_term,high_yield_pct,"
-                    "high_discnt_rate_pct,bid_to_cover_ratio,"
-                    "indirect_bidder_accept_pct,direct_bidder_accept_pct,"
-                    "primary_dealer_accept_pct,allocation_pctage_at_high_yield,"
-                    "tot_accepted,cusip,issue_date"),
-        "filter": f"auction_date:gte:{start.isoformat()},auction_date:lte:{end.isoformat()}",
-        "sort": "-auction_date",
-        "page[size]": "500",
-    }
-    url = FISCAL_BASE + "?" + urllib.parse.urlencode(params, safe=":,")
-    headers = {
-        "User-Agent": "JustHodl-Tenor-Signals/1.0",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Accept": "application/json",
-    }
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = json.loads(r.read().decode("utf-8"))
-    rows = data.get("data", [])
-    # Coerce numeric fields
-    for r in rows:
+    all_records = []
+    page = 1
+    while True:
+        params = {
+            "filter": f"auction_date:gte:{start.isoformat()},auction_date:lte:{end.isoformat()}",
+            "sort": "-auction_date",
+            "format": "json",
+            "page[size]": 200,
+            "page[number]": page,
+        }
+        url = FISCAL_BASE + "?" + urllib.parse.urlencode(params, safe=":,")
+        headers = {
+            "User-Agent": "JustHodl-Tenor-Signals/1.0",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Accept": "application/json",
+        }
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                body = json.loads(r.read().decode("utf-8"))
+        except Exception as e:
+            print(f"[tenor] fiscal page {page} error: {e}")
+            break
+        data = body.get("data", []) or []
+        if not data:
+            break
+        all_records.extend(data)
+        meta = body.get("meta", {}) or {}
+        total_pages = meta.get("total-pages", 1)
+        if page >= total_pages or len(data) < 200:
+            break
+        page += 1
+        if page > 20:
+            break
+
+    # Coerce numeric fields. Field name `allotted_pct_at_high` matches Treasury
+    # fiscaldata schema (per the working auction-crisis-detector).
+    for r in all_records:
         for k in ["high_yield_pct", "high_discnt_rate_pct", "bid_to_cover_ratio",
                    "indirect_bidder_accept_pct", "direct_bidder_accept_pct",
-                   "primary_dealer_accept_pct", "allocation_pctage_at_high_yield",
+                   "primary_dealer_accept_pct", "allotted_pct_at_high",
                    "tot_accepted"]:
             v = r.get(k)
             try:
                 r[k] = float(v) if v not in (None, "", "null") else None
             except (TypeError, ValueError):
                 r[k] = None
-    return rows
+    return all_records
 
 
 def filter_by_tenor(auctions, tenor_list):
