@@ -1,0 +1,27 @@
+{
+  "started": "2026-05-09T11:51:15.413418+00:00",
+  "test": {
+    "raw_response_text": "{\"statusCode\": 200, \"headers\": {\"Access-Control-Allow-Origin\": \"https://justhodl.ai\", \"Access-Control-Allow-Methods\": \"GET, POST, OPTIONS\", \"Access-Control-Allow-Headers\": \"Content-Type, X-Justhodl-Admin-Token\", \"Content-Type\": \"application/json\"}, \"body\": \"{\\\"as_of\\\": \\\"2026-05-09T11:51:20.401566+00:00\\\", \\\"shocks_applied\\\": {\\\"equity_pct\\\": -15.0, \\\"vol_pts\\\": 30.0, \\\"rates_bps\\\": -75.0, \\\"dollar_pct\\\": 3.0, \\\"commodity_pct\\\": -10.0}, \\\"regime\\\": {\\\"regime\\\": \\\"SLOWING\\\", \\\"confidence\\\": null}, \\\"betas_source\\\": {\\\"source\\\": \\\"computed\\\", \\\"as_of\\\": \\\"2026-05-09T11:39:09.917297+00:00\\\", \\\"stale\\\": false}, \\\"portfolio_baseline_value\\\": 100000.0, \\\"total_pnl\\\": -12275.61, \\\"total_pnl_pct\\\": -12.276, \\\"aggressive_total_pnl\\\": -28158.57, \\\"aggressive_pnl_pct\\\": -28.159, \\\"per_asset\\\": {\\\"SPY\\\": {\\\"value\\\": 10000.0, \\\"weight_pct\\\": 10.0, \\\"shocked_return_pct\\\": -39.023, \\\"aggressive_return_pct\\\": -58.534, \\\"regime_amplifier\\\": 1.25, \\\"gross_return_pct\\\": -31.218, \\\"pnl\\\": -3902.27, \\\"aggressive_pnl\\\": -5853.41, \\\"factor_contributions\\\": [{\\\"factor\\\": \\\"equity_pct\\\", \\\"beta\\\": 1.0, \\\"shock\\\": -15.0, \\\"pct_contrib\\\": -15.0}, {\\\"factor\\\": \\\"vol_pts\\\", \\\"beta\\\": -0.4662, \\\"shock\\\": 30.0, \\\"pct_contrib\\\": -13.987}, {\\\"factor\\\": \\\"rates_bps\\\", \\\"beta\\\": -0.0064, \\\"shock\\\": -75.0, \\\"pct_contrib\\\": 0.483}, {\\\"factor\\\": \\\"dollar_pct\\\", \\\"beta\\\": -0.5153, \\\"shock\\\": 3.0, \\\"pct_contrib\\\": -1.546}, {\\\"factor\\\": \\\"commodity_pct\\\", \\\"beta\\\": 0.1168, \\\"shock\\\": -10.0, \\\"pct_contrib\\\": -1.168}]",
+    "parsed_keys": [
+      "statusCode",
+      "headers",
+      "body"
+    ],
+    "parsed_status": 200,
+    "parsed_headers": {
+      "Access-Control-Allow-Origin": "https://justhodl.ai",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Justhodl-Admin-Token",
+      "Content-Type": "application/json"
+    },
+    "parsed_body_first_200": "{\"as_of\": \"2026-05-09T11:51:20.401566+00:00\", \"shocks_applied\": {\"equity_pct\": -15.0, \"vol_pts\": 30.0, \"rates_bps\": -75.0, \"dollar_pct\": 3.0, \"commodity_pct\": -10.0}, \"regime\": {\"regime\": \"SLOWING\", \"",
+    "get_response_status": 200,
+    "get_response_headers": {
+      "Access-Control-Allow-Origin": "https://justhodl.ai",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Justhodl-Admin-Token",
+      "Content-Type": "application/json"
+    }
+  },
+  "finished": "2026-05-09T11:51:20.809776+00:00"
+}
