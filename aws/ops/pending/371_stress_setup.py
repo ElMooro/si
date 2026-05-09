@@ -111,7 +111,7 @@ def step_loadings(out):
 def step_function_url(out):
     cors = {
         "AllowOrigins": ["https://justhodl.ai", "https://www.justhodl.ai"],
-        "AllowMethods": ["GET", "POST", "OPTIONS"],
+        "AllowMethods": ["GET", "POST"],
         "AllowHeaders": ["Content-Type", "X-Justhodl-Admin-Token"],
         "ExposeHeaders": [],
         "MaxAge": 3600,
