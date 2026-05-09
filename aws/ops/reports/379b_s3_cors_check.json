@@ -1,0 +1,74 @@
+{
+  "started": "2026-05-09T15:53:17.871901+00:00",
+  "test": {
+    "bucket_cors": [
+      {
+        "AllowedHeaders": [
+          "*"
+        ],
+        "AllowedMethods": [
+          "GET",
+          "HEAD"
+        ],
+        "AllowedOrigins": [
+          "https://justhodl.ai",
+          "https://elmooro.github.io",
+          "http://localhost:*",
+          "*"
+        ],
+        "ExposeHeaders": [
+          "ETag"
+        ],
+        "MaxAgeSeconds": 300
+      }
+    ],
+    "browser_simulated_fetches": {
+      "data/report.json": {
+        "status": 200,
+        "access_control_allow_origin": "*",
+        "access_control_allow_methods": "GET, HEAD",
+        "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+        "content_type": "application/json",
+        "size": 1753924
+      },
+      "regime/current.json": {
+        "status": 200,
+        "access_control_allow_origin": "*",
+        "access_control_allow_methods": "GET, HEAD",
+        "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+        "content_type": "application/json",
+        "size": 1426
+      },
+      "data/crisis-plumbing.json": {
+        "status": 200,
+        "access_control_allow_origin": "*",
+        "access_control_allow_methods": "GET, HEAD",
+        "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+        "content_type": "application/json",
+        "size": 7883
+      },
+      "data/auction-crisis.json": {
+        "status": 200,
+        "access_control_allow_origin": "*",
+        "access_control_allow_methods": "GET, HEAD",
+        "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+        "content_type": "application/json",
+        "size": 11647
+      },
+      "data/auction-tenor-signals.json": {
+        "status": 200,
+        "access_control_allow_origin": "*",
+        "access_control_allow_methods": "GET, HEAD",
+        "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+        "content_type": "application/json",
+        "size": 3220
+      }
+    },
+    "preflight": {
+      "status": 200,
+      "access_control_allow_origin": "*",
+      "access_control_allow_methods": "GET, HEAD"
+    }
+  },
+  "finished": "2026-05-09T15:53:23.514763+00:00"
+}
