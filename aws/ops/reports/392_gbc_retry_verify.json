@@ -1,0 +1,64 @@
+{
+  "started": "2026-05-10T20:21:04.113516+00:00",
+  "test": {
+    "lambda_last_modified": "2026-05-10T20:18:38.000+0000",
+    "code_size": 7133,
+    "invoke": {
+      "status": 200,
+      "error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 100.03, \\\"n_countries\\\": 34, \\\"elapsed_sec\\\": 4.5}\"}"
+    },
+    "s3": {
+      "generated_at": "2026-05-10T20:21:16.354544+00:00",
+      "elapsed_sec": 4.5,
+      "global_phase": "GLOBAL_EXPANSION",
+      "global_avg_cli": 100.03,
+      "n_classified": 34,
+      "n_total": 34,
+      "coverage_pct": 100.0,
+      "expansion_breadth": 85.1,
+      "contraction_breadth": 14.9,
+      "phase_mix": {
+        "EXPANSION": 29.7,
+        "AT_RISK": 2.5,
+        "RECESSION": 12.4,
+        "RECOVERY": 55.3
+      },
+      "still_unknown": [],
+      "focus_5": {
+        "BRA": {
+          "phase": "EXPANSION",
+          "cli": 100.73,
+          "trend": "rising",
+          "history_n": 120
+        },
+        "ESP": {
+          "phase": "RECOVERY",
+          "cli": 99.65,
+          "trend": "rising",
+          "history_n": 120
+        },
+        "GBR": {
+          "phase": "EXPANSION",
+          "cli": 101.06,
+          "trend": "rising",
+          "history_n": 120
+        },
+        "MEX": {
+          "phase": "AT_RISK",
+          "cli": 100.29,
+          "trend": "falling",
+          "history_n": 120
+        },
+        "TUR": {
+          "phase": "RECESSION",
+          "cli": 99.29,
+          "trend": "falling",
+          "history_n": 120
+        }
+      }
+    },
+    "retry_log_lines": []
+  },
+  "finished": "2026-05-10T20:21:20.109306+00:00"
+}
