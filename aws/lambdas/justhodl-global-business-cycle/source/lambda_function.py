@@ -161,7 +161,7 @@ def _yahoo_fetch_one(symbol, range_param, retries):
 # Per-country fallback symbols for known-flaky markets
 SYMBOL_FALLBACKS = {
     "POL": ["WIG20.WA", "^WIG"],          # if EPOL fails, try Warsaw direct
-    "CZE": ["^PX", "PXTR.PR"],             # if PX.PR fails, try generic ^PX
+    "CZE": ["^PX", "PXTR.PR", "CEZP.PR", "KOMB.PR"],  # try generic ^PX, then ČEZ utility, then Komerční banka
     "HUN": ["^BUX", "OTP.BD"],             # if BUX.BD fails, try generic ^BUX or OTP Bank as proxy
     "CHL": ["^IPSA", "^SPCLXIPSA"],       # if ECH fails, try Santiago direct
 }
