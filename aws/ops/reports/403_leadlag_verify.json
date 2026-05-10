@@ -1,0 +1,431 @@
+{
+  "started": "2026-05-10T22:10:02.922705+00:00",
+  "test": {
+    "lambda_last_modified": "2026-05-10T22:07:01.000+0000",
+    "code_size": 13126,
+    "invoke_body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 110.19, \\\"n_countries\\\": 34, \\\"fresh_count\\\": 32, \\\"elapsed_sec\\\": 16.7}\"}",
+    "history": {
+      "schema": "2.2",
+      "lead_lag_count": 32,
+      "transitions_count": 28,
+      "ranking": [
+        {
+          "iso3": "MEX",
+          "country_name": "Mexico",
+          "region": "Latin America",
+          "gdp_weight": 1.5,
+          "peak_lag_weeks": 3,
+          "peak_correlation": 0.641,
+          "n_overlap": 1093,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "ESP",
+          "country_name": "Spain",
+          "region": "Europe",
+          "gdp_weight": 1.5,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.87,
+          "n_overlap": 1096,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "POL",
+          "country_name": "Poland",
+          "region": "Europe",
+          "gdp_weight": 0.8,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.784,
+          "n_overlap": 1092,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "IRL",
+          "country_name": "Ireland",
+          "region": "Europe",
+          "gdp_weight": 0.6,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.784,
+          "n_overlap": 1094,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "AUS",
+          "country_name": "Australia",
+          "region": "Asia-Pacific",
+          "gdp_weight": 1.5,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.732,
+          "n_overlap": 1092,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "DEU",
+          "country_name": "Germany",
+          "region": "Europe",
+          "gdp_weight": 4.0,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.73,
+          "n_overlap": 1095,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "BRA",
+          "country_name": "Brazil",
+          "region": "Latin America",
+          "gdp_weight": 1.9,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.593,
+          "n_overlap": 1088,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "FRA",
+          "country_name": "France",
+          "region": "Europe",
+          "gdp_weight": 2.8,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.507,
+          "n_overlap": 1097,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "IND",
+          "country_name": "India",
+          "region": "Asia-Pacific",
+          "gdp_weight": 3.6,
+          "peak_lag_weeks": 1,
+          "peak_correlation": 0.211,
+          "n_overlap": 1087,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "USA",
+          "country_name": "United States",
+          "region": "North America",
+          "gdp_weight": 25.0,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.881,
+          "n_overlap": 1092,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "CAN",
+          "country_name": "Canada",
+          "region": "North America",
+          "gdp_weight": 2.0,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.879,
+          "n_overlap": 1090,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "ITA",
+          "country_name": "Italy",
+          "region": "Europe",
+          "gdp_weight": 2.1,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.833,
+          "n_overlap": 1096,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "AUT",
+          "country_name": "Austria",
+          "region": "Europe",
+          "gdp_weight": 0.6,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.827,
+          "n_overlap": 1094,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "BEL",
+          "country_name": "Belgium",
+          "region": "Europe",
+          "gdp_weight": 0.7,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.822,
+          "n_overlap": 1097,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "SWE",
+          "country_name": "Sweden",
+          "region": "Europe",
+          "gdp_weight": 0.6,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.8,
+          "n_overlap": 1093,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "NZL",
+          "country_name": "New Zealand",
+          "region": "Asia-Pacific",
+          "gdp_weight": 0.3,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.786,
+          "n_overlap": 1090,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "KOR",
+          "country_name": "South Korea",
+          "region": "Asia-Pacific",
+          "gdp_weight": 1.6,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.769,
+          "n_overlap": 1084,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "CHE",
+          "country_name": "Switzerland",
+          "region": "Europe",
+          "gdp_weight": 0.9,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.757,
+          "n_overlap": 1089,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "NLD",
+          "country_name": "Netherlands",
+          "region": "Europe",
+          "gdp_weight": 1.1,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.73,
+          "n_overlap": 1097,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "FIN",
+          "country_name": "Finland",
+          "region": "Europe",
+          "gdp_weight": 0.3,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.715,
+          "n_overlap": 1091,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "CHN",
+          "country_name": "China",
+          "region": "Asia-Pacific",
+          "gdp_weight": 18.0,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.687,
+          "n_overlap": 1081,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "GRC",
+          "country_name": "Greece",
+          "region": "Europe",
+          "gdp_weight": 0.2,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.677,
+          "n_overlap": 1089,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "GBR",
+          "country_name": "United Kingdom",
+          "region": "Europe",
+          "gdp_weight": 3.3,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.676,
+          "n_overlap": 1092,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "ZAF",
+          "country_name": "South Africa",
+          "region": "Africa",
+          "gdp_weight": 0.5,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.667,
+          "n_overlap": 1089,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "CHL",
+          "country_name": "Chile",
+          "region": "Latin America",
+          "gdp_weight": 0.3,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.481,
+          "n_overlap": 1092,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "DNK",
+          "country_name": "Denmark",
+          "region": "Europe",
+          "gdp_weight": 0.4,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.461,
+          "n_overlap": 1085,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "PRT",
+          "country_name": "Portugal",
+          "region": "Europe",
+          "gdp_weight": 0.3,
+          "peak_lag_weeks": 0,
+          "peak_correlation": 0.445,
+          "n_overlap": 1094,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "JPN",
+          "country_name": "Japan",
+          "region": "Asia-Pacific",
+          "gdp_weight": 4.2,
+          "peak_lag_weeks": -1,
+          "peak_correlation": 0.764,
+          "n_overlap": 1083,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "IDN",
+          "country_name": "Indonesia",
+          "region": "Asia-Pacific",
+          "gdp_weight": 1.3,
+          "peak_lag_weeks": -1,
+          "peak_correlation": 0.21,
+          "n_overlap": 1078,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "ISR",
+          "country_name": "Israel",
+          "region": "Middle East",
+          "gdp_weight": 0.5,
+          "peak_lag_weeks": -4,
+          "peak_correlation": 0.629,
+          "n_overlap": 1012,
+          "boundary_flag": false,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "NOR",
+          "country_name": "Norway",
+          "region": "Europe",
+          "gdp_weight": 0.5,
+          "peak_lag_weeks": -26,
+          "peak_correlation": 0.442,
+          "n_overlap": 1088,
+          "boundary_flag": true,
+          "curve_n_points": 53
+        },
+        {
+          "iso3": "TUR",
+          "country_name": "Turkey",
+          "region": "Europe",
+          "gdp_weight": 1.0,
+          "peak_lag_weeks": -26,
+          "peak_correlation": -0.406,
+          "n_overlap": 1087,
+          "boundary_flag": true,
+          "curve_n_points": 53
+        }
+      ],
+      "sample_curve": {
+        "iso3": "MEX",
+        "curve_lags_first5": [
+          -26,
+          -25,
+          -24,
+          -23,
+          -22
+        ],
+        "curve_corrs_first5": [
+          0.458,
+          0.462,
+          0.465,
+          0.469,
+          0.473
+        ],
+        "curve_lags_last5": [
+          22,
+          23,
+          24,
+          25,
+          26
+        ],
+        "curve_corrs_last5": [
+          0.577,
+          0.576,
+          0.575,
+          0.574,
+          0.573
+        ]
+      }
+    },
+    "page": {
+      "status": 200,
+      "size": 50988,
+      "has_renderLeadLagRanking": true,
+      "has_drawCorrelationCurve": true,
+      "has_leadLagTable": true,
+      "has_corrCurveChart": true,
+      "has_section_title": true,
+      "has_caveat": true
+    },
+    "log_leadlag": [
+      "[gbc-history]   2025-03-03 GLOBAL_EXPANSION \u2192 MIXED CLI 103.46 \u00b7 persisted 13w",
+      "[gbc-history]   2025-03-20 MIXED \u2192 GLOBAL_CONTRACTION CLI 101.92 \u00b7 persisted 5w",
+      "[gbc-history]   2025-04-17 GLOBAL_CONTRACTION \u2192 MIXED CLI 99.61 \u00b7 persisted 10w",
+      "[gbc-history]   2025-05-02 MIXED \u2192 GLOBAL_PEAKING CLI 101.18 \u00b7 persisted 16w",
+      "[gbc-history]   2025-05-26 GLOBAL_PEAKING \u2192 MIXED CLI 103.1 \u00b7 persisted 7w",
+      "[gbc-history]   2025-06-04 MIXED \u2192 GLOBAL_EXPANSION CLI 102.83 \u00b7 persisted 217w",
+      "[gbc-history]   2026-03-16 GLOBAL_EXPANSION \u2192 MIXED CLI 104.62 \u00b7 persisted 9w",
+      "[gbc-history]   2026-04-07 MIXED \u2192 GLOBAL_PEAKING CLI 103.7 \u00b7 persisted 5w",
+      "[gbc-history]   2026-04-14 GLOBAL_PEAKING \u2192 GLOBAL_EXPANSION CLI 106.56 \u00b7 persisted 19w",
+      "[gbc-history] computed lead/lag for 32 countries in 1.62s",
+      "[gbc-history]   #1 MEX lag=+3w corr=0.641",
+      "[gbc-history]   #2 ESP lag=+1w corr=0.87",
+      "[gbc-history]   #3 POL lag=+1w corr=0.784",
+      "[gbc-history]   #4 IRL lag=+1w corr=0.784",
+      "[gbc-history]   #5 AUS lag=+1w corr=0.732",
+      "[gbc-history]   #6 DEU lag=+1w corr=0.73",
+      "[gbc-history]   #7 BRA lag=+1w corr=0.593",
+      "[gbc-history]   #8 FRA lag=+1w corr=0.507",
+      "[gbc-history]   #9 IND lag=+1w corr=0.211",
+      "[gbc-history]   #10 USA lag=+0w corr=0.881"
+    ]
+  },
+  "finished": "2026-05-10T22:10:33.856420+00:00"
+}
