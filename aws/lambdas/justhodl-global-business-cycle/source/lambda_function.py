@@ -70,7 +70,6 @@ COUNTRY_MAP = [
     ("CZE", "CZELOLITONOSTSAM", "Europe",          "Czech Republic",     0.3,  "CZ"),
     ("HUN", "HUNLOLITONOSTSAM", "Europe",          "Hungary",            0.2,  "HU"),
     ("CHL", "CHLLOLITONOSTSAM", "Latin America",   "Chile",              0.3,  "CL"),
-    ("COL", "COLLOLITONOSTSAM", "Latin America",   "Colombia",           0.3,  "CO"),
     ("PRT", "PRTLOLITONOSTSAM", "Europe",          "Portugal",           0.3,  "PT"),
     ("GRC", "GRCLOLITONOSTSAM", "Europe",          "Greece",             0.2,  "GR"),
     ("NZL", "NZLLOLITONOSTSAM", "Asia-Pacific",    "New Zealand",        0.3,  "NZ"),
@@ -80,29 +79,40 @@ COUNTRY_MAP = [
 # ════════════════════════════════════════════════════════════════════════
 # FRED helpers
 # ════════════════════════════════════════════════════════════════════════
-def fred_observations(series_id, limit=120):
-    """Pull last N observations (default 10y) sorted asc by date."""
+def fred_observations(series_id, limit=120, retries=3):
+    """Pull last N observations (default 10y) sorted asc by date.
+       Retries up to `retries` times on transient errors / empty results."""
     url = (f"https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
            f"&sort_order=desc&limit={limit}")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JH-GBC/1.0"})
-        with urllib.request.urlopen(req, timeout=12) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        obs = []
-        for o in data.get("observations", []):
-            v = o.get("value")
-            if v in (".", "", None):
-                continue
-            try:
-                obs.append({"date": o["date"], "value": float(v)})
-            except (ValueError, TypeError):
-                continue
-        obs.sort(key=lambda o: o["date"])
-        return obs
-    except Exception as e:
-        print(f"[gbc] {series_id} fetch failed: {e}")
-        return []
+    last_err = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JH-GBC/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            obs = []
+            for o in data.get("observations", []):
+                v = o.get("value")
+                if v in (".", "", None):
+                    continue
+                try:
+                    obs.append({"date": o["date"], "value": float(v)})
+                except (ValueError, TypeError):
+                    continue
+            obs.sort(key=lambda o: o["date"])
+            if obs:
+                return obs
+            # Empty result — could be transient; retry with smaller limit
+            print(f"[gbc] {series_id} attempt {attempt+1}/{retries}: empty result, retrying")
+            last_err = "empty"
+            time.sleep(0.4 * (attempt + 1))
+        except Exception as e:
+            last_err = str(e)[:120]
+            print(f"[gbc] {series_id} attempt {attempt+1}/{retries} failed: {last_err}")
+            time.sleep(0.4 * (attempt + 1))
+    print(f"[gbc] {series_id} EXHAUSTED retries; last_err={last_err}")
+    return []
 
 
 # ════════════════════════════════════════════════════════════════════════
