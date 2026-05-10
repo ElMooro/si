@@ -177,6 +177,8 @@ def load_all():
         "liquidity_credit":"data/liquidity-credit-engine.json",
         # ─── Tenor signal interpreter (2y/30y/1m/3m auction tape) ────
         "tenor_signals":"data/auction-tenor-signals.json",
+        # ─── Global Business Cycle (OECD CLI across 35 economies) ────
+        "global_cycle":"data/global-business-cycle.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -419,6 +421,22 @@ def extract_metrics(data,weights):
             "sloos_ci_demand_small": (l.get("series") or {}).get("DRSDCIS", {}).get("latest_value"),
             "sloos_mortgage_demand": (l.get("series") or {}).get("SUBLPDHMNQ", {}).get("latest_value"),
         })(),
+        # Global Business Cycle (OECD CLI across 35 economies)
+        **(lambda g=data.get("global_cycle", {}): {
+            "gbc_global_phase": (g.get("aggregate") or {}).get("global_phase"),
+            "gbc_avg_cli": (g.get("aggregate") or {}).get("global_avg_cli"),
+            "gbc_expansion_pct": (g.get("aggregate") or {}).get("expansion_breadth_pct"),
+            "gbc_contraction_pct": (g.get("aggregate") or {}).get("contraction_breadth_pct"),
+            "gbc_decisive": (g.get("interpretation") or {}).get("decisive_call"),
+            "gbc_usa_phase": ((g.get("by_country") or {}).get("USA") or {}).get("phase"),
+            "gbc_chn_phase": ((g.get("by_country") or {}).get("CHN") or {}).get("phase"),
+            "gbc_deu_phase": ((g.get("by_country") or {}).get("DEU") or {}).get("phase"),
+            "gbc_jpn_phase": ((g.get("by_country") or {}).get("JPN") or {}).get("phase"),
+            "gbc_ind_phase": ((g.get("by_country") or {}).get("IND") or {}).get("phase"),
+            "gbc_usa_cli": ((g.get("by_country") or {}).get("USA") or {}).get("cli_level"),
+            "gbc_chn_cli": ((g.get("by_country") or {}).get("CHN") or {}).get("cli_level"),
+            "gbc_deu_cli": ((g.get("by_country") or {}).get("DEU") or {}).get("cli_level"),
+        })(),
         # Tenor signals (2y Fed path / 1m+3m eurodollar / 30y QE imminence)
         **(lambda t=data.get("tenor_signals", {}): {
             "tenor_composite": t.get("composite_score"),
@@ -618,6 +636,10 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "SLOOS_DEMAND: C&I_large:"+str(m.get("sloos_ci_demand_large") or "?")+"% C&I_small:"+str(m.get("sloos_ci_demand_small") or "?")+"% Mortgages:"+str(m.get("sloos_mortgage_demand") or "?")+"% (negative = weakening loan demand)",
         # ═══ TENOR SIGNALS — Treasury auction-tape macro signals ═══════
         "TENOR_SIGNALS: composite:"+str(m.get("tenor_composite") or "?")+" firing:"+str(m.get("tenor_any_firing") or False)+" | fed_path(2y):"+str(m.get("tenor_fed_path") or "?")+" dir:"+str(m.get("tenor_fed_path_dir") or "?")+" | eurodollar(1m/3m):"+str(m.get("tenor_eurodollar") or "?")+" | qe_imminence(30y):"+str(m.get("tenor_qe") or "?"),
+        # ═══ GLOBAL BUSINESS CYCLE — OECD CLI across 35 economies ══════
+        "GLOBAL_CYCLE: phase="+str(m.get("gbc_global_phase") or "?")+" avg_cli="+str(m.get("gbc_avg_cli") or "?")+" expansion_breadth="+str(m.get("gbc_expansion_pct") or "?")+"% contraction_breadth="+str(m.get("gbc_contraction_pct") or "?")+"%",
+        "GLOBAL_KEY_COUNTRIES: USA="+str(m.get("gbc_usa_phase") or "?")+"(CLI "+str(m.get("gbc_usa_cli") or "?")+") · CHN="+str(m.get("gbc_chn_phase") or "?")+"(CLI "+str(m.get("gbc_chn_cli") or "?")+") · DEU="+str(m.get("gbc_deu_phase") or "?")+"(CLI "+str(m.get("gbc_deu_cli") or "?")+") · JPN="+str(m.get("gbc_jpn_phase") or "?")+" · IND="+str(m.get("gbc_ind_phase") or "?"),
+        "GLOBAL_CYCLE_CALL: "+str(m.get("gbc_decisive") or "?")[:250],
         "CORR_BREAKS: "+str(m.get("n_corr_breaks") or 0)+" pairs. Top:"+str(m.get("top_corr_break") or "none"),
         "PLUMBING_PHASE: "+str(m.get("plumbing_status") or "?")+" "+str(m.get("plumbing_phase") or ""),
         "RISK_RECS: "+str(m.get("n_risk_recs") or 0)+" sized. Top:"+str(m.get("top_risk_rec") or "none"),

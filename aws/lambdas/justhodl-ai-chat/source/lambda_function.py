@@ -225,6 +225,23 @@ def build_context(message):
                      f"fed_path(2y)={fp.get('state')} dir={fp.get('direction')}  "
                      f"eurodollar(1m/3m)={ed.get('state')}  qe_imminence(30y)={qe.get('state')}")
 
+    # ─── GLOBAL BUSINESS CYCLE (OECD CLI across 35 economies) ──
+    gbc = get_s3('data/global-business-cycle.json')
+    if gbc:
+        agg = gbc.get('aggregate') or {}
+        interp = gbc.get('interpretation') or {}
+        bc = gbc.get('by_country') or {}
+        def _ph(iso): return (bc.get(iso) or {}).get('phase')
+        def _cli(iso): return (bc.get(iso) or {}).get('cli_level')
+        lines.append(f"[GLOBAL CYCLE] phase={agg.get('global_phase')} avg_cli={agg.get('global_avg_cli')} "
+                     f"expansion_breadth={agg.get('expansion_breadth_pct')}% "
+                     f"contraction_breadth={agg.get('contraction_breadth_pct')}%")
+        lines.append(f"[GBC KEY COUNTRIES] USA={_ph('USA')} (CLI {_cli('USA')})  CHN={_ph('CHN')} (CLI {_cli('CHN')})  "
+                     f"DEU={_ph('DEU')} (CLI {_cli('DEU')})  JPN={_ph('JPN')}  IND={_ph('IND')}  "
+                     f"GBR={_ph('GBR')}  FRA={_ph('FRA')}  BRA={_ph('BRA')}")
+        if interp.get('decisive_call'):
+            lines.append(f"[GBC DECISIVE CALL] {interp['decisive_call']}")
+
     vix = get_s3('data/vix-curve.json')
     if vix:
         spot = vix.get('vix_spot') or vix.get('spot')

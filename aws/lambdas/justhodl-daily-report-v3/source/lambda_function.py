@@ -1078,6 +1078,100 @@ def load_tenor_signals():
         return {}
 
 
+def load_global_cycle():
+    """Load global-business-cycle.json (OECD CLI across 25+ countries).
+       Non-fatal on failure."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key='data/global-business-cycle.json')
+        return json.loads(obj['Body'].read())
+    except Exception as e:
+        print(f"[GBC] load failed: {e}")
+        return {}
+
+
+def gbc_ki_adjustment(gbc):
+    """Translate global business-cycle phase into a Khalid-Index delta.
+       Returns (delta_int, signal_tuple_or_none).
+       Logic: global expansion lifts KI; contraction penalizes."""
+    if not gbc:
+        return 0, None
+    agg = gbc.get('aggregate') or {}
+    global_phase = agg.get('global_phase')
+    avg_cli = agg.get('global_avg_cli')
+    exp_breadth = agg.get('expansion_breadth_pct') or 0
+    cont_breadth = agg.get('contraction_breadth_pct') or 0
+
+    delta = 0
+    label = "Global Cycle"
+    detail = f"{global_phase} (avg CLI {avg_cli})"
+
+    if global_phase == 'GLOBAL_EXPANSION':
+        delta = +6
+    elif global_phase == 'GLOBAL_RECOVERY':
+        delta = +4
+    elif global_phase == 'GLOBAL_PEAKING':
+        delta = -5
+    elif global_phase == 'GLOBAL_CONTRACTION':
+        delta = -10
+    elif global_phase == 'MIXED':
+        delta = 0
+
+    # US-specific override: if USA is in RECESSION, harder penalty
+    us = (gbc.get('by_country') or {}).get('USA') or {}
+    if us.get('phase') == 'RECESSION':
+        delta -= 6
+        detail += " + USA in recession"
+    elif us.get('phase') == 'AT_RISK':
+        delta -= 3
+        detail += " + USA at risk"
+
+    if delta != 0:
+        return delta, (label, delta, detail)
+    return 0, None
+
+
+def gbc_risk_adjustments(gbc, base_risk):
+    """Incorporate global cycle into risk_dashboard.recession + market subscores."""
+    if not gbc:
+        return base_risk
+    agg = gbc.get('aggregate') or {}
+    global_phase = agg.get('global_phase')
+    cont_breadth = agg.get('contraction_breadth_pct') or 0
+
+    # Recession subscore: penalize as global contraction breadth rises.
+    # cont_breadth 0-100 maps to penalty 0-30
+    pen_rec = 0
+    if cont_breadth >= 70:
+        pen_rec = 30
+    elif cont_breadth >= 50:
+        pen_rec = 20
+    elif cont_breadth >= 30:
+        pen_rec = 12
+    elif cont_breadth >= 15:
+        pen_rec = 6
+    base_risk['recession'] = max(0, min(100, (base_risk.get('recession') or 50) - pen_rec))
+
+    # Market subscore: similar but lighter
+    pen_mkt = pen_rec // 2
+    base_risk['market'] = max(0, min(100, (base_risk.get('market') or 50) - pen_mkt))
+
+    # Recompute composite
+    parts = ['credit', 'liquidity', 'market', 'recession', 'systemic']
+    vals = [base_risk[p] for p in parts if p in base_risk]
+    if vals:
+        base_risk['composite'] = round(sum(vals) / len(vals))
+
+    base_risk['gbc_overlay'] = {
+        'global_phase': global_phase,
+        'avg_cli': agg.get('global_avg_cli'),
+        'expansion_breadth_pct': agg.get('expansion_breadth_pct'),
+        'contraction_breadth_pct': cont_breadth,
+        'penalty_recession': pen_rec,
+        'penalty_market': pen_mkt,
+    }
+    return base_risk
+
+
 def lce_ki_adjustment(lce):
     """Translate LCE composite + regime into a Khalid-Index score adjustment.
        Returns (delta_int, signal_tuple_or_none)."""
@@ -1248,12 +1342,22 @@ def compute_ki(fd, sd):
     elif tenor.get('any_watch'):
         score -= 3; signals.append(('Tenor Signal Watch', -3, str(tenor.get('composite_score', '?'))))
 
+    # ── GLOBAL BUSINESS CYCLE OVERLAY (OECD CLI across 25+ countries) ──
+    # Expansion lifts KI, contraction penalizes. USA-specific override applied.
+    gbc = load_global_cycle()
+    delta_gbc, sig_gbc = gbc_ki_adjustment(gbc)
+    if delta_gbc:
+        score += delta_gbc
+        signals.append(sig_gbc)
+
     score = max(0, min(100, score))
     regime = 'STRONG_BULL' if score>=75 else 'BULL' if score>=60 else 'NEUTRAL' if score>=45 else 'BEAR' if score>=30 else 'CRISIS'
     return {'score':score,'regime':regime,'signals':signals,'ts':datetime.utcnow().isoformat(),
             'lce_state': (lce.get('regime') if lce else None),
             'lce_composite': ((lce.get('composite') or {}).get('score') if lce else None),
-            'tenor_state': ('FIRING' if tenor.get('any_firing') else 'WATCH' if tenor.get('any_watch') else 'CALM') if tenor else None}
+            'tenor_state': ('FIRING' if tenor.get('any_firing') else 'WATCH' if tenor.get('any_watch') else 'CALM') if tenor else None,
+            'gbc_global_phase': ((gbc.get('aggregate') or {}).get('global_phase') if gbc else None),
+            'gbc_avg_cli': ((gbc.get('aggregate') or {}).get('global_avg_cli') if gbc else None)}
 
 def compute_risk(fd):
     r = {}
@@ -1291,6 +1395,12 @@ def compute_risk(fd):
     lce = load_lce()
     if lce:
         r = lce_risk_adjustments(lce, r)
+
+    # ── GLOBAL BUSINESS CYCLE OVERLAY (OECD CLI across 25+ countries) ──
+    # Global contraction breadth penalizes recession + market subscores.
+    gbc = load_global_cycle()
+    if gbc:
+        r = gbc_risk_adjustments(gbc, r)
     return r
 
 def compute_net_liq(fd):
@@ -1902,10 +2012,10 @@ def lambda_handler(event, context):
     ai = ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss)
 
     # ── PHASE 6: PUBLISH ──
-    # Load fresh LCE + tenor signals for the report payload (separate read so
-    # downstream consumers reading report.json get a coherent snapshot).
+    # Load fresh LCE + tenor signals + global cycle for report payload.
     lce_payload = load_lce()
     tenor_payload = load_tenor_signals()
+    gbc_payload = load_global_cycle()
 
     report = {
         'version':'V10','generated_at':datetime.utcnow().isoformat()+'Z',
@@ -1917,6 +2027,7 @@ def lambda_handler(event, context):
             'composite': lce_payload.get('composite'),
             'series': lce_payload.get('series', {}),
             'by_category': lce_payload.get('by_category', {}),
+            'interpretation': lce_payload.get('interpretation', {}),
             'generated_at': lce_payload.get('generated_at'),
         } if lce_payload else {},
         'tenor_signals': {
@@ -1926,6 +2037,12 @@ def lambda_handler(event, context):
             'signals': tenor_payload.get('signals', {}),
             'generated_at': tenor_payload.get('generated_at'),
         } if tenor_payload else {},
+        'global_business_cycle': {
+            'aggregate': gbc_payload.get('aggregate', {}),
+            'interpretation': gbc_payload.get('interpretation', {}),
+            'by_country': gbc_payload.get('by_country', {}),
+            'generated_at': gbc_payload.get('generated_at'),
+        } if gbc_payload else {},
         'sectors':sectors,'signals':sigs,'market_flow':market_flow,'ath_breakouts':ath_breakouts,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
         'ecb_ciss':ecb_ciss,

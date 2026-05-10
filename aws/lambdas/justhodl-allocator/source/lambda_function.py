@@ -496,6 +496,103 @@ def rule_tenor_signals(scores, evidence):
         add(scores, evidence, "UUP", -STRONG, desc)
 
 
+def rule_global_business_cycle(scores, evidence):
+    """Position sizing based on OECD Composite Leading Indicator phase mix.
+
+    Reads data/global-business-cycle.json. Translates global phase + key-country
+    phase into cross-asset and country-level tilts.
+    """
+    d = fs3("data/global-business-cycle.json")
+    if not d:
+        return
+    agg = d.get("aggregate") or {}
+    interp = d.get("interpretation") or {}
+    by_country = d.get("by_country") or {}
+    global_phase = agg.get("global_phase")
+    avg_cli = agg.get("global_avg_cli")
+    cont_pct = agg.get("contraction_breadth_pct") or 0
+    exp_pct = agg.get("expansion_breadth_pct") or 0
+
+    base_desc = f"global cycle: {global_phase} (avg CLI {avg_cli}, contraction {cont_pct}%, expansion {exp_pct}%)"
+
+    # ── Global phase regime adjustment ──
+    if global_phase == "GLOBAL_CONTRACTION":
+        add(scores, evidence, "SPY", -HARD, base_desc)
+        add(scores, evidence, "QQQ", -STRONG, base_desc)
+        add(scores, evidence, "IWM", -HARD, base_desc)
+        add(scores, evidence, "EEM", -HARD, base_desc)
+        add(scores, evidence, "EFA", -STRONG, base_desc)
+        add(scores, evidence, "HYG", -HARD, base_desc)
+        add(scores, evidence, "TLT", STRONG, base_desc)
+        add(scores, evidence, "GLD", STRONG, base_desc)
+        add(scores, evidence, "UUP", MEDIUM, base_desc)
+    elif global_phase == "GLOBAL_PEAKING":
+        add(scores, evidence, "IWM", -STRONG, base_desc + " — small caps roll over first")
+        add(scores, evidence, "EEM", -MEDIUM, base_desc + " — EM peaks with DM")
+        add(scores, evidence, "HYG", -MEDIUM, base_desc + " — late-cycle spread widening")
+        add(scores, evidence, "TLT", MEDIUM, base_desc + " — defensive bid building")
+        add(scores, evidence, "GLD", MEDIUM, base_desc)
+        add(scores, evidence, "UUP", MILD, base_desc)
+    elif global_phase == "GLOBAL_RECOVERY":
+        # Strongest equity returns historically
+        add(scores, evidence, "SPY", STRONG, base_desc)
+        add(scores, evidence, "IWM", HARD, base_desc + " — small caps explode out of recovery")
+        add(scores, evidence, "EEM", HARD, base_desc + " — EM disproportionately benefits")
+        add(scores, evidence, "EFA", MEDIUM, base_desc)
+        add(scores, evidence, "HYG", STRONG, base_desc + " — HY snapback")
+        add(scores, evidence, "BTC", STRONG, base_desc)
+        add(scores, evidence, "TLT", -MEDIUM, base_desc + " — rates normalize")
+        add(scores, evidence, "UUP", -MEDIUM, base_desc + " — USD weakens on global risk-on")
+    elif global_phase == "GLOBAL_EXPANSION":
+        add(scores, evidence, "SPY", MEDIUM, base_desc)
+        add(scores, evidence, "QQQ", MEDIUM, base_desc)
+        add(scores, evidence, "IWM", STRONG, base_desc + " — cyclical exposure benefits")
+        add(scores, evidence, "EEM", STRONG, base_desc + " — EM beta to global growth")
+        add(scores, evidence, "EFA", MEDIUM, base_desc + " — DM expansion broad")
+        add(scores, evidence, "HYG", MEDIUM, base_desc + " — risk-on supports HY")
+        add(scores, evidence, "BTC", MEDIUM, base_desc)
+        add(scores, evidence, "TLT", -MILD, base_desc + " — rising-rate pressure")
+        add(scores, evidence, "UUP", -MILD, base_desc)
+
+    # ── USA-specific override ──
+    usa = by_country.get("USA") or {}
+    usa_phase = usa.get("phase")
+    if usa_phase == "RECESSION":
+        d2 = f"USA in RECESSION (CLI {usa.get('cli_level')})"
+        add(scores, evidence, "SPY", -STRONG, d2)
+        add(scores, evidence, "IWM", -HARD, d2)
+        add(scores, evidence, "TLT", STRONG, d2)
+        add(scores, evidence, "GLD", STRONG, d2)
+    elif usa_phase == "AT_RISK":
+        d2 = f"USA AT RISK (CLI {usa.get('cli_level')})"
+        add(scores, evidence, "IWM", -MEDIUM, d2)
+        add(scores, evidence, "TLT", MEDIUM, d2)
+
+    # ── China-specific ──
+    chn = by_country.get("CHN") or {}
+    chn_phase = chn.get("phase")
+    if chn_phase == "RECESSION":
+        d3 = f"China in RECESSION (CLI {chn.get('cli_level')})"
+        add(scores, evidence, "EEM", -HARD, d3)
+        add(scores, evidence, "FXI", -HARD, d3)
+    elif chn_phase == "RECOVERY":
+        d3 = f"China in RECOVERY (CLI {chn.get('cli_level')})"
+        add(scores, evidence, "EEM", STRONG, d3)
+        add(scores, evidence, "FXI", STRONG, d3)
+
+    # ── Europe (Germany proxy) ──
+    deu = by_country.get("DEU") or {}
+    deu_phase = deu.get("phase")
+    if deu_phase == "RECESSION":
+        d4 = f"Germany in RECESSION (CLI {deu.get('cli_level')})"
+        add(scores, evidence, "EFA", -STRONG, d4)
+        add(scores, evidence, "EWG", -HARD, d4)
+    elif deu_phase == "RECOVERY":
+        d4 = f"Germany in RECOVERY (CLI {deu.get('cli_level')})"
+        add(scores, evidence, "EFA", MEDIUM, d4)
+        add(scores, evidence, "EWG", STRONG, d4)
+
+
 # ─────────────────────────────────────────────────────────────────
 
 
@@ -508,6 +605,7 @@ RULES = [
     ("auction_crisis", rule_auction_crisis),
     ("liquidity_credit_engine", rule_liquidity_credit_engine),
     ("tenor_signals", rule_tenor_signals),
+    ("global_business_cycle", rule_global_business_cycle),
     ("historical_analogs", rule_historical_analogs),
     ("event_study", rule_event_study),
     ("btc_signals", rule_btc_signals),

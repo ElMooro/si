@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Business Cycle · JustHodl.AI</title>
+<meta name="description" content="OECD Composite Leading Indicators across 25+ major economies — color-coded world map showing each country's business cycle phase (Expansion · At Risk · Recession · Recovery) with cross-asset portfolio implications.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#8b5cf6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="/wss-client.js" defer></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --bg-card:#131313; --bg-card-elev:#181818; --bg-hover:#1f1f1f;
+    --border:#262626; --border-light:#2e2e2e;
+    --text:#e5e5e5; --text-dim:#888; --text-muted:#555;
+    --accent:#8b5cf6;
+    --p-expansion:#22c55e; --p-atrisk:#f59e0b; --p-recession:#ef4444; --p-recovery:#3b82f6;
+    --p-unknown:#475569; --p-mixed:#94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+         background:var(--bg); color:var(--text); line-height:1.5; font-size:13px; }
+  .mono { font-family:ui-monospace, SF Mono, Menlo, monospace; }
+  .container { max-width:1500px; margin:0 auto; padding:18px; }
+
+  nav {
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+    padding:10px 18px; background:var(--bg-card-elev);
+    border-bottom:1px solid var(--border); font-size:12px;
+  }
+  nav a { color:var(--text-dim); text-decoration:none; transition:color .15s; }
+  nav a:hover { color:var(--text); }
+  nav a.active { color:var(--accent); font-weight:700; }
+  nav .brand { color:var(--text); font-weight:700; letter-spacing:.5px;
+               border-right:1px solid var(--border); padding-right:14px; }
+  nav .brand a { color:var(--text); }
+
+  .header {
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:16px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .title { font-size:22px; font-weight:700; letter-spacing:-.3px; }
+  .title .accent { color:var(--accent); }
+  .subtitle { color:var(--text-dim); font-size:12px; margin-top:2px; }
+
+  .hero {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+    gap:10px; margin-bottom:18px;
+  }
+  .hero-stat {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:8px; padding:12px 14px;
+  }
+  .hero-stat .k { font-size:10px; color:var(--text-dim); text-transform:uppercase;
+                   letter-spacing:.7px; font-weight:600; }
+  .hero-stat .v { font-size:18px; font-weight:700; margin-top:4px; font-family:ui-monospace, monospace; }
+  .hero-stat .sub { font-size:11px; color:var(--text-dim); margin-top:2px; line-height:1.4; }
+  .hero-stat.expansion .v { color:var(--p-expansion); }
+  .hero-stat.atrisk .v    { color:var(--p-atrisk); }
+  .hero-stat.recession .v { color:var(--p-recession); }
+  .hero-stat.recovery .v  { color:var(--p-recovery); }
+
+  /* phase pills */
+  .pill {
+    display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px;
+    font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+  }
+  .pill.EXPANSION { background:rgba(34,197,94,0.14);  color:var(--p-expansion); }
+  .pill.AT_RISK   { background:rgba(245,158,11,0.14); color:var(--p-atrisk); }
+  .pill.RECESSION { background:rgba(239,68,68,0.14);  color:var(--p-recession); }
+  .pill.RECOVERY  { background:rgba(59,130,246,0.14); color:var(--p-recovery); }
+  .pill.UNKNOWN   { background:rgba(71,85,105,0.14);  color:var(--p-unknown); }
+  .pill.GLOBAL_EXPANSION   { background:rgba(34,197,94,0.14);  color:var(--p-expansion); }
+  .pill.GLOBAL_PEAKING     { background:rgba(245,158,11,0.14); color:var(--p-atrisk); }
+  .pill.GLOBAL_CONTRACTION { background:rgba(239,68,68,0.14);  color:var(--p-recession); }
+  .pill.GLOBAL_RECOVERY    { background:rgba(59,130,246,0.14); color:var(--p-recovery); }
+  .pill.MIXED              { background:rgba(148,163,184,0.14); color:var(--p-mixed); }
+
+  /* phase breadth bar */
+  .breadth-bar { display:flex; height:32px; border-radius:6px; overflow:hidden;
+                   border:1px solid var(--border); margin-bottom:8px; }
+  .breadth-bar > div {
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+    color:var(--bg); transition:flex .4s;
+  }
+  .breadth-bar > div.EXPANSION { background:var(--p-expansion); }
+  .breadth-bar > div.RECOVERY  { background:var(--p-recovery); }
+  .breadth-bar > div.AT_RISK   { background:var(--p-atrisk); }
+  .breadth-bar > div.RECESSION { background:var(--p-recession); }
+  .breadth-bar > div.UNKNOWN   { background:var(--p-unknown); }
+
+  /* Decisive call */
+  .decisive-hero {
+    background:linear-gradient(135deg, rgba(139,92,246,0.06) 0%, rgba(139,92,246,0.02) 100%);
+    border:1px solid var(--border); border-left:3px solid var(--accent);
+    border-radius:10px; padding:16px 20px; margin-bottom:16px;
+  }
+  .decisive-hero .head { display:flex; justify-content:space-between; align-items:center;
+                          margin-bottom:8px; flex-wrap:wrap; gap:8px; }
+  .decisive-hero h2 { font-size:14px; letter-spacing:.6px; text-transform:uppercase;
+                       color:var(--text-dim); font-weight:700; }
+  .decisive-hero .body { font-size:14px; line-height:1.6; color:var(--text); padding-top:8px;
+                          border-top:1px solid var(--border); margin-top:8px; }
+
+  /* World map */
+  .map-section {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    padding:14px 18px 16px; margin-bottom:16px;
+  }
+  .map-section h3 {
+    font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.6px;
+    font-weight:700; margin-bottom:10px;
+  }
+  #world-map {
+    width:100%; height:520px; background:var(--bg);
+    border-radius:6px; overflow:hidden; position:relative;
+  }
+  #world-map svg { width:100%; height:100%; display:block; }
+  .country-path { stroke:var(--border); stroke-width:0.5; transition:opacity .15s, stroke .15s; }
+  .country-path.has-data { cursor:pointer; }
+  .country-path.has-data:hover { stroke:var(--text); stroke-width:1.5; }
+  .country-path.EXPANSION { fill:var(--p-expansion); }
+  .country-path.AT_RISK   { fill:var(--p-atrisk); }
+  .country-path.RECESSION { fill:var(--p-recession); }
+  .country-path.RECOVERY  { fill:var(--p-recovery); }
+  .country-path.UNKNOWN   { fill:#1f1f1f; }
+
+  .map-tooltip {
+    position:absolute; background:var(--bg-card-elev); border:1px solid var(--border-light);
+    border-radius:6px; padding:10px 14px; font-size:11.5px; pointer-events:none;
+    z-index:10; min-width:220px; box-shadow:0 4px 12px rgba(0,0,0,0.4); display:none;
+  }
+  .map-tooltip .country-name { font-weight:700; font-size:13px; color:var(--text); margin-bottom:4px; }
+  .map-tooltip .tt-row { display:flex; justify-content:space-between; margin-top:3px; }
+  .map-tooltip .tt-k { color:var(--text-dim); }
+  .map-tooltip .tt-v { color:var(--text); font-family:ui-monospace, monospace; }
+
+  /* Legend */
+  .legend { display:flex; gap:14px; flex-wrap:wrap; padding-top:10px; font-size:11px; }
+  .legend-item { display:flex; align-items:center; gap:6px; color:var(--text-dim); }
+  .legend-dot { width:12px; height:12px; border-radius:3px; }
+
+  /* Regional grid + country tiles */
+  .region-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(310px, 1fr)); gap:14px; margin-bottom:14px; }
+  .region {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px;
+  }
+  .region .rh { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .region .rh .name { font-size:12px; color:var(--text); font-weight:700; }
+  .region .rh .meta { font-size:10.5px; color:var(--text-dim); }
+  .countries-tile { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:6px; }
+  .country-tile {
+    padding:6px 8px; border-radius:4px; font-size:11px;
+    background:var(--bg-card-elev); border:1px solid var(--border);
+    border-left-width:3px; cursor:default;
+  }
+  .country-tile.EXPANSION { border-left-color:var(--p-expansion); }
+  .country-tile.AT_RISK   { border-left-color:var(--p-atrisk); }
+  .country-tile.RECESSION { border-left-color:var(--p-recession); }
+  .country-tile.RECOVERY  { border-left-color:var(--p-recovery); }
+  .country-tile.UNKNOWN   { border-left-color:var(--p-unknown); opacity:0.5; }
+  .country-tile .ct-name { font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px; }
+  .country-tile .ct-cli  { color:var(--text-dim); font-family:ui-monospace, monospace; font-size:10px; margin-top:2px; }
+  .country-tile .ct-trend { float:right; font-size:10px; }
+  .country-tile .ct-trend.up   { color:var(--p-expansion); }
+  .country-tile .ct-trend.down { color:var(--p-recession); }
+  .country-tile .ct-trend.flat { color:var(--text-muted); }
+
+  /* Cross-asset ladder */
+  .ladder {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:8px; margin-bottom:14px;
+  }
+  .ladder-cell {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+    padding:10px 12px; font-size:11px;
+  }
+  .ladder-cell .name { color:var(--text-dim); font-size:10px; text-transform:uppercase;
+                       letter-spacing:.5px; font-weight:600; }
+  .ladder-cell .sig { font-weight:700; font-size:14px; margin-top:3px; }
+  .ladder-cell .why { color:var(--text-dim); font-size:10.5px; margin-top:3px; line-height:1.45; }
+  .ladder-cell.long-hard  { border-left:3px solid var(--p-expansion); }
+  .ladder-cell.long-hard .sig  { color:var(--p-expansion); }
+  .ladder-cell.long       { border-left:3px solid #4ade80; }
+  .ladder-cell.long .sig       { color:#4ade80; }
+  .ladder-cell.neutral    { border-left:3px solid #94a3b8; }
+  .ladder-cell.neutral .sig    { color:#94a3b8; }
+  .ladder-cell.short      { border-left:3px solid var(--p-atrisk); }
+  .ladder-cell.short .sig      { color:var(--p-atrisk); }
+  .ladder-cell.short-hard { border-left:3px solid var(--p-recession); }
+  .ladder-cell.short-hard .sig { color:var(--p-recession); }
+
+  /* methodology footer */
+  .meth { background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+           padding:14px 18px; margin-top:18px; color:var(--text-dim); font-size:12px; line-height:1.7; }
+  .meth strong { color:var(--text); }
+  .meth code { font-family:ui-monospace, monospace; background:var(--bg-card-elev);
+                padding:1px 6px; border-radius:3px; color:var(--accent); font-size:11px; }
+  .meth a { color:var(--accent); text-decoration:none; }
+  .meth a:hover { text-decoration:underline; }
+
+  .skel { background:linear-gradient(90deg, var(--bg-card-elev) 25%, var(--border) 50%, var(--bg-card-elev) 75%);
+          background-size:200% 100%; animation:shimmer 1.4s infinite; height:14px; border-radius:3px; }
+  @keyframes shimmer { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
+
+  .external-link {
+    margin-top:8px; padding:8px 12px; background:var(--bg-card-elev);
+    border:1px solid var(--border); border-radius:6px; font-size:11px;
+    color:var(--text-dim); display:inline-block;
+  }
+  .external-link a { color:var(--accent); text-decoration:none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><a href="/">JustHodl.AI</a></span>
+  <a href="/">DASHBOARD</a>
+  <a href="/intelligence.html">INTEL</a>
+  <a href="/lce.html" style="color:#10b981">🟢 LCE</a>
+  <a href="/global-cycle.html" class="active">🌍 GLOBAL CYCLE</a>
+  <a href="/auctions.html" style="color:#3b82f6">🏛 AUCTIONS</a>
+  <a href="/bonds.html" style="color:#06b6d4">📈 BONDS</a>
+  <a href="/stress.html" style="color:#ef4444">🌪 STRESS</a>
+  <a href="/risk.html">RISK</a>
+  <a href="/macro-data.html">MACRO</a>
+</nav>
+
+<div class="container">
+
+  <header class="header">
+    <div>
+      <h1 class="title">🌍 <span class="accent">GLOBAL BUSINESS CYCLE</span></h1>
+      <div class="subtitle">OECD Composite Leading Indicator across 35 major economies · 4-phase classification · auto-updates daily</div>
+    </div>
+    <div style="text-align:right">
+      <div id="genTime" class="mono" style="font-size:11px;color:var(--text-dim)">loading…</div>
+      <div id="ageStr" style="font-size:10px;color:var(--text-muted);margin-top:2px"></div>
+    </div>
+  </header>
+
+  <!-- Hero stats -->
+  <section class="hero">
+    <div class="hero-stat"><div class="k">GLOBAL PHASE</div>
+      <div class="v"><span id="globalPhase" class="pill MIXED">—</span></div>
+      <div class="sub" id="globalCli">avg CLI —</div></div>
+    <div class="hero-stat expansion"><div class="k">% EXPANSION</div>
+      <div class="v" id="pctExpansion">—%</div><div class="sub">CLI ≥100, rising</div></div>
+    <div class="hero-stat recovery"><div class="k">% RECOVERY</div>
+      <div class="v" id="pctRecovery">—%</div><div class="sub">CLI &lt;100, rising</div></div>
+    <div class="hero-stat atrisk"><div class="k">% AT RISK</div>
+      <div class="v" id="pctAtRisk">—%</div><div class="sub">CLI ≥100, peaking</div></div>
+    <div class="hero-stat recession"><div class="k">% RECESSION</div>
+      <div class="v" id="pctRecession">—%</div><div class="sub">CLI &lt;100, falling</div></div>
+    <div class="hero-stat"><div class="k">COUNTRIES</div>
+      <div class="v" id="countryCount">—</div><div class="sub" id="weightCovered">— % world GDP</div></div>
+  </section>
+
+  <!-- Decisive call -->
+  <section class="decisive-hero">
+    <div class="head">
+      <h2>📋 Global Cycle Interpretation</h2>
+      <span id="globalPhaseLabel" class="pill">—</span>
+    </div>
+    <div class="breadth-bar" id="breadthBar"></div>
+    <div class="body" id="decisiveText">Loading interpretation…</div>
+  </section>
+
+  <!-- Cross-asset ladder -->
+  <section>
+    <h3 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:10px">
+      ⚖️ Cross-Asset Implications</h3>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <!-- World map -->
+  <section class="map-section">
+    <h3>🗺️ World Map · color = current cycle phase</h3>
+    <div id="world-map">
+      <div class="map-tooltip" id="map-tooltip"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--p-expansion)"></span> Expansion</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--p-recovery)"></span> Recovery</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--p-atrisk)"></span> At Risk</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--p-recession)"></span> Recession</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#1f1f1f;border:1px solid var(--border)"></span> No data</div>
+    </div>
+    <div class="external-link">
+      Cross-reference:
+      <a href="https://www.economy.com/economicview/tracker/5/Global-Business-Cycle-Map" target="_blank" rel="noopener">Moody's Global Business Cycle Map ↗</a>
+    </div>
+  </section>
+
+  <!-- Regional breakdown -->
+  <section>
+    <h3 style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:10px">
+      🌐 By Region</h3>
+    <div class="region-grid" id="regionGrid">
+      <div class="region"><div class="skel"></div></div>
+    </div>
+  </section>
+
+  <!-- Methodology -->
+  <section class="meth">
+    <strong>📚 Methodology</strong>
+    <p style="margin-top:6px">
+      This engine pulls the OECD <strong>Composite Leading Indicator (CLI)</strong> for 35 major economies from
+      FRED (series pattern <code>{ISO3}LOLITONOSTSAM</code>), the same family of indicators Moody's Analytics uses
+      as a foundation for their map. CLIs are designed to provide early signals of turning points in business cycles.
+    </p>
+    <p style="margin-top:6px">
+      Each country is classified into one of four phases based on the CLI level (vs. the long-run trend of 100)
+      and its 6-month change direction. The breadth across countries — GDP-weighted — drives the
+      <strong>global phase</strong>, which propagates into the Khalid Index, risk dashboard, allocator,
+      morning brief, and AI chat.
+    </p>
+    <p style="margin-top:6px;color:var(--text-muted);font-size:11px">
+      Data: <a href="https://fred.stlouisfed.org/searchresults?st=LOLITONOSTSAM">FRED · OECD Composite Leading Indicators</a> ·
+      Engine source: <code>justhodl-global-business-cycle</code> ·
+      Schedule: daily · S3 output: <code>data/global-business-cycle.json</code> · Schema 1.0
+    </p>
+  </section>
+
+</div>
+
+<script>
+const SRC = "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json";
+const WORLD_TOPO = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+
+let DATA = null;
+let WORLD = null;
+
+const PHASE_ORDER = ["EXPANSION","RECOVERY","AT_RISK","RECESSION","UNKNOWN"];
+
+function ageStr(iso) {
+  if (!iso) return "";
+  const ms = Date.now() - new Date(iso).getTime();
+  const h = Math.floor(ms/3600000);
+  if (h < 24) return h + "h ago";
+  return Math.floor(h/24) + "d ago";
+}
+function fmtPct(v) { return v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2); }
+
+async function load() {
+  try {
+    const [dataR, topoR] = await Promise.all([
+      fetch(SRC, {cache:"no-store"}),
+      fetch(WORLD_TOPO)
+    ]);
+    if (!dataR.ok) throw new Error("data HTTP " + dataR.status);
+    DATA = await dataR.json();
+    WORLD = topoR.ok ? await topoR.json() : null;
+    render();
+  } catch (e) {
+    document.getElementById("decisiveText").textContent = "Failed to load: " + e.message;
+    console.error("[gbc]", e);
+  }
+}
+
+function render() {
+  if (!DATA) return;
+  const agg = DATA.aggregate || {};
+  const interp = DATA.interpretation || {};
+  const byCountry = DATA.by_country || {};
+  const mix = agg.global_phase_mix_pct || {};
+
+  // Hero
+  document.getElementById("genTime").textContent = new Date(DATA.generated_at).toLocaleString();
+  document.getElementById("ageStr").textContent = "updated " + ageStr(DATA.generated_at);
+  const gp = document.getElementById("globalPhase");
+  gp.textContent = (agg.global_phase || "—").replace(/_/g, " ");
+  gp.className = "pill " + (agg.global_phase || "MIXED");
+  const gpl = document.getElementById("globalPhaseLabel");
+  gpl.textContent = (agg.global_phase || "—").replace(/_/g, " ");
+  gpl.className = "pill " + (agg.global_phase || "MIXED");
+  document.getElementById("globalCli").textContent =
+    "avg CLI " + (agg.global_avg_cli != null ? agg.global_avg_cli.toFixed(2) : "—");
+  document.getElementById("pctExpansion").textContent = (mix.EXPANSION || 0).toFixed(1) + "%";
+  document.getElementById("pctRecovery").textContent  = (mix.RECOVERY  || 0).toFixed(1) + "%";
+  document.getElementById("pctAtRisk").textContent    = (mix.AT_RISK   || 0).toFixed(1) + "%";
+  document.getElementById("pctRecession").textContent = (mix.RECESSION || 0).toFixed(1) + "%";
+  document.getElementById("countryCount").textContent = Object.keys(byCountry).length;
+  document.getElementById("weightCovered").textContent =
+    (agg.total_weight_covered || 0).toFixed(1) + "% world GDP";
+
+  // Breadth bar
+  const bar = document.getElementById("breadthBar");
+  bar.innerHTML = "";
+  for (const p of PHASE_ORDER) {
+    const v = mix[p] || 0;
+    if (v <= 0) continue;
+    const cell = document.createElement("div");
+    cell.className = p;
+    cell.style.flex = v.toString();
+    cell.textContent = v >= 8 ? (p.replace(/_/g," ") + " " + v.toFixed(0) + "%") :
+                       v >= 4 ? (v.toFixed(0) + "%") : "";
+    bar.appendChild(cell);
+  }
+
+  // Decisive
+  document.getElementById("decisiveText").innerHTML = interp.decisive_call || "—";
+
+  // Cross-asset ladder
+  const ladder = document.getElementById("ladder");
+  ladder.innerHTML = "";
+  const sigCls = {2:"long-hard",1:"long",0:"neutral",[-1]:"short",[-2]:"short-hard"};
+  const sigLbl = {2:"LONG HARD ↑↑",1:"LONG ↑",0:"NEUTRAL —",[-1]:"UNDERWEIGHT ↓",[-2]:"AVOID ↓↓"};
+  const niceName = {
+    us_large_equity:"US Equity (SPY/QQQ)", small_caps:"Small Caps (IWM)",
+    international_dm:"DM Intl (EFA)", emerging_markets:"Emerging Markets (EEM)",
+    commodities:"Commodities (DBC)", high_yield:"High Yield (HYG)",
+    long_duration:"Long Duration (TLT)", gold:"Gold (GLD)",
+    dollar:"US Dollar (UUP)", bitcoin:"Bitcoin (BTC)"
+  };
+  const order = ["us_large_equity","small_caps","international_dm","emerging_markets",
+                  "commodities","high_yield","long_duration","gold","dollar","bitcoin"];
+  for (const k of order) {
+    const ca = (interp.cross_asset || {})[k];
+    if (!ca) continue;
+    const cls = sigCls[ca.signal] || "neutral";
+    const lbl = sigLbl[ca.signal] || "—";
+    const cell = document.createElement("div");
+    cell.className = "ladder-cell " + cls;
+    cell.innerHTML = `
+      <div class="name">${niceName[k] || k}</div>
+      <div class="sig">${lbl}</div>
+      <div class="why">${ca.rationale || ""}</div>
+    `;
+    ladder.appendChild(cell);
+  }
+
+  // World map
+  renderMap();
+
+  // Regional grid
+  const rg = document.getElementById("regionGrid");
+  rg.innerHTML = "";
+  const byRegion = agg.by_region || {};
+  for (const [region, info] of Object.entries(byRegion)) {
+    const tiles = (info.countries || []).map(iso3 => {
+      const c = byCountry[iso3];
+      if (!c) return "";
+      const trend = c.trend || "flat";
+      const trendArrow = trend === "rising" ? "↑" : trend === "falling" ? "↓" : "—";
+      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name}">
+        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span></div>
+        <div class="ct-cli">CLI ${c.cli_level != null ? c.cli_level.toFixed(2) : '—'} · 6m ${fmtPct(c.six_month_change)}</div>
+      </div>`;
+    }).join("");
+    const sec = document.createElement("div");
+    sec.className = "region";
+    sec.innerHTML = `
+      <div class="rh">
+        <div>
+          <div class="name">${region}</div>
+          <div class="meta">avg CLI ${info.avg_cli != null ? info.avg_cli.toFixed(2) : '—'} · ${info.n_countries} countries · ${info.total_weight.toFixed(1)}% world GDP</div>
+        </div>
+      </div>
+      <div class="countries-tile">${tiles}</div>
+    `;
+    rg.appendChild(sec);
+  }
+}
+
+function renderMap() {
+  if (!WORLD) return;
+  const mapEl = document.getElementById("world-map");
+  // Clear existing svg if any (preserve tooltip element)
+  const tt = document.getElementById("map-tooltip");
+  mapEl.querySelectorAll("svg").forEach(s => s.remove());
+
+  const width = mapEl.clientWidth || 1000;
+  const height = 520;
+  const svg = d3.select("#world-map").append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+  const projection = d3.geoNaturalEarth1()
+    .scale(width / 6.3)
+    .translate([width/2, height/2 + 20]);
+  const path = d3.geoPath(projection);
+
+  // ISO numeric → iso3 mapping using country names
+  // The TopoJSON has ISO numeric IDs and country names; we'll map by name
+  const features = topojson.feature(WORLD, WORLD.objects.countries).features;
+  const byName = {};
+  for (const iso3 in (DATA.by_country || {})) {
+    const c = DATA.by_country[iso3];
+    if (c && c.country_name) byName[c.country_name] = c;
+  }
+  // Aliases for common mismatches between TopoJSON country names + ours
+  const aliases = {
+    "United States of America": "United States",
+    "United Kingdom": "United Kingdom",
+    "Czechia": "Czech Republic",
+    "Russian Federation": "Russia",
+    "Korea, Republic of": "South Korea",
+    "Republic of Korea": "South Korea",
+    "S. Korea": "South Korea",
+    "Korea": "South Korea",
+  };
+
+  svg.selectAll("path")
+    .data(features)
+    .enter().append("path")
+    .attr("d", path)
+    .attr("class", d => {
+      const name = (d.properties && d.properties.name) || "";
+      const lookup = aliases[name] || name;
+      const c = byName[lookup];
+      if (c && c.phase) return "country-path has-data " + c.phase;
+      return "country-path UNKNOWN";
+    })
+    .on("mouseenter", function(event, d) {
+      const name = (d.properties && d.properties.name) || "";
+      const lookup = aliases[name] || name;
+      const c = byName[lookup];
+      if (!c) return;
+      const trend = c.trend === "rising" ? "↑ rising" :
+                     c.trend === "falling" ? "↓ falling" : "— flat";
+      tt.style.display = "block";
+      tt.innerHTML = `
+        <div class="country-name">${c.country_name}</div>
+        <div class="tt-row"><span class="tt-k">Phase</span><span class="tt-v"><span class="pill ${c.phase}">${c.phase}</span></span></div>
+        <div class="tt-row"><span class="tt-k">CLI Level</span><span class="tt-v">${c.cli_level != null ? c.cli_level.toFixed(2) : '—'}</span></div>
+        <div class="tt-row"><span class="tt-k">6-mo change</span><span class="tt-v">${fmtPct(c.six_month_change)} (${trend})</span></div>
+        <div class="tt-row"><span class="tt-k">YoY change</span><span class="tt-v">${fmtPct(c.yoy_change)}</span></div>
+        <div class="tt-row"><span class="tt-k">z(5y)</span><span class="tt-v">${c.z_5y != null ? c.z_5y.toFixed(2) : '—'}</span></div>
+        <div class="tt-row"><span class="tt-k">Region</span><span class="tt-v">${c.region}</span></div>
+        <div class="tt-row"><span class="tt-k">GDP weight</span><span class="tt-v">${c.gdp_weight}%</span></div>
+      `;
+    })
+    .on("mousemove", function(event) {
+      const rect = mapEl.getBoundingClientRect();
+      const x = event.clientX - rect.left + 14;
+      const y = event.clientY - rect.top - 10;
+      tt.style.left = Math.min(x, rect.width - 240) + "px";
+      tt.style.top = Math.max(0, y) + "px";
+    })
+    .on("mouseleave", () => { tt.style.display = "none"; });
+}
+
+load();
+setInterval(load, 6 * 60 * 60 * 1000);  // every 6h (CLI is monthly anyway)
+</script>
+
+</body>
+</html>
