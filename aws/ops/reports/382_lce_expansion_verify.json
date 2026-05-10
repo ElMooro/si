@@ -1,13 +1,13 @@
 {
-  "started": "2026-05-10T12:22:51.641081+00:00",
+  "started": "2026-05-10T12:40:28.571135+00:00",
   "test": {
     "invoke": {
       "status": 200,
-      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"WATCH\\\", \\\"composite_score\\\": 18.0, \\\"n_series\\\": 59, \\\"transitions_count\\\": 1}\"}"
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"WATCH\\\", \\\"composite_score\\\": 18.1, \\\"n_series\\\": 51, \\\"transitions_count\\\": 1}\"}"
     },
     "regime": "WATCH",
     "composite": {
-      "score": 18.0,
+      "score": 18.1,
       "n_firing": 0,
       "by_category": {}
     },
@@ -20,28 +20,15 @@
       "DGS30": 4.97
     },
     "category_counts": {
-      "balance_sheet": 15,
+      "balance_sheet": 12,
       "liquidity_facilities": 5,
-      "credit_spreads": 17,
+      "credit_spreads": 12,
       "corporate_yields": 10,
       "lending_standards": 12
     },
-    "total_series": 59,
-    "available_count": 47,
-    "unavailable_series": {
-      "MBST": "No data for MBST",
-      "EXCSRESNW": "No data for EXCSRESNW",
-      "REQRESNS": "No data for REQRESNS",
-      "WLEMCBL": "No data for WLEMCBL",
-      "BAMLHE10HYBBOAS": "No data for BAMLHE10HYBBOAS",
-      "BAMLHE20HYBOAS": "No data for BAMLHE20HYBOAS",
-      "BAMLHE30HYCDOAS": "No data for BAMLHE30HYCDOAS",
-      "SUBLPDCILMNQ": "No data for SUBLPDCILMNQ",
-      "SUBLPDCISNQ": "No data for SUBLPDCISNQ",
-      "SUBLPDCRENQ": "No data for SUBLPDCRENQ",
-      "SUBLPDHMNQ": "No data for SUBLPDHMNQ",
-      "STDSOTHER": "No data for STDSOTHER"
-    },
+    "total_series": 51,
+    "available_count": 51,
+    "unavailable_series": {},
     "summary_by_cat": {
       "balance_sheet": {
         "n_firing": 1,
@@ -59,7 +46,7 @@
         ]
       },
       "liquidity_facilities": {
-        "n_firing": 1,
+        "n_firing": 2,
         "n_normal": 3,
         "firing_sample": [
           {
@@ -70,12 +57,21 @@
             "yoy": 77.835,
             "signal": "WATCH",
             "reason": "Level 3.48 \u2265 watch 0.5"
+          },
+          {
+            "sid": "WLODL",
+            "label": "Other Liabilities & Capital: Other Liabilities (BTFP proxy)",
+            "value": 242.926,
+            "wow": 0.687,
+            "yoy": 10.653,
+            "signal": "WATCH",
+            "reason": "Level 242.93 \u2265 watch 200"
           }
         ]
       },
       "credit_spreads": {
         "n_firing": 1,
-        "n_normal": 13,
+        "n_normal": 11,
         "firing_sample": [
           {
             "sid": "BAMLH0A3HYC",
@@ -95,10 +91,10 @@
       },
       "lending_standards": {
         "n_firing": 0,
-        "n_normal": 7,
+        "n_normal": 12,
         "firing_sample": []
       }
     }
   },
-  "finished": "2026-05-10T12:23:09.476121+00:00"
+  "finished": "2026-05-10T12:40:47.619845+00:00"
 }
