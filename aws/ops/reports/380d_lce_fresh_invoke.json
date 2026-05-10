@@ -1,0 +1,219 @@
+{
+  "started": "2026-05-10T11:21:36.441698+00:00",
+  "test": {
+    "invoke": {
+      "status": 200,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"ELEVATED\\\", \\\"composite_score\\\": 43.8, \\\"transitions_count\\\": 5}\"}"
+    },
+    "regime": "ELEVATED",
+    "composite": {
+      "score": 43.8,
+      "n_firing": 1,
+      "by_category": {
+        "balance_sheet": 1
+      }
+    },
+    "generated_at": "2026-05-10T11:21:47.681076+00:00",
+    "series": {
+      "WALCL": {
+        "label": "Fed Balance Sheet (total assets)",
+        "category": "balance_sheet",
+        "latest_converted": 6709.505,
+        "latest_raw": 6709505.0,
+        "wow_pct": 0.143,
+        "mom_pct": 0.234,
+        "yoy_pct": -0.021,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "WRESBAL": {
+        "label": "Bank Reserves (depository institutions)",
+        "category": "balance_sheet",
+        "latest_converted": 3032.588,
+        "latest_raw": 3032588.0,
+        "wow_pct": 3.906,
+        "mom_pct": -2.685,
+        "yoy_pct": -5.78,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "WTREGEN": {
+        "label": "Treasury General Account (TGA)",
+        "category": "balance_sheet",
+        "latest_converted": 877.761,
+        "latest_raw": 877761.0,
+        "wow_pct": -10.609,
+        "mom_pct": 17.289,
+        "yoy_pct": 50.372,
+        "signal": "ELEVATED",
+        "reason": "Level 877.76 \u2265 elevated 800"
+      },
+      "RRPONTSYD": {
+        "label": "Overnight Reverse Repo (RRP)",
+        "category": "balance_sheet",
+        "latest_converted": 0.0008,
+        "latest_raw": 0.787,
+        "wow_pct": 29.654,
+        "mom_pct": 344.633,
+        "yoy_pct": -99.437,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "WSHOMCB": {
+        "label": "Securities Held Outright: Treasuries (broad)",
+        "category": "balance_sheet",
+        "latest_converted": 1981.06,
+        "latest_raw": 1981060.0,
+        "wow_pct": 0.0,
+        "mom_pct": -0.782,
+        "yoy_pct": -8.831,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "RESPPALGUONNWW": {
+        "label": "Securities Held Outright: Treasury Notes & Bonds",
+        "category": "balance_sheet",
+        "latest_converted": 3996.304,
+        "latest_raw": 3996304.0,
+        "wow_pct": 0.021,
+        "mom_pct": 0.052,
+        "yoy_pct": -0.606,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "RESPPNTEPNWW": {
+        "label": "MEMO: Treasury/Agency/MBS Eligible to Be Pledged",
+        "category": "balance_sheet",
+        "latest_converted": 6053.925,
+        "latest_raw": 6053925.0,
+        "wow_pct": 0.169,
+        "mom_pct": 0.638,
+        "yoy_pct": 4.325,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "DPCREDIT": {
+        "label": "Primary Credit (Discount Window)",
+        "category": "liquidity_facilities",
+        "latest_converted": 0.0037,
+        "latest_raw": 3.75,
+        "wow_pct": 0.0,
+        "mom_pct": 0.0,
+        "yoy_pct": -16.667,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "OTHL1690": {
+        "label": "Liquidity & Credit Facilities: Loans 16-90 Day",
+        "category": "liquidity_facilities",
+        "latest_converted": 3.482,
+        "latest_raw": 3482.0,
+        "wow_pct": 17.437,
+        "mom_pct": 1.992,
+        "yoy_pct": 77.835,
+        "signal": "WATCH",
+        "reason": "Level 3.48 \u2265 watch 0.5"
+      },
+      "SWP1690": {
+        "label": "Central Bank Liquidity Swaps: 16-90 Day Maturity",
+        "category": "liquidity_facilities",
+        "latest_converted": 0.0,
+        "latest_raw": 0.0,
+        "wow_pct": null,
+        "mom_pct": null,
+        "yoy_pct": null,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "SWPT": {
+        "label": "Central Bank Liquidity Swaps: TOTAL",
+        "category": "liquidity_facilities",
+        "latest_converted": 0.206,
+        "latest_raw": 206.0,
+        "wow_pct": 930.0,
+        "mom_pct": 96.19,
+        "yoy_pct": 243.333,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "BAMLH0A0HYM2": {
+        "label": "ICE BofA US High Yield Index OAS",
+        "category": "credit_spreads",
+        "latest_converted": 2.79,
+        "latest_raw": 2.79,
+        "wow_pct": -1.413,
+        "mom_pct": -10.577,
+        "yoy_pct": -23.978,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "BAMLH0A3HYC": {
+        "label": "ICE BofA CCC & Lower US High Yield OAS",
+        "category": "credit_spreads",
+        "latest_converted": 9.15,
+        "latest_raw": 9.15,
+        "wow_pct": 0.66,
+        "mom_pct": -6.918,
+        "yoy_pct": -4.687,
+        "signal": "WATCH",
+        "reason": "Level 9.15 \u2265 watch 9.0"
+      },
+      "BAMLHE00EHYIOAS": {
+        "label": "ICE BofA Euro High Yield OAS",
+        "category": "credit_spreads",
+        "latest_converted": 2.73,
+        "latest_raw": 2.73,
+        "wow_pct": -2.5,
+        "mom_pct": -13.057,
+        "yoy_pct": -24.586,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "BAMLEMHBHYCRPIOAS": {
+        "label": "ICE BofA EM High Yield Corp Plus OAS",
+        "category": "credit_spreads",
+        "latest_converted": 3.15,
+        "latest_raw": 3.15,
+        "wow_pct": -3.963,
+        "mom_pct": -16.667,
+        "yoy_pct": -28.082,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "BAMLC0A0CM": {
+        "label": "ICE BofA US Corporate IG OAS",
+        "category": "credit_spreads",
+        "latest_converted": 0.79,
+        "latest_raw": 0.79,
+        "wow_pct": -2.469,
+        "mom_pct": -8.14,
+        "yoy_pct": -24.762,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "HQMCB10YR": {
+        "label": "HQM 10Y Corporate Bond Spot Rate",
+        "category": "corporate_yields",
+        "latest_converted": 5.13,
+        "latest_raw": 5.13,
+        "wow_pct": null,
+        "mom_pct": -0.195,
+        "yoy_pct": -3.752,
+        "signal": "NORMAL",
+        "reason": ""
+      },
+      "DGS10": {
+        "label": "10-Year US Treasury",
+        "category": "corporate_yields",
+        "latest_converted": 4.41,
+        "latest_raw": 4.41,
+        "wow_pct": 0.227,
+        "mom_pct": 1.848,
+        "yoy_pct": 3.521,
+        "signal": "NORMAL",
+        "reason": ""
+      }
+    }
+  },
+  "finished": "2026-05-10T11:21:50.192572+00:00"
+}
