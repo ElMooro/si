@@ -371,10 +371,13 @@ function drawTransitionsOverlay(g, xScale, h, w, transitions) {
   const tt = document.getElementById("tooltip");
 
   // Filter to transitions visible within the x domain
+  // AND with meaningful persistence (>=6 weeks) so the chart isn't noisy.
+  // The pill list still shows all detected transitions for full detail.
   const [xMin, xMax] = xScale.domain();
+  const MIN_PERSISTENCE_FOR_CHART = 6;
   const visible = transitions.filter(tr => {
     const d = new Date(tr.date);
-    return d >= xMin && d <= xMax;
+    return d >= xMin && d <= xMax && (tr.weeks_persisted || 0) >= MIN_PERSISTENCE_FOR_CHART;
   });
 
   // Alternate label positioning to reduce overlap when transitions cluster
@@ -483,7 +486,7 @@ function renderTransitionsList() {
   const last = trans[trans.length - 1];
   lastEl.textContent = "latest: " + last.date + " · " +
     shortPhase(last.from_phase) + "→" + shortPhase(last.to_phase);
-  metaEl.textContent = trans.length + " confirmed (dwell ≥ 3 weeks)";
+  metaEl.textContent = trans.length + " confirmed (dwell ≥ 5 weeks · chart shows persistence ≥ 6w)";
 
   listEl.innerHTML = "";
   // Show oldest → newest left to right

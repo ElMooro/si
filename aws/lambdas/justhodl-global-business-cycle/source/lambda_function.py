@@ -836,8 +836,8 @@ def lambda_handler(event=None, context=None):
           f"({aggregate_history[0]['date'] if aggregate_history else '—'} → "
           f"{aggregate_history[-1]['date'] if aggregate_history else '—'})")
 
-    # Detect confirmed phase transitions (≥3-week dwell filter)
-    transitions = detect_transitions(aggregate_history, min_dwell=3)
+    # Detect confirmed phase transitions (≥5-week dwell filter to reduce noise)
+    transitions = detect_transitions(aggregate_history, min_dwell=5)
     print(f"[gbc-history] detected {len(transitions)} confirmed transitions")
     for tr in transitions:
         print(f"[gbc-history]   {tr['date']} {tr['from_phase']} → {tr['to_phase']} "
