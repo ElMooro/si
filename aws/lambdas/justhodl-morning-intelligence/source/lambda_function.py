@@ -378,11 +378,19 @@ def extract_metrics(data,weights):
             "auction_score": a.get("composite_score") or a.get("score"),
             "auction_regime": a.get("regime"),
         })(),
-        # Liquidity & Credit Engine (FRED + ICE BofA spreads + HQM + SLOOS)
+        # Liquidity & Credit Engine (FRED + ICE BofA spreads + HQM + SLOOS + INTERPRETATION)
         **(lambda l=data.get("liquidity_credit", {}): {
             "lce_regime": l.get("regime"),
             "lce_composite": (l.get("composite") or {}).get("score"),
             "lce_n_firing": (l.get("composite") or {}).get("n_firing"),
+            "lce_posture": (l.get("interpretation") or {}).get("overall_posture"),
+            "lce_confidence": (l.get("interpretation") or {}).get("confidence"),
+            "lce_decisive": (l.get("interpretation") or {}).get("decisive_call"),
+            "lce_pillar_liq": ((l.get("interpretation") or {}).get("pillars") or {}).get("liquidity", {}).get("state"),
+            "lce_pillar_credit": ((l.get("interpretation") or {}).get("pillars") or {}).get("credit", {}).get("state"),
+            "lce_pillar_lending": ((l.get("interpretation") or {}).get("pillars") or {}).get("lending", {}).get("state"),
+            "lce_target_alloc": (l.get("interpretation") or {}).get("target_allocation"),
+            "lce_avoid": (l.get("interpretation") or {}).get("avoid"),
             "tga_b": (l.get("series") or {}).get("WTREGEN", {}).get("latest_value"),
             "tga_signal": (l.get("series") or {}).get("WTREGEN", {}).get("signal"),
             "primary_credit_b": (l.get("series") or {}).get("OTHL1690", {}).get("latest_value"),
@@ -595,8 +603,12 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "VIX_CURVE: spot:"+str(m.get("vix_spot") or "?")+" 3m:"+str(m.get("vix_3m") or "?")+" slope:"+str(m.get("vix_slope_3m_spot") or "?")+" regime:"+str(m.get("vix_curve_regime") or "?"),
         # ═══ Phase 9-11 ═══════════════════════════════════════════════
         "AUCTION_STRESS: "+str(m.get("auction_score") or "?")+"/100 regime:"+str(m.get("auction_regime") or "?"),
-        # ═══ LIQUIDITY & CREDIT ENGINE — Khalid-spec FRED + ICE BofA + SLOOS ══════
-        "LCE_REGIME: "+str(m.get("lce_regime") or "?")+" composite:"+str(m.get("lce_composite") or "?")+"/100 firing:"+str(m.get("lce_n_firing") or 0),
+        # ═══ LIQUIDITY & CREDIT ENGINE — Khalid-spec FRED + ICE BofA + SLOOS + DECISIVE CALL ══════
+        "LCE_REGIME: "+str(m.get("lce_regime") or "?")+" composite:"+str(m.get("lce_composite") or "?")+"/100 firing:"+str(m.get("lce_n_firing") or 0)+" posture:"+str(m.get("lce_posture") or "?")+" confidence:"+str(m.get("lce_confidence") or "?"),
+        "LCE_PILLARS: liquidity="+str(m.get("lce_pillar_liq") or "?")+" credit="+str(m.get("lce_pillar_credit") or "?")+" lending="+str(m.get("lce_pillar_lending") or "?"),
+        "LCE_DECISIVE_CALL: "+str(m.get("lce_decisive") or "?")[:300],
+        "LCE_TARGET_ALLOC: "+(" · ".join(f"{a.get('ticker')} {a.get('weight_pct')}%" for a in (m.get("lce_target_alloc") or [])[:8]) or "?"),
+        "LCE_AVOID: "+(", ".join((m.get("lce_avoid") or [])[:5]) or "none"),
         "LCE_TGA: $"+str(m.get("tga_b") or "?")+"B sig:"+str(m.get("tga_signal") or "?")+" | PRIMARY_CREDIT(OTHL1690): $"+str(m.get("primary_credit_b") or "?")+"B sig:"+str(m.get("primary_credit_signal") or "?")+" | CB_SWAPS(SWPT): $"+str(m.get("cb_swaps_b") or "?")+"B | MBS_held: $"+str(m.get("mbs_b") or "?")+"B",
         "LCE_HY_OAS: BB:"+str(m.get("bb_hy_oas") or "?")+"% B:"+str(m.get("b_hy_oas") or "?")+"% CCC(BAMLH0A3HYC):"+str(m.get("ccc_hy_oas") or "?")+"% sig:"+str(m.get("ccc_hy_signal") or "?")+" | EuroHY:"+str(m.get("euro_hy_oas") or "?")+"% | EM_HY:"+str(m.get("em_hy_oas") or "?")+"%",
         "LCE_IG_OAS: US_IG:"+str(m.get("us_ig_oas") or "?")+"% BBB:"+str(m.get("bbb_oas") or "?")+"% | HQM_10y:"+str(m.get("hqm_corp_10y") or "?")+"% HQM_30y:"+str(m.get("hqm_corp_30y") or "?")+"%",

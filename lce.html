@@ -78,6 +78,148 @@
   .pill.acute,   .pill.ACUTE_STRESS,
   .pill.crisis,  .pill.CRISIS  { background:rgba(239,68,68,0.14);  color:#ef4444; }
 
+  /* ── INTERPRETATION SECTION ── */
+  .interp {
+    margin-bottom:18px;
+  }
+  .interp-hero {
+    background:linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(16,185,129,0.02) 100%);
+    border:1px solid var(--border); border-left:3px solid var(--emerald);
+    border-radius:10px; padding:16px 20px; margin-bottom:14px;
+  }
+  .interp-hero .head {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;
+    flex-wrap:wrap; gap:8px;
+  }
+  .interp-hero .title-row {
+    display:flex; align-items:center; gap:10px;
+  }
+  .interp-hero h2 {
+    font-size:14px; letter-spacing:.6px; text-transform:uppercase; color:var(--text-dim);
+    font-weight:700; margin:0;
+  }
+  .interp-hero .conf {
+    font-size:10px; padding:2px 8px; border-radius:4px;
+    background:var(--bg-card-elev); color:var(--text-dim); border:1px solid var(--border);
+  }
+  .interp-hero .decisive {
+    font-size:14px; line-height:1.55; color:var(--text); font-weight:500;
+    padding:10px 0 6px; border-top:1px solid var(--border); margin-top:6px;
+  }
+  .interp-hero .posture {
+    font-size:11px; padding:4px 12px; border-radius:6px; font-weight:700; letter-spacing:.5px;
+    background:rgba(16,185,129,0.14); color:var(--emerald);
+  }
+  .interp-hero .posture.RISK_ON      { background:rgba(34,197,94,0.14); color:#22c55e; }
+  .interp-hero .posture.BALANCED_CAUTIOUS { background:rgba(245,158,11,0.14); color:#f59e0b; }
+  .interp-hero .posture.DEFENSIVE_TILT    { background:rgba(239,107,69,0.14); color:#ef6b45; }
+  .interp-hero .posture.DEFENSIVE_BUNKER  { background:rgba(239,68,68,0.14); color:#ef4444; }
+
+  .interp-grid {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(310px, 1fr));
+    gap:12px; margin-bottom:14px;
+  }
+  .pillar-card {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px;
+  }
+  .pillar-card .ph {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;
+  }
+  .pillar-card .ph-name {
+    font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-weight:700;
+  }
+  .pillar-card .ph-state {
+    font-size:11px; padding:2px 8px; border-radius:4px; font-weight:600;
+  }
+  .pillar-card.liquidity .ph-state.bad   { background:rgba(239,68,68,0.14); color:#ef4444; }
+  .pillar-card .narrative { font-size:12px; line-height:1.55; color:var(--text); margin-top:6px; }
+  .pillar-card .drivers {
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--border);
+    font-size:10.5px; color:var(--text-dim); line-height:1.55;
+  }
+  .pillar-card .drivers li { list-style:none; padding-left:14px; position:relative; margin-bottom:3px; }
+  .pillar-card .drivers li:before { content:"▸"; position:absolute; left:0; color:var(--emerald); }
+
+  .ladder {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+    gap:8px; margin-bottom:14px;
+  }
+  .ladder-cell {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:6px;
+    padding:10px 12px; font-size:11px;
+  }
+  .ladder-cell .name { color:var(--text-dim); font-size:10px; text-transform:uppercase;
+                       letter-spacing:.5px; font-weight:600; }
+  .ladder-cell .sig {
+    font-weight:700; font-size:14px; margin-top:3px;
+  }
+  .ladder-cell .why { color:var(--text-dim); font-size:10.5px; margin-top:3px; line-height:1.45; }
+  .ladder-cell.long-hard  { border-left:3px solid #22c55e; }
+  .ladder-cell.long-hard .sig  { color:#22c55e; }
+  .ladder-cell.long       { border-left:3px solid #4ade80; }
+  .ladder-cell.long .sig       { color:#4ade80; }
+  .ladder-cell.neutral    { border-left:3px solid #94a3b8; }
+  .ladder-cell.neutral .sig    { color:#94a3b8; }
+  .ladder-cell.short      { border-left:3px solid #fb923c; }
+  .ladder-cell.short .sig      { color:#fb923c; }
+  .ladder-cell.short-hard { border-left:3px solid #ef4444; }
+  .ladder-cell.short-hard .sig { color:#ef4444; }
+
+  .alloc {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    padding:14px 18px; margin-bottom:14px;
+  }
+  .alloc h3 {
+    font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.6px;
+    font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .alloc-tbl { width:100%; border-collapse:collapse; font-size:12px; }
+  .alloc-tbl td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .alloc-tbl tr:last-child td { border-bottom:0; }
+  .alloc-tbl .ticker {
+    font-family:ui-monospace, monospace; font-weight:700; font-size:13px; color:var(--text);
+    width:80px;
+  }
+  .alloc-tbl .pct {
+    text-align:right; font-family:ui-monospace, monospace; font-weight:700; color:var(--emerald);
+    font-size:13px; width:80px;
+  }
+  .alloc-tbl .bar-cell { width:25%; padding-right:14px; }
+  .alloc-tbl .bar {
+    height:6px; background:var(--bg-card-elev); border-radius:3px; overflow:hidden;
+  }
+  .alloc-tbl .bar-fill {
+    height:100%; background:linear-gradient(90deg, var(--emerald), #4ade80); border-radius:3px;
+  }
+  .alloc-tbl .reason { color:var(--text-dim); font-size:11.5px; line-height:1.45; }
+
+  .lists-grid {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:12px; margin-bottom:14px;
+  }
+  @media (max-width:900px) { .lists-grid { grid-template-columns:1fr; } }
+  .list-card {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px;
+  }
+  .list-card h4 {
+    font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;
+    font-weight:700; margin-bottom:8px;
+  }
+  .list-card.avoid h4   { color:#ef4444; }
+  .list-card.hedges h4  { color:var(--emerald); }
+  .list-card.risks h4   { color:#f59e0b; }
+  .list-card ul { list-style:none; padding:0; }
+  .list-card li {
+    padding:5px 0; padding-left:14px; position:relative; font-size:11.5px;
+    color:var(--text); line-height:1.55; border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .list-card li:last-child { border-bottom:0; }
+  .list-card.avoid li:before  { content:"✗"; position:absolute; left:0; color:#ef4444; }
+  .list-card.hedges li:before { content:"✓"; position:absolute; left:0; color:var(--emerald); }
+  .list-card.risks li:before  { content:"⚠"; position:absolute; left:0; color:#f59e0b; }
+
   /* ── filter bar ── */
   .filter-bar {
     display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;
@@ -212,6 +354,53 @@
       <div class="k">DECISIVE STATE</div>
       <div class="v" id="decisive" style="font-size:14px">—</div>
       <div class="sub" id="decisiveSub" style="line-height:1.4">—</div>
+    </div>
+  </section>
+
+  <!-- INTERPRETATION & PORTFOLIO ACTIONS -->
+  <section class="interp" id="interp">
+    <!-- Decisive call hero -->
+    <div class="interp-hero">
+      <div class="head">
+        <div class="title-row">
+          <h2>📋 Interpretation &amp; Actions</h2>
+          <span class="conf" id="confLabel">—</span>
+        </div>
+        <span class="posture" id="postureLabel">—</span>
+      </div>
+      <div class="decisive" id="decisiveText">Loading interpretation…</div>
+    </div>
+
+    <!-- 3 pillars -->
+    <div class="interp-grid" id="pillarsGrid">
+      <div class="pillar-card"><div class="skel"></div></div>
+      <div class="pillar-card"><div class="skel"></div></div>
+      <div class="pillar-card"><div class="skel"></div></div>
+    </div>
+
+    <!-- Cross-asset signals ladder -->
+    <div class="ladder" id="crossAssetLadder"></div>
+
+    <!-- Target portfolio allocation -->
+    <div class="alloc" id="allocBlock">
+      <h3>🎯 TARGET PORTFOLIO ALLOCATION <span style="color:var(--text-muted);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none">— based on current LCE state</span></h3>
+      <table class="alloc-tbl" id="allocTbl"><tbody><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table>
+    </div>
+
+    <!-- Avoid / Hedges / Key Risks -->
+    <div class="lists-grid">
+      <div class="list-card avoid">
+        <h4>✗ ASSETS TO AVOID / EXIT</h4>
+        <ul id="avoidList"><li>—</li></ul>
+      </div>
+      <div class="list-card hedges">
+        <h4>✓ HEDGES IN PLACE</h4>
+        <ul id="hedgesList"><li>—</li></ul>
+      </div>
+      <div class="list-card risks">
+        <h4>⚠ KEY RISKS TO THE CALL</h4>
+        <ul id="risksList"><li>—</li></ul>
+      </div>
     </div>
   </section>
 
@@ -380,6 +569,9 @@ function render() {
   document.querySelector('[data-f="all"]').textContent = `ALL (${all})`;
   document.querySelector('[data-f="firing"]').textContent = `FIRING ONLY (${firing})`;
 
+  // ── INTERPRETATION ──
+  renderInterpretation(d.interpretation || null);
+
   // ── CATEGORIES ──
   const root = document.getElementById("categories");
   root.innerHTML = "";
@@ -478,6 +670,122 @@ function render() {
     `;
     root.appendChild(sec);
   }
+}
+
+function renderInterpretation(interp) {
+  if (!interp || interp.error) {
+    document.getElementById("decisiveText").textContent =
+      interp ? "Interpretation unavailable: " + interp.error :
+                "Interpretation will appear after next engine run.";
+    return;
+  }
+
+  // Decisive call + posture
+  document.getElementById("decisiveText").innerHTML = interp.decisive_call || "—";
+  const post = (interp.overall_posture || "").replace(/_/g, " ");
+  const postEl = document.getElementById("postureLabel");
+  postEl.textContent = post;
+  postEl.className = "posture " + (interp.overall_posture || "");
+  document.getElementById("confLabel").textContent =
+    "Confidence: " + (interp.confidence || "—");
+
+  // Pillars
+  const pillars = interp.pillars || {};
+  const pillarsGrid = document.getElementById("pillarsGrid");
+  const pillarMeta = {
+    liquidity: { icon:"💧", label:"LIQUIDITY",
+                  states:{ABUNDANT:"good", DRAINING:"watch", STRESSED:"bad", CRISIS:"crisis"} },
+    credit:    { icon:"📉", label:"CREDIT",
+                  states:{HEALTHY:"good", WIDENING:"watch", STRESSED:"bad", PANIC:"crisis"} },
+    lending:   { icon:"🏦", label:"BANK LENDING (SLOOS)",
+                  states:{EASY:"good", MILD_TIGHTENING:"watch", TIGHTENING:"bad", RECESSION_LEVEL:"crisis"} }
+  };
+  pillarsGrid.innerHTML = "";
+  for (const key of ["liquidity","credit","lending"]) {
+    const p = pillars[key] || {};
+    const meta = pillarMeta[key];
+    const stateColor = (meta.states[p.state] || "good");
+    const stateColorClass = {
+      good:'background:rgba(34,197,94,0.14);color:#22c55e',
+      watch:'background:rgba(245,158,11,0.14);color:#f59e0b',
+      bad:'background:rgba(239,107,69,0.14);color:#ef6b45',
+      crisis:'background:rgba(239,68,68,0.14);color:#ef4444'
+    }[stateColor];
+
+    const driversHTML = (p.drivers || []).slice(0, 5)
+      .map(d => `<li>${d}</li>`).join("");
+
+    const card = document.createElement("div");
+    card.className = "pillar-card";
+    card.innerHTML = `
+      <div class="ph">
+        <div class="ph-name">${meta.icon} ${meta.label}</div>
+        <span class="ph-state" style="${stateColorClass}">${(p.state||"—").replace(/_/g," ")}</span>
+      </div>
+      <div class="narrative">${p.narrative || "—"}</div>
+      ${driversHTML ? `<ul class="drivers">${driversHTML}</ul>` : ""}
+    `;
+    pillarsGrid.appendChild(card);
+  }
+
+  // Cross-asset ladder
+  const ca = interp.cross_asset || {};
+  const ladder = document.getElementById("crossAssetLadder");
+  ladder.innerHTML = "";
+  const sigCls = {2:"long-hard",1:"long",0:"neutral",[-1]:"short",[-2]:"short-hard"};
+  const sigLbl = {2:"LONG HARD ↑↑",1:"LONG ↑",0:"NEUTRAL —",[-1]:"UNDERWEIGHT ↓",[-2]:"AVOID / SHORT ↓↓"};
+  const niceName = {us_large_equity:"US Large Cap (SPY/QQQ)", us_small_cap:"US Small Cap (IWM)",
+                     long_duration:"Long Duration (TLT)", gold:"Gold (GLD)", dollar:"Dollar (UUP)",
+                     high_yield:"High Yield (HYG)", emerging_markets:"Emerging Mkts (EEM)",
+                     bitcoin:"Bitcoin (BTC)"};
+  const order = ["us_large_equity","us_small_cap","long_duration","gold","dollar",
+                  "high_yield","emerging_markets","bitcoin"];
+  for (const k of order) {
+    if (!ca[k]) continue;
+    const cls = sigCls[ca[k].signal] || "neutral";
+    const lbl = sigLbl[ca[k].signal] || "—";
+    const cell = document.createElement("div");
+    cell.className = "ladder-cell " + cls;
+    cell.innerHTML = `
+      <div class="name">${niceName[k]||k}</div>
+      <div class="sig">${lbl}</div>
+      <div class="why">${ca[k].rationale || ""}</div>
+    `;
+    ladder.appendChild(cell);
+  }
+
+  // Target allocation
+  const alloc = interp.target_allocation || [];
+  const tbody = document.getElementById("allocTbl").querySelector("tbody");
+  if (alloc.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty">No allocations</td></tr>`;
+  } else {
+    const max = Math.max(...alloc.map(a => a.weight_pct));
+    tbody.innerHTML = alloc.map(a => `
+      <tr>
+        <td class="ticker">${a.ticker}</td>
+        <td class="pct">${a.weight_pct}%</td>
+        <td class="bar-cell">
+          <div class="bar"><div class="bar-fill" style="width:${(a.weight_pct/max*100).toFixed(0)}%"></div></div>
+        </td>
+        <td class="reason">${a.rationale || ""}</td>
+      </tr>
+    `).join("");
+  }
+
+  // Avoid / Hedges / Risks
+  document.getElementById("avoidList").innerHTML =
+    (interp.avoid && interp.avoid.length)
+      ? interp.avoid.map(a => `<li>${a}</li>`).join("")
+      : `<li style="color:var(--text-muted)">None — risk-on environment</li>`;
+  document.getElementById("hedgesList").innerHTML =
+    (interp.hedges && interp.hedges.length)
+      ? interp.hedges.map(h => `<li>${h}</li>`).join("")
+      : `<li style="color:var(--text-muted)">None required at this state</li>`;
+  document.getElementById("risksList").innerHTML =
+    (interp.key_risks && interp.key_risks.length)
+      ? interp.key_risks.map(r => `<li>${r}</li>`).join("")
+      : `<li style="color:var(--text-muted)">—</li>`;
 }
 
 function decisiveCall(d) {

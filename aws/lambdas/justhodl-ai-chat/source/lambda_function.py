@@ -175,9 +175,25 @@ def build_context(message):
         lce_regime = lce.get('regime')
         comp = lce.get('composite') or {}
         ser = lce.get('series') or {}
+        interp = lce.get('interpretation') or {}
         def _v(sid): return (ser.get(sid) or {}).get('latest_value')
         def _s(sid): return (ser.get(sid) or {}).get('signal')
         lines.append(f"[LCE REGIME] {lce_regime} composite={comp.get('score')}/100 firing={comp.get('n_firing')}")
+        # ── INTERPRETATION & CALL ──
+        if interp:
+            pillars = interp.get('pillars') or {}
+            lq = (pillars.get('liquidity') or {}).get('state')
+            cr = (pillars.get('credit') or {}).get('state')
+            ld = (pillars.get('lending') or {}).get('state')
+            lines.append(f"[LCE INTERPRETATION] posture={interp.get('overall_posture')} confidence={interp.get('confidence')}")
+            lines.append(f"[LCE PILLARS] liquidity={lq} credit={cr} lending={ld}")
+            lines.append(f"[LCE DECISIVE CALL] {interp.get('decisive_call')}")
+            ta = interp.get('target_allocation') or []
+            if ta:
+                lines.append(f"[LCE TARGET ALLOCATION] " + " · ".join(f"{a.get('ticker')} {a.get('weight_pct')}%" for a in ta[:8]))
+            avd = interp.get('avoid') or []
+            if avd:
+                lines.append(f"[LCE AVOID] " + ", ".join(avd[:6]))
         lines.append(f"[LCE BALANCE-SHEET] WALCL ${_v('WALCL')}B  WRESBAL ${_v('WRESBAL')}B  TGA ${_v('WTREGEN')}B sig={_s('WTREGEN')}  "
                      f"MBS ${_v('MBST')}B  Currency_in_circ ${_v('WCURCIR')}B  RRP ${_v('RRPONTSYD')}B")
         lines.append(f"[LCE FACILITIES] PrimaryCredit(OTHL1690) ${_v('OTHL1690')}B sig={_s('OTHL1690')}  "

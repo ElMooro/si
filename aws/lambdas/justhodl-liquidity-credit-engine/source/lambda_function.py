@@ -529,6 +529,406 @@ def detect_transitions(current, prior):
 
 
 # ────────────────────────────────────────────────────────────────────────
+# INTERPRETATION ENGINE
+# Translates the 51-series LCE state into:
+#   - Per-pillar narrative (liquidity / credit / lending)
+#   - Cross-asset implications (stocks / bonds / gold / dollar / btc / hy / em)
+#   - Concrete portfolio target allocation with rationale
+#   - Explicit hedges + assets to avoid
+#   - Key risks that would change the call
+# Output is baked into the LCE JSON so morning-intel, ai-chat, allocator,
+# and the /lce.html page all read the same coherent interpretation.
+# ────────────────────────────────────────────────────────────────────────
+RANK = {"NORMAL": 0, "WATCH": 1, "ELEVATED": 2, "CRISIS": 3}
+
+
+def _worst_in_cat(by_cat, series, cat):
+    worst = "NORMAL"
+    for sid in by_cat.get(cat, []):
+        sig = (series.get(sid) or {}).get("signal", "NORMAL")
+        if RANK.get(sig, 0) > RANK.get(worst, 0):
+            worst = sig
+    return worst
+
+
+def _v(series, sid):
+    return (series.get(sid) or {}).get("latest_value")
+
+
+def _firing(series, sid):
+    return (series.get(sid) or {}).get("signal", "NORMAL") in ("WATCH", "ELEVATED", "CRISIS")
+
+
+def interpret_state(output):
+    """Produce a coherent interpretation + portfolio recommendation from LCE state.
+       Returns a dict with liquidity/credit/lending narrative, cross-asset signals,
+       target portfolio allocation, hedges, avoids, key risks, decisive call."""
+    series = output.get("series", {})
+    by_cat = output.get("by_category", {})
+    regime = output.get("regime", "NORMAL")
+    composite = (output.get("composite") or {}).get("score", 0)
+
+    # ── Pillar states ──
+    bs_worst = _worst_in_cat(by_cat, series, "balance_sheet")
+    fac_worst = _worst_in_cat(by_cat, series, "liquidity_facilities")
+    cs_worst = _worst_in_cat(by_cat, series, "credit_spreads")
+    cy_worst = _worst_in_cat(by_cat, series, "corporate_yields")
+    ls_worst = _worst_in_cat(by_cat, series, "lending_standards")
+
+    liq_rank = max(RANK.get(bs_worst, 0), RANK.get(fac_worst, 0))
+    cr_rank = max(RANK.get(cs_worst, 0), RANK.get(cy_worst, 0))
+    ls_rank = RANK.get(ls_worst, 0)
+
+    state_label = {0: "ABUNDANT", 1: "DRAINING", 2: "STRESSED", 3: "CRISIS"}
+    state_label_credit = {0: "HEALTHY", 1: "WIDENING", 2: "STRESSED", 3: "PANIC"}
+    state_label_lending = {0: "EASY", 1: "MILD_TIGHTENING", 2: "TIGHTENING", 3: "RECESSION_LEVEL"}
+
+    liq_state = state_label[liq_rank]
+    credit_state = state_label_credit[cr_rank]
+    lending_state = state_label_lending[ls_rank]
+
+    # ── Specific drivers per pillar (only include firing) ──
+    liq_drivers = []
+    walcl_wow = (series.get("WALCL") or {}).get("wow_pct")
+    wresbal_wow = (series.get("WRESBAL") or {}).get("wow_pct")
+    tga = _v(series, "WTREGEN")
+    rrp = _v(series, "RRPONTSYD")
+    primary_credit = _v(series, "OTHL1690")
+    cb_swaps = _v(series, "SWPT")
+    btfp_proxy = _v(series, "WLODL")
+    discount = _v(series, "DPCREDIT")
+
+    if walcl_wow is not None and walcl_wow < -0.3:
+        liq_drivers.append(f"Fed balance sheet shrinking {walcl_wow:.2f}%/wk (active QT)")
+    if wresbal_wow is not None and wresbal_wow < -1.5:
+        liq_drivers.append(f"Bank reserves draining {wresbal_wow:.1f}%/wk")
+    if tga and tga > 800:
+        liq_drivers.append(f"TGA ${tga:.0f}B above $800B watch — Treasury issuance draining liquidity")
+    if rrp is not None and rrp < 200:
+        liq_drivers.append(f"RRP ${rrp:.0f}B near-zero — MMF backstop nearly exhausted")
+    if primary_credit and primary_credit > 0.5:
+        liq_drivers.append(f"Primary credit ${primary_credit:.2f}B — banks accessing discount window")
+    if cb_swaps and cb_swaps > 1:
+        liq_drivers.append(f"CB swap lines ${cb_swaps:.1f}B drawn — FX dollar shortage abroad")
+    if btfp_proxy and btfp_proxy > 200:
+        liq_drivers.append(f"Other liabilities ${btfp_proxy:.0f}B (BTFP-proxy) elevated")
+    if discount and discount > 2:
+        liq_drivers.append(f"Discount window ${discount:.1f}B — funding stress")
+
+    cr_drivers = []
+    hy_master = _v(series, "BAMLH0A0HYM2")
+    ccc = _v(series, "BAMLH0A3HYC")
+    bb = _v(series, "BAMLH0A1HYBB")
+    b = _v(series, "BAMLH0A2HYB")
+    bbb = _v(series, "BAMLC0A4CBBB")
+    ig = _v(series, "BAMLC0A0CM")
+    aaa = _v(series, "BAMLC0A1CAAA")
+    euro_hy = _v(series, "BAMLHE00EHYIOAS")
+    em_hy = _v(series, "BAMLEMHBHYCRPIOAS")
+
+    if ccc and ccc > 9:
+        cr_drivers.append(f"CCC HY OAS {ccc:.2f}% (canary stressed; GFC peak 22%, COVID 19%)")
+    if hy_master and hy_master > 5:
+        cr_drivers.append(f"US HY OAS {hy_master:.2f}%")
+    if bbb and bbb > 1.8:
+        cr_drivers.append(f"BBB OAS {bbb:.2f}% (fallen-angel watch)")
+    if euro_hy and euro_hy > 5:
+        cr_drivers.append(f"Euro HY OAS {euro_hy:.2f}%")
+    if em_hy and em_hy > 7:
+        cr_drivers.append(f"EM HY OAS {em_hy:.2f}%")
+    # Quality migration check
+    if bb and b and (b - bb) > 3:
+        cr_drivers.append(f"B-BB spread compression {(b-bb):.2f}% (quality differentiation)")
+
+    ls_drivers = []
+    ci_lg = _v(series, "DRTSCILM")
+    ci_sm = _v(series, "DRTSCIS")
+    ci_dem_lg = _v(series, "DRSDCILM")
+    cre_construction = _v(series, "SUBLPDRCSC")
+    cre_nonres = _v(series, "SUBLPDRCSN")
+    cre_multi = _v(series, "SUBLPDRCSM")
+    cc_tightening = _v(series, "DRTSCLCC")
+    auto_tightening = _v(series, "STDSAUTO")
+    willingness = _v(series, "DRIWCIL")
+
+    if ci_lg is not None and ci_lg > 10:
+        ls_drivers.append(f"C&I large {ci_lg:.0f}% net tightening")
+    if ci_sm is not None and ci_sm > 10:
+        ls_drivers.append(f"C&I small {ci_sm:.0f}%")
+    if ci_dem_lg is not None and ci_dem_lg < -15:
+        ls_drivers.append(f"C&I demand large {ci_dem_lg:.0f}% (capex pullback)")
+    if cre_construction is not None and cre_construction > 15:
+        ls_drivers.append(f"CRE construction {cre_construction:.0f}%")
+    if cre_nonres is not None and cre_nonres > 10:
+        ls_drivers.append(f"CRE nonfarm/nonres {cre_nonres:.0f}%")
+    if cc_tightening is not None and cc_tightening > 10:
+        ls_drivers.append(f"Credit cards {cc_tightening:.0f}%")
+    if auto_tightening is not None and auto_tightening > 10:
+        ls_drivers.append(f"Auto loans {auto_tightening:.0f}%")
+    if willingness is not None and willingness < -10:
+        ls_drivers.append(f"Consumer credit willingness {willingness:.0f}% (pulling back)")
+
+    # ── Build narratives ──
+    if liq_state == "ABUNDANT":
+        liq_narrative = ("System liquidity is abundant. Bank reserves stable, no drawdown of "
+                          "emergency facilities, TGA in normal range. Fed balance sheet trajectory benign.")
+    elif liq_state == "DRAINING":
+        liq_narrative = "Liquidity is gradually tightening — early-cycle stress. " + " · ".join(liq_drivers[:3])
+    elif liq_state == "STRESSED":
+        liq_narrative = "Funding stress emerging — multiple elevated metrics. " + " · ".join(liq_drivers[:4])
+    else:
+        liq_narrative = ("Acute liquidity crisis — emergency facilities active. " + " · ".join(liq_drivers[:5]))
+
+    if credit_state == "HEALTHY":
+        cr_narrative = ("Corporate credit spreads tight across all qualities. Risk appetite for "
+                         "credit intact, no quality migration, defaults quiet.")
+    elif credit_state == "WIDENING":
+        cr_narrative = ("Credit spreads widening at the bottom of the quality spectrum first — "
+                         "early-cycle differentiation. " + " · ".join(cr_drivers[:3]))
+    elif credit_state == "STRESSED":
+        cr_narrative = "Significant credit stress — quality migration evident. " + " · ".join(cr_drivers[:4])
+    else:
+        cr_narrative = "Credit panic — distressed pricing across HY and IG. " + " · ".join(cr_drivers[:5])
+
+    if lending_state == "EASY":
+        ls_narrative = ("Banks at or below midpoint on standards across categories. Credit "
+                         "channel functional; loan demand mixed but not collapsing.")
+    elif lending_state == "MILD_TIGHTENING":
+        ls_narrative = "Modest tightening cycle starting. " + " · ".join(ls_drivers[:3])
+    elif lending_state == "TIGHTENING":
+        ls_narrative = ("Clear tightening cycle — historically recession-prone. "
+                         + " · ".join(ls_drivers[:4]))
+    else:
+        ls_narrative = ("Recession-level tightening across loan categories. "
+                         + " · ".join(ls_drivers[:5]))
+
+    # ── Cross-asset signals (-2 short hard, -1 underweight, 0 neutral, +1 overweight, +2 long hard) ──
+    overall_rank = max(liq_rank, cr_rank, ls_rank, RANK.get(regime, 0))
+    cross_asset = {}
+
+    # US LARGE EQUITY
+    if overall_rank >= 3:
+        cross_asset["us_large_equity"] = {"signal": -2, "rationale": "Crisis regime — risk-asset shock probable"}
+    elif overall_rank == 2:
+        cross_asset["us_large_equity"] = {"signal": -1, "rationale": "Stressed liquidity/credit — multiple compression risk"}
+    elif overall_rank == 1:
+        cross_asset["us_large_equity"] = {"signal": 0,
+                                            "rationale": "Watch state — maintain core but tilt cautious"}
+    else:
+        cross_asset["us_large_equity"] = {"signal": +1, "rationale": "Liquidity abundant — risk-on supported"}
+
+    # US SMALL CAP — most rate/credit-sensitive
+    if overall_rank >= 2 or ls_rank >= 2:
+        cross_asset["us_small_cap"] = {"signal": -2, "rationale": "Small caps most exposed to bank-tightening + funding stress"}
+    elif overall_rank >= 1 or ls_rank >= 1:
+        cross_asset["us_small_cap"] = {"signal": -1, "rationale": "Bank-tightening cycle starting hits IWM first"}
+    else:
+        cross_asset["us_small_cap"] = {"signal": +1, "rationale": "Easy-money regime favors small caps"}
+
+    # LONG DURATION (TLT)
+    if overall_rank >= 2 and (cr_rank >= 2 or ls_rank >= 2):
+        cross_asset["long_duration"] = {"signal": +2, "rationale": "Flight-to-quality + recession bid for duration"}
+    elif overall_rank >= 1:
+        cross_asset["long_duration"] = {"signal": +1, "rationale": "Defensive bid building"}
+    else:
+        cross_asset["long_duration"] = {"signal": 0, "rationale": "No clear duration signal"}
+
+    # GOLD
+    if overall_rank >= 2:
+        cross_asset["gold"] = {"signal": +2, "rationale": "Liquidity/credit stress + rate cuts ahead"}
+    elif overall_rank >= 1:
+        cross_asset["gold"] = {"signal": +1, "rationale": "Hedge against widening stress"}
+    else:
+        cross_asset["gold"] = {"signal": 0, "rationale": "Tactical only"}
+
+    # DOLLAR (UUP)
+    if liq_rank >= 2 or (cb_swaps and cb_swaps > 5):
+        cross_asset["dollar"] = {"signal": +2, "rationale": "FX dollar shortage / safe-haven bid"}
+    elif overall_rank >= 1:
+        cross_asset["dollar"] = {"signal": +1, "rationale": "Defensive USD bid in tightening cycle"}
+    else:
+        cross_asset["dollar"] = {"signal": -1, "rationale": "Easy liquidity weakens USD"}
+
+    # HIGH YIELD CREDIT (HYG)
+    if cr_rank >= 2 or ls_rank >= 2:
+        cross_asset["high_yield"] = {"signal": -2, "rationale": "Spreads widening + bank tightening = HY drawdown risk"}
+    elif cr_rank >= 1 or ls_rank >= 1:
+        cross_asset["high_yield"] = {"signal": -1, "rationale": "Credit cycle deteriorating — trim HY"}
+    else:
+        cross_asset["high_yield"] = {"signal": +1, "rationale": "Tight spreads + carry support HYG"}
+
+    # EMERGING MARKETS
+    if liq_rank >= 2 or (cb_swaps and cb_swaps > 5):
+        cross_asset["emerging_markets"] = {"signal": -2, "rationale": "EM hit hardest by USD shortage + risk-off"}
+    elif overall_rank >= 1:
+        cross_asset["emerging_markets"] = {"signal": -1, "rationale": "Tightening USD liquidity weighs on EM"}
+    else:
+        cross_asset["emerging_markets"] = {"signal": +1, "rationale": "Risk-on regime favors EM"}
+
+    # BITCOIN
+    if overall_rank >= 3:
+        cross_asset["bitcoin"] = {"signal": -2, "rationale": "Acute liquidity crisis — BTC initially sells off (then rallies)"}
+    elif overall_rank >= 2:
+        cross_asset["bitcoin"] = {"signal": -1, "rationale": "Risk-off; BTC follows risk assets short-term"}
+    elif overall_rank >= 1:
+        cross_asset["bitcoin"] = {"signal": 0, "rationale": "Mixed — volatile around watch state"}
+    else:
+        cross_asset["bitcoin"] = {"signal": +2, "rationale": "Liquidity abundant + risk-on = BTC tailwind"}
+
+    # ── Portfolio target allocation ──
+    # Baseline (CALM/risk-on): 55% equity, 20% duration, 5% gold, 5% BTC, 5% HY, 10% cash
+    # Tilts come from cross_asset signals.
+    if overall_rank == 0:
+        # CALM
+        posture = "RISK_ON"
+        allocations = [
+            {"ticker": "SPY", "weight_pct": 28, "rationale": "Core US large-cap; liquidity abundant"},
+            {"ticker": "QQQ", "weight_pct": 18, "rationale": "Tech growth on easy-money regime"},
+            {"ticker": "IWM", "weight_pct": 6, "rationale": "Small-cap upside in easy-credit cycle"},
+            {"ticker": "EFA", "weight_pct": 5, "rationale": "DM intl diversifier"},
+            {"ticker": "EEM", "weight_pct": 6, "rationale": "EM benefits from USD softness + risk-on"},
+            {"ticker": "BTC", "weight_pct": 8, "rationale": "Liquidity tailwind for crypto"},
+            {"ticker": "HYG", "weight_pct": 6, "rationale": "Tight spreads + carry"},
+            {"ticker": "IEF", "weight_pct": 8, "rationale": "Mid-curve duration anchor"},
+            {"ticker": "GLD", "weight_pct": 5, "rationale": "Strategic 5% gold hold"},
+            {"ticker": "CASH", "weight_pct": 10, "rationale": "Dry powder"},
+        ]
+        avoid = []
+        hedges = []
+    elif overall_rank == 1:
+        # WATCH — current state
+        posture = "BALANCED_CAUTIOUS"
+        allocations = [
+            {"ticker": "SPY", "weight_pct": 22, "rationale": "Core, modestly trimmed"},
+            {"ticker": "QQQ", "weight_pct": 14, "rationale": "Mega-cap quality preferred over breadth"},
+            {"ticker": "IWM", "weight_pct": 3, "rationale": "Underweight — small caps vulnerable to bank tightening"},
+            {"ticker": "EFA", "weight_pct": 5, "rationale": "DM intl unchanged"},
+            {"ticker": "EEM", "weight_pct": 4, "rationale": "Modest underweight on USD tailwind"},
+            {"ticker": "BTC", "weight_pct": 5, "rationale": "Trim crypto on watch state"},
+            {"ticker": "HYG", "weight_pct": 3, "rationale": "Underweight — credit spreads at watch level"},
+            {"ticker": "TLT", "weight_pct": 8, "rationale": "Add long duration as defensive bid"},
+            {"ticker": "IEF", "weight_pct": 10, "rationale": "Mid-curve overweight"},
+            {"ticker": "GLD", "weight_pct": 8, "rationale": "Increase gold hedge"},
+            {"ticker": "UUP", "weight_pct": 3, "rationale": "Modest USD hedge"},
+            {"ticker": "CASH", "weight_pct": 15, "rationale": "Raise cash from 10% baseline"},
+        ]
+        avoid = ["KRE (regional banks)", "Junk-rated CCC names", "Frontier-market debt"]
+        hedges = ["GLD (8%)", "TLT (8%)", "Cash (15%)"]
+    elif overall_rank == 2:
+        # ELEVATED
+        posture = "DEFENSIVE_TILT"
+        allocations = [
+            {"ticker": "SPY", "weight_pct": 15, "rationale": "Underweight — multiple compression risk"},
+            {"ticker": "QQQ", "weight_pct": 10, "rationale": "Mega-cap quality only"},
+            {"ticker": "IWM", "weight_pct": 0, "rationale": "EXIT small caps — bank-tightening exposure"},
+            {"ticker": "EEM", "weight_pct": 0, "rationale": "EXIT EM — USD shortage hits hardest"},
+            {"ticker": "EFA", "weight_pct": 3, "rationale": "Partial DM intl"},
+            {"ticker": "BTC", "weight_pct": 3, "rationale": "Trim crypto significantly"},
+            {"ticker": "HYG", "weight_pct": 0, "rationale": "EXIT high yield — spread widening"},
+            {"ticker": "TLT", "weight_pct": 18, "rationale": "Long duration overweight"},
+            {"ticker": "IEF", "weight_pct": 12, "rationale": "Mid-curve safety"},
+            {"ticker": "GLD", "weight_pct": 12, "rationale": "Strategic gold overweight"},
+            {"ticker": "UUP", "weight_pct": 7, "rationale": "USD strength on tightening"},
+            {"ticker": "CASH", "weight_pct": 20, "rationale": "Significant cash position"},
+        ]
+        avoid = ["IWM/SP600", "HYG/JNK", "EEM", "FXI/KWEB", "KRE", "URA",
+                  "BDCs (TCPC, ARCC, etc — bank-tightening exposure)",
+                  "Office REITs (BXMT, ARI)"]
+        hedges = ["TLT (18%)", "GLD (12%)", "UUP (7%)", "Cash (20%)"]
+    else:
+        # CRISIS / ACUTE_STRESS
+        posture = "DEFENSIVE_BUNKER"
+        allocations = [
+            {"ticker": "SPY", "weight_pct": 5, "rationale": "Minimal equity — opportunistic only"},
+            {"ticker": "QQQ", "weight_pct": 0, "rationale": "EXIT growth"},
+            {"ticker": "TLT", "weight_pct": 28, "rationale": "Heavy long duration — flight to quality"},
+            {"ticker": "IEF", "weight_pct": 12, "rationale": "Mid-curve safety"},
+            {"ticker": "GLD", "weight_pct": 22, "rationale": "Heavy gold — central-bank rate cuts coming"},
+            {"ticker": "UUP", "weight_pct": 13, "rationale": "USD strength on liquidity stress"},
+            {"ticker": "VXX", "weight_pct": 5, "rationale": "Vol hedge"},
+            {"ticker": "CASH", "weight_pct": 15, "rationale": "Liquidity for opportunistic adds"},
+        ]
+        avoid = ["ALL EQUITY EX MEGA-CAP", "ALL HY", "ALL EM", "BTC", "BDCs",
+                  "Regional banks", "REITs", "Energy MLPs", "Frontier debt"]
+        hedges = ["TLT (28%)", "GLD (22%)", "UUP (13%)", "VXX (5%)", "Cash (15%)"]
+
+    # ── Decisive call (one-sentence) ──
+    if overall_rank == 0:
+        decisive = (f"RISK-ON OK · liquidity {liq_state.lower()} · credit {credit_state.lower()} · "
+                    f"banks {lending_state.lower().replace('_', ' ')} — maintain full risk-asset allocation, "
+                    f"add carry trades, watch for any escalation in firing series.")
+    elif overall_rank == 1:
+        decisive = (f"MONITOR · {liq_state.lower()} liquidity (composite {composite}/100) "
+                    f"+ {credit_state.lower()} credit + {lending_state.lower().replace('_',' ')} bank standards — "
+                    f"trim small caps, EM, and HY by 30%, raise cash to 15%, increase gold and duration "
+                    f"as the canary signals (CCC HY OAS, TGA, primary credit) are already at watch level.")
+    elif overall_rank == 2:
+        decisive = (f"DEFENSIVE TILT · {liq_state.lower()} liquidity + {credit_state.lower()} credit "
+                    f"+ {lending_state.lower().replace('_',' ')} lending — exit small caps, EM, HY entirely, "
+                    f"shift 40-50% of portfolio to TLT/GLD/UUP/cash, hedge equity beta with VXX or puts.")
+    else:
+        decisive = (f"CRISIS POSTURE · acute stress across pillars (composite {composite}/100) — "
+                    f"reduce equity to <10%, deploy heavy duration + gold + dollar + cash, expect "
+                    f"opportunistic re-entry only after credit spreads + reserves stabilize for 2+ weeks.")
+
+    # ── Key risks (things that would change the call) ──
+    key_risks = []
+    if overall_rank == 0:
+        key_risks = ["TGA crossing $800B (Treasury issuance front-loaded)",
+                      "CCC HY OAS crossing 9% (canary for risk appetite)",
+                      "C&I large tightening crossing +10% in next SLOOS",
+                      "Primary credit usage > $0.5B for two consecutive weeks"]
+    elif overall_rank == 1:
+        key_risks = ["CCC HY OAS crossing 12% (escalation to ELEVATED)",
+                      "Bank reserves dropping >2%/wk (QT acceleration)",
+                      "CB swap lines drawn (FX dollar shortage)",
+                      "Primary credit > $5B (banks systemically borrowing)",
+                      "Next SLOOS showing >25% net tightening on C&I or CRE"]
+    elif overall_rank == 2:
+        key_risks = ["CCC HY OAS crossing 18% (panic level)",
+                      "Bank reserves dropping >5%/wk",
+                      "BTFP-proxy or emergency facilities expanding rapidly",
+                      "Quality migration accelerating (BBB widening to 3%+)"]
+    else:
+        key_risks = ["Watch for credit-spread peak + reverse for re-entry signal",
+                      "Bank reserves stabilizing for 2+ weeks",
+                      "Fed pivot announcement",
+                      "TGA drawdown / new issuance pause"]
+
+    # ── Confidence in the call ──
+    # High confidence if multiple pillars agree; lower if mixed.
+    pillars_agreeing = sum(1 for r in [liq_rank, cr_rank, ls_rank] if r == overall_rank)
+    if pillars_agreeing >= 2:
+        confidence = "HIGH"
+    elif pillars_agreeing == 1 and overall_rank > 0:
+        confidence = "MEDIUM"
+    else:
+        confidence = "LOW"
+
+    return {
+        "as_of": output.get("generated_at"),
+        "regime": regime,
+        "composite_score": composite,
+        "overall_posture": posture,
+        "confidence": confidence,
+        "pillars": {
+            "liquidity": {"state": liq_state, "rank": liq_rank, "narrative": liq_narrative,
+                            "drivers": liq_drivers},
+            "credit":    {"state": credit_state, "rank": cr_rank, "narrative": cr_narrative,
+                            "drivers": cr_drivers},
+            "lending":   {"state": lending_state, "rank": ls_rank, "narrative": ls_narrative,
+                            "drivers": ls_drivers},
+        },
+        "cross_asset": cross_asset,
+        "target_allocation": allocations,
+        "avoid": avoid,
+        "hedges": hedges,
+        "key_risks": key_risks,
+        "decisive_call": decisive,
+    }
+
+
+# ────────────────────────────────────────────────────────────────────────
 # Main
 # ────────────────────────────────────────────────────────────────────────
 def lambda_handler(event=None, context=None):
@@ -588,6 +988,16 @@ def lambda_handler(event=None, context=None):
     }
     transitions = detect_transitions(output, prior)
     output["transitions"] = transitions
+
+    # ── INTERPRETATION & RECOMMENDATION ──
+    # Generated dynamically from the same data. Bakes liquidity/credit/lending
+    # narrative + concrete portfolio target into the JSON so morning-intel,
+    # ai-chat, allocator, and /lce.html all see the same coherent read.
+    try:
+        output["interpretation"] = interpret_state(output)
+    except Exception as e:
+        print(f"[lce] interpret_state failed: {e}")
+        output["interpretation"] = {"error": str(e)[:200]}
 
     S3.put_object(
         Bucket=BUCKET, Key=OUTPUT_KEY,
