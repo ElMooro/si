@@ -1,0 +1,158 @@
+{
+  "started": "2026-05-10T13:08:09.438311+00:00",
+  "test": {
+    "regime": "WATCH",
+    "composite": {
+      "score": 18.1,
+      "n_firing": 0,
+      "by_category": {}
+    },
+    "n_series": 51,
+    "interp_present": true,
+    "interp_error": null,
+    "posture": "BALANCED_CAUTIOUS",
+    "confidence": "HIGH",
+    "decisive_call": "MONITOR \u00b7 draining liquidity (composite 18.1/100) + widening credit + easy bank standards \u2014 trim small caps, EM, and HY by 30%, raise cash to 15%, increase gold and duration as the canary signals (CCC HY OAS, TGA, primary credit) are already at watch level.",
+    "pillars": {
+      "liquidity": {
+        "state": "DRAINING",
+        "rank": 1,
+        "narrative": "Liquidity is gradually tightening \u2014 early-cycle stress. TGA $878B above $800B watch \u2014 Treasury issuance draining liquidity \u00b7 RRP $0B near-zero \u2014 MMF backstop nearly exhausted \u00b7 Primary credit $3.48B \u2014 banks accessing discount window",
+        "drivers": [
+          "TGA $878B above $800B watch \u2014 Treasury issuance draining liquidity",
+          "RRP $0B near-zero \u2014 MMF backstop nearly exhausted",
+          "Primary credit $3.48B \u2014 banks accessing discount window",
+          "Other liabilities $243B (BTFP-proxy) elevated"
+        ]
+      },
+      "credit": {
+        "state": "WIDENING",
+        "rank": 1,
+        "narrative": "Credit spreads widening at the bottom of the quality spectrum first \u2014 early-cycle differentiation. CCC HY OAS 9.15% (canary stressed; GFC peak 22%, COVID 19%)",
+        "drivers": [
+          "CCC HY OAS 9.15% (canary stressed; GFC peak 22%, COVID 19%)"
+        ]
+      },
+      "lending": {
+        "state": "EASY",
+        "rank": 0,
+        "narrative": "Banks at or below midpoint on standards across categories. Credit channel functional; loan demand mixed but not collapsing.",
+        "drivers": []
+      }
+    },
+    "cross_asset": {
+      "us_large_equity": {
+        "signal": 0,
+        "rationale": "Watch state \u2014 maintain core but tilt cautious"
+      },
+      "us_small_cap": {
+        "signal": -1,
+        "rationale": "Bank-tightening cycle starting hits IWM first"
+      },
+      "long_duration": {
+        "signal": 1,
+        "rationale": "Defensive bid building"
+      },
+      "gold": {
+        "signal": 1,
+        "rationale": "Hedge against widening stress"
+      },
+      "dollar": {
+        "signal": 1,
+        "rationale": "Defensive USD bid in tightening cycle"
+      },
+      "high_yield": {
+        "signal": -1,
+        "rationale": "Credit cycle deteriorating \u2014 trim HY"
+      },
+      "emerging_markets": {
+        "signal": -1,
+        "rationale": "Tightening USD liquidity weighs on EM"
+      },
+      "bitcoin": {
+        "signal": 0,
+        "rationale": "Mixed \u2014 volatile around watch state"
+      }
+    },
+    "target_allocation": [
+      {
+        "ticker": "SPY",
+        "weight_pct": 22,
+        "rationale": "Core, modestly trimmed"
+      },
+      {
+        "ticker": "QQQ",
+        "weight_pct": 14,
+        "rationale": "Mega-cap quality preferred over breadth"
+      },
+      {
+        "ticker": "IWM",
+        "weight_pct": 3,
+        "rationale": "Underweight \u2014 small caps vulnerable to bank tightening"
+      },
+      {
+        "ticker": "EFA",
+        "weight_pct": 5,
+        "rationale": "DM intl unchanged"
+      },
+      {
+        "ticker": "EEM",
+        "weight_pct": 4,
+        "rationale": "Modest underweight on USD tailwind"
+      },
+      {
+        "ticker": "BTC",
+        "weight_pct": 5,
+        "rationale": "Trim crypto on watch state"
+      },
+      {
+        "ticker": "HYG",
+        "weight_pct": 3,
+        "rationale": "Underweight \u2014 credit spreads at watch level"
+      },
+      {
+        "ticker": "TLT",
+        "weight_pct": 8,
+        "rationale": "Add long duration as defensive bid"
+      },
+      {
+        "ticker": "IEF",
+        "weight_pct": 10,
+        "rationale": "Mid-curve overweight"
+      },
+      {
+        "ticker": "GLD",
+        "weight_pct": 8,
+        "rationale": "Increase gold hedge"
+      },
+      {
+        "ticker": "UUP",
+        "weight_pct": 3,
+        "rationale": "Modest USD hedge"
+      },
+      {
+        "ticker": "CASH",
+        "weight_pct": 15,
+        "rationale": "Raise cash from 10% baseline"
+      }
+    ],
+    "avoid": [
+      "KRE (regional banks)",
+      "Junk-rated CCC names",
+      "Frontier-market debt"
+    ],
+    "hedges": [
+      "GLD (8%)",
+      "TLT (8%)",
+      "Cash (15%)"
+    ],
+    "key_risks": [
+      "CCC HY OAS crossing 12% (escalation to ELEVATED)",
+      "Bank reserves dropping >2%/wk (QT acceleration)",
+      "CB swap lines drawn (FX dollar shortage)",
+      "Primary credit > $5B (banks systemically borrowing)",
+      "Next SLOOS showing >25% net tightening on C&I or CRE"
+    ]
+  },
+  "finished": "2026-05-10T13:08:16.678848+00:00"
+}
