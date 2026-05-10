@@ -1,0 +1,15 @@
+{
+  "started": "2026-05-10T19:52:09.387439+00:00",
+  "test": {
+    "errorMessage": "An error occurred (AccessDeniedException) when calling the CreateFunction operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-gbc-create is not authorized to perform: iam:PassRole on resource: arn:aws:iam::857687956942:role/lambda-execution-role because no identity-based policy allows the iam:PassRole action",
+    "errorType": "ClientError",
+    "requestId": "393bb100-e6ab-4519-9682-a4b3730f0060",
+    "stackTrace": [
+      "  File \"/var/task/lambda_function.py\", line 41, in lambda_handler\n    lam.create_function(\n",
+      "  File \"/var/lang/lib/python3.12/site-packages/botocore/client.py\", line 602, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n",
+      "  File \"/var/lang/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n",
+      "  File \"/var/lang/lib/python3.12/site-packages/botocore/client.py\", line 1078, in _make_api_call\n    raise error_class(parsed_response, operation_name)\n"
+    ]
+  },
+  "finished": "2026-05-10T19:52:14.106698+00:00"
+}
