@@ -1,0 +1,15 @@
+{
+  "started": "2026-05-10T11:12:06.981911+00:00",
+  "steps": {
+    "lambda": "created",
+    "eventbridge": {
+      "rule": "lce-every-6h"
+    },
+    "initial_run": {
+      "status": 200,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"ACUTE_STRESS\\\", \\\"composite_score\\\": 69.3, \\\"transitions_count\\\": 6}\"}"
+    }
+  },
+  "status": "success",
+  "finished": "2026-05-10T11:12:15.092075+00:00"
+}
