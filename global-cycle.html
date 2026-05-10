@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Business Cycle · JustHodl.AI</title>
-<meta name="description" content="OECD Composite Leading Indicators across 25+ major economies — color-coded world map showing each country's business cycle phase (Expansion · At Risk · Recession · Recovery) with cross-asset portfolio implications.">
+<meta name="description" content="Real-time global business cycle map across 34 major economies — synthetic Composite Leading Indicator built from equity-market momentum (always fresh, ≤3mo per country). Color-coded world map showing each country's business cycle phase (Expansion · At Risk · Recession · Recovery) with cross-asset portfolio implications.">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#8b5cf6">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -165,8 +165,15 @@
   .country-tile.RECESSION { border-left-color:var(--p-recession); }
   .country-tile.RECOVERY  { border-left-color:var(--p-recovery); }
   .country-tile.UNKNOWN   { border-left-color:var(--p-unknown); opacity:0.5; }
-  .country-tile .ct-name { font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px; }
+  .country-tile .ct-name { font-weight:600; color:var(--text); display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
   .country-tile .ct-cli  { color:var(--text-dim); font-family:ui-monospace, monospace; font-size:10px; margin-top:2px; }
+  .country-tile .fresh-tag {
+    margin-left:auto; font-size:9px; font-weight:600; padding:1px 5px;
+    border-radius:8px; font-family:ui-monospace, monospace;
+  }
+  .country-tile .fresh-tag.fresh-ok    { background:rgba(34,197,94,.16); color:var(--p-expansion); }
+  .country-tile .fresh-tag.fresh-warn  { background:rgba(245,158,11,.16); color:var(--p-atrisk); }
+  .country-tile .fresh-tag.fresh-stale { background:rgba(239,68,68,.16); color:var(--p-recession); }
   .country-tile .ct-trend { float:right; font-size:10px; }
   .country-tile .ct-trend.up   { color:var(--p-expansion); }
   .country-tile .ct-trend.down { color:var(--p-recession); }
@@ -237,7 +244,7 @@
   <header class="header">
     <div>
       <h1 class="title">🌍 <span class="accent">GLOBAL BUSINESS CYCLE</span></h1>
-      <div class="subtitle">OECD Composite Leading Indicator across 35 major economies · 4-phase classification · auto-updates daily</div>
+      <div class="subtitle">Synthetic Composite Leading Indicator across 34 major economies · equity-momentum-based · real-time (≤3mo per country) · 4-phase classification · auto-updates daily</div>
     </div>
     <div style="text-align:right">
       <div id="genTime" class="mono" style="font-size:11px;color:var(--text-dim)">loading…</div>
@@ -260,6 +267,9 @@
       <div class="v" id="pctRecession">—%</div><div class="sub">CLI &lt;100, falling</div></div>
     <div class="hero-stat"><div class="k">COUNTRIES</div>
       <div class="v" id="countryCount">—</div><div class="sub" id="weightCovered">— % world GDP</div></div>
+    <div class="hero-stat"><div class="k">DATA FRESHNESS</div>
+      <div class="v" id="freshCount" style="color:var(--p-expansion)">—</div>
+      <div class="sub" id="freshSub">≤3 months stale per country</div></div>
   </section>
 
   <!-- Decisive call -->
@@ -309,22 +319,38 @@
 
   <!-- Methodology -->
   <section class="meth">
-    <strong>📚 Methodology</strong>
+    <strong>📚 Methodology &nbsp;·&nbsp; v2.0 Synthetic Composite Leading Indicator</strong>
     <p style="margin-top:6px">
-      This engine pulls the OECD <strong>Composite Leading Indicator (CLI)</strong> for 35 major economies from
-      FRED (series pattern <code>{ISO3}LOLITONOSTSAM</code>), the same family of indicators Moody's Analytics uses
-      as a foundation for their map. CLIs are designed to provide early signals of turning points in business cycles.
+      The OECD's published Composite Leading Indicator (CLI) series via FRED stopped updating in
+      <strong>January 2024</strong> (28+ months stale at time of writing); OECD's own SDMX REST API also
+      returns 404/429 for these dataflows. To deliver a useful real-time global cycle map, this engine
+      constructs a <strong>synthetic CLI per country from equity-market momentum</strong>, which is a
+      well-documented leading indicator typically leading economic activity by 6-12 months.
     </p>
     <p style="margin-top:6px">
-      Each country is classified into one of four phases based on the CLI level (vs. the long-run trend of 100)
-      and its 6-month change direction. The breadth across countries — GDP-weighted — drives the
-      <strong>global phase</strong>, which propagates into the Khalid Index, risk dashboard, allocator,
-      morning brief, and AI chat.
+      <strong>Inputs:</strong> Yahoo Finance daily price history for each country's primary equity index
+      (e.g. <code>^GSPC</code> for USA, <code>^N225</code> for Japan, <code>^GDAXI</code> for Germany,
+      <code>^FTSE</code> for UK, <code>^BSESN</code> for India, <code>000001.SS</code> for China,
+      <code>EPOL</code> for Poland, <code>ECH</code> for Chile). For USA + China, the equity composite
+      is blended 75/25 with fresh OECD Consumer/Business Confidence (still fresh on FRED for those two:
+      <code>USACSCICP02STSAM</code>, <code>CHNBSCICP02STSAM</code>).
+    </p>
+    <p style="margin-top:6px">
+      <strong>Composite formula:</strong>
+      <code>composite_pct = 0.35×ret_12m + 0.25×dist_200ma + 0.25×ret_3m + 0.15×ret_1m</code>;
+      <code>CLI = 100 + composite_pct × 0.5</code>, capped to [80, 120]. Each country is then classified
+      into <em>EXPANSION</em>, <em>AT_RISK</em>, <em>RECESSION</em>, or <em>RECOVERY</em> based on the
+      CLI level (vs. trend of 100) and the 3-month return direction. The breadth across countries —
+      GDP-weighted — drives the <strong>global phase</strong>, which propagates into the Khalid Index,
+      risk dashboard, allocator, morning brief, and AI chat.
     </p>
     <p style="margin-top:6px;color:var(--text-muted);font-size:11px">
-      Data: <a href="https://fred.stlouisfed.org/searchresults?st=LOLITONOSTSAM">FRED · OECD Composite Leading Indicators</a> ·
-      Engine source: <code>justhodl-global-business-cycle</code> ·
-      Schedule: daily · S3 output: <code>data/global-business-cycle.json</code> · Schema 1.0
+      Sources: <a href="https://finance.yahoo.com">Yahoo Finance Chart API</a> (real-time equity)
+      &middot; <a href="https://fred.stlouisfed.org">FRED · OECD CCI/BCI</a> (USA + CHN supplements) &middot;
+      Engine: <code>justhodl-global-business-cycle</code> &middot;
+      Schedule: daily 12:00 UTC &middot;
+      S3 output: <code>data/global-business-cycle.json</code> &middot; Schema 2.0 &middot;
+      Engine type: <code>synthetic_equity_momentum</code>
     </p>
   </section>
 
@@ -390,6 +416,25 @@ function render() {
   document.getElementById("weightCovered").textContent =
     (agg.total_weight_covered || 0).toFixed(1) + "% world GDP";
 
+  // Freshness pill
+  const freshN = DATA.countries_with_fresh_data || 0;
+  const totalN = DATA.countries_total || Object.keys(byCountry).length;
+  const freshEl = document.getElementById("freshCount");
+  const freshSub = document.getElementById("freshSub");
+  if (freshEl) {
+    freshEl.textContent = freshN + "/" + totalN;
+    const ratio = totalN > 0 ? freshN / totalN : 0;
+    freshEl.style.color = ratio >= 0.95 ? "var(--p-expansion)" :
+                            ratio >= 0.8  ? "var(--p-atrisk)"    :
+                            "var(--p-recession)";
+    if (freshSub) {
+      const stale = totalN - freshN;
+      freshSub.textContent = stale === 0
+        ? "all countries ≤3 months stale"
+        : (stale + " " + (stale === 1 ? "country" : "countries") + " >3 months stale");
+    }
+  }
+
   // Breadth bar
   const bar = document.getElementById("breadthBar");
   bar.innerHTML = "";
@@ -449,9 +494,20 @@ function render() {
       if (!c) return "";
       const trend = c.trend || "flat";
       const trendArrow = trend === "rising" ? "↑" : trend === "falling" ? "↓" : "—";
-      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name}">
-        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span></div>
-        <div class="ct-cli">CLI ${c.cli_level != null ? c.cli_level.toFixed(2) : '—'} · 6m ${fmtPct(c.six_month_change)}</div>
+      const ms = (typeof c.months_stale === "number") ? c.months_stale : null;
+      let freshTag = "";
+      if (ms != null && ms !== 999) {
+        const tone = ms <= 3 ? "fresh-ok" : ms <= 6 ? "fresh-warn" : "fresh-stale";
+        freshTag = `<span class="fresh-tag ${tone}" title="latest data ${c.latest_date || '—'}">${ms}mo</span>`;
+      } else if (ms === 999) {
+        freshTag = `<span class="fresh-tag fresh-stale" title="no data">no data</span>`;
+      }
+      const ret3 = c.three_month_change;
+      const ret12 = c.yoy_change;
+      const cliStr = c.cli_level != null ? c.cli_level.toFixed(2) : '—';
+      return `<div class="country-tile ${c.phase || 'UNKNOWN'}" title="${c.country_name} · ticker ${c.yahoo_symbol || '—'} · latest ${c.latest_date || '—'}">
+        <div class="ct-name">${c.country_name}<span class="ct-trend ${trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : 'flat'}">${trendArrow}</span>${freshTag}</div>
+        <div class="ct-cli">CLI ${cliStr} · 12m ${fmtPct(ret12)} · 3m ${fmtPct(ret3)}</div>
       </div>`;
     }).join("");
     const sec = document.createElement("div");
