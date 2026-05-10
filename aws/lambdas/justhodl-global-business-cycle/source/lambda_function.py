@@ -658,6 +658,51 @@ def aggregate_global_history(history_by_country, country_weights, country_region
     return aggregate_series
 
 
+def detect_transitions(aggregate_series, min_dwell=3):
+    """Detect confirmed global-phase transitions in the aggregate history.
+
+    A transition is recorded only when the new phase PERSISTS for at least
+    `min_dwell` consecutive weekly points — otherwise it's treated as noise
+    (e.g. one-week flip back to MIXED before settling). The recorded date
+    is the FIRST week of the new phase.
+
+    Returns list of dicts:
+      { date, from_phase, to_phase, cli_at_transition,
+        breadth_at_transition, weeks_persisted }
+    where weeks_persisted = how many consecutive weeks the new phase held
+    (until the next transition or end of series)."""
+    if not aggregate_series or len(aggregate_series) < min_dwell:
+        return []
+
+    transitions = []
+    confirmed_phase = aggregate_series[0]["global_phase"]
+    i = 1
+    while i < len(aggregate_series):
+        curr = aggregate_series[i]
+        if curr["global_phase"] != confirmed_phase:
+            new_phase = curr["global_phase"]
+            persists = 1
+            j = i + 1
+            while j < len(aggregate_series) and aggregate_series[j]["global_phase"] == new_phase:
+                persists += 1
+                j += 1
+            if persists >= min_dwell:
+                transitions.append({
+                    "date": curr["date"],
+                    "from_phase": confirmed_phase,
+                    "to_phase": new_phase,
+                    "cli_at_transition": curr["global_avg_cli"],
+                    "breadth_at_transition": curr.get("expansion_breadth_pct"),
+                    "contraction_at_transition": curr.get("contraction_breadth_pct"),
+                    "weeks_persisted": persists,
+                })
+                confirmed_phase = new_phase
+                i = j
+                continue
+        i += 1
+    return transitions
+
+
 # ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
@@ -791,15 +836,24 @@ def lambda_handler(event=None, context=None):
           f"({aggregate_history[0]['date'] if aggregate_history else '—'} → "
           f"{aggregate_history[-1]['date'] if aggregate_history else '—'})")
 
+    # Detect confirmed phase transitions (≥3-week dwell filter)
+    transitions = detect_transitions(aggregate_history, min_dwell=3)
+    print(f"[gbc-history] detected {len(transitions)} confirmed transitions")
+    for tr in transitions:
+        print(f"[gbc-history]   {tr['date']} {tr['from_phase']} → {tr['to_phase']} "
+              f"CLI {tr['cli_at_transition']} · persisted {tr['weeks_persisted']}w")
+
     history_output = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
         "engine_type": "synthetic_equity_momentum_history",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "frequency": "weekly_5d",
         "history_elapsed_sec": round(time.time() - history_started, 1),
         "countries_count": len(history_by_country),
+        "transitions_count": len(transitions),
         "by_country": history_by_country,
         "aggregate": aggregate_history,
+        "transitions": transitions,
     }
 
     S3.put_object(

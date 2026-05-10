@@ -172,6 +172,42 @@
   .tt .ttphase.RECESSION { background:rgba(239,68,68,.18); color:var(--p-recession); }
   .tt .ttphase.RECOVERY  { background:rgba(59,130,246,.18); color:var(--p-recovery); }
 
+  /* Phase transition lines/labels */
+  .transition-line { stroke-width:1.4; stroke-dasharray:4 4; opacity:.7; pointer-events:none; }
+  .transition-line.bullish { stroke:var(--p-expansion); }
+  .transition-line.recovery { stroke:var(--p-recovery); }
+  .transition-line.bearish { stroke:var(--p-recession); }
+  .transition-line.peaking { stroke:var(--p-atrisk); }
+  .transition-line.mixed { stroke:#94a3b8; }
+  .transition-marker { cursor:pointer; pointer-events:all; }
+  .transition-marker:hover .transition-line { opacity:1; stroke-width:2; }
+  .transition-label {
+    font-family:ui-monospace, SF Mono, monospace; font-size:9px; font-weight:600;
+    text-anchor:middle; letter-spacing:.3px;
+  }
+  .transition-label.bullish  { fill:var(--p-expansion); }
+  .transition-label.recovery { fill:var(--p-recovery); }
+  .transition-label.bearish  { fill:var(--p-recession); }
+  .transition-label.peaking  { fill:var(--p-atrisk); }
+  .transition-label.mixed    { fill:#94a3b8; }
+  .transition-dot { r:3; }
+
+  /* Transitions list pills */
+  .trans-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .trans-pill {
+    background:var(--bg-card-elev); border:1px solid var(--border);
+    border-left:3px solid var(--p-unknown);
+    border-radius:4px; padding:5px 9px; font-size:10px; line-height:1.3;
+    font-family:ui-monospace, monospace; color:var(--text-dim);
+  }
+  .trans-pill.bullish  { border-left-color:var(--p-expansion); }
+  .trans-pill.recovery { border-left-color:var(--p-recovery); }
+  .trans-pill.bearish  { border-left-color:var(--p-recession); }
+  .trans-pill.peaking  { border-left-color:var(--p-atrisk); }
+  .trans-pill.mixed    { border-left-color:#94a3b8; }
+  .trans-pill .tp-date { color:var(--text); font-weight:600; }
+  .trans-pill .tp-arrow { color:var(--text-muted); margin:0 3px; }
+
   @media (max-width: 700px) {
     .container { padding:12px; }
     .title { font-size:18px; }
@@ -222,6 +258,17 @@
     <div class="hero-stat"><div class="k">CURRENT GLOBAL PHASE</div>
       <div class="v" id="curPhase">—</div>
       <div class="sub" id="curPhaseDur">— weeks</div></div>
+    <div class="hero-stat"><div class="k">PHASE TRANSITIONS (full history)</div>
+      <div class="v" id="transitionsCount">—</div>
+      <div class="sub" id="lastTransition">latest: —</div></div>
+  </section>
+
+  <!-- Phase transitions list -->
+  <section class="panel">
+    <h2>Phase Transitions <span class="meta" id="transitionsMeta">confirmed = persisted ≥ 3 weeks</span></h2>
+    <div class="trans-list" id="transList">
+      <span class="skel" style="width:200px; height:32px"></span>
+    </div>
   </section>
 
   <!-- Phase mix stacked area -->
@@ -297,6 +344,99 @@ function fmtAge(ts) {
   return Math.round(sec / 86400) + "d ago";
 }
 
+// Classify a transition by the destination phase to pick its color/tone.
+function transitionTone(toPhase) {
+  if (toPhase === "GLOBAL_EXPANSION") return "bullish";
+  if (toPhase === "GLOBAL_RECOVERY")  return "recovery";
+  if (toPhase === "GLOBAL_CONTRACTION") return "bearish";
+  if (toPhase === "GLOBAL_PEAKING")   return "peaking";
+  return "mixed";
+}
+
+// Compact phase label for chart annotation (4 chars max)
+function shortPhase(phase) {
+  return (phase || "").replace("GLOBAL_", "")
+    .replace("EXPANSION","EXP")
+    .replace("CONTRACTION","CONT")
+    .replace("RECOVERY","REC")
+    .replace("PEAKING","PEAK")
+    .replace("MIXED","MIX");
+}
+
+// Draw vertical transition lines + alternating top/bottom labels into a chart `g`.
+// xScale: time scale, h: inner chart height in px, w: inner chart width.
+// transitions: array of transition objects.
+function drawTransitionsOverlay(g, xScale, h, w, transitions) {
+  if (!transitions || !transitions.length) return;
+  const tt = document.getElementById("tooltip");
+
+  // Filter to transitions visible within the x domain
+  const [xMin, xMax] = xScale.domain();
+  const visible = transitions.filter(tr => {
+    const d = new Date(tr.date);
+    return d >= xMin && d <= xMax;
+  });
+
+  // Alternate label positioning to reduce overlap when transitions cluster
+  visible.forEach((tr, i) => {
+    const tone = transitionTone(tr.to_phase);
+    const d = new Date(tr.date);
+    const xp = xScale(d);
+    if (xp < 0 || xp > w) return;
+
+    const marker = g.append("g")
+      .attr("class", "transition-marker")
+      .attr("transform", `translate(${xp},0)`);
+
+    // Vertical line spanning full chart height
+    marker.append("line")
+      .attr("class", "transition-line " + tone)
+      .attr("x1", 0).attr("x2", 0)
+      .attr("y1", 0).attr("y2", h);
+
+    // Dot at top (visible anchor)
+    marker.append("circle")
+      .attr("class", "transition-dot " + tone)
+      .attr("cx", 0).attr("cy", 4)
+      .attr("r", 3)
+      .attr("fill", "currentColor")
+      .style("fill", () => {
+        return tone === "bullish"  ? "var(--p-expansion)" :
+               tone === "recovery" ? "var(--p-recovery)"  :
+               tone === "bearish"  ? "var(--p-recession)" :
+               tone === "peaking"  ? "var(--p-atrisk)"    : "#94a3b8";
+      });
+
+    // Label: alternate above-line vs below-line position to avoid stacking
+    // Even index → above (y = -2 with rotated text), odd → near top with offset
+    const labelOffsetY = (i % 2 === 0) ? -3 : -16;
+    const dateLabel = tr.date.slice(2, 7).replace("-", "/"); // YY/MM
+    marker.append("text")
+      .attr("class", "transition-label " + tone)
+      .attr("x", 0).attr("y", labelOffsetY)
+      .attr("transform", `rotate(-90, 0, ${labelOffsetY})`)
+      .attr("text-anchor", "start")
+      .text(dateLabel + " " + shortPhase(tr.from_phase) + "→" + shortPhase(tr.to_phase));
+
+    // Tooltip
+    marker.on("mouseenter", function(event) {
+      tt.innerHTML =
+        `<div class="ttname">${tr.date} <span class="ttphase ${shortPhase(tr.to_phase)}">${shortPhase(tr.to_phase)}</span></div>` +
+        `<div style="font-size:11px;color:var(--text-dim)">Transition: ${shortPhase(tr.from_phase)} → ${shortPhase(tr.to_phase)}</div>` +
+        `<div class="mono" style="font-size:10px;color:var(--text-muted);margin-top:3px">` +
+          `CLI ${(tr.cli_at_transition || 0).toFixed(2)} · expansion breadth ${(tr.breadth_at_transition || 0).toFixed(1)}% · persisted ${tr.weeks_persisted} weeks</div>`;
+      tt.style.left = (event.pageX + 12) + "px";
+      tt.style.top  = (event.pageY + 12) + "px";
+      tt.style.display = "block";
+    });
+    marker.on("mousemove", function(event) {
+      tt.style.left = (event.pageX + 12) + "px";
+      tt.style.top  = (event.pageY + 12) + "px";
+    });
+    marker.on("mouseleave", () => tt.style.display = "none");
+  });
+}
+
 async function load() {
   try {
     const r = await fetch(SRC + "?cb=" + Date.now());
@@ -320,10 +460,45 @@ function render() {
   if (!DATA) return;
 
   renderHero();
+  renderTransitionsList();
   renderPhaseMix();
   renderGlobalCli();
   renderSparklines();
   renderCompareChart();
+}
+
+function renderTransitionsList() {
+  const trans = (DATA.transitions || []);
+  const listEl = document.getElementById("transList");
+  const countEl = document.getElementById("transitionsCount");
+  const lastEl = document.getElementById("lastTransition");
+  const metaEl = document.getElementById("transitionsMeta");
+
+  countEl.textContent = trans.length;
+  if (trans.length === 0) {
+    lastEl.textContent = "latest: —";
+    listEl.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">No confirmed transitions in this history window.</span>';
+    return;
+  }
+  const last = trans[trans.length - 1];
+  lastEl.textContent = "latest: " + last.date + " · " +
+    shortPhase(last.from_phase) + "→" + shortPhase(last.to_phase);
+  metaEl.textContent = trans.length + " confirmed (dwell ≥ 3 weeks)";
+
+  listEl.innerHTML = "";
+  // Show oldest → newest left to right
+  trans.forEach(tr => {
+    const tone = transitionTone(tr.to_phase);
+    const pill = document.createElement("div");
+    pill.className = "trans-pill " + tone;
+    pill.innerHTML =
+      `<span class="tp-date">${tr.date}</span> &nbsp;` +
+      `${shortPhase(tr.from_phase)}` +
+      `<span class="tp-arrow">→</span>` +
+      `${shortPhase(tr.to_phase)} ` +
+      `<span style="color:var(--text-muted)">· CLI ${(tr.cli_at_transition || 0).toFixed(1)} · ${tr.weeks_persisted}w</span>`;
+    listEl.appendChild(pill);
+  });
 }
 
 function renderHero() {
@@ -426,6 +601,9 @@ function renderPhaseMix() {
     d3.axisLeft(y).ticks(5).tickSize(-w).tickFormat("")
   ).select(".domain").remove();
 
+  // Phase transition overlay (vertical lines + labels on top of areas)
+  drawTransitionsOverlay(g, x, h, w, DATA.transitions || []);
+
   // Hover overlay for tooltip
   const tt = document.getElementById("tooltip");
   const bisect = d3.bisector(d => d.date).left;
@@ -492,6 +670,9 @@ function renderGlobalCli() {
     .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));
   g.append("g").attr("class","grid")
     .call(d3.axisLeft(y).ticks(5).tickSize(-w).tickFormat("")).select(".domain").remove();
+
+  // Phase transition overlay
+  drawTransitionsOverlay(g, x, h, w, DATA.transitions || []);
 
   // Tooltip
   const tt = document.getElementById("tooltip");
