@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-global-business-cycle",
+  "runtime": "python3.12",
+  "timeout": 300,
+  "memory": 512,
+  "description": "Global Business Cycle engine — OECD CLI across 35 economies, 4-phase classification, GDP-weighted regional and global aggregation, interpretation + cross-asset signals. Schedule: daily 12:00 UTC.",
+  "environment": {
+    "FRED_KEY": "2f057499936072679d8843d7fce99989",
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

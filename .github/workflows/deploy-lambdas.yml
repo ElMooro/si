@@ -83,10 +83,24 @@ jobs:
             fi
             echo "──── Deploying $fn ────"
 
-            # Read config
+            # Read config (function_name + create-time config like runtime/timeout/memory/env)
+            fn_runtime="python3.12"
+            fn_timeout="300"
+            fn_memory="512"
+            fn_desc="JustHodl.AI Lambda"
+            fn_env_args=""
             if [ -f "$dir/config.json" ]; then
-              fn_name=$(jq -r '.function_name // empty' "$dir/config.json")
-              [ -n "$fn_name" ] && fn="$fn_name"
+              cfg_name=$(jq -r '.function_name // empty' "$dir/config.json")
+              [ -n "$cfg_name" ] && fn="$cfg_name"
+              fn_runtime=$(jq -r '.runtime // "python3.12"' "$dir/config.json")
+              fn_timeout=$(jq -r '.timeout // 300' "$dir/config.json")
+              fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
+              fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
+              # Build --environment arg from .environment object (only if non-empty)
+              env_kv=$(jq -r '.environment // {} | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
+              if [ -n "$env_kv" ]; then
+                fn_env_args="--environment Variables={$env_kv}"
+              fi
             fi
 
             # Build zip
@@ -94,16 +108,52 @@ jobs:
             (cd "$dir/source" && zip -qr "$tmp/deploy.zip" .)
             echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn"
 
-            # Deploy
-            aws lambda update-function-code \
-              --function-name "$fn" \
-              --zip-file "fileb://$tmp/deploy.zip" \
-              --region "${{ secrets.AWS_REGION }}" \
-              --query 'LastModified' --output text
+            # Check if Lambda exists. If not, create it with defaults / config.json overrides.
+            if aws lambda get-function --function-name "$fn" --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
+              echo "Updating existing Lambda $fn"
+              aws lambda update-function-code \
+                --function-name "$fn" \
+                --zip-file "fileb://$tmp/deploy.zip" \
+                --region "${{ secrets.AWS_REGION }}" \
+                --query 'LastModified' --output text
 
-            aws lambda wait function-updated \
-              --function-name "$fn" \
-              --region "${{ secrets.AWS_REGION }}"
+              aws lambda wait function-updated \
+                --function-name "$fn" \
+                --region "${{ secrets.AWS_REGION }}"
+
+              # Apply config overrides if present (env vars, timeout, memory may have changed)
+              if [ -f "$dir/config.json" ]; then
+                aws lambda update-function-configuration \
+                  --function-name "$fn" \
+                  --timeout "$fn_timeout" \
+                  --memory-size "$fn_memory" \
+                  --region "${{ secrets.AWS_REGION }}" \
+                  $fn_env_args \
+                  --output text > /dev/null
+                aws lambda wait function-updated \
+                  --function-name "$fn" \
+                  --region "${{ secrets.AWS_REGION }}"
+              fi
+            else
+              echo "Lambda $fn does not exist — creating"
+              aws lambda create-function \
+                --function-name "$fn" \
+                --runtime "$fn_runtime" \
+                --role "arn:aws:iam::857687956942:role/lambda-execution-role" \
+                --handler "lambda_function.lambda_handler" \
+                --zip-file "fileb://$tmp/deploy.zip" \
+                --timeout "$fn_timeout" \
+                --memory-size "$fn_memory" \
+                --description "$fn_desc" \
+                --region "${{ secrets.AWS_REGION }}" \
+                $fn_env_args \
+                --output text > /dev/null
+
+              aws lambda wait function-active-v2 \
+                --function-name "$fn" \
+                --region "${{ secrets.AWS_REGION }}"
+              echo "✅ Created new Lambda $fn"
+            fi
 
             echo "✅ $fn deployed"
             rm -rf "$tmp"
