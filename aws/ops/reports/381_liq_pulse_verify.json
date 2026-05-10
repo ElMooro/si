@@ -1,0 +1,197 @@
+{
+  "started": "2026-05-10T11:14:57.755085+00:00",
+  "test": {
+    "s3": {
+      "size_bytes": 6359,
+      "last_modified": "2026-05-10 11:12:25+00:00",
+      "schema_version": "1.0",
+      "n_series": 11,
+      "n_series_ok": 11,
+      "fetch_errors": {},
+      "summary": "\ud83d\udfe2 LIQUIDITY & CREDIT NORMAL \u2014 no notable stress signals.",
+      "composites": {
+        "credit_stress_score": 45.7,
+        "credit_regime": "NORMAL",
+        "liquidity_score": 53.9,
+        "liquidity_regime": "NEUTRAL"
+      }
+    },
+    "series_highlights": {
+      "WALCL": {
+        "label": "Fed Total Assets (H.4.1)",
+        "group": "balance",
+        "latest": 6709505.0,
+        "date": "2026-05-06",
+        "wow": 0.143,
+        "mom": 0.512,
+        "qoq": 1.568,
+        "yoy": 0.003,
+        "z": 1.726,
+        "signal": "NORMAL"
+      },
+      "WRESBAL": {
+        "label": "Reserve Balances",
+        "group": "balance",
+        "latest": 3032588.0,
+        "date": "2026-05-06",
+        "wow": 3.906,
+        "mom": 0.194,
+        "qoq": 3.672,
+        "yoy": -5.797,
+        "z": -0.311,
+        "signal": "NORMAL"
+      },
+      "WTREGEN": {
+        "label": "Treasury General Account",
+        "group": "balance",
+        "latest": 877761.0,
+        "date": "2026-05-06",
+        "wow": -10.609,
+        "mom": 3.544,
+        "qoq": -3.413,
+        "yoy": 47.339,
+        "z": 0.744,
+        "signal": "ELEVATED"
+      },
+      "RESPPALGUONNWW": {
+        "label": "UST Notes & Bonds Held Outright",
+        "group": "balance",
+        "latest": 3996304.0,
+        "date": "2026-05-06",
+        "wow": 0.021,
+        "mom": 0.063,
+        "qoq": 0.099,
+        "yoy": -0.601,
+        "z": -0.61,
+        "signal": "NORMAL"
+      },
+      "RESPPNTEPNWW": {
+        "label": "UST/Agency/MBS Eligible to be Pledged",
+        "group": "balance",
+        "latest": 6053925.0,
+        "date": "2026-05-06",
+        "wow": 0.169,
+        "mom": 0.842,
+        "qoq": 1.789,
+        "yoy": 6.45,
+        "z": 1.654,
+        "signal": "NORMAL"
+      },
+      "OTHL1690": {
+        "label": "Primary Credit Loans 16-90d",
+        "group": "facility",
+        "latest": 3482.0,
+        "date": "2026-05-06",
+        "wow": 17.437,
+        "mom": -0.201,
+        "qoq": 41.143,
+        "yoy": 53.055,
+        "z": 0.649,
+        "signal": "WATCH"
+      },
+      "SWP1690": {
+        "label": "Central Bank Liquidity Swaps 16-90d",
+        "group": "facility",
+        "latest": 0.0,
+        "date": "2026-05-06",
+        "wow": null,
+        "mom": null,
+        "qoq": null,
+        "yoy": null,
+        "z": null,
+        "signal": "NORMAL"
+      },
+      "BAMLH0A3HYC": {
+        "label": "CCC HY OAS",
+        "group": "credit",
+        "latest": 9.15,
+        "date": "2026-05-07",
+        "wow": 0.66,
+        "mom": -6.918,
+        "qoq": 1.667,
+        "yoy": -4.687,
+        "z": 0.678,
+        "signal": "NORMAL"
+      },
+      "BAMLHE00EHYIOAS": {
+        "label": "Euro HY OAS",
+        "group": "credit",
+        "latest": 2.73,
+        "date": "2026-05-07",
+        "wow": -2.5,
+        "mom": -13.057,
+        "qoq": 4.598,
+        "yoy": -24.586,
+        "z": -0.712,
+        "signal": "NORMAL"
+      },
+      "BAMLEMHBHYCRPIOAS": {
+        "label": "EM HY Corp OAS",
+        "group": "credit",
+        "latest": 3.15,
+        "date": "2026-05-07",
+        "wow": -3.963,
+        "mom": -16.667,
+        "qoq": -3.963,
+        "yoy": -28.082,
+        "z": -1.343,
+        "signal": "NORMAL"
+      },
+      "HQMCB10YR": {
+        "label": "HQM 10Y Corp Spot Rate",
+        "group": "credit",
+        "latest": 5.13,
+        "date": "2026-04-01",
+        "wow": -0.195,
+        "mom": -0.195,
+        "qoq": 3.636,
+        "yoy": -3.752,
+        "z": 0.241,
+        "signal": "NORMAL"
+      }
+    },
+    "js_live": {
+      "status": 200,
+      "size": 14112,
+      "has_pill": true
+    },
+    "pages": {
+      "liquidity.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "bonds.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "crisis.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "risk.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "index.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "auctions.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      },
+      "macro-data.html": {
+        "status": 200,
+        "has_script": true,
+        "has_panel": true
+      }
+    }
+  },
+  "finished": "2026-05-10T11:15:05.077465+00:00"
+}
