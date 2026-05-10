@@ -1,0 +1,444 @@
+{
+  "started": "2026-05-10T12:33:31.188643+00:00",
+  "test": {
+    "fed_mbs_held": {
+      "winner": "WSHOMCB",
+      "all_tests": [
+        {
+          "sid": "WSHOMCB",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "1981060",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "MBST",
+          "valid": true,
+          "latest_date": "2018-06-13",
+          "latest_value": "1739733",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "WSHOMBSL",
+          "valid": true,
+          "latest_date": "2018-06-13",
+          "latest_value": "1739733",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "WMBSEC",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "1981060",
+          "n_obs_returned": 2
+        }
+      ]
+    },
+    "excess_reserves": {
+      "winner": "EXCSRESNW",
+      "all_tests": [
+        {
+          "sid": "EXCSRESNW",
+          "valid": true,
+          "latest_date": "2020-09-09",
+          "latest_value": "2854690.0",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "EXCSRESNS",
+          "valid": true,
+          "latest_date": "2020-08-01",
+          "latest_value": "2799719.0",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "WLODL",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "242926",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "EXCRESNS",
+          "valid": true,
+          "latest_date": "2013-05-01",
+          "latest_value": "1863.346",
+          "n_obs_returned": 2
+        }
+      ]
+    },
+    "required_reserves": {
+      "winner": "REQRESNS",
+      "all_tests": [
+        {
+          "sid": "REQRESNS",
+          "valid": true,
+          "latest_date": "2020-08-01",
+          "latest_value": "0.0",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "REQUIRES",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "RQRSL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "other_loans": {
+      "winner": "OTHLT",
+      "all_tests": [
+        {
+          "sid": "WLEMCBL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "WLLCL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "OTHLT",
+          "valid": true,
+          "latest_date": "2018-06-13",
+          "latest_value": "168",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "H41RESPPALDOTOTLNWW",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "OTHL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "treasury_total": {
+      "winner": "WSHOTSL",
+      "all_tests": [
+        {
+          "sid": "WSHOTSL",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "4434161",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "TREAST",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "4434161",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "WSHOTSLM",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "btfp": {
+      "winner": "WLODL",
+      "all_tests": [
+        {
+          "sid": "H41RESPPALDKLOAOLNWW",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BTFP",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "WLODL",
+          "valid": true,
+          "latest_date": "2026-05-06",
+          "latest_value": "242926",
+          "n_obs_returned": 2
+        }
+      ]
+    },
+    "euro_hy_bb": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "BAMLHE10HYBBOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE1HYBBEY",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE1HYBBOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE10HYBB",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "euro_hy_b": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "BAMLHE20HYBOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE20HYBEY",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE2HYBOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "euro_hy_ccc": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "BAMLHE30HYCDOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE3HYCDOAS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "BAMLHE30HYCD",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_ci_large_demand": {
+      "winner": "DRSDCILM",
+      "all_tests": [
+        {
+          "sid": "DRSDCILM",
+          "valid": true,
+          "latest_date": "2026-04-01",
+          "latest_value": "4.8",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "SUBLPDCILMNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "SUBLPDCILMQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRGSCILM",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_ci_small_demand": {
+      "winner": "DRSDCIS",
+      "all_tests": [
+        {
+          "sid": "DRSDCIS",
+          "valid": true,
+          "latest_date": "2026-04-01",
+          "latest_value": "0.0",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "SUBLPDCISNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "SUBLPDCISQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRGSCIS",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_cre_tightening": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "SUBLPDCRENQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRTSCRE",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "SUBTPDCRENQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "SUBLPCRE",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_cre_demand": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "SUBLPDCRENQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRSDCRE",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRGSCRE",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_mortgage_demand": {
+      "winner": "DRSDPM",
+      "all_tests": [
+        {
+          "sid": "SUBLPDHMNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRSDPM",
+          "valid": true,
+          "latest_date": "2014-10-01",
+          "latest_value": "-1.4",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "SUBLPDPMNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRGSPM",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_mortgage_tightening_prime": {
+      "winner": "DRTSPM",
+      "all_tests": [
+        {
+          "sid": "DRTSPM",
+          "valid": true,
+          "latest_date": "2014-10-01",
+          "latest_value": "-11.1",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "SUBLPDPMNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRGSPMTNQ",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_other_consumer": {
+      "winner": null,
+      "all_tests": [
+        {
+          "sid": "STDSOTHER",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRTSCOL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRTSCOLT",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        },
+        {
+          "sid": "DRTSC",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_subprime_mort": {
+      "winner": "DRTSSP",
+      "all_tests": [
+        {
+          "sid": "DRTSSP",
+          "valid": true,
+          "latest_date": "2026-04-01",
+          "latest_value": "6.3",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "STDSOTHER",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    },
+    "sloos_willingness_consumer": {
+      "winner": "DRIWCIL",
+      "all_tests": [
+        {
+          "sid": "DRIWCIL",
+          "valid": true,
+          "latest_date": "2026-04-01",
+          "latest_value": "3.4",
+          "n_obs_returned": 2
+        },
+        {
+          "sid": "DRIWNCIL",
+          "valid": false,
+          "reason": "HTTP 400: Bad Request"
+        }
+      ]
+    }
+  },
+  "finished": "2026-05-10T12:33:43.158544+00:00"
+}
