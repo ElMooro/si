@@ -19,13 +19,15 @@
 
   const CAT_META = {
     balance_sheet: { icon: "🏦", short: "Balance Sheet",
-                      blurb: "Fed assets, bank reserves, TGA, RRP, memo collateral pledges" },
+                      blurb: "Fed assets, bank reserves, TGA, RRP, MBS, currency, memo collateral pledges" },
     liquidity_facilities: { icon: "💧", short: "Liquidity Facilities",
-                             blurb: "Primary credit, central-bank swap lines, emergency loans" },
+                             blurb: "Primary credit, central-bank swap lines, emergency BTFP/PDCF lending" },
     credit_spreads: { icon: "📉", short: "Credit Spreads",
-                       blurb: "ICE BofA HY OAS — US, Euro, EM, IG" },
+                       blurb: "ICE BofA OAS — US/Euro/EM HY by quality (BB/B/CCC) + IG (AAA/AA/A/BBB)" },
     corporate_yields: { icon: "🏢", short: "Corporate Yields",
-                         blurb: "HQM 10y corporate bond rate · spread to Treasury" },
+                         blurb: "HQM corporate spot rates 1y/2y/5y/10y/30y · spread to Treasury" },
+    lending_standards: { icon: "🏦", short: "Lending Standards",
+                          blurb: "SLOOS — bank tightening + loan demand · C&I, CRE, credit cards, mortgages" },
   };
 
   function injectStyles() {
@@ -124,7 +126,7 @@
     const score = d.composite?.score ?? 0;
     const regime = d.regime || "CALM";
     // Dot per category, color based on worst signal in that category
-    const cats = ["balance_sheet", "liquidity_facilities", "credit_spreads", "corporate_yields"];
+    const cats = ["balance_sheet", "liquidity_facilities", "credit_spreads", "corporate_yields", "lending_standards"];
     const series = d.series || {};
     const dotsHTML = cats.map(c => {
       const ids = (d.by_category || {})[c] || [];
@@ -160,7 +162,7 @@
     const byCat = d.by_category || {};
 
     // Tab counts
-    const tabHTML = ["balance_sheet", "liquidity_facilities", "credit_spreads", "corporate_yields"].map(c => {
+    const tabHTML = ["balance_sheet", "liquidity_facilities", "credit_spreads", "corporate_yields", "lending_standards"].map(c => {
       const ids = byCat[c] || [];
       const fired = ids.filter(sid => {
         const s = series[sid]?.signal;

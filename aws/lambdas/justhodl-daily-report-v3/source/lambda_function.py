@@ -1101,7 +1101,9 @@ def lce_ki_adjustment(lce):
 
 def lce_risk_adjustments(lce, base_risk):
     """Incorporate LCE category state into the existing risk_dashboard dict.
-       Modifies base_risk in place and returns the augmented dict."""
+       Modifies base_risk in place and returns the augmented dict.
+       Categories: balance_sheet, liquidity_facilities, credit_spreads,
+       corporate_yields, lending_standards (SLOOS)."""
     if not lce:
         return base_risk
     series = lce.get('series', {})
@@ -1121,16 +1123,21 @@ def lce_risk_adjustments(lce, base_risk):
     lf = worst_in_cat('liquidity_facilities')
     cs = worst_in_cat('credit_spreads')
     cy = worst_in_cat('corporate_yields')
+    ls = worst_in_cat('lending_standards')
 
-    # Liquidity risk: add 25/15/8/0 penalty depending on worst of balance_sheet + liquidity_facilities
+    # Liquidity risk: balance_sheet + liquidity_facilities
     bs_lf_worst = max(rank.get(bs, 0), rank.get(lf, 0))
     pen_liq = {3: 35, 2: 22, 1: 12, 0: 0}[bs_lf_worst]
     base_risk['liquidity'] = max(0, min(100, (base_risk.get('liquidity') or 50) - pen_liq))
 
-    # Credit risk: add penalty from credit spreads + corporate yields
+    # Credit risk: credit spreads + corporate yields
     cs_cy_worst = max(rank.get(cs, 0), rank.get(cy, 0))
     pen_cred = {3: 35, 2: 22, 1: 12, 0: 0}[cs_cy_worst]
     base_risk['credit'] = max(0, min(100, (base_risk.get('credit') or 50) - pen_cred))
+
+    # Recession risk: lending standards (SLOOS) — bank tightening predicts recession
+    pen_rec = {3: 30, 2: 18, 1: 10, 0: 0}[rank.get(ls, 0)]
+    base_risk['recession'] = max(0, min(100, (base_risk.get('recession') or 50) - pen_rec))
 
     # Recompute composite as average
     parts = ['credit', 'liquidity', 'market', 'recession', 'systemic']
@@ -1146,9 +1153,11 @@ def lce_risk_adjustments(lce, base_risk):
             'liquidity_facilities': lf,
             'credit_spreads': cs,
             'corporate_yields': cy,
+            'lending_standards': ls,
         },
         'penalty_liquidity': pen_liq,
         'penalty_credit': pen_cred,
+        'penalty_recession': pen_rec,
     }
     return base_risk
 

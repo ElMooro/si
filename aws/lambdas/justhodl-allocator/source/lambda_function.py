@@ -415,6 +415,38 @@ def rule_liquidity_credit_engine(scores, evidence):
         add(scores, evidence, "EEM", -STRONG, d4)
         add(scores, evidence, "EFA", -MEDIUM, d4)
 
+    # ── SLOOS bank lending tightening (recession leading indicator) ──
+    # When banks tighten standards on C&I large or small firms above 25%, that
+    # historically presages a credit-driven slowdown 6-12 months out.
+    sloos_ci_large_state = state("DRTSCILM")
+    sloos_ci_large_val = value("DRTSCILM")
+    sloos_ci_small_state = state("DRTSCIS")
+    sloos_cre_state = state("SUBLPDCRENQ")
+    sloos_cc_state = state("DRTSCLCC")
+
+    if sloos_ci_large_state in ("ELEVATED", "CRISIS") or sloos_ci_small_state in ("ELEVATED", "CRISIS"):
+        d5 = (f"SLOOS C&I tightening: large={sloos_ci_large_val}% [{sloos_ci_large_state}]"
+              f" small=[{sloos_ci_small_state}] — recession-prone bank tightening")
+        add(scores, evidence, "TLT", STRONG, d5)
+        add(scores, evidence, "GLD", MEDIUM, d5)
+        add(scores, evidence, "SPY", -STRONG, d5)
+        add(scores, evidence, "QQQ", -MEDIUM, d5)
+        add(scores, evidence, "IWM", -HARD, d5)        # small caps most exposed
+        add(scores, evidence, "HYG", -HARD, d5)        # HY most exposed to bank-tightening cycles
+        add(scores, evidence, "EEM", -STRONG, d5)
+
+    if sloos_cre_state in ("ELEVATED", "CRISIS"):
+        d6 = f"SLOOS CRE tightening [{sloos_cre_state}] — office/retail credit crunch"
+        add(scores, evidence, "GLD", MEDIUM, d6)
+        # Regional banks + REITs are the direct hit
+        add(scores, evidence, "IWM", -STRONG, d6)
+        add(scores, evidence, "HYG", -MEDIUM, d6)
+
+    if sloos_cc_state in ("ELEVATED", "CRISIS"):
+        d7 = f"SLOOS Credit-Card tightening [{sloos_cc_state}] — consumer credit squeeze"
+        add(scores, evidence, "QQQ", -MEDIUM, d7)
+        add(scores, evidence, "HYG", -STRONG, d7)
+
 
 def rule_tenor_signals(scores, evidence):
     """Position sizing based on Treasury tenor-signal interpreter.

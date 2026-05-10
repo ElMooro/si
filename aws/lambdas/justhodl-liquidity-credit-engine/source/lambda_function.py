@@ -50,76 +50,216 @@ FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 #   "spread_to" — compute spread vs another series' latest value
 # ────────────────────────────────────────────────────────────────────────
 SERIES_MAP = [
-    # ─── BALANCE SHEET ─────────────────────────────────────────
-    # All FRED balance-sheet/liquidity series report in MILLIONS — we convert to billions.
+    # ════════════════════════════════════════════════════════════════════
+    # CATEGORY 1: BALANCE SHEET (H.4.1 — Factors Affecting Reserve Balances)
+    # All FRED balance-sheet series report in MILLIONS — converted to billions.
+    # ════════════════════════════════════════════════════════════════════
+
+    # ─── Total balance sheet ─────────────────────────────────
     ("WALCL", "balance_sheet", "Fed Balance Sheet (total assets)",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0, "crisis": -2.0,
                      "convert_to_billions": True}),
-    ("WRESBAL", "balance_sheet", "Bank Reserves (depository institutions)",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0, "crisis": -8.0,
-                     "convert_to_billions": True}),
-    ("EXCSRESNW", "balance_sheet", "Excess Reserves",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -3.0, "elevated": -6.0, "crisis": -10.0,
-                     "convert_to_billions": True}),
-    ("WTREGEN", "balance_sheet", "Treasury General Account (TGA)",
-     "billions $", {"kind": "level", "watch": 600, "elevated": 800, "crisis": 1200,
-                     "convert_to_billions": True,
-                     "note": "TGA above $800B drains liquidity from system"}),
-    ("RRPONTSYD", "balance_sheet", "Overnight Reverse Repo (RRP)",
-     "billions $", {"kind": "level", "watch": 1500, "elevated": 2000,
-                     "convert_to_billions": True,
-                     "note": "RRP draining is liquidity-positive; near-zero = MMFs back in T-bills"}),
-    ("WSHOMCB", "balance_sheet", "Securities Held Outright: Treasuries (broad)",
+
+    # ─── Securities Held Outright sub-portfolios ─────────────
+    ("WSHOMCB", "balance_sheet", "Securities Held Outright: U.S. Treasury (broad)",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
                      "convert_to_billions": True}),
     ("RESPPALGUONNWW", "balance_sheet", "Securities Held Outright: Treasury Notes & Bonds",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
                      "convert_to_billions": True,
-                     "note": "Khalid-specified — coupon Treasuries on Fed balance sheet"}),
+                     "note": "Khalid-spec — coupon Treasuries on Fed balance sheet"}),
+    ("WGCAL", "balance_sheet", "Gold Stock (assets)",
+     "billions $", {"kind": "level", "watch": 50, "convert_to_billions": True}),
+    ("MBST", "balance_sheet", "Mortgage-Backed Securities Held",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
+                     "convert_to_billions": True,
+                     "note": "Fed MBS portfolio — QT runoff or purchase pace"}),
+    ("TREAST", "balance_sheet", "U.S. Treasuries Held Outright (all)",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
+                     "convert_to_billions": True}),
+
+    # ─── Memo collateral pledges ─────────────────────────────
     ("RESPPNTEPNWW", "balance_sheet", "MEMO: Treasury/Agency/MBS Eligible to Be Pledged",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": 5.0, "elevated": 10.0, "crisis": 20.0,
                      "convert_to_billions": True,
-                     "note": "Khalid-specified — collateral pledge spike = funding stress"}),
+                     "note": "Khalid-spec — collateral pledge spike = funding stress"}),
 
-    # ─── LIQUIDITY FACILITIES ─────────────────────────────────
+    # ─── Reserves & TGA ──────────────────────────────────────
+    ("WRESBAL", "balance_sheet", "Bank Reserves (depository institutions)",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0, "crisis": -8.0,
+                     "convert_to_billions": True,
+                     "note": "Reserves dropping >2%/week = QT acceleration"}),
+    ("EXCSRESNW", "balance_sheet", "Excess Reserves",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -3.0, "elevated": -6.0, "crisis": -10.0,
+                     "convert_to_billions": True}),
+    ("TOTRESNS", "balance_sheet", "Total Reserves of Depository Institutions",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0,
+                     "convert_to_billions": True}),
+    ("REQRESNS", "balance_sheet", "Required Reserves",
+     "billions $", {"kind": "level", "convert_to_billions": True}),
+    ("WTREGEN", "balance_sheet", "Treasury General Account (TGA)",
+     "billions $", {"kind": "level", "watch": 800, "elevated": 1000, "crisis": 1500,
+                     "convert_to_billions": True,
+                     "note": "TGA above $800B drains liquidity from system"}),
+    ("WCURCIR", "balance_sheet", "Currency in Circulation (liability)",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": 1.0, "elevated": 3.0,
+                     "convert_to_billions": True,
+                     "note": "Surge in cash demand = bank-run signal"}),
+
+    # ─── Reverse Repo ─────────────────────────────────────────
+    ("RRPONTSYD", "balance_sheet", "Overnight Reverse Repo (RRP)",
+     "billions $", {"kind": "level", "watch": 1500, "elevated": 2000,
+                     "convert_to_billions": True,
+                     "note": "RRP draining is liquidity-positive; near-zero = MMFs back in T-bills"}),
+    ("WLRRAL", "balance_sheet", "Reverse Repos with Foreign Officials",
+     "billions $", {"kind": "level", "watch": 400, "elevated": 600,
+                     "convert_to_billions": True,
+                     "note": "Foreign central bank parking dollars at Fed"}),
+
+    # ════════════════════════════════════════════════════════════════════
+    # CATEGORY 2: LIQUIDITY FACILITIES (Discount Window + Emergency Lending)
+    # ════════════════════════════════════════════════════════════════════
     ("DPCREDIT", "liquidity_facilities", "Primary Credit (Discount Window)",
      "billions $", {"kind": "level", "watch": 2, "elevated": 5, "crisis": 25,
                      "convert_to_billions": True,
                      "note": "SVB spike was $164B — banks borrowing here = funding stress"}),
-    ("OTHL1690", "liquidity_facilities", "Liquidity & Credit Facilities: Loans 16-90 Day",
+    ("OTHL1690", "liquidity_facilities", "Liquidity & Credit Facilities Loans 16-90 Day",
      "billions $", {"kind": "level", "watch": 0.5, "elevated": 5, "crisis": 25,
                      "convert_to_billions": True,
-                     "note": "Khalid-specified — emergency facilities active = financial-crisis signal"}),
+                     "note": "Khalid-spec — emergency facilities active = financial-crisis signal"}),
     ("SWP1690", "liquidity_facilities", "Central Bank Liquidity Swaps: 16-90 Day Maturity",
      "billions $", {"kind": "level", "watch": 0.5, "elevated": 10, "crisis": 25,
                      "convert_to_billions": True,
-                     "note": "Khalid-specified — non-zero is FX dollar shortage abroad"}),
+                     "note": "Khalid-spec — non-zero is FX dollar shortage abroad"}),
     ("SWPT", "liquidity_facilities", "Central Bank Liquidity Swaps: TOTAL",
      "billions $", {"kind": "level", "watch": 1.0, "elevated": 10, "crisis": 50,
                      "convert_to_billions": True,
                      "note": "Total swap lines — COVID peak was $446B"}),
+    ("WLEMCBL", "liquidity_facilities", "Other Loans (Emergency Lending Programs)",
+     "billions $", {"kind": "level", "watch": 1.0, "elevated": 10, "crisis": 50,
+                     "convert_to_billions": True,
+                     "note": "BTFP, PDCF and other emergency facilities"}),
 
-    # ─── CREDIT SPREADS (ICE BofA OAS, daily) — already in % units ─────
-    ("BAMLH0A0HYM2", "credit_spreads", "ICE BofA US High Yield Index OAS",
+    # ════════════════════════════════════════════════════════════════════
+    # CATEGORY 3: CREDIT SPREADS (ICE BofA OAS — daily, in % units)
+    # ════════════════════════════════════════════════════════════════════
+
+    # ─── US High Yield by credit quality ─────────────────────
+    ("BAMLH0A0HYM2", "credit_spreads", "ICE BofA US High Yield Master OAS",
      "%", {"kind": "level", "watch": 5.0, "elevated": 7.0, "crisis": 10.0}),
+    ("BAMLH0A1HYBB", "credit_spreads", "ICE BofA BB US High Yield OAS",
+     "%", {"kind": "level", "watch": 4.0, "elevated": 5.5, "crisis": 8.0,
+            "note": "Crossover credit — BB rated"}),
+    ("BAMLH0A2HYB", "credit_spreads", "ICE BofA Single-B US High Yield OAS",
+     "%", {"kind": "level", "watch": 6.0, "elevated": 8.0, "crisis": 12.0,
+            "note": "Mid-tier junk"}),
     ("BAMLH0A3HYC", "credit_spreads", "ICE BofA CCC & Lower US High Yield OAS",
      "%", {"kind": "level", "watch": 9.0, "elevated": 12.0, "crisis": 18.0,
-            "note": "Khalid-specified — riskiest US credit; GFC peak 22%, COVID peak 19%"}),
-    ("BAMLHE00EHYIOAS", "credit_spreads", "ICE BofA Euro High Yield OAS",
-     "%", {"kind": "level", "watch": 5.0, "elevated": 7.5, "crisis": 11.0,
-            "note": "Khalid-specified — Euro HY; GFC peak 24%, COVID peak 11%"}),
-    ("BAMLEMHBHYCRPIOAS", "credit_spreads", "ICE BofA EM High Yield Corp Plus OAS",
-     "%", {"kind": "level", "watch": 7.0, "elevated": 10.0, "crisis": 14.0,
-            "note": "Khalid-specified — EM HY corp; GFC peak 17%, COVID peak 12%"}),
+            "note": "Khalid-spec — riskiest US credit; GFC peak 22%, COVID peak 19%"}),
+
+    # ─── US Investment Grade by credit quality ───────────────
     ("BAMLC0A0CM", "credit_spreads", "ICE BofA US Corporate IG OAS",
      "%", {"kind": "level", "watch": 1.5, "elevated": 2.5, "crisis": 4.0}),
+    ("BAMLC0A1CAAA", "credit_spreads", "ICE BofA AAA US Corporate OAS",
+     "%", {"kind": "level", "watch": 1.0, "elevated": 1.8, "crisis": 3.0,
+            "note": "Highest-quality IG"}),
+    ("BAMLC0A2CAA", "credit_spreads", "ICE BofA AA US Corporate OAS",
+     "%", {"kind": "level", "watch": 1.2, "elevated": 2.0, "crisis": 3.5}),
+    ("BAMLC0A3CA", "credit_spreads", "ICE BofA Single-A US Corporate OAS",
+     "%", {"kind": "level", "watch": 1.4, "elevated": 2.2, "crisis": 3.8}),
+    ("BAMLC0A4CBBB", "credit_spreads", "ICE BofA BBB US Corporate OAS",
+     "%", {"kind": "level", "watch": 1.8, "elevated": 3.0, "crisis": 5.0,
+            "note": "Lowest IG — most fallen-angel risk"}),
 
-    # ─── CORPORATE YIELDS — already in % units ─────────────────
-    ("HQMCB10YR", "corporate_yields", "HQM 10Y Corporate Bond Spot Rate",
+    # ─── Euro High Yield ─────────────────────────────────────
+    ("BAMLHE00EHYIOAS", "credit_spreads", "ICE BofA Euro High Yield OAS",
+     "%", {"kind": "level", "watch": 5.0, "elevated": 7.5, "crisis": 11.0,
+            "note": "Khalid-spec — Euro HY; GFC peak 24%, COVID peak 11%"}),
+    ("BAMLHE10HYBBOAS", "credit_spreads", "ICE BofA Euro BB High Yield OAS",
+     "%", {"kind": "level", "watch": 4.0, "elevated": 6.0, "crisis": 9.0}),
+    ("BAMLHE20HYBOAS", "credit_spreads", "ICE BofA Euro Single-B High Yield OAS",
+     "%", {"kind": "level", "watch": 6.0, "elevated": 8.5, "crisis": 13.0}),
+    ("BAMLHE30HYCDOAS", "credit_spreads", "ICE BofA Euro CCC & Lower High Yield OAS",
+     "%", {"kind": "level", "watch": 10.0, "elevated": 14.0, "crisis": 20.0}),
+
+    # ─── Emerging Market ─────────────────────────────────────
+    ("BAMLEMHBHYCRPIOAS", "credit_spreads", "ICE BofA EM High Yield Corp Plus OAS",
+     "%", {"kind": "level", "watch": 7.0, "elevated": 10.0, "crisis": 14.0,
+            "note": "Khalid-spec — EM HY corp; GFC peak 17%, COVID peak 12%"}),
+    ("BAMLEMCBPIOAS", "credit_spreads", "ICE BofA EM Corporate Plus OAS",
+     "%", {"kind": "level", "watch": 4.0, "elevated": 6.0, "crisis": 10.0,
+            "note": "Broad EM corp — IG + HY"}),
+    ("BAMLEMRECRPIEMEAOAS", "credit_spreads", "ICE BofA EMEA Emerging Markets OAS",
+     "%", {"kind": "level", "watch": 4.5, "elevated": 7.0, "crisis": 11.0}),
+    ("BAMLEMRACRPIASIAOAS", "credit_spreads", "ICE BofA Asia Emerging Markets OAS",
+     "%", {"kind": "level", "watch": 4.0, "elevated": 6.5, "crisis": 10.0}),
+
+    # ════════════════════════════════════════════════════════════════════
+    # CATEGORY 4: CORPORATE YIELDS (HQM + reference Treasuries)
+    # ════════════════════════════════════════════════════════════════════
+    ("HQMCB1YR", "corporate_yields", "HQM Corporate Bond Spot Rate (1y)",
+     "%", {"kind": "spread_to", "vs": "DGS1", "watch": 1.0, "elevated": 2.0, "crisis": 3.5}),
+    ("HQMCB2YR", "corporate_yields", "HQM Corporate Bond Spot Rate (2y)",
+     "%", {"kind": "spread_to", "vs": "DGS2", "watch": 1.2, "elevated": 2.2, "crisis": 3.8}),
+    ("HQMCB5YR", "corporate_yields", "HQM Corporate Bond Spot Rate (5y)",
+     "%", {"kind": "spread_to", "vs": "DGS5", "watch": 1.4, "elevated": 2.4, "crisis": 4.0}),
+    ("HQMCB10YR", "corporate_yields", "HQM Corporate Bond Spot Rate (10y)",
      "%", {"kind": "spread_to", "vs": "DGS10", "watch": 1.5, "elevated": 2.5, "crisis": 4.0,
-            "note": "Khalid-specified — spread to 10y Treasury reveals corp credit demand"}),
-    ("DGS10", "corporate_yields", "10-Year US Treasury",
-     "%", {"kind": "level", "note": "Reference for HQM corporate spread"}),
+            "note": "Khalid-spec — spread to 10y Treasury reveals corp credit demand"}),
+    ("HQMCB30YR", "corporate_yields", "HQM Corporate Bond Spot Rate (30y)",
+     "%", {"kind": "spread_to", "vs": "DGS30", "watch": 1.6, "elevated": 2.7, "crisis": 4.5}),
+
+    # Reference Treasuries (for spread_to lookups)
+    ("DGS1", "corporate_yields", "1-Year US Treasury", "%", {"kind": "level"}),
+    ("DGS2", "corporate_yields", "2-Year US Treasury", "%", {"kind": "level"}),
+    ("DGS5", "corporate_yields", "5-Year US Treasury", "%", {"kind": "level"}),
+    ("DGS10", "corporate_yields", "10-Year US Treasury", "%", {"kind": "level"}),
+    ("DGS30", "corporate_yields", "30-Year US Treasury", "%", {"kind": "level"}),
+
+    # ════════════════════════════════════════════════════════════════════
+    # CATEGORY 5: LENDING STANDARDS (SLOOS — Senior Loan Officer Survey)
+    # Net % of banks tightening. Quarterly cadence. Positive = tightening.
+    # Historical: 0% calm, 25% mid-cycle stress, 50%+ recession, 84% GFC peak.
+    # ════════════════════════════════════════════════════════════════════
+    ("DRTSCILM", "lending_standards", "C&I Loans: Tightening (Large/Middle Firms)",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 50,
+                "note": "GFC peak 83.6% — banks shutting credit to large companies"}),
+    ("DRTSCIS", "lending_standards", "C&I Loans: Tightening (Small Firms)",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 50,
+                "note": "Small firms first to lose access in tightening cycle"}),
+    ("SUBLPDCILMNQ", "lending_standards", "C&I Loans: Demand (Large/Middle Firms)",
+     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50,
+                "note": "Negative = weak demand. Capex pullback signal"}),
+    ("SUBLPDCISNQ", "lending_standards", "C&I Loans: Demand (Small Firms)",
+     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50}),
+
+    # ─── Commercial Real Estate ──────────────────────────────
+    ("SUBLPDCRENQ", "lending_standards", "CRE Loans: Tightening Standards",
+     "% net", {"kind": "level", "watch": 10, "elevated": 30, "crisis": 60,
+                "note": "CRE tightening = office/retail credit crunch"}),
+
+    # ─── Residential Real Estate (Mortgage) ──────────────────
+    ("SUBLPDHMNQ", "lending_standards", "Mortgages: Demand",
+     "% net", {"kind": "level", "watch": -20, "elevated": -40, "crisis": -60,
+                "note": "Mortgage demand collapse = housing slowdown signal"}),
+    ("DRTSSP", "lending_standards", "Mortgage: Subprime (Tightening Standards)",
+     "% net", {"kind": "level", "watch": 15, "elevated": 35, "crisis": 60}),
+
+    # ─── Consumer ────────────────────────────────────────────
+    ("DRTSCLCC", "lending_standards", "Credit Cards: Tightening Standards",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45,
+                "note": "Credit card tightening = consumer credit squeeze"}),
+    ("STDSAUTO", "lending_standards", "Auto Loans: Tightening Standards",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45}),
+    ("STDSOTHER", "lending_standards", "Other Consumer Loans: Tightening Standards",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45}),
+
+    # ─── Loan demand (broad strength signal) ─────────────────
+    ("DRSDCILM", "lending_standards", "C&I Loans: Demand (Large/Middle, balanced)",
+     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50,
+                "note": "Negative = demand contracting"}),
+    ("DRSDCIS", "lending_standards", "C&I Loans: Demand (Small, balanced)",
+     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50}),
 ]
 
 # ────────────────────────────────────────────────────────────────────────
@@ -202,8 +342,11 @@ def z_score(latest, history):
 # ────────────────────────────────────────────────────────────────────────
 # Per-series compute
 # ────────────────────────────────────────────────────────────────────────
-def compute_series(series_id, threshold, latest_dgs10=None):
-    """Pull a series and compute the full feature set."""
+def compute_series(series_id, threshold, ref_yields=None):
+    """Pull a series and compute the full feature set.
+
+    ref_yields: dict mapping FRED ID → latest_value, used for `spread_to` thresholds.
+    """
     obs = fred_observations_long(series_id)
     if not obs:
         return {"available": False, "error": f"No data for {series_id}"}
@@ -244,26 +387,37 @@ def compute_series(series_id, threshold, latest_dgs10=None):
     kind = threshold.get("kind", "level")
 
     if kind == "level":
-        # Direction: positive thresholds = "high is bad", negative = "low is bad"
-        # We assume positive thresholds throughout for level checks.
-        if "crisis" in threshold and latest_value >= threshold["crisis"]:
-            signal = "CRISIS"; signal_reason = f"Level {latest_value:.2f} ≥ crisis {threshold['crisis']}"
-        elif "elevated" in threshold and latest_value >= threshold["elevated"]:
-            signal = "ELEVATED"; signal_reason = f"Level {latest_value:.2f} ≥ elevated {threshold['elevated']}"
-        elif "watch" in threshold and latest_value >= threshold["watch"]:
-            signal = "WATCH"; signal_reason = f"Level {latest_value:.2f} ≥ watch {threshold['watch']}"
+        # Direction inferred from sign of any non-null threshold:
+        #   positive thresholds → "high is bad" (alert when value >= threshold)
+        #   negative thresholds → "low is bad"  (alert when value <= threshold)
+        crisis_t = threshold.get("crisis")
+        elevated_t = threshold.get("elevated")
+        watch_t = threshold.get("watch")
+        sign_ref = next((t for t in [watch_t, elevated_t, crisis_t] if t is not None), 0)
+        is_low_bad = sign_ref < 0
+
+        if is_low_bad:
+            if crisis_t is not None and latest_value <= crisis_t:
+                signal = "CRISIS"; signal_reason = f"Level {latest_value:.2f} ≤ crisis {crisis_t}"
+            elif elevated_t is not None and latest_value <= elevated_t:
+                signal = "ELEVATED"; signal_reason = f"Level {latest_value:.2f} ≤ elevated {elevated_t}"
+            elif watch_t is not None and latest_value <= watch_t:
+                signal = "WATCH"; signal_reason = f"Level {latest_value:.2f} ≤ watch {watch_t}"
+        else:
+            if crisis_t is not None and latest_value >= crisis_t:
+                signal = "CRISIS"; signal_reason = f"Level {latest_value:.2f} ≥ crisis {crisis_t}"
+            elif elevated_t is not None and latest_value >= elevated_t:
+                signal = "ELEVATED"; signal_reason = f"Level {latest_value:.2f} ≥ elevated {elevated_t}"
+            elif watch_t is not None and latest_value >= watch_t:
+                signal = "WATCH"; signal_reason = f"Level {latest_value:.2f} ≥ watch {watch_t}"
 
     elif kind == "delta_pct":
         window = threshold.get("window", "wk")
         delta = wow_pct if window == "wk" else mom_pct
         if delta is not None:
-            # Direction inferred from sign of threshold:
-            #   negative thresholds (e.g. -2.0%) → alert when delta <= threshold (drops)
-            #   positive thresholds (e.g. +5.0%)  → alert when delta >= threshold (spikes)
             crisis_t = threshold.get("crisis")
             elevated_t = threshold.get("elevated")
             watch_t = threshold.get("watch")
-            # Determine sign from any available threshold (they're all same sign)
             sign_ref = next((t for t in [watch_t, elevated_t, crisis_t] if t is not None), 0)
             is_drop_alert = sign_ref < 0
 
@@ -283,15 +437,17 @@ def compute_series(series_id, threshold, latest_dgs10=None):
                     signal = "WATCH"; signal_reason = f"{window} delta {delta:+.2f}% ≥ watch {watch_t:+.2f}%"
 
     elif kind == "spread_to":
+        # Generalized spread lookup — uses ref_yields dict to find reference value
         ref = threshold.get("vs")
-        if ref == "DGS10" and latest_dgs10 is not None:
-            spread = latest_value - latest_dgs10
+        ref_value = (ref_yields or {}).get(ref) if ref else None
+        if ref_value is not None:
+            spread = latest_value - ref_value
             if "crisis" in threshold and spread >= threshold["crisis"]:
-                signal = "CRISIS"; signal_reason = f"Spread to 10y {spread:+.2f}% ≥ crisis {threshold['crisis']}%"
+                signal = "CRISIS"; signal_reason = f"Spread to {ref} {spread:+.2f}% ≥ crisis {threshold['crisis']}%"
             elif "elevated" in threshold and spread >= threshold["elevated"]:
-                signal = "ELEVATED"; signal_reason = f"Spread to 10y {spread:+.2f}% ≥ elevated {threshold['elevated']}%"
+                signal = "ELEVATED"; signal_reason = f"Spread to {ref} {spread:+.2f}% ≥ elevated {threshold['elevated']}%"
             elif "watch" in threshold and spread >= threshold["watch"]:
-                signal = "WATCH"; signal_reason = f"Spread to 10y {spread:+.2f}% ≥ watch {threshold['watch']}%"
+                signal = "WATCH"; signal_reason = f"Spread to {ref} {spread:+.2f}% ≥ watch {threshold['watch']}%"
 
     return {
         "available": True,
@@ -388,24 +544,40 @@ def lambda_handler(event=None, context=None):
     started = time.time()
     print("[lce] start")
 
-    # First pass: fetch DGS10 for spread calculations
-    dgs10 = fred_observations_long("DGS10")
-    latest_dgs10 = dgs10[-1]["value"] if dgs10 else None
+    # ─── PASS 1: fetch reference Treasury yields (used by spread_to) ───
+    # Plus any other prerequisites. We do this in a small first pass so
+    # subsequent series can compute spreads against them.
+    ref_ids = ["DGS1", "DGS2", "DGS5", "DGS10", "DGS30"]
+    ref_yields = {}
+    for rid in ref_ids:
+        obs = fred_observations_long(rid)
+        if obs:
+            ref_yields[rid] = obs[-1]["value"]
+    print(f"[lce] reference yields: {ref_yields}")
 
-    # Process each series
+    # ─── PASS 2: process all series (including refs which already cached
+    #     via FRED if rate-limit permits; we still re-fetch for full WoW/MoM/etc) ───
     series_out = {}
-    by_category = {"balance_sheet": [], "liquidity_facilities": [],
-                    "credit_spreads": [], "corporate_yields": []}
+    by_category = {
+        "balance_sheet": [],
+        "liquidity_facilities": [],
+        "credit_spreads": [],
+        "corporate_yields": [],
+        "lending_standards": [],
+    }
 
     for sid, category, label, units, threshold in SERIES_MAP:
-        result = compute_series(sid, threshold, latest_dgs10=latest_dgs10)
+        result = compute_series(sid, threshold, ref_yields=ref_yields)
         result["_label"] = label
         result["_units"] = units
         result["_category"] = category
         result["_threshold_note"] = threshold.get("note", "")
         result["_threshold_kind"] = threshold.get("kind")
         series_out[sid] = result
-        by_category[category].append(sid)
+        if category in by_category:
+            by_category[category].append(sid)
+        else:
+            by_category[category] = [sid]
 
     # Composite + regime
     comp = composite_signal(series_out)
@@ -414,14 +586,14 @@ def lambda_handler(event=None, context=None):
     # Detect transitions vs prior run
     prior = load_prior()
     output = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at": _now_iso(),
         "elapsed_sec": round(time.time() - started, 2),
         "regime": regime,
         "composite": comp,
         "series": series_out,
         "by_category": by_category,
-        "reference": {"DGS10": latest_dgs10},
+        "reference": ref_yields,
     }
     transitions = detect_transitions(output, prior)
     output["transitions"] = transitions
@@ -433,9 +605,10 @@ def lambda_handler(event=None, context=None):
         CacheControl="public, max-age=300, s-maxage=60",
     )
     print(f"[lce] regime={regime} composite={comp['score']} firing={comp['n_firing']} "
-          f"transitions={len(transitions)}")
+          f"transitions={len(transitions)} series={len(series_out)}")
 
     return {"statusCode": 200, "body": json.dumps({
         "regime": regime, "composite_score": comp["score"],
+        "n_series": len(series_out),
         "transitions_count": len(transitions),
     })}
