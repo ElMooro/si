@@ -103,6 +103,8 @@ table.tbl tr:last-child td{border-bottom:none}
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <script src="/wss-client.js" defer></script>
 <script src="/tenor-signals.js" defer></script>
+<script src="/liquidity-credit.js" defer></script>
+<script src="/liquidity-pulse.js" defer></script>
 </head>
 <body>
 
@@ -204,6 +206,9 @@ table.tbl tr:last-child td{border-bottom:none}
 
 <div style="max-width:1500px; margin:18px auto; padding:0 18px;">
   <div id="tenor-signals-panel"></div>
+<div id="liquidity-credit-panel" style="margin-top:18px"></div>
+<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
+
 </div>
 </main>
 

@@ -10,6 +10,8 @@
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
 <script src="/wss-client.js" defer></script>
 <script src="/tenor-signals.js" defer></script>
+<script src="/liquidity-credit.js" defer></script>
+<script src="/liquidity-pulse.js" defer></script>
 <style>
   :root {
     --bg:#08090f; --bg-card:#0e1120; --bg-elev:#141828; --bg-sunken:#04050a; --bg-hover:#1a1e30;
@@ -276,6 +278,9 @@
 
 <!-- ─────────── TENOR SIGNALS (live) ─────────── -->
 <div id="tenor-signals-panel" style="margin-bottom:18px"></div>
+<div id="liquidity-credit-panel" style="margin-top:18px"></div>
+<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
+
 
 <!-- ─────────── 6 CRISIS PATTERN INDICATORS ─────────── -->
 <section class="box">

@@ -127,6 +127,7 @@
     table { font-size: 10px; } th, td { padding: 4px 5px; }
   }
 </style>
+<script src="/liquidity-pulse.js" defer></script>
 </head>
 <body>
   <div class="container">
@@ -412,5 +413,9 @@ document.getElementById('layerDesc').style.display = 'none';
 load();
 setInterval(load, 5*60*1000);
 </script>
+
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="liquidity-pulse-panel"></div>
+</div>
 </body>
 </html>

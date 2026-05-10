@@ -400,6 +400,154 @@ def check_auction_crisis(alerts):
         })
 
 
+def check_liquidity_pulse(alerts):
+    """Liquidity & credit-stress pulse — fires on:
+       - Composite credit stress crossing thresholds
+       - Composite liquidity drain crossing thresholds
+       - Any individual emergency-facility transition (OTHL1690, SWP1690)
+       - Any individual credit-stress transition (CCC, EuroHY, EMHY)
+       - Any series state transition (latched)"""
+    d = load_json("data/liquidity-pulse.json")
+    if not d:
+        return
+
+    # Sticky alert for composite scores
+    comp = d.get("composites", {}) or {}
+    credit_regime = comp.get("credit_regime")
+    liq_regime = comp.get("liquidity_regime")
+
+    if credit_regime == "CRISIS":
+        alerts.append({
+            "id": "liq_credit_crisis",
+            "category": "LIQUIDITY",
+            "severity": "HIGH",
+            "title": f"🔴 Credit stress CRISIS — composite {comp.get('credit_stress_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+    elif credit_regime == "ELEVATED":
+        alerts.append({
+            "id": "liq_credit_elevated",
+            "category": "LIQUIDITY",
+            "severity": "MEDIUM",
+            "title": f"🟠 Credit stress ELEVATED — composite {comp.get('credit_stress_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+
+    if liq_regime == "ACUTE_DRAIN":
+        alerts.append({
+            "id": "liq_liquidity_acute",
+            "category": "LIQUIDITY",
+            "severity": "HIGH",
+            "title": f"🔴 Acute liquidity drain — composite {comp.get('liquidity_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+
+    # Per-series transitions
+    icon_map = {
+        "balance":  "📊",
+        "facility": "🚨",
+        "credit":   "💸",
+    }
+    sev_map = {
+        "WATCH": "MEDIUM",
+        "ELEVATED": "MEDIUM",
+        "CRISIS": "HIGH",
+        "TIGHTENING": "LOW",
+        "EXPANDING": "LOW",
+    }
+    for t in (d.get("transitions") or []):
+        new_state = t.get("new_state")
+        old_state = t.get("prior_state")
+        # Skip transitions to NORMAL (informational only)
+        if new_state in ("NORMAL", "UNKNOWN"):
+            continue
+        group = t.get("group", "balance")
+        alerts.append({
+            "id": f"liq_{t['series_id']}_{new_state.lower()}",
+            "category": "LIQUIDITY",
+            "severity": sev_map.get(new_state, "MEDIUM"),
+            "title": f"{icon_map.get(group, '📡')} {t.get('label')} → {new_state}",
+            "detail": (f"State: {old_state} → {new_state}. " + (t.get('interpretation') or ''))[:300],
+        })
+
+    # ALWAYS-ON alert for any non-zero emergency facility (OTHL1690, SWP1690)
+    series = (d.get("series") or {})
+    for sid in ("OTHL1690", "SWP1690"):
+        s = series.get(sid)
+        if not s:
+            continue
+        v = s.get("latest_value", 0) or 0
+        if abs(v) >= 100:  # $100M+ on any emergency facility = significant
+            alerts.append({
+                "id": f"liq_facility_{sid}_active",
+                "category": "LIQUIDITY",
+                "severity": "HIGH" if abs(v) >= 5000 else "MEDIUM",
+                "title": f"🚨 {s.get('label')} ACTIVE — ${v/1000:.1f}B",
+                "detail": s.get("interpretation", "")[:280],
+            })
+
+
+def check_liquidity_credit(alerts):
+    """Liquidity & credit engine signals — fires on any series state transition.
+       Sticky CRISIS-level alerts for high-magnitude conditions.
+       Series watched: bank reserves, primary credit, central-bank swaps,
+       memo collateral pledges, ICE BofA HY OAS (US/Euro/EM), HQM corporate spreads."""
+    d = load_json("data/liquidity-credit-engine.json")
+    if not d:
+        return
+    sev_map = {"WATCH": "MEDIUM", "ELEVATED": "HIGH", "CRISIS": "HIGH", "NORMAL": "LOW"}
+    cat_icons = {
+        "balance_sheet":        "🏦",
+        "liquidity_facilities": "💧",
+        "credit_spreads":       "📉",
+        "corporate_yields":     "🏢",
+    }
+
+    # State transitions
+    for t in d.get("transitions", []) or []:
+        new = t.get("new")
+        if new == "NORMAL":
+            alerts.append({
+                "id": f"lce_{t['series_id']}_clear",
+                "category": "LIQUIDITY",
+                "severity": "LOW",
+                "title": f"{cat_icons.get(t.get('category'), '📡')} {t.get('label')} → CLEARED ({t.get('prior')} → NORMAL)",
+                "detail": f"Latest {t.get('latest_value')} · WoW {t.get('wow_pct'):+.2f}% · z={t.get('z_1y')}",
+            })
+            continue
+        alerts.append({
+            "id": f"lce_{t['series_id']}_{new.lower()}",
+            "category": "LIQUIDITY",
+            "severity": sev_map.get(new, "MEDIUM"),
+            "title": f"{cat_icons.get(t.get('category'), '📡')} {t.get('label')} → {new}",
+            "detail": f"{t.get('reason', '')} · z={t.get('z_1y')} · WoW {t.get('wow_pct'):+.2f}%" if t.get('wow_pct') is not None else (t.get('reason', '') or ""),
+        })
+
+    # Sticky CRISIS-level alerts (always fired while condition holds)
+    series = d.get("series", {})
+    for sid, info in series.items():
+        if info.get("signal") == "CRISIS":
+            alerts.append({
+                "id": f"lce_{sid}_crisis_state",
+                "category": "LIQUIDITY",
+                "severity": "HIGH",
+                "title": f"🚨 {info.get('_label')} — CRISIS",
+                "detail": (info.get("signal_reason") or "")[:280],
+            })
+
+    # Composite regime alert (when entire engine moves to ELEVATED+)
+    regime = d.get("regime")
+    if regime in ("ELEVATED", "ACUTE_STRESS", "CRISIS"):
+        comp = d.get("composite", {})
+        alerts.append({
+            "id": f"lce_regime_{regime.lower()}",
+            "category": "LIQUIDITY",
+            "severity": "HIGH" if regime != "ELEVATED" else "MEDIUM",
+            "title": f"💧 Liquidity & Credit regime: {regime} (composite {comp.get('score')}/100)",
+            "detail": f"{comp.get('n_firing')} series firing across {len(comp.get('by_category', {}))} categories",
+        })
+
+
 def check_tenor_signals(alerts):
     """Tenor-specific Treasury signals: 2y (Fed path), 1m/3m (eurodollar), 30y (QE).
        Fires on any state transition WATCH/FIRING/EXTREME."""
@@ -602,6 +750,8 @@ def lambda_handler(event=None, context=None):
         ("yield_curve", check_yield_curve),
         ("eurodollar_stress", check_eurodollar_stress),
         ("auction_crisis", check_auction_crisis),
+        ("liquidity_pulse", check_liquidity_pulse),
+        ("liquidity_credit", check_liquidity_credit),
         ("tenor_signals", check_tenor_signals),
         ("vix_curve", check_vix_curve),
         ("earnings", check_earnings),
