@@ -169,6 +169,35 @@ def build_context(message):
         chg30 = liq.get('change_30d_b') or liq.get('change_30d')
         lines.append(f"[FED LIQUIDITY] Net:${net}B  30d_chg:${chg30}B  Regime:{regime_l}")
 
+    # ─── LIQUIDITY & CREDIT ENGINE (Khalid-spec FRED + ICE BofA) ──
+    lce = get_s3('data/liquidity-credit-engine.json')
+    if lce:
+        lce_regime = lce.get('regime')
+        comp = lce.get('composite') or {}
+        ser = lce.get('series') or {}
+        def _v(sid): return (ser.get(sid) or {}).get('latest_value')
+        def _s(sid): return (ser.get(sid) or {}).get('signal')
+        lines.append(f"[LCE REGIME] {lce_regime} composite={comp.get('score')}/100 firing={comp.get('n_firing')}")
+        lines.append(f"[LCE TGA] WTREGEN ${_v('WTREGEN')}B sig={_s('WTREGEN')}  "
+                     f"PrimaryCredit(OTHL1690) ${_v('OTHL1690')}B sig={_s('OTHL1690')}  "
+                     f"CB_Swaps(SWPT) ${_v('SWPT')}B")
+        lines.append(f"[LCE HY OAS] CCC(BAMLH0A3HYC) {_v('BAMLH0A3HYC')}% sig={_s('BAMLH0A3HYC')}  "
+                     f"EuroHY {_v('BAMLHE00EHYIOAS')}%  EM_HY {_v('BAMLEMHBHYCRPIOAS')}%  "
+                     f"HQM_10y {_v('HQMCB10YR')}%")
+        lines.append(f"[LCE RESERVES] WALCL ${_v('WALCL')}B  WRESBAL ${_v('WRESBAL')}B  "
+                     f"BankReservesWoW={(ser.get('WRESBAL') or {}).get('wow_pct')}%")
+
+    # ─── TENOR SIGNALS (2y / 1m+3m / 30y auction-tape macro signals) ──
+    ten = get_s3('data/auction-tenor-signals.json')
+    if ten:
+        sigs = ten.get('signals') or {}
+        fp = sigs.get('fed_path') or {}
+        ed = sigs.get('eurodollar') or {}
+        qe = sigs.get('qe_imminence') or {}
+        lines.append(f"[TENOR SIGNALS] composite={ten.get('composite_score')}/100  "
+                     f"fed_path(2y)={fp.get('state')} dir={fp.get('direction')}  "
+                     f"eurodollar(1m/3m)={ed.get('state')}  qe_imminence(30y)={qe.get('state')}")
+
     vix = get_s3('data/vix-curve.json')
     if vix:
         spot = vix.get('vix_spot') or vix.get('spot')

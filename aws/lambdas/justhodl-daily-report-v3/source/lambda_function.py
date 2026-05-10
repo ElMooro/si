@@ -1053,13 +1053,111 @@ def compute_stock(bars):
 # ============================================================
 # KHALID INDEX V10 (10 components)
 # ============================================================
+# ============================================================
+# LIQUIDITY-CREDIT ENGINE + TENOR-SIGNALS INTEGRATION
+# Both loaded from S3; failures are non-fatal (return empty dict).
+# These feed compute_ki, compute_risk, ai_analysis, and the report.json overlay.
+# ============================================================
+def load_lce():
+    """Load liquidity-credit-engine.json from S3. Non-fatal on failure."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key='data/liquidity-credit-engine.json')
+        return json.loads(obj['Body'].read())
+    except Exception as e:
+        print(f"[LCE] load failed: {e}")
+        return {}
+
+
+def load_tenor_signals():
+    """Load auction-tenor-signals.json from S3. Non-fatal on failure."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key='data/auction-tenor-signals.json')
+        return json.loads(obj['Body'].read())
+    except Exception as e:
+        print(f"[TENOR] load failed: {e}")
+        return {}
+
+
+def lce_ki_adjustment(lce):
+    """Translate LCE composite + regime into a Khalid-Index score adjustment.
+       Returns (delta_int, signal_tuple_or_none)."""
+    if not lce:
+        return 0, None
+    regime = (lce.get('regime') or '').upper()
+    composite = (lce.get('composite') or {}).get('score', 0)
+    delta = 0
+    if regime == 'CRISIS':
+        delta = -25
+    elif regime == 'ACUTE_STRESS':
+        delta = -15
+    elif regime == 'ELEVATED':
+        delta = -8
+    elif regime == 'WATCH':
+        delta = -3
+    if delta:
+        return delta, ('LCE Regime', delta, f'{regime} ({composite}/100)')
+    return 0, None
+
+
+def lce_risk_adjustments(lce, base_risk):
+    """Incorporate LCE category state into the existing risk_dashboard dict.
+       Modifies base_risk in place and returns the augmented dict."""
+    if not lce:
+        return base_risk
+    series = lce.get('series', {})
+    by_cat = lce.get('by_category', {})
+    rank = {'NORMAL': 0, 'WATCH': 1, 'ELEVATED': 2, 'CRISIS': 3}
+
+    def worst_in_cat(cat):
+        ids = by_cat.get(cat, [])
+        worst = 'NORMAL'
+        for sid in ids:
+            s = series.get(sid, {}).get('signal', 'NORMAL')
+            if rank.get(s, 0) > rank.get(worst, 0):
+                worst = s
+        return worst
+
+    bs = worst_in_cat('balance_sheet')
+    lf = worst_in_cat('liquidity_facilities')
+    cs = worst_in_cat('credit_spreads')
+    cy = worst_in_cat('corporate_yields')
+
+    # Liquidity risk: add 25/15/8/0 penalty depending on worst of balance_sheet + liquidity_facilities
+    bs_lf_worst = max(rank.get(bs, 0), rank.get(lf, 0))
+    pen_liq = {3: 35, 2: 22, 1: 12, 0: 0}[bs_lf_worst]
+    base_risk['liquidity'] = max(0, min(100, (base_risk.get('liquidity') or 50) - pen_liq))
+
+    # Credit risk: add penalty from credit spreads + corporate yields
+    cs_cy_worst = max(rank.get(cs, 0), rank.get(cy, 0))
+    pen_cred = {3: 35, 2: 22, 1: 12, 0: 0}[cs_cy_worst]
+    base_risk['credit'] = max(0, min(100, (base_risk.get('credit') or 50) - pen_cred))
+
+    # Recompute composite as average
+    parts = ['credit', 'liquidity', 'market', 'recession', 'systemic']
+    vals = [base_risk[p] for p in parts if p in base_risk]
+    if vals:
+        base_risk['composite'] = round(sum(vals) / len(vals))
+
+    base_risk['lce_overlay'] = {
+        'regime': lce.get('regime'),
+        'composite': (lce.get('composite') or {}).get('score'),
+        'category_signals': {
+            'balance_sheet': bs,
+            'liquidity_facilities': lf,
+            'credit_spreads': cs,
+            'corporate_yields': cy,
+        },
+        'penalty_liquidity': pen_liq,
+        'penalty_credit': pen_cred,
+    }
+    return base_risk
+
+
 def compute_ki(fd, sd):
     score = 50; signals = []
     def gv(cat, sid):
         d = fd.get(cat, {}).get(sid, {})
-        return d.get('current')
-
-    # 1. DXY
+        return d.get('current')    # 1. DXY
     v = gv('dxy','DTWEXBGS')
     if v:
         s = -12 if v>115 else -8 if v>110 else -3 if v>105 else 5 if v<95 else 0
@@ -1125,9 +1223,28 @@ def compute_ki(fd, sd):
         else: s=0
         if s: score+=s; signals.append(('SPY Trend',s,f"${spy['price']:.0f}"))
 
+    # ── LCE OVERLAY: adjust KI based on Liquidity & Credit Engine regime ──
+    # Pulls the composite from data/liquidity-credit-engine.json. Penalty scales
+    # with regime (CRISIS -25, ACUTE_STRESS -15, ELEVATED -8, WATCH -3).
+    lce = load_lce()
+    delta_lce, sig_lce = lce_ki_adjustment(lce)
+    if delta_lce:
+        score += delta_lce
+        signals.append(sig_lce)
+
+    # ── TENOR-SIGNALS OVERLAY: penalty if any tenor channel firing ──
+    tenor = load_tenor_signals()
+    if tenor.get('any_firing'):
+        score -= 8; signals.append(('Tenor Signal Firing', -8, str(tenor.get('composite_score', '?'))))
+    elif tenor.get('any_watch'):
+        score -= 3; signals.append(('Tenor Signal Watch', -3, str(tenor.get('composite_score', '?'))))
+
     score = max(0, min(100, score))
     regime = 'STRONG_BULL' if score>=75 else 'BULL' if score>=60 else 'NEUTRAL' if score>=45 else 'BEAR' if score>=30 else 'CRISIS'
-    return {'score':score,'regime':regime,'signals':signals,'ts':datetime.utcnow().isoformat()}
+    return {'score':score,'regime':regime,'signals':signals,'ts':datetime.utcnow().isoformat(),
+            'lce_state': (lce.get('regime') if lce else None),
+            'lce_composite': ((lce.get('composite') or {}).get('score') if lce else None),
+            'tenor_state': ('FIRING' if tenor.get('any_firing') else 'WATCH' if tenor.get('any_watch') else 'CALM') if tenor else None}
 
 def compute_risk(fd):
     r = {}
@@ -1157,6 +1274,14 @@ def compute_risk(fd):
 
     scores = list(r.values())
     r['composite'] = round(sum(scores)/len(scores)) if scores else 50
+
+    # ── LCE OVERLAY: incorporate Khalid-specified Liquidity & Credit signals ──
+    # Adds penalties to liquidity and credit subscores based on LCE state.
+    # ICE BofA HY OAS (CCC, Euro, EM), HQM corporate spread, primary credit,
+    # central bank swaps, memo collateral pledges, bank reserves trajectory.
+    lce = load_lce()
+    if lce:
+        r = lce_risk_adjustments(lce, r)
     return r
 
 def compute_net_liq(fd):
@@ -1768,11 +1893,30 @@ def lambda_handler(event, context):
     ai = ai_analysis(fd, sd, crypto, ki, risk, nl, ecb_ciss)
 
     # ── PHASE 6: PUBLISH ──
+    # Load fresh LCE + tenor signals for the report payload (separate read so
+    # downstream consumers reading report.json get a coherent snapshot).
+    lce_payload = load_lce()
+    tenor_payload = load_tenor_signals()
+
     report = {
         'version':'V10','generated_at':datetime.utcnow().isoformat()+'Z',
         'fetch_time_seconds':round(time.time()-t0,1),
         'cftc_positioning': get_cftc_crisis_data() or {},
         'khalid_index':ki,'risk_dashboard':risk,'net_liquidity':nl,
+        'liquidity_credit_engine': {
+            'regime': lce_payload.get('regime'),
+            'composite': lce_payload.get('composite'),
+            'series': lce_payload.get('series', {}),
+            'by_category': lce_payload.get('by_category', {}),
+            'generated_at': lce_payload.get('generated_at'),
+        } if lce_payload else {},
+        'tenor_signals': {
+            'composite_score': tenor_payload.get('composite_score'),
+            'any_firing': tenor_payload.get('any_firing'),
+            'any_watch': tenor_payload.get('any_watch'),
+            'signals': tenor_payload.get('signals', {}),
+            'generated_at': tenor_payload.get('generated_at'),
+        } if tenor_payload else {},
         'sectors':sectors,'signals':sigs,'market_flow':market_flow,'ath_breakouts':ath_breakouts,
         'fred':fd,'stocks':sd,'crypto':crypto,'crypto_global':crypto_g,
         'ecb_ciss':ecb_ciss,

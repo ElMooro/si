@@ -333,6 +333,137 @@ def rule_sector_momentum(scores, evidence):
         add(scores, evidence, "SPY", -MILD, "XLF lagging — banks weak")
 
 
+def rule_liquidity_credit_engine(scores, evidence):
+    """Position sizing based on Liquidity & Credit Engine state.
+
+    Reads data/liquidity-credit-engine.json — Khalid-spec FRED + ICE BofA series.
+    When liquidity is draining or credit spreads are widening, tilt away from
+    risk assets toward duration, dollar, gold. When LCE is calm and reserves are
+    growing, tilt into risk assets.
+    """
+    d = fs3("data/liquidity-credit-engine.json")
+    if not d:
+        return
+    regime = d.get("regime")
+    composite = (d.get("composite") or {}).get("score") or 0
+    series = d.get("series") or {}
+
+    def state(sid): return (series.get(sid) or {}).get("signal", "NORMAL")
+    def value(sid): return (series.get(sid) or {}).get("latest_value")
+
+    # ── Regime-level position adjustment ──
+    desc = f"LCE regime: {regime} composite={composite}/100"
+    if regime == "CRISIS":
+        add(scores, evidence, "UUP", HARD, desc)
+        add(scores, evidence, "TLT", STRONG, desc)
+        add(scores, evidence, "GLD", STRONG, desc)
+        add(scores, evidence, "SPY", -HARD, desc)
+        add(scores, evidence, "QQQ", -HARD, desc)
+        add(scores, evidence, "EEM", -HARD, desc)
+        add(scores, evidence, "BTC", -HARD, desc)
+        add(scores, evidence, "HYG", -HARD, desc)
+    elif regime == "ACUTE_STRESS":
+        add(scores, evidence, "UUP", STRONG, desc)
+        add(scores, evidence, "TLT", STRONG, desc)
+        add(scores, evidence, "GLD", STRONG, desc)
+        add(scores, evidence, "SPY", -STRONG, desc)
+        add(scores, evidence, "EEM", -STRONG, desc)
+        add(scores, evidence, "BTC", -STRONG, desc)
+        add(scores, evidence, "HYG", -STRONG, desc)
+    elif regime == "ELEVATED":
+        add(scores, evidence, "UUP", MEDIUM, desc)
+        add(scores, evidence, "GLD", MEDIUM, desc)
+        add(scores, evidence, "TLT", MEDIUM, desc)
+        add(scores, evidence, "BTC", -MEDIUM, desc)
+        add(scores, evidence, "EEM", -MEDIUM, desc)
+        add(scores, evidence, "HYG", -MEDIUM, desc)
+    elif regime == "CALM":
+        # Liquidity abundant → risk-on tilt
+        add(scores, evidence, "BTC", MILD, desc)
+        add(scores, evidence, "EEM", MILD, desc)
+        add(scores, evidence, "HYG", MILD, desc)
+        add(scores, evidence, "UUP", -MILD, desc)
+
+    # ── Specific sub-signal: CCC HY OAS widening (Khalid-spec) ──
+    ccc_state = state("BAMLH0A3HYC")
+    ccc_val = value("BAMLH0A3HYC")
+    if ccc_state in ("ELEVATED", "CRISIS"):
+        d2 = f"CCC HY OAS: {ccc_val}% [{ccc_state}]"
+        add(scores, evidence, "HYG", -STRONG, d2)
+        add(scores, evidence, "BTC", -MEDIUM, d2)
+        add(scores, evidence, "GLD", MEDIUM, d2)
+
+    # ── Primary credit usage spike (financial-crisis signal) ──
+    pc_state = state("OTHL1690")
+    pc_val = value("OTHL1690")
+    if pc_state in ("ELEVATED", "CRISIS"):
+        d3 = f"Primary credit (OTHL1690): ${pc_val}B [{pc_state}]"
+        add(scores, evidence, "TLT", STRONG, d3)
+        add(scores, evidence, "GLD", STRONG, d3)
+        add(scores, evidence, "UUP", MEDIUM, d3)
+        add(scores, evidence, "HYG", -STRONG, d3)
+        add(scores, evidence, "SPY", -MEDIUM, d3)
+
+    # ── Central-bank swap line activation (FX dollar shortage) ──
+    swap_state_total = state("SWPT")
+    swap_val_total = value("SWPT")
+    swap_state_1690 = state("SWP1690")
+    if swap_state_total in ("ELEVATED", "CRISIS") or swap_state_1690 in ("ELEVATED", "CRISIS"):
+        d4 = f"CB liquidity swaps active: SWPT=${swap_val_total}B [{swap_state_total}]"
+        add(scores, evidence, "UUP", STRONG, d4)
+        add(scores, evidence, "GLD", MEDIUM, d4)
+        add(scores, evidence, "EEM", -STRONG, d4)
+        add(scores, evidence, "EFA", -MEDIUM, d4)
+
+
+def rule_tenor_signals(scores, evidence):
+    """Position sizing based on Treasury tenor-signal interpreter.
+
+    Reads data/auction-tenor-signals.json. fed_path firing CUTS_PRICED →
+    risk-on tilt; HIKES_PRICED → risk-off tilt. eurodollar firing → dollar
+    long. qe_imminence firing → long duration + gold + BTC.
+    """
+    d = fs3("data/auction-tenor-signals.json")
+    if not d:
+        return
+    sigs = d.get("signals") or {}
+    fp = sigs.get("fed_path") or {}
+    ed = sigs.get("eurodollar") or {}
+    qe = sigs.get("qe_imminence") or {}
+
+    fp_state = fp.get("state")
+    fp_dir = fp.get("direction")
+    if fp_state in ("FIRING", "EXTREME"):
+        desc = f"Fed-path firing: 2y → {fp_dir}"
+        if fp_dir == "CUTS_PRICED":
+            add(scores, evidence, "TLT", STRONG, desc)
+            add(scores, evidence, "GLD", MEDIUM, desc)
+            add(scores, evidence, "BTC", MEDIUM, desc)
+            add(scores, evidence, "UUP", -MEDIUM, desc)
+        elif fp_dir == "HIKES_PRICED":
+            add(scores, evidence, "UUP", STRONG, desc)
+            add(scores, evidence, "TLT", -STRONG, desc)
+            add(scores, evidence, "GLD", -MEDIUM, desc)
+            add(scores, evidence, "BTC", -STRONG, desc)
+            add(scores, evidence, "QQQ", -MEDIUM, desc)
+
+    if ed.get("state") in ("FIRING", "EXTREME"):
+        desc = f"Eurodollar shortage firing: {ed.get('state')}"
+        add(scores, evidence, "UUP", HARD, desc)
+        add(scores, evidence, "TLT", STRONG, desc)
+        add(scores, evidence, "GLD", STRONG, desc)
+        add(scores, evidence, "EEM", -HARD, desc)
+        add(scores, evidence, "EFA", -STRONG, desc)
+        add(scores, evidence, "BTC", -STRONG, desc)
+
+    if qe.get("state") in ("FIRING", "EXTREME"):
+        desc = f"QE imminence firing: {qe.get('state')}"
+        add(scores, evidence, "TLT", HARD, desc)
+        add(scores, evidence, "GLD", HARD, desc)
+        add(scores, evidence, "BTC", HARD, desc)
+        add(scores, evidence, "UUP", -STRONG, desc)
+
+
 # ─────────────────────────────────────────────────────────────────
 
 
@@ -343,6 +474,8 @@ RULES = [
     ("correlation_regime", rule_correlation_regime),
     ("eurodollar_stress", rule_eurodollar_stress),
     ("auction_crisis", rule_auction_crisis),
+    ("liquidity_credit_engine", rule_liquidity_credit_engine),
+    ("tenor_signals", rule_tenor_signals),
     ("historical_analogs", rule_historical_analogs),
     ("event_study", rule_event_study),
     ("btc_signals", rule_btc_signals),

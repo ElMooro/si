@@ -173,6 +173,10 @@ def load_all():
         "crisis_kb":"data/crisis-knowledge-base.json",
         # ─── Macro nowcast (composite z-score from FRED) ──────────
         "macro_nowcast":"data/macro-nowcast.json",
+        # ─── Liquidity & Credit Engine (Khalid-spec FRED + ICE BofA) ──
+        "liquidity_credit":"data/liquidity-credit-engine.json",
+        # ─── Tenor signal interpreter (2y/30y/1m/3m auction tape) ────
+        "tenor_signals":"data/auction-tenor-signals.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -374,6 +378,32 @@ def extract_metrics(data,weights):
             "auction_score": a.get("composite_score") or a.get("score"),
             "auction_regime": a.get("regime"),
         })(),
+        # Liquidity & Credit Engine (FRED + ICE BofA spreads + HQM)
+        **(lambda l=data.get("liquidity_credit", {}): {
+            "lce_regime": l.get("regime"),
+            "lce_composite": (l.get("composite") or {}).get("score"),
+            "lce_n_firing": (l.get("composite") or {}).get("n_firing"),
+            "tga_b": (l.get("series") or {}).get("WTREGEN", {}).get("latest_value"),
+            "tga_signal": (l.get("series") or {}).get("WTREGEN", {}).get("signal"),
+            "primary_credit_b": (l.get("series") or {}).get("OTHL1690", {}).get("latest_value"),
+            "primary_credit_signal": (l.get("series") or {}).get("OTHL1690", {}).get("signal"),
+            "ccc_hy_oas": (l.get("series") or {}).get("BAMLH0A3HYC", {}).get("latest_value"),
+            "ccc_hy_signal": (l.get("series") or {}).get("BAMLH0A3HYC", {}).get("signal"),
+            "euro_hy_oas": (l.get("series") or {}).get("BAMLHE00EHYIOAS", {}).get("latest_value"),
+            "em_hy_oas": (l.get("series") or {}).get("BAMLEMHBHYCRPIOAS", {}).get("latest_value"),
+            "hqm_corp_10y": (l.get("series") or {}).get("HQMCB10YR", {}).get("latest_value"),
+            "cb_swaps_b": (l.get("series") or {}).get("SWPT", {}).get("latest_value"),
+            "bank_reserves_wow_pct": (l.get("series") or {}).get("WRESBAL", {}).get("wow_pct"),
+        })(),
+        # Tenor signals (2y Fed path / 1m+3m eurodollar / 30y QE imminence)
+        **(lambda t=data.get("tenor_signals", {}): {
+            "tenor_composite": t.get("composite_score"),
+            "tenor_any_firing": t.get("any_firing"),
+            "tenor_fed_path": (t.get("signals") or {}).get("fed_path", {}).get("state"),
+            "tenor_fed_path_dir": (t.get("signals") or {}).get("fed_path", {}).get("direction"),
+            "tenor_eurodollar": (t.get("signals") or {}).get("eurodollar", {}).get("state"),
+            "tenor_qe": (t.get("signals") or {}).get("qe_imminence", {}).get("state"),
+        })(),
         # Correlation breaks (cross-asset relationship dislocations)
         **(lambda c=data.get("correlation_breaks", {}): {
             "n_corr_breaks": c.get("breaks_count") or len(c.get("breaks") or []),
@@ -549,6 +579,13 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "VIX_CURVE: spot:"+str(m.get("vix_spot") or "?")+" 3m:"+str(m.get("vix_3m") or "?")+" slope:"+str(m.get("vix_slope_3m_spot") or "?")+" regime:"+str(m.get("vix_curve_regime") or "?"),
         # ═══ Phase 9-11 ═══════════════════════════════════════════════
         "AUCTION_STRESS: "+str(m.get("auction_score") or "?")+"/100 regime:"+str(m.get("auction_regime") or "?"),
+        # ═══ LIQUIDITY & CREDIT ENGINE — Khalid-spec FRED + ICE BofA ══════
+        "LCE_REGIME: "+str(m.get("lce_regime") or "?")+" composite:"+str(m.get("lce_composite") or "?")+"/100 firing:"+str(m.get("lce_n_firing") or 0),
+        "LCE_TGA: $"+str(m.get("tga_b") or "?")+"B sig:"+str(m.get("tga_signal") or "?")+" | PRIMARY_CREDIT(OTHL1690): $"+str(m.get("primary_credit_b") or "?")+"B sig:"+str(m.get("primary_credit_signal") or "?")+" | CB_SWAPS(SWPT): $"+str(m.get("cb_swaps_b") or "?")+"B",
+        "LCE_HY_OAS: CCC(BAMLH0A3HYC):"+str(m.get("ccc_hy_oas") or "?")+"% sig:"+str(m.get("ccc_hy_signal") or "?")+" | EuroHY:"+str(m.get("euro_hy_oas") or "?")+"% | EM_HY:"+str(m.get("em_hy_oas") or "?")+"% | HQM_10y:"+str(m.get("hqm_corp_10y") or "?")+"%",
+        "LCE_RESERVES: bank_reserves WoW "+str(m.get("bank_reserves_wow_pct") or "?")+"% (drop>2% = QT acceleration)",
+        # ═══ TENOR SIGNALS — Treasury auction-tape macro signals ═══════
+        "TENOR_SIGNALS: composite:"+str(m.get("tenor_composite") or "?")+" firing:"+str(m.get("tenor_any_firing") or False)+" | fed_path(2y):"+str(m.get("tenor_fed_path") or "?")+" dir:"+str(m.get("tenor_fed_path_dir") or "?")+" | eurodollar(1m/3m):"+str(m.get("tenor_eurodollar") or "?")+" | qe_imminence(30y):"+str(m.get("tenor_qe") or "?"),
         "CORR_BREAKS: "+str(m.get("n_corr_breaks") or 0)+" pairs. Top:"+str(m.get("top_corr_break") or "none"),
         "PLUMBING_PHASE: "+str(m.get("plumbing_status") or "?")+" "+str(m.get("plumbing_phase") or ""),
         "RISK_RECS: "+str(m.get("n_risk_recs") or 0)+" sized. Top:"+str(m.get("top_risk_rec") or "none"),
