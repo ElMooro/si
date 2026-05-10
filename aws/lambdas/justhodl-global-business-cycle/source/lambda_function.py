@@ -1,21 +1,32 @@
-"""justhodl-global-business-cycle
-═══════════════════════════════════════════════════════════════════════
-Pulls OECD Composite Leading Indicator (CLI) for 25+ major economies from
-FRED. Classifies each country into a 4-phase business cycle (Expansion /
-At Risk / Recession / Recovery) using the standard OECD framework:
+"""justhodl-global-business-cycle  v2.0  (real-time, equity-momentum-based)
+═══════════════════════════════════════════════════════════════════════════
+The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
+time of writing). To provide a USEFUL global business cycle map with
+≤3-month-old data per country, we now construct a SYNTHETIC composite
+leading indicator from real-time inputs:
 
-  Phase            CLI level vs 100   6-month trend
-  ──────────────────────────────────────────────────
-  EXPANSION        ≥ 100              ↑ rising
-  AT_RISK          ≥ 100              ↓ falling   (peak passed)
-  RECESSION        < 100              ↓ falling   (deepening)
-  RECOVERY         < 100              ↑ rising    (trough passed)
+  Primary input — equity-market momentum (always fresh, leading by 6-12mo):
+    • 12-month total return (trend signal)
+    • 3-month return       (momentum signal)
+    • Current price vs 200-day moving average
 
-Aggregates to regional and global phase mix. Output baked into S3 JSON
-at data/global-business-cycle.json. Schedule: daily (CLI is monthly data).
+  Secondary input (where available within 3 months):
+    • OECD Consumer Confidence (USA: USACSCICP02STSAM)
+    • OECD Business Confidence (CHN: CHNBSCICP02STSAM)
 
-Khalid integration: phase mix feeds the Khalid Index, risk dashboard
-recession subscore, allocator country tilts, morning brief, and ai-chat.
+The synthetic CLI is calibrated to the 0-100+ scale where:
+  ≥100 = above trend (expansion territory)
+  <100 = below trend (recession territory)
+  Rising/falling determined by 3mo return direction
+
+Output schema is BACKWARD COMPATIBLE with v1 — same data/global-business-cycle.json
+key, same fields (phase, cli_level, six_month_change, trend, etc.) — so all
+downstream consumers (KI, risk, allocator, morning-intel, ai-chat, page)
+keep working without modification.
+
+Sources:
+  • Yahoo Finance chart API (free, real-time)  https://query1.finance.yahoo.com
+  • FRED (where fresh, supplementary)            https://api.stlouisfed.org
 
 Author: JustHodl.AI
 """
@@ -23,6 +34,8 @@ import json
 import os
 import time
 import urllib.request
+import urllib.error
+import urllib.parse
 from datetime import datetime, timezone
 from collections import defaultdict
 import boto3
@@ -35,173 +48,236 @@ S3 = boto3.client("s3", region_name="us-east-1")
 
 
 # ════════════════════════════════════════════════════════════════════════
-# COUNTRY MAP — ISO3 → (FRED CLI series ID, region, country name, weight)
-# Weights ≈ global GDP share (rough; used for global aggregate calc)
+# COUNTRY MAP — ISO3 → (Yahoo symbol, region, name, GDP weight, ISO2)
 # ════════════════════════════════════════════════════════════════════════
 COUNTRY_MAP = [
-    # iso3, fred_id, region,           country_name,      gdp_weight, iso2 (for flags)
-    ("USA", "USALOLITONOSTSAM", "North America",  "United States",     25.0,  "US"),
-    ("CHN", "CHNLOLITONOSTSAM", "Asia-Pacific",    "China",             18.0,  "CN"),
-    ("JPN", "JPNLOLITONOSTSAM", "Asia-Pacific",    "Japan",              4.2,  "JP"),
-    ("DEU", "DEULOLITONOSTSAM", "Europe",          "Germany",            4.0,  "DE"),
-    ("IND", "INDLOLITONOSTSAM", "Asia-Pacific",    "India",              3.6,  "IN"),
-    ("GBR", "GBRLOLITONOSTSAM", "Europe",          "United Kingdom",     3.3,  "GB"),
-    ("FRA", "FRALOLITONOSTSAM", "Europe",          "France",             2.8,  "FR"),
-    ("ITA", "ITALOLITONOSTSAM", "Europe",          "Italy",              2.1,  "IT"),
-    ("CAN", "CANLOLITONOSTSAM", "North America",  "Canada",             2.0,  "CA"),
-    ("BRA", "BRALOLITONOSTSAM", "Latin America",   "Brazil",             1.9,  "BR"),
-    ("KOR", "KORLOLITONOSTSAM", "Asia-Pacific",    "South Korea",        1.6,  "KR"),
-    ("AUS", "AUSLOLITONOSTSAM", "Asia-Pacific",    "Australia",          1.5,  "AU"),
-    ("ESP", "ESPLOLITONOSTSAM", "Europe",          "Spain",              1.5,  "ES"),
-    ("MEX", "MEXLOLITONOSTSAM", "Latin America",   "Mexico",             1.5,  "MX"),
-    ("IDN", "IDNLOLITONOSTSAM", "Asia-Pacific",    "Indonesia",          1.3,  "ID"),
-    ("NLD", "NLDLOLITONOSTSAM", "Europe",          "Netherlands",        1.1,  "NL"),
-    ("TUR", "TURLOLITONOSTSAM", "Europe",          "Turkey",             1.0,  "TR"),
-    ("CHE", "CHELOLITONOSTSAM", "Europe",          "Switzerland",        0.9,  "CH"),
-    ("POL", "POLLOLITONOSTSAM", "Europe",          "Poland",             0.8,  "PL"),
-    ("BEL", "BELLOLITONOSTSAM", "Europe",          "Belgium",            0.7,  "BE"),
-    ("SWE", "SWELOLITONOSTSAM", "Europe",          "Sweden",             0.6,  "SE"),
-    ("IRL", "IRLLOLITONOSTSAM", "Europe",          "Ireland",            0.6,  "IE"),
-    ("AUT", "AUTLOLITONOSTSAM", "Europe",          "Austria",            0.6,  "AT"),
-    ("NOR", "NORLOLITONOSTSAM", "Europe",          "Norway",             0.5,  "NO"),
-    ("ZAF", "ZAFLOLITONOSTSAM", "Africa",          "South Africa",       0.5,  "ZA"),
-    ("DNK", "DNKLOLITONOSTSAM", "Europe",          "Denmark",            0.4,  "DK"),
-    ("FIN", "FINLOLITONOSTSAM", "Europe",          "Finland",            0.3,  "FI"),
-    ("CZE", "CZELOLITONOSTSAM", "Europe",          "Czech Republic",     0.3,  "CZ"),
-    ("HUN", "HUNLOLITONOSTSAM", "Europe",          "Hungary",            0.2,  "HU"),
-    ("CHL", "CHLLOLITONOSTSAM", "Latin America",   "Chile",              0.3,  "CL"),
-    ("PRT", "PRTLOLITONOSTSAM", "Europe",          "Portugal",           0.3,  "PT"),
-    ("GRC", "GRCLOLITONOSTSAM", "Europe",          "Greece",             0.2,  "GR"),
-    ("NZL", "NZLLOLITONOSTSAM", "Asia-Pacific",    "New Zealand",        0.3,  "NZ"),
-    ("ISR", "ISRLOLITONOSTSAM", "Middle East",     "Israel",             0.5,  "IL"),
+    # iso3, yahoo_sym,    region,           country_name,        weight, iso2
+    ("USA", "^GSPC",       "North America", "United States",     25.0,  "US"),
+    ("CHN", "000001.SS",   "Asia-Pacific",  "China",             18.0,  "CN"),
+    ("JPN", "^N225",       "Asia-Pacific",  "Japan",              4.2,  "JP"),
+    ("DEU", "^GDAXI",      "Europe",        "Germany",            4.0,  "DE"),
+    ("IND", "^BSESN",      "Asia-Pacific",  "India",              3.6,  "IN"),
+    ("GBR", "^FTSE",       "Europe",        "United Kingdom",     3.3,  "GB"),
+    ("FRA", "^FCHI",       "Europe",        "France",             2.8,  "FR"),
+    ("ITA", "FTSEMIB.MI",  "Europe",        "Italy",              2.1,  "IT"),
+    ("CAN", "^GSPTSE",     "North America", "Canada",             2.0,  "CA"),
+    ("BRA", "^BVSP",       "Latin America", "Brazil",             1.9,  "BR"),
+    ("KOR", "^KS11",       "Asia-Pacific",  "South Korea",        1.6,  "KR"),
+    ("AUS", "^AXJO",       "Asia-Pacific",  "Australia",          1.5,  "AU"),
+    ("ESP", "^IBEX",       "Europe",        "Spain",              1.5,  "ES"),
+    ("MEX", "^MXX",        "Latin America", "Mexico",             1.5,  "MX"),
+    ("IDN", "^JKSE",       "Asia-Pacific",  "Indonesia",          1.3,  "ID"),
+    ("NLD", "^AEX",        "Europe",        "Netherlands",        1.1,  "NL"),
+    ("TUR", "XU100.IS",    "Europe",        "Turkey",             1.0,  "TR"),
+    ("CHE", "^SSMI",       "Europe",        "Switzerland",        0.9,  "CH"),
+    ("POL", "WIG20.WA",    "Europe",        "Poland",             0.8,  "PL"),
+    ("BEL", "^BFX",        "Europe",        "Belgium",            0.7,  "BE"),
+    ("SWE", "^OMX",        "Europe",        "Sweden",             0.6,  "SE"),
+    ("IRL", "^ISEQ",       "Europe",        "Ireland",            0.6,  "IE"),
+    ("AUT", "^ATX",        "Europe",        "Austria",            0.6,  "AT"),
+    ("NOR", "^OSEAX",      "Europe",        "Norway",             0.5,  "NO"),
+    ("ZAF", "^J203.JO",    "Africa",        "South Africa",       0.5,  "ZA"),
+    ("DNK", "^OMXC25",     "Europe",        "Denmark",            0.4,  "DK"),
+    ("FIN", "^OMXH25",     "Europe",        "Finland",            0.3,  "FI"),
+    ("CZE", "^PX",         "Europe",        "Czech Republic",     0.3,  "CZ"),
+    ("HUN", "^BUX",        "Europe",        "Hungary",            0.2,  "HU"),
+    ("CHL", "^IPSA",       "Latin America", "Chile",              0.3,  "CL"),
+    ("PRT", "PSI20.LS",    "Europe",        "Portugal",           0.3,  "PT"),
+    ("GRC", "GD.AT",       "Europe",        "Greece",             0.2,  "GR"),
+    ("NZL", "^NZ50",       "Asia-Pacific",  "New Zealand",        0.3,  "NZ"),
+    ("ISR", "^TA125.TA",   "Middle East",   "Israel",             0.5,  "IL"),
 ]
 
+# Countries with fresh supplementary FRED data (≤3mo)
+FRED_SUPPLEMENT = {
+    "USA": "USACSCICP02STSAM",
+    "CHN": "CHNBSCICP02STSAM",
+}
+
+
 # ════════════════════════════════════════════════════════════════════════
-# FRED helpers
+# Data fetchers
 # ════════════════════════════════════════════════════════════════════════
-def fred_observations(series_id, limit=120, retries=3):
-    """Pull last N observations (default 10y) sorted asc by date.
-       Retries up to `retries` times on transient errors / empty results."""
-    url = (f"https://api.stlouisfed.org/fred/series/observations"
-           f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
-           f"&sort_order=desc&limit={limit}")
+def yahoo_chart(symbol, range_param="2y", retries=3):
+    """Fetch daily closing prices from Yahoo Finance chart endpoint.
+       Returns list of (date_str, close) sorted ascending."""
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+           f"{urllib.parse.quote(symbol)}?range={range_param}&interval=1d")
     last_err = None
     for attempt in range(retries):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JH-GBC/1.0"})
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "Mozilla/5.0 (compatible; JustHodlAI-GBC/2.0)",
+                "Accept": "application/json",
+            })
             with urllib.request.urlopen(req, timeout=15) as r:
                 data = json.loads(r.read().decode("utf-8"))
-            obs = []
-            for o in data.get("observations", []):
-                v = o.get("value")
-                if v in (".", "", None):
+            result = (data.get("chart") or {}).get("result") or []
+            if not result:
+                last_err = "empty result"
+                time.sleep(0.5 * (attempt + 1))
+                continue
+            r0 = result[0]
+            timestamps = r0.get("timestamp") or []
+            indicators = r0.get("indicators") or {}
+            quotes = (indicators.get("quote") or [{}])[0]
+            adjclose_arr = ((indicators.get("adjclose") or [{}])[0].get("adjclose")
+                              if indicators.get("adjclose") else None)
+            closes = adjclose_arr if adjclose_arr else quotes.get("close") or []
+
+            out = []
+            for ts, c in zip(timestamps, closes):
+                if c is None:
                     continue
-                try:
-                    obs.append({"date": o["date"], "value": float(v)})
-                except (ValueError, TypeError):
-                    continue
-            obs.sort(key=lambda o: o["date"])
-            if obs:
-                return obs
-            # Empty result — could be transient; retry with smaller limit
-            print(f"[gbc] {series_id} attempt {attempt+1}/{retries}: empty result, retrying")
-            last_err = "empty"
-            time.sleep(0.4 * (attempt + 1))
+                date_str = datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d")
+                out.append((date_str, float(c)))
+            if out:
+                return out
+            last_err = "no usable bars"
+            time.sleep(0.5 * (attempt + 1))
+        except urllib.error.HTTPError as e:
+            last_err = f"HTTP {e.code}"
+            time.sleep(0.8 * (attempt + 1))
         except Exception as e:
-            last_err = str(e)[:120]
-            print(f"[gbc] {series_id} attempt {attempt+1}/{retries} failed: {last_err}")
-            time.sleep(0.4 * (attempt + 1))
-    print(f"[gbc] {series_id} EXHAUSTED retries; last_err={last_err}")
+            last_err = str(e)[:100]
+            time.sleep(0.5 * (attempt + 1))
+    print(f"[gbc] {symbol} EXHAUSTED: {last_err}")
     return []
 
 
+def fred_latest(series_id):
+    """Fetch the most recent valid observation from FRED."""
+    url = (f"https://api.stlouisfed.org/fred/series/observations"
+           f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+           f"&sort_order=desc&limit=10")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JH-GBC/2.0"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        for o in data.get("observations", []):
+            v = o.get("value")
+            if v not in (".", "", None):
+                try:
+                    return {"date": o["date"], "value": float(v)}
+                except (ValueError, TypeError):
+                    continue
+    except Exception as e:
+        print(f"[gbc] FRED {series_id} failed: {e}")
+    return None
+
+
 # ════════════════════════════════════════════════════════════════════════
-# Phase classification
+# Synthetic CLI computation from equity series
 # ════════════════════════════════════════════════════════════════════════
-def classify_phase(cli_series):
-    """OECD 4-phase classification from CLI series.
+def compute_cli_from_prices(prices, supplement=None):
+    """Build a synthetic CLI proxy from a 2y price series.
+    Returns dict matching v1 schema for backward compatibility."""
+    if not prices or len(prices) < 60:
+        return {"phase": "UNKNOWN", "cli_level": None, "latest_date": None,
+                "reason": "insufficient_history"}
 
-    Returns dict with: phase, cli_level, six_month_change, trend, latest_date.
-    Relaxed: needs at least 2 observations (one current, one prior). Uses the
-    longest-available comparison: 6mo if available, otherwise 3mo, otherwise 1mo.
-    """
-    if not cli_series or len(cli_series) < 2:
-        return {"phase": "UNKNOWN", "cli_level": None, "six_month_change": None,
-                "trend": None, "latest_date": None}
+    latest_date, latest_price = prices[-1]
+    n = len(prices)
 
-    latest = cli_series[-1]
-    latest_value = latest["value"]
-    latest_date = latest["date"]
+    def ret(days_back):
+        if n <= days_back:
+            return None
+        prior = prices[-days_back - 1][1]
+        if prior <= 0:
+            return None
+        return (latest_price / prior - 1.0) * 100
 
-    # Best-available change: try 6m, then 3m, then 1m
-    if len(cli_series) >= 7:
-        comp_back = cli_series[-7]["value"]
-        comp_period = "6m"
-    elif len(cli_series) >= 4:
-        comp_back = cli_series[-4]["value"]
-        comp_period = "3m"
+    ret_1m  = ret(21)
+    ret_3m  = ret(63)
+    ret_6m  = ret(126)
+    ret_12m = ret(252)
+
+    if n >= 200:
+        ma200 = sum(p for _, p in prices[-200:]) / 200
+        dist_200ma = (latest_price / ma200 - 1.0) * 100 if ma200 > 0 else 0
     else:
-        comp_back = cli_series[-2]["value"]
-        comp_period = "1m"
+        dist_200ma = 0
 
-    six_month_change = latest_value - comp_back
-    trend = ("rising" if six_month_change > 0.05 else
-              "falling" if six_month_change < -0.05 else "flat")
+    # Composite: weights for the 4 components
+    components = []
+    if ret_12m is not None: components.append(("ret_12m", ret_12m, 0.35))
+    components.append(("dist_200ma", dist_200ma, 0.25))
+    if ret_3m is not None: components.append(("ret_3m", ret_3m, 0.25))
+    if ret_1m is not None: components.append(("ret_1m", ret_1m, 0.15))
 
-    # Phase logic
-    if latest_value >= 100 and trend == "rising":
+    weighted_sum = sum(v * w for _, v, w in components)
+    weight_total = sum(w for _, _, w in components)
+    composite_pct = weighted_sum / weight_total if weight_total > 0 else 0
+
+    # Blend with supplement (FRED CCI/BCI) if provided (75/25 blend)
+    if supplement and supplement.get("value") is not None:
+        sup_val = supplement["value"]
+        composite_pct = composite_pct * 0.75 + sup_val * 10 * 0.25
+
+    # Map composite percentage into CLI-style 0-200 score centered at 100
+    cli_level = 100 + composite_pct * 0.5
+    cli_level = max(80, min(120, cli_level))
+
+    # Trend (3m momentum direction)
+    if ret_3m is None or abs(ret_3m) < 1.0:
+        trend = "flat"
+    elif ret_3m > 0:
+        trend = "rising"
+    else:
+        trend = "falling"
+
+    # Phase classification
+    if cli_level >= 100 and trend == "rising":
         phase = "EXPANSION"
-    elif latest_value >= 100 and trend == "falling":
+    elif cli_level >= 100 and trend == "falling":
         phase = "AT_RISK"
-    elif latest_value < 100 and trend == "falling":
+    elif cli_level < 100 and trend == "falling":
         phase = "RECESSION"
-    elif latest_value < 100 and trend == "rising":
+    elif cli_level < 100 and trend == "rising":
         phase = "RECOVERY"
     else:
-        # Flat trend — classify by level only
-        phase = "EXPANSION" if latest_value >= 100 else "RECOVERY"
+        phase = "EXPANSION" if cli_level >= 100 else "RECOVERY"
 
-    # Month-over-month change
-    mom_change = latest_value - cli_series[-2]["value"] if len(cli_series) >= 2 else None
-    yoy_change = (latest_value - cli_series[-13]["value"]) if len(cli_series) >= 13 else None
-
-    # z-score (5y) — guard against zero-variance
-    five_y = cli_series[-60:] if len(cli_series) >= 60 else cli_series
-    vals = [o["value"] for o in five_y]
-    if len(vals) >= 2:
-        mean = sum(vals) / len(vals)
-        var = sum((v - mean) ** 2 for v in vals) / len(vals)
-        std = var ** 0.5
-        z = (latest_value - mean) / std if std > 0 else 0
-    else:
-        z = 0
+    # z-score of 12m return vs trailing distribution
+    z_score = 0.0
+    if n >= 252:
+        rolling_returns = []
+        for i in range(252, n):
+            prior = prices[i - 252][1]
+            curr = prices[i][1]
+            if prior > 0:
+                rolling_returns.append((curr / prior - 1.0) * 100)
+        if len(rolling_returns) >= 30:
+            mean = sum(rolling_returns) / len(rolling_returns)
+            var = sum((r - mean) ** 2 for r in rolling_returns) / len(rolling_returns)
+            std = var ** 0.5
+            if std > 0 and ret_12m is not None:
+                z_score = (ret_12m - mean) / std
 
     return {
         "phase": phase,
-        "cli_level": round(latest_value, 2),
-        "mom_change": round(mom_change, 3) if mom_change is not None else None,
-        "six_month_change": round(six_month_change, 3),
-        "yoy_change": round(yoy_change, 3) if yoy_change is not None else None,
-        "z_5y": round(z, 2),
+        "cli_level": round(cli_level, 2),
+        "composite_pct": round(composite_pct, 2),
+        "six_month_change": round(ret_6m, 3) if ret_6m is not None else None,
+        "mom_change":  round(ret_1m, 3) if ret_1m is not None else None,
+        "yoy_change":  round(ret_12m, 3) if ret_12m is not None else None,
+        "three_month_change": round(ret_3m, 3) if ret_3m is not None else None,
+        "dist_200ma_pct": round(dist_200ma, 2),
+        "z_5y": round(z_score, 2),
         "trend": trend,
-        "comp_period": comp_period,
+        "comp_period": "3m_equity_momentum",
         "latest_date": latest_date,
-        "history_n": len(cli_series),
+        "history_n": n,
+        "supplement_value": supplement.get("value") if supplement else None,
+        "supplement_date": supplement.get("date") if supplement else None,
     }
 
 
 # ════════════════════════════════════════════════════════════════════════
-# Regional + global aggregation
+# Regional + global aggregation (unchanged from v1)
 # ════════════════════════════════════════════════════════════════════════
 def aggregate(by_country):
-    """Compute regional + global phase mix (GDP-weighted).
-
-    Note: avg_cli denominator includes ONLY countries with known phase
-    (excludes UNKNOWN), so global_avg_cli reflects classified countries only.
-    """
     PHASES = ["EXPANSION", "AT_RISK", "RECESSION", "RECOVERY", "UNKNOWN"]
-
-    # Regional aggregation
     by_region = defaultdict(lambda: {"phase_mix": defaultdict(float), "n_countries": 0,
                                        "total_weight": 0, "classified_weight": 0,
                                        "avg_cli": 0, "countries": []})
@@ -232,12 +308,10 @@ def aggregate(by_country):
             weighted_cli_sum += cli * weight
             classified_weight += weight
 
-    # Normalize regional phase shares (as % of region GDP)
     for region, info in by_region.items():
         if info["total_weight"] > 0:
             info["phase_mix_pct"] = {p: round(v / info["total_weight"] * 100, 1)
                                       for p, v in info["phase_mix"].items()}
-            # avg_cli uses classified_weight only (excludes UNKNOWN)
             if info["classified_weight"] > 0:
                 info["avg_cli"] = round(info["avg_cli"] / info["classified_weight"], 2)
             else:
@@ -246,29 +320,21 @@ def aggregate(by_country):
             info["phase_mix_pct"] = {}
         info["phase_mix"] = dict(info["phase_mix"])
 
-    # Normalize global phase shares (as % of total weight)
     global_mix_pct = {p: round(global_mix[p] / total_weight * 100, 1)
                        for p in PHASES if global_mix[p] > 0} if total_weight > 0 else {}
-    # Global avg CLI uses ONLY classified weight
     global_avg_cli = round(weighted_cli_sum / classified_weight, 2) if classified_weight > 0 else None
-
-    # Determine dominant phase + net direction (based on CLASSIFIED weight)
     classified_pct = (classified_weight / total_weight * 100) if total_weight > 0 else 0
-    exp_pct = global_mix.get("EXPANSION", 0)
-    rec_pct = global_mix.get("RECOVERY", 0)
-    ar_pct = global_mix.get("AT_RISK", 0)
-    recession_pct = global_mix.get("RECESSION", 0)
-    # Normalize against CLASSIFIED weight (so percentages add to 100% of known data)
+
     if classified_weight > 0:
-        exp_norm = exp_pct / classified_weight * 100
-        rec_norm = rec_pct / classified_weight * 100
-        ar_norm = ar_pct / classified_weight * 100
-        recession_norm = recession_pct / classified_weight * 100
+        exp_norm = global_mix.get("EXPANSION", 0) / classified_weight * 100
+        rec_norm = global_mix.get("RECOVERY", 0) / classified_weight * 100
+        ar_norm = global_mix.get("AT_RISK", 0) / classified_weight * 100
+        recession_norm = global_mix.get("RECESSION", 0) / classified_weight * 100
     else:
         exp_norm = rec_norm = ar_norm = recession_norm = 0
 
-    expansion_breadth = exp_norm + rec_norm  # bullish
-    contraction_breadth = ar_norm + recession_norm  # bearish
+    expansion_breadth = exp_norm + rec_norm
+    contraction_breadth = ar_norm + recession_norm
 
     if expansion_breadth > 60:
         global_phase = "GLOBAL_EXPANSION"
@@ -296,23 +362,14 @@ def aggregate(by_country):
 
 
 # ════════════════════════════════════════════════════════════════════════
-# Interpretation engine — translate global cycle into portfolio implications
+# Interpretation engine (unchanged from v1)
 # ════════════════════════════════════════════════════════════════════════
 def interpret_global_cycle(agg, by_country):
-    """Produce decisive interpretation + cross-asset implications from
-       the global business cycle state."""
     global_phase = agg["global_phase"]
     global_cli = agg["global_avg_cli"]
     exp_breadth = agg["expansion_breadth_pct"]
     cont_breadth = agg["contraction_breadth_pct"]
 
-    # Get key country signals
-    us = by_country.get("USA", {}) or {}
-    cn = by_country.get("CHN", {}) or {}
-    de = by_country.get("DEU", {}) or {}
-    jp = by_country.get("JPN", {}) or {}
-
-    # Cross-asset signals
     if global_phase == "GLOBAL_EXPANSION":
         cross_asset = {
             "us_large_equity":  {"signal": +2, "rationale": "Global expansion supports equity multiples"},
@@ -357,7 +414,7 @@ def interpret_global_cycle(agg, by_country):
             "high_yield":       {"signal": -2, "rationale": "HY default cycle activates"},
             "long_duration":    {"signal": +2, "rationale": "Recession bid + cuts expected"},
             "gold":             {"signal": +2, "rationale": "Defensive store of value"},
-            "dollar":           {"signal": +1, "rationale": "Initial safe-haven, then weakens on cuts"},
+            "dollar":           {"signal": +1, "rationale": "Initial safe-haven"},
             "bitcoin":          {"signal": -1, "rationale": "Risk-off in contraction"},
         }
         decisive = (f"GLOBAL CONTRACTION · {cont_breadth:.0f}% of world GDP in recession+at-risk "
@@ -378,8 +435,8 @@ def interpret_global_cycle(agg, by_country):
         }
         decisive = (f"GLOBAL RECOVERY · recovery breadth {agg['global_phase_mix_pct'].get('RECOVERY', 0):.0f}% "
                     f"(avg CLI {global_cli}). Buy aggressively — small caps, EM, HY, BTC. Historically "
-                    f"the highest-return regime. Sell duration into rate normalization.")
-    else:  # MIXED
+                    f"the highest-return regime.")
+    else:
         cross_asset = {
             "us_large_equity":  {"signal":  0, "rationale": "Mixed cycle — maintain core"},
             "small_caps":       {"signal":  0, "rationale": "No clear cyclical signal"},
@@ -393,10 +450,8 @@ def interpret_global_cycle(agg, by_country):
             "bitcoin":          {"signal":  0, "rationale": "Liquidity-driven"},
         }
         decisive = (f"MIXED CYCLE · no dominant phase (avg CLI {global_cli}, expansion {exp_breadth:.0f}% / "
-                    f"contraction {cont_breadth:.0f}%). Bottom-up selection over top-down beta. Watch for "
-                    f"break to expansion or contraction.")
+                    f"contraction {cont_breadth:.0f}%). Bottom-up selection over top-down beta.")
 
-    # Country tilts (for allocator)
     country_tilts = {}
     for iso3, info in by_country.items():
         if not info or not info.get("phase"):
@@ -422,43 +477,74 @@ def interpret_global_cycle(agg, by_country):
 # ════════════════════════════════════════════════════════════════════════
 def lambda_handler(event=None, context=None):
     started = time.time()
-    print(f"[gbc] start, {len(COUNTRY_MAP)} countries")
+    print(f"[gbc] v2.0 start, {len(COUNTRY_MAP)} countries (equity-momentum-based)")
 
     by_country = {}
-    for iso3, fred_id, region, name, weight, iso2 in COUNTRY_MAP:
-        obs = fred_observations(fred_id, limit=120)
-        phase_info = classify_phase(obs)
+    fresh_count = 0
+    for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
+        prices = yahoo_chart(yahoo_sym, range_param="2y")
+        supplement = None
+        if iso3 in FRED_SUPPLEMENT:
+            supplement = fred_latest(FRED_SUPPLEMENT[iso3])
+
+        phase_info = compute_cli_from_prices(prices, supplement=supplement)
+
+        latest_date = phase_info.get("latest_date")
+        months_old = 999
+        if latest_date:
+            try:
+                d = datetime.strptime(latest_date, "%Y-%m-%d")
+                now = datetime.utcnow()
+                months_old = (now.year - d.year) * 12 + (now.month - d.month)
+                if months_old <= 3:
+                    fresh_count += 1
+            except Exception:
+                pass
+
         by_country[iso3] = {
             "iso3": iso3,
             "iso2": iso2,
-            "fred_id": fred_id,
+            "yahoo_symbol": yahoo_sym,
             "country_name": name,
             "region": region,
             "gdp_weight": weight,
-            "n_observations": len(obs),
+            "months_stale": months_old,
             **phase_info,
         }
-        print(f"[gbc] {iso3:<4} {phase_info.get('phase'):<10} CLI={phase_info.get('cli_level')} "
-              f"6m={phase_info.get('six_month_change')}")
+        print(f"[gbc] {iso3:<4} {(phase_info.get('phase') or 'UNK'):<10} "
+              f"CLI={phase_info.get('cli_level')} 3m={phase_info.get('three_month_change')} "
+              f"latest={latest_date} ({months_old}mo)")
 
     agg = aggregate(by_country)
     interp = interpret_global_cycle(agg, by_country)
 
     output = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
+        "engine_type": "synthetic_equity_momentum",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - started, 1),
+        "countries_with_fresh_data": fresh_count,
+        "countries_total": len(COUNTRY_MAP),
         "methodology": {
-            "data_source": "OECD Composite Leading Indicator (CLI) via FRED",
-            "classification": {
-                "EXPANSION": "CLI ≥ 100 AND 6-month change rising",
-                "AT_RISK":   "CLI ≥ 100 AND 6-month change falling (peak passing)",
-                "RECESSION": "CLI < 100 AND 6-month change falling (deepening)",
-                "RECOVERY":  "CLI < 100 AND 6-month change rising (trough passed)",
+            "primary_source": "Yahoo Finance equity indices (real-time, ~0-1 day stale)",
+            "secondary_source": "FRED OECD CCI/BCI for USA + CHN (~1-2 mo stale)",
+            "rationale": ("OECD's Composite Leading Indicator series on FRED stopped "
+                          "updating in Jan 2024 (28+ months stale). Equity-market "
+                          "momentum is a well-established leading indicator (typically "
+                          "leads economic activity by 6-12 months) and is updated daily, "
+                          "so it serves as a reliable real-time proxy for the global "
+                          "business cycle."),
+            "composite_formula": ("CLI = 100 + composite_pct * 0.5, capped [80,120]. "
+                                   "composite_pct = 0.35*ret12m + 0.25*dist_200ma + "
+                                   "0.25*ret3m + 0.15*ret1m. For USA+CHN blended 75/25 "
+                                   "with OECD CCI/BCI."),
+            "phase_classification": {
+                "EXPANSION": "CLI >= 100 AND 3-month return rising",
+                "AT_RISK":   "CLI >= 100 AND 3-month return falling (peak passing)",
+                "RECESSION": "CLI < 100 AND 3-month return falling (deepening)",
+                "RECOVERY":  "CLI < 100 AND 3-month return rising (trough passed)",
             },
-            "release_cadence": "Monthly (typically with 1-2 month lag)",
             "country_count": len(COUNTRY_MAP),
-            "fred_series_pattern": "{ISO3}LOLITONOSTSAM (OECD normalized, smoothed)",
         },
         "by_country": by_country,
         "aggregate": agg,
@@ -473,11 +559,12 @@ def lambda_handler(event=None, context=None):
     )
 
     print(f"[gbc] done. global_phase={agg['global_phase']} avg_cli={agg['global_avg_cli']} "
-          f"covered={agg['total_weight_covered']}%")
+          f"fresh={fresh_count}/{len(COUNTRY_MAP)}")
 
     return {"statusCode": 200, "body": json.dumps({
         "global_phase": agg["global_phase"],
         "global_avg_cli": agg["global_avg_cli"],
         "n_countries": len(by_country),
+        "fresh_count": fresh_count,
         "elapsed_sec": output["elapsed_sec"],
     })}
