@@ -1,0 +1,30 @@
+{
+  "started": "2026-05-10T11:44:11.512943+00:00",
+  "test": {
+    "daily_report_invoke": {
+      "error": "An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded."
+    },
+    "report_check": {
+      "ki_score": 48,
+      "ki_regime": "NEUTRAL",
+      "ki_lce_state": null,
+      "ki_lce_composite": null,
+      "ki_tenor_state": null,
+      "ki_signals_with_lce": [],
+      "risk_composite": 69,
+      "risk_credit": 80,
+      "risk_liquidity": 65,
+      "risk_lce_overlay": null,
+      "report_has_lce_top_level": false,
+      "lce_top_level_regime": null,
+      "lce_top_level_composite": null,
+      "report_has_tenor_top_level": false,
+      "tenor_top_level_composite": null
+    },
+    "allocator_invoke": {
+      "status": 200,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"BALANCED_NEUTRAL\\\", \\\"n_overweights\\\": 0, \\\"n_underweights\\\": 0, \\\"cash_pct\\\": 15.0, \\\"duration_s\\\": 0.59}\"}"
+    }
+  },
+  "finished": "2026-05-10T11:44:28.713763+00:00"
+}
