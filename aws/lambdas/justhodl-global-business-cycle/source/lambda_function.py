@@ -111,9 +111,11 @@ def fred_observations(series_id, limit=120):
 def classify_phase(cli_series):
     """OECD 4-phase classification from CLI series.
 
-    Returns dict with: phase, cli_level, six_month_change, trend, latest_date
+    Returns dict with: phase, cli_level, six_month_change, trend, latest_date.
+    Relaxed: needs at least 2 observations (one current, one prior). Uses the
+    longest-available comparison: 6mo if available, otherwise 3mo, otherwise 1mo.
     """
-    if not cli_series or len(cli_series) < 7:
+    if not cli_series or len(cli_series) < 2:
         return {"phase": "UNKNOWN", "cli_level": None, "six_month_change": None,
                 "trend": None, "latest_date": None}
 
@@ -121,12 +123,20 @@ def classify_phase(cli_series):
     latest_value = latest["value"]
     latest_date = latest["date"]
 
-    # 6-month change: latest minus value 6 months ago
-    six_months_back = cli_series[-7]["value"] if len(cli_series) >= 7 else None
-    six_month_change = (latest_value - six_months_back) if six_months_back else None
-    trend = "rising" if six_month_change is not None and six_month_change > 0 else \
-            "falling" if six_month_change is not None and six_month_change < 0 else \
-            "flat"
+    # Best-available change: try 6m, then 3m, then 1m
+    if len(cli_series) >= 7:
+        comp_back = cli_series[-7]["value"]
+        comp_period = "6m"
+    elif len(cli_series) >= 4:
+        comp_back = cli_series[-4]["value"]
+        comp_period = "3m"
+    else:
+        comp_back = cli_series[-2]["value"]
+        comp_period = "1m"
+
+    six_month_change = latest_value - comp_back
+    trend = ("rising" if six_month_change > 0.05 else
+              "falling" if six_month_change < -0.05 else "flat")
 
     # Phase logic
     if latest_value >= 100 and trend == "rising":
@@ -139,28 +149,32 @@ def classify_phase(cli_series):
         phase = "RECOVERY"
     else:
         # Flat trend — classify by level only
-        phase = "EXPANSION" if latest_value >= 100 else "RECESSION"
+        phase = "EXPANSION" if latest_value >= 100 else "RECOVERY"
 
     # Month-over-month change
     mom_change = latest_value - cli_series[-2]["value"] if len(cli_series) >= 2 else None
     yoy_change = (latest_value - cli_series[-13]["value"]) if len(cli_series) >= 13 else None
 
-    # z-score (5y)
+    # z-score (5y) — guard against zero-variance
     five_y = cli_series[-60:] if len(cli_series) >= 60 else cli_series
     vals = [o["value"] for o in five_y]
-    mean = sum(vals) / len(vals)
-    var = sum((v - mean) ** 2 for v in vals) / len(vals)
-    std = var ** 0.5
-    z = (latest_value - mean) / std if std > 0 else 0
+    if len(vals) >= 2:
+        mean = sum(vals) / len(vals)
+        var = sum((v - mean) ** 2 for v in vals) / len(vals)
+        std = var ** 0.5
+        z = (latest_value - mean) / std if std > 0 else 0
+    else:
+        z = 0
 
     return {
         "phase": phase,
         "cli_level": round(latest_value, 2),
         "mom_change": round(mom_change, 3) if mom_change is not None else None,
-        "six_month_change": round(six_month_change, 3) if six_month_change is not None else None,
+        "six_month_change": round(six_month_change, 3),
         "yoy_change": round(yoy_change, 3) if yoy_change is not None else None,
         "z_5y": round(z, 2),
         "trend": trend,
+        "comp_period": comp_period,
         "latest_date": latest_date,
         "history_n": len(cli_series),
     }
@@ -170,14 +184,20 @@ def classify_phase(cli_series):
 # Regional + global aggregation
 # ════════════════════════════════════════════════════════════════════════
 def aggregate(by_country):
-    """Compute regional + global phase mix (GDP-weighted)."""
+    """Compute regional + global phase mix (GDP-weighted).
+
+    Note: avg_cli denominator includes ONLY countries with known phase
+    (excludes UNKNOWN), so global_avg_cli reflects classified countries only.
+    """
     PHASES = ["EXPANSION", "AT_RISK", "RECESSION", "RECOVERY", "UNKNOWN"]
 
     # Regional aggregation
     by_region = defaultdict(lambda: {"phase_mix": defaultdict(float), "n_countries": 0,
-                                       "total_weight": 0, "avg_cli": 0, "countries": []})
+                                       "total_weight": 0, "classified_weight": 0,
+                                       "avg_cli": 0, "countries": []})
     global_mix = defaultdict(float)
     total_weight = 0
+    classified_weight = 0
     weighted_cli_sum = 0
 
     for iso3, info in by_country.items():
@@ -192,20 +212,26 @@ def aggregate(by_country):
         by_region[region]["total_weight"] += weight
         by_region[region]["phase_mix"][phase] += weight
         by_region[region]["countries"].append(iso3)
-        if cli is not None:
+        if cli is not None and phase != "UNKNOWN":
             by_region[region]["avg_cli"] += cli * weight
+            by_region[region]["classified_weight"] += weight
 
         global_mix[phase] += weight
         total_weight += weight
-        if cli is not None:
+        if cli is not None and phase != "UNKNOWN":
             weighted_cli_sum += cli * weight
+            classified_weight += weight
 
     # Normalize regional phase shares (as % of region GDP)
     for region, info in by_region.items():
         if info["total_weight"] > 0:
             info["phase_mix_pct"] = {p: round(v / info["total_weight"] * 100, 1)
                                       for p, v in info["phase_mix"].items()}
-            info["avg_cli"] = round(info["avg_cli"] / info["total_weight"], 2)
+            # avg_cli uses classified_weight only (excludes UNKNOWN)
+            if info["classified_weight"] > 0:
+                info["avg_cli"] = round(info["avg_cli"] / info["classified_weight"], 2)
+            else:
+                info["avg_cli"] = None
         else:
             info["phase_mix_pct"] = {}
         info["phase_mix"] = dict(info["phase_mix"])
@@ -213,18 +239,34 @@ def aggregate(by_country):
     # Normalize global phase shares (as % of total weight)
     global_mix_pct = {p: round(global_mix[p] / total_weight * 100, 1)
                        for p in PHASES if global_mix[p] > 0} if total_weight > 0 else {}
-    global_avg_cli = round(weighted_cli_sum / total_weight, 2) if total_weight > 0 else None
+    # Global avg CLI uses ONLY classified weight
+    global_avg_cli = round(weighted_cli_sum / classified_weight, 2) if classified_weight > 0 else None
 
-    # Determine dominant phase + net direction
-    expansion_pct = global_mix_pct.get("EXPANSION", 0) + global_mix_pct.get("RECOVERY", 0)
-    contraction_pct = global_mix_pct.get("AT_RISK", 0) + global_mix_pct.get("RECESSION", 0)
-    if expansion_pct > 60:
+    # Determine dominant phase + net direction (based on CLASSIFIED weight)
+    classified_pct = (classified_weight / total_weight * 100) if total_weight > 0 else 0
+    exp_pct = global_mix.get("EXPANSION", 0)
+    rec_pct = global_mix.get("RECOVERY", 0)
+    ar_pct = global_mix.get("AT_RISK", 0)
+    recession_pct = global_mix.get("RECESSION", 0)
+    # Normalize against CLASSIFIED weight (so percentages add to 100% of known data)
+    if classified_weight > 0:
+        exp_norm = exp_pct / classified_weight * 100
+        rec_norm = rec_pct / classified_weight * 100
+        ar_norm = ar_pct / classified_weight * 100
+        recession_norm = recession_pct / classified_weight * 100
+    else:
+        exp_norm = rec_norm = ar_norm = recession_norm = 0
+
+    expansion_breadth = exp_norm + rec_norm  # bullish
+    contraction_breadth = ar_norm + recession_norm  # bearish
+
+    if expansion_breadth > 60:
         global_phase = "GLOBAL_EXPANSION"
-    elif contraction_pct > 60:
+    elif contraction_breadth > 60:
         global_phase = "GLOBAL_CONTRACTION"
-    elif global_mix_pct.get("RECOVERY", 0) > 35:
+    elif rec_norm > 35:
         global_phase = "GLOBAL_RECOVERY"
-    elif global_mix_pct.get("AT_RISK", 0) > 35:
+    elif ar_norm > 35:
         global_phase = "GLOBAL_PEAKING"
     else:
         global_phase = "MIXED"
@@ -235,8 +277,10 @@ def aggregate(by_country):
         "global_phase_mix_pct": global_mix_pct,
         "global_phase_mix_weight": dict(global_mix),
         "total_weight_covered": round(total_weight, 1),
-        "expansion_breadth_pct": round(expansion_pct, 1),
-        "contraction_breadth_pct": round(contraction_pct, 1),
+        "classified_weight_covered": round(classified_weight, 1),
+        "classification_coverage_pct": round(classified_pct, 1),
+        "expansion_breadth_pct": round(expansion_breadth, 1),
+        "contraction_breadth_pct": round(contraction_breadth, 1),
         "by_region": dict(by_region),
     }
 
