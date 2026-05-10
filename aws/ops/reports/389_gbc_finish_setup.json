@@ -1,0 +1,152 @@
+{
+  "started": "2026-05-10T20:00:25.289041+00:00",
+  "test": {
+    "lambda_status": {
+      "exists": true,
+      "runtime": "python3.12",
+      "timeout": 300,
+      "memory": 512,
+      "last_modified": "2026-05-10T19:57:14.412+0000",
+      "env_keys": [
+        "S3_BUCKET",
+        "FRED_KEY"
+      ]
+    },
+    "rule": "error: An error occurred (AccessDeniedException) when calling the PutRule operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-gbc-finish is not authorized to per",
+    "permission": "error: An error occurred (AccessDeniedException) when calling the AddPermission operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-gbc-finish is not authorized ",
+    "target": "error: An error occurred (AccessDeniedException) when calling the PutTargets operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-gbc-finish is not authorized to ",
+    "initial_invoke": {
+      "status": 200,
+      "error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"MIXED\\\", \\\"global_avg_cli\\\": 49.07, \\\"n_countries\\\": 35, \\\"elapsed_sec\\\": 10.4}\"}"
+    },
+    "s3_output": {
+      "generated_at": "2026-05-10T20:01:43.309945+00:00",
+      "elapsed_sec": 10.4,
+      "global_phase": "MIXED",
+      "global_avg_cli": 49.07,
+      "expansion_breadth_pct": 37.8,
+      "contraction_breadth_pct": 11.1,
+      "phase_mix": {
+        "EXPANSION": 25.5,
+        "RECESSION": 11.1,
+        "RECOVERY": 12.3,
+        "UNKNOWN": 51.1
+      },
+      "total_weight_covered": 84.7,
+      "n_total": 35,
+      "n_classified": 18,
+      "key_countries": {
+        "USA": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "CHN": {
+          "phase": "EXPANSION",
+          "cli": 101.38,
+          "6m": 0.817
+        },
+        "DEU": {
+          "phase": "RECOVERY",
+          "cli": 99.39,
+          "6m": 0.074
+        },
+        "JPN": {
+          "phase": "RECESSION",
+          "cli": 100.0,
+          "6m": -0.049
+        },
+        "IND": {
+          "phase": "RECOVERY",
+          "cli": 99.74,
+          "6m": 0.026
+        },
+        "GBR": {
+          "phase": "EXPANSION",
+          "cli": 101.06,
+          "6m": 0.953
+        },
+        "FRA": {
+          "phase": "RECOVERY",
+          "cli": 99.4,
+          "6m": 0.457
+        },
+        "BRA": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "KOR": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "CAN": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "AUS": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "MEX": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "IDN": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "TUR": {
+          "phase": "RECESSION",
+          "cli": 99.29,
+          "6m": -0.741
+        },
+        "ESP": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "ITA": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "NLD": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "CHE": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "6m": null
+        },
+        "POL": {
+          "phase": "RECESSION",
+          "cli": 97.66,
+          "6m": -2.365
+        }
+      },
+      "decisive_call": "MIXED CYCLE \u00b7 no dominant phase (avg CLI 49.07, expansion 38% / contraction 11%). Bottom-up selection over top-down beta. Watch for break to expansion or contraction.",
+      "cross_asset_signals": {
+        "us_large_equity": 0,
+        "small_caps": 0,
+        "international_dm": 0,
+        "emerging_markets": 0,
+        "commodities": 0,
+        "high_yield": 0,
+        "long_duration": 0,
+        "gold": 0,
+        "dollar": 0,
+        "bitcoin": 0
+      }
+    }
+  },
+  "finished": "2026-05-10T20:01:46.917763+00:00"
+}
