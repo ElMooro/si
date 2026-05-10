@@ -1,0 +1,70 @@
+{
+  "started": "2026-05-10T20:52:43.537644+00:00",
+  "test": {
+    "lambda_last_modified": "2026-05-10T20:50:11.000+0000",
+    "invoke_body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 110.22, \\\"n_countries\\\": 34, \\\"fresh_count\\\": 33, \\\"elapsed_sec\\\": 19.2}\"}",
+    "summary": {
+      "schema_version": "2.0",
+      "engine_type": "synthetic_equity_momentum",
+      "generated_at": "2026-05-10T20:53:10.078071+00:00",
+      "fresh_count": 33,
+      "total": 34,
+      "global_phase": "GLOBAL_EXPANSION",
+      "global_avg_cli": 110.22,
+      "expansion_breadth": 86.2,
+      "phase_mix": {
+        "EXPANSION": 85.9,
+        "AT_RISK": 7.9,
+        "RECESSION": 5.8,
+        "UNKNOWN": 0.4
+      },
+      "still_unknown": [
+        "CZE"
+      ],
+      "focus_4": {
+        "POL": {
+          "phase": "EXPANSION",
+          "cli": 108.71,
+          "ticker_primary": "EPOL",
+          "ticker_used": "EPOL",
+          "latest": "2026-05-08",
+          "months_stale": 0,
+          "ret_12m": 38.398,
+          "ret_3m": 2.927
+        },
+        "CZE": {
+          "phase": "UNKNOWN",
+          "cli": null,
+          "ticker_primary": "PX.PR",
+          "ticker_used": "PXTR.PR",
+          "latest": null,
+          "months_stale": 999,
+          "ret_12m": null,
+          "ret_3m": null
+        },
+        "HUN": {
+          "phase": "EXPANSION",
+          "cli": 114.75,
+          "ticker_primary": "BUX.BD",
+          "ticker_used": "OTP.BD",
+          "latest": "2026-05-08",
+          "months_stale": 0,
+          "ret_12m": 64.909,
+          "ret_3m": 1.273
+        },
+        "CHL": {
+          "phase": "AT_RISK",
+          "cli": 106.13,
+          "ticker_primary": "ECH",
+          "ticker_used": "ECH",
+          "latest": "2026-05-08",
+          "months_stale": 0,
+          "ret_12m": 34.456,
+          "ret_3m": -7.958
+        }
+      },
+      "decisive": "GLOBAL EXPANSION \u00b7 86% of world GDP in expansion+recovery (avg CLI 110.22). Maximum cyclical risk exposure justified \u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration and USD."
+    }
+  },
+  "finished": "2026-05-10T20:53:13.550152+00:00"
+}
