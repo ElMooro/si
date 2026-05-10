@@ -61,24 +61,26 @@ SERIES_MAP = [
                      "convert_to_billions": True}),
 
     # ─── Securities Held Outright sub-portfolios ─────────────
-    ("WSHOMCB", "balance_sheet", "Securities Held Outright: U.S. Treasury (broad)",
+    # Treasury holdings (was missing — WSHOMCB is MBS, not Treasuries!)
+    ("WSHOTSL", "balance_sheet", "Securities Held Outright: U.S. Treasury (TOTAL)",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
-                     "convert_to_billions": True}),
+                     "convert_to_billions": True,
+                     "note": "Sum of all Treasury holdings — bills + notes + bonds + TIPS"}),
+    # MBS portfolio
+    ("WSHOMCB", "balance_sheet", "Securities Held Outright: Mortgage-Backed Securities",
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
+                     "convert_to_billions": True,
+                     "note": "Fed MBS portfolio — QT runoff or purchase pace"}),
+    # Treasury notes & bonds (Khalid-spec)
     ("RESPPALGUONNWW", "balance_sheet", "Securities Held Outright: Treasury Notes & Bonds",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
                      "convert_to_billions": True,
                      "note": "Khalid-spec — coupon Treasuries on Fed balance sheet"}),
+    # Gold reserves
     ("WGCAL", "balance_sheet", "Gold Stock (assets)",
      "billions $", {"kind": "level", "watch": 50, "convert_to_billions": True}),
-    ("MBST", "balance_sheet", "Mortgage-Backed Securities Held",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
-                     "convert_to_billions": True,
-                     "note": "Fed MBS portfolio — QT runoff or purchase pace"}),
-    ("TREAST", "balance_sheet", "U.S. Treasuries Held Outright (all)",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
-                     "convert_to_billions": True}),
 
-    # ─── Memo collateral pledges ─────────────────────────────
+    # ─── Memo collateral pledges (Khalid-spec) ───────────────
     ("RESPPNTEPNWW", "balance_sheet", "MEMO: Treasury/Agency/MBS Eligible to Be Pledged",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": 5.0, "elevated": 10.0, "crisis": 20.0,
                      "convert_to_billions": True,
@@ -89,14 +91,9 @@ SERIES_MAP = [
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0, "crisis": -8.0,
                      "convert_to_billions": True,
                      "note": "Reserves dropping >2%/week = QT acceleration"}),
-    ("EXCSRESNW", "balance_sheet", "Excess Reserves",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -3.0, "elevated": -6.0, "crisis": -10.0,
-                     "convert_to_billions": True}),
     ("TOTRESNS", "balance_sheet", "Total Reserves of Depository Institutions",
      "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0,
                      "convert_to_billions": True}),
-    ("REQRESNS", "balance_sheet", "Required Reserves",
-     "billions $", {"kind": "level", "convert_to_billions": True}),
     ("WTREGEN", "balance_sheet", "Treasury General Account (TGA)",
      "billions $", {"kind": "level", "watch": 800, "elevated": 1000, "crisis": 1500,
                      "convert_to_billions": True,
@@ -135,10 +132,11 @@ SERIES_MAP = [
      "billions $", {"kind": "level", "watch": 1.0, "elevated": 10, "crisis": 50,
                      "convert_to_billions": True,
                      "note": "Total swap lines — COVID peak was $446B"}),
-    ("WLEMCBL", "liquidity_facilities", "Other Loans (Emergency Lending Programs)",
-     "billions $", {"kind": "level", "watch": 1.0, "elevated": 10, "crisis": 50,
+    # Bank Term Funding Program / discount window other loans
+    ("WLODL", "liquidity_facilities", "Other Liabilities & Capital: Other Liabilities (BTFP proxy)",
+     "billions $", {"kind": "level", "watch": 200, "elevated": 400, "crisis": 800,
                      "convert_to_billions": True,
-                     "note": "BTFP, PDCF and other emergency facilities"}),
+                     "note": "Includes BTFP and emergency lending program borrowing"}),
 
     # ════════════════════════════════════════════════════════════════════
     # CATEGORY 3: CREDIT SPREADS (ICE BofA OAS — daily, in % units)
@@ -171,16 +169,10 @@ SERIES_MAP = [
      "%", {"kind": "level", "watch": 1.8, "elevated": 3.0, "crisis": 5.0,
             "note": "Lowest IG — most fallen-angel risk"}),
 
-    # ─── Euro High Yield ─────────────────────────────────────
+    # ─── Euro High Yield (only master available — no by-quality on FRED) ─
     ("BAMLHE00EHYIOAS", "credit_spreads", "ICE BofA Euro High Yield OAS",
      "%", {"kind": "level", "watch": 5.0, "elevated": 7.5, "crisis": 11.0,
             "note": "Khalid-spec — Euro HY; GFC peak 24%, COVID peak 11%"}),
-    ("BAMLHE10HYBBOAS", "credit_spreads", "ICE BofA Euro BB High Yield OAS",
-     "%", {"kind": "level", "watch": 4.0, "elevated": 6.0, "crisis": 9.0}),
-    ("BAMLHE20HYBOAS", "credit_spreads", "ICE BofA Euro Single-B High Yield OAS",
-     "%", {"kind": "level", "watch": 6.0, "elevated": 8.5, "crisis": 13.0}),
-    ("BAMLHE30HYCDOAS", "credit_spreads", "ICE BofA Euro CCC & Lower High Yield OAS",
-     "%", {"kind": "level", "watch": 10.0, "elevated": 14.0, "crisis": 20.0}),
 
     # ─── Emerging Market ─────────────────────────────────────
     ("BAMLEMHBHYCRPIOAS", "credit_spreads", "ICE BofA EM High Yield Corp Plus OAS",
@@ -189,10 +181,6 @@ SERIES_MAP = [
     ("BAMLEMCBPIOAS", "credit_spreads", "ICE BofA EM Corporate Plus OAS",
      "%", {"kind": "level", "watch": 4.0, "elevated": 6.0, "crisis": 10.0,
             "note": "Broad EM corp — IG + HY"}),
-    ("BAMLEMRECRPIEMEAOAS", "credit_spreads", "ICE BofA EMEA Emerging Markets OAS",
-     "%", {"kind": "level", "watch": 4.5, "elevated": 7.0, "crisis": 11.0}),
-    ("BAMLEMRACRPIASIAOAS", "credit_spreads", "ICE BofA Asia Emerging Markets OAS",
-     "%", {"kind": "level", "watch": 4.0, "elevated": 6.5, "crisis": 10.0}),
 
     # ════════════════════════════════════════════════════════════════════
     # CATEGORY 4: CORPORATE YIELDS (HQM + reference Treasuries)
@@ -221,28 +209,32 @@ SERIES_MAP = [
     # Net % of banks tightening. Quarterly cadence. Positive = tightening.
     # Historical: 0% calm, 25% mid-cycle stress, 50%+ recession, 84% GFC peak.
     # ════════════════════════════════════════════════════════════════════
+
+    # ─── C&I Loans (businesses) ──────────────────────────────
     ("DRTSCILM", "lending_standards", "C&I Loans: Tightening (Large/Middle Firms)",
      "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 50,
                 "note": "GFC peak 83.6% — banks shutting credit to large companies"}),
     ("DRTSCIS", "lending_standards", "C&I Loans: Tightening (Small Firms)",
      "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 50,
                 "note": "Small firms first to lose access in tightening cycle"}),
-    ("SUBLPDCILMNQ", "lending_standards", "C&I Loans: Demand (Large/Middle Firms)",
+    ("DRSDCILM", "lending_standards", "C&I Loans: Demand (Large/Middle Firms)",
      "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50,
                 "note": "Negative = weak demand. Capex pullback signal"}),
-    ("SUBLPDCISNQ", "lending_standards", "C&I Loans: Demand (Small Firms)",
+    ("DRSDCIS", "lending_standards", "C&I Loans: Demand (Small Firms)",
      "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50}),
 
-    # ─── Commercial Real Estate ──────────────────────────────
-    ("SUBLPDCRENQ", "lending_standards", "CRE Loans: Tightening Standards",
+    # ─── Commercial Real Estate (3 sub-types) ────────────────
+    ("SUBLPDRCSC", "lending_standards", "CRE Tightening: Construction & Land Development",
+     "% net", {"kind": "level", "watch": 15, "elevated": 35, "crisis": 65,
+                "note": "C&LD tightening = developer credit shutoff"}),
+    ("SUBLPDRCSN", "lending_standards", "CRE Tightening: Nonfarm Nonresidential",
      "% net", {"kind": "level", "watch": 10, "elevated": 30, "crisis": 60,
-                "note": "CRE tightening = office/retail credit crunch"}),
+                "note": "Office, retail, industrial CRE"}),
+    ("SUBLPDRCSM", "lending_standards", "CRE Tightening: Multifamily Residential",
+     "% net", {"kind": "level", "watch": 10, "elevated": 30, "crisis": 60}),
 
-    # ─── Residential Real Estate (Mortgage) ──────────────────
-    ("SUBLPDHMNQ", "lending_standards", "Mortgages: Demand",
-     "% net", {"kind": "level", "watch": -20, "elevated": -40, "crisis": -60,
-                "note": "Mortgage demand collapse = housing slowdown signal"}),
-    ("DRTSSP", "lending_standards", "Mortgage: Subprime (Tightening Standards)",
+    # ─── Residential Real Estate ─────────────────────────────
+    ("DRTSSP", "lending_standards", "Mortgage: Subprime Tightening Standards",
      "% net", {"kind": "level", "watch": 15, "elevated": 35, "crisis": 60}),
 
     # ─── Consumer ────────────────────────────────────────────
@@ -251,15 +243,14 @@ SERIES_MAP = [
                 "note": "Credit card tightening = consumer credit squeeze"}),
     ("STDSAUTO", "lending_standards", "Auto Loans: Tightening Standards",
      "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45}),
-    ("STDSOTHER", "lending_standards", "Other Consumer Loans: Tightening Standards",
-     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45}),
+    ("STDSOTHCONS", "lending_standards", "Other Consumer Loans: Tightening Standards",
+     "% net", {"kind": "level", "watch": 10, "elevated": 25, "crisis": 45,
+                "note": "Personal loans, installment loans excluding credit card/auto"}),
 
-    # ─── Loan demand (broad strength signal) ─────────────────
-    ("DRSDCILM", "lending_standards", "C&I Loans: Demand (Large/Middle, balanced)",
-     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50,
-                "note": "Negative = demand contracting"}),
-    ("DRSDCIS", "lending_standards", "C&I Loans: Demand (Small, balanced)",
-     "% net", {"kind": "level", "watch": -15, "elevated": -30, "crisis": -50}),
+    # ─── Special: Willingness to lend ────────────────────────
+    ("DRIWCIL", "lending_standards", "Willingness to Make Consumer Installment Loans",
+     "% net", {"kind": "level", "watch": -10, "elevated": -25, "crisis": -50,
+                "note": "Negative = banks pulling back from consumer lending"}),
 ]
 
 # ────────────────────────────────────────────────────────────────────────
