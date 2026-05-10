@@ -70,7 +70,7 @@ COUNTRY_MAP = [
     ("NLD", "^AEX",        "Europe",        "Netherlands",        1.1,  "NL"),
     ("TUR", "XU100.IS",    "Europe",        "Turkey",             1.0,  "TR"),
     ("CHE", "^SSMI",       "Europe",        "Switzerland",        0.9,  "CH"),
-    ("POL", "WIG20.WA",    "Europe",        "Poland",             0.8,  "PL"),
+    ("POL", "EPOL",        "Europe",        "Poland",             0.8,  "PL"),  # iShares MSCI Poland (US-listed)
     ("BEL", "^BFX",        "Europe",        "Belgium",            0.7,  "BE"),
     ("SWE", "^OMX",        "Europe",        "Sweden",             0.6,  "SE"),
     ("IRL", "^ISEQ",       "Europe",        "Ireland",            0.6,  "IE"),
@@ -79,9 +79,9 @@ COUNTRY_MAP = [
     ("ZAF", "^J203.JO",    "Africa",        "South Africa",       0.5,  "ZA"),
     ("DNK", "^OMXC25",     "Europe",        "Denmark",            0.4,  "DK"),
     ("FIN", "^OMXH25",     "Europe",        "Finland",            0.3,  "FI"),
-    ("CZE", "^PX",         "Europe",        "Czech Republic",     0.3,  "CZ"),
-    ("HUN", "^BUX",        "Europe",        "Hungary",            0.2,  "HU"),
-    ("CHL", "^IPSA",       "Latin America", "Chile",              0.3,  "CL"),
+    ("CZE", "PX.PR",       "Europe",        "Czech Republic",     0.3,  "CZ"),  # Prague suffix format
+    ("HUN", "BUX.BD",      "Europe",        "Hungary",            0.2,  "HU"),  # Budapest suffix format
+    ("CHL", "ECH",         "Latin America", "Chile",              0.3,  "CL"),  # iShares MSCI Chile (US-listed)
     ("PRT", "PSI20.LS",    "Europe",        "Portugal",           0.3,  "PT"),
     ("GRC", "GD.AT",       "Europe",        "Greece",             0.2,  "GR"),
     ("NZL", "^NZ50",       "Asia-Pacific",  "New Zealand",        0.3,  "NZ"),
@@ -98,9 +98,22 @@ FRED_SUPPLEMENT = {
 # ════════════════════════════════════════════════════════════════════════
 # Data fetchers
 # ════════════════════════════════════════════════════════════════════════
-def yahoo_chart(symbol, range_param="2y", retries=3):
+def yahoo_chart(symbol, range_param="2y", retries=3, fallback_symbols=None):
     """Fetch daily closing prices from Yahoo Finance chart endpoint.
-       Returns list of (date_str, close) sorted ascending."""
+       Returns list of (date_str, close) sorted ascending.
+       If primary symbol fails, tries each fallback in order."""
+    candidates = [symbol] + (fallback_symbols or [])
+    for sym in candidates:
+        result = _yahoo_fetch_one(sym, range_param, retries)
+        if result:
+            if sym != symbol:
+                print(f"[gbc] {symbol} fell back to {sym}")
+            return result, sym
+    return [], symbol
+
+
+def _yahoo_fetch_one(symbol, range_param, retries):
+    """Internal — single-symbol fetch with retry."""
     url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
            f"{urllib.parse.quote(symbol)}?range={range_param}&interval=1d")
     last_err = None
@@ -141,8 +154,17 @@ def yahoo_chart(symbol, range_param="2y", retries=3):
         except Exception as e:
             last_err = str(e)[:100]
             time.sleep(0.5 * (attempt + 1))
-    print(f"[gbc] {symbol} EXHAUSTED: {last_err}")
+    print(f"[gbc] {symbol} failed: {last_err}")
     return []
+
+
+# Per-country fallback symbols for known-flaky markets
+SYMBOL_FALLBACKS = {
+    "POL": ["WIG20.WA", "^WIG"],          # if EPOL fails, try Warsaw direct
+    "CZE": ["^PX", "PXTR.PR"],             # if PX.PR fails, try generic ^PX
+    "HUN": ["^BUX", "OTP.BD"],             # if BUX.BD fails, try generic ^BUX or OTP Bank as proxy
+    "CHL": ["^IPSA", "^SPCLXIPSA"],       # if ECH fails, try Santiago direct
+}
 
 
 def fred_latest(series_id):
@@ -482,7 +504,9 @@ def lambda_handler(event=None, context=None):
     by_country = {}
     fresh_count = 0
     for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
-        prices = yahoo_chart(yahoo_sym, range_param="2y")
+        fallbacks = SYMBOL_FALLBACKS.get(iso3, [])
+        prices, used_symbol = yahoo_chart(yahoo_sym, range_param="2y",
+                                            fallback_symbols=fallbacks)
         supplement = None
         if iso3 in FRED_SUPPLEMENT:
             supplement = fred_latest(FRED_SUPPLEMENT[iso3])
@@ -504,7 +528,8 @@ def lambda_handler(event=None, context=None):
         by_country[iso3] = {
             "iso3": iso3,
             "iso2": iso2,
-            "yahoo_symbol": yahoo_sym,
+            "yahoo_symbol": used_symbol,
+            "yahoo_symbol_primary": yahoo_sym,
             "country_name": name,
             "region": region,
             "gdp_weight": weight,
