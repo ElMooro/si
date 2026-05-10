@@ -1,9 +1,9 @@
 {
   "function_name": "justhodl-global-business-cycle",
   "runtime": "python3.12",
-  "timeout": 300,
-  "memory": 512,
-  "description": "Global Business Cycle engine — OECD CLI across 35 economies, 4-phase classification, GDP-weighted regional and global aggregation, interpretation + cross-asset signals. Schedule: daily 12:00 UTC.",
+  "timeout": 600,
+  "memory": 1024,
+  "description": "Global Business Cycle engine v2.0 — synthetic CLI from Yahoo Finance equity momentum across 34 economies + FRED CCI/BCI for USA+CHN. Outputs current state (data/global-business-cycle.json) AND 5y weekly history (data/global-business-cycle-history.json). 4-phase classification + GDP-weighted regional/global aggregation + interpretation + cross-asset signals. Schedule: daily 12:00 UTC.",
   "environment": {
     "FRED_KEY": "2f057499936072679d8843d7fce99989",
     "S3_BUCKET": "justhodl-dashboard-live"
@@ -11,7 +11,6 @@
   "schedule": {
     "rule_name": "justhodl-gbc-daily",
     "cron": "cron(0 12 * * ? *)",
-    "description": "Daily run of OECD Composite Leading Indicator engine"
+    "description": "Daily run of synthetic CLI engine — current state + history"
   }
 }
-

@@ -495,6 +495,170 @@ def interpret_global_cycle(agg, by_country):
 
 
 # ════════════════════════════════════════════════════════════════════════
+# Historical CLI series — weekly rolling computation across full price array
+# ════════════════════════════════════════════════════════════════════════
+def compute_history_series(prices, frequency_days=5):
+    """Given daily prices [(date, close), ...], compute weekly rolling CLI
+    history. Each output point is the CLI as it would have been published
+    at that historical date — i.e. ret_12m = price / price 252 days prior.
+    Returns list of dicts: {date, cli, phase, ret_12m, ret_3m, ret_1m, dist_200ma}.
+
+    `frequency_days` controls sampling. 5 = ~weekly, 1 = daily."""
+    if not prices or len(prices) < 252:
+        return []
+    out = []
+    n = len(prices)
+    # Need 252 days backward for ret_12m, so first computable index is 252.
+    for i in range(252, n, frequency_days):
+        date_i, p = prices[i]
+
+        # Lookback returns
+        prior_12m = prices[i - 252][1]
+        ret_12m = (p / prior_12m - 1.0) * 100 if prior_12m > 0 else None
+
+        ret_3m = None
+        if i >= 63:
+            prior_3m = prices[i - 63][1]
+            if prior_3m > 0:
+                ret_3m = (p / prior_3m - 1.0) * 100
+
+        ret_1m = None
+        if i >= 21:
+            prior_1m = prices[i - 21][1]
+            if prior_1m > 0:
+                ret_1m = (p / prior_1m - 1.0) * 100
+
+        # 200-day MA at this point
+        if i >= 200:
+            ma200 = sum(pp for _, pp in prices[i - 200:i]) / 200
+            dist_200ma = (p / ma200 - 1.0) * 100 if ma200 > 0 else 0
+        else:
+            dist_200ma = 0
+
+        # Composite (same weighting as live engine)
+        components = []
+        if ret_12m is not None: components.append((ret_12m, 0.35))
+        components.append((dist_200ma, 0.25))
+        if ret_3m is not None: components.append((ret_3m, 0.25))
+        if ret_1m is not None: components.append((ret_1m, 0.15))
+        weighted_sum = sum(v * w for v, w in components)
+        weight_total = sum(w for _, w in components)
+        composite_pct = weighted_sum / weight_total if weight_total > 0 else 0
+        cli = 100 + composite_pct * 0.5
+        cli = max(80, min(120, cli))
+
+        # Phase (same logic as live engine)
+        if ret_3m is None or abs(ret_3m) < 1.0:
+            trend = "flat"
+        elif ret_3m > 0:
+            trend = "rising"
+        else:
+            trend = "falling"
+        if cli >= 100 and trend == "rising":
+            phase = "EXPANSION"
+        elif cli >= 100 and trend == "falling":
+            phase = "AT_RISK"
+        elif cli < 100 and trend == "falling":
+            phase = "RECESSION"
+        elif cli < 100 and trend == "rising":
+            phase = "RECOVERY"
+        else:
+            phase = "EXPANSION" if cli >= 100 else "RECOVERY"
+
+        out.append({
+            "date": date_i,
+            "cli": round(cli, 2),
+            "phase": phase,
+            "ret_12m": round(ret_12m, 2) if ret_12m is not None else None,
+            "ret_3m":  round(ret_3m, 2)  if ret_3m  is not None else None,
+            "ret_1m":  round(ret_1m, 2)  if ret_1m  is not None else None,
+            "dist_200ma": round(dist_200ma, 2),
+        })
+    return out
+
+
+def aggregate_global_history(history_by_country, country_weights, country_regions):
+    """For each unique date across all countries, compute GDP-weighted
+    aggregate (global_phase, global_avg_cli, expansion_breadth_pct,
+    contraction_breadth_pct, phase_mix). Returns list of per-date dicts.
+
+    Country histories may have slightly different date sets (different
+    market holidays). We forward-fill per-country to a unified weekly grid."""
+    # Collect all unique dates
+    all_dates = set()
+    for h in history_by_country.values():
+        for pt in h:
+            all_dates.add(pt["date"])
+    sorted_dates = sorted(all_dates)
+    if not sorted_dates:
+        return []
+
+    # Per-country lookup: date → point. Plus track latest seen point for
+    # forward-fill behavior on missing dates.
+    country_lookups = {iso3: {pt["date"]: pt for pt in h}
+                        for iso3, h in history_by_country.items()}
+
+    aggregate_series = []
+    last_seen = {iso3: None for iso3 in country_lookups}
+    for d in sorted_dates:
+        global_mix = {"EXPANSION": 0.0, "AT_RISK": 0.0,
+                       "RECESSION": 0.0, "RECOVERY": 0.0}
+        weighted_cli_sum = 0.0
+        classified_weight = 0.0
+        total_weight = 0.0
+
+        for iso3, lookup in country_lookups.items():
+            point = lookup.get(d) or last_seen[iso3]
+            if point:
+                last_seen[iso3] = point
+                phase = point.get("phase")
+                cli = point.get("cli")
+                w = country_weights.get(iso3, 0)
+                total_weight += w
+                if phase and phase != "UNKNOWN":
+                    global_mix[phase] = global_mix.get(phase, 0) + w
+                if cli is not None and phase != "UNKNOWN":
+                    weighted_cli_sum += cli * w
+                    classified_weight += w
+
+        if classified_weight <= 0:
+            continue
+
+        # Phase mix as % of classified weight
+        phase_mix_pct = {p: round(global_mix[p] / classified_weight * 100, 2)
+                          for p in global_mix}
+        avg_cli = round(weighted_cli_sum / classified_weight, 2)
+        exp_norm = phase_mix_pct["EXPANSION"]
+        rec_norm = phase_mix_pct["RECOVERY"]
+        ar_norm = phase_mix_pct["AT_RISK"]
+        recession_norm = phase_mix_pct["RECESSION"]
+        expansion_breadth = exp_norm + rec_norm
+        contraction_breadth = ar_norm + recession_norm
+
+        if expansion_breadth > 60:
+            global_phase = "GLOBAL_EXPANSION"
+        elif contraction_breadth > 60:
+            global_phase = "GLOBAL_CONTRACTION"
+        elif rec_norm > 35:
+            global_phase = "GLOBAL_RECOVERY"
+        elif ar_norm > 35:
+            global_phase = "GLOBAL_PEAKING"
+        else:
+            global_phase = "MIXED"
+
+        aggregate_series.append({
+            "date": d,
+            "global_phase": global_phase,
+            "global_avg_cli": avg_cli,
+            "phase_mix_pct": phase_mix_pct,
+            "expansion_breadth_pct": round(expansion_breadth, 2),
+            "contraction_breadth_pct": round(contraction_breadth, 2),
+            "classified_weight": round(classified_weight, 1),
+        })
+    return aggregate_series
+
+
+# ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
 def lambda_handler(event=None, context=None):
@@ -502,11 +666,13 @@ def lambda_handler(event=None, context=None):
     print(f"[gbc] v2.0 start, {len(COUNTRY_MAP)} countries (equity-momentum-based)")
 
     by_country = {}
+    prices_by_country = {}    # iso3 → list of (date, close)  for history pass
     fresh_count = 0
     for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
         fallbacks = SYMBOL_FALLBACKS.get(iso3, [])
-        prices, used_symbol = yahoo_chart(yahoo_sym, range_param="2y",
+        prices, used_symbol = yahoo_chart(yahoo_sym, range_param="5y",
                                             fallback_symbols=fallbacks)
+        prices_by_country[iso3] = prices
         supplement = None
         if iso3 in FRED_SUPPLEMENT:
             supplement = fred_latest(FRED_SUPPLEMENT[iso3])
@@ -579,6 +745,66 @@ def lambda_handler(event=None, context=None):
     S3.put_object(
         Bucket=BUCKET, Key=OUTPUT_KEY,
         Body=json.dumps(output, default=str).encode(),
+        ContentType="application/json",
+        CacheControl="public, max-age=3600, s-maxage=3600",
+    )
+
+    # ─────────────────────────────────────────────────────────────────────
+    # SECOND PASS: weekly rolling CLI history for each country
+    # Used by /global-cycle/ history page. Separate S3 key, separate
+    # consumers — schema may evolve independently of the live JSON.
+    # ─────────────────────────────────────────────────────────────────────
+    history_started = time.time()
+    print(f"[gbc-history] computing weekly history for {len(prices_by_country)} countries")
+    history_by_country = {}
+    country_weights = {}
+    country_regions = {}
+    for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
+        prices = prices_by_country.get(iso3, [])
+        if not prices:
+            continue
+        country_weights[iso3] = weight
+        country_regions[iso3] = region
+        series = compute_history_series(prices, frequency_days=5)
+        if series:
+            history_by_country[iso3] = {
+                "iso3": iso3,
+                "iso2": iso2,
+                "country_name": name,
+                "region": region,
+                "gdp_weight": weight,
+                "yahoo_symbol": by_country.get(iso3, {}).get("yahoo_symbol"),
+                "n_points": len(series),
+                "first_date": series[0]["date"] if series else None,
+                "last_date": series[-1]["date"] if series else None,
+                "history": series,
+            }
+            print(f"[gbc-history] {iso3} {len(series)} weekly points "
+                  f"({series[0]['date']} → {series[-1]['date']})")
+
+    # GDP-weighted aggregate across countries by date
+    aggregate_history = aggregate_global_history(
+        {iso3: info["history"] for iso3, info in history_by_country.items()},
+        country_weights, country_regions
+    )
+    print(f"[gbc-history] aggregate has {len(aggregate_history)} dates "
+          f"({aggregate_history[0]['date'] if aggregate_history else '—'} → "
+          f"{aggregate_history[-1]['date'] if aggregate_history else '—'})")
+
+    history_output = {
+        "schema_version": "2.0",
+        "engine_type": "synthetic_equity_momentum_history",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "frequency": "weekly_5d",
+        "history_elapsed_sec": round(time.time() - history_started, 1),
+        "countries_count": len(history_by_country),
+        "by_country": history_by_country,
+        "aggregate": aggregate_history,
+    }
+
+    S3.put_object(
+        Bucket=BUCKET, Key="data/global-business-cycle-history.json",
+        Body=json.dumps(history_output, default=str).encode(),
         ContentType="application/json",
         CacheControl="public, max-age=3600, s-maxage=3600",
     )
