@@ -1,0 +1,389 @@
+{
+  "started": "2026-05-10T21:52:34.589221+00:00",
+  "test": {
+    "lambda_last_modified": "2026-05-10T21:49:38.000+0000",
+    "code_size": 11412,
+    "invoke_body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 110.19, \\\"n_countries\\\": 34, \\\"fresh_count\\\": 32, \\\"elapsed_sec\\\": 17.6}\"}",
+    "history": {
+      "schema": "2.1",
+      "transitions_count": 38,
+      "aggregate_dates": 1083,
+      "transitions": [
+        {
+          "date": "2022-06-07",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 99.26,
+          "breadth_at_transition": 66.79,
+          "contraction_at_transition": 33.22,
+          "weeks_persisted": 4
+        },
+        {
+          "date": "2022-06-14",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 97.21,
+          "breadth_at_transition": 21.22,
+          "contraction_at_transition": 78.78,
+          "weeks_persisted": 34
+        },
+        {
+          "date": "2022-08-01",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 98.74,
+          "breadth_at_transition": 42.09,
+          "contraction_at_transition": 57.91,
+          "weeks_persisted": 8
+        },
+        {
+          "date": "2022-08-11",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 99.95,
+          "breadth_at_transition": 82.85,
+          "contraction_at_transition": 17.15,
+          "weeks_persisted": 15
+        },
+        {
+          "date": "2022-09-01",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 97.58,
+          "breadth_at_transition": 37.3,
+          "contraction_at_transition": 62.7,
+          "weeks_persisted": 6
+        },
+        {
+          "date": "2022-09-13",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 98.38,
+          "breadth_at_transition": 64.6,
+          "contraction_at_transition": 35.4,
+          "weeks_persisted": 8
+        },
+        {
+          "date": "2022-09-23",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 96.16,
+          "breadth_at_transition": 28.13,
+          "contraction_at_transition": 71.87,
+          "weeks_persisted": 54
+        },
+        {
+          "date": "2022-12-05",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 99.99,
+          "breadth_at_transition": 70.08,
+          "contraction_at_transition": 29.92,
+          "weeks_persisted": 74
+        },
+        {
+          "date": "2023-03-13",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 100.12,
+          "breadth_at_transition": 58.04,
+          "contraction_at_transition": 41.95,
+          "weeks_persisted": 9
+        },
+        {
+          "date": "2023-03-24",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 100.02,
+          "breadth_at_transition": 81.53,
+          "contraction_at_transition": 18.48,
+          "weeks_persisted": 49
+        },
+        {
+          "date": "2023-06-01",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 101.64,
+          "breadth_at_transition": 57.81,
+          "contraction_at_transition": 42.19,
+          "weeks_persisted": 5
+        },
+        {
+          "date": "2023-06-12",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.46,
+          "breadth_at_transition": 61.38,
+          "contraction_at_transition": 38.62,
+          "weeks_persisted": 53
+        },
+        {
+          "date": "2023-08-18",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 101.3,
+          "breadth_at_transition": 59.0,
+          "contraction_at_transition": 41.0,
+          "weeks_persisted": 6
+        },
+        {
+          "date": "2023-08-28",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 101.36,
+          "breadth_at_transition": 62.7,
+          "contraction_at_transition": 37.3,
+          "weeks_persisted": 9
+        },
+        {
+          "date": "2023-09-08",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 102.12,
+          "breadth_at_transition": 59.24,
+          "contraction_at_transition": 40.76,
+          "weeks_persisted": 4
+        },
+        {
+          "date": "2023-09-14",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.2,
+          "breadth_at_transition": 62.94,
+          "contraction_at_transition": 37.07,
+          "weeks_persisted": 6
+        },
+        {
+          "date": "2023-09-22",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 102.3,
+          "breadth_at_transition": 57.21,
+          "contraction_at_transition": 42.79,
+          "weeks_persisted": 5
+        },
+        {
+          "date": "2023-09-29",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 101.72,
+          "breadth_at_transition": 23.24,
+          "contraction_at_transition": 76.75,
+          "weeks_persisted": 42
+        },
+        {
+          "date": "2023-11-17",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.05,
+          "breadth_at_transition": 67.94,
+          "contraction_at_transition": 32.06,
+          "weeks_persisted": 162
+        },
+        {
+          "date": "2024-06-20",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 103.22,
+          "breadth_at_transition": 59.0,
+          "contraction_at_transition": 41.0,
+          "weeks_persisted": 10
+        },
+        {
+          "date": "2024-07-04",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 103.34,
+          "breadth_at_transition": 60.67,
+          "contraction_at_transition": 39.33,
+          "weeks_persisted": 23
+        },
+        {
+          "date": "2024-08-06",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 101.75,
+          "breadth_at_transition": 52.92,
+          "contraction_at_transition": 47.07,
+          "weeks_persisted": 16
+        },
+        {
+          "date": "2024-08-28",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.91,
+          "breadth_at_transition": 64.48,
+          "contraction_at_transition": 35.52,
+          "weeks_persisted": 7
+        },
+        {
+          "date": "2024-09-06",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 102.21,
+          "breadth_at_transition": 58.05,
+          "contraction_at_transition": 41.96,
+          "weeks_persisted": 4
+        },
+        {
+          "date": "2024-09-12",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 101.8,
+          "breadth_at_transition": 60.07,
+          "contraction_at_transition": 39.93,
+          "weeks_persisted": 88
+        },
+        {
+          "date": "2025-03-03",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 103.46,
+          "breadth_at_transition": 58.76,
+          "contraction_at_transition": 41.24,
+          "weeks_persisted": 13
+        },
+        {
+          "date": "2025-03-20",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 101.92,
+          "breadth_at_transition": 32.9,
+          "contraction_at_transition": 67.11,
+          "weeks_persisted": 5
+        },
+        {
+          "date": "2025-03-27",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.33,
+          "breadth_at_transition": 61.03,
+          "contraction_at_transition": 38.98,
+          "weeks_persisted": 3
+        },
+        {
+          "date": "2025-04-03",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "GLOBAL_CONTRACTION",
+          "cli_at_transition": 101.29,
+          "breadth_at_transition": 34.09,
+          "contraction_at_transition": 65.91,
+          "weeks_persisted": 10
+        },
+        {
+          "date": "2025-04-17",
+          "from_phase": "GLOBAL_CONTRACTION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 99.61,
+          "breadth_at_transition": 40.88,
+          "contraction_at_transition": 59.12,
+          "weeks_persisted": 10
+        },
+        {
+          "date": "2025-05-02",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_PEAKING",
+          "cli_at_transition": 101.18,
+          "breadth_at_transition": 50.06,
+          "contraction_at_transition": 49.94,
+          "weeks_persisted": 16
+        },
+        {
+          "date": "2025-05-26",
+          "from_phase": "GLOBAL_PEAKING",
+          "to_phase": "MIXED",
+          "cli_at_transition": 103.09,
+          "breadth_at_transition": 55.18,
+          "contraction_at_transition": 44.81,
+          "weeks_persisted": 7
+        },
+        {
+          "date": "2025-06-04",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 102.83,
+          "breadth_at_transition": 93.21,
+          "contraction_at_transition": 6.79,
+          "weeks_persisted": 209
+        },
+        {
+          "date": "2026-03-16",
+          "from_phase": "GLOBAL_EXPANSION",
+          "to_phase": "MIXED",
+          "cli_at_transition": 104.62,
+          "breadth_at_transition": 58.76,
+          "contraction_at_transition": 41.23,
+          "weeks_persisted": 9
+        },
+        {
+          "date": "2026-03-26",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_PEAKING",
+          "cli_at_transition": 102.94,
+          "breadth_at_transition": 46.72,
+          "contraction_at_transition": 53.28,
+          "weeks_persisted": 3
+        },
+        {
+          "date": "2026-03-30",
+          "from_phase": "GLOBAL_PEAKING",
+          "to_phase": "MIXED",
+          "cli_at_transition": 102.17,
+          "breadth_at_transition": 45.41,
+          "contraction_at_transition": 54.59,
+          "weeks_persisted": 5
+        },
+        {
+          "date": "2026-04-07",
+          "from_phase": "MIXED",
+          "to_phase": "GLOBAL_PEAKING",
+          "cli_at_transition": 103.7,
+          "breadth_at_transition": 48.87,
+          "contraction_at_transition": 51.13,
+          "weeks_persisted": 5
+        },
+        {
+          "date": "2026-04-14",
+          "from_phase": "GLOBAL_PEAKING",
+          "to_phase": "GLOBAL_EXPANSION",
+          "cli_at_transition": 106.55,
+          "breadth_at_transition": 83.43,
+          "contraction_at_transition": 16.57,
+          "weeks_persisted": 19
+        }
+      ]
+    },
+    "page": {
+      "status": 200,
+      "size": 38163,
+      "has_drawTransitionsOverlay": true,
+      "has_renderTransitionsList": true,
+      "has_transitions_hero_card": true,
+      "has_trans_list": true,
+      "has_transition_line_css": true
+    },
+    "log_transitions": [
+      "[gbc-history] ESP 206 weekly points (2022-05-03 \u2192 2026-05-07)",
+      "[gbc-history] MEX 202 weekly points (2022-05-06 \u2192 2026-05-08)",
+      "[gbc-history] IDN 190 weekly points (2022-05-27 \u2192 2026-05-07)",
+      "[gbc-history] NLD 206 weekly points (2022-04-29 \u2192 2026-05-05)",
+      "[gbc-history] TUR 199 weekly points (2022-05-16 \u2192 2026-05-04)",
+      "[gbc-history] CHE 200 weekly points (2022-05-12 \u2192 2026-05-05)",
+      "[gbc-history] POL 201 weekly points (2022-05-09 \u2192 2026-05-05)",
+      "[gbc-history] BEL 206 weekly points (2022-04-29 \u2192 2026-05-05)",
+      "[gbc-history] SWE 201 weekly points (2022-05-06 \u2192 2026-05-04)",
+      "[gbc-history] IRL 204 weekly points (2022-05-05 \u2192 2026-04-30)",
+      "[gbc-history] AUT 204 weekly points (2022-05-05 \u2192 2026-05-06)",
+      "[gbc-history] NOR 200 weekly points (2022-05-13 \u2192 2026-05-06)",
+      "[gbc-history] ZAF 200 weekly points (2022-05-12 \u2192 2026-05-07)",
+      "[gbc-history] DNK 194 weekly points (2022-05-18 \u2192 2026-05-07)",
+      "[gbc-history] FIN 201 weekly points (2022-05-10 \u2192 2026-05-08)",
+      "[gbc-history] CHL 201 weekly points (2022-05-09 \u2192 2026-05-05)",
+      "[gbc-history] PRT 205 weekly points (2022-05-05 \u2192 2026-05-05)",
+      "[gbc-history] GRC 198 weekly points (2022-05-12 \u2192 2026-05-04)",
+      "[gbc-history] NZL 200 weekly points (2022-05-10 \u2192 2026-05-05)",
+      "[gbc-history] ISR 149 weekly points (2022-08-17 \u2192 2026-05-04)"
+    ]
+  },
+  "finished": "2026-05-10T21:53:03.904740+00:00"
+}
