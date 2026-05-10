@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liquidity & Credit Engine · JustHodl.AI</title>
+<meta name="description" content="51 FRED series across Fed balance sheet, liquidity facilities, ICE BofA OAS spreads, HQM corporate yields, and SLOOS lending standards — every Khalid-spec liquidity and credit signal in one page.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#10b981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
+<script src="/wss-client.js" defer></script>
+<script src="/tenor-signals.js" defer></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --bg-card:#131313; --bg-card-elev:#181818; --bg-hover:#1f1f1f;
+    --border:#262626; --border-light:#2e2e2e;
+    --text:#e5e5e5; --text-dim:#888; --text-muted:#555;
+    --accent:#10b981; --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+    --blue:#3b82f6; --purple:#a78bfa; --cyan:#06b6d4; --emerald:#10b981;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5; font-size:13px;
+  }
+  .mono { font-family:ui-monospace, SF Mono, Menlo, monospace; }
+  .container { max-width:1500px; margin:0 auto; padding:18px; }
+
+  /* ── nav ── */
+  nav {
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+    padding:10px 18px; background:var(--bg-card-elev);
+    border-bottom:1px solid var(--border); font-size:12px;
+  }
+  nav a { color:var(--text-dim); text-decoration:none; transition:color .15s; }
+  nav a:hover { color:var(--text); }
+  nav a.active { color:var(--emerald); font-weight:700; }
+  nav .brand {
+    color:var(--text); font-weight:700; letter-spacing:.5px;
+    border-right:1px solid var(--border); padding-right:14px;
+  }
+  nav .brand a { color:var(--text); }
+
+  /* ── header ── */
+  .header {
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:16px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .title { font-size:22px; font-weight:700; letter-spacing:-.3px; }
+  .title .accent { color:var(--emerald); }
+  .subtitle { color:var(--text-dim); font-size:12px; margin-top:2px; }
+
+  /* ── hero readouts ── */
+  .hero {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:10px; margin-bottom:18px;
+  }
+  .hero-stat {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:8px; padding:12px 14px;
+  }
+  .hero-stat .k { font-size:10px; color:var(--text-dim); text-transform:uppercase;
+                   letter-spacing:.7px; font-weight:600; }
+  .hero-stat .v { font-size:18px; font-weight:700; margin-top:4px; font-family:ui-monospace, monospace; }
+  .hero-stat .sub { font-size:11px; color:var(--text-dim); margin-top:2px; }
+
+  /* ── regime pill ── */
+  .pill {
+    display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px;
+    font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+  }
+  .pill.calm,    .pill.NORMAL  { background:rgba(34,197,94,0.14);  color:#22c55e; }
+  .pill.watch,   .pill.WATCH   { background:rgba(245,158,11,0.14); color:#f59e0b; }
+  .pill.elevated,.pill.ELEVATED{ background:rgba(239,107,69,0.14); color:#ef6b45; }
+  .pill.acute,   .pill.ACUTE_STRESS,
+  .pill.crisis,  .pill.CRISIS  { background:rgba(239,68,68,0.14);  color:#ef4444; }
+
+  /* ── filter bar ── */
+  .filter-bar {
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px;
+    padding:10px 12px; background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+  }
+  .filter-bar label { font-size:11px; color:var(--text-dim); margin-right:4px; }
+  .filter-bar button {
+    padding:5px 12px; background:var(--bg); border:1px solid var(--border);
+    border-radius:6px; color:var(--text-dim); cursor:pointer; font-size:11px;
+    font-family:inherit; transition:all .15s;
+  }
+  .filter-bar button:hover { background:var(--bg-hover); color:var(--text); }
+  .filter-bar button.active {
+    background:rgba(16,185,129,0.14); border-color:var(--emerald); color:var(--emerald);
+  }
+
+  /* ── category section ── */
+  .cat {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px 4px; margin-bottom:16px;
+  }
+  .cat-head {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:8px;
+    gap:10px; flex-wrap:wrap;
+  }
+  .cat-title { font-size:15px; font-weight:700; }
+  .cat-title .icon { margin-right:6px; }
+  .cat-blurb { color:var(--text-dim); font-size:11px; max-width:680px; line-height:1.55; margin-top:3px; }
+  .cat-state {
+    display:flex; gap:8px; align-items:center; font-size:11px; color:var(--text-dim);
+  }
+
+  /* ── series table ── */
+  .tbl { width:100%; border-collapse:collapse; font-size:12px; }
+  .tbl th, .tbl td {
+    padding:8px 10px; text-align:left; vertical-align:middle;
+    border-bottom:1px solid var(--border);
+  }
+  .tbl th {
+    color:var(--text-dim); font-weight:600; font-size:10px; text-transform:uppercase;
+    letter-spacing:.5px; cursor:pointer; user-select:none;
+  }
+  .tbl th:hover { color:var(--text); }
+  .tbl tbody tr:hover { background:var(--bg-hover); }
+  .tbl .num { font-family:ui-monospace, monospace; text-align:right; }
+  .tbl .pos { color:var(--green); }
+  .tbl .neg { color:var(--red); }
+  .tbl .row-label { font-weight:500; color:var(--text); }
+  .tbl .row-id { color:var(--text-muted); font-size:10px; font-family:ui-monospace, monospace; }
+  .tbl .row-note { color:var(--text-dim); font-size:11px; margin-top:2px; line-height:1.4; }
+  .tbl .reason { color:var(--text-dim); font-size:11px; font-style:italic; }
+
+  /* ── footer ── */
+  .meth {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    padding:14px 18px; margin-top:18px; color:var(--text-dim); font-size:12px;
+    line-height:1.7;
+  }
+  .meth strong { color:var(--text); }
+  .meth code {
+    font-family:ui-monospace, monospace; background:var(--bg-card-elev);
+    padding:1px 6px; border-radius:3px; color:var(--emerald); font-size:11px;
+  }
+  .meth a { color:var(--emerald); text-decoration:none; }
+  .meth a:hover { text-decoration:underline; }
+
+  /* ── empty state ── */
+  .empty { text-align:center; color:var(--text-dim); padding:30px 14px; font-style:italic; }
+  .skel { background:linear-gradient(90deg, var(--bg-card-elev) 25%, var(--border) 50%, var(--bg-card-elev) 75%);
+          background-size:200% 100%; animation:shimmer 1.4s infinite; height:14px; border-radius:3px; }
+  @keyframes shimmer { 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><a href="/">JustHodl.AI</a></span>
+  <a href="/">DASHBOARD</a>
+  <a href="/intelligence.html">INTEL</a>
+  <a href="/liquidity.html">LIQUIDITY</a>
+  <a href="/lce.html" class="active">🟢 LCE</a>
+  <a href="/auctions.html" style="color:#3b82f6">🏛 AUCTIONS</a>
+  <a href="/bonds.html" style="color:#06b6d4">📈 BONDS</a>
+  <a href="/stress.html" style="color:#ef4444">🌪 STRESS</a>
+  <a href="/risk.html">RISK</a>
+  <a href="/macro-data.html">MACRO</a>
+  <a href="/auction-crisis.html">CRISIS</a>
+</nav>
+
+<div class="container">
+
+  <header class="header">
+    <div>
+      <h1 class="title">🟢 <span class="accent">LIQUIDITY & CREDIT ENGINE</span></h1>
+      <div class="subtitle">51 FRED series · 5 categories · Khalid-spec full coverage · auto-updates every 6h</div>
+    </div>
+    <div style="text-align:right">
+      <div id="genTime" class="mono" style="font-size:11px;color:var(--text-dim)">loading…</div>
+      <div id="generatedAge" style="font-size:10px;color:var(--text-muted);margin-top:2px"></div>
+    </div>
+  </header>
+
+  <!-- HERO STATS -->
+  <section class="hero" id="hero">
+    <div class="hero-stat">
+      <div class="k">REGIME</div>
+      <div class="v"><span id="regimePill" class="pill calm">—</span></div>
+      <div class="sub" id="regimeSub">composite score</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">COMPOSITE SCORE</div>
+      <div class="v" id="composite">—</div>
+      <div class="sub">0 = calm · 100 = crisis</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">FIRING</div>
+      <div class="v" id="firing">—</div>
+      <div class="sub">series at WATCH+</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">TOTAL SERIES</div>
+      <div class="v" id="totalSeries">—</div>
+      <div class="sub">FRED + ICE BofA</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">10Y TREASURY (REF)</div>
+      <div class="v" id="dgs10">—</div>
+      <div class="sub">used for HQM spread</div>
+    </div>
+    <div class="hero-stat">
+      <div class="k">DECISIVE STATE</div>
+      <div class="v" id="decisive" style="font-size:14px">—</div>
+      <div class="sub" id="decisiveSub" style="line-height:1.4">—</div>
+    </div>
+  </section>
+
+  <!-- FILTER BAR -->
+  <section class="filter-bar">
+    <label>Filter:</label>
+    <button data-f="all"        class="active">ALL ({{TOTAL}})</button>
+    <button data-f="firing">FIRING ONLY</button>
+    <button data-f="watch">WATCH+</button>
+    <button data-f="elevated">ELEVATED+</button>
+    <button data-f="khalid">KHALID-SPEC ONLY</button>
+    <span style="flex:1"></span>
+    <input type="text" id="searchBox" placeholder="search id or label…"
+           style="background:var(--bg);border:1px solid var(--border);color:var(--text);
+                  padding:5px 10px;border-radius:6px;font-size:11px;font-family:inherit;width:240px">
+    <button id="exportJson">⬇ JSON</button>
+  </section>
+
+  <!-- 5 CATEGORY SECTIONS — populated by JS -->
+  <div id="categories">
+    <div class="cat"><div class="empty"><span class="skel" style="display:inline-block;width:280px"></span></div></div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <section class="meth">
+    <strong>📚 Methodology</strong>
+    <p style="margin-top:6px">
+      The Liquidity & Credit Engine pulls 51 series from FRED across five categories, every 6 hours,
+      and computes per-series <code>WoW</code> · <code>MoM</code> · <code>QoQ</code> · <code>YoY</code> ·
+      <code>z(1y)</code> · <code>z(5y)</code> alongside a signal classification driven by historically-calibrated thresholds
+      (GFC 2008 + COVID 2020 anchors).
+    </p>
+    <p style="margin-top:6px">
+      The <strong>composite score</strong> blends the worst category state (70% weight) with the average state across all
+      categories (30% weight) and translates into a regime: <span class="pill NORMAL">CALM</span>
+      <span class="pill WATCH">WATCH</span> <span class="pill ELEVATED">ELEVATED</span>
+      <span class="pill ACUTE_STRESS">ACUTE STRESS</span> <span class="pill CRISIS">CRISIS</span>.
+    </p>
+    <p style="margin-top:6px">
+      LCE state feeds back into the <a href="/intelligence.html">Khalid Index</a> (penalty up to −25),
+      the <a href="/risk.html">Risk Dashboard</a> (liquidity, credit, recession sub-scores),
+      the daily 8AM <a href="/intelligence.html">morning brief</a>, the
+      <a href="/ai-chat">AI chat</a> system prompt, and the position-sizing engine that drives
+      every allocation recommendation.
+    </p>
+    <p style="margin-top:6px;color:var(--text-muted);font-size:11px">
+      Data: <a href="https://fred.stlouisfed.org">FRED · St. Louis Fed</a> · Engine source:
+      <code>justhodl-liquidity-credit-engine</code> · S3 output:
+      <code>data/liquidity-credit-engine.json</code> · Schema 1.1
+    </p>
+  </section>
+
+</div>
+
+<script>
+const SRC = "https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-credit-engine.json";
+
+const CAT_META = {
+  balance_sheet: {
+    icon:"🏦", label:"Fed Balance Sheet (H.4.1)",
+    blurb:"Fed assets, bank reserves, TGA, RRP, MBS, Treasury holdings, currency in circulation, foreign-official RRP, memo collateral pledges. Direct readouts of system liquidity and the QT/QE pace.",
+    color:"#10b981"
+  },
+  liquidity_facilities: {
+    icon:"💧", label:"Liquidity Facilities (Discount Window + Emergency)",
+    blurb:"Primary credit, central-bank swap lines (16-90d + total), BTFP/PDCF emergency loans. Active drawdown here is a financial-crisis signal — SVB peaked at $164B primary credit, COVID hit $446B in CB swaps.",
+    color:"#06b6d4"
+  },
+  credit_spreads: {
+    icon:"📉", label:"Credit Spreads (ICE BofA OAS)",
+    blurb:"Option-adjusted spreads by quality: US HY (BB · B · CCC) + US IG (AAA · AA · A · BBB) + Euro HY + EM HY + EM Corporate Plus. CCC is the canary — GFC peak 22%, COVID peak 19%.",
+    color:"#a78bfa"
+  },
+  corporate_yields: {
+    icon:"🏢", label:"Corporate Yields (HQM Curve + Treasury Refs)",
+    blurb:"Full HQM corporate curve 1y · 2y · 5y · 10y · 30y · plus DGS reference Treasuries. Each HQM tenor scored as spread-to-Treasury — reveals where corp credit demand stress shows up first on the curve.",
+    color:"#f59e0b"
+  },
+  lending_standards: {
+    icon:"🏦", label:"Lending Standards — SLOOS (Senior Loan Officer Survey)",
+    blurb:"Net % of banks tightening (or easing) standards on C&I loans (large + small), CRE (3 sub-types: construction, nonfarm nonresidential, multifamily), credit cards, auto, other consumer, subprime mortgage. Plus loan demand. Quarterly cadence; net % above 25 historically precedes recessions.",
+    color:"#ef4444"
+  }
+};
+
+let CURRENT = null;
+let CURRENT_FILTER = "all";
+let CURRENT_SEARCH = "";
+
+const KHALID_SPEC_IDS = new Set([
+  "RESPPALGUONNWW","RESPPNTEPNWW","OTHL1690","SWP1690",
+  "BAMLH0A3HYC","BAMLHE00EHYIOAS","BAMLEMHBHYCRPIOAS","HQMCB10YR"
+]);
+
+function fmtN(v, dp=2) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  if (typeof v === "string") return v;
+  return Number(v).toLocaleString(undefined, {minimumFractionDigits:dp, maximumFractionDigits:dp});
+}
+function fmtPct(v) {
+  if (v === null || v === undefined || isNaN(v)) return "—";
+  const n = Number(v);
+  const s = (n>0?"+":"") + n.toFixed(2) + "%";
+  return s;
+}
+function pctClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return "";
+  return Number(v) >= 0 ? "pos" : "neg";
+}
+function ageStr(iso) {
+  if (!iso) return "";
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(ms/60000);
+  if (m < 60) return m + "m ago";
+  const h = Math.floor(m/60);
+  if (h < 24) return h + "h " + (m%60) + "m ago";
+  return Math.floor(h/24) + "d ago";
+}
+
+async function load() {
+  try {
+    const r = await fetch(SRC, {cache:"no-store"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    CURRENT = await r.json();
+    render();
+  } catch (e) {
+    document.getElementById("categories").innerHTML =
+      `<div class="cat"><div class="empty">Failed to load LCE data: ${e.message}</div></div>`;
+    console.error("[lce]", e);
+  }
+}
+
+function render() {
+  if (!CURRENT) return;
+  const d = CURRENT;
+  const series = d.series || {};
+  const byCat = d.by_category || {};
+  const comp = d.composite || {};
+  const regime = d.regime || "—";
+
+  // ── HERO ──
+  document.getElementById("genTime").textContent =
+    new Date(d.generated_at).toLocaleString();
+  document.getElementById("generatedAge").textContent =
+    "updated " + ageStr(d.generated_at);
+  const pill = document.getElementById("regimePill");
+  pill.textContent = regime;
+  pill.className = "pill " + regime;
+  document.getElementById("regimeSub").textContent = comp.score != null
+    ? comp.score + " / 100" : "—";
+  document.getElementById("composite").textContent =
+    comp.score != null ? comp.score.toFixed(1) : "—";
+  document.getElementById("firing").textContent = comp.n_firing || 0;
+  document.getElementById("totalSeries").textContent = Object.keys(series).length;
+  document.getElementById("dgs10").textContent =
+    (d.reference && d.reference.DGS10 != null) ? d.reference.DGS10.toFixed(2) + "%" : "—";
+
+  // Decisive state
+  const decisive = decisiveCall(d);
+  document.getElementById("decisive").innerHTML = decisive.title;
+  document.getElementById("decisiveSub").textContent = decisive.sub;
+
+  // Update filter button counts
+  const all = Object.keys(series).length;
+  const firing = Object.values(series).filter(s => s.signal && s.signal !== "NORMAL").length;
+  document.querySelector('[data-f="all"]').textContent = `ALL (${all})`;
+  document.querySelector('[data-f="firing"]').textContent = `FIRING ONLY (${firing})`;
+
+  // ── CATEGORIES ──
+  const root = document.getElementById("categories");
+  root.innerHTML = "";
+
+  // Category order intentionally chosen — most-watched first
+  const order = ["balance_sheet","liquidity_facilities","credit_spreads",
+                 "corporate_yields","lending_standards"];
+
+  for (const cat of order) {
+    const ids = byCat[cat] || [];
+    const meta = CAT_META[cat] || {icon:"●", label:cat, blurb:"", color:"#888"};
+    const rows = ids.map(sid => ({sid, s: series[sid] || {}})).filter(r => {
+      // Apply filter
+      const sig = r.s.signal || "NORMAL";
+      if (CURRENT_FILTER === "firing" && sig === "NORMAL") return false;
+      if (CURRENT_FILTER === "watch" && sig === "NORMAL") return false;
+      if (CURRENT_FILTER === "elevated" && (sig === "NORMAL" || sig === "WATCH")) return false;
+      if (CURRENT_FILTER === "khalid" && !KHALID_SPEC_IDS.has(r.sid)) return false;
+      // Apply search
+      if (CURRENT_SEARCH) {
+        const q = CURRENT_SEARCH.toLowerCase();
+        const txt = (r.sid + " " + (r.s._label || "")).toLowerCase();
+        if (!txt.includes(q)) return false;
+      }
+      return true;
+    });
+
+    // Compute category-level worst signal
+    const rank = {NORMAL:0, WATCH:1, ELEVATED:2, CRISIS:3};
+    let worst = "NORMAL";
+    for (const sid of ids) {
+      const sig = (series[sid] || {}).signal || "NORMAL";
+      if (rank[sig] > rank[worst]) worst = sig;
+    }
+    const nFiring = ids.filter(sid => {
+      const s = (series[sid] || {}).signal;
+      return s && s !== "NORMAL";
+    }).length;
+
+    const sec = document.createElement("section");
+    sec.className = "cat";
+    sec.style.borderLeft = "3px solid " + meta.color;
+    sec.id = "cat-" + cat;
+
+    sec.innerHTML = `
+      <div class="cat-head">
+        <div>
+          <div class="cat-title"><span class="icon">${meta.icon}</span> ${meta.label}</div>
+          <div class="cat-blurb">${meta.blurb}</div>
+        </div>
+        <div class="cat-state">
+          <span class="pill ${worst}">${worst}</span>
+          <span>${nFiring}/${ids.length} firing</span>
+        </div>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:32%">SERIES</th>
+            <th style="width:11%" class="num">VALUE</th>
+            <th style="width:8%">UNITS</th>
+            <th style="width:7%" class="num">WoW</th>
+            <th style="width:7%" class="num">MoM</th>
+            <th style="width:7%" class="num">QoQ</th>
+            <th style="width:7%" class="num">YoY</th>
+            <th style="width:6%" class="num">z(1y)</th>
+            <th style="width:6%" class="num">z(5y)</th>
+            <th style="width:9%">SIGNAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.length === 0 ? `<tr><td colspan="10" class="empty">No series match this filter</td></tr>` : ""}
+          ${rows.map(({sid, s}) => `
+            <tr>
+              <td>
+                <div class="row-label">
+                  ${KHALID_SPEC_IDS.has(sid) ? "★ " : ""}${s._label || sid}
+                  <span class="row-id">${sid}</span>
+                </div>
+                ${s._threshold_note ? `<div class="row-note">${s._threshold_note}</div>` : ""}
+                ${s.signal_reason ? `<div class="reason">${s.signal_reason}</div>` : ""}
+              </td>
+              <td class="num">${fmtN(s.latest_value, (s._units||'').includes('%') || (s._units||'').includes('net') ? 2 : 1)}</td>
+              <td class="row-id">${s._units || ""}</td>
+              <td class="num ${pctClass(s.wow_pct)}">${fmtPct(s.wow_pct)}</td>
+              <td class="num ${pctClass(s.mom_pct)}">${fmtPct(s.mom_pct)}</td>
+              <td class="num ${pctClass(s.qoq_pct)}">${fmtPct(s.qoq_pct)}</td>
+              <td class="num ${pctClass(s.yoy_pct)}">${fmtPct(s.yoy_pct)}</td>
+              <td class="num">${s.z_1y != null ? s.z_1y.toFixed(2) : "—"}</td>
+              <td class="num">${s.z_5y != null ? s.z_5y.toFixed(2) : "—"}</td>
+              <td><span class="pill ${s.signal||'NORMAL'}">${s.signal || "NORMAL"}</span></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+    root.appendChild(sec);
+  }
+}
+
+function decisiveCall(d) {
+  const r = d.regime || "NORMAL";
+  if (r === "CRISIS")        return { title:`<span class="pill CRISIS">DEFENSIVE</span>`,
+                                       sub:"Reduce risk, raise cash, long duration + dollar + gold." };
+  if (r === "ACUTE_STRESS")  return { title:`<span class="pill ACUTE_STRESS">REDUCE RISK</span>`,
+                                       sub:"Cut risk-asset exposure 30-50%; rotate into TLT/GLD/UUP." };
+  if (r === "ELEVATED")      return { title:`<span class="pill ELEVATED">CAUTIOUS</span>`,
+                                       sub:"Trim leverage, watch for credit-spread widening + bank tightening." };
+  if (r === "WATCH")         return { title:`<span class="pill WATCH">MONITOR</span>`,
+                                       sub:"Background stress; maintain core risk allocation, watch firing series." };
+  return { title:`<span class="pill NORMAL">RISK-ON OK</span>`,
+            sub:"All systems calm; standard risk-asset allocation supported." };
+}
+
+// ── Filter bar wiring ──
+document.querySelectorAll('.filter-bar [data-f]').forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll('.filter-bar [data-f]').forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    CURRENT_FILTER = btn.dataset.f;
+    render();
+  });
+});
+document.getElementById("searchBox").addEventListener("input", e => {
+  CURRENT_SEARCH = e.target.value.trim();
+  render();
+});
+document.getElementById("exportJson").addEventListener("click", () => {
+  if (!CURRENT) return;
+  const blob = new Blob([JSON.stringify(CURRENT, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "liquidity-credit-engine_" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+load();
+// Auto-refresh every 5 minutes
+setInterval(load, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>

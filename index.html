@@ -610,6 +610,7 @@ table.tbl tr:last-child td{border-bottom: none}
     <a href="/stress.html" style="color:#ef4444;font-weight:600">🌪 STRESS</a>
     <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
     <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a>
+    <a href="/lce.html" style="color:#10b981;font-weight:600">🟢 LCE</a>
     <a href="/stock/">STOCK</a>
     <a href="/screener/">SCREENER</a>
     <a href="/edge.html">EDGE</a>
@@ -789,6 +790,31 @@ table.tbl tr:last-child td{border-bottom: none}
         Live US Treasury curve, real rates, breakevens, and bond-regime detector. Each regime tells you
         what to do with risk assets — when bond regime says <em>flight-to-quality</em>, equities suffer;
         when <em>convexity unwind</em>, vol explodes. Cross-asset playbook for each regime state.
+      </div>
+    </section>
+
+    <!-- LCE — Liquidity & Credit Engine -->
+    <section class="card col-6" style="border-left:3px solid #10b981">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🟢 LIQUIDITY &amp; CREDIT ENGINE</div>
+          <div class="card-subtitle" id="lceSub">51 FRED series · 5 categories · auto-updates every 6h</div>
+        </div>
+        <a href="/lce.html" class="card-action" style="color:#10b981">EXPLORE →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Every Khalid-spec liquidity and credit signal in one place. Fed balance sheet (H.4.1),
+        primary credit + central-bank swap lines, ICE BofA OAS by quality (CCC/BB/B + AAA-BBB + Euro + EM),
+        full HQM corporate curve, and the <em>Senior Loan Officer Survey</em> — bank tightening on C&amp;I,
+        CRE (3 sub-types), credit cards, auto, mortgages. Per-series WoW · MoM · QoQ · YoY · z(1y) · z(5y)
+        with regime classification feeding back into KI, risk dashboard, morning brief, AI chat, and allocator.
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <a href="/lce.html#cat-balance_sheet" style="background:rgba(16,185,129,0.12);color:#10b981;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏦 Fed Balance</a>
+        <a href="/lce.html#cat-liquidity_facilities" style="background:rgba(6,182,212,0.12);color:#06b6d4;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">💧 Facilities</a>
+        <a href="/lce.html#cat-credit_spreads" style="background:rgba(167,139,250,0.12);color:#a78bfa;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">📉 Spreads</a>
+        <a href="/lce.html#cat-corporate_yields" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏢 HQM</a>
+        <a href="/lce.html#cat-lending_standards" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏦 SLOOS</a>
       </div>
     </section>
 
