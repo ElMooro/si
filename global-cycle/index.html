@@ -208,6 +208,70 @@
   .trans-pill .tp-date { color:var(--text); font-weight:600; }
   .trans-pill .tp-arrow { color:var(--text-muted); margin:0 3px; }
 
+  /* Lead/lag ranking */
+  .ll-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .ll-table th {
+    text-align:left; padding:8px 10px; border-bottom:1px solid var(--border);
+    color:var(--text-dim); font-weight:600; font-size:10px; text-transform:uppercase;
+    letter-spacing:.5px; position:sticky; top:0; background:var(--bg-card); z-index:2;
+  }
+  .ll-table td {
+    padding:7px 10px; border-bottom:1px solid var(--border);
+    font-family:ui-monospace, monospace; color:var(--text);
+    transition:background .15s;
+  }
+  .ll-table tr { cursor:pointer; }
+  .ll-table tr:hover td { background:var(--bg-hover); }
+  .ll-table tr.selected td { background:rgba(139,92,246,.08); }
+  .ll-table .ll-rank { color:var(--text-muted); width:36px; }
+  .ll-table .ll-iso  { color:var(--text-dim); width:42px; }
+  .ll-table .ll-name { font-family:inherit; font-weight:600; }
+  .ll-table .ll-phase {
+    font-size:10px; padding:2px 7px; border-radius:8px;
+    display:inline-block; font-family:ui-monospace, monospace;
+  }
+  .ll-table .ll-phase.EXPANSION { background:rgba(34,197,94,.16); color:var(--p-expansion); }
+  .ll-table .ll-phase.AT_RISK   { background:rgba(245,158,11,.16); color:var(--p-atrisk); }
+  .ll-table .ll-phase.RECESSION { background:rgba(239,68,68,.16); color:var(--p-recession); }
+  .ll-table .ll-phase.RECOVERY  { background:rgba(59,130,246,.16); color:var(--p-recovery); }
+  .ll-table .ll-phase.UNKNOWN   { background:rgba(71,85,105,.18); color:var(--p-unknown); }
+
+  /* Lag bar (visual offset from 0) */
+  .ll-bar-cell { position:relative; min-width:160px; padding:0 !important; }
+  .ll-bar-axis {
+    position:relative; height:22px; margin:6px 0; background:var(--bg-card-elev);
+    border-radius:3px; overflow:hidden;
+  }
+  .ll-bar-axis .center-line {
+    position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--text-muted); opacity:.5;
+  }
+  .ll-bar-axis .bar {
+    position:absolute; top:3px; bottom:3px; border-radius:2px;
+  }
+  .ll-bar-axis .bar.leads { background:var(--p-expansion); }
+  .ll-bar-axis .bar.lags  { background:var(--p-recession); }
+  .ll-bar-axis .bar.same  { background:var(--text-muted); }
+  .ll-bar-label {
+    position:absolute; top:50%; transform:translateY(-50%);
+    font-size:10px; color:var(--text); font-family:ui-monospace, monospace;
+    text-shadow:0 1px 2px rgba(0,0,0,.6); padding:0 5px; pointer-events:none;
+  }
+
+  /* Correlation strength bar */
+  .corr-bar {
+    display:inline-block; height:10px; border-radius:2px;
+    background:linear-gradient(90deg, rgba(34,197,94,.7), rgba(34,197,94,.3));
+    min-width:1px;
+  }
+  .corr-bar.weak { background:linear-gradient(90deg, rgba(239,68,68,.6), rgba(239,68,68,.2)); }
+  .corr-bar.medium { background:linear-gradient(90deg, rgba(245,158,11,.6), rgba(245,158,11,.2)); }
+  .corr-bar.strong { background:linear-gradient(90deg, rgba(34,197,94,.7), rgba(34,197,94,.3)); }
+  .corr-text { font-size:11px; margin-left:6px; color:var(--text-dim); }
+
+  /* Correlation curve panel */
+  .corr-curve-host { height:200px; position:relative; }
+  .corr-curve-meta { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
   @media (max-width: 700px) {
     .container { padding:12px; }
     .title { font-size:18px; }
@@ -305,6 +369,46 @@
     </div>
   </section>
 
+  <!-- Lead/Lag ranking -->
+  <section class="panel">
+    <h2>Country Lead/Lag Ranking <span class="meta" id="leadLagMeta">cross-correlation with global aggregate · max lag ±26w</span></h2>
+    <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, 1fr); gap:18px; align-items:start">
+      <div style="max-height:560px; overflow:auto">
+        <table class="ll-table" id="leadLagTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Country</th>
+              <th>Lead/Lag (weeks)</th>
+              <th>Peak r</th>
+              <th>Phase</th>
+            </tr>
+          </thead>
+          <tbody id="leadLagBody">
+            <tr><td colspan="5" style="padding:30px; text-align:center"><div class="skel" style="height:24px; width:80%; margin:auto"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:6px">
+          Click a country to see its correlation curve. Peak position = best lead/lag, peak height = strength.
+        </div>
+        <div class="corr-curve-host" id="corrCurveChart">
+          <div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:11px">
+            Click a country row to view correlation curve
+          </div>
+        </div>
+        <div class="corr-curve-meta" id="corrCurveMeta"></div>
+      </div>
+    </div>
+    <div class="legend" style="margin-top:10px">
+      <span><span class="swatch" style="background:var(--p-expansion)"></span>Leads global (cycle turns first)</span>
+      <span><span class="swatch" style="background:var(--text-muted)"></span>~0 lag (moves with aggregate)</span>
+      <span><span class="swatch" style="background:var(--p-recession)"></span>Lags global (cycle turns later)</span>
+      <span style="margin-left:auto;color:var(--text-muted)">USA + large weights have inflated lag-0 corr (self-influence)</span>
+    </div>
+  </section>
+
   <!-- Multi-country comparison -->
   <section class="panel">
     <h2>Multi-Country Comparison <span class="meta">click sparklines to add/remove</span></h2>
@@ -330,6 +434,7 @@ const PHASE_STACK_ORDER = ["EXPANSION","RECOVERY","AT_RISK","RECESSION"];
 let DATA = null;
 let SELECTED = new Set();   // iso3 codes for compare chart
 let ACTIVE_REGION = "all";
+let LEADLAG_SELECTED = null;  // iso3 currently shown in correlation curve panel
 
 function fmtPct(v) {
   if (v == null) return "—";
@@ -467,6 +572,7 @@ function render() {
   renderPhaseMix();
   renderGlobalCli();
   renderSparklines();
+  renderLeadLagRanking();
   renderCompareChart();
 }
 
@@ -784,6 +890,188 @@ function renderSparklines() {
     grid.appendChild(card);
   }
 }
+
+function renderLeadLagRanking() {
+  const ranking = DATA.lead_lag_ranking || [];
+  const byCountry = DATA.by_country || {};
+  const meta = document.getElementById("leadLagMeta");
+  const body = document.getElementById("leadLagBody");
+
+  if (!ranking.length) {
+    body.innerHTML = '<tr><td colspan="5" style="padding:20px; text-align:center; color:var(--text-muted)">No lead/lag data — pipeline may not have completed.</td></tr>';
+    return;
+  }
+
+  // Find the maximum lag magnitude for bar scaling
+  const maxLagMag = Math.max(...ranking.map(r => Math.abs(r.peak_lag_weeks || 0))) || 26;
+
+  meta.textContent = `${ranking.length} countries · max lag ±26w · sorted leaders → laggers`;
+
+  body.innerHTML = "";
+  ranking.forEach((r, i) => {
+    const c = byCountry[r.iso3] || {};
+    const curPhase = ((c.history || [])[(c.history || []).length - 1] || {}).phase || "UNKNOWN";
+    const lag = r.peak_lag_weeks;
+    const corr = r.peak_correlation;
+    const boundary = r.boundary_flag;
+
+    // Bar visualization: 0 in the middle, lead-right (green), lag-left (red)
+    // Width: 50% of cell on each side of center
+    const pctOffset = Math.min(50, (Math.abs(lag) / maxLagMag) * 50);
+    let barHtml;
+    if (lag === 0) {
+      barHtml = `<div class="bar same" style="left:49%; width:2%"></div>`;
+    } else if (lag > 0) {
+      // Leads — bar extends right from center
+      barHtml = `<div class="bar leads" style="left:50%; width:${pctOffset}%"></div>`;
+    } else {
+      barHtml = `<div class="bar lags" style="left:${50 - pctOffset}%; width:${pctOffset}%"></div>`;
+    }
+    const lagLabel = (lag > 0 ? "+" : "") + lag + "w" + (boundary ? " *" : "");
+
+    // Correlation bar
+    const corrAbs = Math.abs(corr);
+    const corrPct = Math.round(corrAbs * 100);
+    let strengthClass = "weak";
+    if (corrAbs >= 0.7) strengthClass = "strong";
+    else if (corrAbs >= 0.4) strengthClass = "medium";
+
+    const tr = document.createElement("tr");
+    if (LEADLAG_SELECTED === r.iso3) tr.classList.add("selected");
+    tr.dataset.iso = r.iso3;
+    tr.innerHTML = `
+      <td class="ll-rank">${i + 1}</td>
+      <td>
+        <span class="ll-iso">${r.iso3}</span>
+        <span class="ll-name">${r.country_name}</span>
+        <span style="font-size:10px;color:var(--text-muted);margin-left:6px">${r.region || ""}</span>
+      </td>
+      <td class="ll-bar-cell">
+        <div class="ll-bar-axis">
+          <div class="center-line"></div>
+          ${barHtml}
+          <span class="ll-bar-label" style="${lag >= 0 ? 'left:52%' : 'right:52%'}">${lagLabel}</span>
+        </div>
+      </td>
+      <td>
+        <span class="corr-bar ${strengthClass}" style="width:${Math.max(2, corrPct)}px"></span>
+        <span class="corr-text">${(corr).toFixed(2)}</span>
+      </td>
+      <td><span class="ll-phase ${curPhase}">${curPhase}</span></td>
+    `;
+    tr.addEventListener("click", () => {
+      LEADLAG_SELECTED = r.iso3;
+      // Refresh table to update selected class without re-rendering everything
+      body.querySelectorAll("tr").forEach(row =>
+        row.classList.toggle("selected", row.dataset.iso === r.iso3));
+      drawCorrelationCurve(r);
+    });
+    body.appendChild(tr);
+  });
+
+  // Auto-select first country if none selected
+  if (!LEADLAG_SELECTED && ranking.length) {
+    LEADLAG_SELECTED = ranking[0].iso3;
+    body.querySelector(`tr[data-iso="${ranking[0].iso3}"]`)?.classList.add("selected");
+    drawCorrelationCurve(ranking[0]);
+  } else if (LEADLAG_SELECTED) {
+    // Re-draw curve for the current selection (data may have updated)
+    const sel = ranking.find(r => r.iso3 === LEADLAG_SELECTED);
+    if (sel) drawCorrelationCurve(sel);
+  }
+}
+
+function drawCorrelationCurve(r) {
+  const host = document.getElementById("corrCurveChart");
+  const meta = document.getElementById("corrCurveMeta");
+  host.innerHTML = "";
+
+  const W = host.clientWidth || 380;
+  const H = 200;
+  const margin = { top:10, right:14, bottom:26, left:38 };
+  const w = W - margin.left - margin.right;
+  const h = H - margin.top - margin.bottom;
+
+  const svg = d3.select(host).append("svg")
+    .attr("viewBox", `0 0 ${W} ${H}`)
+    .attr("width", "100%").attr("height", H);
+  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const data = (r.curve_lags || []).map((lag, i) => ({
+    lag, corr: (r.curve_corrs || [])[i],
+  })).filter(d => d.corr !== undefined && d.corr !== null);
+
+  if (!data.length) {
+    host.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px 0">No curve data</div>';
+    return;
+  }
+
+  const x = d3.scaleLinear().domain(d3.extent(data, d => d.lag)).range([0, w]);
+  const yMin = Math.min(...data.map(d => d.corr), -0.2);
+  const yMax = Math.max(...data.map(d => d.corr), 0.2);
+  const y = d3.scaleLinear().domain([yMin, yMax]).range([h, 0]);
+
+  // Zero-correlation reference line
+  g.append("line")
+    .attr("x1", 0).attr("x2", w)
+    .attr("y1", y(0)).attr("y2", y(0))
+    .attr("stroke", "var(--text-muted)").attr("stroke-dasharray", "2 2").attr("opacity", .4);
+
+  // Zero-lag reference line
+  g.append("line")
+    .attr("x1", x(0)).attr("x2", x(0))
+    .attr("y1", 0).attr("y2", h)
+    .attr("stroke", "var(--text-muted)").attr("stroke-dasharray", "2 2").attr("opacity", .4);
+
+  // Curve
+  const line = d3.line()
+    .x(d => x(d.lag))
+    .y(d => y(d.corr))
+    .curve(d3.curveMonotoneX);
+  g.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "var(--accent)")
+    .attr("stroke-width", 1.8)
+    .attr("d", line);
+
+  // Peak marker
+  g.append("circle")
+    .attr("cx", x(r.peak_lag_weeks)).attr("cy", y(r.peak_correlation))
+    .attr("r", 4)
+    .attr("fill", r.peak_lag_weeks > 0 ? "var(--p-expansion)" :
+                  r.peak_lag_weeks < 0 ? "var(--p-recession)" :
+                  "var(--text-dim)");
+  g.append("text")
+    .attr("x", x(r.peak_lag_weeks))
+    .attr("y", y(r.peak_correlation) - 8)
+    .attr("text-anchor", "middle")
+    .attr("font-size", 10)
+    .attr("font-family", "ui-monospace, monospace")
+    .attr("fill", "var(--text)")
+    .text((r.peak_lag_weeks > 0 ? "+" : "") + r.peak_lag_weeks + "w · r=" + r.peak_correlation.toFixed(2));
+
+  // Axes
+  g.append("g").attr("class", "axis")
+    .attr("transform", `translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(7).tickFormat(d => (d > 0 ? "+" : "") + d + "w"));
+  g.append("g").attr("class", "axis")
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d => d.toFixed(1)));
+
+  // Axis labels
+  g.append("text").attr("x", w / 2).attr("y", h + 22)
+    .attr("text-anchor", "middle").attr("font-size", 10).attr("fill", "var(--text-muted)")
+    .text("← lags global    |    leads global →");
+
+  const interpretation = r.peak_lag_weeks > 2 ? "LEADS the global cycle" :
+                          r.peak_lag_weeks < -2 ? "LAGS the global cycle" :
+                          "moves coincidentally with the global cycle";
+  meta.innerHTML = `<strong>${r.country_name}</strong> (${r.iso3}) · GDP weight ${r.gdp_weight}% · ` +
+    `peak lag ${(r.peak_lag_weeks > 0 ? "+" : "")}${r.peak_lag_weeks} weeks · ` +
+    `Pearson r = ${r.peak_correlation.toFixed(3)} · ${interpretation}` +
+    (r.boundary_flag ? ' <span style="color:var(--p-atrisk)">* peak at scan boundary — true lag may be longer than ±26w</span>' : "");
+}
+
 
 function renderCompareChart() {
   const host = document.getElementById("compareChart");

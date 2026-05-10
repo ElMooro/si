@@ -704,6 +704,122 @@ def detect_transitions(aggregate_series, min_dwell=3):
 
 
 # ════════════════════════════════════════════════════════════════════════
+# Cross-correlation lead/lag analysis
+# ════════════════════════════════════════════════════════════════════════
+def pearson_at_lag(x_series, y_series, lag):
+    """Pearson correlation between x and y where y is shifted by `lag` weeks.
+
+    Convention: positive lag means x LEADS y by `lag` weeks.
+      lag > 0  →  corr(x[t], y[t+lag])    pair x[:n-lag] with y[lag:]
+      lag < 0  →  corr(x[t+|lag|], y[t])  pair x[|lag|:] with y[:n-|lag|]
+      lag = 0  →  standard correlation
+    Returns None if insufficient overlap (<10 paired points)."""
+    n = len(x_series)
+    if n != len(y_series) or n < 10:
+        return None
+    if lag > 0:
+        x_use = x_series[:n - lag]
+        y_use = y_series[lag:]
+    elif lag < 0:
+        L = -lag
+        x_use = x_series[L:]
+        y_use = y_series[:n - L]
+    else:
+        x_use = x_series
+        y_use = y_series
+    if len(x_use) < 10 or len(x_use) != len(y_use):
+        return None
+    m = len(x_use)
+    mean_x = sum(x_use) / m
+    mean_y = sum(y_use) / m
+    num = sum((x_use[i] - mean_x) * (y_use[i] - mean_y) for i in range(m))
+    var_x = sum((x_use[i] - mean_x) ** 2 for i in range(m))
+    var_y = sum((y_use[i] - mean_y) ** 2 for i in range(m))
+    if var_x <= 0 or var_y <= 0:
+        return None
+    return num / (var_x * var_y) ** 0.5
+
+
+def compute_lead_lag(iso3, history_by_country, aggregate_series, max_lag_weeks=26):
+    """Cross-correlate one country's CLI series against the global aggregate.
+
+    Returns dict with:
+      iso3, country_name, region
+      peak_lag_weeks   : lag (positive = country leads, negative = lags)
+      peak_correlation : Pearson at peak_lag (always in [-1, 1])
+      curve_lags / curve_corrs : full sweep across [-max_lag, +max_lag]
+      n_overlap        : how many paired weekly points contributed
+      caveat           : flag if peak is at boundary (lead/lag may be longer)
+    Returns None if country has too little history to correlate."""
+    if iso3 not in history_by_country:
+        return None
+    country_info = history_by_country[iso3]
+    country_h = country_info.get("history") or []
+    if len(country_h) < max_lag_weeks * 2 + 10:
+        return None
+
+    # Forward-fill country CLI onto the global aggregate's weekly grid
+    country_lookup = {pt["date"]: pt["cli"] for pt in country_h}
+    last_seen = None
+    x = []   # country
+    y = []   # global
+    for agg_pt in aggregate_series:
+        d = agg_pt["date"]
+        if d in country_lookup:
+            last_seen = country_lookup[d]
+        if last_seen is not None:
+            x.append(last_seen)
+            y.append(agg_pt["global_avg_cli"])
+
+    if len(x) < max_lag_weeks * 2 + 10:
+        return None
+
+    # Scan correlation across the lag window
+    best_lag = 0
+    best_corr = -2.0
+    curve_lags = []
+    curve_corrs = []
+    for lag in range(-max_lag_weeks, max_lag_weeks + 1):
+        c = pearson_at_lag(x, y, lag)
+        if c is None:
+            continue
+        curve_lags.append(lag)
+        curve_corrs.append(round(c, 3))
+        if c > best_corr:
+            best_corr = c
+            best_lag = lag
+
+    if best_corr < -1.5:
+        return None
+
+    boundary_flag = (best_lag == -max_lag_weeks or best_lag == max_lag_weeks)
+    return {
+        "iso3": iso3,
+        "country_name": country_info.get("country_name"),
+        "region": country_info.get("region"),
+        "gdp_weight": country_info.get("gdp_weight"),
+        "peak_lag_weeks": best_lag,
+        "peak_correlation": round(best_corr, 3),
+        "curve_lags": curve_lags,
+        "curve_corrs": curve_corrs,
+        "n_overlap": len(x),
+        "boundary_flag": boundary_flag,
+    }
+
+
+def rank_lead_lag(history_by_country, aggregate_series, max_lag_weeks=26):
+    """Compute lead/lag for every country, return list sorted by peak_lag descending
+    (most-leading at top, most-lagging at bottom)."""
+    ranking = []
+    for iso3 in history_by_country.keys():
+        ll = compute_lead_lag(iso3, history_by_country, aggregate_series, max_lag_weeks)
+        if ll:
+            ranking.append(ll)
+    ranking.sort(key=lambda r: (-r["peak_lag_weeks"], -r["peak_correlation"]))
+    return ranking
+
+
+# ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
 def lambda_handler(event=None, context=None):
@@ -843,17 +959,47 @@ def lambda_handler(event=None, context=None):
         print(f"[gbc-history]   {tr['date']} {tr['from_phase']} → {tr['to_phase']} "
               f"CLI {tr['cli_at_transition']} · persisted {tr['weeks_persisted']}w")
 
+    # Cross-correlation lead/lag ranking
+    lead_lag_started = time.time()
+    lead_lag_ranking = rank_lead_lag(history_by_country, aggregate_history, max_lag_weeks=26)
+    print(f"[gbc-history] computed lead/lag for {len(lead_lag_ranking)} countries "
+          f"in {time.time() - lead_lag_started:.2f}s")
+    for i, r in enumerate(lead_lag_ranking[:10]):
+        print(f"[gbc-history]   #{i+1} {r['iso3']} lag={r['peak_lag_weeks']:+}w "
+              f"corr={r['peak_correlation']}")
+
+    # Also attach per-country into history_by_country for easy frontend lookup
+    for r in lead_lag_ranking:
+        if r["iso3"] in history_by_country:
+            history_by_country[r["iso3"]]["lead_lag"] = {
+                "peak_lag_weeks": r["peak_lag_weeks"],
+                "peak_correlation": r["peak_correlation"],
+                "boundary_flag": r["boundary_flag"],
+            }
+
     history_output = {
-        "schema_version": "2.1",
+        "schema_version": "2.2",
         "engine_type": "synthetic_equity_momentum_history",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "frequency": "weekly_5d",
         "history_elapsed_sec": round(time.time() - history_started, 1),
         "countries_count": len(history_by_country),
         "transitions_count": len(transitions),
+        "lead_lag_count": len(lead_lag_ranking),
+        "lead_lag_max_lag_weeks": 26,
+        "lead_lag_methodology": (
+            "For each country, compute Pearson correlation between its weekly CLI "
+            "and the GDP-weighted global aggregate CLI across lags in [-26, +26] weeks. "
+            "Positive lag = country leads global (its CLI moves first); negative = lags. "
+            "Each country is itself a component of the aggregate (USA ~25% weight), "
+            "which creates artificial self-correlation at lag 0 — interpret near-zero "
+            "lags with weight in mind. boundary_flag=true means peak was at edge of "
+            "scan window; true lead/lag may be longer than ±26 weeks."
+        ),
         "by_country": history_by_country,
         "aggregate": aggregate_history,
         "transitions": transitions,
+        "lead_lag_ranking": lead_lag_ranking,
     }
 
     S3.put_object(
