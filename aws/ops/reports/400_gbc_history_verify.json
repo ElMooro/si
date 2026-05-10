@@ -1,0 +1,380 @@
+{
+  "started": "2026-05-10T21:29:42.774527+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-10T21:26:06.000+0000",
+      "code_size": 10753,
+      "timeout": 600,
+      "memory": 1024
+    },
+    "invoke": {
+      "status": 200,
+      "error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 110.19, \\\"n_countries\\\": 34, \\\"fresh_count\\\": 32, \\\"elapsed_sec\\\": 16.3}\"}"
+    },
+    "live": {
+      "schema": "2.0",
+      "fresh_count": 32,
+      "total": 34,
+      "global_phase": "GLOBAL_EXPANSION",
+      "global_avg_cli": 110.19
+    },
+    "history": {
+      "schema": "2.0",
+      "engine_type": "synthetic_equity_momentum_history",
+      "generated_at": "2026-05-10T21:30:04.830025+00:00",
+      "frequency": "weekly_5d",
+      "elapsed_sec": 0.3,
+      "countries_count": 32,
+      "aggregate_n_dates": 1083,
+      "aggregate_first": {
+        "date": "2022-04-29",
+        "global_phase": "GLOBAL_CONTRACTION",
+        "global_avg_cli": 98.92,
+        "phase_mix_pct": {
+          "EXPANSION": 15.22,
+          "AT_RISK": 0.0,
+          "RECESSION": 84.78,
+          "RECOVERY": 0.0
+        },
+        "expansion_breadth_pct": 15.22,
+        "contraction_breadth_pct": 84.78,
+        "classified_weight": 4.6
+      },
+      "aggregate_last": {
+        "date": "2026-05-08",
+        "global_phase": "GLOBAL_EXPANSION",
+        "global_avg_cli": 106.44,
+        "phase_mix_pct": {
+          "EXPANSION": 85.22,
+          "AT_RISK": 8.94,
+          "RECESSION": 5.84,
+          "RECOVERY": 0.0
+        },
+        "expansion_breadth_pct": 85.22,
+        "contraction_breadth_pct": 14.78,
+        "classified_weight": 83.9
+      },
+      "aggregate_sample_middle": {
+        "date": "2024-04-26",
+        "global_phase": "GLOBAL_EXPANSION",
+        "global_avg_cli": 103.39,
+        "phase_mix_pct": {
+          "EXPANSION": 74.02,
+          "AT_RISK": 3.81,
+          "RECESSION": 0.36,
+          "RECOVERY": 21.81
+        },
+        "expansion_breadth_pct": 95.83,
+        "contraction_breadth_pct": 4.17,
+        "classified_weight": 83.9
+      },
+      "size_bytes": 1135481,
+      "per_country_summary": [
+        {
+          "iso3": "AUS",
+          "name": "Australia",
+          "n_points": 203,
+          "first": "2022-05-09",
+          "last": "2026-05-06",
+          "last_cli": 101.14,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "AUT",
+          "name": "Austria",
+          "n_points": 204,
+          "first": "2022-05-05",
+          "last": "2026-05-06",
+          "last_cli": 110.47,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "BEL",
+          "name": "Belgium",
+          "n_points": 206,
+          "first": "2022-04-29",
+          "last": "2026-05-05",
+          "last_cli": 105.53,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "BRA",
+          "name": "Brazil",
+          "n_points": 199,
+          "first": "2022-05-13",
+          "last": "2026-05-04",
+          "last_cli": 108.46,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "CAN",
+          "name": "Canada",
+          "n_points": 201,
+          "first": "2022-05-11",
+          "last": "2026-05-06",
+          "last_cli": 108.17,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "CHE",
+          "name": "Switzerland",
+          "n_points": 200,
+          "first": "2022-05-12",
+          "last": "2026-05-05",
+          "last_cli": 101.44,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "CHL",
+          "name": "Chile",
+          "n_points": 201,
+          "first": "2022-05-09",
+          "last": "2026-05-05",
+          "last_cli": 104.92,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "CHN",
+          "name": "China",
+          "n_points": 192,
+          "first": "2022-05-24",
+          "last": "2026-04-30",
+          "last_cli": 105.52,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "DEU",
+          "name": "Germany",
+          "n_points": 205,
+          "first": "2022-05-04",
+          "last": "2026-05-07",
+          "last_cli": 101.87,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "DNK",
+          "name": "Denmark",
+          "n_points": 194,
+          "first": "2022-05-18",
+          "last": "2026-05-07",
+          "last_cli": 100.86,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "ESP",
+          "name": "Spain",
+          "n_points": 206,
+          "first": "2022-05-03",
+          "last": "2026-05-07",
+          "last_cli": 107.03,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "FIN",
+          "name": "Finland",
+          "n_points": 201,
+          "first": "2022-05-10",
+          "last": "2026-05-08",
+          "last_cli": 108.86,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "FRA",
+          "name": "France",
+          "n_points": 206,
+          "first": "2022-04-29",
+          "last": "2026-05-05",
+          "last_cli": 100.76,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "GBR",
+          "name": "United Kingdom",
+          "n_points": 202,
+          "first": "2022-05-09",
+          "last": "2026-05-01",
+          "last_cli": 104.61,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "GRC",
+          "name": "Greece",
+          "n_points": 198,
+          "first": "2022-05-12",
+          "last": "2026-05-04",
+          "last_cli": 105.94,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "IDN",
+          "name": "Indonesia",
+          "n_points": 190,
+          "first": "2022-05-27",
+          "last": "2026-05-07",
+          "last_cli": 98.41,
+          "last_phase": "RECESSION"
+        },
+        {
+          "iso3": "IND",
+          "name": "India",
+          "n_points": 197,
+          "first": "2022-05-16",
+          "last": "2026-05-08",
+          "last_cli": 98.32,
+          "last_phase": "RECESSION"
+        },
+        {
+          "iso3": "IRL",
+          "name": "Ireland",
+          "n_points": 204,
+          "first": "2022-05-05",
+          "last": "2026-04-30",
+          "last_cli": 103.56,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "ISR",
+          "name": "Israel",
+          "n_points": 149,
+          "first": "2022-08-17",
+          "last": "2026-05-04",
+          "last_cli": 118.12,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "ITA",
+          "name": "Italy",
+          "n_points": 204,
+          "first": "2022-05-03",
+          "last": "2026-05-05",
+          "last_cli": 107.05,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "JPN",
+          "name": "Japan",
+          "n_points": 194,
+          "first": "2022-05-20",
+          "last": "2026-04-28",
+          "last_cli": 118.88,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "KOR",
+          "name": "South Korea",
+          "n_points": 194,
+          "first": "2022-05-19",
+          "last": "2026-04-30",
+          "last_cli": 120,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "MEX",
+          "name": "Mexico",
+          "n_points": 202,
+          "first": "2022-05-06",
+          "last": "2026-05-08",
+          "last_cli": 104.85,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "NLD",
+          "name": "Netherlands",
+          "n_points": 206,
+          "first": "2022-04-29",
+          "last": "2026-05-05",
+          "last_cli": 103.25,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "NOR",
+          "name": "Norway",
+          "n_points": 200,
+          "first": "2022-05-13",
+          "last": "2026-05-06",
+          "last_cli": 110.35,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "NZL",
+          "name": "New Zealand",
+          "n_points": 200,
+          "first": "2022-05-10",
+          "last": "2026-05-05",
+          "last_cli": 100.91,
+          "last_phase": "AT_RISK"
+        },
+        {
+          "iso3": "POL",
+          "name": "Poland",
+          "n_points": 201,
+          "first": "2022-05-09",
+          "last": "2026-05-05",
+          "last_cli": 108.41,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "PRT",
+          "name": "Portugal",
+          "n_points": 205,
+          "first": "2022-05-05",
+          "last": "2026-05-05",
+          "last_cli": 106.99,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "SWE",
+          "name": "Sweden",
+          "n_points": 201,
+          "first": "2022-05-06",
+          "last": "2026-05-04",
+          "last_cli": 105.54,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "TUR",
+          "name": "Turkey",
+          "n_points": 199,
+          "first": "2022-05-16",
+          "last": "2026-05-04",
+          "last_cli": 114.05,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "USA",
+          "name": "United States",
+          "n_points": 201,
+          "first": "2022-05-09",
+          "last": "2026-05-05",
+          "last_cli": 107.17,
+          "last_phase": "EXPANSION"
+        },
+        {
+          "iso3": "ZAF",
+          "name": "South Africa",
+          "n_points": 200,
+          "first": "2022-05-12",
+          "last": "2026-05-07",
+          "last_cli": 106.05,
+          "last_phase": "AT_RISK"
+        }
+      ]
+    },
+    "history_page": {
+      "status": 200,
+      "size": 30359,
+      "has_phaseMixChart": true,
+      "has_globalCliChart": true,
+      "has_sparkGrid": true,
+      "has_compareChart": true,
+      "has_history_json_src": true,
+      "title_match": true
+    },
+    "log_history_lines": [],
+    "log_failures": [
+      "[gbc] PX.PR failed: HTTP 404"
+    ]
+  },
+  "finished": "2026-05-10T21:30:08.809902+00:00"
+}
