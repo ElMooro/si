@@ -1,30 +1,53 @@
 {
-  "started": "2026-05-10T11:44:11.512943+00:00",
+  "started": "2026-05-10T11:46:43.060869+00:00",
   "test": {
     "daily_report_invoke": {
       "error": "An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded."
     },
     "report_check": {
-      "ki_score": 48,
-      "ki_regime": "NEUTRAL",
-      "ki_lce_state": null,
-      "ki_lce_composite": null,
-      "ki_tenor_state": null,
-      "ki_signals_with_lce": [],
-      "risk_composite": 69,
-      "risk_credit": 80,
-      "risk_liquidity": 65,
-      "risk_lce_overlay": null,
-      "report_has_lce_top_level": false,
-      "lce_top_level_regime": null,
-      "lce_top_level_composite": null,
-      "report_has_tenor_top_level": false,
-      "tenor_top_level_composite": null
+      "ki_score": 40,
+      "ki_regime": "BEAR",
+      "ki_lce_state": "ELEVATED",
+      "ki_lce_composite": 43.8,
+      "ki_tenor_state": "CALM",
+      "ki_signals_with_lce": [
+        [
+          "LCE Regime",
+          -8,
+          "ELEVATED (43.8/100)"
+        ]
+      ],
+      "risk_composite": 59,
+      "risk_credit": 68,
+      "risk_liquidity": 43,
+      "risk_lce_overlay": {
+        "regime": "ELEVATED",
+        "composite": 43.8,
+        "category_signals": {
+          "balance_sheet": "ELEVATED",
+          "liquidity_facilities": "WATCH",
+          "credit_spreads": "WATCH",
+          "corporate_yields": "NORMAL"
+        },
+        "penalty_liquidity": 22,
+        "penalty_credit": 12
+      },
+      "report_has_lce_top_level": true,
+      "lce_top_level_regime": "ELEVATED",
+      "lce_top_level_composite": {
+        "score": 43.8,
+        "n_firing": 1,
+        "by_category": {
+          "balance_sheet": 1
+        }
+      },
+      "report_has_tenor_top_level": true,
+      "tenor_top_level_composite": 0
     },
     "allocator_invoke": {
       "status": 200,
-      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"BALANCED_NEUTRAL\\\", \\\"n_overweights\\\": 0, \\\"n_underweights\\\": 0, \\\"cash_pct\\\": 15.0, \\\"duration_s\\\": 0.59}\"}"
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"BALANCED_NEUTRAL\\\", \\\"n_overweights\\\": 0, \\\"n_underweights\\\": 0, \\\"cash_pct\\\": 15.0, \\\"duration_s\\\": 0.6}\"}"
     }
   },
-  "finished": "2026-05-10T11:44:28.713763+00:00"
+  "finished": "2026-05-10T11:47:55.292906+00:00"
 }
