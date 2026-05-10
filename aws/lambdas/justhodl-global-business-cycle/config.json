@@ -7,5 +7,11 @@
   "environment": {
     "FRED_KEY": "2f057499936072679d8843d7fce99989",
     "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "rule_name": "justhodl-gbc-daily",
+    "cron": "cron(0 12 * * ? *)",
+    "description": "Daily run of OECD Composite Leading Indicator engine"
   }
 }
+

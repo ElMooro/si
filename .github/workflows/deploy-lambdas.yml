@@ -155,6 +155,41 @@ jobs:
               echo "✅ Created new Lambda $fn"
             fi
 
+            # ── EventBridge schedule (if config.json has .schedule) ──
+            if [ -f "$dir/config.json" ] && jq -e '.schedule' "$dir/config.json" >/dev/null 2>&1; then
+              rule_name=$(jq -r '.schedule.rule_name' "$dir/config.json")
+              cron_expr=$(jq -r '.schedule.cron' "$dir/config.json")
+              rule_desc=$(jq -r '.schedule.description // "Scheduled run"' "$dir/config.json")
+              region="${{ secrets.AWS_REGION }}"
+              acc="857687956942"
+
+              echo "Setting up EventBridge rule $rule_name → $cron_expr"
+              aws events put-rule \
+                --name "$rule_name" \
+                --schedule-expression "$cron_expr" \
+                --state ENABLED \
+                --description "$rule_desc" \
+                --region "$region" \
+                --output text > /dev/null
+
+              # Grant invoke permission (idempotent, ignore conflict)
+              aws lambda add-permission \
+                --function-name "$fn" \
+                --statement-id "EventBridge-${rule_name}" \
+                --action "lambda:InvokeFunction" \
+                --principal "events.amazonaws.com" \
+                --source-arn "arn:aws:events:${region}:${acc}:rule/${rule_name}" \
+                --region "$region" 2>/dev/null || echo "  permission already exists"
+
+              # Attach target
+              aws events put-targets \
+                --rule "$rule_name" \
+                --targets "Id=target1,Arn=arn:aws:lambda:${region}:${acc}:function:${fn}" \
+                --region "$region" \
+                --output text > /dev/null
+              echo "  ✅ Schedule attached"
+            fi
+
             echo "✅ $fn deployed"
             rm -rf "$tmp"
           done
