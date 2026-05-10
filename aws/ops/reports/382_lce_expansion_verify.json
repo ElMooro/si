@@ -1,0 +1,104 @@
+{
+  "started": "2026-05-10T12:22:51.641081+00:00",
+  "test": {
+    "invoke": {
+      "status": 200,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"WATCH\\\", \\\"composite_score\\\": 18.0, \\\"n_series\\\": 59, \\\"transitions_count\\\": 1}\"}"
+    },
+    "regime": "WATCH",
+    "composite": {
+      "score": 18.0,
+      "n_firing": 0,
+      "by_category": {}
+    },
+    "schema_version": "1.1",
+    "reference_yields": {
+      "DGS1": 3.76,
+      "DGS2": 3.92,
+      "DGS5": 4.04,
+      "DGS10": 4.41,
+      "DGS30": 4.97
+    },
+    "category_counts": {
+      "balance_sheet": 15,
+      "liquidity_facilities": 5,
+      "credit_spreads": 17,
+      "corporate_yields": 10,
+      "lending_standards": 12
+    },
+    "total_series": 59,
+    "available_count": 47,
+    "unavailable_series": {
+      "MBST": "No data for MBST",
+      "EXCSRESNW": "No data for EXCSRESNW",
+      "REQRESNS": "No data for REQRESNS",
+      "WLEMCBL": "No data for WLEMCBL",
+      "BAMLHE10HYBBOAS": "No data for BAMLHE10HYBBOAS",
+      "BAMLHE20HYBOAS": "No data for BAMLHE20HYBOAS",
+      "BAMLHE30HYCDOAS": "No data for BAMLHE30HYCDOAS",
+      "SUBLPDCILMNQ": "No data for SUBLPDCILMNQ",
+      "SUBLPDCISNQ": "No data for SUBLPDCISNQ",
+      "SUBLPDCRENQ": "No data for SUBLPDCRENQ",
+      "SUBLPDHMNQ": "No data for SUBLPDHMNQ",
+      "STDSOTHER": "No data for STDSOTHER"
+    },
+    "summary_by_cat": {
+      "balance_sheet": {
+        "n_firing": 1,
+        "n_normal": 11,
+        "firing_sample": [
+          {
+            "sid": "WTREGEN",
+            "label": "Treasury General Account (TGA)",
+            "value": 877.761,
+            "wow": -10.609,
+            "yoy": 50.372,
+            "signal": "WATCH",
+            "reason": "Level 877.76 \u2265 watch 800"
+          }
+        ]
+      },
+      "liquidity_facilities": {
+        "n_firing": 1,
+        "n_normal": 3,
+        "firing_sample": [
+          {
+            "sid": "OTHL1690",
+            "label": "Liquidity & Credit Facilities Loans 16-90 Day",
+            "value": 3.482,
+            "wow": 17.437,
+            "yoy": 77.835,
+            "signal": "WATCH",
+            "reason": "Level 3.48 \u2265 watch 0.5"
+          }
+        ]
+      },
+      "credit_spreads": {
+        "n_firing": 1,
+        "n_normal": 13,
+        "firing_sample": [
+          {
+            "sid": "BAMLH0A3HYC",
+            "label": "ICE BofA CCC & Lower US High Yield OAS",
+            "value": 9.15,
+            "wow": 0.66,
+            "yoy": -4.687,
+            "signal": "WATCH",
+            "reason": "Level 9.15 \u2265 watch 9.0"
+          }
+        ]
+      },
+      "corporate_yields": {
+        "n_firing": 0,
+        "n_normal": 10,
+        "firing_sample": []
+      },
+      "lending_standards": {
+        "n_firing": 0,
+        "n_normal": 7,
+        "firing_sample": []
+      }
+    }
+  },
+  "finished": "2026-05-10T12:23:09.476121+00:00"
+}
