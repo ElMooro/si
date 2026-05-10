@@ -51,44 +51,55 @@ FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 # ────────────────────────────────────────────────────────────────────────
 SERIES_MAP = [
     # ─── BALANCE SHEET ─────────────────────────────────────────
+    # All FRED balance-sheet/liquidity series report in MILLIONS — we convert to billions.
     ("WALCL", "balance_sheet", "Fed Balance Sheet (total assets)",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0, "crisis": -2.0}),
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0, "crisis": -2.0,
+                     "convert_to_billions": True}),
     ("WRESBAL", "balance_sheet", "Bank Reserves (depository institutions)",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0, "crisis": -8.0}),
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -2.0, "elevated": -4.0, "crisis": -8.0,
+                     "convert_to_billions": True}),
     ("EXCSRESNW", "balance_sheet", "Excess Reserves",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -3.0, "elevated": -6.0, "crisis": -10.0}),
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -3.0, "elevated": -6.0, "crisis": -10.0,
+                     "convert_to_billions": True}),
     ("WTREGEN", "balance_sheet", "Treasury General Account (TGA)",
-     "billions $", {"kind": "level", "watch": 600, "elevated": 800, "crisis": 1000,
+     "billions $", {"kind": "level", "watch": 600, "elevated": 800, "crisis": 1200,
+                     "convert_to_billions": True,
                      "note": "TGA above $800B drains liquidity from system"}),
     ("RRPONTSYD", "balance_sheet", "Overnight Reverse Repo (RRP)",
-     "billions $", {"kind": "level", "watch_low": 50, "watch": 1500, "elevated": 2000,
+     "billions $", {"kind": "level", "watch": 1500, "elevated": 2000,
+                     "convert_to_billions": True,
                      "note": "RRP draining is liquidity-positive; near-zero = MMFs back in T-bills"}),
     ("WSHOMCB", "balance_sheet", "Securities Held Outright: Treasuries (broad)",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5}),
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
+                     "convert_to_billions": True}),
     ("RESPPALGUONNWW", "balance_sheet", "Securities Held Outright: Treasury Notes & Bonds",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5,
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": -0.5, "elevated": -1.0,
+                     "convert_to_billions": True,
                      "note": "Khalid-specified — coupon Treasuries on Fed balance sheet"}),
     ("RESPPNTEPNWW", "balance_sheet", "MEMO: Treasury/Agency/MBS Eligible to Be Pledged",
-     "billions $", {"kind": "delta_pct", "window": "wk", "watch": 5.0, "elevated": 10.0,
+     "billions $", {"kind": "delta_pct", "window": "wk", "watch": 5.0, "elevated": 10.0, "crisis": 20.0,
+                     "convert_to_billions": True,
                      "note": "Khalid-specified — collateral pledge spike = funding stress"}),
 
     # ─── LIQUIDITY FACILITIES ─────────────────────────────────
     ("DPCREDIT", "liquidity_facilities", "Primary Credit (Discount Window)",
      "billions $", {"kind": "level", "watch": 2, "elevated": 5, "crisis": 25,
+                     "convert_to_billions": True,
                      "note": "SVB spike was $164B — banks borrowing here = funding stress"}),
     ("OTHL1690", "liquidity_facilities", "Liquidity & Credit Facilities: Loans 16-90 Day",
-     "billions $", {"kind": "level", "watch": 0.5, "elevated": 2, "crisis": 10,
+     "billions $", {"kind": "level", "watch": 0.5, "elevated": 5, "crisis": 25,
+                     "convert_to_billions": True,
                      "note": "Khalid-specified — emergency facilities active = financial-crisis signal"}),
-    # Central-bank swap lines — use SWPT (total) since SWP1690 may not exist as specified ID;
-    # we'll attempt SWP1690 first and fall back to SWPT
     ("SWP1690", "liquidity_facilities", "Central Bank Liquidity Swaps: 16-90 Day Maturity",
-     "billions $", {"kind": "level", "watch": 0.1, "elevated": 5, "crisis": 25,
+     "billions $", {"kind": "level", "watch": 0.5, "elevated": 10, "crisis": 25,
+                     "convert_to_billions": True,
                      "note": "Khalid-specified — non-zero is FX dollar shortage abroad"}),
     ("SWPT", "liquidity_facilities", "Central Bank Liquidity Swaps: TOTAL",
-     "billions $", {"kind": "level", "watch": 0.5, "elevated": 10, "crisis": 50,
+     "billions $", {"kind": "level", "watch": 1.0, "elevated": 10, "crisis": 50,
+                     "convert_to_billions": True,
                      "note": "Total swap lines — COVID peak was $446B"}),
 
-    # ─── CREDIT SPREADS (ICE BofA OAS, daily) ──────────────────
+    # ─── CREDIT SPREADS (ICE BofA OAS, daily) — already in % units ─────
     ("BAMLH0A0HYM2", "credit_spreads", "ICE BofA US High Yield Index OAS",
      "%", {"kind": "level", "watch": 5.0, "elevated": 7.0, "crisis": 10.0}),
     ("BAMLH0A3HYC", "credit_spreads", "ICE BofA CCC & Lower US High Yield OAS",
@@ -103,7 +114,7 @@ SERIES_MAP = [
     ("BAMLC0A0CM", "credit_spreads", "ICE BofA US Corporate IG OAS",
      "%", {"kind": "level", "watch": 1.5, "elevated": 2.5, "crisis": 4.0}),
 
-    # ─── CORPORATE YIELDS ──────────────────────────────────────
+    # ─── CORPORATE YIELDS — already in % units ─────────────────
     ("HQMCB10YR", "corporate_yields", "HQM 10Y Corporate Bond Spot Rate",
      "%", {"kind": "spread_to", "vs": "DGS10", "watch": 1.5, "elevated": 2.5, "crisis": 4.0,
             "note": "Khalid-specified — spread to 10y Treasury reveals corp credit demand"}),
@@ -198,26 +209,34 @@ def compute_series(series_id, threshold, latest_dgs10=None):
         return {"available": False, "error": f"No data for {series_id}"}
 
     latest = obs[-1]
-    latest_value = latest["value"]
+    latest_value_raw = latest["value"]  # FRED native units
     latest_date = latest["date"]
 
-    # Period changes (calendar days)
+    # FRED reports balance-sheet and liquidity-facility series in MILLIONS of $.
+    # We want to compare against thresholds expressed in BILLIONS. Convert here
+    # but only for series where the threshold "kind" is level/delta_pct AND the
+    # category is balance_sheet or liquidity_facilities. Credit spreads (OAS)
+    # and yields are reported in % which we keep as-is.
+    convert_to_billions = threshold.get("convert_to_billions", False)
+    latest_value = latest_value_raw / 1000.0 if convert_to_billions else latest_value_raw
+
+    # Period changes (calendar days) — % change is unit-invariant
     wow = find_value_n_back(obs, 7)
     mom = find_value_n_back(obs, 30)
     qoq = find_value_n_back(obs, 90)
     yoy = find_value_n_back(obs, 365)
 
-    wow_pct = pct_change(latest_value, wow["value"]) if wow else None
-    mom_pct = pct_change(latest_value, mom["value"]) if mom else None
-    qoq_pct = pct_change(latest_value, qoq["value"]) if qoq else None
-    yoy_pct = pct_change(latest_value, yoy["value"]) if yoy else None
+    wow_pct = pct_change(latest_value_raw, wow["value"]) if wow else None
+    mom_pct = pct_change(latest_value_raw, mom["value"]) if mom else None
+    qoq_pct = pct_change(latest_value_raw, qoq["value"]) if qoq else None
+    yoy_pct = pct_change(latest_value_raw, yoy["value"]) if yoy else None
 
-    # Z-scores
+    # Z-scores (use raw values; z is unit-invariant)
     z1y_window = [o for o in obs
                    if (datetime.fromisoformat(latest_date).date()
                         - datetime.fromisoformat(o["date"]).date()).days <= 365]
-    z1y = z_score(latest_value, z1y_window)
-    z5y = z_score(latest_value, obs)
+    z1y = z_score(latest_value_raw, z1y_window)
+    z5y = z_score(latest_value_raw, obs)
 
     # Signal classification
     signal = "NORMAL"
@@ -225,26 +244,43 @@ def compute_series(series_id, threshold, latest_dgs10=None):
     kind = threshold.get("kind", "level")
 
     if kind == "level":
-        # Compare latest_value against thresholds
+        # Direction: positive thresholds = "high is bad", negative = "low is bad"
+        # We assume positive thresholds throughout for level checks.
         if "crisis" in threshold and latest_value >= threshold["crisis"]:
-            signal = "CRISIS"; signal_reason = f"Level {latest_value:.2f} ≥ crisis threshold {threshold['crisis']}"
+            signal = "CRISIS"; signal_reason = f"Level {latest_value:.2f} ≥ crisis {threshold['crisis']}"
         elif "elevated" in threshold and latest_value >= threshold["elevated"]:
-            signal = "ELEVATED"; signal_reason = f"Level {latest_value:.2f} ≥ elevated threshold {threshold['elevated']}"
+            signal = "ELEVATED"; signal_reason = f"Level {latest_value:.2f} ≥ elevated {threshold['elevated']}"
         elif "watch" in threshold and latest_value >= threshold["watch"]:
-            signal = "WATCH"; signal_reason = f"Level {latest_value:.2f} ≥ watch threshold {threshold['watch']}"
+            signal = "WATCH"; signal_reason = f"Level {latest_value:.2f} ≥ watch {threshold['watch']}"
 
     elif kind == "delta_pct":
         window = threshold.get("window", "wk")
         delta = wow_pct if window == "wk" else mom_pct
         if delta is not None:
-            # For balance sheet, we typically want to alert on DROPS (negative deltas)
-            # so threshold values are interpreted as "delta ≤ this value"
-            if "crisis" in threshold and delta <= threshold["crisis"]:
-                signal = "CRISIS"; signal_reason = f"{window} delta {delta:+.2f}% ≤ crisis {threshold['crisis']:+.2f}%"
-            elif "elevated" in threshold and delta <= threshold["elevated"]:
-                signal = "ELEVATED"; signal_reason = f"{window} delta {delta:+.2f}% ≤ elevated {threshold['elevated']:+.2f}%"
-            elif "watch" in threshold and delta <= threshold["watch"]:
-                signal = "WATCH"; signal_reason = f"{window} delta {delta:+.2f}% ≤ watch {threshold['watch']:+.2f}%"
+            # Direction inferred from sign of threshold:
+            #   negative thresholds (e.g. -2.0%) → alert when delta <= threshold (drops)
+            #   positive thresholds (e.g. +5.0%)  → alert when delta >= threshold (spikes)
+            crisis_t = threshold.get("crisis")
+            elevated_t = threshold.get("elevated")
+            watch_t = threshold.get("watch")
+            # Determine sign from any available threshold (they're all same sign)
+            sign_ref = next((t for t in [watch_t, elevated_t, crisis_t] if t is not None), 0)
+            is_drop_alert = sign_ref < 0
+
+            if is_drop_alert:
+                if crisis_t is not None and delta <= crisis_t:
+                    signal = "CRISIS"; signal_reason = f"{window} delta {delta:+.2f}% ≤ crisis {crisis_t:+.2f}%"
+                elif elevated_t is not None and delta <= elevated_t:
+                    signal = "ELEVATED"; signal_reason = f"{window} delta {delta:+.2f}% ≤ elevated {elevated_t:+.2f}%"
+                elif watch_t is not None and delta <= watch_t:
+                    signal = "WATCH"; signal_reason = f"{window} delta {delta:+.2f}% ≤ watch {watch_t:+.2f}%"
+            else:
+                if crisis_t is not None and delta >= crisis_t:
+                    signal = "CRISIS"; signal_reason = f"{window} delta {delta:+.2f}% ≥ crisis {crisis_t:+.2f}%"
+                elif elevated_t is not None and delta >= elevated_t:
+                    signal = "ELEVATED"; signal_reason = f"{window} delta {delta:+.2f}% ≥ elevated {elevated_t:+.2f}%"
+                elif watch_t is not None and delta >= watch_t:
+                    signal = "WATCH"; signal_reason = f"{window} delta {delta:+.2f}% ≥ watch {watch_t:+.2f}%"
 
     elif kind == "spread_to":
         ref = threshold.get("vs")
@@ -261,6 +297,7 @@ def compute_series(series_id, threshold, latest_dgs10=None):
         "available": True,
         "latest_date": latest_date,
         "latest_value": round(latest_value, 4),
+        "latest_value_raw": round(latest_value_raw, 4),
         "wow_pct": round(wow_pct, 3) if wow_pct is not None else None,
         "mom_pct": round(mom_pct, 3) if mom_pct is not None else None,
         "qoq_pct": round(qoq_pct, 3) if qoq_pct is not None else None,
