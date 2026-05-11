@@ -1,0 +1,483 @@
+{
+  "started": "2026-05-11T14:33:18.869061+00:00",
+  "test": {
+    "senate-trades-AAPL": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "AAPL",
+        "disclosureDate": "2026-05-07",
+        "transactionDate": "2026-04-17",
+        "firstName": "Shelley",
+        "lastName": "Moore Capito",
+        "office": "Shelley Moore Capito",
+        "district": "WV",
+        "owner": "Spouse",
+        "assetDescription": "Apple Inc",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/029f67f3-121a-406c-bddf-a9a7e7d6267b/"
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "disclosureDate": "2026-05-01",
+        "transactionDate": "2026-03-20",
+        "firstName": "Mark",
+        "lastName": "Warner",
+        "office": "Mark Warner",
+        "district": "VA",
+        "owner": "Joint",
+        "assetDescription": "Apple Inc",
+        "assetType": "Stock",
+        "type": "Purchase",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/e8a9cd50-e2c7-4cc3-a4f8-310aa734a85c/"
+      }
+    },
+    "house-trades-AAPL": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "AAPL",
+        "disclosureDate": "2026-05-01",
+        "transactionDate": "2026-04-08",
+        "firstName": "Lizzie",
+        "lastName": "Fletcher",
+        "office": "Lizzie Fletcher",
+        "district": "",
+        "owner": "",
+        "assetDescription": "Apple Inc",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034413.pdf"
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "disclosureDate": "2026-04-09",
+        "transactionDate": "2026-03-06",
+        "firstName": "Ro",
+        "lastName": "Khanna",
+        "office": "Ro Khanna",
+        "district": "CA17",
+        "owner": "",
+        "assetDescription": "Apple Inc",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9115726.pdf"
+      }
+    },
+    "senate-trades-NVDA": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "NVDA",
+        "disclosureDate": "2026-04-14",
+        "transactionDate": "2026-03-19",
+        "firstName": "John",
+        "lastName": "Boozman",
+        "office": "John Boozman",
+        "district": "AR",
+        "owner": "Joint",
+        "assetDescription": "NVIDIA Corporation",
+        "assetType": "Stock",
+        "type": "Purchase",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/88c765c5-6550-47af-a81d-2e052c1c1b7e/"
+      },
+      "sample_1": {
+        "symbol": "NVDA",
+        "disclosureDate": "2026-02-04",
+        "transactionDate": "2026-01-09",
+        "firstName": "Sheldon",
+        "lastName": "Whitehouse",
+        "office": "Sheldon Whitehouse",
+        "district": "RI",
+        "owner": "Spouse",
+        "assetDescription": "NVIDIA Corporation",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/d8dd8a6c-08c7-4432-8e62-5cd0ee9c4a8e/"
+      }
+    },
+    "price-target-consensus-AAPL": {
+      "status": 200,
+      "n": 1,
+      "sample_0": {
+        "symbol": "AAPL",
+        "targetHigh": 400,
+        "targetLow": 253,
+        "targetConsensus": 319.44,
+        "targetMedian": 325
+      },
+      "sample_1": null
+    },
+    "price-target-summary-AAPL": {
+      "status": 200,
+      "n": 1,
+      "sample_0": {
+        "symbol": "AAPL",
+        "lastMonthCount": 8,
+        "lastMonthAvgPriceTarget": 310.75,
+        "lastQuarterCount": 11,
+        "lastQuarterAvgPriceTarget": 316,
+        "lastYearCount": 56,
+        "lastYearAvgPriceTarget": 290.69,
+        "allTimeCount": 240,
+        "allTimeAvgPriceTarget": 224.12,
+        "publishers": "[\"TheFly\",\"StreetInsider\",\"Benzinga\",\"Pulse 2.0\",\"TipRanks Contributor\",\"MarketWatch\",\"Investing\",\"Barrons\",\"Investor's Business Daily\"]"
+      },
+      "sample_1": null
+    },
+    "grades-consensus-AAPL": {
+      "status": 200,
+      "n": 1,
+      "sample_0": {
+        "symbol": "AAPL",
+        "strongBuy": 1,
+        "buy": 69,
+        "hold": 33,
+        "sell": 7,
+        "strongSell": 0,
+        "consensus": "Buy"
+      },
+      "sample_1": null
+    },
+    "grades-AAPL": {
+      "status": 200,
+      "n": 1758,
+      "sample_0": {
+        "symbol": "AAPL",
+        "date": "2026-05-08",
+        "gradingCompany": "Wedbush",
+        "previousGrade": "Outperform",
+        "newGrade": "Outperform",
+        "action": "maintain"
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "date": "2026-05-01",
+        "gradingCompany": "Morgan Stanley",
+        "previousGrade": "Overweight",
+        "newGrade": "Overweight",
+        "action": "maintain"
+      }
+    },
+    "grades-historical-AAPL": {
+      "status": 200,
+      "n": 5,
+      "sample_0": {
+        "symbol": "AAPL",
+        "date": "2026-05-01",
+        "analystRatingsStrongBuy": 7,
+        "analystRatingsBuy": 25,
+        "analystRatingsHold": 15,
+        "analystRatingsSell": 1,
+        "analystRatingsStrongSell": 1
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "date": "2026-04-01",
+        "analystRatingsStrongBuy": 7,
+        "analystRatingsBuy": 25,
+        "analystRatingsHold": 15,
+        "analystRatingsSell": 1,
+        "analystRatingsStrongSell": 1
+      }
+    },
+    "dcf-AAPL": {
+      "status": 200,
+      "n": 1,
+      "sample_0": {
+        "symbol": "AAPL",
+        "date": "2026-05-11",
+        "dcf": 163.19372344380957,
+        "Stock Price": 293.257
+      },
+      "sample_1": null
+    },
+    "dcf-levered-AAPL": {
+      "status": 200,
+      "n": 1,
+      "sample_0": {
+        "symbol": "AAPL",
+        "date": "2026-05-11",
+        "dcf": 155.97583682912676,
+        "Stock Price": 293.257
+      },
+      "sample_1": null
+    },
+    "esg-ratings-AAPL": {
+      "status": 200,
+      "n": 32,
+      "sample_0": {
+        "symbol": "AAPL",
+        "cik": "0000320193",
+        "companyName": "Apple Inc.",
+        "industry": "CONSUMER ELECTRONICS",
+        "fiscalYear": 2001,
+        "ESGRiskRating": "B",
+        "industryRank": "4 out of 6"
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "cik": "0000320193",
+        "companyName": "Apple Inc.",
+        "industry": "CONSUMER ELECTRONICS",
+        "fiscalYear": 1998,
+        "ESGRiskRating": "B",
+        "industryRank": "3 out of 5"
+      }
+    },
+    "news-stock-AAPL": {
+      "status": 200,
+      "n": 20,
+      "sample_0": {
+        "symbol": "AAPL",
+        "publishedDate": "2026-05-11 10:31:28",
+        "publisher": "Zacks Investment Research",
+        "title": "Is Apple (AAPL) a Buy as Wall Street Analysts Look Optimistic?",
+        "image": null,
+        "site": "zacks.com",
+        "text": "When deciding whether to buy, sell, or hold a stock, investors often rely on analyst recommendations. Media reports about rating changes by these brokerage-firm-employed (or sell-side) analysts often influence a stock's price, but are they really important?",
+        "url": "https://www.zacks.com/stock/news/2918864/is-apple-aapl-a-buy-as-wall-street-analysts-look-optimistic?cid=CS-STOCKNEWSAPI-FT-fundamental_analysis|average_broker_rating-2918864"
+      },
+      "sample_1": {
+        "symbol": "AAPL",
+        "publishedDate": "2026-05-11 09:34:04",
+        "publisher": "FXEmpire",
+        "title": "AAPL, AMZN and GOOG Forecasts \u2013 Major Tech Stocks Looking Stretched",
+        "image": "https://images.financialmodelingprep.com/news/aapl-amzn-and-goog-forecasts-major-tech-stocks-looking-20260511.jpg",
+        "site": "fxempire.com",
+        "text": "Major tech stocks look a little bit stretched at the moment, as we may have gotten a little ahead of ourselves.",
+        "url": "https://www.fxempire.com/forecasts/article/aapl-amzn-and-goog-forecasts-major-tech-stocks-looking-stretched-1597045"
+      }
+    },
+    "transcript-dates-AAPL": {
+      "status": 200,
+      "n": 83,
+      "sample_0": {
+        "quarter": 2,
+        "fiscalYear": 2026,
+        "date": "2026-04-30"
+      },
+      "sample_1": {
+        "quarter": 1,
+        "fiscalYear": 2026,
+        "date": "2026-01-29"
+      }
+    },
+    "senate-trades-MSFT": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "MSFT",
+        "disclosureDate": "2026-05-01",
+        "transactionDate": "2026-04-13",
+        "firstName": "Mark",
+        "lastName": "Warner",
+        "office": "Mark Warner",
+        "district": "VA",
+        "owner": "",
+        "assetDescription": "Microsoft Corp",
+        "assetType": "Stock",
+        "type": "Purchase",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/e8a9cd50-e2c7-4cc3-a4f8-310aa734a85c/"
+      },
+      "sample_1": {
+        "symbol": "MSFT",
+        "disclosureDate": "2026-04-14",
+        "transactionDate": "2026-03-05",
+        "firstName": "John",
+        "lastName": "Boozman",
+        "office": "John Boozman",
+        "district": "AR",
+        "owner": "Joint",
+        "assetDescription": "Microsoft Corp",
+        "assetType": "Stock",
+        "type": "Purchase",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/88c765c5-6550-47af-a81d-2e052c1c1b7e/"
+      }
+    },
+    "house-trades-MSFT": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "MSFT",
+        "disclosureDate": "2026-05-11",
+        "transactionDate": "2026-04-17",
+        "firstName": "Maria Elvira",
+        "lastName": "Salazar",
+        "office": "Maria Elvira Salazar",
+        "district": "FL27",
+        "owner": "",
+        "assetDescription": "Microsoft Corp",
+        "assetType": "Stock",
+        "type": "Purchase",
+        "amount": "$15,001 - $50,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034479.pdf"
+      },
+      "sample_1": {
+        "symbol": "MSFT",
+        "disclosureDate": "2026-05-01",
+        "transactionDate": "2026-04-08",
+        "firstName": "Lizzie",
+        "lastName": "Fletcher",
+        "office": "Lizzie Fletcher",
+        "district": "",
+        "owner": "",
+        "assetDescription": "Microsoft Corp",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034413.pdf"
+      }
+    },
+    "senate-trades-PLTR": {
+      "status": 200,
+      "n": 2,
+      "sample_0": {
+        "symbol": "PLTR",
+        "disclosureDate": "2026-05-05",
+        "transactionDate": "2025-06-03",
+        "firstName": "John",
+        "lastName": "W. Hickenlooper",
+        "office": "John W. Hickenlooper",
+        "district": "CO",
+        "owner": "",
+        "assetDescription": "Palantir Technologies Inc",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/8036348f-2470-41f7-be97-d822d0b17e7c/"
+      },
+      "sample_1": {
+        "symbol": "PLTR",
+        "disclosureDate": "2026-05-05",
+        "transactionDate": "2025-04-16",
+        "firstName": "John",
+        "lastName": "W. Hickenlooper",
+        "office": "John W. Hickenlooper",
+        "district": "CO",
+        "owner": "",
+        "assetDescription": "Palantir Technologies Inc",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/8036348f-2470-41f7-be97-d822d0b17e7c/"
+      }
+    },
+    "house-trades-NVDA": {
+      "status": 200,
+      "n": 100,
+      "sample_0": {
+        "symbol": "NVDA",
+        "disclosureDate": "2026-05-01",
+        "transactionDate": "2026-04-08",
+        "firstName": "Lizzie",
+        "lastName": "Fletcher",
+        "office": "Lizzie Fletcher",
+        "district": "",
+        "owner": "",
+        "assetDescription": "NVIDIA Corporation",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$1,001 - $15,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034413.pdf"
+      },
+      "sample_1": {
+        "symbol": "NVDA",
+        "disclosureDate": "2026-04-29",
+        "transactionDate": "2026-03-24",
+        "firstName": "Tim",
+        "lastName": "Moore",
+        "office": "Tim Moore",
+        "district": "NC14",
+        "owner": "",
+        "assetDescription": "NVIDIA Corporation",
+        "assetType": "Stock",
+        "type": "Sale",
+        "amount": "$15,001 - $50,000",
+        "capitalGainsOver200USD": "False",
+        "comment": "",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034424.pdf"
+      }
+    },
+    "price-target-consensus-multi": {
+      "status": 200,
+      "n": 0,
+      "sample_0": null,
+      "sample_1": null
+    },
+    "grades-consensus-multi": {
+      "status": 200,
+      "n": 0,
+      "sample_0": null,
+      "sample_1": null
+    },
+    "price-targets-by-date": {
+      "status": 400,
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "grades-by-date": {
+      "status": 400,
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "inst-ownership-list-test": {
+      "status": 200,
+      "n": 20,
+      "sample_0": {
+        "cik": "0001381843",
+        "name": "HEALTHINVEST PARTNERS AB",
+        "date": "2026-03-31",
+        "filingDate": "2026-05-11 00:00:00",
+        "acceptedDate": "2026-05-11 10:32:31",
+        "formType": "13F-HR",
+        "link": "https://www.sec.gov/Archives/edgar/data/1381843/000138184326000004/0001381843-26-000004-index.htm",
+        "finalLink": "https://www.sec.gov/Archives/edgar/data/1381843/000138184326000004/xslForm13F_X02/primary_doc.xml"
+      },
+      "sample_1": {
+        "cik": "0001728681",
+        "name": "SYCOMORE ASSET MANAGEMENT",
+        "date": "2026-03-31",
+        "filingDate": "2026-05-11 00:00:00",
+        "acceptedDate": "2026-05-11 10:31:26",
+        "formType": "13F-HR",
+        "link": "https://www.sec.gov/Archives/edgar/data/1728681/000172868126000003/0001728681-26-000003-index.htm",
+        "finalLink": "https://www.sec.gov/Archives/edgar/data/1728681/000172868126000003/xslForm13F_X02/primary_doc.xml"
+      }
+    }
+  },
+  "finished": "2026-05-11T14:33:24.205000+00:00"
+}
