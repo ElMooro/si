@@ -1,227 +1,260 @@
+"""
+justhodl-news-sentiment v2 — FMP edition (was: broken NewsAPI edition)
+
+═══════════════════════════════════════════════════════════════════════
+WHY THIS WAS REWRITTEN
+─────────────────────
+v1 (NewsAPI) failed on every invocation. NewsAPI.org's free tier has tight
+rate limits; with 26 parallel calls in <1 minute, every call returned
+"Max retries exceeded". Result: 0/503 stocks got news, 503/503 scored
+neutral, $0.04/day wasted on Claude calls with empty input.
+
+v2 uses FMP's /stable/news/stock?symbols=X endpoint — same API the
+screener already uses successfully, paid tier with no rate-limit issues.
+
+═══════════════════════════════════════════════════════════════════════
+PIPELINE
+────────
+1. Read screener/data.json from S3 to get the S&P 500 universe AND
+   pre-computed newsCount7d (so we only score stocks with real news flow).
+2. Filter to stocks with newsCount7d >= 1 → typically 200-300 stocks.
+3. For each, fetch FMP news/stock with limit=8 (parallel, 12 workers).
+4. Batch 8 stocks per Claude haiku call with all their headlines inline.
+5. Claude returns array of {symbol, score, signal, reason}.
+6. Write sidecar at sentiment/data.json — same schema v1 used so the
+   screener page (which already reads this key) continues to work.
+
+EXPECTED METRICS
+  - News fetch:       ~25s parallelized (200-300 calls × 12 workers)
+  - Claude scoring:   ~50s for 30-40 batches with 4 parallel workers
+  - Total runtime:    75-90 seconds
+  - Cost per run:     ~$0.05 (haiku is cheap)
+  - Output size:      80-120 KB JSON
+"""
 import json
 import os
 import time
-import urllib3
+import urllib.request
+import urllib.error
+import urllib.parse
+from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import boto3
-from datetime import datetime, timezone, timedelta
 
-NEWSAPI_KEY   = "17d36cdd13c44e139853b3a6876cf940"
+FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+FMP_BASE = "https://financialmodelingprep.com/stable"
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
-S3_BUCKET     = "justhodl-dashboard-live"
-SCREENER_KEY  = "screener/data.json"
+S3_BUCKET = "justhodl-dashboard-live"
+SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
-CACHE_TTL     = 20 * 3600
-BATCH_TICKERS = 20
-BATCH_CLAUDE  = 40
 
-http = urllib3.PoolManager(
-    maxsize=20,
-    retries=urllib3.Retry(3, backoff_factor=0.5, status_forcelist=[429, 500, 502, 503])
-)
+CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+CLAUDE_BATCH = 8           # stocks per Claude call
+HEADLINES_PER_STOCK = 8     # max headlines to include per stock
+NEWS_FETCH_WORKERS = 12     # parallel FMP news calls
+CLAUDE_WORKERS = 4           # parallel Claude calls
+MIN_NEWS_COUNT_7D = 1        # only score stocks with >=1 article last 7 days
+CACHE_TTL_HOURS = 5          # avoid double-runs
+
 s3 = boto3.client("s3", region_name="us-east-1")
 
-def newsapi_get(endpoint, params):
-    qs = "&".join(f"{k}={v}" for k,v in params.items())
-    url = f"https://newsapi.org/v2/{endpoint}?{qs}&apiKey={NEWSAPI_KEY}"
+
+def fmp_news(symbol):
+    """Fetch up to HEADLINES_PER_STOCK headlines for one symbol via FMP."""
+    url = f"{FMP_BASE}/news/stock?symbols={symbol}&limit={HEADLINES_PER_STOCK}&apikey={FMP_KEY}"
     try:
-        r = http.request("GET", url, timeout=urllib3.Timeout(connect=5, read=15))
-        if r.status == 200:
-            return json.loads(r.data.decode("utf-8"))
-        print(f"  NewsAPI {r.status}")
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-NS/2.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        if not isinstance(data, list):
+            return symbol, []
+        headlines = []
+        for a in data[:HEADLINES_PER_STOCK]:
+            t = (a.get("title") or "").strip()
+            d = (a.get("publishedDate") or "")[:10]
+            if t and len(t) > 8:
+                headlines.append(f"[{d}] {t}")
+        return symbol, headlines
     except Exception as e:
-        print(f"  NewsAPI ERR: {e}")
-    return None
+        print(f"  fmp_news {symbol} err: {str(e)[:80]}")
+        return symbol, []
 
-def claude_score(batch_text):
-    payload = {
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 2048,
-        "messages": [{"role": "user", "content": f"""You are a financial sentiment analyst. For each stock below, analyze the headlines and return a JSON array.
 
-STOCKS AND HEADLINES:
-{batch_text}
+def claude_score_batch(batch):
+    """Send a batch of {symbol: [headlines]} to Claude haiku.
+    Returns list of {symbol, score, signal, reason}."""
+    if not batch:
+        return []
+    lines = []
+    for sym, headlines in batch.items():
+        if not headlines: continue
+        hlines = " || ".join(h[:160] for h in headlines[:HEADLINES_PER_STOCK])
+        lines.append(f"\n{sym}:\n  {hlines}")
+    if not lines:
+        return []
 
-Return ONLY a valid JSON array (no markdown, no explanation) with this exact format:
-[{{"symbol":"TICKER","score":0.65,"signal":"bullish","reason":"one sentence max"}}]
+    prompt = f"""You are an equity research analyst scoring market sentiment from recent news.
 
-Rules:
-- score: float from -1.0 (very bearish) to +1.0 (very bullish), 0.0 = neutral
-- signal: exactly one of: bullish, bearish, neutral
-- If no headlines, score=0.0, signal=neutral
-- Base ONLY on provided headlines"""}]
-    }
+For each stock below, return ONE JSON object with: symbol, score (-1.0 to +1.0),
+signal (bullish/bearish/neutral), reason (one sentence max).
+
+Score guidance:
+  +0.7 to +1.0: clearly bullish (earnings beat, upgrades, major contract wins)
+  +0.3 to +0.7: positive (modest beats, analyst optimism, product launches)
+  -0.3 to +0.3: neutral or mixed
+  -0.3 to -0.7: negative (downgrades, missed earnings, regulatory issues)
+  -0.7 to -1.0: clearly bearish (fraud, lawsuits, CEO departures, plunges)
+
+Be DECISIVE. Many news items are mildly negative or positive — pick a side.
+Truly neutral only if news is purely informational (e.g. dividend announcements).
+
+STOCKS:
+{chr(10).join(lines)}
+
+Return ONLY a JSON array. No markdown, no explanation. Exact format:
+[{{"symbol":"AAPL","score":0.45,"signal":"bullish","reason":"Strong iPhone 17 demand and services beat"}}]"""
+
+    body = json.dumps({
+        "model": CLAUDE_MODEL,
+        "max_tokens": 1600,
+        "messages": [{"role": "user", "content": prompt}],
+    }).encode("utf-8")
+
     try:
-        r = http.request(
-            "POST",
+        req = urllib.request.Request(
             "https://api.anthropic.com/v1/messages",
-            body=json.dumps(payload).encode("utf-8"),
+            data=body,
             headers={
                 "Content-Type": "application/json",
                 "x-api-key": ANTHROPIC_KEY,
-                "anthropic-version": "2023-06-01"
+                "anthropic-version": "2023-06-01",
             },
-            timeout=urllib3.Timeout(connect=10, read=45)
-        )
-        if r.status == 200:
-            data = json.loads(r.data.decode("utf-8"))
-            text = data["content"][0]["text"].strip()
-            if "```" in text:
-                text = text.split("```")[1]
-                if text.startswith("json"):
-                    text = text[4:]
-            return json.loads(text.strip())
-        else:
-            print(f"  Claude {r.status}: {r.data.decode()[:200]}")
+            method="POST")
+        with urllib.request.urlopen(req, timeout=45) as r:
+            resp = json.loads(r.read().decode("utf-8"))
+        text = resp["content"][0]["text"].strip()
+        if "```" in text:
+            parts = text.split("```")
+            text = parts[1] if len(parts) > 1 else parts[0]
+            if text.startswith("json"):
+                text = text[4:].strip()
+        return json.loads(text.strip())
     except Exception as e:
-        print(f"  Claude ERR: {e}")
-    return []
+        print(f"  claude err: {str(e)[:200]}")
+        return []
 
-def get_stock_list():
-    try:
-        obj = s3.get_object(Bucket=S3_BUCKET, Key=SCREENER_KEY)
-        data = json.loads(obj["Body"].read())
-        stocks = data.get("stocks", [])
-        return [(s["symbol"], s.get("name", s["symbol"])) for s in stocks]
-    except Exception as e:
-        print(f"  Screener cache miss: {e}")
-    try:
-        r = http.request("GET",
-            "https://financialmodelingprep.com/stable/sp500-constituent?apikey=wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
-            timeout=urllib3.Timeout(connect=5, read=15))
-        if r.status == 200:
-            sp500 = json.loads(r.data.decode("utf-8"))
-            return [(s["symbol"], s.get("name", s["symbol"])) for s in sp500]
-    except:
-        pass
-    return []
-
-def fetch_news_batch(symbols_names):
-    tickers = [sn[0] for sn in symbols_names]
-    query = " OR ".join(f'"{t}"' for t in tickers)
-    since = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
-    data = newsapi_get("everything", {
-        "q": query, "language": "en",
-        "sortBy": "publishedAt", "pageSize": "100", "from": since
-    })
-    symbol_headlines = {t: [] for t in tickers}
-    if data and data.get("articles"):
-        for article in data["articles"]:
-            title = article.get("title", "") or ""
-            desc  = article.get("description", "") or ""
-            text  = f"{title}. {desc}"
-            for ticker in tickers:
-                name = next((n for s,n in symbols_names if s == ticker), ticker)
-                name_first = name.split()[0] if name else ""
-                if (f" {ticker} " in f" {text} " or
-                    (name_first and len(name_first) > 3 and name_first.lower() in text.lower())):
-                    if len(symbol_headlines[ticker]) < 5:
-                        symbol_headlines[ticker].append(title[:150])
-    return symbol_headlines
-
-def score_batch_with_claude(symbol_headlines_batch):
-    lines = []
-    for symbol, headlines in symbol_headlines_batch.items():
-        if headlines:
-            joined = " | ".join(headlines[:5])
-            lines.append(f"{symbol}: {joined}")
-        else:
-            lines.append(f"{symbol}: [no recent news]")
-    results = claude_score("\n".join(lines))
-    scored = {}
-    if isinstance(results, list):
-        for item in results:
-            sym = item.get("symbol", "")
-            if sym:
-                scored[sym] = {
-                    "sentimentScore":  round(float(item.get("score", 0)), 3),
-                    "sentimentSignal": item.get("signal", "neutral"),
-                    "sentimentReason": item.get("reason", ""),
-                }
-    for symbol in symbol_headlines_batch:
-        if symbol not in scored:
-            scored[symbol] = {"sentimentScore": 0.0, "sentimentSignal": "neutral", "sentimentReason": "No data"}
-        scored[symbol]["headlines"] = symbol_headlines_batch[symbol]
-    return scored
 
 def lambda_handler(event, context):
-    headers = {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}
-    force = isinstance(event, dict) and event.get("force", False)
+    headers = {"Content-Type": "application/json",
+               "Access-Control-Allow-Origin": "*"}
+    started = time.time()
 
+    force = isinstance(event, dict) and event.get("force") is True
     if not force:
         try:
-            obj = s3.get_object(Bucket=S3_BUCKET, Key=SENTIMENT_KEY)
-            cached = json.loads(obj["Body"].read())
-            age = time.time() - cached.get("generated_at_unix", 0)
-            if age < CACHE_TTL:
+            head = s3.head_object(Bucket=S3_BUCKET, Key=SENTIMENT_KEY)
+            age_h = (time.time() - head["LastModified"].timestamp()) / 3600
+            if age_h < CACHE_TTL_HOURS:
                 return {"statusCode": 200, "headers": headers,
-                        "body": json.dumps({"from_cache": True, "age_hours": round(age/3600,2),
-                                            "count": cached.get("count",0)})}
-        except:
+                        "body": json.dumps({"from_cache": True,
+                                              "age_hours": round(age_h, 2)})}
+        except Exception:
             pass
 
-    t0 = time.time()
-    print("=== SENTIMENT START ===")
+    print(f"=== NEWS SENTIMENT v2 START · {datetime.now(timezone.utc).isoformat()} ===")
 
-    stocks = get_stock_list()
-    if not stocks:
-        return {"statusCode": 500, "headers": headers, "body": json.dumps({"error": "No stocks"})}
-    print(f"  {len(stocks)} stocks | {time.time()-t0:.1f}s")
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=SCREENER_KEY)
+        screener = json.loads(obj["Body"].read())
+        stocks = screener.get("stocks") or []
+    except Exception as e:
+        return {"statusCode": 500, "headers": headers,
+                "body": json.dumps({"error": f"screener read: {e}"})}
 
-    all_headlines = {}
-    batches = [stocks[i:i+BATCH_TICKERS] for i in range(0, len(stocks), BATCH_TICKERS)]
-    for i, batch in enumerate(batches):
-        headlines = fetch_news_batch(batch)
-        all_headlines.update(headlines)
-        if i % 5 == 0:
-            print(f"  News {i+1}/{len(batches)} | {time.time()-t0:.1f}s")
-        time.sleep(0.3)
+    candidates = [s for s in stocks
+                  if (s.get("newsCount7d") or 0) >= MIN_NEWS_COUNT_7D]
+    print(f"  total: {len(stocks)} | with news 7d: {len(candidates)}")
 
-    found = sum(1 for h in all_headlines.values() if h)
-    print(f"  {found}/{len(stocks)} stocks have news | {time.time()-t0:.1f}s")
+    fetch_started = time.time()
+    headlines_by_sym = {}
+    with ThreadPoolExecutor(max_workers=NEWS_FETCH_WORKERS) as ex:
+        futures = [ex.submit(fmp_news, s["symbol"]) for s in candidates]
+        for f in as_completed(futures):
+            sym, hl = f.result()
+            if hl: headlines_by_sym[sym] = hl
+    print(f"  fetched headlines for {len(headlines_by_sym)} in {time.time()-fetch_started:.1f}s")
 
-    all_sentiment = {}
-    symbols = list(all_headlines.keys())
-    claude_batches = [{s: all_headlines[s] for s in symbols[i:i+BATCH_CLAUDE]}
-                      for i in range(0, len(symbols), BATCH_CLAUDE)]
-    for i, batch in enumerate(claude_batches):
-        scored = score_batch_with_claude(batch)
-        all_sentiment.update(scored)
-        print(f"  Claude {i+1}/{len(claude_batches)} | {time.time()-t0:.1f}s")
-        time.sleep(1)
+    symbols = list(headlines_by_sym.keys())
+    batches = [{s: headlines_by_sym[s] for s in symbols[i:i+CLAUDE_BATCH]}
+               for i in range(0, len(symbols), CLAUDE_BATCH)]
+    print(f"  {len(batches)} Claude batches × {CLAUDE_BATCH}")
+
+    score_started = time.time()
+    all_scores = {}
+    with ThreadPoolExecutor(max_workers=CLAUDE_WORKERS) as ex:
+        futures = [ex.submit(claude_score_batch, b) for b in batches]
+        for f in as_completed(futures):
+            res = f.result()
+            for item in (res or []):
+                sym = item.get("symbol")
+                if sym:
+                    all_scores[sym] = {
+                        "sentimentScore": round(float(item.get("score", 0)), 3),
+                        "sentimentSignal": item.get("signal", "neutral"),
+                        "sentimentReason": (item.get("reason") or "")[:200],
+                    }
+    print(f"  scored {len(all_scores)} in {time.time()-score_started:.1f}s")
 
     sentiment_list = []
-    for symbol, name in stocks:
-        s = all_sentiment.get(symbol, {"sentimentScore": 0.0, "sentimentSignal": "neutral",
-                                        "sentimentReason": "No data", "headlines": []})
+    sym_to_name = {s["symbol"]: s.get("name", s["symbol"]) for s in stocks}
+    for s in stocks:
+        sym = s["symbol"]
+        scored = all_scores.get(sym)
         sentiment_list.append({
-            "symbol": symbol, "name": name,
-            "sentimentScore":  s.get("sentimentScore", 0.0),
-            "sentimentSignal": s.get("sentimentSignal", "neutral"),
-            "sentimentReason": s.get("sentimentReason", ""),
-            "headlines":       s.get("headlines", []),
-            "hasNews":         len(s.get("headlines", [])) > 0
+            "symbol": sym, "name": sym_to_name.get(sym, sym),
+            "sentimentScore": scored["sentimentScore"] if scored else 0.0,
+            "sentimentSignal": scored["sentimentSignal"] if scored else "neutral",
+            "sentimentReason": scored["sentimentReason"] if scored else "",
+            "headlines": headlines_by_sym.get(sym, []),
+            "hasNews": bool(headlines_by_sym.get(sym)),
         })
 
-    elapsed = time.time() - t0
     bullish = sum(1 for s in sentiment_list if s["sentimentSignal"] == "bullish")
     bearish = sum(1 for s in sentiment_list if s["sentimentSignal"] == "bearish")
     neutral = sum(1 for s in sentiment_list if s["sentimentSignal"] == "neutral")
-    print(f"=== DONE: B:{bullish} Bear:{bearish} N:{neutral} | {elapsed:.1f}s ===")
+
+    elapsed = time.time() - started
+    print(f"=== DONE · B:{bullish} Bear:{bearish} N:{neutral} · {elapsed:.1f}s ===")
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 1),
         "count": len(sentiment_list),
-        "bullish_count": bullish, "bearish_count": bearish, "neutral_count": neutral,
-        "sentiment": sentiment_list
+        "stocks_with_news": len(headlines_by_sym),
+        "stocks_scored": len(all_scores),
+        "bullish_count": bullish,
+        "bearish_count": bearish,
+        "neutral_count": neutral,
+        "model": CLAUDE_MODEL,
+        "source": "fmp",
+        "sentiment": sentiment_list,
     }
 
-    s3.put_object(Bucket=S3_BUCKET, Key=SENTIMENT_KEY,
-                  Body=json.dumps(payload, separators=(",",":")),
-                  ContentType="application/json", CacheControl="max-age=72000")
+    try:
+        s3.put_object(
+            Bucket=S3_BUCKET, Key=SENTIMENT_KEY,
+            Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+            ContentType="application/json",
+            CacheControl="public, max-age=3600")
+        print(f"  wrote {round(len(json.dumps(payload))/1024,1)} KB")
+    except Exception as e:
+        print(f"  s3 put err: {e}")
 
     return {"statusCode": 200, "headers": headers,
-            "body": json.dumps({"success": True, "count": len(sentiment_list),
-                                "bullish": bullish, "bearish": bearish,
-                                "elapsed_seconds": round(elapsed,1)})}
+            "body": json.dumps({"success": True,
+                                  "stocks_with_news": len(headlines_by_sym),
+                                  "stocks_scored": len(all_scores),
+                                  "bullish": bullish, "bearish": bearish, "neutral": neutral,
+                                  "elapsed_seconds": round(elapsed, 1)})}
