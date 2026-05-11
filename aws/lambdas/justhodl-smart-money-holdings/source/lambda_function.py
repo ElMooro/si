@@ -193,29 +193,61 @@ def lambda_handler(event, context):
     # Build inverse mapping
     by_symbol = defaultdict(list)
     for fund in fund_results:
+        fund_total = fund.get("total_value") or 0
         for h in fund["holdings"]:
+            v = h.get("value") or 0
+            # CONCENTRATION SIGNAL: what % of this fund's portfolio is this stock?
+            # 4%+ is a high-conviction bet. 10%+ is a flagship position.
+            # 0.01% is a probe / index-style holding.
+            pct_of_fund = round(v / fund_total * 100, 3) if fund_total > 0 else None
             by_symbol[h["symbol"]].append({
                 "cik": fund["cik"],
                 "name": fund["name"],
                 "shares": h["shares"],
-                "value": h["value"],
+                "value": v,
+                "pct_of_fund": pct_of_fund,
             })
 
-    # Within each symbol, sort holders by value desc
+    # Within each symbol, sort holders by value desc; also compute symbol-level
+    # conviction metrics for screener page filtering/sorting.
     holdings_map = {}
     for sym, holders in by_symbol.items():
         holders.sort(key=lambda h: -(h.get("value") or 0))
-        holdings_map[sym] = holders[:MAX_HOLDERS_PER_SYMBOL]
+        # Cap to top N holders by value
+        kept = holders[:MAX_HOLDERS_PER_SYMBOL]
+        # max_pct_of_fund: highest concentration any single fund has in this stock
+        # n_high_conviction: how many funds hold this as >5% of their portfolio
+        # n_flagship: how many hold it as >10% (real conviction)
+        valid_pcts = [h["pct_of_fund"] for h in kept if h.get("pct_of_fund") is not None]
+        max_pct = max(valid_pcts) if valid_pcts else None
+        n_high = sum(1 for p in valid_pcts if p >= 5.0)
+        n_flagship = sum(1 for p in valid_pcts if p >= 10.0)
+        holdings_map[sym] = {
+            "holders": kept,
+            "max_pct_of_fund": max_pct,
+            "n_high_conviction": n_high,
+            "n_flagship": n_flagship,
+        }
 
     # Fund summaries (top 10 holdings each, for fund-detail UI)
     fund_summaries = []
     for f in fund_results:
+        ft = f.get("total_value") or 0
+        # Annotate top holdings with pct_of_fund too (so fund-detail view can show
+        # the same conviction column)
+        top_with_pct = []
+        for h in f["holdings"][:10]:
+            v = h.get("value") or 0
+            top_with_pct.append({
+                **h,
+                "pct_of_fund": round(v / ft * 100, 3) if ft > 0 else None,
+            })
         fund_summaries.append({
             "cik": f["cik"],
             "name": f["name"],
             "n_holdings": f["n_holdings"],
             "total_value": f["total_value"],
-            "top_holdings": f["holdings"][:10],
+            "top_holdings": top_with_pct,
         })
     fund_summaries.sort(key=lambda f: -f["total_value"])
 
