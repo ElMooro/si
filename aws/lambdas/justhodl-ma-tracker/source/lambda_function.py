@@ -1,5 +1,5 @@
 """
-justhodl-ma-tracker — Mergers & Acquisitions Activity Tracker
+justhodl-ma-tracker — Mergers & Acquisitions Activity Tracker (v2)
 
 Lambda with a Function URL. On invocation:
   1. Check S3 for screener/ma-latest.json
