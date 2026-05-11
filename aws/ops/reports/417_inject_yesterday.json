@@ -1,0 +1,33 @@
+{
+  "started": "2026-05-11T13:02:45.956161+00:00",
+  "test": {
+    "today_snapshot": {
+      "key": "screener/snapshots/2026-05-11.json",
+      "snapshot_date": "2026-05-11",
+      "n_stocks": 503
+    },
+    "yesterday_snapshot": {
+      "key": "screener/snapshots/2026-05-10.json",
+      "snapshot_date": "2026-05-10",
+      "n_stocks": 503,
+      "synthetic": true,
+      "perturbations": {
+        "score_down_5pt": 21,
+        "score_up_5pt": 21,
+        "tier_strip": 21,
+        "insider_flip": 6,
+        "cross_strip": 4,
+        "beat_strip": 12,
+        "fcfy_below_5": 10,
+        "revgrowth_below_15": 3,
+        "buyback_zero": 7,
+        "sustainable_strip": 5,
+        "unchanged": 414
+      }
+    },
+    "refresh_invoke": {
+      "status": 202
+    }
+  },
+  "finished": "2026-05-11T13:02:53.287576+00:00"
+}
