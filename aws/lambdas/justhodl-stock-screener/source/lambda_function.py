@@ -1186,6 +1186,21 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"[history] WARN build failed: {e}")
 
+    # ── STAGE 11: Fire Telegram alerts asynchronously ──
+    # After just-crossed.json is fresh, ping the alerts Lambda so any
+    # high-conviction events flow to @Justhodl_bot. Async (Event invocation)
+    # so this Lambda's response isn't blocked.
+    try:
+        import boto3 as _boto3
+        _lam = _boto3.client("lambda", region_name="us-east-1")
+        _lam.invoke(
+            FunctionName="justhodl-screener-alerts",
+            InvocationType="Event",
+            Payload=b"{}")
+        print("[alerts] async-fired justhodl-screener-alerts")
+    except Exception as e:
+        print(f"[alerts] WARN fire failed: {e}")
+
     return {"statusCode":200,"headers":hdrs,"body":json.dumps({
         "success":True,"count":len(stocks),
         "elapsed_seconds":round(elapsed,1),"generated_at":payload["generated_at"]
