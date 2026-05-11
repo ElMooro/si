@@ -132,6 +132,12 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
 </div>
 <div class="tab-bar">
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
+  <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
+  <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
+  <div class="tab" data-tab="margins" onclick="setTab(this)" style="color:#00ffcc">📈 HIGHEST MARGINS</div>
+  <div class="tab" data-tab="rev_growth" onclick="setTab(this)" style="color:#1e90ff">🚀 REVENUE GROWTH KINGS</div>
+  <div class="tab" data-tab="cash_gen" onclick="setTab(this)" style="color:#00e676">💵 CASH GENERATORS</div>
+  <div class="tab" data-tab="buyback" onclick="setTab(this)" style="color:#a855f7">🪙 BUYBACK ACTIVE</div>
   <div class="tab" data-tab="gainers" onclick="setTab(this)">&#9650; PRICE GAINERS</div>
   <div class="tab" data-tab="losers" onclick="setTab(this)">&#9660; PRICE DECLINERS</div>
   <div class="tab" data-tab="buying" onclick="setTab(this)">&#9679; INST BUYING</div>
@@ -198,6 +204,7 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
 </div>
 <div class="col-toggle-bar">
   <span class="col-toggle-label">Columns:</span>
+  <button class="col-toggle-btn on" data-group="fundamentals" onclick="toggleColGroup(this)">Fundamentals</button>
   <button class="col-toggle-btn on" data-group="valuation" onclick="toggleColGroup(this)">Valuation</button>
   <button class="col-toggle-btn on" data-group="quality" onclick="toggleColGroup(this)">Quality</button>
   <button class="col-toggle-btn on" data-group="momentum" onclick="toggleColGroup(this)">Momentum</button>
@@ -231,7 +238,7 @@ const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.j
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={valuation:true,quality:true,momentum:true,scores:true,institutional:true,sentiment:true,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,sentiment:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -239,6 +246,15 @@ const COLS=[
   {id:'sector',label:'Sector',group:'fixed',fn:r=>r.sector,fmt:'sector'},
   {id:'price',label:'Price',group:'fixed',fn:r=>r.price,fmt:'price'},
   {id:'marketCap',label:'Mkt Cap',group:'fixed',fn:r=>r.marketCap,fmt:'mcap'},
+  // ── Phase 1: absolute dollar fundamentals ──
+  {id:'revenue',label:'Revenue',group:'fundamentals',fn:r=>r.revenue,fmt:'mcap'},
+  {id:'netIncome',label:'Net Inc',group:'fundamentals',fn:r=>r.netIncome,fmt:'mcap'},
+  {id:'operatingIncome',label:'Op Inc',group:'fundamentals',fn:r=>r.operatingIncome,fmt:'mcap'},
+  {id:'ebitda',label:'EBITDA',group:'fundamentals',fn:r=>r.ebitda,fmt:'mcap'},
+  {id:'freeCashFlow',label:'FCF',group:'fundamentals',fn:r=>r.freeCashFlow,fmt:'mcap'},
+  {id:'fcfYieldCalc',label:'FCF Yld%',group:'fundamentals',fn:r=>r.fcfYieldCalc,fmt:'pct'},
+  {id:'buybackYield',label:'Buyback%',group:'fundamentals',fn:r=>r.buybackYield,fmt:'pct'},
+  {id:'rev3yCAGR',label:'Rev 3y CAGR%',group:'fundamentals',fn:r=>r.rev3yCAGR,fmt:'chg'},
   {id:'peRatio',label:'P/E',group:'valuation',fn:r=>r.peRatio,fmt:'ratio'},
   {id:'pbRatio',label:'P/B',group:'valuation',fn:r=>r.pbRatio,fmt:'ratio'},
   {id:'psRatio',label:'P/S',group:'valuation',fn:r=>r.psRatio,fmt:'ratio'},
@@ -322,29 +338,32 @@ function buildBody(stocks){
   ).join('');
 }
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
-function handleSort(col){if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';else{sortCol=col;sortDir='desc';}
-  // AI Sentiment ─────────────────────────────────────────────
-  const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
-  async function loadSentiment() {
-    try {
-      const res = await fetch(SENTIMENT_URL + '?t=' + Date.now());
-      if (!res.ok) return;
-      const data = await res.json();
-      const map = {};
-      (data.sentiment || []).forEach(s => { map[s.symbol] = s; });
-      allStocks = allStocks.map(stock => ({
-        ...stock,
-        sentimentScore:  map[stock.symbol]?.sentimentScore  ?? null,
-        sentimentSignal: map[stock.symbol]?.sentimentSignal ?? 'neutral',
-        sentimentReason: map[stock.symbol]?.sentimentReason ?? '',
-        headlines:       map[stock.symbol]?.headlines       ?? [],
-      }));
-      applyFilters();
-  loadSentiment();
-    } catch(e) { console.warn('Sentiment failed:', e); }
-  }
+// AI Sentiment overlay ─────────────────────────────────────
+const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
+async function loadSentiment() {
+  try {
+    const res = await fetch(SENTIMENT_URL + '?t=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    const map = {};
+    (data.sentiment || []).forEach(s => { map[s.symbol] = s; });
+    allStocks = allStocks.map(stock => ({
+      ...stock,
+      sentimentScore:  map[stock.symbol]?.sentimentScore  ?? null,
+      sentimentSignal: map[stock.symbol]?.sentimentSignal ?? 'neutral',
+      sentimentReason: map[stock.symbol]?.sentimentReason ?? '',
+      headlines:       map[stock.symbol]?.headlines       ?? [],
+    }));
+    applyFilters();
+  } catch(e) { console.warn('Sentiment failed:', e); }
+}
 
-  applyFilters();}
+function handleSort(col){
+  if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';
+  else{sortCol=col;sortDir='desc';}
+  saveState();
+  applyFilters();
+}
 function sortStocks(stocks){
   const col=COLS.find(c=>c.id===sortCol);if(!col)return stocks;
   return[...stocks].sort((a,b)=>{
@@ -358,8 +377,37 @@ function sortStocks(stocks){
 }
 function getFilters(){return{search:document.getElementById('searchInput').value.trim().toLowerCase(),sector:document.getElementById('sectorFilter').value,peMin:parseFloat(document.getElementById('peMin').value),peMax:parseFloat(document.getElementById('peMax').value),roeMin:parseFloat(document.getElementById('roeMin').value),marginMin:parseFloat(document.getElementById('marginMin').value),mom1mMin:parseFloat(document.getElementById('mom1mMin').value),mom1mMax:parseFloat(document.getElementById('mom1mMax').value),piotrMin:parseInt(document.getElementById('piotrMin').value),mcap:document.getElementById('mcapFilter').value};}
 function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
-function matchesTab(s,t){if(t==='all')return true;if(t==='gainers')return(s.chg1m||0)>5;if(t==='losers')return(s.chg1m||0)<-5;if(t==='buying')return s.instSignal==='buying';if(t==='selling')return s.instSignal==='selling';if(t==='holding')return s.instSignal==='holding';if(t==='quality')return(s.piotroski||0)>=7&&(s.roe||0)>=15&&(s.netMargin||0)>=10;if(t==='ai_bullish')return s.sentimentSignal==='bullish';if(t==='ai_bearish')return s.sentimentSignal==='bearish';if(t==='golden_cross')return s.crossSignal==='GOLDEN';if(t==='death_cross')return s.crossSignal==='DEATH';return true;}
+function matchesTab(s,t){
+  if(t==='all')return true;
+  if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
+  if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
+  if(t==='margins')return (s.netMargin||0)>=15;
+  if(t==='rev_growth')return (s.revenueGrowth||0)>=15||(s.rev3yCAGR||0)>=15;
+  if(t==='cash_gen')return (s.fcfYieldCalc||0)>=4&&(s.freeCashFlow||0)>0;
+  if(t==='buyback')return (s.buybackYield||0)>=1;  // returning ≥1% of mcap as buybacks
+  if(t==='gainers')return(s.chg1m||0)>5;
+  if(t==='losers')return(s.chg1m||0)<-5;
+  if(t==='buying')return s.instSignal==='buying';
+  if(t==='selling')return s.instSignal==='selling';
+  if(t==='holding')return s.instSignal==='holding';
+  if(t==='quality')return(s.piotroski||0)>=7&&(s.roe||0)>=15&&(s.netMargin||0)>=10;
+  if(t==='ai_bullish')return s.sentimentSignal==='bullish';
+  if(t==='ai_bearish')return s.sentimentSignal==='bearish';
+  if(t==='golden_cross')return s.crossSignal==='GOLDEN';
+  if(t==='death_cross')return s.crossSignal==='DEATH';
+  return true;
+}
+// Default sort column per tab — clicking a tab auto-sorts by its primary metric
+const TAB_DEFAULT_SORT={
+  money_machines:{col:'netIncome',dir:'desc'},
+  sustainable:{col:'roe',dir:'desc'},
+  margins:{col:'netMargin',dir:'desc'},
+  rev_growth:{col:'revenueGrowth',dir:'desc'},
+  cash_gen:{col:'fcfYieldCalc',dir:'desc'},
+  buyback:{col:'buybackYield',dir:'desc'},
+};
 function applyFilters(){
+  saveState();
   const f=getFilters();
   filteredStocks=allStocks.filter(s=>{
     if(!matchesTab(s,activeTab))return false;
@@ -378,9 +426,68 @@ function applyFilters(){
   filteredStocks=sortStocks(filteredStocks);
   renderTable();
 }
-function clearFilters(){['searchInput','sectorFilter','peMin','peMax','roeMin','marginMin','mom1mMin','mom1mMax','piotrMin','mcapFilter'].forEach(id=>{document.getElementById(id).value='';});applyFilters();}
-function setTab(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');activeTab=el.dataset.tab;applyFilters();}
-function toggleColGroup(btn){const g=btn.dataset.group;colGroups[g]=!colGroups[g];btn.classList.toggle('on',colGroups[g]);renderTable();}
+function clearFilters(){['searchInput','sectorFilter','peMin','peMax','roeMin','marginMin','mom1mMin','mom1mMax','piotrMin','mcapFilter'].forEach(id=>{document.getElementById(id).value='';});saveState();applyFilters();}
+function setTab(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  activeTab=el.dataset.tab;
+  // Auto-sort by tab's primary metric when switching to a Phase 1 tab
+  const defaultSort=TAB_DEFAULT_SORT[activeTab];
+  if(defaultSort){sortCol=defaultSort.col;sortDir=defaultSort.dir;}
+  saveState();
+  applyFilters();
+}
+function toggleColGroup(btn){
+  const g=btn.dataset.group;
+  colGroups[g]=!colGroups[g];
+  btn.classList.toggle('on',colGroups[g]);
+  saveState();
+  renderTable();
+}
+
+// ── localStorage state persistence ─────────────────────────
+const STATE_KEY='justhodl.screener.state.v2';
+function saveState(){
+  try{
+    const f=getFilters();
+    localStorage.setItem(STATE_KEY,JSON.stringify({
+      activeTab,sortCol,sortDir,colGroups,filters:f,
+    }));
+  }catch(e){/* private mode etc */}
+}
+function restoreState(){
+  try{
+    const raw=localStorage.getItem(STATE_KEY);
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s.activeTab)activeTab=s.activeTab;
+    if(s.sortCol)sortCol=s.sortCol;
+    if(s.sortDir)sortDir=s.sortDir;
+    if(s.colGroups){Object.assign(colGroups,s.colGroups);}
+    // Apply tab UI
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.classList.toggle('active',t.dataset.tab===activeTab);
+    });
+    // Apply column toggles UI
+    document.querySelectorAll('.col-toggle-btn').forEach(b=>{
+      const g=b.dataset.group;
+      if(g)b.classList.toggle('on',!!colGroups[g]);
+    });
+    // Apply filters UI
+    if(s.filters){
+      const fl=s.filters;
+      const setVal=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined&&v!==''&&!isNaN(v))el.value=v;};
+      const setStr=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+      setStr('searchInput',fl.search);
+      setStr('sectorFilter',fl.sector);
+      setVal('peMin',fl.peMin);setVal('peMax',fl.peMax);
+      setVal('roeMin',fl.roeMin);setVal('marginMin',fl.marginMin);
+      setVal('mom1mMin',fl.mom1mMin);setVal('mom1mMax',fl.mom1mMax);
+      setStr('piotrMin',fl.piotrMin);
+      setStr('mcapFilter',fl.mcap);
+    }
+  }catch(e){console.warn('state restore failed',e);}
+}
 function updateStats(stocks){
   const vld=v=>v!==null&&v!==undefined&&!isNaN(v);
   document.getElementById('statTotal').textContent=stocks.length;
@@ -422,7 +529,9 @@ async function loadData(){
     populateSectors(allStocks);updateStats(allStocks);
     document.getElementById('loadingScreen').style.display='none';
     document.getElementById('screenerTable').style.display='';
+    restoreState();       // restore tab + sort + filters from localStorage BEFORE first render
     applyFilters();
+    loadSentiment();      // async — augments allStocks then re-applies filters
     if(isStale)triggerRefresh();
   }catch(err){
     document.getElementById('loadingScreen').innerHTML=`<div class="error-box"><div style="font-size:14px;margin-bottom:8px">DATA LOAD FAILED</div><div style="font-size:11px;color:var(--text2)">${err.message}</div><div style="margin-top:12px"><button class="refresh-btn" onclick="loadData()">RETRY</button> <button class="refresh-btn" onclick="triggerRefresh()">TRIGGER REFRESH</button></div></div>`;

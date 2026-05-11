@@ -170,6 +170,12 @@ def get_stock_data(symbol):
     ratios  = fmp("ratios-ttm",       f"&symbol={symbol}")
     growth  = fmp("financial-growth", f"&symbol={symbol}&limit=1")
     scores  = fmp("financial-scores", f"&symbol={symbol}")  # confirmed Apr 26 — has altmanZScore + piotroskiScore
+    # ── PHASE 1 ADDS (2026-05-11) ─────────────────────────────
+    # income-statement + cash-flow-statement give us ABSOLUTE
+    # dollar values for Money Machines / Cash Generators / Rev
+    # Kings tabs (we previously only had margins, not totals).
+    income  = fmp("income-statement",    f"&symbol={symbol}&limit=3&period=annual")
+    cashflow= fmp("cash-flow-statement", f"&symbol={symbol}&limit=3&period=annual")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -180,9 +186,54 @@ def get_stock_data(symbol):
     r = ratios[0]  if isinstance(ratios, list)  and ratios  else {}
     g = growth[0]  if isinstance(growth, list)  and growth  else {}
     sc = scores[0] if isinstance(scores, list)  and scores  else {}
+    inc = income[0]  if isinstance(income, list)   and income   else {}
+    inc_prev = income[1] if isinstance(income, list) and len(income) >= 2 else {}
+    inc_prev2= income[2] if isinstance(income, list) and len(income) >= 3 else {}
+    cf  = cashflow[0]if isinstance(cashflow, list) and cashflow else {}
 
+    # ── PHASE 1 NEW FIELDS — absolute dollar values + multi-year trend ──
     # FMP-computed Altman Z-Score from /stable/financial-scores
     altman_z = sf(sc.get("altmanZScore"))
+    # Revenue & profitability (latest annual)
+    revenue_ttm        = sf(inc.get("revenue"))
+    net_income_ttm     = sf(inc.get("netIncome"))
+    operating_income   = sf(inc.get("operatingIncome"))
+    ebitda             = sf(inc.get("ebitda"))
+    gross_profit       = sf(inc.get("grossProfit"))
+    # Cash flow
+    free_cash_flow     = sf(cf.get("freeCashFlow"))
+    operating_cf       = sf(cf.get("operatingCashFlow"))
+    capex              = sf(cf.get("capitalExpenditure"))
+    # Buyback detection: stockRepurchased is the cash outflow on buybacks
+    # (negative number when actively buying back).
+    stock_repurchased  = sf(cf.get("commonStockRepurchased") or cf.get("stockRepurchased"))
+    # FCF Yield calculated (FCF / market cap)
+    mcap_val = sf(p.get("marketCap"))
+    fcf_yield_calc = None
+    if free_cash_flow is not None and mcap_val and mcap_val > 0:
+        fcf_yield_calc = round((free_cash_flow / mcap_val) * 100, 2)
+    # 3-year revenue trend (latest vs 2 years ago) — flags accelerating growth
+    rev_2y_ago = sf(inc_prev2.get("revenue")) if inc_prev2 else None
+    rev_3y_cagr = None
+    if revenue_ttm and rev_2y_ago and rev_2y_ago > 0:
+        rev_3y_cagr = round(((revenue_ttm / rev_2y_ago) ** (1.0 / 2.0) - 1.0) * 100, 2)
+    # Sustainable profitability flag — positive net income in all 3 yrs
+    ni_curr = sf(inc.get("netIncome"))
+    ni_prev = sf(inc_prev.get("netIncome")) if inc_prev else None
+    ni_prev2= sf(inc_prev2.get("netIncome")) if inc_prev2 else None
+    sustainable_3y = bool(ni_curr and ni_curr > 0 and
+                            ni_prev and ni_prev > 0 and
+                            ni_prev2 and ni_prev2 > 0)
+    # ROE consistency — check sustainability of profitability
+    roe_val = sf(k.get("returnOnEquityTTM"))
+    _npm_check = sf(r.get("netProfitMarginTTM"))  # used here + redefined below as `npm` for piotroski
+    sustainable_quality = bool(sustainable_3y and roe_val and roe_val > 0.15 and
+                                  _npm_check and _npm_check > 0.10)
+    # Buyback signal — material repurchases relative to mcap
+    buyback_yield = None
+    if stock_repurchased and mcap_val and mcap_val > 0:
+        # stockRepurchased is typically negative — flip sign so positive = buying back
+        buyback_yield = round((abs(stock_repurchased) / mcap_val) * 100, 2)
 
     # Compute simplified Piotroski from available data
     score = 0
@@ -262,6 +313,25 @@ def get_stock_data(symbol):
         "sma200":          compute_sma(closes, 200),
         "crossSignal":     cross_signal,   # 'GOLDEN' | 'DEATH' | None
         "crossDaysAgo":    cross_days_ago, # int days since cross | None
+        # ── PHASE 1 NEW FIELDS (2026-05-11) ──
+        # Absolute-dollar fundamentals (latest annual filing)
+        "revenue":           revenue_ttm,           # absolute $ revenue (latest annual)
+        "netIncome":         net_income_ttm,        # absolute $ net income
+        "operatingIncome":   operating_income,      # absolute $ operating income
+        "ebitda":            ebitda,                # absolute $ EBITDA
+        "grossProfit":       gross_profit,
+        # Cash flow
+        "freeCashFlow":      free_cash_flow,        # absolute $ FCF
+        "operatingCashFlow": operating_cf,
+        "capex":             capex,
+        "fcfYieldCalc":      fcf_yield_calc,        # FCF / marketCap % (calc'd here)
+        # Buyback signals
+        "stockRepurchased":  stock_repurchased,
+        "buybackYield":      buyback_yield,         # |repurchases|/mcap %, positive
+        # Multi-year trends
+        "rev3yCAGR":         rev_3y_cagr,           # 3y revenue CAGR %
+        "sustainable3y":     sustainable_3y,        # 3 consecutive years of positive NI
+        "sustainableQuality":sustainable_quality,   # 3y profit + ROE>15% + margin>10%
     }
 
 def process(args):
