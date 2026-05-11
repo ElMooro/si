@@ -326,6 +326,8 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab" data-tab="cheap_forward_pe" onclick="setTab(this)" style="color:#f97316">⚡ CHEAP FORWARD P/E</div>
   <!-- Stage 11: News momentum tab -->
   <div class="tab" data-tab="news_momentum" onclick="setTab(this)" style="color:#ec4899">📰 NEWS MOMENTUM</div>
+  <!-- Stage 12: M&A involvement tab -->
+  <div class="tab" data-tab="ma_active" onclick="setTab(this)" style="color:#14b8a6">🤝 M&amp;A ACTIVE</div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -419,6 +421,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn" data-group="liquidity" onclick="toggleColGroup(this)" style="color:#06b6d4">💧 Liquidity</button>
   <button class="col-toggle-btn" data-group="governance" onclick="toggleColGroup(this)" style="color:#d946ef">👔 Governance</button>
   <button class="col-toggle-btn on" data-group="news_momentum" onclick="toggleColGroup(this)" style="color:#ec4899">📰 News</button>
+  <button class="col-toggle-btn on" data-group="ma" onclick="toggleColGroup(this)" style="color:#14b8a6">🤝 M&amp;A</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -523,7 +526,7 @@ let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,news_momentum:true,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,news_momentum:true,ma:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -625,6 +628,12 @@ const COLS=[
   {id:'newsCount7d',label:'News 7d',group:'news_momentum',fn:r=>r.newsCount7d,fmt:'num'},
   {id:'newsSentiment30d',label:'Sentiment',group:'news_momentum',fn:r=>r.newsSentiment30d,fmt:'sent_chg'},
   {id:'latestHeadline',label:'Latest Headline',group:'news_momentum',fn:r=>r.latestHeadline,fmt:'headline'},
+  // ── STAGE 12: M&A involvement ──
+  {id:'maLatestRole',label:'M&A Role',group:'ma',fn:r=>r.maLatestRole,fmt:'ma_role'},
+  {id:'maAcquirerDealsN',label:'As Acquirer',group:'ma',fn:r=>r.maAcquirerDealsN,fmt:'num'},
+  {id:'maTargetDealsN',label:'As Target',group:'ma',fn:r=>r.maTargetDealsN,fmt:'num'},
+  {id:'maLatestDate',label:'M&A Latest',group:'ma',fn:r=>r.maLatestDate,fmt:'plain'},
+  {id:'maLatestCounterparty',label:'Counterparty',group:'ma',fn:r=>r.maLatestCounterparty,fmt:'plain'},
 ];
 function fmtCell(val,fmt,rank){
   if(fmt==='sent'){
@@ -766,6 +775,13 @@ function fmtCell(val,fmt,rank){
     if(!val)return '<span class="na">-</span>';
     const t=String(val).substring(0,55);
     return `<span title="${String(val).replace(/"/g,'&quot;')}" style="color:#a78bfa;font-size:11px">${t}${val.length>55?'…':''}</span>`;
+  }
+  // ── STAGE 12 ──
+  if(fmt==='ma_role'){
+    if(!val)return '<span class="na">-</span>';
+    if(val==='acquirer')return '<span style="background:rgba(20,184,166,.15);color:#14b8a6;padding:2px 6px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">🤝 ACQUIRER</span>';
+    if(val==='target')return '<span style="background:rgba(255,139,61,.15);color:#ff8b3d;padding:2px 6px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">🎯 TARGET</span>';
+    return `<span>${val}</span>`;
   }
   return`<span>${val}</span>`;
 }
@@ -1310,6 +1326,7 @@ function matchesTab(s,t){
   if(t==='forward_growth')return (s.forwardRevenueGrowth||0)>=15;
   if(t==='cheap_forward_pe')return s.forwardPE!==null&&s.forwardPE!==undefined&&s.forwardPE>0&&s.forwardPE<15;
   if(t==='news_momentum')return (s.newsCount7d||0)>=3;
+  if(t==='ma_active')return s.maIsAcquirer||s.maIsTarget;
   if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
@@ -1350,6 +1367,7 @@ const TAB_DEFAULT_SORT={
   forward_growth:{col:'forwardRevenueGrowth',dir:'desc'},
   cheap_forward_pe:{col:'forwardPE',dir:'asc'},
   news_momentum:{col:'newsCount7d',dir:'desc'},
+  ma_active:{col:'maAcquirerDealsN',dir:'desc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},

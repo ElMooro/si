@@ -67,6 +67,8 @@ HIGH_PRIORITY_TYPES = {
     "BEAT_STREAK_7",
     "BEAT_STREAK_10",
     "NEWS_SURGE",
+    "BECAME_TARGET",       # being acquired is huge stock-price-mover
+    "BECAME_ACQUIRER",
 }
 
 # Pretty-name table for event types
@@ -112,6 +114,8 @@ TYPE_PRETTY = {
     "NEWS_SURGE":               "📰 NEWS SURGE",
     "NEWS_SENTIMENT_POSITIVE":  "📰 POSITIVE SENTIMENT",
     "NEWS_SENTIMENT_NEGATIVE":  "📰 NEGATIVE SENTIMENT",
+    "BECAME_ACQUIRER":          "🤝 ANNOUNCED ACQUISITION",
+    "BECAME_TARGET":            "🤝🚨 BEING ACQUIRED",
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -219,6 +223,10 @@ def format_event(event):
         detail = f"Sentiment shift: {event.get('from'):.0f} → *+{event.get('to'):.0f}*"
     elif typ == "NEWS_SENTIMENT_NEGATIVE":
         detail = f"Sentiment shift: {event.get('from'):.0f} → *{event.get('to'):.0f}*"
+    elif typ == "BECAME_ACQUIRER":
+        detail = f"Now active in *{event.get('to')}* M&A deal(s) as acquirer"
+    elif typ == "BECAME_TARGET":
+        detail = f"⚠ Listed as M&A *target* in {event.get('to')} deal(s)"
     elif typ.startswith("FCF_YIELD_"):
         detail = f"FCF Yield: {event.get('from')}% → *{event.get('to')}%*"
     elif typ.startswith("REV_GROWTH_"):

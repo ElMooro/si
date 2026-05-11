@@ -1203,6 +1203,27 @@ def lambda_handler(event, context):
     price_changes = get_bulk_price_changes(symbols)
     print(f"  {len(price_changes)} price-change records | {time.time()-t0:.1f}s")
 
+    # ── STAGE 12 INTEGRATION: Load M&A data from S3 (written hourly by ma-tracker) ──
+    # Builds a symbol→involvement map so each stock knows if it's an acquirer
+    # or target in recent M&A activity. This is a single S3 read, near-instant.
+    ma_acquirer = {}    # symbol → [list of deals where it's the acquirer]
+    ma_target = {}      # symbol → [list of deals where it's the target]
+    try:
+        ma_obj = s3.get_object(Bucket=S3_BUCKET, Key="screener/ma-latest.json")
+        ma_data = json.loads(ma_obj["Body"].read())
+        ma_deals = ma_data.get("deals") or []
+        for d in ma_deals:
+            asym = d.get("symbol")
+            if asym:
+                ma_acquirer.setdefault(asym, []).append(d)
+            tsym = d.get("targetedSymbol")
+            if tsym:
+                ma_target.setdefault(tsym, []).append(d)
+        print(f"  M&A: {len(ma_deals)} deals, {len(ma_acquirer)} acquirers, "
+                f"{len(ma_target)} targets")
+    except Exception as e:
+        print(f"  M&A load skipped: {e}")
+
     print(f"Processing {len(symbols)} stocks ({WORKERS} workers)...")
     args_list = [(sym, price_changes) for sym in symbols]
     stocks = []
@@ -1222,6 +1243,32 @@ def lambda_handler(event, context):
 
     elapsed = time.time() - t0
     print(f"=== DONE: {len(stocks)} stocks in {elapsed:.1f}s ===")
+
+    # Enrich each stock with M&A involvement (post-fetch since we have the map)
+    for s in stocks:
+        sym = s.get("symbol")
+        acq = ma_acquirer.get(sym) or []
+        tgt = ma_target.get(sym) or []
+        s["maAcquirerDealsN"] = len(acq)
+        s["maTargetDealsN"] = len(tgt)
+        s["maIsAcquirer"] = len(acq) > 0
+        s["maIsTarget"] = len(tgt) > 0
+        # Most recent deal involvement (latest by acceptedDate)
+        all_involved = acq + tgt
+        if all_involved:
+            latest = max(all_involved,
+                            key=lambda d: (d.get("acceptedDate") or
+                                              d.get("transactionDate") or ""))
+            s["maLatestRole"] = "acquirer" if latest in acq else "target"
+            s["maLatestDate"] = (latest.get("acceptedDate") or
+                                    latest.get("transactionDate") or "")[:10]
+            s["maLatestCounterparty"] = (latest.get("targetedCompanyName")
+                                            if latest in acq
+                                            else latest.get("companyName"))
+        else:
+            s["maLatestRole"] = None
+            s["maLatestDate"] = None
+            s["maLatestCounterparty"] = None
 
     # ── STAGE 3: STEAL SCORE post-processing ────────────────────────────
     # 9-factor weighted composite score, percentile-ranked vs the universe.
@@ -1334,6 +1381,12 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             "newsCount30d": s.get("newsCount30d"),
             "newsCount7d": s.get("newsCount7d"),
             "newsSentiment30d": s.get("newsSentiment30d"),
+            # Stage 12 fields — M&A involvement
+            "maIsAcquirer": s.get("maIsAcquirer"),
+            "maIsTarget": s.get("maIsTarget"),
+            "maAcquirerDealsN": s.get("maAcquirerDealsN"),
+            "maTargetDealsN": s.get("maTargetDealsN"),
+            "maLatestRole": s.get("maLatestRole"),
         })
     snap_payload = {
         "snapshot_date": today_iso,
@@ -1686,6 +1739,26 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             events.append({**common, "type": "NEWS_SENTIMENT_NEGATIVE",
                 "from": prior_sent, "to": today_sent,
                 "significance": 50,
+            })
+
+        # ════════════════════════════════════════════════════
+        # STAGE 12 event types — M&A involvement
+        # ════════════════════════════════════════════════════
+
+        # ── 23. M&A DEAL ANNOUNCED (newly acquirer or newly target) ──
+        prior_acq = bool(prior_s.get("maIsAcquirer"))
+        today_acq = bool(today_s.get("maIsAcquirer"))
+        prior_tgt = bool(prior_s.get("maIsTarget"))
+        today_tgt = bool(today_s.get("maIsTarget"))
+        if today_acq and not prior_acq:
+            events.append({**common, "type": "BECAME_ACQUIRER",
+                "to": today_s.get("maAcquirerDealsN"),
+                "significance": 75,
+            })
+        if today_tgt and not prior_tgt:
+            events.append({**common, "type": "BECAME_TARGET",
+                "to": today_s.get("maTargetDealsN"),
+                "significance": 95,
             })
 
     # Sort by significance descending (most newsworthy first)
