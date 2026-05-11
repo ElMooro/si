@@ -1,0 +1,632 @@
+{
+  "started": "2026-05-11T14:30:09.299465+00:00",
+  "test": {
+    "probes": [
+      {
+        "category": "inst",
+        "label": "stable:inst-positions-summary",
+        "path": "/stable/institutional-ownership/symbol-positions-summary?symbol=AAPL&limit=2",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "category": "inst",
+        "label": "stable:inst-positions-latest",
+        "path": "/stable/institutional-ownership/latest?page=0&limit=10",
+        "status": 200,
+        "ok": true,
+        "n": 10,
+        "keys": [
+          "cik",
+          "name",
+          "date",
+          "filingDate",
+          "acceptedDate",
+          "formType",
+          "link",
+          "finalLink"
+        ],
+        "sample": "{\"cik\": \"0001695658\", \"name\": \"VALUE HOLDINGS MANAGEMENT CO. LLC\", \"date\": \"2026-03-31\", \"filingDate\": \"2026-05-11 00:00:00\", \"acceptedDate\": \"2026-05-11 10:28:31\", \"formType\": \"13F-HR\", \"link\": \"https://www.sec.gov/Archives/edgar/data/1695658/000169565826000007/0001695658-26-000007-index.htm\", \"fin"
+      },
+      {
+        "category": "inst",
+        "label": "stable:inst-symbol-positions",
+        "path": "/stable/institutional-ownership/symbol-positions?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "inst",
+        "label": "stable:inst-ownership-extract",
+        "path": "/stable/institutional-ownership/extract?symbol=AAPL&year=2024&quarter=4",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "category": "inst",
+        "label": "stable:inst-holders",
+        "path": "/stable/institutional-ownership/symbol-holders?symbol=AAPL&page=0",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "inst",
+        "label": "stable:holders-13f",
+        "path": "/stable/institutional-ownership/13f?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "inst",
+        "label": "stable:institutional-ownership",
+        "path": "/stable/institutional-ownership?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "senate",
+        "label": "stable:senate-trading",
+        "path": "/stable/senate-trading?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "senate",
+        "label": "stable:senate-trading-rss",
+        "path": "/stable/senate-trading/rss?page=0",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "senate",
+        "label": "stable:senate-trades-latest",
+        "path": "/stable/senate-trades?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 100,
+        "keys": [
+          "symbol",
+          "disclosureDate",
+          "transactionDate",
+          "firstName",
+          "lastName",
+          "office",
+          "district",
+          "owner",
+          "assetDescription",
+          "assetType",
+          "type",
+          "amount",
+          "capitalGainsOver200USD",
+          "comment",
+          "link"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"disclosureDate\": \"2026-05-07\", \"transactionDate\": \"2026-04-17\", \"firstName\": \"Shelley\", \"lastName\": \"Moore Capito\", \"office\": \"Shelley Moore Capito\", \"district\": \"WV\", \"owner\": \"Spouse\", \"assetDescription\": \"Apple Inc\", \"assetType\": \"Stock\", \"type\": \"Sale\", \"amount\": \"$1,001 - $1"
+      },
+      {
+        "category": "senate",
+        "label": "v4:senate-trading",
+        "path": "/api/v4/senate-trading?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "senate",
+        "label": "v4:senate-disclosure",
+        "path": "/api/v4/senate-disclosure?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "house",
+        "label": "stable:house-trading",
+        "path": "/stable/house-trading?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "house",
+        "label": "stable:house-trades",
+        "path": "/stable/house-trades?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 100,
+        "keys": [
+          "symbol",
+          "disclosureDate",
+          "transactionDate",
+          "firstName",
+          "lastName",
+          "office",
+          "district",
+          "owner",
+          "assetDescription",
+          "assetType",
+          "type",
+          "amount",
+          "capitalGainsOver200USD",
+          "comment",
+          "link"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"disclosureDate\": \"2026-05-01\", \"transactionDate\": \"2026-04-08\", \"firstName\": \"Lizzie\", \"lastName\": \"Fletcher\", \"office\": \"Lizzie Fletcher\", \"district\": \"\", \"owner\": \"\", \"assetDescription\": \"Apple Inc\", \"assetType\": \"Stock\", \"type\": \"Sale\", \"amount\": \"$1,001 - $15,000\", \"capitalGa"
+      },
+      {
+        "category": "house",
+        "label": "v4:senate-trading-house",
+        "path": "/api/v4/senate-trading-house?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "house",
+        "label": "v4:house-disclosure",
+        "path": "/api/v4/house-disclosure?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "price_target",
+        "label": "stable:price-target-consensus",
+        "path": "/stable/price-target-consensus?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "targetHigh",
+          "targetLow",
+          "targetConsensus",
+          "targetMedian"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"targetHigh\": 400, \"targetLow\": 253, \"targetConsensus\": 319.44, \"targetMedian\": 325}"
+      },
+      {
+        "category": "price_target",
+        "label": "stable:price-target",
+        "path": "/stable/price-target?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "price_target",
+        "label": "stable:price-target-summary",
+        "path": "/stable/price-target-summary?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "lastMonthCount",
+          "lastMonthAvgPriceTarget",
+          "lastQuarterCount",
+          "lastQuarterAvgPriceTarget",
+          "lastYearCount",
+          "lastYearAvgPriceTarget",
+          "allTimeCount",
+          "allTimeAvgPriceTarget",
+          "publishers"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"lastMonthCount\": 8, \"lastMonthAvgPriceTarget\": 310.75, \"lastQuarterCount\": 11, \"lastQuarterAvgPriceTarget\": 316, \"lastYearCount\": 56, \"lastYearAvgPriceTarget\": 290.69, \"allTimeCount\": 240, \"allTimeAvgPriceTarget\": 224.12, \"publishers\": \"[\\\"TheFly\\\",\\\"StreetInsider\\\",\\\"Benzinga\\\","
+      },
+      {
+        "category": "price_target",
+        "label": "stable:price-target-latest",
+        "path": "/stable/price-target-latest-news?symbol=AAPL&limit=10",
+        "status": 200,
+        "ok": true,
+        "n": 10,
+        "keys": [
+          "symbol",
+          "publishedDate",
+          "newsURL",
+          "newsTitle",
+          "analystName",
+          "priceTarget",
+          "adjPriceTarget",
+          "priceWhenPosted",
+          "newsPublisher",
+          "newsBaseURL",
+          "analystCompany"
+        ],
+        "sample": "{\"symbol\": \"ALB\", \"publishedDate\": \"2026-05-11T12:49:04.000Z\", \"newsURL\": \"https://thefly.com/ajax/news_get.php?id=4351825\", \"newsTitle\": \"Albemarle price target raised to $230 from $185 at Argus\", \"analystName\": \"\", \"priceTarget\": 230, \"adjPriceTarget\": 230, \"priceWhenPosted\": 215, \"newsPublisher\":"
+      },
+      {
+        "category": "price_target",
+        "label": "v4:price-target-consensus",
+        "path": "/api/v4/price-target-consensus?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "price_target",
+        "label": "v3:price-target",
+        "path": "/api/v3/price-target?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "grades",
+        "label": "stable:grades",
+        "path": "/stable/grades?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1758,
+        "keys": [
+          "symbol",
+          "date",
+          "gradingCompany",
+          "previousGrade",
+          "newGrade",
+          "action"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2026-05-08\", \"gradingCompany\": \"Wedbush\", \"previousGrade\": \"Outperform\", \"newGrade\": \"Outperform\", \"action\": \"maintain\"}"
+      },
+      {
+        "category": "grades",
+        "label": "stable:grades-historical",
+        "path": "/stable/grades-historical?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 89,
+        "keys": [
+          "symbol",
+          "date",
+          "analystRatingsStrongBuy",
+          "analystRatingsBuy",
+          "analystRatingsHold",
+          "analystRatingsSell",
+          "analystRatingsStrongSell"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2026-05-01\", \"analystRatingsStrongBuy\": 7, \"analystRatingsBuy\": 25, \"analystRatingsHold\": 15, \"analystRatingsSell\": 1, \"analystRatingsStrongSell\": 1}"
+      },
+      {
+        "category": "grades",
+        "label": "stable:upgrades-downgrades",
+        "path": "/stable/upgrades-downgrades?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "grades",
+        "label": "stable:grades-consensus",
+        "path": "/stable/grades-consensus?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "strongBuy",
+          "buy",
+          "hold",
+          "sell",
+          "strongSell",
+          "consensus"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"strongBuy\": 1, \"buy\": 69, \"hold\": 33, \"sell\": 7, \"strongSell\": 0, \"consensus\": \"Buy\"}"
+      },
+      {
+        "category": "grades",
+        "label": "v4:upgrades-downgrades-consensus",
+        "path": "/api/v4/upgrades-downgrades-consensus?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "grades",
+        "label": "v3:upgrades-downgrades",
+        "path": "/api/v3/upgrades-downgrades?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "estimates",
+        "label": "stable:analyst-estimates",
+        "path": "/stable/analyst-estimates?symbol=AAPL&limit=4",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "category": "estimates",
+        "label": "stable:earnings-estimates",
+        "path": "/stable/earnings-estimates?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "news",
+        "label": "stable:news-stock",
+        "path": "/stable/news/stock?symbols=AAPL&limit=10",
+        "status": 200,
+        "ok": true,
+        "n": 10,
+        "keys": [
+          "symbol",
+          "publishedDate",
+          "publisher",
+          "title",
+          "image",
+          "site",
+          "text",
+          "url"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"publishedDate\": \"2026-05-11 09:34:04\", \"publisher\": \"FXEmpire\", \"title\": \"AAPL, AMZN and GOOG Forecasts \\u2013 Major Tech Stocks Looking Stretched\", \"image\": \"https://images.financialmodelingprep.com/news/aapl-amzn-and-goog-forecasts-major-tech-stocks-looking-20260511.jpg\", \"site"
+      },
+      {
+        "category": "news",
+        "label": "stable:stock-news",
+        "path": "/stable/stock-news?symbols=AAPL&limit=10",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "news",
+        "label": "stable:news-stock-latest",
+        "path": "/stable/news/stock-latest?limit=10",
+        "status": 200,
+        "ok": true,
+        "n": 10,
+        "keys": [
+          "symbol",
+          "publishedDate",
+          "publisher",
+          "title",
+          "image",
+          "site",
+          "text",
+          "url"
+        ],
+        "sample": "{\"symbol\": \"MRAI\", \"publishedDate\": \"2026-05-11 10:22:00\", \"publisher\": \"PRNewsWire\", \"title\": \"Marpai, Inc. Announces Significant New Business Wins across TPA and MarpaiRx; Solidifies Forecast for Profitability\", \"image\": \"https://images.financialmodelingprep.com/news/marpai-inc-announces-significa"
+      },
+      {
+        "category": "news",
+        "label": "stable:stock-news-sentiments-rss",
+        "path": "/stable/stock-news-sentiments-rss-feed?page=0&limit=10",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "news",
+        "label": "v4:stock-news",
+        "path": "/api/v4/stock-news?tickers=AAPL&limit=10",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "dcf",
+        "label": "stable:dcf",
+        "path": "/stable/discounted-cash-flow?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "date",
+          "dcf",
+          "Stock Price"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2026-05-11\", \"dcf\": 163.19372344380957, \"Stock Price\": 293.257}"
+      },
+      {
+        "category": "dcf",
+        "label": "stable:dcf-levered",
+        "path": "/stable/levered-discounted-cash-flow?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "date",
+          "dcf",
+          "Stock Price"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2026-05-11\", \"dcf\": 155.97583682912676, \"Stock Price\": 293.257}"
+      },
+      {
+        "category": "dcf",
+        "label": "stable:dcf-advanced",
+        "path": "/stable/advanced_discounted_cash_flow?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "dcf",
+        "label": "stable:dcf-historical",
+        "path": "/stable/historical-discounted-cash-flow-statement?symbol=AAPL&limit=4",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "dcf",
+        "label": "v3:dcf",
+        "path": "/api/v3/discounted-cash-flow/AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "esg",
+        "label": "stable:esg-data",
+        "path": "/stable/esg-data?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "esg",
+        "label": "stable:esg-ratings",
+        "path": "/stable/esg-ratings?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 32,
+        "keys": [
+          "symbol",
+          "cik",
+          "companyName",
+          "industry",
+          "fiscalYear",
+          "ESGRiskRating",
+          "industryRank"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"cik\": \"0000320193\", \"companyName\": \"Apple Inc.\", \"industry\": \"CONSUMER ELECTRONICS\", \"fiscalYear\": 2001, \"ESGRiskRating\": \"B\", \"industryRank\": \"4 out of 6\"}"
+      },
+      {
+        "category": "esg",
+        "label": "stable:esg-environmental",
+        "path": "/stable/esg-environmental-social-governance-data?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "esg",
+        "label": "stable:esg-rating",
+        "path": "/stable/esg-rating?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "esg",
+        "label": "v4:esg-environmental",
+        "path": "/api/v4/esg-environmental-social-governance-data?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "transcript",
+        "label": "stable:earnings-transcript",
+        "path": "/stable/earning-call-transcript?symbol=AAPL&year=2024&quarter=4",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "period",
+          "year",
+          "date",
+          "content"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"period\": \"Q4\", \"year\": 2024, \"date\": \"2024-10-31\", \"content\": \"Suhasini Chandramouli: Good afternoon, and welcome to the Apple Q4 Fiscal Year 2024 Earnings Conference Call. My name is Suhasini Chandramouli, Director of Investor Relations. Today's call is being recorded. Speaking "
+      },
+      {
+        "category": "transcript",
+        "label": "stable:transcript-dates",
+        "path": "/stable/earning-call-transcript-dates?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 83,
+        "keys": [
+          "quarter",
+          "fiscalYear",
+          "date"
+        ],
+        "sample": "{\"quarter\": 2, \"fiscalYear\": 2026, \"date\": \"2026-04-30\"}"
+      },
+      {
+        "category": "transcript",
+        "label": "stable:transcript-batch",
+        "path": "/stable/batch-earning-call-transcript?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "etf",
+        "label": "stable:etf-holder",
+        "path": "/stable/etf-holder?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "etf",
+        "label": "stable:etf-stock-exposure",
+        "path": "/stable/etf-stock-exposure?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "etf",
+        "label": "v4:etf-holder",
+        "path": "/api/v4/etf-holder?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "contracts",
+        "label": "stable:gov-contracts",
+        "path": "/stable/government-contracts?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "category": "contracts",
+        "label": "v4:gov-contracts",
+        "path": "/api/v4/government-contracts?symbol=AAPL",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "category": "control",
+        "label": "stable:key-metrics-ttm",
+        "path": "/stable/key-metrics-ttm?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "marketCap",
+          "enterpriseValueTTM",
+          "evToSalesTTM",
+          "evToOperatingCashFlowTTM",
+          "evToFreeCashFlowTTM",
+          "evToEBITDATTM",
+          "netDebtToEBITDATTM",
+          "currentRatioTTM",
+          "incomeQualityTTM",
+          "grahamNumberTTM",
+          "grahamNetNetTTM",
+          "taxBurdenTTM",
+          "interestBurdenTTM",
+          "workingCapitalTTM",
+          "investedCapitalTTM",
+          "returnOnAssetsTTM",
+          "operatingReturnOnAssetsTTM"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"marketCap\": 4285843917580, \"enterpriseValueTTM\": 4334226917580, \"evToSalesTTM\": 9.600849982013195, \"evToOperatingCashFlowTTM\": 30.909749665387743, \"evToFreeCashFlowTTM\": 33.55340020112406, \"evToEBITDATTM\": 27.032825122745304, \"netDebtToEBITDATTM\": 0.3017675822667964, \"currentRati"
+      }
+    ]
+  },
+  "finished": "2026-05-11T14:30:17.478963+00:00"
+}
