@@ -1,0 +1,259 @@
+{
+  "started": "2026-05-11T22:03:15.326779+00:00",
+  "test": {
+    "/stable/institutional-ownership/extract?cik=0001067983&year=2025&quarter=4": {
+      "status": 200,
+      "n": 42,
+      "keys": [
+        "date",
+        "filingDate",
+        "acceptedDate",
+        "cik",
+        "securityCusip",
+        "symbol",
+        "nameOfIssuer",
+        "shares",
+        "titleOfClass",
+        "sharesType",
+        "putCallShare",
+        "value",
+        "link",
+        "finalLink"
+      ],
+      "has_symbol": "ALLY",
+      "has_securityCusip": "02005N100",
+      "has_value": 1313410001,
+      "has_shares": 29000000,
+      "sample": [
+        {
+          "date": "2025-12-31",
+          "filingDate": "2026-02-17",
+          "acceptedDate": "2026-02-17",
+          "cik": "0001067983",
+          "securityCusip": "02005N100",
+          "symbol": "ALLY",
+          "nameOfIssuer": "ALLY FINL INC",
+          "shares": 29000000,
+          "titleOfClass": "COM",
+          "sharesType": "SH",
+          "putCallShare": "",
+          "value": 1313410001,
+          "link": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/0001193125-26-054580-index.htm",
+          "finalLink": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/50240.xml"
+        },
+        {
+          "date": "2025-12-31",
+          "filingDate": "2026-02-17",
+          "acceptedDate": "2026-02-17",
+          "cik": "0001067983",
+          "securityCusip": "H1467J104",
+          "symbol": "CB",
+          "nameOfIssuer": "CHUBB LIMITED",
+          "shares": 34249183,
+          "titleOfClass": "COM",
+          "sharesType": "SH",
+          "putCallShare": "",
+          "value": 10689854998,
+          "link": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/0001193125-26-054580-index.htm",
+          "finalLink": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/50240.xml"
+        }
+      ],
+      "symbols": [
+        "AAPL",
+        "ALLE",
+        "ALLY",
+        "AMZN",
+        "AON",
+        "AXP",
+        "BAC",
+        "BATRK",
+        "CB",
+        "CHTR",
+        "COF",
+        "CVX",
+        "DEO",
+        "DPZ",
+        "DVA"
+      ]
+    },
+    "/stable/institutional-ownership/extract?cik=0001067983&year=2025&quarter=4&page=0": {
+      "status": 200,
+      "n": 42,
+      "keys": [
+        "date",
+        "filingDate",
+        "acceptedDate",
+        "cik",
+        "securityCusip",
+        "symbol",
+        "nameOfIssuer",
+        "shares",
+        "titleOfClass",
+        "sharesType",
+        "putCallShare",
+        "value",
+        "link",
+        "finalLink"
+      ],
+      "has_symbol": "ALLY",
+      "has_securityCusip": "02005N100",
+      "has_value": 1313410001,
+      "has_shares": 29000000,
+      "sample": [
+        {
+          "date": "2025-12-31",
+          "filingDate": "2026-02-17",
+          "acceptedDate": "2026-02-17",
+          "cik": "0001067983",
+          "securityCusip": "02005N100",
+          "symbol": "ALLY",
+          "nameOfIssuer": "ALLY FINL INC",
+          "shares": 29000000,
+          "titleOfClass": "COM",
+          "sharesType": "SH",
+          "putCallShare": "",
+          "value": 1313410001,
+          "link": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/0001193125-26-054580-index.htm",
+          "finalLink": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/50240.xml"
+        },
+        {
+          "date": "2025-12-31",
+          "filingDate": "2026-02-17",
+          "acceptedDate": "2026-02-17",
+          "cik": "0001067983",
+          "securityCusip": "H1467J104",
+          "symbol": "CB",
+          "nameOfIssuer": "CHUBB LIMITED",
+          "shares": 34249183,
+          "titleOfClass": "COM",
+          "sharesType": "SH",
+          "putCallShare": "",
+          "value": 10689854998,
+          "link": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/0001193125-26-054580-index.htm",
+          "finalLink": "https://www.sec.gov/Archives/edgar/data/1067983/000119312526054580/50240.xml"
+        }
+      ],
+      "symbols": [
+        "AAPL",
+        "ALLE",
+        "ALLY",
+        "AMZN",
+        "AON",
+        "AXP",
+        "BAC",
+        "BATRK",
+        "CB",
+        "CHTR",
+        "COF",
+        "CVX",
+        "DEO",
+        "DPZ",
+        "DVA"
+      ]
+    },
+    "/stable/institutional-ownership/positions?cik=0001067983&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/holdings?cik=0001067983": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/portfolio?cik=0001067983&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/portfolio-holdings?cik=0001067983&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/13f-filings-extract?cik=0001067983&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/13f-filings?cik=0001067983&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/13f-filings-dates?cik=0001067983": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/symbol-ownership?symbol=AAPL&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/symbol-ownership-by-shares?symbol=AAPL&year=2025&quarter=4": {
+      "status": 404
+    },
+    "/stable/institutional-ownership/symbol-positions-summary?symbol=AAPL&year=2025&quarter=4": {
+      "status": 200,
+      "n": 1,
+      "keys": [
+        "symbol",
+        "cik",
+        "date",
+        "investorsHolding",
+        "lastInvestorsHolding",
+        "investorsHoldingChange",
+        "numberOf13Fshares",
+        "lastNumberOf13Fshares",
+        "numberOf13FsharesChange",
+        "totalInvested",
+        "lastTotalInvested",
+        "totalInvestedChange",
+        "ownershipPercent",
+        "lastOwnershipPercent",
+        "ownershipPercentChange",
+        "newPositions",
+        "lastNewPositions",
+        "newPositionsChange",
+        "increasedPositions",
+        "lastIncreasedPositions"
+      ],
+      "has_symbol": "AAPL",
+      "sample": [
+        {
+          "symbol": "AAPL",
+          "cik": "0000320193",
+          "date": "2025-12-31",
+          "investorsHolding": 6301,
+          "lastInvestorsHolding": 5854,
+          "investorsHoldingChange": 447,
+          "numberOf13Fshares": 9527867277,
+          "lastNumberOf13Fshares": 9204348342,
+          "numberOf13FsharesChange": 323518935,
+          "totalInvested": 2974412351818,
+          "lastTotalInvested": 2347503642805,
+          "totalInvestedChange": 626908709013,
+          "ownershipPercent": 64.6038,
+          "lastOwnershipPercent": 61.5737,
+          "ownershipPercentChange": 3.0301,
+          "newPositions": 667,
+          "lastNewPositions": 200,
+          "newPositionsChange": 467,
+          "increasedPositions": 2742,
+          "lastIncreasedPositions": 2492,
+          "increasedPositionsChange": 250,
+          "closedPositions": 216,
+          "lastClosedPositions": 198,
+          "closedPositionsChange": 18,
+          "reducedPositions": 2961,
+          "lastReducedPositions": 2761,
+          "reducedPositionsChange": 200,
+          "totalCalls": 184870650,
+          "lastTotalCalls": 209278691,
+          "totalCallsChange": -24408041,
+          "totalPuts": 155489773,
+          "lastTotalPuts": 175265811,
+          "totalPutsChange": -19776038,
+          "putCallRatio": 0.8411,
+          "lastPutCallRatio": 0.8375,
+          "putCallRatioChange": 0.3598
+        }
+      ],
+      "symbols": [
+        "AAPL"
+      ]
+    },
+    "/api/v4/institutional-ownership/portfolio-holdings?cik=0001067983&date=2025-12-31": {
+      "status": 403
+    },
+    "/api/v3/institutional-holder/AAPL": {
+      "status": 403
+    }
+  },
+  "finished": "2026-05-11T22:03:22.743433+00:00"
+}
