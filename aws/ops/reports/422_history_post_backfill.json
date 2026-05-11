@@ -1,0 +1,315 @@
+{
+  "started": "2026-05-11T14:15:18.620183+00:00",
+  "test": {
+    "history": {
+      "size_kb": 618.8,
+      "generated_at": "2026-05-11T13:50:20.933624+00:00",
+      "n_days": 30,
+      "n_symbols": 503,
+      "dates_span": "2026-04-12 \u2192 2026-05-11",
+      "trend_distribution": {
+        "rising": 104,
+        "stable": 290,
+        "falling": 109
+      },
+      "coverage": {
+        "score_7d_chg": 503,
+        "score_30d_chg": 501,
+        "score_slope": 501
+      },
+      "summary": {
+        "rising_count": 104,
+        "falling_count": 109,
+        "stable_count": 290,
+        "top_5_rising": [
+          "LRCX",
+          "BDX",
+          "CBRE",
+          "HII",
+          "EA"
+        ],
+        "top_5_falling": [
+          "INTC",
+          "PPL",
+          "CDNS",
+          "AXON",
+          "HD"
+        ]
+      }
+    },
+    "top_5_rising_detail": [
+      {
+        "sym": "LRCX",
+        "name": "Lam Research Corporation",
+        "sector": "Technology",
+        "score_now": 73.3,
+        "chg_7d": 19.0,
+        "chg_14d": 19.2,
+        "chg_30d": 8.1,
+        "slope": 0.14,
+        "trend": "rising"
+      },
+      {
+        "sym": "BDX",
+        "name": "Becton, Dickinson and Com",
+        "sector": "Healthcare",
+        "score_now": 56.3,
+        "chg_7d": 15.2,
+        "chg_14d": 21.1,
+        "chg_30d": 14.1,
+        "slope": 0.259,
+        "trend": "rising"
+      },
+      {
+        "sym": "CBRE",
+        "name": "CBRE Group, Inc.",
+        "sector": "Real Estate",
+        "score_now": 42.7,
+        "chg_7d": 15.0,
+        "chg_14d": 17.9,
+        "chg_30d": 15.2,
+        "slope": 0.3,
+        "trend": "rising"
+      },
+      {
+        "sym": "HII",
+        "name": "Huntington Ingalls Indust",
+        "sector": "Industrials",
+        "score_now": 54.8,
+        "chg_7d": 14.1,
+        "chg_14d": 9.0,
+        "chg_30d": -4.3,
+        "slope": -0.437,
+        "trend": "rising"
+      },
+      {
+        "sym": "EA",
+        "name": "Electronic Arts Inc.",
+        "sector": "Communication Services",
+        "score_now": 30.6,
+        "chg_7d": 13.4,
+        "chg_14d": 13.0,
+        "chg_30d": 22.8,
+        "slope": 0.753,
+        "trend": "rising"
+      }
+    ],
+    "top_5_falling_detail": [
+      {
+        "sym": "INTC",
+        "name": "Intel Corporation",
+        "sector": "Technology",
+        "score_now": 26.5,
+        "chg_7d": -25.3,
+        "chg_14d": -19.6,
+        "chg_30d": -12.4,
+        "slope": -0.042,
+        "trend": "falling"
+      },
+      {
+        "sym": "PPL",
+        "name": "PPL Corporation",
+        "sector": "Utilities",
+        "score_now": 60.0,
+        "chg_7d": -15.7,
+        "chg_14d": -19.8,
+        "chg_30d": -24.5,
+        "slope": -0.687,
+        "trend": "falling"
+      },
+      {
+        "sym": "CDNS",
+        "name": "Cadence Design Systems, I",
+        "sector": "Technology",
+        "score_now": 61.6,
+        "chg_7d": -14.0,
+        "chg_14d": -10.7,
+        "chg_30d": -6.0,
+        "slope": 0.035,
+        "trend": "falling"
+      },
+      {
+        "sym": "AXON",
+        "name": "Axon Enterprise, Inc.",
+        "sector": "Industrials",
+        "score_now": 19.0,
+        "chg_7d": -13.3,
+        "chg_14d": -16.4,
+        "chg_30d": -15.7,
+        "slope": -0.334,
+        "trend": "falling"
+      },
+      {
+        "sym": "HD",
+        "name": "The Home Depot, Inc.",
+        "sector": "Consumer Cyclical",
+        "score_now": 39.5,
+        "chg_7d": -13.2,
+        "chg_14d": -15.1,
+        "chg_30d": -20.7,
+        "slope": -0.537,
+        "trend": "falling"
+      }
+    ],
+    "spot_AAPL": {
+      "score_now": 50.5,
+      "chg_7d": -1.0,
+      "chg_30d": -9.0,
+      "slope": -0.238,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 59.5,
+      "last_score": 50.5
+    },
+    "spot_NVDA": {
+      "score_now": 72.6,
+      "chg_7d": 1.1,
+      "chg_30d": -3.3,
+      "slope": -0.029,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 75.9,
+      "last_score": 72.6
+    },
+    "spot_META": {
+      "score_now": 84.0,
+      "chg_7d": -2.0,
+      "chg_30d": -1.1,
+      "slope": 0.006,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 85.1,
+      "last_score": 84.0
+    },
+    "spot_GOOGL": {
+      "score_now": 71.9,
+      "chg_7d": -1.6,
+      "chg_30d": -9.8,
+      "slope": -0.427,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 81.7,
+      "last_score": 71.9
+    },
+    "spot_TSLA": {
+      "score_now": 17.3,
+      "chg_7d": -2.6,
+      "chg_30d": -4.9,
+      "slope": -0.279,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 22.2,
+      "last_score": 17.3
+    },
+    "spot_CF": {
+      "score_now": 100.0,
+      "chg_7d": 4.8,
+      "chg_30d": 0.0,
+      "slope": -0.067,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 100.0,
+      "last_score": 100.0
+    },
+    "spot_NEM": {
+      "score_now": 99.1,
+      "chg_7d": 0.2,
+      "chg_30d": 1.4,
+      "slope": 0.037,
+      "trend": "stable",
+      "non_null_days": 30,
+      "first_score": 97.7,
+      "last_score": 99.1
+    },
+    "spot_EQT": {
+      "score_now": 98.5,
+      "chg_7d": 5.2,
+      "chg_30d": 21.7,
+      "slope": 0.839,
+      "trend": "rising",
+      "non_null_days": 30,
+      "first_score": 76.8,
+      "last_score": 98.5
+    },
+    "spot_INCY": {
+      "score_now": 90.5,
+      "chg_7d": 6.3,
+      "chg_30d": 17.0,
+      "slope": 0.687,
+      "trend": "rising",
+      "non_null_days": 30,
+      "first_score": 73.5,
+      "last_score": 90.5
+    },
+    "snapshots": {
+      "total_count": 30,
+      "oldest": "screener/snapshots/2026-04-12.json",
+      "newest": "screener/snapshots/2026-05-11.json"
+    },
+    "page": {
+      "status": 200,
+      "size_kb": 96.2,
+      "has_rising_tab": true,
+      "has_fading_tab": true,
+      "has_history_modal": true,
+      "has_score_spark": true,
+      "has_trend_badge": true,
+      "has_history_url": true,
+      "has_load_history": true,
+      "has_open_history": true,
+      "has_draw_chart": true,
+      "has_30d_trend_col": true
+    },
+    "log_relevant": [
+      {
+        "ts": 1778506625029,
+        "msg": "=== DONE: 503 stocks in 407.7s ==="
+      },
+      {
+        "ts": 1778506625458,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778506625525,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778506625569,
+        "msg": "[just-crossed] 300 events written"
+      },
+      {
+        "ts": 1778506625596,
+        "msg": "[history] aggregating 2 snapshots: 2026-05-10 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778506625705,
+        "msg": "[history] wrote 156.4 KB \u00b7 503 symbols \u00d7 2 days \u00b7 rising=0 falling=0"
+      },
+      {
+        "ts": 1778507417707,
+        "msg": "=== DONE: 503 stocks in 384.4s ==="
+      },
+      {
+        "ts": 1778507418119,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778507418240,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778507418307,
+        "msg": "[just-crossed] 306 events written"
+      },
+      {
+        "ts": 1778507418337,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778507421121,
+        "msg": "[history] wrote 618.8 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=104 falling=109"
+      }
+    ]
+  },
+  "finished": "2026-05-11T14:15:27.390662+00:00"
+}
