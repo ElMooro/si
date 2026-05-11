@@ -1,0 +1,83 @@
+{
+  "started": "2026-05-11T17:31:26.842502+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T17:29:27.000+0000",
+      "code_size": 3313,
+      "memory": 512
+    },
+    "s3_cache": "not_yet_created",
+    "invoke": {
+      "statusCode": 200,
+      "n_deals": 316,
+      "n_profiles": 60,
+      "elapsed_seconds": 0.9,
+      "generated_at": "2026-05-11T17:31:35.702228+00:00",
+      "top_sectors": [
+        {
+          "sector": "Unknown",
+          "count": 282
+        },
+        {
+          "sector": "Financial Services",
+          "count": 19
+        },
+        {
+          "sector": "Industrials",
+          "count": 3
+        },
+        {
+          "sector": "Technology",
+          "count": 3
+        },
+        {
+          "sector": "Real Estate",
+          "count": 2
+        },
+        {
+          "sector": "Consumer Cyclical",
+          "count": 2
+        }
+      ],
+      "top_acquirers": [
+        {
+          "symbol": "GBCI",
+          "count": 3,
+          "name": null,
+          "sector": null
+        },
+        {
+          "symbol": "CVX",
+          "count": 3,
+          "name": null,
+          "sector": null
+        },
+        {
+          "symbol": "TPTA",
+          "count": 2,
+          "name": "Terra Property Trust, Inc. 6.00",
+          "sector": "Real Estate"
+        },
+        {
+          "symbol": "FMBH",
+          "count": 2,
+          "name": "First Mid Bancshares, Inc.",
+          "sector": "Financial Services"
+        },
+        {
+          "symbol": "FSUN",
+          "count": 2,
+          "name": "FirstSun Capital Bancorp",
+          "sector": "Financial Services"
+        },
+        {
+          "symbol": "MPB",
+          "count": 2,
+          "name": "Mid Penn Bancorp, Inc.",
+          "sector": "Financial Services"
+        }
+      ]
+    }
+  },
+  "finished": "2026-05-11T17:31:36.124576+00:00"
+}
