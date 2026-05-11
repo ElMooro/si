@@ -1,0 +1,903 @@
+{
+  "started": "2026-05-11T15:00:29.540621+00:00",
+  "test": {
+    "data": {
+      "generated_at": "2026-05-11T14:48:15.458871+00:00",
+      "size_kb": 1404.4,
+      "n_stocks": 503,
+      "elapsed_seconds": 326.3
+    },
+    "coverage": {
+      "politicalBuyersN90d": 503,
+      "politicalNet90dUsd": 503,
+      "politicalSignal": 503,
+      "senateBuysN90d": 503,
+      "houseBuysN90d": 503,
+      "priceTargetMean": 499,
+      "priceTargetUpsidePct": 499,
+      "priceTargetCount30d": 499,
+      "gradesConsensus": 502,
+      "gradesScore": 502,
+      "upgradeNet30d": 503,
+      "upgradeNet90d": 503,
+      "dcfFairValue": 503,
+      "dcfUpsidePct": 503,
+      "esgRating": 502,
+      "esgScoreNumeric": 204
+    },
+    "top_political": [
+      {
+        "sym": "MSFT",
+        "name": "Microsoft Corporation",
+        "sector": "Technology",
+        "buyers": 8,
+        "senate": 5,
+        "house": 8,
+        "net_usd": 921506.0,
+        "signal": "buying",
+        "score": 70.7,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "GOOGL",
+        "name": "Alphabet Inc.",
+        "sector": "Communication Services",
+        "buyers": 5,
+        "senate": 1,
+        "house": 5,
+        "net_usd": 64502.0,
+        "signal": "buying",
+        "score": 70.9,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "UNH",
+        "name": "UnitedHealth Group Incor",
+        "sector": "Healthcare",
+        "buyers": 5,
+        "senate": 1,
+        "house": 5,
+        "net_usd": 139503.0,
+        "signal": "buying",
+        "score": 59.2,
+        "bucket": null
+      },
+      {
+        "sym": "AMZN",
+        "name": "Amazon.com, Inc.",
+        "sector": "Consumer Cyclical",
+        "buyers": 4,
+        "senate": 1,
+        "house": 5,
+        "net_usd": 16500.0,
+        "signal": "neutral",
+        "score": 45.4,
+        "bucket": null
+      },
+      {
+        "sym": "HD",
+        "name": "The Home Depot, Inc.",
+        "sector": "Consumer Cyclical",
+        "buyers": 4,
+        "senate": 0,
+        "house": 5,
+        "net_usd": 24002.0,
+        "signal": "buying",
+        "score": 43.0,
+        "bucket": null
+      },
+      {
+        "sym": "NOW",
+        "name": "ServiceNow, Inc.",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 0,
+        "house": 3,
+        "net_usd": 24002.0,
+        "signal": "buying",
+        "score": 58.5,
+        "bucket": null
+      },
+      {
+        "sym": "AVGO",
+        "name": "Broadcom Inc.",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 0,
+        "house": 3,
+        "net_usd": -48502.0,
+        "signal": "selling",
+        "score": 66.3,
+        "bucket": null
+      },
+      {
+        "sym": "ACN",
+        "name": "Accenture plc",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 2,
+        "house": 2,
+        "net_usd": -350500.0,
+        "signal": "selling",
+        "score": 75.2,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "MU",
+        "name": "Micron Technology, Inc.",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 1,
+        "house": 2,
+        "net_usd": 16001.0,
+        "signal": "neutral",
+        "score": 75.6,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "AAPL",
+        "name": "Apple Inc.",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 1,
+        "house": 2,
+        "net_usd": -56502.0,
+        "signal": "selling",
+        "score": 50.5,
+        "bucket": null
+      },
+      {
+        "sym": "AXP",
+        "name": "American Express Company",
+        "sector": "Financial Services",
+        "buyers": 3,
+        "senate": 1,
+        "house": 2,
+        "net_usd": 40501.0,
+        "signal": "buying",
+        "score": 47.2,
+        "bucket": null
+      },
+      {
+        "sym": "WFC",
+        "name": "Wells Fargo & Company",
+        "sector": "Financial Services",
+        "buyers": 3,
+        "senate": 4,
+        "house": 1,
+        "net_usd": 7502.0,
+        "signal": "neutral",
+        "score": 29.1,
+        "bucket": null
+      },
+      {
+        "sym": "IBM",
+        "name": "International Business M",
+        "sector": "Technology",
+        "buyers": 3,
+        "senate": 0,
+        "house": 3,
+        "net_usd": -50500.0,
+        "signal": "neutral",
+        "score": 54.8,
+        "bucket": null
+      },
+      {
+        "sym": "CEG",
+        "name": "Constellation Energy Cor",
+        "sector": "Utilities",
+        "buyers": 2,
+        "senate": 2,
+        "house": 0,
+        "net_usd": 8000.0,
+        "signal": "buying",
+        "score": 33.5,
+        "bucket": null
+      },
+      {
+        "sym": "CARR",
+        "name": "Carrier Global Corporati",
+        "sector": "Industrials",
+        "buyers": 2,
+        "senate": 0,
+        "house": 3,
+        "net_usd": 48502.0,
+        "signal": "buying",
+        "score": 23.3,
+        "bucket": null
+      }
+    ],
+    "top_target_upside": [
+      {
+        "sym": "CVNA",
+        "name": "Carvana Co.",
+        "sector": "Consumer Cyclical",
+        "price": 74.72,
+        "target": 456.46,
+        "upside_pct": 510.9,
+        "consensus": "Buy",
+        "score": 46.1,
+        "bucket": null
+      },
+      {
+        "sym": "CSGP",
+        "name": "CoStar Group, Inc.",
+        "sector": "Real Estate",
+        "price": 32.7737,
+        "target": 61.18,
+        "upside_pct": 86.7,
+        "consensus": "Buy",
+        "score": 50.6,
+        "bucket": null
+      },
+      {
+        "sym": "TSCO",
+        "name": "Tractor Supply Company",
+        "sector": "Consumer Cyclical",
+        "price": 30.4837,
+        "target": 54.73,
+        "upside_pct": 79.5,
+        "consensus": "Buy",
+        "score": 36.1,
+        "bucket": null
+      },
+      {
+        "sym": "VEEV",
+        "name": "Veeva Systems Inc.",
+        "sector": "Healthcare",
+        "price": 163.46,
+        "target": 280.1,
+        "upside_pct": 71.4,
+        "consensus": "Buy",
+        "score": 52.6,
+        "bucket": null
+      },
+      {
+        "sym": "CHTR",
+        "name": "Charter Communications, ",
+        "sector": "Communication Services",
+        "price": 151.3098,
+        "target": 259.25,
+        "upside_pct": 71.3,
+        "consensus": "Buy",
+        "score": 49.7,
+        "bucket": null
+      },
+      {
+        "sym": "BSX",
+        "name": "Boston Scientific Corpor",
+        "sector": "Healthcare",
+        "price": 53.63,
+        "target": 91.33,
+        "upside_pct": 70.3,
+        "consensus": "Buy",
+        "score": 75.0,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "ACN",
+        "name": "Accenture plc",
+        "sector": "Technology",
+        "price": 176.855,
+        "target": 299.92,
+        "upside_pct": 69.6,
+        "consensus": "Buy",
+        "score": 75.2,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "INTU",
+        "name": "Intuit Inc.",
+        "sector": "Technology",
+        "price": 395.1102,
+        "target": 666.75,
+        "upside_pct": 68.8,
+        "consensus": "Buy",
+        "score": 73.0,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "AXON",
+        "name": "Axon Enterprise, Inc.",
+        "sector": "Industrials",
+        "price": 388.34,
+        "target": 653.89,
+        "upside_pct": 68.4,
+        "consensus": "Buy",
+        "score": 11.7,
+        "bucket": null
+      },
+      {
+        "sym": "NOW",
+        "name": "ServiceNow, Inc.",
+        "sector": "Technology",
+        "price": 91.89,
+        "target": 154.08,
+        "upside_pct": 67.7,
+        "consensus": "Buy",
+        "score": 58.5,
+        "bucket": null
+      },
+      {
+        "sym": "ZTS",
+        "name": "Zoetis Inc.",
+        "sector": "Healthcare",
+        "price": 79.69,
+        "target": 133.57,
+        "upside_pct": 67.6,
+        "consensus": "Hold",
+        "score": 60.1,
+        "bucket": null
+      },
+      {
+        "sym": "LULU",
+        "name": "Lululemon Athletica Inc.",
+        "sector": "Consumer Cyclical",
+        "price": 127.95,
+        "target": 209.14,
+        "upside_pct": 63.5,
+        "consensus": "Hold",
+        "score": 59.2,
+        "bucket": null
+      },
+      {
+        "sym": "EPAM",
+        "name": "EPAM Systems, Inc.",
+        "sector": "Technology",
+        "price": 96.73,
+        "target": 158.0,
+        "upside_pct": 63.3,
+        "consensus": "Buy",
+        "score": 81.4,
+        "bucket": "PREMIUM"
+      },
+      {
+        "sym": "CTSH",
+        "name": "Cognizant Technology Sol",
+        "sector": "Technology",
+        "price": 50.4499,
+        "target": 81.75,
+        "upside_pct": 62.0,
+        "consensus": "Hold",
+        "score": 70.1,
+        "bucket": "QUALITY"
+      },
+      {
+        "sym": "APTV",
+        "name": "Aptiv PLC",
+        "sector": "Consumer Cyclical",
+        "price": 56.24,
+        "target": 90.89,
+        "upside_pct": 61.6,
+        "consensus": "Buy",
+        "score": 46.4,
+        "bucket": null
+      }
+    ],
+    "top_dcf_value": [
+      {
+        "sym": "CMCSA",
+        "name": "Comcast Corporation",
+        "sector": "Communication Services",
+        "price": 25.235,
+        "dcf": 394.59,
+        "upside_pct": 1463.7,
+        "score": 59.7,
+        "bucket": null
+      },
+      {
+        "sym": "T",
+        "name": "AT&T Inc.",
+        "sector": "Communication Services",
+        "price": 24.95,
+        "dcf": 307.24,
+        "upside_pct": 1131.4,
+        "score": 59.9,
+        "bucket": null
+      },
+      {
+        "sym": "EIX",
+        "name": "Edison International",
+        "sector": "Utilities",
+        "price": 70.3,
+        "dcf": 783.79,
+        "upside_pct": 1014.9,
+        "score": 67.9,
+        "bucket": null
+      },
+      {
+        "sym": "GEN",
+        "name": "Gen Digital Inc.",
+        "sector": "Technology",
+        "price": 22.085,
+        "dcf": 243.3,
+        "upside_pct": 1001.7,
+        "score": 86.9,
+        "bucket": "PREMIUM"
+      },
+      {
+        "sym": "BDX",
+        "name": "Becton, Dickinson and Co",
+        "sector": "Healthcare",
+        "price": 146.64,
+        "dcf": 1456.16,
+        "upside_pct": 893.0,
+        "score": 57.7,
+        "bucket": null
+      },
+      {
+        "sym": "EXE",
+        "name": "Expand Energy Corporatio",
+        "sector": "Energy",
+        "price": 96.89,
+        "dcf": 868.27,
+        "upside_pct": 796.1,
+        "score": 85.2,
+        "bucket": "PREMIUM"
+      },
+      {
+        "sym": "ARE",
+        "name": "Alexandria Real Estate E",
+        "sector": "Real Estate",
+        "price": 46.25,
+        "dcf": 346.44,
+        "upside_pct": 649.1,
+        "score": 14.8,
+        "bucket": null
+      },
+      {
+        "sym": "WBD",
+        "name": "Warner Bros. Discovery, ",
+        "sector": "Communication Services",
+        "price": 27.2414,
+        "dcf": 199.71,
+        "upside_pct": 633.1,
+        "score": 37.7,
+        "bucket": null
+      },
+      {
+        "sym": "CI",
+        "name": "Cigna Corporation",
+        "sector": "Healthcare",
+        "price": 289.255,
+        "dcf": 2112.15,
+        "upside_pct": 630.2,
+        "score": 80.7,
+        "bucket": "PREMIUM"
+      },
+      {
+        "sym": "ZBH",
+        "name": "Zimmer Biomet Holdings, ",
+        "sector": "Healthcare",
+        "price": 81.1,
+        "dcf": 585.97,
+        "upside_pct": 622.5,
+        "score": 61.9,
+        "bucket": null
+      },
+      {
+        "sym": "CHTR",
+        "name": "Charter Communications, ",
+        "sector": "Communication Services",
+        "price": 151.3098,
+        "dcf": 1055.87,
+        "upside_pct": 597.8,
+        "score": 49.7,
+        "bucket": null
+      },
+      {
+        "sym": "FISV",
+        "name": "Fiserv, Inc.",
+        "sector": "Technology",
+        "price": 54.4993,
+        "dcf": 333.88,
+        "upside_pct": 512.6,
+        "score": 68.9,
+        "bucket": null
+      },
+      {
+        "sym": "CFG",
+        "name": "Citizens Financial Group",
+        "sector": "Financial Services",
+        "price": 63.08,
+        "dcf": 325.81,
+        "upside_pct": 416.5,
+        "score": 63.0,
+        "bucket": null
+      },
+      {
+        "sym": "VICI",
+        "name": "VICI Properties Inc.",
+        "sector": "Real Estate",
+        "price": 28.785,
+        "dcf": 147.8,
+        "upside_pct": 413.5,
+        "score": 65.2,
+        "bucket": null
+      },
+      {
+        "sym": "BMY",
+        "name": "Bristol-Myers Squibb Com",
+        "sector": "Healthcare",
+        "price": 56.225,
+        "dcf": 286.86,
+        "upside_pct": 410.2,
+        "score": 67.4,
+        "bucket": null
+      }
+    ],
+    "top_upgrades": [
+      {
+        "sym": "TMUS",
+        "name": "T-Mobile US, Inc.",
+        "up_net_30d": 3,
+        "up_net_90d": 4,
+        "consensus": "Buy",
+        "score": 55.7,
+        "bucket": null
+      },
+      {
+        "sym": "BIIB",
+        "name": "Biogen Inc.",
+        "up_net_30d": 3,
+        "up_net_90d": 3,
+        "consensus": "Buy",
+        "score": 68.1,
+        "bucket": null
+      },
+      {
+        "sym": "TXN",
+        "name": "Texas Instruments Incorp",
+        "up_net_30d": 3,
+        "up_net_90d": 4,
+        "consensus": "Buy",
+        "score": 40.1,
+        "bucket": null
+      },
+      {
+        "sym": "CRWD",
+        "name": "CrowdStrike Holdings, In",
+        "up_net_30d": 2,
+        "up_net_90d": 6,
+        "consensus": "Buy",
+        "score": 47.5,
+        "bucket": null
+      },
+      {
+        "sym": "ABNB",
+        "name": "Airbnb, Inc.",
+        "up_net_30d": 2,
+        "up_net_90d": 5,
+        "consensus": "Buy",
+        "score": 43.2,
+        "bucket": null
+      },
+      {
+        "sym": "AMD",
+        "name": "Advanced Micro Devices, ",
+        "up_net_30d": 2,
+        "up_net_90d": 2,
+        "consensus": "Buy",
+        "score": 55.0,
+        "bucket": null
+      },
+      {
+        "sym": "CNC",
+        "name": "Centene Corporation",
+        "up_net_30d": 2,
+        "up_net_90d": 2,
+        "consensus": "Buy",
+        "score": 59.0,
+        "bucket": null
+      },
+      {
+        "sym": "WTW",
+        "name": "Willis Towers Watson Pub",
+        "up_net_30d": 2,
+        "up_net_90d": 3,
+        "consensus": "Buy",
+        "score": 48.8,
+        "bucket": null
+      },
+      {
+        "sym": "BEN",
+        "name": "Franklin Resources, Inc.",
+        "up_net_30d": 2,
+        "up_net_90d": 2,
+        "consensus": "Hold",
+        "score": 43.5,
+        "bucket": null
+      },
+      {
+        "sym": "INTC",
+        "name": "Intel Corporation",
+        "up_net_30d": 2,
+        "up_net_90d": 2,
+        "consensus": "Hold",
+        "score": 13.3,
+        "bucket": null
+      },
+      {
+        "sym": "CL",
+        "name": "Colgate-Palmolive Compan",
+        "up_net_30d": 2,
+        "up_net_90d": 3,
+        "consensus": "Hold",
+        "score": 47.5,
+        "bucket": null
+      },
+      {
+        "sym": "IP",
+        "name": "International Paper Comp",
+        "up_net_30d": 2,
+        "up_net_90d": 3,
+        "consensus": "Buy",
+        "score": 39.9,
+        "bucket": null
+      },
+      {
+        "sym": "CRH",
+        "name": "CRH plc",
+        "up_net_30d": 1,
+        "up_net_90d": 1,
+        "consensus": "Buy",
+        "score": 56.5,
+        "bucket": null
+      },
+      {
+        "sym": "FIX",
+        "name": "Comfort Systems USA, Inc",
+        "up_net_30d": 1,
+        "up_net_90d": 1,
+        "consensus": "Buy",
+        "score": 48.1,
+        "bucket": null
+      },
+      {
+        "sym": "SNDK",
+        "name": "Sandisk Corporation",
+        "up_net_30d": 1,
+        "up_net_90d": 1,
+        "consensus": "Buy",
+        "score": 51.2,
+        "bucket": null
+      }
+    ],
+    "spot_AAPL": {
+      "stealScore": 50.5,
+      "bucket": null,
+      "politicalBuyers": 3,
+      "politicalSignal": "selling",
+      "targetUpside": 9.1,
+      "gradesConsensus": "Buy",
+      "gradesScore": 29.1,
+      "upgrades30d": 1,
+      "downgrades30d": 0,
+      "dcfFairValue": 163.19,
+      "dcfUpsidePct": -44.3,
+      "esgRating": "B"
+    },
+    "spot_NVDA": {
+      "stealScore": 73.0,
+      "bucket": "QUALITY",
+      "politicalBuyers": 1,
+      "politicalSignal": "selling",
+      "targetUpside": 25.7,
+      "gradesConsensus": "Buy",
+      "gradesScore": 37.3,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 247.15,
+      "dcfUpsidePct": 12.7,
+      "esgRating": "B+"
+    },
+    "spot_META": {
+      "stealScore": 79.1,
+      "bucket": "QUALITY",
+      "politicalBuyers": 1,
+      "politicalSignal": "neutral",
+      "targetUpside": 36.5,
+      "gradesConsensus": "Buy",
+      "gradesScore": 40.8,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 289.06,
+      "dcfUpsidePct": -52.0,
+      "esgRating": "C-"
+    },
+    "spot_GOOGL": {
+      "stealScore": 70.9,
+      "bucket": "QUALITY",
+      "politicalBuyers": 5,
+      "politicalSignal": "buying",
+      "targetUpside": 3.1,
+      "gradesConsensus": "Buy",
+      "gradesScore": 43.3,
+      "upgrades30d": 0,
+      "downgrades30d": 1,
+      "dcfFairValue": 132.77,
+      "dcfUpsidePct": -66.3,
+      "esgRating": "B"
+    },
+    "spot_TSLA": {
+      "stealScore": 0.0,
+      "bucket": null,
+      "politicalBuyers": 0,
+      "politicalSignal": "neutral",
+      "targetUpside": 7.7,
+      "gradesConsensus": "Hold",
+      "gradesScore": 9.3,
+      "upgrades30d": 1,
+      "downgrades30d": 0,
+      "dcfFairValue": 19.03,
+      "dcfUpsidePct": -95.4,
+      "esgRating": "B"
+    },
+    "spot_CF": {
+      "stealScore": 86.9,
+      "bucket": "PREMIUM",
+      "politicalBuyers": 0,
+      "politicalSignal": "neutral",
+      "targetUpside": -9.2,
+      "gradesConsensus": "Buy",
+      "gradesScore": 17.1,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 341.67,
+      "dcfUpsidePct": 183.4,
+      "esgRating": "B-"
+    },
+    "spot_NEM": {
+      "stealScore": 97.4,
+      "bucket": "STEAL",
+      "politicalBuyers": 0,
+      "politicalSignal": "neutral",
+      "targetUpside": 14.3,
+      "gradesConsensus": "Buy",
+      "gradesScore": 37.5,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 256.57,
+      "dcfUpsidePct": 113.2,
+      "esgRating": "B+"
+    },
+    "spot_EQT": {
+      "stealScore": 100.0,
+      "bucket": "STEAL",
+      "politicalBuyers": 1,
+      "politicalSignal": "buying",
+      "targetUpside": -26.9,
+      "gradesConsensus": "Buy",
+      "gradesScore": 33.3,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 241.67,
+      "dcfUpsidePct": 329.9,
+      "esgRating": "B"
+    },
+    "spot_INCY": {
+      "stealScore": 74.9,
+      "bucket": "QUALITY",
+      "politicalBuyers": 0,
+      "politicalSignal": "neutral",
+      "targetUpside": 7.4,
+      "gradesConsensus": "Buy",
+      "gradesScore": 23.9,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 127.19,
+      "dcfUpsidePct": 24.7,
+      "esgRating": "B-"
+    },
+    "spot_MSFT": {
+      "stealScore": 70.7,
+      "bucket": "QUALITY",
+      "politicalBuyers": 8,
+      "politicalSignal": "buying",
+      "targetUpside": 35.8,
+      "gradesConsensus": "Buy",
+      "gradesScore": 40.1,
+      "upgrades30d": 0,
+      "downgrades30d": 0,
+      "dcfFairValue": 320.01,
+      "dcfUpsidePct": -21.9,
+      "esgRating": "B"
+    },
+    "spot_PLTR": {
+      "stealScore": 37.0,
+      "bucket": null,
+      "politicalBuyers": 0,
+      "politicalSignal": "selling",
+      "targetUpside": 41.4,
+      "gradesConsensus": "Buy",
+      "gradesScore": 13.5,
+      "upgrades30d": 1,
+      "downgrades30d": 1,
+      "dcfFairValue": 10.8,
+      "dcfUpsidePct": -92.0,
+      "esgRating": "B"
+    },
+    "spot_INTC": {
+      "stealScore": 13.3,
+      "bucket": null,
+      "politicalBuyers": 0,
+      "politicalSignal": "neutral",
+      "targetUpside": -37.2,
+      "gradesConsensus": "Hold",
+      "gradesScore": 12.5,
+      "upgrades30d": 3,
+      "downgrades30d": 1,
+      "dcfFairValue": 2.94,
+      "dcfUpsidePct": -97.7,
+      "esgRating": "A-"
+    },
+    "steal_dist": {
+      "n_scored": 503,
+      "ge_90": 3,
+      "ge_80": 12,
+      "ge_70": 39,
+      "max": 100.0,
+      "min": 0.0,
+      "mean": 48.2
+    },
+    "log_relevant": [
+      {
+        "ts": 1778507417707,
+        "msg": "=== DONE: 503 stocks in 384.4s ==="
+      },
+      {
+        "ts": 1778507418119,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778507418240,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778507418307,
+        "msg": "[just-crossed] 306 events written"
+      },
+      {
+        "ts": 1778507418337,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778507421121,
+        "msg": "[history] wrote 618.8 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=104 falling=109"
+      },
+      {
+        "ts": 1778507421129,
+        "msg": "REPORT RequestId: 6805e6b9-b8d2-441b-9039-eb2dd2a34dc5\tDuration: 387837.82 ms\tBilled Duration: 388385 ms\tMemory Size: 512 MB\tMax Memory Used: 108 MB\tInit Duration: 546.91 ms"
+      },
+      {
+        "ts": 1778510895380,
+        "msg": "=== DONE: 503 stocks in 326.3s ==="
+      },
+      {
+        "ts": 1778510895917,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778510896030,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778510896130,
+        "msg": "[just-crossed] 949 events written"
+      },
+      {
+        "ts": 1778510896173,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778510899291,
+        "msg": "[history] wrote 619.4 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=76 falling=269"
+      },
+      {
+        "ts": 1778510899300,
+        "msg": "REPORT RequestId: cb9e363d-90f0-4e98-ac9b-c10d1a1c45eb\tDuration: 330256.30 ms\tBilled Duration: 330775 ms\tMemory Size: 512 MB\tMax Memory Used: 111 MB\tInit Duration: 517.89 ms"
+      }
+    ]
+  },
+  "finished": "2026-05-11T15:00:37.911667+00:00"
+}
