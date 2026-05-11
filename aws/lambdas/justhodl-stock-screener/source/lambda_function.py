@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 1  # was 2 → 1 after adding institutional + insider + surprises endpoints. 9 calls/stock × 503 stocks = 4.5k calls. At ~10 req/sec we finish in ~7.5min, comfortably under FMP's 750/min limit.
+WORKERS  = 2  # 6 endpoints/stock × 503 stocks = ~3k calls per run. At FMP Premium's 750/min, that's ~4min total. Comfortable.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -176,14 +176,15 @@ def get_stock_data(symbol):
     # Kings tabs (we previously only had margins, not totals).
     income  = fmp("income-statement",    f"&symbol={symbol}&limit=3&period=annual")
     cashflow= fmp("cash-flow-statement", f"&symbol={symbol}&limit=3&period=annual")
-    # ── STAGE 2 ADDS (2026-05-11) ─────────────────────────────
-    # Institutional 13F ownership (latest 2 quarters to detect QoQ change)
-    inst    = fmp("institutional-ownership/symbol-positions-summary",
-                  f"&symbol={symbol}&limit=2")
-    # Insider trades — recent transactions (Form 4); we read most recent 50
-    insider = fmp("insider-trading", f"&symbol={symbol}&limit=50")
-    # Analyst earnings estimates + surprises
-    surprises = fmp("earnings-surprises", f"&symbol={symbol}&limit=8")
+    # ── STAGE 2 ADDS — TEMPORARILY DISABLED 2026-05-11 ─────────────
+    # institutional-ownership requires FMP Pro tier (HTTP 402 on Premium).
+    # insider-trading + earnings-surprises endpoint paths returned 404 on
+    # the /stable/ namespace — need to probe correct paths separately.
+    # Returning None keeps the Stage 2 page UI present but with empty rows
+    # in the corresponding tabs until we wire up the correct endpoints.
+    inst = None
+    insider = None
+    surprises = None
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.

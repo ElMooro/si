@@ -512,17 +512,32 @@ async function loadMacro(){
       fetch(LCE_URL+'?t='+Date.now()).catch(()=>null),
       fetch(GBC_URL+'?t='+Date.now()).catch(()=>null),
     ]);
-    const lce = lceRes && lceRes.ok ? await lceRes.json() : null;
-    const gbc = gbcRes && gbcRes.ok ? await gbcRes.json() : null;
-    // Extract posture + phase from whatever shape these JSON files use
-    const posture = (lce && (lce.posture || lce.regime || lce.current_posture || (lce.summary&&lce.summary.posture))) || null;
-    const phase = (gbc && (gbc.global_phase || gbc.phase)) || null;
-    // Build merged favored-sector list (intersection prioritized first)
+    const lce = lceRes && lceRes.ok ? await lceRes.json().catch(()=>null) : null;
+    const gbc = gbcRes && gbcRes.ok ? await gbcRes.json().catch(()=>null) : null;
+    // LCE schema can vary across versions of the engine — try multiple paths
+    const posture = (lce && (
+      lce.posture || lce.regime || lce.current_posture ||
+      (lce.summary && lce.summary.posture) ||
+      (lce.snapshot && lce.snapshot.posture) ||
+      (lce.current && lce.current.posture)
+    )) || null;
+    // GBC: correct path is aggregate.global_phase (confirmed via step-409 probe)
+    const phase = (gbc && (
+      (gbc.aggregate && gbc.aggregate.global_phase) ||
+      gbc.global_phase || gbc.phase ||
+      (gbc.summary && gbc.summary.phase)
+    )) || null;
+    // GBC also has rich interpretation.decisive_call we can display
+    const decisive = (gbc && gbc.interpretation && gbc.interpretation.decisive_call) || null;
+
+    // Build favored-sector list from whichever feed we have
     const postureList = SECTOR_TILT_MAP[posture] || [];
     const phaseList = PHASE_TILT_MAP[phase] || [];
     const intersection = postureList.filter(s=>phaseList.includes(s));
     const union = [...new Set([...intersection, ...postureList, ...phaseList])].slice(0,5);
-    MACRO = {posture, phase, favored_sectors: union, lce_raw: lce, gbc_raw: gbc};
+
+    MACRO = {posture, phase, decisive_call: decisive,
+              favored_sectors: union, lce_raw: lce, gbc_raw: gbc};
     renderMacroPanel();
   }catch(e){console.warn('Macro load failed:',e);}
 }
@@ -535,12 +550,21 @@ function renderMacroPanel(){
   if(MACRO.posture){
     lceEl.textContent=MACRO.posture.replace(/_/g,' ');
     lceEl.className='macro-val posture-'+MACRO.posture;
-  }else{lceEl.textContent='—';}
+  }else{
+    lceEl.textContent='offline';
+    lceEl.className='macro-val';
+    lceEl.style.color='var(--text2)';
+  }
   if(MACRO.phase){
     gbcEl.textContent=MACRO.phase.replace(/GLOBAL_/,'').replace(/_/g,' ');
     gbcEl.className='macro-val phase-'+MACRO.phase;
   }else{gbcEl.textContent='—';}
   secEl.textContent=MACRO.favored_sectors.length?MACRO.favored_sectors.join(' · '):'—';
+  // Show decisive call tooltip on hover if available
+  if(MACRO.decisive_call){
+    wrap.title=MACRO.decisive_call;
+  }
+  // Show the panel if EITHER feed is available
   if(MACRO.posture||MACRO.phase)wrap.style.display='block';
 }
 let macroTiltOn=false;
