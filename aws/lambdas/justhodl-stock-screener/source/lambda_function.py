@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 1  # 14 endpoints/stock × 503 stocks = ~7k calls. At Premium 750/min ≈ 9.5min. At Ultimate 3000/min ≈ 2.4min. After upgrade we should bump to WORKERS=3.
+WORKERS  = 3  # Ultimate tier (3000/min). 18 endpoints/stock × 503 = ~9k calls. At 3000/min ≈ 3 min. Headroom for retries.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -163,6 +163,42 @@ def get_bulk_price_changes(symbols):
                 result[item["symbol"]] = item
     return result
 
+
+# ── STAGE 10: Find the latest available 13F quarter — cached per Lambda invoke
+# 13Fs filed quarterly with 45-day lag. As of May 2026: latest filed is Q4 2025
+# (filed by Feb 14, 2026), Q1 2026 starts filing by May 15. We try most recent
+# 4 quarters and stop at first one returning data.
+_LATEST_13F_QUARTER = None
+def get_latest_13f_quarter():
+    global _LATEST_13F_QUARTER
+    if _LATEST_13F_QUARTER is not None:
+        return _LATEST_13F_QUARTER
+    from datetime import datetime as _dt
+    now = _dt.now(timezone.utc)
+    # Build list of recent quarters (newest first)
+    quarters = []
+    y, m = now.year, now.month
+    cur_q = (m - 1) // 3 + 1
+    for _ in range(6):
+        quarters.append((y, cur_q))
+        cur_q -= 1
+        if cur_q < 1:
+            cur_q = 4
+            y -= 1
+    # Probe for first quarter that returns data (use a heavy-coverage ticker)
+    for y, q in quarters:
+        try:
+            test = fmp("institutional-ownership/symbol-positions-summary",
+                          f"&symbol=AAPL&year={y}&quarter={q}", max_retries=1)
+            if isinstance(test, list) and test:
+                _LATEST_13F_QUARTER = (y, q)
+                print(f"[inst] using 13F quarter Q{q} {y}")
+                return _LATEST_13F_QUARTER
+        except Exception:
+            continue
+    _LATEST_13F_QUARTER = (now.year - 1, 4)  # fallback
+    return _LATEST_13F_QUARTER
+
 # ── PER STOCK ─────────────────────────────────────
 def get_stock_data(symbol):
     profile = fmp("profile",          f"&symbol={symbol}")
@@ -177,8 +213,11 @@ def get_stock_data(symbol):
     income  = fmp("income-statement",    f"&symbol={symbol}&limit=3&period=annual")
     cashflow= fmp("cash-flow-statement", f"&symbol={symbol}&limit=3&period=annual")
     # ── STAGE 2 RE-WIRED 2026-05-11 ─────────────────────────────
-    # institutional-ownership: STILL DISABLED — requires FMP Pro tier (402)
-    inst = None
+    # STAGE 10 — Ultimate plan ACTIVATED 2026-05-11
+    # institutional-ownership now works with year+quarter params (Ultimate).
+    year_q, q_q = get_latest_13f_quarter()
+    inst = fmp("institutional-ownership/symbol-positions-summary",
+                  f"&symbol={symbol}&year={year_q}&quarter={q_q}")
     # insider-trading/search: confirmed working on Premium (probe step 411)
     insider = fmp("insider-trading/search", f"&symbol={symbol}&limit=50")
     # earnings: provides epsActual + epsEstimated; compute surprise % locally
@@ -196,6 +235,14 @@ def get_stock_data(symbol):
     grades_recent= fmp("grades",                  f"&symbol={symbol}")
     dcf_data    = fmp("discounted-cash-flow",     f"&symbol={symbol}")
     esg_data    = fmp("esg-ratings",              f"&symbol={symbol}")
+
+    # ── STAGE 10 ADDS — FMP Ultimate Activation ─────────────────
+    # Forward analyst estimates (annual + quarterly) for forward growth metrics
+    forward_est = fmp("analyst-estimates",       f"&symbol={symbol}&period=annual&limit=3")
+    # Share float — liquidity classification, free float pct
+    share_float = fmp("shares-float",             f"&symbol={symbol}")
+    # Key executives — for CEO pay + tenure tracking
+    exec_list   = fmp("key-executives",            f"&symbol={symbol}")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -589,6 +636,108 @@ def get_stock_data(symbol):
                      "B": 50, "CCC": 40, "CC": 30, "C": 20, "D": 10}
         esg_score_numeric = esg_map.get(esg_rating)
 
+    # ════════════════════════════════════════════════════════════════════
+    # STAGE 10 PARSERS — Institutional + Forward + Float + Executives
+    # ════════════════════════════════════════════════════════════════════
+
+    # ── INSTITUTIONAL OWNERSHIP (13F summary) ──
+    inst_investors_holding = None
+    inst_last_investors_holding = None
+    inst_investors_change = None
+    inst_investors_chg_pct = None
+    inst_13f_shares = None
+    inst_last_13f_shares = None
+    inst_shares_change_pct = None
+    inst_signal_real = None
+    inst_quarter_label = None
+    if isinstance(inst, list) and inst:
+        inst_rec = inst[0]
+        inst_investors_holding = inst_rec.get("investorsHolding")
+        inst_last_investors_holding = inst_rec.get("lastInvestorsHolding")
+        inst_investors_change = inst_rec.get("investorsHoldingChange")
+        if (inst_investors_holding and inst_last_investors_holding
+                and inst_last_investors_holding > 0):
+            inst_investors_chg_pct = round(
+                ((inst_investors_holding - inst_last_investors_holding) /
+                 inst_last_investors_holding) * 100, 2)
+        inst_13f_shares = inst_rec.get("numberOf13Fshares")
+        inst_last_13f_shares = inst_rec.get("lastNumberOf13Fshares")
+        if (inst_13f_shares and inst_last_13f_shares
+                and inst_last_13f_shares > 0):
+            inst_shares_change_pct = round(
+                ((inst_13f_shares - inst_last_13f_shares) /
+                 inst_last_13f_shares) * 100, 2)
+        # Real institutional signal — based on QoQ changes
+        chg_pct = inst_shares_change_pct or 0
+        inv_chg_pct = inst_investors_chg_pct or 0
+        if chg_pct > 2 or inv_chg_pct > 2:
+            inst_signal_real = "buying"
+        elif chg_pct < -2 or inv_chg_pct < -2:
+            inst_signal_real = "selling"
+        else:
+            inst_signal_real = "holding"
+        inst_quarter_label = f"Q{q_q} {year_q}"
+
+    # ── FORWARD ANALYST ESTIMATES (next-year revenue + EBITDA growth) ──
+    forward_revenue = None
+    forward_revenue_growth = None
+    forward_ebitda = None
+    forward_ebitda_growth = None
+    forward_pe = None
+    forward_year = None
+    if isinstance(forward_est, list) and forward_est:
+        # Estimates often span multiple years; find the next forward year vs today
+        from datetime import datetime as _dt3
+        cur_year = _dt3.now(timezone.utc).year
+        # Sort by date ascending; first record with date.year > cur_year is "next year"
+        sorted_est = sorted(forward_est, key=lambda x: x.get("date", ""))
+        forward_rec = None
+        for e in sorted_est:
+            ed = e.get("date", "")[:4]
+            if ed.isdigit() and int(ed) > cur_year:
+                forward_rec = e
+                break
+        if not forward_rec and sorted_est:
+            forward_rec = sorted_est[0]  # fallback to soonest
+        if forward_rec:
+            forward_revenue = sf(forward_rec.get("revenueAvg"))
+            forward_ebitda = sf(forward_rec.get("ebitdaAvg"))
+            forward_year = forward_rec.get("date", "")[:4]
+            # Forward growth vs current trailing revenue
+            current_rev = sf(p.get("revenue")) or sf(inc.get("revenue"))
+            if forward_revenue and current_rev and current_rev > 0:
+                forward_revenue_growth = round(
+                    ((forward_revenue - current_rev) / current_rev) * 100, 2)
+            # Forward P/E estimate using consensus EPS
+            forward_eps = sf(forward_rec.get("epsAvg"))
+            price_now = sf(p.get("price"))
+            if forward_eps and forward_eps > 0 and price_now:
+                forward_pe = round(price_now / forward_eps, 2)
+
+    # ── SHARE FLOAT ──
+    free_float_pct = None
+    float_shares = None
+    outstanding_shares = None
+    if isinstance(share_float, list) and share_float:
+        sfr = share_float[0]
+        free_float_pct = sf(sfr.get("freeFloat"))
+        float_shares = sf(sfr.get("floatShares"))
+        outstanding_shares = sf(sfr.get("outstandingShares"))
+
+    # ── KEY EXECUTIVES (CEO + tenure) ──
+    ceo_name = None
+    ceo_pay = None
+    n_executives = None
+    if isinstance(exec_list, list) and exec_list:
+        n_executives = len(exec_list)
+        # Find the CEO record
+        for e in exec_list:
+            title = (e.get("title") or "").lower()
+            if "chief executive officer" in title or "ceo" in title.split():
+                ceo_name = e.get("name")
+                ceo_pay = sf(e.get("pay"))
+                break
+
     return {
         "symbol":          symbol,
         "name":            p.get("companyName",""),
@@ -622,10 +771,20 @@ def get_stock_data(symbol):
         # Scores
         "piotroski":       score,
         "altmanZ":         altman_z,
-        # Institutional (derived)
-        "instSignal":      inst_signal,
-        "instHolders":     None,
-        "instChgPct":      None,
+        # Institutional (Stage 10: real 13F data)
+        "instSignal":               inst_signal_real or inst_signal,
+        "instInvestorsHolding":     inst_investors_holding,
+        "instLastInvestorsHolding": inst_last_investors_holding,
+        "instInvestorsChange":      inst_investors_change,
+        "instInvestorsChgPct":      inst_investors_chg_pct,
+        "inst13fShares":            inst_13f_shares,
+        "instSharesChangePct":      inst_shares_change_pct,
+        # QoQ change in institutional shares is the KEY metric for
+        # the 🐋 Hedge Fund Bought + 🏦 Institution-Accumulated tabs
+        "instQoQChgPct":            inst_shares_change_pct,
+        "instHolders":              inst_investors_holding,  # alias for page
+        "instChgPct":               inst_investors_chg_pct,  # alias for page
+        "instQuarter":              inst_quarter_label,
         # Technical — SMAs + cross detection (added 2026-04-25)
         "sma50":           compute_sma(closes, 50),
         "sma200":          compute_sma(closes, 200),
@@ -709,6 +868,21 @@ def get_stock_data(symbol):
         "esgRating":             esg_rating,             # letter grade (AAA, AA, A, BBB, ...)
         "esgScoreNumeric":       esg_score_numeric,      # 10-100 for sorting/filtering
         "esgIndustryRank":       esg_industry_rank,      # "4 out of 6" style string
+        # ── STAGE 10 ─────────────────────────────────────────────
+        # Forward analyst estimates (1-3 years out)
+        "forwardRevenue":        forward_revenue,
+        "forwardEbitda":         forward_ebitda,
+        "forwardRevenueGrowth":  forward_revenue_growth,   # %
+        "forwardPE":             forward_pe,
+        "forwardYear":           forward_year,
+        # Share float / liquidity
+        "freeFloatPct":          free_float_pct,
+        "floatShares":           float_shares,
+        "outstandingShares":     outstanding_shares,
+        # Key executives
+        "ceoName":               ceo_name,
+        "ceoPay":                ceo_pay,                  # last reported CEO total comp
+        "nExecutives":           n_executives,
     }
 
 # ════════════════════════════════════════════════════════════════════════
@@ -1018,6 +1192,13 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             "upgradeNet30d": s.get("upgradeNet30d"),
             "dcfUpsidePct": s.get("dcfUpsidePct"),
             "esgScoreNumeric": s.get("esgScoreNumeric"),
+            # Stage 10 fields
+            "instSignal": s.get("instSignal"),
+            "instInvestorsHolding": s.get("instInvestorsHolding"),
+            "instInvestorsChgPct": s.get("instInvestorsChgPct"),
+            "instSharesChangePct": s.get("instSharesChangePct"),
+            "forwardRevenueGrowth": s.get("forwardRevenueGrowth"),
+            "forwardPE": s.get("forwardPE"),
         })
     snap_payload = {
         "snapshot_date": today_iso,
@@ -1285,6 +1466,63 @@ def write_snapshot_and_diff(today_stocks, today_payload):
                 "from": prior_esg, "to": today_esg,
                 "significance": 50,
             })
+
+        # ════════════════════════════════════════════════════
+        # STAGE 10 event types — Institutional + Forward
+        # ════════════════════════════════════════════════════
+
+        # ── 17. HEDGE FUNDS started accumulating (instSharesChangePct flipped positive ≥5%) ──
+        prior_inst_chg = prior_s.get("instSharesChangePct") or 0
+        today_inst_chg = today_s.get("instSharesChangePct") or 0
+        if today_inst_chg >= 5 and prior_inst_chg < 5:
+            events.append({**common, "type": "HEDGE_FUND_ACCUMULATING",
+                "from": round(prior_inst_chg, 1),
+                "to": round(today_inst_chg, 1),
+                "significance": 75,
+            })
+        elif today_inst_chg <= -5 and prior_inst_chg > -5:
+            events.append({**common, "type": "HEDGE_FUND_EXITING",
+                "from": round(prior_inst_chg, 1),
+                "to": round(today_inst_chg, 1),
+                "significance": 60,
+            })
+
+        # ── 18. INSTITUTIONAL HOLDER COUNT crossed threshold ──
+        prior_holders = prior_s.get("instInvestorsHolding") or 0
+        today_holders = today_s.get("instInvestorsHolding") or 0
+        prior_holders_chg = prior_s.get("instInvestorsChgPct") or 0
+        today_holders_chg = today_s.get("instInvestorsChgPct") or 0
+        if today_holders_chg >= 10 and prior_holders_chg < 10:
+            events.append({**common, "type": "INST_HOLDERS_SURGE",
+                "from": round(prior_holders_chg, 1),
+                "to": round(today_holders_chg, 1),
+                "holders": today_holders,
+                "significance": 75,
+            })
+
+        # ── 19. FORWARD revenue growth acceleration ──
+        prior_fwd = prior_s.get("forwardRevenueGrowth") or 0
+        today_fwd = today_s.get("forwardRevenueGrowth") or 0
+        for threshold, label in [(50, "FORWARD_GROWTH_50"),
+                                    (25, "FORWARD_GROWTH_25"),
+                                    (15, "FORWARD_GROWTH_15")]:
+            if today_fwd >= threshold and prior_fwd < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_fwd, 1),
+                    "to": round(today_fwd, 1),
+                    "significance": 50 + threshold * 0.5,
+                })
+                break
+
+        # ── 20. CHEAP FORWARD P/E (newly under 15) ──
+        prior_fpe = prior_s.get("forwardPE")
+        today_fpe = today_s.get("forwardPE")
+        if today_fpe is not None and today_fpe > 0 and today_fpe < 15:
+            if prior_fpe is None or prior_fpe >= 15:
+                events.append({**common, "type": "CHEAP_FORWARD_PE",
+                    "from": prior_fpe, "to": today_fpe,
+                    "significance": 70,
+                })
 
     # Sort by significance descending (most newsworthy first)
     events.sort(key=lambda e: -e.get("significance", 0))

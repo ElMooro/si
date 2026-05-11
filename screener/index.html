@@ -320,6 +320,10 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab" data-tab="target_upside" onclick="setTab(this)" style="color:#60a5fa">🎯 TARGET UPSIDE</div>
   <div class="tab" data-tab="analyst_upgrades" onclick="setTab(this)" style="color:#34d399">⬆ ANALYST UPGRADES</div>
   <div class="tab" data-tab="dcf_value" onclick="setTab(this)" style="color:#fbbf24">💰 DCF DEEP VALUE</div>
+  <!-- Stage 10: FMP Ultimate Activation tabs -->
+  <div class="tab" data-tab="hedge_fund_bought" onclick="setTab(this)" style="color:#06b6d4">🐋 HEDGE FUND ACCUMULATING</div>
+  <div class="tab" data-tab="forward_growth" onclick="setTab(this)" style="color:#22c55e">🚀 FORWARD GROWTH</div>
+  <div class="tab" data-tab="cheap_forward_pe" onclick="setTab(this)" style="color:#f97316">⚡ CHEAP FORWARD P/E</div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -409,6 +413,9 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn on" data-group="analyst" onclick="toggleColGroup(this)" style="color:#60a5fa">🎯 Analyst</button>
   <button class="col-toggle-btn on" data-group="dcf" onclick="toggleColGroup(this)" style="color:#fbbf24">💰 DCF</button>
   <button class="col-toggle-btn" data-group="esg" onclick="toggleColGroup(this)" style="color:#34d399">🌱 ESG</button>
+  <button class="col-toggle-btn on" data-group="forward" onclick="toggleColGroup(this)" style="color:#22c55e">🚀 Forward</button>
+  <button class="col-toggle-btn" data-group="liquidity" onclick="toggleColGroup(this)" style="color:#06b6d4">💧 Liquidity</button>
+  <button class="col-toggle-btn" data-group="governance" onclick="toggleColGroup(this)" style="color:#d946ef">👔 Governance</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -513,7 +520,7 @@ let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -573,8 +580,11 @@ const COLS=[
   {id:'currentRatio',label:'Curr Ratio',group:'extended',fn:r=>r.currentRatio,fmt:'ratio'},
   {id:'dividendYield',label:'Div Yld%',group:'extended',fn:r=>r.dividendYield,fmt:'pct'},
   {id:'instSignal',label:'Inst Signal',group:'institutional',fn:r=>r.instSignal,fmt:'inst'},
-  {id:'instHolders',label:'# Holders',group:'institutional',fn:r=>r.instHolders,fmt:'num'},
-  {id:'instChgPct',label:'Inst Chg%',group:'institutional',fn:r=>r.instChgPct,fmt:'chg'},
+  {id:'instInvestorsHolding',label:'# Holders',group:'institutional',fn:r=>r.instInvestorsHolding,fmt:'num'},
+  {id:'instInvestorsChange',label:'Δ Holders',group:'institutional',fn:r=>r.instInvestorsChange,fmt:'signed'},
+  {id:'instInvestorsChgPct',label:'Holders Δ%',group:'institutional',fn:r=>r.instInvestorsChgPct,fmt:'pct1'},
+  {id:'instSharesChangePct',label:'Shares Δ%',group:'institutional',fn:r=>r.instSharesChangePct,fmt:'pct1'},
+  {id:'instQuarter',label:'13F Q',group:'institutional',fn:r=>r.instQuarter,fmt:'plain'},
   // ── STAGE 9: FMP Ultimate Power-Up columns ──
   // Politics
   {id:'politicalSignal',label:'🏛 Pol',group:'politics',fn:r=>r.politicalSignal,fmt:'pol_signal'},
@@ -597,6 +607,16 @@ const COLS=[
   // ESG
   {id:'esgRating',label:'ESG',group:'esg',fn:r=>r.esgRating,fmt:'esg_badge'},
   {id:'esgScoreNumeric',label:'ESG Score',group:'esg',fn:r=>r.esgScoreNumeric,fmt:'num'},
+  // ── STAGE 10: Forward + Float + Executives ──
+  {id:'forwardRevenueGrowth',label:'Fwd Rev Gth',group:'forward',fn:r=>r.forwardRevenueGrowth,fmt:'pct1'},
+  {id:'forwardRevenue',label:'Fwd Rev',group:'forward',fn:r=>r.forwardRevenue,fmt:'mcap'},
+  {id:'forwardEbitda',label:'Fwd EBITDA',group:'forward',fn:r=>r.forwardEbitda,fmt:'mcap'},
+  {id:'forwardPE',label:'Fwd P/E',group:'forward',fn:r=>r.forwardPE,fmt:'num1'},
+  {id:'forwardYear',label:'Fwd Yr',group:'forward',fn:r=>r.forwardYear,fmt:'plain'},
+  {id:'freeFloatPct',label:'Free Float%',group:'liquidity',fn:r=>r.freeFloatPct,fmt:'pct1'},
+  {id:'floatShares',label:'Float (M)',group:'liquidity',fn:r=>r.floatShares,fmt:'shares_m'},
+  {id:'ceoName',label:'CEO',group:'governance',fn:r=>r.ceoName,fmt:'plain'},
+  {id:'ceoPay',label:'CEO Pay',group:'governance',fn:r=>r.ceoPay,fmt:'mcap'},
 ];
 function fmtCell(val,fmt,rank){
   if(fmt==='sent'){
@@ -713,6 +733,18 @@ function fmtCell(val,fmt,rank){
     else if(v.startsWith('BB')||v==='B'){col='#94a3b8';bg='rgba(148,163,184,.12)';}
     else{col='#ff8b3d';bg='rgba(255,139,61,.13)';}
     return `<span style="background:${bg};color:${col};padding:2px 5px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">${val}</span>`;
+  }
+  // ── STAGE 10 format handlers ──
+  if(fmt==='plain'){
+    if(val===null||val===undefined||val==='')return '<span class="na">-</span>';
+    return `<span>${String(val).substring(0,25)}</span>`;
+  }
+  if(fmt==='shares_m'){
+    if(val===null||val===undefined)return '<span class="na">-</span>';
+    const v=Number(val);
+    if(v>=1e9)return `<span>${(v/1e9).toFixed(2)}B</span>`;
+    if(v>=1e6)return `<span>${(v/1e6).toFixed(1)}M</span>`;
+    return `<span>${(v/1e3).toFixed(0)}K</span>`;
   }
   return`<span>${val}</span>`;
 }
@@ -1252,6 +1284,10 @@ function matchesTab(s,t){
   if(t==='target_upside')return (s.priceTargetUpsidePct||0)>=15;
   if(t==='analyst_upgrades')return (s.upgradeNet30d||0)>=2;
   if(t==='dcf_value')return (s.dcfUpsidePct||0)>=25;
+  // Stage 10 tabs
+  if(t==='hedge_fund_bought')return (s.instSharesChangePct||0)>=2;
+  if(t==='forward_growth')return (s.forwardRevenueGrowth||0)>=15;
+  if(t==='cheap_forward_pe')return s.forwardPE!==null&&s.forwardPE!==undefined&&s.forwardPE>0&&s.forwardPE<15;
   if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
@@ -1288,6 +1324,9 @@ const TAB_DEFAULT_SORT={
   target_upside:{col:'priceTargetUpsidePct',dir:'desc'},
   analyst_upgrades:{col:'upgradeNet30d',dir:'desc'},
   dcf_value:{col:'dcfUpsidePct',dir:'desc'},
+  hedge_fund_bought:{col:'instSharesChangePct',dir:'desc'},
+  forward_growth:{col:'forwardRevenueGrowth',dir:'desc'},
+  cheap_forward_pe:{col:'forwardPE',dir:'asc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},
