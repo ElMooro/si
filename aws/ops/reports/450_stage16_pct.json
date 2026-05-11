@@ -1,0 +1,366 @@
+{
+  "started": "2026-05-11T22:18:13.304466+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T22:17:48.000+0000",
+      "code_size": 4712
+    },
+    "invoke": {
+      "n_funds": 18,
+      "n_symbols": 6546,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 2.3
+    },
+    "s3_size_kb": 2641.2,
+    "n_symbols": 6546,
+    "sample_entry": null,
+    "first_entry_shape": {
+      "key": "AAPL",
+      "type": "dict",
+      "keys": [
+        "holders",
+        "max_pct_of_fund",
+        "n_high_conviction",
+        "n_flagship"
+      ],
+      "holder_keys": [
+        "cik",
+        "name",
+        "shares",
+        "value",
+        "pct_of_fund"
+      ]
+    },
+    "flagship_count": 20,
+    "flagships_top20": [
+      {
+        "sym": "NVDA",
+        "max_pct": 22.679,
+        "n_high_conv": 3,
+        "n_flagship": 1,
+        "top_holder": "Millennium Management",
+        "top_pct": 22.679,
+        "top_value_b": 1.51
+      },
+      {
+        "sym": "AAPL",
+        "max_pct": 22.601,
+        "n_high_conv": 2,
+        "n_flagship": 2,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 22.601,
+        "top_value_b": 61.96
+      },
+      {
+        "sym": "AXP",
+        "max_pct": 20.458,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 20.458,
+        "top_value_b": 56.09
+      },
+      {
+        "sym": "MA",
+        "max_pct": 18.81,
+        "n_high_conv": 2,
+        "n_flagship": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 18.81,
+        "top_value_b": 1.72
+      },
+      {
+        "sym": "META",
+        "max_pct": 18.287,
+        "n_high_conv": 6,
+        "n_flagship": 2,
+        "top_holder": "Millennium Management",
+        "top_pct": 18.287,
+        "top_value_b": 1.22
+      },
+      {
+        "sym": "BN",
+        "max_pct": 18.148,
+        "n_high_conv": 2,
+        "n_flagship": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 18.148,
+        "top_value_b": 2.82
+      },
+      {
+        "sym": "UBER",
+        "max_pct": 15.897,
+        "n_high_conv": 2,
+        "n_flagship": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 15.897,
+        "top_value_b": 2.47
+      },
+      {
+        "sym": "AMZN",
+        "max_pct": 14.283,
+        "n_high_conv": 9,
+        "n_flagship": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 14.283,
+        "top_value_b": 2.22
+      },
+      {
+        "sym": "GOOG",
+        "max_pct": 12.457,
+        "n_high_conv": 3,
+        "n_flagship": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 12.457,
+        "top_value_b": 1.93
+      },
+      {
+        "sym": "KKR",
+        "max_pct": 11.33,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 11.33,
+        "top_value_b": 1.03
+      },
+      {
+        "sym": "CRM",
+        "max_pct": 11.292,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 11.292,
+        "top_value_b": 0.79
+      },
+      {
+        "sym": "GOOGL",
+        "max_pct": 11.199,
+        "n_high_conv": 3,
+        "n_flagship": 1,
+        "top_holder": "Tiger Global",
+        "top_pct": 11.199,
+        "top_value_b": 3.33
+      },
+      {
+        "sym": "SPY",
+        "max_pct": 11.088,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Bridgewater Associates",
+        "top_pct": 11.088,
+        "top_value_b": 3.04
+      },
+      {
+        "sym": "RKT",
+        "max_pct": 10.853,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 10.853,
+        "top_value_b": 0.76
+      },
+      {
+        "sym": "BLK",
+        "max_pct": 10.589,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 10.589,
+        "top_value_b": 0.74
+      },
+      {
+        "sym": "IVV",
+        "max_pct": 10.462,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Bridgewater Associates",
+        "top_pct": 10.462,
+        "top_value_b": 2.87
+      },
+      {
+        "sym": "QSR",
+        "max_pct": 10.445,
+        "n_high_conv": 2,
+        "n_flagship": 2,
+        "top_holder": "Lone Pine Capital",
+        "top_pct": 10.445,
+        "top_value_b": 0.55
+      },
+      {
+        "sym": "BAC",
+        "max_pct": 10.378,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 10.378,
+        "top_value_b": 28.45
+      },
+      {
+        "sym": "V",
+        "max_pct": 10.292,
+        "n_high_conv": 2,
+        "n_flagship": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 10.292,
+        "top_value_b": 0.94
+      },
+      {
+        "sym": "KO",
+        "max_pct": 10.2,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 10.2,
+        "top_value_b": 27.96
+      }
+    ],
+    "high_conviction_count": 47,
+    "samples": {
+      "AAPL": {
+        "n_holders": 6,
+        "max_pct": 22.601,
+        "n_high_conv": 2,
+        "n_flagship": 2,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 22.601,
+        "top_holder_value_b": 61.96
+      },
+      "MSFT": {
+        "n_holders": 13,
+        "max_pct": 9.274,
+        "n_high_conv": 5,
+        "n_flagship": 0,
+        "top_holder": "Millennium Management",
+        "top_holder_pct": 9.274,
+        "top_holder_value_b": 0.62
+      },
+      "NVDA": {
+        "n_holders": 10,
+        "max_pct": 22.679,
+        "n_high_conv": 3,
+        "n_flagship": 1,
+        "top_holder": "Millennium Management",
+        "top_holder_pct": 22.679,
+        "top_holder_value_b": 1.51
+      },
+      "GOOGL": {
+        "n_holders": 13,
+        "max_pct": 11.199,
+        "n_high_conv": 3,
+        "n_flagship": 1,
+        "top_holder": "Tiger Global",
+        "top_holder_pct": 11.199,
+        "top_holder_value_b": 3.33
+      },
+      "META": {
+        "n_holders": 9,
+        "max_pct": 18.287,
+        "n_high_conv": 6,
+        "n_flagship": 2,
+        "top_holder": "Millennium Management",
+        "top_holder_pct": 18.287,
+        "top_holder_value_b": 1.22
+      },
+      "AMZN": {
+        "n_holders": 15,
+        "max_pct": 14.283,
+        "n_high_conv": 9,
+        "n_flagship": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_holder_pct": 14.283,
+        "top_holder_value_b": 2.22
+      },
+      "TSLA": {
+        "n_holders": 7,
+        "max_pct": 2.029,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Viking Global Investors",
+        "top_holder_pct": 2.029,
+        "top_holder_value_b": 0.76
+      },
+      "JPM": {
+        "n_holders": 6,
+        "max_pct": 1.63,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Viking Global Investors",
+        "top_holder_pct": 1.63,
+        "top_holder_value_b": 0.61
+      },
+      "BAC": {
+        "n_holders": 6,
+        "max_pct": 10.378,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 10.378,
+        "top_holder_value_b": 28.45
+      },
+      "KO": {
+        "n_holders": 7,
+        "max_pct": 10.2,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 10.2,
+        "top_holder_value_b": 27.96
+      },
+      "AXP": {
+        "n_holders": 5,
+        "max_pct": 20.458,
+        "n_high_conv": 1,
+        "n_flagship": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 20.458,
+        "top_holder_value_b": 56.09
+      },
+      "OXY": {
+        "n_holders": 6,
+        "max_pct": 3.974,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 3.974,
+        "top_holder_value_b": 10.89
+      },
+      "DPZ": {
+        "n_holders": 4,
+        "max_pct": 0.509,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Berkshire Hathaway",
+        "top_holder_pct": 0.509,
+        "top_holder_value_b": 1.4
+      },
+      "CMG": {
+        "n_holders": 7,
+        "max_pct": 2.409,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Third Point",
+        "top_holder_pct": 2.409,
+        "top_holder_value_b": 0.17
+      },
+      "BABA": {
+        "n_holders": 4,
+        "max_pct": 1.666,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Third Point",
+        "top_holder_pct": 1.666,
+        "top_holder_value_b": 0.12
+      },
+      "CRWD": {
+        "n_holders": 3,
+        "max_pct": 0.148,
+        "n_high_conv": 0,
+        "n_flagship": 0,
+        "top_holder": "Citadel Advisors",
+        "top_holder_pct": 0.148,
+        "top_holder_value_b": 0.16
+      }
+    }
+  },
+  "finished": "2026-05-11T22:19:54.539651+00:00"
+}
