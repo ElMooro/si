@@ -1,0 +1,157 @@
+{
+  "started": "2026-05-11T11:17:08.487245+00:00",
+  "test": {
+    "lce_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+    "gbc": {
+      "top_keys": [
+        "schema_version",
+        "engine_type",
+        "generated_at",
+        "elapsed_sec",
+        "countries_with_fresh_data",
+        "countries_total",
+        "methodology",
+        "by_country",
+        "aggregate",
+        "interpretation"
+      ],
+      "phase_like_fields": [
+        [
+          "by_country.USA.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.CHN.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.JPN.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.DEU.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.IND.phase",
+          "RECESSION"
+        ],
+        [
+          "by_country.GBR.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.FRA.phase",
+          "RECESSION"
+        ],
+        [
+          "by_country.ITA.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.CAN.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.BRA.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.KOR.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.AUS.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.ESP.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.MEX.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.IDN.phase",
+          "RECESSION"
+        ],
+        [
+          "by_country.NLD.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.TUR.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.CHE.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.POL.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.BEL.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.SWE.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.IRL.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.AUT.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.NOR.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.ZAF.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.DNK.phase",
+          "AT_RISK"
+        ],
+        [
+          "by_country.FIN.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.CZE.phase",
+          "UNKNOWN"
+        ],
+        [
+          "by_country.HUN.phase",
+          "EXPANSION"
+        ],
+        [
+          "by_country.CHL.phase",
+          "AT_RISK"
+        ]
+      ],
+      "size_kb": 23.6
+    },
+    "screener_data": {
+      "generated_at": "2026-05-11T10:23:10.412259+00:00",
+      "n_stocks": 503,
+      "coverage": {
+        "revenue_populated": 0,
+        "inst_populated": 0,
+        "stealscore_populated": 0
+      }
+    },
+    "force_refresh": {
+      "status": 202,
+      "async": true
+    }
+  },
+  "finished": "2026-05-11T11:17:15.830245+00:00"
+}
