@@ -1,8 +1,8 @@
 // M&A Activity Tracker — JustHodl.AI
-// Fetches from the justhodl-ma-tracker Lambda Function URL.
-// The API_URL is replaced at deploy time by ops step 435.
+// Reads pre-generated JSON from S3 (Lambda writes it hourly).
+// No Function URL needed — direct S3 read with browser caching.
 
-const API_URL = "__FUNCTION_URL_PLACEHOLDER__";
+const API_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/screener/ma-latest.json";
 
 let DATA = null;
 let FILTERED_DEALS = [];

@@ -7,14 +7,13 @@
   "timeout": 60,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Mergers and Acquisitions activity tracker",
+  "description": "M&A activity tracker — fetches FMP M&A endpoints hourly, writes to S3",
   "environment": {
     "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
   },
-  "function_url": {
-    "enabled": true,
-    "cors_origins": ["*"],
-    "patch_file": "ma/app.js",
-    "placeholder": "__FUNCTION_URL_PLACEHOLDER__"
+  "schedule": {
+    "rule_name": "justhodl-ma-tracker-hourly",
+    "cron": "rate(1 hour)",
+    "description": "Refresh M&A latest deals hourly"
   }
 }
