@@ -1,0 +1,138 @@
+{
+  "started": "2026-05-11T13:40:13.603013+00:00",
+  "test": {
+    "history": {
+      "size_kb": 156.4,
+      "generated_at": "2026-05-11T13:37:05.656588+00:00",
+      "n_days": 2,
+      "n_symbols": 503,
+      "dates": [
+        "2026-05-10",
+        "2026-05-11"
+      ],
+      "summary": {
+        "rising_count": 0,
+        "falling_count": 0,
+        "stable_count": 503,
+        "top_5_rising": [],
+        "top_5_falling": []
+      }
+    },
+    "top_rising_detail": [],
+    "top_falling_detail": [],
+    "sample_AAPL": {
+      "score_now": 50.3,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_NVDA": {
+      "score_now": 72.3,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_META": {
+      "score_now": 83.7,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_GOOGL": {
+      "score_now": 71.8,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_TSLA": {
+      "score_now": 17.5,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_CF": {
+      "score_now": 100.0,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "sample_NEM": {
+      "score_now": 98.8,
+      "score_7d_chg": null,
+      "score_30d_chg": null,
+      "slope": null,
+      "trend": "stable",
+      "scores_len": 2
+    },
+    "page": {
+      "status": 200,
+      "size": 98477,
+      "has_rising_tab": true,
+      "has_fading_tab": true,
+      "has_history_modal": true,
+      "has_score_spark_col": true,
+      "has_7d_delta_col": true,
+      "has_load_history": true,
+      "has_open_history": true,
+      "has_draw_chart": true,
+      "has_render_sparkline": true,
+      "has_history_url": true,
+      "has_augment": true,
+      "has_trend_badge_fmt": true,
+      "has_score_spark_fmt": true,
+      "has_threshold_lines": true
+    },
+    "snapshots_count": 2,
+    "snapshots_dates": [
+      "2026-05-10",
+      "2026-05-11"
+    ],
+    "log_tail": [
+      {
+        "ts": 1778504951811,
+        "msg": "=== DONE: 503 stocks in 378.1s ==="
+      },
+      {
+        "ts": 1778504952191,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778504952312,
+        "msg": "[just-crossed] 361 events written"
+      },
+      {
+        "ts": 1778506625029,
+        "msg": "=== DONE: 503 stocks in 407.7s ==="
+      },
+      {
+        "ts": 1778506625458,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778506625569,
+        "msg": "[just-crossed] 300 events written"
+      },
+      {
+        "ts": 1778506625596,
+        "msg": "[history] aggregating 2 snapshots: 2026-05-10 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778506625705,
+        "msg": "[history] wrote 156.4 KB \u00b7 503 symbols \u00d7 2 days \u00b7 rising=0 falling=0"
+      }
+    ]
+  },
+  "finished": "2026-05-11T13:40:21.563650+00:00"
+}
