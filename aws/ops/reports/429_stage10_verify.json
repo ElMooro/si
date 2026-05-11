@@ -1,0 +1,564 @@
+{
+  "started": "2026-05-11T15:21:18.707081+00:00",
+  "test": {
+    "data": {
+      "generated_at": "2026-05-11T15:18:22.804392+00:00",
+      "size_kb": 1634.8,
+      "n_stocks": 503,
+      "elapsed_seconds": 199.7
+    },
+    "coverage": {
+      "instInvestorsHolding": 499,
+      "instInvestorsChange": 499,
+      "instInvestorsChgPct": 499,
+      "instSharesChangePct": 499,
+      "instSignal": 503,
+      "instQuarter": 499,
+      "forwardRevenue": 502,
+      "forwardRevenueGrowth": 501,
+      "forwardEbitda": 502,
+      "forwardPE": 497,
+      "forwardYear": 502,
+      "freeFloatPct": 503,
+      "floatShares": 503,
+      "outstandingShares": 503,
+      "ceoName": 490,
+      "ceoPay": 463,
+      "nExecutives": 503
+    },
+    "top_hedge_fund": [],
+    "top_forward_growth": [
+      {
+        "sym": "SNDK",
+        "name": "Sandisk Corporation",
+        "sector": "Technology",
+        "rev_now": 7355000000.0,
+        "rev_fwd": 44817462690.0,
+        "growth_pct": 509.35,
+        "fwd_pe": 8.54,
+        "fwd_year": "2028",
+        "score": 50.7
+      },
+      {
+        "sym": "MU",
+        "name": "Micron Technology, Inc.",
+        "sector": "Technology",
+        "rev_now": 37378000000.0,
+        "rev_fwd": 168512224159.0,
+        "growth_pct": 350.83,
+        "fwd_pe": 9.22,
+        "fwd_year": "2028",
+        "score": 75.6
+      },
+      {
+        "sym": "PLTR",
+        "name": "Palantir Technologies In",
+        "sector": "Technology",
+        "rev_now": 4475446000.0,
+        "rev_fwd": 15596075654.0,
+        "growth_pct": 248.48,
+        "fwd_pe": 46.56,
+        "fwd_year": "2028",
+        "score": 36.6
+      },
+      {
+        "sym": "LITE",
+        "name": "Lumentum Holdings Inc.",
+        "sector": "Technology",
+        "rev_now": 1645000000.0,
+        "rev_fwd": 5561623781.0,
+        "growth_pct": 238.09,
+        "fwd_pe": 57.47,
+        "fwd_year": "2027",
+        "score": 23.1
+      },
+      {
+        "sym": "AVGO",
+        "name": "Broadcom Inc.",
+        "sector": "Technology",
+        "rev_now": 63887000000.0,
+        "rev_fwd": 203182777075.0,
+        "growth_pct": 218.03,
+        "fwd_pe": 19.18,
+        "fwd_year": "2028",
+        "score": 66.3
+      },
+      {
+        "sym": "AMD",
+        "name": "Advanced Micro Devices, ",
+        "sector": "Technology",
+        "rev_now": 34639000000.0,
+        "rev_fwd": 98218507230.0,
+        "growth_pct": 183.55,
+        "fwd_pe": 26.77,
+        "fwd_year": "2028",
+        "score": 54.6
+      },
+      {
+        "sym": "NVDA",
+        "name": "NVIDIA Corporation",
+        "sector": "Technology",
+        "rev_now": 215938000000.0,
+        "rev_fwd": 566629773555.0,
+        "growth_pct": 162.4,
+        "fwd_pe": 17.13,
+        "fwd_year": "2029",
+        "score": 72.9
+      },
+      {
+        "sym": "APP",
+        "name": "AppLovin Corporation",
+        "sector": "Technology",
+        "rev_now": 5480717000.0,
+        "rev_fwd": 13354367899.0,
+        "growth_pct": 143.66,
+        "fwd_pe": 16.38,
+        "fwd_year": "2028",
+        "score": 54.4
+      },
+      {
+        "sym": "WAT",
+        "name": "Waters Corporation",
+        "sector": "Healthcare",
+        "rev_now": 3165286000.0,
+        "rev_fwd": 7504726793.0,
+        "growth_pct": 137.09,
+        "fwd_pe": 19.39,
+        "fwd_year": "2028",
+        "score": 20.9
+      },
+      {
+        "sym": "WDC",
+        "name": "Western Digital Corporat",
+        "sector": "Technology",
+        "rev_now": 9520000000.0,
+        "rev_fwd": 22323096307.0,
+        "growth_pct": 134.49,
+        "fwd_pe": 19.98,
+        "fwd_year": "2028",
+        "score": 63.7
+      },
+      {
+        "sym": "SMCI",
+        "name": "Super Micro Computer, In",
+        "sector": "Technology",
+        "rev_now": 21972042000.0,
+        "rev_fwd": 50794835287.0,
+        "growth_pct": 131.18,
+        "fwd_pe": 11.07,
+        "fwd_year": "2027",
+        "score": 39.6
+      },
+      {
+        "sym": "ORCL",
+        "name": "Oracle Corporation",
+        "sector": "Technology",
+        "rev_now": 57399000000.0,
+        "rev_fwd": 129909120276.0,
+        "growth_pct": 126.33,
+        "fwd_pe": 17.88,
+        "fwd_year": "2028",
+        "score": 36.3
+      },
+      {
+        "sym": "STX",
+        "name": "Seagate Technology Holdi",
+        "sector": "Technology",
+        "rev_now": 9097000000.0,
+        "rev_fwd": 20431070225.0,
+        "growth_pct": 124.59,
+        "fwd_pe": 20.82,
+        "fwd_year": "2028",
+        "score": 48.0
+      },
+      {
+        "sym": "CVNA",
+        "name": "Carvana Co.",
+        "sector": "Consumer Cyclical",
+        "rev_now": 20322000000.0,
+        "rev_fwd": 42148137536.0,
+        "growth_pct": 107.4,
+        "fwd_pe": 27.77,
+        "fwd_year": "2028",
+        "score": 46.3
+      },
+      {
+        "sym": "VRT",
+        "name": "Vertiv Holdings Co",
+        "sector": "Industrials",
+        "rev_now": 10229900000.0,
+        "rev_fwd": 20757447914.0,
+        "growth_pct": 102.91,
+        "fwd_pe": 33.54,
+        "fwd_year": "2028",
+        "score": 59.3
+      }
+    ],
+    "top_cheap_fpe": [
+      {
+        "sym": "CHTR",
+        "name": "Charter Communications, ",
+        "fwd_pe": 2.82,
+        "pe_now": 3.85,
+        "fwd_growth": -1.09,
+        "score": 49.3,
+        "bucket": null
+      },
+      {
+        "sym": "GPN",
+        "name": "Global Payments Inc.",
+        "fwd_pe": 3.56,
+        "pe_now": null,
+        "fwd_growth": 80.53,
+        "score": 45.6,
+        "bucket": null
+      },
+      {
+        "sym": "GM",
+        "name": "General Motors Company",
+        "fwd_pe": 5.14,
+        "pe_now": 27.65,
+        "fwd_growth": 4.82,
+        "score": 27.1,
+        "bucket": null
+      },
+      {
+        "sym": "FISV",
+        "name": "Fiserv, Inc.",
+        "fwd_pe": 5.3,
+        "pe_now": 9.09,
+        "fwd_growth": 2.36,
+        "score": 68.3,
+        "bucket": null
+      },
+      {
+        "sym": "OMC",
+        "name": "Omnicom Group Inc.",
+        "fwd_pe": 5.46,
+        "pe_now": 247.21,
+        "fwd_growth": 53.1,
+        "score": 36.4,
+        "bucket": null
+      },
+      {
+        "sym": "UAL",
+        "name": "United Airlines Holdings",
+        "fwd_pe": 5.75,
+        "pe_now": 8.64,
+        "fwd_growth": 24.94,
+        "score": 52.9,
+        "bucket": null
+      },
+      {
+        "sym": "F",
+        "name": "Ford Motor Company",
+        "fwd_pe": 5.84,
+        "pe_now": null,
+        "fwd_growth": 6.88,
+        "score": 9.9,
+        "bucket": null
+      },
+      {
+        "sym": "EG",
+        "name": "Everest Re Group, Ltd.",
+        "fwd_pe": 5.85,
+        "pe_now": null,
+        "fwd_growth": -9.03,
+        "score": 49.6,
+        "bucket": null
+      },
+      {
+        "sym": "AES",
+        "name": "The AES Corporation",
+        "fwd_pe": 5.91,
+        "pe_now": 7.67,
+        "fwd_growth": 4.33,
+        "score": 24.9,
+        "bucket": null
+      },
+      {
+        "sym": "CMCSA",
+        "name": "Comcast Corporation",
+        "fwd_pe": 6.0,
+        "pe_now": 4.9,
+        "fwd_growth": -0.38,
+        "score": 59.3,
+        "bucket": null
+      },
+      {
+        "sym": "FIS",
+        "name": "Fidelity National Inform",
+        "fwd_pe": 6.09,
+        "pe_now": 8.07,
+        "fwd_growth": 35.17,
+        "score": 67.9,
+        "bucket": null
+      },
+      {
+        "sym": "VTRS",
+        "name": "Viatris Inc.",
+        "fwd_pe": 6.3,
+        "pe_now": null,
+        "fwd_growth": 5.25,
+        "score": 20.1,
+        "bucket": null
+      },
+      {
+        "sym": "UHS",
+        "name": "Universal Health Service",
+        "fwd_pe": 6.63,
+        "pe_now": 6.78,
+        "fwd_growth": 11.88,
+        "score": 53.1,
+        "bucket": null
+      },
+      {
+        "sym": "SYF",
+        "name": "Synchrony Financial",
+        "fwd_pe": 6.75,
+        "pe_now": 6.75,
+        "fwd_growth": -15.32,
+        "score": 48.0,
+        "bucket": null
+      },
+      {
+        "sym": "EPAM",
+        "name": "EPAM Systems, Inc.",
+        "fwd_pe": 6.79,
+        "pe_now": 13.36,
+        "fwd_growth": 11.44,
+        "score": 81.1,
+        "bucket": "PREMIUM"
+      }
+    ],
+    "spot_AAPL": {
+      "stealScore": 50.2,
+      "instHolders": 3778,
+      "instHoldersChg": -2521,
+      "instSharesChgPct": -85.01,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 544971756752.0,
+      "forwardRevGrowth": 30.95,
+      "forwardPE": 27.86,
+      "forwardYear": "2028",
+      "freeFloatPct": 99.829,
+      "ceoName": "Timothy D. Cook",
+      "ceoPay": 16759518.0
+    },
+    "spot_NVDA": {
+      "stealScore": 72.9,
+      "instHolders": 3209,
+      "instHoldersChg": -2963,
+      "instSharesChgPct": -90.0,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 566629773555.0,
+      "forwardRevGrowth": 162.4,
+      "forwardPE": 17.13,
+      "forwardYear": "2029",
+      "freeFloatPct": 95.9543,
+      "ceoName": "Jen-Hsun Huang",
+      "ceoPay": 11054945.0
+    },
+    "spot_META": {
+      "stealScore": 78.8,
+      "instHolders": 2815,
+      "instHoldersChg": -2505,
+      "instSharesChgPct": -89.6,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 351242957765.0,
+      "forwardRevGrowth": 74.78,
+      "forwardPE": 15.03,
+      "forwardYear": "2028",
+      "freeFloatPct": 86.3602,
+      "ceoName": "Mark Elliot Zuckerberg",
+      "ceoPay": 25125904.0
+    },
+    "spot_GOOGL": {
+      "stealScore": 70.5,
+      "instHolders": 2665,
+      "instHoldersChg": -3170,
+      "instSharesChgPct": -91.78,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 671858247211.0,
+      "forwardRevGrowth": 66.73,
+      "forwardPE": 23.08,
+      "forwardYear": "2028",
+      "freeFloatPct": 89.7375,
+      "ceoName": "Sundar Pichai",
+      "ceoPay": 10906079.0
+    },
+    "spot_TSLA": {
+      "stealScore": 0.0,
+      "instHolders": 2323,
+      "instHoldersChg": -2264,
+      "instSharesChgPct": -91.48,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 140922526878.0,
+      "forwardRevGrowth": 48.61,
+      "forwardPE": 134.08,
+      "forwardYear": "2028",
+      "freeFloatPct": 74.9771,
+      "ceoName": "Elon R. Musk",
+      "ceoPay": null
+    },
+    "spot_CF": {
+      "stealScore": 86.6,
+      "instHolders": 343,
+      "instHoldersChg": -503,
+      "instSharesChgPct": -94.27,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 6731727329.0,
+      "forwardRevGrowth": -4.97,
+      "forwardPE": 13.26,
+      "forwardYear": "2028",
+      "freeFloatPct": 99.4531,
+      "ceoName": "Christopher D. Bohn",
+      "ceoPay": 3202387.0
+    },
+    "spot_NEM": {
+      "stealScore": 97.4,
+      "instHolders": 1043,
+      "instHoldersChg": -740,
+      "instSharesChgPct": -70.11,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 30097280044.0,
+      "forwardRevGrowth": 36.21,
+      "forwardPE": 9.48,
+      "forwardYear": "2028",
+      "freeFloatPct": 99.921,
+      "ceoName": "Natascha Viljoen EMBA",
+      "ceoPay": 2840795.0
+    },
+    "spot_EQT": {
+      "stealScore": 100.0,
+      "instHolders": 483,
+      "instHoldersChg": -686,
+      "instSharesChgPct": -90.65,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 10305536796.0,
+      "forwardRevGrowth": 13.58,
+      "forwardPE": 10.16,
+      "forwardYear": "2028",
+      "freeFloatPct": 99.104,
+      "ceoName": "Toby Z. Rice",
+      "ceoPay": 2535001.0
+    },
+    "spot_MSFT": {
+      "stealScore": 70.5,
+      "instHolders": 3830,
+      "instHoldersChg": -2631,
+      "instSharesChgPct": -83.75,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 453506455911.0,
+      "forwardRevGrowth": 60.98,
+      "forwardPE": 17.97,
+      "forwardYear": "2028",
+      "freeFloatPct": 99.8541,
+      "ceoName": "Judson Althoff",
+      "ceoPay": 4490115.0
+    },
+    "spot_JPM": {
+      "stealScore": 42.9,
+      "instHolders": 3353,
+      "instHoldersChg": -1866,
+      "instSharesChgPct": -67.23,
+      "instSignal": "selling",
+      "instQuarter": "Q1 2026",
+      "forwardRev": 204893132216.0,
+      "forwardRevGrowth": -26.76,
+      "forwardPE": 12.7,
+      "forwardYear": "2027",
+      "freeFloatPct": 99.469,
+      "ceoName": "Douglas Petno",
+      "ceoPay": 11631825.0
+    },
+    "log_relevant": [
+      {
+        "ts": 1778510569292,
+        "msg": "Processing 503 stocks (1 workers)..."
+      },
+      {
+        "ts": 1778510895380,
+        "msg": "=== DONE: 503 stocks in 326.3s ==="
+      },
+      {
+        "ts": 1778510895917,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778510896030,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778510896130,
+        "msg": "[just-crossed] 949 events written"
+      },
+      {
+        "ts": 1778510896173,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778510899291,
+        "msg": "[history] wrote 619.4 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=76 falling=269"
+      },
+      {
+        "ts": 1778510899300,
+        "msg": "REPORT RequestId: cb9e363d-90f0-4e98-ac9b-c10d1a1c45eb\tDuration: 330256.30 ms\tBilled Duration: 330775 ms\tMemory Size: 512 MB\tMax Memory Used: 111 MB\tInit Duration: 517.89 ms"
+      },
+      {
+        "ts": 1778512503778,
+        "msg": "Processing 503 stocks (3 workers)..."
+      },
+      {
+        "ts": 1778512503987,
+        "msg": "[inst] using 13F quarter Q1 2026"
+      },
+      {
+        "ts": 1778512503987,
+        "msg": "[inst] using 13F quarter Q1 2026"
+      },
+      {
+        "ts": 1778512503989,
+        "msg": "[inst] using 13F quarter Q1 2026"
+      },
+      {
+        "ts": 1778512702777,
+        "msg": "=== DONE: 503 stocks in 199.7s ==="
+      },
+      {
+        "ts": 1778512703109,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778512703197,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778512703242,
+        "msg": "[just-crossed] 1941 events written"
+      },
+      {
+        "ts": 1778512703271,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778512706268,
+        "msg": "[history] wrote 619.4 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=74 falling=277"
+      },
+      {
+        "ts": 1778512706278,
+        "msg": "REPORT RequestId: 47f26b33-af68-44b4-8d6a-5eeb28736edb\tDuration: 203185.79 ms\tBilled Duration: 203737 ms\tMemory Size: 1280 MB\tMax Memory Used: 111 MB\tInit Duration: 550.67 ms"
+      }
+    ]
+  },
+  "finished": "2026-05-11T15:21:24.149715+00:00"
+}
