@@ -138,6 +138,11 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
   <div class="tab" data-tab="rev_growth" onclick="setTab(this)" style="color:#1e90ff">🚀 REVENUE GROWTH KINGS</div>
   <div class="tab" data-tab="cash_gen" onclick="setTab(this)" style="color:#00e676">💵 CASH GENERATORS</div>
   <div class="tab" data-tab="buyback" onclick="setTab(this)" style="color:#a855f7">🪙 BUYBACK ACTIVE</div>
+  <div class="tab" data-tab="hedge_funds" onclick="setTab(this)" style="color:#ff6b9d">🐋 HEDGE FUND BOUGHT</div>
+  <div class="tab" data-tab="institutions" onclick="setTab(this)" style="color:#06b6d4">🏦 INSTITUTION-ACCUMULATED</div>
+  <div class="tab" data-tab="insider_buys" onclick="setTab(this)" style="color:#fbbf24">🎯 INSIDER CONVICTION</div>
+  <div class="tab" data-tab="earnings_beats" onclick="setTab(this)" style="color:#84cc16">🎁 EARNINGS BEAT STREAK</div>
+  <div class="tab" data-tab="retail_fav" onclick="setTab(this)" style="color:#f87171">🐂 RETAIL FAVORITES</div>
   <div class="tab" data-tab="gainers" onclick="setTab(this)">&#9650; PRICE GAINERS</div>
   <div class="tab" data-tab="losers" onclick="setTab(this)">&#9660; PRICE DECLINERS</div>
   <div class="tab" data-tab="buying" onclick="setTab(this)">&#9679; INST BUYING</div>
@@ -210,6 +215,7 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
   <button class="col-toggle-btn on" data-group="momentum" onclick="toggleColGroup(this)">Momentum</button>
   <button class="col-toggle-btn on" data-group="scores" onclick="toggleColGroup(this)">Scores</button>
   <button class="col-toggle-btn on" data-group="institutional" onclick="toggleColGroup(this)">Institutional</button>
+  <button class="col-toggle-btn on" data-group="flows" onclick="toggleColGroup(this)">Flows</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
 </div>
 <div class="result-bar">
@@ -238,7 +244,7 @@ const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.j
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,sentiment:true,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -255,6 +261,15 @@ const COLS=[
   {id:'fcfYieldCalc',label:'FCF Yld%',group:'fundamentals',fn:r=>r.fcfYieldCalc,fmt:'pct'},
   {id:'buybackYield',label:'Buyback%',group:'fundamentals',fn:r=>r.buybackYield,fmt:'pct'},
   {id:'rev3yCAGR',label:'Rev 3y CAGR%',group:'fundamentals',fn:r=>r.rev3yCAGR,fmt:'chg'},
+  // ── Stage 2: institutional + insider flows ──
+  {id:'instOwnershipPct',label:'Inst Own%',group:'flows',fn:r=>r.instOwnershipPct,fmt:'pct1'},
+  {id:'instHoldersN',label:'Inst Holders',group:'flows',fn:r=>r.instHoldersN,fmt:'num'},
+  {id:'instQoQChgPct',label:'Inst QoQ%',group:'flows',fn:r=>r.instQoQChgPct,fmt:'chg'},
+  {id:'insiderNet90dUsd',label:'Insider Net 90d',group:'flows',fn:r=>r.insiderNet90dUsd,fmt:'usd_signed'},
+  {id:'insiderBuyersN90d',label:'Insider Buyers',group:'flows',fn:r=>r.insiderBuyersN90d,fmt:'num'},
+  {id:'insiderSignal',label:'Insider Sig',group:'flows',fn:r=>r.insiderSignal,fmt:'inst'},
+  {id:'beatStreak',label:'Beat Streak',group:'flows',fn:r=>r.beatStreak,fmt:'streak'},
+  {id:'lastSurprisePct',label:'Last Surp%',group:'flows',fn:r=>r.lastSurprisePct,fmt:'chg'},
   {id:'peRatio',label:'P/E',group:'valuation',fn:r=>r.peRatio,fmt:'ratio'},
   {id:'pbRatio',label:'P/B',group:'valuation',fn:r=>r.pbRatio,fmt:'ratio'},
   {id:'psRatio',label:'P/S',group:'valuation',fn:r=>r.psRatio,fmt:'ratio'},
@@ -321,6 +336,10 @@ function fmtCell(val,fmt,rank){
     return`<span style="color:${col};font-weight:700;font-size:10px;letter-spacing:.4px" title="${isGold?'Golden':'Death'} cross ${val.days||'?'} days ago">${ico} ${lbl}${days}</span>`;
   }
   if(fmt==='num')return`<span class="dim">${Number(val).toLocaleString()}</span>`;
+  // ── Stage 2 new formats ──
+  if(fmt==='usd_signed'){const v=Number(val);const ab=Math.abs(v);const[n,s]=ab>=1e9?[v/1e9,'B']:ab>=1e6?[v/1e6,'M']:ab>=1e3?[v/1e3,'K']:[v,''];const sign=v>0?'+':v<0?'':'';return`<span class="${v>0?'pos':v<0?'neg':''}">${sign}$${n.toFixed(1)}<span style="color:var(--text2);font-size:9px">${s}</span></span>`;}
+  if(fmt==='pct1'){const v=Number(val);return`<span class="${v>0?'pos':v<0?'neg':''}">${v.toFixed(1)}%</span>`;}
+  if(fmt==='streak'){const v=Number(val);if(v<=0)return'<span class="dim">0</span>';const cls=v>=4?'score-high':v>=2?'score-mid':'';return`<span class="${cls}" style="font-weight:700">${v}🔥</span>`;}
   return`<span>${val}</span>`;
 }
 function visibleCols(){return COLS.filter(c=>c.group==='fixed'||colGroups[c.group]);}
@@ -385,6 +404,13 @@ function matchesTab(s,t){
   if(t==='rev_growth')return (s.revenueGrowth||0)>=15||(s.rev3yCAGR||0)>=15;
   if(t==='cash_gen')return (s.fcfYieldCalc||0)>=4&&(s.freeCashFlow||0)>0;
   if(t==='buyback')return (s.buybackYield||0)>=1;  // returning ≥1% of mcap as buybacks
+  // ── Stage 2 tabs ──
+  if(t==='hedge_funds')return (s.instQoQChgPct||0)>=2&&(s.instHoldersN||0)>=50;
+  if(t==='institutions')return (s.instOwnershipPct||0)>=60&&(s.instHoldersN||0)>=400;
+  if(t==='insider_buys')return s.insiderSignal==='buying'||(s.insiderBuys90dUsd||0)>=500000;
+  if(t==='earnings_beats')return (s.beatStreak||0)>=3;
+  // Retail favorites proxy: high momentum + high volume + high beta (until WSB API integration)
+  if(t==='retail_fav')return (s.chg1m||0)>=10&&(s.beta||0)>=1.3&&(s.marketCap||0)>=2e9;
   if(t==='gainers')return(s.chg1m||0)>5;
   if(t==='losers')return(s.chg1m||0)<-5;
   if(t==='buying')return s.instSignal==='buying';
@@ -405,6 +431,12 @@ const TAB_DEFAULT_SORT={
   rev_growth:{col:'revenueGrowth',dir:'desc'},
   cash_gen:{col:'fcfYieldCalc',dir:'desc'},
   buyback:{col:'buybackYield',dir:'desc'},
+  // Stage 2
+  hedge_funds:{col:'instQoQChgPct',dir:'desc'},
+  institutions:{col:'instOwnershipPct',dir:'desc'},
+  insider_buys:{col:'insiderNet90dUsd',dir:'desc'},
+  earnings_beats:{col:'beatStreak',dir:'desc'},
+  retail_fav:{col:'chg1m',dir:'desc'},
 };
 function applyFilters(){
   saveState();

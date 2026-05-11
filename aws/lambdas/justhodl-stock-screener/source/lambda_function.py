@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 2  # was 5; reduced after adding 5th endpoint hit per stock pushed us into FMP 429 territory
+WORKERS  = 1  # was 2 → 1 after adding institutional + insider + surprises endpoints. 9 calls/stock × 503 stocks = 4.5k calls. At ~10 req/sec we finish in ~7.5min, comfortably under FMP's 750/min limit.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -176,6 +176,14 @@ def get_stock_data(symbol):
     # Kings tabs (we previously only had margins, not totals).
     income  = fmp("income-statement",    f"&symbol={symbol}&limit=3&period=annual")
     cashflow= fmp("cash-flow-statement", f"&symbol={symbol}&limit=3&period=annual")
+    # ── STAGE 2 ADDS (2026-05-11) ─────────────────────────────
+    # Institutional 13F ownership (latest 2 quarters to detect QoQ change)
+    inst    = fmp("institutional-ownership/symbol-positions-summary",
+                  f"&symbol={symbol}&limit=2")
+    # Insider trades — recent transactions (Form 4); we read most recent 50
+    insider = fmp("insider-trading", f"&symbol={symbol}&limit=50")
+    # Analyst earnings estimates + surprises
+    surprises = fmp("earnings-surprises", f"&symbol={symbol}&limit=8")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -234,6 +242,94 @@ def get_stock_data(symbol):
     if stock_repurchased and mcap_val and mcap_val > 0:
         # stockRepurchased is typically negative — flip sign so positive = buying back
         buyback_yield = round((abs(stock_repurchased) / mcap_val) * 100, 2)
+
+    # ── STAGE 2 — institutional + insider + earnings-surprise processing ──
+    # Institutional ownership (13F)
+    inst_curr = inst[0] if isinstance(inst, list) and len(inst) >= 1 else {}
+    inst_prev = inst[1] if isinstance(inst, list) and len(inst) >= 2 else {}
+    inst_ownership_pct = sf(inst_curr.get("ownershipPercent"))
+    inst_holders_n = sf(inst_curr.get("investorsHolding"))
+    inst_total_shares = sf(inst_curr.get("totalInvested"))
+    inst_qoq_chg_pct = None
+    inst_holders_chg = None
+    if inst_curr and inst_prev:
+        sh_curr = sf(inst_curr.get("totalInvested"))
+        sh_prev = sf(inst_prev.get("totalInvested"))
+        if sh_curr and sh_prev and sh_prev > 0:
+            inst_qoq_chg_pct = round((sh_curr / sh_prev - 1.0) * 100, 2)
+        h_curr = sf(inst_curr.get("investorsHolding"))
+        h_prev = sf(inst_prev.get("investorsHolding"))
+        if h_curr is not None and h_prev is not None:
+            inst_holders_chg = int(h_curr - h_prev)
+
+    # Insider trading — last 90 days, separate buys vs sells
+    insider_buys_90d_usd = 0.0
+    insider_sells_90d_usd = 0.0
+    insider_buyers_90d = set()
+    insider_sellers_90d = set()
+    insider_net_signal = "neutral"
+    insider_recent_buys_count = 0
+    if isinstance(insider, list):
+        from datetime import datetime as _dt
+        cutoff_ts = (datetime.now(timezone.utc).timestamp() - 90 * 86400)
+        for t in insider:
+            try:
+                tx_date_str = t.get("transactionDate") or t.get("filingDate") or ""
+                if not tx_date_str:
+                    continue
+                tx_ts = _dt.strptime(tx_date_str[:10], "%Y-%m-%d").timestamp()
+                if tx_ts < cutoff_ts:
+                    continue
+                shares = float(t.get("securitiesTransacted") or 0)
+                price = float(t.get("price") or 0)
+                amount = abs(shares * price)
+                txt = (t.get("transactionType") or "").upper()
+                acq = (t.get("acquistionOrDisposition") or t.get("acquisitionOrDisposition") or "").upper()
+                name = t.get("reportingName") or t.get("name") or "unknown"
+                is_buy = ("P-PURCHASE" in txt) or ("A-AWARD" in txt and acq == "A") or (acq == "A" and "P" in txt)
+                is_sell = ("S-SALE" in txt) or (acq == "D")
+                if is_buy and not is_sell:
+                    insider_buys_90d_usd += amount
+                    insider_buyers_90d.add(name)
+                    insider_recent_buys_count += 1
+                elif is_sell:
+                    insider_sells_90d_usd += amount
+                    insider_sellers_90d.add(name)
+            except Exception:
+                continue
+    # Cluster buying = 3+ distinct insiders making purchases in 90d
+    insider_cluster_buying = len(insider_buyers_90d) >= 3
+    insider_net_usd = round(insider_buys_90d_usd - insider_sells_90d_usd, 0)
+    if insider_buys_90d_usd > 0 and insider_buys_90d_usd > insider_sells_90d_usd * 2:
+        insider_net_signal = "buying"
+    elif insider_sells_90d_usd > insider_buys_90d_usd * 5 and insider_sells_90d_usd > 1e6:
+        insider_net_signal = "selling"
+
+    # Earnings surprise streak (count consecutive recent beats)
+    beat_streak = 0
+    last_surprise_pct = None
+    avg_surprise_pct = None
+    if isinstance(surprises, list) and surprises:
+        # surprises are typically ordered most-recent-first; iterate forward
+        surprise_pcts = []
+        for s in surprises:
+            actual = sf(s.get("actualEarningResult"))
+            est = sf(s.get("estimatedEarning"))
+            if actual is None or est is None:
+                continue
+            beat = actual > est
+            if beat_streak >= 0 and beat:
+                beat_streak += 1
+            elif not beat:
+                # Stop counting — streak ends on first miss
+                if beat_streak == 0:
+                    beat_streak = 0
+                break
+            if est != 0:
+                surprise_pcts.append((actual - est) / abs(est) * 100)
+        if surprise_pcts:
+            last_surprise_pct = round(surprise_pcts[0], 2)
+            avg_surprise_pct = round(sum(surprise_pcts) / len(surprise_pcts), 2)
 
     # Compute simplified Piotroski from available data
     score = 0
@@ -332,6 +428,23 @@ def get_stock_data(symbol):
         "rev3yCAGR":         rev_3y_cagr,           # 3y revenue CAGR %
         "sustainable3y":     sustainable_3y,        # 3 consecutive years of positive NI
         "sustainableQuality":sustainable_quality,   # 3y profit + ROE>15% + margin>10%
+        # ── STAGE 2 FIELDS (2026-05-11) ──
+        # Institutional 13F ownership
+        "instOwnershipPct":  inst_ownership_pct,    # % of float held by 13F institutions
+        "instHoldersN":      inst_holders_n,        # # of 13F institutions holding
+        "instQoQChgPct":     inst_qoq_chg_pct,      # QoQ % change in 13F shares held
+        "instHoldersChg":    inst_holders_chg,      # change in # of holders QoQ
+        # Insider activity (Form 4) last 90 days
+        "insiderBuys90dUsd": round(insider_buys_90d_usd, 0),
+        "insiderSells90dUsd":round(insider_sells_90d_usd, 0),
+        "insiderNet90dUsd":  insider_net_usd,       # buys - sells, $ value
+        "insiderBuyersN90d": len(insider_buyers_90d),
+        "insiderClusterBuy": insider_cluster_buying,# 3+ distinct insiders buying
+        "insiderSignal":     insider_net_signal,    # 'buying' | 'selling' | 'neutral'
+        # Earnings surprise streak
+        "beatStreak":        beat_streak,           # # of consecutive recent EPS beats
+        "lastSurprisePct":   last_surprise_pct,     # most recent EPS surprise %
+        "avgSurprisePct":    avg_surprise_pct,      # avg surprise % over fetched window
     }
 
 def process(args):
