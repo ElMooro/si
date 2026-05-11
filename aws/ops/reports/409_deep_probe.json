@@ -1,0 +1,34 @@
+{
+  "started": "2026-05-11T11:19:52.589164+00:00",
+  "test": {
+    "lce_candidates": [],
+    "gbc_aggregate_keys": [
+      "global_phase",
+      "global_avg_cli",
+      "global_phase_mix_pct",
+      "global_phase_mix_weight",
+      "total_weight_covered",
+      "classified_weight_covered",
+      "classification_coverage_pct",
+      "expansion_breadth_pct",
+      "contraction_breadth_pct",
+      "by_region"
+    ],
+    "gbc_aggregate_sample": "{\"global_phase\": \"GLOBAL_EXPANSION\", \"global_avg_cli\": 110.15, \"global_phase_mix_pct\": {\"EXPANSION\": 76.2, \"AT_RISK\": 14.3, \"RECESSION\": 9.1, \"UNKNOWN\": 0.4}, \"global_phase_mix_weight\": {\"EXPANSION\": 64.30000000000001, \"AT_RISK\": 12.100000000000001, \"RECESSION\": 7.7, \"UNKNOWN\": 0.3, \"RECOVERY\": 0.0}, \"total_weight_covered\": 84.4, \"classified_weight_covered\": 84.1, \"classification_coverage_pct\": 99.6, \"expansion_breadth_pct\": 76.5, \"contraction_breadth_pct\": 23.5, \"by_region\": {\"North America\": {\"phase_mix\": {\"EXPANSION\": 27.0}, \"n_countries\": 2, \"total_weight\": 27.0, \"classified_weight\": 27.0,",
+    "gbc_interpretation_keys": [
+      "decisive_call",
+      "cross_asset",
+      "country_tilts"
+    ],
+    "gbc_interpretation_sample": "{\"decisive_call\": \"GLOBAL EXPANSION \\u00b7 76% of world GDP in expansion+recovery (avg CLI 110.15). Maximum cyclical risk exposure justified \\u2014 overweight equity (especially EM + small caps), commodities, and HY credit. Underweight long duration and USD.\", \"cross_asset\": {\"us_large_equity\": {\"signal\": 2, \"rationale\": \"Global expansion supports equity multiples\"}, \"small_caps\": {\"signal\": 1, \"rationale\": \"Cyclical exposure benefits in expansion\"}, \"international_dm\": {\"signal\": 1, \"rationale\": \"DM expansion broad-based\"}, \"emerging_markets\": {\"signal\": 2, \"rationale\": \"EM beta to global gro",
+    "gbc_err": "slice(None, 200, None)",
+    "screener": {
+      "generated_at": "2026-05-11T10:23:10.412259+00:00",
+      "n_stocks": 503,
+      "with_revenue": 0,
+      "with_steal": 0,
+      "elapsed_seconds": 215.9
+    }
+  },
+  "finished": "2026-05-11T11:20:00.786771+00:00"
+}
