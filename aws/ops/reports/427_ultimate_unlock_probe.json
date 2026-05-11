@@ -1,0 +1,630 @@
+{
+  "started": "2026-05-11T15:06:11.800510+00:00",
+  "test": {
+    "probes": [
+      {
+        "label": "inst:positions-summary",
+        "path": "/stable/institutional-ownership/symbol-positions-summary?symbol=AAPL&year=2024&quarter=4",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "cik",
+          "date",
+          "investorsHolding",
+          "lastInvestorsHolding",
+          "investorsHoldingChange",
+          "numberOf13Fshares",
+          "lastNumberOf13Fshares",
+          "numberOf13FsharesChange",
+          "totalInvested",
+          "lastTotalInvested",
+          "totalInvestedChange",
+          "ownershipPercent",
+          "lastOwnershipPercent",
+          "ownershipPercentChange",
+          "newPositions",
+          "lastNewPositions",
+          "newPositionsChange"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"cik\": \"0000320193\", \"date\": \"2024-12-31\", \"investorsHolding\": 5910, \"lastInvestorsHolding\": 5331, \"investorsHoldingChange\": 579, \"numberOf13Fshares\": 9435109999, \"lastNumberOf13Fshares\": 9309326847, \"numberOf13FsharesChange\": 125783152, \"totalInvested\": 2358556351558, \"lastTotalInvested\": 2170116605353, \"totalInvestedChange\": 188439746205, \"ownershipPercent\": 62.5599, \"lastOwne"
+      },
+      {
+        "label": "inst:positions-summary-no-q",
+        "path": "/stable/institutional-ownership/symbol-positions-summary?symbol=AAPL",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "label": "inst:extract",
+        "path": "/stable/institutional-ownership/extract?symbol=AAPL&year=2024&quarter=4",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "label": "inst:holder-performance",
+        "path": "/stable/institutional-ownership/holder-performance-summary?cik=0001067983",
+        "status": 200,
+        "ok": true,
+        "n": 51,
+        "keys": [
+          "date",
+          "cik",
+          "investorName",
+          "portfolioSize",
+          "securitiesAdded",
+          "securitiesRemoved",
+          "marketValue",
+          "previousMarketValue",
+          "changeInMarketValue",
+          "changeInMarketValuePercentage",
+          "averageHoldingPeriod",
+          "averageHoldingPeriodTop10",
+          "averageHoldingPeriodTop20",
+          "turnover",
+          "turnoverAlternateSell",
+          "turnoverAlternateBuy",
+          "performance",
+          "performancePercentage"
+        ],
+        "sample": "{\"date\": \"2025-12-31\", \"cik\": \"0001067983\", \"investorName\": \"BERKSHIRE HATHAWAY INC\", \"portfolioSize\": 42, \"securitiesAdded\": 4, \"securitiesRemoved\": 3, \"marketValue\": 274160086701, \"previousMarketValue\": 267334501955, \"changeInMarketValue\": 6825584746, \"changeInMarketValuePercentage\": 2.5532, \"averageHoldingPeriod\": 19, \"averageHoldingPeriodTop10\": 31, \"averageHoldingPeriodTop20\": 29, \"turnover\":"
+      },
+      {
+        "label": "inst:holder-industry",
+        "path": "/stable/institutional-ownership/holder-industry-breakdown?cik=0001067983&date=2024-12-31",
+        "status": 400,
+        "ok": false,
+        "err": "HTTP Error 400: Bad Request"
+      },
+      {
+        "label": "inst:industry-summary",
+        "path": "/stable/institutional-ownership/industry-summary?year=2024&quarter=4",
+        "ok": false,
+        "err": "The read operation timed out"
+      },
+      {
+        "label": "inst:by-shares-held",
+        "path": "/stable/institutional-ownership/by-shares-held?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "inst:portfolio-holdings",
+        "path": "/stable/institutional-ownership/portfolio-holdings?cik=0001067983&date=2024-12-31",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "inst:13f",
+        "path": "/stable/13f?cik=0001067983&date=2024-12-31",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:holder-stock",
+        "path": "/stable/etf-holdings?symbol=SPY",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:info",
+        "path": "/stable/etf-info?symbol=SPY",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:asset-exposure",
+        "path": "/stable/etf-asset-exposure?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:country-weights",
+        "path": "/stable/etf-country-weightings?symbol=SPY",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:sector-weights",
+        "path": "/stable/etf-sector-weightings?symbol=SPY",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "etf:stock-exposure-AAPL",
+        "path": "/stable/etf-stock-exposure?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "gov:contracts",
+        "path": "/stable/government-contracts?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "gov:contracts-LMT",
+        "path": "/stable/government-contracts?symbol=LMT",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "gov:senate-pelosi",
+        "path": "/stable/senate-trades?symbol=AAPL&page=0",
+        "status": 200,
+        "ok": true,
+        "n": 100,
+        "keys": [
+          "symbol",
+          "disclosureDate",
+          "transactionDate",
+          "firstName",
+          "lastName",
+          "office",
+          "district",
+          "owner",
+          "assetDescription",
+          "assetType",
+          "type",
+          "amount",
+          "capitalGainsOver200USD",
+          "comment",
+          "link"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"disclosureDate\": \"2026-05-07\", \"transactionDate\": \"2026-04-17\", \"firstName\": \"Shelley\", \"lastName\": \"Moore Capito\", \"office\": \"Shelley Moore Capito\", \"district\": \"WV\", \"owner\": \"Spouse\", \"assetDescription\": \"Apple Inc\", \"assetType\": \"Stock\", \"type\": \"Sale\", \"amount\": \"$1,001 - $15,000\", \"capitalGainsOver200USD\": \"False\", \"comment\": \"\", \"link\": \"https://efdsearch.senate.gov/sear"
+      },
+      {
+        "label": "bulk:profile",
+        "path": "/stable/profile-bulk?part=0",
+        "status": 200,
+        "ok": false,
+        "raw": "\"symbol\",\"price\",\"marketCap\",\"beta\",\"lastDividend\",\"range\",\"change\",\"changePercentage\",\"volume\",\"averageVolume\",\"companyName\",\"currency\",\"cik\",\"isin\",\"cusip\",\"exchangeFullName\",\"exchange\",\"industry\",\""
+      },
+      {
+        "label": "bulk:ratios-ttm",
+        "path": "/stable/ratios-ttm-bulk?part=0",
+        "status": 200,
+        "ok": false,
+        "raw": "\"symbol\",\"grossProfitMarginTTM\",\"ebitMarginTTM\",\"ebitdaMarginTTM\",\"operatingProfitMarginTTM\",\"pretaxProfitMarginTTM\",\"continuousOperationsProfitMarginTTM\",\"netProfitMarginTTM\",\"bottomLineProfitMarginT"
+      },
+      {
+        "label": "bulk:key-metrics-ttm",
+        "path": "/stable/key-metrics-ttm-bulk?part=0",
+        "status": 200,
+        "ok": false,
+        "raw": "\"symbol\",\"marketCap\",\"enterpriseValueTTM\",\"evToSalesTTM\",\"evToOperatingCashFlowTTM\",\"evToFreeCashFlowTTM\",\"evToEBITDATTM\",\"netDebtToEBITDATTM\",\"currentRatioTTM\",\"incomeQualityTTM\",\"grahamNumberTTM\",\"g"
+      },
+      {
+        "label": "bulk:income-statement",
+        "path": "/stable/income-statement-bulk?year=2024&period=annual",
+        "status": 200,
+        "ok": false,
+        "raw": "\"date\",\"symbol\",\"reportedCurrency\",\"cik\",\"filingDate\",\"acceptedDate\",\"fiscalYear\",\"period\",\"revenue\",\"costOfRevenue\",\"grossProfit\",\"researchAndDevelopmentExpenses\",\"generalAndAdministrativeExpenses\",\""
+      },
+      {
+        "label": "bulk:financial-growth",
+        "path": "/stable/financial-growth-bulk?year=2024&period=annual",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "bulk:dcf",
+        "path": "/stable/dcf-bulk?part=0",
+        "status": 200,
+        "ok": false,
+        "raw": "\"symbol\",\"date\",\"dcf\",\"Stock Price\"\n\"000004.SZ\",\"2026-05-11\",-8.450069521047812,2.76\n\"000006.SZ\",\"2026-05-11\",-3.5382660958379093,9.5\n\"000008.SZ\",\"2026-05-11\",-6.602417430673439,2.8\n\"000010.SZ\",\"2026-"
+      },
+      {
+        "label": "bulk:price-targets",
+        "path": "/stable/price-target-consensus-bulk?part=0",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "bulk:earnings-surprise",
+        "path": "/stable/earnings-surprise-bulk?year=2024",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "bulk:grades-consensus",
+        "path": "/stable/grades-consensus-bulk?part=0",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "transcript:content-AAPL",
+        "path": "/stable/earning-call-transcript?symbol=AAPL&year=2026&quarter=2",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "period",
+          "year",
+          "date",
+          "content"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"period\": \"Q2\", \"year\": 2026, \"date\": \"2026-04-30\", \"content\": \"Suhasini Chandramouli: Good afternoon, and welcome to the Apple Q2 Fiscal Year 2026 Earnings Conference Call. My name is Suhasini Chandramouli, Director of Investor Relations. Today's call is being recorded. Speaking first today is Apple's CEO, Tim Cook. John Ternus will be joining after that for a brief set of rema"
+      },
+      {
+        "label": "13f:cik-list",
+        "path": "/stable/13f-cik-list?date=2024-12-31",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "13f:filing-dates",
+        "path": "/stable/13f-filing-dates?cik=0001067983",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "estimates:analyst-AAPL",
+        "path": "/stable/analyst-estimates?symbol=AAPL&period=annual&limit=4",
+        "status": 200,
+        "ok": true,
+        "n": 4,
+        "keys": [
+          "symbol",
+          "date",
+          "revenueLow",
+          "revenueHigh",
+          "revenueAvg",
+          "ebitdaLow",
+          "ebitdaHigh",
+          "ebitdaAvg",
+          "ebitLow",
+          "ebitHigh",
+          "ebitAvg",
+          "netIncomeLow",
+          "netIncomeHigh",
+          "netIncomeAvg",
+          "sgaExpenseLow",
+          "sgaExpenseHigh",
+          "sgaExpenseAvg",
+          "epsAvg"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2030-09-27\", \"revenueLow\": 613728952371, \"revenueHigh\": 677485248001, \"revenueAvg\": 634692000000, \"ebitdaLow\": 221516232161, \"ebitdaHigh\": 244528107892, \"ebitdaAvg\": 229082528826, \"ebitLow\": 205554267109, \"ebitHigh\": 226907958460, \"ebitAvg\": 212575353332, \"netIncomeLow\": 179505391538, \"netIncomeHigh\": 203998308687, \"netIncomeAvg\": 187558712512, \"sgaExpenseLow\": 39501104"
+      },
+      {
+        "label": "estimates:analyst-quart",
+        "path": "/stable/analyst-estimates?symbol=AAPL&period=quarter&limit=4",
+        "status": 200,
+        "ok": true,
+        "n": 4,
+        "keys": [
+          "symbol",
+          "date",
+          "revenueLow",
+          "revenueHigh",
+          "revenueAvg",
+          "ebitdaLow",
+          "ebitdaHigh",
+          "ebitdaAvg",
+          "ebitLow",
+          "ebitHigh",
+          "ebitAvg",
+          "netIncomeLow",
+          "netIncomeHigh",
+          "netIncomeAvg",
+          "sgaExpenseLow",
+          "sgaExpenseHigh",
+          "sgaExpenseAvg",
+          "epsAvg"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2028-09-28\", \"revenueLow\": 122983384015, \"revenueHigh\": 132233160380, \"revenueAvg\": 127683980580, \"ebitdaLow\": 44389002246, \"ebitdaHigh\": 47727569867, \"ebitdaAvg\": 46085611858, \"ebitLow\": 41190429863, \"ebitHigh\": 44288427757, \"ebitAvg\": 42764785575, \"netIncomeLow\": 34911528500, \"netIncomeHigh\": 38364609149, \"netIncomeAvg\": 36666275924, \"sgaExpenseLow\": 7915512952, \"sgaE"
+      },
+      {
+        "label": "estimates:financial-AAPL",
+        "path": "/stable/financial-estimates?symbol=AAPL&limit=4",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "news:fmp-articles",
+        "path": "/stable/fmp-articles?page=0",
+        "status": 200,
+        "ok": true,
+        "n": 20,
+        "keys": [
+          "title",
+          "date",
+          "content",
+          "tickers",
+          "image",
+          "link",
+          "author",
+          "site"
+        ],
+        "sample": "{\"title\": \"RBC Capital Upgrades BP: Deep Dive into Investment Potential\", \"date\": \"2026-05-11 10:00:21\", \"content\": \"<h1 data-start=\\\"0\\\" data-end=\\\"97\\\">RBC Capital Upgrades BP (NYSE: BP): A Deep Dive into the Oil and Gas Giant's Investment Potential</h1>\\n<ul>\\n<li data-start=\\\"99\\\" data-end=\\\"590\\\">RBC Capital upgraded BP (NYSE: BP) to <strong>Outperform</strong>, signaling a positive shift in "
+      },
+      {
+        "label": "news:press-releases",
+        "path": "/stable/press-releases?symbol=AAPL&limit=5",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "news:general-news",
+        "path": "/stable/general-news?page=0",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "mf:holder",
+        "path": "/stable/mutual-fund-holdings?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "mf:by-name",
+        "path": "/stable/mutual-fund-holder?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "crypto:realtime",
+        "path": "/stable/quote?symbol=BTCUSD",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "name",
+          "price",
+          "changePercentage",
+          "change",
+          "volume",
+          "dayLow",
+          "dayHigh",
+          "yearHigh",
+          "yearLow",
+          "marketCap",
+          "priceAvg50",
+          "priceAvg200",
+          "exchange",
+          "open",
+          "previousClose",
+          "timestamp"
+        ],
+        "sample": "{\"symbol\": \"BTCUSD\", \"name\": \"Bitcoin USD\", \"price\": 80876.76, \"changePercentage\": -1.56719, \"change\": -1287.67, \"volume\": 36334362624, \"dayLow\": 80426.74, \"dayHigh\": 82164.43, \"yearHigh\": 126198.07, \"yearLow\": 60074.203, \"marketCap\": 1615318368008, \"priceAvg50\": 73913.52, \"priceAvg200\": 82725.48, \"exchange\": \"CRYPTO\", \"open\": 82164.43, \"previousClose\": 82164.43, \"timestamp\": 1778512001}"
+      },
+      {
+        "label": "forex:eurusd",
+        "path": "/stable/quote?symbol=EURUSD",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "name",
+          "price",
+          "changePercentage",
+          "change",
+          "volume",
+          "dayLow",
+          "dayHigh",
+          "yearHigh",
+          "yearLow",
+          "marketCap",
+          "priceAvg50",
+          "priceAvg200",
+          "exchange",
+          "open",
+          "previousClose",
+          "timestamp"
+        ],
+        "sample": "{\"symbol\": \"EURUSD\", \"name\": \"EUR/USD\", \"price\": 1.17825, \"changePercentage\": -0.02291009, \"change\": -0.00027, \"volume\": 77168, \"dayLow\": 1.17483, \"dayHigh\": 1.17878, \"yearHigh\": 1.20831, \"yearLow\": 1.10876, \"marketCap\": null, \"priceAvg50\": 1.16432, \"priceAvg200\": 1.16798, \"exchange\": \"FOREX\", \"open\": 1.17524, \"previousClose\": 1.17852, \"timestamp\": 1778512000}"
+      },
+      {
+        "label": "cot:reports",
+        "path": "/stable/commitment-of-traders?symbol=ZC",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "cot:analysis",
+        "path": "/stable/commitment-of-traders-analysis?symbol=ZC",
+        "status": 200,
+        "ok": true,
+        "n": 9,
+        "keys": [
+          "symbol",
+          "date",
+          "name",
+          "sector",
+          "exchange",
+          "currentLongMarketSituation",
+          "currentShortMarketSituation",
+          "marketSituation",
+          "previousLongMarketSituation",
+          "previousShortMarketSituation",
+          "previousMarketSituation",
+          "netPostion",
+          "previousNetPosition",
+          "changeInNetPosition",
+          "marketSentiment",
+          "reversalTrend"
+        ],
+        "sample": "{\"symbol\": \"ZC\", \"date\": \"2024-02-27 00:00:00\", \"name\": \"Corn (ZC)\", \"sector\": \"GRAINS\", \"exchange\": \"CORN - CHICAGO BOARD OF TRADE\", \"currentLongMarketSituation\": 35.88, \"currentShortMarketSituation\": 64.12, \"marketSituation\": \"Bearish\", \"previousLongMarketSituation\": 33.99, \"previousShortMarketSituation\": 66.01, \"previousMarketSituation\": \"Bearish\", \"netPostion\": -232604, \"previousNetPosition\": "
+      },
+      {
+        "label": "ma:latest",
+        "path": "/stable/mergers-acquisitions-latest?page=0",
+        "status": 200,
+        "ok": true,
+        "n": 100,
+        "keys": [
+          "symbol",
+          "companyName",
+          "cik",
+          "targetedCompanyName",
+          "targetedCik",
+          "targetedSymbol",
+          "transactionDate",
+          "acceptedDate",
+          "link"
+        ],
+        "sample": "{\"symbol\": \"TPTA\", \"companyName\": \"Terra Property Trust, Inc.\", \"cik\": \"0001674356\", \"targetedCompanyName\": \"Turning Point Therapeutics, Inc.\", \"targetedCik\": \"0001595893\", \"targetedSymbol\": \"TPTX\", \"transactionDate\": \"2026-05-07\", \"acceptedDate\": \"2026-05-07 16:05:54\", \"link\": \"https://www.sec.gov/Archives/edgar/data/1674356/000110465926057103/tm2612950-1_s4.htm\"}"
+      },
+      {
+        "label": "ma:search",
+        "path": "/stable/mergers-acquisitions-search?name=Apple",
+        "status": 200,
+        "ok": true,
+        "n": 3,
+        "keys": [
+          "symbol",
+          "companyName",
+          "cik",
+          "targetedCompanyName",
+          "targetedCik",
+          "targetedSymbol",
+          "transactionDate",
+          "acceptedDate",
+          "link"
+        ],
+        "sample": "{\"symbol\": \"PEGY\", \"companyName\": \"Pineapple Energy Inc.\", \"cik\": \"0000022701\", \"targetedCompanyName\": \"Communications Systems, Inc.\", \"targetedCik\": \"0000022701\", \"targetedSymbol\": \"JCS\", \"transactionDate\": \"2021-11-12\", \"acceptedDate\": \"2021-11-12 09:54:22\", \"link\": \"https://www.sec.gov/Archives/edgar/data/22701/000089710121000932/a211292_s-4.htm\"}"
+      },
+      {
+        "label": "exec:key-executives",
+        "path": "/stable/key-executives?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 11,
+        "keys": [
+          "title",
+          "name",
+          "pay",
+          "currencyPay",
+          "gender",
+          "yearBorn",
+          "titleSince",
+          "active"
+        ],
+        "sample": "{\"title\": \"Senior Vice President of Worldwide Marketing\", \"name\": \"Greg Joswiak\", \"pay\": null, \"currencyPay\": \"USD\", \"gender\": \"male\", \"yearBorn\": null, \"titleSince\": null, \"active\": true}"
+      },
+      {
+        "label": "exec:compensation",
+        "path": "/stable/governance-executive-compensation?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 339,
+        "keys": [
+          "cik",
+          "symbol",
+          "companyName",
+          "filingDate",
+          "acceptedDate",
+          "nameAndPosition",
+          "year",
+          "salary",
+          "bonus",
+          "stockAward",
+          "optionAward",
+          "incentivePlanCompensation",
+          "allOtherCompensation",
+          "total",
+          "link"
+        ],
+        "sample": "{\"cik\": \"0000320193\", \"symbol\": \"AAPL\", \"companyName\": \"Apple Inc.\", \"filingDate\": \"2026-01-08\", \"acceptedDate\": \"2026-01-08 16:31:36\", \"nameAndPosition\": \"Tim Cook Chief Executive Officer\", \"year\": 2025, \"salary\": 3000000, \"bonus\": 0, \"stockAward\": 57535293, \"optionAward\": 0, \"incentivePlanCompensation\": 12000000, \"allOtherCompensation\": 1759518, \"total\": 74294811, \"link\": \"https://www.sec.gov/Ar"
+      },
+      {
+        "label": "share:float",
+        "path": "/stable/shares-float?symbol=AAPL",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "date",
+          "freeFloat",
+          "floatShares",
+          "outstandingShares",
+          "source"
+        ],
+        "sample": "{\"symbol\": \"AAPL\", \"date\": \"2026-05-10 16:54:05\", \"freeFloat\": 99.82899999836594, \"floatShares\": 14662240621, \"outstandingShares\": 14687356000, \"source\": \"https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm\"}"
+      },
+      {
+        "label": "share:short-interest",
+        "path": "/stable/short-interest?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "share:short-volume",
+        "path": "/stable/short-volume?symbol=AAPL",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "cal:earnings",
+        "path": "/stable/earnings-calendar?from=2026-05-11&to=2026-05-18",
+        "status": 200,
+        "ok": true,
+        "n": 4000,
+        "keys": [
+          "symbol",
+          "date",
+          "epsActual",
+          "epsEstimated",
+          "revenueActual",
+          "revenueEstimated",
+          "lastUpdated"
+        ],
+        "sample": "{\"symbol\": \"SGRL.BO\", \"date\": \"2026-05-18\", \"epsActual\": null, \"epsEstimated\": null, \"revenueActual\": null, \"revenueEstimated\": null, \"lastUpdated\": \"2026-05-11\"}"
+      },
+      {
+        "label": "cal:ipo",
+        "path": "/stable/ipo-calendar?from=2026-05-11&to=2026-06-11",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "ta:rsi",
+        "path": "/stable/technical_indicators/rsi?symbol=AAPL&periodLength=14&timeframe=1day",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "ta:macd",
+        "path": "/stable/technical_indicators/macd?symbol=AAPL&periodLength=12&timeframe=1day",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  "finished": "2026-05-11T15:06:44.608397+00:00"
+}
