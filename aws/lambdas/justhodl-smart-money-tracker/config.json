@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-smart-money-tracker",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Top hedge funds / institutional holders activity (13F-based)",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "schedule": {
+    "rule_name": "justhodl-smart-money-tracker-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Daily at 14:00 UTC — refresh top filers' activity"
+  }
+}

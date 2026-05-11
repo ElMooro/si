@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Money Tracker — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%B3%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);}
+.panel-body{padding:0;max-height:440px;overflow-y:auto;}
+.panel-body::-webkit-scrollbar{width:6px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+.filer-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(28,35,48,.5);font-size:12px;}
+.filer-row:last-child{border-bottom:0;}
+.filer-rank{width:24px;font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+.filer-name{flex:1;color:var(--text);font-size:12px;}
+.filer-num{width:90px;text-align:right;font-family:var(--font-mono);font-weight:600;}
+.filer-num.pos{color:var(--pos);}
+.filer-num.neg{color:var(--neg);}
+.filer-meta{width:70px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.all-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.filter-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-row input,.filter-row select{background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:12px;outline:none;}
+.filter-row input{min-width:240px;}
+.filter-chip{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);padding:4px 8px;}
+table.filers{width:100%;border-collapse:collapse;font-size:12px;}
+table.filers thead{background:rgba(28,35,48,.4);}
+table.filers th{text-align:left;padding:10px 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap;}
+table.filers th:hover{color:var(--text);}
+table.filers th.sortable::after{content:'▾';opacity:.3;font-size:9px;margin-left:4px;}
+table.filers th.sorted-desc::after{content:'▼';opacity:1;color:var(--accent);}
+table.filers th.sorted-asc::after{content:'▲';opacity:1;color:var(--accent);}
+table.filers td{padding:11px 14px;border-bottom:1px solid rgba(28,35,48,.5);}
+table.filers tbody tr:hover{background:rgba(167,139,250,.04);}
+.f-name{color:var(--text);font-weight:500;}
+.f-mv{font-family:var(--font-mono);font-weight:600;}
+.f-num{font-family:var(--font-mono);text-align:right;}
+.f-num.pos{color:var(--pos);}
+.f-num.neg{color:var(--neg);}
+.loading{text-align:center;padding:60px 20px;color:var(--text-dim);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🐳 Smart Money Tracker <span class="badge">FMP ULTIMATE 13F</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">connecting</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div class="summary-row">
+<div class="stat"><div class="stat-label">Top Filers Tracked</div><div class="stat-val" id="stat-total">—</div><div class="stat-sub" id="stat-quarter">latest 13F quarter</div></div>
+<div class="stat"><div class="stat-label">Biggest Gainer</div><div class="stat-val" id="stat-gainer" style="color:var(--pos)">—</div><div class="stat-sub" id="stat-gainer-sub">QoQ value change</div></div>
+<div class="stat"><div class="stat-label">Biggest Decliner</div><div class="stat-val" id="stat-decliner" style="color:var(--neg)">—</div><div class="stat-sub" id="stat-decliner-sub">QoQ value change</div></div>
+<div class="stat"><div class="stat-label">Most Active</div><div class="stat-val" id="stat-active">—</div><div class="stat-sub" id="stat-active-sub">added + removed</div></div>
+</div>
+
+<div class="grid-2col">
+<div class="panel">
+<div class="panel-title">🟢 Biggest QoQ Gainers (portfolio value)</div>
+<div class="panel-body" id="gainers"><div class="loading">Loading gainers</div></div>
+</div>
+<div class="panel">
+<div class="panel-title">🔴 Biggest QoQ Decliners</div>
+<div class="panel-body" id="decliners"><div class="loading">Loading decliners</div></div>
+</div>
+</div>
+
+<div class="grid-2col">
+<div class="panel">
+<div class="panel-title">📈 Top Buyers (most securities added)</div>
+<div class="panel-body" id="increasers"><div class="loading">Loading</div></div>
+</div>
+<div class="panel">
+<div class="panel-title">📉 Top Sellers (most securities reduced)</div>
+<div class="panel-body" id="reducers"><div class="loading">Loading</div></div>
+</div>
+</div>
+
+<div class="all-panel">
+<div class="filter-row">
+<input id="search" placeholder="Search hedge fund / investor name…">
+<select id="filter-sort">
+<option value="market_value">Sort: Portfolio AUM</option>
+<option value="qoq_pct_desc">Sort: QoQ Gainer first</option>
+<option value="qoq_pct_asc">Sort: QoQ Decliner first</option>
+<option value="activity_desc">Sort: Most Active</option>
+<option value="added_desc">Sort: Most Buys</option>
+<option value="removed_desc">Sort: Most Sells</option>
+</select>
+<span class="filter-chip" id="filter-count">— filers</span>
+</div>
+<div style="overflow-x:auto">
+<table class="filers">
+<thead><tr>
+<th>Rank</th>
+<th>Investor</th>
+<th class="sortable" data-sort="market_value">Portfolio AUM</th>
+<th class="sortable" data-sort="qoq_change_pct">QoQ %</th>
+<th class="sortable" data-sort="portfolio_size">Positions</th>
+<th class="sortable" data-sort="securities_added">Added</th>
+<th class="sortable" data-sort="securities_removed">Removed</th>
+<th class="sortable" data-sort="net_activity">Net Act.</th>
+<th>CIK</th>
+</tr></thead>
+<tbody id="all-body"><tr><td colspan="9"><div class="loading">Loading all filers</div></td></tr></tbody>
+</table>
+</div>
+</div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
