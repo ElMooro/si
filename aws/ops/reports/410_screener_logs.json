@@ -1,0 +1,545 @@
+{
+  "started": "2026-05-11T11:22:26.870773+00:00",
+  "test": {
+    "recent_streams": [
+      {
+        "stream": "2026/05/11/[$LATEST]3ca6c69308124178962f1a2c772c3c1f",
+        "first_event_ts": 1778497210187,
+        "last_event_ts": 1778497786690,
+        "n_lines_fetched": 100
+      },
+      {
+        "stream": "2026/05/11/[$LATEST]d74113e86ce54fa7985036680b906537",
+        "first_event_ts": 1778497149360,
+        "last_event_ts": 1778497744509,
+        "n_lines_fetched": 100
+      },
+      {
+        "stream": "2026/05/11/[$LATEST]a23e3d6e698c4d5e8fa2f89c639cb0b5",
+        "first_event_ts": 1778497519213,
+        "last_event_ts": 1778497519661,
+        "n_lines_fetched": 15
+      },
+      {
+        "stream": "2026/05/11/[$LATEST]64c8cb3edb9541609820280c19a4640d",
+        "first_event_ts": 1778497517862,
+        "last_event_ts": 1778497518392,
+        "n_lines_fetched": 15
+      },
+      {
+        "stream": "2026/05/11/[$LATEST]311856e5ee7a427e81b1aa321b3acaf6",
+        "first_event_ts": 1778497458528,
+        "last_event_ts": 1778497459054,
+        "n_lines_fetched": 29
+      }
+    ],
+    "log_tail": [
+      {
+        "ts": 1778497684466,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497684488,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497684497,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497684506,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497684515,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497684706,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497684725,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497684726,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497686983,
+        "stream": "2026/05/11",
+        "msg": "ERR sp500-constituent: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497686983,
+        "stream": "2026/05/11",
+        "msg": "SP500 attempt 2 failed, waiting 15s..."
+      },
+      {
+        "ts": 1778497698783,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497698783,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497712828,
+        "stream": "2026/05/11",
+        "msg": "ERR historical-price-eod/full: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497712833,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497716037,
+        "stream": "2026/05/11",
+        "msg": "ERR sp500-constituent: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497716037,
+        "stream": "2026/05/11",
+        "msg": "SP500 attempt 3 failed, waiting 15s..."
+      },
+      {
+        "ts": 1778497726872,
+        "stream": "2026/05/11",
+        "msg": "ERR historical-price-eod/full: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497726873,
+        "stream": "2026/05/11",
+        "msg": "ERR profile: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497740919,
+        "stream": "2026/05/11",
+        "msg": "ERR profile: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497740926,
+        "stream": "2026/05/11",
+        "msg": "ERR key-metrics-ttm: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497742117,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497742134,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742153,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742717,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497742732,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742749,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742890,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497742909,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742928,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497742988,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743019,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743034,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743155,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743170,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743195,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743244,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743265,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743287,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743414,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743436,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743452,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743549,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743568,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743587,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743669,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743685,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743716,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743777,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743795,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743811,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743923,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497743939,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497743956,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497744005,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497744022,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497744039,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497744232,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497744249,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497744267,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497744509,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497745086,
+        "stream": "2026/05/11",
+        "msg": "ERR sp500-constituent: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497745086,
+        "stream": "2026/05/11",
+        "msg": "SP500 attempt 4 failed, waiting 15s..."
+      },
+      {
+        "ts": 1778497749813,
+        "stream": "2026/05/11",
+        "msg": "END RequestId: 6722e124-3022-41d2-9ce6-1ed69a6397c6"
+      },
+      {
+        "ts": 1778497749813,
+        "stream": "2026/05/11",
+        "msg": "REPORT RequestId: 6722e124-3022-41d2-9ce6-1ed69a6397c6\tDuration: 600000.00 ms\tBilled Duration: 600442 ms\tMemory Size: 512 MB\tMax Memory Used: 99 MB\tInit Duration: 441.93 ms\tStatus: timeout"
+      },
+      {
+        "ts": 1778497758581,
+        "stream": "2026/05/11",
+        "msg": "ERR financial-scores: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497772639,
+        "stream": "2026/05/11",
+        "msg": "ERR income-statement: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497774137,
+        "stream": "2026/05/11",
+        "msg": "ERR sp500-constituent: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497774137,
+        "stream": "2026/05/11",
+        "msg": "SP500 attempt 5 failed, waiting 15s..."
+      },
+      {
+        "ts": 1778497786690,
+        "stream": "2026/05/11",
+        "msg": "ERR cash-flow-statement: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497789139,
+        "stream": "2026/05/11",
+        "msg": "END RequestId: 5e11a67c-bddc-4835-a4e0-44ff13338e21"
+      },
+      {
+        "ts": 1778497789139,
+        "stream": "2026/05/11",
+        "msg": "REPORT RequestId: 5e11a67c-bddc-4835-a4e0-44ff13338e21\tDuration: 145286.22 ms\tBilled Duration: 145287 ms\tMemory Size: 512 MB\tMax Memory Used: 95 MB"
+      },
+      {
+        "ts": 1778497800746,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: exhausted retries (HTTP Error 429: Too Many Requests)"
+      },
+      {
+        "ts": 1778497801780,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497801810,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497802778,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497802824,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497802857,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497803331,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497803346,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497803362,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497803701,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497803925,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497803947,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804368,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497804388,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804410,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804598,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497804616,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804635,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804885,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497804903,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497804919,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497805147,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497805161,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497805183,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497805393,
+        "stream": "2026/05/11",
+        "msg": "ERR institutional-ownership/symbol-positions-summary: HTTP Error 402: Payment Required"
+      },
+      {
+        "ts": 1778497805408,
+        "stream": "2026/05/11",
+        "msg": "ERR insider-trading: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497805422,
+        "stream": "2026/05/11",
+        "msg": "ERR earnings-surprises: HTTP Error 404: Not Found"
+      },
+      {
+        "ts": 1778497810742,
+        "stream": "2026/05/11",
+        "msg": "END RequestId: ab66dad6-d2a0-432a-94ed-ab00d935b290"
+      },
+      {
+        "ts": 1778497810742,
+        "stream": "2026/05/11",
+        "msg": "REPORT RequestId: ab66dad6-d2a0-432a-94ed-ab00d935b290\tDuration: 600000.00 ms\tBilled Duration: 600544 ms\tMemory Size: 512 MB\tMax Memory Used: 99 MB\tInit Duration: 543.89 ms\tStatus: timeout"
+      }
+    ],
+    "data": {
+      "generated_at": "2026-05-11T10:23:10.412259+00:00",
+      "with_revenue": 0,
+      "with_steal": 0
+    }
+  },
+  "finished": "2026-05-11T11:22:33.687002+00:00"
+}
