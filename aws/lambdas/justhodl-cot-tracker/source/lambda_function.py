@@ -1,32 +1,12 @@
 """
-justhodl-cot-tracker — Commitment of Traders (COT) Futures Positioning Tracker
+justhodl-cot-tracker v2 — Commitment of Traders (COT) Futures Positioning
 
-Fetches FMP's commitment-of-traders-analysis endpoint for the 30 most-watched
-futures contracts (ES, NQ, ZN, GC, CL, etc.) — gives us large speculator,
-commercial, and small spec positioning broken out by category.
-
-Output schema (written to S3 as screener/cot-latest.json):
-  {
-    "generated_at": iso8601,
-    "contracts": [
-      {
-        "symbol": "ES",
-        "name": "E-mini S&P 500",
-        "sector": "INDICES",
-        "exchange": "...",
-        "current_long_pct": float,      // % of OI on long side (large spec)
-        "current_short_pct": float,
-        "net_position_pct": float,      // net long - short, % of OI
-        "z_score_3y": float,            // standard deviations from 3y mean
-        "extreme_signal": "long" | "short" | null,  // when |z| > 1.5
-        "history_30d": [ {date, long_pct, short_pct, net_pct}, ... ],
-        "raw": {...full FMP record}
-      }, ...
-    ],
-    "summary": { extreme_long: [...], extreme_short: [...], pivots: [...] }
-  }
-
-The page reads directly from S3.
+DATA SOURCE FIX (v2, 2026-05-11):
+Discovered FMP's per-symbol COT endpoint returns stale 2024-02 data,
+but the date-range query (?from=X&to=Y) returns CURRENT weekly reports.
+v2 fetches a 6-month window for z-score history + uses the
+commitment-of-traders-list endpoint to dynamically discover all
+64 tracked symbols.
 """
 import json
 import os
@@ -35,7 +15,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
-from concurrent.futures import ThreadPoolExecutor
+from collections import defaultdict
 
 import boto3
 
@@ -44,78 +24,18 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "screener/cot-latest.json"
 
+LOOKBACK_DAYS = 200
+EXTREME_Z_THRESHOLD = 1.5
+
 s3 = boto3.client("s3", region_name="us-east-1")
-
-# Curated list of futures we care about. Symbols are FMP's COT codes.
-# (Confirmed working — probe 427 returned analysis for ZC corn.)
-CONTRACTS = [
-    # Equity indices
-    ("ES",  "E-mini S&P 500",       "INDICES"),
-    ("NQ",  "E-mini Nasdaq 100",    "INDICES"),
-    ("YM",  "E-mini Dow",           "INDICES"),
-    ("RTY", "E-mini Russell 2000",  "INDICES"),
-    ("VX",  "VIX Futures",          "VOLATILITY"),
-
-    # Rates / Bonds
-    ("ZN",  "10-Year T-Note",       "RATES"),
-    ("ZB",  "30-Year T-Bond",       "RATES"),
-    ("ZF",  "5-Year T-Note",        "RATES"),
-    ("ZT",  "2-Year T-Note",        "RATES"),
-    ("SR3", "3-Month SOFR",         "RATES"),
-
-    # Currencies
-    ("DX",  "US Dollar Index",      "FX"),
-    ("6E",  "Euro FX",              "FX"),
-    ("6J",  "Japanese Yen",         "FX"),
-    ("6B",  "British Pound",        "FX"),
-    ("6C",  "Canadian Dollar",      "FX"),
-    ("6A",  "Australian Dollar",    "FX"),
-    ("6S",  "Swiss Franc",          "FX"),
-
-    # Metals
-    ("GC",  "Gold",                 "METALS"),
-    ("SI",  "Silver",               "METALS"),
-    ("HG",  "Copper",               "METALS"),
-    ("PL",  "Platinum",             "METALS"),
-    ("PA",  "Palladium",            "METALS"),
-
-    # Energy
-    ("CL",  "WTI Crude",            "ENERGY"),
-    ("BZ",  "Brent Crude",          "ENERGY"),
-    ("NG",  "Natural Gas",          "ENERGY"),
-    ("HO",  "Heating Oil",          "ENERGY"),
-    ("RB",  "RBOB Gasoline",        "ENERGY"),
-
-    # Grains
-    ("ZC",  "Corn",                 "GRAINS"),
-    ("ZS",  "Soybeans",             "GRAINS"),
-    ("ZW",  "Wheat",                "GRAINS"),
-    ("ZM",  "Soybean Meal",         "GRAINS"),
-    ("ZL",  "Soybean Oil",          "GRAINS"),
-
-    # Softs
-    ("CC",  "Cocoa",                "SOFTS"),
-    ("SB",  "Sugar",                "SOFTS"),
-    ("KC",  "Coffee",               "SOFTS"),
-    ("CT",  "Cotton",               "SOFTS"),
-    ("OJ",  "Orange Juice",         "SOFTS"),
-
-    # Meats
-    ("LE",  "Live Cattle",          "MEATS"),
-    ("GF",  "Feeder Cattle",        "MEATS"),
-    ("HE",  "Lean Hogs",            "MEATS"),
-
-    # Crypto
-    ("BTC", "Bitcoin Futures",      "CRYPTO"),
-]
 
 
 def fmp(path, params="", retries=2):
     url = f"{FMP_BASE}/{path}?apikey={FMP_KEY}{params}"
     for attempt in range(retries + 1):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-COT/1.0"})
-            with urllib.request.urlopen(req, timeout=20) as r:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-COT/2.0"})
+            with urllib.request.urlopen(req, timeout=30) as r:
                 return json.loads(r.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503) and attempt < retries:
@@ -132,99 +52,115 @@ def fmp(path, params="", retries=2):
     return None
 
 
-def fetch_contract(args):
-    sym, name, sector = args
-    # commitment-of-traders-analysis returns recent records (analysis-formatted)
-    # commitment-of-traders returns raw weekly records
-    analysis = fmp("commitment-of-traders-analysis", f"&symbol={sym}")
-    if not isinstance(analysis, list) or not analysis:
+def process_contract(symbol, name, sector, records):
+    if not records:
+        return None
+    records.sort(key=lambda r: r.get("date", ""), reverse=True)
+    latest = records[0]
+
+    oi = latest.get("openInterestAll") or 0
+    nc_long = latest.get("noncommPositionsLongAll") or 0
+    nc_short = latest.get("noncommPositionsShortAll") or 0
+    c_long = latest.get("commPositionsLongAll") or 0
+    c_short = latest.get("commPositionsShortAll") or 0
+
+    if oi <= 0:
         return None
 
-    # Sort by date desc, take most recent
-    analysis.sort(key=lambda r: r.get("date", ""), reverse=True)
-    latest = analysis[0]
+    nc_net = nc_long - nc_short
+    nc_long_pct = round(nc_long / oi * 100, 2)
+    nc_short_pct = round(nc_short / oi * 100, 2)
+    nc_net_pct_oi = round(nc_net / oi * 100, 2)
+    c_net = c_long - c_short
 
-    # Compute long/short positioning percentages
-    long_pct = latest.get("currentLongMarketSituation")
-    short_pct = latest.get("currentShortMarketSituation")
-    if long_pct is None or short_pct is None:
-        return None
-    net_pct = round(long_pct - short_pct, 2)
-
-    # 3-year history for z-score
     history = []
-    for rec in analysis[:156]:  # ~3y of weekly data
+    for rec in records:
         try:
-            hl = rec.get("currentLongMarketSituation")
-            hs = rec.get("currentShortMarketSituation")
-            if hl is not None and hs is not None:
+            r_oi = rec.get("openInterestAll") or 0
+            r_nl = rec.get("noncommPositionsLongAll") or 0
+            r_ns = rec.get("noncommPositionsShortAll") or 0
+            if r_oi > 0:
+                net_pct = round((r_nl - r_ns) / r_oi * 100, 2)
                 history.append({
                     "date": rec.get("date", "")[:10],
-                    "long_pct": hl,
-                    "short_pct": hs,
-                    "net_pct": round(hl - hs, 2),
+                    "net_pct_oi": net_pct,
+                    "long_pct": round(r_nl / r_oi * 100, 2),
+                    "short_pct": round(r_ns / r_oi * 100, 2),
                 })
         except Exception:
-            pass
+            continue
 
     z_score = None
     extreme = None
-    if len(history) >= 30:
-        nets = [h["net_pct"] for h in history]
+    if len(history) >= 4:
+        nets = [h["net_pct_oi"] for h in history]
         m = mean(nets)
         try:
             sd = stdev(nets) if len(nets) > 1 else 0
         except Exception:
             sd = 0
         if sd > 0:
-            z = round((net_pct - m) / sd, 2)
+            z = round((nc_net_pct_oi - m) / sd, 2)
             z_score = z
-            if z >= 1.5:
+            if z >= EXTREME_Z_THRESHOLD:
                 extreme = "long"
-            elif z <= -1.5:
+            elif z <= -EXTREME_Z_THRESHOLD:
                 extreme = "short"
 
     return {
-        "symbol": sym,
+        "symbol": symbol,
         "name": name,
         "sector": sector,
-        "exchange": latest.get("exchange"),
-        "market_situation": latest.get("marketSituation"),
-        "date": latest.get("date", "")[:10],
-        "current_long_pct": long_pct,
-        "current_short_pct": short_pct,
-        "net_position_pct": net_pct,
+        "exchange": latest.get("marketAndExchangeNames"),
+        "latest_date": latest.get("date", "")[:10],
+        "open_interest_all": oi,
+        "noncomm_long": nc_long,
+        "noncomm_short": nc_short,
+        "noncomm_net": nc_net,
+        "noncomm_long_pct": nc_long_pct,
+        "noncomm_short_pct": nc_short_pct,
+        # Page expects these alias keys:
+        "current_long_pct": nc_long_pct,
+        "current_short_pct": nc_short_pct,
+        "net_position_pct": nc_net_pct_oi,
+        "net_pct_oi": nc_net_pct_oi,
+        "comm_long": c_long,
+        "comm_short": c_short,
+        "comm_net": c_net,
+        "z_score": z_score,
         "z_score_3y": z_score,
+        "n_weeks": len(history),
         "extreme_signal": extreme,
-        "history_30d": history[:30],
-        "n_history": len(history),
+        "history": history[:26],
+        "history_30d": history[:5],
+        "date": latest.get("date", "")[:10],
     }
 
 
 def build_summary(contracts):
-    """Aggregate stats — extreme long, extreme short, recent pivots."""
-    valid = [c for c in contracts if c]
+    valid = [c for c in contracts if c and c.get("z_score") is not None]
     extreme_long = sorted(
-        [c for c in valid if c.get("z_score_3y") is not None and c["z_score_3y"] >= 1.5],
-        key=lambda c: -c["z_score_3y"])
+        [c for c in valid if c["z_score"] >= EXTREME_Z_THRESHOLD],
+        key=lambda c: -c["z_score"])
     extreme_short = sorted(
-        [c for c in valid if c.get("z_score_3y") is not None and c["z_score_3y"] <= -1.5],
-        key=lambda c: c["z_score_3y"])
-    by_sector = {}
-    for c in valid:
-        sec = c.get("sector", "OTHER")
-        by_sector.setdefault(sec, []).append(c["symbol"])
+        [c for c in valid if c["z_score"] <= -EXTREME_Z_THRESHOLD],
+        key=lambda c: c["z_score"])
+    by_sector = defaultdict(list)
+    for c in contracts:
+        if c:
+            by_sector[c.get("sector", "OTHER")].append(c["symbol"])
     return {
-        "n_contracts": len(valid),
+        "n_contracts": len([c for c in contracts if c]),
+        "n_with_z_score": len(valid),
         "extreme_long_count": len(extreme_long),
         "extreme_short_count": len(extreme_short),
         "extreme_long_top": [
             {"symbol": c["symbol"], "name": c["name"], "sector": c["sector"],
-              "z": c["z_score_3y"], "net_pct": c["net_position_pct"]}
+              "z": c["z_score"], "net_pct": c["net_pct_oi"]}
             for c in extreme_long[:10]],
         "extreme_short_top": [
             {"symbol": c["symbol"], "name": c["name"], "sector": c["sector"],
-              "z": c["z_score_3y"], "net_pct": c["net_position_pct"]}
+              "z": c["z_score"], "net_pct": c["net_pct_oi"]}
             for c in extreme_short[:10]],
         "by_sector": {sec: syms for sec, syms in by_sector.items()},
     }
@@ -232,38 +168,61 @@ def build_summary(contracts):
 
 def lambda_handler(event, context):
     started = time.time()
-    print(f"[cot] fetching {len(CONTRACTS)} contracts...")
+    sym_list = fmp("commitment-of-traders-list")
+    if not isinstance(sym_list, list) or not sym_list:
+        return {"statusCode": 500, "body": json.dumps({"error": "no_symbol_list"})}
+    print(f"[cot] {len(sym_list)} symbols available")
+
+    today = datetime.now(timezone.utc).date()
+    from_date = (today - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%d")
+    to_date = today.strftime("%Y-%m-%d")
+    print(f"[cot] fetching reports {from_date} -> {to_date}")
+
+    reports = fmp("commitment-of-traders-report",
+                    f"&from={from_date}&to={to_date}")
+    if not isinstance(reports, list) or not reports:
+        return {"statusCode": 500, "body": json.dumps({"error": "no_reports"})}
+    print(f"[cot] got {len(reports)} report records")
+
+    by_symbol = defaultdict(list)
+    for r in reports:
+        sym = r.get("symbol")
+        if sym:
+            by_symbol[sym].append(r)
 
     contracts = []
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        for result in ex.map(fetch_contract, CONTRACTS):
-            if result:
-                contracts.append(result)
+    for sym, records in by_symbol.items():
+        name = (records[0].get("name") if records else sym) or sym
+        sector = (records[0].get("sector") if records else "OTHER") or "OTHER"
+        c = process_contract(sym, name, sector, records)
+        if c:
+            contracts.append(c)
+    contracts.sort(key=lambda c: -abs(c.get("z_score") or 0))
 
     summary = build_summary(contracts)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_seconds": round(time.time() - started, 1),
-        "n_contracts_requested": len(CONTRACTS),
-        "n_contracts_returned": len(contracts),
+        "date_window": {"from": from_date, "to": to_date},
+        "latest_report_date": max((c.get("latest_date") or "" for c in contracts), default=""),
+        "n_contracts": len(contracts),
         "summary": summary,
         "contracts": contracts,
     }
 
     try:
-        s3.put_object(
-            Bucket=S3_BUCKET, Key=S3_KEY,
-            Body=json.dumps(payload, default=str),
-            ContentType="application/json",
-            CacheControl="public, max-age=3600",  # COT updates weekly
-        )
-        print(f"[cot] wrote {len(contracts)} contracts to s3://{S3_BUCKET}/{S3_KEY}")
+        s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
+                       Body=json.dumps(payload, default=str),
+                       ContentType="application/json",
+                       CacheControl="public, max-age=3600")
+        print(f"[s3] wrote {len(contracts)} contracts")
     except Exception as e:
-        print(f"[s3] write err: {e}")
+        print(f"[s3] err: {e}")
 
     return {"statusCode": 200, "body": json.dumps({
         "n_contracts": len(contracts),
-        "elapsed_seconds": payload["elapsed_seconds"],
+        "latest_report_date": payload["latest_report_date"],
         "extreme_long": summary["extreme_long_count"],
         "extreme_short": summary["extreme_short_count"],
+        "elapsed_seconds": payload["elapsed_seconds"],
     })}
