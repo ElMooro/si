@@ -224,10 +224,23 @@ def lambda_handler(event, context):
             key=lambda f: -(f.get("performance_pct") or -999))[:15]],
     }
 
+    # Derive quarter label from as_of_date
+    as_of = max((f.get("date") or "" for f in filers), default="")
+    quarter_label = "—"
+    if as_of and len(as_of) >= 10:
+        try:
+            m = int(as_of[5:7])
+            y = int(as_of[:4])
+            q = (m - 1) // 3 + 1
+            quarter_label = f"Q{q} {y}"
+        except Exception:
+            pass
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_seconds": round(time.time() - started, 1),
-        "as_of_date": max((f.get("date") or "" for f in filers), default=""),
+        "as_of_date": as_of,
+        "as_of_quarter": quarter_label,
         "n_filers": len(filers),
         "filers": filers,
         "summary": summary,
