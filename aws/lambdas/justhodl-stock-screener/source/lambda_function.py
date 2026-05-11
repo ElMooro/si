@@ -170,33 +170,52 @@ def get_bulk_price_changes(symbols):
 # 4 quarters and stop at first one returning data.
 _LATEST_13F_QUARTER = None
 def get_latest_13f_quarter():
+    """Pick the most recent FULLY-FILED 13F quarter. 13Fs have a 45-day filing
+    lag after quarter end. To avoid using a partial-filed quarter (where the
+    QoQ change looks artificially negative because most institutions haven't
+    filed yet), we require ≥60 days since quarter end."""
     global _LATEST_13F_QUARTER
     if _LATEST_13F_QUARTER is not None:
         return _LATEST_13F_QUARTER
-    from datetime import datetime as _dt
-    now = _dt.now(timezone.utc)
-    # Build list of recent quarters (newest first)
-    quarters = []
-    y, m = now.year, now.month
-    cur_q = (m - 1) // 3 + 1
-    for _ in range(6):
-        quarters.append((y, cur_q))
-        cur_q -= 1
-        if cur_q < 1:
-            cur_q = 4
-            y -= 1
-    # Probe for first quarter that returns data (use a heavy-coverage ticker)
-    for y, q in quarters:
+    from datetime import datetime as _dt, date as _date
+    now = _dt.now(timezone.utc).date()
+    # Quarter-end dates we'll check (newest first)
+    qends = []
+    y = now.year
+    for q in (4, 3, 2, 1):
+        # Build q-end date for current year, then iterate backwards
+        qend_month = q * 3
+        qend_day = 30 if qend_month in (6, 9) else 31
+        try:
+            qends.append((y, q, _date(y, qend_month, qend_day)))
+        except ValueError:
+            pass
+    # Add prior year quarters
+    for q in (4, 3, 2, 1):
+        qend_month = q * 3
+        qend_day = 30 if qend_month in (6, 9) else 31
+        try:
+            qends.append((y - 1, q, _date(y - 1, qend_month, qend_day)))
+        except ValueError:
+            pass
+    # Filter to quarter-ends that are ≥60 days in the past (allows full filing)
+    # then sort newest-first
+    eligible = [(yy, qq, qd) for yy, qq, qd in qends if (now - qd).days >= 60]
+    eligible.sort(key=lambda x: -x[2].toordinal())
+
+    # Probe each eligible quarter with AAPL until one returns data
+    for yy, qq, qd in eligible[:4]:
         try:
             test = fmp("institutional-ownership/symbol-positions-summary",
-                          f"&symbol=AAPL&year={y}&quarter={q}", max_retries=1)
+                          f"&symbol=AAPL&year={yy}&quarter={qq}", max_retries=1)
             if isinstance(test, list) and test:
-                _LATEST_13F_QUARTER = (y, q)
-                print(f"[inst] using 13F quarter Q{q} {y}")
+                _LATEST_13F_QUARTER = (yy, qq)
+                print(f"[inst] using fully-filed 13F quarter Q{qq} {yy} "
+                       f"({(now - qd).days}d since quarter end)")
                 return _LATEST_13F_QUARTER
         except Exception:
             continue
-    _LATEST_13F_QUARTER = (now.year - 1, 4)  # fallback
+    _LATEST_13F_QUARTER = (now.year - 1, 4)
     return _LATEST_13F_QUARTER
 
 # ── PER STOCK ─────────────────────────────────────
