@@ -1,0 +1,221 @@
+{
+  "started": "2026-05-11T23:28:54.941051+00:00",
+  "test": {
+    "sentiment_data_json": {
+      "exists": true,
+      "size_kb": 82.7,
+      "last_modified": "2026-05-11T06:17:52+00:00",
+      "age_hours": 17.2
+    },
+    "sentiment_prefix_keys": [
+      {
+        "key": "sentiment/data.json",
+        "size_kb": 82.7,
+        "last_modified": "2026-05-11T06:17:52+00:00"
+      }
+    ],
+    "recent_log_events": [
+      {
+        "ts": 1778480271162,
+        "msg": "END RequestId: abbb5850-bbac-4c9c-b880-38c83ee13ebc",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480271162,
+        "msg": "REPORT RequestId: abbb5850-bbac-4c9c-b880-38c83ee13ebc\tDuration: 150004.24 ms\tBilled Duration: 150548 ms\tMemory Size: 512 MB\tMax Memory Used: 98 MB\tInit Duration: 543.72 ms",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480270983,
+        "msg": "=== DONE: B:0 Bear:0 N:503 | 149.7s ===",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480269982,
+        "msg": "Claude 13/13 | 148.7s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480266669,
+        "msg": "Claude 12/13 | 145.4s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480261996,
+        "msg": "Claude 11/13 | 140.7s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480257083,
+        "msg": "Claude 10/13 | 135.8s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480252416,
+        "msg": "Claude 9/13 | 131.1s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480247413,
+        "msg": "Claude 8/13 | 126.1s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480242645,
+        "msg": "Claude 7/13 | 121.3s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480238033,
+        "msg": "Claude 6/13 | 116.7s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480232797,
+        "msg": "Claude 5/13 | 111.5s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480228054,
+        "msg": "Claude 4/13 | 106.7s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480223491,
+        "msg": "Claude 3/13 | 102.2s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480218900,
+        "msg": "Claude 2/13 | 97.6s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480213543,
+        "msg": "Claude 1/13 | 92.2s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480209778,
+        "msg": "0/503 stocks have news | 88.5s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480209477,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22UNP%22%20OR%20%22XEL%22%20OR%20%22XOM%22&language=en&sortBy=publishedAt&pageSize=100&from=2026-05-04&apiKey=17d36cdd13c44e139853b3a6876cf940 (Caused by ResponseError('too many 429 error",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480209477,
+        "msg": "News 26/26 | 88.2s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480206085,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22KMB%22%20OR%20%22KO%22%20OR%20%22KR%22%20OR%20%22LMT%22%20OR%20%22MMM%22%20OR%20%22MO%22%20OR%20%22MRK%22%20OR%20%22MSI%22%20OR%20%22NOC%22%20OR%20%22NSC%22%20OR%20%22OXY%22%20OR%20%22P",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480202642,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22CPB%22%20OR%20%22CVS%22%20OR%20%22CVX%22%20OR%20%22DE%22%20OR%20%22DTE%22%20OR%20%22ED%22%20OR%20%22EIX%22%20OR%20%22ETN%22%20OR%20%22ETR%22%20OR%20%22EXC%22%20OR%20%22F%22%20OR%20%22GD",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480199249,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22JNJ%22%20OR%20%22BAX%22%20OR%20%22BDX%22%20OR%20%22LLY%22%20OR%20%22MCD%22%20OR%20%22NEM%22%20OR%20%22CLX%22%20OR%20%22CMI%22%20OR%20%22EMR%22%20OR%20%22SHW%22%20OR%20%22ABT%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480195855,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22FDX%22%20OR%20%22PCAR%22%20OR%20%22AIG%22%20OR%20%22WY%22%20OR%20%22TXT%22%20OR%20%22INTC%22%20OR%20%22TGT%22%20OR%20%22AXP%22%20OR%20%22BAC%22%20OR%20%22CI%22%20OR%20%22DIS%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480192450,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22TJX%22%20OR%20%22CNP%22%20OR%20%22RVTY%22%20OR%20%22APD%22%20OR%20%22NUE%22%20OR%20%22BALL%22%20OR%20%22HAS%22%20OR%20%22PHM%22%20OR%20%22T%22%20OR%20%22LOW%22%20OR%20%22CAG%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480192450,
+        "msg": "News 21/26 | 71.1s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480189053,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22COST%22%20OR%20%22MS%22%20OR%20%22LIN%22%20OR%20%22AMGN%22%20OR%20%22AEE%22%20OR%20%22ADSK%22%20OR%20%22ORCL%22%20OR%20%22GL%22%20OR%20%22ECL%22%20OR%20%22NKE%22%20OR%20%22C%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480185658,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22SCHW%22%20OR%20%22CAH%22%20OR%20%22ADBE%22%20OR%20%22AZO%22%20OR%20%22AON%22%20OR%20%22FITB%22%20OR%20%22DRI%22%20OR%20%22ALL%22%20OR%20%22L%22%20OR%20%22BK%22%20OR%20%22AMAT%22%20OR%20",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480182262,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22DHR%22%20OR%20%22AES%22%20OR%20%22PAYX%22%20OR%20%22WM%22%20OR%20%22RF%22%20OR%20%22COF%22%20OR%20%22MCO%22%20OR%20%22MAR%22%20OR%20%22BEN%22%20OR%20%22NTRS%22%20OR%20%22OMC%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480178867,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22CTAS%22%20OR%20%22SYK%22%20OR%20%22INTU%22%20OR%20%22MET%22%20OR%20%22NI%22%20OR%20%22EOG%22%20OR%20%22DVN%22%20OR%20%22SBUX%22%20OR%20%22ROK%22%20OR%20%22A%22%20OR%20%22USB%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480175475,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22VLO%22%20OR%20%22DGX%22%20OR%20%22TRV%22%20OR%20%22CMCSA%22%20OR%20%22ELV%22%20OR%20%22EA%22%20OR%20%22GS%22%20OR%20%22EBAY%22%20OR%20%22PRU%22%20OR%20%22PFG%22%20OR%20%22UPS%22%20OR%20",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480175475,
+        "msg": "News 16/26 | 54.2s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480172080,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22VRSN%22%20OR%20%22EL%22%20OR%20%22LEN%22%20OR%20%22AMP%22%20OR%20%22AMZN%22%20OR%20%22PSA%22%20OR%20%22TSN%22%20OR%20%22STZ%22%20OR%20%22DHI%22%20OR%20%22LH%22%20OR%20%22TPR%22%20OR%20%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480168685,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22PM%22%20OR%20%22AMT%22%20OR%20%22EXPD%22%20OR%20%22EXPE%22%20OR%20%22J%22%20OR%20%22ICE%22%20OR%20%22MCHP%22%20OR%20%22AKAM%22%20OR%20%22AIZ%22%20OR%20%22HST%22%20OR%20%22CHRW%22%20OR%2",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480165292,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22HRL%22%20OR%20%22VTR%22%20OR%20%22WELL%22%20OR%20%22IRM%22%20OR%20%22WYNN%22%20OR%20%22RSG%22%20OR%20%22SJM%22%20OR%20%22WEC%22%20OR%20%22NDAQ%22%20OR%20%22APH%22%20OR%20%22LHX%22%20OR%",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480161894,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22MPC%22%20OR%20%22BLK%22%20OR%20%22CMG%22%20OR%20%22FFIV%22%20OR%20%22EW%22%20OR%20%22NFLX%22%20OR%20%22JCI%22%20OR%20%22TT%22%20OR%20%22OKE%22%20OR%20%22CB%22%20OR%20%22BRK-B%22%20OR%20",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480158498,
+        "msg": "News 11/26 | 37.2s",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480158497,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22APTV%22%20OR%20%22ABBV%22%20OR%20%22HUM%22%20OR%20%22GRMN%22%20OR%20%22DG%22%20OR%20%22MDLZ%22%20OR%20%22PNR%22%20OR%20%22STX%22%20OR%20%22LRCX%22%20OR%20%22MNST%22%20OR%20%22LYB%22%20O",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480155104,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22HSIC%22%20OR%20%22HCA%22%20OR%20%22SWKS%22%20OR%20%22UHS%22%20OR%20%22RCL%22%20OR%20%22URI%22%20OR%20%22MLM%22%20OR%20%22AVGO%22%20OR%20%22GOOGL%22%20OR%20%22ESS%22%20OR%20%22TSCO%22%20",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480151707,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22GPN%22%20OR%20%22ULTA%22%20OR%20%22CNC%22%20OR%20%22UDR%22%20OR%20%22AWK%22%20OR%20%22FRT%22%20OR%20%22CFG%22%20OR%20%22EXR%22%20OR%20%22WTW%22%20OR%20%22CHD%22%20OR%20%22SYF%22%20OR%20",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      },
+      {
+        "ts": 1778480148309,
+        "msg": "NewsAPI ERR: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=%22ARE%22%20OR%20%22RJF%22%20OR%20%22SNPS%22%20OR%20%22SRE%22%20OR%20%22CBOE%22%20OR%20%22REG%22%20OR%20%22IDXX%22%20OR%20%22INCY%22%20OR%20%22D%22%20OR%20%22MAA%22%20OR%20%22COO%22%20OR%2",
+        "stream": "6d0e6f54554b7582f9f02192c4da2f"
+      }
+    ]
+  },
+  "finished": "2026-05-11T23:29:02.335180+00:00"
+}
