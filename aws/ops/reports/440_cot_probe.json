@@ -1,0 +1,104 @@
+{
+  "started": "2026-05-11T18:57:08.071686+00:00",
+  "test": {
+    "probes": [
+      {
+        "endpoint": "/stable/commitment-of-traders",
+        "no_symbol": {
+          "status": 404
+        },
+        "with_symbol": {}
+      },
+      {
+        "endpoint": "/stable/commitment-of-traders-analysis",
+        "no_symbol": {
+          "status": 200,
+          "raw": "[\n  {\n    \"symbol\": \"ES\",\n    \"date\": \"2024-02-27 00:00:00\",\n    \"name\": \"S&P 500 E-Mini (ES)\",\n    \"sector\": \"INDICES\",\n    \"exchange\": \"E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE\",\n    \"currentLon"
+        },
+        "with_symbol": {
+          "ES": {
+            "err": "Expecting property name enclosed in double quotes: line 78 column 1 (char 2500)"
+          },
+          "GC": {
+            "err": "Unterminated string starting at: line 81 column 5 (char 2498)"
+          },
+          "ZC": {
+            "err": "Expecting property name enclosed in double quotes: line 80 column 41 (char 2500)"
+          }
+        }
+      },
+      {
+        "endpoint": "/stable/commitment-of-traders-report",
+        "no_symbol": {
+          "status": 200,
+          "raw": "[\n  {\n    \"symbol\": \"SB\",\n    \"date\": \"2024-02-27 00:00:00\",\n    \"name\": \"Sugar #11 (SB)\",\n    \"sector\": \"SOFTS\",\n    \"marketAndExchangeNames\": \"SUGAR NO. 11 - ICE FUTURES U.S.\",\n    \"cftcContractMark"
+        },
+        "with_symbol": {
+          "ES": {
+            "err": "Expecting ',' delimiter: line 71 column 33 (char 2500)"
+          },
+          "GC": {
+            "err": "Unterminated string starting at: line 73 column 5 (char 2488)"
+          },
+          "ZC": {
+            "err": "Unterminated string starting at: line 71 column 5 (char 2492)"
+          }
+        }
+      },
+      {
+        "endpoint": "/stable/commitment-of-traders-list",
+        "no_symbol": {
+          "status": 200,
+          "raw": "[\n  {\n    \"symbol\": \"NG\",\n    \"name\": \"Natural Gas (NG)\"\n  },\n  {\n    \"symbol\": \"TN\",\n    \"name\": \"Ultra 10-Year T-Note (TN)\"\n  },\n  {\n    \"symbol\": \"A6\",\n    \"name\": \"Australian Dollar (A6)\"\n  },\n  {"
+        },
+        "with_symbol": {
+          "ES": {
+            "err": "Unterminated string starting at: line 164 column 13 (char 2497)"
+          },
+          "GC": {
+            "err": "Unterminated string starting at: line 164 column 13 (char 2497)"
+          },
+          "ZC": {
+            "err": "Unterminated string starting at: line 164 column 13 (char 2497)"
+          }
+        }
+      },
+      {
+        "endpoint": "/stable/commitment-of-traders-analysis-list",
+        "no_symbol": {
+          "status": 404
+        },
+        "with_symbol": {}
+      },
+      {
+        "endpoint": "/api/v4/commitment_of_traders_report",
+        "no_symbol": {
+          "status": 403
+        },
+        "with_symbol": {}
+      },
+      {
+        "endpoint": "/api/v4/commitment_of_traders_report_analysis",
+        "no_symbol": {
+          "status": 403
+        },
+        "with_symbol": {}
+      },
+      {
+        "endpoint": "/stable/cot-report",
+        "no_symbol": {
+          "status": 404
+        },
+        "with_symbol": {}
+      },
+      {
+        "endpoint": "/stable/cot-analysis",
+        "no_symbol": {
+          "status": 404
+        },
+        "with_symbol": {}
+      }
+    ]
+  },
+  "finished": "2026-05-11T18:57:16.374361+00:00"
+}
