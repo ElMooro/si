@@ -1,0 +1,405 @@
+{
+  "started": "2026-05-11T22:09:57.436323+00:00",
+  "test": {
+    "sidecar": {
+      "size_kb": 1726.8,
+      "generated_at": "2026-05-11T22:07:25.214952+00:00",
+      "as_of_quarter": "Q4 2025",
+      "n_symbols": 6546,
+      "n_funds_scanned": 18,
+      "n_funds_attempted": 24,
+      "elapsed_seconds": 1.6,
+      "top_keys": [
+        "generated_at",
+        "elapsed_seconds",
+        "as_of_quarter",
+        "year",
+        "quarter",
+        "n_funds_scanned",
+        "n_funds_attempted",
+        "n_symbols",
+        "holdings",
+        "funds"
+      ]
+    },
+    "schema_check": {
+      "holdings_is_dict": true,
+      "funds_is_list": true,
+      "holdings_value_is_list": true,
+      "holder_keys": [
+        "cik",
+        "name",
+        "shares",
+        "value"
+      ],
+      "fund_keys": [
+        "cik",
+        "name",
+        "n_holdings",
+        "total_value",
+        "top_holdings"
+      ]
+    },
+    "sample_joins": {
+      "AAPL": {
+        "smN": 6,
+        "smValue_b": 74.85,
+        "top3": [
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 61.96
+          },
+          {
+            "name": "Tudor Investment",
+            "value_b": 12.38
+          },
+          {
+            "name": "Two Sigma Investments",
+            "value_b": 0.24
+          }
+        ]
+      },
+      "MSFT": {
+        "smN": 13,
+        "smValue_b": 29.81,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 15.88
+          },
+          {
+            "name": "D.E. Shaw",
+            "value_b": 3.32
+          },
+          {
+            "name": "Tiger Global",
+            "value_b": 2.65
+          }
+        ]
+      },
+      "NVDA": {
+        "smN": 10,
+        "smValue_b": 28.97,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 17.56
+          },
+          {
+            "name": "D.E. Shaw",
+            "value_b": 4.35
+          },
+          {
+            "name": "Tiger Global",
+            "value_b": 2.05
+          }
+        ]
+      },
+      "GOOGL": {
+        "smN": 13,
+        "smValue_b": 25.27,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 10.94
+          },
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 5.59
+          },
+          {
+            "name": "Tiger Global",
+            "value_b": 3.33
+          }
+        ]
+      },
+      "META": {
+        "smN": 9,
+        "smValue_b": 13.35,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 5.15
+          },
+          {
+            "name": "Coatue Management",
+            "value_b": 2.5
+          },
+          {
+            "name": "Tiger Global",
+            "value_b": 1.82
+          }
+        ]
+      },
+      "AMZN": {
+        "smN": 15,
+        "smValue_b": 21.16,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 8.15
+          },
+          {
+            "name": "Tiger Global",
+            "value_b": 2.31
+          },
+          {
+            "name": "Coatue Management",
+            "value_b": 2.29
+          }
+        ]
+      },
+      "TSLA": {
+        "smN": 7,
+        "smValue_b": 5.37,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 2.19
+          },
+          {
+            "name": "D.E. Shaw",
+            "value_b": 1.04
+          },
+          {
+            "name": "Viking Global Investors",
+            "value_b": 0.76
+          }
+        ]
+      },
+      "JPM": {
+        "smN": 6,
+        "smValue_b": 7.4,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 6.23
+          },
+          {
+            "name": "Viking Global Investors",
+            "value_b": 0.61
+          },
+          {
+            "name": "Citadel Advisors",
+            "value_b": 0.42
+          }
+        ]
+      },
+      "BAC": {
+        "smN": 6,
+        "smValue_b": 32.99,
+        "top3": [
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 28.45
+          },
+          {
+            "name": "Tudor Investment",
+            "value_b": 3.51
+          },
+          {
+            "name": "D.E. Shaw",
+            "value_b": 0.71
+          }
+        ]
+      },
+      "KO": {
+        "smN": 7,
+        "smValue_b": 29.92,
+        "top3": [
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 27.96
+          },
+          {
+            "name": "Tudor Investment",
+            "value_b": 1.31
+          },
+          {
+            "name": "Citadel Advisors",
+            "value_b": 0.3
+          }
+        ]
+      },
+      "AXP": {
+        "smN": 5,
+        "smValue_b": 57.72,
+        "top3": [
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 56.09
+          },
+          {
+            "name": "Tudor Investment",
+            "value_b": 1.49
+          },
+          {
+            "name": "Citadel Advisors",
+            "value_b": 0.12
+          }
+        ]
+      },
+      "OXY": {
+        "smN": 6,
+        "smValue_b": 11.15,
+        "top3": [
+          {
+            "name": "Berkshire Hathaway",
+            "value_b": 10.89
+          },
+          {
+            "name": "Citadel Advisors",
+            "value_b": 0.11
+          },
+          {
+            "name": "Two Sigma Investments",
+            "value_b": 0.1
+          }
+        ]
+      },
+      "BRK.B": {
+        "smN": 0,
+        "smValue_b": 0.0,
+        "top3": []
+      },
+      "BRKB": {
+        "smN": 0,
+        "smValue_b": 0.0,
+        "top3": []
+      },
+      "SPY": {
+        "smN": 7,
+        "smValue_b": 10.88,
+        "top3": [
+          {
+            "name": "D.E. Shaw",
+            "value_b": 3.71
+          },
+          {
+            "name": "Bridgewater Associates",
+            "value_b": 3.04
+          },
+          {
+            "name": "Tudor Investment",
+            "value_b": 2.15
+          }
+        ]
+      },
+      "QQQ": {
+        "smN": 2,
+        "smValue_b": 2.84,
+        "top3": [
+          {
+            "name": "Tudor Investment",
+            "value_b": 2.51
+          },
+          {
+            "name": "Two Sigma Investments",
+            "value_b": 0.32
+          }
+        ]
+      }
+    },
+    "successful_funds": [
+      {
+        "name": "Tudor Investment",
+        "n_holdings": 3966,
+        "total_value_b": 441.0
+      },
+      {
+        "name": "Berkshire Hathaway",
+        "n_holdings": 42,
+        "total_value_b": 274.2
+      },
+      {
+        "name": "Citadel Advisors",
+        "n_holdings": 4424,
+        "total_value_b": 106.5
+      },
+      {
+        "name": "D.E. Shaw",
+        "n_holdings": 2669,
+        "total_value_b": 99.2
+      },
+      {
+        "name": "Renaissance Technologies",
+        "n_holdings": 3090,
+        "total_value_b": 64.4
+      },
+      {
+        "name": "Two Sigma Investments",
+        "n_holdings": 3250,
+        "total_value_b": 61.8
+      },
+      {
+        "name": "Coatue Management",
+        "n_holdings": 52,
+        "total_value_b": 40.0
+      },
+      {
+        "name": "Viking Global Investors",
+        "n_holdings": 76,
+        "total_value_b": 37.7
+      },
+      {
+        "name": "Tiger Global",
+        "n_holdings": 54,
+        "total_value_b": 29.7
+      },
+      {
+        "name": "Bridgewater Associates",
+        "n_holdings": 1039,
+        "total_value_b": 27.4
+      },
+      {
+        "name": "Pershing Square Capital",
+        "n_holdings": 11,
+        "total_value_b": 15.5
+      },
+      {
+        "name": "Maverick Capital",
+        "n_holdings": 18,
+        "total_value_b": 9.1
+      },
+      {
+        "name": "Third Point",
+        "n_holdings": 41,
+        "total_value_b": 7.3
+      },
+      {
+        "name": "ValueAct Capital",
+        "n_holdings": 16,
+        "total_value_b": 7.0
+      },
+      {
+        "name": "Millennium Management",
+        "n_holdings": 17,
+        "total_value_b": 6.7
+      },
+      {
+        "name": "Soros Fund Management",
+        "n_holdings": 202,
+        "total_value_b": 5.6
+      },
+      {
+        "name": "Lone Pine Capital",
+        "n_holdings": 22,
+        "total_value_b": 5.3
+      },
+      {
+        "name": "Baupost Group",
+        "n_holdings": 41,
+        "total_value_b": 0.8
+      }
+    ],
+    "screener_page": {
+      "status": 200,
+      "size_kb": 112.4
+    },
+    "sidecar_public": {
+      "status": 200,
+      "size_kb": 1726.8
+    }
+  },
+  "finished": "2026-05-11T22:10:02.942569+00:00"
+}
