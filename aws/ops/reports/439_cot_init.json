@@ -1,0 +1,189 @@
+{
+  "started": "2026-05-11T17:44:48.154332+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T17:44:28.210+0000",
+      "code_size": 3550,
+      "memory": 512,
+      "timeout": 300
+    },
+    "invoke": {
+      "status_code": 200,
+      "n_contracts": 32,
+      "elapsed_seconds": 0.7,
+      "extreme_long": 0,
+      "extreme_short": 0
+    },
+    "s3_state": {
+      "size_kb": 33.5,
+      "last_modified": "2026-05-11T17:46:27+00:00",
+      "n_contracts": 32,
+      "summary": {
+        "n_contracts": 32,
+        "extreme_long_count": 0,
+        "extreme_short_count": 0,
+        "extreme_long_top": [],
+        "extreme_short_top": [],
+        "by_sector": {
+          "INDICES": [
+            "ES",
+            "NQ",
+            "YM"
+          ],
+          "VOLATILITY": [
+            "VX"
+          ],
+          "RATES": [
+            "ZN",
+            "ZB",
+            "ZF",
+            "ZT"
+          ],
+          "FX": [
+            "DX"
+          ],
+          "METALS": [
+            "GC",
+            "SI",
+            "HG",
+            "PL",
+            "PA"
+          ],
+          "ENERGY": [
+            "CL",
+            "BZ",
+            "NG",
+            "HO",
+            "RB"
+          ],
+          "GRAINS": [
+            "ZC",
+            "ZS",
+            "ZW",
+            "ZM",
+            "ZL"
+          ],
+          "SOFTS": [
+            "CC",
+            "SB",
+            "KC",
+            "CT",
+            "OJ"
+          ],
+          "MEATS": [
+            "LE",
+            "GF",
+            "HE"
+          ]
+        }
+      }
+    },
+    "sample_contracts": [
+      {
+        "sym": "ES",
+        "name": "E-mini S&P 500",
+        "sec": "INDICES",
+        "long_pct": 36.35,
+        "short_pct": 63.65,
+        "net": -27.3,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "NQ",
+        "name": "E-mini Nasdaq 100",
+        "sec": "INDICES",
+        "long_pct": 52.99,
+        "short_pct": 47.01,
+        "net": 5.98,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "YM",
+        "name": "E-mini Dow",
+        "sec": "INDICES",
+        "long_pct": 69.2,
+        "short_pct": 30.8,
+        "net": 38.4,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "VX",
+        "name": "VIX Futures",
+        "sec": "VOLATILITY",
+        "long_pct": 39.27,
+        "short_pct": 60.73,
+        "net": -21.46,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "ZN",
+        "name": "10-Year T-Note",
+        "sec": "RATES",
+        "long_pct": 29.39,
+        "short_pct": 70.61,
+        "net": -41.22,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "ZB",
+        "name": "30-Year T-Bond",
+        "sec": "RATES",
+        "long_pct": 48.57,
+        "short_pct": 51.43,
+        "net": -2.86,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "ZF",
+        "name": "5-Year T-Note",
+        "sec": "RATES",
+        "long_pct": 19.51,
+        "short_pct": 80.49,
+        "net": -60.98,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      },
+      {
+        "sym": "ZT",
+        "name": "2-Year T-Note",
+        "sec": "RATES",
+        "long_pct": 22.53,
+        "short_pct": 77.47,
+        "net": -54.94,
+        "z": null,
+        "signal": null,
+        "date": "2024-02-27"
+      }
+    ],
+    "public_https": {
+      "status": 200,
+      "size": 34271
+    },
+    "eventbridge": [
+      {
+        "name": "justhodl-cot-extremes-scanner-weekly",
+        "schedule": "cron(0 19 ? * FRI *)",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-cot-tracker-weekly",
+        "schedule": "cron(0 22 ? * FRI *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "finished": "2026-05-11T17:46:27.432510+00:00"
+}
