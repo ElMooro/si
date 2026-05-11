@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earnings Call Pulse — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9E%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--warn:#ff8b3d;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.badge-ai{color:var(--info);background:rgba(34,211,238,.12);}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;}
+.panel-body{padding:0;max-height:520px;overflow-y:auto;}
+.panel-body::-webkit-scrollbar{width:6px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+.tcard{padding:13px 16px;border-bottom:1px solid rgba(28,35,48,.5);cursor:pointer;transition:background .15s;}
+.tcard:hover{background:rgba(167,139,250,.04);}
+.tcard:last-child{border-bottom:0;}
+.tcard-row1{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.tcard-sym{font-family:var(--font-mono);font-weight:600;color:var(--accent);font-size:13px;min-width:60px;}
+.tcard-name{flex:1;color:var(--text);font-size:12px;}
+.tcard-sent{font-family:var(--font-mono);font-weight:700;font-size:14px;}
+.tcard-sent.pos{color:var(--pos);}
+.tcard-sent.neg{color:var(--neg);}
+.tcard-row2{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.guide-chip{display:inline-block;padding:2px 8px;font-size:10px;border-radius:2px;font-family:var(--font-mono);font-weight:600;}
+.guide-chip.raised{background:rgba(0,230,118,.15);color:var(--pos);}
+.guide-chip.lowered{background:rgba(255,61,90,.15);color:var(--neg);}
+.guide-chip.maintained{background:rgba(148,163,184,.1);color:var(--text-dim);}
+.guide-chip.withdrawn{background:rgba(255,139,61,.15);color:var(--warn);}
+.guide-chip.none{background:rgba(148,163,184,.08);color:var(--text-mute);}
+.conf-bar{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.tcard-date{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+.tcard-summary{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:4px;}
+.themes-row{margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;}
+.theme-chip{display:inline-block;padding:1px 6px;font-size:9px;background:rgba(167,139,250,.08);color:var(--accent);border-radius:2px;font-family:var(--font-mono);}
+.filter-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:5px 5px 0 0;}
+.filter-row input,.filter-row select{background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:12px;outline:none;}
+.filter-row input{min-width:200px;}
+.filter-chip{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);padding:4px 8px;}
+.all-panel{background:var(--panel);border:1px solid var(--border);border-radius:0 0 5px 5px;}
+.loading{text-align:center;padding:60px 20px;color:var(--text-dim);font-family:var(--font-mono);font-size:13px;}
+.detail-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.detail-modal.open{display:flex;}
+.detail-content{background:var(--panel);border:1px solid var(--border-hi);border-radius:5px;max-width:720px;max-height:85vh;overflow-y:auto;padding:24px;}
+.detail-close{float:right;background:none;border:0;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0 4px;}
+.detail-close:hover{color:var(--text);}
+.detail-bullets{margin:8px 0;padding-left:20px;}
+.detail-bullets li{margin:4px 0;line-height:1.5;font-size:13px;}
+.bul-pos{color:var(--pos);}
+.bul-neg{color:var(--neg);}
+</style>
+</head>
+<body>
+<header>
+<h1>📞 Earnings Call Pulse <span class="badge">FMP ULTIMATE</span> <span class="badge badge-ai">CLAUDE HAIKU</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">connecting</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div class="summary-row">
+<div class="stat"><div class="stat-label">Transcripts Scored</div><div class="stat-val" id="stat-total">—</div><div class="stat-sub" id="stat-new">cumulative</div></div>
+<div class="stat"><div class="stat-label">Guidance Raised</div><div class="stat-val" id="stat-raised" style="color:var(--pos)">—</div><div class="stat-sub">↑ raised FY guidance</div></div>
+<div class="stat"><div class="stat-label">Guidance Lowered</div><div class="stat-val" id="stat-lowered" style="color:var(--neg)">—</div><div class="stat-sub">↓ lowered FY guidance</div></div>
+<div class="stat"><div class="stat-label">Maintained</div><div class="stat-val" id="stat-maintained">—</div><div class="stat-sub">held current guidance</div></div>
+<div class="stat"><div class="stat-label">Data Freshness</div><div class="stat-val" id="stat-fresh">—</div><div class="stat-sub" id="stat-elapsed">claude-haiku-4-5</div></div>
+</div>
+<div class="grid-2col">
+<div class="panel"><div class="panel-title">🟢 Most Bullish Calls</div><div class="panel-body" id="bullish"><div class="loading">Loading bullish calls</div></div></div>
+<div class="panel"><div class="panel-title">🔴 Most Bearish Calls</div><div class="panel-body" id="bearish"><div class="loading">Loading bearish calls</div></div></div>
+</div>
+<div class="filter-row">
+<input id="search" placeholder="Search ticker / company / summary…">
+<select id="filter-guidance">
+<option value="">All guidance</option>
+<option value="raised">Raised</option>
+<option value="lowered">Lowered</option>
+<option value="maintained">Maintained</option>
+<option value="withdrawn">Withdrawn</option>
+</select>
+<select id="filter-sort">
+<option value="date_desc">Most recent first</option>
+<option value="sent_desc">Most bullish first</option>
+<option value="sent_asc">Most bearish first</option>
+<option value="conf_desc">Highest confidence</option>
+</select>
+<span class="filter-chip" id="filter-count">— transcripts</span>
+</div>
+<div class="all-panel">
+<div id="all-cards"><div class="loading">Loading all transcripts</div></div>
+</div>
+</main>
+<div class="detail-modal" id="modal"><div class="detail-content" id="modal-content"></div></div>
+<script src="app.js"></script>
+</body>
+</html>
