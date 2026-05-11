@@ -96,6 +96,36 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
 .error-box{background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);border-radius:4px;padding:16px 20px;color:var(--neg);font-family:var(--font-ui)}
 .footer-bar{position:fixed;bottom:0;left:0;right:0;height:22px;background:#080b14;border-top:1px solid var(--border2);display:flex;align-items:center;padding:0 16px;gap:20px;font-size:9px;color:var(--text2);z-index:50}
 .fbar-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+/* Steal Score visuals */
+.steal-cell{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-weight:700;letter-spacing:.3px}
+.steal-cell .steal-num{font-size:11px}
+.steal-cell .steal-bar{height:5px;width:38px;border-radius:2px;background:linear-gradient(90deg,rgba(255,215,0,.1),rgba(255,215,0,.1));position:relative;overflow:hidden}
+.steal-cell .steal-bar::after{content:'';position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ffd700,#ffaa00);border-radius:2px}
+.steal-90{color:#ffd700;text-shadow:0 0 6px rgba(255,215,0,.5)}
+.steal-80{color:#fbbf24}
+.steal-70{color:#22d3ee}
+.steal-default{color:var(--text2)}
+@keyframes goldPulse{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,215,0,.55) inset, 0 0 8px rgba(255,215,0,.2)}
+  50%{box-shadow:0 0 0 2px rgba(255,215,0,.95) inset, 0 0 18px rgba(255,215,0,.55)}
+}
+tbody tr.steal-row-90{
+  animation:goldPulse 2.2s ease-in-out infinite;
+  background:linear-gradient(90deg,rgba(255,215,0,.06) 0%, rgba(255,215,0,0) 60%);
+}
+tbody tr.steal-row-90:hover{
+  background:linear-gradient(90deg,rgba(255,215,0,.12) 0%, rgba(255,215,0,.02) 60%);
+}
+tbody tr.steal-row-80{
+  background:linear-gradient(90deg,rgba(251,191,36,.04) 0%, rgba(251,191,36,0) 50%);
+}
+tbody tr.steal-row-80:hover{
+  background:linear-gradient(90deg,rgba(251,191,36,.09) 0%, rgba(251,191,36,.01) 50%);
+}
+.steal-badge{font-family:var(--font-ui);font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;letter-spacing:.4px;text-transform:uppercase}
+.steal-badge.STEAL{background:rgba(255,215,0,.18);color:#ffd700;border:1px solid rgba(255,215,0,.4)}
+.steal-badge.PREMIUM{background:rgba(251,191,36,.14);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+.steal-badge.QUALITY{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.3)}
 </style>
 </head>
 <body>
@@ -132,6 +162,7 @@ tbody td{padding:6px;color:var(--text);border-right:1px solid var(--border2);whi
 </div>
 <div class="tab-bar">
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
+  <div class="tab" data-tab="steal_board" onclick="setTab(this)" style="color:#ffd700;font-weight:700">💎 THE STEAL BOARD</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
   <div class="tab" data-tab="margins" onclick="setTab(this)" style="color:#00ffcc">📈 HIGHEST MARGINS</div>
@@ -252,6 +283,9 @@ const COLS=[
   {id:'sector',label:'Sector',group:'fixed',fn:r=>r.sector,fmt:'sector'},
   {id:'price',label:'Price',group:'fixed',fn:r=>r.price,fmt:'price'},
   {id:'marketCap',label:'Mkt Cap',group:'fixed',fn:r=>r.marketCap,fmt:'mcap'},
+  // ── Stage 3: STEAL SCORE — flagship composite ranking ──
+  {id:'stealScore',label:'Steal',group:'fixed',fn:r=>r.stealScore,fmt:'steal'},
+  {id:'stealBucket',label:'Tier',group:'scores',fn:r=>r.stealBucket,fmt:'steal_badge'},
   // ── Phase 1: absolute dollar fundamentals ──
   {id:'revenue',label:'Revenue',group:'fundamentals',fn:r=>r.revenue,fmt:'mcap'},
   {id:'netIncome',label:'Net Inc',group:'fundamentals',fn:r=>r.netIncome,fmt:'mcap'},
@@ -340,6 +374,20 @@ function fmtCell(val,fmt,rank){
   if(fmt==='usd_signed'){const v=Number(val);const ab=Math.abs(v);const[n,s]=ab>=1e9?[v/1e9,'B']:ab>=1e6?[v/1e6,'M']:ab>=1e3?[v/1e3,'K']:[v,''];const sign=v>0?'+':v<0?'':'';return`<span class="${v>0?'pos':v<0?'neg':''}">${sign}$${n.toFixed(1)}<span style="color:var(--text2);font-size:9px">${s}</span></span>`;}
   if(fmt==='pct1'){const v=Number(val);return`<span class="${v>0?'pos':v<0?'neg':''}">${v.toFixed(1)}%</span>`;}
   if(fmt==='streak'){const v=Number(val);if(v<=0)return'<span class="dim">0</span>';const cls=v>=4?'score-high':v>=2?'score-mid':'';return`<span class="${cls}" style="font-weight:700">${v}🔥</span>`;}
+  // ── Stage 3 STEAL SCORE formats ──
+  if(fmt==='steal'){
+    if(val===null||val===undefined)return'<span class="na">-</span>';
+    const v=Number(val);
+    const cls=v>=90?'steal-90':v>=80?'steal-80':v>=70?'steal-70':'steal-default';
+    const barW=Math.min(38,Math.max(2,v*0.38));
+    const emoji=v>=90?'🔥':v>=80?'💎':v>=70?'✓':'';
+    // The visual bar fills proportionally to the score
+    return`<span class="steal-cell ${cls}"><span class="steal-num">${v.toFixed(0)}</span><span style="display:inline-block;width:38px;height:5px;background:rgba(255,215,0,.1);border-radius:2px;position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;bottom:0;width:${barW}px;background:linear-gradient(90deg,#ffd700,#ffaa00);border-radius:2px"></span></span><span style="font-size:9px">${emoji}</span></span>`;
+  }
+  if(fmt==='steal_badge'){
+    if(!val)return'<span class="na">-</span>';
+    return`<span class="steal-badge ${val}">${val}</span>`;
+  }
   return`<span>${val}</span>`;
 }
 function visibleCols(){return COLS.filter(c=>c.group==='fixed'||colGroups[c.group]);}
@@ -352,9 +400,11 @@ function buildHeader(){
 }
 function buildBody(stocks){
   const cols=visibleCols();
-  document.getElementById('tableBody').innerHTML=stocks.slice(0,2000).map((r,i)=>
-    '<tr>'+cols.map(c=>`<td>${fmtCell(c.fn(r,i),c.fmt,i+1)}</td>`).join('')+'</tr>'
-  ).join('');
+  document.getElementById('tableBody').innerHTML=stocks.slice(0,2000).map((r,i)=>{
+    const sc=r.stealScore;
+    const rowCls=sc>=90?'steal-row-90':sc>=80?'steal-row-80':'';
+    return`<tr class="${rowCls}">`+cols.map(c=>`<td>${fmtCell(c.fn(r,i),c.fmt,i+1)}</td>`).join('')+'</tr>';
+  }).join('');
 }
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
 // AI Sentiment overlay ─────────────────────────────────────
@@ -398,6 +448,7 @@ function getFilters(){return{search:document.getElementById('searchInput').value
 function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
 function matchesTab(s,t){
   if(t==='all')return true;
+  if(t==='steal_board')return (s.stealScore||0)>=70;
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
   if(t==='margins')return (s.netMargin||0)>=15;
@@ -425,6 +476,7 @@ function matchesTab(s,t){
 }
 // Default sort column per tab — clicking a tab auto-sorts by its primary metric
 const TAB_DEFAULT_SORT={
+  steal_board:{col:'stealScore',dir:'desc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},

@@ -447,6 +447,114 @@ def get_stock_data(symbol):
         "avgSurprisePct":    avg_surprise_pct,      # avg surprise % over fetched window
     }
 
+# ════════════════════════════════════════════════════════════════════════
+# STEAL SCORE — 9-factor composite percentile-rank ranking
+# Goal: a single 0-100 score that captures "all the right factors a value
+# investor would weigh." Each factor is converted to a percentile rank
+# vs. the universe (higher = better), with sign-inverted metrics where
+# 'lower is better' (P/E, EV/EBITDA, D/E). Weighted sum → composite.
+#
+# Buckets:
+#   90+      🔥 STEAL    pulsing gold border on the page
+#   80-89    💎 PREMIUM
+#   70-79    ✓ Quality
+#   <70      neutral
+# ════════════════════════════════════════════════════════════════════════
+def _vmap_quality(stocks):
+    """Earnings quality factor: FCF / |NI| ratio. ≥1.0 = real cash backing earnings."""
+    out = {}
+    for i, s in enumerate(stocks):
+        fcf = s.get("freeCashFlow")
+        ni  = s.get("netIncome")
+        if fcf is not None and ni is not None and abs(ni) > 0:
+            out[i] = round(fcf / abs(ni), 3)
+        else:
+            out[i] = None
+    return out
+
+
+def _vmap(stocks, field):
+    return {i: s.get(field) for i, s in enumerate(stocks)}
+
+
+def _percentile_ranks(values_by_idx, invert=False):
+    """Returns dict {idx: percentile_rank 0-100} where higher = better.
+    invert=True for 'lower is better' fields (P/E, D/E, etc)."""
+    valid_items = [(idx, v) for idx, v in values_by_idx.items()
+                     if v is not None and v == v]
+    if not valid_items:
+        return {}
+    # Sort: ascending for 'higher=better' (best at end); descending for invert
+    valid_items.sort(key=lambda kv: kv[1], reverse=invert)
+    n = len(valid_items)
+    ranks = {}
+    for rank_pos, (idx, _v) in enumerate(valid_items):
+        ranks[idx] = round(rank_pos / max(1, n - 1) * 100, 1)
+    return ranks
+
+
+def compute_steal_score(stocks):
+    """Computes stealScore (0-100), stealRank (1=highest), stealBucket label
+    in-place for each stock. Mutates the list."""
+    if not stocks:
+        return
+
+    # ── 9 factor weights — sum = 100 ──
+    factors = [
+        # (label, weight, value_map, invert_lower_is_better)
+        ("valuation_pe",       10, _vmap(stocks, "peRatio"),       True),
+        ("valuation_evebitda", 10, _vmap(stocks, "evEbitda"),      True),
+        ("growth_revenue",     15, _vmap(stocks, "revenueGrowth"), False),
+        ("profit_opmargin",     8, _vmap(stocks, "operatingMargin"), False),
+        ("profit_roic",         7, _vmap(stocks, "roic"),          False),
+        ("earnings_quality",   10, _vmap_quality(stocks),          False),
+        ("balance_de",          5, _vmap(stocks, "debtToEquity"),  True),
+        ("balance_currratio",   5, _vmap(stocks, "currentRatio"),  False),
+        ("momentum_6m",        10, _vmap(stocks, "chg6m"),         False),
+        ("inst_flow",          10, _vmap(stocks, "instQoQChgPct"), False),
+        ("insider_flow",        5, _vmap(stocks, "insiderNet90dUsd"), False),
+        ("estimate_revisions",  5, _vmap(stocks, "beatStreak"),    False),
+    ]
+    # Total weight = 100
+
+    factor_ranks = {}
+    for label, weight, val_map, invert in factors:
+        factor_ranks[label] = _percentile_ranks(val_map, invert=invert)
+
+    for i, s in enumerate(stocks):
+        total_weight = 0
+        weighted_sum = 0.0
+        contributions = {}
+        for label, weight, val_map, invert in factors:
+            rk = factor_ranks[label].get(i)
+            if rk is None:
+                continue
+            weighted_sum += rk * weight
+            total_weight += weight
+            contributions[label] = {"rank": rk, "weight": weight}
+
+        # Need ≥50% of total weight (i.e. factor coverage) for a meaningful score
+        if total_weight >= 50:
+            score = round(weighted_sum / total_weight, 1)
+        else:
+            score = None
+        s["stealScore"]   = score
+        s["stealFactors"] = contributions
+        s["stealBucket"]  = (
+            "STEAL"   if score is not None and score >= 90 else
+            "PREMIUM" if score is not None and score >= 80 else
+            "QUALITY" if score is not None and score >= 70 else
+            None
+        )
+
+    # stealRank: 1 = highest score among stocks WITH a score
+    scored = [(i, s["stealScore"]) for i, s in enumerate(stocks)
+                if s.get("stealScore") is not None]
+    scored.sort(key=lambda x: -x[1])
+    for rank_pos, (i, _sc) in enumerate(scored):
+        stocks[i]["stealRank"] = rank_pos + 1
+
+
 def process(args):
     symbol, price_changes = args
     try:
@@ -520,6 +628,14 @@ def lambda_handler(event, context):
 
     elapsed = time.time() - t0
     print(f"=== DONE: {len(stocks)} stocks in {elapsed:.1f}s ===")
+
+    # ── STAGE 3: STEAL SCORE post-processing ────────────────────────────
+    # 9-factor weighted composite score, percentile-ranked vs the universe.
+    print("Computing Steal Score across universe...")
+    compute_steal_score(stocks)
+    steals_90 = sum(1 for s in stocks if (s.get("stealScore") or 0) >= 90)
+    steals_80 = sum(1 for s in stocks if (s.get("stealScore") or 0) >= 80)
+    print(f"  Steal Score: {steals_90} stocks ≥90 (🔥 STEAL), {steals_80} stocks ≥80 (💎 PREMIUM)")
 
     payload = {
         "generated_at":      datetime.now(timezone.utc).isoformat(),
