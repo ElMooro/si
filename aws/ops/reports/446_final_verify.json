@@ -1,0 +1,80 @@
+{
+  "started": "2026-05-11T19:38:14.649819+00:00",
+  "test": {
+    "datasets": [
+      {
+        "name": "M&A Tracker",
+        "s3_key": "screener/ma-latest.json",
+        "page_url": "https://justhodl.ai/ma/",
+        "size_kb": 121.9,
+        "last_modified": "2026-05-11T19:39:47+00:00",
+        "generated_at": "2026-05-11T19:39:46.270234+00:00",
+        "n_records": 316,
+        "type": "M&A deals",
+        "public_https": 200
+      },
+      {
+        "name": "COT Positioning",
+        "s3_key": "screener/cot-latest.json",
+        "page_url": "https://justhodl.ai/cot/",
+        "size_kb": 190.3,
+        "last_modified": "2026-05-11T19:08:55+00:00",
+        "generated_at": "2026-05-11T19:08:54.238354+00:00",
+        "n_records": 61,
+        "latest_report_date": "2026-05-05",
+        "extreme_long": 10,
+        "extreme_short": 5,
+        "type": "COT contracts",
+        "public_https": 200
+      },
+      {
+        "name": "Earnings Pulse",
+        "s3_key": "screener/earnings-sentiment.json",
+        "page_url": "https://justhodl.ai/earnings-pulse/",
+        "size_kb": 79.5,
+        "last_modified": "2026-05-11T19:11:05+00:00",
+        "generated_at": "2026-05-11T19:11:04.199931+00:00",
+        "n_records": 60,
+        "guidance_changes": {
+          "maintained": 39,
+          "lowered": 4,
+          "none": 4,
+          "raised": 13
+        },
+        "type": "earnings transcripts (Claude-scored)",
+        "public_https": 200
+      },
+      {
+        "name": "Smart Money",
+        "s3_key": "screener/smart-money.json",
+        "page_url": "https://justhodl.ai/smart-money/",
+        "size_kb": 54.0,
+        "last_modified": "2026-05-11T19:34:35+00:00",
+        "generated_at": "2026-05-11T19:34:34.391612+00:00",
+        "n_records": 88,
+        "as_of_quarter": null,
+        "as_of_date": "2026-03-31",
+        "type": "13F filers",
+        "top3_aum": [
+          {
+            "name": "VANGUARD GROUP INC",
+            "aum_b": 6897.7,
+            "qoq_pct": 3.2525
+          },
+          {
+            "name": "BlackRock Inc.",
+            "aum_b": 4418.3,
+            "qoq_pct": 2.8537
+          },
+          {
+            "name": "STATE STREET CORP",
+            "aum_b": 2980.9,
+            "qoq_pct": 3.3671
+          }
+        ],
+        "public_https": 200
+      }
+    ]
+  },
+  "finished": "2026-05-11T19:40:07.717153+00:00"
+}
