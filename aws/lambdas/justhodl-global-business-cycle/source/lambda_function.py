@@ -820,6 +820,133 @@ def rank_lead_lag(history_by_country, aggregate_series, max_lag_weeks=26):
 
 
 # ════════════════════════════════════════════════════════════════════════
+# Phase-conditional forward-return distribution analysis
+# ════════════════════════════════════════════════════════════════════════
+def compute_histogram_bins(returns, n_bins=20):
+    """Equal-width histogram bins. Returns list of {lo, hi, center, count}."""
+    if not returns:
+        return []
+    lo = min(returns)
+    hi = max(returns)
+    if hi - lo < 1e-9:
+        return [{"lo": round(lo, 2), "hi": round(hi, 2),
+                  "center": round(lo, 2), "count": len(returns)}]
+    width = (hi - lo) / n_bins
+    bins = []
+    for i in range(n_bins):
+        b_lo = lo + i * width
+        b_hi = lo + (i + 1) * width
+        if i == n_bins - 1:
+            count = sum(1 for r in returns if b_lo <= r <= b_hi)
+        else:
+            count = sum(1 for r in returns if b_lo <= r < b_hi)
+        bins.append({
+            "lo": round(b_lo, 2),
+            "hi": round(b_hi, 2),
+            "center": round((b_lo + b_hi) / 2, 2),
+            "count": count,
+        })
+    return bins
+
+
+def compute_distribution_stats(returns):
+    """Summary stats + histogram for a list of returns (%)."""
+    if not returns:
+        return {"n": 0}
+    sorted_returns = sorted(returns)
+    n = len(returns)
+    mean = sum(returns) / n
+    var = sum((r - mean) ** 2 for r in returns) / n
+    stdev = var ** 0.5
+
+    def percentile(p):
+        idx = int(round(p / 100.0 * (n - 1)))
+        idx = max(0, min(n - 1, idx))
+        return sorted_returns[idx]
+
+    hit_rate = sum(1 for r in returns if r > 0) / n
+    return {
+        "n": n,
+        "mean": round(mean, 2),
+        "median": round(percentile(50), 2),
+        "stdev": round(stdev, 2),
+        "p10": round(percentile(10), 2),
+        "p25": round(percentile(25), 2),
+        "p75": round(percentile(75), 2),
+        "p90": round(percentile(90), 2),
+        "min": round(min(returns), 2),
+        "max": round(max(returns), 2),
+        "hit_rate": round(hit_rate, 3),
+        "bins": compute_histogram_bins(returns, n_bins=20),
+    }
+
+
+def compute_phase_returns(prices, history, forward_days=63):
+    """For each weekly history point, compute the forward N-trading-day equity
+    return and bucket by the phase active at that time.
+
+    Returns dict: phase -> distribution stats.
+    Default forward window: 63 trading days ≈ 3 months."""
+    PHASES = ["EXPANSION", "AT_RISK", "RECESSION", "RECOVERY"]
+    if not prices or not history:
+        return {p: {"n": 0} for p in PHASES}
+
+    # Build date → daily-index lookup
+    date_to_idx = {d: i for i, (d, _) in enumerate(prices)}
+    buckets = {p: [] for p in PHASES}
+    n_prices = len(prices)
+
+    for pt in history:
+        phase = pt.get("phase")
+        if phase not in buckets:
+            continue
+        idx = date_to_idx.get(pt["date"])
+        if idx is None or idx + forward_days >= n_prices:
+            continue
+        p_now = prices[idx][1]
+        p_fwd = prices[idx + forward_days][1]
+        if p_now <= 0:
+            continue
+        fwd_ret = (p_fwd / p_now - 1.0) * 100
+        buckets[phase].append(fwd_ret)
+
+    return {phase: compute_distribution_stats(returns)
+            for phase, returns in buckets.items()}
+
+
+def build_phase_summary(phase_returns_by_country, country_meta):
+    """For each phase, return a list of countries sorted by mean forward return.
+    Each entry: {iso3, country_name, region, gdp_weight, n, mean, median, hit_rate, p10, p90}.
+    Skips entries with n < 5 (insufficient sample)."""
+    PHASES = ["EXPANSION", "AT_RISK", "RECESSION", "RECOVERY"]
+    summary = {p: [] for p in PHASES}
+    for iso3, by_phase in phase_returns_by_country.items():
+        meta = country_meta.get(iso3, {})
+        for phase in PHASES:
+            stats = by_phase.get(phase, {})
+            n = stats.get("n", 0)
+            if n < 5:
+                continue
+            summary[phase].append({
+                "iso3": iso3,
+                "country_name": meta.get("name"),
+                "region": meta.get("region"),
+                "gdp_weight": meta.get("weight"),
+                "n": n,
+                "mean": stats.get("mean"),
+                "median": stats.get("median"),
+                "hit_rate": stats.get("hit_rate"),
+                "p10": stats.get("p10"),
+                "p90": stats.get("p90"),
+                "stdev": stats.get("stdev"),
+            })
+        # Sort each phase by mean descending (best forward return first)
+    for phase in PHASES:
+        summary[phase].sort(key=lambda r: -(r["mean"] or -999))
+    return summary
+
+
+# ════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════
 def lambda_handler(event=None, context=None):
@@ -977,8 +1104,34 @@ def lambda_handler(event=None, context=None):
                 "boundary_flag": r["boundary_flag"],
             }
 
+    # Phase-conditional forward return distributions per country
+    pcr_started = time.time()
+    country_meta = {}
+    phase_returns_by_country = {}
+    for iso3, yahoo_sym, region, name, weight, iso2 in COUNTRY_MAP:
+        country_meta[iso3] = {"name": name, "region": region, "weight": weight, "iso2": iso2}
+        if iso3 not in history_by_country:
+            continue
+        prices = prices_by_country.get(iso3) or []
+        hist = history_by_country[iso3].get("history") or []
+        phase_returns_by_country[iso3] = compute_phase_returns(prices, hist, forward_days=63)
+
+    phase_summary = build_phase_summary(phase_returns_by_country, country_meta)
+    print(f"[gbc-history] computed phase-conditional returns for "
+          f"{len(phase_returns_by_country)} countries in {time.time() - pcr_started:.2f}s")
+    for phase, top in phase_summary.items():
+        if top:
+            t1 = top[0]
+            print(f"[gbc-history]   {phase}: top → {t1['iso3']} "
+                  f"mean {t1['mean']}% hit {t1['hit_rate']} n={t1['n']}")
+
+    # Also attach per-country into history_by_country for the per-country drilldown view
+    for iso3, by_phase in phase_returns_by_country.items():
+        if iso3 in history_by_country:
+            history_by_country[iso3]["phase_returns"] = by_phase
+
     history_output = {
-        "schema_version": "2.2",
+        "schema_version": "2.3",
         "engine_type": "synthetic_equity_momentum_history",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "frequency": "weekly_5d",
@@ -996,10 +1149,21 @@ def lambda_handler(event=None, context=None):
             "lags with weight in mind. boundary_flag=true means peak was at edge of "
             "scan window; true lead/lag may be longer than ±26 weeks."
         ),
+        "phase_returns_methodology": (
+            "For each country at each weekly history point, compute the forward "
+            "63-trading-day (~3 month) total return of the equity index and bucket "
+            "by the phase active at that historical moment. Each phase therefore has "
+            "a distribution of forward returns conditional on the cycle state. "
+            "CAVEAT: weekly sampling with 63-day forward windows creates overlapping "
+            "observations — sample means are unbiased but standard deviations and "
+            "hit-rates are optimistic relative to non-overlapping draws. Phases with "
+            "n<5 are excluded from the summary."
+        ),
         "by_country": history_by_country,
         "aggregate": aggregate_history,
         "transitions": transitions,
         "lead_lag_ranking": lead_lag_ranking,
+        "phase_summary": phase_summary,
     }
 
     S3.put_object(
