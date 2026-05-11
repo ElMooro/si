@@ -950,6 +950,26 @@ def _percentile_ranks(values_by_idx, invert=False):
     return ranks
 
 
+def _vmap_capped(stocks, field, lo=None, hi=None):
+    """Like _vmap but caps extreme values so outliers don't distort percentile
+    ranking. Used for instSharesChangePct (NFLX +892% is a real data outlier
+    that would otherwise dominate the factor's top percentile)."""
+    out = {}
+    for i, s in enumerate(stocks):
+        v = s.get(field)
+        if v is None:
+            out[i] = None
+            continue
+        try:
+            f = float(v)
+            if hi is not None and f > hi: f = hi
+            if lo is not None and f < lo: f = lo
+            out[i] = f
+        except Exception:
+            out[i] = None
+    return out
+
+
 def compute_steal_score(stocks):
     """Computes stealScore (0-100), stealRank (1=highest), stealBucket label
     in-place for each stock. Mutates the list."""
@@ -968,14 +988,14 @@ def compute_steal_score(stocks):
         ("balance_de",          4, _vmap(stocks, "debtToEquity"),  True),
         ("balance_currratio",   3, _vmap(stocks, "currentRatio"),  False),
         ("momentum_6m",         8, _vmap(stocks, "chg6m"),         False),
-        ("inst_flow",           7, _vmap(stocks, "instQoQChgPct"), False),
+        ("inst_flow",           7, _vmap_capped(stocks, "instQoQChgPct", lo=-50, hi=100), False),
         ("insider_flow",        4, _vmap(stocks, "insiderNet90dUsd"), False),
         ("estimate_revisions",  4, _vmap(stocks, "beatStreak"),    False),
         # ── STAGE 9: 3 new factors ──
         # Analyst grades consensus — sentiment of professional analysts
         ("analyst_grades",      7, _vmap(stocks, "gradesScore"),   False),
         # DCF undervaluation — the value-investing flagship signal
-        ("dcf_upside",          8, _vmap(stocks, "dcfUpsidePct"),  False),
+        ("dcf_upside",          8, _vmap_capped(stocks, "dcfUpsidePct", lo=-100, hi=300), False),
         # Political buying — alpha from informed insiders (Sen/House trades)
         ("political_buying",    6, _vmap(stocks, "politicalBuyersN90d"), False),
     ]
