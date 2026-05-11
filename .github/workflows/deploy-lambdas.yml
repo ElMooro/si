@@ -98,6 +98,25 @@ jobs:
               fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
               # Build --environment arg from .environment object (only if non-empty)
               env_kv=$(jq -r '.environment // {} | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
+              # If .inherit_env is set, copy specified keys from another Lambda's
+              # environment. Useful for cred values like ANTHROPIC_API_KEY that
+              # already exist on another function but shouldn't be in git.
+              if jq -e '.inherit_env' "$dir/config.json" >/dev/null 2>&1; then
+                src_fn=$(jq -r '.inherit_env.from_function' "$dir/config.json")
+                inherit_keys=$(jq -r '.inherit_env.keys | join(" ")' "$dir/config.json")
+                if [ -n "$src_fn" ] && [ -n "$inherit_keys" ]; then
+                  src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "${{ secrets.AWS_REGION }}" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                  for k in $inherit_keys; do
+                    v=$(echo "$src_env" | jq -r "."$k" // empty")
+                    if [ -n "$v" ] && [ "$v" != "null" ]; then
+                      if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+                      echo "  [inherit_env] inherited $k from $src_fn"
+                    else
+                      echo "  [inherit_env] WARN $k not found on $src_fn"
+                    fi
+                  done
+                fi
+              fi
               if [ -n "$env_kv" ]; then
                 fn_env_args="--environment Variables={$env_kv}"
               fi

@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-earnings-sentiment",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 900,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Scores earnings call transcripts via Claude haiku for sentiment + themes",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "ANTHROPIC_MODEL": "claude-haiku-4-5-20251001"
+  },
+  "inherit_env": {
+    "from_function": "justhodl-ai-chat",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "schedule": {
+    "rule_name": "justhodl-earnings-sentiment-daily",
+    "cron": "cron(0 10 * * ? *)",
+    "description": "Daily at 10:00 UTC — most US earnings calls publish day-after"
+  }
+}
