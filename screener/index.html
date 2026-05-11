@@ -324,6 +324,8 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab" data-tab="hedge_fund_bought" onclick="setTab(this)" style="color:#06b6d4">🐋 HEDGE FUND ACCUMULATING</div>
   <div class="tab" data-tab="forward_growth" onclick="setTab(this)" style="color:#22c55e">🚀 FORWARD GROWTH</div>
   <div class="tab" data-tab="cheap_forward_pe" onclick="setTab(this)" style="color:#f97316">⚡ CHEAP FORWARD P/E</div>
+  <!-- Stage 11: News momentum tab -->
+  <div class="tab" data-tab="news_momentum" onclick="setTab(this)" style="color:#ec4899">📰 NEWS MOMENTUM</div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -416,6 +418,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn on" data-group="forward" onclick="toggleColGroup(this)" style="color:#22c55e">🚀 Forward</button>
   <button class="col-toggle-btn" data-group="liquidity" onclick="toggleColGroup(this)" style="color:#06b6d4">💧 Liquidity</button>
   <button class="col-toggle-btn" data-group="governance" onclick="toggleColGroup(this)" style="color:#d946ef">👔 Governance</button>
+  <button class="col-toggle-btn on" data-group="news_momentum" onclick="toggleColGroup(this)" style="color:#ec4899">📰 News</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -520,7 +523,7 @@ let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,news_momentum:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -617,6 +620,11 @@ const COLS=[
   {id:'floatShares',label:'Float (M)',group:'liquidity',fn:r=>r.floatShares,fmt:'shares_m'},
   {id:'ceoName',label:'CEO',group:'governance',fn:r=>r.ceoName,fmt:'plain'},
   {id:'ceoPay',label:'CEO Pay',group:'governance',fn:r=>r.ceoPay,fmt:'mcap'},
+  // ── STAGE 11: News momentum ──
+  {id:'newsCount30d',label:'News 30d',group:'news_momentum',fn:r=>r.newsCount30d,fmt:'num'},
+  {id:'newsCount7d',label:'News 7d',group:'news_momentum',fn:r=>r.newsCount7d,fmt:'num'},
+  {id:'newsSentiment30d',label:'Sentiment',group:'news_momentum',fn:r=>r.newsSentiment30d,fmt:'sent_chg'},
+  {id:'latestHeadline',label:'Latest Headline',group:'news_momentum',fn:r=>r.latestHeadline,fmt:'headline'},
 ];
 function fmtCell(val,fmt,rank){
   if(fmt==='sent'){
@@ -745,6 +753,19 @@ function fmtCell(val,fmt,rank){
     if(v>=1e9)return `<span>${(v/1e9).toFixed(2)}B</span>`;
     if(v>=1e6)return `<span>${(v/1e6).toFixed(1)}M</span>`;
     return `<span>${(v/1e3).toFixed(0)}K</span>`;
+  }
+  // ── STAGE 11 news handlers ──
+  if(fmt==='sent_chg'){
+    if(val===null||val===undefined)return '<span class="na">-</span>';
+    const v=Number(val);
+    const cls=v>15?'pos':v<-15?'neg':'';
+    const arrow=v>15?'▲':v<-15?'▼':'·';
+    return `<span class="${cls}">${arrow} ${v>0?'+':''}${v.toFixed(0)}</span>`;
+  }
+  if(fmt==='headline'){
+    if(!val)return '<span class="na">-</span>';
+    const t=String(val).substring(0,55);
+    return `<span title="${String(val).replace(/"/g,'&quot;')}" style="color:#a78bfa;font-size:11px">${t}${val.length>55?'…':''}</span>`;
   }
   return`<span>${val}</span>`;
 }
@@ -1288,6 +1309,7 @@ function matchesTab(s,t){
   if(t==='hedge_fund_bought')return (s.instSharesChangePct||0)>=2;
   if(t==='forward_growth')return (s.forwardRevenueGrowth||0)>=15;
   if(t==='cheap_forward_pe')return s.forwardPE!==null&&s.forwardPE!==undefined&&s.forwardPE>0&&s.forwardPE<15;
+  if(t==='news_momentum')return (s.newsCount7d||0)>=3;
   if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
@@ -1327,6 +1349,7 @@ const TAB_DEFAULT_SORT={
   hedge_fund_bought:{col:'instSharesChangePct',dir:'desc'},
   forward_growth:{col:'forwardRevenueGrowth',dir:'desc'},
   cheap_forward_pe:{col:'forwardPE',dir:'asc'},
+  news_momentum:{col:'newsCount7d',dir:'desc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},

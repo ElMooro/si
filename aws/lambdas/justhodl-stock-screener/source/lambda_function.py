@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 3  # Ultimate tier (3000/min). 18 endpoints/stock × 503 = ~9k calls. At 3000/min ≈ 3 min. Headroom for retries.
+WORKERS  = 3  # Ultimate tier (3000/min). 19 endpoints/stock × 503 = ~9.5k calls. At 3000/min ≈ 3.2 min.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -262,6 +262,11 @@ def get_stock_data(symbol):
     share_float = fmp("shares-float",             f"&symbol={symbol}")
     # Key executives — for CEO pay + tenure tracking
     exec_list   = fmp("key-executives",            f"&symbol={symbol}")
+
+    # ── STAGE 11 ADDS — News momentum (sudden catalysts) ──
+    # 20 latest articles per symbol; we'll compute count-30d + heuristic
+    # sentiment from headline keywords. Cheap (no Claude API call).
+    news_data   = fmp("news/stock",                f"&symbols={symbol}&limit=20")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -757,6 +762,71 @@ def get_stock_data(symbol):
                 ceo_pay = sf(e.get("pay"))
                 break
 
+    # ────────── STAGE 11: NEWS MOMENTUM ──────────
+    # Cheap heuristic sentiment scoring — no LLM call. Keywords were tuned
+    # from finance-specific language. Score = (pos_matches - neg_matches) /
+    # total_articles, scaled to -100 to +100.
+    POS_WORDS = {
+        "beat","beats","exceed","exceeds","exceeded","record","records",
+        "growth","strong","surge","surges","surged","rally","rallies","rallied",
+        "upgrade","upgrades","upgraded","buy","raises","outperform",
+        "breakthrough","milestone","partnership","approval","approved",
+        "acquires","acquisition","raises","boost","boosts","soars","soared",
+        "bullish","top","tops","highest","gains","gained","rises","rose",
+        "profit","profitable","launches","wins","awarded","contract",
+        "expansion","expand","expanding","innovate","innovative","success",
+    }
+    NEG_WORDS = {
+        "miss","misses","missed","decline","declined","declines","weak",
+        "weakens","fall","falls","fell","crash","crashes","downgrade",
+        "downgrades","downgraded","sell","sells","investigation","lawsuit",
+        "sued","layoff","layoffs","recall","recalls","warn","warns","warned",
+        "warning","disappoint","disappoints","disappointed","disappointing",
+        "loss","losses","bearish","crash","tumble","tumbles","tumbled",
+        "plunge","plunges","plunged","drops","dropped","slumps","slumped",
+        "halt","halts","halted","fraud","scandal","fine","fined","penalty",
+        "concern","concerns","concerning","cuts","cut","reduces","reduced",
+        "risks","risky","threat","threatens","decline","declining",
+    }
+
+    news_count_30d = 0
+    news_count_7d = 0
+    news_sentiment_30d = None
+    latest_headline = None
+    latest_news_date = None
+    cutoff_news_30 = (datetime.now(timezone.utc).timestamp() - 30 * 86400)
+    cutoff_news_7 = (datetime.now(timezone.utc).timestamp() - 7 * 86400)
+    if isinstance(news_data, list) and news_data:
+        sent_pos = 0
+        sent_neg = 0
+        for a in news_data:
+            try:
+                pub_date = a.get("publishedDate", "")[:19]
+                if not pub_date:
+                    continue
+                # publishedDate format: "2026-05-11 10:31:28"
+                pub_ts = datetime.strptime(pub_date, "%Y-%m-%d %H:%M:%S").timestamp()
+                if pub_ts < cutoff_news_30:
+                    continue
+                news_count_30d += 1
+                if pub_ts >= cutoff_news_7:
+                    news_count_7d += 1
+                # Keyword sentiment scoring (case-insensitive)
+                title = (a.get("title") or "").lower()
+                words = set(title.replace(",", " ").replace(":", " ").split())
+                sent_pos += len(words & POS_WORDS)
+                sent_neg += len(words & NEG_WORDS)
+                # Track latest headline (news is returned in desc order)
+                if latest_headline is None:
+                    latest_headline = a.get("title")
+                    latest_news_date = a.get("publishedDate")
+            except Exception:
+                continue
+        # Sentiment: net positive matches per article × 50 (so ±2 per article = ±100)
+        if news_count_30d > 0:
+            net = sent_pos - sent_neg
+            news_sentiment_30d = round(max(-100, min(100, net / news_count_30d * 50)), 1)
+
     return {
         "symbol":          symbol,
         "name":            p.get("companyName",""),
@@ -902,6 +972,12 @@ def get_stock_data(symbol):
         "ceoName":               ceo_name,
         "ceoPay":                ceo_pay,                  # last reported CEO total comp
         "nExecutives":           n_executives,
+        # ── STAGE 11: News momentum ──
+        "newsCount30d":          news_count_30d,
+        "newsCount7d":           news_count_7d,            # surge indicator
+        "newsSentiment30d":      news_sentiment_30d,        # -100 to +100, keyword-based
+        "latestHeadline":        latest_headline,
+        "latestNewsDate":        latest_news_date,
     }
 
 # ════════════════════════════════════════════════════════════════════════
@@ -1253,6 +1329,10 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             "instSharesChangePct": s.get("instSharesChangePct"),
             "forwardRevenueGrowth": s.get("forwardRevenueGrowth"),
             "forwardPE": s.get("forwardPE"),
+            # Stage 11 fields
+            "newsCount30d": s.get("newsCount30d"),
+            "newsCount7d": s.get("newsCount7d"),
+            "newsSentiment30d": s.get("newsSentiment30d"),
         })
     snap_payload = {
         "snapshot_date": today_iso,
@@ -1577,6 +1657,35 @@ def write_snapshot_and_diff(today_stocks, today_payload):
                     "from": prior_fpe, "to": today_fpe,
                     "significance": 70,
                 })
+
+        # ════════════════════════════════════════════════════
+        # STAGE 11 event types — News momentum
+        # ════════════════════════════════════════════════════
+
+        # ── 21. NEWS SURGE — 7-day count doubled & ≥5 articles ──
+        prior_n7 = prior_s.get("newsCount7d") or 0
+        today_n7 = today_s.get("newsCount7d") or 0
+        if today_n7 >= 5 and today_n7 >= prior_n7 * 2:
+            events.append({**common, "type": "NEWS_SURGE",
+                "from": prior_n7, "to": today_n7,
+                "significance": 65,
+            })
+
+        # ── 22. NEWS SENTIMENT shift (became positive ≥+30) ──
+        prior_sent = prior_s.get("newsSentiment30d")
+        today_sent = today_s.get("newsSentiment30d")
+        if (prior_sent is not None and today_sent is not None
+                and today_sent >= 30 and prior_sent < 30):
+            events.append({**common, "type": "NEWS_SENTIMENT_POSITIVE",
+                "from": prior_sent, "to": today_sent,
+                "significance": 55,
+            })
+        elif (prior_sent is not None and today_sent is not None
+                and today_sent <= -30 and prior_sent > -30):
+            events.append({**common, "type": "NEWS_SENTIMENT_NEGATIVE",
+                "from": prior_sent, "to": today_sent,
+                "significance": 50,
+            })
 
     # Sort by significance descending (most newsworthy first)
     events.sort(key=lambda e: -e.get("significance", 0))

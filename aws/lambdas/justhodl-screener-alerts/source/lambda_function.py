@@ -66,6 +66,7 @@ HIGH_PRIORITY_TYPES = {
     "CHEAP_FORWARD_PE",
     "BEAT_STREAK_7",
     "BEAT_STREAK_10",
+    "NEWS_SURGE",
 }
 
 # Pretty-name table for event types
@@ -108,6 +109,9 @@ TYPE_PRETTY = {
     "FORWARD_GROWTH_25":        "🚀 Forward Growth 25%",
     "FORWARD_GROWTH_50":        "🚀🚀 Forward Growth 50%",
     "CHEAP_FORWARD_PE":         "⚡ CHEAP FWD P/E",
+    "NEWS_SURGE":               "📰 NEWS SURGE",
+    "NEWS_SENTIMENT_POSITIVE":  "📰 POSITIVE SENTIMENT",
+    "NEWS_SENTIMENT_NEGATIVE":  "📰 NEGATIVE SENTIMENT",
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -209,6 +213,12 @@ def format_event(event):
         detail = f"Forward revenue growth: *{event.get('to')}%*"
     elif typ == "CHEAP_FORWARD_PE":
         detail = f"Forward P/E: *{event.get('to'):.1f}*"
+    elif typ == "NEWS_SURGE":
+        detail = f"7-day news count: {event.get('from')} → *{event.get('to')}* articles"
+    elif typ == "NEWS_SENTIMENT_POSITIVE":
+        detail = f"Sentiment shift: {event.get('from'):.0f} → *+{event.get('to'):.0f}*"
+    elif typ == "NEWS_SENTIMENT_NEGATIVE":
+        detail = f"Sentiment shift: {event.get('from'):.0f} → *{event.get('to'):.0f}*"
     elif typ.startswith("FCF_YIELD_"):
         detail = f"FCF Yield: {event.get('from')}% → *{event.get('to')}%*"
     elif typ.startswith("REV_GROWTH_"):
