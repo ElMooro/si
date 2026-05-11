@@ -55,35 +55,58 @@ S3_KEY = "screener/smart-money-holdings.json"
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
-# Concentrated active funds — high-signal positioning.
-# Curated list excludes pure index trackers (Vanguard, BlackRock, State Street
-# FMR/Fidelity — these hold thousands of stocks each = no signal value).
+# Concentrated + active funds — high-signal positioning.
+# Expanded from 24 → 35 via probe step 452 (2026-05-11). All CIKs validated
+# against /institutional-ownership/holder-performance-summary?cik=X.
+# Excludes pure index trackers (Vanguard / BlackRock / State Street / FMR) —
+# they hold 4-5k stocks each and saying "Vanguard holds AAPL" is signal-free.
+# Sorted roughly by name fame + concentration density (most-concentrated first).
 CONCENTRATED_FUNDS = [
-    ("0001067983", "Berkshire Hathaway"),       # Buffett — flagship concentrated
-    ("0001336528", "Pershing Square Capital"),   # Ackman — ~10 positions
-    ("0001079114", "Greenlight Capital"),        # Einhorn
-    ("0001040273", "Third Point"),               # Loeb
-    ("0001048445", "Elliott Investment Mgmt"),   # Singer — activist
-    ("0001418814", "ValueAct Capital"),          # activist
-    ("0001061768", "Lone Pine Capital"),         # Mandel — Tiger cub
-    ("0001135730", "Coatue Management"),         # Laffont — tech
-    ("0001167483", "Tiger Global"),              # Coleman — growth
-    ("0001029160", "Soros Fund Management"),     # macro
-    ("0001031972", "Baupost Group"),             # Klarman — value
-    ("0001296958", "Point72 Asset Management"),  # Cohen
-    ("0001103804", "Viking Global Investors"),   # Halvorsen — Tiger cub
-    ("0001167274", "Glenview Capital"),          # Robbins — healthcare
-    ("0001512699", "Sands Capital Management"),  # growth
-    ("0001275148", "Whale Rock Capital"),        # tech growth
-    ("0001112520", "Maverick Capital"),          # Tiger cub
-    ("0001350694", "Bridgewater Associates"),    # Dalio — macro
-    ("0001037389", "Renaissance Technologies"),  # Simons — quant (concentrated by exposure)
-    ("0001423053", "Citadel Advisors"),          # Griffin
-    ("0001179392", "Two Sigma Investments"),     # quant
-    ("0001009207", "D.E. Shaw"),                 # quant
-    ("0001541617", "Millennium Management"),     # Englander
-    ("0000820027", "Tudor Investment"),          # PTJ — macro
+    # ── Ultra-concentrated activists & value (≤50 holdings) ──
+    ("0001067983", "Berkshire Hathaway"),          # Buffett · 42 · flagship value
+    ("0001336528", "Pershing Square Capital"),     # Ackman · 11 · most-concentrated big fund
+    ("0000921669", "Icahn Capital Management"),    # Icahn · 13 · NEW · activist legend
+    ("0001517137", "Starboard Value"),             # Smith · 22 · NEW · activist
+    ("0001345471", "Anchorage Capital"),           # 7 · NEW · ultra-concentrated
+    ("0001047644", "Davidson Kempner"),            # 8 · NEW · distressed
+    ("0001321655", "Discovery Capital Mgmt"),      # Citrone · 4 · NEW · macro
+    ("0001112520", "Maverick Capital"),            # Tiger cub · 18
+    ("0001541617", "Millennium Management"),       # Englander · 18
+    ("0001418814", "ValueAct Capital"),            # Ubben activist · 16
+    ("0001061768", "Lone Pine Capital"),           # Mandel · 22
+    ("0001167483", "Tiger Global Management"),     # Coleman · 54 · tech growth
+    ("0001031972", "Baupost Group"),               # Klarman · 41 · value legend
+    ("0001040273", "Third Point"),                 # Loeb · 44 · activist
+    ("0001079114", "Greenlight Capital"),          # Einhorn · 40 · NEW · short specialist
+    # ── Concentrated active (50-150 holdings) ──
+    ("0001135730", "Coatue Management"),           # Laffont · 52 · tech
+    ("0001103804", "Viking Global Investors"),     # Halvorsen Tiger cub · 76
+    ("0001048445", "Elliott Investment Mgmt"),     # Singer · 56 · NEW · activist
+    ("0001346824", "ARK Investment Management"),   # Cathie Wood · 71 · NEW · disruptive innovation
+    ("0001020066", "Sands Capital Management"),    # 67 · NEW · correct CIK · growth
+    ("0001536411", "Canyon Capital Advisors"),     # 62 · NEW
+    ("0000732905", "Tweedy, Browne"),              # 93 · NEW · legendary value
+    ("0001313893", "Maple Capital"),               # 119 · NEW
+    ("0001036325", "Davis Selected Advisers"),     # 112 · NEW · value
+    ("0001029160", "Soros Fund Management"),       # macro · 244
+    # ── Mid-diversified quants/macros (kept — high $ positions still signal) ──
+    ("0001350694", "Bridgewater Associates"),      # Dalio · 1040 · macro
+    ("0001037389", "Renaissance Technologies"),    # Simons · 3184 · quant
+    ("0001179392", "Two Sigma Investments"),       # quant · 4041
+    ("0001009207", "D.E. Shaw"),                   # quant · 4558
+    ("0000820027", "Tudor Investment"),            # PTJ macro · 4071
+    ("0001423053", "Citadel Advisors"),            # Griffin · 12508
+    ("0001167557", "AQR Capital Management"),      # Asness quant · 3562 · NEW
+    ("0001603466", "Schonfeld Strategic"),         # 3862 · NEW · multi-mgr quant
+    ("0000902219", "Wellington Management"),       # 1912 · NEW · classic active mgr
+    ("0001374170", "Norges Bank Investment Mgmt"), # Norway sovereign · 1577 · NEW
 ]
+
+# Min position size to include in inverted index. Keeps file size manageable
+# (without filter: diversified funds × thousands of holdings = bloat).
+# A $5M / 0.02% position from a $100B fund is noise, not signal.
+MIN_POSITION_VALUE = 5_000_000   # $5M absolute floor
+MIN_PCT_OF_FUND = 0.02            # 0.02% relative floor — keep if either threshold met
 
 # Pagination cap — Renaissance/Citadel can have 1000s of positions
 MAX_PAGES_PER_FUND = 30  # 30 × 100 = up to 3000 holdings/fund
@@ -192,6 +215,7 @@ def lambda_handler(event, context):
 
     # Build inverse mapping
     by_symbol = defaultdict(list)
+    skipped_noise = 0
     for fund in fund_results:
         fund_total = fund.get("total_value") or 0
         for h in fund["holdings"]:
@@ -200,6 +224,15 @@ def lambda_handler(event, context):
             # 4%+ is a high-conviction bet. 10%+ is a flagship position.
             # 0.01% is a probe / index-style holding.
             pct_of_fund = round(v / fund_total * 100, 3) if fund_total > 0 else None
+            # SIGNAL FILTER (Stage 16.2): drop noise positions to keep sidecar small.
+            # Keep if either the $ value or the % of fund clears the floor.
+            # This filters out e.g. Citadel's 0.001% probe positions in obscure tickers
+            # without losing meaningful holdings.
+            if (pct_of_fund is not None
+                and pct_of_fund < MIN_PCT_OF_FUND
+                and v < MIN_POSITION_VALUE):
+                skipped_noise += 1
+                continue
             by_symbol[h["symbol"]].append({
                 "cik": fund["cik"],
                 "name": fund["name"],
@@ -207,6 +240,7 @@ def lambda_handler(event, context):
                 "value": v,
                 "pct_of_fund": pct_of_fund,
             })
+    print(f"[smh] inverted index: kept {sum(len(v) for v in by_symbol.values())} entries · skipped {skipped_noise} noise")
 
     # Within each symbol, sort holders by value desc; also compute symbol-level
     # conviction metrics for screener page filtering/sorting.
