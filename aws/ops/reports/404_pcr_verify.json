@@ -1,0 +1,537 @@
+{
+  "started": "2026-05-11T09:59:19.320916+00:00",
+  "test": {
+    "lambda_last_modified": "2026-05-11T09:56:15.000+0000",
+    "code_size": 14831,
+    "invoke_body": "{\"statusCode\": 200, \"body\": \"{\\\"global_phase\\\": \\\"GLOBAL_EXPANSION\\\", \\\"global_avg_cli\\\": 110.15, \\\"n_countries\\\": 34, \\\"fresh_count\\\": 32, \\\"elapsed_sec\\\": 16.1}\"}",
+    "size_bytes": 1360700,
+    "schema": "2.3",
+    "phase_summary_top5": {
+      "EXPANSION": [
+        {
+          "iso3": "TUR",
+          "name": "Turkey",
+          "region": "Europe",
+          "mean": 11.99,
+          "median": 8.65,
+          "hit_rate": 0.647,
+          "n": 136,
+          "p10": -8.33,
+          "p90": 46.34
+        },
+        {
+          "iso3": "KOR",
+          "name": "South Korea",
+          "region": "Asia-Pacific",
+          "mean": 10.84,
+          "median": 5.12,
+          "hit_rate": 0.685,
+          "n": 92,
+          "p10": -6.26,
+          "p90": 31.73
+        },
+        {
+          "iso3": "ISR",
+          "name": "Israel",
+          "region": "Middle East",
+          "mean": 10.35,
+          "median": 11.35,
+          "hit_rate": 0.856,
+          "n": 90,
+          "p10": -2.35,
+          "p90": 22.38
+        },
+        {
+          "iso3": "GRC",
+          "name": "Greece",
+          "region": "Europe",
+          "mean": 6.75,
+          "median": 6.48,
+          "hit_rate": 0.774,
+          "n": 137,
+          "p10": -3.38,
+          "p90": 18.84
+        },
+        {
+          "iso3": "POL",
+          "name": "Poland",
+          "region": "Europe",
+          "mean": 6.35,
+          "median": 6.39,
+          "hit_rate": 0.738,
+          "n": 122,
+          "p10": -5.81,
+          "p90": 16.51
+        },
+        {
+          "iso3": "JPN",
+          "name": "Japan",
+          "region": "Asia-Pacific",
+          "mean": 5.72,
+          "median": 3.4,
+          "hit_rate": 0.644,
+          "n": 118,
+          "p10": -5.15,
+          "p90": 19.19
+        },
+        {
+          "iso3": "ESP",
+          "name": "Spain",
+          "region": "Europe",
+          "mean": 5.35,
+          "median": 6.01,
+          "hit_rate": 0.822,
+          "n": 152,
+          "p10": -1.15,
+          "p90": 12.16
+        },
+        {
+          "iso3": "ITA",
+          "name": "Italy",
+          "region": "Europe",
+          "mean": 4.76,
+          "median": 4.54,
+          "hit_rate": 0.832,
+          "n": 143,
+          "p10": -1.59,
+          "p90": 10.9
+        }
+      ],
+      "EXPANSION_bottom": [
+        {
+          "iso3": "IDN",
+          "name": "Indonesia",
+          "mean": -0.3,
+          "hit_rate": 0.48,
+          "n": 102
+        },
+        {
+          "iso3": "DNK",
+          "name": "Denmark",
+          "mean": -0.44,
+          "hit_rate": 0.526,
+          "n": 76
+        },
+        {
+          "iso3": "NZL",
+          "name": "New Zealand",
+          "mean": -0.0,
+          "hit_rate": 0.565,
+          "n": 108
+        }
+      ],
+      "AT_RISK": [
+        {
+          "iso3": "TUR",
+          "name": "Turkey",
+          "region": "Europe",
+          "mean": 20.12,
+          "median": 16.86,
+          "hit_rate": 0.818,
+          "n": 33,
+          "p10": -3.4,
+          "p90": 64.15
+        },
+        {
+          "iso3": "POL",
+          "name": "Poland",
+          "region": "Europe",
+          "mean": 13.5,
+          "median": 15.14,
+          "hit_rate": 0.739,
+          "n": 23,
+          "p10": -6.14,
+          "p90": 33.44
+        },
+        {
+          "iso3": "USA",
+          "name": "United States",
+          "region": "North America",
+          "mean": 10.11,
+          "median": 10.13,
+          "hit_rate": 1.0,
+          "n": 14,
+          "p10": 5.63,
+          "p90": 14.42
+        },
+        {
+          "iso3": "GRC",
+          "name": "Greece",
+          "region": "Europe",
+          "mean": 9.48,
+          "median": 11.76,
+          "hit_rate": 0.885,
+          "n": 26,
+          "p10": -1.98,
+          "p90": 14.64
+        },
+        {
+          "iso3": "ESP",
+          "name": "Spain",
+          "region": "Europe",
+          "mean": 8.33,
+          "median": 7.85,
+          "hit_rate": 1.0,
+          "n": 15,
+          "p10": 1.87,
+          "p90": 14.53
+        },
+        {
+          "iso3": "CHL",
+          "name": "Chile",
+          "region": "Latin America",
+          "mean": 7.3,
+          "median": 12.07,
+          "hit_rate": 0.625,
+          "n": 16,
+          "p10": -4.62,
+          "p90": 18.21
+        },
+        {
+          "iso3": "IRL",
+          "name": "Ireland",
+          "region": "Europe",
+          "mean": 7.11,
+          "median": 5.55,
+          "hit_rate": 0.885,
+          "n": 26,
+          "p10": -0.27,
+          "p90": 14.93
+        },
+        {
+          "iso3": "DEU",
+          "name": "Germany",
+          "region": "Europe",
+          "mean": 6.52,
+          "median": 7.29,
+          "hit_rate": 0.95,
+          "n": 20,
+          "p10": 1.49,
+          "p90": 11.39
+        }
+      ],
+      "AT_RISK_bottom": [
+        {
+          "iso3": "MEX",
+          "name": "Mexico",
+          "mean": -1.17,
+          "hit_rate": 0.294,
+          "n": 17
+        },
+        {
+          "iso3": "FIN",
+          "name": "Finland",
+          "mean": -2.11,
+          "hit_rate": 0.333,
+          "n": 6
+        },
+        {
+          "iso3": "DNK",
+          "name": "Denmark",
+          "mean": -2.89,
+          "hit_rate": 0.25,
+          "n": 16
+        }
+      ],
+      "RECESSION": [
+        {
+          "iso3": "TUR",
+          "name": "Turkey",
+          "region": "Europe",
+          "mean": 14.39,
+          "median": 14.05,
+          "hit_rate": 1.0,
+          "n": 16,
+          "p10": 10.55,
+          "p90": 20.37
+        },
+        {
+          "iso3": "POL",
+          "name": "Poland",
+          "region": "Europe",
+          "mean": 14.25,
+          "median": 23.0,
+          "hit_rate": 0.647,
+          "n": 34,
+          "p10": -17.67,
+          "p90": 46.11
+        },
+        {
+          "iso3": "IND",
+          "name": "India",
+          "region": "Asia-Pacific",
+          "mean": 8.65,
+          "median": 9.44,
+          "hit_rate": 1.0,
+          "n": 20,
+          "p10": 5.21,
+          "p90": 12.46
+        },
+        {
+          "iso3": "BRA",
+          "name": "Brazil",
+          "region": "Latin America",
+          "mean": 7.9,
+          "median": 9.44,
+          "hit_rate": 0.809,
+          "n": 47,
+          "p10": -0.63,
+          "p90": 15.7
+        },
+        {
+          "iso3": "JPN",
+          "name": "Japan",
+          "region": "Asia-Pacific",
+          "mean": 7.82,
+          "median": 4.13,
+          "hit_rate": 0.808,
+          "n": 26,
+          "p10": -1.05,
+          "p90": 16.76
+        },
+        {
+          "iso3": "CHL",
+          "name": "Chile",
+          "region": "Latin America",
+          "mean": 7.05,
+          "median": 5.85,
+          "hit_rate": 0.78,
+          "n": 41,
+          "p10": -2.11,
+          "p90": 17.36
+        },
+        {
+          "iso3": "SWE",
+          "name": "Sweden",
+          "region": "Europe",
+          "mean": 6.35,
+          "median": 6.73,
+          "hit_rate": 0.75,
+          "n": 36,
+          "p10": -2.07,
+          "p90": 14.06
+        },
+        {
+          "iso3": "DEU",
+          "name": "Germany",
+          "region": "Europe",
+          "mean": 6.25,
+          "median": 4.97,
+          "hit_rate": 0.609,
+          "n": 23,
+          "p10": -3.26,
+          "p90": 16.28
+        }
+      ],
+      "RECESSION_bottom": [
+        {
+          "iso3": "KOR",
+          "name": "South Korea",
+          "mean": 2.02,
+          "hit_rate": 0.5,
+          "n": 58
+        },
+        {
+          "iso3": "FIN",
+          "name": "Finland",
+          "mean": 1.72,
+          "hit_rate": 0.529,
+          "n": 70
+        },
+        {
+          "iso3": "BEL",
+          "name": "Belgium",
+          "mean": 1.18,
+          "hit_rate": 0.51,
+          "n": 51
+        }
+      ],
+      "RECOVERY": [
+        {
+          "iso3": "ITA",
+          "name": "Italy",
+          "region": "Europe",
+          "mean": 11.76,
+          "median": 12.79,
+          "hit_rate": 0.889,
+          "n": 9,
+          "p10": 7.76,
+          "p90": 20.04
+        },
+        {
+          "iso3": "IRL",
+          "name": "Ireland",
+          "region": "Europe",
+          "mean": 11.24,
+          "median": 12.63,
+          "hit_rate": 0.895,
+          "n": 19,
+          "p10": 0.6,
+          "p90": 18.46
+        },
+        {
+          "iso3": "GRC",
+          "name": "Greece",
+          "region": "Europe",
+          "mean": 8.7,
+          "median": 9.91,
+          "hit_rate": 0.875,
+          "n": 8,
+          "p10": 0.52,
+          "p90": 16.28
+        },
+        {
+          "iso3": "KOR",
+          "name": "South Korea",
+          "region": "Asia-Pacific",
+          "mean": 7.74,
+          "median": 7.76,
+          "hit_rate": 1.0,
+          "n": 20,
+          "p10": 1.01,
+          "p90": 14.07
+        },
+        {
+          "iso3": "GBR",
+          "name": "United Kingdom",
+          "region": "Europe",
+          "mean": 7.5,
+          "median": 8.53,
+          "hit_rate": 0.833,
+          "n": 6,
+          "p10": -0.51,
+          "p90": 9.87
+        },
+        {
+          "iso3": "ZAF",
+          "name": "South Africa",
+          "region": "Africa",
+          "mean": 6.93,
+          "median": 7.39,
+          "hit_rate": 1.0,
+          "n": 10,
+          "p10": 2.33,
+          "p90": 10.14
+        },
+        {
+          "iso3": "MEX",
+          "name": "Mexico",
+          "region": "Latin America",
+          "mean": 6.18,
+          "median": 7.5,
+          "hit_rate": 0.812,
+          "n": 16,
+          "p10": -2.21,
+          "p90": 13.17
+        },
+        {
+          "iso3": "BRA",
+          "name": "Brazil",
+          "region": "Latin America",
+          "mean": 5.98,
+          "median": 7.16,
+          "hit_rate": 1.0,
+          "n": 5,
+          "p10": 1.42,
+          "p90": 10.34
+        }
+      ],
+      "RECOVERY_bottom": [
+        {
+          "iso3": "BEL",
+          "name": "Belgium",
+          "mean": -0.32,
+          "hit_rate": 0.435,
+          "n": 23
+        },
+        {
+          "iso3": "ISR",
+          "name": "Israel",
+          "mean": -1.71,
+          "hit_rate": 0.385,
+          "n": 13
+        },
+        {
+          "iso3": "CHN",
+          "name": "China",
+          "mean": -3.13,
+          "hit_rate": 0.179,
+          "n": 28
+        }
+      ]
+    },
+    "usa_phase_returns": {
+      "EXPANSION": {
+        "n": 127,
+        "mean": 3.12,
+        "median": 4.05,
+        "hit_rate": 0.78,
+        "p10": -5.1,
+        "p90": 9.81,
+        "bins_n": 20
+      },
+      "AT_RISK": {
+        "n": 14,
+        "mean": 10.11,
+        "median": 10.13,
+        "hit_rate": 1.0,
+        "p10": 5.63,
+        "p90": 14.42,
+        "bins_n": 20
+      },
+      "RECESSION": {
+        "n": 31,
+        "mean": 5.21,
+        "median": 4.5,
+        "hit_rate": 0.742,
+        "p10": -5.63,
+        "p90": 15.87,
+        "bins_n": 20
+      },
+      "RECOVERY": {
+        "n": 17,
+        "mean": 2.56,
+        "median": 3.13,
+        "hit_rate": 0.706,
+        "p10": -2.55,
+        "p90": 6.16,
+        "bins_n": 20
+      }
+    },
+    "chn_phase_returns": {
+      "EXPANSION": {
+        "n": 82,
+        "mean": 2.0,
+        "hit_rate": 0.61
+      },
+      "AT_RISK": {
+        "n": 6,
+        "mean": 1.31,
+        "hit_rate": 0.5
+      },
+      "RECESSION": {
+        "n": 64,
+        "mean": 3.86,
+        "hit_rate": 0.641
+      },
+      "RECOVERY": {
+        "n": 28,
+        "mean": -3.13,
+        "hit_rate": 0.179
+      }
+    },
+    "page": {
+      "status": 200,
+      "size": 63907,
+      "has_renderPhaseConditional": true,
+      "has_drawPCRHistogram": true,
+      "has_pcr_summary": true,
+      "has_pcr_country_select": true,
+      "has_section_title": true
+    },
+    "log_pcr": [
+      "[gbc-history] computed phase-conditional returns for 32 countries in 0.04s"
+    ]
+  },
+  "finished": "2026-05-11T09:59:48.483951+00:00"
+}
