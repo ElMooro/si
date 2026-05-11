@@ -229,6 +229,11 @@ jobs:
               echo "FUNCTION_URL_${fn}=$fn_url" >> $GITHUB_OUTPUT
               echo "  - **$fn URL**: \`$fn_url\`" >> $GITHUB_STEP_SUMMARY
 
+              # Also write to a tracked file so we can read it from anywhere
+              echo "$fn_url" > "$dir/.function-url"
+              git add "$dir/.function-url" 2>/dev/null || true
+              echo "FN_URL_PATCHED_FILE=$dir/.function-url" >> $GITHUB_ENV
+
               # If config says to patch a file with this URL, do it
               patch_target=$(jq -r '.function_url.patch_file // empty' "$dir/config.json")
               if [ -n "$patch_target" ] && [ -f "$patch_target" ]; then
@@ -247,19 +252,26 @@ jobs:
           done
 
       - name: Commit Function URL patches back
-        if: env.FN_URL_PATCHED_FILE != ''
         run: |
           set -e
-          if git diff --quiet; then
-            echo "No file changes — nothing to commit"
-            exit 0
-          fi
+          # Check for any modified or new tracked files (excluding untracked)
           git config user.email "github-actions@justhodl.ai"
           git config user.name "github-actions"
-          git add "$FN_URL_PATCHED_FILE"
-          git commit -m "ops: auto-patch Function URL into $FN_URL_PATCHED_FILE [skip-deploy]"
-          # Push back to main (uses default GITHUB_TOKEN with write perms below)
-          git push origin main || echo "push failed — patch was applied locally only"
+          # Stage everything potentially touched by Function URL setup
+          git add -A 'aws/lambdas/*/.function-url' 2>/dev/null || true
+          # Also stage the explicitly patched file if set
+          if [ -n "$FN_URL_PATCHED_FILE" ] && [ -f "$FN_URL_PATCHED_FILE" ]; then
+            git add "$FN_URL_PATCHED_FILE"
+          fi
+          # And any HTML/JS that may have been patched
+          git add 'ma/*.js' 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Nothing staged — no Function URL changes to commit"
+            exit 0
+          fi
+          git status --short
+          git commit -m "ops: auto-commit Function URL setup [skip-deploy]"
+          git push origin main || echo "push failed — changes applied locally only"
 
       - name: Summary
         if: always()
