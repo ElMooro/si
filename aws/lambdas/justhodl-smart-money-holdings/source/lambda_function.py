@@ -84,7 +84,7 @@ CONCENTRATED_FUNDS = [
     ("0001048445", "Elliott Investment Mgmt"),     # Singer · 56 · NEW · activist
     ("0001346824", "ARK Investment Management"),   # Cathie Wood · 71 · NEW · disruptive innovation
     ("0001020066", "Sands Capital Management"),    # 67 · NEW · correct CIK · growth
-    ("0001536411", "Canyon Capital Advisors"),     # 62 · NEW
+    ("0001536411", "Duquesne Family Office"),      # Druckenmiller · 62 · CORRECTED (was mislabeled "Canyon Capital")
     ("0000732905", "Tweedy, Browne"),              # 93 · NEW · legendary value
     ("0001313893", "Maple Capital"),               # 119 · NEW
     ("0001036325", "Davis Selected Advisers"),     # 112 · NEW · value
@@ -100,6 +100,25 @@ CONCENTRATED_FUNDS = [
     ("0001603466", "Schonfeld Strategic"),         # 3862 · NEW · multi-mgr quant
     ("0000902219", "Wellington Management"),       # 1912 · NEW · classic active mgr
     ("0001374170", "Norges Bank Investment Mgmt"), # Norway sovereign · 1577 · NEW
+    # ── Stage 16.3: 17 funds resolved via SEC EDGAR full-text search ──
+    # All CIKs are the authoritative SEC values + validated via FMP extract
+    ("0001345471", "Trian Fund Management"),       # Peltz · 7 positions · $4.0B · activist legend
+    ("0001647251", "TCI Fund Management"),         # Hohn · 9 · $53.6B · ULTRA-concentrated activist
+    ("0001656456", "Appaloosa LP"),                # Tepper · 39 · $6.9B · macro/credit legend
+    ("0000898382", "Omega Advisors / Cooperman"),  # Cooperman · 40 · $3.0B
+    ("0001135778", "Miller Value Partners"),       # Bill Miller · 34 · $0.3B
+    ("0001138995", "Glenview Capital Mgmt"),       # Robbins · 57 · $4.9B · healthcare · FIXED CIK
+    ("0001387322", "Whale Rock Capital"),          # 32 · $7.8B · tech growth · FIXED CIK
+    ("0001747057", "D1 Capital Partners"),         # 42 · $10.7B · growth
+    ("0000949509", "Oaktree Capital Mgmt"),        # Howard Marks · 172 · $7.0B · distressed
+    ("0000909661", "Farallon Capital Mgmt"),       # 151 · $21.2B
+    ("0001325447", "First Eagle Investment Mgmt"), # 422 · $56.8B · global value
+    ("0000807249", "GAMCO Investors / Gabelli"),   # Mario Gabelli · 1036 · $10.4B
+    ("0001512857", "Brevan Howard Capital Mgmt"),  # Alan Howard · 1714 · $9.2B · macro
+    ("0001448574", "Moore Capital Management"),    # Louis Bacon · 665 · $6.9B · macro
+    ("0002051323", "Caxton Associates"),           # Bruce Kovner · 752 · $5.1B · macro
+    ("0001562230", "Capital Research / Cap Group"), # Capital Group · 454 · $638B (large but kept)
+    ("0002054122", "Balyasny / Longaeva Partners"), # Balyasny pod · 119 · $1.2B · multi-mgr
 ]
 
 # Min position size to include in inverted index. Keeps file size manageable
