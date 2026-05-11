@@ -1,0 +1,41 @@
+{
+  "started": "2026-05-11T17:41:12.779202+00:00",
+  "test": {
+    "invoke": {
+      "status_code": 200,
+      "n_deals": 316,
+      "elapsed_seconds": 0.9,
+      "generated_at": "2026-05-11T17:41:20.483766+00:00"
+    },
+    "s3_state": {
+      "size_kb": 121.9,
+      "last_modified": "2026-05-11T17:41:21+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=600",
+      "generated_at": "2026-05-11T17:41:20.483766+00:00",
+      "n_deals": 316,
+      "n_profiles": 60,
+      "summary_keys": [
+        "n_deals",
+        "date_range",
+        "by_sector",
+        "top_acquirers"
+      ]
+    },
+    "public_https": {
+      "status": 200,
+      "size_bytes": 124806,
+      "url": "https://justhodl-dashboard-live.s3.amazonaws.com/screener/ma-latest.json"
+    },
+    "eventbridge": {
+      "rules": [
+        "justhodl-ma-tracker-hourly"
+      ],
+      "justhodl-ma-tracker-hourly": {
+        "schedule": "rate(1 hour)",
+        "state": "ENABLED"
+      }
+    }
+  },
+  "finished": "2026-05-11T17:41:21.618887+00:00"
+}
