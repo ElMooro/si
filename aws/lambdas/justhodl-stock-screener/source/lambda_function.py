@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 2  # 6 endpoints/stock × 503 stocks = ~3k calls per run. At FMP Premium's 750/min, that's ~4min total. Comfortable.
+WORKERS  = 1  # 8 endpoints/stock × 503 stocks = 4k calls. At FMP Premium 750/min we finish in ~5.5min. Headroom for 429 retries.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -176,15 +176,13 @@ def get_stock_data(symbol):
     # Kings tabs (we previously only had margins, not totals).
     income  = fmp("income-statement",    f"&symbol={symbol}&limit=3&period=annual")
     cashflow= fmp("cash-flow-statement", f"&symbol={symbol}&limit=3&period=annual")
-    # ── STAGE 2 ADDS — TEMPORARILY DISABLED 2026-05-11 ─────────────
-    # institutional-ownership requires FMP Pro tier (HTTP 402 on Premium).
-    # insider-trading + earnings-surprises endpoint paths returned 404 on
-    # the /stable/ namespace — need to probe correct paths separately.
-    # Returning None keeps the Stage 2 page UI present but with empty rows
-    # in the corresponding tabs until we wire up the correct endpoints.
+    # ── STAGE 2 RE-WIRED 2026-05-11 ─────────────────────────────
+    # institutional-ownership: STILL DISABLED — requires FMP Pro tier (402)
     inst = None
-    insider = None
-    surprises = None
+    # insider-trading/search: confirmed working on Premium (probe step 411)
+    insider = fmp("insider-trading/search", f"&symbol={symbol}&limit=50")
+    # earnings: provides epsActual + epsEstimated; compute surprise % locally
+    surprises = fmp("earnings", f"&symbol={symbol}&limit=8")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -264,6 +262,14 @@ def get_stock_data(symbol):
             inst_holders_chg = int(h_curr - h_prev)
 
     # Insider trading — last 90 days, separate buys vs sells
+    # Endpoint: /stable/insider-trading/search returns transactions with these key fields:
+    #   transactionType — "P-Purchase", "S-Sale", "A-Award", etc.
+    #   acquisitionOrDisposition — "A" (acquired) or "D" (disposed)
+    #   securitiesTransacted — share count (may be present)
+    #   securitiesOwned — total holdings after transaction
+    #   price — per-share transaction price
+    #   reportingName — insider's name
+    #   transactionDate / filingDate
     insider_buys_90d_usd = 0.0
     insider_sells_90d_usd = 0.0
     insider_buyers_90d = set()
@@ -281,20 +287,36 @@ def get_stock_data(symbol):
                 tx_ts = _dt.strptime(tx_date_str[:10], "%Y-%m-%d").timestamp()
                 if tx_ts < cutoff_ts:
                     continue
-                shares = float(t.get("securitiesTransacted") or 0)
-                price = float(t.get("price") or 0)
+                # Try multiple share-count field names
+                shares = float(t.get("securitiesTransacted")
+                                 or t.get("transactionShares")
+                                 or 0)
+                price = float(t.get("price") or t.get("transactionPrice") or 0)
                 amount = abs(shares * price)
                 txt = (t.get("transactionType") or "").upper()
-                acq = (t.get("acquistionOrDisposition") or t.get("acquisitionOrDisposition") or "").upper()
+                acq = (t.get("acquisitionOrDisposition")
+                          or t.get("acquistionOrDisposition")
+                          or "").upper()
                 name = t.get("reportingName") or t.get("name") or "unknown"
-                is_buy = ("P-PURCHASE" in txt) or ("A-AWARD" in txt and acq == "A") or (acq == "A" and "P" in txt)
-                is_sell = ("S-SALE" in txt) or (acq == "D")
+                # P-Purchase or A-Award with acquisition counts as buying.
+                # Note: A-Award includes restricted-stock grants which are NOT
+                # discretionary purchases — but they DO show insider conviction
+                # to accept compensation as stock vs cash, so we include them.
+                is_buy = (("P-PURCHASE" in txt) or
+                            ("P/PURCHASE" in txt) or
+                            ("A-AWARD" in txt and acq == "A") or
+                            (acq == "A" and "P" in txt))
+                is_sell = (("S-SALE" in txt) or
+                              ("S/SALE" in txt) or
+                              (acq == "D" and "S" in txt))
                 if is_buy and not is_sell:
-                    insider_buys_90d_usd += amount
+                    if amount > 0:
+                        insider_buys_90d_usd += amount
                     insider_buyers_90d.add(name)
                     insider_recent_buys_count += 1
                 elif is_sell:
-                    insider_sells_90d_usd += amount
+                    if amount > 0:
+                        insider_sells_90d_usd += amount
                     insider_sellers_90d.add(name)
             except Exception:
                 continue
@@ -306,28 +328,33 @@ def get_stock_data(symbol):
     elif insider_sells_90d_usd > insider_buys_90d_usd * 5 and insider_sells_90d_usd > 1e6:
         insider_net_signal = "selling"
 
-    # Earnings surprise streak (count consecutive recent beats)
+    # Earnings surprise streak — from /stable/earnings (epsActual + epsEstimated)
     beat_streak = 0
     last_surprise_pct = None
     avg_surprise_pct = None
     if isinstance(surprises, list) and surprises:
-        # surprises are typically ordered most-recent-first; iterate forward
+        # The endpoint returns FUTURE + past dates mixed. Filter to past (epsActual not null)
+        # and sort by date descending so most-recent reported quarter is first.
+        past = [s for s in surprises if s.get("epsActual") is not None]
+        try:
+            past.sort(key=lambda x: x.get("date", ""), reverse=True)
+        except Exception:
+            pass
         surprise_pcts = []
-        for s in surprises:
-            actual = sf(s.get("actualEarningResult"))
-            est = sf(s.get("estimatedEarning"))
-            if actual is None or est is None:
+        streak_active = True
+        for s in past:
+            act = sf(s.get("epsActual"))
+            est = sf(s.get("epsEstimated"))
+            if act is None or est is None:
+                streak_active = False
                 continue
-            beat = actual > est
-            if beat_streak >= 0 and beat:
+            beat = act > est
+            if streak_active and beat:
                 beat_streak += 1
-            elif not beat:
-                # Stop counting — streak ends on first miss
-                if beat_streak == 0:
-                    beat_streak = 0
-                break
+            else:
+                streak_active = False
             if est != 0:
-                surprise_pcts.append((actual - est) / abs(est) * 100)
+                surprise_pcts.append((act - est) / abs(est) * 100)
         if surprise_pcts:
             last_surprise_pct = round(surprise_pcts[0], 2)
             avg_surprise_pct = round(sum(surprise_pcts) / len(surprise_pcts), 2)
