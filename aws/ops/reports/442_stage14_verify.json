@@ -1,0 +1,594 @@
+{
+  "started": "2026-05-11T19:05:16.468131+00:00",
+  "test": {
+    "cot_lambda": {
+      "last_modified": "2026-05-11T19:04:45.000+0000",
+      "code_size": 2886
+    },
+    "cot_invoke": {
+      "error": "no_symbol_list"
+    },
+    "cot_s3": {
+      "size_kb": 190.3,
+      "generated_at": "2026-05-11T19:08:54.238354+00:00",
+      "latest_report_date": "2026-05-05",
+      "n_contracts": 61,
+      "summary": {
+        "n_contracts": 61,
+        "n_with_z_score": 61,
+        "extreme_long_count": 10,
+        "extreme_short_count": 5,
+        "extreme_long_top": [
+          {
+            "symbol": "CT",
+            "name": "Cotton #2 (CT)",
+            "sector": "SOFTS",
+            "z": 2.26,
+            "net_pct": 30.27
+          },
+          {
+            "symbol": "BZ",
+            "name": "Brent Crude Last Day (BZ)",
+            "sector": "ENERGIES",
+            "z": 2.11,
+            "net_pct": -3.98
+          },
+          {
+            "symbol": "ZC",
+            "name": "Corn (ZC)",
+            "sector": "GRAINS",
+            "z": 1.96,
+            "net_pct": 22.68
+          },
+          {
+            "symbol": "HG",
+            "name": "High Grade Copper (HG)",
+            "sector": "METALS",
+            "z": 1.9,
+            "net_pct": 27.02
+          },
+          {
+            "symbol": "ZF",
+            "name": "5-Year T-Note (ZF)",
+            "sector": "FINANCIALS",
+            "z": 1.85,
+            "net_pct": -21.47
+          },
+          {
+            "symbol": "SB",
+            "name": "Sugar #11 (SB)",
+            "sector": "SOFTS",
+            "z": 1.69,
+            "net_pct": -9.85
+          },
+          {
+            "symbol": "MWP",
+            "name": "Aluminum Midwest Premium (MWP)",
+            "sector": "METALS",
+            "z": 1.68,
+            "net_pct": 1.32
+          },
+          {
+            "symbol": "ZL",
+            "name": "Soybean Oil (ZL)",
+            "sector": "GRAINS",
+            "z": 1.65,
+            "net_pct": 23.93
+          },
+          {
+            "symbol": "VX",
+            "name": "CBOE VIX (VX)",
+            "sector": "INDICES",
+            "z": 1.57,
+            "net_pct": -6.38
+          },
+          {
+            "symbol": "KE",
+            "name": "KCBT Wheat (KE)",
+            "sector": "GRAINS",
+            "z": 1.52,
+            "net_pct": 4.9
+          }
+        ],
+        "extreme_short_top": [
+          {
+            "symbol": "ZB",
+            "name": "30-Year T-Bond (ZB)",
+            "sector": "FINANCIALS",
+            "z": -3.16,
+            "net_pct": -9.45
+          },
+          {
+            "symbol": "HE",
+            "name": "Lean Hogs (HE)",
+            "sector": "MEATS",
+            "z": -2.31,
+            "net_pct": 2.04
+          },
+          {
+            "symbol": "EW",
+            "name": "S&P Midcap E-Mini (EW)",
+            "sector": "INDICES",
+            "z": -2.25,
+            "net_pct": 0.9
+          },
+          {
+            "symbol": "NQ",
+            "name": "Nasdaq 100 E-Mini (NQ)",
+            "sector": "INDICES",
+            "z": -1.57,
+            "net_pct": 0.42
+          },
+          {
+            "symbol": "PA",
+            "name": "Palladium (PA)",
+            "sector": "METALS",
+            "z": -1.51,
+            "net_pct": -9.23
+          }
+        ],
+        "by_sector": {
+          "FINANCIALS": [
+            "ZB",
+            "ZF",
+            "ZT",
+            "TN",
+            "UD",
+            "ZN",
+            "ZQ"
+          ],
+          "MEATS": [
+            "HE",
+            "GF",
+            "LE",
+            "DL"
+          ],
+          "SOFTS": [
+            "CT",
+            "SB",
+            "OJ",
+            "CC",
+            "KC"
+          ],
+          "INDICES": [
+            "EW",
+            "VX",
+            "NQ",
+            "MES",
+            "YM",
+            "ES",
+            "QR",
+            "MNQ"
+          ],
+          "ENERGIES": [
+            "BZ",
+            "NG",
+            "HO",
+            "CLF",
+            "BP",
+            "CL",
+            "ZK",
+            "RB"
+          ],
+          "GRAINS": [
+            "ZC",
+            "ZL",
+            "KE",
+            "ZM",
+            "ZW",
+            "ZS",
+            "ZR",
+            "ZO"
+          ],
+          "METALS": [
+            "HG",
+            "MWP",
+            "PA",
+            "PL",
+            "SI",
+            "GM",
+            "HRC",
+            "GC"
+          ],
+          "CURRENCIES": [
+            "N6",
+            "E6",
+            "A6",
+            "S6",
+            "L6",
+            "M6",
+            "J6",
+            "DX",
+            "D6",
+            "BT",
+            "T6",
+            "B6",
+            "EURGBP"
+          ]
+        }
+      }
+    },
+    "cot_top5": [
+      {
+        "sym": "ZB",
+        "name": "30-Year T-Bond (ZB)",
+        "sec": "FINANCIALS",
+        "date": "2026-05-05",
+        "long_pct": 9.9,
+        "short_pct": 19.35,
+        "net_pct_oi": -9.45,
+        "z": -3.16,
+        "n_weeks": 28,
+        "signal": "short"
+      },
+      {
+        "sym": "HE",
+        "name": "Lean Hogs (HE)",
+        "sec": "MEATS",
+        "date": "2026-05-05",
+        "long_pct": 28.15,
+        "short_pct": 26.11,
+        "net_pct_oi": 2.04,
+        "z": -2.31,
+        "n_weeks": 28,
+        "signal": "short"
+      },
+      {
+        "sym": "CT",
+        "name": "Cotton #2 (CT)",
+        "sec": "SOFTS",
+        "date": "2026-05-05",
+        "long_pct": 43.32,
+        "short_pct": 13.05,
+        "net_pct_oi": 30.27,
+        "z": 2.26,
+        "n_weeks": 28,
+        "signal": "long"
+      },
+      {
+        "sym": "EW",
+        "name": "S&P Midcap E-Mini (EW)",
+        "sec": "INDICES",
+        "date": "2026-05-05",
+        "long_pct": 13.94,
+        "short_pct": 13.05,
+        "net_pct_oi": 0.9,
+        "z": -2.25,
+        "n_weeks": 28,
+        "signal": "short"
+      },
+      {
+        "sym": "BZ",
+        "name": "Brent Crude Last Day (BZ)",
+        "sec": "ENERGIES",
+        "date": "2026-05-05",
+        "long_pct": 30.87,
+        "short_pct": 34.85,
+        "net_pct_oi": -3.98,
+        "z": 2.11,
+        "n_weeks": 28,
+        "signal": "long"
+      },
+      {
+        "sym": "ZC",
+        "name": "Corn (ZC)",
+        "sec": "GRAINS",
+        "date": "2026-05-05",
+        "long_pct": 31.49,
+        "short_pct": 8.82,
+        "net_pct_oi": 22.68,
+        "z": 1.96,
+        "n_weeks": 28,
+        "signal": "long"
+      },
+      {
+        "sym": "HG",
+        "name": "High Grade Copper (HG)",
+        "sec": "METALS",
+        "date": "2026-05-05",
+        "long_pct": 41.38,
+        "short_pct": 14.36,
+        "net_pct_oi": 27.02,
+        "z": 1.9,
+        "n_weeks": 28,
+        "signal": "long"
+      },
+      {
+        "sym": "ZF",
+        "name": "5-Year T-Note (ZF)",
+        "sec": "FINANCIALS",
+        "date": "2026-05-05",
+        "long_pct": 9.61,
+        "short_pct": 31.08,
+        "net_pct_oi": -21.47,
+        "z": 1.85,
+        "n_weeks": 28,
+        "signal": "long"
+      }
+    ],
+    "es_lambda": {
+      "last_modified": "2026-05-11T18:59:44.897+0000",
+      "code_size": 5396,
+      "memory": 1024,
+      "timeout": 900,
+      "env_keys": [
+        "FMP_KEY",
+        "ANTHROPIC_MODEL",
+        "ANTHROPIC_API_KEY"
+      ]
+    },
+    "es_invoke": {
+      "candidates": 0,
+      "new_scored": 0,
+      "total_records": 30,
+      "elapsed_seconds": 1.7
+    },
+    "es_s3": {
+      "size_kb": 41.9,
+      "generated_at": "2026-05-11T19:09:59.574396+00:00",
+      "n_new_this_run": 0,
+      "n_candidates": 0,
+      "summary": {
+        "n_transcripts": 30,
+        "most_bullish": [
+          {
+            "symbol": "LQDA",
+            "name": "Liquidia Corporation",
+            "sentiment": 88,
+            "confidence": 85,
+            "summary": "Liquidia demonstrates exceptional commercial execution and profitability while building a self-funded growth engine.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "LINC",
+            "name": "Lincoln Educational Services Corporation",
+            "sentiment": 82,
+            "confidence": 78,
+            "summary": "Lincoln Tech delivered strong Q1 growth and raised 2026 guidance to $600M revenue driven by surging skilled trades demand.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "XGR2.DE",
+            "name": "Compass Group PLC",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "Compass raised FY guidance on strong organic growth, margin expansion, and record new business wins across expanding sectors.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "KGS",
+            "name": "Kodiak Gas Services, Inc.",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "Kodiak reports record compression margins while launching aggressive power strategy targeting 2 GW by 2030.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "RDNT",
+            "name": "RadNet, Inc.",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "RadNet delivered record Q1 results with margin expansion and raised 2026 guidance, driven by strong advanced imaging growth and strategic acquisitions.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "CMPGF",
+            "name": "Compass Group PLC",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "Compass delivered strong organic growth with raised guidance, benefiting from first-time outsourcing and strategic M&A expansion.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "DHCNL",
+            "name": "Diversified Healthcare Trust",
+            "sentiment": 78,
+            "confidence": 82,
+            "summary": "DHC delivered strong Q1 with double-digit SHOP NOI growth and improved leverage, maintaining 2026 guidance.",
+            "date": "2026-05-05"
+          },
+          {
+            "symbol": "0LJB.L",
+            "name": "Uniti Group Inc.",
+            "sentiment": 78,
+            "confidence": 82,
+            "summary": "Uniti executing strongly on fiber build strategy with hyperscaler AI tailwinds driving growth acceleration.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "CEG",
+            "name": "Constellation Energy Corporation",
+            "sentiment": 78,
+            "confidence": 82,
+            "summary": "Constellation affirms strong growth outlook with confidence in nuclear, data center, and regulatory clarity drivers.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "FOXA",
+            "name": "Fox Corporation",
+            "sentiment": 78,
+            "confidence": 82,
+            "summary": "Fox delivers strong Q3 results driven by record EBITDA and momentum across news, sports, and streaming despite planned Super Bowl revenue lapse.",
+            "date": "2026-05-11"
+          }
+        ],
+        "most_bearish": [
+          {
+            "symbol": "MOS",
+            "name": "The Mosaic Company",
+            "sentiment": -15,
+            "confidence": 35,
+            "summary": "Mosaic benefits from tight phosphate supply but cuts production due to sulfur constraints and margin compression.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "0KT6.L",
+            "name": "RCI Hospitality Holdings, Inc.",
+            "sentiment": 35,
+            "confidence": 45,
+            "summary": "RCI maintains cautious optimism with selective segment strength offset by elevated leverage and near-term cash flow pressures.",
+            "date": "2026-05-09"
+          },
+          {
+            "symbol": "0J4V.L",
+            "name": "Heron Therapeutics, Inc.",
+            "sentiment": 62,
+            "confidence": 68,
+            "summary": "Heron demonstrated solid underlying growth momentum despite Q1 weather headwinds and competitive pressures in oncology segment.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "SDF.DE",
+            "name": "K+S AG",
+            "sentiment": 62,
+            "confidence": 55,
+            "summary": "K+S raised 2026 EBITDA guidance on strong Q1 results, but faces Middle East cost headwinds and sharp seasonal declines ahead.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "KPLUY",
+            "name": "K+S AG",
+            "sentiment": 62,
+            "confidence": 45,
+            "summary": "K+S raised 2026 guidance on strong Q1 and agriculture demand, but faces Middle East cost headwinds and sharp seasonal decline.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "PFLT.TA",
+            "name": "PennantPark Floating Rate Capital Ltd.",
+            "sentiment": 62,
+            "confidence": 68,
+            "summary": "Strong portfolio fundamentals and PSSL 2 scaling drive confidence; dividend restructured to reflect normalized earnings environment.",
+            "date": "2026-05-08"
+          },
+          {
+            "symbol": "KPLUF",
+            "name": "K+S AG",
+            "sentiment": 62,
+            "confidence": 55,
+            "summary": "K+S raised guidance on strong Q1 results, but faces significant cost inflation uncertainty from Middle East disruptions.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "OPAL",
+            "name": "OPAL Fuels Inc.",
+            "sentiment": 65,
+            "confidence": 72,
+            "summary": "OPAL maintains guidance with operational improvements and emerging fleet tailwinds offsetting near-term RIN pricing headwinds.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "DOLE",
+            "name": "Dole plc",
+            "sentiment": 65,
+            "confidence": 70,
+            "summary": "Dole delivers solid Q1 with 12% revenue growth and strong divisional performance offset by Fresh Fruit cost pressures.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "MNDY",
+            "name": "monday.com Ltd.",
+            "sentiment": 68,
+            "confidence": 72,
+            "summary": "Strong Q1 results with AI momentum offset by slowing growth and NDR pressure ahead.",
+            "date": "2026-05-11"
+          }
+        ],
+        "guidance_changes": {
+          "maintained": 14,
+          "raised": 12,
+          "lowered": 2,
+          "none": 2
+        }
+      }
+    },
+    "es_recent": [
+      {
+        "sym": "0J4V.L",
+        "name": "Heron Therapeutics, Inc.",
+        "date": "2026-05-11",
+        "sentiment": 62,
+        "confidence": 68,
+        "guidance": "maintained",
+        "summary": "Heron demonstrated solid underlying growth momentum despite Q1 weather headwinds and competitive pre",
+        "themes": [
+          "weather impact - temporary headwind",
+          "sales force expansion - growth catalyst",
+          "competitive pressure",
+          "reimbursement improvement"
+        ],
+        "tokens_in": 3043,
+        "tokens_out": 299
+      },
+      {
+        "sym": "DHCNL",
+        "name": "Diversified Healthcare Trust",
+        "date": "2026-05-05",
+        "sentiment": 78,
+        "confidence": 82,
+        "guidance": "maintained",
+        "summary": "DHC delivered strong Q1 with double-digit SHOP NOI growth and improved leverage, maintaining 2026 gu",
+        "themes": [
+          "operational leverage",
+          "margin expansion",
+          "deleveraging",
+          "capital deployment"
+        ],
+        "tokens_in": 2958,
+        "tokens_out": 346
+      },
+      {
+        "sym": "SDF.DE",
+        "name": "K+S AG",
+        "date": "2026-05-11",
+        "sentiment": 62,
+        "confidence": 55,
+        "guidance": "raised",
+        "summary": "K+S raised 2026 EBITDA guidance on strong Q1 results, but faces Middle East cost headwinds and sharp",
+        "themes": [
+          "guidance raise",
+          "commodity price volatility",
+          "geopolitical risk",
+          "seasonal strength"
+        ],
+        "tokens_in": 3115,
+        "tokens_out": 308
+      },
+      {
+        "sym": "LINC",
+        "name": "Lincoln Educational Services Corporation",
+        "date": "2026-05-11",
+        "sentiment": 82,
+        "confidence": 78,
+        "guidance": "raised",
+        "summary": "Lincoln Tech delivered strong Q1 growth and raised 2026 guidance to $600M revenue driven by surging ",
+        "themes": [
+          "guidance raise",
+          "organic growth acceleration",
+          "margin expansion",
+          "skilled trades tailwind"
+        ],
+        "tokens_in": 2697,
+        "tokens_out": 279
+      },
+      {
+        "sym": "SDRL",
+        "name": "Seadrill Limited",
+        "date": "2026-05-11",
+        "sentiment": 72,
+        "confidence": 75,
+        "guidance": "raised",
+        "summary": "Seadrill raises 2026 guidance on strong operational execution and emerging deepwater cycle supportin",
+        "themes": [
+          "guidance raise",
+          "backlog growth",
+          "energy security tailwind",
+          "cash flow inflection"
+        ],
+        "tokens_in": 2891,
+        "tokens_out": 297
+      }
+    ]
+  },
+  "finished": "2026-05-11T19:09:59.965750+00:00"
+}
