@@ -1,0 +1,162 @@
+{
+  "started": "2026-05-11T21:56:55.370973+00:00",
+  "test": {
+    "/stable/institutional-ownership/extract?cik=0001067983&year=2025&quarter=4": {
+      "status": 200,
+      "n": 42,
+      "keys": [
+        "date",
+        "filingDate",
+        "acceptedDate",
+        "cik",
+        "securityCusip",
+        "symbol",
+        "nameOfIssuer",
+        "shares",
+        "titleOfClass",
+        "sharesType",
+        "putCallShare",
+        "value",
+        "link",
+        "finalLink"
+      ],
+      "has_symbol": "ALLY",
+      "has_nameOfIssuer": "ALLY FINL INC",
+      "has_shares": "29000000",
+      "has_value": "1313410001",
+      "sample": {
+        "date": "2025-12-31",
+        "filingDate": "2026-02-17",
+        "acceptedDate": "2026-02-17",
+        "cik": "0001067983",
+        "securityCusip": "02005N100",
+        "symbol": "ALLY",
+        "nameOfIssuer": "ALLY FINL INC",
+        "shares": 29000000
+      }
+    },
+    "/stable/institutional-ownership/extract?cik=0001067983&year=2025&quarter=4&page=0": {
+      "status": 200,
+      "n": 42,
+      "keys": [
+        "date",
+        "filingDate",
+        "acceptedDate",
+        "cik",
+        "securityCusip",
+        "symbol",
+        "nameOfIssuer",
+        "shares",
+        "titleOfClass",
+        "sharesType",
+        "putCallShare",
+        "value",
+        "link",
+        "finalLink"
+      ],
+      "has_symbol": "ALLY",
+      "has_nameOfIssuer": "ALLY FINL INC",
+      "has_shares": "29000000",
+      "has_value": "1313410001",
+      "sample": {
+        "date": "2025-12-31",
+        "filingDate": "2026-02-17",
+        "acceptedDate": "2026-02-17",
+        "cik": "0001067983",
+        "securityCusip": "02005N100",
+        "symbol": "ALLY",
+        "nameOfIssuer": "ALLY FINL INC",
+        "shares": 29000000
+      }
+    },
+    "/stable/institutional-ownership/holder-industry-breakdown?cik=0001067983": {
+      "status": 400,
+      "body": "Query Error: Invalid or missing query parameter - year"
+    },
+    "/stable/institutional-ownership/holder-portfolio?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/holder-holdings?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/by-holder?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/by-shares-held?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/portfolio-date?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/portfolio-dates?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/portfolio-summary?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/positions-summary-by-holder?cik=0001067983&year=2025&quarter=4": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/positions-summary-by-cik?cik=0001067983&year=2025&quarter=4": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/holdings-by-holder?cik=0001067983&year=2025&quarter=4": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/13F-filings?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/13f?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/institutional-ownership/holder-13f?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/api/v4/institutional-ownership/portfolio-holdings?cik=0001067983&date=2025-12-31": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/api/v4/institutional-ownership/portfolio-holdings-summary?cik=0001067983": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/api/v4/institutional-ownership/portfolio-date?cik=0001067983": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/api/v3/13F/0001067983/2025-12-31": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/api/v3/form-thirteen/0001067983?date=2025-12-31": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/api/v3/13f-filings/0001067983": {
+      "status": 403,
+      "body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please "
+    },
+    "/stable/13F/portfolio?cik=0001067983&date=2025-12-31": {
+      "status": 404,
+      "body": "[]"
+    },
+    "/stable/13F?cik=0001067983": {
+      "status": 404,
+      "body": "[]"
+    }
+  },
+  "finished": "2026-05-11T21:57:00.549665+00:00"
+}
