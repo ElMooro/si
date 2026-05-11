@@ -1,0 +1,196 @@
+{
+  "started": "2026-05-11T11:27:48.721773+00:00",
+  "test": {
+    "probes": [
+      {
+        "label": "insider:stable:insider-trades",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "insider:stable:insider-trading",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "insider:stable:insider-trading-latest",
+        "status": 200,
+        "ok": true,
+        "n": 5,
+        "keys": [
+          "symbol",
+          "filingDate",
+          "transactionDate",
+          "reportingCik",
+          "companyCik",
+          "transactionType",
+          "securitiesOwned",
+          "reportingName",
+          "typeOfOwner",
+          "acquisitionOrDisposition",
+          "directOrIndirect",
+          "formType",
+          "securitiesTransacted",
+          "price",
+          "securityName"
+        ],
+        "sample": "[{\"symbol\": \"KELYA\", \"filingDate\": \"2026-05-11\", \"transactionDate\": \"2026-05-07\", \"reportingCik\": \"0001836350\", \"companyCik\": \"0000055135\", \"transactionType\": \"A-Award\", \"securitiesOwned\": 54220.5092, \"reportingName\": \"Duggirala Amala\", \"typeOfOwner\": \"director\", \"acquisitionOrDisposition\": \"A\", \"directOrIndirect\": \"I\", \"formType\": \"4\", \"securitiesTransacted\": 15463.92, \"price\": 1, \"securityName\":"
+      },
+      {
+        "label": "insider:stable:insider-trading-search",
+        "status": 200,
+        "ok": true,
+        "n": 100,
+        "keys": [
+          "symbol",
+          "filingDate",
+          "transactionDate",
+          "reportingCik",
+          "companyCik",
+          "transactionType",
+          "securitiesOwned",
+          "reportingName",
+          "typeOfOwner",
+          "acquisitionOrDisposition",
+          "directOrIndirect",
+          "formType",
+          "securitiesTransacted",
+          "price",
+          "securityName"
+        ],
+        "sample": "[{\"symbol\": \"AAPL\", \"filingDate\": \"2026-05-08\", \"transactionDate\": \"2026-05-06\", \"reportingCik\": \"0001214128\", \"companyCik\": \"0000320193\", \"transactionType\": \"S-Sale\", \"securitiesOwned\": 3920049, \"reportingName\": \"LEVINSON ARTHUR D\", \"typeOfOwner\": \"director\", \"acquisitionOrDisposition\": \"D\", \"directOrIndirect\": \"D\", \"formType\": \"4\", \"securitiesTransacted\": 149527, \"price\": 284.57, \"securityName\":"
+      },
+      {
+        "label": "insider:v4:insider-trading",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "insider:v4:insider-trading-rss",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "eps:stable:earnings-surprises",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "eps:stable:earnings",
+        "status": 200,
+        "ok": true,
+        "n": 5,
+        "keys": [
+          "symbol",
+          "date",
+          "epsActual",
+          "epsEstimated",
+          "revenueActual",
+          "revenueEstimated",
+          "lastUpdated"
+        ],
+        "sample": "[{\"symbol\": \"AAPL\", \"date\": \"2026-07-30\", \"epsActual\": null, \"epsEstimated\": 1.86, \"revenueActual\": null, \"revenueEstimated\": 107618800000, \"lastUpdated\": \"2026-05-11\"}, {\"symbol\": \"AAPL\", \"date\": \"2026-04-30\", \"epsActual\": 2.01, \"epsEstimated\": 1.95, \"revenueActual\": 111184000000, \"revenueEstimated\": 109457600000, \"lastUpdated\": \"2026-05-11\"}, {\"symbol\": \"AAPL\", \"date\": \"2026-01-29\", \"epsActual\":"
+      },
+      {
+        "label": "eps:stable:earnings-historical",
+        "status": 200,
+        "ok": true,
+        "n": 4000,
+        "keys": [
+          "symbol",
+          "date",
+          "epsActual",
+          "epsEstimated",
+          "revenueActual",
+          "revenueEstimated",
+          "lastUpdated"
+        ],
+        "sample": "[{\"symbol\": \"KNT.TO\", \"date\": \"2026-05-11\", \"epsActual\": null, \"epsEstimated\": 0.57, \"revenueActual\": null, \"revenueEstimated\": 305319100, \"lastUpdated\": \"2026-05-11\"}, {\"symbol\": \"TUYA\", \"date\": \"2026-05-11\", \"epsActual\": null, \"epsEstimated\": 0.03, \"revenueActual\": null, \"revenueEstimated\": 80669000, \"lastUpdated\": \"2026-05-11\"}, {\"symbol\": \"BIVI\", \"date\": \"2026-05-11\", \"epsActual\": null, \"epsEs"
+      },
+      {
+        "label": "eps:v3:earnings-surprises",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "eps:v3:historical-earning",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "eps:stable:earnings-surprises-bulk",
+        "status": 402,
+        "ok": false,
+        "err": "HTTP Error 402: Payment Required"
+      },
+      {
+        "label": "inst:stable:insti-ownership-summary",
+        "status": 402,
+        "ok": false,
+        "err": "HTTP Error 402: Payment Required"
+      },
+      {
+        "label": "inst:stable:insti-ownership-list",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "inst:stable:institutional-holder",
+        "status": 404,
+        "ok": false,
+        "err": "HTTP Error 404: Not Found"
+      },
+      {
+        "label": "inst:v3:institutional-holder",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "inst:v4:institutional-ownership",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "inst:v3:13f-list",
+        "status": 403,
+        "ok": false,
+        "err": "HTTP Error 403: Forbidden"
+      },
+      {
+        "label": "ctl:stable:profile",
+        "status": 200,
+        "ok": true,
+        "n": 1,
+        "keys": [
+          "symbol",
+          "price",
+          "marketCap",
+          "beta",
+          "lastDividend",
+          "range",
+          "change",
+          "changePercentage",
+          "volume",
+          "averageVolume",
+          "companyName",
+          "currency",
+          "cik",
+          "isin",
+          "cusip"
+        ],
+        "sample": "[{\"symbol\": \"AAPL\", \"price\": 293.257, \"marketCap\": 4307169958492, \"beta\": 1.065, \"lastDividend\": 1.04, \"range\": \"193.46-294.76\", \"change\": 5.817, \"changePercentage\": 2.02373, \"volume\": 52692761, \"averageVolume\": 44545859, \"companyName\": \"Apple Inc.\", \"currency\": \"USD\", \"cik\": \"0000320193\", \"isin\": \"US0378331005\", \"cusip\": \"037833100\", \"exchangeFullName\": \"NASDAQ Global Select\", \"exchange\": \"NASDAQ"
+      }
+    ]
+  },
+  "finished": "2026-05-11T11:27:56.237606+00:00"
+}
