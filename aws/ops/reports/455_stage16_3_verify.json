@@ -1,0 +1,892 @@
+{
+  "started": "2026-05-11T23:13:40.123033+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T23:13:19.000+0000",
+      "code_size": 6458
+    },
+    "invoke": {
+      "n_funds": 48,
+      "n_symbols": 4005,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 2.3
+    },
+    "s3_size_mb": 2.39,
+    "n_symbols": 4005,
+    "n_funds_scanned": 48,
+    "n_funds_attempted": 52,
+    "funds": [
+      {
+        "cik": "0001374170",
+        "name": "Norges Bank Investment Mgmt",
+        "n_holdings": 1572,
+        "total_value_b": 934.75
+      },
+      {
+        "cik": "0001562230",
+        "name": "Capital Research / Cap Group",
+        "n_holdings": 448,
+        "total_value_b": 635.57
+      },
+      {
+        "cik": "0000902219",
+        "name": "Wellington Management",
+        "n_holdings": 1762,
+        "total_value_b": 567.52
+      },
+      {
+        "cik": "0000820027",
+        "name": "Tudor Investment",
+        "n_holdings": 3966,
+        "total_value_b": 440.97
+      },
+      {
+        "cik": "0001067983",
+        "name": "Berkshire Hathaway",
+        "n_holdings": 42,
+        "total_value_b": 274.16
+      },
+      {
+        "cik": "0001167557",
+        "name": "AQR Capital Management",
+        "n_holdings": 3547,
+        "total_value_b": 190.61
+      },
+      {
+        "cik": "0001423053",
+        "name": "Citadel Advisors",
+        "n_holdings": 4424,
+        "total_value_b": 106.53
+      },
+      {
+        "cik": "0001009207",
+        "name": "D.E. Shaw",
+        "n_holdings": 2669,
+        "total_value_b": 99.18
+      },
+      {
+        "cik": "0001037389",
+        "name": "Renaissance Technologies",
+        "n_holdings": 3090,
+        "total_value_b": 64.44
+      },
+      {
+        "cik": "0001179392",
+        "name": "Two Sigma Investments",
+        "n_holdings": 3250,
+        "total_value_b": 61.81
+      },
+      {
+        "cik": "0001603466",
+        "name": "Schonfeld Strategic",
+        "n_holdings": 1997,
+        "total_value_b": 61.01
+      },
+      {
+        "cik": "0001325447",
+        "name": "First Eagle Investment Mgmt",
+        "n_holdings": 420,
+        "total_value_b": 56.82
+      },
+      {
+        "cik": "0001647251",
+        "name": "TCI Fund Management",
+        "n_holdings": 9,
+        "total_value_b": 53.65
+      },
+      {
+        "cik": "0001135730",
+        "name": "Coatue Management",
+        "n_holdings": 52,
+        "total_value_b": 39.96
+      },
+      {
+        "cik": "0001103804",
+        "name": "Viking Global Investors",
+        "n_holdings": 76,
+        "total_value_b": 37.68
+      },
+      {
+        "cik": "0001020066",
+        "name": "Sands Capital Management",
+        "n_holdings": 66,
+        "total_value_b": 32.88
+      },
+      {
+        "cik": "0001167483",
+        "name": "Tiger Global Management",
+        "n_holdings": 54,
+        "total_value_b": 29.71
+      },
+      {
+        "cik": "0001350694",
+        "name": "Bridgewater Associates",
+        "n_holdings": 1039,
+        "total_value_b": 27.4
+      },
+      {
+        "cik": "0001036325",
+        "name": "Davis Selected Advisers",
+        "n_holdings": 108,
+        "total_value_b": 22.25
+      },
+      {
+        "cik": "0000909661",
+        "name": "Farallon Capital Mgmt",
+        "n_holdings": 140,
+        "total_value_b": 17.29
+      },
+      {
+        "cik": "0001336528",
+        "name": "Pershing Square Capital",
+        "n_holdings": 11,
+        "total_value_b": 15.53
+      },
+      {
+        "cik": "0001747057",
+        "name": "D1 Capital Partners",
+        "n_holdings": 42,
+        "total_value_b": 10.7
+      },
+      {
+        "cik": "0000807249",
+        "name": "GAMCO Investors / Gabelli",
+        "n_holdings": 994,
+        "total_value_b": 10.38
+      },
+      {
+        "cik": "0001346824",
+        "name": "ARK Investment Management",
+        "n_holdings": 70,
+        "total_value_b": 9.75
+      },
+      {
+        "cik": "0001112520",
+        "name": "Maverick Capital",
+        "n_holdings": 18,
+        "total_value_b": 9.12
+      },
+      {
+        "cik": "0000921669",
+        "name": "Icahn Capital Management",
+        "n_holdings": 13,
+        "total_value_b": 8.45
+      },
+      {
+        "cik": "0001387322",
+        "name": "Whale Rock Capital",
+        "n_holdings": 32,
+        "total_value_b": 7.82
+      },
+      {
+        "cik": "0001040273",
+        "name": "Third Point",
+        "n_holdings": 41,
+        "total_value_b": 7.26
+      },
+      {
+        "cik": "0001418814",
+        "name": "ValueAct Capital",
+        "n_holdings": 16,
+        "total_value_b": 7.03
+      },
+      {
+        "cik": "0001656456",
+        "name": "Appaloosa LP",
+        "n_holdings": 38,
+        "total_value_b": 6.85
+      },
+      {
+        "cik": "0001541617",
+        "name": "Millennium Management",
+        "n_holdings": 17,
+        "total_value_b": 6.66
+      },
+      {
+        "cik": "0001029160",
+        "name": "Soros Fund Management",
+        "n_holdings": 202,
+        "total_value_b": 5.58
+      },
+      {
+        "cik": "0001061768",
+        "name": "Lone Pine Capital",
+        "n_holdings": 22,
+        "total_value_b": 5.28
+      },
+      {
+        "cik": "0001517137",
+        "name": "Starboard Value",
+        "n_holdings": 21,
+        "total_value_b": 5.28
+      },
+      {
+        "cik": "0002051323",
+        "name": "Caxton Associates",
+        "n_holdings": 749,
+        "total_value_b": 5.05
+      },
+      {
+        "cik": "0000949509",
+        "name": "Oaktree Capital Mgmt",
+        "n_holdings": 51,
+        "total_value_b": 4.51
+      },
+      {
+        "cik": "0001138995",
+        "name": "Glenview Capital Mgmt",
+        "n_holdings": 52,
+        "total_value_b": 4.49
+      },
+      {
+        "cik": "0001448574",
+        "name": "Moore Capital Management",
+        "n_holdings": 471,
+        "total_value_b": 4.2
+      },
+      {
+        "cik": "0001536411",
+        "name": "Duquesne Family Office",
+        "n_holdings": 56,
+        "total_value_b": 3.94
+      },
+      {
+        "cik": "0001512857",
+        "name": "Brevan Howard Capital Mgmt",
+        "n_holdings": 1583,
+        "total_value_b": 3.84
+      },
+      {
+        "cik": "0001345471",
+        "name": "Anchorage Capital",
+        "n_holdings": 6,
+        "total_value_b": 3.74
+      },
+      {
+        "cik": "0001345471",
+        "name": "Trian Fund Management",
+        "n_holdings": 6,
+        "total_value_b": 3.74
+      },
+      {
+        "cik": "0000898382",
+        "name": "Omega Advisors / Cooperman",
+        "n_holdings": 40,
+        "total_value_b": 3.01
+      },
+      {
+        "cik": "0001313893",
+        "name": "Maple Capital",
+        "n_holdings": 116,
+        "total_value_b": 1.59
+      },
+      {
+        "cik": "0000732905",
+        "name": "Tweedy, Browne",
+        "n_holdings": 95,
+        "total_value_b": 1.24
+      },
+      {
+        "cik": "0002054122",
+        "name": "Balyasny / Longaeva Partners",
+        "n_holdings": 111,
+        "total_value_b": 0.81
+      },
+      {
+        "cik": "0001031972",
+        "name": "Baupost Group",
+        "n_holdings": 41,
+        "total_value_b": 0.75
+      },
+      {
+        "cik": "0001135778",
+        "name": "Miller Value Partners",
+        "n_holdings": 34,
+        "total_value_b": 0.28
+      }
+    ],
+    "concentration_stats": {
+      "flagship_10pct_plus": 42,
+      "high_conviction_5pct_plus": 116,
+      "notable_1pct_plus": 503
+    },
+    "flagships_top30": [
+      {
+        "sym": "IEP",
+        "max_pct": 49.117,
+        "n_flag": 1,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 49.117,
+        "top_value_b": 4.15
+      },
+      {
+        "sym": "JHG",
+        "max_pct": 40.51,
+        "n_flag": 2,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 40.51,
+        "top_value_b": 1.52
+      },
+      {
+        "sym": "GE",
+        "max_pct": 33.178,
+        "n_flag": 3,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 33.178,
+        "top_value_b": 1.24
+      },
+      {
+        "sym": "NVDA",
+        "max_pct": 22.679,
+        "n_flag": 2,
+        "top_holder": "Millennium Management",
+        "top_pct": 22.679,
+        "top_value_b": 1.51
+      },
+      {
+        "sym": "AAPL",
+        "max_pct": 22.601,
+        "n_flag": 2,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 22.601,
+        "top_value_b": 61.96
+      },
+      {
+        "sym": "ASND",
+        "max_pct": 22.479,
+        "n_flag": 1,
+        "top_holder": "ARK Investment Management",
+        "top_pct": 22.479,
+        "top_value_b": 2.19
+      },
+      {
+        "sym": "CVI",
+        "max_pct": 21.213,
+        "n_flag": 1,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 21.213,
+        "top_value_b": 1.79
+      },
+      {
+        "sym": "AXP",
+        "max_pct": 20.458,
+        "n_flag": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 20.458,
+        "top_value_b": 56.09
+      },
+      {
+        "sym": "TSLA",
+        "max_pct": 19.312,
+        "n_flag": 1,
+        "top_holder": "Caxton Associates",
+        "top_pct": 19.312,
+        "top_value_b": 0.98
+      },
+      {
+        "sym": "MA",
+        "max_pct": 18.81,
+        "n_flag": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 18.81,
+        "top_value_b": 1.72
+      },
+      {
+        "sym": "META",
+        "max_pct": 18.287,
+        "n_flag": 2,
+        "top_holder": "Millennium Management",
+        "top_pct": 18.287,
+        "top_value_b": 1.22
+      },
+      {
+        "sym": "BN",
+        "max_pct": 18.148,
+        "n_flag": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 18.148,
+        "top_value_b": 2.82
+      },
+      {
+        "sym": "V",
+        "max_pct": 18.124,
+        "n_flag": 2,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 18.124,
+        "top_value_b": 9.72
+      },
+      {
+        "sym": "SOLV",
+        "max_pct": 17.441,
+        "n_flag": 2,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 17.441,
+        "top_value_b": 0.65
+      },
+      {
+        "sym": "UBER",
+        "max_pct": 15.897,
+        "n_flag": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 15.897,
+        "top_value_b": 2.47
+      },
+      {
+        "sym": "IONS",
+        "max_pct": 15.757,
+        "n_flag": 1,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.757,
+        "top_value_b": 0.2
+      },
+      {
+        "sym": "MSFT",
+        "max_pct": 15.128,
+        "n_flag": 1,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 15.128,
+        "top_value_b": 8.12
+      },
+      {
+        "sym": "CNHI",
+        "max_pct": 15.035,
+        "n_flag": 1,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.035,
+        "top_value_b": 0.19
+      },
+      {
+        "sym": "NTRA",
+        "max_pct": 14.614,
+        "n_flag": 1,
+        "top_holder": "Duquesne Family Office",
+        "top_pct": 14.614,
+        "top_value_b": 0.58
+      },
+      {
+        "sym": "CVS",
+        "max_pct": 14.503,
+        "n_flag": 1,
+        "top_holder": "Glenview Capital Mgmt",
+        "top_pct": 14.503,
+        "top_value_b": 0.65
+      },
+      {
+        "sym": "AMZN",
+        "max_pct": 14.283,
+        "n_flag": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 14.283,
+        "top_value_b": 2.22
+      },
+      {
+        "sym": "RKT",
+        "max_pct": 13.5,
+        "n_flag": 2,
+        "top_holder": "Omega Advisors / Cooperman",
+        "top_pct": 13.5,
+        "top_value_b": 0.41
+      },
+      {
+        "sym": "MCO",
+        "max_pct": 12.672,
+        "n_flag": 1,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 12.672,
+        "top_value_b": 6.8
+      },
+      {
+        "sym": "GOOG",
+        "max_pct": 12.457,
+        "n_flag": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 12.457,
+        "top_value_b": 1.93
+      },
+      {
+        "sym": "EXE",
+        "max_pct": 12.379,
+        "n_flag": 1,
+        "top_holder": "Oaktree Capital Mgmt",
+        "top_pct": 12.379,
+        "top_value_b": 0.56
+      },
+      {
+        "sym": "QRVO",
+        "max_pct": 12.03,
+        "n_flag": 1,
+        "top_holder": "Starboard Value",
+        "top_pct": 12.03,
+        "top_value_b": 0.63
+      },
+      {
+        "sym": "TRMD",
+        "max_pct": 11.683,
+        "n_flag": 1,
+        "top_holder": "Oaktree Capital Mgmt",
+        "top_pct": 11.683,
+        "top_value_b": 0.53
+      },
+      {
+        "sym": "TEVA",
+        "max_pct": 11.635,
+        "n_flag": 1,
+        "top_holder": "Glenview Capital Mgmt",
+        "top_pct": 11.635,
+        "top_value_b": 0.52
+      },
+      {
+        "sym": "VRT",
+        "max_pct": 11.599,
+        "n_flag": 1,
+        "top_holder": "Omega Advisors / Cooperman",
+        "top_pct": 11.599,
+        "top_value_b": 0.35
+      },
+      {
+        "sym": "NBR",
+        "max_pct": 11.531,
+        "n_flag": 1,
+        "top_holder": "Miller Value Partners",
+        "top_pct": 11.531,
+        "top_value_b": 0.03
+      }
+    ],
+    "new_fund_positions": {
+      "Trian (Peltz)": {
+        "cik": "0001345471",
+        "n_holdings": 6,
+        "total_value_b": 3.74,
+        "top_5": [
+          {
+            "sym": "JHG",
+            "name": "Janus Henderson Group pl",
+            "value_b": 1.52,
+            "pct": 40.51
+          },
+          {
+            "sym": "GE",
+            "name": "GE Aerospace",
+            "value_b": 1.24,
+            "pct": 33.178
+          },
+          {
+            "sym": "SOLV",
+            "name": "Solventum Corporation",
+            "value_b": 0.65,
+            "pct": 17.441
+          },
+          {
+            "sym": "WEN",
+            "name": "Wendys Co.",
+            "value_b": 0.25,
+            "pct": 6.776
+          },
+          {
+            "sym": "IVZ",
+            "name": "Invesco Ltd.",
+            "value_b": 0.08,
+            "pct": 2.086
+          }
+        ]
+      },
+      "TCI (Hohn)": {
+        "cik": "0001647251",
+        "n_holdings": 9,
+        "total_value_b": 53.65,
+        "top_5": [
+          {
+            "sym": "GE",
+            "name": "GE AEROSPACE",
+            "value_b": 14.63,
+            "pct": 27.279
+          },
+          {
+            "sym": "V",
+            "name": "VISA INC",
+            "value_b": 9.72,
+            "pct": 18.124
+          },
+          {
+            "sym": "MSFT",
+            "name": "MICROSOFT CORP",
+            "value_b": 8.12,
+            "pct": 15.128
+          },
+          {
+            "sym": "MCO",
+            "name": "MOODYS CORP",
+            "value_b": 6.8,
+            "pct": 12.672
+          },
+          {
+            "sym": "SPGI",
+            "name": "S&P GLOBAL INC",
+            "value_b": 6.16,
+            "pct": 11.485
+          }
+        ]
+      },
+      "Appaloosa (Tepper)": {
+        "cik": "0001656456",
+        "n_holdings": 38,
+        "total_value_b": 6.85,
+        "top_5": [
+          {
+            "sym": "BABA",
+            "name": "ALIBABA GROUP HLDG LTD",
+            "value_b": 0.75,
+            "pct": 10.989
+          },
+          {
+            "sym": "GOOG",
+            "name": "ALPHABET INC",
+            "value_b": 0.56,
+            "pct": 8.182
+          },
+          {
+            "sym": "AMZN",
+            "name": "AMAZON COM INC",
+            "value_b": 0.5,
+            "pct": 7.34
+          },
+          {
+            "sym": "MU",
+            "name": "MICRON TECHNOLOGY INC",
+            "value_b": 0.43,
+            "pct": 6.247
+          },
+          {
+            "sym": "META",
+            "name": "META PLATFORMS INC",
+            "value_b": 0.4,
+            "pct": 5.779
+          }
+        ]
+      },
+      "Duquesne (Druckenmiller)": {
+        "cik": "0001536411",
+        "n_holdings": 56,
+        "total_value_b": 3.94,
+        "top_5": [
+          {
+            "sym": "NTRA",
+            "name": "Natera Inc",
+            "value_b": 0.58,
+            "pct": 14.614
+          },
+          {
+            "sym": "XLF",
+            "name": "Select Sector Spdr Tr",
+            "value_b": 0.3,
+            "pct": 7.646
+          },
+          {
+            "sym": "INSM",
+            "name": "Insmed Inc",
+            "value_b": 0.26,
+            "pct": 6.551
+          },
+          {
+            "sym": "RSP",
+            "name": "Invesco Exchange Traded ",
+            "value_b": 0.22,
+            "pct": 5.712
+          },
+          {
+            "sym": "TEVA",
+            "name": "Teva Pharmaceutical Inds",
+            "value_b": 0.18,
+            "pct": 4.657
+          }
+        ]
+      },
+      "Omega (Cooperman)": {
+        "cik": "0000898382",
+        "n_holdings": 40,
+        "total_value_b": 3.01,
+        "top_5": [
+          {
+            "sym": "RKT",
+            "name": "ROCKET COS INC",
+            "value_b": 0.41,
+            "pct": 13.5
+          },
+          {
+            "sym": "VRT",
+            "name": "VERTIV HOLDINGS CO",
+            "value_b": 0.35,
+            "pct": 11.599
+          },
+          {
+            "sym": "ET",
+            "name": "ENERGY TRANSFER LP",
+            "value_b": 0.22,
+            "pct": 7.288
+          },
+          {
+            "sym": "MIR",
+            "name": "MIRION TECHNOLOGIES INC",
+            "value_b": 0.2,
+            "pct": 6.514
+          },
+          {
+            "sym": "APO",
+            "name": "APOLLO GLOBAL MANAGEMENT",
+            "value_b": 0.19,
+            "pct": 6.421
+          }
+        ]
+      },
+      "Miller Value": {
+        "cik": "0001135778",
+        "n_holdings": 34,
+        "total_value_b": 0.28,
+        "top_5": [
+          {
+            "sym": "NBR",
+            "name": "NABORS INDUSTRIES LTD",
+            "value_b": 0.03,
+            "pct": 11.531
+          },
+          {
+            "sym": "LNC",
+            "name": "LINCOLN NATL CORP IND",
+            "value_b": 0.02,
+            "pct": 7.919
+          },
+          {
+            "sym": "GTN",
+            "name": "GRAY MEDIA INC",
+            "value_b": 0.02,
+            "pct": 6.801
+          },
+          {
+            "sym": "GCI",
+            "name": "USA TODAY CO INC",
+            "value_b": 0.02,
+            "pct": 6.175
+          },
+          {
+            "sym": "QUAD",
+            "name": "QUAD / GRAPHICS INC",
+            "value_b": 0.02,
+            "pct": 6.048
+          }
+        ]
+      },
+      "Oaktree (Marks)": {
+        "cik": "0000949509",
+        "n_holdings": 51,
+        "total_value_b": 4.51,
+        "top_5": [
+          {
+            "sym": "EXE",
+            "name": "EXPAND ENERGY CORP",
+            "value_b": 0.56,
+            "pct": 12.379
+          },
+          {
+            "sym": "TRMD",
+            "name": "TORM PLC",
+            "value_b": 0.53,
+            "pct": 11.683
+          },
+          {
+            "sym": "AU",
+            "name": "ANGLOGOLD ASHANTI PLC",
+            "value_b": 0.33,
+            "pct": 7.271
+          },
+          {
+            "sym": "GTX",
+            "name": "GARRETT MOTION INC",
+            "value_b": 0.3,
+            "pct": 6.602
+          },
+          {
+            "sym": "INDV",
+            "name": "Indivior Pharmaceuticals",
+            "value_b": 0.26,
+            "pct": 5.651
+          }
+        ]
+      },
+      "GAMCO (Gabelli)": {
+        "cik": "0000807249",
+        "n_holdings": 994,
+        "total_value_b": 10.38,
+        "top_5": [
+          {
+            "sym": "MLI",
+            "name": "MUELLER INDUSTRIES INC",
+            "value_b": 0.21,
+            "pct": 2.066
+          },
+          {
+            "sym": "GATX",
+            "name": "GATX CORP",
+            "value_b": 0.2,
+            "pct": 1.958
+          },
+          {
+            "sym": "CR",
+            "name": "CRANE CO",
+            "value_b": 0.2,
+            "pct": 1.893
+          },
+          {
+            "sym": "MSGS",
+            "name": "MADISON SQUARE GARDEN SP",
+            "value_b": 0.16,
+            "pct": 1.529
+          },
+          {
+            "sym": "HRI",
+            "name": "HERC HOLDINGS INC",
+            "value_b": 0.16,
+            "pct": 1.526
+          }
+        ]
+      },
+      "Brevan Howard": {
+        "cik": "0001512857",
+        "n_holdings": 1583,
+        "total_value_b": 3.84,
+        "top_5": [
+          {
+            "sym": "GOOGL",
+            "name": "ALPHABET INC",
+            "value_b": 0.17,
+            "pct": 4.483
+          },
+          {
+            "sym": "GOOG",
+            "name": "ALPHABET INC",
+            "value_b": 0.15,
+            "pct": 3.923
+          },
+          {
+            "sym": "IVV",
+            "name": "ISHARES TR",
+            "value_b": 0.11,
+            "pct": 2.917
+          },
+          {
+            "sym": "WMT",
+            "name": "WALMART INC",
+            "value_b": 0.1,
+            "pct": 2.541
+          },
+          {
+            "sym": "AAPL",
+            "name": "APPLE INC",
+            "value_b": 0.07,
+            "pct": 1.94
+          }
+        ]
+      }
+    }
+  },
+  "finished": "2026-05-11T23:15:18.853238+00:00"
+}
