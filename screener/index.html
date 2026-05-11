@@ -126,6 +126,40 @@ tbody tr.steal-row-80:hover{
 .steal-badge.STEAL{background:rgba(255,215,0,.18);color:#ffd700;border:1px solid rgba(255,215,0,.4)}
 .steal-badge.PREMIUM{background:rgba(251,191,36,.14);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
 .steal-badge.QUALITY{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.3)}
+/* Heat map: tints applied via data-hm attribute on cells when enabled */
+tbody td[data-hm]{position:relative}
+tbody td[data-hm]::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:1px;opacity:.18;z-index:0}
+tbody td[data-hm] > *{position:relative;z-index:1}
+tbody td[data-hm="g5"]::before{background:#00e676}
+tbody td[data-hm="g4"]::before{background:#22c55e}
+tbody td[data-hm="g3"]::before{background:#34d399;opacity:.13}
+tbody td[data-hm="g2"]::before{background:#34d399;opacity:.08}
+tbody td[data-hm="g1"]::before{background:#34d399;opacity:.04}
+tbody td[data-hm="r1"]::before{background:#fb7185;opacity:.04}
+tbody td[data-hm="r2"]::before{background:#fb7185;opacity:.08}
+tbody td[data-hm="r3"]::before{background:#f87171;opacity:.13}
+tbody td[data-hm="r4"]::before{background:#ef4444}
+tbody td[data-hm="r5"]::before{background:#dc2626}
+/* Sparkline cell */
+.spark-svg{display:inline-block;width:52px;height:14px;vertical-align:middle}
+.spark-svg .spark-line{fill:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.spark-svg .spark-dot{r:1.5}
+/* Macro Context Panel — feeds from LCE + GBC engines */
+.macro-context{background:linear-gradient(180deg,rgba(0,212,170,.06),rgba(0,212,170,.02));border-bottom:1px solid var(--border);padding:8px 16px}
+.macro-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.macro-item{display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap}
+.macro-label{font-family:var(--font-ui);font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.macro-val{color:var(--white);font-weight:600;font-family:var(--font-mono);font-size:11px}
+.macro-val.posture-RISK_ON{color:#22c55e}
+.macro-val.posture-BALANCED_BULLISH{color:#84cc16}
+.macro-val.posture-BALANCED_CAUTIOUS{color:#fbbf24}
+.macro-val.posture-DEFENSIVE_BUNKER{color:#ef4444}
+.macro-val.phase-GLOBAL_EXPANSION{color:#22c55e}
+.macro-val.phase-GLOBAL_RECOVERY{color:#3b82f6}
+.macro-val.phase-GLOBAL_PEAKING{color:#fbbf24}
+.macro-val.phase-GLOBAL_RECESSION{color:#ef4444}
+.macro-val.phase-MIXED{color:#94a3b8}
+tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0%, rgba(34,211,238,0) 60%)}
 </style>
 </head>
 <body>
@@ -160,9 +194,29 @@ tbody tr.steal-row-80:hover{
     <div class="stat-item"><span class="stat-label">Avg Piotroski</span><span class="stat-val" id="statAvgPiotr">&#8212;</span></div>
   </div>
 </div>
+<div id="macroContext" class="macro-context" style="display:none">
+  <div class="macro-row">
+    <div class="macro-item">
+      <span class="macro-label">📡 LCE</span>
+      <span class="macro-val" id="macroLCE">—</span>
+    </div>
+    <div class="macro-item">
+      <span class="macro-label">🌍 GBC</span>
+      <span class="macro-val" id="macroGBC">—</span>
+    </div>
+    <div class="macro-item" style="flex:1">
+      <span class="macro-label">⚡ FAVORED SECTORS</span>
+      <span class="macro-val" id="macroSectors" style="color:var(--teal2)">—</span>
+    </div>
+    <div class="macro-item">
+      <button class="col-toggle-btn on" onclick="applyMacroTilt()" id="macroTiltBtn" title="Boost Steal Score for stocks in favored sectors">🌊 CYCLE-RIGHT TILT</button>
+    </div>
+  </div>
+</div>
 <div class="tab-bar">
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
   <div class="tab" data-tab="steal_board" onclick="setTab(this)" style="color:#ffd700;font-weight:700">💎 THE STEAL BOARD</div>
+  <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
   <div class="tab" data-tab="margins" onclick="setTab(this)" style="color:#00ffcc">📈 HIGHEST MARGINS</div>
@@ -248,6 +302,11 @@ tbody tr.steal-row-80:hover{
   <button class="col-toggle-btn on" data-group="institutional" onclick="toggleColGroup(this)">Institutional</button>
   <button class="col-toggle-btn on" data-group="flows" onclick="toggleColGroup(this)">Flows</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
+  <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
+  <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
+  <button class="col-toggle-btn" id="sparklineToggle" onclick="toggleSparkline(this)" title="Show momentum trend sparkline column">📈 SPARKLINES</button>
+  <span style="flex:1"></span>
+  <button class="col-toggle-btn" id="csvExportBtn" onclick="exportCSV()" title="Download filtered + sorted results as CSV">⬇ CSV</button>
 </div>
 <div class="result-bar">
   <span><span class="result-count" id="resultCount">&#8212;</span>&nbsp;stocks matching filters</span>
@@ -272,6 +331,9 @@ tbody tr.steal-row-80:hover{
 </div>
 <script>
 const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.json';
+const LCE_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-conditions-engine.json';
+const GBC_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json';
+let MACRO=null;  // {lce, gbc, posture, phase, sector_tilts}
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
@@ -400,15 +462,107 @@ function buildHeader(){
 }
 function buildBody(stocks){
   const cols=visibleCols();
+  const hmRanks=heatmapOn?buildHeatmapRanks(stocks,cols):null;
   document.getElementById('tableBody').innerHTML=stocks.slice(0,2000).map((r,i)=>{
     const sc=r.stealScore;
     const rowCls=sc>=90?'steal-row-90':sc>=80?'steal-row-80':'';
-    return`<tr class="${rowCls}">`+cols.map(c=>`<td>${fmtCell(c.fn(r,i),c.fmt,i+1)}</td>`).join('')+'</tr>';
+    const cellHtml=cols.map(c=>{
+      // Sparkline injection: when sparklineOn AND this is the "Symbol" column,
+      // append the sparkline alongside the symbol link for compactness
+      let cell=fmtCell(c.fn(r,i),c.fmt,i+1);
+      if(sparklineOn&&c.id==='symbol'){
+        cell=cell+'<span style="margin-left:6px">'+makeSparkline(r)+'</span>';
+      }
+      // Heatmap attribute
+      let attrs='';
+      if(hmRanks&&hmRanks[c.id]&&hmRanks[c.id][i]!==undefined){
+        attrs=' data-hm="'+heatmapClass(hmRanks[c.id][i])+'"';
+      }
+      return `<td${attrs}>${cell}</td>`;
+    }).join('');
+    return `<tr class="${rowCls}">${cellHtml}</tr>`;
   }).join('');
 }
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
 // AI Sentiment overlay ─────────────────────────────────────
 const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
+
+// ── Stage 5: Macro engine integration ──────────────────────
+// Map (LCE posture × GBC phase) → favored S&P sectors.
+// In RISK_ON + EXPANSION: cyclicals, tech, small-caps, semis.
+// In DEFENSIVE + RECESSION: staples, utilities, healthcare.
+// In BALANCED + PEAKING: late-cycle defensives, energy.
+const SECTOR_TILT_MAP = {
+  // posture → preferred sectors (in priority order)
+  RISK_ON:           ['Technology','Communication Services','Consumer Cyclical','Industrials','Financial Services'],
+  BALANCED_BULLISH:  ['Technology','Financial Services','Industrials','Communication Services','Healthcare'],
+  BALANCED_CAUTIOUS: ['Healthcare','Consumer Defensive','Energy','Industrials'],
+  DEFENSIVE_BUNKER:  ['Consumer Defensive','Utilities','Healthcare','Energy'],
+};
+const PHASE_TILT_MAP = {
+  GLOBAL_EXPANSION:  ['Technology','Consumer Cyclical','Industrials','Financial Services'],
+  GLOBAL_RECOVERY:   ['Financial Services','Industrials','Real Estate','Materials'],
+  GLOBAL_PEAKING:    ['Energy','Materials','Healthcare','Consumer Defensive'],
+  GLOBAL_RECESSION:  ['Consumer Defensive','Utilities','Healthcare'],
+  MIXED:             ['Healthcare','Technology','Financial Services'],
+};
+async function loadMacro(){
+  try{
+    const [lceRes, gbcRes] = await Promise.all([
+      fetch(LCE_URL+'?t='+Date.now()).catch(()=>null),
+      fetch(GBC_URL+'?t='+Date.now()).catch(()=>null),
+    ]);
+    const lce = lceRes && lceRes.ok ? await lceRes.json() : null;
+    const gbc = gbcRes && gbcRes.ok ? await gbcRes.json() : null;
+    // Extract posture + phase from whatever shape these JSON files use
+    const posture = (lce && (lce.posture || lce.regime || lce.current_posture || (lce.summary&&lce.summary.posture))) || null;
+    const phase = (gbc && (gbc.global_phase || gbc.phase)) || null;
+    // Build merged favored-sector list (intersection prioritized first)
+    const postureList = SECTOR_TILT_MAP[posture] || [];
+    const phaseList = PHASE_TILT_MAP[phase] || [];
+    const intersection = postureList.filter(s=>phaseList.includes(s));
+    const union = [...new Set([...intersection, ...postureList, ...phaseList])].slice(0,5);
+    MACRO = {posture, phase, favored_sectors: union, lce_raw: lce, gbc_raw: gbc};
+    renderMacroPanel();
+  }catch(e){console.warn('Macro load failed:',e);}
+}
+function renderMacroPanel(){
+  if(!MACRO)return;
+  const wrap=document.getElementById('macroContext');
+  const lceEl=document.getElementById('macroLCE');
+  const gbcEl=document.getElementById('macroGBC');
+  const secEl=document.getElementById('macroSectors');
+  if(MACRO.posture){
+    lceEl.textContent=MACRO.posture.replace(/_/g,' ');
+    lceEl.className='macro-val posture-'+MACRO.posture;
+  }else{lceEl.textContent='—';}
+  if(MACRO.phase){
+    gbcEl.textContent=MACRO.phase.replace(/GLOBAL_/,'').replace(/_/g,' ');
+    gbcEl.className='macro-val phase-'+MACRO.phase;
+  }else{gbcEl.textContent='—';}
+  secEl.textContent=MACRO.favored_sectors.length?MACRO.favored_sectors.join(' · '):'—';
+  if(MACRO.posture||MACRO.phase)wrap.style.display='block';
+}
+let macroTiltOn=false;
+function applyMacroTilt(){
+  macroTiltOn=!macroTiltOn;
+  document.getElementById('macroTiltBtn').classList.toggle('on',macroTiltOn);
+  if(!MACRO||!allStocks.length){return;}
+  // Apply boost: stocks in favored sectors get +10 to their stealScore (capped at 100)
+  allStocks.forEach(s=>{
+    if(!s._stealScoreOriginal&&typeof s.stealScore==='number'){s._stealScoreOriginal=s.stealScore;}
+    if(macroTiltOn&&s._stealScoreOriginal!==undefined&&MACRO.favored_sectors.includes(s.sector)){
+      s.stealScore=Math.min(100,s._stealScoreOriginal+10);
+      s.cycleRight=true;
+    }else if(s._stealScoreOriginal!==undefined){
+      s.stealScore=s._stealScoreOriginal;
+      s.cycleRight=false;
+    }
+  });
+  saveState();
+  applyFilters();
+}
+
 async function loadSentiment() {
   try {
     const res = await fetch(SENTIMENT_URL + '?t=' + Date.now());
@@ -449,6 +603,7 @@ function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m=
 function matchesTab(s,t){
   if(t==='all')return true;
   if(t==='steal_board')return (s.stealScore||0)>=70;
+  if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
   if(t==='margins')return (s.netMargin||0)>=15;
@@ -477,6 +632,7 @@ function matchesTab(s,t){
 // Default sort column per tab — clicking a tab auto-sorts by its primary metric
 const TAB_DEFAULT_SORT={
   steal_board:{col:'stealScore',dir:'desc'},
+  cycle_right:{col:'stealScore',dir:'desc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},
@@ -529,6 +685,112 @@ function toggleColGroup(btn){
   renderTable();
 }
 
+// ── Stage 4 UX polish state ─────────────────────────────────
+let heatmapOn=false;
+let sparklineOn=false;
+
+function toggleHeatmap(btn){
+  heatmapOn=!heatmapOn;
+  btn.classList.toggle('on',heatmapOn);
+  saveState();
+  renderTable();
+}
+function toggleSparkline(btn){
+  sparklineOn=!sparklineOn;
+  btn.classList.toggle('on',sparklineOn);
+  saveState();
+  renderTable();
+}
+
+// CSV export — current filteredStocks × visibleCols
+function exportCSV(){
+  if(!filteredStocks.length){alert('No rows to export');return;}
+  const cols=visibleCols();
+  // Header row
+  const hdr=cols.map(c=>'"'+c.label.replace(/"/g,'""')+'"').join(',');
+  const csvEscape=v=>{
+    if(v===null||v===undefined||(typeof v==='number'&&isNaN(v)))return'';
+    if(typeof v==='object')v=JSON.stringify(v);
+    const s=String(v).replace(/"/g,'""');
+    return '"'+s+'"';
+  };
+  const rows=filteredStocks.map((r,i)=>cols.map(c=>{
+    const raw=c.fn(r,i);
+    // For 'cross' format raw is an obj; flatten for CSV
+    if(raw&&typeof raw==='object'&&raw.sig)return csvEscape(raw.sig+(raw.days?' '+raw.days+'d':''));
+    return csvEscape(raw);
+  }).join(','));
+  const csv=[hdr,...rows].join('\n');
+  // Trigger download
+  const ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  const filename=`justhodl-screener-${activeTab}-${ts}.csv`;
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},100);
+}
+
+// Sparkline SVG from chg1d/1w/1m/3m/6m/1y series
+function makeSparkline(r){
+  const pts=[r.chg1y,r.chg6m,r.chg3m,r.chg1m,r.chg1w,r.chg1d];
+  const valid=pts.map(v=>(v===null||v===undefined||isNaN(v))?null:Number(v));
+  const real=valid.filter(v=>v!==null);
+  if(real.length<2)return'<span class="na">-</span>';
+  const minV=Math.min(...real),maxV=Math.max(...real);
+  const range=maxV-minV||1;
+  const W=52,H=14,padY=2;
+  const xStep=W/(valid.length-1);
+  let path='';
+  let firstDrawn=false;
+  valid.forEach((v,i)=>{
+    if(v===null)return;
+    const x=i*xStep;
+    const y=H-padY-((v-minV)/range)*(H-2*padY);
+    path+=(firstDrawn?' L ':'M ')+x.toFixed(1)+' '+y.toFixed(1);
+    firstDrawn=true;
+  });
+  const lastReal=valid[valid.length-1]??valid.slice().reverse().find(v=>v!==null);
+  const color=lastReal>=0?'#00e676':'#ff3d5a';
+  // Endpoint marker
+  const lastIdx=valid.length-1-valid.slice().reverse().findIndex(v=>v!==null);
+  const endX=lastIdx*xStep;
+  const endY=H-padY-((valid[lastIdx]-minV)/range)*(H-2*padY);
+  return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}"><path class="spark-line" d="${path}" stroke="${color}"/><circle class="spark-dot" cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" fill="${color}"/></svg>`;
+}
+
+// Compute per-column percentile ranks across currently rendered stocks for heat-map
+function buildHeatmapRanks(stocks,cols){
+  const ranks={};
+  // Only numeric+sortable columns participate
+  const numericFmts=new Set(['ratio','pct','pct1','chg','mcap','price','usd_signed','altman','piotr','steal','streak','num']);
+  cols.forEach(c=>{
+    if(!numericFmts.has(c.fmt))return;
+    const vals=stocks.map((r,i)=>{
+      const v=c.fn(r,i);
+      return (v===null||v===undefined||(typeof v==='number'&&isNaN(v)))?null:Number(v);
+    });
+    const valid=vals.map((v,i)=>({v,i})).filter(x=>x.v!==null);
+    if(valid.length<2)return;
+    // Lower-is-better fields: P/E, P/B, P/S, EV/EBITDA, D/E
+    const invert=['peRatio','pbRatio','psRatio','evEbitda','debtToEquity'].includes(c.id);
+    valid.sort((a,b)=>invert?b.v-a.v:a.v-b.v);
+    const n=valid.length;
+    const colRanks={};
+    valid.forEach((x,pos)=>{colRanks[x.i]=pos/(n-1);});
+    ranks[c.id]=colRanks;
+  });
+  return ranks;
+}
+function heatmapClass(pct){
+  // pct in [0,1] — 1 = best
+  if(pct>=0.9)return'g5';if(pct>=0.75)return'g4';if(pct>=0.6)return'g3';
+  if(pct>=0.5)return'g2';if(pct>=0.4)return'g1';
+  if(pct>=0.3)return'r1';if(pct>=0.2)return'r2';if(pct>=0.1)return'r3';
+  if(pct>=0.05)return'r4';return'r5';
+}
+
 // ── localStorage state persistence ─────────────────────────
 const STATE_KEY='justhodl.screener.state.v2';
 function saveState(){
@@ -536,6 +798,7 @@ function saveState(){
     const f=getFilters();
     localStorage.setItem(STATE_KEY,JSON.stringify({
       activeTab,sortCol,sortDir,colGroups,filters:f,
+      heatmapOn,sparklineOn,
     }));
   }catch(e){/* private mode etc */}
 }
@@ -548,6 +811,13 @@ function restoreState(){
     if(s.sortCol)sortCol=s.sortCol;
     if(s.sortDir)sortDir=s.sortDir;
     if(s.colGroups){Object.assign(colGroups,s.colGroups);}
+    if(typeof s.heatmapOn==='boolean')heatmapOn=s.heatmapOn;
+    if(typeof s.sparklineOn==='boolean')sparklineOn=s.sparklineOn;
+    // Apply heatmap + sparkline button UI states
+    const hmBtn=document.getElementById('heatmapToggle');
+    if(hmBtn)hmBtn.classList.toggle('on',heatmapOn);
+    const spBtn=document.getElementById('sparklineToggle');
+    if(spBtn)spBtn.classList.toggle('on',sparklineOn);
     // Apply tab UI
     document.querySelectorAll('.tab').forEach(t=>{
       t.classList.toggle('active',t.dataset.tab===activeTab);
@@ -616,6 +886,7 @@ async function loadData(){
     restoreState();       // restore tab + sort + filters from localStorage BEFORE first render
     applyFilters();
     loadSentiment();      // async — augments allStocks then re-applies filters
+    loadMacro();          // async — populates Macro Context panel from LCE+GBC
     if(isStale)triggerRefresh();
   }catch(err){
     document.getElementById('loadingScreen').innerHTML=`<div class="error-box"><div style="font-size:14px;margin-bottom:8px">DATA LOAD FAILED</div><div style="font-size:11px;color:var(--text2)">${err.message}</div><div style="margin-top:12px"><button class="refresh-btn" onclick="loadData()">RETRY</button> <button class="refresh-btn" onclick="triggerRefresh()">TRIGGER REFRESH</button></div></div>`;
