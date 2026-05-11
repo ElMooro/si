@@ -1,0 +1,114 @@
+{
+  "started": "2026-05-11T19:19:40.389945+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T19:19:19.503+0000",
+      "code_size": 2889,
+      "memory": 512,
+      "timeout": 120
+    },
+    "invoke": {
+      "n_filers": 80,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 0.1
+    },
+    "s3": {
+      "size_kb": 31.1,
+      "generated_at": "2026-05-11T19:21:15.647163+00:00",
+      "as_of_quarter": "Q4 2025",
+      "n_filers": 80
+    },
+    "top5": [
+      {
+        "cik": "0001877501",
+        "name": "ROCKCREEK (CANADA) ADVISER, INC.",
+        "size": null,
+        "added": 0,
+        "removed": 0,
+        "mv": 0,
+        "prev_mv": 0,
+        "qoq_pct": null,
+        "net_act": 0
+      },
+      {
+        "cik": "0001533551",
+        "name": "WELLESLEY ASSET MANAGEMENT",
+        "size": null,
+        "added": 0,
+        "removed": 0,
+        "mv": 0,
+        "prev_mv": 0,
+        "qoq_pct": null,
+        "net_act": 0
+      },
+      {
+        "cik": "0001047797",
+        "name": "BMO NESBITT BURNS SECURITIES LTD.",
+        "size": null,
+        "added": 0,
+        "removed": 0,
+        "mv": 0,
+        "prev_mv": 0,
+        "qoq_pct": null,
+        "net_act": 0
+      },
+      {
+        "cik": "0000806246",
+        "name": "THRU LINE L.P.",
+        "size": null,
+        "added": 0,
+        "removed": 0,
+        "mv": 0,
+        "prev_mv": 0,
+        "qoq_pct": null,
+        "net_act": 0
+      },
+      {
+        "cik": "0001620943",
+        "name": "IQ EQ FUND MANAGEMENT (IRELAND) LTD",
+        "size": null,
+        "added": 0,
+        "removed": 0,
+        "mv": 0,
+        "prev_mv": 0,
+        "qoq_pct": null,
+        "net_act": 0
+      }
+    ],
+    "summary_counts": {
+      "most_active": 15,
+      "biggest_gainers": 0,
+      "biggest_decliners": 0,
+      "biggest_increasers": 15,
+      "biggest_reducers": 15
+    },
+    "top_gainer": null,
+    "top_decliner": null,
+    "top_active": {
+      "cik": "0001877501",
+      "name": "ROCKCREEK (CANADA) ADVISER, INC.",
+      "mv": 0,
+      "qoq_pct": null,
+      "added": 0,
+      "removed": 0,
+      "size": null
+    },
+    "public_https": {
+      "status": 200,
+      "size": 31828
+    },
+    "eventbridge": [
+      {
+        "name": "justhodl-smart-money-cluster-daily",
+        "schedule": "cron(0 16 * * ? *)",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-smart-money-tracker-daily",
+        "schedule": "cron(0 14 * * ? *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "finished": "2026-05-11T19:21:16.391072+00:00"
+}
