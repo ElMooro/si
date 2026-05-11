@@ -410,20 +410,21 @@ def get_stock_data(symbol):
         "pbRatio":         sf(r.get("priceToBookRatioTTM")),
         "psRatio":         sf(r.get("priceToSalesRatioTTM")),
         "evEbitda":        sf(k.get("evToEBITDATTM")),
-        # Quality
-        "roe":             sp2(k.get("returnOnEquityTTM")),
-        "roa":             sp2(k.get("returnOnAssetsTTM")),
-        "roic":            sp2(k.get("returnOnInvestedCapitalTTM")),
-        "grossMargin":     sp2(r.get("grossProfitMarginTTM")),
-        "operatingMargin": sp2(r.get("operatingProfitMarginTTM")),
-        "netMargin":       sp2(r.get("netProfitMarginTTM")),
-        "revenueGrowth":   sp2(g.get("revenueGrowth")),
-        "epsGrowth":       sp2(g.get("epsgrowth")),
-        "fcfGrowth":       sp2(g.get("freeCashFlowGrowth")),
+        # Quality — FMP returns decimals (0.25 for 25%). Multiply ×100 here so
+        # the screener page displays the values as true percentages.
+        "roe":             sp(k.get("returnOnEquityTTM")),
+        "roa":             sp(k.get("returnOnAssetsTTM")),
+        "roic":            sp(k.get("returnOnInvestedCapitalTTM")),
+        "grossMargin":     sp(r.get("grossProfitMarginTTM")),
+        "operatingMargin": sp(r.get("operatingProfitMarginTTM")),
+        "netMargin":       sp(r.get("netProfitMarginTTM")),
+        "revenueGrowth":   sp(g.get("revenueGrowth")),
+        "epsGrowth":       sp(g.get("epsgrowth")),
+        "fcfGrowth":       sp(g.get("freeCashFlowGrowth")),
         # Balance sheet
         "debtToEquity":    sf(r.get("debtToEquityRatioTTM")),
         "currentRatio":    sf(r.get("currentRatioTTM")),
-        "dividendYield":   sp2(r.get("dividendYieldTTM")),
+        "dividendYield":   sp(r.get("dividendYieldTTM")),
         "interestCoverage":sf(r.get("interestCoverageRatioTTM")),
         # Scores
         "piotroski":       score,
@@ -578,8 +579,41 @@ def compute_steal_score(stocks):
     # stealRank: 1 = highest score among stocks WITH a score
     scored = [(i, s["stealScore"]) for i, s in enumerate(stocks)
                 if s.get("stealScore") is not None]
-    scored.sort(key=lambda x: -x[1])
-    for rank_pos, (i, _sc) in enumerate(scored):
+    if not scored:
+        return
+
+    # ── MIN-MAX RESCALING ──
+    # Raw scores are percentile-rank averages, which naturally cluster around
+    # 50 with bell-curve ceiling around 75-80. Rescale so the OBSERVED top
+    # stock gets 100 — makes thresholds (90+ STEAL, 80+ PREMIUM) meaningful.
+    raw_scores = [sc for _, sc in scored]
+    raw_min = min(raw_scores)
+    raw_max = max(raw_scores)
+    raw_range = raw_max - raw_min
+    if raw_range < 1e-6:
+        rescale = lambda s: 50.0
+    else:
+        # Stretch so [raw_min, raw_max] maps to [0, 100]
+        rescale = lambda s: round((s - raw_min) / raw_range * 100.0, 1)
+    for i, s in enumerate(stocks):
+        if s.get("stealScore") is not None:
+            raw = s["stealScore"]
+            s["stealScoreRaw"] = raw   # keep raw for transparency
+            s["stealScore"] = rescale(raw)
+            # Re-bucket on the rescaled score
+            score = s["stealScore"]
+            s["stealBucket"] = (
+                "STEAL"   if score >= 90 else
+                "PREMIUM" if score >= 80 else
+                "QUALITY" if score >= 70 else
+                None
+            )
+
+    # Re-sort + assign rank using rescaled scores
+    rescored = [(i, s["stealScore"]) for i, s in enumerate(stocks)
+                  if s.get("stealScore") is not None]
+    rescored.sort(key=lambda x: -x[1])
+    for rank_pos, (i, _sc) in enumerate(rescored):
         stocks[i]["stealRank"] = rank_pos + 1
 
 

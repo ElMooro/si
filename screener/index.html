@@ -160,6 +160,30 @@ tbody td[data-hm="r5"]::before{background:#dc2626}
 .macro-val.phase-GLOBAL_RECESSION{color:#ef4444}
 .macro-val.phase-MIXED{color:#94a3b8}
 tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0%, rgba(34,211,238,0) 60%)}
+/* Compare mode UI */
+.compare-modal{position:fixed;top:50px;left:5%;right:5%;bottom:5%;background:linear-gradient(180deg,#0a0d18,#0c0f1a);border:1px solid var(--border);border-radius:6px;z-index:200;box-shadow:0 8px 60px rgba(0,0,0,.7),0 0 1px var(--teal);display:flex;flex-direction:column}
+.compare-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,212,170,.04)}
+.compare-title{font-family:var(--font-ui);font-size:14px;font-weight:700;color:var(--teal);letter-spacing:1.5px}
+.compare-close{background:transparent;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:0 8px;line-height:1}
+.compare-close:hover{color:var(--neg)}
+.compare-grid{flex:1;overflow:auto;padding:0}
+.compare-table{width:100%;border-collapse:collapse;font-size:11px}
+.compare-table th,.compare-table td{padding:7px 14px;border-bottom:1px solid var(--border2);text-align:right;white-space:nowrap}
+.compare-table th{background:#0a0d18;color:var(--text2);font-family:var(--font-ui);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;position:sticky;top:0}
+.compare-table th:first-child,.compare-table td:first-child{text-align:left;color:var(--text2);font-size:9px;text-transform:uppercase;letter-spacing:.7px;position:sticky;left:0;background:#0a0d18}
+.compare-table .ticker-header{color:var(--teal);font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.compare-table .best{background:rgba(0,230,118,.08);color:var(--pos)}
+.compare-table .worst{background:rgba(255,61,90,.06);color:var(--neg)}
+.compare-table .section-header{background:#0d1020;color:var(--teal);font-family:var(--font-ui);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:10px 14px}
+/* Checkbox column */
+.compare-mode-on .compare-cb-col{display:table-cell !important}
+.compare-cb-col{display:none}
+.compare-cb-col input{cursor:pointer;width:14px;height:14px;accent-color:var(--teal)}
+.compare-fab{position:fixed;bottom:32px;right:24px;background:linear-gradient(135deg,#00d4aa,#1e90ff);color:white;border:none;padding:10px 18px;border-radius:24px;font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(0,212,170,.4),0 0 0 2px rgba(255,255,255,.05);z-index:60;display:none}
+.compare-fab:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,212,170,.6)}
+.compare-fab.has-selection{display:flex;align-items:center;gap:6px}
+.compare-fab .cb-count{background:rgba(255,255,255,.25);padding:2px 7px;border-radius:10px;font-size:11px}
+.share-toast{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);background:var(--teal);color:#0a0d18;padding:10px 20px;border-radius:4px;font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:1px;z-index:300;box-shadow:0 4px 20px rgba(0,212,170,.4);display:none}
 </style>
 </head>
 <body>
@@ -307,6 +331,8 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn" id="sparklineToggle" onclick="toggleSparkline(this)" title="Show momentum trend sparkline column">📈 SPARKLINES</button>
   <span style="flex:1"></span>
   <button class="col-toggle-btn" id="csvExportBtn" onclick="exportCSV()" title="Download filtered + sorted results as CSV">⬇ CSV</button>
+  <button class="col-toggle-btn" id="compareToggle" onclick="toggleCompareMode(this)" title="Enable multi-select to compare 2-5 stocks side-by-side">⚖ COMPARE</button>
+  <button class="col-toggle-btn" id="shareBtn" onclick="shareCurrentView()" title="Copy URL to current filtered view">🔗 SHARE</button>
 </div>
 <div class="result-bar">
   <span><span class="result-count" id="resultCount">&#8212;</span>&nbsp;stocks matching filters</span>
@@ -323,6 +349,26 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
     <tbody id="tableBody"></tbody>
   </table>
 </div>
+
+<!-- Compare modal -->
+<div id="compareModal" class="compare-modal" style="display:none">
+  <div class="compare-header">
+    <div class="compare-title">📊 SIDE-BY-SIDE COMPARISON <span id="compareSubtitle" style="color:var(--text2);font-weight:400;font-size:11px;margin-left:10px"></span></div>
+    <button class="compare-close" onclick="closeCompare()" title="Close (Esc)">×</button>
+  </div>
+  <div class="compare-grid">
+    <table class="compare-table" id="compareTable"></table>
+  </div>
+</div>
+
+<!-- Floating Compare button -->
+<button class="compare-fab" id="compareFab" onclick="openCompare()">
+  ⚖ COMPARE <span class="cb-count" id="cbCount">0</span>
+</button>
+
+<!-- Share toast -->
+<div class="share-toast" id="shareToast">🔗 LINK COPIED TO CLIPBOARD</div>
+
 <div class="footer-bar">
   <span><span class="fbar-dot" style="background:var(--teal)"></span>JUSTHODL.AI SCREENER</span>
   <span id="fbDataAge"></span>
@@ -455,10 +501,14 @@ function fmtCell(val,fmt,rank){
 function visibleCols(){return COLS.filter(c=>c.group==='fixed'||colGroups[c.group]);}
 function buildHeader(){
   const cols=visibleCols();
-  document.getElementById('tableHead').innerHTML='<tr>'+cols.map(c=>{
+  let html='<tr>';
+  if(compareMode)html+='<th class="compare-cb-col" style="width:24px"></th>';
+  html+=cols.map(c=>{
     const sorted=sortCol===c.id;const arrow=sorted?(sortDir==='asc'?'&#9650;':'&#9660;'):'&#8693;';
     return`<th class="${sorted?'sorted':''}" onclick="handleSort('${c.id}')">${c.label} <span style="opacity:.5">${arrow}</span></th>`;
-  }).join('')+'</tr>';
+  }).join('');
+  html+='</tr>';
+  document.getElementById('tableHead').innerHTML=html;
 }
 function buildBody(stocks){
   const cols=visibleCols();
@@ -466,7 +516,13 @@ function buildBody(stocks){
   document.getElementById('tableBody').innerHTML=stocks.slice(0,2000).map((r,i)=>{
     const sc=r.stealScore;
     const rowCls=sc>=90?'steal-row-90':sc>=80?'steal-row-80':'';
-    const cellHtml=cols.map(c=>{
+    let cellHtml='';
+    // Compare-mode checkbox column at the front
+    if(compareMode){
+      const checked=selectedTickers.has(r.symbol)?'checked':'';
+      cellHtml+=`<td class="compare-cb-col"><input type="checkbox" ${checked} onclick="toggleTickerSelection('${r.symbol}',event)"></td>`;
+    }
+    cellHtml+=cols.map(c=>{
       // Sparkline injection: when sparklineOn AND this is the "Symbol" column,
       // append the sparkline alongside the symbol link for compactness
       let cell=fmtCell(c.fn(r,i),c.fmt,i+1);
@@ -726,6 +782,223 @@ function toggleSparkline(btn){
   renderTable();
 }
 
+// ── Stage 6: Compare mode ─────────────────────────────────
+let compareMode=false;
+let selectedTickers=new Set();
+function toggleCompareMode(btn){
+  compareMode=!compareMode;
+  btn.classList.toggle('on',compareMode);
+  document.body.classList.toggle('compare-mode-on',compareMode);
+  if(!compareMode){selectedTickers.clear();updateCompareFab();}
+  renderTable();
+  saveState();
+}
+function toggleTickerSelection(symbol,event){
+  event.stopPropagation();
+  if(selectedTickers.has(symbol))selectedTickers.delete(symbol);
+  else if(selectedTickers.size<5)selectedTickers.add(symbol);
+  else{alert('Maximum 5 stocks for side-by-side compare');return;}
+  updateCompareFab();
+}
+function updateCompareFab(){
+  const fab=document.getElementById('compareFab');
+  const cnt=document.getElementById('cbCount');
+  cnt.textContent=selectedTickers.size;
+  fab.classList.toggle('has-selection',selectedTickers.size>=2);
+}
+function openCompare(){
+  if(selectedTickers.size<2){alert('Select at least 2 stocks first');return;}
+  const modal=document.getElementById('compareModal');
+  const subtitle=document.getElementById('compareSubtitle');
+  const tickers=Array.from(selectedTickers);
+  const stocks=tickers.map(sym=>allStocks.find(s=>s.symbol===sym)).filter(Boolean);
+  subtitle.textContent=stocks.map(s=>s.symbol).join(' vs ');
+
+  // Define metric rows organized into sections — each is {label, key, fmt}
+  const sections=[
+    {title:'📋 Identity',rows:[
+      {label:'Company',key:'name'},
+      {label:'Sector',key:'sector'},
+      {label:'Industry',key:'industry'},
+      {label:'Market Cap',key:'marketCap',fmt:'mcap'},
+      {label:'Price',key:'price',fmt:'price'},
+      {label:'Beta',key:'beta',fmt:'num1'},
+    ]},
+    {title:'💎 STEAL SCORE',rows:[
+      {label:'Steal Score',key:'stealScore',fmt:'score',higherIsBetter:true},
+      {label:'Tier',key:'stealBucket'},
+      {label:'Steal Rank',key:'stealRank',fmt:'rank',higherIsBetter:false},
+    ]},
+    {title:'💰 Profitability',rows:[
+      {label:'Revenue (\$)',key:'revenue',fmt:'mcap',higherIsBetter:true},
+      {label:'Net Income (\$)',key:'netIncome',fmt:'mcap',higherIsBetter:true},
+      {label:'Operating Income (\$)',key:'operatingIncome',fmt:'mcap',higherIsBetter:true},
+      {label:'EBITDA (\$)',key:'ebitda',fmt:'mcap',higherIsBetter:true},
+      {label:'Free Cash Flow (\$)',key:'freeCashFlow',fmt:'mcap',higherIsBetter:true},
+      {label:'FCF Yield %',key:'fcfYieldCalc',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'📈 Margins & Returns',rows:[
+      {label:'Gross Margin %',key:'grossMargin',fmt:'pct',higherIsBetter:true},
+      {label:'Operating Margin %',key:'operatingMargin',fmt:'pct',higherIsBetter:true},
+      {label:'Net Margin %',key:'netMargin',fmt:'pct',higherIsBetter:true},
+      {label:'ROE %',key:'roe',fmt:'pct',higherIsBetter:true},
+      {label:'ROA %',key:'roa',fmt:'pct',higherIsBetter:true},
+      {label:'ROIC %',key:'roic',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'🚀 Growth',rows:[
+      {label:'Revenue Growth %',key:'revenueGrowth',fmt:'pct',higherIsBetter:true},
+      {label:'EPS Growth %',key:'epsGrowth',fmt:'pct',higherIsBetter:true},
+      {label:'FCF Growth %',key:'fcfGrowth',fmt:'pct',higherIsBetter:true},
+      {label:'Rev 3y CAGR %',key:'rev3yCAGR',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'💵 Valuation',rows:[
+      {label:'P/E',key:'peRatio',fmt:'num1',higherIsBetter:false},
+      {label:'P/B',key:'pbRatio',fmt:'num1',higherIsBetter:false},
+      {label:'P/S',key:'psRatio',fmt:'num1',higherIsBetter:false},
+      {label:'EV/EBITDA',key:'evEbitda',fmt:'num1',higherIsBetter:false},
+      {label:'Dividend Yield %',key:'dividendYield',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'🏦 Balance Sheet',rows:[
+      {label:'Debt/Equity',key:'debtToEquity',fmt:'num1',higherIsBetter:false},
+      {label:'Current Ratio',key:'currentRatio',fmt:'num1',higherIsBetter:true},
+      {label:'Interest Coverage',key:'interestCoverage',fmt:'num1',higherIsBetter:true},
+    ]},
+    {title:'⚡ Momentum',rows:[
+      {label:'1d %',key:'chg1d',fmt:'pct',higherIsBetter:true},
+      {label:'1w %',key:'chg1w',fmt:'pct',higherIsBetter:true},
+      {label:'1m %',key:'chg1m',fmt:'pct',higherIsBetter:true},
+      {label:'3m %',key:'chg3m',fmt:'pct',higherIsBetter:true},
+      {label:'6m %',key:'chg6m',fmt:'pct',higherIsBetter:true},
+      {label:'1y %',key:'chg1y',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'🎯 Quality Scores',rows:[
+      {label:'Piotroski (/9)',key:'piotroski',fmt:'num',higherIsBetter:true},
+      {label:'Altman Z',key:'altmanZ',fmt:'num1',higherIsBetter:true},
+      {label:'Sustainable 3y',key:'sustainable3y',fmt:'bool'},
+      {label:'Buyback Yield %',key:'buybackYield',fmt:'pct',higherIsBetter:true},
+    ]},
+    {title:'👥 Insider & Earnings',rows:[
+      {label:'Insider Signal',key:'insiderSignal'},
+      {label:'Insider Net 90d (\$)',key:'insiderNet90dUsd',fmt:'usd_signed'},
+      {label:'Insider Buyers (90d)',key:'insiderBuyersN90d',fmt:'num',higherIsBetter:true},
+      {label:'Beat Streak',key:'beatStreak',fmt:'num',higherIsBetter:true},
+      {label:'Last Surprise %',key:'lastSurprisePct',fmt:'pct',higherIsBetter:true},
+    ]},
+  ];
+
+  // Build comparison table
+  let html='<thead><tr><th></th>'+
+    stocks.map(s=>`<th><div class="ticker-header"><a href="/stock/?symbol=${s.symbol}" class="sym-link">${s.symbol}</a></div><div style="font-size:9px;color:var(--text2);margin-top:2px">${(s.name||'').substring(0,18)}</div></th>`).join('')+
+    '</tr></thead><tbody>';
+  sections.forEach(sec=>{
+    html+=`<tr><td colspan="${stocks.length+1}" class="section-header">${sec.title}</td></tr>`;
+    sec.rows.forEach(r=>{
+      // Compute best/worst index across stocks for this row (only for numeric+higherIsBetter set)
+      let bestIdx=-1,worstIdx=-1;
+      if(r.higherIsBetter!==undefined){
+        const vals=stocks.map(s=>{
+          const v=s[r.key];return (v===null||v===undefined||isNaN(v))?null:Number(v);
+        });
+        const valid=vals.map((v,i)=>({v,i})).filter(x=>x.v!==null);
+        if(valid.length>=2){
+          valid.sort((a,b)=>r.higherIsBetter?b.v-a.v:a.v-b.v);
+          bestIdx=valid[0].i; worstIdx=valid[valid.length-1].i;
+        }
+      }
+      html+=`<tr><td>${r.label}</td>`;
+      stocks.forEach((s,i)=>{
+        const v=s[r.key];
+        let cellCls='';
+        if(i===bestIdx)cellCls=' class="best"';
+        else if(i===worstIdx)cellCls=' class="worst"';
+        let display='—';
+        if(v!==null&&v!==undefined&&v!==''){
+          if(r.fmt==='mcap'&&typeof v==='number'){const ab=Math.abs(v);const[n,suf]=ab>=1e12?[v/1e12,'T']:ab>=1e9?[v/1e9,'B']:ab>=1e6?[v/1e6,'M']:[v,''];display=`\$${n.toFixed(2)}${suf}`;}
+          else if(r.fmt==='price')display=`\$${Number(v).toFixed(2)}`;
+          else if(r.fmt==='pct')display=`${Number(v).toFixed(1)}%`;
+          else if(r.fmt==='num1')display=Number(v).toFixed(1);
+          else if(r.fmt==='num')display=Number(v).toLocaleString();
+          else if(r.fmt==='score')display=Number(v).toFixed(1);
+          else if(r.fmt==='rank')display='#'+v;
+          else if(r.fmt==='bool')display=v?'✓ Yes':'No';
+          else if(r.fmt==='usd_signed'){const ab=Math.abs(Number(v));const[n,suf]=ab>=1e9?[v/1e9,'B']:ab>=1e6?[v/1e6,'M']:ab>=1e3?[v/1e3,'K']:[v,''];const sign=Number(v)>0?'+':'';display=`${sign}\$${Math.abs(n).toFixed(1)}${suf}`;}
+          else display=String(v);
+        }
+        html+=`<td${cellCls}>${display}</td>`;
+      });
+      html+='</tr>';
+    });
+  });
+  html+='</tbody>';
+  document.getElementById('compareTable').innerHTML=html;
+  modal.style.display='flex';
+}
+function closeCompare(){
+  document.getElementById('compareModal').style.display='none';
+}
+// Close on Escape
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeCompare();
+});
+
+// ── Save & Share URLs ─────────────────────────────────────
+function shareCurrentView(){
+  // Encode state into URL hash; clipboard-copy the URL
+  const f=getFilters();
+  const state={
+    tab:activeTab, sort:sortCol, dir:sortDir,
+    cg:colGroups, hm:heatmapOn?1:0, sp:sparklineOn?1:0,
+    f:Object.fromEntries(Object.entries(f).filter(([k,v])=>v!==''&&!Number.isNaN(v)&&v!=null)),
+  };
+  const enc=btoa(JSON.stringify(state)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const url=window.location.origin+window.location.pathname+'#s='+enc;
+  // Update browser URL too (without reload)
+  if(history&&history.replaceState)history.replaceState(null,'','#s='+enc);
+  // Copy to clipboard
+  navigator.clipboard.writeText(url).then(()=>{
+    const toast=document.getElementById('shareToast');
+    toast.style.display='block';
+    setTimeout(()=>{toast.style.display='none';},2200);
+  }).catch(()=>{
+    prompt('Copy this URL:',url);
+  });
+}
+function restoreFromUrlHash(){
+  try{
+    const hash=window.location.hash||'';
+    const m=hash.match(/^#s=(.+)$/);
+    if(!m)return false;
+    const enc=m[1].replace(/-/g,'+').replace(/_/g,'/');
+    const padded=enc+'='.repeat((4-enc.length%4)%4);
+    const state=JSON.parse(atob(padded));
+    if(state.tab)activeTab=state.tab;
+    if(state.sort)sortCol=state.sort;
+    if(state.dir)sortDir=state.dir;
+    if(state.cg)Object.assign(colGroups,state.cg);
+    if(state.hm===1)heatmapOn=true;
+    if(state.sp===1)sparklineOn=true;
+    // Apply UI
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.classList.toggle('active',t.dataset.tab===activeTab);
+    });
+    document.querySelectorAll('.col-toggle-btn').forEach(b=>{
+      const g=b.dataset.group;
+      if(g)b.classList.toggle('on',!!colGroups[g]);
+    });
+    if(state.hm)document.getElementById('heatmapToggle')?.classList.add('on');
+    if(state.sp)document.getElementById('sparklineToggle')?.classList.add('on');
+    // Apply filters
+    if(state.f){
+      Object.entries(state.f).forEach(([k,v])=>{
+        const id={search:'searchInput',sector:'sectorFilter',peMin:'peMin',peMax:'peMax',roeMin:'roeMin',marginMin:'marginMin',mom1mMin:'mom1mMin',mom1mMax:'mom1mMax',piotrMin:'piotrMin',mcap:'mcapFilter'}[k];
+        const el=id&&document.getElementById(id);
+        if(el)el.value=v;
+      });
+    }
+    return true;
+  }catch(e){console.warn('URL hash restore failed:',e);return false;}
+}
+
 // CSV export — current filteredStocks × visibleCols
 function exportCSV(){
   if(!filteredStocks.length){alert('No rows to export');return;}
@@ -907,7 +1180,8 @@ async function loadData(){
     populateSectors(allStocks);updateStats(allStocks);
     document.getElementById('loadingScreen').style.display='none';
     document.getElementById('screenerTable').style.display='';
-    restoreState();       // restore tab + sort + filters from localStorage BEFORE first render
+    // URL hash takes precedence over localStorage so shared links work
+    if(!restoreFromUrlHash())restoreState();
     applyFilters();
     loadSentiment();      // async — augments allStocks then re-applies filters
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
