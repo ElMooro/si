@@ -264,9 +264,10 @@ def get_stock_data(symbol):
     exec_list   = fmp("key-executives",            f"&symbol={symbol}")
 
     # ── STAGE 11 ADDS — News momentum (sudden catalysts) ──
-    # 20 latest articles per symbol; we'll compute count-30d + heuristic
-    # sentiment from headline keywords. Cheap (no Claude API call).
-    news_data   = fmp("news/stock",                f"&symbols={symbol}&limit=20")
+    # 10 latest articles per symbol (was 20 — cut to halve payload size since
+    # each article includes full body text, was 11.6min runtime).
+    # We compute count-30d + heuristic sentiment from headline keywords.
+    news_data   = fmp("news/stock",                f"&symbols={symbol}&limit=10")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
