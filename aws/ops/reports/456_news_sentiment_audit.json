@@ -1,0 +1,36 @@
+{
+  "started": "2026-05-11T23:25:00.369082+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-04-25T10:28:20.000+0000",
+      "code_size": 3363,
+      "memory": 512,
+      "timeout": 600,
+      "env_keys": [
+        "ANTHROPIC_KEY"
+      ],
+      "function_url_arn": null
+    },
+    "recent_streams": [
+      {
+        "stream_name": "2026/05/11/[$LATEST]b46d0e6f54554b7582f9f02192c4da2f",
+        "last_event_ms": 1778480271162
+      },
+      {
+        "stream_name": "2026/05/10/[$LATEST]ddd4b3710d6f42dba3f9f4bf7612ae64",
+        "last_event_ms": 1778393875989
+      },
+      {
+        "stream_name": "2026/05/09/[$LATEST]dceba11afe3348a78a7f82ae3d5dfd92",
+        "last_event_ms": 1778307419965
+      }
+    ],
+    "eventbridge": {
+      "schedule": "cron(15 6 * * ? *)",
+      "state": "ENABLED",
+      "description": "JustHodl AI News Sentiment daily 6:15 AM UTC"
+    },
+    "s3_err": "name 'time' is not defined"
+  },
+  "finished": "2026-05-11T23:25:07.489326+00:00"
+}
