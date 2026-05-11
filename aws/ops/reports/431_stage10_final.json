@@ -1,0 +1,397 @@
+{
+  "started": "2026-05-11T15:33:42.780039+00:00",
+  "test": {
+    "data": {
+      "generated_at": "2026-05-11T15:29:27.891233+00:00",
+      "size_kb": 1632.3,
+      "n_stocks": 503,
+      "elapsed_seconds": 176.7
+    },
+    "used_quarter": "Q4 2025",
+    "inst_shares_dist": {
+      "n": 499,
+      "min": -33.63,
+      "max": 892.28,
+      "p5": -3.02,
+      "p25": 0.51,
+      "p50": 2.13,
+      "p75": 3.86,
+      "p95": 11.58,
+      "mean": 5.48,
+      "n_positive_5": 96,
+      "n_negative_5": 13
+    },
+    "top_hf": [
+      {
+        "sym": "NFLX",
+        "name": "Netflix, Inc.",
+        "sector": "Communication Services",
+        "holders": 3683,
+        "h_chg": 50,
+        "shares_chg_pct": 892.28,
+        "score": 64.4
+      },
+      {
+        "sym": "NOW",
+        "name": "ServiceNow, Inc.",
+        "sector": "Technology",
+        "holders": 2394,
+        "h_chg": 52,
+        "shares_chg_pct": 404.2,
+        "score": 58.0
+      },
+      {
+        "sym": "TPL",
+        "name": "Texas Pacific Land Corpo",
+        "sector": "Energy",
+        "holders": 738,
+        "h_chg": 9,
+        "shares_chg_pct": 203.25,
+        "score": 51.0
+      },
+      {
+        "sym": "OMC",
+        "name": "Omnicom Group Inc.",
+        "sector": "Communication Services",
+        "holders": 1160,
+        "h_chg": 195,
+        "shares_chg_pct": 42.11,
+        "score": 36.3
+      },
+      {
+        "sym": "ETN",
+        "name": "Eaton Corporation plc",
+        "sector": "Industrials",
+        "holders": 2516,
+        "h_chg": 55,
+        "shares_chg_pct": 19.33,
+        "score": 46.1
+      },
+      {
+        "sym": "BDX",
+        "name": "Becton, Dickinson and Co",
+        "sector": "Healthcare",
+        "holders": 1576,
+        "h_chg": 58,
+        "shares_chg_pct": 18.7,
+        "score": 57.2
+      },
+      {
+        "sym": "AVB",
+        "name": "AvalonBay Communities, I",
+        "sector": "Real Estate",
+        "holders": 764,
+        "h_chg": 10,
+        "shares_chg_pct": 18.62,
+        "score": 46.6
+      },
+      {
+        "sym": "GEV",
+        "name": "GE Vernova Inc.",
+        "sector": "Utilities",
+        "holders": 2886,
+        "h_chg": 246,
+        "shares_chg_pct": 17.71,
+        "score": 36.1
+      },
+      {
+        "sym": "GEHC",
+        "name": "GE HealthCare Technologi",
+        "sector": "Healthcare",
+        "holders": 1358,
+        "h_chg": 37,
+        "shares_chg_pct": 15.81,
+        "score": 37.2
+      },
+      {
+        "sym": "WRB",
+        "name": "W. R. Berkley Corporatio",
+        "sector": "Financial Services",
+        "holders": 952,
+        "h_chg": 12,
+        "shares_chg_pct": 15.75,
+        "score": 60.0
+      },
+      {
+        "sym": "OTIS",
+        "name": "Otis Worldwide Corporati",
+        "sector": "Industrials",
+        "holders": 1317,
+        "h_chg": 43,
+        "shares_chg_pct": 15.46,
+        "score": 30.8
+      },
+      {
+        "sym": "COHR",
+        "name": "Coherent, Inc.",
+        "sector": "Technology",
+        "holders": 944,
+        "h_chg": 189,
+        "shares_chg_pct": 14.45,
+        "score": 50.8
+      },
+      {
+        "sym": "TMO",
+        "name": "Thermo Fisher Scientific",
+        "sector": "Healthcare",
+        "holders": 2749,
+        "h_chg": 164,
+        "shares_chg_pct": 13.72,
+        "score": 45.5
+      },
+      {
+        "sym": "DOW",
+        "name": "Dow Inc.",
+        "sector": "Basic Materials",
+        "holders": 1168,
+        "h_chg": -4,
+        "shares_chg_pct": 13.5,
+        "score": 10.6
+      },
+      {
+        "sym": "REG",
+        "name": "Regency Centers Corporat",
+        "sector": "Real Estate",
+        "holders": 549,
+        "h_chg": 25,
+        "shares_chg_pct": 13.19,
+        "score": 39.1
+      }
+    ],
+    "top_hf_exit": [
+      {
+        "sym": "URI",
+        "name": "United Rentals, Inc.",
+        "sector": "Industrials",
+        "shares_chg_pct": -33.63,
+        "score": 39.3
+      },
+      {
+        "sym": "MPWR",
+        "name": "Monolithic Power Systems",
+        "sector": "Technology",
+        "shares_chg_pct": -31.32,
+        "score": 57.2
+      },
+      {
+        "sym": "COIN",
+        "name": "Coinbase Global, Inc.",
+        "sector": "Financial Services",
+        "shares_chg_pct": -16.53,
+        "score": 16.0
+      },
+      {
+        "sym": "SATS",
+        "name": "EchoStar Corporation",
+        "sector": "Technology",
+        "shares_chg_pct": -14.61,
+        "score": 1.1
+      },
+      {
+        "sym": "MSFT",
+        "name": "Microsoft Corporation",
+        "sector": "Technology",
+        "shares_chg_pct": -9.69,
+        "score": 70.3
+      },
+      {
+        "sym": "DECK",
+        "name": "Deckers Outdoor Corporat",
+        "sector": "Consumer Cyclical",
+        "shares_chg_pct": -8.9,
+        "score": 78.0
+      },
+      {
+        "sym": "TER",
+        "name": "Teradyne, Inc.",
+        "sector": "Technology",
+        "shares_chg_pct": -6.63,
+        "score": 51.7
+      },
+      {
+        "sym": "BLDR",
+        "name": "Builders FirstSource, In",
+        "sector": "Industrials",
+        "shares_chg_pct": -6.26,
+        "score": 24.4
+      },
+      {
+        "sym": "LUV",
+        "name": "Southwest Airlines Co.",
+        "sector": "Industrials",
+        "shares_chg_pct": -5.88,
+        "score": 19.3
+      },
+      {
+        "sym": "VLTO",
+        "name": "Veralto Corporation",
+        "sector": "Industrials",
+        "shares_chg_pct": -5.75,
+        "score": 44.6
+      },
+      {
+        "sym": "DLTR",
+        "name": "Dollar Tree, Inc.",
+        "sector": "Consumer Defensive",
+        "shares_chg_pct": -5.71,
+        "score": 42.8
+      },
+      {
+        "sym": "CPB",
+        "name": "Campbell Soup Company",
+        "sector": "Consumer Defensive",
+        "shares_chg_pct": -5.58,
+        "score": 47.0
+      },
+      {
+        "sym": "DUK",
+        "name": "Duke Energy Corporation",
+        "sector": "Utilities",
+        "shares_chg_pct": -5.35,
+        "score": 39.1
+      },
+      {
+        "sym": "HSIC",
+        "name": "Henry Schein, Inc.",
+        "sector": "Healthcare",
+        "shares_chg_pct": -4.92,
+        "score": 40.2
+      },
+      {
+        "sym": "LEN",
+        "name": "Lennar Corporation",
+        "sector": "Consumer Cyclical",
+        "shares_chg_pct": -4.54,
+        "score": 32.8
+      }
+    ],
+    "spot_AAPL": {
+      "instHolders": 6300,
+      "instHoldersChg": 446,
+      "instHoldersChgPct": 7.62,
+      "instSharesChgPct": 3.51,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 50.1
+    },
+    "spot_NVDA": {
+      "instHolders": 6172,
+      "instHoldersChg": 456,
+      "instHoldersChgPct": 7.98,
+      "instSharesChgPct": 3.86,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 72.8
+    },
+    "spot_META": {
+      "instHolders": 5320,
+      "instHoldersChg": 212,
+      "instHoldersChgPct": 4.15,
+      "instSharesChgPct": 11.65,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 78.5
+    },
+    "spot_GOOGL": {
+      "instHolders": 5835,
+      "instHoldersChg": 522,
+      "instHoldersChgPct": 9.82,
+      "instSharesChgPct": 3.73,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 70.5
+    },
+    "spot_TSLA": {
+      "instHolders": 4587,
+      "instHoldersChg": 334,
+      "instHoldersChgPct": 7.85,
+      "instSharesChgPct": 3.07,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 0.0
+    },
+    "spot_CF": {
+      "instHolders": 846,
+      "instHoldersChg": 4,
+      "instHoldersChgPct": 0.48,
+      "instSharesChgPct": 0.44,
+      "instSignal": "holding",
+      "instQuarter": "Q4 2025",
+      "stealScore": 86.6
+    },
+    "spot_NEM": {
+      "instHolders": 1783,
+      "instHoldersChg": 163,
+      "instHoldersChgPct": 10.06,
+      "instSharesChgPct": 2.97,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 97.2
+    },
+    "spot_EQT": {
+      "instHolders": 1169,
+      "instHoldersChg": 76,
+      "instHoldersChgPct": 6.95,
+      "instSharesChgPct": -0.05,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 100.0
+    },
+    "spot_MSFT": {
+      "instHolders": 6461,
+      "instHoldersChg": 401,
+      "instHoldersChgPct": 6.62,
+      "instSharesChgPct": -9.69,
+      "instSignal": "buying",
+      "instQuarter": "Q4 2025",
+      "stealScore": 70.3
+    },
+    "log_relevant": [
+      {
+        "ts": 1778513191497,
+        "msg": "[inst] using fully-filed 13F quarter Q4 2025 (131d since quarter end)"
+      },
+      {
+        "ts": 1778513191499,
+        "msg": "[inst] using fully-filed 13F quarter Q4 2025 (131d since quarter end)"
+      },
+      {
+        "ts": 1778513191510,
+        "msg": "[inst] using fully-filed 13F quarter Q4 2025 (131d since quarter end)"
+      },
+      {
+        "ts": 1778513363979,
+        "msg": "REPORT RequestId: ac545c20-0ca7-4350-a196-3b8d7bc18011\tDuration: 445.72 ms\tBilled Duration: 1032 ms\tMemory Size: 1280 MB\tMax Memory Used: 113 MB\tInit Duration: 586.04 ms"
+      },
+      {
+        "ts": 1778513367867,
+        "msg": "=== DONE: 503 stocks in 176.7s ==="
+      },
+      {
+        "ts": 1778513368132,
+        "msg": "[just-crossed] snapshot saved: screener/snapshots/2026-05-11.json"
+      },
+      {
+        "ts": 1778513368198,
+        "msg": "[just-crossed] comparing today (2026-05-11) vs 2026-05-10"
+      },
+      {
+        "ts": 1778513368241,
+        "msg": "[just-crossed] 1589 events written"
+      },
+      {
+        "ts": 1778513368267,
+        "msg": "[history] aggregating 30 snapshots: 2026-04-12 \u2192 2026-05-11"
+      },
+      {
+        "ts": 1778513370838,
+        "msg": "[history] wrote 619.5 KB \u00b7 503 symbols \u00d7 30 days \u00b7 rising=71 falling=277"
+      },
+      {
+        "ts": 1778513370848,
+        "msg": "REPORT RequestId: 10f013f3-5d3a-4340-9f3b-2c78b3b96cb9\tDuration: 179706.26 ms\tBilled Duration: 180295 ms\tMemory Size: 1280 MB\tMax Memory Used: 111 MB\tInit Duration: 588.04 ms"
+      }
+    ]
+  },
+  "finished": "2026-05-11T15:33:48.675673+00:00"
+}
