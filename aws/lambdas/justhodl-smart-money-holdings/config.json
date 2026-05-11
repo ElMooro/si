@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-smart-money-holdings",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Builds inverse mapping {symbol: top funds holding it} for screener integration",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "schedule": {
+    "rule_name": "justhodl-smart-money-holdings-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "description": "Daily 14:30 UTC — 30 min after smart-money-tracker"
+  }
+}
