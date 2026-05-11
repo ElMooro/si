@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M&A Activity Tracker — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%9D%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);letter-spacing:.4px;}
+.nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);}
+.panel-body{padding:12px 16px;max-height:380px;overflow-y:auto;}
+.panel-body::-webkit-scrollbar{width:6px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+.sector-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12px;}
+.sector-name{flex:1;color:var(--text);}
+.sector-bar{flex:0 0 200px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--info));}
+.sector-count{width:36px;text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.acquirer-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(28,35,48,.5);font-size:12px;}
+.acquirer-row:last-child{border-bottom:0;}
+.acquirer-sym{width:54px;font-family:var(--font-mono);font-weight:600;color:var(--accent);}
+.acquirer-name{flex:1;}
+.acquirer-sec{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);}
+.acquirer-count{width:32px;text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--info);}
+.deals-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.filter-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-row input,.filter-row select{background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:12px;outline:none;}
+.filter-row input{min-width:200px;}
+.filter-row input:focus,.filter-row select:focus{border-color:var(--accent);}
+.filter-chip{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);padding:4px 8px;}
+table.deals{width:100%;border-collapse:collapse;font-size:12px;}
+table.deals thead{background:rgba(28,35,48,.4);}
+table.deals th{text-align:left;padding:10px 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap;}
+table.deals th:hover{color:var(--text);}
+table.deals th.sortable::after{content:'▾';opacity:.3;font-size:9px;margin-left:4px;}
+table.deals th.sorted-desc::after{content:'▼';opacity:1;color:var(--accent);}
+table.deals th.sorted-asc::after{content:'▲';opacity:1;color:var(--accent);}
+table.deals td{padding:11px 14px;border-bottom:1px solid rgba(28,35,48,.5);vertical-align:top;}
+table.deals tbody tr:hover{background:rgba(167,139,250,.04);}
+.deal-sym{font-family:var(--font-mono);font-weight:600;color:var(--accent);display:inline-block;min-width:48px;}
+.deal-tgt-sym{font-family:var(--font-mono);font-weight:600;color:var(--info);}
+.deal-date{font-family:var(--font-mono);color:var(--text-dim);font-size:11px;}
+.deal-sector-chip{display:inline-block;padding:1px 6px;font-size:10px;background:rgba(167,139,250,.1);color:var(--accent);border-radius:2px;font-family:var(--font-mono);}
+.deal-cik{color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+.pagination{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);}
+.pagination button{background:var(--bg);border:1px solid var(--border-hi);color:var(--text-dim);padding:5px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;}
+.pagination button:hover:not(:disabled){color:var(--text);border-color:var(--accent);}
+.pagination button:disabled{opacity:.4;cursor:not-allowed;}
+.pagination-info{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);}
+.loading{text-align:center;padding:60px 20px;color:var(--text-dim);font-family:var(--font-mono);font-size:13px;}
+.deal-link{color:var(--text-dim);text-decoration:none;font-size:10px;font-family:var(--font-mono);}
+.deal-link:hover{color:var(--info);}
+</style>
+</head>
+<body>
+<header>
+<h1>🤝 M&amp;A Activity <span class="badge">FMP ULTIMATE</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">connecting</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div class="summary-row">
+<div class="stat"><div class="stat-label">Total Deals Tracked</div><div class="stat-val" id="stat-total">—</div><div class="stat-sub" id="stat-range">latest M&amp;A activity</div></div>
+<div class="stat"><div class="stat-label">Most Active Sector</div><div class="stat-val" id="stat-sector">—</div><div class="stat-sub" id="stat-sector-sub">by deal count</div></div>
+<div class="stat"><div class="stat-label">Top Serial Acquirer</div><div class="stat-val" id="stat-acquirer">—</div><div class="stat-sub" id="stat-acquirer-sub">most deals</div></div>
+<div class="stat"><div class="stat-label">Data Freshness</div><div class="stat-val" id="stat-fresh">—</div><div class="stat-sub" id="stat-elapsed">cached via Lambda</div></div>
+</div>
+<div class="grid-2col">
+<div class="panel"><div class="panel-title">By Acquirer Sector</div><div class="panel-body" id="by-sector"><div class="loading">Loading sectors</div></div></div>
+<div class="panel"><div class="panel-title">Top Serial Acquirers</div><div class="panel-body" id="top-acquirers"><div class="loading">Loading acquirers</div></div></div>
+</div>
+<div class="deals-panel">
+<div class="filter-row">
+<input id="search" placeholder="Search acquirer / target / sector…" />
+<select id="filter-sector"><option value="">All sectors</option></select>
+<span class="filter-chip" id="filter-count">— deals</span>
+</div>
+<div style="overflow-x:auto">
+<table class="deals">
+<thead><tr>
+<th class="sortable" data-sort="acceptedDate">Date</th>
+<th class="sortable" data-sort="symbol">Acquirer</th>
+<th class="sortable" data-sort="companyName">Company</th>
+<th class="sortable" data-sort="targetedSymbol">Target</th>
+<th>Targeted Company</th>
+<th>Sector</th>
+<th>Filing</th>
+</tr></thead>
+<tbody id="deals-body"><tr><td colspan="7"><div class="loading">Loading deals</div></td></tr></tbody>
+</table>
+</div>
+<div class="pagination">
+<button id="prev-btn">◀ Prev</button>
+<span class="pagination-info" id="page-info">—</span>
+<button id="next-btn">Next ▶</button>
+</div>
+</div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
