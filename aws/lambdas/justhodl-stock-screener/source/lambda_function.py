@@ -711,7 +711,258 @@ def lambda_handler(event, context):
         Body=json.dumps(payload, separators=(",",":")),
         ContentType="application/json", CacheControl="max-age=14400"
     )
+
+    # ── STAGE 7: Daily snapshot + just-crossed diff ────────────────────
+    # Save today's payload to snapshots/YYYY-MM-DD.json (latest-wins on
+    # multi-runs/day). Try to find yesterday's snapshot (or oldest within
+    # the last 7 days) and compute a diff to surface stocks that newly
+    # entered key categories. Write to screener/just-crossed.json.
+    try:
+        write_snapshot_and_diff(stocks, payload)
+    except Exception as e:
+        print(f"[just-crossed] WARN write failed: {e}")
+
     return {"statusCode":200,"headers":hdrs,"body":json.dumps({
         "success":True,"count":len(stocks),
         "elapsed_seconds":round(elapsed,1),"generated_at":payload["generated_at"]
     })}
+
+
+def write_snapshot_and_diff(today_stocks, today_payload):
+    """Write today's snapshot, try to load yesterday's, compute crossings."""
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    snap_key = f"screener/snapshots/{today_iso}.json"
+
+    # Slim snapshot — strip large fields we don't need for diffs
+    slim_stocks = []
+    for s in today_stocks:
+        slim_stocks.append({
+            "symbol": s.get("symbol"),
+            "name": s.get("name"),
+            "sector": s.get("sector"),
+            "marketCap": s.get("marketCap"),
+            "price": s.get("price"),
+            "stealScore": s.get("stealScore"),
+            "stealBucket": s.get("stealBucket"),
+            "stealRank": s.get("stealRank"),
+            "insiderSignal": s.get("insiderSignal"),
+            "insiderNet90dUsd": s.get("insiderNet90dUsd"),
+            "insiderBuyersN90d": s.get("insiderBuyersN90d"),
+            "beatStreak": s.get("beatStreak"),
+            "crossSignal": s.get("crossSignal"),
+            "sustainable3y": s.get("sustainable3y"),
+            "sustainableQuality": s.get("sustainableQuality"),
+            "revenueGrowth": s.get("revenueGrowth"),
+            "fcfYieldCalc": s.get("fcfYieldCalc"),
+            "buybackYield": s.get("buybackYield"),
+            "operatingMargin": s.get("operatingMargin"),
+            "chg1m": s.get("chg1m"),
+            "chg6m": s.get("chg6m"),
+        })
+    snap_payload = {
+        "snapshot_date": today_iso,
+        "generated_at": today_payload["generated_at"],
+        "count": len(slim_stocks),
+        "stocks": slim_stocks,
+    }
+    s3.put_object(
+        Bucket=S3_BUCKET, Key=snap_key,
+        Body=json.dumps(snap_payload, separators=(",", ":")),
+        ContentType="application/json", CacheControl="max-age=86400")
+    print(f"[just-crossed] snapshot saved: {snap_key}")
+
+    # Find the most recent prior snapshot (walk back up to 7 days)
+    from datetime import timedelta as _td
+    today_dt = datetime.now(timezone.utc).date()
+    prior_snap = None
+    prior_date = None
+    for back in range(1, 8):
+        check_date = (today_dt - _td(days=back)).isoformat()
+        check_key = f"screener/snapshots/{check_date}.json"
+        try:
+            obj = s3.get_object(Bucket=S3_BUCKET, Key=check_key)
+            prior_snap = json.loads(obj["Body"].read())
+            prior_date = check_date
+            print(f"[just-crossed] comparing today ({today_iso}) vs {prior_date}")
+            break
+        except Exception:
+            continue
+
+    if not prior_snap:
+        print("[just-crossed] no prior snapshot found within 7 days — skipping diff")
+        return
+
+    # Build symbol-keyed lookups
+    today_by_sym = {s["symbol"]: s for s in slim_stocks}
+    prior_by_sym = {s["symbol"]: s for s in (prior_snap.get("stocks") or [])}
+
+    events = []
+
+    for symbol, today_s in today_by_sym.items():
+        prior_s = prior_by_sym.get(symbol)
+        if not prior_s:
+            continue  # New symbol in S&P 500 — skip (no comparison)
+
+        common = {
+            "symbol": symbol,
+            "name": today_s.get("name"),
+            "sector": today_s.get("sector"),
+            "marketCap": today_s.get("marketCap"),
+            "price": today_s.get("price"),
+            "stealScore": today_s.get("stealScore"),
+            "stealBucket": today_s.get("stealBucket"),
+            "stealRank": today_s.get("stealRank"),
+            "chg1m": today_s.get("chg1m"),
+        }
+
+        # ── 1. STEAL TIER changes ──
+        prior_tier = prior_s.get("stealBucket")
+        today_tier = today_s.get("stealBucket")
+        TIER_ORDER = {None: 0, "QUALITY": 1, "PREMIUM": 2, "STEAL": 3}
+        prior_rank = TIER_ORDER.get(prior_tier, 0)
+        today_rank = TIER_ORDER.get(today_tier, 0)
+        if today_rank > prior_rank:
+            events.append({**common, "type": "ENTERED_TIER",
+                "from": prior_tier, "to": today_tier,
+                "from_score": prior_s.get("stealScore"),
+                "to_score": today_s.get("stealScore"),
+                "significance": 80 + (today_rank * 10),  # 90/100/110
+            })
+        elif today_rank < prior_rank and prior_rank > 0:
+            events.append({**common, "type": "EXITED_TIER",
+                "from": prior_tier, "to": today_tier,
+                "from_score": prior_s.get("stealScore"),
+                "to_score": today_s.get("stealScore"),
+                "significance": 50 + (prior_rank * 5),
+            })
+
+        # ── 2. STEAL SCORE jumps (≥5 points up) ──
+        prior_score = prior_s.get("stealScore")
+        today_score = today_s.get("stealScore")
+        if prior_score is not None and today_score is not None:
+            delta = today_score - prior_score
+            if delta >= 5:
+                events.append({**common, "type": "SCORE_JUMP",
+                    "from": round(prior_score, 1),
+                    "to": round(today_score, 1),
+                    "delta": round(delta, 1),
+                    "significance": min(95, 50 + delta * 2),
+                })
+            elif delta <= -5:
+                events.append({**common, "type": "SCORE_DROP",
+                    "from": round(prior_score, 1),
+                    "to": round(today_score, 1),
+                    "delta": round(delta, 1),
+                    "significance": min(70, 40 + abs(delta) * 1.5),
+                })
+
+        # ── 3. INSIDER SIGNAL flips ──
+        prior_ins = prior_s.get("insiderSignal")
+        today_ins = today_s.get("insiderSignal")
+        if prior_ins != today_ins and today_ins:
+            if today_ins == "buying":
+                events.append({**common, "type": "INSIDER_TURNED_BUYING",
+                    "from": prior_ins, "to": today_ins,
+                    "insider_net": today_s.get("insiderNet90dUsd"),
+                    "significance": 75,
+                })
+            elif today_ins == "selling":
+                events.append({**common, "type": "INSIDER_TURNED_SELLING",
+                    "from": prior_ins, "to": today_ins,
+                    "insider_net": today_s.get("insiderNet90dUsd"),
+                    "significance": 60,
+                })
+
+        # ── 4. BEAT STREAK milestones (newly hit 3, 5, 7+) ──
+        prior_streak = prior_s.get("beatStreak") or 0
+        today_streak = today_s.get("beatStreak") or 0
+        for milestone in (3, 5, 7, 10):
+            if today_streak >= milestone and prior_streak < milestone:
+                events.append({**common, "type": f"BEAT_STREAK_{milestone}",
+                    "from": prior_streak, "to": today_streak,
+                    "significance": 50 + milestone * 3,
+                })
+                break
+
+        # ── 5. GOLDEN / DEATH CROSS — newly detected ──
+        prior_cross = prior_s.get("crossSignal")
+        today_cross = today_s.get("crossSignal")
+        if today_cross and today_cross != prior_cross:
+            if today_cross == "GOLDEN":
+                events.append({**common, "type": "GOLDEN_CROSS",
+                    "from": prior_cross, "to": today_cross,
+                    "significance": 70,
+                })
+            elif today_cross == "DEATH":
+                events.append({**common, "type": "DEATH_CROSS",
+                    "from": prior_cross, "to": today_cross,
+                    "significance": 55,
+                })
+
+        # ── 6. SUSTAINABLE QUALITY flag flipped ──
+        if today_s.get("sustainableQuality") and not prior_s.get("sustainableQuality"):
+            events.append({**common, "type": "BECAME_SUSTAINABLE_QUALITY",
+                "to": True, "significance": 65})
+
+        # ── 7. FCF YIELD threshold crossings ──
+        prior_fcfy = prior_s.get("fcfYieldCalc") or 0
+        today_fcfy = today_s.get("fcfYieldCalc") or 0
+        for threshold, label in [(10, "FCF_YIELD_10"), (5, "FCF_YIELD_5")]:
+            if today_fcfy >= threshold and prior_fcfy < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_fcfy, 1),
+                    "to": round(today_fcfy, 1),
+                    "significance": 50 + threshold * 2,
+                })
+                break
+
+        # ── 8. REVENUE GROWTH acceleration ──
+        prior_rg = prior_s.get("revenueGrowth") or 0
+        today_rg = today_s.get("revenueGrowth") or 0
+        for threshold, label in [(25, "REV_GROWTH_25"), (15, "REV_GROWTH_15")]:
+            if today_rg >= threshold and prior_rg < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_rg, 1),
+                    "to": round(today_rg, 1),
+                    "significance": 50 + threshold * 1.5,
+                })
+                break
+
+        # ── 9. BUYBACK YIELD threshold ──
+        prior_bb = prior_s.get("buybackYield") or 0
+        today_bb = today_s.get("buybackYield") or 0
+        for threshold, label in [(5, "BUYBACK_5"), (2, "BUYBACK_2")]:
+            if today_bb >= threshold and prior_bb < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_bb, 1),
+                    "to": round(today_bb, 1),
+                    "significance": 50 + threshold * 4,
+                })
+                break
+
+    # Sort by significance descending (most newsworthy first)
+    events.sort(key=lambda e: -e.get("significance", 0))
+
+    # Bucket counts for the summary
+    type_counts = {}
+    for e in events:
+        type_counts[e["type"]] = type_counts.get(e["type"], 0) + 1
+
+    output = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "comparison": {
+            "today": today_iso,
+            "previous": prior_date,
+            "days_back": (today_dt - datetime.strptime(prior_date, "%Y-%m-%d").date()).days,
+        },
+        "n_events": len(events),
+        "type_counts": type_counts,
+        "events": events[:200],   # cap at 200 most significant
+    }
+    s3.put_object(
+        Bucket=S3_BUCKET, Key="screener/just-crossed.json",
+        Body=json.dumps(output, separators=(",", ":")),
+        ContentType="application/json", CacheControl="max-age=3600")
+    print(f"[just-crossed] {len(events)} events written")
+    for typ, cnt in sorted(type_counts.items(), key=lambda x: -x[1])[:10]:
+        print(f"  {typ:<30} {cnt}")

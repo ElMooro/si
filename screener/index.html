@@ -184,6 +184,41 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
 .compare-fab.has-selection{display:flex;align-items:center;gap:6px}
 .compare-fab .cb-count{background:rgba(255,255,255,.25);padding:2px 7px;border-radius:10px;font-size:11px}
 .share-toast{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);background:var(--teal);color:#0a0d18;padding:10px 20px;border-radius:4px;font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:1px;z-index:300;box-shadow:0 4px 20px rgba(0,212,170,.4);display:none}
+/* Just Crossed feed */
+.jc-feed{display:none;padding:14px 16px;background:linear-gradient(180deg,rgba(251,113,133,.04),rgba(251,113,133,.01));border-bottom:1px solid var(--border);min-height:200px}
+.jc-feed.active{display:block}
+.jc-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.jc-title{font-family:var(--font-ui);font-size:13px;font-weight:700;color:#fb7185;letter-spacing:1px}
+.jc-meta{font-size:10px;color:var(--text2);font-family:var(--font-mono)}
+.jc-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border2)}
+.jc-filter-btn{font-family:var(--font-ui);font-size:9px;font-weight:600;padding:3px 9px;border-radius:10px;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:transparent;transition:all .15s;letter-spacing:.4px;text-transform:uppercase}
+.jc-filter-btn.on{background:rgba(251,113,133,.15);color:#fb7185;border-color:rgba(251,113,133,.35)}
+.jc-events{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:8px;max-height:calc(100vh - 380px);overflow-y:auto;padding-right:4px}
+.jc-event{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--border);border-radius:4px;padding:8px 12px;font-size:11px;transition:all .2s;cursor:pointer}
+.jc-event:hover{transform:translateX(2px);border-left-color:var(--teal);background:#0d1020}
+.jc-event-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;gap:8px}
+.jc-event-sym{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--teal2);letter-spacing:.5px}
+.jc-event-name{font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jc-event-type{font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:.6px;padding:2px 6px;border-radius:2px;text-transform:uppercase}
+.jc-event-type.ENTERED_TIER{background:rgba(255,215,0,.18);color:#ffd700}
+.jc-event-type.EXITED_TIER{background:rgba(255,193,7,.12);color:var(--warn)}
+.jc-event-type.SCORE_JUMP{background:rgba(0,230,118,.15);color:var(--pos)}
+.jc-event-type.SCORE_DROP{background:rgba(255,61,90,.12);color:var(--neg)}
+.jc-event-type.INSIDER_TURNED_BUYING{background:rgba(0,230,118,.15);color:var(--pos)}
+.jc-event-type.INSIDER_TURNED_SELLING{background:rgba(255,61,90,.12);color:var(--neg)}
+.jc-event-type.BEAT_STREAK_3,.jc-event-type.BEAT_STREAK_5,.jc-event-type.BEAT_STREAK_7,.jc-event-type.BEAT_STREAK_10{background:rgba(132,204,22,.15);color:#84cc16}
+.jc-event-type.GOLDEN_CROSS{background:rgba(0,255,136,.18);color:#00ff88}
+.jc-event-type.DEATH_CROSS{background:rgba(255,77,77,.16);color:#ff4d4d}
+.jc-event-type.BECAME_SUSTAINABLE_QUALITY{background:rgba(0,212,170,.16);color:var(--teal)}
+.jc-event-type.FCF_YIELD_10,.jc-event-type.FCF_YIELD_5{background:rgba(0,230,118,.13);color:var(--pos)}
+.jc-event-type.REV_GROWTH_15,.jc-event-type.REV_GROWTH_25{background:rgba(30,144,255,.14);color:var(--blue)}
+.jc-event-type.BUYBACK_2,.jc-event-type.BUYBACK_5{background:rgba(168,85,247,.14);color:#a855f7}
+.jc-event-row2{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10px;color:var(--text2)}
+.jc-event-row2 .sector{padding:1px 5px;background:rgba(30,144,255,.08);color:#6bb5ff;border-radius:2px;font-size:9px}
+.jc-event-row2 .change-arrow{color:var(--text);font-weight:600}
+.jc-event-row2 .change-arrow.pos{color:var(--pos)}
+.jc-event-row2 .change-arrow.neg{color:var(--neg)}
+.jc-empty{padding:40px 20px;text-align:center;color:var(--text2);font-size:12px}
 </style>
 </head>
 <body>
@@ -240,6 +275,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
 <div class="tab-bar">
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
   <div class="tab" data-tab="steal_board" onclick="setTab(this)" style="color:#ffd700;font-weight:700">💎 THE STEAL BOARD</div>
+  <div class="tab" data-tab="just_crossed" onclick="setTab(this)" style="color:#fb7185">🆕 JUST CROSSED <span id="justCrossedBadge" style="background:rgba(251,113,133,.25);color:#fb7185;padding:1px 5px;border-radius:8px;margin-left:3px;font-size:9px;display:none"></span></div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -338,6 +374,29 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <span><span class="result-count" id="resultCount">&#8212;</span>&nbsp;stocks matching filters</span>
   <span id="sortInfo" style="color:var(--text2);font-size:10px"></span>
 </div>
+
+<!-- Just Crossed Feed -->
+<div class="jc-feed" id="justCrossedFeed">
+  <div class="jc-header">
+    <div>
+      <span class="jc-title">🆕 JUST CROSSED</span>
+      <span class="jc-meta" id="jcMeta" style="margin-left:8px"></span>
+    </div>
+    <span class="jc-meta" id="jcGeneratedAt"></span>
+  </div>
+  <div class="jc-filter" id="jcFilter">
+    <button class="jc-filter-btn on" data-filter="all">ALL</button>
+    <button class="jc-filter-btn" data-filter="bullish">📈 BULLISH</button>
+    <button class="jc-filter-btn" data-filter="bearish">📉 BEARISH</button>
+    <button class="jc-filter-btn" data-filter="steal">💎 TIER CHANGES</button>
+    <button class="jc-filter-btn" data-filter="insider">🎯 INSIDER</button>
+    <button class="jc-filter-btn" data-filter="momentum">⚡ MOMENTUM</button>
+    <button class="jc-filter-btn" data-filter="fundamentals">💰 FUNDAMENTALS</button>
+  </div>
+  <div class="jc-events" id="jcEvents">
+    <div class="jc-empty">Loading just-crossed events…</div>
+  </div>
+</div>
 <div class="table-wrap" id="tableWrap">
   <div class="status-screen" id="loadingScreen">
     <div class="spinner"></div>
@@ -379,7 +438,10 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
 const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.json';
 const LCE_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-conditions-engine.json';
 const GBC_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json';
+const JUST_CROSSED_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/just-crossed.json';
 let MACRO=null;  // {lce, gbc, posture, phase, sector_tilts}
+let JUST_CROSSED=null;  // {events, comparison, type_counts}
+let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
@@ -623,6 +685,132 @@ function renderMacroPanel(){
   // Show the panel if EITHER feed is available
   if(MACRO.posture||MACRO.phase)wrap.style.display='block';
 }
+
+// ── Stage 7: Just Crossed feed ────────────────────────────
+async function loadJustCrossed(){
+  try{
+    const res=await fetch(JUST_CROSSED_URL+'?t='+Date.now());
+    if(!res.ok){
+      // Likely 404 on first ever run before any snapshot pair exists
+      const empty=document.getElementById('jcEvents');
+      if(empty)empty.innerHTML='<div class="jc-empty">Just Crossed needs 2 successive daily snapshots to compute changes. After the next Lambda run, events will appear here.</div>';
+      return;
+    }
+    JUST_CROSSED=await res.json();
+    renderJustCrossed();
+    // Badge on the tab — show event count if > 0
+    const badge=document.getElementById('justCrossedBadge');
+    if(badge&&JUST_CROSSED.n_events){
+      badge.style.display='inline-block';
+      badge.textContent=JUST_CROSSED.n_events;
+    }
+  }catch(e){console.warn('JustCrossed load failed:',e);}
+}
+
+const JC_FILTER_MAP={
+  all:        null,
+  bullish:    ["ENTERED_TIER","SCORE_JUMP","INSIDER_TURNED_BUYING","GOLDEN_CROSS","BECAME_SUSTAINABLE_QUALITY","FCF_YIELD_10","FCF_YIELD_5","REV_GROWTH_25","REV_GROWTH_15","BUYBACK_5","BUYBACK_2","BEAT_STREAK_3","BEAT_STREAK_5","BEAT_STREAK_7","BEAT_STREAK_10"],
+  bearish:    ["EXITED_TIER","SCORE_DROP","INSIDER_TURNED_SELLING","DEATH_CROSS"],
+  steal:      ["ENTERED_TIER","EXITED_TIER","SCORE_JUMP","SCORE_DROP"],
+  insider:    ["INSIDER_TURNED_BUYING","INSIDER_TURNED_SELLING"],
+  momentum:   ["GOLDEN_CROSS","DEATH_CROSS","SCORE_JUMP","SCORE_DROP"],
+  fundamentals:["BECAME_SUSTAINABLE_QUALITY","FCF_YIELD_10","FCF_YIELD_5","REV_GROWTH_25","REV_GROWTH_15","BUYBACK_5","BUYBACK_2","BEAT_STREAK_3","BEAT_STREAK_5","BEAT_STREAK_7","BEAT_STREAK_10"],
+};
+
+function renderJustCrossed(){
+  if(!JUST_CROSSED)return;
+  const metaEl=document.getElementById('jcMeta');
+  const genEl=document.getElementById('jcGeneratedAt');
+  const eventsEl=document.getElementById('jcEvents');
+  const cmp=JUST_CROSSED.comparison||{};
+  metaEl.textContent=`comparing ${cmp.today} → ${cmp.previous} (${cmp.days_back||1}d ago) · ${JUST_CROSSED.n_events||0} events`;
+  const gen=JUST_CROSSED.generated_at?new Date(JUST_CROSSED.generated_at):null;
+  genEl.textContent=gen?'updated '+gen.toLocaleTimeString():'';
+  // Filter
+  const allow=JC_FILTER_MAP[JC_FILTER];
+  const events=(JUST_CROSSED.events||[]).filter(e=>!allow||allow.includes(e.type));
+  if(!events.length){
+    eventsEl.innerHTML='<div class="jc-empty">No events match this filter.</div>';
+    return;
+  }
+  eventsEl.innerHTML=events.slice(0,100).map(e=>renderJustCrossedEvent(e)).join('');
+}
+
+function renderJustCrossedEvent(e){
+  const label={
+    ENTERED_TIER:        `→ ${e.to}`,
+    EXITED_TIER:         `${e.from || '—'} ↓`,
+    SCORE_JUMP:          `+${e.delta} ↑`,
+    SCORE_DROP:          `${e.delta} ↓`,
+    INSIDER_TURNED_BUYING: '→ BUYING',
+    INSIDER_TURNED_SELLING:'→ SELLING',
+    BEAT_STREAK_3:       '3 BEATS 🔥',
+    BEAT_STREAK_5:       '5 BEATS 🔥🔥',
+    BEAT_STREAK_7:       '7 BEATS 🔥🔥🔥',
+    BEAT_STREAK_10:      '10 BEATS 🚀',
+    GOLDEN_CROSS:        '▲ GOLDEN',
+    DEATH_CROSS:         '▼ DEATH',
+    BECAME_SUSTAINABLE_QUALITY: '✓ SUSTAINABLE',
+    FCF_YIELD_10:        'FCF Y 10%+',
+    FCF_YIELD_5:         'FCF Y 5%+',
+    REV_GROWTH_25:       'REV +25%',
+    REV_GROWTH_15:       'REV +15%',
+    BUYBACK_2:           'BUYBACK 2%+',
+    BUYBACK_5:           'BUYBACK 5%+',
+  }[e.type] || e.type;
+
+  // From → to detail line
+  let detail='';
+  if(e.type==='SCORE_JUMP'||e.type==='SCORE_DROP'){
+    const arrow=e.delta>0?'pos':'neg';
+    detail=`<span class="change-arrow ${arrow}">${e.from} → ${e.to}</span>`;
+  }else if(e.type==='ENTERED_TIER'||e.type==='EXITED_TIER'){
+    detail=`<span class="change-arrow">${e.from||'—'} → ${e.to||'—'}</span> <span style="color:var(--text2)">(score ${e.from_score?e.from_score.toFixed(0):'-'}→${e.to_score?e.to_score.toFixed(0):'-'})</span>`;
+  }else if(e.type.startsWith('INSIDER')){
+    const arrow=e.type.includes('BUYING')?'pos':'neg';
+    const usd=e.insider_net;
+    let usdStr='';
+    if(typeof usd==='number'&&Math.abs(usd)>0){
+      const ab=Math.abs(usd);
+      const[n,suf]=ab>=1e9?[usd/1e9,'B']:ab>=1e6?[usd/1e6,'M']:[usd/1e3,'K'];
+      usdStr=` · net <span class="change-arrow ${arrow}">${usd>0?'+':''}\$${n.toFixed(1)}${suf}</span>`;
+    }
+    detail=`<span class="change-arrow ${arrow}">${e.from||'-'} → ${e.to}</span>${usdStr}`;
+  }else if(e.type.startsWith('FCF_YIELD_')||e.type.startsWith('REV_GROWTH_')||e.type.startsWith('BUYBACK_')){
+    detail=`<span class="change-arrow pos">${e.from}% → ${e.to}%</span>`;
+  }else if(e.type.startsWith('BEAT_STREAK_')){
+    detail=`<span class="change-arrow pos">${e.from} → ${e.to} quarters</span>`;
+  }else if(e.type==='GOLDEN_CROSS'){
+    detail=`<span class="change-arrow pos">SMA50 crossed above SMA200</span>`;
+  }else if(e.type==='DEATH_CROSS'){
+    detail=`<span class="change-arrow neg">SMA50 crossed below SMA200</span>`;
+  }else if(e.type==='BECAME_SUSTAINABLE_QUALITY'){
+    detail=`<span class="change-arrow pos">3y profit + ROE>15% + NetM>10%</span>`;
+  }
+
+  const sectorChip=e.sector?`<span class="sector">${e.sector.substring(0,16)}</span>`:'';
+  const stealCurrent=e.stealScore!==null&&e.stealScore!==undefined?`score ${e.stealScore.toFixed(0)}`:'';
+
+  return `<div class="jc-event" onclick="window.location.href='/stock/?symbol=${e.symbol}'">
+    <div class="jc-event-row1">
+      <span><span class="jc-event-sym">${e.symbol}</span> <span class="jc-event-name">${(e.name||'').substring(0,28)}</span></span>
+      <span class="jc-event-type ${e.type}">${label}</span>
+    </div>
+    <div class="jc-event-row2">
+      <span>${detail}</span>
+      <span>${sectorChip} <span style="color:var(--text2);margin-left:6px">${stealCurrent}</span></span>
+    </div>
+  </div>`;
+}
+
+// Filter button handlers
+document.addEventListener('click',e=>{
+  if(e.target.classList&&e.target.classList.contains('jc-filter-btn')){
+    JC_FILTER=e.target.dataset.filter;
+    document.querySelectorAll('.jc-filter-btn').forEach(b=>b.classList.toggle('on',b===e.target));
+    renderJustCrossed();
+  }
+});
 let macroTiltOn=false;
 function applyMacroTilt(){
   macroTiltOn=!macroTiltOn;
@@ -751,11 +939,28 @@ function setTab(el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   activeTab=el.dataset.tab;
+  applyTabUIMode();
   // Auto-sort by tab's primary metric when switching to a Phase 1 tab
   const defaultSort=TAB_DEFAULT_SORT[activeTab];
   if(defaultSort){sortCol=defaultSort.col;sortDir=defaultSort.dir;}
   saveState();
   applyFilters();
+}
+
+function applyTabUIMode(){
+  // Just Crossed tab swaps the main view from table → feed
+  const feed=document.getElementById('justCrossedFeed');
+  const tableWrap=document.getElementById('tableWrap');
+  const colBar=document.querySelector('.col-toggle-bar');
+  if(activeTab==='just_crossed'){
+    feed.classList.add('active');
+    tableWrap.style.display='none';
+    if(colBar)colBar.style.display='none';
+  }else{
+    feed.classList.remove('active');
+    tableWrap.style.display='';
+    if(colBar)colBar.style.display='';
+  }
 }
 function toggleColGroup(btn){
   const g=btn.dataset.group;
@@ -987,6 +1192,8 @@ function restoreFromUrlHash(){
     });
     if(state.hm)document.getElementById('heatmapToggle')?.classList.add('on');
     if(state.sp)document.getElementById('sparklineToggle')?.classList.add('on');
+    // Apply Just Crossed / feed visibility
+    applyTabUIMode();
     // Apply filters
     if(state.f){
       Object.entries(state.f).forEach(([k,v])=>{
@@ -1185,6 +1392,7 @@ async function loadData(){
     applyFilters();
     loadSentiment();      // async — augments allStocks then re-applies filters
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
+    loadJustCrossed();    // async — fetches the diff feed
     if(isStale)triggerRefresh();
   }catch(err){
     document.getElementById('loadingScreen').innerHTML=`<div class="error-box"><div style="font-size:14px;margin-bottom:8px">DATA LOAD FAILED</div><div style="font-size:11px;color:var(--text2)">${err.message}</div><div style="margin-top:12px"><button class="refresh-btn" onclick="loadData()">RETRY</button> <button class="refresh-btn" onclick="triggerRefresh()">TRIGGER REFRESH</button></div></div>`;
