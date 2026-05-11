@@ -722,6 +722,15 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"[just-crossed] WARN write failed: {e}")
 
+    # ── STAGE 8: History aggregation across all stored snapshots ──────
+    # Aggregates the last 30 snapshots into screener/history.json so the
+    # page can plot stealScore trajectories per stock + surface rising/
+    # fading names ahead of tier changes.
+    try:
+        build_history()
+    except Exception as e:
+        print(f"[history] WARN build failed: {e}")
+
     return {"statusCode":200,"headers":hdrs,"body":json.dumps({
         "success":True,"count":len(stocks),
         "elapsed_seconds":round(elapsed,1),"generated_at":payload["generated_at"]
@@ -966,3 +975,182 @@ def write_snapshot_and_diff(today_stocks, today_payload):
     print(f"[just-crossed] {len(events)} events written")
     for typ, cnt in sorted(type_counts.items(), key=lambda x: -x[1])[:10]:
         print(f"  {typ:<30} {cnt}")
+
+
+# ════════════════════════════════════════════════════════════════════════
+# STAGE 8 — History aggregation
+# Walks the last 30 snapshots in screener/snapshots/, builds a per-stock
+# time series + trend metrics, writes screener/history.json. Used by the
+# screener page for sparklines, rising/fading tabs, and a click-to-open
+# trajectory chart.
+# ════════════════════════════════════════════════════════════════════════
+def build_history(max_days=30):
+    """Aggregate snapshots → screener/history.json with per-stock time series."""
+    from datetime import datetime as _dt
+
+    # 1. List all snapshots
+    listing = s3.list_objects_v2(Bucket=S3_BUCKET,
+                                   Prefix="screener/snapshots/",
+                                   MaxKeys=200)
+    objs = listing.get("Contents") or []
+    if not objs:
+        print("[history] no snapshots in S3 — skipping")
+        return
+
+    # Extract date from key: screener/snapshots/YYYY-MM-DD.json
+    dated = []
+    for o in objs:
+        key = o["Key"]
+        # Pull date out of the filename
+        base = key.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+        try:
+            d = _dt.strptime(base, "%Y-%m-%d").date()
+            dated.append((d, key))
+        except ValueError:
+            continue
+    # Sort newest-first, take last N days
+    dated.sort(key=lambda x: x[0], reverse=True)
+    dated = dated[:max_days]
+    # Reverse to chronological order for the time series
+    dated.sort(key=lambda x: x[0])
+
+    if len(dated) < 1:
+        print("[history] no parsable snapshot dates")
+        return
+
+    print(f"[history] aggregating {len(dated)} snapshots: "
+          f"{dated[0][0]} → {dated[-1][0]}")
+
+    # 2. Load each snapshot + build per-symbol time series
+    dates_iso = [d.isoformat() for d, _ in dated]
+    # Pre-init per-symbol arrays — null where the symbol was missing that day
+    n = len(dated)
+    by_symbol = {}
+
+    for date_idx, (date, key) in enumerate(dated):
+        try:
+            obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+            snap = json.loads(obj["Body"].read())
+        except Exception as e:
+            print(f"[history]   skip {key}: {e}")
+            continue
+        snap_stocks = snap.get("stocks") or []
+        for s in snap_stocks:
+            sym = s.get("symbol")
+            if not sym:
+                continue
+            if sym not in by_symbol:
+                by_symbol[sym] = {
+                    "name": s.get("name"),
+                    "sector": s.get("sector"),
+                    "scores":   [None] * n,
+                    "buckets":  [None] * n,
+                    "ranks":    [None] * n,
+                    "insider":  [None] * n,
+                    "beats":    [None] * n,
+                    "crosses":  [None] * n,
+                }
+            # Always refresh name/sector to the most-recent observation
+            if s.get("name"): by_symbol[sym]["name"] = s.get("name")
+            if s.get("sector"): by_symbol[sym]["sector"] = s.get("sector")
+            by_symbol[sym]["scores"][date_idx]  = s.get("stealScore")
+            by_symbol[sym]["buckets"][date_idx] = s.get("stealBucket")
+            by_symbol[sym]["ranks"][date_idx]   = s.get("stealRank")
+            by_symbol[sym]["insider"][date_idx] = s.get("insiderSignal")
+            by_symbol[sym]["beats"][date_idx]   = s.get("beatStreak")
+            by_symbol[sym]["crosses"][date_idx] = s.get("crossSignal")
+
+    # 3. Compute trend metrics per stock
+    for sym, d in by_symbol.items():
+        scores = d["scores"]
+        # Find first and last non-null indices for valid trend windows
+        valid_idx = [i for i, v in enumerate(scores) if v is not None]
+        if not valid_idx:
+            d["score_now"] = None
+            d["score_7d_chg"] = None
+            d["score_14d_chg"] = None
+            d["score_30d_chg"] = None
+            d["score_trend"] = "unknown"
+            d["score_slope"] = None
+            continue
+
+        last_idx = valid_idx[-1]
+        score_now = scores[last_idx]
+        d["score_now"] = score_now
+
+        # Helper: find latest score at or before idx (lookback window)
+        def score_at_or_before(target_idx):
+            for j in range(min(target_idx, last_idx), -1, -1):
+                if scores[j] is not None:
+                    return scores[j]
+            return None
+
+        # 7-day, 14-day, 30-day lookbacks (in trading-day approximations)
+        d["score_7d_chg"]  = (round(score_now - (score_at_or_before(last_idx - 7) or score_now), 1)
+                                if last_idx >= 7 else None)
+        d["score_14d_chg"] = (round(score_now - (score_at_or_before(last_idx - 14) or score_now), 1)
+                                if last_idx >= 14 else None)
+        d["score_30d_chg"] = (round(score_now - (score_at_or_before(last_idx - 29) or score_now), 1)
+                                if last_idx >= 29 else None)
+
+        # Linear regression slope over the valid window — points/day
+        # using least-squares on (x=days, y=score)
+        xs = []
+        ys = []
+        for i in valid_idx:
+            xs.append(i)
+            ys.append(scores[i])
+        m = len(xs)
+        if m >= 3:
+            mean_x = sum(xs) / m
+            mean_y = sum(ys) / m
+            num = sum((xs[k] - mean_x) * (ys[k] - mean_y) for k in range(m))
+            den = sum((xs[k] - mean_x) ** 2 for k in range(m))
+            slope = (num / den) if den > 0 else 0.0
+            d["score_slope"] = round(slope, 3)
+        else:
+            d["score_slope"] = None
+
+        # Trend label — combines magnitude of recent change + slope direction
+        # Trending = either recent delta magnitude >= 5pts OR slope magnitude >= 0.5/day
+        # Otherwise "stable"
+        ref_chg = d["score_7d_chg"] or d["score_14d_chg"] or 0
+        slope = d["score_slope"] or 0
+        if ref_chg >= 5 or slope >= 0.5:
+            d["score_trend"] = "rising"
+        elif ref_chg <= -5 or slope <= -0.5:
+            d["score_trend"] = "falling"
+        else:
+            d["score_trend"] = "stable"
+
+    # 4. Summary buckets
+    rising = [sym for sym, d in by_symbol.items() if d.get("score_trend") == "rising"]
+    falling = [sym for sym, d in by_symbol.items() if d.get("score_trend") == "falling"]
+    # Sort rising by largest positive 7d change (or slope as fallback)
+    rising.sort(key=lambda s: -(by_symbol[s].get("score_7d_chg") or 0
+                                  or (by_symbol[s].get("score_slope") or 0) * 30))
+    falling.sort(key=lambda s: (by_symbol[s].get("score_7d_chg") or 0
+                                  or (by_symbol[s].get("score_slope") or 0) * 30))
+
+    output = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "dates": dates_iso,
+        "n_days": len(dates_iso),
+        "n_symbols": len(by_symbol),
+        "summary": {
+            "rising_count": len(rising),
+            "falling_count": len(falling),
+            "stable_count": len(by_symbol) - len(rising) - len(falling),
+            "top_5_rising": rising[:5],
+            "top_5_falling": falling[:5],
+        },
+        "by_symbol": by_symbol,
+    }
+    body = json.dumps(output, separators=(",", ":"))
+    s3.put_object(
+        Bucket=S3_BUCKET, Key="screener/history.json",
+        Body=body, ContentType="application/json",
+        CacheControl="max-age=14400")
+    print(f"[history] wrote {len(body)/1024:.1f} KB · "
+          f"{len(by_symbol)} symbols × {len(dates_iso)} days · "
+          f"rising={len(rising)} falling={len(falling)}")

@@ -219,6 +219,43 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
 .jc-event-row2 .change-arrow.pos{color:var(--pos)}
 .jc-event-row2 .change-arrow.neg{color:var(--neg)}
 .jc-empty{padding:40px 20px;text-align:center;color:var(--text2);font-size:12px}
+/* Stage 8: stealScore trend visualization */
+.score-spark-cell{display:inline-flex;align-items:center;gap:4px}
+.score-spark-svg{display:inline-block;width:64px;height:18px;vertical-align:middle}
+.score-spark-svg .line{fill:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.score-spark-svg .fill{opacity:.18}
+.score-spark-svg .marker{r:2}
+.score-spark-svg.rising .line,.score-spark-svg.rising .fill{stroke:#00e676;fill:#00e676}
+.score-spark-svg.rising .marker{fill:#00e676}
+.score-spark-svg.falling .line,.score-spark-svg.falling .fill{stroke:#ff3d5a;fill:#ff3d5a}
+.score-spark-svg.falling .marker{fill:#ff3d5a}
+.score-spark-svg.stable .line,.score-spark-svg.stable .fill{stroke:#94a3b8;fill:#94a3b8}
+.score-spark-svg.stable .marker{fill:#94a3b8}
+.trend-badge{font-family:var(--font-ui);font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.4px;text-transform:uppercase}
+.trend-badge.rising{background:rgba(0,230,118,.15);color:#00e676;border:1px solid rgba(0,230,118,.3)}
+.trend-badge.falling{background:rgba(255,61,90,.13);color:#ff3d5a;border:1px solid rgba(255,61,90,.3)}
+.trend-badge.stable{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+.trend-badge.unknown{background:rgba(71,85,105,.08);color:#475569;border:1px solid rgba(71,85,105,.2)}
+/* History modal — bigger chart over time */
+.history-modal{position:fixed;top:8%;left:8%;right:8%;bottom:8%;background:linear-gradient(180deg,#0a0d18,#0c0f1a);border:1px solid var(--border);border-radius:6px;z-index:210;box-shadow:0 10px 60px rgba(0,0,0,.8),0 0 1px var(--teal);display:none;flex-direction:column}
+.history-modal.open{display:flex}
+.history-header{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(0,212,170,.04)}
+.history-title{font-family:var(--font-ui);font-size:14px;font-weight:700;color:var(--teal);letter-spacing:1.5px}
+.history-title .sym{font-size:18px;color:var(--teal2);margin-right:8px}
+.history-title .name{color:var(--text);font-weight:400;font-size:12px;margin-left:4px}
+.history-close{background:transparent;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:0 8px;line-height:1}
+.history-close:hover{color:var(--neg)}
+.history-content{flex:1;overflow:auto;padding:20px 30px}
+.history-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.history-stat{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:10px 14px}
+.history-stat-label{font-family:var(--font-ui);font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.history-stat-val{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--text)}
+.history-stat-val.pos{color:var(--pos)}
+.history-stat-val.neg{color:var(--neg)}
+.history-stat-meta{font-size:10px;color:var(--text2);margin-top:3px}
+.history-chart{width:100%;height:300px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:10px;margin-bottom:14px}
+.history-events{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:8px}
+.history-event-empty{padding:20px;text-align:center;color:var(--text2);font-size:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px}
 </style>
 </head>
 <body>
@@ -276,6 +313,8 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
   <div class="tab" data-tab="steal_board" onclick="setTab(this)" style="color:#ffd700;font-weight:700">💎 THE STEAL BOARD</div>
   <div class="tab" data-tab="just_crossed" onclick="setTab(this)" style="color:#fb7185">🆕 JUST CROSSED <span id="justCrossedBadge" style="background:rgba(251,113,133,.25);color:#fb7185;padding:1px 5px;border-radius:8px;margin-left:3px;font-size:9px;display:none"></span></div>
+  <div class="tab" data-tab="rising" onclick="setTab(this)" style="color:#00e676">📈 RISING</div>
+  <div class="tab" data-tab="fading" onclick="setTab(this)" style="color:#ff6b9d">📉 FADING</div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -420,6 +459,24 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   </div>
 </div>
 
+<!-- History modal — per-stock stealScore trajectory -->
+<div id="historyModal" class="history-modal">
+  <div class="history-header">
+    <div class="history-title">
+      <span class="sym" id="histSym">—</span>
+      <span style="font-size:11px;color:var(--text2);font-weight:600">STEAL SCORE TRAJECTORY</span>
+      <span class="name" id="histName"></span>
+    </div>
+    <button class="history-close" onclick="closeHistory()" title="Close (Esc)">×</button>
+  </div>
+  <div class="history-content">
+    <div class="history-stats" id="histStats"></div>
+    <div class="history-chart" id="histChart"></div>
+    <div style="font-family:var(--font-ui);font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:8px 0">Recent events for this stock</div>
+    <div class="history-events" id="histEvents"></div>
+  </div>
+</div>
+
 <!-- Floating Compare button -->
 <button class="compare-fab" id="compareFab" onclick="openCompare()">
   ⚖ COMPARE <span class="cb-count" id="cbCount">0</span>
@@ -439,8 +496,10 @@ const DATA_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/data.j
 const LCE_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-conditions-engine.json';
 const GBC_URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/global-business-cycle.json';
 const JUST_CROSSED_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/just-crossed.json';
+const HISTORY_URL='https://justhodl-dashboard-live.s3.amazonaws.com/screener/history.json';
 let MACRO=null;  // {lce, gbc, posture, phase, sector_tilts}
 let JUST_CROSSED=null;  // {events, comparison, type_counts}
+let HISTORY=null;  // {dates, by_symbol{sym:{scores,buckets,...,score_30d_chg,score_trend}}, summary}
 let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
@@ -455,6 +514,11 @@ const COLS=[
   {id:'marketCap',label:'Mkt Cap',group:'fixed',fn:r=>r.marketCap,fmt:'mcap'},
   // ── Stage 3: STEAL SCORE — flagship composite ranking ──
   {id:'stealScore',label:'Steal',group:'fixed',fn:r=>r.stealScore,fmt:'steal'},
+  // ── Stage 8: Historical trend ──
+  {id:'scoreSpark',label:'30d Trend',group:'scores',fn:r=>r.symbol,fmt:'scoreSpark'},
+  {id:'score7dChg',label:'7d Δ',group:'scores',fn:r=>r.score7dChg,fmt:'pct1'},
+  {id:'score30dChg',label:'30d Δ',group:'scores',fn:r=>r.score30dChg,fmt:'pct1'},
+  {id:'scoreTrend',label:'Trend',group:'scores',fn:r=>r.scoreTrend,fmt:'trend_badge'},
   {id:'stealBucket',label:'Tier',group:'scores',fn:r=>r.stealBucket,fmt:'steal_badge'},
   // ── Phase 1: absolute dollar fundamentals ──
   {id:'revenue',label:'Revenue',group:'fundamentals',fn:r=>r.revenue,fmt:'mcap'},
@@ -518,7 +582,7 @@ function fmtCell(val,fmt,rank){
     return'<span style="color:'+col+';font-size:11px;font-weight:700">'+ico+' '+sig.toUpperCase()+'</span>';
   }
   if(fmt==='rank')return`<span class="dim">${rank}</span>`;
-  if(fmt==='sym')return`<a class="sym-link" href="/stock/?symbol=${val}">${val}</a>`;
+  if(fmt==='sym')return`<a class="sym-link" href="/stock/?symbol=${val}">${val}</a><span onclick="event.preventDefault();event.stopPropagation();openHistory('${val}')" title="Open trajectory chart" style="cursor:pointer;margin-left:4px;color:var(--text2);font-size:10px">📈</span>`;
   if(fmt==='name')return`<span title="${val||''}" style="font-size:10px;color:var(--white)">${(val||'').substring(0,22)}</span>`;
   if(fmt==='sector')return val?`<span class="sector-chip">${val.substring(0,14)}</span>`:'<span class="na">-</span>';
   if(val===null||val===undefined||val!==val)return'<span class="na">-</span>';
@@ -557,6 +621,15 @@ function fmtCell(val,fmt,rank){
   if(fmt==='steal_badge'){
     if(!val)return'<span class="na">-</span>';
     return`<span class="steal-badge ${val}">${val}</span>`;
+  }
+  // Stage 8 — trend column formats
+  if(fmt==='scoreSpark'){
+    // val is the symbol; pull history data
+    return renderScoreSparkline(val);
+  }
+  if(fmt==='trend_badge'){
+    if(!val||val==='unknown')return '<span class="na">-</span>';
+    return `<span class="trend-badge ${val}">${val.toUpperCase()}</span>`;
   }
   return`<span>${val}</span>`;
 }
@@ -811,6 +884,223 @@ document.addEventListener('click',e=>{
     renderJustCrossed();
   }
 });
+
+// ── Stage 8: Historical stealScore charts ────────────────
+async function loadHistory(){
+  try{
+    const res=await fetch(HISTORY_URL+'?t='+Date.now());
+    if(!res.ok)return;
+    HISTORY=await res.json();
+    augmentStocksWithHistory();
+    // Re-render so the new columns populate
+    if(allStocks.length)applyFilters();
+  }catch(e){console.warn('History load failed:',e);}
+}
+
+function augmentStocksWithHistory(){
+  if(!HISTORY||!HISTORY.by_symbol||!allStocks.length)return;
+  const bs=HISTORY.by_symbol;
+  allStocks.forEach(s=>{
+    const h=bs[s.symbol];
+    if(!h)return;
+    s.score7dChg=h.score_7d_chg;
+    s.score14dChg=h.score_14d_chg;
+    s.score30dChg=h.score_30d_chg;
+    s.scoreSlope=h.score_slope;
+    s.scoreTrend=h.score_trend;
+    s._history=h;  // full per-symbol record for the chart
+  });
+}
+
+function renderScoreSparkline(symbol){
+  if(!HISTORY||!HISTORY.by_symbol[symbol])return'<span class="na">-</span>';
+  const h=HISTORY.by_symbol[symbol];
+  const scores=h.scores||[];
+  const valid=scores.map((v,i)=>({v,i})).filter(x=>x.v!==null&&x.v!==undefined);
+  if(valid.length<2){
+    return '<span class="dim" title="Need 2+ days of history">…</span>';
+  }
+  const W=64,H=18,padY=2;
+  const min=Math.min(...valid.map(x=>x.v));
+  const max=Math.max(...valid.map(x=>x.v));
+  const range=max-min||1;
+  const xStep=W/(scores.length-1);
+  let path='',firstDrawn=false;
+  scores.forEach((v,i)=>{
+    if(v===null||v===undefined)return;
+    const x=i*xStep;
+    const y=H-padY-((v-min)/range)*(H-2*padY);
+    path+=(firstDrawn?' L ':'M ')+x.toFixed(1)+' '+y.toFixed(1);
+    firstDrawn=true;
+  });
+  // End marker — last valid point
+  const lastV=valid[valid.length-1];
+  const endX=lastV.i*xStep;
+  const endY=H-padY-((lastV.v-min)/range)*(H-2*padY);
+  // Trend class for color
+  const tr=h.score_trend||'stable';
+  return `<svg class="score-spark-svg ${tr}" viewBox="0 0 ${W} ${H}"><path class="line" d="${path}"/><circle class="marker" cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}"/></svg>`;
+}
+
+// History modal — full trajectory chart for one stock
+function openHistory(symbol){
+  if(!HISTORY||!HISTORY.by_symbol[symbol]){
+    alert('Not enough history yet for '+symbol+' (needs 2+ snapshot days)');
+    return;
+  }
+  const h=HISTORY.by_symbol[symbol];
+  const dates=HISTORY.dates||[];
+  document.getElementById('histSym').textContent=symbol;
+  document.getElementById('histName').textContent=(h.name||'')+' · '+(h.sector||'');
+
+  // Stats grid
+  const fmtChg=(v)=>{
+    if(v===null||v===undefined)return '<span class="history-stat-val" style="color:var(--text2)">—</span>';
+    const cls=v>0?'pos':v<0?'neg':'';
+    const sign=v>0?'+':'';
+    return `<span class="history-stat-val ${cls}">${sign}${v.toFixed(1)}</span>`;
+  };
+  const fmtVal=(v,suffix='')=>{
+    if(v===null||v===undefined)return '<span class="history-stat-val" style="color:var(--text2)">—</span>';
+    return `<span class="history-stat-val">${(typeof v==='number'?v.toFixed(1):v)}${suffix}</span>`;
+  };
+  document.getElementById('histStats').innerHTML=`
+    <div class="history-stat">
+      <div class="history-stat-label">Current Score</div>
+      ${fmtVal(h.score_now)}
+      <div class="history-stat-meta">${h.score_trend?h.score_trend.toUpperCase():'—'}</div>
+    </div>
+    <div class="history-stat">
+      <div class="history-stat-label">7d Change</div>
+      ${fmtChg(h.score_7d_chg)}
+    </div>
+    <div class="history-stat">
+      <div class="history-stat-label">14d Change</div>
+      ${fmtChg(h.score_14d_chg)}
+    </div>
+    <div class="history-stat">
+      <div class="history-stat-label">30d Change</div>
+      ${fmtChg(h.score_30d_chg)}
+    </div>
+    <div class="history-stat">
+      <div class="history-stat-label">Slope (pts/day)</div>
+      ${fmtChg(h.score_slope)}
+    </div>
+    <div class="history-stat">
+      <div class="history-stat-label">Days Tracked</div>
+      ${fmtVal((h.scores||[]).filter(v=>v!==null).length)}
+    </div>
+  `;
+
+  // Build the trajectory chart (SVG line)
+  drawHistoryChart(symbol, dates, h);
+
+  // Surface any Just Crossed events touching this symbol
+  const events=(JUST_CROSSED&&JUST_CROSSED.events||[]).filter(e=>e.symbol===symbol);
+  const evWrap=document.getElementById('histEvents');
+  if(events.length){
+    evWrap.innerHTML=events.map(e=>renderJustCrossedEvent(e)).join('');
+  }else{
+    evWrap.innerHTML='<div class="history-event-empty">No just-crossed events for this stock in the current period.</div>';
+  }
+
+  document.getElementById('historyModal').classList.add('open');
+}
+
+function drawHistoryChart(symbol, dates, h){
+  const host=document.getElementById('histChart');
+  host.innerHTML='';
+  const scores=h.scores||[];
+  const buckets=h.buckets||[];
+  const W=host.clientWidth||760;
+  const H=300;
+  const margin={top:14,right:20,bottom:34,left:42};
+  const w=W-margin.left-margin.right;
+  const hh=H-margin.top-margin.bottom;
+  // Find valid points
+  const valid=scores.map((v,i)=>({v,i,date:dates[i],bucket:buckets[i]})).filter(x=>x.v!==null&&x.v!==undefined);
+  if(valid.length<2){
+    host.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text2);font-size:11px">Need 2+ snapshot days to draw chart</div>';
+    return;
+  }
+  const minScore=Math.min(...valid.map(x=>x.v),0);
+  const maxScore=Math.max(...valid.map(x=>x.v),100);
+  const xStep=w/(scores.length-1);
+  // Build line path
+  let linePath='', fillPath='';
+  let firstDrawn=false;
+  scores.forEach((v,i)=>{
+    if(v===null||v===undefined)return;
+    const x=i*xStep;
+    const y=hh-((v-minScore)/(maxScore-minScore))*hh;
+    if(!firstDrawn){
+      linePath+='M '+x.toFixed(1)+' '+y.toFixed(1);
+      fillPath+='M '+x.toFixed(1)+' '+hh+' L '+x.toFixed(1)+' '+y.toFixed(1);
+      firstDrawn=true;
+    }else{
+      linePath+=' L '+x.toFixed(1)+' '+y.toFixed(1);
+      fillPath+=' L '+x.toFixed(1)+' '+y.toFixed(1);
+    }
+  });
+  // Close the fill path back to the baseline
+  const lastValid=valid[valid.length-1];
+  fillPath+=' L '+(lastValid.i*xStep).toFixed(1)+' '+hh+' Z';
+  // Trend color
+  const tr=h.score_trend||'stable';
+  const color=tr==='rising'?'#00e676':tr==='falling'?'#ff3d5a':'#94a3b8';
+  // Threshold lines: 70 (QUALITY), 80 (PREMIUM), 90 (STEAL)
+  const thresholds=[{val:70,label:'QUALITY',color:'#22d3ee'},{val:80,label:'PREMIUM',color:'#fbbf24'},{val:90,label:'STEAL',color:'#ffd700'}];
+  let thresholdHtml='';
+  thresholds.forEach(t=>{
+    if(t.val>=minScore&&t.val<=maxScore){
+      const y=hh-((t.val-minScore)/(maxScore-minScore))*hh;
+      thresholdHtml+=`<line x1="0" y1="${y.toFixed(1)}" x2="${w.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${t.color}" stroke-dasharray="2 3" stroke-width="1" opacity=".25"/><text x="${w-2}" y="${(y-3).toFixed(1)}" text-anchor="end" font-size="9" fill="${t.color}" opacity=".7" font-family="ui-monospace,monospace">${t.label} (${t.val})</text>`;
+    }
+  });
+  // X-axis date ticks — every Nth date based on width
+  const tickEvery=Math.max(1,Math.floor(dates.length/8));
+  let xTicks='';
+  dates.forEach((d,i)=>{
+    if(i%tickEvery===0||i===dates.length-1){
+      const x=i*xStep;
+      xTicks+=`<line x1="${x.toFixed(1)}" y1="${hh}" x2="${x.toFixed(1)}" y2="${(hh+4).toFixed(1)}" stroke="#475569" stroke-width="1"/><text x="${x.toFixed(1)}" y="${(hh+16).toFixed(1)}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="ui-monospace,monospace">${d.slice(5)}</text>`;
+    }
+  });
+  // Y-axis ticks
+  let yTicks='';
+  [0,25,50,75,100].forEach(v=>{
+    if(v>=minScore&&v<=maxScore){
+      const y=hh-((v-minScore)/(maxScore-minScore))*hh;
+      yTicks+=`<line x1="-4" y1="${y.toFixed(1)}" x2="0" y2="${y.toFixed(1)}" stroke="#475569" stroke-width="1"/><text x="-6" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#94a3b8" font-family="ui-monospace,monospace">${v}</text>`;
+    }
+  });
+
+  // End marker — current point
+  const cx=lastValid.i*xStep;
+  const cy=hh-((lastValid.v-minScore)/(maxScore-minScore))*hh;
+
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="trendFill-${symbol}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(${margin.left},${margin.top})">
+      ${thresholdHtml}
+      ${xTicks}
+      ${yTicks}
+      <path d="${fillPath}" fill="url(#trendFill-${symbol})" stroke="none"/>
+      <path d="${linePath}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${color}" stroke="#0a0d18" stroke-width="2"/>
+      <text x="${(cx+8).toFixed(1)}" y="${(cy+4).toFixed(1)}" font-size="11" fill="${color}" font-weight="700" font-family="ui-monospace,monospace">${lastValid.v.toFixed(1)}</text>
+    </g>
+  </svg>`;
+}
+
+function closeHistory(){
+  document.getElementById('historyModal').classList.remove('open');
+}
 let macroTiltOn=false;
 function applyMacroTilt(){
   macroTiltOn=!macroTiltOn;
@@ -871,6 +1161,9 @@ function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m=
 function matchesTab(s,t){
   if(t==='all')return true;
   if(t==='steal_board')return (s.stealScore||0)>=70;
+  if(t==='just_crossed')return false;  // feed view replaces table; no row-filter
+  if(t==='rising')return s.scoreTrend==='rising';
+  if(t==='fading')return s.scoreTrend==='falling';
   if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
@@ -901,6 +1194,8 @@ function matchesTab(s,t){
 const TAB_DEFAULT_SORT={
   steal_board:{col:'stealScore',dir:'desc'},
   cycle_right:{col:'stealScore',dir:'desc'},
+  rising:{col:'score7dChg',dir:'desc'},
+  fading:{col:'score7dChg',dir:'asc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},
@@ -1143,7 +1438,7 @@ function closeCompare(){
 }
 // Close on Escape
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape')closeCompare();
+  if(e.key==='Escape'){closeCompare();closeHistory();}
 });
 
 // ── Save & Share URLs ─────────────────────────────────────
@@ -1393,6 +1688,7 @@ async function loadData(){
     loadSentiment();      // async — augments allStocks then re-applies filters
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
     loadJustCrossed();    // async — fetches the diff feed
+    loadHistory();        // async — fetches per-stock score time series
     if(isStale)triggerRefresh();
   }catch(err){
     document.getElementById('loadingScreen').innerHTML=`<div class="error-box"><div style="font-size:14px;margin-bottom:8px">DATA LOAD FAILED</div><div style="font-size:11px;color:var(--text2)">${err.message}</div><div style="margin-top:12px"><button class="refresh-btn" onclick="loadData()">RETRY</button> <button class="refresh-btn" onclick="triggerRefresh()">TRIGGER REFRESH</button></div></div>`;
