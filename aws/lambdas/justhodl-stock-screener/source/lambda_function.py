@@ -7,7 +7,7 @@ BASE     = "https://financialmodelingprep.com/stable"
 S3_BUCKET= "justhodl-dashboard-live"
 CACHE_KEY= "screener/data.json"
 CACHE_TTL= 4 * 3600
-WORKERS  = 1  # 8 endpoints/stock × 503 stocks = 4k calls. At FMP Premium 750/min we finish in ~5.5min. Headroom for 429 retries.
+WORKERS  = 1  # 14 endpoints/stock × 503 stocks = ~7k calls. At Premium 750/min ≈ 9.5min. At Ultimate 3000/min ≈ 2.4min. After upgrade we should bump to WORKERS=3.
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -183,6 +183,19 @@ def get_stock_data(symbol):
     insider = fmp("insider-trading/search", f"&symbol={symbol}&limit=50")
     # earnings: provides epsActual + epsEstimated; compute surprise % locally
     surprises = fmp("earnings", f"&symbol={symbol}&limit=8")
+
+    # ── STAGE 9 ADDS (2026-05-11) — FMP Ultimate Power-Up ───────────
+    # All endpoints confirmed working on Premium tier (probe step 423/424).
+    # 6 new endpoints/stock that add political alpha, analyst intelligence,
+    # DCF valuation, ESG ratings, and news momentum.
+    senate_tr   = fmp("senate-trades",            f"&symbol={symbol}")
+    house_tr    = fmp("house-trades",             f"&symbol={symbol}")
+    pt_consensus= fmp("price-target-consensus",   f"&symbol={symbol}")
+    pt_summary  = fmp("price-target-summary",     f"&symbol={symbol}")
+    grades_cons = fmp("grades-consensus",         f"&symbol={symbol}")
+    grades_recent= fmp("grades",                  f"&symbol={symbol}")
+    dcf_data    = fmp("discounted-cash-flow",     f"&symbol={symbol}")
+    esg_data    = fmp("esg-ratings",              f"&symbol={symbol}")
 
     # Historical prices for SMA + cross detection.
     # Need >=260 days to detect crosses across the last ~60 days.
@@ -396,6 +409,186 @@ def get_stock_data(symbol):
     # Cross detection — uses fetched price history
     cross_signal, cross_days_ago = detect_cross(closes, lookback_days=60)
 
+    # ════════════════════════════════════════════════════════════════════
+    # STAGE 9 PARSERS — Political + Analyst + DCF + ESG
+    # ════════════════════════════════════════════════════════════════════
+    from datetime import datetime as _dt2
+
+    # ── Helper: parse FMP's "$1,001 - $15,000" range into midpoint USD ──
+    def parse_amount_range(raw):
+        if not raw or not isinstance(raw, str):
+            return 0.0
+        # Strip $, comma, spaces; split on -
+        cleaned = raw.replace("$", "").replace(",", "").strip()
+        parts = cleaned.split("-")
+        try:
+            if len(parts) == 2:
+                lo = float(parts[0].strip())
+                hi = float(parts[1].strip())
+                return (lo + hi) / 2.0
+            return float(parts[0].strip())
+        except Exception:
+            return 0.0
+
+    # ── Aggregate Senate + House trading over last 90 days ──
+    political_buys_90d_usd = 0.0
+    political_sells_90d_usd = 0.0
+    political_buyers_90d = set()
+    political_sellers_90d = set()
+    political_recent_count = 0
+    senate_buys_90d = 0
+    house_buys_90d = 0
+    cutoff_ts_90 = (datetime.now(timezone.utc).timestamp() - 90 * 86400)
+    cutoff_ts_30 = (datetime.now(timezone.utc).timestamp() - 30 * 86400)
+    political_buys_30d_n = 0
+
+    def _parse_political(trades, chamber):
+        """Accumulate to outer scope variables."""
+        nonlocal political_buys_90d_usd, political_sells_90d_usd
+        nonlocal political_recent_count, political_buys_30d_n
+        nonlocal senate_buys_90d, house_buys_90d
+        if not isinstance(trades, list):
+            return
+        for t in trades:
+            try:
+                date_str = t.get("transactionDate") or t.get("disclosureDate") or ""
+                if not date_str:
+                    continue
+                tx_ts = _dt2.strptime(date_str[:10], "%Y-%m-%d").timestamp()
+                if tx_ts < cutoff_ts_90:
+                    continue
+                amount_usd = parse_amount_range(t.get("amount", ""))
+                txn_type = (t.get("type") or "").lower()
+                full_name = (t.get("firstName", "") + " " + t.get("lastName", "")).strip()
+                if "purchase" in txn_type or "buy" in txn_type:
+                    political_buys_90d_usd += amount_usd
+                    political_buyers_90d.add(full_name)
+                    political_recent_count += 1
+                    if chamber == "senate":
+                        senate_buys_90d += 1
+                    else:
+                        house_buys_90d += 1
+                    if tx_ts >= cutoff_ts_30:
+                        political_buys_30d_n += 1
+                elif "sale" in txn_type or "sell" in txn_type:
+                    political_sells_90d_usd += amount_usd
+                    political_sellers_90d.add(full_name)
+            except Exception:
+                continue
+
+    _parse_political(senate_tr, "senate")
+    _parse_political(house_tr, "house")
+    political_net_usd = round(political_buys_90d_usd - political_sells_90d_usd, 0)
+    # Signal: 3+ distinct buyers in 90d = cluster political buying
+    political_cluster_buying = len(political_buyers_90d) >= 3
+    political_signal = "buying" if (political_buys_90d_usd > political_sells_90d_usd * 1.5
+                                       and political_buys_90d_usd > 5000) \
+                          else ("selling" if political_sells_90d_usd > political_buys_90d_usd * 3
+                                  and political_sells_90d_usd > 25000 else "neutral")
+
+    # ── Analyst price targets ──
+    target_consensus = None
+    target_high = None
+    target_low = None
+    target_median = None
+    target_upside_pct = None
+    pt_count_30d = None
+    pt_count_90d = None
+    pt_avg_30d = None
+    pt_avg_90d = None
+    if isinstance(pt_consensus, list) and pt_consensus:
+        ptc = pt_consensus[0]
+        target_consensus = sf(ptc.get("targetConsensus"))
+        target_high = sf(ptc.get("targetHigh"))
+        target_low = sf(ptc.get("targetLow"))
+        target_median = sf(ptc.get("targetMedian"))
+        price_now = sf(p.get("price"))
+        if target_consensus is not None and price_now and price_now > 0:
+            target_upside_pct = round((target_consensus - price_now) / price_now * 100, 1)
+    if isinstance(pt_summary, list) and pt_summary:
+        pts = pt_summary[0]
+        pt_count_30d = pts.get("lastMonthCount")
+        pt_avg_30d = sf(pts.get("lastMonthAvgPriceTarget"))
+        pt_count_90d = pts.get("lastQuarterCount")
+        pt_avg_90d = sf(pts.get("lastQuarterAvgPriceTarget"))
+
+    # ── Analyst grades / upgrades ──
+    grades_strong_buy = 0
+    grades_buy = 0
+    grades_hold = 0
+    grades_sell = 0
+    grades_strong_sell = 0
+    grades_consensus_label = None
+    grades_consensus_score = None  # -100 to +100
+    if isinstance(grades_cons, list) and grades_cons:
+        gc = grades_cons[0]
+        grades_strong_buy = int(gc.get("strongBuy") or 0)
+        grades_buy = int(gc.get("buy") or 0)
+        grades_hold = int(gc.get("hold") or 0)
+        grades_sell = int(gc.get("sell") or 0)
+        grades_strong_sell = int(gc.get("strongSell") or 0)
+        grades_consensus_label = gc.get("consensus")
+        total = grades_strong_buy + grades_buy + grades_hold + grades_sell + grades_strong_sell
+        if total > 0:
+            weighted = (grades_strong_buy * 2 + grades_buy * 1
+                          + grades_hold * 0
+                          - grades_sell * 1 - grades_strong_sell * 2)
+            grades_consensus_score = round((weighted / (total * 2)) * 100, 1)
+
+    # Recent upgrade/downgrade tally — last 30/90 days
+    upgrades_30d = 0
+    downgrades_30d = 0
+    upgrades_90d = 0
+    downgrades_90d = 0
+    if isinstance(grades_recent, list):
+        for gr in grades_recent[:200]:  # cap how far we look back
+            try:
+                date_str = gr.get("date", "")
+                if not date_str:
+                    continue
+                gr_ts = _dt2.strptime(date_str[:10], "%Y-%m-%d").timestamp()
+                action = (gr.get("action") or "").lower()
+                if gr_ts >= cutoff_ts_90:
+                    if "upgrade" in action:
+                        upgrades_90d += 1
+                        if gr_ts >= cutoff_ts_30:
+                            upgrades_30d += 1
+                    elif "downgrade" in action:
+                        downgrades_90d += 1
+                        if gr_ts >= cutoff_ts_30:
+                            downgrades_30d += 1
+            except Exception:
+                continue
+    upgrade_net_30d = upgrades_30d - downgrades_30d
+    upgrade_net_90d = upgrades_90d - downgrades_90d
+
+    # ── DCF Valuation ──
+    dcf_fair_value = None
+    dcf_upside_pct = None
+    if isinstance(dcf_data, list) and dcf_data:
+        dcf_v = sf(dcf_data[0].get("dcf"))
+        price_now = sf(p.get("price"))
+        if dcf_v is not None and price_now and price_now > 0:
+            dcf_fair_value = round(dcf_v, 2)
+            dcf_upside_pct = round((dcf_v - price_now) / price_now * 100, 1)
+
+    # ── ESG Ratings (most recent fiscal year) ──
+    esg_rating = None
+    esg_score_numeric = None
+    esg_industry_rank = None
+    esg_industry = None
+    if isinstance(esg_data, list) and esg_data:
+        # Sort by fiscalYear desc to get most recent
+        latest_esg = sorted(esg_data, key=lambda x: x.get("fiscalYear", 0), reverse=True)[0]
+        esg_rating = latest_esg.get("ESGRiskRating")
+        esg_industry_rank = latest_esg.get("industryRank")
+        esg_industry = latest_esg.get("industry")
+        # Convert letter rating to 0-100 numeric for sorting
+        # AAA=100, AA=90, A=80, BBB=70, BB=60, B=50, CCC=40, CC=30, C=20, D=10
+        esg_map = {"AAA": 100, "AA": 90, "A": 80, "BBB": 70, "BB": 60,
+                     "B": 50, "CCC": 40, "CC": 30, "C": 20, "D": 10}
+        esg_score_numeric = esg_map.get(esg_rating)
+
     return {
         "symbol":          symbol,
         "name":            p.get("companyName",""),
@@ -474,6 +667,48 @@ def get_stock_data(symbol):
         "beatStreak":        beat_streak,           # # of consecutive recent EPS beats
         "lastSurprisePct":   last_surprise_pct,     # most recent EPS surprise %
         "avgSurprisePct":    avg_surprise_pct,      # avg surprise % over fetched window
+        # ── STAGE 9 ─────────────────────────────────────────────
+        # Political/Senate/House trading (combined)
+        "politicalBuys90dUsd":   round(political_buys_90d_usd, 0),
+        "politicalSells90dUsd":  round(political_sells_90d_usd, 0),
+        "politicalNet90dUsd":    political_net_usd,
+        "politicalBuyersN90d":   len(political_buyers_90d),
+        "politicalSellersN90d":  len(political_sellers_90d),
+        "politicalClusterBuy":   political_cluster_buying,
+        "politicalSignal":       political_signal,     # 'buying'|'selling'|'neutral'
+        "senateBuysN90d":        senate_buys_90d,
+        "houseBuysN90d":         house_buys_90d,
+        "politicalBuys30dN":     political_buys_30d_n,  # most-recent surge indicator
+        # Analyst price targets
+        "priceTargetMean":       target_consensus,
+        "priceTargetHigh":       target_high,
+        "priceTargetLow":        target_low,
+        "priceTargetMedian":     target_median,
+        "priceTargetUpsidePct":  target_upside_pct,    # KEY field for "target upside" tab
+        "priceTargetCount30d":   pt_count_30d,
+        "priceTargetCount90d":   pt_count_90d,
+        "priceTargetAvg30d":     pt_avg_30d,
+        # Analyst grades & upgrades
+        "gradesStrongBuy":       grades_strong_buy,
+        "gradesBuy":             grades_buy,
+        "gradesHold":            grades_hold,
+        "gradesSell":            grades_sell,
+        "gradesStrongSell":      grades_strong_sell,
+        "gradesConsensus":       grades_consensus_label,
+        "gradesScore":           grades_consensus_score,   # -100 to +100
+        "upgrades30d":           upgrades_30d,
+        "downgrades30d":         downgrades_30d,
+        "upgrades90d":           upgrades_90d,
+        "downgrades90d":         downgrades_90d,
+        "upgradeNet30d":         upgrade_net_30d,        # net upgrades - downgrades
+        "upgradeNet90d":         upgrade_net_90d,
+        # DCF valuation
+        "dcfFairValue":          dcf_fair_value,
+        "dcfUpsidePct":          dcf_upside_pct,         # KEY field for "DCF deep value" tab
+        # ESG ratings
+        "esgRating":             esg_rating,             # letter grade (AAA, AA, A, BBB, ...)
+        "esgScoreNumeric":       esg_score_numeric,      # 10-100 for sorting/filtering
+        "esgIndustryRank":       esg_industry_rank,      # "4 out of 6" style string
     }
 
 # ════════════════════════════════════════════════════════════════════════
@@ -528,23 +763,30 @@ def compute_steal_score(stocks):
     if not stocks:
         return
 
-    # ── 9 factor weights — sum = 100 ──
+    # ── 12 factor weights — sum = 100 (Stage 9 added 3 factors) ──
     factors = [
         # (label, weight, value_map, invert_lower_is_better)
-        ("valuation_pe",       10, _vmap(stocks, "peRatio"),       True),
-        ("valuation_evebitda", 10, _vmap(stocks, "evEbitda"),      True),
-        ("growth_revenue",     15, _vmap(stocks, "revenueGrowth"), False),
-        ("profit_opmargin",     8, _vmap(stocks, "operatingMargin"), False),
-        ("profit_roic",         7, _vmap(stocks, "roic"),          False),
-        ("earnings_quality",   10, _vmap_quality(stocks),          False),
-        ("balance_de",          5, _vmap(stocks, "debtToEquity"),  True),
-        ("balance_currratio",   5, _vmap(stocks, "currentRatio"),  False),
-        ("momentum_6m",        10, _vmap(stocks, "chg6m"),         False),
-        ("inst_flow",          10, _vmap(stocks, "instQoQChgPct"), False),
-        ("insider_flow",        5, _vmap(stocks, "insiderNet90dUsd"), False),
-        ("estimate_revisions",  5, _vmap(stocks, "beatStreak"),    False),
+        ("valuation_pe",       8, _vmap(stocks, "peRatio"),       True),
+        ("valuation_evebitda", 8, _vmap(stocks, "evEbitda"),      True),
+        ("growth_revenue",     12, _vmap(stocks, "revenueGrowth"), False),
+        ("profit_opmargin",     7, _vmap(stocks, "operatingMargin"), False),
+        ("profit_roic",         6, _vmap(stocks, "roic"),          False),
+        ("earnings_quality",    8, _vmap_quality(stocks),          False),
+        ("balance_de",          4, _vmap(stocks, "debtToEquity"),  True),
+        ("balance_currratio",   3, _vmap(stocks, "currentRatio"),  False),
+        ("momentum_6m",         8, _vmap(stocks, "chg6m"),         False),
+        ("inst_flow",           7, _vmap(stocks, "instQoQChgPct"), False),
+        ("insider_flow",        4, _vmap(stocks, "insiderNet90dUsd"), False),
+        ("estimate_revisions",  4, _vmap(stocks, "beatStreak"),    False),
+        # ── STAGE 9: 3 new factors ──
+        # Analyst grades consensus — sentiment of professional analysts
+        ("analyst_grades",      7, _vmap(stocks, "gradesScore"),   False),
+        # DCF undervaluation — the value-investing flagship signal
+        ("dcf_upside",          8, _vmap(stocks, "dcfUpsidePct"),  False),
+        # Political buying — alpha from informed insiders (Sen/House trades)
+        ("political_buying",    6, _vmap(stocks, "politicalBuyersN90d"), False),
     ]
-    # Total weight = 100
+    # Total weight: 8+8+12+7+6+8+4+3+8+7+4+4+7+8+6 = 100
 
     factor_ranks = {}
     for label, weight, val_map, invert in factors:
@@ -767,6 +1009,15 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             "operatingMargin": s.get("operatingMargin"),
             "chg1m": s.get("chg1m"),
             "chg6m": s.get("chg6m"),
+            # Stage 9 fields tracked for just-crossed events
+            "politicalSignal": s.get("politicalSignal"),
+            "politicalBuyersN90d": s.get("politicalBuyersN90d"),
+            "politicalNet90dUsd": s.get("politicalNet90dUsd"),
+            "priceTargetUpsidePct": s.get("priceTargetUpsidePct"),
+            "gradesScore": s.get("gradesScore"),
+            "upgradeNet30d": s.get("upgradeNet30d"),
+            "dcfUpsidePct": s.get("dcfUpsidePct"),
+            "esgScoreNumeric": s.get("esgScoreNumeric"),
         })
     snap_payload = {
         "snapshot_date": today_iso,
@@ -948,6 +1199,92 @@ def write_snapshot_and_diff(today_stocks, today_payload):
                     "significance": 50 + threshold * 4,
                 })
                 break
+
+        # ════════════════════════════════════════════════════
+        # STAGE 9 event types — Political + Analyst + DCF
+        # ════════════════════════════════════════════════════
+
+        # ── 10. POLITICAL signal flipped (Senate/House started buying) ──
+        prior_pol = prior_s.get("politicalSignal")
+        today_pol = today_s.get("politicalSignal")
+        if prior_pol != today_pol and today_pol == "buying":
+            events.append({**common, "type": "POLITICIANS_TURNED_BUYING",
+                "from": prior_pol, "to": today_pol,
+                "buyers": today_s.get("politicalBuyersN90d"),
+                "net_usd": today_s.get("politicalNet90dUsd"),
+                "significance": 85,
+            })
+        elif prior_pol != today_pol and today_pol == "selling":
+            events.append({**common, "type": "POLITICIANS_TURNED_SELLING",
+                "from": prior_pol, "to": today_pol,
+                "significance": 60,
+            })
+
+        # ── 11. New political buyers added (cluster buying detected) ──
+        prior_pol_buyers = prior_s.get("politicalBuyersN90d") or 0
+        today_pol_buyers = today_s.get("politicalBuyersN90d") or 0
+        if today_pol_buyers >= 3 and prior_pol_buyers < 3:
+            events.append({**common, "type": "POLITICAL_CLUSTER_BUYING",
+                "from": prior_pol_buyers, "to": today_pol_buyers,
+                "significance": 90,
+            })
+
+        # ── 12. Analyst PRICE TARGET upside crossed thresholds ──
+        prior_pt = prior_s.get("priceTargetUpsidePct") or 0
+        today_pt = today_s.get("priceTargetUpsidePct") or 0
+        for threshold, label in [(50, "TARGET_UPSIDE_50"), (25, "TARGET_UPSIDE_25"),
+                                    (15, "TARGET_UPSIDE_15")]:
+            if today_pt >= threshold and prior_pt < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_pt, 1),
+                    "to": round(today_pt, 1),
+                    "significance": 60 + threshold * 0.4,
+                })
+                break
+
+        # ── 13. ANALYST UPGRADE SURGE (net upgrades crossed thresholds) ──
+        prior_up_net = prior_s.get("upgradeNet30d") or 0
+        today_up_net = today_s.get("upgradeNet30d") or 0
+        if today_up_net >= 3 and prior_up_net < 3:
+            events.append({**common, "type": "ANALYST_UPGRADE_SURGE",
+                "from": prior_up_net, "to": today_up_net,
+                "significance": 70,
+            })
+
+        # ── 14. ANALYST CONSENSUS strengthened ──
+        prior_gs = prior_s.get("gradesScore")
+        today_gs = today_s.get("gradesScore")
+        if prior_gs is not None and today_gs is not None:
+            gs_delta = today_gs - prior_gs
+            if gs_delta >= 10:
+                events.append({**common, "type": "GRADES_IMPROVED",
+                    "from": round(prior_gs, 1),
+                    "to": round(today_gs, 1),
+                    "delta": round(gs_delta, 1),
+                    "significance": 55 + gs_delta,
+                })
+
+        # ── 15. DCF UPSIDE crossed thresholds ──
+        prior_dcf = prior_s.get("dcfUpsidePct") or 0
+        today_dcf = today_s.get("dcfUpsidePct") or 0
+        for threshold, label in [(100, "DCF_UPSIDE_100"), (50, "DCF_UPSIDE_50"),
+                                    (25, "DCF_UPSIDE_25")]:
+            if today_dcf >= threshold and prior_dcf < threshold:
+                events.append({**common, "type": label,
+                    "from": round(prior_dcf, 1),
+                    "to": round(today_dcf, 1),
+                    "significance": 55 + threshold * 0.3,
+                })
+                break
+
+        # ── 16. ESG rating improved ──
+        prior_esg = prior_s.get("esgScoreNumeric") or 0
+        today_esg = today_s.get("esgScoreNumeric") or 0
+        if today_esg >= prior_esg + 10 and today_esg >= 70:
+            events.append({**common, "type": "ESG_RATING_IMPROVED",
+                "from": prior_esg, "to": today_esg,
+                "significance": 50,
+            })
 
     # Sort by significance descending (most newsworthy first)
     events.sort(key=lambda e: -e.get("significance", 0))

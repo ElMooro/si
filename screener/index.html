@@ -315,6 +315,11 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab" data-tab="just_crossed" onclick="setTab(this)" style="color:#fb7185">🆕 JUST CROSSED <span id="justCrossedBadge" style="background:rgba(251,113,133,.25);color:#fb7185;padding:1px 5px;border-radius:8px;margin-left:3px;font-size:9px;display:none"></span></div>
   <div class="tab" data-tab="rising" onclick="setTab(this)" style="color:#00e676">📈 RISING</div>
   <div class="tab" data-tab="fading" onclick="setTab(this)" style="color:#ff6b9d">📉 FADING</div>
+  <!-- Stage 9: FMP Ultimate Power-Up tabs -->
+  <div class="tab" data-tab="politician_buying" onclick="setTab(this)" style="color:#a78bfa">🏛 POLITICIAN BUYING</div>
+  <div class="tab" data-tab="target_upside" onclick="setTab(this)" style="color:#60a5fa">🎯 TARGET UPSIDE</div>
+  <div class="tab" data-tab="analyst_upgrades" onclick="setTab(this)" style="color:#34d399">⬆ ANALYST UPGRADES</div>
+  <div class="tab" data-tab="dcf_value" onclick="setTab(this)" style="color:#fbbf24">💰 DCF DEEP VALUE</div>
   <div class="tab" data-tab="cycle_right" onclick="setTab(this)" style="color:#22d3ee">🌊 CYCLE-RIGHT</div>
   <div class="tab" data-tab="money_machines" onclick="setTab(this)" style="color:#ffd700">💰 MONEY MACHINES</div>
   <div class="tab" data-tab="sustainable" onclick="setTab(this)" style="color:#00d4aa">🏛 SUSTAINABLE PROFITS</div>
@@ -400,6 +405,10 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn on" data-group="scores" onclick="toggleColGroup(this)">Scores</button>
   <button class="col-toggle-btn on" data-group="institutional" onclick="toggleColGroup(this)">Institutional</button>
   <button class="col-toggle-btn on" data-group="flows" onclick="toggleColGroup(this)">Flows</button>
+  <button class="col-toggle-btn on" data-group="politics" onclick="toggleColGroup(this)" style="color:#a78bfa">🏛 Politics</button>
+  <button class="col-toggle-btn on" data-group="analyst" onclick="toggleColGroup(this)" style="color:#60a5fa">🎯 Analyst</button>
+  <button class="col-toggle-btn on" data-group="dcf" onclick="toggleColGroup(this)" style="color:#fbbf24">💰 DCF</button>
+  <button class="col-toggle-btn" data-group="esg" onclick="toggleColGroup(this)" style="color:#34d399">🌱 ESG</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -504,7 +513,7 @@ let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -566,6 +575,28 @@ const COLS=[
   {id:'instSignal',label:'Inst Signal',group:'institutional',fn:r=>r.instSignal,fmt:'inst'},
   {id:'instHolders',label:'# Holders',group:'institutional',fn:r=>r.instHolders,fmt:'num'},
   {id:'instChgPct',label:'Inst Chg%',group:'institutional',fn:r=>r.instChgPct,fmt:'chg'},
+  // ── STAGE 9: FMP Ultimate Power-Up columns ──
+  // Politics
+  {id:'politicalSignal',label:'🏛 Pol',group:'politics',fn:r=>r.politicalSignal,fmt:'pol_signal'},
+  {id:'politicalBuyersN90d',label:'Politicians',group:'politics',fn:r=>r.politicalBuyersN90d,fmt:'num'},
+  {id:'politicalNet90dUsd',label:'Pol Net 90d',group:'politics',fn:r=>r.politicalNet90dUsd,fmt:'usd_signed'},
+  {id:'senateBuysN90d',label:'Senate Buys',group:'politics',fn:r=>r.senateBuysN90d,fmt:'num'},
+  {id:'houseBuysN90d',label:'House Buys',group:'politics',fn:r=>r.houseBuysN90d,fmt:'num'},
+  // Analyst — price targets
+  {id:'priceTargetMean',label:'Target $',group:'analyst',fn:r=>r.priceTargetMean,fmt:'price'},
+  {id:'priceTargetUpsidePct',label:'Target Up%',group:'analyst',fn:r=>r.priceTargetUpsidePct,fmt:'pct1'},
+  {id:'priceTargetCount30d',label:'PT 30d',group:'analyst',fn:r=>r.priceTargetCount30d,fmt:'num'},
+  // Analyst — grades
+  {id:'gradesConsensus',label:'Consensus',group:'analyst',fn:r=>r.gradesConsensus,fmt:'consensus_badge'},
+  {id:'gradesScore',label:'Grade Score',group:'analyst',fn:r=>r.gradesScore,fmt:'grades_score'},
+  {id:'upgradeNet30d',label:'Up-Dn 30d',group:'analyst',fn:r=>r.upgradeNet30d,fmt:'signed'},
+  {id:'upgradeNet90d',label:'Up-Dn 90d',group:'analyst',fn:r=>r.upgradeNet90d,fmt:'signed'},
+  // DCF
+  {id:'dcfFairValue',label:'DCF Fair $',group:'dcf',fn:r=>r.dcfFairValue,fmt:'price'},
+  {id:'dcfUpsidePct',label:'DCF Up%',group:'dcf',fn:r=>r.dcfUpsidePct,fmt:'pct1'},
+  // ESG
+  {id:'esgRating',label:'ESG',group:'esg',fn:r=>r.esgRating,fmt:'esg_badge'},
+  {id:'esgScoreNumeric',label:'ESG Score',group:'esg',fn:r=>r.esgScoreNumeric,fmt:'num'},
 ];
 function fmtCell(val,fmt,rank){
   if(fmt==='sent'){
@@ -630,6 +661,58 @@ function fmtCell(val,fmt,rank){
   if(fmt==='trend_badge'){
     if(!val||val==='unknown')return '<span class="na">-</span>';
     return `<span class="trend-badge ${val}">${val.toUpperCase()}</span>`;
+  }
+  // ── STAGE 9 format handlers ──
+  if(fmt==='pol_signal'){
+    if(!val||val==='neutral')return '<span class="na">-</span>';
+    const cls=val==='buying'?'pos':'neg';
+    const emoji=val==='buying'?'▲':'▼';
+    return `<span class="${cls}" style="font-weight:700">${emoji} ${val.toUpperCase()}</span>`;
+  }
+  if(fmt==='usd_signed'){
+    if(val===null||val===undefined||val===0)return '<span class="na">-</span>';
+    const v=Number(val);const ab=Math.abs(v);
+    const[n,suf]=ab>=1e9?[v/1e9,'B']:ab>=1e6?[v/1e6,'M']:ab>=1e3?[v/1e3,'K']:[v,''];
+    const cls=v>0?'pos':v<0?'neg':'';
+    const sign=v>0?'+':'';
+    return `<span class="${cls}">${sign}\$${Math.abs(n).toFixed(1)}${suf}</span>`;
+  }
+  if(fmt==='consensus_badge'){
+    if(!val)return '<span class="na">-</span>';
+    const v=val.toLowerCase();
+    const map={
+      'strong buy':{cls:'pos',bg:'rgba(0,230,118,.18)',col:'#00e676'},
+      'buy':{cls:'pos',bg:'rgba(0,230,118,.13)',col:'#00e676'},
+      'hold':{cls:'',bg:'rgba(148,163,184,.12)',col:'#94a3b8'},
+      'sell':{cls:'neg',bg:'rgba(255,61,90,.13)',col:'#ff3d5a'},
+      'strong sell':{cls:'neg',bg:'rgba(255,61,90,.18)',col:'#ff3d5a'},
+    };
+    const m=map[v]||map['hold'];
+    return `<span style="background:${m.bg};color:${m.col};padding:2px 6px;border-radius:2px;font-family:var(--font-ui);font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase">${val}</span>`;
+  }
+  if(fmt==='grades_score'){
+    if(val===null||val===undefined)return '<span class="na">-</span>';
+    const v=Number(val);
+    const cls=v>20?'pos':v<-20?'neg':'';
+    return `<span class="${cls}">${v.toFixed(0)}</span>`;
+  }
+  if(fmt==='signed'){
+    if(val===null||val===undefined)return '<span class="na">-</span>';
+    const v=Number(val);
+    const cls=v>0?'pos':v<0?'neg':'';
+    const sign=v>0?'+':'';
+    return `<span class="${cls}">${sign}${v}</span>`;
+  }
+  if(fmt==='esg_badge'){
+    if(!val)return '<span class="na">-</span>';
+    // Letter rating color: AAA/AA = green, A/BBB = teal, BB/B = neutral, CCC/CC/C/D = red
+    const v=val.toUpperCase();
+    let col='#94a3b8',bg='rgba(148,163,184,.12)';
+    if(v.startsWith('AAA')||v==='AA'){col='#00e676';bg='rgba(0,230,118,.15)';}
+    else if(v==='A'||v.startsWith('BBB')){col='#22d3ee';bg='rgba(34,211,238,.15)';}
+    else if(v.startsWith('BB')||v==='B'){col='#94a3b8';bg='rgba(148,163,184,.12)';}
+    else{col='#ff8b3d';bg='rgba(255,139,61,.13)';}
+    return `<span style="background:${bg};color:${col};padding:2px 5px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">${val}</span>`;
   }
   return`<span>${val}</span>`;
 }
@@ -1164,6 +1247,11 @@ function matchesTab(s,t){
   if(t==='just_crossed')return false;  // feed view replaces table; no row-filter
   if(t==='rising')return s.scoreTrend==='rising';
   if(t==='fading')return s.scoreTrend==='falling';
+  // Stage 9 tabs
+  if(t==='politician_buying')return (s.politicalBuyersN90d||0)>=2||s.politicalSignal==='buying';
+  if(t==='target_upside')return (s.priceTargetUpsidePct||0)>=15;
+  if(t==='analyst_upgrades')return (s.upgradeNet30d||0)>=2;
+  if(t==='dcf_value')return (s.dcfUpsidePct||0)>=25;
   if(t==='cycle_right')return MACRO&&MACRO.favored_sectors&&MACRO.favored_sectors.includes(s.sector);
   if(t==='money_machines')return (s.netIncome||0)>0;  // ranked by netIncome desc; tab itself just filters non-null
   if(t==='sustainable')return s.sustainableQuality===true||s.sustainable3y===true;
@@ -1196,6 +1284,10 @@ const TAB_DEFAULT_SORT={
   cycle_right:{col:'stealScore',dir:'desc'},
   rising:{col:'score7dChg',dir:'desc'},
   fading:{col:'score7dChg',dir:'asc'},
+  politician_buying:{col:'politicalBuyersN90d',dir:'desc'},
+  target_upside:{col:'priceTargetUpsidePct',dir:'desc'},
+  analyst_upgrades:{col:'upgradeNet30d',dir:'desc'},
+  dcf_value:{col:'dcfUpsidePct',dir:'desc'},
   money_machines:{col:'netIncome',dir:'desc'},
   sustainable:{col:'roe',dir:'desc'},
   margins:{col:'netMargin',dir:'desc'},
