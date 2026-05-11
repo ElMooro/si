@@ -10,5 +10,11 @@
   "description": "Mergers and Acquisitions activity tracker",
   "environment": {
     "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "function_url": {
+    "enabled": true,
+    "cors_origins": ["*"],
+    "patch_file": "ma/app.js",
+    "placeholder": "__FUNCTION_URL_PLACEHOLDER__"
   }
 }

@@ -16,7 +16,7 @@ on:
         default: ''
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -190,9 +190,76 @@ jobs:
               echo "  ✅ Schedule attached"
             fi
 
+            # ── Function URL (if config.json has .function_url.enabled=true) ──
+            if [ -f "$dir/config.json" ] && jq -e '.function_url.enabled' "$dir/config.json" >/dev/null 2>&1; then
+              region="${{ secrets.AWS_REGION }}"
+              cors_origins=$(jq -r '.function_url.cors_origins // ["*"] | join(",")' "$dir/config.json")
+              echo "Setting up Function URL for $fn (CORS: $cors_origins)"
+
+              # Check if URL exists, create or use existing
+              existing_url=$(aws lambda get-function-url-config \
+                --function-name "$fn" \
+                --region "$region" \
+                --query 'FunctionUrl' --output text 2>/dev/null || echo "")
+              if [ -z "$existing_url" ] || [ "$existing_url" = "None" ]; then
+                # Build CORS JSON file (CLI shorthand for list values is brittle)
+                jq -n --argjson origins "$(jq '.function_url.cors_origins // ["*"]' "$dir/config.json")" '{AllowOrigins: $origins, AllowMethods: ["GET","OPTIONS"], AllowHeaders: ["content-type"], MaxAge: 86400}' > /tmp/cors.json
+                fn_url=$(aws lambda create-function-url-config \
+                  --function-name "$fn" \
+                  --auth-type NONE \
+                  --cors file:///tmp/cors.json \
+                  --region "$region" \
+                  --query 'FunctionUrl' --output text)
+                echo "  ✅ Created Function URL: $fn_url"
+              else
+                fn_url="$existing_url"
+                echo "  ℹ️  Existing Function URL: $fn_url"
+              fi
+
+              # Allow public invoke (idempotent)
+              aws lambda add-permission \
+                --function-name "$fn" \
+                --statement-id "FunctionURLAllowPublicAccess" \
+                --action "lambda:InvokeFunctionUrl" \
+                --principal "*" \
+                --function-url-auth-type NONE \
+                --region "$region" 2>/dev/null || echo "  permission already exists"
+
+              # Write the URL into the summary (the visible deploy log)
+              echo "FUNCTION_URL_${fn}=$fn_url" >> $GITHUB_OUTPUT
+              echo "  - **$fn URL**: \`$fn_url\`" >> $GITHUB_STEP_SUMMARY
+
+              # If config says to patch a file with this URL, do it
+              patch_target=$(jq -r '.function_url.patch_file // empty' "$dir/config.json")
+              if [ -n "$patch_target" ] && [ -f "$patch_target" ]; then
+                placeholder=$(jq -r '.function_url.placeholder // "__FUNCTION_URL_PLACEHOLDER__"' "$dir/config.json")
+                if grep -q "$placeholder" "$patch_target"; then
+                  sed -i "s|$placeholder|$fn_url|g" "$patch_target"
+                  echo "  ✅ Patched $patch_target with Function URL"
+                  # Stage the change so the post-step commits it back
+                  echo "FN_URL_PATCHED_FILE=$patch_target" >> $GITHUB_ENV
+                fi
+              fi
+            fi
+
             echo "✅ $fn deployed"
             rm -rf "$tmp"
           done
+
+      - name: Commit Function URL patches back
+        if: env.FN_URL_PATCHED_FILE != ''
+        run: |
+          set -e
+          if git diff --quiet; then
+            echo "No file changes — nothing to commit"
+            exit 0
+          fi
+          git config user.email "github-actions@justhodl.ai"
+          git config user.name "github-actions"
+          git add "$FN_URL_PATCHED_FILE"
+          git commit -m "ops: auto-patch Function URL into $FN_URL_PATCHED_FILE [skip-deploy]"
+          # Push back to main (uses default GITHUB_TOKEN with write perms below)
+          git push origin main || echo "push failed — patch was applied locally only"
 
       - name: Summary
         if: always()
