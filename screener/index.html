@@ -322,6 +322,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <div class="tab" data-tab="dcf_value" onclick="setTab(this)" style="color:#fbbf24">💰 DCF DEEP VALUE</div>
   <!-- Stage 10: FMP Ultimate Activation tabs -->
   <div class="tab" data-tab="hedge_fund_bought" onclick="setTab(this)" style="color:#06b6d4">🐋 HEDGE FUND ACCUMULATING</div>
+  <div class="tab" data-tab="smart_money_held" onclick="setTab(this)" style="color:#a78bfa">🐳 SMART MONEY HELD</div>
   <div class="tab" data-tab="forward_growth" onclick="setTab(this)" style="color:#22c55e">🚀 FORWARD GROWTH</div>
   <div class="tab" data-tab="cheap_forward_pe" onclick="setTab(this)" style="color:#f97316">⚡ CHEAP FORWARD P/E</div>
   <!-- Stage 11: News momentum tab -->
@@ -422,6 +423,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn" data-group="governance" onclick="toggleColGroup(this)" style="color:#d946ef">👔 Governance</button>
   <button class="col-toggle-btn on" data-group="news_momentum" onclick="toggleColGroup(this)" style="color:#ec4899">📰 News</button>
   <button class="col-toggle-btn on" data-group="ma" onclick="toggleColGroup(this)" style="color:#14b8a6">🤝 M&amp;A</button>
+  <button class="col-toggle-btn on" data-group="smart_money" onclick="toggleColGroup(this)" style="color:#a78bfa" title="Top hedge fund holders per stock (Berkshire, Pershing Sq, Greenlight, etc.)">🐳 Smart Money</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -526,7 +528,7 @@ let JC_FILTER='all';
 const LAMBDA_URL='https://sajhxaiui7tijd54pbqzeibzee0xgxho.lambda-url.us-east-1.on.aws';
 const REFRESH_MS=4*60*60*1000;
 let allStocks=[],filteredStocks=[],sortCol='marketCap',sortDir='desc',activeTab='all',dataAge=0;
-let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,news_momentum:true,ma:true,extended:false};
+let colGroups={fundamentals:true,valuation:true,quality:true,momentum:true,scores:true,institutional:true,flows:true,sentiment:true,politics:true,analyst:true,dcf:true,esg:false,forward:true,liquidity:false,governance:false,news_momentum:true,ma:true,smart_money:true,extended:false};
 const COLS=[
   {id:'#',label:'#',group:'fixed',fn:(r,i)=>i+1,fmt:'rank'},
   {id:'symbol',label:'Symbol',group:'fixed',fn:r=>r.symbol,fmt:'sym'},
@@ -627,6 +629,10 @@ const COLS=[
   {id:'newsCount30d',label:'News 30d',group:'news_momentum',fn:r=>r.newsCount30d,fmt:'num'},
   {id:'newsCount7d',label:'News 7d',group:'news_momentum',fn:r=>r.newsCount7d,fmt:'num'},
   {id:'newsSentiment30d',label:'Sentiment',group:'news_momentum',fn:r=>r.newsSentiment30d,fmt:'sent_chg'},
+  // ── STAGE 16: Smart Money × Screener integration ──
+  {id:'smN',label:'🐳 SM #',group:'smart_money',fn:r=>r.smN,fmt:'sm_count'},
+  {id:'smValue',label:'🐳 SM $',group:'smart_money',fn:r=>r.smValue,fmt:'mcap'},
+  {id:'smTop',label:'🐳 Top Holders',group:'smart_money',fn:r=>r.smTop,fmt:'sm_chips'},
   {id:'latestHeadline',label:'Latest Headline',group:'news_momentum',fn:r=>r.latestHeadline,fmt:'headline'},
   // ── STAGE 12: M&A involvement ──
   {id:'maLatestRole',label:'M&A Role',group:'ma',fn:r=>r.maLatestRole,fmt:'ma_role'},
@@ -783,6 +789,31 @@ function fmtCell(val,fmt,rank){
     if(val==='target')return '<span style="background:rgba(255,139,61,.15);color:#ff8b3d;padding:2px 6px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">🎯 TARGET</span>';
     return `<span>${val}</span>`;
   }
+  // ── STAGE 16: Smart Money ──
+  if(fmt==='sm_count'){
+    if(val===null||val===undefined||val===0)return '<span class="na">-</span>';
+    const v=Number(val);
+    // Color intensity scales with how many top funds hold it
+    let col='#22d3ee',bg='rgba(34,211,238,.10)';
+    if(v>=5){col='#fbbf24';bg='rgba(251,191,36,.15)';}       // gold ≥5
+    else if(v>=3){col='#a78bfa';bg='rgba(167,139,250,.15)';}  // purple ≥3
+    return `<span style="background:${bg};color:${col};padding:2px 6px;border-radius:2px;font-family:var(--font-mono);font-size:10px;font-weight:700">${v}🐳</span>`;
+  }
+  if(fmt==='sm_chips'){
+    // val is an array of {cik, name, shares, value} — show top 3 as chips
+    if(!val||!Array.isArray(val)||val.length===0)return '<span class="na">-</span>';
+    const top=val.slice(0,3);
+    const more=val.length>3?` <span style="opacity:.6;font-size:10px">+${val.length-3}</span>`:'';
+    // Show short fund name + value chip
+    const chips=top.map(h=>{
+      const v=Number(h.value||0);
+      const vStr=v>=1e9?`${(v/1e9).toFixed(1)}B`:v>=1e6?`${(v/1e6).toFixed(0)}M`:'';
+      const name=(h.name||'').replace(/\s+(Inc\.?|LLC|Corp\.?|LP|Ltd|Group|Holdings|Management|Capital|Partners)\b/gi,'').trim().substring(0,18);
+      const tip=`${h.name} · $${vStr} · ${Number(h.shares||0).toLocaleString()} shares`;
+      return `<span title="${tip.replace(/"/g,'&quot;')}" style="background:rgba(167,139,250,.10);color:#a78bfa;padding:1px 5px;margin-right:3px;border-radius:2px;font-size:9px;font-weight:600">${name}</span>`;
+    }).join('');
+    return `<span>${chips}${more}</span>`;
+  }
   return`<span>${val}</span>`;
 }
 function visibleCols(){return COLS.filter(c=>c.group==='fixed'||colGroups[c.group]);}
@@ -829,6 +860,8 @@ function buildBody(stocks){
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
 // AI Sentiment overlay ─────────────────────────────────────
 const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
+const SMART_MONEY_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/smart-money-holdings.json';
+let smartMoneyByFund = {};  // {cik: {name, n_holdings, total_value, top_holdings}}
 
 // ── Stage 5: Macro engine integration ──────────────────────
 // Map (LCE posture × GBC phase) → favored S&P sectors.
@@ -1290,6 +1323,34 @@ async function loadSentiment() {
     applyFilters();
   } catch(e) { console.warn('Sentiment failed:', e); }
 }
+// ── STAGE 16: Smart Money × Screener integration ──
+// Loads screener/smart-money-holdings.json (built by justhodl-smart-money-holdings
+// Lambda) and joins by symbol. Adds three columns per stock:
+//   smN     — number of concentrated top funds holding it (signal strength)
+//   smValue — total $ value held by those funds
+//   smTop   — array of {cik,name,shares,value} for chips render
+async function loadSmartMoney() {
+  try {
+    const res = await fetch(SMART_MONEY_URL + '?t=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    const map = data.holdings || {};
+    smartMoneyByFund = {};
+    (data.funds || []).forEach(f => { smartMoneyByFund[f.cik] = f; });
+    allStocks = allStocks.map(stock => {
+      const holders = map[stock.symbol] || [];
+      const totalValue = holders.reduce((s, h) => s + (h.value || 0), 0);
+      return {
+        ...stock,
+        smN: holders.length || null,
+        smValue: totalValue || null,
+        smTop: holders.length ? holders : null,
+      };
+    });
+    applyFilters();
+    console.log('Smart Money loaded:', data.n_symbols, 'symbols ·', data.n_funds_scanned, 'funds ·', data.as_of_quarter);
+  } catch(e) { console.warn('Smart Money failed:', e); }
+}
 
 function handleSort(col){
   if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';
@@ -1323,6 +1384,7 @@ function matchesTab(s,t){
   if(t==='dcf_value')return (s.dcfUpsidePct||0)>=25;
   // Stage 10 tabs
   if(t==='hedge_fund_bought')return (s.instSharesChangePct||0)>=2;
+  if(t==='smart_money_held')return (s.smN||0)>=3;  // ≥3 concentrated funds hold this stock
   if(t==='forward_growth')return (s.forwardRevenueGrowth||0)>=15;
   if(t==='cheap_forward_pe')return s.forwardPE!==null&&s.forwardPE!==undefined&&s.forwardPE>0&&s.forwardPE<15;
   if(t==='news_momentum')return (s.newsCount7d||0)>=3;
@@ -1364,6 +1426,7 @@ const TAB_DEFAULT_SORT={
   analyst_upgrades:{col:'upgradeNet30d',dir:'desc'},
   dcf_value:{col:'dcfUpsidePct',dir:'desc'},
   hedge_fund_bought:{col:'instSharesChangePct',dir:'desc'},
+  smart_money_held:{col:'smN',dir:'desc'},  // Stage 16 — sort by # concentrated funds holding
   forward_growth:{col:'forwardRevenueGrowth',dir:'desc'},
   cheap_forward_pe:{col:'forwardPE',dir:'asc'},
   news_momentum:{col:'newsCount7d',dir:'desc'},
@@ -1858,6 +1921,7 @@ async function loadData(){
     if(!restoreFromUrlHash())restoreState();
     applyFilters();
     loadSentiment();      // async — augments allStocks then re-applies filters
+    loadSmartMoney();     // async — Stage 16 Smart Money × Screener join
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
     loadJustCrossed();    // async — fetches the diff feed
     loadHistory();        // async — fetches per-stock score time series
