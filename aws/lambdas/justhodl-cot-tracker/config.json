@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-cot-tracker",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Commitment of Traders futures positioning tracker — weekly refresh",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "schedule": {
+    "rule_name": "justhodl-cot-tracker-weekly",
+    "cron": "cron(0 22 ? * FRI *)",
+    "description": "CFTC publishes COT data Fridays at 3:30PM ET (~7:30PM UTC). Run at 22:00 UTC to catch latest."
+  }
+}

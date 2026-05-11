@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COT Futures Positioning — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%96%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--warn:#ff8b3d;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);}
+.panel-body{padding:0;max-height:440px;overflow-y:auto;}
+.panel-body::-webkit-scrollbar{width:6px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+.extreme-row{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(28,35,48,.5);font-size:12px;}
+.extreme-row:last-child{border-bottom:0;}
+.extreme-sym{width:50px;font-family:var(--font-mono);font-weight:600;color:var(--accent);font-size:12px;}
+.extreme-name{flex:1;color:var(--text);}
+.extreme-sec{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:1px 5px;background:rgba(148,163,184,.08);border-radius:2px;}
+.extreme-z{width:60px;text-align:right;font-family:var(--font-mono);font-weight:600;font-size:12px;}
+.extreme-z.long{color:var(--pos);}
+.extreme-z.short{color:var(--neg);}
+.contracts-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.filter-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-row input,.filter-row select{background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:12px;outline:none;}
+.filter-row input{min-width:200px;}
+.filter-row input:focus,.filter-row select:focus{border-color:var(--accent);}
+.filter-chip{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);padding:4px 8px;}
+table.contracts{width:100%;border-collapse:collapse;font-size:12px;}
+table.contracts thead{background:rgba(28,35,48,.4);}
+table.contracts th{text-align:left;padding:10px 14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap;}
+table.contracts th:hover{color:var(--text);}
+table.contracts th.sortable::after{content:'▾';opacity:.3;font-size:9px;margin-left:4px;}
+table.contracts th.sorted-desc::after{content:'▼';opacity:1;color:var(--accent);}
+table.contracts th.sorted-asc::after{content:'▲';opacity:1;color:var(--accent);}
+table.contracts td{padding:11px 14px;border-bottom:1px solid rgba(28,35,48,.5);}
+table.contracts tbody tr:hover{background:rgba(167,139,250,.04);}
+.c-sym{font-family:var(--font-mono);font-weight:600;color:var(--accent);}
+.c-z{font-family:var(--font-mono);font-weight:600;text-align:right;}
+.c-z.pos{color:var(--pos);}
+.c-z.neg{color:var(--neg);}
+.c-net{font-family:var(--font-mono);font-weight:500;}
+.c-net.pos{color:var(--pos);}
+.c-net.neg{color:var(--neg);}
+.c-bar-wrap{display:flex;align-items:center;gap:6px;}
+.c-bar{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;position:relative;min-width:80px;}
+.c-bar-pos{position:absolute;left:50%;height:100%;background:var(--pos);}
+.c-bar-neg{position:absolute;right:50%;height:100%;background:var(--neg);}
+.signal-chip{display:inline-block;padding:1px 6px;font-size:10px;border-radius:2px;font-family:var(--font-mono);font-weight:600;}
+.signal-chip.long{background:rgba(0,230,118,.15);color:var(--pos);}
+.signal-chip.short{background:rgba(255,61,90,.15);color:var(--neg);}
+.signal-chip.flat{background:rgba(148,163,184,.1);color:var(--text-dim);}
+.sector-chip{display:inline-block;padding:1px 6px;font-size:10px;background:rgba(167,139,250,.1);color:var(--accent);border-radius:2px;font-family:var(--font-mono);}
+.loading{text-align:center;padding:60px 20px;color:var(--text-dim);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>⚖️ COT Futures Positioning <span class="badge">FMP ULTIMATE</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">connecting</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div class="summary-row">
+<div class="stat"><div class="stat-label">Contracts Tracked</div><div class="stat-val" id="stat-total">—</div><div class="stat-sub" id="stat-week">latest CFTC report</div></div>
+<div class="stat"><div class="stat-label">Extreme Long Positioning</div><div class="stat-val" id="stat-long" style="color:var(--pos)">—</div><div class="stat-sub" id="stat-long-sub">z-score ≥ +1.5</div></div>
+<div class="stat"><div class="stat-label">Extreme Short Positioning</div><div class="stat-val" id="stat-short" style="color:var(--neg)">—</div><div class="stat-sub" id="stat-short-sub">z-score ≤ -1.5</div></div>
+<div class="stat"><div class="stat-label">Data Freshness</div><div class="stat-val" id="stat-fresh">—</div><div class="stat-sub" id="stat-elapsed">cached via Lambda</div></div>
+</div>
+<div class="grid-2col">
+<div class="panel"><div class="panel-title">🟢 Extreme Long (overcrowded longs)</div><div class="panel-body" id="extreme-long"><div class="loading">Loading positions</div></div></div>
+<div class="panel"><div class="panel-title">🔴 Extreme Short (overcrowded shorts)</div><div class="panel-body" id="extreme-short"><div class="loading">Loading positions</div></div></div>
+</div>
+<div class="contracts-panel">
+<div class="filter-row">
+<input id="search" placeholder="Search symbol or name…">
+<select id="filter-sector"><option value="">All sectors</option></select>
+<select id="filter-signal">
+<option value="">All signals</option>
+<option value="long">Extreme long</option>
+<option value="short">Extreme short</option>
+<option value="flat">Flat</option>
+</select>
+<span class="filter-chip" id="filter-count">— contracts</span>
+</div>
+<div style="overflow-x:auto">
+<table class="contracts">
+<thead><tr>
+<th class="sortable" data-sort="symbol">Symbol</th>
+<th>Name</th>
+<th>Sector</th>
+<th class="sortable" data-sort="z_score_3y">3y Z-Score</th>
+<th>Signal</th>
+<th class="sortable" data-sort="net_position_pct">Net Position</th>
+<th>L/S Bar</th>
+<th class="sortable" data-sort="current_long_pct">Long %</th>
+<th class="sortable" data-sort="current_short_pct">Short %</th>
+<th>Last Report</th>
+</tr></thead>
+<tbody id="contracts-body"><tr><td colspan="10"><div class="loading">Loading contracts</div></td></tr></tbody>
+</table>
+</div>
+</div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
