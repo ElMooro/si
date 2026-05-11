@@ -1,0 +1,443 @@
+{
+  "started": "2026-05-11T22:37:51.276367+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-11T22:37:33.000+0000",
+      "code_size": 5759,
+      "memory": 1024,
+      "timeout": 600
+    },
+    "invoke": {
+      "n_funds": 31,
+      "n_symbols": 3866,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 5.0
+    },
+    "s3_size_kb": 2048.0,
+    "s3_size_mb": 2.0,
+    "n_symbols": 3866,
+    "n_funds_scanned": 31,
+    "n_funds_attempted": 35,
+    "all_funds": [
+      {
+        "cik": "0001374170",
+        "name": "Norges Bank Investment Mgmt",
+        "n_holdings": 1572,
+        "total_value_b": 934.75
+      },
+      {
+        "cik": "0000902219",
+        "name": "Wellington Management",
+        "n_holdings": 1762,
+        "total_value_b": 567.52
+      },
+      {
+        "cik": "0000820027",
+        "name": "Tudor Investment",
+        "n_holdings": 3966,
+        "total_value_b": 440.97
+      },
+      {
+        "cik": "0001067983",
+        "name": "Berkshire Hathaway",
+        "n_holdings": 42,
+        "total_value_b": 274.16
+      },
+      {
+        "cik": "0001167557",
+        "name": "AQR Capital Management",
+        "n_holdings": 3547,
+        "total_value_b": 190.61
+      },
+      {
+        "cik": "0001423053",
+        "name": "Citadel Advisors",
+        "n_holdings": 4424,
+        "total_value_b": 106.53
+      },
+      {
+        "cik": "0001009207",
+        "name": "D.E. Shaw",
+        "n_holdings": 2669,
+        "total_value_b": 99.18
+      },
+      {
+        "cik": "0001037389",
+        "name": "Renaissance Technologies",
+        "n_holdings": 3090,
+        "total_value_b": 64.44
+      },
+      {
+        "cik": "0001179392",
+        "name": "Two Sigma Investments",
+        "n_holdings": 3250,
+        "total_value_b": 61.81
+      },
+      {
+        "cik": "0001603466",
+        "name": "Schonfeld Strategic",
+        "n_holdings": 1997,
+        "total_value_b": 61.01
+      },
+      {
+        "cik": "0001135730",
+        "name": "Coatue Management",
+        "n_holdings": 52,
+        "total_value_b": 39.96
+      },
+      {
+        "cik": "0001103804",
+        "name": "Viking Global Investors",
+        "n_holdings": 76,
+        "total_value_b": 37.68
+      },
+      {
+        "cik": "0001020066",
+        "name": "Sands Capital Management",
+        "n_holdings": 66,
+        "total_value_b": 32.88
+      },
+      {
+        "cik": "0001167483",
+        "name": "Tiger Global Management",
+        "n_holdings": 54,
+        "total_value_b": 29.71
+      },
+      {
+        "cik": "0001350694",
+        "name": "Bridgewater Associates",
+        "n_holdings": 1039,
+        "total_value_b": 27.4
+      },
+      {
+        "cik": "0001036325",
+        "name": "Davis Selected Advisers",
+        "n_holdings": 108,
+        "total_value_b": 22.25
+      },
+      {
+        "cik": "0001336528",
+        "name": "Pershing Square Capital",
+        "n_holdings": 11,
+        "total_value_b": 15.53
+      },
+      {
+        "cik": "0001346824",
+        "name": "ARK Investment Management",
+        "n_holdings": 70,
+        "total_value_b": 9.75
+      },
+      {
+        "cik": "0001112520",
+        "name": "Maverick Capital",
+        "n_holdings": 18,
+        "total_value_b": 9.12
+      },
+      {
+        "cik": "0000921669",
+        "name": "Icahn Capital Management",
+        "n_holdings": 13,
+        "total_value_b": 8.45
+      },
+      {
+        "cik": "0001040273",
+        "name": "Third Point",
+        "n_holdings": 41,
+        "total_value_b": 7.26
+      },
+      {
+        "cik": "0001418814",
+        "name": "ValueAct Capital",
+        "n_holdings": 16,
+        "total_value_b": 7.03
+      },
+      {
+        "cik": "0001541617",
+        "name": "Millennium Management",
+        "n_holdings": 17,
+        "total_value_b": 6.66
+      },
+      {
+        "cik": "0001029160",
+        "name": "Soros Fund Management",
+        "n_holdings": 202,
+        "total_value_b": 5.58
+      },
+      {
+        "cik": "0001061768",
+        "name": "Lone Pine Capital",
+        "n_holdings": 22,
+        "total_value_b": 5.28
+      },
+      {
+        "cik": "0001517137",
+        "name": "Starboard Value",
+        "n_holdings": 21,
+        "total_value_b": 5.28
+      },
+      {
+        "cik": "0001536411",
+        "name": "Canyon Capital Advisors",
+        "n_holdings": 56,
+        "total_value_b": 3.94
+      },
+      {
+        "cik": "0001345471",
+        "name": "Anchorage Capital",
+        "n_holdings": 6,
+        "total_value_b": 3.74
+      },
+      {
+        "cik": "0001313893",
+        "name": "Maple Capital",
+        "n_holdings": 116,
+        "total_value_b": 1.59
+      },
+      {
+        "cik": "0000732905",
+        "name": "Tweedy, Browne",
+        "n_holdings": 95,
+        "total_value_b": 1.24
+      },
+      {
+        "cik": "0001031972",
+        "name": "Baupost Group",
+        "n_holdings": 41,
+        "total_value_b": 0.75
+      }
+    ],
+    "concentration_stats": {
+      "flagship_10pct_plus": 30,
+      "high_conviction_5pct_plus": 78,
+      "notable_1pct_plus": 303
+    },
+    "flagships_top25": [
+      {
+        "sym": "IEP",
+        "max_pct": 49.117,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 49.117,
+        "top_value_b": 4.15
+      },
+      {
+        "sym": "JHG",
+        "max_pct": 40.51,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 40.51,
+        "top_value_b": 1.52
+      },
+      {
+        "sym": "GE",
+        "max_pct": 33.178,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 33.178,
+        "top_value_b": 1.24
+      },
+      {
+        "sym": "NVDA",
+        "max_pct": 22.679,
+        "n_high": 6,
+        "n_flag": 2,
+        "top_holder": "Millennium Management",
+        "top_pct": 22.679,
+        "top_value_b": 1.51
+      },
+      {
+        "sym": "AAPL",
+        "max_pct": 22.601,
+        "n_high": 4,
+        "n_flag": 2,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 22.601,
+        "top_value_b": 61.96
+      },
+      {
+        "sym": "ASND",
+        "max_pct": 22.479,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "ARK Investment Management",
+        "top_pct": 22.479,
+        "top_value_b": 2.19
+      },
+      {
+        "sym": "CVI",
+        "max_pct": 21.213,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 21.213,
+        "top_value_b": 1.79
+      },
+      {
+        "sym": "AXP",
+        "max_pct": 20.458,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 20.458,
+        "top_value_b": 56.09
+      },
+      {
+        "sym": "MA",
+        "max_pct": 18.81,
+        "n_high": 2,
+        "n_flag": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 18.81,
+        "top_value_b": 1.72
+      },
+      {
+        "sym": "META",
+        "max_pct": 18.287,
+        "n_high": 7,
+        "n_flag": 2,
+        "top_holder": "Millennium Management",
+        "top_pct": 18.287,
+        "top_value_b": 1.22
+      },
+      {
+        "sym": "BN",
+        "max_pct": 18.148,
+        "n_high": 2,
+        "n_flag": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 18.148,
+        "top_value_b": 2.82
+      },
+      {
+        "sym": "SOLV",
+        "max_pct": 17.441,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 17.441,
+        "top_value_b": 0.65
+      },
+      {
+        "sym": "UBER",
+        "max_pct": 15.897,
+        "n_high": 2,
+        "n_flag": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 15.897,
+        "top_value_b": 2.47
+      },
+      {
+        "sym": "IONS",
+        "max_pct": 15.757,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.757,
+        "top_value_b": 0.2
+      },
+      {
+        "sym": "CNHI",
+        "max_pct": 15.035,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.035,
+        "top_value_b": 0.19
+      },
+      {
+        "sym": "NTRA",
+        "max_pct": 14.614,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Canyon Capital Advisors",
+        "top_pct": 14.614,
+        "top_value_b": 0.58
+      },
+      {
+        "sym": "AMZN",
+        "max_pct": 14.283,
+        "n_high": 11,
+        "n_flag": 2,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 14.283,
+        "top_value_b": 2.22
+      },
+      {
+        "sym": "GOOG",
+        "max_pct": 12.457,
+        "n_high": 4,
+        "n_flag": 1,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 12.457,
+        "top_value_b": 1.93
+      },
+      {
+        "sym": "QRVO",
+        "max_pct": 12.03,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Starboard Value",
+        "top_pct": 12.03,
+        "top_value_b": 0.63
+      },
+      {
+        "sym": "KKR",
+        "max_pct": 11.33,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Maverick Capital",
+        "top_pct": 11.33,
+        "top_value_b": 1.03
+      },
+      {
+        "sym": "CRM",
+        "max_pct": 11.292,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 11.292,
+        "top_value_b": 0.79
+      },
+      {
+        "sym": "GOOGL",
+        "max_pct": 11.199,
+        "n_high": 4,
+        "n_flag": 1,
+        "top_holder": "Tiger Global Management",
+        "top_pct": 11.199,
+        "top_value_b": 3.33
+      },
+      {
+        "sym": "SPY",
+        "max_pct": 11.088,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "Bridgewater Associates",
+        "top_pct": 11.088,
+        "top_value_b": 3.04
+      },
+      {
+        "sym": "RKT",
+        "max_pct": 10.853,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 10.853,
+        "top_value_b": 0.76
+      },
+      {
+        "sym": "BLK",
+        "max_pct": 10.589,
+        "n_high": 1,
+        "n_flag": 1,
+        "top_holder": "ValueAct Capital",
+        "top_pct": 10.589,
+        "top_value_b": 0.74
+      }
+    ]
+  },
+  "finished": "2026-05-11T22:39:34.524080+00:00"
+}
