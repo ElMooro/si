@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>α Alpha Score — Today's Top Picks · JustHodl.AI</title>
+<meta name="description" content="7-factor composite alpha score ranking all S&P 500 stocks. Quality + Growth + Momentum + Smart Money + Sentiment + Analysts + Insiders, distilled to one decisive number per stock.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --tier-s:#ff79c6; --tier-a:#fbbf24; --tier-b:#a78bfa; --tier-c:#22d3ee; --tier-d:#5b6479;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+
+header{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(10px);
+}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.hero{
+  background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(167,139,250,.06),rgba(34,211,238,.04));
+  border:1px solid rgba(251,191,36,.18);
+  border-radius:6px;padding:18px 22px;margin-bottom:16px;
+}
+.hero-title{font-size:15px;font-weight:600;letter-spacing:-.2px;margin:0 0 6px;}
+.hero-sub{color:var(--text-dim);font-size:12px;margin:0;line-height:1.55;}
+
+.tier-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+@media (max-width:900px){.tier-row{grid-template-columns:repeat(2,1fr);}}
+.tier-box{
+  background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;
+  cursor:pointer;transition:all .15s;
+  position:relative;overflow:hidden;
+}
+.tier-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+.tier-box.tier-S::before{background:var(--tier-s);}
+.tier-box.tier-A::before{background:var(--tier-a);}
+.tier-box.tier-B::before{background:var(--tier-b);}
+.tier-box.tier-C::before{background:var(--tier-c);}
+.tier-box.tier-D::before{background:var(--tier-d);}
+.tier-box:hover{border-color:var(--border-hi);background:rgba(28,35,48,.4);}
+.tier-box.active{background:rgba(167,139,250,.08);border-color:var(--accent);}
+.tier-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:4px;}
+.tier-count{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.tier-range{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+.filter-row{
+  background:var(--panel);border:1px solid var(--border);border-radius:5px;
+  padding:10px 14px;margin-bottom:14px;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+}
+.filter-row input,.filter-row select{
+  background:var(--bg);border:1px solid var(--border-hi);color:var(--text);
+  padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:12px;
+  outline:none;
+}
+.filter-row input[type="text"]{flex:1;min-width:200px;max-width:300px;}
+.sector-chip,.sort-chip{
+  font-family:var(--font-mono);font-size:11px;cursor:pointer;
+  padding:5px 10px;border-radius:3px;border:1px solid var(--border-hi);
+  background:transparent;color:var(--text-dim);transition:all .12s;
+}
+.sector-chip:hover,.sort-chip:hover{color:var(--text);border-color:var(--accent);}
+.sort-chip.active{background:rgba(251,191,36,.15);color:var(--gold);border-color:var(--gold);}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px;}
+.card{
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:14px 16px;transition:all .15s;cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
+.card.tier-S::before{background:var(--tier-s);}
+.card.tier-A::before{background:var(--tier-a);}
+.card.tier-B::before{background:var(--tier-b);}
+.card.tier-C::before{background:var(--tier-c);}
+.card.tier-D::before{background:var(--tier-d);}
+.card:hover{border-color:var(--border-hi);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+
+.card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;}
+.card-sym-block{display:flex;align-items:baseline;gap:10px;}
+.card-sym{font-family:var(--font-mono);font-weight:700;font-size:18px;color:var(--text);}
+.card-name{font-size:11px;color:var(--text-dim);font-weight:400;}
+.card-sector{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+.card-score-block{display:flex;align-items:center;gap:8px;}
+.card-tier{
+  font-family:var(--font-mono);font-weight:800;font-size:11px;
+  padding:3px 8px;border-radius:3px;letter-spacing:.5px;
+}
+.card-tier.tier-S{background:rgba(255,121,198,.18);color:var(--tier-s);}
+.card-tier.tier-A{background:rgba(251,191,36,.18);color:var(--tier-a);}
+.card-tier.tier-B{background:rgba(167,139,250,.18);color:var(--tier-b);}
+.card-tier.tier-C{background:rgba(34,211,238,.12);color:var(--tier-c);}
+.card-tier.tier-D{background:rgba(91,100,121,.18);color:var(--tier-d);}
+.card-score{font-family:var(--font-mono);font-weight:800;font-size:24px;letter-spacing:-.5px;}
+.card-rank{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+
+.components-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:10px 0 8px;}
+.component{text-align:center;}
+.comp-label{font-family:var(--font-mono);font-size:9px;color:var(--text-mute);letter-spacing:.4px;text-transform:uppercase;margin-bottom:2px;}
+.comp-bar{height:4px;background:rgba(28,35,48,.6);border-radius:2px;overflow:hidden;margin-bottom:2px;}
+.comp-bar-fill{height:100%;border-radius:2px;}
+.comp-val{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;}
+
+.card-signals{margin-top:8px;font-size:11px;color:var(--text-dim);}
+.card-signals .signal{margin-bottom:3px;line-height:1.4;}
+.card-flags{margin-top:6px;font-size:11px;color:var(--neg);}
+
+.card-price{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);margin-top:8px;border-top:1px solid var(--border);padding-top:7px;display:flex;justify-content:space-between;}
+
+.loading,.error{padding:40px 20px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:12px;grid-column:1/-1;}
+.error{color:var(--neg);}
+
+@media (max-width:600px){
+  .cards{grid-template-columns:1fr;}
+  .components-row{grid-template-columns:repeat(4,1fr);gap:6px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>⭐ Alpha Score <span class="badge">v1.0</span></h1>
+  <div class="header-meta">
+    <a class="nav-back" href="/">← Home</a>
+    <a class="nav-back" href="/screener/">📊 Screener</a>
+    <a class="nav-back" href="/smart-money/">🐳 Funds</a>
+    <a class="nav-back" href="/conviction/">🎯 Conviction</a>
+    <span><span class="dot"></span><span id="updated">—</span></span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <p class="hero-title">7-factor composite stock ranking — one decisive number per stock</p>
+    <p class="hero-sub">Quality · Growth · Momentum · Smart Money · Sentiment · Analysts · Insiders, weighted and synthesized. Tier S = once-a-month conviction. Tier A = trade-worthy this week. Tier B = watchlist. Click any tier or sort to drill in.</p>
+  </div>
+
+  <div class="tier-row" id="tier-row">
+    <div class="tier-box tier-S" data-tier="S"><div class="tier-label">Tier S</div><div class="tier-count" id="cnt-S">—</div><div class="tier-range">α ≥ 90 · rare</div></div>
+    <div class="tier-box tier-A active" data-tier="A"><div class="tier-label">Tier A</div><div class="tier-count" id="cnt-A">—</div><div class="tier-range">α 80–89 · trade-worthy</div></div>
+    <div class="tier-box tier-B" data-tier="B"><div class="tier-label">Tier B</div><div class="tier-count" id="cnt-B">—</div><div class="tier-range">α 70–79 · watchlist</div></div>
+    <div class="tier-box tier-C" data-tier="C"><div class="tier-label">Tier C</div><div class="tier-count" id="cnt-C">—</div><div class="tier-range">α 50–69 · neutral</div></div>
+    <div class="tier-box tier-D" data-tier="D"><div class="tier-label">Tier D</div><div class="tier-count" id="cnt-D">—</div><div class="tier-range">α &lt; 50 · avoid</div></div>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" id="filter-input" placeholder="Filter by ticker, name, sector…" autocomplete="off">
+    <select id="sector-select">
+      <option value="">All sectors</option>
+    </select>
+    <button class="sort-chip active" data-sort="alpha_score">α Score</button>
+    <button class="sort-chip" data-sort="quality">Quality</button>
+    <button class="sort-chip" data-sort="growth">Growth</button>
+    <button class="sort-chip" data-sort="momentum">Momentum</button>
+    <button class="sort-chip" data-sort="smart_money">Smart $</button>
+    <button class="sort-chip" data-sort="sentiment">News</button>
+    <button class="sort-chip" data-sort="insiders">Insiders</button>
+  </div>
+
+  <div class="cards" id="cards">
+    <div class="loading">Loading Alpha Score Engine…</div>
+  </div>
+</main>
+
+<script>
+const SIDECAR_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/alpha-score.json';
+let raw = null;
+let activeTier = 'A';
+let textFilter = '';
+let sectorFilter = '';
+let sortKey = 'alpha_score';
+
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function compColor(v){
+  if(v == null) return 'var(--text-mute)';
+  if(v >= 80) return 'var(--pos)';
+  if(v >= 65) return 'var(--gold)';
+  if(v >= 50) return 'var(--info)';
+  if(v >= 30) return 'var(--text-dim)';
+  return 'var(--neg)';
+}
+function tierClass(t){
+  return 'tier-' + (t || 'C');
+}
+
+function applyFilters(){
+  if(!raw) return [];
+  let stocks = (raw.stocks || []).filter(s => s.alpha_score !== null && s.tier !== '—');
+  if(activeTier){
+    stocks = stocks.filter(s => s.tier === activeTier);
+  }
+  if(sectorFilter){
+    stocks = stocks.filter(s => s.sector === sectorFilter);
+  }
+  if(textFilter){
+    const t = textFilter.toLowerCase();
+    stocks = stocks.filter(s =>
+      (s.symbol || '').toLowerCase().includes(t) ||
+      (s.name || '').toLowerCase().includes(t) ||
+      (s.sector || '').toLowerCase().includes(t)
+    );
+  }
+  stocks.sort((a, b) => {
+    let va, vb;
+    if(sortKey === 'alpha_score'){
+      va = a.alpha_score; vb = b.alpha_score;
+    } else {
+      va = (a.components || {})[sortKey]; vb = (b.components || {})[sortKey];
+    }
+    if(va == null) va = -1;
+    if(vb == null) vb = -1;
+    return vb - va;
+  });
+  return stocks;
+}
+
+function renderCards(){
+  const data = applyFilters();
+  const cards = document.getElementById('cards');
+  if(!data.length){
+    cards.innerHTML = '<div class="loading">No stocks match current filter.</div>';
+    return;
+  }
+  cards.innerHTML = data.slice(0, 60).map(s => {
+    const c = s.components || {};
+    const compFields = ['quality','growth','momentum','smart_money','sentiment','analysts','insiders'];
+    const compLabels = ['Q','G','M','SM','S','A','I'];
+    const compsHtml = compFields.map((k,i) => {
+      const v = c[k];
+      const pct = v == null ? 0 : v;
+      const col = compColor(v);
+      return '<div class="component">'
+        + '<div class="comp-label">' + compLabels[i] + '</div>'
+        + '<div class="comp-bar"><div class="comp-bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div>'
+        + '<div class="comp-val" style="color:' + col + '">' + (v == null ? '–' : v) + '</div>'
+        + '</div>';
+    }).join('');
+    const signals = (s.top_signals || []).map(sig =>
+      '<div class="signal">' + escapeHtml(sig) + '</div>'
+    ).join('');
+    const flags = (s.risk_flags || []).map(f =>
+      '<div class="signal">' + escapeHtml(f) + '</div>'
+    ).join('');
+    const cls = tierClass(s.tier);
+    return '<div class="card ' + cls + '" data-sym="' + escapeHtml(s.symbol) + '">'
+      + '<div class="card-head">'
+        + '<div class="card-sym-block">'
+          + '<div class="card-sym">' + escapeHtml(s.symbol) + '</div>'
+          + '<div class="card-name">' + escapeHtml((s.name || '').substring(0, 28)) + '</div>'
+        + '</div>'
+        + '<div class="card-score-block">'
+          + '<span class="card-rank">#' + (s.rank || '?') + '</span>'
+          + '<span class="card-tier ' + cls + '">' + (s.tier || 'C') + '</span>'
+          + '<span class="card-score" style="color:' + compColor(s.alpha_score) + '">' + (s.alpha_score == null ? '–' : s.alpha_score) + '</span>'
+        + '</div>'
+      + '</div>'
+      + '<div class="components-row">' + compsHtml + '</div>'
+      + (signals ? '<div class="card-signals">' + signals + '</div>' : '')
+      + (flags ? '<div class="card-flags">' + flags + '</div>' : '')
+      + '<div class="card-price">'
+        + '<span>' + escapeHtml(s.sector || '–') + '</span>'
+        + '<span>$' + (s.price ? s.price.toFixed(2) : '–') + '</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Card click → screener
+  cards.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', () => {
+      const sym = c.getAttribute('data-sym');
+      window.open('https://justhodl.ai/stock/?symbol=' + encodeURIComponent(sym), '_blank');
+    });
+  });
+}
+
+function renderTierCounts(){
+  if(!raw) return;
+  const td = raw.tier_distribution || {};
+  ['S','A','B','C','D'].forEach(t => {
+    document.getElementById('cnt-' + t).textContent = td[t] || 0;
+  });
+}
+
+function populateSectors(){
+  if(!raw) return;
+  const sectors = [...new Set((raw.stocks || []).map(s => s.sector).filter(Boolean))].sort();
+  const sel = document.getElementById('sector-select');
+  sectors.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+}
+
+function setUpdated(){
+  if(!raw || !raw.generated_at) return;
+  const dt = new Date(raw.generated_at);
+  const ago = (Date.now() - dt.getTime()) / 60000;
+  const text = ago < 60 ? `Updated ${Math.round(ago)}m ago`
+                         : `Updated ${Math.round(ago/60)}h ago`;
+  document.getElementById('updated').textContent = text;
+}
+
+function initListeners(){
+  document.querySelectorAll('.tier-box').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.tier-box').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      activeTier = b.getAttribute('data-tier');
+      renderCards();
+    });
+  });
+  document.getElementById('filter-input').addEventListener('input', e => {
+    textFilter = e.target.value.trim();
+    renderCards();
+  });
+  document.getElementById('sector-select').addEventListener('change', e => {
+    sectorFilter = e.target.value;
+    renderCards();
+  });
+  document.querySelectorAll('.sort-chip').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.sort-chip').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      sortKey = b.getAttribute('data-sort');
+      renderCards();
+    });
+  });
+}
+
+async function load(){
+  try {
+    const resp = await fetch(SIDECAR_URL + '?t=' + Date.now());
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    raw = await resp.json();
+    renderTierCounts();
+    populateSectors();
+    setUpdated();
+    renderCards();
+  } catch(err){
+    document.getElementById('cards').innerHTML =
+      '<div class="error">Failed to load Alpha Score: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+initListeners();
+load();
+</script>
+</body>
+</html>

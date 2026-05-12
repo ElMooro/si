@@ -311,6 +311,9 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
 </div>
 <div class="tab-bar">
   <div class="tab active" data-tab="all" onclick="setTab(this)">ALL STOCKS</div>
+  <div class="tab" data-tab="alpha_tier_s" onclick="setTab(this)" style="color:#ff79c6;font-weight:700">⭐ TIER S</div>
+  <div class="tab" data-tab="alpha_tier_a" onclick="setTab(this)" style="color:#fbbf24;font-weight:700">⭐ TIER A</div>
+  <div class="tab" data-tab="alpha_top20" onclick="setTab(this)" style="color:#a78bfa">⭐ TOP 20</div>
   <div class="tab" data-tab="steal_board" onclick="setTab(this)" style="color:#ffd700;font-weight:700">💎 THE STEAL BOARD</div>
   <div class="tab" data-tab="just_crossed" onclick="setTab(this)" style="color:#fb7185">🆕 JUST CROSSED <span id="justCrossedBadge" style="background:rgba(251,113,133,.25);color:#fb7185;padding:1px 5px;border-radius:8px;margin-left:3px;font-size:9px;display:none"></span></div>
   <div class="tab" data-tab="rising" onclick="setTab(this)" style="color:#00e676">📈 RISING</div>
@@ -425,6 +428,7 @@ tbody tr.cycle-right-row{background:linear-gradient(90deg,rgba(34,211,238,.04) 0
   <button class="col-toggle-btn on" data-group="news_momentum" onclick="toggleColGroup(this)" style="color:#ec4899">📰 News</button>
   <button class="col-toggle-btn on" data-group="ma" onclick="toggleColGroup(this)" style="color:#14b8a6">🤝 M&amp;A</button>
   <button class="col-toggle-btn on" data-group="smart_money" onclick="toggleColGroup(this)" style="color:#a78bfa" title="Top hedge fund holders per stock (Berkshire, Pershing Sq, Greenlight, etc.)">🐳 Smart Money</button>
+  <button class="col-toggle-btn on" data-group="alpha" onclick="toggleColGroup(this)" style="color:#fbbf24;font-weight:700" title="Alpha Score Engine — 7-factor composite stock ranking (Quality, Growth, Momentum, Smart Money, Sentiment, Analysts, Insiders)">⭐ Alpha Score</button>
   <button class="col-toggle-btn" data-group="extended" onclick="toggleColGroup(this)">Extended</button>
   <span style="width:1px;height:14px;background:var(--border);margin:0 4px"></span>
   <button class="col-toggle-btn" id="heatmapToggle" onclick="toggleHeatmap(this)" title="Color cells by percentile rank within visible results">🌡 HEAT MAP</button>
@@ -630,6 +634,11 @@ const COLS=[
   {id:'newsCount30d',label:'News 30d',group:'news_momentum',fn:r=>r.newsCount30d,fmt:'num'},
   {id:'newsCount7d',label:'News 7d',group:'news_momentum',fn:r=>r.newsCount7d,fmt:'num'},
   {id:'newsSentiment30d',label:'Sentiment',group:'news_momentum',fn:r=>r.newsSentiment30d,fmt:'sent_chg'},
+  // ── ALPHA SCORE ENGINE v1.0: 7-factor composite (#1 of roadmap) ──
+  {id:'alphaScore',label:'⭐ Alpha',group:'alpha',fn:r=>r.alphaScore,fmt:'alpha_score'},
+  {id:'alphaTier',label:'Tier',group:'alpha',fn:r=>r.alphaTier,fmt:'alpha_tier'},
+  {id:'alphaRank',label:'Rank',group:'alpha',fn:r=>r.alphaRank,fmt:'num'},
+  {id:'alphaSignals',label:'Top Signals',group:'alpha',fn:r=>r.alphaSignals,fmt:'alpha_signals'},
   // ── STAGE 16: Smart Money × Screener integration ──
   {id:'smN',label:'🐳 SM #',group:'smart_money',fn:r=>r.smN,fmt:'sm_count'},
   {id:'smValue',label:'🐳 SM $',group:'smart_money',fn:r=>r.smValue,fmt:'mcap'},
@@ -793,6 +802,36 @@ function fmtCell(val,fmt,rank){
     return `<span>${val}</span>`;
   }
   // ── STAGE 16: Smart Money ──
+  // ── ALPHA SCORE ENGINE v1.0 formatters ──
+  if(fmt==='alpha_score'){
+    if(val===null||val===undefined)return '<span class="na">-</span>';
+    const v=Number(val);
+    let col='#94a3b8',bg='rgba(148,163,184,.10)',weight='600';
+    if(v>=90){col='#ff79c6';bg='rgba(255,121,198,.20)';weight='800';}      // S — pink
+    else if(v>=80){col='#fbbf24';bg='rgba(251,191,36,.18)';weight='800';}  // A — gold
+    else if(v>=70){col='#a78bfa';bg='rgba(167,139,250,.15)';weight='700';} // B — purple
+    else if(v>=50){col='#22d3ee';bg='rgba(34,211,238,.10)';weight='600';}  // C — cyan
+    else{col='#5b6479';bg='rgba(91,100,121,.10)';weight='500';}            // D — gray
+    return `<span style="background:${bg};color:${col};padding:3px 8px;border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:${weight};letter-spacing:.3px">${v}</span>`;
+  }
+  if(fmt==='alpha_tier'){
+    if(val===null||val===undefined||val==='—')return '<span class="na">-</span>';
+    const t=val;
+    const m={'S':{c:'#ff79c6',b:'rgba(255,121,198,.18)'},'A':{c:'#fbbf24',b:'rgba(251,191,36,.18)'},
+              'B':{c:'#a78bfa',b:'rgba(167,139,250,.15)'},'C':{c:'#22d3ee',b:'rgba(34,211,238,.10)'},
+              'D':{c:'#5b6479',b:'rgba(91,100,121,.10)'}};
+    const s=m[t]||m.C;
+    return `<span style="background:${s.b};color:${s.c};padding:2px 8px;border-radius:3px;font-family:var(--font-mono);font-size:10px;font-weight:800;letter-spacing:.5px">${t}</span>`;
+  }
+  if(fmt==='alpha_signals'){
+    if(!val||!Array.isArray(val)||val.length===0)return '<span class="na">-</span>';
+    // Show first 1-2 signals inline, with the rest in a tooltip
+    const first=val.slice(0,2);
+    const rest=val.length>2?` <span style="opacity:.6;font-size:10px">+${val.length-2}</span>`:'';
+    const tip=val.join('\\n').replace(/"/g,'&quot;');
+    const text=first.join(' · ').replace(/[<>"]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    return `<span title="${tip}" style="font-size:11px;color:var(--text-dim)">${text}${rest}</span>`;
+  }
   if(fmt==='sm_count'){
     if(val===null||val===undefined||val===0)return '<span class="na">-</span>';
     const v=Number(val);
@@ -891,6 +930,7 @@ function buildBody(stocks){
 function renderTable(){buildHeader();buildBody(filteredStocks);document.getElementById('resultCount').textContent=filteredStocks.length.toLocaleString();document.getElementById('sortInfo').textContent=`Sorted by ${sortCol} (${sortDir==='asc'?'ASC':'DESC'})`;}
 // AI Sentiment overlay ─────────────────────────────────────
 const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
+const ALPHA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/alpha-score.json';
 const SMART_MONEY_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/smart-money-holdings.json';
 let smartMoneyByFund = {};  // {cik: {name, n_holdings, total_value, top_holdings}}
 
@@ -1405,6 +1445,40 @@ async function loadSmartMoney() {
   } catch(e) { console.warn('Smart Money failed:', e); }
 }
 
+// ── ALPHA SCORE ENGINE (v1.0) ──
+// Reads screener/alpha-score.json sidecar with 7-factor composite scores.
+// Joins by symbol and adds alpha_score + alpha_tier + alpha_components + alpha_signals fields.
+async function loadAlphaScore() {
+  try {
+    const res = await fetch(ALPHA_URL + '?t=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    const stocks = data.stocks || [];
+    const byMap = {};
+    stocks.forEach(s => { byMap[s.symbol] = s; });
+    allStocks = allStocks.map(stock => {
+      const a = byMap[stock.symbol];
+      return {
+        ...stock,
+        alphaScore: a?.alpha_score ?? null,
+        alphaTier:  a?.tier ?? null,
+        alphaRank:  a?.rank ?? null,
+        alphaQuality:    a?.components?.quality ?? null,
+        alphaGrowth:     a?.components?.growth ?? null,
+        alphaMomentum:   a?.components?.momentum ?? null,
+        alphaSmartMoney: a?.components?.smart_money ?? null,
+        alphaSentiment:  a?.components?.sentiment ?? null,
+        alphaAnalysts:   a?.components?.analysts ?? null,
+        alphaInsiders:   a?.components?.insiders ?? null,
+        alphaSignals: a?.top_signals || [],
+        alphaFlags:   a?.risk_flags || [],
+      };
+    });
+    applyFilters();
+    console.log('Alpha Score loaded:', data.scored_count, 'stocks · tiers:', JSON.stringify(data.tier_distribution));
+  } catch(e) { console.warn('Alpha Score failed:', e); }
+}
+
 function handleSort(col){
   if(sortCol===col)sortDir=sortDir==='desc'?'asc':'desc';
   else{sortCol=col;sortDir='desc';}
@@ -1426,6 +1500,10 @@ function getFilters(){return{search:document.getElementById('searchInput').value
 function matchesMcap(s,m){const v=Number(s.marketCap||0);if(!m)return true;if(m==='mega')return v>=200e9;if(m==='large')return v>=10e9&&v<200e9;if(m==='mid')return v>=2e9&&v<10e9;if(m==='small')return v<2e9;return true;}
 function matchesTab(s,t){
   if(t==='all')return true;
+  // ── ALPHA SCORE ENGINE tabs ──
+  if(t==='alpha_tier_s')return s.alphaTier==='S';
+  if(t==='alpha_tier_a')return s.alphaTier==='A' || s.alphaTier==='S';
+  if(t==='alpha_top20')return (s.alphaRank||999)<=20;
   if(t==='steal_board')return (s.stealScore||0)>=70;
   if(t==='just_crossed')return false;  // feed view replaces table; no row-filter
   if(t==='rising')return s.scoreTrend==='rising';
@@ -1481,6 +1559,9 @@ const TAB_DEFAULT_SORT={
   dcf_value:{col:'dcfUpsidePct',dir:'desc'},
   hedge_fund_bought:{col:'instSharesChangePct',dir:'desc'},
   smart_money_held:{col:'smN',dir:'desc'},  // Stage 16 — sort by # concentrated funds holding
+  alpha_tier_s:{col:'alphaScore',dir:'desc'},   // Alpha Tier S — best of the best
+  alpha_tier_a:{col:'alphaScore',dir:'desc'},   // Alpha Tier A
+  alpha_top20:{col:'alphaRank',dir:'asc'},      // Top 20 — sort by rank ascending
   high_conviction:{col:'smMaxPct',dir:'desc'},  // Stage 16.1 — sort by highest fund-concentration
   forward_growth:{col:'forwardRevenueGrowth',dir:'desc'},
   cheap_forward_pe:{col:'forwardPE',dir:'asc'},
@@ -1977,6 +2058,7 @@ async function loadData(){
     applyFilters();
     loadSentiment();      // async — augments allStocks then re-applies filters
     loadSmartMoney();     // async — Stage 16 Smart Money × Screener join
+    loadAlphaScore();     // async — Alpha Score Engine v1.0 (7-factor composite)
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
     loadJustCrossed();    // async — fetches the diff feed
     loadHistory();        // async — fetches per-stock score time series
