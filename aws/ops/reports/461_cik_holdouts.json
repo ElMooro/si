@@ -1,0 +1,987 @@
+{
+  "started": "2026-05-12T10:14:21.635517+00:00",
+  "test": {
+    "elapsed_s": 52.5,
+    "n_funds": 25,
+    "n_ready": 13,
+    "n_partial": 0,
+    "n_weak": 12,
+    "ready": [
+      {
+        "label": "Yacktman",
+        "required_token": "yacktman",
+        "tried_queries": [
+          {
+            "q": "Yacktman Asset",
+            "n_hits": 2
+          },
+          {
+            "q": "Yacktman Asset Management",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0000905567",
+            "name": "YACKTMAN ASSET MANAGEMENT LP  (CIK 0000905567)",
+            "filing_date": "2019-02-04",
+            "matched_query": "Yacktman Asset"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0000905567",
+            "name": "YACKTMAN ASSET MANAGEMENT LP  (CIK 0000905567)",
+            "filing_date": "2019-02-04",
+            "matched_query": "Yacktman Asset",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 72,
+              "n_with_sym": 72
+            },
+            "fmp_perf": {
+              "mv": 7499157453,
+              "size": 76,
+              "name": "YACKTMAN ASSET MANAGEMENT LP"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 2.3,
+        "best_cik": "0000905567",
+        "best_sec_name": "YACKTMAN ASSET MANAGEMENT LP  (CIK 0000905567)",
+        "best_fmp_name": "YACKTMAN ASSET MANAGEMENT LP",
+        "best_size": 76,
+        "best_mv_b": 7.5,
+        "best_extract_n": 72
+      },
+      {
+        "label": "Akre Capital",
+        "required_token": "akre",
+        "tried_queries": [
+          {
+            "q": "Akre Capital Management",
+            "n_hits": 1
+          },
+          {
+            "q": "Akre Capital LP",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001112520",
+            "name": "AKRE CAPITAL MANAGEMENT LLC  (CIK 0001112520)",
+            "filing_date": "2010-08-26",
+            "matched_query": "Akre Capital Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001112520",
+            "name": "AKRE CAPITAL MANAGEMENT LLC  (CIK 0001112520)",
+            "filing_date": "2010-08-26",
+            "matched_query": "Akre Capital Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 18,
+              "n_with_sym": 18
+            },
+            "fmp_perf": {
+              "mv": 9120742965,
+              "size": 18,
+              "name": "AKRE CAPITAL MANAGEMENT LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 1.6,
+        "best_cik": "0001112520",
+        "best_sec_name": "AKRE CAPITAL MANAGEMENT LLC  (CIK 0001112520)",
+        "best_fmp_name": "AKRE CAPITAL MANAGEMENT LLC",
+        "best_size": 18,
+        "best_mv_b": 9.12,
+        "best_extract_n": 18
+      },
+      {
+        "label": "Point72",
+        "required_token": "point72",
+        "tried_queries": [
+          {
+            "q": "Point72 Asset Management LP",
+            "n_hits": 0
+          },
+          {
+            "q": "Point72 Asset Management",
+            "n_hits": 5
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0002006887",
+            "name": "Point72 Italy, S.r.l.  (CIK 0002006887)",
+            "filing_date": "2025-02-14",
+            "matched_query": "Point72 Asset Management"
+          },
+          {
+            "cik": "0001698051",
+            "name": "Point72 Europe (London) LLP  (CIK 0001698051)",
+            "filing_date": "2022-05-16",
+            "matched_query": "Point72 Asset Management"
+          },
+          {
+            "cik": "0001599822",
+            "name": "Point72 Hong Kong Ltd  (CIK 0001599822)",
+            "filing_date": "2024-05-15",
+            "matched_query": "Point72 Asset Management"
+          },
+          {
+            "cik": "0001949771",
+            "name": "Point72 Middle East FZE  (CIK 0001949771)",
+            "filing_date": "2023-02-15",
+            "matched_query": "Point72 Asset Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0002006887",
+            "name": "Point72 Italy, S.r.l.  (CIK 0002006887)",
+            "filing_date": "2025-02-14",
+            "matched_query": "Point72 Asset Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 3,
+              "n_records": 19,
+              "n_with_sym": 19
+            },
+            "fmp_perf": {
+              "mv": 134682548,
+              "size": 19,
+              "name": "Point72 Italy, S.r.l."
+            },
+            "score": 5
+          },
+          {
+            "cik": "0001698051",
+            "name": "Point72 Europe (London) LLP  (CIK 0001698051)",
+            "filing_date": "2022-05-16",
+            "matched_query": "Point72 Asset Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 3,
+              "n_records": 727,
+              "n_with_sym": 726
+            },
+            "fmp_perf": {
+              "mv": 2044019760,
+              "size": 727,
+              "name": "Point72 Europe (London) LLP"
+            },
+            "score": 5
+          },
+          {
+            "cik": "0001599822",
+            "name": "Point72 Hong Kong Ltd  (CIK 0001599822)",
+            "filing_date": "2024-05-15",
+            "matched_query": "Point72 Asset Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 3,
+              "n_records": 430,
+              "n_with_sym": 430
+            },
+            "fmp_perf": {
+              "mv": 2178543291,
+              "size": 430,
+              "name": "Point72 Hong Kong Ltd"
+            },
+            "score": 5
+          },
+          {
+            "cik": "0001949771",
+            "name": "Point72 Middle East FZE  (CIK 0001949771)",
+            "filing_date": "2023-02-15",
+            "matched_query": "Point72 Asset Management",
+            "fmp_extract": null,
+            "fmp_perf": {
+              "mv": 3381677731,
+              "size": 1447,
+              "name": "Point72 Middle East FZE"
+            },
+            "score": 2
+          }
+        ],
+        "elapsed_s": 1.4,
+        "best_cik": "0002006887",
+        "best_sec_name": "Point72 Italy, S.r.l.  (CIK 0002006887)",
+        "best_fmp_name": "Point72 Italy, S.r.l.",
+        "best_size": 19,
+        "best_mv_b": 0.13,
+        "best_extract_n": 19
+      },
+      {
+        "label": "T. Rowe Price",
+        "required_token": "rowe price",
+        "tried_queries": [
+          {
+            "q": "T Rowe Price Associates Inc",
+            "n_hits": 1
+          },
+          {
+            "q": "T Rowe Price Investment Management",
+            "n_hits": 1
+          },
+          {
+            "q": "Price T Rowe Associates",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001897612",
+            "name": "T. Rowe Price Investment Management, Inc.  (CIK 0001897612)",
+            "filing_date": "2024-11-14",
+            "matched_query": "T Rowe Price Investment Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001897612",
+            "name": "T. Rowe Price Investment Management, Inc.  (CIK 0001897612)",
+            "filing_date": "2024-11-14",
+            "matched_query": "T Rowe Price Investment Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 1777,
+              "n_with_sym": 1764
+            },
+            "fmp_perf": {
+              "mv": 158432489000,
+              "size": 898,
+              "name": "T. Rowe Price Investment Management, Inc."
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 4.2,
+        "best_cik": "0001897612",
+        "best_sec_name": "T. Rowe Price Investment Management, Inc.  (CIK 0001897612)",
+        "best_fmp_name": "T. Rowe Price Investment Management, Inc.",
+        "best_size": 898,
+        "best_mv_b": 158.43,
+        "best_extract_n": 1777
+      },
+      {
+        "label": "Ariel Investments",
+        "required_token": "ariel",
+        "tried_queries": [
+          {
+            "q": "Ariel Investments LLC",
+            "n_hits": 2
+          },
+          {
+            "q": "Ariel Capital Management",
+            "n_hits": 2
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0000936753",
+            "name": "ARIEL INVESTMENTS, LLC  (CIK 0000936753)",
+            "filing_date": "2014-05-14",
+            "matched_query": "Ariel Investments LLC"
+          },
+          {
+            "cik": "0000766883",
+            "name": "ARIEL CAPITAL MANAGEMENT INC ET AL  (CIK 0000766883)",
+            "filing_date": "2002-02-12",
+            "matched_query": "Ariel Capital Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0000936753",
+            "name": "ARIEL INVESTMENTS, LLC  (CIK 0000936753)",
+            "filing_date": "2014-05-14",
+            "matched_query": "Ariel Investments LLC",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 108,
+              "n_with_sym": 108
+            },
+            "fmp_perf": {
+              "mv": 9258581319,
+              "size": 108,
+              "name": "ARIEL INVESTMENTS, LLC"
+            },
+            "score": 5
+          },
+          {
+            "cik": "0000766883",
+            "name": "ARIEL CAPITAL MANAGEMENT INC ET AL  (CIK 0000766883)",
+            "filing_date": "2002-02-12",
+            "matched_query": "Ariel Capital Management",
+            "fmp_extract": null,
+            "fmp_perf": null,
+            "score": 0
+          }
+        ],
+        "elapsed_s": 2.4,
+        "best_cik": "0000936753",
+        "best_sec_name": "ARIEL INVESTMENTS, LLC  (CIK 0000936753)",
+        "best_fmp_name": "ARIEL INVESTMENTS, LLC",
+        "best_size": 108,
+        "best_mv_b": 9.26,
+        "best_extract_n": 108
+      },
+      {
+        "label": "Engine No. 1",
+        "required_token": "engine no",
+        "tried_queries": [
+          {
+            "q": "Engine No. 1",
+            "n_hits": 3
+          },
+          {
+            "q": "Engine No 1",
+            "n_hits": 3
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001835549",
+            "name": "ENGINE NO. 1 LLC  (CIK 0001835549)",
+            "filing_date": "2025-08-14",
+            "matched_query": "Engine No. 1"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001835549",
+            "name": "ENGINE NO. 1 LLC  (CIK 0001835549)",
+            "filing_date": "2025-08-14",
+            "matched_query": "Engine No. 1",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 3,
+              "n_records": 6,
+              "n_with_sym": 6
+            },
+            "fmp_perf": {
+              "mv": 88588027,
+              "size": 6,
+              "name": "ENGINE NO. 1 LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 2.6,
+        "best_cik": "0001835549",
+        "best_sec_name": "ENGINE NO. 1 LLC  (CIK 0001835549)",
+        "best_fmp_name": "ENGINE NO. 1 LLC",
+        "best_size": 6,
+        "best_mv_b": 0.09,
+        "best_extract_n": 6
+      },
+      {
+        "label": "Pinpoint Asset",
+        "required_token": "pinpoint",
+        "tried_queries": [
+          {
+            "q": "Pinpoint Asset Management",
+            "n_hits": 2
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001803237",
+            "name": "Pinpoint Asset Management Ltd  (CIK 0001803237)",
+            "filing_date": "2020-11-12",
+            "matched_query": "Pinpoint Asset Management"
+          },
+          {
+            "cik": "0002080247",
+            "name": "Pinpoint Asset Management (Singapore) Pte. Ltd.  (CIK 0002080247)",
+            "filing_date": "2025-11-13",
+            "matched_query": "Pinpoint Asset Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0002080247",
+            "name": "Pinpoint Asset Management (Singapore) Pte. Ltd.  (CIK 0002080247)",
+            "filing_date": "2025-11-13",
+            "matched_query": "Pinpoint Asset Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 141,
+              "n_with_sym": 130
+            },
+            "fmp_perf": {
+              "mv": 479916217,
+              "size": 141,
+              "name": "Pinpoint Asset Management (Singapore) Pte. Ltd."
+            },
+            "score": 5
+          },
+          {
+            "cik": "0001803237",
+            "name": "Pinpoint Asset Management Ltd  (CIK 0001803237)",
+            "filing_date": "2020-11-12",
+            "matched_query": "Pinpoint Asset Management",
+            "fmp_extract": null,
+            "fmp_perf": {
+              "mv": 576227116,
+              "size": 88,
+              "name": "Pinpoint Asset Management Ltd"
+            },
+            "score": 2
+          }
+        ],
+        "elapsed_s": 2.7,
+        "best_cik": "0002080247",
+        "best_sec_name": "Pinpoint Asset Management (Singapore) Pte. Ltd.  (CIK 0002080247)",
+        "best_fmp_name": "Pinpoint Asset Management (Singapore) Pte. Ltd.",
+        "best_size": 141,
+        "best_mv_b": 0.48,
+        "best_extract_n": 141
+      },
+      {
+        "label": "Hound Partners",
+        "required_token": "hound",
+        "tried_queries": [
+          {
+            "q": "Hound Partners LLC",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001353316",
+            "name": "Hound Partners, LLC  (CIK 0001353316)",
+            "filing_date": "2007-02-14",
+            "matched_query": "Hound Partners LLC"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001353316",
+            "name": "Hound Partners, LLC  (CIK 0001353316)",
+            "filing_date": "2007-02-14",
+            "matched_query": "Hound Partners LLC",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 37,
+              "n_with_sym": 37
+            },
+            "fmp_perf": {
+              "mv": 743218704,
+              "size": 37,
+              "name": "Hound Partners, LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 1.9,
+        "best_cik": "0001353316",
+        "best_sec_name": "Hound Partners, LLC  (CIK 0001353316)",
+        "best_fmp_name": "Hound Partners, LLC",
+        "best_size": 37,
+        "best_mv_b": 0.74,
+        "best_extract_n": 37
+      },
+      {
+        "label": "D.E. Shaw Group",
+        "required_token": "shaw",
+        "tried_queries": [
+          {
+            "q": "D E Shaw Group",
+            "n_hits": 0
+          },
+          {
+            "q": "D E Shaw & Co",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001009207",
+            "name": "SHAW D E & CO INC  (CIK 0001009207)",
+            "filing_date": "2002-03-18",
+            "matched_query": "D E Shaw & Co"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001009207",
+            "name": "SHAW D E & CO INC  (CIK 0001009207)",
+            "filing_date": "2002-03-18",
+            "matched_query": "D E Shaw & Co",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 4558,
+              "n_with_sym": 4301
+            },
+            "fmp_perf": {
+              "mv": 182424024893,
+              "size": 4558,
+              "name": "D. E. Shaw & Co., Inc."
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 2.1,
+        "best_cik": "0001009207",
+        "best_sec_name": "SHAW D E & CO INC  (CIK 0001009207)",
+        "best_fmp_name": "D. E. Shaw & Co., Inc.",
+        "best_size": 4558,
+        "best_mv_b": 182.42,
+        "best_extract_n": 4558
+      },
+      {
+        "label": "Element Capital",
+        "required_token": "element capital",
+        "tried_queries": [
+          {
+            "q": "Element Capital Management",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001535630",
+            "name": "ELEMENT CAPITAL MANAGEMENT LLC  (CIK 0001535630)",
+            "filing_date": "2017-05-12",
+            "matched_query": "Element Capital Management"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001535630",
+            "name": "ELEMENT CAPITAL MANAGEMENT LLC  (CIK 0001535630)",
+            "filing_date": "2017-05-12",
+            "matched_query": "Element Capital Management",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 55,
+              "n_with_sym": 55
+            },
+            "fmp_perf": {
+              "mv": 209136241,
+              "size": 55,
+              "name": "ELEMENT CAPITAL MANAGEMENT LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 2.0,
+        "best_cik": "0001535630",
+        "best_sec_name": "ELEMENT CAPITAL MANAGEMENT LLC  (CIK 0001535630)",
+        "best_fmp_name": "ELEMENT CAPITAL MANAGEMENT LLC",
+        "best_size": 55,
+        "best_mv_b": 0.21,
+        "best_extract_n": 55
+      },
+      {
+        "label": "Vanguard",
+        "required_token": "vanguard",
+        "tried_queries": [
+          {
+            "q": "Vanguard Group",
+            "n_hits": 3
+          },
+          {
+            "q": "Vanguard Fiduciary",
+            "n_hits": 2
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0000102909",
+            "name": "VANGUARD GROUP INC  (CIK 0000102909)",
+            "filing_date": "2013-08-13",
+            "matched_query": "Vanguard Fiduciary"
+          },
+          {
+            "cik": "0000933478",
+            "name": "VANGUARD FIDUCIARY TRUST CO  (CIK 0000933478)",
+            "filing_date": "2026-05-08",
+            "matched_query": "Vanguard Fiduciary"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0000102909",
+            "name": "VANGUARD GROUP INC  (CIK 0000102909)",
+            "filing_date": "2013-08-13",
+            "matched_query": "Vanguard Fiduciary",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 4329,
+              "n_with_sym": 4177
+            },
+            "fmp_perf": {
+              "mv": 6897676080637,
+              "size": 4329,
+              "name": "VANGUARD GROUP INC"
+            },
+            "score": 5
+          },
+          {
+            "cik": "0000933478",
+            "name": "VANGUARD FIDUCIARY TRUST CO  (CIK 0000933478)",
+            "filing_date": "2026-05-08",
+            "matched_query": "Vanguard Fiduciary",
+            "fmp_extract": null,
+            "fmp_perf": {
+              "mv": 391623922869,
+              "size": 3983,
+              "name": "VANGUARD FIDUCIARY TRUST CO"
+            },
+            "score": 2
+          }
+        ],
+        "elapsed_s": 1.9,
+        "best_cik": "0000102909",
+        "best_sec_name": "VANGUARD GROUP INC  (CIK 0000102909)",
+        "best_fmp_name": "VANGUARD GROUP INC",
+        "best_size": 4329,
+        "best_mv_b": 6897.68,
+        "best_extract_n": 4329
+      },
+      {
+        "label": "Fidelity",
+        "required_token": "fmr",
+        "tried_queries": [
+          {
+            "q": "FMR LLC",
+            "n_hits": 1
+          },
+          {
+            "q": "Fidelity Management",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0000315066",
+            "name": "FMR LLC  (CIK 0000315066)",
+            "filing_date": "2018-09-07",
+            "matched_query": "FMR LLC"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0000315066",
+            "name": "FMR LLC  (CIK 0000315066)",
+            "filing_date": "2018-09-07",
+            "matched_query": "FMR LLC",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 5416,
+              "n_with_sym": 5102
+            },
+            "fmp_perf": {
+              "mv": 1961271425489,
+              "size": 5405,
+              "name": "FMR LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 2.9,
+        "best_cik": "0000315066",
+        "best_sec_name": "FMR LLC  (CIK 0000315066)",
+        "best_fmp_name": "FMR LLC",
+        "best_size": 5405,
+        "best_mv_b": 1961.27,
+        "best_extract_n": 5416
+      },
+      {
+        "label": "Sands Cap Ventures",
+        "required_token": "sands",
+        "tried_queries": [
+          {
+            "q": "Sands Capital Ventures",
+            "n_hits": 2
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001020066",
+            "name": "SANDS CAPITAL MANAGEMENT, LLC  (CIK 0001020066)",
+            "filing_date": "2021-05-12",
+            "matched_query": "Sands Capital Ventures"
+          },
+          {
+            "cik": "0001846444",
+            "name": "Sands Capital Ventures, LLC  (CIK 0001846444)",
+            "filing_date": "2024-05-14",
+            "matched_query": "Sands Capital Ventures"
+          }
+        ],
+        "status": "READY",
+        "candidates": [
+          {
+            "cik": "0001020066",
+            "name": "SANDS CAPITAL MANAGEMENT, LLC  (CIK 0001020066)",
+            "filing_date": "2021-05-12",
+            "matched_query": "Sands Capital Ventures",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 66,
+              "n_with_sym": 66
+            },
+            "fmp_perf": {
+              "mv": 25486826915,
+              "size": 67,
+              "name": "SANDS CAPITAL MANAGEMENT, LLC"
+            },
+            "score": 5
+          },
+          {
+            "cik": "0001846444",
+            "name": "Sands Capital Ventures, LLC  (CIK 0001846444)",
+            "filing_date": "2024-05-14",
+            "matched_query": "Sands Capital Ventures",
+            "fmp_extract": {
+              "year": 2025,
+              "quarter": 4,
+              "n_records": 20,
+              "n_with_sym": 20
+            },
+            "fmp_perf": {
+              "mv": 421198307,
+              "size": 21,
+              "name": "Sands Capital Ventures, LLC"
+            },
+            "score": 5
+          }
+        ],
+        "elapsed_s": 0.5,
+        "best_cik": "0001020066",
+        "best_sec_name": "SANDS CAPITAL MANAGEMENT, LLC  (CIK 0001020066)",
+        "best_fmp_name": "SANDS CAPITAL MANAGEMENT, LLC",
+        "best_size": 67,
+        "best_mv_b": 25.49,
+        "best_extract_n": 66
+      }
+    ],
+    "partial": [],
+    "weak": [
+      {
+        "label": "Polen Capital",
+        "required_token": "polen",
+        "tried_queries": [
+          {
+            "q": "Polen Capital",
+            "n_hits": 3
+          },
+          {
+            "q": "Polen Capital Management",
+            "n_hits": 3
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "WorldQuant",
+        "required_token": "worldquant",
+        "tried_queries": [
+          {
+            "q": "WorldQuant LLC",
+            "n_hits": 0
+          },
+          {
+            "q": "World Quant",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Druckenmiller Capital",
+        "required_token": "druckenmill",
+        "tried_queries": [
+          {
+            "q": "Druckenmiller Capital",
+            "n_hits": 0
+          },
+          {
+            "q": "Druckenmiller",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Coatue Tech",
+        "required_token": "coatue",
+        "tried_queries": [
+          {
+            "q": "Coatue Tech LP",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Lone Pine Master",
+        "required_token": "lone pine",
+        "tried_queries": [
+          {
+            "q": "Lone Pine Master Fund",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Citadel Multi-Strat",
+        "required_token": "citadel",
+        "tried_queries": [
+          {
+            "q": "Citadel Multi-Strategy",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "BlackRock",
+        "required_token": "blackrock",
+        "tried_queries": [
+          {
+            "q": "BlackRock Inc",
+            "n_hits": 4
+          },
+          {
+            "q": "BlackRock Fund Advisors",
+            "n_hits": 4
+          }
+        ],
+        "filtered_candidates": [
+          {
+            "cik": "0001060021",
+            "name": "BLACKROCK INC /NY  (CIK 0001060021)",
+            "filing_date": "2003-11-07",
+            "matched_query": "BlackRock Inc"
+          }
+        ],
+        "status": "WEAK",
+        "candidates": [
+          {
+            "cik": "0001060021",
+            "name": "BLACKROCK INC /NY  (CIK 0001060021)",
+            "filing_date": "2003-11-07",
+            "matched_query": "BlackRock Inc",
+            "fmp_extract": null,
+            "fmp_perf": null,
+            "score": 0
+          }
+        ],
+        "elapsed_s": 5.7,
+        "best_cik": "0001060021",
+        "best_sec_name": "BLACKROCK INC /NY  (CIK 0001060021)",
+        "best_fmp_name": null,
+        "best_size": null,
+        "best_mv_b": 0.0,
+        "best_extract_n": null
+      },
+      {
+        "label": "State Street",
+        "required_token": "state street",
+        "tried_queries": [
+          {
+            "q": "State Street Corp",
+            "n_hits": 1
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Sequoia",
+        "required_token": "sequoia",
+        "tried_queries": [
+          {
+            "q": "Ruane Cunniff",
+            "n_hits": 2
+          },
+          {
+            "q": "Sequoia Fund",
+            "n_hits": 4
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Sands Cap Investment",
+        "required_token": "sands capital",
+        "tried_queries": [
+          {
+            "q": "Sands Capital Investment",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Whale Rock LP",
+        "required_token": "whale rock",
+        "tried_queries": [
+          {
+            "q": "Whale Rock Capital Master",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      },
+      {
+        "label": "Blue Ridge",
+        "required_token": "blue ridge",
+        "tried_queries": [
+          {
+            "q": "Blue Ridge Capital Holdings",
+            "n_hits": 0
+          }
+        ],
+        "filtered_candidates": [],
+        "status": "no_name_match"
+      }
+    ]
+  },
+  "finished": "2026-05-12T10:16:21.398900+00:00"
+}
