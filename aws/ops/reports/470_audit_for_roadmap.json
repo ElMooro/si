@@ -1,0 +1,273 @@
+{
+  "started": "2026-05-12T14:08:52.420163+00:00",
+  "test": {
+    "macro_paths": {
+      "macro/regime.json": {
+        "exists": false
+      },
+      "macro/nowcast.json": {
+        "exists": false
+      },
+      "macro/lce.json": {
+        "exists": false
+      },
+      "khalid_index/data.json": {
+        "exists": false
+      },
+      "lce/data.json": {
+        "exists": false
+      },
+      "nowcast/data.json": {
+        "exists": false
+      },
+      "regime/data.json": {
+        "exists": false
+      }
+    },
+    "relevant_s3_keys": [],
+    "total_s3_keys": 200,
+    "relevant_lambdas": [
+      {
+        "name": "justhodl-global-macro",
+        "last_modified": "2026-05-07T12:03:25.000+0000",
+        "memory": 512,
+        "timeout": 240
+      },
+      {
+        "name": "macro-report-api",
+        "last_modified": "2026-04-25T10:24:48.000+0000",
+        "memory": 1024,
+        "timeout": 60
+      },
+      {
+        "name": "justhodl-ai-brief",
+        "last_modified": "2026-05-05T11:45:49.000+0000",
+        "memory": 512,
+        "timeout": 180
+      },
+      {
+        "name": "justhodl-wave-signal-logger",
+        "last_modified": "2026-05-04T19:54:22.000+0000",
+        "memory": 512,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-screener-alerts",
+        "last_modified": "2026-05-11T17:49:00.000+0000",
+        "memory": 256,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-cross-asset-regime",
+        "last_modified": "2026-05-06T10:41:13.645+0000",
+        "memory": 512,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-calibrator",
+        "last_modified": "2026-05-06T18:15:41.000+0000",
+        "memory": 256,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-bond-regime-detector",
+        "last_modified": "2026-04-25T15:33:08.748+0000",
+        "memory": 256,
+        "timeout": 60
+      },
+      {
+        "name": "justhodl-daily-macro-report",
+        "last_modified": "2026-04-25T10:25:39.000+0000",
+        "memory": 128,
+        "timeout": 3
+      },
+      {
+        "name": "macro-financial-report-viewer",
+        "last_modified": "2026-04-25T10:25:43.000+0000",
+        "memory": 256,
+        "timeout": 30
+      },
+      {
+        "name": "justhodl-backtest-engine",
+        "last_modified": "2026-05-06T18:15:33.000+0000",
+        "memory": 512,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-system-signal-logger",
+        "last_modified": "2026-05-05T22:05:58.943+0000",
+        "memory": 512,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-macro-surprise",
+        "last_modified": "2026-05-04T12:15:19.471+0000",
+        "memory": 512,
+        "timeout": 600
+      },
+      {
+        "name": "scrapeMacroData",
+        "last_modified": "2026-04-27T17:17:19.000+0000",
+        "memory": 3008,
+        "timeout": 900
+      },
+      {
+        "name": "justhodl-signal-portfolio",
+        "last_modified": "2026-05-04T12:21:35.617+0000",
+        "memory": 512,
+        "timeout": 600
+      },
+      {
+        "name": "justhodl-vol-regime",
+        "last_modified": "2026-05-07T15:33:58.000+0000",
+        "memory": 512,
+        "timeout": 240
+      },
+      {
+        "name": "justhodl-options-flow",
+        "last_modified": "2026-05-06T21:36:11.000+0000",
+        "memory": 1024,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-outcome-checker",
+        "last_modified": "2026-05-06T18:16:27.000+0000",
+        "memory": 256,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-macro-nowcast",
+        "last_modified": "2026-05-06T18:56:28.000+0000",
+        "memory": 256,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-khalid-metrics",
+        "last_modified": "2026-04-25T10:27:46.000+0000",
+        "memory": 512,
+        "timeout": 240
+      },
+      {
+        "name": "justhodl-options-flow-scanner",
+        "last_modified": "2026-05-06T08:50:22.000+0000",
+        "memory": 2048,
+        "timeout": 600
+      },
+      {
+        "name": "justhodl-regime-anomaly",
+        "last_modified": "2026-04-26T21:36:46.000+0000",
+        "memory": 1024,
+        "timeout": 240
+      },
+      {
+        "name": "justhodl-alert-router",
+        "last_modified": "2026-05-10T11:12:06.000+0000",
+        "memory": 256,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-telegram-bot",
+        "last_modified": "2026-04-25T10:28:08.000+0000",
+        "memory": 256,
+        "timeout": 90
+      },
+      {
+        "name": "justhodl-morning-brief-tg",
+        "last_modified": "2026-05-07T12:03:35.000+0000",
+        "memory": 256,
+        "timeout": 60
+      },
+      {
+        "name": "justhodl-calibration-snapshot",
+        "last_modified": "2026-05-04T13:19:08.000+0000",
+        "memory": 512,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-signal-logger",
+        "last_modified": "2026-05-06T18:16:42.000+0000",
+        "memory": 256,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-tenor-signal-interpreter",
+        "last_modified": "2026-05-09T13:33:13.000+0000",
+        "memory": 512,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-backtest-harness",
+        "last_modified": "2026-04-27T22:01:34.967+0000",
+        "memory": 512,
+        "timeout": 600
+      },
+      {
+        "name": "macro-financial-intelligence",
+        "last_modified": "2026-04-25T10:29:33.000+0000",
+        "memory": 512,
+        "timeout": 900
+      },
+      {
+        "name": "justhodl-options-gamma",
+        "last_modified": "2026-04-27T22:36:07.000+0000",
+        "memory": 1024,
+        "timeout": 300
+      },
+      {
+        "name": "justhodl-calibration-snapshotter",
+        "last_modified": "2026-05-04T20:51:12.000+0000",
+        "memory": 512,
+        "timeout": 120
+      },
+      {
+        "name": "justhodl-redflag-alerter",
+        "last_modified": "2026-04-27T21:56:29.000+0000",
+        "memory": 256,
+        "timeout": 60
+      },
+      {
+        "name": "justhodl-calls-backtest",
+        "last_modified": "2026-05-05T12:53:38.110+0000",
+        "memory": 512,
+        "timeout": 180
+      }
+    ],
+    "relevant_ddb_tables": [
+      {
+        "name": "justhodl-backtest",
+        "item_count": 656,
+        "size_bytes": 121585,
+        "keys": [
+          "pk",
+          "sk"
+        ]
+      },
+      {
+        "name": "justhodl-outcomes",
+        "item_count": 8373,
+        "size_bytes": 3834525,
+        "keys": [
+          "outcome_id"
+        ]
+      },
+      {
+        "name": "justhodl-signals",
+        "item_count": 11239,
+        "size_bytes": 7167374,
+        "keys": [
+          "signal_id"
+        ]
+      },
+      {
+        "name": "openbb-trading-signals",
+        "item_count": 2,
+        "size_bytes": 408,
+        "keys": [
+          "date",
+          "timestamp"
+        ]
+      }
+    ]
+  },
+  "finished": "2026-05-12T14:08:59.562465+00:00"
+}
