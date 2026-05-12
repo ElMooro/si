@@ -128,6 +128,19 @@ CONCENTRATED_FUNDS = [
     ("0001835549", "Engine No. 1"),                # ExxonMobil activist · 6 pos · $0.1B
     ("0001897612", "T. Rowe Price Inv Mgmt"),      # 898 pos · $158.4B · mutual fund
     ("0001535630", "Element Capital Management"),  # Talpins macro · 55 pos · $0.2B
+    # ── Stage 16.5: 10 funds added via probe 462 (Maverick + legendary value) ──
+    # The famous-investor backbone is now complete: every major US value/growth
+    # legend filing 13F is tracked.
+    ("0000934639", "Maverick Capital"),            # Lee Ainslie · 179 pos · $9.3B · Tiger cub · CORRECT CIK
+    ("0001720792", "Ruane Cunniff & Goldfarb"),    # Sequoia Fund · 48 pos · $6.4B · LEGENDARY value
+    ("0001549575", "Mohnish Pabrai (Dalal Street)"), # 4 pos · $0.4B · ULTRA-concentrated value disciple
+    ("0000883965", "Wally Weitz Investment Mgmt"), # 44 pos · $1.7B · concentrated value
+    ("0000807985", "Mason Hawkins / Longleaf"),    # Southeastern Asset · 53 pos · $2.2B · value legend
+    ("0001056831", "Bruce Berkowitz / Fairholme"), # 15 pos · $1.4B · concentrated value
+    ("0001569049", "Light Street Capital"),        # 24 pos · $0.7B · tech-focused
+    ("0001510387", "Joel Greenblatt / Gotham"),    # 1719 pos · $27.4B · Magic Formula Investing
+    ("0001478735", "Two Sigma Advisers"),          # 2329 pos · $51.4B · sibling to Two Sigma Investments
+    ("0001993888", "Pictet Asset Management"),     # 2102 pos · $94.8B · Swiss giant
 ]
 
 # Min position size to include in inverted index. Keeps file size manageable
