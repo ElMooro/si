@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-catalyst-calendar",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Forward-looking 60-day market catalyst aggregator (FOMC, Treasury auctions, witching, S&P/Russell rebalance, bank earnings cluster). Writes data/catalyst-calendar.json.",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "S3_KEY_OUT": "data/catalyst-calendar.json",
+    "WINDOW_DAYS": "60"
+  },
+  "schedule": {
+    "rule_name": "justhodl-catalyst-calendar-daily",
+    "cron": "cron(0 10 * * ? *)",
+    "description": "Daily 10:00 UTC = ~6am ET (pre-market, before any catalyst-portfolios run)"
+  }
+}

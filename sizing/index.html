@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📐 Position Sizing — Kelly Recommender · JustHodl.AI</title>
+<meta name="description" content="Regime-adjusted quarter-Kelly position sizing for your actual portfolio. Per-position ADD/TRIM/HOLD with sized shares, plus entry candidates for TIER S/A confluence signals.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --tier-s:#ff79c6; --tier-a:#fbbf24; --tier-b:#a78bfa; --tier-c:#22d3ee; --tier-d:#5b6479;
+  --action-add:#00e676; --action-trim:#fb923c; --action-hold:#5b6479; --action-new:#ff79c6;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(10px);
+}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.hero{
+  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(34,211,238,.04));
+  border:1px solid rgba(167,139,250,.20);border-radius:6px;padding:14px 18px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.hero-title{font-size:14px;font-weight:600;margin:0 0 4px;}
+.hero-sub{color:var(--text-dim);font-size:11px;margin:0;line-height:1.5;}
+.hero-regime{
+  display:flex;gap:8px;align-items:center;
+  font-family:var(--font-mono);font-size:11px;
+}
+.regime-chip{
+  padding:4px 10px;border-radius:3px;font-weight:600;letter-spacing:.5px;
+}
+.regime-GOLDILOCKS{background:rgba(0,230,118,.15);color:var(--pos);}
+.regime-NORMAL{background:rgba(34,211,238,.15);color:var(--info);}
+.regime-ELEVATED{background:rgba(251,191,36,.15);color:var(--gold);}
+.regime-HIGH_STRESS{background:rgba(251,146,60,.15);color:var(--warn);}
+.regime-CRISIS{background:rgba(239,68,68,.18);color:var(--crit);}
+.regime-UNKNOWN{background:rgba(91,100,121,.15);color:var(--text-dim);}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px;}
+.metric-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;overflow:hidden;}
+.metric-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
+.metric-card.pos::before{background:var(--pos);}
+.metric-card.warn::before{background:var(--warn);}
+.metric-card.info::before{background:var(--info);}
+.metric-card.gold::before{background:var(--gold);}
+.metric-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.metric-value{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.1;}
+.metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:3px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;letter-spacing:-.2px;display:flex;align-items:baseline;justify-content:space-between;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+/* Action tables */
+.table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:auto;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{
+  text-align:left;padding:9px 10px;font-family:var(--font-mono);
+  font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;
+}
+tbody td{padding:9px 10px;border-bottom:1px solid rgba(28,35,48,.5);}
+tbody tr:hover{background:rgba(28,35,48,.4);}
+tbody tr:last-child td{border-bottom:none;}
+.col-r{text-align:right;}
+.sym{font-family:var(--font-mono);font-weight:700;}
+
+.action-chip{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  padding:3px 7px;border-radius:3px;letter-spacing:.5px;
+}
+.action-ADD{background:rgba(0,230,118,.15);color:var(--action-add);}
+.action-TRIM{background:rgba(251,146,60,.15);color:var(--action-trim);}
+.action-HOLD{background:rgba(91,100,121,.15);color:var(--text-dim);}
+.action-NEW{background:rgba(255,121,198,.15);color:var(--action-new);}
+
+.tier-chip{
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  padding:2px 5px;border-radius:2px;letter-spacing:.4px;
+}
+.tier-S{background:rgba(255,121,198,.20);color:var(--tier-s);}
+.tier-A{background:rgba(251,191,36,.20);color:var(--tier-a);}
+.tier-B{background:rgba(167,139,250,.20);color:var(--tier-b);}
+.tier-C{background:rgba(34,211,238,.20);color:var(--tier-c);}
+.tier-D{background:rgba(91,100,121,.20);color:var(--tier-d);}
+
+.gap-pos{color:var(--pos);font-weight:600;}
+.gap-neg{color:var(--warn);font-weight:600;}
+.gap-zero{color:var(--text-mute);}
+
+.rationale{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);max-width:520px;}
+
+.empty-state{
+  background:var(--panel);border:1px dashed var(--border-hi);border-radius:6px;
+  padding:32px 24px;text-align:center;
+}
+.empty-state .icon{font-size:32px;margin-bottom:8px;}
+
+/* Formula reference */
+.formula-box{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:5px;
+  padding:12px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);
+  margin-bottom:14px;line-height:1.7;
+}
+.formula-box code{color:var(--accent);font-weight:500;}
+.formula-box .h{color:var(--gold);font-weight:600;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+.error{color:var(--neg);font-family:var(--font-mono);font-size:11px;padding:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📐 Kelly Sizing <span class="badge">#11</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/catalyst/">🗓 Catalysts</a>
+      <a href="/alpha/">α Alpha</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero" id="hero">
+    <div>
+      <p class="hero-title">Regime-Adjusted Quarter-Kelly Position Sizer</p>
+      <p class="hero-sub">Reads your DDB portfolio + alpha + confluence + Macro Stress Score · Outputs ADD/TRIM/HOLD per position + entry candidates for unowned TIER S/A confluence signals.</p>
+    </div>
+    <div class="hero-regime" id="hero-regime"></div>
+  </div>
+
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <h2 class="section">
+    <span>🎯 Position Actions <span class="meta" id="positions-meta">your current book sized vs Kelly-optimal</span></span>
+    <span class="meta">sorted by |gap|</span>
+  </h2>
+  <div class="table-wrap">
+    <table id="positions-table">
+      <thead><tr>
+        <th>Action</th><th>Symbol</th><th class="col-r">Current %</th><th class="col-r">Kelly %</th>
+        <th class="col-r">Gap %</th><th class="col-r">Δ $</th><th class="col-r">Δ Shares</th>
+        <th class="col-r">α</th><th>Conf</th><th class="col-r">Vol</th>
+        <th>Rationale</th>
+      </tr></thead>
+      <tbody id="positions-body"></tbody>
+    </table>
+  </div>
+
+  <h2 class="section">
+    <span>⭐ Entry Candidates <span class="meta" id="entries-meta">TIER S/A confluence not in your book</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="entries-table">
+      <thead><tr>
+        <th>Symbol</th><th>Name</th><th>Sector</th>
+        <th class="col-r">Price</th><th class="col-r">Kelly %</th>
+        <th class="col-r">Target $</th><th class="col-r">Shares</th>
+        <th class="col-r">α</th><th>Conf</th><th>Rationale</th>
+      </tr></thead>
+      <tbody id="entries-body"></tbody>
+    </table>
+  </div>
+
+  <h2 class="section">
+    <span>📊 Sizing Methodology <span class="meta">formula + multipliers reference</span></span>
+  </h2>
+  <div class="formula-box" id="formula-box">
+    <div class="h">KELLY FORMULA (per position)</div>
+    edge = <code>expected_alpha_return × confidence_factor</code><br>
+    kelly_full = <code>edge / variance</code><br>
+    kelly_quarter = <code>kelly_full × 0.25</code><br>
+    kelly_regime = <code>kelly_quarter × regime_multiplier × drawdown_multiplier</code><br>
+    final = <code>min(kelly_regime, MAX_SINGLE_POSITION_PCT=8.0%)</code>
+    <br><br>
+    <div class="h">EXPECTED ALPHA RETURN (60-day forward)</div>
+    α ≥ 90 → 12% · α 80-90 → 8% · α 70-80 → 5% · α 60-70 → 3% · α 50-60 → 1.5% · α &lt; 50 → -1%
+    <br><br>
+    <div class="h">CONFIDENCE FACTOR</div>
+    TIER S confluence → 1.20 · TIER A → 1.00 · TIER B → 0.70 · no confluence → 0.50
+    <br><br>
+    <div class="h">REGIME MULTIPLIER (Macro Stress Score)</div>
+    MSS 0-20 Goldilocks → 1.00 · 20-40 Normal → 0.85 · 40-60 Elevated → 0.65 · 60-80 High → 0.40 · 80+ Crisis → 0.20
+    <br><br>
+    <div class="h">DRAWDOWN CIRCUIT BREAKER (portfolio P&amp;L)</div>
+    P&amp;L ≥ -3% → 1.00 · -3 to -7% → 0.75 · -7 to -12% → 0.50 · -12% &amp; worse → 0.25
+  </div>
+
+</main>
+
+<footer><p>Position Sizing · #11 · Powered by quarter-Kelly + regime adjustment · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_SIZING = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/sizing.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtMoney(n){if(n==null||isNaN(n))return'—';const a=Math.abs(n);if(a>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(a>=1e3)return'$'+(n/1e3).toFixed(2)+'K';return'$'+n.toFixed(2);}
+function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+n.toFixed(d==null?2:d)+'%';}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return n.toFixed(d==null?2:d);}
+function gapCls(g){if(g==null)return'gap-zero';if(Math.abs(g)<0.5)return'gap-zero';return g>0?'gap-pos':'gap-neg';}
+function tierChip(t){if(!t)return '<span class="tier-chip" style="color:var(--text-mute)">—</span>';return `<span class="tier-chip tier-${esc(t)}">${esc(t)}</span>`;}
+function actionChip(a){return `<span class="action-chip action-${esc(a)}">${esc(a)}</span>`;}
+
+let data = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    data = await fetch(URL_SIZING + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
+    if(!data){throw new Error('sizing.json not yet generated');}
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const mins = Math.floor((Date.now() - t) / 60000);
+    document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins + 'm ago';
+    renderAll();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('positions-body').innerHTML =
+      `<tr><td colspan="11" class="empty-state"><div class="icon">📐</div><h3>Sizing data not yet generated</h3><p>Lambda runs hourly at :45. ${esc(e.message)}</p></td></tr>`;
+  }
+}
+
+function renderAll(){
+  const s = data.summary || {};
+
+  // Hero regime chip
+  const regime = s.regime || 'UNKNOWN';
+  document.getElementById('hero-regime').innerHTML = `
+    <span class="regime-chip regime-${esc(regime)}">${esc(regime)}</span>
+    <span>MSS ${fmtNum(s.macro_stress_score, 0)}/100</span>
+    <span>· regime_mult ${fmtNum(s.regime_multiplier, 2)}</span>
+    <span>· dd_mult ${fmtNum(s.drawdown_multiplier, 2)}</span>
+  `;
+
+  // Summary cards
+  document.getElementById('summary-grid').innerHTML = [
+    {label:'NAV', value:fmtMoney(s.nav), sub:'portfolio notional', cls:'info'},
+    {label:'Invested (current)', value:fmtPct(s.current_invested_pct, 1).slice(1), sub:`${data.positions ? data.positions.length : 0} positions`, cls:'info'},
+    {label:'Invested (Kelly)', value:fmtPct(s.kelly_invested_pct, 1).slice(1), sub:`cash: ${fmtPct(s.kelly_cash_pct, 1).slice(1)}`, cls:'gold'},
+    {label:'Actionable Now', value:fmtNum(s.actionable_count, 0), sub:'ADD or TRIM signals', cls: s.actionable_count > 0 ? 'warn' : 'info'},
+    {label:'Entry Candidates', value:fmtNum(s.entry_candidates_count, 0), sub:'unowned TIER S/A', cls:'gold'},
+  ].map(c => `<div class="metric-card ${c.cls}">
+    <div class="metric-label">${esc(c.label)}</div>
+    <div class="metric-value">${c.value}</div>
+    <div class="metric-sub">${esc(c.sub)}</div>
+  </div>`).join('');
+
+  // Positions
+  const positions = data.positions || [];
+  const ptbody = document.getElementById('positions-body');
+  if(positions.length === 0){
+    ptbody.innerHTML = `<tr><td colspan="11" class="empty-state">
+      <div class="icon">📊</div>
+      <p>No positions in DDB. Add positions via <code>justhodl-portfolio-admin</code> Lambda.</p>
+    </td></tr>`;
+  } else {
+    document.getElementById('positions-meta').textContent = positions.length + ' positions sized';
+    ptbody.innerHTML = positions.map(p => `<tr>
+      <td>${actionChip(p.action)}</td>
+      <td><span class="sym">${esc(p.symbol)}</span></td>
+      <td class="col-r" style="font-family:var(--font-mono)">${fmtNum(p.current_weight_pct, 2)}%</td>
+      <td class="col-r" style="font-family:var(--font-mono);font-weight:600">${fmtNum(p.kelly_weight_pct, 2)}%</td>
+      <td class="col-r ${gapCls(p.weight_gap_pct)}" style="font-family:var(--font-mono)">${fmtPct(p.weight_gap_pct, 2)}</td>
+      <td class="col-r ${gapCls(p.dollar_delta)}" style="font-family:var(--font-mono)">${p.dollar_delta != null ? (p.dollar_delta >= 0 ? '+' : '') + fmtMoney(p.dollar_delta) : '—'}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${p.shares_delta != null ? (p.shares_delta >= 0 ? '+' : '') + fmtNum(p.shares_delta, 1) : '—'}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${p.alpha_score != null ? p.alpha_score : '—'}</td>
+      <td>${tierChip(p.confluence_tier)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${p.annual_vol_pct != null ? fmtNum(p.annual_vol_pct, 0) + '%' : '—'}</td>
+      <td class="rationale">${esc(p.rationale || '')}</td>
+    </tr>`).join('');
+  }
+
+  // Entry candidates
+  const entries = data.entry_candidates || [];
+  const etbody = document.getElementById('entries-body');
+  if(entries.length === 0){
+    etbody.innerHTML = `<tr><td colspan="10" style="padding:18px;text-align:center;color:var(--text-mute);">No TIER S/A confluence candidates outside your book right now.</td></tr>`;
+  } else {
+    document.getElementById('entries-meta').textContent = entries.length + ' new candidates';
+    etbody.innerHTML = entries.map(c => `<tr>
+      <td><span class="sym">${esc(c.symbol)}</span></td>
+      <td style="color:var(--text-dim);font-size:11px">${esc((c.name || '').substring(0,30))}</td>
+      <td style="color:var(--text-dim);font-size:11px">${esc((c.sector || '').substring(0,16))}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${fmtMoney(c.current_price)}</td>
+      <td class="col-r" style="font-family:var(--font-mono);font-weight:600;color:var(--gold)">${fmtNum(c.kelly_weight_pct, 2)}%</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${fmtMoney(c.target_value)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c.target_shares != null ? fmtNum(c.target_shares, 1) : '—'}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c.alpha_score != null ? c.alpha_score : '—'}</td>
+      <td>${tierChip(c.confluence_tier)}</td>
+      <td class="rationale">${esc(c.rationale || '')}</td>
+    </tr>`).join('');
+  }
+}
+
+load();
+setInterval(load, 300000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🗓 Catalyst Calendar — Forward-Looking Market Events · JustHodl.AI</title>
+<meta name="description" content="60-day forward market catalyst calendar: FOMC, Treasury auctions, earnings, witching, rebalance days. Position-aware highlighting + T-3/T-1/T-0 alerts for your portfolio.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗓%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --impact-high:#ef4444; --impact-med:#fb923c; --impact-low:#5b6479;
+  --tier-T0:#ff3d5a; --tier-T1:#fb923c; --tier-T3:#fbbf24; --tier-T7:#22d3ee;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(10px);
+}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+/* Hero with countdowns */
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;}
+.hero-card{
+  background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(34,211,238,.04));
+  border:1px solid rgba(167,139,250,.18);border-radius:5px;padding:12px 14px;position:relative;overflow:hidden;
+}
+.hero-card.urgent{background:linear-gradient(135deg,rgba(239,68,68,.10),rgba(251,146,60,.06));border-color:rgba(239,68,68,.30);}
+.hero-card.soon{background:linear-gradient(135deg,rgba(251,146,60,.08),rgba(251,191,36,.04));border-color:rgba(251,146,60,.25);}
+.hero-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.hero-value{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.15;}
+.hero-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;letter-spacing:-.2px;display:flex;align-items:baseline;justify-content:space-between;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+/* Position catalysts table */
+.table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:auto;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{
+  text-align:left;padding:9px 10px;font-family:var(--font-mono);
+  font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;
+}
+tbody td{padding:9px 10px;border-bottom:1px solid rgba(28,35,48,.5);}
+tbody tr:hover{background:rgba(28,35,48,.4);cursor:pointer;}
+tbody tr:last-child td{border-bottom:none;}
+.col-r{text-align:right;}
+.sym{font-family:var(--font-mono);font-weight:700;}
+
+.tier-chip{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 7px;border-radius:3px;letter-spacing:.5px;}
+.tier-T-0{background:rgba(255,61,90,.20);color:var(--tier-T0);}
+.tier-T-1{background:rgba(251,146,60,.20);color:var(--tier-T1);}
+.tier-T-3{background:rgba(251,191,36,.20);color:var(--tier-T3);}
+.tier-T-7{background:rgba(34,211,238,.20);color:var(--tier-T7);}
+
+.impact-HIGH{color:var(--impact-high);font-weight:600;}
+.impact-MEDIUM{color:var(--impact-med);}
+.impact-LOW{color:var(--impact-low);}
+
+.position-badge{
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  padding:2px 5px;border-radius:2px;letter-spacing:.4px;
+  background:rgba(0,230,118,.15);color:var(--pos);
+}
+.watch-badge{
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  padding:2px 5px;border-radius:2px;letter-spacing:.4px;
+  background:rgba(34,211,238,.10);color:var(--info);
+}
+
+.event-type-EARNINGS{color:var(--accent);font-weight:600;}
+.event-type-FOMC{color:var(--gold);font-weight:600;}
+.event-type-AUCTION{color:var(--info);}
+.event-type-WITCHING{color:var(--warn);font-weight:600;}
+.event-type-REBALANCE{color:var(--accent);}
+.event-type-BANK_EARNINGS{color:var(--info);font-weight:600;}
+.event-type-PEAD_DRIFT{color:var(--pos);font-weight:600;}
+
+.empty-state{padding:24px;text-align:center;color:var(--text-mute);}
+.empty-state .icon{font-size:32px;margin-bottom:8px;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+.error{color:var(--neg);font-family:var(--font-mono);font-size:11px;padding:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗓 Catalyst Calendar <span class="badge">#12</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/sizing/">📐 Sizing</a>
+      <a href="/alpha/">α Alpha</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Top countdowns -->
+  <div class="hero-grid" id="hero-grid"></div>
+
+  <!-- Position catalysts -->
+  <h2 class="section">
+    <span>💼 Your Book's Catalysts <span class="meta" id="pos-meta">earnings + macro events affecting your positions/watchlist</span></span>
+    <span class="meta">sorted by proximity</span>
+  </h2>
+  <div class="table-wrap">
+    <table id="pos-table">
+      <thead><tr>
+        <th>Symbol</th><th>Status</th><th>Event</th><th>Date</th><th class="col-r">Days</th>
+        <th>Alert Tier</th><th class="col-r">EPS est.</th><th class="col-r">Whisper</th>
+        <th>Notes</th>
+      </tr></thead>
+      <tbody id="pos-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Macro catalysts -->
+  <h2 class="section">
+    <span>🏛 Macro Catalysts <span class="meta" id="macro-meta">FOMC · Treasury auctions · witching · rebalance days</span></span>
+    <span class="meta">affect entire book</span>
+  </h2>
+  <div class="table-wrap">
+    <table id="macro-table">
+      <thead><tr>
+        <th>Type</th><th>Title</th><th>Subtitle</th><th>Date</th><th class="col-r">Days</th>
+        <th>Impact</th><th>Alert Tier</th><th>Link</th>
+      </tr></thead>
+      <tbody id="macro-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer><p>Catalyst Calendar · #12 · 60-day forward · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_CATALYSTS = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/catalysts.json';
+const URL_FALLBACK_CAL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/catalyst-calendar.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(s){if(!s)return'—';return s.substring(0,10);}
+function tierChip(t){if(!t)return'—';return `<span class="tier-chip tier-${esc(t)}">${esc(t)}</span>`;}
+
+let data = null, fallbackCal = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    const [c, f] = await Promise.all([
+      fetch(URL_CATALYSTS + '?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(URL_FALLBACK_CAL + '?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    data = c;
+    fallbackCal = f;
+    if(!data && !fallbackCal) throw new Error('catalysts.json not yet generated');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    if(data){
+      const t = new Date(data.generated_at);
+      const mins = Math.floor((Date.now() - t) / 60000);
+      document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins + 'm ago';
+    }
+    renderAll();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('pos-body').innerHTML =
+      `<tr><td colspan="9" class="empty-state"><div class="icon">🗓</div><div>Catalyst data not yet generated. Lambda runs 3× daily.</div><div style="margin-top:6px;font-size:10px">${esc(e.message)}</div></td></tr>`;
+  }
+}
+
+function renderAll(){
+  // Try data first (portfolio/catalysts.json), fall back to raw catalyst-calendar
+  const s = (data && data.summary) || {};
+  const positionCatalysts = (data && data.position_catalysts) || [];
+  const macroEvents = (data && data.macro_catalysts) || ((fallbackCal && fallbackCal.events) || []);
+
+  // Hero countdowns
+  const heroCards = [];
+  if(s.next_position_event_symbol && s.next_position_event_days != null){
+    const d = s.next_position_event_days;
+    heroCards.push({
+      label:'Next Position Event',
+      value: esc(s.next_position_event_symbol) + ' in ' + d + 'd',
+      sub: d === 0 ? 'today' : d === 1 ? 'tomorrow' : 'days to event',
+      cls: d <= 1 ? 'urgent' : d <= 3 ? 'soon' : '',
+    });
+  } else {
+    heroCards.push({label:'Next Position Event', value:'—', sub:'no upcoming events', cls:''});
+  }
+  if(s.next_macro_event_days != null){
+    const d = s.next_macro_event_days;
+    heroCards.push({
+      label:'Next Macro Event',
+      value: (s.next_macro_event || '—').substring(0, 24) + (d <= 1 ? '' : ` (${d}d)`),
+      sub: d === 0 ? 'today' : d === 1 ? 'tomorrow' : `${d}d away`,
+      cls: d <= 1 ? 'urgent' : d <= 3 ? 'soon' : '',
+    });
+  }
+  heroCards.push({label:'Tomorrow Reporting', value:(s.tomorrow_reporters || []).length || '0',
+                    sub: (s.tomorrow_reporters || []).slice(0,4).join(' · ') || 'no earnings', cls: (s.tomorrow_reporters || []).length ? 'soon' : ''});
+  heroCards.push({label:'This Week', value:(s.earnings_this_week != null ? s.earnings_this_week : '—'),
+                    sub:'earnings affecting book', cls:''});
+  heroCards.push({label:'Positions Tracked', value:fmtNumber(s.n_positions_tracked),
+                    sub:fmtNumber(s.n_watchlist_tracked) + ' watchlist', cls:''});
+
+  document.getElementById('hero-grid').innerHTML = heroCards.map(c =>
+    `<div class="hero-card ${c.cls}"><div class="hero-label">${esc(c.label)}</div>
+     <div class="hero-value">${c.value}</div>
+     <div class="hero-sub">${esc(c.sub)}</div></div>`
+  ).join('');
+
+  // Position catalysts table
+  const posBody = document.getElementById('pos-body');
+  if(positionCatalysts.length === 0){
+    posBody.innerHTML = `<tr><td colspan="9" class="empty-state">
+      <div class="icon">💼</div>
+      <div>No catalysts affecting your current positions or watchlist.</div>
+      <div style="margin-top:6px;font-size:10px;color:var(--text-mute)">Add positions to start tracking earnings + PEAD signals.</div>
+    </td></tr>`;
+  } else {
+    document.getElementById('pos-meta').textContent = positionCatalysts.length + ' symbols with upcoming catalysts';
+    const rows = [];
+    positionCatalysts.forEach(item => {
+      const badge = item.is_position
+        ? '<span class="position-badge">POSITION</span>'
+        : '<span class="watch-badge">WATCH</span>';
+      (item.events || []).forEach(ev => {
+        const typeCls = `event-type-${esc(ev.type || '')}`;
+        const eps = ev.eps_estimate;
+        const whisper = ev.whisper_eps;
+        const whisperDelta = ev.whisper_vs_consensus_pct;
+        const notes = [];
+        if(ev.time) notes.push(esc(ev.time));
+        if(ev.revenue_estimate) notes.push('rev est ' + esc(ev.revenue_estimate));
+        if(ev.direction) notes.push('PEAD ' + esc(ev.direction));
+        if(ev.post_earnings_return != null) notes.push('reaction ' + ev.post_earnings_return.toFixed(1) + '%');
+        rows.push(`<tr onclick="window.open('/stock/?symbol=${esc(item.symbol)}','_blank')">
+          <td><span class="sym">${esc(item.symbol)}</span></td>
+          <td>${badge}</td>
+          <td class="${typeCls}">${esc((ev.type || '').replace('_', ' '))}</td>
+          <td style="font-family:var(--font-mono)">${fmtDate(ev.date)}</td>
+          <td class="col-r" style="font-family:var(--font-mono);font-weight:600">${ev.days_to != null ? ev.days_to + 'd' : '—'}</td>
+          <td>${tierChip(ev.alert_tier)}</td>
+          <td class="col-r" style="font-family:var(--font-mono)">${eps != null ? eps : '—'}</td>
+          <td class="col-r" style="font-family:var(--font-mono)">${whisper != null ? whisper + (whisperDelta != null ? ' (' + (whisperDelta >= 0 ? '+' : '') + whisperDelta.toFixed(1) + '%)' : '') : '—'}</td>
+          <td style="color:var(--text-dim);font-size:11px">${notes.join(' · ')}</td>
+        </tr>`);
+      });
+    });
+    posBody.innerHTML = rows.join('');
+  }
+
+  // Macro catalysts table
+  const macroBody = document.getElementById('macro-body');
+  if(macroEvents.length === 0){
+    macroBody.innerHTML = `<tr><td colspan="8" class="empty-state">No macro events in calendar.</td></tr>`;
+  } else {
+    document.getElementById('macro-meta').textContent = macroEvents.length + ' macro events in 60d window';
+    macroBody.innerHTML = macroEvents.slice(0, 30).map(ev => {
+      const typeCls = `event-type-${esc(ev.type || '')}`;
+      const impactCls = `impact-${esc(ev.impact || '')}`;
+      return `<tr>
+        <td class="${typeCls}" style="font-family:var(--font-mono);font-size:11px">${esc(ev.type || '')}</td>
+        <td>${esc(ev.title || '')}</td>
+        <td style="color:var(--text-dim);font-size:11px">${esc(ev.subtitle || '')}</td>
+        <td style="font-family:var(--font-mono)">${fmtDate(ev.date)}</td>
+        <td class="col-r" style="font-family:var(--font-mono);font-weight:600">${ev.days_to != null ? ev.days_to + 'd' : '—'}</td>
+        <td class="${impactCls}">${esc(ev.impact || '')}</td>
+        <td>${tierChip(ev.alert_tier)}</td>
+        <td>${ev.url ? `<a href="${esc(ev.url)}" target="_blank" rel="noopener">↗</a>` : '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function fmtNumber(n){if(n==null||isNaN(n))return'—';return String(n);}
+
+load();
+setInterval(load, 300000);
+</script>
+
+</body>
+</html>
