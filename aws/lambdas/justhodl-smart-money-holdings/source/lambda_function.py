@@ -68,8 +68,8 @@ CONCENTRATED_FUNDS = [
     ("0000921669", "Icahn Capital Management"),    # Icahn · 13 · NEW · activist legend
     ("0001517137", "Starboard Value"),             # Smith · 22 · NEW · activist
     ("0001345471", "Anchorage Capital"),           # 7 · NEW · ultra-concentrated
-    ("0001047644", "Davidson Kempner"),            # 8 · NEW · distressed
-    ("0001321655", "Discovery Capital Mgmt"),      # Citrone · 4 · NEW · macro
+    # ("0001047644", "Davidson Kempner"),          # DROPPED Stage 16.6 — FMP stale (last 2015)
+    # ("0001321655", "Discovery Capital Mgmt"),    # DROPPED Stage 16.6 — FMP stale (2023) + mislabeled in source
     ("0001112520", "Akre Capital Management"),    # 18 pos · $9.1B · concentrated value · CORRECTED (was mislabeled "Maverick Capital")
     ("0001541617", "Millennium Management"),       # Englander · 18
     ("0001418814", "ValueAct Capital"),            # Ubben activist · 16
@@ -77,11 +77,11 @@ CONCENTRATED_FUNDS = [
     ("0001167483", "Tiger Global Management"),     # Coleman · 54 · tech growth
     ("0001031972", "Baupost Group"),               # Klarman · 41 · value legend
     ("0001040273", "Third Point"),                 # Loeb · 44 · activist
-    ("0001079114", "Greenlight Capital"),          # Einhorn · 40 · NEW · short specialist
+    # ("0001079114", "Greenlight Capital"),        # DROPPED Stage 16.6 — FMP last has 2023 Q4 (Einhorn still files but FMP gap)
     # ── Concentrated active (50-150 holdings) ──
     ("0001135730", "Coatue Management"),           # Laffont · 52 · tech
     ("0001103804", "Viking Global Investors"),     # Halvorsen Tiger cub · 76
-    ("0001048445", "Elliott Investment Mgmt"),     # Singer · 56 · NEW · activist
+    # ("0001048445", "Elliott Investment Mgmt"),   # DROPPED Stage 16.6 — FMP last has 2019 Q4 (Singer still files but FMP gap)
     ("0001346824", "ARK Investment Management"),   # Cathie Wood · 71 · NEW · disruptive innovation
     ("0001020066", "Sands Capital Management"),    # 67 · NEW · correct CIK · growth
     ("0001536411", "Duquesne Family Office"),      # Druckenmiller · 62 · CORRECTED (was mislabeled "Canyon Capital")
@@ -194,47 +194,71 @@ def get_latest_filed_quarter():
     return quarters[0] if quarters else (now.year - 1, 4)
 
 
+def _yq_offset(year, quarter, delta_quarters):
+    """Return (year, quarter) shifted by delta_quarters backward."""
+    total = year * 4 + (quarter - 1) - delta_quarters
+    new_year = total // 4
+    new_quarter = (total % 4) + 1
+    return new_year, new_quarter
+
+
 def fetch_fund_holdings(args):
-    """Paginate all holdings for one fund."""
-    cik, name, year, quarter = args
-    all_holdings = []
-    seen_cusips = set()
-    for page in range(MAX_PAGES_PER_FUND):
-        data = fmp("institutional-ownership/extract",
-                     f"&cik={cik}&year={year}&quarter={quarter}&page={page}")
-        if not isinstance(data, list) or not data:
-            break
-        # Dedupe by CUSIP+symbol (some classes share CUSIPs)
-        new_count = 0
-        for h in data:
-            cusip = h.get("securityCusip")
-            sym = h.get("symbol")
-            key = f"{cusip}|{sym}"
-            if key in seen_cusips:
-                continue
-            seen_cusips.add(key)
-            # Only keep records with a tradeable symbol (skip CUSIP-only records)
-            if not sym or not isinstance(sym, str) or len(sym) > 8:
-                continue
-            # Skip puts/calls (we want equity ownership only)
-            if h.get("putCallShare") and h["putCallShare"] not in ("", "Share", None):
-                continue
-            all_holdings.append({
-                "symbol": sym,
-                "shares": h.get("shares") or 0,
-                "value": h.get("value") or 0,
-                "name": h.get("nameOfIssuer"),
-                "title_class": h.get("titleOfClass"),
-            })
-            new_count += 1
-        if new_count == 0 or len(data) < 10:
-            break
-    # Sort by value desc
-    all_holdings.sort(key=lambda h: -(h.get("value") or 0))
-    return {"cik": cik, "name": name,
-              "n_holdings": len(all_holdings),
-              "total_value": sum(h.get("value") or 0 for h in all_holdings),
-              "holdings": all_holdings}
+    """Paginate all holdings for one fund.
+
+    Stage 16.6: tries up to QUARTER_FALLBACK quarters back if the latest
+    one returns empty. This catches funds that file late (e.g. Engine No. 1
+    filed Q3 2025 but not yet Q4 2025 as of session date 2026-05-12).
+    Stops at first non-empty quarter — doesn't combine across quarters.
+    """
+    cik, name, latest_year, latest_quarter = args
+    QUARTER_FALLBACK = 4  # try latest + 3 quarters back = up to 1 year of fallback
+
+    for delta in range(QUARTER_FALLBACK):
+        year, quarter = _yq_offset(latest_year, latest_quarter, delta)
+        all_holdings = []
+        seen_cusips = set()
+        for page in range(MAX_PAGES_PER_FUND):
+            data = fmp("institutional-ownership/extract",
+                       f"&cik={cik}&year={year}&quarter={quarter}&page={page}")
+            if not isinstance(data, list) or not data:
+                break
+            new_count = 0
+            for h in data:
+                cusip = h.get("securityCusip")
+                sym = h.get("symbol")
+                key = f"{cusip}|{sym}"
+                if key in seen_cusips:
+                    continue
+                seen_cusips.add(key)
+                if not sym or not isinstance(sym, str) or len(sym) > 8:
+                    continue
+                if h.get("putCallShare") and h["putCallShare"] not in ("", "Share", None):
+                    continue
+                all_holdings.append({
+                    "symbol": sym,
+                    "shares": h.get("shares") or 0,
+                    "value": h.get("value") or 0,
+                    "name": h.get("nameOfIssuer"),
+                    "title_class": h.get("titleOfClass"),
+                })
+                new_count += 1
+            if new_count == 0 or len(data) < 10:
+                break
+
+        # If this quarter had data, return it (with the actual quarter used)
+        if all_holdings:
+            all_holdings.sort(key=lambda h: -(h.get("value") or 0))
+            return {"cik": cik, "name": name,
+                    "n_holdings": len(all_holdings),
+                    "total_value": sum(h.get("value") or 0 for h in all_holdings),
+                    "as_of_year": year, "as_of_quarter": quarter,
+                    "fallback_used": delta,
+                    "holdings": all_holdings}
+
+    # No quarter had data → return empty
+    return {"cik": cik, "name": name, "n_holdings": 0, "total_value": 0,
+            "as_of_year": latest_year, "as_of_quarter": latest_quarter,
+            "fallback_used": -1, "holdings": []}
 
 
 def lambda_handler(event, context):
