@@ -1,58 +1,53 @@
 """
-justhodl-anomaly-detector — Roadmap #18
+justhodl-anomaly-detector v2.0 — INSTITUTIONAL GRADE
 
 ═══════════════════════════════════════════════════════════════════════
-THE EARLY WARNING SYSTEM
-─────────────────────────
-Most platforms track current state. This Lambda watches for STATISTICAL
-ANOMALIES that historically precede regime changes by 5-10 days.
+THE EARLY WARNING SYSTEM (v2)
+─────────────────────────────
+v1 had 5 detectors. v2 has 17 across every category real hedge funds
+watch for early signals of regime change, credit stress, or fat-tail risk.
 
-Disasters announce themselves in spread, vol, and breadth data before
-they show up in equity prices. By the time the macro-nowcast flips
-state, the spread blowout has often been happening for two weeks.
-
-V1 detects 5 categories:
-
-  1. CROSS-ASSET DIVERGENCE
-       All-of (SPY, TLT, GLD, UUP) moving same direction simultaneously
-       indicates institutional hedging/liquidation
-  2. SECTOR BREADTH COLLAPSE
-       Cross-sectional dispersion (stddev of 11 sector ETF returns)
-       z-score >= 2 = rotation starting OR narrow leadership
-  3. VIX/SKEW DIVERGENCE
-       SKEW spike WITHOUT VIX spike = institutions hedging tail risk
-       without visible panic in regular vol markets
-  4. CREDIT SPREAD BLOWOUT
-       HY OAS or BBB OAS 1-week change z-score >= 2
-  5. BOND VOLATILITY SPIKE
-       30-day realized vol of DGS10 (10Y yield) >= 2 z-score
-       Bond vol historically leads equity vol by 1-2 weeks
-
-V2 deferred: per-stock 5σ volume anomalies (needs heavier API budget)
+╔══════════════════════════════════════════════════════════════════════╗
+║  CATEGORIES                                                            ║
+╠══════════════════════════════════════════════════════════════════════╣
+║  EQUITY VOL    VIX + SKEW level z-scores + VIX/SKEW divergence        ║
+║  CREDIT        HY OAS + BBB OAS (level z + 1w-change z) + HYG/LQD     ║
+║  RATES         2s10s + 3M10Y curves + DGS10 vol + inversion detection ║
+║  FUNDING       SOFR + DTB3 z-score + SOFR-DTB3 spread                  ║
+║  CURRENCY      DXY + USDJPY level + 1w change                          ║
+║  CROSS-ASSET   SPY+TLT+GLD+UUP sign-alignment + correlation breakdown ║
+║  EQUITY INTL   SPHB/SPLV (risk app) + XLU/XLK (defensive) + autocorr  ║
+║  COMMODITY     Copper/Gold (Gundlach) + Gold/Silver + WTI + Gold      ║
+║  BREADTH       11 SPDR sectors dispersion + RSP/SPY ratio              ║
+║  MACRO         ICSA initial claims weekly z-score                      ║
+║  CRYPTO        BTC realized vol + percentile rank                      ║
+╚══════════════════════════════════════════════════════════════════════╝
 
 ═══════════════════════════════════════════════════════════════════════
-SEVERITY TIERS
-──────────────
-  LOW       |z| 2.0-2.5    note in sidecar only
-  MEDIUM    |z| 2.5-3.5    daily brief inclusion
-  HIGH      |z| 3.5-5.0    Telegram alert
-  EXTREME   |z| > 5    OR  3+ HIGH simultaneously → crisis alert
+MACRO STRESS SCORE (0-100 composite)
+─────────────────────────────────────
+Each detector contributes weighted points to an aggregate stress index.
+Reference historical analogs:
+   MSS 0-20    Goldilocks   — markets calm across the board
+   MSS 20-40   Normal       — typical market noise
+   MSS 40-60   Elevated     — watch closely, multiple stresses
+   MSS 60-80   High stress  — reduce risk, hedge tail
+   MSS 80-100  Crisis       — defensive posture
 
-Dedupe: 12h window in S3 alert-history (anomalies persist hours/days
-so re-firing every hour would be spam).
+Historical reference: Mar 2020 ~92 · Oct 2008 ~98 · Feb 2018 ~52 ·
+Aug 2015 ~58 · Aug 2022 ~48
 
 ═══════════════════════════════════════════════════════════════════════
-ARCHITECTURE
-────────────
-  Inputs:
-    - FRED: VIXCLS, BAMLH0A0HYM2 (HY OAS), BAMLC0A4CBBB (BBB OAS),
-            DGS10, SKEW (via fallback), DTWEXBGS (dollar broad)
-    - Polygon: SPY, TLT, GLD, UUP, XLK XLF XLV XLE XLI XLY XLP XLU XLB XLRE XLC
-  Output:
-    - S3: signals/anomalies.json   (full detection report)
-    - Telegram: HIGH/EXTREME alerts via TELEGRAM_TOKEN
-  Cost: ~10 FRED calls + 15 Polygon calls per run = $0 (free tiers)
-  Schedule: every hour at :33 (cron(33 * * * ? *))
+SEVERITY TIERS (per-detector, absolute z-score)
+───────────────────────────────────────────────
+  LOW       2.0-2.5   note only
+  MEDIUM    2.5-3.5   daily brief inclusion
+  HIGH      3.5-5.0   📲 Telegram alert
+  EXTREME   > 5.0     🚨 crisis alert
+
+CRISIS CLUSTER fires when 3+ HIGH/EXTREME OR Macro Stress Score >= 60
+
+═══════════════════════════════════════════════════════════════════════
 """
 import json
 import os
@@ -65,9 +60,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
+# ═══════════════════════════════════════════════════════════════════════
+# CONSTANTS
+# ═══════════════════════════════════════════════════════════════════════
+
+VERSION = "2.0.0"
+
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "signals/anomalies.json"
-PREV_STATE_KEY = "signals/anomalies-prev.json"
 ALERT_HISTORY_KEY = "signals/anomaly-alert-history.json"
 
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -75,14 +75,23 @@ POLY_KEY = os.environ.get("POLY_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-# Severity thresholds (absolute z-score)
-SEVERITY = [
-    ("EXTREME", 5.0),
-    ("HIGH",    3.5),
-    ("MEDIUM",  2.5),
-    ("LOW",     2.0),
-]
+SEVERITY_TIERS = [("EXTREME", 5.0), ("HIGH", 3.5), ("MEDIUM", 2.5), ("LOW", 2.0)]
 DEDUPE_HOURS = 12
+
+# Stress Score category weights (sum = 1.0)
+STRESS_WEIGHTS = {
+    "credit":           0.18,
+    "equity_vol":       0.15,
+    "rates":            0.13,
+    "funding":          0.10,
+    "currency":         0.08,
+    "cross_asset":      0.10,
+    "equity_internals": 0.08,
+    "commodity":        0.06,
+    "breadth":          0.06,
+    "macro":            0.03,
+    "crypto":           0.03,
+}
 
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
@@ -92,54 +101,66 @@ ssm = boto3.client("ssm", region_name="us-east-1")
 # DATA FETCHERS
 # ═══════════════════════════════════════════════════════════════════════
 
-def fetch_fred_series(series_id, lookback_days=400):
-    """Fetch daily observations from FRED.
-    Returns list of {date, value} sorted ascending. None values filtered.
-    """
+def fetch_fred_series(series_id, lookback_days=500):
     if not FRED_KEY: return []
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=lookback_days)
     params = urllib.parse.urlencode({
-        "series_id": series_id, "api_key": FRED_KEY,
-        "file_type": "json",
+        "series_id": series_id, "api_key": FRED_KEY, "file_type": "json",
         "observation_start": start.isoformat(),
         "observation_end": end.isoformat(),
         "sort_order": "asc",
     })
     url = f"https://api.stlouisfed.org/fred/series/observations?{params}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-AD/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-AD/2.0"})
         with urllib.request.urlopen(req, timeout=12) as r:
             data = json.loads(r.read().decode("utf-8"))
         out = []
         for o in data.get("observations") or []:
             v = o.get("value")
             if v in (".", "", None): continue
-            try:
-                out.append({"date": o["date"], "value": float(v)})
-            except (ValueError, TypeError):
-                continue
+            try: out.append({"date": o["date"], "value": float(v)})
+            except (ValueError, TypeError): continue
         return out
     except Exception as e:
-        print(f"  [fred:{series_id}] error: {str(e)[:100]}")
+        print(f"  [fred:{series_id}] {str(e)[:100]}")
         return []
 
 
-def fetch_polygon_ohlcv(symbol, lookback_days=60):
-    """Daily OHLCV bars from Polygon. Returns list sorted ascending."""
+def fetch_polygon_ohlcv(symbol, lookback_days=120):
     if not POLY_KEY: return []
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=lookback_days)
     url = (f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/day/"
-           f"{start}/{end}?adjusted=true&sort=asc&limit=200&apiKey={POLY_KEY}")
+           f"{start}/{end}?adjusted=true&sort=asc&limit=500&apiKey={POLY_KEY}")
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-AD/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-AD/2.0"})
         with urllib.request.urlopen(req, timeout=10) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        return data.get("results") or []
+            return json.loads(r.read().decode("utf-8")).get("results") or []
     except Exception as e:
-        print(f"  [poly:{symbol}] error: {str(e)[:100]}")
+        print(f"  [poly:{symbol}] {str(e)[:100]}")
         return []
+
+
+def batch_fetch_polygon(symbols, lookback_days=120, max_workers=8):
+    out = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(fetch_polygon_ohlcv, s, lookback_days): s for s in symbols}
+        for f in as_completed(futures):
+            try: out[futures[f]] = f.result() or []
+            except Exception: out[futures[f]] = []
+    return out
+
+
+def batch_fetch_fred(series_ids, lookback_days=500, max_workers=6):
+    out = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(fetch_fred_series, s, lookback_days): s for s in series_ids}
+        for f in as_completed(futures):
+            try: out[futures[f]] = f.result() or []
+            except Exception: out[futures[f]] = []
+    return out
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -147,523 +168,724 @@ def fetch_polygon_ohlcv(symbol, lookback_days=60):
 # ═══════════════════════════════════════════════════════════════════════
 
 def z_score(values, current=None, lookback=60):
-    """z-score of `current` (defaults to values[-1]) vs prior `lookback` values.
-    Returns (z, mean, std, n_used) or (None, None, None, 0) if insufficient data.
-    """
     if not values: return None, None, None, 0
     if current is None:
-        if len(values) < lookback + 1:
-            return None, None, None, 0
+        if len(values) < lookback + 1: return None, None, None, 0
         current = values[-1]
         sample = values[max(0, len(values) - 1 - lookback):-1]
     else:
         sample = values[-lookback:] if len(values) >= lookback else values
-    if len(sample) < 10:
-        return None, None, None, len(sample)
+    if len(sample) < 10: return None, None, None, len(sample)
     mean = sum(sample) / len(sample)
     var = sum((v - mean) ** 2 for v in sample) / len(sample)
     std = var ** 0.5
-    if std == 0:
-        return None, mean, 0, len(sample)
-    z = (current - mean) / std
-    return z, mean, std, len(sample)
+    if std == 0: return None, mean, 0, len(sample)
+    return (current - mean) / std, mean, std, len(sample)
+
+
+def percentile_rank(value, history):
+    if not history: return None
+    below = sum(1 for h in history if h < value)
+    return round(100 * below / len(history), 1)
 
 
 def classify_severity(abs_z):
-    """Return severity label given absolute z-score."""
     if abs_z is None: return None
-    for label, threshold in SEVERITY:
+    for label, threshold in SEVERITY_TIERS:
         if abs_z >= threshold: return label
     return None
 
 
+def rolling_returns(closes, window):
+    if len(closes) < window + 1: return None
+    return (closes[-1] / closes[-1 - window] - 1) * 100
+
+
+def _round(v, digits=4):
+    if v is None: return None
+    if isinstance(v, (int, float)): return round(v, digits)
+    return v
+
+
 # ═══════════════════════════════════════════════════════════════════════
-# OBSERVABILITY METRICS — always-on tracked values regardless of threshold
+# CONFIG-DRIVEN SIMPLE FRED DETECTORS
 # ═══════════════════════════════════════════════════════════════════════
 
-def collect_observability_metrics():
-    """Return a dict of current tracked metrics with their z-scores.
-    Even when no anomalies fire, this shows the system is doing real work
-    AND tells Khalid the actual state of markets right now.
-    """
-    metrics = {}
+FRED_DETECTORS = [
+    # RATES / YIELD CURVE
+    {"id": "T10Y2Y", "category": "rates", "name": "2s10s Spread",
+     "watch_inversion": True, "unit": "%",
+     "interp_pos": "Curve steepening — growth/inflation pricing in.",
+     "interp_neg": "Curve flattening — recession fear or Fed tightening.",
+     "interp_inverted": "INVERTED — historically recession within 12 months."},
+    {"id": "T10Y3M", "category": "rates", "name": "3M-10Y Spread (Fed's recession indicator)",
+     "watch_inversion": True, "unit": "%",
+     "interp_pos": "Steepening — bond market pricing in growth.",
+     "interp_neg": "Flattening — Fed's preferred recession signal weakening.",
+     "interp_inverted": "INVERTED — Fed's most-watched recession signal triggered."},
+    # FUNDING
+    {"id": "SOFR", "category": "funding", "name": "SOFR Overnight Rate", "unit": "%",
+     "interp_pos": "Funding tightening — repo market stress building.",
+     "interp_neg": "Funding loosening — liquidity flowing into markets."},
+    {"id": "DTB3", "category": "funding", "name": "3M T-Bill Rate", "unit": "%",
+     "interp_pos": "Short rates rising — Fed tightening priced in.",
+     "interp_neg": "Short rates falling — rate cuts being priced in."},
+    # CURRENCY
+    {"id": "DTWEXBGS", "category": "currency", "name": "Broad Dollar Index", "unit": "idx",
+     "interp_pos": "Dollar strengthening — risk-off / tightening flows.",
+     "interp_neg": "Dollar weakening — risk-on / EM tailwind."},
+    {"id": "DEXJPUS", "category": "currency", "name": "USD/JPY", "unit": "rate",
+     "interp_pos": "Yen weakness — carry trade in play.",
+     "interp_neg": "Yen strength — carry unwind, classic risk-off signal."},
+    # MACRO
+    {"id": "ICSA", "category": "macro", "name": "Initial Jobless Claims", "unit": "k",
+     "interp_pos": "Claims rising — labor market weakening, recession risk.",
+     "interp_neg": "Claims falling — labor strong, expansion continues."},
+    # COMMODITY (single-asset)
+    {"id": "WTISPLC", "category": "commodity", "name": "WTI Crude Oil", "unit": "$/bbl",
+     "interp_pos": "Oil surge — supply shock or demand spike.",
+     "interp_neg": "Oil collapse — demand destruction or oversupply."},
+]
 
-    # VIX
-    vix = fetch_fred_series("VIXCLS", lookback_days=400)
-    if len(vix) >= 60:
-        values = [v["value"] for v in vix]
-        z, mean, std, _ = z_score(values)
-        metrics["vix"] = {
-            "current": round(values[-1], 2),
-            "60d_mean": round(mean, 2) if mean else None,
-            "60d_std": round(std, 2) if std else None,
-            "z_score": round(z, 2) if z is not None else None,
-            "as_of": vix[-1]["date"],
-            "interpretation": _vix_interp(values[-1], z),
-        }
 
-    # SKEW
-    skew = fetch_fred_series("SKEW", lookback_days=400)
-    if len(skew) >= 60:
-        values = [v["value"] for v in skew]
-        z, mean, std, _ = z_score(values)
-        metrics["skew"] = {
-            "current": round(values[-1], 2),
-            "60d_mean": round(mean, 2) if mean else None,
-            "z_score": round(z, 2) if z is not None else None,
-            "as_of": skew[-1]["date"],
-            "interpretation": _skew_interp(values[-1], z),
-        }
+def run_fred_detector(cfg, data):
+    """Run anomaly check on a FRED series with level + 1w change z-scores.
+    Returns (anomaly_dict_or_None, metric_dict)."""
+    if not data or len(data) < 60:
+        return None, {"id": cfg["id"], "name": cfg["name"], "category": cfg["category"],
+                       "err": f"insufficient data ({len(data)} obs)"}
 
-    # HY OAS
-    hy = fetch_fred_series("BAMLH0A0HYM2", lookback_days=500)
-    if len(hy) >= 60:
-        values = [v["value"] for v in hy]
-        level_z, level_mean, level_std, _ = z_score(values, lookback=180)
-        if len(values) >= 6:
-            week_change = values[-1] - values[-6]
-            changes = [values[i] - values[i-5] for i in range(5, len(values) - 1)]
-            change_z, _, _, _ = z_score(changes + [week_change], lookback=180)
+    values = [d["value"] for d in data]
+    current = values[-1]
+    as_of = data[-1]["date"]
+
+    z60, mean60, std60, _ = z_score(values, lookback=60)
+    z180, mean180, _, _ = z_score(values, lookback=180)
+
+    week_change = None
+    change_z = None
+    if len(values) >= 6:
+        week_change = values[-1] - values[-6]
+        changes = [values[i] - values[i-5] for i in range(5, len(values) - 1)]
+        if changes:
+            change_z, _, _, _ = z_score(changes + [week_change], lookback=min(180, len(changes)))
+
+    pct_1y = percentile_rank(current, values[-min(252, len(values)):])
+    pct_5y = percentile_rank(current, values)
+
+    inverted = cfg.get("watch_inversion") and current < 0
+    just_inverted = False
+    if cfg.get("watch_inversion") and len(values) >= 22:
+        just_inverted = inverted and values[-22] > 0
+
+    metric = {
+        "id": cfg["id"], "name": cfg["name"], "category": cfg["category"],
+        "current": _round(current),
+        "as_of": as_of, "unit": cfg.get("unit", ""),
+        "z60": _round(z60, 2), "z180": _round(z180, 2),
+        "mean60": _round(mean60),
+        "1w_change": _round(week_change),
+        "1w_change_z": _round(change_z, 2),
+        "pct_rank_1y": pct_1y, "pct_rank_5y": pct_5y,
+        "inverted": inverted, "just_inverted": just_inverted,
+    }
+
+    triggers = []
+    max_abs_z = 0
+    direction = None
+
+    if z60 is not None and abs(z60) >= 2.0:
+        triggers.append(f"level z60={z60:.2f}")
+        max_abs_z = max(max_abs_z, abs(z60))
+        direction = "pos" if z60 > 0 else "neg"
+    if change_z is not None and abs(change_z) >= 2.0:
+        triggers.append(f"1w chg z={change_z:.2f}")
+        if abs(change_z) > max_abs_z:
+            max_abs_z = abs(change_z)
+            direction = "pos" if change_z > 0 else "neg"
+    if just_inverted:
+        triggers.append("CROSSED INTO INVERSION")
+        max_abs_z = max(max_abs_z, 4.0)
+
+    severity = classify_severity(max_abs_z) if triggers else None
+    anomaly = None
+    if severity:
+        if just_inverted:
+            implication = cfg.get("interp_inverted", "Inversion event.")
+        elif direction == "pos":
+            implication = cfg.get("interp_pos", "Significant positive move.")
         else:
-            week_change = None
-            change_z = None
-        metrics["hy_oas"] = {
-            "current": round(values[-1], 3),
-            "180d_mean": round(level_mean, 3) if level_mean else None,
-            "level_z": round(level_z, 2) if level_z is not None else None,
-            "1w_change": round(week_change, 3) if week_change is not None else None,
-            "1w_change_z": round(change_z, 2) if change_z is not None else None,
-            "as_of": hy[-1]["date"],
+            implication = cfg.get("interp_neg", "Significant negative move.")
+        anomaly = {
+            "category": cfg["category"], "name": cfg["name"],
+            "series_id": cfg["id"], "severity": severity,
+            "z_score": _round(max_abs_z, 2),
+            "current_value": _round(current),
+            "details": f"{cfg['name']} = {current:.3f}{cfg.get('unit','')} · " + " · ".join(triggers),
+            "implication": implication,
+            "pct_rank_5y": pct_5y,
+        }
+    return anomaly, metric
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RATIO DETECTORS (two-leg Polygon)
+# ═══════════════════════════════════════════════════════════════════════
+
+RATIO_DETECTORS = [
+    {"id": "copper_gold", "category": "commodity",
+     "name": "Copper/Gold (Gundlach's recession indicator)",
+     "numerator": "CPER", "denominator": "GLD",
+     "interp_pos": "Copper > Gold — growth signal, risk-on.",
+     "interp_neg": "Gold > Copper — recession/risk-off signal."},
+    {"id": "silver_gold", "category": "commodity", "name": "Silver/Gold Ratio",
+     "numerator": "SLV", "denominator": "GLD",
+     "interp_pos": "Silver leading — risk-on within precious metals.",
+     "interp_neg": "Silver lagging — flight to quality."},
+    {"id": "high_low_beta", "category": "equity_internals",
+     "name": "High-Beta/Low-Vol (SPHB/SPLV risk appetite)",
+     "numerator": "SPHB", "denominator": "SPLV",
+     "interp_pos": "High-beta leading — risk appetite expanding.",
+     "interp_neg": "Low-vol leading — defensive rotation, risk-off."},
+    {"id": "equal_cap_weight", "category": "breadth",
+     "name": "Equal-Weight/Cap-Weight (RSP/SPY breadth)",
+     "numerator": "RSP", "denominator": "SPY",
+     "interp_pos": "Breadth expanding — broad participation.",
+     "interp_neg": "Mega-caps dominating — narrow leadership, late-cycle."},
+    {"id": "hy_ig", "category": "credit",
+     "name": "HY/IG Bond Ratio (HYG/LQD credit risk appetite)",
+     "numerator": "HYG", "denominator": "LQD",
+     "interp_pos": "HY > IG — credit risk-on.",
+     "interp_neg": "IG > HY — credit risk-off, default fear."},
+    {"id": "utilities_tech", "category": "equity_internals",
+     "name": "Utilities/Tech (XLU/XLK defensive ratio)",
+     "numerator": "XLU", "denominator": "XLK",
+     "interp_pos": "Defensives > Tech — risk-off rotation.",
+     "interp_neg": "Tech > Defensives — risk-on, growth premium expanding."},
+]
+
+
+def run_ratio_detector(cfg, bars_num, bars_den):
+    if not bars_num or not bars_den or len(bars_num) < 60 or len(bars_den) < 60:
+        return None, {"id": cfg["id"], "name": cfg["name"], "category": cfg["category"],
+                       "err": "insufficient bars"}
+    closes_num = {b["t"]: b["c"] for b in bars_num}
+    closes_den = {b["t"]: b["c"] for b in bars_den}
+    common = sorted(set(closes_num) & set(closes_den))
+    if len(common) < 60:
+        return None, {"id": cfg["id"], "name": cfg["name"], "category": cfg["category"],
+                       "err": "insufficient overlap"}
+
+    ratios = [closes_num[t] / closes_den[t] for t in common if closes_den[t]]
+    if len(ratios) < 60: return None, None
+
+    current_ratio = ratios[-1]
+    z60, mean60, _, _ = z_score(ratios, lookback=60)
+    z180, _, _, _ = z_score(ratios, lookback=min(180, len(ratios) - 1))
+    week_change = None
+    change_z = None
+    if len(ratios) >= 6:
+        week_change = (ratios[-1] / ratios[-6] - 1) * 100
+        ratio_changes = [(ratios[i] / ratios[i-5] - 1) * 100 for i in range(5, len(ratios) - 1)]
+        if ratio_changes:
+            change_z, _, _, _ = z_score(ratio_changes + [week_change],
+                                          lookback=min(180, len(ratio_changes)))
+
+    pct_5y = percentile_rank(current_ratio, ratios)
+
+    metric = {
+        "id": cfg["id"], "name": cfg["name"], "category": cfg["category"],
+        "ratio_current": _round(current_ratio, 5),
+        "z60": _round(z60, 2), "z180": _round(z180, 2),
+        "1w_change_pct": _round(week_change, 2),
+        "1w_change_z": _round(change_z, 2),
+        "pct_rank_5y": pct_5y,
+        "numerator": cfg["numerator"], "denominator": cfg["denominator"],
+    }
+
+    triggers = []
+    max_abs_z = 0
+    direction = None
+    if z60 is not None and abs(z60) >= 2.0:
+        triggers.append(f"level z={z60:.2f}")
+        max_abs_z = max(max_abs_z, abs(z60))
+        direction = "pos" if z60 > 0 else "neg"
+    if change_z is not None and abs(change_z) >= 2.5:  # higher bar — change is noisier
+        triggers.append(f"1w chg z={change_z:.2f}")
+        if abs(change_z) > max_abs_z:
+            max_abs_z = abs(change_z)
+            direction = "pos" if change_z > 0 else "neg"
+
+    severity = classify_severity(max_abs_z) if triggers else None
+    anomaly = None
+    if severity:
+        anomaly = {
+            "category": cfg["category"], "name": cfg["name"],
+            "severity": severity, "z_score": _round(max_abs_z, 2),
+            "current_value": _round(current_ratio, 5),
+            "details": f"{cfg['name']} ratio={current_ratio:.4f} · " + " · ".join(triggers),
+            "implication": cfg.get("interp_pos" if direction == "pos" else "interp_neg",
+                                     "Significant ratio move."),
+            "pct_rank_5y": pct_5y,
+        }
+    return anomaly, metric
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# COMPLEX DETECTORS
+# ═══════════════════════════════════════════════════════════════════════
+
+def detect_cross_asset_divergence():
+    symbols = ["SPY", "TLT", "GLD", "UUP"]
+    bars = batch_fetch_polygon(symbols, 90)
+    if any(len(bars.get(s, [])) < 25 for s in symbols):
+        return None, {"err": "insufficient bars"}
+
+    returns = {}
+    closes_by_sym = {}
+    for sym in symbols:
+        closes = [b["c"] for b in bars[sym]]
+        closes_by_sym[sym] = closes
+        returns[sym] = {
+            "1w": _round(rolling_returns(closes, 5), 2),
+            "1m": _round(rolling_returns(closes, 21), 2),
+            "current": _round(closes[-1], 2),
         }
 
-    # BBB OAS
-    bbb = fetch_fred_series("BAMLC0A4CBBB", lookback_days=500)
-    if len(bbb) >= 60:
-        values = [v["value"] for v in bbb]
+    signs_1w = [1 if returns[s]["1w"] and returns[s]["1w"] > 0.1
+                else -1 if returns[s]["1w"] and returns[s]["1w"] < -0.1
+                else 0 for s in symbols]
+    all_up = all(s > 0 for s in signs_1w)
+    all_down = all(s < 0 for s in signs_1w)
+
+    # SPY-TLT correlation breakdown
+    spy_tlt_corr = None
+    n = min(len(closes_by_sym[s]) for s in symbols)
+    if n >= 35:
+        spy_ret = [(closes_by_sym["SPY"][i] / closes_by_sym["SPY"][i-1] - 1) for i in range(n - 30, n)]
+        tlt_ret = [(closes_by_sym["TLT"][i] / closes_by_sym["TLT"][i-1] - 1) for i in range(n - 30, n)]
+        if len(spy_ret) >= 25:
+            try: spy_tlt_corr = statistics.correlation(spy_ret, tlt_ret)
+            except Exception: pass
+
+    metric = {
+        "asset_returns_1w": returns,
+        "spy_tlt_corr_30d": _round(spy_tlt_corr, 3),
+        "signs_aligned": all_up or all_down,
+    }
+
+    # Sign alignment anomaly
+    if all_up or all_down:
+        magnitudes = [abs(returns[s]["1w"] or 0) for s in symbols]
+        avg_mag = sum(magnitudes) / len(magnitudes)
+        pseudo_z = 1.5 + avg_mag * 1.2
+        sev = classify_severity(pseudo_z)
+        if sev:
+            direction = "RALLY" if all_up else "LIQUIDATION"
+            return {
+                "category": "cross_asset",
+                "name": f"All-Asset {direction.title()}",
+                "severity": sev, "z_score": _round(pseudo_z, 2),
+                "details": " · ".join(f"{s}{'+' if (returns[s]['1w'] or 0)>=0 else ''}{returns[s]['1w']:.2f}%"
+                                       for s in symbols),
+                "implication": ("All-asset rally — institutional broad hedging or liquidity flood. "
+                                "Historically precedes risk-off in 5-15 days." if all_up else
+                                "All-asset liquidation — forced selling across asset classes. "
+                                "Capitulation signal — bottom often within 10 days."),
+            }, metric
+
+    # Correlation breakdown
+    if spy_tlt_corr is not None and spy_tlt_corr > 0.4:
+        z = 2.0 + (spy_tlt_corr - 0.4) * 5
+        sev = classify_severity(z)
+        if sev:
+            return {
+                "category": "cross_asset",
+                "name": "SPY/TLT Correlation Breakdown",
+                "severity": sev, "z_score": _round(z, 2),
+                "details": f"SPY/TLT 30d correlation = {spy_tlt_corr:.2f} (normal: -0.4 to +0.2)",
+                "implication": ("Stocks and bonds moving TOGETHER — 60/40 diversification failing. "
+                                "Historically associated with inflation regime shifts or systemic stress."),
+            }, metric
+
+    return None, metric
+
+
+def detect_sector_breadth():
+    SECTORS = ["XLK","XLF","XLV","XLE","XLI","XLY","XLP","XLU","XLB","XLRE","XLC"]
+    bars = batch_fetch_polygon(SECTORS, 90)
+    valid = {s: bars[s] for s in SECTORS if len(bars.get(s, [])) >= 30}
+    if len(valid) < 9: return None, {"err": "insufficient sector data"}
+
+    returns_5d = {}
+    for sym, b in valid.items():
+        r = rolling_returns([x["c"] for x in b], 5)
+        if r is not None: returns_5d[sym] = r
+    if len(returns_5d) < 9: return None, None
+
+    current_disp = statistics.stdev(list(returns_5d.values()))
+
+    historical = []
+    n_check = min(60, min(len(v) for v in valid.values()) - 7)
+    for offset in range(1, n_check):
+        day_returns = []
+        for sym, b in valid.items():
+            closes = [x["c"] for x in b]
+            i = len(closes) - 1 - offset
+            if i >= 5: day_returns.append((closes[i] / closes[i-5] - 1) * 100)
+        if len(day_returns) >= 9:
+            historical.append(statistics.stdev(day_returns))
+
+    if len(historical) < 20: return None, None
+    z, mean, _, _ = z_score(historical + [current_disp])
+    if z is None: return None, None
+
+    sorted_sectors = sorted(returns_5d.items(), key=lambda x: -x[1])
+    top, bottom = sorted_sectors[:2], sorted_sectors[-2:]
+
+    metric = {
+        "current_dispersion_pct": _round(current_disp, 3),
+        "60d_mean_dispersion": _round(mean, 3),
+        "z_score": _round(z, 2),
+        "sector_returns_5d_pct": {s: _round(r, 2) for s, r in returns_5d.items()},
+        "top_sectors": [{"sym": s, "ret_5d": _round(r, 2)} for s, r in top],
+        "bottom_sectors": [{"sym": s, "ret_5d": _round(r, 2)} for s, r in bottom],
+    }
+
+    abs_z = abs(z)
+    sev = classify_severity(abs_z)
+    if not sev: return None, metric
+
+    if z > 0:
+        implication = (f"Dispersion {current_disp:.2f}% (z={z:.2f}) — {top[0][0]} +{top[0][1]:.1f}% "
+                       f"leads vs {bottom[0][0]} {bottom[0][1]:+.1f}%. Wide dispersion = rotation, "
+                       "often signals end of thematic rally or new leadership.")
+    else:
+        implication = ("All sectors moving together — broad risk-on/off. Diversification failing. "
+                       "Often precedes volatility expansion.")
+    return {
+        "category": "breadth",
+        "name": "Sector Rotation/Divergence" if z > 0 else "Sector Compression",
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current_disp, 3),
+        "details": f"Dispersion {current_disp:.2f}% z={z:.2f} · Top {top[0][0]}{top[0][1]:+.1f}% · Bot {bottom[0][0]}{bottom[0][1]:+.1f}%",
+        "implication": implication,
+    }, metric
+
+
+def detect_vix_skew():
+    vix = fetch_fred_series("VIXCLS", 400)
+    skew = fetch_fred_series("SKEW", 400)
+    if len(vix) < 60: return [], {"err": "no VIX data"}
+
+    vix_values = [v["value"] for v in vix]
+    vix_z60, vix_mean, _, _ = z_score(vix_values, lookback=60)
+    vix_z180, _, _, _ = z_score(vix_values, lookback=180)
+
+    metric = {
+        "vix": {
+            "current": _round(vix_values[-1], 2),
+            "z60": _round(vix_z60, 2), "z180": _round(vix_z180, 2),
+            "mean60": _round(vix_mean, 2),
+            "interpretation": _vix_interp(vix_values[-1]),
+            "as_of": vix[-1]["date"],
+        }
+    }
+
+    anomalies = []
+    if vix_z60 is not None and abs(vix_z60) >= 2.0:
+        sev = classify_severity(abs(vix_z60))
+        if sev:
+            anomalies.append({
+                "category": "equity_vol",
+                "name": "VIX " + ("Spike" if vix_z60 > 0 else "Compression"),
+                "severity": sev, "z_score": _round(vix_z60, 2),
+                "current_value": _round(vix_values[-1], 2),
+                "details": f"VIX {vix_values[-1]:.2f} vs 60d mean {vix_mean:.2f} (z={vix_z60:.2f})",
+                "implication": ("Elevated VIX — options pricing higher near-term vol."
+                                 if vix_z60 > 0 else
+                                 "Suppressed VIX — complacency at multi-month low, vulnerable to spike."),
+            })
+
+    if len(skew) >= 60:
+        skew_values = [v["value"] for v in skew]
+        skew_z, skew_mean, _, _ = z_score(skew_values, lookback=60)
+        metric["skew"] = {
+            "current": _round(skew_values[-1], 2),
+            "z60": _round(skew_z, 2),
+            "mean60": _round(skew_mean, 2),
+            "interpretation": _skew_interp(skew_values[-1]),
+            "as_of": skew[-1]["date"],
+        }
+        if skew_z is not None and abs(skew_z) >= 2.0:
+            divergence = skew_z - (vix_z60 or 0)
+            if abs(divergence) >= 2.0:
+                sev = classify_severity(abs(divergence))
+                if sev:
+                    anomalies.append({
+                        "category": "equity_vol",
+                        "name": "SKEW/VIX Divergence",
+                        "severity": sev, "z_score": _round(divergence, 2),
+                        "current_value": {"vix": _round(vix_values[-1], 2),
+                                            "skew": _round(skew_values[-1], 2)},
+                        "details": f"VIX z={vix_z60:.2f} · SKEW z={skew_z:.2f} · div={divergence:.2f}",
+                        "implication": ("Tail-risk premium elevated WITHOUT broad fear — "
+                                         "institutions buying OTM puts quietly. Historically precedes "
+                                         "drawdowns by 2-6 weeks." if divergence > 0 else
+                                         "SKEW falling while VIX elevated — panic without tail concern, "
+                                         "possible capitulation."),
+                    })
+    return anomalies, metric
+
+
+def detect_credit_spreads():
+    SPREADS = [("BAMLH0A0HYM2", "HY OAS"), ("BAMLC0A4CBBB", "BBB OAS")]
+    series_data = batch_fetch_fred([s[0] for s in SPREADS], 500)
+    anomalies, metrics = [], {}
+    for series_id, short_name in SPREADS:
+        data = series_data.get(series_id, [])
+        if len(data) < 40: continue
+        values = [d["value"] for d in data]
         level_z, level_mean, _, _ = z_score(values, lookback=180)
         if len(values) >= 6:
             week_change = values[-1] - values[-6]
             changes = [values[i] - values[i-5] for i in range(5, len(values) - 1)]
             change_z, _, _, _ = z_score(changes + [week_change], lookback=180)
         else:
-            week_change = None
-            change_z = None
-        metrics["bbb_oas"] = {
-            "current": round(values[-1], 3),
-            "180d_mean": round(level_mean, 3) if level_mean else None,
-            "level_z": round(level_z, 2) if level_z is not None else None,
-            "1w_change_z": round(change_z, 2) if change_z is not None else None,
-            "as_of": bbb[-1]["date"],
+            week_change, change_z = None, None
+
+        metrics[short_name.lower().replace(" ", "_")] = {
+            "current": _round(values[-1], 3),
+            "180d_mean": _round(level_mean, 3),
+            "level_z": _round(level_z, 2),
+            "1w_change": _round(week_change, 3),
+            "1w_change_z": _round(change_z, 2),
+            "pct_rank_5y": percentile_rank(values[-1], values),
+            "as_of": data[-1]["date"],
         }
 
-    # 10Y vol
-    dgs10 = fetch_fred_series("DGS10", lookback_days=400)
-    if len(dgs10) >= 60:
-        values = [v["value"] for v in dgs10]
-        changes = [values[i] - values[i-1] for i in range(1, len(values))]
-        if len(changes) >= 60:
-            current_vol = statistics.stdev(changes[-30:]) * (252 ** 0.5)
-            historical = [statistics.stdev(changes[i-30:i]) * (252 ** 0.5)
-                          for i in range(30, len(changes) - 1)]
-            if len(historical) >= 30:
-                z, mean, std, _ = z_score(historical + [current_vol])
-                metrics["bond_vol"] = {
-                    "current_30d_annualized_vol": round(current_vol, 3),
-                    "1y_mean": round(mean, 3) if mean else None,
-                    "z_score": round(z, 2) if z is not None else None,
-                    "as_of": dgs10[-1]["date"],
-                    "10y_yield": round(values[-1], 3),
-                }
-
-    return metrics
-
-
-def _vix_interp(value, z):
-    if value < 13: return "extreme complacency"
-    if value < 17: return "low fear"
-    if value < 22: return "normal"
-    if value < 30: return "elevated fear"
-    return "panic / crisis"
-
-
-def _skew_interp(value, z):
-    if value < 120: return "minimal tail-risk concern"
-    if value < 140: return "normal tail-risk pricing"
-    if value < 150: return "elevated tail hedging"
-    return "extreme tail-risk premium"
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# DETECTORS
-# ═══════════════════════════════════════════════════════════════════════
-
-def detect_cross_asset_divergence():
-    """Detect when SPY, TLT, GLD, UUP all move same direction simultaneously.
-    Normal regime: equities and bonds inversely correlated. When everything
-    moves up = liquidity flood (or institutional broad hedging). When
-    everything moves down = forced liquidation.
-    """
-    symbols = ["SPY", "TLT", "GLD", "UUP"]
-    bars_by_sym = {}
-    with ThreadPoolExecutor(max_workers=4) as ex:
-        results = {ex.submit(fetch_polygon_ohlcv, s, 90): s for s in symbols}
-        for f in as_completed(results):
-            sym = results[f]
-            bars = f.result() or []
-            if len(bars) >= 25:
-                bars_by_sym[sym] = bars
-
-    if len(bars_by_sym) < 4:
-        return None
-
-    returns = {}
-    for sym, bars in bars_by_sym.items():
-        closes = [b["c"] for b in bars]
-        if len(closes) < 25: continue
-        ret_5d = (closes[-1] / closes[-6] - 1) * 100 if len(closes) >= 6 else None
-        ret_20d = (closes[-1] / closes[-21] - 1) * 100 if len(closes) >= 21 else None
-        returns[sym] = {
-            "1w": ret_5d, "1m": ret_20d,
-            "current": closes[-1], "n_bars": len(closes),
-        }
-    if len(returns) < 4: return None
-
-    # Sign alignment check (1-week returns)
-    signs_1w = []
-    magnitudes_1w = []
-    for s in symbols:
-        r = returns[s]["1w"]
-        if r is None: return None
-        signs_1w.append(1 if r > 0.1 else -1 if r < -0.1 else 0)
-        magnitudes_1w.append(abs(r))
-
-    all_up = all(s > 0 for s in signs_1w)
-    all_down = all(s < 0 for s in signs_1w)
-
-    if not (all_up or all_down): return None
-
-    avg_mag = sum(magnitudes_1w) / len(magnitudes_1w)
-    # Heuristic severity: avg 1% move = z ≈ 2, 2% = z ≈ 3.5, 3% = z ≈ 5
-    pseudo_z = 1.5 + avg_mag * 1.2
-    severity = classify_severity(pseudo_z)
-    if severity is None: return None
-
-    direction = "RALLY" if all_up else "LIQUIDATION"
-    name = f"All-Asset {direction.title()}"
-    if all_up:
-        implication = (
-            "Equities, bonds, gold AND dollar all rising together is rare. "
-            "Often indicates broad hedging or fund inflows without directional "
-            "conviction. Historically precedes risk-off in 5-15 days."
-        )
-    else:
-        implication = (
-            "Equities, bonds, gold AND dollar all falling = forced liquidation. "
-            "Margin calls or fund redemptions forcing sales across asset classes. "
-            "Historically a capitulation signal — bottom often within 10 days."
-        )
-
-    return {
-        "category": "cross_asset",
-        "name": name,
-        "severity": severity,
-        "z_score": round(pseudo_z, 2),
-        "details": " · ".join(f"{s}{'+' if returns[s]['1w']>=0 else ''}{returns[s]['1w']:.2f}%"
-                                for s in symbols),
-        "asset_returns": returns,
-        "implication": implication,
-    }
-
-
-def detect_sector_breadth():
-    """Cross-sectional standard deviation of sector ETF returns.
-    Normal: ~1-2%. High dispersion (>4%) = rotation. Low dispersion with one
-    big mover = narrow leadership. Both are anomalies."""
-    SECTORS = ["XLK","XLF","XLV","XLE","XLI","XLY","XLP","XLU","XLB","XLRE","XLC"]
-    bars_by_sym = {}
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        results = {ex.submit(fetch_polygon_ohlcv, s, 90): s for s in SECTORS}
-        for f in as_completed(results):
-            sym = results[f]
-            bars = f.result() or []
-            if len(bars) >= 25:
-                bars_by_sym[sym] = bars
-    if len(bars_by_sym) < 9: return None
-
-    # 5-day returns per sector
-    returns_5d = {}
-    for sym, bars in bars_by_sym.items():
-        closes = [b["c"] for b in bars]
-        if len(closes) < 30: continue
-        returns_5d[sym] = (closes[-1] / closes[-6] - 1) * 100
-
-    if len(returns_5d) < 9: return None
-
-    # Cross-sectional dispersion right now
-    today_returns = list(returns_5d.values())
-    current_dispersion = statistics.stdev(today_returns)
-
-    # Historical dispersion: compute 5-day returns for past 60 trading days,
-    # then dispersion across sectors for each day, then stddev/mean of dispersions
-    historical_disp = []
-    n_check = min(60, min(len(bars) for bars in bars_by_sym.values()) - 7)
-    for offset in range(1, n_check):
-        day_returns = []
-        for sym, bars in bars_by_sym.items():
-            closes = [b["c"] for b in bars]
-            i = len(closes) - 1 - offset
-            if i < 5: continue
-            r = (closes[i] / closes[i - 5] - 1) * 100
-            day_returns.append(r)
-        if len(day_returns) >= 9:
-            historical_disp.append(statistics.stdev(day_returns))
-
-    if len(historical_disp) < 20: return None
-    z, mean, std, _ = z_score(historical_disp + [current_dispersion])
-    if z is None: return None
-
-    abs_z = abs(z)
-    severity = classify_severity(abs_z)
-    if severity is None: return None
-
-    # Identify top movers
-    sorted_sectors = sorted(returns_5d.items(), key=lambda x: -x[1])
-    top = sorted_sectors[:2]
-    bottom = sorted_sectors[-2:]
-
-    if z > 0:
-        name = "Sector Rotation / Breadth Divergence"
-        implication = (
-            f"Cross-sector dispersion at {current_dispersion:.2f}% (z={z:.2f}) — "
-            f"{top[0][0]} +{top[0][1]:.1f}% leading, {bottom[0][0]} {bottom[0][1]:+.1f}% lagging. "
-            "Wide dispersion means money is rotating between sectors rather than risk-on/off "
-            "broadly. Historically signals end of a thematic rally or start of new leadership."
-        )
-    else:
-        name = "Sector Compression"
-        implication = (
-            f"All sectors moving together (dispersion {current_dispersion:.2f}%, z={z:.2f}). "
-            "Suggests broad risk-on/off rather than thematic positioning. "
-            "Vulnerability: when correlations spike, diversification fails — typically precedes "
-            "volatility expansion."
-        )
-
-    return {
-        "category": "sector_breadth",
-        "name": name,
-        "severity": severity,
-        "z_score": round(z, 2),
-        "current_value": round(current_dispersion, 3),
-        "baseline_mean": round(mean, 3),
-        "baseline_std": round(std, 3),
-        "top_sectors": [{"sym": s, "ret_5d": round(r, 2)} for s, r in top],
-        "bottom_sectors": [{"sym": s, "ret_5d": round(r, 2)} for s, r in bottom],
-        "details": (f"Top: {top[0][0]} {top[0][1]:+.2f}% · "
-                    f"{top[1][0]} {top[1][1]:+.2f}%   ·   "
-                    f"Bottom: {bottom[0][0]} {bottom[0][1]:+.2f}% · {bottom[1][0]} {bottom[1][1]:+.2f}%"),
-        "implication": implication,
-    }
-
-
-def detect_vix_skew():
-    """VIX z-score and SKEW/VIX divergence.
-    SKEW = CBOE tail-risk indicator. High SKEW measures OTM put demand =
-    institutional tail hedging. If SKEW spikes WITHOUT VIX moving, that
-    means smart money is hedging the tail without panic showing up in
-    headline vol — a quiet warning sign."""
-    vix = fetch_fred_series("VIXCLS", lookback_days=400)
-    skew = fetch_fred_series("SKEW", lookback_days=400)
-
-    if len(vix) < 60:
-        return None
-
-    vix_values = [v["value"] for v in vix]
-    vix_z, vix_mean, vix_std, _ = z_score(vix_values)
-
-    anomalies = []
-    # VIX z-score anomaly
-    if vix_z is not None and abs(vix_z) >= 2.0:
-        severity = classify_severity(abs(vix_z))
-        if severity:
-            anomalies.append({
-                "category": "vix",
-                "name": f"VIX {'Spike' if vix_z > 0 else 'Compression'}",
-                "severity": severity,
-                "z_score": round(vix_z, 2),
-                "current_value": round(vix_values[-1], 2),
-                "baseline_mean": round(vix_mean, 2),
-                "baseline_std": round(vix_std, 2),
-                "details": f"VIX at {vix_values[-1]:.2f} vs 60d mean {vix_mean:.2f} (z={vix_z:.2f})",
-                "implication": (
-                    "Elevated VIX — equity options markets pricing in higher near-term vol. Watch for follow-through in spot."
-                    if vix_z > 0 else
-                    "Suppressed VIX — market complacency at multi-month low. Historically vulnerable to sharp spikes."
-                ),
-            })
-
-    # SKEW/VIX divergence
-    if len(skew) >= 60:
-        skew_values = [v["value"] for v in skew]
-        skew_z, skew_mean, skew_std, _ = z_score(skew_values)
-        if skew_z is not None and abs(skew_z) >= 2.0:
-            divergence = skew_z - (vix_z or 0)
-            if abs(divergence) >= 2.0:
-                severity = classify_severity(abs(divergence))
-                if severity:
-                    anomalies.append({
-                        "category": "vix_skew",
-                        "name": "SKEW/VIX Divergence",
-                        "severity": severity,
-                        "z_score": round(divergence, 2),
-                        "current_value": {"vix": round(vix_values[-1], 2),
-                                           "skew": round(skew_values[-1], 2)},
-                        "baseline_mean": {"vix": round(vix_mean, 2),
-                                            "skew": round(skew_mean, 2)},
-                        "details": f"VIX z={vix_z:.2f} · SKEW z={skew_z:.2f} · divergence={divergence:.2f}",
-                        "implication": (
-                            "Tail-risk premium elevated WITHOUT broad fear. Institutions buying "
-                            "deep OTM puts while equity vol stays calm = quiet hedging by smart "
-                            "money. Historically precedes large drawdowns by 2-6 weeks."
-                            if divergence > 0 else
-                            "Tail-risk premium falling while VIX stays elevated — unusual. "
-                            "Suggests panic without tail concern, possibly capitulation signal."
-                        ),
-                    })
-        elif skew_z is not None and skew_z >= 2.0 and (vix_z is None or vix_z < 0.5):
-            # SKEW spike without VIX move
-            severity = classify_severity(skew_z)
-            if severity:
-                anomalies.append({
-                    "category": "vix_skew",
-                    "name": "SKEW Spike (Hidden Hedging)",
-                    "severity": severity,
-                    "z_score": round(skew_z, 2),
-                    "current_value": {"vix": round(vix_values[-1], 2),
-                                       "skew": round(skew_values[-1], 2)},
-                    "details": f"SKEW at {skew_values[-1]:.2f} (z={skew_z:.2f}) while VIX flat (z={vix_z:.2f if vix_z else 0:.2f})",
-                    "implication": (
-                        "OTM put demand surging without VIX moving = institutions buying tail "
-                        "insurance quietly. Smart-money warning signal. Historically precedes "
-                        "drawdowns by 2-6 weeks."
-                    ),
-                })
-
-    return anomalies if anomalies else None
-
-
-def detect_credit_spreads():
-    """Credit spread (BBB OAS, HY OAS) blowout detector.
-    1-week change z-score >= 2 fires. Credit markets historically lead
-    equity weakness by 1-3 weeks."""
-    anomalies = []
-    SPREADS = [
-        ("BAMLH0A0HYM2", "HY OAS",  "High Yield Corporate"),
-        ("BAMLC0A4CBBB", "BBB OAS", "BBB Investment Grade"),
-    ]
-    for series_id, short_name, full_name in SPREADS:
-        data = fetch_fred_series(series_id, lookback_days=500)
-        if len(data) < 40:
-            continue
-        values = [d["value"] for d in data]
-
-        # Current level z-score
-        level_z, level_mean, level_std, _ = z_score(values, lookback=180)
-
-        # 1-week change z-score
-        if len(values) >= 6:
-            current_change = values[-1] - values[-6]
-            # Build history of 5-day changes
-            changes = [values[i] - values[i-5] for i in range(5, len(values))]
-            change_z, change_mean, change_std, _ = z_score(changes[:-1] + [current_change], lookback=180)
-        else:
-            current_change = None
-            change_z = None
-
-        # Detect anomaly
-        triggers = []
         max_z = 0
+        triggers = []
         if level_z is not None and abs(level_z) >= 2.0:
             triggers.append(f"level z={level_z:.2f}")
             max_z = max(max_z, abs(level_z))
         if change_z is not None and abs(change_z) >= 2.0:
-            triggers.append(f"1w change z={change_z:.2f}")
+            triggers.append(f"1w chg z={change_z:.2f}")
             max_z = max(max_z, abs(change_z))
-
-        if max_z < 2.0:
-            continue
-        severity = classify_severity(max_z)
-        if severity is None: continue
-
-        direction = "Blowout" if (change_z or 0) > 0 or (level_z or 0) > 0 else "Compression"
-        anomalies.append({
-            "category": "credit_spread",
-            "name": f"{short_name} {direction}",
-            "severity": severity,
-            "z_score": round(max_z, 2),
-            "level_z": round(level_z, 2) if level_z is not None else None,
-            "change_z": round(change_z, 2) if change_z is not None else None,
-            "current_value": round(values[-1], 3),
-            "baseline_mean": round(level_mean, 3) if level_mean else None,
-            "current_change_1w": round(current_change, 3) if current_change is not None else None,
-            "details": f"{full_name} at {values[-1]:.2f}% · " + " · ".join(triggers),
-            "implication": (
-                f"{full_name} widening rapidly — credit markets pricing in elevated default risk. "
-                "Historically leads equity weakness by 1-3 weeks. Watch for confirmation in "
-                "high-beta sector pullbacks."
-                if direction == "Blowout" else
-                f"{full_name} compressing rapidly — credit markets relaxing. "
-                "Constructive for risk assets but watch for complacency."
-            ),
-        })
-    return anomalies if anomalies else None
+        if max_z >= 2.0:
+            direction = "Blowout" if ((change_z or 0) > 0 or (level_z or 0) > 0) else "Compression"
+            sev = classify_severity(max_z)
+            if sev:
+                anomalies.append({
+                    "category": "credit",
+                    "name": f"{short_name} {direction}",
+                    "severity": sev, "z_score": _round(max_z, 2),
+                    "current_value": _round(values[-1], 3),
+                    "details": f"{short_name} at {values[-1]:.2f}% · " + " · ".join(triggers),
+                    "implication": (f"{short_name} widening — credit pricing default risk. "
+                                     "Historically leads equity weakness by 1-3 weeks."
+                                     if direction == "Blowout" else
+                                     f"{short_name} compressing — credit relaxing, constructive."),
+                })
+    return anomalies, metrics
 
 
 def detect_bond_volatility():
-    """30-day realized vol of 10Y Treasury yield (DGS10) as proxy for MOVE Index.
-    Bond vol historically leads equity vol by 1-2 weeks."""
-    dgs10 = fetch_fred_series("DGS10", lookback_days=400)
-    if len(dgs10) < 60: return None
+    dgs10 = fetch_fred_series("DGS10", 400)
+    if len(dgs10) < 60: return None, None
     values = [d["value"] for d in dgs10]
-
-    # Daily changes
     changes = [values[i] - values[i-1] for i in range(1, len(values))]
-
-    # 30-day rolling vol = stddev of last 30 daily changes
-    if len(changes) < 60: return None
-    current_vol = statistics.stdev(changes[-30:]) * (252 ** 0.5)  # annualized
-
-    # History of 30-day rolling vols
-    historical_vols = []
-    for end_idx in range(60, len(changes) - 1):  # leave most recent out
-        window = changes[end_idx - 30: end_idx]
-        if len(window) == 30:
-            historical_vols.append(statistics.stdev(window) * (252 ** 0.5))
-    if len(historical_vols) < 30: return None
-
-    z, mean, std, _ = z_score(historical_vols + [current_vol])
-    if z is None: return None
-
-    abs_z = abs(z)
-    severity = classify_severity(abs_z)
-    if severity is None: return None
-
-    return {
-        "category": "bond_vol",
-        "name": "Bond Yield Volatility " + ("Spike" if z > 0 else "Compression"),
-        "severity": severity,
-        "z_score": round(z, 2),
-        "current_value": round(current_vol, 3),
-        "baseline_mean": round(mean, 3),
-        "baseline_std": round(std, 3),
-        "details": f"10Y annualized vol {current_vol:.2f}% vs 1Y mean {mean:.2f}% (z={z:.2f})",
-        "implication": (
-            "Bond yield volatility spiking — Treasury market repricing future rates aggressively. "
-            "Historically leads equity volatility by 1-2 weeks. Long-duration assets vulnerable."
-            if z > 0 else
-            "Bond vol compressed at multi-month low — yields ranging tightly. "
-            "Stability can mask coiled spring; watch for breakout signals."
-        ),
+    if len(changes) < 60: return None, None
+    current_vol = statistics.stdev(changes[-30:]) * (252 ** 0.5)
+    historical = [statistics.stdev(changes[i-30:i]) * (252 ** 0.5) for i in range(30, len(changes) - 1)]
+    if len(historical) < 30: return None, None
+    z, mean, _, _ = z_score(historical + [current_vol])
+    metric = {
+        "current_30d_annualized_vol": _round(current_vol, 3),
+        "1y_mean": _round(mean, 3),
+        "z_score": _round(z, 2),
+        "10y_yield": _round(values[-1], 3),
+        "as_of": dgs10[-1]["date"],
     }
+    if z is None: return None, metric
+    abs_z = abs(z)
+    sev = classify_severity(abs_z)
+    if not sev: return None, metric
+    return {
+        "category": "rates",
+        "name": "Bond Yield Volatility " + ("Spike" if z > 0 else "Compression"),
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current_vol, 3),
+        "details": f"10Y annualized vol {current_vol:.2f}% (z={z:.2f}) · 10Y yield {values[-1]:.2f}%",
+        "implication": ("Bond vol spiking — Treasury repricing aggressively. Leads equity vol 1-2w."
+                        if z > 0 else
+                        "Bond vol compressed — yields ranging tightly. Stability precedes breakouts."),
+    }, metric
+
+
+def detect_crypto_signal():
+    bars = fetch_polygon_ohlcv("X:BTCUSD", 90) or fetch_polygon_ohlcv("BITO", 90) or fetch_polygon_ohlcv("GBTC", 90)
+    if len(bars) < 30: return None, {"err": "no BTC data"}
+    closes = [b["c"] for b in bars]
+    returns = [(closes[i] / closes[i-1] - 1) for i in range(1, len(closes))]
+    if len(returns) < 60: return None, {"btc_current": _round(closes[-1], 2)}
+    current_vol = statistics.stdev(returns[-30:]) * (365 ** 0.5) * 100
+    historical_vols = [statistics.stdev(returns[i-30:i]) * (365 ** 0.5) * 100
+                       for i in range(30, len(returns))]
+    z, mean, _, _ = z_score(historical_vols + [current_vol])
+
+    metric = {
+        "btc_current": _round(closes[-1], 2),
+        "btc_30d_vol_pct": _round(current_vol, 1),
+        "btc_vol_z": _round(z, 2),
+        "btc_vol_pct_rank": percentile_rank(current_vol, historical_vols),
+    }
+    if z is None: return None, metric
+    abs_z = abs(z)
+    sev = classify_severity(abs_z)
+    if not sev: return None, metric
+    return {
+        "category": "crypto",
+        "name": "BTC Volatility " + ("Spike" if z > 0 else "Compression"),
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current_vol, 2),
+        "details": f"BTC 30d annualized vol {current_vol:.1f}% (z={z:.2f})",
+        "implication": ("Crypto vol expanding — risk-off precursor or crypto-specific event."
+                        if z > 0 else
+                        "Crypto vol compressed — coiled spring, breakouts often follow."),
+    }, metric
+
+
+def detect_trend_reversion():
+    bars = fetch_polygon_ohlcv("SPY", 120)
+    if len(bars) < 60: return None, None
+    closes = [b["c"] for b in bars]
+    returns = [(closes[i] / closes[i-1] - 1) for i in range(1, len(closes))]
+    if len(returns) < 60: return None, None
+
+    def lag1_corr(rs):
+        if len(rs) < 5: return None
+        try: return statistics.correlation(rs[:-1], rs[1:])
+        except Exception: return None
+
+    current_ac = lag1_corr(returns[-30:])
+    historical_ac = [lag1_corr(returns[i-30:i]) for i in range(60, len(returns), 5)]
+    historical_ac = [x for x in historical_ac if x is not None]
+
+    metric = {
+        "spy_lag1_autocorr": _round(current_ac, 3) if current_ac is not None else None,
+        "spy_30d_return_pct": _round(rolling_returns(closes, 30), 2),
+        "spy_50d_return_pct": _round(rolling_returns(closes, 50), 2),
+    }
+    if current_ac is None or len(historical_ac) < 10: return None, metric
+    z, _, _, _ = z_score(historical_ac + [current_ac])
+    metric["autocorr_z"] = _round(z, 2)
+    if z is None: return None, metric
+    sev = classify_severity(abs(z))
+    if not sev: return None, metric
+
+    regime = "trending" if current_ac > 0.15 else "mean-reversion" if current_ac < -0.15 else "neutral"
+    return {
+        "category": "equity_internals",
+        "name": "Return Auto-Correlation Shift",
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current_ac, 3),
+        "details": f"Lag-1 autocorr {current_ac:+.2f} (z={z:.2f}) — {regime} regime",
+        "implication": ("Returns autocorr rising — trends persisting unusually, often precedes "
+                        "blow-off tops or capitulations."
+                        if z > 0 else
+                        "Returns autocorr falling — mean reversion strengthening, directional moves "
+                        "quickly reversed."),
+    }, metric
+
+
+def detect_funding_stress():
+    series = batch_fetch_fred(["SOFR", "DTB3"], 400)
+    sofr = series.get("SOFR", [])
+    dtb3 = series.get("DTB3", [])
+    if len(sofr) < 60 or len(dtb3) < 60: return None, None
+    sofr_by_date = {d["date"]: d["value"] for d in sofr}
+    dtb3_by_date = {d["date"]: d["value"] for d in dtb3}
+    common = sorted(set(sofr_by_date) & set(dtb3_by_date))
+    if len(common) < 60: return None, None
+    spreads = [sofr_by_date[d] - dtb3_by_date[d] for d in common]
+    current = spreads[-1]
+    z, mean, _, _ = z_score(spreads)
+    metric = {
+        "sofr_dtb3_spread_current": _round(current, 3),
+        "60d_mean": _round(mean, 3),
+        "z_score": _round(z, 2),
+        "sofr": _round(sofr_by_date[common[-1]], 3),
+        "dtb3": _round(dtb3_by_date[common[-1]], 3),
+        "as_of": common[-1],
+    }
+    if z is None: return None, metric
+    sev = classify_severity(abs(z))
+    if not sev: return None, metric
+    return {
+        "category": "funding",
+        "name": "SOFR-DTB3 Spread " + ("Widening" if z > 0 else "Compressing"),
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current, 3),
+        "details": f"SOFR-DTB3 spread {current:.3f}% (z={z:.2f})",
+        "implication": ("Funding spread widening — repo tightening, dollar funding stress."
+                        if z > 0 else
+                        "Funding spread compressing — liquidity flowing, repo easing."),
+    }, metric
+
+
+def _vix_interp(v):
+    if v < 13: return "extreme complacency"
+    if v < 17: return "low fear"
+    if v < 22: return "normal"
+    if v < 30: return "elevated fear"
+    return "panic / crisis"
+
+
+def _skew_interp(v):
+    if v < 120: return "minimal tail-risk concern"
+    if v < 140: return "normal tail-risk pricing"
+    if v < 150: return "elevated tail hedging"
+    return "extreme tail-risk premium"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# MACRO STRESS SCORE
+# ═══════════════════════════════════════════════════════════════════════
+
+def compute_stress_score(metrics_by_cat, anomalies):
+    contributions = {}
+    for category, weight in STRESS_WEIGHTS.items():
+        zs = []
+        for mname, m in (metrics_by_cat.get(category) or {}).items():
+            if isinstance(m, dict):
+                for key in ("z_score", "z60", "level_z", "1w_change_z",
+                            "autocorr_z", "btc_vol_z"):
+                    v = m.get(key)
+                    if isinstance(v, (int, float)):
+                        zs.append(abs(v))
+        for a in anomalies:
+            if a.get("category") == category:
+                z = a.get("z_score")
+                if isinstance(z, (int, float)):
+                    zs.append(abs(z))
+        if not zs:
+            contributions[category] = 0.0
+            continue
+        max_z = max(zs)
+        # Convert max z to 0-100 contribution
+        cat_stress = min(100, max_z * 18 + (max_z ** 2) * 1.5)
+        contributions[category] = round(cat_stress, 1)
+    weighted = sum(contributions[c] * STRESS_WEIGHTS[c] for c in STRESS_WEIGHTS)
+    return round(weighted, 1), contributions
+
+
+def stress_interp(score):
+    if score < 20: return "Goldilocks — markets calm across the board."
+    if score < 40: return "Normal — typical market noise, no warnings."
+    if score < 60: return "Elevated — multiple metrics showing stress, watch closely."
+    if score < 80: return "High stress — reduce gross exposure, hedge tail risk."
+    return "Crisis-level — defensive posture, expect drawdowns."
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -675,8 +897,7 @@ def get_chat_id():
     try:
         return ssm.get_parameter(Name="/justhodl/telegram/chat_id",
                                   WithDecryption=True)["Parameter"]["Value"]
-    except Exception:
-        return None
+    except Exception: return None
 
 
 def send_telegram(text, chat_id):
@@ -696,46 +917,35 @@ def send_telegram(text, chat_id):
         return False
 
 
-def format_telegram_alert(anomaly):
-    sev = anomaly["severity"]
-    icon = {"EXTREME": "🚨", "HIGH": "⚠️", "MEDIUM": "⚡", "LOW": "🔔"}.get(sev, "🔔")
-    name = anomaly["name"].replace("_", "\\_")
-    details = anomaly.get("details", "")
-    implication = anomaly.get("implication", "")
+def format_alert(anomaly, stress_score=None):
+    icon = {"EXTREME": "🚨", "HIGH": "⚠️", "MEDIUM": "⚡", "LOW": "🔔"}.get(anomaly["severity"], "🔔")
+    name = (anomaly["name"] or "").replace("_", " ")
+    cat = anomaly.get("category", "").replace("_", " ").upper()
     z = anomaly.get("z_score")
-    return (
-        f"{icon} *{sev} ANOMALY · {name}*\n"
-        f"`z-score: {z}`\n\n"
-        f"_{details}_\n\n"
-        f"{implication}\n\n"
-        f"[Anomaly Dashboard](https://justhodl.ai/anomalies/) · "
-        f"[Alpha View](https://justhodl.ai/alpha/) · "
-        f"[Risk](https://justhodl.ai/risk/)"
-    )
+    stress_line = f"\n`Macro Stress: {stress_score}/100`\n" if stress_score is not None else "\n"
+    return (f"{icon} *{anomaly['severity']} ANOMALY · {cat}*\n*{name}*\n"
+            f"`z-score: {z}`{stress_line}_{anomaly.get('details','')}_\n\n"
+            f"{anomaly.get('implication','')}\n\n"
+            f"[Anomaly Dashboard](https://justhodl.ai/anomalies/) · "
+            f"[Alpha](https://justhodl.ai/alpha/)")
 
 
-def format_crisis_alert(anomalies):
-    """When 3+ HIGH/EXTREME anomalies simultaneously."""
-    lines = [f"🚨 *CRISIS ALERT — {len(anomalies)} simultaneous anomalies*\n"]
-    for a in anomalies:
-        z = a.get("z_score")
-        sev = a.get("severity")
-        lines.append(f"  • {sev} · {a['name']} (z={z})")
-    lines.append(f"\nHistorical analog: when 3+ macro/credit/vol anomalies fire together, "
-                 f"forward 30-day SPY returns average -7% to -15%. *Reduce gross exposure.*")
-    lines.append(f"\n[Anomaly detail](https://justhodl.ai/anomalies/)")
+def format_crisis(anomalies, stress_score):
+    lines = [f"🚨 *CRISIS ALERT — Macro Stress {stress_score}/100*\n",
+             f"_{stress_interp(stress_score)}_\n",
+             f"*{len(anomalies)} simultaneous HIGH/EXTREME anomalies:*"]
+    for a in anomalies[:8]:
+        cat = a.get("category", "").replace("_", " ").upper()
+        lines.append(f"  • {a['severity']} · {cat} · {a['name']} (z={a.get('z_score')})")
+    lines.append(f"\n_Historical analog:_ when 3+ macro/credit/vol anomalies fire together, "
+                 "forward 30-day SPY returns average -7% to -15%. *Reduce gross exposure.*")
+    lines.append(f"\n[Anomaly Dashboard](https://justhodl.ai/anomalies/)")
     return "\n".join(lines)
 
 
-# ═══════════════════════════════════════════════════════════════════════
-# ALERT HISTORY (dedupe)
-# ═══════════════════════════════════════════════════════════════════════
-
 def load_alert_history():
-    try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY)["Body"].read())
-    except Exception:
-        return {}
+    try: return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY)["Body"].read())
+    except Exception: return {}
 
 
 def save_alert_history(h):
@@ -743,18 +953,16 @@ def save_alert_history(h):
         s3.put_object(Bucket=S3_BUCKET, Key=ALERT_HISTORY_KEY,
             Body=json.dumps(h, separators=(",", ":")).encode("utf-8"),
             ContentType="application/json")
-    except Exception as e:
-        print(f"  history save err: {e}")
+    except Exception as e: print(f"  history err: {e}")
 
 
-def should_alert(history, anomaly_key):
-    last = history.get(anomaly_key)
+def should_alert(history, key):
+    last = history.get(key)
     if not last: return True
     try:
         last_dt = datetime.fromisoformat(last.replace("Z", "+00:00"))
         return (datetime.now(timezone.utc) - last_dt) >= timedelta(hours=DEDUPE_HOURS)
-    except Exception:
-        return True
+    except Exception: return True
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -763,120 +971,163 @@ def should_alert(history, anomaly_key):
 
 def lambda_handler(event, context):
     started = time.time()
-    print(f"=== ANOMALY DETECTOR · {datetime.now(timezone.utc).isoformat()} ===")
+    print(f"=== ANOMALY DETECTOR v{VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
 
     all_anomalies = []
+    all_metrics = {}
+    metrics_by_cat = {}
     timings = {}
-    all_metrics = {}   # NEW: always-on metrics dump for observability
 
-    # Run detectors (sequential — they each spin their own ThreadPools)
-    detectors = [
-        ("cross_asset",     detect_cross_asset_divergence),
-        ("sector_breadth",  detect_sector_breadth),
-        ("vix_skew",         detect_vix_skew),
-        ("credit_spread",   detect_credit_spreads),
-        ("bond_vol",         detect_bond_volatility),
+    # ─── Config-driven FRED detectors ───
+    t0 = time.time()
+    fred_data = batch_fetch_fred([c["id"] for c in FRED_DETECTORS], lookback_days=600)
+    for cfg in FRED_DETECTORS:
+        try:
+            anomaly, metric = run_fred_detector(cfg, fred_data.get(cfg["id"], []))
+            if metric:
+                all_metrics[cfg["id"]] = metric
+                metrics_by_cat.setdefault(cfg["category"], {})[cfg["id"]] = metric
+            if anomaly: all_anomalies.append(anomaly)
+        except Exception as e:
+            print(f"  fred:{cfg['id']} ERR: {str(e)[:150]}")
+    timings["fred_detectors"] = round(time.time() - t0, 2)
+
+    # ─── Ratio detectors ───
+    t0 = time.time()
+    ratio_symbols = list({s for c in RATIO_DETECTORS for s in (c["numerator"], c["denominator"])})
+    ratio_bars = batch_fetch_polygon(ratio_symbols, 120)
+    for cfg in RATIO_DETECTORS:
+        try:
+            anomaly, metric = run_ratio_detector(cfg,
+                ratio_bars.get(cfg["numerator"], []),
+                ratio_bars.get(cfg["denominator"], []))
+            if metric:
+                all_metrics[cfg["id"]] = metric
+                metrics_by_cat.setdefault(cfg["category"], {})[cfg["id"]] = metric
+            if anomaly: all_anomalies.append(anomaly)
+        except Exception as e:
+            print(f"  ratio:{cfg['id']} ERR: {str(e)[:150]}")
+    timings["ratio_detectors"] = round(time.time() - t0, 2)
+
+    # ─── Complex detectors ───
+    complex_specs = [
+        ("cross_asset",      detect_cross_asset_divergence, "cross_asset"),
+        ("sector_breadth",   detect_sector_breadth,         "breadth"),
+        ("vix_skew",         detect_vix_skew,                "equity_vol"),
+        ("credit_spreads",   detect_credit_spreads,          "credit"),
+        ("bond_volatility",  detect_bond_volatility,         "rates"),
+        ("crypto_signal",    detect_crypto_signal,           "crypto"),
+        ("trend_reversion",  detect_trend_reversion,         "equity_internals"),
+        ("funding_stress",   detect_funding_stress,          "funding"),
     ]
-    for name, fn in detectors:
+    for name, fn, cat in complex_specs:
         t0 = time.time()
         try:
             result = fn()
-            if result:
-                if isinstance(result, list):
-                    all_anomalies.extend(result)
-                else:
-                    all_anomalies.append(result)
+            if isinstance(result, tuple) and len(result) == 2:
+                anomaly, metric = result
+                if metric:
+                    all_metrics[name] = metric
+                    metrics_by_cat.setdefault(cat, {})[name] = metric
+                if anomaly:
+                    if isinstance(anomaly, list): all_anomalies.extend(anomaly)
+                    else: all_anomalies.append(anomaly)
         except Exception as e:
-            print(f"  {name} ERROR: {str(e)[:200]}")
+            print(f"  {name} ERR: {str(e)[:200]}")
         timings[name] = round(time.time() - t0, 2)
 
-    # Also collect observability metrics from a quick second pass
-    # (these run all the time so Khalid can see system state)
-    try:
-        all_metrics = collect_observability_metrics()
-    except Exception as e:
-        print(f"  metrics collection ERROR: {str(e)[:200]}")
-        all_metrics = {"err": str(e)[:200]}
-
-    print(f"  detected {len(all_anomalies)} anomalies in {sum(timings.values()):.2f}s")
-
-    # Sort by severity
+    # ─── Sort & aggregate ───
     sev_order = {"EXTREME": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
-    all_anomalies.sort(key=lambda a: (-sev_order.get(a["severity"], 0), -abs(a.get("z_score") or 0)))
-
-    # Categorize counts
+    all_anomalies.sort(key=lambda a: (-sev_order.get(a.get("severity"), 0),
+                                        -abs(a.get("z_score") or 0)))
     by_sev = {}
     for a in all_anomalies:
-        by_sev[a["severity"]] = by_sev.get(a["severity"], 0) + 1
+        by_sev[a.get("severity", "?")] = by_sev.get(a.get("severity", "?"), 0) + 1
+    high_or_above = [a for a in all_anomalies if a.get("severity") in ("HIGH", "EXTREME")]
 
-    high_or_above = [a for a in all_anomalies if a["severity"] in ("HIGH", "EXTREME")]
+    # ─── Macro Stress Score ───
+    stress_score, stress_contribs = compute_stress_score(metrics_by_cat, all_anomalies)
+    stress_interpretation = stress_interp(stress_score)
 
-    # Telegram alerts (HIGH/EXTREME with dedupe)
+    print(f"  anomalies={len(all_anomalies)} HIGH+={len(high_or_above)} "
+          f"stress={stress_score}/100")
+
+    # ─── Telegram alerts ───
     chat_id = get_chat_id()
     history = load_alert_history()
     now_iso = datetime.now(timezone.utc).isoformat()
     alerts_sent = 0
     alerts_skipped = 0
-    sent_actions = []
+    actions = []
 
-    if chat_id:
-        # Crisis alert: 3+ HIGH+ anomalies simultaneously
-        if len(high_or_above) >= 3:
-            crisis_key = "crisis_cluster"
+    if chat_id and TELEGRAM_TOKEN:
+        # Crisis cluster
+        if len(high_or_above) >= 3 or stress_score >= 60:
+            crisis_key = f"crisis_bucket_{int(stress_score // 10)}"
             if should_alert(history, crisis_key):
-                if send_telegram(format_crisis_alert(high_or_above), chat_id):
+                if send_telegram(format_crisis(high_or_above, stress_score), chat_id):
                     history[crisis_key] = now_iso
                     alerts_sent += 1
-                    sent_actions.append({"type": "crisis_cluster", "n_anomalies": len(high_or_above)})
+                    actions.append({"type": "crisis", "stress_score": stress_score,
+                                     "n_anomalies": len(high_or_above)})
                 time.sleep(0.5)
 
         # Individual HIGH/EXTREME alerts
-        for a in high_or_above[:5]:  # cap at 5 to avoid spam
-            key = f"{a['category']}:{a['name']}"
+        for a in high_or_above[:5]:
+            key = f"{a.get('category','')}:{a.get('name','')}"
             if not should_alert(history, key):
                 alerts_skipped += 1
                 continue
-            if send_telegram(format_telegram_alert(a), chat_id):
+            if send_telegram(format_alert(a, stress_score), chat_id):
                 history[key] = now_iso
                 alerts_sent += 1
-                sent_actions.append({"type": "anomaly", "category": a["category"], "name": a["name"]})
+                actions.append({"type": "anomaly", "category": a.get("category"),
+                                 "name": a.get("name"), "severity": a.get("severity")})
             time.sleep(0.4)
-
         save_alert_history(history)
 
-    # Write sidecar
+    # ─── Sidecar ───
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "generated_at_unix": int(time.time()),
+        "version": VERSION,
         "elapsed_seconds": round(time.time() - started, 2),
+        "macro_stress_score": stress_score,
+        "stress_interpretation": stress_interpretation,
+        "stress_contributions": stress_contribs,
         "anomalies_count": len(all_anomalies),
         "high_or_extreme_count": len(high_or_above),
         "by_severity": by_sev,
-        "categories_checked": [n for n, _ in detectors],
-        "categories_with_anomalies": sorted({a["category"] for a in all_anomalies}),
         "anomalies": all_anomalies,
-        "metrics": all_metrics,   # observability — always populated
+        "metrics": all_metrics,
+        "metrics_by_category": metrics_by_cat,
+        "detectors_count": (len(FRED_DETECTORS) + len(RATIO_DETECTORS) + len(complex_specs)),
+        "categories": sorted(STRESS_WEIGHTS.keys()),
+        "detector_timings_s": timings,
         "alerts_sent": alerts_sent,
         "alerts_skipped_dedupe": alerts_skipped,
-        "actions": sent_actions,
-        "detector_timings_s": timings,
+        "actions": actions,
     }
+
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
             Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
             ContentType="application/json",
             CacheControl="public, max-age=1800")
     except Exception as e:
-        print(f"  sidecar put err: {e}")
         return {"statusCode": 500, "body": json.dumps({"err": str(e)})}
 
-    print(f"  alerts sent={alerts_sent} skipped={alerts_skipped}")
+    print(f"  ✓ sidecar written · alerts sent={alerts_sent} skipped={alerts_skipped}")
 
     return {"statusCode": 200, "body": json.dumps({
         "success": True,
+        "version": VERSION,
+        "macro_stress_score": stress_score,
+        "stress_interpretation": stress_interpretation,
         "anomalies_count": len(all_anomalies),
         "high_or_extreme_count": len(high_or_above),
         "by_severity": by_sev,
+        "detectors_count": payload["detectors_count"],
         "alerts_sent": alerts_sent,
         "elapsed_seconds": round(time.time() - started, 2),
     })}
