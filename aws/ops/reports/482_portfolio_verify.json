@@ -1,0 +1,703 @@
+{
+  "started": "2026-05-12T22:54:01.843586+00:00",
+  "test": {
+    "step1_lambdas": {
+      "justhodl-portfolio-admin": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:29",
+        "env_keys": [],
+        "memory": 256,
+        "timeout": 30
+      },
+      "justhodl-portfolio-snapshot": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:46",
+        "env_keys": [
+          "POLY_KEY"
+        ],
+        "memory": 512,
+        "timeout": 180
+      },
+      "justhodl-portfolio-risk": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:37",
+        "env_keys": [
+          "POLY_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "memory": 1024,
+        "timeout": 300
+      }
+    },
+    "step2_admin_add": [
+      {
+        "symbol": "LLY",
+        "ok": true,
+        "err": null
+      },
+      {
+        "symbol": "VRT",
+        "ok": true,
+        "err": null
+      },
+      {
+        "symbol": "MU",
+        "ok": true,
+        "err": null
+      }
+    ],
+    "step3_snapshot": {
+      "success": true,
+      "n_positions": 3,
+      "n_watchlist": 2,
+      "total_market_value": 132861.3,
+      "total_pnl_dollars": 2711.3,
+      "stops_hit_count": 0,
+      "elapsed_seconds": 0.81
+    },
+    "step4_risk": {
+      "success": true,
+      "n_positions": 3,
+      "total_market_value": 132861.3,
+      "portfolio_vol_annual_pct": 43.97,
+      "portfolio_beta_spy": 1.877,
+      "var_1d_99_pct": 6.44,
+      "var_1d_99_dollars": 8560.72,
+      "hhi": 3381.0,
+      "stops_hit_count": 0,
+      "alerts_sent": 1,
+      "elapsed_seconds": 0.28
+    },
+    "step5_admin_list": {
+      "positions": [
+        {
+          "stop_loss": 890.0,
+          "target_weight_pct": 25.0,
+          "cost_basis_per_share": 925.0,
+          "position_type": "LONG",
+          "symbol": "LLY",
+          "sector": "Healthcare",
+          "notes": "Daily brief LONG \u00b7 regime-adj 84",
+          "qty": 50.0,
+          "added_at": "2026-05-12T22:57:09.955378+00:00",
+          "pk": "POSITION",
+          "cost_basis_total": 46250.0,
+          "sk": "LLY"
+        },
+        {
+          "stop_loss": 730.0,
+          "target_weight_pct": 40.0,
+          "cost_basis_per_share": 790.0,
+          "position_type": "LONG",
+          "symbol": "MU",
+          "sector": "Technology",
+          "notes": "TIER A confluence \u00b7 AI memory demand",
+          "qty": 60.0,
+          "added_at": "2026-05-12T22:57:10.179546+00:00",
+          "pk": "POSITION",
+          "cost_basis_total": 47400.0,
+          "sk": "MU"
+        },
+        {
+          "stop_loss": 340.0,
+          "target_weight_pct": 35.0,
+          "cost_basis_per_share": 365.0,
+          "position_type": "LONG",
+          "symbol": "VRT",
+          "sector": "Industrials",
+          "notes": "TIER S confluence (6/7 firing)",
+          "qty": 100.0,
+          "added_at": "2026-05-12T22:57:10.143891+00:00",
+          "pk": "POSITION",
+          "cost_basis_total": 36500.0,
+          "sk": "VRT"
+        }
+      ],
+      "watchlist": [],
+      "stoploss": [],
+      "meta": [],
+      "counts": {
+        "positions": 3,
+        "watchlist": 0,
+        "stoploss": 0,
+        "meta": 0
+      },
+      "ok": true
+    },
+    "step6_admin_remove": [
+      {
+        "symbol": "LLY",
+        "ok": true,
+        "existed": true
+      },
+      {
+        "symbol": "VRT",
+        "ok": true,
+        "existed": true
+      },
+      {
+        "symbol": "MU",
+        "ok": true,
+        "existed": true
+      }
+    ],
+    "step7_snapshot_after": {
+      "success": true,
+      "n_positions": 0,
+      "n_watchlist": 2,
+      "total_market_value": 0.0,
+      "total_pnl_dollars": 0.0,
+      "stops_hit_count": 0,
+      "elapsed_seconds": 0.21
+    },
+    "snapshot_data": {
+      "generated_at": "2026-05-12T22:57:13.711281+00:00",
+      "generated_at_unix": 1778626633,
+      "elapsed_seconds": 0.81,
+      "portfolio_summary": {
+        "n_positions": 3,
+        "total_market_value": 132861.3,
+        "total_cost_basis": 130150.0,
+        "total_pnl_dollars": 2711.3,
+        "total_pnl_pct": 2.08,
+        "stops_hit_count": 0,
+        "stops_hit": []
+      },
+      "positions": [
+        {
+          "symbol": "LLY",
+          "current_price": 966.99,
+          "price_open": 949,
+          "price_high": 995,
+          "price_low": 943.26,
+          "volume": 3517454.0,
+          "alpha_score": 71,
+          "tier": "B",
+          "rank": 21,
+          "name": "Eli Lilly and Company",
+          "sector": "Healthcare",
+          "components": {
+            "quality": 94,
+            "growth": 96,
+            "momentum": 58,
+            "smart_money": 65,
+            "sentiment": 50,
+            "analysts": 48,
+            "insiders": 55
+          },
+          "top_signals": [
+            "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+            "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+            "\ud83c\udfaf Analyst PT upside: +27%"
+          ],
+          "risk_flags": [],
+          "confluence_tier": null,
+          "regime_adj": 12,
+          "regime_adj_score": 83,
+          "sentiment_signal": "bearish",
+          "sentiment_score": -0.35,
+          "sentiment_reason": "India regulatory scrutiny on obesity campaign and pricing pressure concerns outweigh momentum narrative.",
+          "qty": 50.0,
+          "cost_basis_per_share": 925.0,
+          "cost_basis_total": 46250.0,
+          "market_value": 48349.5,
+          "pnl_dollars": 2099.5,
+          "pnl_pct": 4.54,
+          "position_type": "LONG",
+          "stop_loss": 890.0,
+          "stop_distance_pct": 8.65,
+          "stop_hit": false,
+          "target_weight_pct": 25.0,
+          "added_at": "2026-05-12T22:57:09.955378+00:00",
+          "notes": "Daily brief LONG \u00b7 regime-adj 84",
+          "current_weight_pct": 36.39,
+          "weight_drift_pct": 11.39
+        },
+        {
+          "symbol": "MU",
+          "current_price": 795.33,
+          "price_open": 792.98,
+          "price_high": 818.67,
+          "price_low": 768,
+          "volume": 70972938.0,
+          "alpha_score": 76,
+          "tier": "B",
+          "rank": 9,
+          "name": "Micron Technology, Inc.",
+          "sector": "Technology",
+          "components": {
+            "quality": 90,
+            "growth": 98,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 45,
+            "analysts": 35,
+            "insiders": 52
+          },
+          "top_signals": [
+            "\ud83d\udc3b News -0.55: Sharp 9% plunge amid chip trade cooling and memory supercycle pause despite long",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +80.9% over 90 days"
+          ],
+          "risk_flags": [],
+          "confluence_tier": "B",
+          "confluence_count": 4,
+          "regime_adj": -2,
+          "regime_adj_score": 74,
+          "sentiment_signal": "bearish",
+          "sentiment_score": -0.55,
+          "sentiment_reason": "Sharp 9% plunge amid chip trade cooling and memory supercycle pause despite long-term AI potential.",
+          "qty": 60.0,
+          "cost_basis_per_share": 790.0,
+          "cost_basis_total": 47400.0,
+          "market_value": 47719.8,
+          "pnl_dollars": 319.8,
+          "pnl_pct": 0.67,
+          "position_type": "LONG",
+          "stop_loss": 730.0,
+          "stop_distance_pct": 8.95,
+          "stop_hit": false,
+          "target_weight_pct": 40.0,
+          "added_at": "2026-05-12T22:57:10.179546+00:00",
+          "notes": "TIER A confluence \u00b7 AI memory demand",
+          "current_weight_pct": 35.92,
+          "weight_drift_pct": -4.08
+        },
+        {
+          "symbol": "VRT",
+          "current_price": 367.92,
+          "price_open": 342.013,
+          "price_high": 371.995,
+          "price_low": 342.013,
+          "volume": 7279183.0,
+          "alpha_score": 82,
+          "tier": "A",
+          "rank": 2,
+          "name": "Vertiv Holdings Co",
+          "sector": "Industrials",
+          "components": {
+            "quality": 84,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 92
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI ",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +55.2% over 90 days"
+          ],
+          "risk_flags": [],
+          "confluence_tier": "S",
+          "confluence_count": 6,
+          "components_firing": [
+            {
+              "factor": "quality",
+              "score": 84
+            },
+            {
+              "factor": "growth",
+              "score": 95
+            },
+            {
+              "factor": "momentum",
+              "score": 100
+            },
+            {
+              "factor": "smart_money",
+              "score": 71
+            },
+            {
+              "factor": "sentiment",
+              "score": 75
+            },
+            {
+              "factor": "insiders",
+              "score": 92
+            }
+          ],
+          "regime_adj": -4,
+          "regime_adj_score": 78,
+          "sentiment_signal": "bullish",
+          "sentiment_score": 0.65,
+          "sentiment_reason": "Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI data center infrastructure buildout.",
+          "qty": 100.0,
+          "cost_basis_per_share": 365.0,
+          "cost_basis_total": 36500.0,
+          "market_value": 36792.0,
+          "pnl_dollars": 292.0,
+          "pnl_pct": 0.8,
+          "position_type": "LONG",
+          "stop_loss": 340.0,
+          "stop_distance_pct": 8.21,
+          "stop_hit": false,
+          "target_weight_pct": 35.0,
+          "added_at": "2026-05-12T22:57:10.143891+00:00",
+          "notes": "TIER S confluence (6/7 firing)",
+          "current_weight_pct": 27.69,
+          "weight_drift_pct": -7.31
+        }
+      ],
+      "watchlist": [
+        {
+          "symbol": "VRT",
+          "current_price": 367.92,
+          "price_open": 342.013,
+          "price_high": 371.995,
+          "price_low": 342.013,
+          "volume": 7279183.0,
+          "alpha_score": 82,
+          "tier": "A",
+          "rank": 2,
+          "name": "Vertiv Holdings Co",
+          "sector": "Industrials",
+          "components": {
+            "quality": 84,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 92
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI ",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +55.2% over 90 days"
+          ],
+          "risk_flags": [],
+          "confluence_tier": "S",
+          "confluence_count": 6,
+          "components_firing": [
+            {
+              "factor": "quality",
+              "score": 84
+            },
+            {
+              "factor": "growth",
+              "score": 95
+            },
+            {
+              "factor": "momentum",
+              "score": 100
+            },
+            {
+              "factor": "smart_money",
+              "score": 71
+            },
+            {
+              "factor": "sentiment",
+              "score": 75
+            },
+            {
+              "factor": "insiders",
+              "score": 92
+            }
+          ],
+          "regime_adj": -4,
+          "regime_adj_score": 78,
+          "sentiment_signal": "bullish",
+          "sentiment_score": 0.65,
+          "sentiment_reason": "Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI data center infrastructure buildout.",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-05-12T22:57:13.312505+00:00",
+          "notes": null
+        },
+        {
+          "symbol": "NVDA",
+          "current_price": 219.44,
+          "price_open": 214.035,
+          "price_high": 222.3,
+          "price_low": 213.89,
+          "volume": 160685774.0,
+          "alpha_score": 83,
+          "tier": "A",
+          "rank": 1,
+          "name": "NVIDIA Corporation",
+          "sector": "Technology",
+          "components": {
+            "quality": 98,
+            "growth": 98,
+            "momentum": 88,
+            "smart_money": 84,
+            "sentiment": 75,
+            "analysts": 59,
+            "insiders": 51
+          },
+          "top_signals": [
+            "\u2605 Smart money: Millennium Management holds at 22.7% of fund",
+            "\ud83d\udc02 News +0.65: Momentum remains strong as AI bottleneck surges 497% and semiconductor demand dr",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality"
+          ],
+          "risk_flags": [
+            "\ud83d\udcc9 Insider net sell $164M last 90d"
+          ],
+          "confluence_tier": "A",
+          "confluence_count": 5,
+          "regime_adj": -2,
+          "regime_adj_score": 81,
+          "sentiment_signal": "bullish",
+          "sentiment_score": 0.65,
+          "sentiment_reason": "Momentum remains strong as AI bottleneck surges 497% and semiconductor demand drives continued growth.",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-05-12T22:57:13.312505+00:00",
+          "notes": null
+        }
+      ],
+      "sector_concentration": [
+        {
+          "sector": "Healthcare",
+          "value": 48349.5,
+          "weight_pct": 36.39
+        },
+        {
+          "sector": "Technology",
+          "value": 47719.8,
+          "weight_pct": 35.92
+        },
+        {
+          "sector": "Industrials",
+          "value": 36792.0,
+          "weight_pct": 27.69
+        }
+      ],
+      "watchlist_sync": {
+        "added_S": [],
+        "added_A": [
+          "NVDA",
+          "VRT"
+        ],
+        "removed_S": [],
+        "removed_A": []
+      },
+      "counts": {
+        "positions": 3,
+        "watchlist": 2,
+        "auto_watch_S": 0,
+        "auto_watch_A": 2,
+        "manual_watch": 0
+      }
+    },
+    "risk_data": {
+      "generated_at": "2026-05-12T22:57:16.862587+00:00",
+      "generated_at_unix": 1778626636,
+      "elapsed_seconds": 0.28,
+      "total_market_value": 132861.3,
+      "n_positions": 3,
+      "portfolio_vol_annual_pct": 43.97,
+      "portfolio_vol_daily_pct": 2.77,
+      "portfolio_beta_spy": 1.877,
+      "var_1d_99_dollars": 8560.72,
+      "var_1d_99_pct": 6.44,
+      "var_1d_95_dollars": 6054.33,
+      "var_1d_95_pct": 4.56,
+      "sector_concentration": [
+        {
+          "sector": "Healthcare",
+          "weight_pct": 36.39
+        },
+        {
+          "sector": "Technology",
+          "weight_pct": 35.92
+        },
+        {
+          "sector": "Industrials",
+          "weight_pct": 27.69
+        }
+      ],
+      "concentration_hhi": 3381.0,
+      "concentration_label": "Highly concentrated",
+      "max_sector_concentration_pct": 36.39,
+      "position_metrics": {
+        "LLY": {
+          "annual_vol_pct": 42.26,
+          "beta_spy": 0.741,
+          "30d_max_drawdown_pct": -10.89,
+          "90d_max_drawdown_pct": -23.11,
+          "n_bars": 84
+        },
+        "MU": {
+          "annual_vol_pct": 75.53,
+          "beta_spy": 2.588,
+          "30d_max_drawdown_pct": -3.86,
+          "90d_max_drawdown_pct": -30.31,
+          "n_bars": 84
+        },
+        "VRT": {
+          "annual_vol_pct": 69.34,
+          "beta_spy": 2.449,
+          "30d_max_drawdown_pct": -5.7,
+          "90d_max_drawdown_pct": -15.19,
+          "n_bars": 84
+        }
+      },
+      "correlation_matrix": {
+        "LLY": {
+          "LLY": 1.0,
+          "MU": -0.032,
+          "VRT": 0.149
+        },
+        "MU": {
+          "LLY": -0.032,
+          "MU": 1.0,
+          "VRT": 0.51
+        },
+        "VRT": {
+          "LLY": 0.149,
+          "MU": 0.51,
+          "VRT": 1.0
+        }
+      },
+      "correlation_clusters": [],
+      "historical_scenarios": {
+        "covid_2020": {
+          "name": "COVID-2020 (Feb 19 \u2192 Mar 23, 2020)",
+          "duration_days": 33,
+          "spy_return_pct": -33.9,
+          "projected_pnl_dollars": -38798.26,
+          "projected_pnl_pct": -29.2,
+          "per_position": [
+            {
+              "symbol": "LLY",
+              "sector": "Healthcare",
+              "scenario_return": -23.5,
+              "scenario_pnl": -11362.13
+            },
+            {
+              "symbol": "MU",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -12645.75
+            },
+            {
+              "symbol": "VRT",
+              "sector": "Industrials",
+              "scenario_return": -40.2,
+              "scenario_pnl": -14790.38
+            }
+          ]
+        },
+        "inflation_2022": {
+          "name": "2022 Inflation Bear (Jan 4 \u2192 Oct 12, 2022)",
+          "duration_days": 281,
+          "spy_return_pct": -25.2,
+          "projected_pnl_dollars": -24962.81,
+          "projected_pnl_pct": -18.79,
+          "per_position": [
+            {
+              "symbol": "LLY",
+              "sector": "Healthcare",
+              "scenario_return": -5.7,
+              "scenario_pnl": -2755.92
+            },
+            {
+              "symbol": "MU",
+              "sector": "Technology",
+              "scenario_return": -34.2,
+              "scenario_pnl": -16320.17
+            },
+            {
+              "symbol": "VRT",
+              "sector": "Industrials",
+              "scenario_return": -16.0,
+              "scenario_pnl": -5886.72
+            }
+          ]
+        },
+        "q4_2018_volcrisis": {
+          "name": "Q4 2018 Vol Crisis (Oct 3 \u2192 Dec 24, 2018)",
+          "duration_days": 82,
+          "spy_return_pct": -19.5,
+          "projected_pnl_dollars": -24761.82,
+          "projected_pnl_pct": -18.64,
+          "per_position": [
+            {
+              "symbol": "LLY",
+              "sector": "Healthcare",
+              "scenario_return": -10.8,
+              "scenario_pnl": -5221.75
+            },
+            {
+              "symbol": "MU",
+              "sector": "Technology",
+              "scenario_return": -23.6,
+              "scenario_pnl": -11261.87
+            },
+            {
+              "symbol": "VRT",
+              "sector": "Industrials",
+              "scenario_return": -22.5,
+              "scenario_pnl": -8278.2
+            }
+          ]
+        },
+        "gfc_2008": {
+          "name": "GFC 2008 (Oct 9, 2007 \u2192 Mar 9, 2009)",
+          "duration_days": 517,
+          "spy_return_pct": -56.6,
+          "projected_pnl_dollars": -66647.75,
+          "projected_pnl_pct": -50.16,
+          "per_position": [
+            {
+              "symbol": "LLY",
+              "sector": "Healthcare",
+              "scenario_return": -37.9,
+              "scenario_pnl": -18324.46
+            },
+            {
+              "symbol": "MU",
+              "sector": "Technology",
+              "scenario_return": -53.0,
+              "scenario_pnl": -25291.49
+            },
+            {
+              "symbol": "VRT",
+              "sector": "Industrials",
+              "scenario_return": -62.6,
+              "scenario_pnl": -23031.79
+            }
+          ]
+        },
+        "dotcom_2000": {
+          "name": "Dot-Com Bust (Mar 24, 2000 \u2192 Oct 9, 2002)",
+          "duration_days": 929,
+          "spy_return_pct": -49.1,
+          "projected_pnl_dollars": -55692.45,
+          "projected_pnl_pct": -41.92,
+          "per_position": [
+            {
+              "symbol": "LLY",
+              "sector": "Healthcare",
+              "scenario_return": -15.8,
+              "scenario_pnl": -7639.22
+            },
+            {
+              "symbol": "MU",
+              "sector": "Technology",
+              "scenario_return": -77.8,
+              "scenario_pnl": -37126.0
+            },
+            {
+              "symbol": "VRT",
+              "sector": "Industrials",
+              "scenario_return": -29.7,
+              "scenario_pnl": -10927.22
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "alerts_summary": {
+        "var_breach": true,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": false,
+        "correlation_cluster_count": 0
+      },
+      "alerts_sent": 1
+    }
+  },
+  "finished": "2026-05-12T22:57:20.142115+00:00"
+}
