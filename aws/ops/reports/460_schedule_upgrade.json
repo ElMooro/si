@@ -1,0 +1,13 @@
+{
+  "started": "2026-05-12T10:08:08.217705+00:00",
+  "test": {
+    "before": {
+      "name": "justhodl-sentiment-daily",
+      "schedule": "cron(15 6 * * ? *)",
+      "state": "ENABLED",
+      "description": "JustHodl AI News Sentiment daily 6:15 AM UTC"
+    },
+    "update_err": "An error occurred (AccessDeniedException) when calling the PutRule operation: User: arn:aws:sts::857687956942:assumed-role/lambda-execution-role/justhodl-tmp-460 is not authorized to perform: events:PutRule on resource: arn:aws:events:us-east-1:857687956942:rule/justhodl-sentiment-daily because no i"
+  },
+  "finished": "2026-05-12T10:08:15.252988+00:00"
+}
