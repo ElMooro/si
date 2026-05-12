@@ -1,0 +1,475 @@
+{
+  "started": "2026-05-12T22:36:40.755361+00:00",
+  "test": {
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-12T22:36:29",
+      "env_keys": [
+        "FRED_KEY",
+        "POLY_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "memory": 1024,
+      "timeout": 300,
+      "code_size": 13351
+    },
+    "invoke": {
+      "success": true,
+      "version": "2.0.0",
+      "macro_stress_score": 34.0,
+      "stress_interpretation": "Normal \u2014 typical market noise, no warnings.",
+      "anomalies_count": 6,
+      "high_or_extreme_count": 1,
+      "by_severity": {
+        "HIGH": 1,
+        "MEDIUM": 1,
+        "LOW": 4
+      },
+      "detectors_count": 22,
+      "alerts_sent": 1,
+      "elapsed_seconds": 2.64
+    },
+    "sidecar": {
+      "size_kb": 12.2,
+      "version": "2.0.0",
+      "generated_at": "2026-05-12T22:39:20.747052+00:00",
+      "elapsed_seconds": 2.61,
+      "macro_stress_score": 34.0,
+      "stress_interpretation": "Normal \u2014 typical market noise, no warnings.",
+      "stress_contributions": {
+        "credit": 25.1,
+        "equity_vol": 0.0,
+        "rates": 37.0,
+        "funding": 32.4,
+        "currency": 20.6,
+        "cross_asset": 52.1,
+        "equity_internals": 52.1,
+        "commodity": 84.5,
+        "breadth": 50.6,
+        "macro": 38.9,
+        "crypto": 37.0
+      },
+      "anomalies_count": 6,
+      "high_or_extreme_count": 1,
+      "by_severity": {
+        "HIGH": 1,
+        "MEDIUM": 1,
+        "LOW": 4
+      },
+      "detectors_count": 22,
+      "categories": [
+        "breadth",
+        "commodity",
+        "credit",
+        "cross_asset",
+        "crypto",
+        "currency",
+        "equity_internals",
+        "equity_vol",
+        "funding",
+        "macro",
+        "rates"
+      ],
+      "detector_timings_s": {
+        "fred_detectors": 0.47,
+        "ratio_detectors": 0.08,
+        "cross_asset": 0.04,
+        "sector_breadth": 0.08,
+        "vix_skew": 0.4,
+        "credit_spreads": 0.19,
+        "bond_volatility": 0.19,
+        "crypto_signal": 0.06,
+        "trend_reversion": 0.04,
+        "funding_stress": 0.12
+      },
+      "alerts_sent": 1,
+      "anomalies": [
+        {
+          "category": "commodity",
+          "name": "Silver/Gold Ratio",
+          "severity": "HIGH",
+          "z_score": 3.61,
+          "current_value": 0.18144,
+          "details": "Silver/Gold Ratio ratio=0.1814 \u00b7 level z=3.61",
+          "implication": "Silver leading \u2014 risk-on within precious metals.",
+          "pct_rank_5y": 83.3
+        },
+        {
+          "category": "commodity",
+          "name": "Copper/Gold (Gundlach's recession indicator)",
+          "severity": "MEDIUM",
+          "z_score": 2.96,
+          "current_value": 0.09341,
+          "details": "Copper/Gold (Gundlach's recession indicator) ratio=0.0934 \u00b7 level z=2.96",
+          "implication": "Copper > Gold \u2014 growth signal, risk-on.",
+          "pct_rank_5y": 98.8
+        },
+        {
+          "category": "equity_internals",
+          "name": "Utilities/Tech (XLU/XLK defensive ratio)",
+          "severity": "LOW",
+          "z_score": 2.41,
+          "current_value": 0.25793,
+          "details": "Utilities/Tech (XLU/XLK defensive ratio) ratio=0.2579 \u00b7 level z=-2.41",
+          "implication": "Tech > Defensives \u2014 risk-on, growth premium expanding.",
+          "pct_rank_5y": 2.4
+        },
+        {
+          "category": "cross_asset",
+          "name": "SPY/TLT Correlation Breakdown",
+          "severity": "LOW",
+          "z_score": 2.41,
+          "details": "SPY/TLT 30d correlation = 0.48 (normal: -0.4 to +0.2)",
+          "implication": "Stocks and bonds moving TOGETHER \u2014 60/40 diversification failing. Historically associated with inflation regime shifts or systemic stress."
+        },
+        {
+          "category": "breadth",
+          "name": "Equal-Weight/Cap-Weight (RSP/SPY breadth)",
+          "severity": "LOW",
+          "z_score": 2.35,
+          "current_value": 0.2761,
+          "details": "Equal-Weight/Cap-Weight (RSP/SPY breadth) ratio=0.2761 \u00b7 level z=-2.35",
+          "implication": "Mega-caps dominating \u2014 narrow leadership, late-cycle.",
+          "pct_rank_5y": 1.2
+        },
+        {
+          "category": "equity_internals",
+          "name": "High-Beta/Low-Vol (SPHB/SPLV risk appetite)",
+          "severity": "LOW",
+          "z_score": 2.15,
+          "current_value": 1.91874,
+          "details": "High-Beta/Low-Vol (SPHB/SPLV risk appetite) ratio=1.9187 \u00b7 level z=2.15",
+          "implication": "High-beta leading \u2014 risk appetite expanding.",
+          "pct_rank_5y": 95.2
+        }
+      ],
+      "metrics_by_category_keys": {
+        "rates": [
+          "T10Y2Y",
+          "T10Y3M",
+          "bond_volatility"
+        ],
+        "funding": [
+          "SOFR",
+          "DTB3",
+          "funding_stress"
+        ],
+        "currency": [
+          "DTWEXBGS",
+          "DEXJPUS"
+        ],
+        "macro": [
+          "ICSA"
+        ],
+        "commodity": [
+          "WTISPLC",
+          "copper_gold",
+          "silver_gold"
+        ],
+        "equity_internals": [
+          "high_low_beta",
+          "utilities_tech",
+          "trend_reversion"
+        ],
+        "breadth": [
+          "equal_cap_weight"
+        ],
+        "credit": [
+          "hy_ig",
+          "credit_spreads"
+        ],
+        "cross_asset": [
+          "cross_asset"
+        ],
+        "equity_vol": [
+          "vix_skew"
+        ],
+        "crypto": [
+          "crypto_signal"
+        ]
+      },
+      "metric_count": 21,
+      "sample_metrics": {
+        "T10Y2Y": {
+          "id": "T10Y2Y",
+          "name": "2s10s Spread",
+          "category": "rates",
+          "current": 0.46,
+          "as_of": "2026-05-12",
+          "unit": "%",
+          "z60": -1.79,
+          "z180": -1.7,
+          "mean60": 0.5337,
+          "1w_change": -0.04,
+          "1w_change_z": -0.88,
+          "pct_rank_1y": 2.4,
+          "pct_rank_5y": 34.9,
+          "inverted": false,
+          "just_inverted": false
+        },
+        "T10Y3M": {
+          "id": "T10Y3M",
+          "name": "3M-10Y Spread (Fed's recession indicator)",
+          "category": "rates",
+          "current": 0.76,
+          "as_of": "2026-05-12",
+          "unit": "%",
+          "z60": 1.6,
+          "z180": 1.66,
+          "mean60": 0.5585,
+          "1w_change": 0.02,
+          "1w_change_z": 0.01,
+          "pct_rank_1y": 99.6,
+          "pct_rank_5y": 99.8,
+          "inverted": false,
+          "just_inverted": false
+        },
+        "SOFR": {
+          "id": "SOFR",
+          "name": "SOFR Overnight Rate",
+          "category": "funding",
+          "current": 3.6,
+          "as_of": "2026-05-11",
+          "unit": "%",
+          "z60": -1.59,
+          "z180": -1.01,
+          "mean60": 3.6487,
+          "1w_change": -0.03,
+          "1w_change_z": -0.1,
+          "pct_rank_1y": 0.8,
+          "pct_rank_5y": 0.5,
+          "inverted": null,
+          "just_inverted": false
+        },
+        "DTB3": {
+          "id": "DTB3",
+          "name": "3M T-Bill Rate",
+          "category": "funding",
+          "current": 3.61,
+          "as_of": "2026-05-11",
+          "unit": "%",
+          "z60": 0.08,
+          "z180": -0.61,
+          "mean60": 3.609,
+          "1w_change": 0.0,
+          "1w_change_z": 0.39,
+          "pct_rank_1y": 26.2,
+          "pct_rank_5y": 16.1,
+          "inverted": null,
+          "just_inverted": false
+        },
+        "DTWEXBGS": {
+          "id": "DTWEXBGS",
+          "name": "Broad Dollar Index",
+          "category": "currency",
+          "current": 118.0392,
+          "as_of": "2026-05-08",
+          "unit": "idx",
+          "z60": -1.05,
+          "z180": -1.55,
+          "mean60": 119.0873,
+          "1w_change": -0.3534,
+          "1w_change_z": -0.42,
+          "pct_rank_1y": 7.5,
+          "pct_rank_5y": 4.6,
+          "inverted": null,
+          "just_inverted": false
+        },
+        "DEXJPUS": {
+          "id": "DEXJPUS",
+          "name": "USD/JPY",
+          "category": "currency",
+          "current": 156.64,
+          "as_of": "2026-05-08",
+          "unit": "rate",
+          "z60": -0.71,
+          "z180": 0.49,
+          "mean60": 157.9665,
+          "1w_change": -0.12,
+          "1w_change_z": -0.22,
+          "pct_rank_1y": 72.2,
+          "pct_rank_5y": 79.0,
+          "inverted": null,
+          "just_inverted": false
+        },
+        "ICSA": {
+          "id": "ICSA",
+          "name": "Initial Jobless Claims",
+          "category": "macro",
+          "current": 200000.0,
+          "as_of": "2026-05-02",
+          "unit": "k",
+          "z60": -1.87,
+          "z180": null,
+          "mean60": 222666.6667,
+          "1w_change": -3000.0,
+          "1w_change_z": -0.09,
+          "pct_rank_1y": 1.2,
+          "pct_rank_5y": 1.2,
+          "inverted": null,
+          "just_inverted": false
+        },
+        "WTISPLC": {
+          "id": "WTISPLC",
+          "name": "WTI Crude Oil",
+          "category": "commodity",
+          "err": "insufficient data (20 obs)"
+        },
+        "copper_gold": {
+          "id": "copper_gold",
+          "name": "Copper/Gold (Gundlach's recession indicator)",
+          "category": "commodity",
+          "ratio_current": 0.09341,
+          "z60": 2.96,
+          "z180": 3.05,
+          "1w_change_pct": 7.54,
+          "1w_change_z": 1.89,
+          "pct_rank_5y": 98.8,
+          "numerator": "CPER",
+          "denominator": "GLD"
+        },
+        "silver_gold": {
+          "id": "silver_gold",
+          "name": "Silver/Gold Ratio",
+          "category": "commodity",
+          "ratio_current": 0.18144,
+          "z60": 3.61,
+          "z180": 0.96,
+          "1w_change_pct": 15.14,
+          "1w_change_z": 2.07,
+          "pct_rank_5y": 83.3,
+          "numerator": "SLV",
+          "denominator": "GLD"
+        },
+        "high_low_beta": {
+          "id": "high_low_beta",
+          "name": "High-Beta/Low-Vol (SPHB/SPLV risk appetite)",
+          "category": "equity_internals",
+          "ratio_current": 1.91874,
+          "z60": 2.15,
+          "z180": 2.52,
+          "1w_change_pct": 2.67,
+          "1w_change_z": 0.56,
+          "pct_rank_5y": 95.2,
+          "numerator": "SPHB",
+          "denominator": "SPLV"
+        },
+        "equal_cap_weight": {
+          "id": "equal_cap_weight",
+          "name": "Equal-Weight/Cap-Weight (RSP/SPY breadth)",
+          "category": "breadth",
+          "ratio_current": 0.2761,
+          "z60": -2.35,
+          "z180": -2.55,
+          "1w_change_pct": -1.68,
+          "1w_change_z": -1.2,
+          "pct_rank_5y": 1.2,
+          "numerator": "RSP",
+          "denominator": "SPY"
+        },
+        "hy_ig": {
+          "id": "hy_ig",
+          "name": "HY/IG Bond Ratio (HYG/LQD credit risk appetite)",
+          "category": "credit",
+          "ratio_current": 0.73572,
+          "z60": 1.26,
+          "z180": 1.28,
+          "1w_change_pct": 0.02,
+          "1w_change_z": -0.01,
+          "pct_rank_5y": 91.7,
+          "numerator": "HYG",
+          "denominator": "LQD"
+        },
+        "utilities_tech": {
+          "id": "utilities_tech",
+          "name": "Utilities/Tech (XLU/XLK defensive ratio)",
+          "category": "equity_internals",
+          "ratio_current": 0.25793,
+          "z60": -2.41,
+          "z180": -2.39,
+          "1w_change_pct": -7.87,
+          "1w_change_z": -1.57,
+          "pct_rank_5y": 2.4,
+          "numerator": "XLU",
+          "denominator": "XLK"
+        },
+        "cross_asset": {
+          "asset_returns_1w": {
+            "SPY": {
+              "1w": 1.99,
+              "1m": 7.59,
+              "current": 738.18
+            },
+            "TLT": {
+              "1w": -0.52,
+              "1m": -2.03,
+              "current": 84.99
+            },
+            "GLD": {
+              "1w": 3.5,
+              "1m": -0.56,
+              "current": 432.93
+            },
+            "UUP": {
+              "1w": -0.18,
+              "1m": 0.26,
+              "current": 27.45
+            }
+          },
+          "spy_tlt_corr_30d": 0.483,
+          "signs_aligned": false
+        },
+        "vix_skew": {
+          "vix": {
+            "current": 18.38,
+            "z60": -0.88,
+            "z180": -0.07,
+            "mean60": 21.69,
+            "interpretation": "normal",
+            "as_of": "2026-05-11"
+          }
+        },
+        "credit_spreads": {
+          "hy_oas": {
+            "current": 2.79,
+            "180d_mean": 2.927,
+            "level_z": -0.84,
+            "1w_change": 0.01,
+            "1w_change_z": 0.09,
+            "pct_rank_5y": 18.2,
+            "as_of": "2026-05-11"
+          },
+          "bbb_oas": {
+            "current": 0.98,
+            "180d_mean": 1.015,
+            "level_z": -0.68,
+            "1w_change": -0.03,
+            "1w_change_z": -0.86,
+            "pct_rank_5y": 13.2,
+            "as_of": "2026-05-11"
+          }
+        },
+        "bond_volatility": {
+          "current_30d_annualized_vol": 0.577,
+          "1y_mean": 0.709,
+          "z_score": -1.42,
+          "10y_yield": 4.42,
+          "as_of": "2026-05-11"
+        },
+        "crypto_signal": {
+          "btc_current": 80634.49,
+          "btc_30d_vol_pct": 32.0,
+          "btc_vol_z": -1.79,
+          "btc_vol_pct_rank": 0.0
+        },
+        "trend_reversion": {
+          "spy_lag1_autocorr": -0.091,
+          "spy_30d_return_pct": 16.81,
+          "spy_50d_return_pct": 7.55
+        }
+      }
+    }
+  },
+  "finished": "2026-05-12T22:39:21.151163+00:00"
+}
