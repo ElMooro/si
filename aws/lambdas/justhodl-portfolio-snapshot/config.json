@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-portfolio-snapshot",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Portfolio enrichment (#9). Joins positions+watchlist with alpha/confluence/regime/sentiment + latest prices. Auto-syncs watchlist with TIER S/A from alpha-score.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-portfolio-snapshot-hourly",
+    "cron": "cron(40 * * * ? *)",
+    "description": "Every hour at :40 - after confluence (:12), alerts (:20), anomaly (:33), price/data settles"
+  }
+}

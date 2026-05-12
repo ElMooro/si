@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-portfolio-admin",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 30,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Portfolio CRUD (#9). Invoked manually with action+payload to manage POSITION/WATCHLIST/STOPLOSS items in justhodl-portfolio DDB.",
+  "environment": {}
+}
