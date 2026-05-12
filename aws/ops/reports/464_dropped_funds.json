@@ -1,0 +1,100 @@
+{
+  "started": "2026-05-12T10:37:26.361359+00:00",
+  "test": {
+    "expected_count": 68,
+    "live_count": 63,
+    "missing_count": 5,
+    "missing_list": [
+      {
+        "cik": "0001047644",
+        "label": "Davidson Kempner"
+      },
+      {
+        "cik": "0001321655",
+        "label": "Discovery Capital Mgmt"
+      },
+      {
+        "cik": "0001079114",
+        "label": "Greenlight Capital"
+      },
+      {
+        "cik": "0001048445",
+        "label": "Elliott Investment Mgmt"
+      },
+      {
+        "cik": "0001835549",
+        "label": "Engine No. 1"
+      }
+    ],
+    "diagnostics": [
+      {
+        "cik": "0001047644",
+        "label": "Davidson Kempner",
+        "verdict": "FMP has perf but no extract \u2014 fund may file 13F-NT (notice) not 13F-HR",
+        "extract": null,
+        "perf": {
+          "mv": 840450000,
+          "size": 8,
+          "name": "RELATIONAL INVESTORS LLC",
+          "date": "2015-09-30"
+        }
+      },
+      {
+        "cik": "0001321655",
+        "label": "Discovery Capital Mgmt",
+        "verdict": "FMP has perf but no extract \u2014 fund may file 13F-NT (notice) not 13F-HR",
+        "extract": null,
+        "perf": {
+          "mv": 9719645,
+          "size": 4,
+          "name": "Palantir Technologies Inc.",
+          "date": "2023-09-30"
+        }
+      },
+      {
+        "cik": "0001079114",
+        "label": "Greenlight Capital",
+        "verdict": "FMP has perf but no extract \u2014 fund may file 13F-NT (notice) not 13F-HR",
+        "extract": null,
+        "perf": {
+          "mv": 2047998727,
+          "size": 40,
+          "name": "GREENLIGHT CAPITAL INC",
+          "date": "2023-12-31"
+        }
+      },
+      {
+        "cik": "0001048445",
+        "label": "Elliott Investment Mgmt",
+        "verdict": "FMP has perf but no extract \u2014 fund may file 13F-NT (notice) not 13F-HR",
+        "extract": null,
+        "perf": {
+          "mv": 11834569000,
+          "size": 56,
+          "name": "ELLIOTT MANAGEMENT CORP",
+          "date": "2019-12-31"
+        }
+      },
+      {
+        "cik": "0001835549",
+        "label": "Engine No. 1",
+        "verdict": "FMP_HAS_DATA \u2014 Lambda bug? Retry in next run.",
+        "extract": {
+          "year": 2025,
+          "quarter": 3,
+          "n_records": 6,
+          "n_with_sym": 6,
+          "first_sym": "FSLR",
+          "first_value": 10585440
+        },
+        "perf": {
+          "mv": 88588027,
+          "size": 6,
+          "name": "ENGINE NO. 1 LLC",
+          "date": "2025-09-30"
+        }
+      }
+    ]
+  },
+  "finished": "2026-05-12T10:37:34.412073+00:00"
+}
