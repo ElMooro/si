@@ -1,0 +1,200 @@
+{
+  "started": "2026-05-12T16:03:36.752827+00:00",
+  "test": {
+    "lambdas": {
+      "justhodl-alpha-confluence": {
+        "exists": true,
+        "last_modified": "2026-05-12T14:34:59",
+        "env_keys": [],
+        "memory": 512,
+        "code_size": 4766
+      },
+      "justhodl-alpha-alerts": {
+        "exists": true,
+        "last_modified": "2026-05-12T14:26:56",
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "memory": 256,
+        "code_size": 3406
+      },
+      "justhodl-alpha-daily-brief": {
+        "exists": true,
+        "last_modified": "2026-05-12T14:27:03",
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "ANTHROPIC_API_KEY"
+        ],
+        "memory": 512,
+        "code_size": 4648
+      }
+    },
+    "invokes": {
+      "confluence": {
+        "success": true,
+        "regime": "SLOWING",
+        "tier_s_count": 2,
+        "tier_a_count": 6,
+        "tier_b_count": 17,
+        "regime_picks": 40,
+        "upgrades": 0,
+        "new_tier_s": 0,
+        "elapsed_seconds": 4.53
+      }
+    },
+    "sidecars": {
+      "confluence": {
+        "size_kb": 20.7,
+        "generated_at": "2026-05-12T16:03:46.828316+00:00",
+        "regime": "SLOWING",
+        "regime_confidence": 0.7,
+        "tier_distribution": {
+          "S": 2,
+          "A": 6,
+          "B": 17,
+          "below": 478
+        },
+        "top_5_S": [
+          {
+            "sym": "VRT",
+            "alpha": 82,
+            "firing": 6,
+            "sig": "\ud83d\udc02 News +0.65: 8.2% surge with strong GF Score of 82, portfolio expansion via acquisitions, and"
+          },
+          {
+            "sym": "NOW",
+            "alpha": 66,
+            "firing": 6,
+            "sig": "\ud83d\udc02 News +0.60: AI revenue acceleration with $30B target and strong enterprise AI agent adoption"
+          }
+        ],
+        "top_5_A": [
+          {
+            "sym": "MU",
+            "alpha": 79,
+            "firing": 5
+          },
+          {
+            "sym": "AMD",
+            "alpha": 78,
+            "firing": 5
+          },
+          {
+            "sym": "AVGO",
+            "alpha": 78,
+            "firing": 5
+          },
+          {
+            "sym": "GOOGL",
+            "alpha": 78,
+            "firing": 5
+          },
+          {
+            "sym": "GOOG",
+            "alpha": 77,
+            "firing": 5
+          }
+        ],
+        "tier_b_count": 17,
+        "diffs_summary": {
+          "upgrades": 0,
+          "downgrades": 0,
+          "new_tier_s": 0,
+          "lost_tier_s": 0,
+          "new_tier_a_plus": 0
+        }
+      },
+      "regime": {
+        "size_kb": 42.0,
+        "regime": "SLOWING",
+        "logic": "Growth decelerating but not yet recessionary. Defensives (Healthcare, Staples, Utilities) outperform. Tech and cyclicals underperform.",
+        "n_picks": 40,
+        "n_avoids": 20,
+        "top_picks": [
+          {
+            "sym": "MNST",
+            "alpha": 74,
+            "sector": "Consumer Defensive",
+            "adj_score": 84
+          },
+          {
+            "sym": "LLY",
+            "alpha": 72,
+            "sector": "Healthcare",
+            "adj_score": 84
+          },
+          {
+            "sym": "GOOGL",
+            "alpha": 78,
+            "sector": "Communication Services",
+            "adj_score": 82
+          },
+          {
+            "sym": "WST",
+            "alpha": 70,
+            "sector": "Healthcare",
+            "adj_score": 82
+          },
+          {
+            "sym": "INCY",
+            "alpha": 70,
+            "sector": "Healthcare",
+            "adj_score": 82
+          },
+          {
+            "sym": "GOOG",
+            "alpha": 77,
+            "sector": "Communication Services",
+            "adj_score": 81
+          },
+          {
+            "sym": "VRT",
+            "alpha": 82,
+            "sector": "Industrials",
+            "adj_score": 78
+          },
+          {
+            "sym": "NVDA",
+            "alpha": 80,
+            "sector": "Technology",
+            "adj_score": 78
+          }
+        ],
+        "top_avoids": [
+          {
+            "sym": "LEN",
+            "alpha": 39,
+            "sector": "Consumer Cyclical",
+            "adj_score": 31
+          },
+          {
+            "sym": "IP",
+            "alpha": 39,
+            "sector": "Consumer Cyclical",
+            "adj_score": 31
+          },
+          {
+            "sym": "NVR",
+            "alpha": 42,
+            "sector": "Consumer Cyclical",
+            "adj_score": 34
+          },
+          {
+            "sym": "GPC",
+            "alpha": 43,
+            "sector": "Consumer Cyclical",
+            "adj_score": 35
+          },
+          {
+            "sym": "APTV",
+            "alpha": 44,
+            "sector": "Consumer Cyclical",
+            "adj_score": 36
+          }
+        ]
+      }
+    }
+  },
+  "finished": "2026-05-12T16:03:47.353566+00:00"
+}
