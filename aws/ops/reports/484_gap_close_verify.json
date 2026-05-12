@@ -1,0 +1,214 @@
+{
+  "started": "2026-05-12T23:15:39.250339+00:00",
+  "test": {
+    "silent_diag": {
+      "justhodl-risk-sizer": {
+        "env_keys": [],
+        "memory": 256,
+        "timeout": 60,
+        "modified": "2026-05-04T20:14:56",
+        "status_code": 200,
+        "fn_error": null,
+        "response": {
+          "statusCode": 200,
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": "{\"regime\": \"NEUTRAL\", \"max_gross_exposure_pct\": 75.0, \"current_drawdown_pct\": -0.03, \"drawdown_multiplier\": 1.0, \"n_ideas\": 30, \"n_clusters\": 11, \"total_size_pct\": 75.01, \"n_warnings\": 0, \"top_5_sized\": [{\"symbol\": \"DECK\", \"size_pct\": 4.24}, {\"symbol\": \"CF\", \"size_pct\": 4.21}, {\"symbol\": \"TRV\", \"size_pct\": 4.07}, {\"symbol\": \"VICI\", \"size_pct\": 4.05}, {\"symbol\": \"NEM\", \"size_pct\": 4.04}]}"
+        },
+        "log_tail": "START RequestId: eb36e920-7175-453b-b1bd-9f68d06b7064 Version: $LATEST\n=== RISK SIZER v1 ===\n[S3] investor-debate/_index.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\nasymmetric setups: 30\nwatchlist debate tickers: 0\nregime: NEUTRAL\npnl snapshots: 18\ncurrent_dd=-0.03%, multiplier=1.00\nregime=NEUTRAL, max_gross_exposure=75%\ntotal candidate ideas: 30\nideas with return data for clustering: 2/30\nclusters: 11\nsector_technology         size=8 avg_corr=0\nsector_healthcare         size=7 avg_corr=0\nsector_industrials        size=6 avg_corr=0\nsector_energy             size=2 avg_corr=0\ncorr_NEM                  size=1 avg_corr=0\ncorr_MU                   size=1 avg_corr=0\nsector_consumer_cyclical  size=1 avg_corr=0\nsector_basic_materials    size=1 avg_corr=0\ntotal recommended size: 75.01%\nwarnings: 0\nEND RequestId: eb36e920-7175-453b-b1bd-9f68d06b7064\nREPORT RequestId: eb36e920-7175-453b-b1bd-9f68d06b7064\tDuration: 769.33 ms\tBilled Duration: 770 ms\tMemory Size: 256 MB\tMax Memory Used: 114 MB\t\n"
+      },
+      "justhodl-earnings-sentiment": {
+        "env_keys": [
+          "FMP_KEY",
+          "ANTHROPIC_MODEL",
+          "ANTHROPIC_API_KEY"
+        ],
+        "memory": 1024,
+        "timeout": 900,
+        "modified": "2026-05-11T18:59:44",
+        "status_code": 200,
+        "fn_error": null,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"candidates\": 0, \"new_scored\": 0, \"total_records\": 150, \"elapsed_seconds\": 1.6}"
+        },
+        "log_tail": "START RequestId: 2d1b8515-3b8c-42c1-8260-8175d85dfad3 Version: $LATEST\n[init] state: 150 processed \u00b7 existing: 150\n[fmp] earnings-calendar: HTTP 429\n[find] 0 new transcripts to score\n[scored] 0 successful \u00b7 150 total state\n[s3] wrote 150 records to screener/earnings-sentiment.json\nEND RequestId: 2d1b8515-3b8c-42c1-8260-8175d85dfad3\nREPORT RequestId: 2d1b8515-3b8c-42c1-8260-8175d85dfad3\tDuration: 1681.99 ms\tBilled Duration: 1682 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\t\n"
+      },
+      "justhodl-event-study": {
+        "env_keys": [
+          "FRED_KEY"
+        ],
+        "memory": 1024,
+        "timeout": 600,
+        "modified": "2026-05-06T18:07:45",
+        "status_code": 200,
+        "fn_error": null,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"n_event_classes\": 8, \"active_themes\": [], \"expected_21d_return_from_active_pct\": null, \"duration_s\": 0.28}"
+        },
+        "log_tail": "START RequestId: 57a7fc73-7346-4da9-878c-e463cb1cf8e1 Version: $LATEST\n[event-study] start\n[event-study] vix: 9183 obs\n[event-study] fed_funds: 436 obs\n[event-study] hy_oas: 784 obs\n[event-study] two_tens: 9096 obs\n[event-study] fed_target_upper: 6357 obs\n[event-study] spx: 2513 obs\n[fred] WILL5000PR failed: HTTP Error 400: Bad Request\n[event-study] spx_alt: 0 obs\n[event-study] active_themes=[] expected_21d=None\n[event-study] wrote s3://justhodl-dashboard-live/data/event-study.json \u2014 11,297b in 0.28s\nEND RequestId: 57a7fc73-7346-4da9-878c-e463cb1cf8e1\nREPORT RequestId: 57a7fc73-7346-4da9-878c-e463cb1cf8e1\tDuration: 311.28 ms\tBilled Duration: 312 ms\tMemory Size: 1024 MB\tMax Memory Used: 118 MB\t\n"
+      },
+      "justhodl-sector-earnings-diffusion": {
+        "env_keys": [
+          "S3_BUCKET",
+          "TIMEOUT_BUDGET_S",
+          "FMP_KEY",
+          "N_WORKERS",
+          "MAX_TICKERS"
+        ],
+        "memory": 1024,
+        "timeout": 300,
+        "modified": "2026-05-06T08:56:32",
+        "status_code": 200,
+        "fn_error": null,
+        "response": {
+          "statusCode": 200,
+          "body": "{\"n_classified\": 347, \"n_sectors\": 11, \"n_alerts\": 11, \"duration_s\": 1.4}"
+        },
+        "log_tail": "START RequestId: 273503a6-bbe8-45dd-a2d2-3882f9706c32 Version: $LATEST\n[sec-diff] starting v1.0\n[sec-diff] universe: 600 stocks\n[sec-diff] eps-velocity prior data: 347 tickers\n[sec-diff] classified: 347, skipped: 253\n[sec-diff] sectors: 11, industries: 44\n[sec-diff] wrote 59905b\n[sec-diff] top sectors: [('Technology', 100.0), ('Industrials', 100.0), ('Healthcare', 100.0), ('Communication Services', 100.0), ('Financial Services', 100.0)]\nEND RequestId: 273503a6-bbe8-45dd-a2d2-3882f9706c32\nREPORT RequestId: 273503a6-bbe8-45dd-a2d2-3882f9706c32\tDuration: 1461.07 ms\tBilled Duration: 1462 ms\tMemory Size: 1024 MB\tMax Memory Used: 105 MB\t\n"
+      }
+    },
+    "new_lambdas": {
+      "justhodl-portfolio-sizer": {
+        "deployed": true,
+        "modified": "2026-05-12T23:15:34",
+        "memory": 512,
+        "timeout": 180,
+        "env_keys": [
+          "POLY_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "invoke_status": 200,
+        "fn_error": null,
+        "invoke_response": {
+          "statusCode": 200,
+          "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_positions\": 0, \"n_entry_candidates\": 0, \"actionable_count\": 0, \"regime\": \"NORMAL\", \"macro_stress_score\": 34.0, \"alerts_sent\": 0, \"elapsed_seconds\": 0.38}"
+        },
+        "log_tail": "START RequestId: 3c496cbf-e8c5-4c12-ac6a-a8bce65aff82 Version: $LATEST\n=== PORTFOLIO SIZER v1.0.0 \u00b7 2026-05-12T23:22:56.420389+00:00 ===\nNAV $100,000  MSS 34.0  regime=NORMAL  regime_mult=0.85  dd_mult=1.0\n\u2713 sizing.json written\nEND RequestId: 3c496cbf-e8c5-4c12-ac6a-a8bce65aff82\nREPORT RequestId: 3c496cbf-e8c5-4c12-ac6a-a8bce65aff82\tDuration: 384.62 ms\tBilled Duration: 958 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 573.18 ms\t\n"
+      },
+      "justhodl-portfolio-catalysts": {
+        "deployed": true,
+        "modified": "2026-05-12T23:15:24",
+        "memory": 512,
+        "timeout": 120,
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "invoke_status": 200,
+        "fn_error": null,
+        "invoke_response": {
+          "statusCode": 200,
+          "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_position_catalysts\": 1, \"n_macro_catalysts\": 11, \"alerts_sent\": 0, \"next_position_event_days\": 8, \"elapsed_seconds\": 0.24}"
+        },
+        "log_tail": "START RequestId: 0ed29741-fcd0-4083-9d7f-d9324d2cae8a Version: $LATEST\n=== PORTFOLIO CATALYSTS v1.0.0 \u00b7 2026-05-12T23:22:56.829418+00:00 ===\ncal events: 11\nupcoming earnings: 20\nDDB: 0 positions + 2 watchlist\n\u2713 catalysts.json written \u00b7 1 symbols + 11 macro events\nEND RequestId: 0ed29741-fcd0-4083-9d7f-d9324d2cae8a\nREPORT RequestId: 0ed29741-fcd0-4083-9d7f-d9324d2cae8a\tDuration: 243.48 ms\tBilled Duration: 244 ms\tMemory Size: 512 MB\tMax Memory Used: 105 MB\t\n"
+      }
+    },
+    "sidecars": {
+      "portfolio/sizing.json": {
+        "exists": true,
+        "size_kb": 1.0,
+        "generated_at": "2026-05-12T23:22:56.773396+00:00",
+        "version": "1.0.0",
+        "summary": {
+          "nav": 100000.0,
+          "current_invested_pct": 0,
+          "kelly_invested_pct": 0,
+          "kelly_cash_pct": 100,
+          "kelly_cash_dollars": 100000.0,
+          "actionable_count": 0,
+          "entry_candidates_count": 0,
+          "regime": "NORMAL",
+          "macro_stress_score": 34.0,
+          "regime_multiplier": 0.85,
+          "drawdown_multiplier": 1.0
+        },
+        "n_positions": 0,
+        "n_entry_candidates": 0,
+        "n_position_catalysts": null,
+        "n_macro_catalysts": null,
+        "alerts_sent": 0,
+        "sample_position": null,
+        "sample_entry": null,
+        "sample_catalyst": null,
+        "sample_macro": null
+      },
+      "portfolio/catalysts.json": {
+        "exists": true,
+        "size_kb": 3.0,
+        "generated_at": "2026-05-12T23:22:57.040882+00:00",
+        "version": "1.0.0",
+        "summary": {
+          "n_positions_tracked": 0,
+          "n_watchlist_tracked": 2,
+          "n_position_catalysts": 0,
+          "n_watch_catalysts": 1,
+          "n_macro_events": 11,
+          "earnings_this_week": 0,
+          "tomorrow_reporters": [],
+          "today_reporters": [],
+          "this_week_reporters": [],
+          "next_position_event_days": 8,
+          "next_position_event_symbol": "NVDA",
+          "next_macro_event_days": 1,
+          "next_macro_event": "17-Week Bill auction"
+        },
+        "n_positions": null,
+        "n_entry_candidates": null,
+        "n_position_catalysts": 1,
+        "n_macro_catalysts": 11,
+        "alerts_sent": 0,
+        "sample_position": null,
+        "sample_entry": null,
+        "sample_catalyst": {
+          "symbol": "NVDA",
+          "is_position": false,
+          "position_value": null,
+          "events": [
+            {
+              "type": "EARNINGS",
+              "date": "2026-05-20",
+              "days_to": 8,
+              "time": "AMC",
+              "eps_estimate": null,
+              "revenue_estimate": null,
+              "alert_tier": null
+            }
+          ],
+          "next_event_days": 8
+        },
+        "sample_macro": {
+          "date": "2026-05-13",
+          "type": "AUCTION",
+          "title": "17-Week Bill auction",
+          "subtitle": "Size TBD",
+          "impact": "LOW",
+          "days_to": 1,
+          "alert_tier": "T-1",
+          "url": "https://www.treasurydirect.gov/auctions/upcoming/"
+        }
+      }
+    },
+    "schedules": {
+      "justhodl-portfolio-sizer-hourly": {
+        "exists": true,
+        "schedule": "cron(45 * * * ? *)",
+        "state": "ENABLED"
+      },
+      "justhodl-portfolio-catalysts-3x-daily": {
+        "exists": true,
+        "schedule": "cron(0 11,17,23 * * ? *)",
+        "state": "ENABLED"
+      },
+      "justhodl-catalyst-calendar-daily": {
+        "exists": true,
+        "schedule": "cron(0 10 * * ? *)",
+        "state": "ENABLED"
+      }
+    }
+  },
+  "finished": "2026-05-12T23:22:57.618201+00:00"
+}
