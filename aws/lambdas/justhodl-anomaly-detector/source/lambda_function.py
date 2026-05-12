@@ -178,6 +178,122 @@ def classify_severity(abs_z):
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# OBSERVABILITY METRICS — always-on tracked values regardless of threshold
+# ═══════════════════════════════════════════════════════════════════════
+
+def collect_observability_metrics():
+    """Return a dict of current tracked metrics with their z-scores.
+    Even when no anomalies fire, this shows the system is doing real work
+    AND tells Khalid the actual state of markets right now.
+    """
+    metrics = {}
+
+    # VIX
+    vix = fetch_fred_series("VIXCLS", lookback_days=400)
+    if len(vix) >= 60:
+        values = [v["value"] for v in vix]
+        z, mean, std, _ = z_score(values)
+        metrics["vix"] = {
+            "current": round(values[-1], 2),
+            "60d_mean": round(mean, 2) if mean else None,
+            "60d_std": round(std, 2) if std else None,
+            "z_score": round(z, 2) if z is not None else None,
+            "as_of": vix[-1]["date"],
+            "interpretation": _vix_interp(values[-1], z),
+        }
+
+    # SKEW
+    skew = fetch_fred_series("SKEW", lookback_days=400)
+    if len(skew) >= 60:
+        values = [v["value"] for v in skew]
+        z, mean, std, _ = z_score(values)
+        metrics["skew"] = {
+            "current": round(values[-1], 2),
+            "60d_mean": round(mean, 2) if mean else None,
+            "z_score": round(z, 2) if z is not None else None,
+            "as_of": skew[-1]["date"],
+            "interpretation": _skew_interp(values[-1], z),
+        }
+
+    # HY OAS
+    hy = fetch_fred_series("BAMLH0A0HYM2", lookback_days=500)
+    if len(hy) >= 60:
+        values = [v["value"] for v in hy]
+        level_z, level_mean, level_std, _ = z_score(values, lookback=180)
+        if len(values) >= 6:
+            week_change = values[-1] - values[-6]
+            changes = [values[i] - values[i-5] for i in range(5, len(values) - 1)]
+            change_z, _, _, _ = z_score(changes + [week_change], lookback=180)
+        else:
+            week_change = None
+            change_z = None
+        metrics["hy_oas"] = {
+            "current": round(values[-1], 3),
+            "180d_mean": round(level_mean, 3) if level_mean else None,
+            "level_z": round(level_z, 2) if level_z is not None else None,
+            "1w_change": round(week_change, 3) if week_change is not None else None,
+            "1w_change_z": round(change_z, 2) if change_z is not None else None,
+            "as_of": hy[-1]["date"],
+        }
+
+    # BBB OAS
+    bbb = fetch_fred_series("BAMLC0A4CBBB", lookback_days=500)
+    if len(bbb) >= 60:
+        values = [v["value"] for v in bbb]
+        level_z, level_mean, _, _ = z_score(values, lookback=180)
+        if len(values) >= 6:
+            week_change = values[-1] - values[-6]
+            changes = [values[i] - values[i-5] for i in range(5, len(values) - 1)]
+            change_z, _, _, _ = z_score(changes + [week_change], lookback=180)
+        else:
+            week_change = None
+            change_z = None
+        metrics["bbb_oas"] = {
+            "current": round(values[-1], 3),
+            "180d_mean": round(level_mean, 3) if level_mean else None,
+            "level_z": round(level_z, 2) if level_z is not None else None,
+            "1w_change_z": round(change_z, 2) if change_z is not None else None,
+            "as_of": bbb[-1]["date"],
+        }
+
+    # 10Y vol
+    dgs10 = fetch_fred_series("DGS10", lookback_days=400)
+    if len(dgs10) >= 60:
+        values = [v["value"] for v in dgs10]
+        changes = [values[i] - values[i-1] for i in range(1, len(values))]
+        if len(changes) >= 60:
+            current_vol = statistics.stdev(changes[-30:]) * (252 ** 0.5)
+            historical = [statistics.stdev(changes[i-30:i]) * (252 ** 0.5)
+                          for i in range(30, len(changes) - 1)]
+            if len(historical) >= 30:
+                z, mean, std, _ = z_score(historical + [current_vol])
+                metrics["bond_vol"] = {
+                    "current_30d_annualized_vol": round(current_vol, 3),
+                    "1y_mean": round(mean, 3) if mean else None,
+                    "z_score": round(z, 2) if z is not None else None,
+                    "as_of": dgs10[-1]["date"],
+                    "10y_yield": round(values[-1], 3),
+                }
+
+    return metrics
+
+
+def _vix_interp(value, z):
+    if value < 13: return "extreme complacency"
+    if value < 17: return "low fear"
+    if value < 22: return "normal"
+    if value < 30: return "elevated fear"
+    return "panic / crisis"
+
+
+def _skew_interp(value, z):
+    if value < 120: return "minimal tail-risk concern"
+    if value < 140: return "normal tail-risk pricing"
+    if value < 150: return "elevated tail hedging"
+    return "extreme tail-risk premium"
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # DETECTORS
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -651,6 +767,7 @@ def lambda_handler(event, context):
 
     all_anomalies = []
     timings = {}
+    all_metrics = {}   # NEW: always-on metrics dump for observability
 
     # Run detectors (sequential — they each spin their own ThreadPools)
     detectors = [
@@ -672,6 +789,14 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"  {name} ERROR: {str(e)[:200]}")
         timings[name] = round(time.time() - t0, 2)
+
+    # Also collect observability metrics from a quick second pass
+    # (these run all the time so Khalid can see system state)
+    try:
+        all_metrics = collect_observability_metrics()
+    except Exception as e:
+        print(f"  metrics collection ERROR: {str(e)[:200]}")
+        all_metrics = {"err": str(e)[:200]}
 
     print(f"  detected {len(all_anomalies)} anomalies in {sum(timings.values()):.2f}s")
 
@@ -730,6 +855,7 @@ def lambda_handler(event, context):
         "categories_checked": [n for n, _ in detectors],
         "categories_with_anomalies": sorted({a["category"] for a in all_anomalies}),
         "anomalies": all_anomalies,
+        "metrics": all_metrics,   # observability — always populated
         "alerts_sent": alerts_sent,
         "alerts_skipped_dedupe": alerts_skipped,
         "actions": sent_actions,
