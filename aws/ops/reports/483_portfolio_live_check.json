@@ -1,0 +1,92 @@
+{
+  "started": "2026-05-12T23:01:56.710152+00:00",
+  "test": {
+    "justhodl-portfolio-admin": {
+      "last_modified": "2026-05-12T22:51:29",
+      "memory": 256,
+      "timeout": 30,
+      "env_keys": [],
+      "code_size_kb": 2.8,
+      "scheduled": false
+    },
+    "justhodl-portfolio-snapshot": {
+      "last_modified": "2026-05-12T22:51:46",
+      "memory": 512,
+      "timeout": 180,
+      "env_keys": [
+        "POLY_KEY"
+      ],
+      "code_size_kb": 5.2,
+      "scheduled": true,
+      "cron": "cron(40 * * * ? *)",
+      "state": "ENABLED"
+    },
+    "justhodl-portfolio-risk": {
+      "last_modified": "2026-05-12T22:51:37",
+      "memory": 1024,
+      "timeout": 300,
+      "env_keys": [
+        "POLY_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "code_size_kb": 6.9,
+      "scheduled": true,
+      "cron": "cron(43 * * * ? *)",
+      "state": "ENABLED"
+    },
+    "ddb_state": {
+      "POSITION": {
+        "count": 0,
+        "symbols": []
+      },
+      "WATCHLIST": {
+        "count": 2,
+        "symbols": [
+          "NVDA",
+          "VRT"
+        ]
+      },
+      "STOPLOSS": {
+        "count": 0,
+        "symbols": []
+      },
+      "META": {
+        "count": 1,
+        "symbols": [
+          "config"
+        ]
+      }
+    },
+    "portfolio/snapshot.json": {
+      "size_kb": 2.6,
+      "last_modified": "2026-05-12 22:57:53",
+      "generated_at": "2026-05-12T22:57:52.913704+00:00",
+      "status": null,
+      "n_positions": 0,
+      "n_watchlist": 2,
+      "total_value": 0.0,
+      "var_1d_99_pct": null,
+      "portfolio_vol": null,
+      "portfolio_beta": null
+    },
+    "portfolio/risk.json": {
+      "size_kb": 0.2,
+      "last_modified": "2026-05-12 22:57:54",
+      "generated_at": "2026-05-12T22:57:53.081222+00:00",
+      "status": "no_positions",
+      "n_positions": null,
+      "n_watchlist": null,
+      "total_value": null,
+      "var_1d_99_pct": null,
+      "portfolio_vol": null,
+      "portfolio_beta": null
+    },
+    "page": {
+      "http_status": "200",
+      "has_title": true,
+      "size_partial": 1993
+    }
+  },
+  "finished": "2026-05-12T23:02:04.788403+00:00"
+}
