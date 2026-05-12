@@ -1,0 +1,273 @@
+{
+  "started": "2026-05-12T23:05:49.897237+00:00",
+  "test": {
+    "lambdas": {
+      "justhodl-risk-sizer": {
+        "deployed": true,
+        "last_modified": "2026-05-04T20:14:56",
+        "size": 6802,
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": []
+      },
+      "justhodl-position-sizer-v2": {
+        "deployed": true,
+        "last_modified": "2026-05-05T12:17:12",
+        "size": 4617,
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": []
+      },
+      "justhodl-catalyst-calendar": {
+        "deployed": true,
+        "last_modified": "2026-05-07T15:17:07",
+        "size": 4830,
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": [
+          "S3_BUCKET",
+          "WINDOW_DAYS",
+          "S3_KEY_OUT"
+        ]
+      },
+      "justhodl-earnings-tracker": {
+        "deployed": true,
+        "last_modified": "2026-05-03T23:58:02",
+        "size": 5348,
+        "memory": 512,
+        "timeout": 600,
+        "env_keys": [
+          "S3_BUCKET",
+          "FMP_KEY",
+          "POLYGON_KEY",
+          "S3_KEY",
+          "MAX_PARALLEL"
+        ]
+      },
+      "justhodl-earnings-pead": {
+        "deployed": true,
+        "last_modified": "2026-05-06T13:57:55",
+        "size": 4485,
+        "memory": 1024,
+        "timeout": 600,
+        "env_keys": [
+          "S3_BUCKET",
+          "TIMEOUT_BUDGET_S",
+          "FMP_KEY",
+          "N_WORKERS",
+          "MAX_TICKERS"
+        ]
+      },
+      "justhodl-earnings-sentiment": {
+        "deployed": true,
+        "last_modified": "2026-05-11T18:59:44",
+        "size": 5396,
+        "memory": 1024,
+        "timeout": 900,
+        "env_keys": [
+          "FMP_KEY",
+          "ANTHROPIC_MODEL",
+          "ANTHROPIC_API_KEY"
+        ]
+      },
+      "justhodl-earnings-whisper": {
+        "deployed": true,
+        "last_modified": "2026-05-07T10:58:18",
+        "size": 5257,
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": [
+          "S3_BUCKET",
+          "S3_KEY_OUT"
+        ]
+      },
+      "justhodl-event-study": {
+        "deployed": true,
+        "last_modified": "2026-05-06T18:07:45",
+        "size": 4863,
+        "memory": 1024,
+        "timeout": 600,
+        "env_keys": [
+          "FRED_KEY"
+        ]
+      },
+      "justhodl-sector-earnings-diffusion": {
+        "deployed": true,
+        "last_modified": "2026-05-06T08:56:32",
+        "size": 15792,
+        "memory": 1024,
+        "timeout": 300,
+        "env_keys": [
+          "S3_BUCKET",
+          "TIMEOUT_BUDGET_S",
+          "FMP_KEY",
+          "N_WORKERS",
+          "MAX_TICKERS"
+        ]
+      }
+    },
+    "sidecars": {
+      "portfolio/sizer-v2.json": {
+        "exists": true,
+        "size_kb": 11.6,
+        "last_modified": "2026-05-12T14:00:09"
+      },
+      "portfolio/risk-sizer.json": {
+        "exists": false
+      },
+      "portfolio/risk-sized.json": {
+        "exists": false
+      },
+      "data/catalyst-calendar.json": {
+        "exists": true,
+        "size_kb": 4.3,
+        "last_modified": "2026-05-12T22:17:45"
+      },
+      "data/calendar.json": {
+        "exists": false
+      },
+      "data/earnings-tracker.json": {
+        "exists": true,
+        "size_kb": 35.0,
+        "last_modified": "2026-05-12T17:46:49"
+      },
+      "data/earnings-sentiment.json": {
+        "exists": false
+      },
+      "data/earnings-pead.json": {
+        "exists": true,
+        "size_kb": 514.2,
+        "last_modified": "2026-05-12T08:00:27"
+      },
+      "data/earnings-whisper.json": {
+        "exists": true,
+        "size_kb": 27.0,
+        "last_modified": "2026-05-12T08:15:06"
+      },
+      "signals/event-study.json": {
+        "exists": false
+      },
+      "data/earnings-diffusion.json": {
+        "exists": false
+      }
+    },
+    "schedules": {
+      "justhodl-risk-sizer-daily": {
+        "exists": true,
+        "schedule": "cron(45 13 ? * MON-FRI *)",
+        "state": "ENABLED"
+      },
+      "justhodl-position-sizer-v2-daily": {
+        "exists": true,
+        "schedule": "cron(0 14 * * ? *)",
+        "state": "ENABLED"
+      },
+      "justhodl-catalyst-calendar-daily": {
+        "exists": false
+      },
+      "justhodl-earnings-tracker-hourly": {
+        "exists": false
+      }
+    },
+    "samples": {
+      "data/catalyst-calendar.json": {
+        "top_keys": [
+          "schema_version",
+          "method",
+          "as_of",
+          "window_days",
+          "n_events",
+          "events",
+          "by_type",
+          "by_source",
+          "high_impact_next_7d",
+          "high_impact_next_30d",
+          "duration_s"
+        ],
+        "generated_at": "2026-05-12T22:17:44+00:00",
+        "n_events": 11,
+        "by_type": {
+          "AUCTION": 7,
+          "FOMC": 1,
+          "REBALANCE": 1,
+          "WITCHING": 1,
+          "BANK_EARNINGS": 1
+        },
+        "sample_events": [
+          {
+            "date": "2026-05-12",
+            "time": null,
+            "type": "AUCTION",
+            "title": "6-Week Bill auction",
+            "subtitle": "Size TBD",
+            "impact": "LOW",
+            "source": "TreasuryDirect",
+            "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+            "size_billions": 0.0,
+            "cusip": "912797TE7",
+            "days_to": 0
+          },
+          {
+            "date": "2026-05-12",
+            "time": null,
+            "type": "AUCTION",
+            "title": "52-Week Bill auction",
+            "subtitle": "Size TBD",
+            "impact": "LOW",
+            "source": "TreasuryDirect",
+            "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+            "size_billions": 0.0,
+            "cusip": "912797UX3",
+            "days_to": 0
+          },
+          {
+            "date": "2026-05-12",
+            "time": null,
+            "type": "AUCTION",
+            "title": "10-Year Note auction",
+            "subtitle": "Size TBD",
+            "impact": "MEDIUM",
+            "source": "TreasuryDirect",
+            "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+            "size_billions": 0.0,
+            "cusip": "91282CQQ7",
+            "days_to": 0
+          }
+        ]
+      },
+      "data/earnings-tracker.json": {
+        "top_keys": [
+          "version",
+          "generated_at",
+          "watchlist_size",
+          "upcoming_14d",
+          "n_upcoming",
+          "recent_results_30d",
+          "n_recent",
+          "pead_signals",
+          "n_pead",
+          "aggregate_stats",
+          "duration_s",
+          "data_sources"
+        ],
+        "generated_at": "2026-05-12T17:46:48.367894+00:00"
+      },
+      "portfolio/sizer-v2.json": {
+        "top_keys": [
+          "v",
+          "generated_at",
+          "method",
+          "kelly_fraction",
+          "max_single_position_pct",
+          "decisive_call",
+          "risk_multiplier",
+          "summary",
+          "positions",
+          "setups"
+        ],
+        "generated_at": "2026-05-12T14:00:07.926969+00:00"
+      }
+    }
+  },
+  "finished": "2026-05-12T23:05:56.447771+00:00"
+}
