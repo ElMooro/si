@@ -1,0 +1,107 @@
+{
+  "started": "2026-05-12T16:14:46.885756+00:00",
+  "test": {
+    "calibration": {
+      "size_kb": 5.4,
+      "last_modified": "2026-05-10T12:00:44",
+      "top_keys": [
+        "v",
+        "as_of",
+        "iso_week",
+        "iso_year",
+        "iso_week_num",
+        "week_start",
+        "week_end",
+        "weights",
+        "accuracy",
+        "accuracy_meta",
+        "outcome_counts_60d",
+        "summary",
+        "duration_s"
+      ],
+      "type": "dict",
+      "sample": {
+        "v": "1.0",
+        "as_of": "2026-05-10T12:00:42.994760+00:00",
+        "iso_week": "2026-W19",
+        "iso_year": 2026,
+        "iso_week_num": 19,
+        "week_start": "2026-05-04",
+        "week_end": "2026-05-10",
+        "weights": "{'edge_composite': 0.4292, 'screener_top_pick': 1.3219, 'crypto_fear_greed': 0.8093, 'plumbing_stress': 0.7533, 'crypto_risk_score': 0.3374, 'crisis_sofr_iorb': 0.3481, 'crisis_rate_diff_eur_3m': 0.30",
+        "accuracy": "{'edge_composite': 0.3357, 'screener_top_pick': 0.8184, 'crypto_fear_greed': 0.5619, 'plumbing_stress': 0.5376, 'crypto_risk_score': 0.1703, 'crisis_sofr_iorb': 0.2031, 'crisis_rate_diff_eur_3m': 0.0,",
+        "accuracy_meta": "{'edge_composite': {'accuracy': 0.3357, 'n': 143, 'avg_return': 1.4543}, 'screener_top_pick': {'accuracy': 0.8184, 'n': 870, 'avg_return': 12.6078}, 'crypto_fear_greed': {'accuracy': 0.5619, 'n': 226,",
+        "outcome_counts_60d": "{'edge_composite': 143, 'screener_top_pick': 870, 'crypto_fear_greed': 226, 'plumbing_stress': 201, 'khalid_index': 136, 'crypto_risk_score': 229, 'crisis_sofr_iorb': 64, 'crisis_rate_diff_eur_3m': 24",
+        "summary": "{'n_weights_total': 43, 'n_accuracy_keys': 31, 'n_signals_calibrated_n30': 22, 'highest_weight': {'signal': 'carry_risk', 'weight': 1.453}, 'lowest_weight': {'signal': 'crisis_broad_dollar_vs_eem', 'w",
+        "duration_s": 0.32
+      }
+    },
+    "options_keys_all": [],
+    "options_scanner": {
+      "last_modified": "2026-05-06T08:50:22",
+      "memory": 2048,
+      "timeout": 600,
+      "env_keys": [
+        "S3_BUCKET",
+        "POLY_KEY",
+        "TIMEOUT_BUDGET_S",
+        "N_WORKERS",
+        "MAX_TICKERS",
+        "DAYS_BACK"
+      ],
+      "description": ""
+    },
+    "candidate_probes": {
+      "options/flow-scanner-latest.json": {
+        "exists": false
+      },
+      "options/flow-scanner.json": {
+        "exists": false
+      },
+      "options/scanner.json": {
+        "exists": false
+      },
+      "options/unusual-activity.json": {
+        "exists": false
+      },
+      "options/sp500-flow.json": {
+        "exists": false
+      },
+      "options/stocks-flow.json": {
+        "exists": false
+      },
+      "options/latest.json": {
+        "exists": false
+      },
+      "options/flow-latest.json": {
+        "exists": false
+      },
+      "options/sweeps.json": {
+        "exists": false
+      },
+      "options/by-symbol.json": {
+        "exists": false
+      }
+    },
+    "calibration_history_index": {
+      "v": "1.0",
+      "last_updated": "2026-05-10T12:00:42.994760+00:00",
+      "n_snapshots": 1,
+      "snapshots": [
+        {
+          "iso_week": "2026-W19",
+          "iso_year": 2026,
+          "iso_week_num": 19,
+          "as_of": "2026-05-10T12:00:42.994760+00:00",
+          "week_start": "2026-05-04",
+          "week_end": "2026-05-10",
+          "key": "calibration/history/2026-W19.json",
+          "size_bytes": 5540,
+          "n_weights": 43,
+          "n_calibrated_n30": 22
+        }
+      ]
+    }
+  },
+  "finished": "2026-05-12T16:14:54.229974+00:00"
+}
