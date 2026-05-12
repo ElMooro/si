@@ -1,0 +1,864 @@
+{
+  "started": "2026-05-12T23:31:36.398562+00:00",
+  "test": {
+    "top_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "summary",
+      "all_qualifying"
+    ],
+    "stats": {
+      "n_universe": 150,
+      "n_evaluated": 144,
+      "n_no_data": 6,
+      "n_tier_a": 49,
+      "n_tier_b": 25,
+      "n_finra_tickers": 12559
+    },
+    "summary": {
+      "top_25_overall": [
+        {
+          "symbol": "HCA",
+          "score": 95.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 429.69,
+          "cpr_recent": 2.68,
+          "cpr_change_pct": 1030.5,
+          "call_vol_surge": 19.18,
+          "short_pct_change": -11.12
+        },
+        {
+          "symbol": "PGR",
+          "score": 93.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "spot": 198.42,
+          "cpr_recent": 4.58,
+          "cpr_change_pct": 805.0,
+          "call_vol_surge": 7.74,
+          "short_pct_change": -8.56
+        },
+        {
+          "symbol": "WM",
+          "score": 90.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 217.65,
+          "cpr_recent": 1.33,
+          "cpr_change_pct": 218.8,
+          "call_vol_surge": 3.5,
+          "short_pct_change": -12.84
+        },
+        {
+          "symbol": "FDX",
+          "score": 86.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "spot": 376.42,
+          "cpr_recent": 4.22,
+          "cpr_change_pct": 281.4,
+          "call_vol_surge": 4.61,
+          "short_pct_change": -1.7
+        },
+        {
+          "symbol": "PM",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 186.93,
+          "cpr_recent": 155.46,
+          "cpr_change_pct": 52.0,
+          "call_vol_surge": 3.27,
+          "short_pct_change": 13.56
+        },
+        {
+          "symbol": "DE",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 589.19,
+          "cpr_recent": 22.54,
+          "cpr_change_pct": 254.7,
+          "call_vol_surge": 24.47,
+          "short_pct_change": -0.8
+        },
+        {
+          "symbol": "PANW",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 215.6,
+          "cpr_recent": 169.47,
+          "cpr_change_pct": 1336.7,
+          "call_vol_surge": 116.93,
+          "short_pct_change": 7.63
+        },
+        {
+          "symbol": "COP",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 117.87,
+          "cpr_recent": 4.79,
+          "cpr_change_pct": 484.8,
+          "call_vol_surge": 4.65,
+          "short_pct_change": 4.08
+        },
+        {
+          "symbol": "VRT",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 367.13,
+          "cpr_recent": 174.59,
+          "cpr_change_pct": 314.6,
+          "call_vol_surge": 7.01,
+          "short_pct_change": 0.1
+        },
+        {
+          "symbol": "HON",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 218.54,
+          "cpr_recent": 21.0,
+          "cpr_change_pct": 243.6,
+          "call_vol_surge": 4.63,
+          "short_pct_change": 2.82
+        },
+        {
+          "symbol": "LMT",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 521.0,
+          "cpr_recent": 19.59,
+          "cpr_change_pct": 56.2,
+          "call_vol_surge": 4.1,
+          "short_pct_change": 11.25
+        },
+        {
+          "symbol": "SNPS",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 513.21,
+          "cpr_recent": 30.53,
+          "cpr_change_pct": 122.2,
+          "call_vol_surge": 10.24,
+          "short_pct_change": -0.39
+        },
+        {
+          "symbol": "FCX",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 66.03,
+          "cpr_recent": 153.41,
+          "cpr_change_pct": 236.1,
+          "call_vol_surge": 3.93,
+          "short_pct_change": 9.76
+        },
+        {
+          "symbol": "PLTR",
+          "score": 81.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_EASING"
+          ],
+          "spot": 136.0,
+          "cpr_recent": 2.39,
+          "cpr_change_pct": 545.2,
+          "call_vol_surge": 36.78,
+          "short_pct_change": -2.51
+        },
+        {
+          "symbol": "ANET",
+          "score": 80.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ],
+          "spot": 142.54,
+          "cpr_recent": 2.67,
+          "cpr_change_pct": 81.8,
+          "call_vol_surge": 282.43,
+          "short_pct_change": -6.58
+        },
+        {
+          "symbol": "APH",
+          "score": 80.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ],
+          "spot": 127.87,
+          "cpr_recent": 2.28,
+          "cpr_change_pct": 2206.0,
+          "call_vol_surge": 89.3,
+          "short_pct_change": -12.22
+        },
+        {
+          "symbol": "T",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "spot": 25.23,
+          "cpr_recent": 1.24,
+          "cpr_change_pct": 279.5,
+          "call_vol_surge": 8.53,
+          "short_pct_change": -7.67
+        },
+        {
+          "symbol": "AMGN",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 336.29,
+          "cpr_recent": 22.21,
+          "cpr_change_pct": 2626.2,
+          "call_vol_surge": 2.81,
+          "short_pct_change": 1.62
+        },
+        {
+          "symbol": "GLW",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "spot": 198.3,
+          "cpr_recent": 1485.91,
+          "cpr_change_pct": 321.1,
+          "call_vol_surge": 6.68,
+          "short_pct_change": 13.05
+        },
+        {
+          "symbol": "SCCO",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 191.75,
+          "cpr_recent": 80.19,
+          "cpr_change_pct": 294.4,
+          "call_vol_surge": 2.87,
+          "short_pct_change": 4.51
+        },
+        {
+          "symbol": "CRWD",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "spot": 546.18,
+          "cpr_recent": 184.41,
+          "cpr_change_pct": 287.8,
+          "call_vol_surge": 11.36,
+          "short_pct_change": 3.85
+        },
+        {
+          "symbol": "PLD",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "spot": 143.76,
+          "cpr_recent": 67.07,
+          "cpr_change_pct": 134.2,
+          "call_vol_surge": 2.38,
+          "short_pct_change": 0.57
+        },
+        {
+          "symbol": "LOW",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "spot": 224.52,
+          "cpr_recent": 0.08,
+          "cpr_change_pct": 151.8,
+          "call_vol_surge": 10.36,
+          "short_pct_change": -7.74
+        },
+        {
+          "symbol": "CVS",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "spot": 95.15,
+          "cpr_recent": 212.15,
+          "cpr_change_pct": 159.2,
+          "call_vol_surge": 9.94,
+          "short_pct_change": 3.26
+        },
+        {
+          "symbol": "CME",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "spot": 285.75,
+          "cpr_recent": 18.9,
+          "cpr_change_pct": 327.9,
+          "call_vol_surge": 9.98,
+          "short_pct_change": -1.83
+        }
+      ],
+      "tier_a": [
+        "HCA",
+        "PGR",
+        "WM",
+        "FDX",
+        "PM",
+        "DE",
+        "PANW",
+        "COP",
+        "VRT",
+        "HON",
+        "LMT",
+        "SNPS",
+        "FCX",
+        "PLTR",
+        "ANET",
+        "APH",
+        "T",
+        "AMGN",
+        "GLW",
+        "SCCO",
+        "CRWD",
+        "PLD",
+        "LOW",
+        "CVS",
+        "CME",
+        "NOC",
+        "MRSH",
+        "WFC",
+        "ABT",
+        "SO",
+        "MCO",
+        "JNJ",
+        "XOM",
+        "CVX",
+        "BMY",
+        "AMD",
+        "HD",
+        "PEP",
+        "MCD",
+        "SPGI",
+        "BKNG",
+        "DHR",
+        "AMT",
+        "JPM",
+        "MA",
+        "COST",
+        "PFE",
+        "SYK",
+        "PNC"
+      ]
+    },
+    "n_qualifying": 144,
+    "first_5": [
+      {
+        "symbol": "HCA",
+        "score": 95.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_2X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 429.69,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 2.68,
+          "avg_cpr_older": 0.24,
+          "cpr_change_pct": 1030.5,
+          "total_call_vol_5d": 999,
+          "total_put_vol_5d": 243,
+          "call_vol_surge": 19.18,
+          "short_metrics": {
+            "recent_avg_short_pct": 57.2,
+            "older_avg_short_pct": 68.3,
+            "short_pct_change": -11.12,
+            "avg_total_vol_5d": 483072,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "PGR",
+        "score": 93.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 198.42,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 4.58,
+          "avg_cpr_older": 0.51,
+          "cpr_change_pct": 805.0,
+          "total_call_vol_5d": 655,
+          "total_put_vol_5d": 351,
+          "call_vol_surge": 7.74,
+          "short_metrics": {
+            "recent_avg_short_pct": 43.0,
+            "older_avg_short_pct": 51.6,
+            "short_pct_change": -8.56,
+            "avg_total_vol_5d": 1244638,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "WM",
+        "score": 90.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 217.65,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 1.33,
+          "avg_cpr_older": 0.42,
+          "cpr_change_pct": 218.8,
+          "total_call_vol_5d": 1198,
+          "total_put_vol_5d": 1058,
+          "call_vol_surge": 3.5,
+          "short_metrics": {
+            "recent_avg_short_pct": 51.2,
+            "older_avg_short_pct": 64.0,
+            "short_pct_change": -12.84,
+            "avg_total_vol_5d": 786551,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "FDX",
+        "score": 86.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_EASING"
+        ],
+        "metrics": {
+          "spot": 376.42,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 4.22,
+          "avg_cpr_older": 1.11,
+          "cpr_change_pct": 281.4,
+          "total_call_vol_5d": 749,
+          "total_put_vol_5d": 304,
+          "call_vol_surge": 4.61,
+          "short_metrics": {
+            "recent_avg_short_pct": 41.7,
+            "older_avg_short_pct": 43.4,
+            "short_pct_change": -1.7,
+            "avg_total_vol_5d": 514957,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "PM",
+        "score": 85.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 186.93,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 155.46,
+          "avg_cpr_older": 102.25,
+          "cpr_change_pct": 52.0,
+          "total_call_vol_5d": 1677,
+          "total_put_vol_5d": 62,
+          "call_vol_surge": 3.27,
+          "short_metrics": {
+            "recent_avg_short_pct": 61.6,
+            "older_avg_short_pct": 48.1,
+            "short_pct_change": 13.56,
+            "avg_total_vol_5d": 1964855,
+            "n_finra_days": 20
+          }
+        }
+      }
+    ],
+    "n_score_50_plus": 74,
+    "sample_tier_A": [
+      {
+        "symbol": "HCA",
+        "score": 95.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_2X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 429.69,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 2.68,
+          "avg_cpr_older": 0.24,
+          "cpr_change_pct": 1030.5,
+          "total_call_vol_5d": 999,
+          "total_put_vol_5d": 243,
+          "call_vol_surge": 19.18,
+          "short_metrics": {
+            "recent_avg_short_pct": 57.2,
+            "older_avg_short_pct": 68.3,
+            "short_pct_change": -11.12,
+            "avg_total_vol_5d": 483072,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "PGR",
+        "score": 93.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 198.42,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 4.58,
+          "avg_cpr_older": 0.51,
+          "cpr_change_pct": 805.0,
+          "total_call_vol_5d": 655,
+          "total_put_vol_5d": 351,
+          "call_vol_surge": 7.74,
+          "short_metrics": {
+            "recent_avg_short_pct": 43.0,
+            "older_avg_short_pct": 51.6,
+            "short_pct_change": -8.56,
+            "avg_total_vol_5d": 1244638,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "WM",
+        "score": 90.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 217.65,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 1.33,
+          "avg_cpr_older": 0.42,
+          "cpr_change_pct": 218.8,
+          "total_call_vol_5d": 1198,
+          "total_put_vol_5d": 1058,
+          "call_vol_surge": 3.5,
+          "short_metrics": {
+            "recent_avg_short_pct": 51.2,
+            "older_avg_short_pct": 64.0,
+            "short_pct_change": -12.84,
+            "avg_total_vol_5d": 786551,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "FDX",
+        "score": 86.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_EASING"
+        ],
+        "metrics": {
+          "spot": 376.42,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 4.22,
+          "avg_cpr_older": 1.11,
+          "cpr_change_pct": 281.4,
+          "total_call_vol_5d": 749,
+          "total_put_vol_5d": 304,
+          "call_vol_surge": 4.61,
+          "short_metrics": {
+            "recent_avg_short_pct": 41.7,
+            "older_avg_short_pct": 43.4,
+            "short_pct_change": -1.7,
+            "avg_total_vol_5d": 514957,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "PM",
+        "score": 85.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 186.93,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 155.46,
+          "avg_cpr_older": 102.25,
+          "cpr_change_pct": 52.0,
+          "total_call_vol_5d": 1677,
+          "total_put_vol_5d": 62,
+          "call_vol_surge": 3.27,
+          "short_metrics": {
+            "recent_avg_short_pct": 61.6,
+            "older_avg_short_pct": 48.1,
+            "short_pct_change": 13.56,
+            "avg_total_vol_5d": 1964855,
+            "n_finra_days": 20
+          }
+        }
+      }
+    ],
+    "sample_tier_B": [
+      {
+        "symbol": "TSLA",
+        "score": 63.0,
+        "tier": "TIER_B_FLOW_BUILDING",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 433.45,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 53.52,
+          "avg_cpr_older": 171.15,
+          "cpr_change_pct": -68.7,
+          "total_call_vol_5d": 280782,
+          "total_put_vol_5d": 136215,
+          "call_vol_surge": 16.92,
+          "short_metrics": {
+            "recent_avg_short_pct": 45.9,
+            "older_avg_short_pct": 57.2,
+            "short_pct_change": -11.24,
+            "avg_total_vol_5d": 30456962,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "LLY",
+        "score": 63.0,
+        "tier": "TIER_B_FLOW_BUILDING",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 989.87,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 5.24,
+          "avg_cpr_older": 13.36,
+          "cpr_change_pct": -60.8,
+          "total_call_vol_5d": 2019,
+          "total_put_vol_5d": 410,
+          "call_vol_surge": 7.03,
+          "short_metrics": {
+            "recent_avg_short_pct": 41.1,
+            "older_avg_short_pct": 50.0,
+            "short_pct_change": -8.92,
+            "avg_total_vol_5d": 1076482,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "CAT",
+        "score": 63.0,
+        "tier": "TIER_B_FLOW_BUILDING",
+        "flags": [
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 912.14,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 3.37,
+          "avg_cpr_older": 23.78,
+          "cpr_change_pct": -85.8,
+          "total_call_vol_5d": 1507,
+          "total_put_vol_5d": 639,
+          "call_vol_surge": 6.12,
+          "short_metrics": {
+            "recent_avg_short_pct": 49.3,
+            "older_avg_short_pct": 55.6,
+            "short_pct_change": -6.25,
+            "avg_total_vol_5d": 999786,
+            "n_finra_days": 20
+          }
+        }
+      }
+    ],
+    "tier_distribution": {
+      "TIER_A_BULLISH_FLOW": 49,
+      "TIER_B_FLOW_BUILDING": 25,
+      "WATCH": 31,
+      "NEUTRAL": 39
+    }
+  },
+  "finished": "2026-05-12T23:31:41.468085+00:00"
+}
