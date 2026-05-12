@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-anomaly-detector",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Statistical anomaly detector (#18). Watches cross-asset divergence, sector breadth, VIX/SKEW, credit spreads, bond vol for early warning signals. Fires Telegram on HIGH/EXTREME.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-macro-nowcast", "keys": ["FRED_KEY"]},
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]},
+    {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-anomaly-detector-hourly",
+    "cron": "cron(33 * * * ? *)",
+    "description": "Every hour at :33 - after alpha-confluence (:12) and alpha-alerts (:20)"
+  }
+}

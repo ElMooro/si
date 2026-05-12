@@ -101,20 +101,50 @@ jobs:
               # If .inherit_env is set, copy specified keys from another Lambda's
               # environment. Useful for cred values like ANTHROPIC_API_KEY that
               # already exist on another function but shouldn't be in git.
+              #
+              # Two schemas supported:
+              #   (a) Single object:
+              #       "inherit_env": {"from_function": "X", "keys": ["K1","K2"]}
+              #   (b) Array of objects (for keys spread across multiple functions):
+              #       "inherit_env": [
+              #         {"from_function": "A", "keys": ["K1"]},
+              #         {"from_function": "B", "keys": ["K2","K3"]}
+              #       ]
               if jq -e '.inherit_env' "$dir/config.json" >/dev/null 2>&1; then
-                src_fn=$(jq -r '.inherit_env.from_function' "$dir/config.json")
-                inherit_keys=$(jq -r '.inherit_env.keys | join(" ")' "$dir/config.json")
-                if [ -n "$src_fn" ] && [ -n "$inherit_keys" ]; then
-                  src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "${{ secrets.AWS_REGION }}" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
-                  for k in $inherit_keys; do
-                    v=$(echo "$src_env" | jq -r "."$k" // empty")
-                    if [ -n "$v" ] && [ "$v" != "null" ]; then
-                      if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
-                      echo "  [inherit_env] inherited $k from $src_fn"
-                    else
-                      echo "  [inherit_env] WARN $k not found on $src_fn"
+                is_array=$(jq -r '.inherit_env | type == "array"' "$dir/config.json")
+                if [ "$is_array" = "true" ]; then
+                  n_entries=$(jq -r '.inherit_env | length' "$dir/config.json")
+                  for i in $(seq 0 $((n_entries - 1))); do
+                    src_fn=$(jq -r ".inherit_env[$i].from_function" "$dir/config.json")
+                    inherit_keys=$(jq -r ".inherit_env[$i].keys | join(\" \")" "$dir/config.json")
+                    if [ -n "$src_fn" ] && [ -n "$inherit_keys" ] && [ "$src_fn" != "null" ]; then
+                      src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "${{ secrets.AWS_REGION }}" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                      for k in $inherit_keys; do
+                        v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
+                        if [ -n "$v" ] && [ "$v" != "null" ]; then
+                          if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+                          echo "  [inherit_env] inherited $k from $src_fn"
+                        else
+                          echo "  [inherit_env] WARN $k not found on $src_fn"
+                        fi
+                      done
                     fi
                   done
+                else
+                  src_fn=$(jq -r '.inherit_env.from_function' "$dir/config.json")
+                  inherit_keys=$(jq -r '.inherit_env.keys | join(" ")' "$dir/config.json")
+                  if [ -n "$src_fn" ] && [ -n "$inherit_keys" ]; then
+                    src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "${{ secrets.AWS_REGION }}" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                    for k in $inherit_keys; do
+                      v=$(echo "$src_env" | jq -r "."$k" // empty")
+                      if [ -n "$v" ] && [ "$v" != "null" ]; then
+                        if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+                        echo "  [inherit_env] inherited $k from $src_fn"
+                      else
+                        echo "  [inherit_env] WARN $k not found on $src_fn"
+                      fi
+                    done
+                  fi
                 fi
               fi
               if [ -n "$env_kv" ]; then
