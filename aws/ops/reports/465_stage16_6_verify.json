@@ -1,0 +1,403 @@
+{
+  "started": "2026-05-12T10:43:27.747858+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-12T10:42:49.000+0000",
+      "code_size": 7598
+    },
+    "invoke": {
+      "n_funds": 64,
+      "n_symbols": 4053,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 2.6
+    },
+    "s3_size_mb": 2.8,
+    "n_symbols": 4053,
+    "n_funds_scanned": 64,
+    "n_funds_attempted": 64,
+    "fund_count": 64,
+    "engine_no_1": {
+      "cik": "0001835549",
+      "name": "Engine No. 1",
+      "n_holdings": 6,
+      "total_value": 88588027,
+      "top_holdings": [
+        {
+          "symbol": "POWL",
+          "shares": 119000,
+          "value": 36272390,
+          "name": "POWELL INDS INC",
+          "title_class": "COM",
+          "pct_of_fund": 40.945
+        },
+        {
+          "symbol": "VRT",
+          "shares": 160000,
+          "value": 24137600,
+          "name": "VERTIV HOLDINGS CO",
+          "title_class": "COM CL A",
+          "pct_of_fund": 27.247
+        },
+        {
+          "symbol": "FSLR",
+          "shares": 48000,
+          "value": 10585440,
+          "name": "FIRST SOLAR INC",
+          "title_class": "COM",
+          "pct_of_fund": 11.949
+        },
+        {
+          "symbol": "HRI",
+          "shares": 74000,
+          "value": 8632840,
+          "name": "HERC HLDGS INC",
+          "title_class": "COM",
+          "pct_of_fund": 9.745
+        },
+        {
+          "symbol": "GLD",
+          "shares": 13100,
+          "value": 4656657,
+          "name": "SPDR GOLD TR",
+          "title_class": "GOLD SHS",
+          "pct_of_fund": 5.257
+        },
+        {
+          "symbol": "HUBB",
+          "shares": 10000,
+          "value": 4303100,
+          "name": "HUBBELL INC",
+          "title_class": "COM",
+          "pct_of_fund": 4.857
+        }
+      ]
+    },
+    "all_funds_brief": [
+      {
+        "name": "Norges Bank Investment Mgmt",
+        "n_holdings": 1572,
+        "total_b": 934.75
+      },
+      {
+        "name": "Capital Research / Cap Group",
+        "n_holdings": 448,
+        "total_b": 635.57
+      },
+      {
+        "name": "Wellington Management",
+        "n_holdings": 1762,
+        "total_b": 567.52
+      },
+      {
+        "name": "Tudor Investment",
+        "n_holdings": 3966,
+        "total_b": 440.97
+      },
+      {
+        "name": "Berkshire Hathaway",
+        "n_holdings": 42,
+        "total_b": 274.16
+      },
+      {
+        "name": "AQR Capital Management",
+        "n_holdings": 3547,
+        "total_b": 190.61
+      },
+      {
+        "name": "T. Rowe Price Inv Mgmt",
+        "n_holdings": 897,
+        "total_b": 157.17
+      },
+      {
+        "name": "Citadel Advisors",
+        "n_holdings": 4424,
+        "total_b": 106.53
+      },
+      {
+        "name": "Pictet Asset Management",
+        "n_holdings": 2068,
+        "total_b": 101.76
+      },
+      {
+        "name": "D.E. Shaw",
+        "n_holdings": 2669,
+        "total_b": 99.18
+      },
+      {
+        "name": "Renaissance Technologies",
+        "n_holdings": 3090,
+        "total_b": 64.44
+      },
+      {
+        "name": "Two Sigma Investments",
+        "n_holdings": 3250,
+        "total_b": 61.81
+      },
+      {
+        "name": "Schonfeld Strategic",
+        "n_holdings": 1997,
+        "total_b": 61.01
+      },
+      {
+        "name": "First Eagle Investment Mgmt",
+        "n_holdings": 420,
+        "total_b": 56.82
+      },
+      {
+        "name": "TCI Fund Management",
+        "n_holdings": 9,
+        "total_b": 53.65
+      },
+      {
+        "name": "Two Sigma Advisers",
+        "n_holdings": 2320,
+        "total_b": 51.43
+      },
+      {
+        "name": "Coatue Management",
+        "n_holdings": 52,
+        "total_b": 39.96
+      },
+      {
+        "name": "Viking Global Investors",
+        "n_holdings": 76,
+        "total_b": 37.68
+      },
+      {
+        "name": "Sands Capital Management",
+        "n_holdings": 66,
+        "total_b": 32.88
+      },
+      {
+        "name": "Tiger Global Management",
+        "n_holdings": 54,
+        "total_b": 29.71
+      },
+      {
+        "name": "Bridgewater Associates",
+        "n_holdings": 1039,
+        "total_b": 27.4
+      },
+      {
+        "name": "Joel Greenblatt / Gotham",
+        "n_holdings": 1711,
+        "total_b": 27.37
+      },
+      {
+        "name": "Davis Selected Advisers",
+        "n_holdings": 108,
+        "total_b": 22.25
+      },
+      {
+        "name": "Farallon Capital Mgmt",
+        "n_holdings": 140,
+        "total_b": 17.29
+      },
+      {
+        "name": "Pershing Square Capital",
+        "n_holdings": 11,
+        "total_b": 15.53
+      },
+      {
+        "name": "D1 Capital Partners",
+        "n_holdings": 42,
+        "total_b": 10.7
+      },
+      {
+        "name": "GAMCO Investors / Gabelli",
+        "n_holdings": 994,
+        "total_b": 10.38
+      },
+      {
+        "name": "ARK Investment Management",
+        "n_holdings": 70,
+        "total_b": 9.75
+      },
+      {
+        "name": "Ariel Investments",
+        "n_holdings": 108,
+        "total_b": 9.26
+      },
+      {
+        "name": "Maverick Capital",
+        "n_holdings": 176,
+        "total_b": 9.15
+      },
+      {
+        "name": "Akre Capital Management",
+        "n_holdings": 18,
+        "total_b": 9.12
+      },
+      {
+        "name": "Icahn Capital Management",
+        "n_holdings": 13,
+        "total_b": 8.45
+      },
+      {
+        "name": "Whale Rock Capital",
+        "n_holdings": 32,
+        "total_b": 7.82
+      },
+      {
+        "name": "Third Point",
+        "n_holdings": 41,
+        "total_b": 7.26
+      },
+      {
+        "name": "Yacktman Asset Management",
+        "n_holdings": 72,
+        "total_b": 7.14
+      },
+      {
+        "name": "ValueAct Capital",
+        "n_holdings": 16,
+        "total_b": 7.03
+      },
+      {
+        "name": "Appaloosa LP",
+        "n_holdings": 38,
+        "total_b": 6.85
+      },
+      {
+        "name": "Millennium Management",
+        "n_holdings": 17,
+        "total_b": 6.66
+      },
+      {
+        "name": "Ruane Cunniff & Goldfarb",
+        "n_holdings": 47,
+        "total_b": 6.4
+      },
+      {
+        "name": "Soros Fund Management",
+        "n_holdings": 202,
+        "total_b": 5.58
+      },
+      {
+        "name": "Lone Pine Capital",
+        "n_holdings": 22,
+        "total_b": 5.28
+      },
+      {
+        "name": "Starboard Value",
+        "n_holdings": 21,
+        "total_b": 5.28
+      },
+      {
+        "name": "Caxton Associates",
+        "n_holdings": 749,
+        "total_b": 5.05
+      },
+      {
+        "name": "Oaktree Capital Mgmt",
+        "n_holdings": 51,
+        "total_b": 4.51
+      },
+      {
+        "name": "Glenview Capital Mgmt",
+        "n_holdings": 52,
+        "total_b": 4.49
+      },
+      {
+        "name": "Moore Capital Management",
+        "n_holdings": 471,
+        "total_b": 4.2
+      },
+      {
+        "name": "Duquesne Family Office",
+        "n_holdings": 56,
+        "total_b": 3.94
+      },
+      {
+        "name": "Brevan Howard Capital Mgmt",
+        "n_holdings": 1583,
+        "total_b": 3.84
+      },
+      {
+        "name": "Anchorage Capital",
+        "n_holdings": 6,
+        "total_b": 3.74
+      },
+      {
+        "name": "Trian Fund Management",
+        "n_holdings": 6,
+        "total_b": 3.74
+      },
+      {
+        "name": "Omega Advisors / Cooperman",
+        "n_holdings": 40,
+        "total_b": 3.01
+      },
+      {
+        "name": "Mason Hawkins / Longleaf",
+        "n_holdings": 52,
+        "total_b": 2.24
+      },
+      {
+        "name": "Wally Weitz Investment Mgmt",
+        "n_holdings": 44,
+        "total_b": 1.69
+      },
+      {
+        "name": "Maple Capital",
+        "n_holdings": 116,
+        "total_b": 1.59
+      },
+      {
+        "name": "Bruce Berkowitz / Fairholme",
+        "n_holdings": 15,
+        "total_b": 1.43
+      },
+      {
+        "name": "Tweedy, Browne",
+        "n_holdings": 95,
+        "total_b": 1.24
+      },
+      {
+        "name": "Balyasny / Longaeva Partners",
+        "n_holdings": 111,
+        "total_b": 0.81
+      },
+      {
+        "name": "Baupost Group",
+        "n_holdings": 41,
+        "total_b": 0.75
+      },
+      {
+        "name": "Hound Partners",
+        "n_holdings": 36,
+        "total_b": 0.72
+      },
+      {
+        "name": "Light Street Capital",
+        "n_holdings": 24,
+        "total_b": 0.65
+      },
+      {
+        "name": "Mohnish Pabrai (Dalal Street)",
+        "n_holdings": 4,
+        "total_b": 0.4
+      },
+      {
+        "name": "Miller Value Partners",
+        "n_holdings": 34,
+        "total_b": 0.28
+      },
+      {
+        "name": "Element Capital Management",
+        "n_holdings": 50,
+        "total_b": 0.17
+      },
+      {
+        "name": "Engine No. 1",
+        "n_holdings": 6,
+        "total_b": 0.09
+      }
+    ],
+    "stats": {
+      "flagship": 54,
+      "high_conv": 149
+    }
+  },
+  "finished": "2026-05-12T10:44:53.404396+00:00"
+}
