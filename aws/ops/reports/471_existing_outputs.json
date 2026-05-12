@@ -1,0 +1,276 @@
+{
+  "started": "2026-05-12T14:12:22.781601+00:00",
+  "test": {
+    "total_s3_keys": 5000,
+    "macro_keys": [],
+    "backtest_keys": [
+      {
+        "key": "backtest/calls-results.json",
+        "size_kb": 13.7,
+        "lm": "2026-05-11T14:15:42"
+      },
+      {
+        "key": "backtest/results.json",
+        "size_kb": 37.7,
+        "lm": "2026-05-12T11:07:27"
+      },
+      {
+        "key": "backtest/summary.json",
+        "size_kb": 5.9,
+        "lm": "2026-05-12T11:07:27"
+      },
+      {
+        "key": "calibration/history-index.json",
+        "size_kb": 0.4,
+        "lm": "2026-05-10T12:00:44"
+      },
+      {
+        "key": "calibration/history/2026-03-15.json",
+        "size_kb": 2.0,
+        "lm": "2026-03-15T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-03-22.json",
+        "size_kb": 3.2,
+        "lm": "2026-03-22T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-03-29.json",
+        "size_kb": 3.8,
+        "lm": "2026-03-29T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-04-05.json",
+        "size_kb": 3.8,
+        "lm": "2026-04-05T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-12.json",
+        "size_kb": 3.8,
+        "lm": "2026-04-12T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-19.json",
+        "size_kb": 3.8,
+        "lm": "2026-04-19T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-25.json",
+        "size_kb": 1.0,
+        "lm": "2026-04-25T20:54:00"
+      },
+      {
+        "key": "calibration/history/2026-04-26.json",
+        "size_kb": 5.3,
+        "lm": "2026-04-26T13:05:15"
+      },
+      {
+        "key": "calibration/history/2026-05-04.json",
+        "size_kb": 26.2,
+        "lm": "2026-05-04T22:13:46"
+      },
+      {
+        "key": "calibration/history/2026-05-05.json",
+        "size_kb": 36.6,
+        "lm": "2026-05-05T12:03:56"
+      },
+      {
+        "key": "calibration/history/2026-05-10.json",
+        "size_kb": 43.0,
+        "lm": "2026-05-10T09:00:52"
+      },
+      {
+        "key": "calibration/history/2026-W19.json",
+        "size_kb": 5.4,
+        "lm": "2026-05-10T12:00:44"
+      },
+      {
+        "key": "calibration/latest.json",
+        "size_kb": 5.4,
+        "lm": "2026-05-10T12:00:44"
+      }
+    ],
+    "options_keys": [],
+    "alert_keys": [
+      {
+        "key": "_health/last_alerted.json",
+        "size_kb": 11.3,
+        "lm": "2026-05-12T14:00:22"
+      },
+      {
+        "key": "alerts-state.json",
+        "size_kb": 1.5,
+        "lm": "2026-05-12T14:03:11"
+      },
+      {
+        "key": "data/ai-brief.json",
+        "size_kb": 19.6,
+        "lm": "2026-05-12T12:06:16"
+      },
+      {
+        "key": "data/ai-brief.md",
+        "size_kb": 6.8,
+        "lm": "2026-05-12T12:06:16"
+      },
+      {
+        "key": "data/alert-history.json",
+        "size_kb": 54.7,
+        "lm": "2026-05-12T14:03:11"
+      }
+    ],
+    "lambda_details": {
+      "justhodl-macro-nowcast": {
+        "last_modified": "2026-05-06T18:56:28.000+0000",
+        "memory": 256,
+        "timeout": 120,
+        "env_keys": [
+          "S3_BUCKET",
+          "FRED_KEY"
+        ],
+        "description": "Composite real-time macro nowcast \u2014 weighted z-score from 7 FRED series in data/report.json. Runs every 6h."
+      },
+      "justhodl-cross-asset-regime": {
+        "last_modified": "2026-05-06T10:41:13.645+0000",
+        "memory": 512,
+        "timeout": 300,
+        "env_keys": [
+          "S3_BUCKET",
+          "TIMEOUT_BUDGET_S",
+          "FMP_KEY"
+        ],
+        "description": ""
+      },
+      "justhodl-options-flow-scanner": {
+        "last_modified": "2026-05-06T08:50:22.000+0000",
+        "memory": 2048,
+        "timeout": 600,
+        "env_keys": [
+          "S3_BUCKET",
+          "POLY_KEY",
+          "TIMEOUT_BUDGET_S",
+          "N_WORKERS",
+          "MAX_TICKERS",
+          "DAYS_BACK"
+        ],
+        "description": ""
+      },
+      "justhodl-options-flow": {
+        "last_modified": "2026-05-06T21:36:11.000+0000",
+        "memory": 1024,
+        "timeout": 300,
+        "env_keys": [
+          "FRED_KEY",
+          "AV_KEY",
+          "POLYGON_KEY",
+          "NEWS_KEY"
+        ],
+        "description": ""
+      },
+      "justhodl-alert-router": {
+        "last_modified": "2026-05-10T11:12:06.000+0000",
+        "memory": 256,
+        "timeout": 120,
+        "env_keys": [
+          "TELEGRAM_BOT_TOKEN"
+        ],
+        "description": ""
+      },
+      "justhodl-telegram-bot": {
+        "last_modified": "2026-04-25T10:28:08.000+0000",
+        "memory": 256,
+        "timeout": 90,
+        "env_keys": [
+          "S3_BUCKET",
+          "TELEGRAM_TOKEN",
+          "ALLOWED_CHAT_IDS",
+          "ANTHROPIC_API_KEY"
+        ],
+        "description": ""
+      },
+      "justhodl-morning-brief-tg": {
+        "last_modified": "2026-05-07T12:03:35.000+0000",
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": [
+          "TELEGRAM_TOKEN"
+        ],
+        "description": "Daily Telegram morning brief digest"
+      },
+      "justhodl-calibrator": {
+        "last_modified": "2026-05-06T18:15:41.000+0000",
+        "memory": 256,
+        "timeout": 120,
+        "env_keys": [],
+        "description": ""
+      },
+      "justhodl-backtest-engine": {
+        "last_modified": "2026-05-06T18:15:33.000+0000",
+        "memory": 512,
+        "timeout": 120,
+        "env_keys": [],
+        "description": "Calibrated alpha replay \u2014 backtests historical signals against current calibration weights"
+      },
+      "justhodl-screener-alerts": {
+        "last_modified": "2026-05-11T17:49:00.000+0000",
+        "memory": 256,
+        "timeout": 120,
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "description": "Watches screener/just-crossed.json and pings @Justhodl_bot on high-significance events"
+      },
+      "justhodl-ai-brief": {
+        "last_modified": "2026-05-05T11:45:49.000+0000",
+        "memory": 512,
+        "timeout": 180,
+        "env_keys": [
+          "ANTHROPIC_KEY"
+        ],
+        "description": ""
+      },
+      "justhodl-redflag-alerter": {
+        "last_modified": "2026-04-27T21:56:29.000+0000",
+        "memory": 256,
+        "timeout": 60,
+        "env_keys": [
+          "S3_BUCKET",
+          "TG_CHAT_ID_PARAM",
+          "DEDUPE_WINDOW_HOURS",
+          "S3_INPUT_KEY",
+          "LOOKBACK_MINUTES",
+          "S3_OUTPUT_KEY",
+          "TG_TOKEN_PARAM"
+        ],
+        "description": "Telegram alerter for serious 8-K events. Reads data/8k-filings.json, dedupes 24h."
+      }
+    },
+    "sidecar_samples": {
+      "macro/nowcast.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "macro/regime-data.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "macro/state.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "khalid_index/data.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "khalid-index.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "options/flow-latest.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "options/flow-scanner-latest.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      },
+      "options/scanner-latest.json": {
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist"
+      }
+    }
+  },
+  "finished": "2026-05-12T14:12:31.545748+00:00"
+}
