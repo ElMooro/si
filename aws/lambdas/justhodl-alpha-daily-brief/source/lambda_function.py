@@ -50,7 +50,12 @@ BRIEF_MD_KEY = "data/alpha-brief.md"
 BRIEF_JSON_KEY = "data/alpha-brief.json"
 
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY", "")
+# Accept either env var name — different existing Lambdas use different names:
+#   justhodl-ai-brief uses ANTHROPIC_KEY
+#   justhodl-telegram-bot uses ANTHROPIC_API_KEY
+ANTHROPIC_KEY = (os.environ.get("ANTHROPIC_KEY")
+                  or os.environ.get("ANTHROPIC_API_KEY")
+                  or "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 
 s3 = boto3.client("s3", region_name="us-east-1")

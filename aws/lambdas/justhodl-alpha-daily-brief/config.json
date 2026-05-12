@@ -9,10 +9,13 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Claude-synthesized morning brief (#5). Reads alpha-score+confluence+regime+sentiment+smart-money, calls Claude haiku, writes markdown brief + sends Telegram.",
   "environment": {},
-  "inherit_env": ["justhodl-ai-brief", "justhodl-screener-alerts"],
+  "inherit_env": {
+    "from_function": "justhodl-telegram-bot",
+    "keys": ["TELEGRAM_TOKEN", "ANTHROPIC_API_KEY"]
+  },
   "schedule": {
     "rule_name": "justhodl-alpha-daily-brief",
     "cron": "cron(30 11 * * ? *)",
-    "description": "Daily at 11:30 UTC (7:30 AM ET pre-market open / 6:30 AM CT for Khalid in Casablanca it's 12:30 PM local)"
+    "description": "Daily at 11:30 UTC (7:30 AM ET pre-market)"
   }
 }
