@@ -1,0 +1,621 @@
+{
+  "started": "2026-05-12T10:27:59.069588+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-12T10:27:30.000+0000",
+      "code_size": 7207
+    },
+    "invoke": {
+      "n_funds": 63,
+      "n_symbols": 4053,
+      "as_of": "Q4 2025",
+      "elapsed_seconds": 2.7
+    },
+    "s3_size_mb": 2.8,
+    "n_symbols": 4053,
+    "n_funds_scanned": 63,
+    "n_funds_attempted": 68,
+    "stats": {
+      "flagship": 52,
+      "high_conv": 145,
+      "notable": 630
+    },
+    "new_funds": {
+      "Maverick Capital (Ainslie)": {
+        "cik": "0000934639",
+        "n_holdings": 176,
+        "total_b": 9.15,
+        "top5": [
+          {
+            "sym": "NVDA",
+            "value_b": 0.56,
+            "pct": 6.088
+          },
+          {
+            "sym": "MSFT",
+            "value_b": 0.56,
+            "pct": 6.082
+          },
+          {
+            "sym": "AMZN",
+            "value_b": 0.55,
+            "pct": 6.012
+          },
+          {
+            "sym": "TSM",
+            "value_b": 0.5,
+            "pct": 5.51
+          },
+          {
+            "sym": "GOOG",
+            "value_b": 0.36,
+            "pct": 3.916
+          }
+        ]
+      },
+      "Sequoia Fund (Ruane Cunniff)": {
+        "cik": "0001720792",
+        "n_holdings": 47,
+        "total_b": 6.4,
+        "top5": [
+          {
+            "sym": "GOOGL",
+            "value_b": 0.68,
+            "pct": 10.64
+          },
+          {
+            "sym": "SCHW",
+            "value_b": 0.56,
+            "pct": 8.737
+          },
+          {
+            "sym": "FWONK",
+            "value_b": 0.54,
+            "pct": 8.455
+          },
+          {
+            "sym": "COF",
+            "value_b": 0.5,
+            "pct": 7.834
+          },
+          {
+            "sym": "ELV",
+            "value_b": 0.5,
+            "pct": 7.794
+          }
+        ]
+      },
+      "Pabrai (Dalal Street)": {
+        "cik": "0001549575",
+        "n_holdings": 4,
+        "total_b": 0.4,
+        "top5": [
+          {
+            "sym": "HCC",
+            "value_b": 0.16,
+            "pct": 39.471
+          },
+          {
+            "sym": "RIG",
+            "value_b": 0.11,
+            "pct": 27.777
+          },
+          {
+            "sym": "AMR",
+            "value_b": 0.11,
+            "pct": 26.996
+          },
+          {
+            "sym": "VAL",
+            "value_b": 0.02,
+            "pct": 5.755
+          }
+        ]
+      },
+      "Wally Weitz": {
+        "cik": "0000883965",
+        "n_holdings": 44,
+        "total_b": 1.69,
+        "top5": [
+          {
+            "sym": "BRK-B",
+            "value_b": 0.14,
+            "pct": 8.549
+          },
+          {
+            "sym": "DHR",
+            "value_b": 0.12,
+            "pct": 6.976
+          },
+          {
+            "sym": "GOOG",
+            "value_b": 0.11,
+            "pct": 6.473
+          },
+          {
+            "sym": "V",
+            "value_b": 0.09,
+            "pct": 5.626
+          },
+          {
+            "sym": "MA",
+            "value_b": 0.09,
+            "pct": 5.277
+          }
+        ]
+      },
+      "Mason Hawkins / Longleaf": {
+        "cik": "0000807985",
+        "n_holdings": 52,
+        "total_b": 2.24,
+        "top5": [
+          {
+            "sym": "CNX",
+            "value_b": 0.17,
+            "pct": 7.766
+          },
+          {
+            "sym": "MAT",
+            "value_b": 0.17,
+            "pct": 7.583
+          },
+          {
+            "sym": "IAC",
+            "value_b": 0.16,
+            "pct": 6.957
+          },
+          {
+            "sym": "REGN",
+            "value_b": 0.13,
+            "pct": 5.707
+          },
+          {
+            "sym": "PCH",
+            "value_b": 0.13,
+            "pct": 5.612
+          }
+        ]
+      },
+      "Bruce Berkowitz / Fairholme": {
+        "cik": "0001056831",
+        "n_holdings": 15,
+        "total_b": 1.43,
+        "top5": [
+          {
+            "sym": "JOE",
+            "value_b": 1.15,
+            "pct": 80.432
+          },
+          {
+            "sym": "EPD",
+            "value_b": 0.17,
+            "pct": 12.189
+          },
+          {
+            "sym": "OZK",
+            "value_b": 0.04,
+            "pct": 2.933
+          },
+          {
+            "sym": "BRK-B",
+            "value_b": 0.02,
+            "pct": 1.683
+          },
+          {
+            "sym": "WRB",
+            "value_b": 0.02,
+            "pct": 1.272
+          }
+        ]
+      },
+      "Light Street": {
+        "cik": "0001569049",
+        "n_holdings": 24,
+        "total_b": 0.65,
+        "top5": [
+          {
+            "sym": "TSM",
+            "value_b": 0.08,
+            "pct": 12.552
+          },
+          {
+            "sym": "CHYM",
+            "value_b": 0.07,
+            "pct": 10.498
+          },
+          {
+            "sym": "NVDA",
+            "value_b": 0.06,
+            "pct": 9.758
+          },
+          {
+            "sym": "AVGO",
+            "value_b": 0.05,
+            "pct": 7.658
+          },
+          {
+            "sym": "BILL",
+            "value_b": 0.05,
+            "pct": 7.369
+          }
+        ]
+      },
+      "Joel Greenblatt / Gotham": {
+        "cik": "0001510387",
+        "n_holdings": 1711,
+        "total_b": 27.37,
+        "top5": [
+          {
+            "sym": "SPY",
+            "value_b": 4.59,
+            "pct": 16.763
+          },
+          {
+            "sym": "GSPY",
+            "value_b": 0.62,
+            "pct": 2.25
+          },
+          {
+            "sym": "NVDA",
+            "value_b": 0.55,
+            "pct": 2.013
+          },
+          {
+            "sym": "AAPL",
+            "value_b": 0.42,
+            "pct": 1.552
+          },
+          {
+            "sym": "IVV",
+            "value_b": 0.28,
+            "pct": 1.02
+          }
+        ]
+      },
+      "Yacktman": {
+        "cik": "0000905567",
+        "n_holdings": 72,
+        "total_b": 7.14,
+        "top5": [
+          {
+            "sym": "CNQ",
+            "value_b": 0.64,
+            "pct": 8.896
+          },
+          {
+            "sym": "MSFT",
+            "value_b": 0.47,
+            "pct": 6.525
+          },
+          {
+            "sym": "SCHW",
+            "value_b": 0.39,
+            "pct": 5.505
+          },
+          {
+            "sym": "FOX",
+            "value_b": 0.36,
+            "pct": 5.062
+          },
+          {
+            "sym": "GOOG",
+            "value_b": 0.35,
+            "pct": 4.963
+          }
+        ]
+      },
+      "Ariel Investments": {
+        "cik": "0000936753",
+        "n_holdings": 108,
+        "total_b": 9.26,
+        "top5": [
+          {
+            "sym": "MSGE",
+            "value_b": 0.37,
+            "pct": 4.005
+          },
+          {
+            "sym": "AMG",
+            "value_b": 0.34,
+            "pct": 3.681
+          },
+          {
+            "sym": "NCLH",
+            "value_b": 0.32,
+            "pct": 3.46
+          },
+          {
+            "sym": "SPHR",
+            "value_b": 0.3,
+            "pct": 3.254
+          },
+          {
+            "sym": "JLL",
+            "value_b": 0.3,
+            "pct": 3.246
+          }
+        ]
+      },
+      "Hound Partners": {
+        "cik": "0001353316",
+        "n_holdings": 36,
+        "total_b": 0.72,
+        "top5": [
+          {
+            "sym": "CCL",
+            "value_b": 0.11,
+            "pct": 14.942
+          },
+          {
+            "sym": "PLTR",
+            "value_b": 0.1,
+            "pct": 13.381
+          },
+          {
+            "sym": "NVDA",
+            "value_b": 0.09,
+            "pct": 12.271
+          },
+          {
+            "sym": "NCLH",
+            "value_b": 0.08,
+            "pct": 11.783
+          },
+          {
+            "sym": "SE",
+            "value_b": 0.06,
+            "pct": 8.843
+          }
+        ]
+      },
+      "Engine No. 1": {
+        "missing": true
+      },
+      "Akre Capital": {
+        "cik": "0001112520",
+        "n_holdings": 18,
+        "total_b": 9.12,
+        "top5": [
+          {
+            "sym": "MA",
+            "value_b": 1.72,
+            "pct": 18.81
+          },
+          {
+            "sym": "BN",
+            "value_b": 1.23,
+            "pct": 13.506
+          },
+          {
+            "sym": "KKR",
+            "value_b": 1.03,
+            "pct": 11.33
+          },
+          {
+            "sym": "V",
+            "value_b": 0.94,
+            "pct": 10.292
+          },
+          {
+            "sym": "MCO",
+            "value_b": 0.89,
+            "pct": 9.719
+          }
+        ]
+      }
+    },
+    "flagships_top30": [
+      {
+        "sym": "JOE",
+        "max_pct": 80.432,
+        "top_holder": "Bruce Berkowitz / Fairholme",
+        "top_pct": 80.432,
+        "top_value_b": 1.15
+      },
+      {
+        "sym": "IEP",
+        "max_pct": 49.117,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 49.117,
+        "top_value_b": 4.15
+      },
+      {
+        "sym": "JHG",
+        "max_pct": 40.51,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 40.51,
+        "top_value_b": 1.52
+      },
+      {
+        "sym": "HCC",
+        "max_pct": 39.471,
+        "top_holder": "Mohnish Pabrai (Dalal Street)",
+        "top_pct": 39.471,
+        "top_value_b": 0.16
+      },
+      {
+        "sym": "GE",
+        "max_pct": 33.178,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 33.178,
+        "top_value_b": 1.24
+      },
+      {
+        "sym": "RIG",
+        "max_pct": 27.777,
+        "top_holder": "Mohnish Pabrai (Dalal Street)",
+        "top_pct": 27.777,
+        "top_value_b": 0.11
+      },
+      {
+        "sym": "AMR",
+        "max_pct": 26.996,
+        "top_holder": "Mohnish Pabrai (Dalal Street)",
+        "top_pct": 26.996,
+        "top_value_b": 0.11
+      },
+      {
+        "sym": "NVDA",
+        "max_pct": 22.679,
+        "top_holder": "Millennium Management",
+        "top_pct": 22.679,
+        "top_value_b": 1.51
+      },
+      {
+        "sym": "AAPL",
+        "max_pct": 22.601,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 22.601,
+        "top_value_b": 61.96
+      },
+      {
+        "sym": "ASND",
+        "max_pct": 22.479,
+        "top_holder": "ARK Investment Management",
+        "top_pct": 22.479,
+        "top_value_b": 2.19
+      },
+      {
+        "sym": "CVI",
+        "max_pct": 21.213,
+        "top_holder": "Icahn Capital Management",
+        "top_pct": 21.213,
+        "top_value_b": 1.79
+      },
+      {
+        "sym": "AXP",
+        "max_pct": 20.458,
+        "top_holder": "Berkshire Hathaway",
+        "top_pct": 20.458,
+        "top_value_b": 56.09
+      },
+      {
+        "sym": "TSLA",
+        "max_pct": 19.312,
+        "top_holder": "Caxton Associates",
+        "top_pct": 19.312,
+        "top_value_b": 0.98
+      },
+      {
+        "sym": "MA",
+        "max_pct": 18.81,
+        "top_holder": "Akre Capital Management",
+        "top_pct": 18.81,
+        "top_value_b": 1.72
+      },
+      {
+        "sym": "META",
+        "max_pct": 18.287,
+        "top_holder": "Millennium Management",
+        "top_pct": 18.287,
+        "top_value_b": 1.22
+      },
+      {
+        "sym": "BN",
+        "max_pct": 18.148,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 18.148,
+        "top_value_b": 2.82
+      },
+      {
+        "sym": "V",
+        "max_pct": 18.124,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 18.124,
+        "top_value_b": 9.72
+      },
+      {
+        "sym": "SOLV",
+        "max_pct": 17.441,
+        "top_holder": "Anchorage Capital",
+        "top_pct": 17.441,
+        "top_value_b": 0.65
+      },
+      {
+        "sym": "SPY",
+        "max_pct": 16.763,
+        "top_holder": "Joel Greenblatt / Gotham",
+        "top_pct": 16.763,
+        "top_value_b": 4.59
+      },
+      {
+        "sym": "UBER",
+        "max_pct": 15.897,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 15.897,
+        "top_value_b": 2.47
+      },
+      {
+        "sym": "IONS",
+        "max_pct": 15.757,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.757,
+        "top_value_b": 0.2
+      },
+      {
+        "sym": "MSFT",
+        "max_pct": 15.128,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 15.128,
+        "top_value_b": 8.12
+      },
+      {
+        "sym": "CNHI",
+        "max_pct": 15.035,
+        "top_holder": "Tweedy, Browne",
+        "top_pct": 15.035,
+        "top_value_b": 0.19
+      },
+      {
+        "sym": "CCL",
+        "max_pct": 14.942,
+        "top_holder": "Hound Partners",
+        "top_pct": 14.942,
+        "top_value_b": 0.11
+      },
+      {
+        "sym": "NTRA",
+        "max_pct": 14.614,
+        "top_holder": "Duquesne Family Office",
+        "top_pct": 14.614,
+        "top_value_b": 0.58
+      },
+      {
+        "sym": "CVS",
+        "max_pct": 14.503,
+        "top_holder": "Glenview Capital Mgmt",
+        "top_pct": 14.503,
+        "top_value_b": 0.65
+      },
+      {
+        "sym": "AMZN",
+        "max_pct": 14.283,
+        "top_holder": "Pershing Square Capital",
+        "top_pct": 14.283,
+        "top_value_b": 2.22
+      },
+      {
+        "sym": "RKT",
+        "max_pct": 13.5,
+        "top_holder": "Omega Advisors / Cooperman",
+        "top_pct": 13.5,
+        "top_value_b": 0.41
+      },
+      {
+        "sym": "PLTR",
+        "max_pct": 13.381,
+        "top_holder": "Hound Partners",
+        "top_pct": 13.381,
+        "top_value_b": 0.1
+      },
+      {
+        "sym": "MCO",
+        "max_pct": 12.672,
+        "top_holder": "TCI Fund Management",
+        "top_pct": 12.672,
+        "top_value_b": 6.8
+      }
+    ]
+  },
+  "finished": "2026-05-12T10:29:38.135412+00:00"
+}
