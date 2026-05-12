@@ -1,0 +1,61 @@
+{
+  "started": "2026-05-12T22:03:45.713947+00:00",
+  "test": {
+    "invoke": {
+      "success": true,
+      "anomalies_count": 0,
+      "high_or_extreme_count": 0,
+      "by_severity": {},
+      "alerts_sent": 0,
+      "elapsed_seconds": 2.16
+    },
+    "sidecar": {
+      "size_kb": 0.9,
+      "generated_at": "2026-05-12T22:05:55.479502+00:00",
+      "elapsed_seconds": 2.13,
+      "anomalies_count": 0,
+      "by_severity": {},
+      "metrics": {
+        "vix": {
+          "current": 18.38,
+          "60d_mean": 21.69,
+          "60d_std": 3.76,
+          "z_score": -0.88,
+          "as_of": "2026-05-11",
+          "interpretation": "normal"
+        },
+        "hy_oas": {
+          "current": 2.79,
+          "180d_mean": 2.927,
+          "level_z": -0.84,
+          "1w_change": 0.01,
+          "1w_change_z": 0.09,
+          "as_of": "2026-05-11"
+        },
+        "bbb_oas": {
+          "current": 0.98,
+          "180d_mean": 1.015,
+          "level_z": -0.68,
+          "1w_change_z": -0.86,
+          "as_of": "2026-05-11"
+        },
+        "bond_vol": {
+          "current_30d_annualized_vol": 0.577,
+          "1y_mean": 0.709,
+          "z_score": -1.42,
+          "as_of": "2026-05-11",
+          "10y_yield": 4.42
+        }
+      },
+      "anomalies": [],
+      "detector_timings_s": {
+        "cross_asset": 0.24,
+        "sector_breadth": 0.1,
+        "vix_skew": 0.41,
+        "credit_spread": 0.32,
+        "bond_vol": 0.16
+      }
+    }
+  },
+  "finished": "2026-05-12T22:05:55.911151+00:00"
+}
