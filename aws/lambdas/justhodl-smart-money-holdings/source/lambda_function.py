@@ -307,6 +307,19 @@ def lambda_handler(event, context):
             })
     print(f"[smh] inverted index: kept {sum(len(v) for v in by_symbol.values())} entries · skipped {skipped_noise} noise")
 
+    # Track issuer name per symbol — pulled from any holder's nameOfIssuer.
+    # Different funds may report slightly different cases; pick the longest/most
+    # complete version we've seen.
+    issuer_name_by_sym = {}
+    for fund in fund_results:
+        for h in fund.get("holdings", []):
+            sym = h.get("symbol")
+            iss = h.get("name")  # nameOfIssuer was stored as "name" in fetch_fund_holdings
+            if not sym or not iss: continue
+            existing = issuer_name_by_sym.get(sym)
+            if not existing or len(iss) > len(existing):
+                issuer_name_by_sym[sym] = iss
+
     # Within each symbol, sort holders by value desc; also compute symbol-level
     # conviction metrics for screener page filtering/sorting.
     holdings_map = {}
@@ -326,6 +339,7 @@ def lambda_handler(event, context):
             "max_pct_of_fund": max_pct,
             "n_high_conviction": n_high,
             "n_flagship": n_flagship,
+            "issuer_name": issuer_name_by_sym.get(sym),
         }
 
     # Fund summaries (top 10 holdings each, for fund-detail UI)

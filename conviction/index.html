@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conviction — Smart Money Flagship Positions · JustHodl.AI</title>
+<meta name="description" content="Stocks that legendary hedge funds bet >10% of their portfolio on. Concentration is conviction.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎯%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+
+header{
+  position:sticky; top:0; z-index:30;
+  background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  backdrop-filter:blur(10px);
+}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);margin-right:14px;}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1500px;margin:0 auto;}
+
+.hero{
+  background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(167,139,250,.06));
+  border:1px solid rgba(251,191,36,.18);
+  border-radius:6px; padding:18px 22px; margin-bottom:16px;
+}
+.hero-title{font-size:15px;font-weight:600;letter-spacing:-.2px;margin:0 0 6px;}
+.hero-sub{color:var(--text-dim);font-size:12px;margin:0;}
+
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+@media (max-width:780px){.summary-row{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.stat-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+
+.filter-row{
+  background:var(--panel); border:1px solid var(--border); border-radius:5px;
+  padding:10px 14px; margin-bottom:14px;
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.filter-row input{
+  background:var(--bg); border:1px solid var(--border-hi); color:var(--text);
+  padding:6px 10px; border-radius:3px; font-family:var(--font-mono); font-size:12px;
+  outline:none; flex:1; min-width:200px; max-width:300px;
+}
+.chip{
+  font-family:var(--font-mono);font-size:11px;cursor:pointer;
+  padding:5px 10px;border-radius:3px;border:1px solid var(--border-hi);
+  background:transparent;color:var(--text-dim);
+  transition:all .12s;
+}
+.chip:hover{color:var(--text);border-color:var(--accent);}
+.chip.active{background:rgba(251,191,36,.15);color:var(--gold);border-color:var(--gold);}
+.chip-count{opacity:.6;font-size:10px;margin-left:4px;}
+
+table.conviction{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+table.conviction thead{background:rgba(28,35,48,.4);}
+table.conviction th{
+  text-align:left;padding:11px 14px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--text-mute);
+  border-bottom:1px solid var(--border);font-weight:500;
+  cursor:pointer;user-select:none;white-space:nowrap;
+}
+table.conviction th:hover{color:var(--text);}
+table.conviction th.sorted-desc::after{content:' ▼';color:var(--accent);}
+table.conviction th.sorted-asc::after{content:' ▲';color:var(--accent);}
+table.conviction td{padding:10px 14px;border-bottom:1px solid rgba(28,35,48,.5);font-size:12px;vertical-align:top;}
+table.conviction tbody tr{cursor:pointer;transition:background .1s;}
+table.conviction tbody tr:hover{background:rgba(167,139,250,.05);}
+table.conviction tbody tr.expanded{background:rgba(251,191,36,.04);}
+table.conviction td.sym{font-family:var(--font-mono);font-weight:700;color:var(--accent);font-size:13px;}
+table.conviction td.right{text-align:right;font-family:var(--font-mono);}
+table.conviction td.center{text-align:center;}
+
+.conv-chip{
+  font-family:var(--font-mono); font-weight:700; font-size:10px;
+  padding:2px 7px; border-radius:3px; display:inline-block; min-width:50px; text-align:center;
+}
+.conv-chip.flagship{background:rgba(251,191,36,.18);color:var(--gold);}
+.conv-chip.high{background:rgba(167,139,250,.15);color:var(--accent);}
+.conv-chip.notable{background:rgba(34,211,238,.10);color:var(--info);}
+
+.holders-expand{background:rgba(28,35,48,.3);}
+.holders-table{width:100%;font-size:11px;}
+.holders-table td{padding:7px 14px;border:none;color:var(--text-dim);}
+.holders-table td.fund-name{color:var(--text);padding-left:48px;}
+.holders-table td.pct{font-family:var(--font-mono);font-weight:700;}
+.holders-table tr:hover{background:rgba(28,35,48,.5);}
+
+.glyph{font-weight:700;}
+.glyph.flag{color:var(--gold);}
+.glyph.hi{color:var(--accent);}
+.glyph.notable{color:var(--info);}
+
+.loading,.error{padding:40px 20px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:12px;}
+.error{color:var(--neg);}
+
+.empty-state{padding:40px;text-align:center;color:var(--text-mute);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 Conviction <span class="badge">SMART MONEY</span></h1>
+  <div class="header-meta">
+    <a class="nav-back" href="/">← Home</a>
+    <a class="nav-back" href="/smart-money/">🐳 Funds</a>
+    <a class="nav-back" href="/screener/">📊 Screener</a>
+    <span><span class="dot"></span>Q4 2025</span>
+    <span id="updated">—</span>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <p class="hero-title">Where legendary investors are betting big</p>
+    <p class="hero-sub">Concentration is conviction. A stock that's 20% of a fund's portfolio is a vote, not a guess. This page surfaces every position that 60+ tracked hedge funds, activists, and value investors have built to ≥5% of their total assets. Click any row to see who's in.</p>
+  </div>
+
+  <div class="summary-row" id="summary">
+    <div class="stat"><div class="stat-label">Flagship Positions</div><div class="stat-val" id="stat-flagship">—</div><div class="stat-sub">≥10% of some fund's portfolio</div></div>
+    <div class="stat"><div class="stat-label">High Conviction</div><div class="stat-val" id="stat-high">—</div><div class="stat-sub">≥5% of some fund's portfolio</div></div>
+    <div class="stat"><div class="stat-label">Funds Tracked</div><div class="stat-val" id="stat-funds">—</div><div class="stat-sub">13F-HR institutional filers</div></div>
+    <div class="stat"><div class="stat-label">Total Symbols</div><div class="stat-val" id="stat-symbols">—</div><div class="stat-sub">in inverted index</div></div>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" id="filter-input" placeholder="Filter by ticker or fund name..." autocomplete="off">
+    <button class="chip" data-filter="flagship">★ Flagship <span class="chip-count" id="cnt-flagship"></span></button>
+    <button class="chip active" data-filter="high">◆ High Conv <span class="chip-count" id="cnt-high"></span></button>
+    <button class="chip" data-filter="all">All ≥1% <span class="chip-count" id="cnt-all"></span></button>
+  </div>
+
+  <table class="conviction" id="conv-table">
+    <thead>
+      <tr>
+        <th data-sort="symbol">Ticker</th>
+        <th data-sort="name">Company</th>
+        <th data-sort="max_pct" class="sorted-desc" style="text-align:right">Max Conv %</th>
+        <th data-sort="top_holder" style="text-align:left">Top Holder</th>
+        <th data-sort="n_high" style="text-align:right">HC</th>
+        <th data-sort="n_flag" style="text-align:right">★</th>
+        <th data-sort="n_holders" style="text-align:right">Funds</th>
+        <th data-sort="total_value" style="text-align:right">Total SM $</th>
+      </tr>
+    </thead>
+    <tbody id="conv-body">
+      <tr><td colspan="8" class="loading">Loading smart money inverted index…</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script>
+const SIDECAR_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/smart-money-holdings.json';
+
+let raw = null;
+let rows = [];
+let sortCol = 'max_pct';
+let sortDir = 'desc';
+let activeFilter = 'high';   // default: show >=5%
+let textFilter = '';
+let expandedSym = null;
+
+function fmtPct(v){
+  if(v == null) return '–';
+  return v.toFixed(2) + '%';
+}
+function fmtUsd(v){
+  if(!v) return '–';
+  if(v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if(v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+  return '$' + Math.round(v).toLocaleString();
+}
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function glyphFor(pct){
+  if(pct >= 10) return '<span class="glyph flag">★</span>';
+  if(pct >= 5) return '<span class="glyph hi">◆</span>';
+  if(pct >= 1) return '<span class="glyph notable">·</span>';
+  return '';
+}
+function chipFor(pct){
+  if(pct == null) return '–';
+  let cls = pct >= 10 ? 'flagship' : pct >= 5 ? 'high' : 'notable';
+  return '<span class="conv-chip ' + cls + '">' + pct.toFixed(2) + '%</span>';
+}
+function shortFundName(name){
+  if(!name) return '';
+  return name.replace(/\s+(Inc\.?|LLC|Corp\.?|LP|Ltd|Group|Holdings|Management|Capital|Partners|Hathaway|Investments|Advisors|Co)\b/gi,'').trim().substring(0, 32);
+}
+
+function flattenRows(){
+  const holdings = (raw && raw.holdings) || {};
+  const arr = [];
+  for(const [sym, entry] of Object.entries(holdings)){
+    if(!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+    const holders = entry.holders || [];
+    if(holders.length === 0) continue;
+    const total = holders.reduce((s, h) => s + (h.value || 0), 0);
+    const top = holders.slice().sort((a,b) => (b.pct_of_fund||0) - (a.pct_of_fund||0))[0];
+    arr.push({
+      symbol: sym,
+      issuer_name: entry.issuer_name || null,
+      max_pct: entry.max_pct_of_fund,
+      n_high: entry.n_high_conviction || 0,
+      n_flag: entry.n_flagship || 0,
+      n_holders: holders.length,
+      total_value: total,
+      top_holder: top?.name || '',
+      top_pct: top?.pct_of_fund || null,
+      top_value: top?.value || null,
+      holders: holders,
+    });
+  }
+  return arr;
+}
+
+function applyFilters(){
+  let r = rows.slice();
+  if(activeFilter === 'flagship') r = r.filter(x => (x.max_pct || 0) >= 10);
+  else if(activeFilter === 'high') r = r.filter(x => (x.max_pct || 0) >= 5);
+  else if(activeFilter === 'all') r = r.filter(x => (x.max_pct || 0) >= 1);
+
+  if(textFilter){
+    const t = textFilter.toLowerCase();
+    r = r.filter(x =>
+      x.symbol.toLowerCase().includes(t) ||
+      (x.top_holder || '').toLowerCase().includes(t) ||
+      x.holders.some(h => (h.name || '').toLowerCase().includes(t))
+    );
+  }
+
+  r.sort((a, b) => {
+    const dir = sortDir === 'desc' ? -1 : 1;
+    let va = a[sortCol], vb = b[sortCol];
+    if(va == null) va = sortCol === 'symbol' ? '' : -Infinity;
+    if(vb == null) vb = sortCol === 'symbol' ? '' : -Infinity;
+    if(typeof va === 'string') return dir * va.localeCompare(vb);
+    return dir * (va - vb);
+  });
+  return r;
+}
+
+function render(){
+  const data = applyFilters();
+  const body = document.getElementById('conv-body');
+  if(data.length === 0){
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">No positions match current filter.</td></tr>';
+    return;
+  }
+
+  const html = data.map(r => {
+    const expanded = r.symbol === expandedSym;
+    let row = '<tr data-sym="' + escapeHtml(r.symbol) + '"' + (expanded ? ' class="expanded"' : '') + '>'
+      + '<td class="sym">' + escapeHtml(r.symbol) + '</td>'
+      + '<td style="color:var(--text-dim)">' + escapeHtml(r.issuer_name || '–') + ' ' + glyphFor(r.max_pct || 0) + '</td>'
+      + '<td class="right">' + chipFor(r.max_pct) + '</td>'
+      + '<td>' + escapeHtml(shortFundName(r.top_holder)) + ' <span style="color:var(--text-mute);font-family:var(--font-mono);font-size:10px">(' + (r.top_pct ? r.top_pct.toFixed(1) : '–') + '%)</span></td>'
+      + '<td class="right" style="color:' + (r.n_high >= 3 ? 'var(--gold)' : r.n_high >= 1 ? 'var(--accent)' : 'var(--text-mute)') + '">' + (r.n_high || '–') + '</td>'
+      + '<td class="right" style="color:' + (r.n_flag >= 1 ? 'var(--gold)' : 'var(--text-mute)') + '">' + (r.n_flag || '–') + '</td>'
+      + '<td class="right">' + r.n_holders + '</td>'
+      + '<td class="right">' + fmtUsd(r.total_value) + '</td>'
+      + '</tr>';
+
+    if(expanded){
+      row += '<tr class="holders-expand"><td colspan="8" style="padding:0">'
+        + '<table class="holders-table">'
+        + '<tbody>'
+        + r.holders.slice().sort((a,b) => (b.pct_of_fund||0) - (a.pct_of_fund||0)).map(h => {
+          const pct = h.pct_of_fund || 0;
+          const pctColor = pct >= 10 ? 'var(--gold)' : pct >= 5 ? 'var(--accent)' : pct >= 1 ? 'var(--info)' : 'var(--text-mute)';
+          return '<tr>'
+            + '<td class="fund-name">' + glyphFor(pct) + ' ' + escapeHtml(h.name || '') + '</td>'
+            + '<td class="pct" style="color:' + pctColor + ';text-align:right;width:90px">' + pct.toFixed(2) + '%</td>'
+            + '<td style="text-align:right;width:90px">' + fmtUsd(h.value) + '</td>'
+            + '<td style="text-align:right;width:120px;font-family:var(--font-mono);font-size:10px;color:var(--text-mute)">' + (h.shares || 0).toLocaleString() + ' sh</td>'
+            + '</tr>';
+        }).join('')
+        + '</tbody></table>'
+        + '</td></tr>';
+    }
+    return row;
+  }).join('');
+
+  body.innerHTML = html;
+
+  // Add row click handlers
+  body.querySelectorAll('tr[data-sym]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const sym = tr.getAttribute('data-sym');
+      expandedSym = expandedSym === sym ? null : sym;
+      render();
+    });
+  });
+}
+
+function updateSummary(){
+  if(!raw) return;
+  const flagship = rows.filter(r => (r.max_pct || 0) >= 10).length;
+  const high = rows.filter(r => (r.max_pct || 0) >= 5).length;
+  const all_notable = rows.filter(r => (r.max_pct || 0) >= 1).length;
+  document.getElementById('stat-flagship').textContent = flagship;
+  document.getElementById('stat-high').textContent = high;
+  document.getElementById('stat-funds').textContent = raw.n_funds_scanned || (raw.funds || []).length;
+  document.getElementById('stat-symbols').textContent = (raw.n_symbols || 0).toLocaleString();
+  document.getElementById('cnt-flagship').textContent = '(' + flagship + ')';
+  document.getElementById('cnt-high').textContent = '(' + high + ')';
+  document.getElementById('cnt-all').textContent = '(' + all_notable + ')';
+  if(raw.generated_at){
+    const dt = new Date(raw.generated_at);
+    const ago = Math.round((Date.now() - dt.getTime()) / 3600000);
+    document.getElementById('updated').textContent = 'Updated ' + (ago < 1 ? 'just now' : ago + 'h ago');
+  }
+}
+
+function initListeners(){
+  document.querySelectorAll('.chip[data-filter]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.chip[data-filter]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      activeFilter = b.getAttribute('data-filter');
+      expandedSym = null;
+      render();
+    });
+  });
+  document.getElementById('filter-input').addEventListener('input', e => {
+    textFilter = e.target.value.trim();
+    expandedSym = null;
+    render();
+  });
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.getAttribute('data-sort');
+      if(sortCol === col){
+        sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+      } else {
+        sortCol = col;
+        sortDir = 'desc';
+      }
+      document.querySelectorAll('th[data-sort]').forEach(x => x.classList.remove('sorted-asc','sorted-desc'));
+      th.classList.add('sorted-' + sortDir);
+      render();
+    });
+  });
+}
+
+async function load(){
+  try{
+    const resp = await fetch(SIDECAR_URL + '?ts=' + Date.now());
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    raw = await resp.json();
+    rows = flattenRows();
+    updateSummary();
+    render();
+  } catch(err){
+    document.getElementById('conv-body').innerHTML =
+      '<tr><td colspan="8" class="error">Failed to load: ' + escapeHtml(err.message) + '</td></tr>';
+  }
+}
+
+initListeners();
+load();
+</script>
+</body>
+</html>
