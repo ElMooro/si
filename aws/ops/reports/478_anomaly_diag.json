@@ -1,0 +1,63 @@
+{
+  "started": "2026-05-12T21:58:57.901553+00:00",
+  "test": {
+    "env_summary": {
+      "FRED_KEY": {
+        "len": 32,
+        "first3": "2f0"
+      },
+      "POLY_KEY": {
+        "len": 32,
+        "first3": "zvE"
+      },
+      "TELEGRAM_TOKEN": {
+        "len": 46,
+        "first3": "867"
+      },
+      "TELEGRAM_CHAT_ID": {
+        "len": 10,
+        "first3": "867"
+      }
+    },
+    "fred_test": {
+      "ok": true,
+      "n_obs": 5,
+      "first_obs": {
+        "realtime_start": "2026-05-12",
+        "realtime_end": "2026-05-12",
+        "date": "2026-05-11",
+        "value": "18.38"
+      },
+      "elapsed_s": 0.23
+    },
+    "poly_test": {
+      "ok": true,
+      "status": "OK",
+      "n_results": 5,
+      "first": {
+        "v": 47227085.270493,
+        "vw": 736.5439,
+        "o": 734.93,
+        "c": 737.62,
+        "h": 738.08,
+        "l": 734.57,
+        "t": 1778212800000,
+        "n": 593447
+      },
+      "elapsed_s": 0.04
+    },
+    "fred_year_test": {
+      "ok": true,
+      "total_obs": 354,
+      "valid_obs": 349,
+      "elapsed_s": 0.14,
+      "last_valid": {
+        "realtime_start": "2026-05-12",
+        "realtime_end": "2026-05-12",
+        "date": "2026-05-11",
+        "value": "18.38"
+      }
+    }
+  },
+  "finished": "2026-05-12T21:59:05.134306+00:00"
+}
