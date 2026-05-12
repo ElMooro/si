@@ -10,17 +10,18 @@ ranked S/A/B/C/D, so you don't have to mentally weigh 40 columns when
 deciding "is this stock worth attention right now?"
 
 ═══════════════════════════════════════════════════════════════════════
-THE 7-FACTOR MODEL
+THE 8-FACTOR MODEL
 ──────────────────
 Each factor scaled 0-100. Weighted composite = final alpha score 0-100.
 
-  QUALITY      (18%) — Piotroski, Altman Z, ROIC, margins, sustainability
-  GROWTH       (18%) — Revenue/EPS/FCF growth, beat streak
-  MOMENTUM     (15%) — Price returns 1m/3m/6m, MA200 relationship
-  SMART MONEY  (18%) — Famous-fund concentration (from smart-money sidecar)
-  SENTIMENT    (10%) — AI news sentiment (from sentiment sidecar)
-  ANALYSTS     ( 9%) — Grades consensus, recent upgrades, PT upside, DCF upside
-  INSIDERS     (12%) — Insider+political buying, cluster signals
+  QUALITY       (16%) — Piotroski, Altman Z, ROIC, margins, sustainability
+  GROWTH        (17%) — Revenue/EPS/FCF growth, beat streak
+  MOMENTUM      (14%) — Price returns 1m/3m/6m, MA200 relationship
+  SMART MONEY   (16%) — Famous-fund concentration (from smart-money sidecar)
+  SENTIMENT     (10%) — AI news sentiment (from sentiment sidecar)
+  ANALYSTS      ( 8%) — Grades consensus, recent upgrades, PT upside, DCF upside
+  INSIDERS      (11%) — Insider+political buying, cluster signals
+  OPTIONS FLOW  ( 8%) — Institutional options + short-interest squeeze setups
 
 Total: 100%. Weights are configurable for future calibration.
 
@@ -56,19 +57,25 @@ S3_BUCKET = "justhodl-dashboard-live"
 SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
+OPTIONS_FLOW_KEY = "data/options-flow.json"
 OUTPUT_KEY = "screener/alpha-score.json"
 
-MODEL_VERSION = "1.0.0"
+MODEL_VERSION = "1.1.0"  # bumped — options-flow added as 8th factor
 
 # Factor weights — must sum to 1.0
+# Rebalanced 2026-05-12 to incorporate options-flow as the 8th factor.
+# Trimmed 0.02 from quality+smart_money (both well-covered), 0.01 from
+# growth+momentum+analysts+insiders. Options flow is a smart-trader signal
+# (similar in spirit to smart_money) so 0.08 is the natural weight.
 WEIGHTS = {
-    "quality":      0.18,
-    "growth":       0.18,
-    "momentum":     0.15,
-    "smart_money":  0.18,
-    "sentiment":    0.10,
-    "analysts":     0.09,
-    "insiders":     0.12,
+    "quality":      0.16,   # -0.02
+    "growth":       0.17,   # -0.01
+    "momentum":     0.14,   # -0.01
+    "smart_money":  0.16,   # -0.02
+    "sentiment":    0.10,   # unchanged
+    "analysts":     0.08,   # -0.01
+    "insiders":     0.11,   # -0.01
+    "options_flow": 0.08,   # NEW — institutional options + short-interest signal
 }
 assert abs(sum(WEIGHTS.values()) - 1.0) < 1e-6, "Weights must sum to 1.0"
 
@@ -412,11 +419,39 @@ def score_insiders(s):
     return score, coverage
 
 
+def score_options_flow(s, of_entry):
+    """Options + short-interest flow signal from options-flow-scanner sidecar.
+
+    The scanner already produces a 0-100 score per ticker combining:
+      - Call/put ratio surge (CPR change vs 20d avg)
+      - Heavy call volume (today's call vol > N× ATM avg)
+      - Falling short interest (bears giving up — squeeze setup)
+      - High IV percentile (premiums elevated, big move expected)
+
+    Universe is currently ~150 tickers (limited Polygon options coverage),
+    so most S&P 500 stocks have no data here. When missing, returns
+    (None, 0) and alpha-score's existing re-weighting kicks in.
+    """
+    if not of_entry: return None, 0
+    raw_score = of_entry.get("score")
+    if raw_score is None: return None, 0
+
+    # Coverage scales with tier strength so missing data isn't punished
+    # but high-tier signals get full weight
+    tier = of_entry.get("tier", "NEUTRAL")
+    if tier == "TIER_A_BULLISH_FLOW":   coverage = 1.0
+    elif tier == "TIER_B_FLOW_BUILDING": coverage = 0.95
+    elif tier == "WATCH":                coverage = 0.85
+    else:                                coverage = 0.75  # NEUTRAL still informative (low score)
+
+    return float(raw_score), coverage
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # SIGNAL DESCRIPTIONS — generate human-readable bullets
 # ═══════════════════════════════════════════════════════════════════════
 
-def generate_top_signals(s, sm_entry, sent_entry, components):
+def generate_top_signals(s, sm_entry, sent_entry, of_entry, components):
     """Pick 2-4 bullet points that best explain why this stock scored where it did."""
     signals = []
 
@@ -484,6 +519,32 @@ def generate_top_signals(s, sm_entry, sent_entry, components):
     beats = s.get("beatStreak")
     if beats is not None and beats >= 4:
         signals.append(f"✓ Beat earnings {beats} quarters in a row")
+
+    # Options flow (TIER A bullish flow only — meaningful signal)
+    if components.get("options_flow") is not None and components["options_flow"] >= 65 and of_entry:
+        flags_list = of_entry.get("flags") or []
+        of_metrics = of_entry.get("metrics") or {}
+        cpr_chg = of_metrics.get("cpr_change_pct")
+        call_surge = of_metrics.get("call_vol_surge")
+        # Pick the most descriptive flag
+        priority_order = ["HIGH_SHORT_SQUEEZE_SETUP", "CPR_SURGING", "CALL_VOL_3X",
+                            "SHORTS_COVERING", "ABS_CPR_3X", "ABS_CPR_2X"]
+        chosen_flag = next((f for f in priority_order if f in flags_list), None)
+        flag_label = {
+            "HIGH_SHORT_SQUEEZE_SETUP": "Squeeze setup",
+            "CPR_SURGING": "Call/put surge",
+            "CALL_VOL_3X": "Call volume 3×",
+            "SHORTS_COVERING": "Shorts covering",
+            "ABS_CPR_3X": "Heavy call skew",
+            "ABS_CPR_2X": "Call skew",
+        }.get(chosen_flag, "Bullish options flow")
+        extras = []
+        if cpr_chg is not None and cpr_chg > 100:
+            extras.append(f"CPR +{cpr_chg:.0f}%")
+        if call_surge is not None and call_surge > 3:
+            extras.append(f"vol {call_surge:.1f}×")
+        extra_str = f" ({', '.join(extras)})" if extras else ""
+        signals.append(f"⚡ {flag_label}{extra_str}")
 
     return signals[:5]
 
@@ -575,9 +636,22 @@ def lambda_handler(event, context):
         print(f"  smart-money unavailable: {e}")
         sm_generated = None
 
-    print(f"  inputs: {len(stocks)} stocks · {len(sentiment_by_sym)} sentiment · {len(sm_by_sym)} smart-money")
+    # 4. Load options-flow (optional — daily refresh @21:30 UTC, ~150 ticker coverage)
+    of_by_sym = {}
+    of_generated = None
+    try:
+        of = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OPTIONS_FLOW_KEY)["Body"].read())
+        for row in (of.get("all_qualifying") or []):
+            sym = row.get("symbol")
+            if sym: of_by_sym[sym] = row
+        of_generated = of.get("generated_at")
+    except Exception as e:
+        print(f"  options-flow unavailable: {e}")
 
-    # 4. Score each stock
+    print(f"  inputs: {len(stocks)} stocks · {len(sentiment_by_sym)} sentiment · "
+          f"{len(sm_by_sym)} smart-money · {len(of_by_sym)} options-flow")
+
+    # 5. Score each stock
     scored = []
     for s in stocks:
         sym = s.get("symbol")
@@ -585,8 +659,9 @@ def lambda_handler(event, context):
 
         sm_entry = sm_by_sym.get(sym)
         sent_entry = sentiment_by_sym.get(sym)
+        of_entry = of_by_sym.get(sym)
 
-        # 7 factor scores
+        # 8 factor scores
         q_score, q_cov = score_quality(s)
         g_score, g_cov = score_growth(s)
         m_score, m_cov = score_momentum(s)
@@ -594,15 +669,17 @@ def lambda_handler(event, context):
         sent_score, sent_cov = score_sentiment(s, sent_entry)
         an_score, an_cov = score_analysts(s)
         i_score, i_cov = score_insiders(s)
+        of_score, of_cov = score_options_flow(s, of_entry)
 
         components = {
-            "quality": round(q_score) if q_score is not None else None,
-            "growth": round(g_score) if g_score is not None else None,
-            "momentum": round(m_score) if m_score is not None else None,
-            "smart_money": round(sm_score) if sm_score is not None else None,
-            "sentiment": round(sent_score) if sent_score is not None else None,
-            "analysts": round(an_score) if an_score is not None else None,
-            "insiders": round(i_score) if i_score is not None else None,
+            "quality":      round(q_score) if q_score is not None else None,
+            "growth":       round(g_score) if g_score is not None else None,
+            "momentum":     round(m_score) if m_score is not None else None,
+            "smart_money":  round(sm_score) if sm_score is not None else None,
+            "sentiment":    round(sent_score) if sent_score is not None else None,
+            "analysts":     round(an_score) if an_score is not None else None,
+            "insiders":     round(i_score) if i_score is not None else None,
+            "options_flow": round(of_score) if of_score is not None else None,
         }
 
         # Weighted alpha. Missing components are skipped + re-weight the rest.
@@ -616,7 +693,7 @@ def lambda_handler(event, context):
         # Coverage = how many of the 7 factors had data
         coverage = (q_cov + g_cov + m_cov + sm_cov + sent_cov + an_cov + i_cov) / 7
 
-        top_signals = generate_top_signals(s, sm_entry, sent_entry, components)
+        top_signals = generate_top_signals(s, sm_entry, sent_entry, of_entry, components)
         risk_flags = generate_risk_flags(s, sent_entry)
 
         scored.append({
@@ -666,8 +743,10 @@ def lambda_handler(event, context):
             "screener_generated_at": screener.get("generated_at"),
             "sentiment_generated_at": sent_generated,
             "smart_money_generated_at": sm_generated,
+            "options_flow_generated_at": of_generated,
             "stocks_with_sentiment": len(sentiment_by_sym),
             "stocks_with_smart_money": len(sm_by_sym),
+            "stocks_with_options_flow": len(of_by_sym),
         },
         "stocks": all_stocks,
     }
