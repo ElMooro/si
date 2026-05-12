@@ -1,0 +1,545 @@
+{
+  "started": "2026-05-12T23:36:52.586961+00:00",
+  "test": {
+    "before": {
+      "model_version": "1.0.0",
+      "weights": {
+        "quality": 0.18,
+        "growth": 0.18,
+        "momentum": 0.15,
+        "smart_money": 0.18,
+        "sentiment": 0.1,
+        "analysts": 0.09,
+        "insiders": 0.12
+      },
+      "tier_distribution": {
+        "S": 0,
+        "A": 2,
+        "B": 28,
+        "C": 384,
+        "D": 89
+      },
+      "inputs": {
+        "screener_generated_at": "2026-05-12T19:32:24.525745+00:00",
+        "sentiment_generated_at": "2026-05-12T18:16:49.896792+00:00",
+        "smart_money_generated_at": "2026-05-12T14:30:13.162075+00:00",
+        "stocks_with_sentiment": 503,
+        "stocks_with_smart_money": 4053
+      },
+      "top_3_tier_S_or_A": [
+        {
+          "sym": "NVDA",
+          "alpha": 83,
+          "tier": "A",
+          "components": {
+            "quality": 98,
+            "growth": 98,
+            "momentum": 88,
+            "smart_money": 84,
+            "sentiment": 75,
+            "analysts": 59,
+            "insiders": 51
+          }
+        },
+        {
+          "sym": "VRT",
+          "alpha": 82,
+          "tier": "A",
+          "components": {
+            "quality": 84,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 92
+          }
+        },
+        {
+          "sym": "AMD",
+          "alpha": 78,
+          "tier": "B",
+          "components": {
+            "quality": 76,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 73,
+            "sentiment": 73,
+            "analysts": 49,
+            "insiders": 60
+          }
+        }
+      ]
+    },
+    "invoke_status": 200,
+    "fn_error": null,
+    "invoke_response": {
+      "success": true,
+      "scored": 503,
+      "tier_distribution": {
+        "S": 0,
+        "A": 2,
+        "B": 21,
+        "C": 385,
+        "D": 95
+      },
+      "elapsed_seconds": 0.57
+    },
+    "log_tail": "/var/task/lambda_function.py:45: SyntaxWarning: invalid escape sequence '\\$'\nwrites 1 sidecar back. <5 seconds for 503 stocks. <\\$0.01 per run.\nSTART RequestId: 90b8c89f-6b6e-42bd-87af-6eb98ce4c440 Version: $LATEST\n=== ALPHA SCORE ENGINE v1.1.0 \u00b7 2026-05-12T23:39:30.461240+00:00 ===\ninputs: 503 stocks \u00b7 503 sentiment \u00b7 4053 smart-money \u00b7 144 options-flow\nscored 503 of 503 stocks \u00b7 0.6s\ntiers: S=0 A=2 B=21 C=385 D=95\nwrote 291.9 KB to s3://justhodl-dashboard-live/screener/alpha-score.json\nEND RequestId: 90b8c89f-6b6e-42bd-87af-6eb98ce4c440\nREPORT RequestId: 90b8c89f-6b6e-42bd-87af-6eb98ce4c440\tDuration: 645.71 ms\tBilled Duration: 1074 ms\tMemory Size: 1024 MB\tMax Memory Used: 116 MB\tInit Duration: 427.61 ms\t\n",
+    "after": {
+      "model_version": "1.1.0",
+      "weights": {
+        "quality": 0.16,
+        "growth": 0.17,
+        "momentum": 0.14,
+        "smart_money": 0.16,
+        "sentiment": 0.1,
+        "analysts": 0.08,
+        "insiders": 0.11,
+        "options_flow": 0.08
+      },
+      "tier_distribution": {
+        "S": 0,
+        "A": 2,
+        "B": 21,
+        "C": 385,
+        "D": 95
+      },
+      "inputs": {
+        "screener_generated_at": "2026-05-12T19:32:24.525745+00:00",
+        "sentiment_generated_at": "2026-05-12T18:16:49.896792+00:00",
+        "smart_money_generated_at": "2026-05-12T14:30:13.162075+00:00",
+        "options_flow_generated_at": "2026-05-12T21:30:22+00:00",
+        "stocks_with_sentiment": 503,
+        "stocks_with_smart_money": 4053,
+        "stocks_with_options_flow": 144
+      },
+      "n_stocks": 503,
+      "n_with_options_flow": 140,
+      "top_options_flow_in_alpha": [
+        {
+          "symbol": "HCA",
+          "alpha": 59,
+          "tier": "C",
+          "options_flow_score": 95,
+          "top_signals": [
+            "\ud83e\udd1d Insider CLUSTER BUY: 9 insiders bought last 90d",
+            "\ud83c\udfaf Analyst PT upside: +22%",
+            "\u2713 Beat earnings 7 quarters in a row"
+          ],
+          "components": {
+            "quality": 57,
+            "growth": 69,
+            "momentum": 32,
+            "smart_money": 66,
+            "sentiment": 37,
+            "analysts": 50,
+            "insiders": 70,
+            "options_flow": 95
+          }
+        },
+        {
+          "symbol": "PGR",
+          "alpha": 63,
+          "tier": "C",
+          "options_flow_score": 93,
+          "top_signals": [
+            "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+            "\ud83e\udd1d Insider CLUSTER BUY: 24 insiders bought last 90d",
+            "\ud83d\udcb0 DCF fair value upside: +104%"
+          ],
+          "components": {
+            "quality": 73,
+            "growth": 61,
+            "momentum": 38,
+            "smart_money": 66,
+            "sentiment": 45,
+            "analysts": 67,
+            "insiders": 69,
+            "options_flow": 93
+          }
+        },
+        {
+          "symbol": "WM",
+          "alpha": 59,
+          "tier": "C",
+          "options_flow_score": 90,
+          "top_signals": [
+            "\ud83d\udc3b News -0.40: DCF analysis shows significant overvaluation at $221 vs $132 intrinsic value des",
+            "\ud83e\udd1d Insider CLUSTER BUY: 12 insiders bought last 90d",
+            "\ud83d\udcb0 DCF fair value upside: +54%"
+          ],
+          "components": {
+            "quality": 54,
+            "growth": 52,
+            "momentum": 43,
+            "smart_money": 59,
+            "sentiment": 35,
+            "analysts": 67,
+            "insiders": 92,
+            "options_flow": 90
+          }
+        },
+        {
+          "symbol": "FDX",
+          "alpha": 61,
+          "tier": "C",
+          "options_flow_score": 86,
+          "top_signals": [
+            "\ud83d\udc02 News +0.60: BofA added to US 1 list, trading at bargain valuation, and expanding strategic A",
+            "\ud83d\udcc8 Momentum: +61.5% over 1 year",
+            "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d"
+          ],
+          "components": {
+            "quality": 57,
+            "growth": 36,
+            "momentum": 76,
+            "smart_money": 62,
+            "sentiment": 63,
+            "analysts": 42,
+            "insiders": 80,
+            "options_flow": 86
+          }
+        },
+        {
+          "symbol": "VRT",
+          "alpha": 83,
+          "tier": "A",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI ",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +55.2% over 90 days"
+          ],
+          "components": {
+            "quality": 84,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 92,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "PANW",
+          "alpha": 67,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc02 News +0.50: Launched next-gen Idira identity security platform for AI enterprise and beating",
+            "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +31.7% over 90 days"
+          ],
+          "components": {
+            "quality": 70,
+            "growth": 58,
+            "momentum": 78,
+            "smart_money": 61,
+            "sentiment": 71,
+            "analysts": 42,
+            "insiders": 76,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "PM",
+          "alpha": 62,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83e\udd1d Insider CLUSTER BUY: 9 insiders bought last 90d",
+            "\u26a1 Squeeze setup (vol 3.3\u00d7)"
+          ],
+          "components": {
+            "quality": 79,
+            "growth": 53,
+            "momentum": 72,
+            "smart_money": 57,
+            "sentiment": 38,
+            "analysts": 53,
+            "insiders": 55,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "COP",
+          "alpha": 62,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc02 News +0.75: Strong YTD performance, new Syria offshore deal, Norway field restart approval, ",
+            "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+            "\ud83e\udd1d Insider CLUSTER BUY: 11 insiders bought last 90d"
+          ],
+          "components": {
+            "quality": 61,
+            "growth": 40,
+            "momentum": 66,
+            "smart_money": 64,
+            "sentiment": 77,
+            "analysts": 62,
+            "insiders": 63,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "HON",
+          "alpha": 60,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83e\udd1d Insider CLUSTER BUY: 17 insiders bought last 90d",
+            "\u2713 Beat earnings 7 quarters in a row",
+            "\u26a1 Squeeze setup (CPR +244%, vol 4.6\u00d7)"
+          ],
+          "components": {
+            "quality": 53,
+            "growth": 47,
+            "momentum": 44,
+            "smart_money": 69,
+            "sentiment": 58,
+            "analysts": 58,
+            "insiders": 84,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "FCX",
+          "alpha": 59,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +68.9% over 1 year",
+            "\u2713 Beat earnings 5 quarters in a row"
+          ],
+          "components": {
+            "quality": 71,
+            "growth": 48,
+            "momentum": 79,
+            "smart_money": 59,
+            "sentiment": 44,
+            "analysts": 42,
+            "insiders": 40,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "LMT",
+          "alpha": 58,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc02 News +0.75: Multiple major defense contract wins ($3.2B, $1.1B) and 10.8% stock appreciation",
+            "\ud83e\udd1d Insider CLUSTER BUY: 14 insiders bought last 90d",
+            "\ud83c\udfaf Analyst PT upside: +22%"
+          ],
+          "components": {
+            "quality": 54,
+            "growth": 43,
+            "momentum": 36,
+            "smart_money": 59,
+            "sentiment": 77,
+            "analysts": 68,
+            "insiders": 70,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "SNPS",
+          "alpha": 57,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83d\udc02 News +0.55: Ansys integration reinforces quality growth story with positive analyst sentimen",
+            "\ud83e\udd1d Insider CLUSTER BUY: 13 insiders bought last 90d",
+            "\u26a1 Squeeze setup (CPR +122%, vol 10.2\u00d7)"
+          ],
+          "components": {
+            "quality": 50,
+            "growth": 49,
+            "momentum": 75,
+            "smart_money": 46,
+            "sentiment": 49,
+            "analysts": 43,
+            "insiders": 70,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "DE",
+          "alpha": 52,
+          "tier": "C",
+          "options_flow_score": 85,
+          "top_signals": [
+            "\ud83e\udd1d Insider CLUSTER BUY: 9 insiders bought last 90d",
+            "\u2713 Beat earnings 7 quarters in a row",
+            "\u26a1 Squeeze setup (CPR +255%, vol 24.5\u00d7)"
+          ],
+          "components": {
+            "quality": 48,
+            "growth": 18,
+            "momentum": 61,
+            "smart_money": 52,
+            "sentiment": 59,
+            "analysts": 47,
+            "insiders": 70,
+            "options_flow": 85
+          }
+        },
+        {
+          "symbol": "PLTR",
+          "alpha": 71,
+          "tier": "B",
+          "options_flow_score": 81,
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: CEO claims results 'dwarf' software history with Q1 figures impressing investors",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d"
+          ],
+          "components": {
+            "quality": 81,
+            "growth": 98,
+            "momentum": 40,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 58,
+            "insiders": 51,
+            "options_flow": 81
+          }
+        },
+        {
+          "symbol": "APH",
+          "alpha": 68,
+          "tier": "C",
+          "options_flow_score": 80,
+          "top_signals": [
+            "\ud83d\udc02 News +0.50: Recent 12% pullback presents entry opportunity for growth stock with AI exposure",
+            "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+            "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d"
+          ],
+          "components": {
+            "quality": 75,
+            "growth": 98,
+            "momentum": 42,
+            "smart_money": 66,
+            "sentiment": 64,
+            "analysts": 55,
+            "insiders": 55,
+            "options_flow": 80
+          }
+        }
+      ],
+      "top_5_overall": [
+        {
+          "symbol": "VRT",
+          "alpha": 83,
+          "tier": "A",
+          "components": {
+            "quality": 84,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 71,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 92,
+            "options_flow": 85
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: Shares surged 8.2% with strong GF Score of 82 and positioned to benefit from AI ",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +55.2% over 90 days",
+            "\ud83e\udd1d Insider CLUSTER BUY: 20 insiders bought last 90d"
+          ]
+        },
+        {
+          "symbol": "NVDA",
+          "alpha": 80,
+          "tier": "A",
+          "components": {
+            "quality": 98,
+            "growth": 98,
+            "momentum": 88,
+            "smart_money": 84,
+            "sentiment": 75,
+            "analysts": 59,
+            "insiders": 51,
+            "options_flow": 48
+          },
+          "top_signals": [
+            "\u2605 Smart money: Millennium Management holds at 22.7% of fund",
+            "\ud83d\udc02 News +0.65: Momentum remains strong as AI bottleneck surges 497% and semiconductor demand dr",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +79.5% over 1 year"
+          ]
+        },
+        {
+          "symbol": "AMD",
+          "alpha": 77,
+          "tier": "B",
+          "components": {
+            "quality": 76,
+            "growth": 95,
+            "momentum": 100,
+            "smart_money": 73,
+            "sentiment": 73,
+            "analysts": 49,
+            "insiders": 60,
+            "options_flow": 70
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.60: Blowout Q1 earnings, analyst price target hike to $515 on agentic AI demand, and",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +113.6% over 90 days",
+            "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d"
+          ]
+        },
+        {
+          "symbol": "FIX",
+          "alpha": 75,
+          "tier": "B",
+          "components": {
+            "quality": 86,
+            "growth": 98,
+            "momentum": 100,
+            "smart_money": 58,
+            "sentiment": 59,
+            "analysts": 46,
+            "insiders": 55,
+            "options_flow": null
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.55: Strong 38% monthly rally with analyst upgrades and dividend increases, though va",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +54.9% over 90 days",
+            "\ud83e\udd1d Insider CLUSTER BUY: 6 insiders bought last 90d"
+          ]
+        },
+        {
+          "symbol": "WDC",
+          "alpha": 75,
+          "tier": "B",
+          "components": {
+            "quality": 89,
+            "growth": 97,
+            "momentum": 100,
+            "smart_money": 57,
+            "sentiment": 75,
+            "analysts": 40,
+            "insiders": 55,
+            "options_flow": 56
+          },
+          "top_signals": [
+            "\ud83d\udc02 News +0.65: 8% recent drop amid memory supercycle pause is temporary; strong AI demand and d",
+            "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+            "\ud83d\udcc8 Momentum: +68.9% over 90 days",
+            "\ud83e\udd1d Insider CLUSTER BUY: 14 insiders bought last 90d"
+          ]
+        }
+      ]
+    }
+  },
+  "finished": "2026-05-12T23:39:31.566110+00:00"
+}
