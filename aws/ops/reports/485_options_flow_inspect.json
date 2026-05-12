@@ -1,0 +1,45 @@
+{
+  "started": "2026-05-12T23:28:29.477787+00:00",
+  "test": {
+    "lambda": {
+      "memory": 2048,
+      "timeout": 600,
+      "last_modified": "2026-05-06T08:50:22",
+      "env_keys": [
+        "S3_BUCKET",
+        "POLY_KEY",
+        "TIMEOUT_BUDGET_S",
+        "N_WORKERS",
+        "MAX_TICKERS",
+        "DAYS_BACK"
+      ]
+    },
+    "schedule": {
+      "name": "justhodl-options-flow-scanner-daily",
+      "schedule": "cron(30 21 * * ? *)",
+      "state": "ENABLED"
+    },
+    "sidecar": {
+      "exists": true,
+      "size_kb": 76.4,
+      "last_modified": "2026-05-12T21:30:23",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "generated_at": "2026-05-12T21:30:22+00:00",
+      "summary": {
+        "schema_version": 1,
+        "method": "options_flow_scanner_v1",
+        "generated_at": "2026-05-12T21:30:22+00:00",
+        "duration_s": 19.5
+      }
+    }
+  },
+  "finished": "2026-05-12T23:28:34.810537+00:00"
+}
