@@ -1,0 +1,35 @@
+{
+  "started": "2026-05-12T14:30:51.831895+00:00",
+  "test": {
+    "lambdas": {
+      "justhodl-alpha-confluence": {
+        "exists": false,
+        "err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-alpha-confluence"
+      },
+      "justhodl-alpha-alerts": {
+        "exists": true,
+        "last_modified": "2026-05-12T14:26:56.112+0000",
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "memory": 256
+      },
+      "justhodl-alpha-daily-brief": {
+        "exists": true,
+        "last_modified": "2026-05-12T14:27:03.988+0000",
+        "env_keys": [
+          "TELEGRAM_TOKEN",
+          "ANTHROPIC_API_KEY"
+        ],
+        "memory": 512
+      }
+    },
+    "invokes": {},
+    "sidecars": {
+      "confluence_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+      "regime_picks_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "finished": "2026-05-12T14:30:59.357010+00:00"
+}
