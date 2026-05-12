@@ -353,3 +353,4 @@ def _regime_explanation(regime):
         "RECOVERY":  "Coming out of recession. Cyclicals, financials, industrials lead. Defensives lag.",
         "TIGHTENING": "Fed actively raising rates. Most sectors face headwinds. Quality + cash flow matter most.",
     }.get(regime, "Mixed signals — apply standard alpha rankings.")
+
