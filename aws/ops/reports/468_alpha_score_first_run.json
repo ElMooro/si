@@ -1,0 +1,1255 @@
+{
+  "started": "2026-05-12T11:00:36.650959+00:00",
+  "test": {
+    "lambda": {
+      "last_modified": "2026-05-12T11:00:01.826+0000",
+      "code_size": 7795
+    },
+    "invoke": {
+      "success": true,
+      "scored": 503,
+      "tier_distribution": {
+        "S": 0,
+        "A": 2,
+        "B": 26,
+        "C": 385,
+        "D": 90
+      },
+      "elapsed_seconds": 0.59
+    },
+    "sidecar": {
+      "size_kb": 260.6,
+      "generated_at": "2026-05-12T11:02:44.641923+00:00",
+      "model_version": "1.0.0",
+      "tier_distribution": {
+        "S": 0,
+        "A": 2,
+        "B": 26,
+        "C": 385,
+        "D": 90
+      },
+      "weights": {
+        "quality": 0.18,
+        "growth": 0.18,
+        "momentum": 0.15,
+        "smart_money": 0.18,
+        "sentiment": 0.1,
+        "analysts": 0.09,
+        "insiders": 0.12
+      },
+      "inputs": {
+        "screener_generated_at": "2026-05-12T03:32:23.644937+00:00",
+        "sentiment_generated_at": "2026-05-12T06:17:06.756850+00:00",
+        "smart_money_generated_at": "2026-05-12T10:48:07.867778+00:00",
+        "stocks_with_sentiment": 503,
+        "stocks_with_smart_money": 4053
+      },
+      "elapsed_seconds": 0.59,
+      "scored_count": 503
+    },
+    "top20": [
+      {
+        "symbol": "NVDA",
+        "name": "NVIDIA Corporation",
+        "sector": "Technology",
+        "price": 219.44,
+        "alpha_score": 83,
+        "tier": "A",
+        "components": {
+          "quality": 98,
+          "growth": 98,
+          "momentum": 87,
+          "smart_money": 84,
+          "sentiment": 77,
+          "analysts": 60,
+          "insiders": 51
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Millennium Management holds at 22.7% of fund",
+          "\ud83d\udc02 News +0.75: Massive market cap gains, expanding AI investments, and dominant positioning des",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +78.4% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $164M last 90d"
+        ],
+        "rank": 1
+      },
+      {
+        "symbol": "VRT",
+        "name": "Vertiv Holdings Co",
+        "sector": "Industrials",
+        "price": 367.92,
+        "alpha_score": 82,
+        "tier": "A",
+        "components": {
+          "quality": 84,
+          "growth": 95,
+          "momentum": 100,
+          "smart_money": 71,
+          "sentiment": 75,
+          "analysts": 40,
+          "insiders": 92
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.65: 8.2% surge with strong GF Score of 82, portfolio expansion via acquisitions, and",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +48.1% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 20 insiders bought last 90d",
+          "\ud83d\ude80 Revenue +28% YoY"
+        ],
+        "risk_flags": [],
+        "rank": 2
+      },
+      {
+        "symbol": "MU",
+        "name": "Micron Technology, Inc.",
+        "sector": "Technology",
+        "price": 795.33,
+        "alpha_score": 79,
+        "tier": "B",
+        "components": {
+          "quality": 90,
+          "growth": 98,
+          "momentum": 100,
+          "smart_money": 71,
+          "sentiment": 75,
+          "analysts": 35,
+          "insiders": 52
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.65: DRAM ETF up 100% YTD, soaring stock price, and strong AI memory demand positioni",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +93.8% over 90 days",
+          "\ud83d\ude80 Revenue +49% YoY",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 3
+      },
+      {
+        "symbol": "AMD",
+        "name": "Advanced Micro Devices, Inc.",
+        "sector": "Technology",
+        "price": 458.79,
+        "alpha_score": 78,
+        "tier": "B",
+        "components": {
+          "quality": 76,
+          "growth": 95,
+          "momentum": 100,
+          "smart_money": 73,
+          "sentiment": 80,
+          "analysts": 48,
+          "insiders": 60
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.85: Stock hits 52-week highs on AI CPU supercycle thesis with multiple analyst upgra",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +114.8% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\ud83d\ude80 Revenue +34% YoY"
+        ],
+        "risk_flags": [],
+        "rank": 4
+      },
+      {
+        "symbol": "AVGO",
+        "name": "Broadcom Inc.",
+        "sector": "Technology",
+        "price": 428.43,
+        "alpha_score": 78,
+        "tier": "B",
+        "components": {
+          "quality": 88,
+          "growth": 95,
+          "momentum": 93,
+          "smart_money": 72,
+          "sentiment": 76,
+          "analysts": 42,
+          "insiders": 58
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.70: $100 billion custom chip business opportunity and strong AI semiconductor positi",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +93.4% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $287M last 90d"
+        ],
+        "rank": 5
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet Inc.",
+        "sector": "Communication Services",
+        "price": 388.64,
+        "alpha_score": 78,
+        "tier": "B",
+        "components": {
+          "quality": 93,
+          "growth": 73,
+          "momentum": 95,
+          "smart_money": 78,
+          "sentiment": 77,
+          "analysts": 41,
+          "insiders": 67
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Tiger Global Management holds at 11.2% of fund",
+          "\ud83d\udc02 News +0.75: Multiple positive catalysts including Anthropic news, AI security leadership, an",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +145.3% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 4 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 6
+      },
+      {
+        "symbol": "GOOG",
+        "name": "Alphabet Inc.",
+        "sector": "Communication Services",
+        "price": 386.77,
+        "alpha_score": 78,
+        "tier": "B",
+        "components": {
+          "quality": 93,
+          "growth": 73,
+          "momentum": 95,
+          "smart_money": 86,
+          "sentiment": 75,
+          "analysts": 42,
+          "insiders": 58
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\u2605 Smart money: Pershing Square Capital holds at 12.5% of fund",
+          "\ud83d\udc02 News +0.65: Anthropic news boosts investor confidence, AI security wins enhance reputation, ",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +142.4% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 4 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 7
+      },
+      {
+        "symbol": "LRCX",
+        "name": "Lam Research Corporation",
+        "sector": "Technology",
+        "price": 296.05,
+        "alpha_score": 77,
+        "tier": "B",
+        "components": {
+          "quality": 98,
+          "growth": 79,
+          "momentum": 97,
+          "smart_money": 67,
+          "sentiment": 77,
+          "analysts": 42,
+          "insiders": 58
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.75: 300% year-over-year surge with sustained AI infrastructure demand and analyst op",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +25.9% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 5 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 8
+      },
+      {
+        "symbol": "WDC",
+        "name": "Western Digital Corporation",
+        "sector": "Technology",
+        "price": 515.83,
+        "alpha_score": 76,
+        "tier": "B",
+        "components": {
+          "quality": 89,
+          "growth": 97,
+          "momentum": 100,
+          "smart_money": 57,
+          "sentiment": 77,
+          "analysts": 38,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.75: 7% rally on AI memory supercycle momentum with strong sector tailwinds from memo",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +88.4% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 14 insiders bought last 90d",
+          "\ud83d\ude80 Revenue +51% YoY"
+        ],
+        "risk_flags": [],
+        "rank": 9
+      },
+      {
+        "symbol": "FIX",
+        "name": "Comfort Systems USA, Inc.",
+        "sector": "Industrials",
+        "price": 2032.01,
+        "alpha_score": 75,
+        "tier": "B",
+        "components": {
+          "quality": 86,
+          "growth": 98,
+          "momentum": 100,
+          "smart_money": 58,
+          "sentiment": 59,
+          "analysts": 45,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.70: 38% monthly surge on strong fundamentals with multiple analyst upgrades and divi",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +51.8% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 6 insiders bought last 90d",
+          "\ud83d\ude80 Revenue +30% YoY"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $79M last 90d"
+        ],
+        "rank": 10
+      },
+      {
+        "symbol": "MNST",
+        "name": "Monster Beverage Corporation",
+        "sector": "Consumer Defensive",
+        "price": 86.41,
+        "alpha_score": 75,
+        "tier": "B",
+        "components": {
+          "quality": 92,
+          "growth": 68,
+          "momentum": 80,
+          "smart_money": 63,
+          "sentiment": 72,
+          "analysts": 52,
+          "insiders": 88
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.80: Q1 earnings and revenue beats with strong 27.6% energy drinks growth and interna",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\u2713 Beat earnings 5 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 11
+      },
+      {
+        "symbol": "MA",
+        "name": "Mastercard Incorporated",
+        "sector": "Financial Services",
+        "price": 497.81,
+        "alpha_score": 75,
+        "tier": "B",
+        "components": {
+          "quality": 95,
+          "growth": 74,
+          "momentum": 37,
+          "smart_money": 86,
+          "sentiment": 75,
+          "analysts": 64,
+          "insiders": 88
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Akre Capital Management holds at 18.8% of fund",
+          "\ud83d\udc02 News +0.65: Strong Q1 earnings with rising estimates and continued tech innovation offset by",
+          "\ud83e\udd1d Insider CLUSTER BUY: 12 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +32%",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 12
+      },
+      {
+        "symbol": "KLAC",
+        "name": "KLA Corporation",
+        "sector": "Technology",
+        "price": 1845.19,
+        "alpha_score": 75,
+        "tier": "B",
+        "components": {
+          "quality": 96,
+          "growth": 81,
+          "momentum": 92,
+          "smart_money": 62,
+          "sentiment": 77,
+          "analysts": 42,
+          "insiders": 58
+        },
+        "components_coverage": 0.9,
+        "top_signals": [
+          "\ud83d\udc02 News +0.75: Announced 10-for-1 stock split, strong advanced packaging momentum, and bullish ",
+          "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +142.6% over 1 year",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 13
+      },
+      {
+        "symbol": "NEM",
+        "name": "Newmont Corporation",
+        "sector": "Basic Materials",
+        "price": 120.67,
+        "alpha_score": 74,
+        "tier": "B",
+        "components": {
+          "quality": 78,
+          "growth": 91,
+          "momentum": 76,
+          "smart_money": 72,
+          "sentiment": 57,
+          "analysts": 68,
+          "insiders": 58
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.60: 3.6% share surge, high GF Score of 78, trending status as top growth stock with ",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +137.6% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\ud83d\udcb0 DCF fair value upside: +112%"
+        ],
+        "risk_flags": [],
+        "rank": 14
+      },
+      {
+        "symbol": "ADI",
+        "name": "Analog Devices, Inc.",
+        "sector": "Technology",
+        "price": 422.73,
+        "alpha_score": 73,
+        "tier": "B",
+        "components": {
+          "quality": 82,
+          "growth": 75,
+          "momentum": 98,
+          "smart_money": 63,
+          "sentiment": 70,
+          "analysts": 43,
+          "insiders": 67
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +25.4% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 15 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 15
+      },
+      {
+        "symbol": "FTNT",
+        "name": "Fortinet, Inc.",
+        "sector": "Technology",
+        "price": 115.44,
+        "alpha_score": 72,
+        "tier": "B",
+        "components": {
+          "quality": 93,
+          "growth": 70,
+          "momentum": 88,
+          "smart_money": 60,
+          "sentiment": 77,
+          "analysts": 45,
+          "insiders": 60
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.75: Strong Q1 results with raised guidance, analyst upgrade to Buy, and fresh highs",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +31.5% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 16
+      },
+      {
+        "symbol": "HWM",
+        "name": "Howmet Aerospace Inc.",
+        "sector": "Industrials",
+        "price": 273.58,
+        "alpha_score": 72,
+        "tier": "B",
+        "components": {
+          "quality": 89,
+          "growth": 80,
+          "momentum": 87,
+          "smart_money": 57,
+          "sentiment": 72,
+          "analysts": 45,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.55: Q1 earnings beat on commercial aerospace growth despite conflicting headlines ab",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +74.3% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 17
+      },
+      {
+        "symbol": "LLY",
+        "name": "Eli Lilly and Company",
+        "sector": "Healthcare",
+        "price": 967.08,
+        "alpha_score": 72,
+        "tier": "B",
+        "components": {
+          "quality": 94,
+          "growth": 96,
+          "momentum": 55,
+          "smart_money": 65,
+          "sentiment": 72,
+          "analysts": 49,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.55: Raised 2026 revenue guidance by $2B with label expansions and obesity drug momen",
+          "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +30%",
+          "\ud83d\ude80 Revenue +45% YoY"
+        ],
+        "risk_flags": [],
+        "rank": 18
+      },
+      {
+        "symbol": "INCY",
+        "name": "Incyte Corporation",
+        "sector": "Healthcare",
+        "price": 100.32,
+        "alpha_score": 71,
+        "tier": "B",
+        "components": {
+          "quality": 90,
+          "growth": 78,
+          "momentum": 63,
+          "smart_money": 61,
+          "sentiment": 55,
+          "analysts": 58,
+          "insiders": 77
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.65: Multiple FDA approvals (Jakafi XR, first-in-class GVHD therapy) and positive cli",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\ud83d\udcb0 DCF fair value upside: +27%"
+        ],
+        "risk_flags": [],
+        "rank": 19
+      },
+      {
+        "symbol": "GLW",
+        "name": "Corning Incorporated",
+        "sector": "Technology",
+        "price": 207.3,
+        "alpha_score": 71,
+        "tier": "B",
+        "components": {
+          "quality": 65,
+          "growth": 86,
+          "momentum": 100,
+          "smart_money": 59,
+          "sentiment": 78,
+          "analysts": 33,
+          "insiders": 60
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.80: NVIDIA partnership with equity investment and plant funding, plus upgrade and ne",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +56.0% over 90 days",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 20
+      }
+    ],
+    "bottom10_D_tier": [
+      {
+        "symbol": "LII",
+        "name": "Lennox International Inc.",
+        "sector": "Industrials",
+        "price": 521.48,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 77,
+          "growth": 28,
+          "momentum": 48,
+          "smart_money": 38,
+          "sentiment": 40,
+          "analysts": 44,
+          "insiders": 67
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 414
+      },
+      {
+        "symbol": "GEHC",
+        "name": "GE HealthCare Technologies Inc.",
+        "sector": "Healthcare",
+        "price": 61.7,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 53,
+          "growth": 31,
+          "momentum": 16,
+          "smart_money": 66,
+          "sentiment": 21,
+          "analysts": 68,
+          "insiders": 92
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc3b News -0.55: 13% crash on guidance cut and inflation/execution concerns overwhelm recent prod",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 17 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +36%"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 1.7 \u2014 distress zone"
+        ],
+        "rank": 415
+      },
+      {
+        "symbol": "COO",
+        "name": "The Cooper Companies, Inc.",
+        "sector": "Healthcare",
+        "price": 58.98,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 56,
+          "growth": 57,
+          "momentum": 11,
+          "smart_money": 51,
+          "sentiment": 33,
+          "analysts": 64,
+          "insiders": 70
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +59%",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 416
+      },
+      {
+        "symbol": "FTV",
+        "name": "Fortive Corporation",
+        "sector": "Technology",
+        "price": 60.31,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 56,
+          "growth": 6,
+          "momentum": 63,
+          "smart_money": 59,
+          "sentiment": 46,
+          "analysts": 52,
+          "insiders": 67
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.70: Q1 earnings and sales beat estimates with year-over-year growth; share repurchas",
+          "\ud83e\udd1d Insider CLUSTER BUY: 6 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 417
+      },
+      {
+        "symbol": "AWK",
+        "name": "American Water Works Company, Inc.",
+        "sector": "Utilities",
+        "price": 126.01,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 58,
+          "growth": 37,
+          "momentum": 39,
+          "smart_money": 41,
+          "sentiment": 65,
+          "analysts": 44,
+          "insiders": 70
+        },
+        "components_coverage": 0.91,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 0.9 \u2014 distress zone"
+        ],
+        "rank": 418
+      },
+      {
+        "symbol": "HSIC",
+        "name": "Henry Schein, Inc.",
+        "sector": "Healthcare",
+        "price": 68.99,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 48,
+          "growth": 33,
+          "momentum": 34,
+          "smart_money": 35,
+          "sentiment": 65,
+          "analysts": 66,
+          "insiders": 92
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc02 News +0.65: Q1 earnings and revenue beat with margin expansion and reaffirmed guidance.",
+          "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 18 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +24%"
+        ],
+        "risk_flags": [],
+        "rank": 419
+      },
+      {
+        "symbol": "GM",
+        "name": "General Motors Company",
+        "sector": "Consumer Cyclical",
+        "price": 75.29,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 36,
+          "growth": 45,
+          "momentum": 57,
+          "smart_money": 56,
+          "sentiment": 47,
+          "analysts": 54,
+          "insiders": 48
+        },
+        "components_coverage": 0.9,
+        "top_signals": [
+          "\ud83d\udc3b News -0.45: Stock down 4.5% on valuation concerns, hundreds of IT layoffs signal cost-cuttin",
+          "\ud83c\udfaf Analyst PT upside: +25%",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 1.2 \u2014 distress zone"
+        ],
+        "rank": 420
+      },
+      {
+        "symbol": "MDLZ",
+        "name": "Mondelez International, Inc.",
+        "sector": "Consumer Defensive",
+        "price": 61.41,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 53,
+          "growth": 33,
+          "momentum": 54,
+          "smart_money": 45,
+          "sentiment": 51,
+          "analysts": 63,
+          "insiders": 52
+        },
+        "components_coverage": 0.9,
+        "top_signals": [
+          "\ud83d\udc02 News +0.65: Q1 earnings beat with 8.2% revenue growth and cocoa cost pressures easing.",
+          "\ud83d\udcb0 DCF fair value upside: +111%",
+          "\u2713 Beat earnings 5 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 421
+      },
+      {
+        "symbol": "CCI",
+        "name": "Crown Castle Inc.",
+        "sector": "Real Estate",
+        "price": 90.67,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 51,
+          "growth": 35,
+          "momentum": 51,
+          "smart_money": 52,
+          "sentiment": 45,
+          "analysts": 44,
+          "insiders": 67
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 16 insiders bought last 90d"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 0.0 \u2014 distress zone"
+        ],
+        "rank": 422
+      },
+      {
+        "symbol": "TSN",
+        "name": "Tyson Foods, Inc.",
+        "sector": "Consumer Defensive",
+        "price": 67.08,
+        "alpha_score": 49,
+        "tier": "D",
+        "components": {
+          "quality": 35,
+          "growth": 16,
+          "momentum": 66,
+          "smart_money": 61,
+          "sentiment": 61,
+          "analysts": 60,
+          "insiders": 58
+        },
+        "components_coverage": 0.9,
+        "top_signals": [],
+        "risk_flags": [],
+        "rank": 423
+      }
+    ],
+    "notable": [
+      {
+        "symbol": "NVDA",
+        "name": "NVIDIA Corporation",
+        "sector": "Technology",
+        "price": 219.44,
+        "alpha_score": 83,
+        "tier": "A",
+        "components": {
+          "quality": 98,
+          "growth": 98,
+          "momentum": 87,
+          "smart_money": 84,
+          "sentiment": 77,
+          "analysts": 60,
+          "insiders": 51
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Millennium Management holds at 22.7% of fund",
+          "\ud83d\udc02 News +0.75: Massive market cap gains, expanding AI investments, and dominant positioning des",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +78.4% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $164M last 90d"
+        ],
+        "rank": 1
+      },
+      {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "sector": "Technology",
+        "price": 292.68,
+        "alpha_score": 69,
+        "tier": "C",
+        "components": {
+          "quality": 83,
+          "growth": 58,
+          "momentum": 73,
+          "smart_money": 76,
+          "sentiment": 72,
+          "analysts": 49,
+          "insiders": 58
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Berkshire Hathaway holds at 22.6% of fund",
+          "\ud83d\udc02 News +0.55: Director selling is offset by 'new buy' rating, strong chip rally tailwinds, and",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 13 insiders bought last 90d",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $96M last 90d"
+        ],
+        "rank": 33
+      },
+      {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "sector": "Technology",
+        "price": 412.66,
+        "alpha_score": 68,
+        "tier": "C",
+        "components": {
+          "quality": 93,
+          "growth": 67,
+          "momentum": 46,
+          "smart_money": 68,
+          "sentiment": 65,
+          "analysts": 53,
+          "insiders": 72
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 9 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +35%",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [],
+        "rank": 42
+      },
+      {
+        "symbol": "TSLA",
+        "name": "Tesla, Inc.",
+        "sector": "Consumer Cyclical",
+        "price": 445.0,
+        "alpha_score": 58,
+        "tier": "C",
+        "components": {
+          "quality": 63,
+          "growth": 43,
+          "momentum": 71,
+          "smart_money": 62,
+          "sentiment": 65,
+          "analysts": 47,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 197
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet Inc.",
+        "sector": "Communication Services",
+        "price": 388.64,
+        "alpha_score": 78,
+        "tier": "B",
+        "components": {
+          "quality": 93,
+          "growth": 73,
+          "momentum": 95,
+          "smart_money": 78,
+          "sentiment": 77,
+          "analysts": 41,
+          "insiders": 67
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\u2605 Smart money: Tiger Global Management holds at 11.2% of fund",
+          "\ud83d\udc02 News +0.75: Multiple positive catalysts including Anthropic news, AI security leadership, an",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83d\udcc8 Momentum: +145.3% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 4 insiders bought last 90d"
+        ],
+        "risk_flags": [],
+        "rank": 6
+      },
+      {
+        "symbol": "META",
+        "name": "Meta Platforms, Inc.",
+        "sector": "Communication Services",
+        "price": 598.86,
+        "alpha_score": 70,
+        "tier": "B",
+        "components": {
+          "quality": 90,
+          "growth": 66,
+          "momentum": 34,
+          "smart_money": 91,
+          "sentiment": 47,
+          "analysts": 52,
+          "insiders": 92
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\u2605 Smart money: Millennium Management holds at 18.3% of fund",
+          "\ud83d\udc3b News -0.45: Multiple legal headwinds including California fraud prosecution and fiduciary du",
+          "\ud83d\udc8e Piotroski 8/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +37%"
+        ],
+        "risk_flags": [
+          "\ud83d\udea8 Fraud/lawsuit/SEC news flagged"
+        ],
+        "rank": 25
+      },
+      {
+        "symbol": "BAC",
+        "name": "Bank of America Corporation",
+        "sector": "Financial Services",
+        "price": 50.55,
+        "alpha_score": 54,
+        "tier": "C",
+        "components": {
+          "quality": 49,
+          "growth": 50,
+          "momentum": 44,
+          "smart_money": 66,
+          "sentiment": 65,
+          "analysts": 48,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 20 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +21%",
+          "\u2713 Beat earnings 6 quarters in a row"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z -0.2 \u2014 distress zone"
+        ],
+        "rank": 345
+      },
+      {
+        "symbol": "SMCI",
+        "name": "Super Micro Computer, Inc.",
+        "sector": "Technology",
+        "price": 33.52,
+        "alpha_score": 58,
+        "tier": "C",
+        "components": {
+          "quality": 52,
+          "growth": 76,
+          "momentum": 52,
+          "smart_money": 54,
+          "sentiment": 37,
+          "analysts": 44,
+          "insiders": 80
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc3b News -0.85: Multiple securities fraud lawsuits filed with stock down 5.2% and significant va",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\ud83d\ude80 Revenue +47% YoY"
+        ],
+        "risk_flags": [
+          "\ud83d\udea8 Fraud/lawsuit/SEC news flagged"
+        ],
+        "rank": 191
+      },
+      {
+        "symbol": "WBD",
+        "name": "Warner Bros. Discovery, Inc.",
+        "sector": "Communication Services",
+        "price": 27.24,
+        "alpha_score": 46,
+        "tier": "D",
+        "components": {
+          "quality": 22,
+          "growth": 23,
+          "momentum": 71,
+          "smart_money": 61,
+          "sentiment": 40,
+          "analysts": 62,
+          "insiders": 55
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc3b News -0.75: Q1 earnings miss, revenue decline, and $2.8B Netflix termination fee-driven wide",
+          "\ud83d\udcc8 Momentum: +195.1% over 1 year",
+          "\ud83e\udd1d Insider CLUSTER BUY: 6 insiders bought last 90d",
+          "\ud83d\udcb0 DCF fair value upside: +633%"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 0.9 \u2014 distress zone",
+          "\u274c Last earnings missed by -975%",
+          "\ud83d\udcc9 Insider net sell $205M last 90d"
+        ],
+        "rank": 459
+      },
+      {
+        "symbol": "TTD",
+        "name": "The Trade Desk, Inc.",
+        "sector": "Technology",
+        "price": 21.52,
+        "alpha_score": 56,
+        "tier": "C",
+        "components": {
+          "quality": 72,
+          "growth": 66,
+          "momentum": 18,
+          "smart_money": 45,
+          "sentiment": 42,
+          "analysts": 60,
+          "insiders": 92
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83d\udc3b News -0.65: Q1 EPS miss, disappointing guidance, 11.7% single-day drop, and fresh HSBC downg",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 8 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +39%"
+        ],
+        "risk_flags": [
+          "\u274c Last earnings missed by -75%"
+        ],
+        "rank": 247
+      },
+      {
+        "symbol": "OXY",
+        "name": "Occidental Petroleum Corporation",
+        "sector": "Energy",
+        "price": 55.14,
+        "alpha_score": 56,
+        "tier": "C",
+        "components": {
+          "quality": 52,
+          "growth": 30,
+          "momentum": 69,
+          "smart_money": 53,
+          "sentiment": 67,
+          "analysts": 70,
+          "insiders": 70
+        },
+        "components_coverage": 0.94,
+        "top_signals": [
+          "\ud83e\udd1d Insider CLUSTER BUY: 17 insiders bought last 90d",
+          "\ud83d\udcb0 DCF fair value upside: +108%",
+          "\u2713 Beat earnings 7 quarters in a row"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 1.7 \u2014 distress zone"
+        ],
+        "rank": 283
+      },
+      {
+        "symbol": "AXP",
+        "name": "American Express Company",
+        "sector": "Financial Services",
+        "price": 312.32,
+        "alpha_score": 56,
+        "tier": "C",
+        "components": {
+          "quality": 51,
+          "growth": 52,
+          "momentum": 38,
+          "smart_money": 70,
+          "sentiment": 73,
+          "analysts": 48,
+          "insiders": 67
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.60: Record 2025 results, shareholder approval, Buffett endorsement, and strong card ",
+          "\ud83e\udd1d Insider CLUSTER BUY: 13 insiders bought last 90d"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 0.6 \u2014 distress zone"
+        ],
+        "rank": 279
+      },
+      {
+        "symbol": "BRK-B",
+        "name": "Berkshire Hathaway Inc.",
+        "sector": "Financial Services",
+        "price": 479.55,
+        "alpha_score": 54,
+        "tier": "C",
+        "components": {
+          "quality": 66,
+          "growth": 33,
+          "momentum": 44,
+          "smart_money": 66,
+          "sentiment": 68,
+          "analysts": 48,
+          "insiders": 58
+        },
+        "components_coverage": 0.9,
+        "top_signals": [],
+        "risk_flags": [],
+        "rank": 333
+      },
+      {
+        "symbol": "VST",
+        "name": "Vistra Corp.",
+        "sector": "Utilities",
+        "price": 152.05,
+        "alpha_score": 51,
+        "tier": "C",
+        "components": {
+          "quality": 42,
+          "growth": 24,
+          "momentum": 36,
+          "smart_money": 57,
+          "sentiment": 78,
+          "analysts": 55,
+          "insiders": 88
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.80: Q1 earnings beat with strong hedging visibility, positioned as solution to AI po",
+          "\ud83e\udd1d Insider CLUSTER BUY: 7 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +50%"
+        ],
+        "risk_flags": [
+          "\u26a0 Altman Z 1.5 \u2014 distress zone"
+        ],
+        "rank": 378
+      },
+      {
+        "symbol": "PLTR",
+        "name": "Palantir Technologies Inc.",
+        "sector": "Technology",
+        "price": 136.89,
+        "alpha_score": 70,
+        "tier": "B",
+        "components": {
+          "quality": 81,
+          "growth": 98,
+          "momentum": 42,
+          "smart_money": 71,
+          "sentiment": 75,
+          "analysts": 57,
+          "insiders": 51
+        },
+        "components_coverage": 0.98,
+        "top_signals": [
+          "\ud83d\udc02 News +0.68: Rating upgrade from sell, AI platform transformation driving growth, and industr",
+          "\ud83d\udc8e Piotroski 9/9 \u2014 pristine financial quality",
+          "\ud83e\udd1d Insider CLUSTER BUY: 3 insiders bought last 90d",
+          "\ud83c\udfaf Analyst PT upside: +40%",
+          "\ud83d\ude80 Revenue +56% YoY"
+        ],
+        "risk_flags": [
+          "\ud83d\udcc9 Insider net sell $327M last 90d"
+        ],
+        "rank": 22
+      }
+    ]
+  },
+  "finished": "2026-05-12T11:02:45.131835+00:00"
+}
