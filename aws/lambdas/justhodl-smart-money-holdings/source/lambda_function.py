@@ -70,7 +70,7 @@ CONCENTRATED_FUNDS = [
     ("0001345471", "Anchorage Capital"),           # 7 · NEW · ultra-concentrated
     ("0001047644", "Davidson Kempner"),            # 8 · NEW · distressed
     ("0001321655", "Discovery Capital Mgmt"),      # Citrone · 4 · NEW · macro
-    ("0001112520", "Maverick Capital"),            # Tiger cub · 18
+    ("0001112520", "Akre Capital Management"),    # 18 pos · $9.1B · concentrated value · CORRECTED (was mislabeled "Maverick Capital")
     ("0001541617", "Millennium Management"),       # Englander · 18
     ("0001418814", "ValueAct Capital"),            # Ubben activist · 16
     ("0001061768", "Lone Pine Capital"),           # Mandel · 22
@@ -119,6 +119,15 @@ CONCENTRATED_FUNDS = [
     ("0002051323", "Caxton Associates"),           # Bruce Kovner · 752 · $5.1B · macro
     ("0001562230", "Capital Research / Cap Group"), # Capital Group · 454 · $638B (large but kept)
     ("0002054122", "Balyasny / Longaeva Partners"), # Balyasny pod · 119 · $1.2B · multi-mgr
+    # ── Stage 16.4: 6 funds added via second-pass SEC EDGAR (probe 461) ──
+    # Name-match filter (display_name must contain core token) eliminated
+    # the cross-matches that plagued 454b. All extract-validated.
+    ("0000905567", "Yacktman Asset Management"),   # Don Yacktman · 76 pos · $7.5B · value legend
+    ("0000936753", "Ariel Investments"),           # John Rogers · 108 pos · $9.3B · value
+    ("0001353316", "Hound Partners"),              # Tiger cub · 37 pos · $0.7B
+    ("0001835549", "Engine No. 1"),                # ExxonMobil activist · 6 pos · $0.1B
+    ("0001897612", "T. Rowe Price Inv Mgmt"),      # 898 pos · $158.4B · mutual fund
+    ("0001535630", "Element Capital Management"),  # Talpins macro · 55 pos · $0.2B
 ]
 
 # Min position size to include in inverted index. Keeps file size manageable
