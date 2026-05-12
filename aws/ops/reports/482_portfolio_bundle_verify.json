@@ -1,0 +1,120 @@
+{
+  "started": "2026-05-12T22:57:45.684549+00:00",
+  "test": {
+    "lambdas": {
+      "justhodl-portfolio-admin": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:29",
+        "env_keys": [],
+        "memory": 256,
+        "timeout": 30,
+        "code_size": 2817
+      },
+      "justhodl-portfolio-snapshot": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:46",
+        "env_keys": [
+          "POLY_KEY"
+        ],
+        "memory": 512,
+        "timeout": 180,
+        "code_size": 5304
+      },
+      "justhodl-portfolio-risk": {
+        "exists": true,
+        "last_modified": "2026-05-12T22:51:37",
+        "env_keys": [
+          "POLY_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ],
+        "memory": 1024,
+        "timeout": 300,
+        "code_size": 7077
+      }
+    },
+    "invokes": {
+      "snapshot": {
+        "success": true,
+        "n_positions": 0,
+        "n_watchlist": 2,
+        "total_market_value": 0.0,
+        "total_pnl_dollars": 0.0,
+        "stops_hit_count": 0,
+        "elapsed_seconds": 0.25
+      },
+      "risk": {
+        "success": true,
+        "status": "no_positions",
+        "elapsed_seconds": 0.1
+      }
+    },
+    "sidecars": {
+      "snapshot": {
+        "size_kb": 2.6,
+        "generated_at": "2026-05-12T22:57:52.913704+00:00",
+        "elapsed_seconds": 0.25,
+        "portfolio_summary": {
+          "n_positions": 0,
+          "total_market_value": 0.0,
+          "total_cost_basis": 0.0,
+          "total_pnl_dollars": 0.0,
+          "total_pnl_pct": null,
+          "stops_hit_count": 0,
+          "stops_hit": []
+        },
+        "counts": {
+          "positions": 0,
+          "watchlist": 2,
+          "auto_watch_S": 0,
+          "auto_watch_A": 2,
+          "manual_watch": 0
+        },
+        "n_positions": 0,
+        "n_watchlist": 2,
+        "top_watchlist": [
+          {
+            "sym": "VRT",
+            "alpha": 82,
+            "tier": "A",
+            "source": "AUTO_TIER_A"
+          },
+          {
+            "sym": "NVDA",
+            "alpha": 83,
+            "tier": "A",
+            "source": "AUTO_TIER_A"
+          }
+        ],
+        "watchlist_sync_summary": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": []
+        },
+        "sector_concentration_keys": []
+      },
+      "risk": {
+        "size_kb": 0.2,
+        "generated_at": "2026-05-12T22:57:53.081222+00:00",
+        "elapsed_seconds": null,
+        "status": "no_positions",
+        "message": "No positions yet. Use justhodl-portfolio-admin Lambda to add positions.",
+        "n_positions": null,
+        "total_market_value": null,
+        "portfolio_beta_spy": null,
+        "portfolio_vol_annual_pct": null,
+        "var_1d_99_dollars": null,
+        "var_1d_99_pct": null,
+        "max_sector_concentration_pct": null,
+        "concentration_hhi": null,
+        "concentration_label": null,
+        "n_correlation_clusters": 0,
+        "n_stops_hit": 0,
+        "alerts_summary": null,
+        "n_scenarios": 0
+      }
+    }
+  },
+  "finished": "2026-05-12T22:57:53.438398+00:00"
+}
