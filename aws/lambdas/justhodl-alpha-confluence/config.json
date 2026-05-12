@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-alpha-confluence",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Confluence detector (#2) + regime-driven watchlist (#3). Reads alpha-score, computes multi-factor alignment + regime fit.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-alpha-confluence-hourly",
+    "cron": "cron(12 * * * ? *)",
+    "description": "Hourly at :12 — 5 min after alpha-score (:07) so latest data is read"
+  }
+}
