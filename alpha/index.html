@@ -153,6 +153,46 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
     <p class="hero-sub">Quality · Growth · Momentum · Smart Money · Sentiment · Analysts · Insiders, weighted and synthesized. Tier S = once-a-month conviction. Tier A = trade-worthy this week. Tier B = watchlist. Click any tier or sort to drill in.</p>
   </div>
 
+  <!-- ─── REGIME BANNER ─── -->
+  <div id="regime-banner" style="display:none;background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(167,139,250,.06));border:1px solid rgba(34,211,238,.20);border-radius:6px;padding:14px 18px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.6px">MACRO REGIME · <span id="regime-confidence">—</span> CONFIDENCE</div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.3px;margin-top:2px"><span id="regime-name" style="color:var(--info)">—</span> <span id="regime-icon" style="font-size:13px">🌀</span></div>
+      </div>
+      <div style="flex:1;min-width:280px;font-size:11px;color:var(--text-dim);line-height:1.5" id="regime-logic">Loading regime intelligence…</div>
+    </div>
+    <div id="regime-sectors" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;font-family:var(--font-mono);font-size:10px"></div>
+  </div>
+
+  <!-- ─── CONFLUENCE SECTION ─── -->
+  <div id="confluence-section" style="display:none;margin-bottom:16px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;padding:0 2px">
+      <h2 style="font-size:14px;font-weight:600;margin:0;letter-spacing:-.2px">⚡ Multi-Factor Confluence <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;margin-left:6px">rare alignment events</span></h2>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute)">
+        ≥70 on a factor = firing · Tier S: 6/7 · Tier A: 5/7 · Tier B: 4/7
+      </div>
+    </div>
+    <div id="confluence-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px"></div>
+  </div>
+
+  <!-- ─── REGIME PICKS / AVOIDS ─── -->
+  <div id="regime-section" style="display:none;margin-bottom:16px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;padding:0 2px">
+      <h2 style="font-size:14px;font-weight:600;margin:0;letter-spacing:-.2px">🌀 Regime-Adjusted Watchlist <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;margin-left:6px">α + sector tailwind/headwind</span></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--pos);margin-bottom:4px;letter-spacing:.5px">★ PICKS (regime-favored sectors)</div>
+        <div id="regime-picks" style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:8px;font-size:12px"></div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--neg);margin-bottom:4px;letter-spacing:.5px">⚠ AVOIDS (regime-headwind sectors)</div>
+        <div id="regime-avoids" style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:8px;font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="tier-row" id="tier-row">
     <div class="tier-box tier-S" data-tier="S"><div class="tier-label">Tier S</div><div class="tier-count" id="cnt-S">—</div><div class="tier-range">α ≥ 90 · rare</div></div>
     <div class="tier-box tier-A active" data-tier="A"><div class="tier-label">Tier A</div><div class="tier-count" id="cnt-A">—</div><div class="tier-range">α 80–89 · trade-worthy</div></div>
@@ -173,6 +213,10 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
     <button class="sort-chip" data-sort="smart_money">Smart $</button>
     <button class="sort-chip" data-sort="sentiment">News</button>
     <button class="sort-chip" data-sort="insiders">Insiders</button>
+    <span style="width:1px;height:14px;background:var(--border-hi);margin:0 4px"></span>
+    <button class="sort-chip" data-filter="insider_cluster" id="filter-insider-cluster" title="Stocks where 3+ insiders bought in last 90 days AND high alpha — strongest informational edge signal">🤝 Insider Cluster</button>
+    <button class="sort-chip" data-filter="confluence_s_a" id="filter-confluence" title="Stocks with 5+ of 7 alpha factors firing simultaneously (multi-factor confluence)">⚡ Confluence</button>
+    <button class="sort-chip" data-filter="regime_pick" id="filter-regime" title="Stocks ranked highest by alpha + current macro regime sector preferences">🌀 Regime Picks</button>
   </div>
 
   <div class="cards" id="cards">
@@ -182,11 +226,14 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 
 <script>
 const SIDECAR_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/alpha-score.json';
+const CONFLUENCE_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/signals/confluence.json';
+const REGIME_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/signals/regime-picks.json';
 let raw = null;
 let activeTier = 'A';
 let textFilter = '';
 let sectorFilter = '';
 let sortKey = 'alpha_score';
+let activeFilterMode = null;  // 'insider_cluster', 'confluence_s_a', 'regime_pick', or null
 
 function escapeHtml(s){
   if(s == null) return '';
@@ -207,9 +254,29 @@ function tierClass(t){
 function applyFilters(){
   if(!raw) return [];
   let stocks = (raw.stocks || []).filter(s => s.alpha_score !== null && s.tier !== '—');
-  if(activeTier){
+
+  // Confluence + regime filters override tier filter when active
+  if(activeFilterMode === 'insider_cluster'){
+    // Look for stocks where insider cluster buy was a top signal OR insider score >= 75
+    stocks = stocks.filter(s => {
+      const ins = (s.components || {}).insiders;
+      const hasClusterSignal = (s.top_signals || []).some(sig => /CLUSTER BUY|insider.*bought/i.test(sig));
+      return (ins && ins >= 70) || hasClusterSignal;
+    });
+  } else if(activeFilterMode === 'confluence_s_a' && confluenceData){
+    const confSyms = new Set([
+      ...(confluenceData.tier_s_confluence || []).map(s => s.symbol),
+      ...(confluenceData.tier_a_confluence || []).map(s => s.symbol),
+    ]);
+    stocks = stocks.filter(s => confSyms.has(s.symbol));
+  } else if(activeFilterMode === 'regime_pick' && regimeData){
+    const pickSyms = new Set((regimeData.regime_picks || []).map(r => r.symbol));
+    stocks = stocks.filter(s => pickSyms.has(s.symbol));
+  } else if(activeTier){
+    // Default: tier filter
     stocks = stocks.filter(s => s.tier === activeTier);
   }
+
   if(sectorFilter){
     stocks = stocks.filter(s => s.sector === sectorFilter);
   }
@@ -328,6 +395,9 @@ function initListeners(){
       document.querySelectorAll('.tier-box').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
       activeTier = b.getAttribute('data-tier');
+      // Clicking a tier clears any active filter-mode chip (mutual exclusivity)
+      activeFilterMode = null;
+      document.querySelectorAll('.sort-chip[data-filter]').forEach(x => x.classList.remove('active'));
       renderCards();
     });
   });
@@ -341,12 +411,153 @@ function initListeners(){
   });
   document.querySelectorAll('.sort-chip').forEach(b => {
     b.addEventListener('click', () => {
-      document.querySelectorAll('.sort-chip').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      sortKey = b.getAttribute('data-sort');
+      const sortAttr = b.getAttribute('data-sort');
+      const filterAttr = b.getAttribute('data-filter');
+
+      if(filterAttr){
+        // Filter mode toggle
+        const wasActive = b.classList.contains('active');
+        document.querySelectorAll('.sort-chip').forEach(x => x.classList.remove('active'));
+        if(wasActive){
+          activeFilterMode = null;
+          // Restore default tier-A sort behavior
+          document.querySelector('.sort-chip[data-sort="alpha_score"]').classList.add('active');
+          sortKey = 'alpha_score';
+        } else {
+          b.classList.add('active');
+          activeFilterMode = filterAttr;
+          // Also clear active tier highlight since filter overrides tier
+          document.querySelectorAll('.tier-box').forEach(x => x.classList.remove('active'));
+        }
+      } else if(sortAttr){
+        // Sort mode
+        document.querySelectorAll('.sort-chip').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        sortKey = sortAttr;
+        activeFilterMode = null;  // sort doesn't combine with filter mode
+      }
       renderCards();
     });
   });
+}
+
+// ── CONFLUENCE + REGIME LOADERS (Roadmap #2 + #3) ──
+let confluenceData = null;
+let regimeData = null;
+
+const REGIME_ICONS = {
+  EXPANSION:'🚀', SLOWING:'⚠️', STAGFLATION:'🔥',
+  RECOVERY:'🌱', TIGHTENING:'🥶', UNKNOWN:'❓',
+};
+
+function renderRegimeBanner(){
+  if(!confluenceData && !regimeData) return;
+  const regime = (confluenceData && confluenceData.regime)
+                  || (regimeData && regimeData.regime) || 'UNKNOWN';
+  const conf = (confluenceData && confluenceData.regime_confidence)
+                || (regimeData && regimeData.regime_confidence) || 0;
+  const logic = (regimeData && regimeData.regime_logic) || '';
+  document.getElementById('regime-name').textContent = regime;
+  document.getElementById('regime-icon').textContent = REGIME_ICONS[regime] || '🌀';
+  document.getElementById('regime-confidence').textContent = (conf * 100).toFixed(0) + '%';
+  document.getElementById('regime-logic').textContent = logic;
+  // Sector preferences
+  const prefs = (regimeData && regimeData.regime_sector_preferences) || {};
+  const sorted = Object.entries(prefs).sort((a,b) => b[1] - a[1]);
+  const sectorsEl = document.getElementById('regime-sectors');
+  sectorsEl.innerHTML = sorted.map(([sec, adj]) => {
+    const sign = adj >= 0 ? '+' : '';
+    const color = adj > 5 ? 'var(--pos)' : adj < -5 ? 'var(--neg)'
+                : adj > 0 ? 'var(--gold)' : adj < 0 ? 'var(--text-mute)' : 'var(--text-dim)';
+    return `<span style="padding:2px 7px;border-radius:3px;background:rgba(28,35,48,.5);color:${color}">${sign}${adj} ${escapeHtml(sec.substring(0,16))}</span>`;
+  }).join('');
+  document.getElementById('regime-banner').style.display = 'block';
+}
+
+function renderConfluence(){
+  if(!confluenceData) return;
+  const tier_s = confluenceData.tier_s_confluence || [];
+  const tier_a = confluenceData.tier_a_confluence || [];
+  if(tier_s.length === 0 && tier_a.length === 0){
+    document.getElementById('confluence-cards').innerHTML =
+      '<div style="color:var(--text-mute);font-family:var(--font-mono);font-size:11px;padding:14px">No Tier S or Tier A confluence events right now. Check back in an hour.</div>';
+    document.getElementById('confluence-section').style.display = 'block';
+    return;
+  }
+  const factorLabels = {quality:'Q',growth:'G',momentum:'M',
+                          smart_money:'SM',sentiment:'S',analysts:'A',insiders:'I'};
+  const cards = [...tier_s, ...tier_a].slice(0, 12).map(s => {
+    const tier = s.confluence_tier;
+    const tierColor = tier === 'S' ? 'var(--tier-s)' : tier === 'A' ? 'var(--tier-a)' : 'var(--tier-b)';
+    const tierBg = tier === 'S' ? 'rgba(255,121,198,.18)' : tier === 'A' ? 'rgba(251,191,36,.18)' : 'rgba(167,139,250,.15)';
+    const firing = (s.components_firing || []).map(f => {
+      const label = factorLabels[f.factor] || f.factor;
+      return `<span style="font-family:var(--font-mono);font-size:10px;color:var(--pos);background:rgba(0,230,118,.10);padding:1px 5px;border-radius:2px;margin-right:3px">${label}=${f.score}</span>`;
+    }).join('');
+    const sig0 = (s.top_signals || [])[0] || '';
+    return `<div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid ${tierColor};border-radius:4px;padding:10px 12px;cursor:pointer" onclick="window.open('https://justhodl.ai/stock/?symbol=${escapeHtml(s.symbol)}','_blank')">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <div>
+          <span style="font-family:var(--font-mono);font-weight:700;font-size:14px">${escapeHtml(s.symbol)}</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-left:6px">${escapeHtml((s.sector || '').substring(0,16))}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:var(--font-mono);font-weight:800;font-size:10px;padding:2px 6px;border-radius:2px;background:${tierBg};color:${tierColor};letter-spacing:.5px">${tier} CONFLUENCE</span>
+          <span style="font-family:var(--font-mono);font-weight:700;font-size:13px;color:${compColor(s.alpha_score)}">α${s.alpha_score}</span>
+        </div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-bottom:6px">${s.confluence_count}/7 factors firing:</div>
+      <div style="line-height:1.6">${firing}</div>
+      ${sig0 ? `<div style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.4">${escapeHtml(sig0)}</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('confluence-cards').innerHTML = cards;
+  document.getElementById('confluence-section').style.display = 'block';
+}
+
+function renderRegimePicks(){
+  if(!regimeData) return;
+  const picks = (regimeData.regime_picks || []).slice(0, 12);
+  const avoids = (regimeData.regime_avoids || []).slice(0, 10);
+  const fmtRow = (r, isAvoid) => {
+    const adjColor = r.regime_adj > 0 ? 'var(--pos)' : r.regime_adj < 0 ? 'var(--neg)' : 'var(--text-mute)';
+    const adjSign = r.regime_adj >= 0 ? '+' : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 4px;border-bottom:1px solid rgba(28,35,48,.4);cursor:pointer;font-family:var(--font-mono);font-size:11px" onclick="window.open('https://justhodl.ai/stock/?symbol=${escapeHtml(r.symbol)}','_blank')">
+      <div style="display:flex;align-items:baseline;gap:8px;min-width:0;flex:1">
+        <span style="font-weight:700;color:var(--text)">${escapeHtml(r.symbol)}</span>
+        <span style="color:var(--text-mute);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml((r.sector || '').substring(0,14))}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span style="color:var(--text-dim)">α${r.alpha_score}</span>
+        <span style="color:${adjColor};font-weight:700">${adjSign}${r.regime_adj}</span>
+        <span style="color:var(--text);font-weight:700;min-width:24px;text-align:right">${r.regime_adj_score}</span>
+      </div>
+    </div>`;
+  };
+  document.getElementById('regime-picks').innerHTML = picks.map(r => fmtRow(r, false)).join('') ||
+    '<div style="color:var(--text-mute);padding:8px">No regime picks.</div>';
+  document.getElementById('regime-avoids').innerHTML = avoids.map(r => fmtRow(r, true)).join('') ||
+    '<div style="color:var(--text-mute);padding:8px">No regime avoids.</div>';
+  document.getElementById('regime-section').style.display = 'block';
+}
+
+async function loadConfluence(){
+  try {
+    const resp = await fetch(CONFLUENCE_URL + '?t=' + Date.now());
+    if(!resp.ok) return;
+    confluenceData = await resp.json();
+    renderRegimeBanner();
+    renderConfluence();
+  } catch(err) { console.warn('Confluence load failed:', err); }
+}
+async function loadRegime(){
+  try {
+    const resp = await fetch(REGIME_URL + '?t=' + Date.now());
+    if(!resp.ok) return;
+    regimeData = await resp.json();
+    renderRegimeBanner();
+    renderRegimePicks();
+  } catch(err) { console.warn('Regime load failed:', err); }
 }
 
 async function load(){
@@ -366,6 +577,8 @@ async function load(){
 
 initListeners();
 load();
+loadConfluence();
+loadRegime();
 </script>
 </body>
 </html>
