@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📊 Portfolio + Risk · JustHodl.AI</title>
+<meta name="description" content="Portfolio tracker with positions, watchlist, sector concentration, VAR, beta, correlations, and historical stress scenarios.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --tier-s:#ff79c6; --tier-a:#fbbf24; --tier-b:#a78bfa; --tier-c:#22d3ee; --tier-d:#5b6479;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.metric-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;}
+@media (max-width:1100px){.metric-row{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:600px){.metric-row{grid-template-columns:repeat(2,1fr);}}
+.metric-box{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;}
+.metric-label{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.6px;margin-bottom:2px;}
+.metric-value{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:-.4px;}
+.metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+.section{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden;}
+.section-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline;}
+.section-title{font-size:13px;font-weight:600;margin:0;}
+.section-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.4px;}
+.section-body{padding:10px 14px;}
+
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 6px;text-align:left;background:rgba(28,35,48,.4);font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:500;letter-spacing:.5px;border-bottom:1px solid var(--border);position:sticky;top:0;}
+td{padding:7px 6px;border-bottom:1px solid rgba(28,35,48,.4);font-family:var(--font-mono);}
+tr:hover td{background:rgba(28,35,48,.3);}
+.num{text-align:right;}
+.pos{color:var(--pos);}
+.neg{color:var(--neg);}
+.dim{color:var(--text-dim);}
+.mute{color:var(--text-mute);}
+
+.tier-badge{font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:.5px;}
+.tier-S{background:rgba(255,121,198,.18);color:var(--tier-s);}
+.tier-A{background:rgba(251,191,36,.18);color:var(--tier-a);}
+.tier-B{background:rgba(167,139,250,.15);color:var(--tier-b);}
+.tier-C{background:rgba(34,211,238,.12);color:var(--tier-c);}
+.tier-D{background:rgba(91,100,121,.18);color:var(--tier-d);}
+
+.flag-stop{background:rgba(255,61,90,.18);color:var(--neg);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+.flag-S{background:rgba(255,121,198,.18);color:var(--tier-s);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+.flag-A{background:rgba(251,191,36,.18);color:var(--tier-a);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+
+.scenarios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.scenario-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;border-left:3px solid var(--accent);}
+.scenario-name{font-size:11px;color:var(--text);margin:0 0 4px;font-weight:600;}
+.scenario-pnl{font-family:var(--font-mono);font-size:20px;font-weight:700;margin:4px 0;}
+.scenario-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+
+.corr-matrix{font-family:var(--font-mono);font-size:10px;}
+.corr-matrix td{text-align:center;padding:4px 6px;min-width:40px;}
+.corr-cell{font-weight:600;}
+
+.alert-banner{background:linear-gradient(135deg,rgba(255,61,90,.15),rgba(255,121,198,.08));border:1px solid rgba(255,61,90,.4);border-radius:5px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.alert-icon{font-size:20px;}
+.alert-body{flex:1;}
+.alert-title{font-weight:700;font-size:12px;}
+.alert-detail{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);}
+.empty-state h3{color:var(--text);margin:0 0 8px;}
+.empty-state code{background:rgba(28,35,48,.6);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;color:var(--gold);display:inline-block;margin-top:8px;text-align:left;}
+
+.sector-bar-track{height:10px;background:rgba(28,35,48,.4);border-radius:2px;overflow:hidden;position:relative;}
+.sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--info));border-radius:2px;transition:width .3s;}
+
+footer{text-align:center;padding:30px 20px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Portfolio + Risk Engine <span class="badge">#9 #10</span></h1>
+  <div class="header-meta">
+    <a class="nav-back" href="/">← JustHodl.AI</a>
+    <span><span class="dot"></span>Updated <span id="updated">—</span></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ─── TOP-LEVEL METRICS ─── -->
+  <div class="metric-row" id="metric-row">
+    <div class="metric-box"><div class="metric-label">PORTFOLIO VALUE</div>
+      <div class="metric-value" id="mv-value">—</div>
+      <div class="metric-sub" id="mv-pnl">—</div></div>
+    <div class="metric-box"><div class="metric-label">1-DAY 99% VAR</div>
+      <div class="metric-value" id="mv-var">—</div>
+      <div class="metric-sub" id="mv-var-pct">—</div></div>
+    <div class="metric-box"><div class="metric-label">β SPY</div>
+      <div class="metric-value" id="mv-beta">—</div>
+      <div class="metric-sub">portfolio beta to S&P 500</div></div>
+    <div class="metric-box"><div class="metric-label">ANN. VOL</div>
+      <div class="metric-value" id="mv-vol">—</div>
+      <div class="metric-sub">annualized portfolio volatility</div></div>
+    <div class="metric-box"><div class="metric-label">CONCENTRATION</div>
+      <div class="metric-value" id="mv-hhi">—</div>
+      <div class="metric-sub" id="mv-hhi-label">—</div></div>
+    <div class="metric-box"><div class="metric-label">POSITIONS</div>
+      <div class="metric-value" id="mv-positions">—</div>
+      <div class="metric-sub" id="mv-watchlist">—</div></div>
+  </div>
+
+  <!-- ─── ALERT BANNERS ─── -->
+  <div id="alert-zone"></div>
+
+  <!-- ─── POSITIONS TABLE ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Holdings <span class="section-meta" id="pos-count">—</span></h2>
+      <span class="section-meta" id="pos-pnl-summary">—</span>
+    </div>
+    <div class="section-body" style="padding:0;overflow-x:auto;">
+      <table id="positions-table">
+        <thead><tr>
+          <th>SYM</th><th>SECTOR</th><th class="num">QTY</th>
+          <th class="num">COST</th><th class="num">CURRENT</th>
+          <th class="num">P&amp;L $</th><th class="num">P&amp;L %</th>
+          <th class="num">WT</th><th class="num">α</th>
+          <th>TIER</th><th>FLAGS</th>
+          <th class="num">VOL</th><th class="num">β</th>
+        </tr></thead>
+        <tbody id="positions-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── SECTOR CONCENTRATION ─── -->
+  <div class="section">
+    <div class="section-header"><h2 class="section-title">Sector Exposure</h2>
+      <span class="section-meta" id="sector-summary">—</span></div>
+    <div class="section-body" id="sector-body"></div>
+  </div>
+
+  <!-- ─── HISTORICAL SCENARIOS ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Stress Test — Historical Crisis Scenarios</h2>
+      <span class="section-meta">what your book would do in each event</span>
+    </div>
+    <div class="section-body">
+      <div class="scenarios-grid" id="scenarios-grid"></div>
+    </div>
+  </div>
+
+  <!-- ─── CORRELATION MATRIX ─── -->
+  <div class="section" id="corr-section">
+    <div class="section-header"><h2 class="section-title">Correlation Matrix</h2>
+      <span class="section-meta">30-day daily return correlations</span></div>
+    <div class="section-body" style="overflow-x:auto;">
+      <div id="corr-matrix"></div>
+    </div>
+  </div>
+
+  <!-- ─── WATCHLIST ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Watchlist <span class="section-meta" id="watch-count">—</span></h2>
+      <span class="section-meta">Auto-synced from TIER S/A + manual entries</span>
+    </div>
+    <div class="section-body" style="padding:0;overflow-x:auto;">
+      <table id="watch-table">
+        <thead><tr>
+          <th>SYM</th><th>NAME</th><th>SECTOR</th>
+          <th class="num">PRICE</th><th class="num">α</th>
+          <th>TIER</th><th>CONFLUENCE</th><th>REGIME ADJ</th>
+          <th>SOURCE</th>
+        </tr></thead>
+        <tbody id="watch-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Powered by 184 Lambdas · DDB-backed portfolio · institutional risk engine ·
+  <a href="https://justhodl.ai/alpha/">α Alpha</a> ·
+  <a href="https://justhodl.ai/screener/">Screener</a>
+</footer>
+
+<script>
+const SNAPSHOT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/snapshot.json';
+const RISK_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/risk.json';
+let snapshot = null;
+let risk = null;
+
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtMoney(v){ if(v == null) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
+function fmtPct(v, digits=2){ return v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
+function pnlClass(v){ return v == null ? 'dim' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'dim'; }
+
+function tierBadge(t){
+  if(!t || t === '—') return '<span class="dim">—</span>';
+  return `<span class="tier-badge tier-${t}">${t}</span>`;
+}
+
+function setUpdated(){
+  if(!snapshot) return;
+  const d = new Date(snapshot.generated_at);
+  document.getElementById('updated').textContent = d.toLocaleString();
+}
+
+function renderTopMetrics(){
+  if(!snapshot && !risk) return;
+  const ps = (snapshot && snapshot.portfolio_summary) || {};
+  document.getElementById('mv-value').textContent = fmtMoney(ps.total_market_value);
+  const pnlPct = ps.total_pnl_pct;
+  const pnlD = ps.total_pnl_dollars;
+  const pnlEl = document.getElementById('mv-pnl');
+  pnlEl.innerHTML = `<span class="${pnlClass(pnlD)}">${fmtMoney(pnlD)} (${fmtPct(pnlPct)})</span>`;
+
+  if(risk){
+    document.getElementById('mv-var').textContent = fmtMoney(risk.var_1d_99_dollars);
+    document.getElementById('mv-var-pct').textContent = `${(risk.var_1d_99_pct || 0).toFixed(2)}% of book`;
+    document.getElementById('mv-beta').textContent = (risk.portfolio_beta_spy || 0).toFixed(2);
+    document.getElementById('mv-vol').textContent = `${(risk.portfolio_vol_annual_pct || 0).toFixed(1)}%`;
+    document.getElementById('mv-hhi').textContent = Math.round(risk.concentration_hhi || 0);
+    document.getElementById('mv-hhi-label').textContent = risk.concentration_label || '—';
+  }
+
+  const counts = (snapshot && snapshot.counts) || {};
+  document.getElementById('mv-positions').textContent = counts.positions || 0;
+  document.getElementById('mv-watchlist').textContent =
+    `${counts.watchlist || 0} watchlist (${counts.auto_watch_S || 0} S + ${counts.auto_watch_A || 0} A auto)`;
+}
+
+function renderAlerts(){
+  if(!risk) return;
+  const zone = document.getElementById('alert-zone');
+  zone.innerHTML = '';
+  const a = risk.alerts_summary || {};
+
+  if(a.stops_hit_count > 0){
+    (risk.stops_hit || []).forEach(s => {
+      zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📉</span>
+        <div class="alert-body"><div class="alert-title">STOP LOSS HIT — ${escapeHtml(s.symbol)}</div>
+        <div class="alert-detail">Current $${s.current_price} · Stop $${s.stop_loss}</div></div></div>`;
+    });
+  }
+  if(a.var_breach){
+    zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">⚠️</span>
+      <div class="alert-body"><div class="alert-title">VAR BREACH — ${risk.var_1d_99_pct.toFixed(2)}% 1-day risk exceeds 5%</div>
+      <div class="alert-detail">Annualized vol ${risk.portfolio_vol_annual_pct.toFixed(1)}% · β ${risk.portfolio_beta_spy.toFixed(2)}</div></div></div>`;
+  }
+  if(a.sector_concentration_breach){
+    const top = (risk.sector_concentration || [])[0];
+    if(top){
+      zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📊</span>
+        <div class="alert-body"><div class="alert-title">SECTOR CONCENTRATION — ${escapeHtml(top.sector)} at ${top.weight_pct.toFixed(1)}%</div>
+        <div class="alert-detail">HHI ${Math.round(risk.concentration_hhi)} (${risk.concentration_label})</div></div></div>`;
+    }
+  }
+  (risk.correlation_clusters || []).forEach(c => {
+    zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">🔗</span>
+      <div class="alert-body"><div class="alert-title">CORRELATION CLUSTER — ${c.symbols.join(', ')}</div>
+      <div class="alert-detail">Avg correlation ${c.avg_pairwise_correlation} · Combined ${c.total_weight_pct}% of book</div></div></div>`;
+  });
+}
+
+function renderPositions(){
+  if(!snapshot) return;
+  const positions = snapshot.positions || [];
+  const tbody = document.getElementById('positions-body');
+  document.getElementById('pos-count').textContent = `${positions.length} holdings`;
+
+  if(positions.length === 0){
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state">
+      <h3>No positions yet</h3>
+      <div>Add positions via the admin Lambda:</div>
+      <code>aws lambda invoke --function-name justhodl-portfolio-admin --payload '{"action":"add_position","symbol":"LLY","qty":50,"cost_basis_per_share":925}' /tmp/out.json</code>
+    </div></td></tr>`;
+    document.getElementById('pos-pnl-summary').textContent = '';
+    return;
+  }
+
+  const psm = snapshot.portfolio_summary || {};
+  document.getElementById('pos-pnl-summary').innerHTML =
+    `Total P&L: <span class="${pnlClass(psm.total_pnl_dollars)}">${fmtMoney(psm.total_pnl_dollars)} (${fmtPct(psm.total_pnl_pct)})</span>`;
+
+  const metrics = (risk && risk.position_metrics) || {};
+
+  tbody.innerHTML = positions.map(p => {
+    const m = metrics[p.symbol] || {};
+    let flags = '';
+    if(p.stop_hit) flags += '<span class="flag-stop">STOP HIT</span> ';
+    if(p.confluence_tier === 'S') flags += '<span class="flag-S">⚡ CONFLUENCE S</span> ';
+    if(p.confluence_tier === 'A') flags += '<span class="flag-A">⚡ A</span> ';
+    return `<tr style="cursor:pointer" onclick="window.open('https://justhodl.ai/stock/?symbol=${encodeURIComponent(p.symbol)}','_blank')">
+      <td style="font-weight:700">${escapeHtml(p.symbol)}</td>
+      <td class="dim">${escapeHtml((p.sector || '').substring(0,16))}</td>
+      <td class="num">${p.qty}</td>
+      <td class="num dim">$${(p.cost_basis_per_share || 0).toFixed(2)}</td>
+      <td class="num">$${(p.current_price || 0).toFixed(2)}</td>
+      <td class="num ${pnlClass(p.pnl_dollars)}">${fmtMoney(p.pnl_dollars)}</td>
+      <td class="num ${pnlClass(p.pnl_pct)}">${fmtPct(p.pnl_pct)}</td>
+      <td class="num">${p.current_weight_pct ? p.current_weight_pct.toFixed(1) + '%' : '—'}</td>
+      <td class="num">${p.alpha_score != null ? p.alpha_score : '—'}</td>
+      <td>${tierBadge(p.tier)}</td>
+      <td>${flags || '<span class="dim">—</span>'}</td>
+      <td class="num dim">${m.annual_vol_pct ? m.annual_vol_pct.toFixed(0) + '%' : '—'}</td>
+      <td class="num dim">${m.beta_spy != null ? m.beta_spy.toFixed(2) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSectors(){
+  if(!risk) return;
+  const concs = risk.sector_concentration || [];
+  const body = document.getElementById('sector-body');
+  if(concs.length === 0){ body.innerHTML = '<div class="dim">No sector data.</div>'; return; }
+  body.innerHTML = concs.map(s => `
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+        <span style="font-size:12px;">${escapeHtml(s.sector)}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:${s.weight_pct > 40 ? 'var(--neg)' : 'var(--text)'}">${s.weight_pct.toFixed(2)}%</span>
+      </div>
+      <div class="sector-bar-track"><div class="sector-bar-fill" style="width:${Math.min(s.weight_pct, 100)}%"></div></div>
+    </div>`).join('');
+  document.getElementById('sector-summary').textContent =
+    `HHI ${Math.round(risk.concentration_hhi)} · ${risk.concentration_label}`;
+}
+
+function renderScenarios(){
+  if(!risk) return;
+  const scenarios = risk.historical_scenarios || {};
+  const grid = document.getElementById('scenarios-grid');
+  grid.innerHTML = Object.values(scenarios).map(s => `
+    <div class="scenario-card">
+      <div class="scenario-name">${escapeHtml(s.name)}</div>
+      <div class="scenario-meta">SPY: ${s.spy_return_pct}% · ${s.duration_days} days</div>
+      <div class="scenario-pnl ${pnlClass(s.projected_pnl_dollars)}">${fmtMoney(s.projected_pnl_dollars)}</div>
+      <div class="scenario-meta ${pnlClass(s.projected_pnl_pct)}">${fmtPct(s.projected_pnl_pct)} on book</div>
+    </div>`).join('');
+}
+
+function renderCorrelations(){
+  if(!risk) return;
+  const matrix = risk.correlation_matrix || {};
+  const symbols = Object.keys(matrix);
+  if(symbols.length < 2){ document.getElementById('corr-section').style.display = 'none'; return; }
+
+  function corrColor(v){
+    if(v == null) return 'var(--text-mute)';
+    if(v > 0.7) return 'var(--neg)';
+    if(v > 0.4) return 'var(--gold)';
+    if(v > 0.0) return 'var(--info)';
+    if(v > -0.4) return 'var(--accent)';
+    return 'var(--pos)';
+  }
+
+  let html = '<table class="corr-matrix"><thead><tr><th></th>';
+  symbols.forEach(s => html += `<th>${escapeHtml(s)}</th>`);
+  html += '</tr></thead><tbody>';
+  symbols.forEach(s1 => {
+    html += `<tr><th>${escapeHtml(s1)}</th>`;
+    symbols.forEach(s2 => {
+      const v = matrix[s1][s2];
+      const display = v == null ? '—' : v.toFixed(2);
+      html += `<td class="corr-cell" style="color:${corrColor(v)};background:${s1===s2?'rgba(28,35,48,.5)':'transparent'}">${display}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('corr-matrix').innerHTML = html;
+}
+
+function renderWatchlist(){
+  if(!snapshot) return;
+  const watch = snapshot.watchlist || [];
+  document.getElementById('watch-count').textContent = `${watch.length} entries`;
+  const body = document.getElementById('watch-body');
+  if(watch.length === 0){
+    body.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="dim">Watchlist empty.</div></div></td></tr>';
+    return;
+  }
+  body.innerHTML = watch.slice(0, 30).map(w => {
+    const conf = w.confluence_tier ? `<span class="tier-badge tier-${w.confluence_tier}">${w.confluence_tier}</span>` : '<span class="dim">—</span>';
+    const adj = w.regime_adj;
+    const adjStr = adj != null ? `<span class="${adj > 0 ? 'pos' : adj < 0 ? 'neg' : 'dim'}">${adj > 0 ? '+' : ''}${adj}</span>` : '<span class="dim">—</span>';
+    return `<tr style="cursor:pointer" onclick="window.open('https://justhodl.ai/stock/?symbol=${encodeURIComponent(w.symbol)}','_blank')">
+      <td style="font-weight:700">${escapeHtml(w.symbol)}</td>
+      <td class="dim">${escapeHtml((w.name || '').substring(0,24))}</td>
+      <td class="dim">${escapeHtml((w.sector || '').substring(0,18))}</td>
+      <td class="num">${w.current_price ? '$' + w.current_price.toFixed(2) : '—'}</td>
+      <td class="num">${w.alpha_score != null ? w.alpha_score : '—'}</td>
+      <td>${tierBadge(w.tier)}</td>
+      <td>${conf}</td>
+      <td class="num">${adjStr}</td>
+      <td class="dim" style="font-size:10px">${escapeHtml(w.source || 'MANUAL').replace('AUTO_', '').replace('_', ' ')}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadAll(){
+  try {
+    const [snapResp, riskResp] = await Promise.all([
+      fetch(SNAPSHOT_URL + '?t=' + Date.now()),
+      fetch(RISK_URL + '?t=' + Date.now()),
+    ]);
+    if(snapResp.ok) snapshot = await snapResp.json();
+    if(riskResp.ok) risk = await riskResp.json();
+    setUpdated();
+    renderTopMetrics();
+    renderAlerts();
+    renderPositions();
+    renderSectors();
+    renderScenarios();
+    renderCorrelations();
+    renderWatchlist();
+  } catch(err){
+    document.getElementById('positions-body').innerHTML =
+      `<tr><td colspan="13"><div class="empty-state">Failed to load: ${escapeHtml(err.message)}</div></td></tr>`;
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
