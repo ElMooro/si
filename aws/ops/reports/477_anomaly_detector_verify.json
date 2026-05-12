@@ -1,0 +1,54 @@
+{
+  "started": "2026-05-12T21:53:09.550085+00:00",
+  "test": {
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-12T21:52:35",
+      "env_keys": [
+        "FRED_KEY",
+        "POLY_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "memory": 1024,
+      "timeout": 300,
+      "code_size": 9424
+    },
+    "invoke": {
+      "success": true,
+      "anomalies_count": 0,
+      "high_or_extreme_count": 0,
+      "by_severity": {},
+      "alerts_sent": 0,
+      "elapsed_seconds": 1.11
+    },
+    "sidecar": {
+      "size_kb": 0.5,
+      "generated_at": "2026-05-12T21:55:28.475679+00:00",
+      "elapsed_seconds": 1.08,
+      "anomalies_count": 0,
+      "high_or_extreme_count": 0,
+      "by_severity": {},
+      "categories_checked": [
+        "cross_asset",
+        "sector_breadth",
+        "vix_skew",
+        "credit_spread",
+        "bond_vol"
+      ],
+      "categories_with_anomalies": [],
+      "detector_timings_s": {
+        "cross_asset": 0.19,
+        "sector_breadth": 0.09,
+        "vix_skew": 0.25,
+        "credit_spread": 0.29,
+        "bond_vol": 0.15
+      },
+      "alerts_sent": 0,
+      "alerts_skipped_dedupe": 0,
+      "actions": [],
+      "anomalies": []
+    }
+  },
+  "finished": "2026-05-12T21:55:28.870261+00:00"
+}
