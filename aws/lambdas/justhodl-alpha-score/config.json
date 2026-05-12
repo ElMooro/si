@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-alpha-score",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "7-factor Alpha Score Engine — composite stock ranking 0-100 with tier S/A/B/C/D classification",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-alpha-score-hourly",
+    "cron": "cron(7 * * * ? *)",
+    "description": "Hourly at :07 — lands after sentiment/smart-money/screener refreshes (which all run at :00 or :15)"
+  }
+}
