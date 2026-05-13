@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📓 Trade Journal — Pattern Memory · JustHodl.AI</title>
+<meta name="description" content="Every TIER S/A confluence, regime pick, and debate call automatically logged with entry price and evaluated at 1d/7d/30d/90d/180d. Per-strategy win rates and best/worst trades.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📓%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c;
+  --tier-s:#ff79c6; --tier-a:#fbbf24; --tier-b:#a78bfa; --tier-c:#22d3ee; --tier-d:#5b6479;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.hero{background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(167,139,250,.04));border:1px solid rgba(251,191,36,.18);border-radius:6px;padding:14px 18px;margin-bottom:14px;}
+.hero h2{margin:0 0 4px;font-size:15px;font-weight:600;}
+.hero p{margin:0;color:var(--text-dim);font-size:12px;line-height:1.55;}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.metric-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;overflow:hidden;}
+.metric-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
+.metric-card.pos::before{background:var(--pos);}
+.metric-card.warn::before{background:var(--warn);}
+.metric-card.info::before{background:var(--info);}
+.metric-card.gold::before{background:var(--gold);}
+.metric-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.metric-value{font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:3px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;display:flex;align-items:baseline;justify-content:space-between;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+.table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:auto;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{text-align:left;padding:9px 10px;font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(28,35,48,.5);}
+tbody tr:hover{background:rgba(28,35,48,.4);cursor:pointer;}
+tbody tr:last-child td{border-bottom:none;}
+.col-r{text-align:right;}
+.sym{font-family:var(--font-mono);font-weight:700;}
+.pnl-pos{color:var(--pos);font-weight:600;}
+.pnl-neg{color:var(--neg);font-weight:600;}
+
+.strategy-chip{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.3px;background:rgba(167,139,250,.15);color:var(--accent);white-space:nowrap;}
+.strategy-TIER_S_CONFLUENCE,.strategy-TIER_S_ALPHA{background:rgba(255,121,198,.18);color:var(--tier-s);}
+.strategy-TIER_A_CONFLUENCE,.strategy-TIER_A_ALPHA{background:rgba(251,191,36,.18);color:var(--tier-a);}
+.strategy-REGIME_PICK{background:rgba(34,211,238,.18);color:var(--tier-c);}
+.strategy-DEBATE_STRONG_BUY,.strategy-DEBATE_BUY{background:rgba(167,139,250,.18);color:var(--tier-b);}
+.strategy-OPTIONS_TIER_A{background:rgba(0,230,118,.18);color:var(--pos);}
+
+.tier-chip{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 5px;border-radius:2px;letter-spacing:.4px;}
+.tier-S{background:rgba(255,121,198,.20);color:var(--tier-s);}
+.tier-A{background:rgba(251,191,36,.20);color:var(--tier-a);}
+.tier-B{background:rgba(167,139,250,.20);color:var(--tier-b);}
+.tier-C{background:rgba(34,211,238,.20);color:var(--tier-c);}
+.tier-D{background:rgba(91,100,121,.20);color:var(--tier-d);}
+
+.outcome-cell{font-family:var(--font-mono);}
+.outcome-pending{color:var(--text-mute);}
+
+.empty-state{background:var(--panel);border:1px dashed var(--border-hi);border-radius:6px;padding:36px 24px;text-align:center;}
+.empty-state .icon{font-size:36px;margin-bottom:10px;}
+
+.section-half{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media (max-width:900px){.section-half{grid-template-columns:1fr;}}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+.error{color:var(--neg);font-family:var(--font-mono);font-size:11px;padding:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📓 Trade Journal <span class="badge">#16</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/debate/">⚔ Debate</a>
+      <a href="/alpha/">α Alpha</a>
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <h2>Pattern Memory · Self-Auditing Track Record</h2>
+    <p>Every TIER S/A confluence, regime pick, debate consensus, and bullish-flow signal is auto-logged with entry price + macro context. Outcomes evaluated at 1d/7d/30d/90d/180d. After 90 days you have a real track record by strategy — start to know which signals actually work for YOU vs which are noise.</p>
+  </div>
+
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <h2 class="section">
+    <span>📈 Strategy Performance <span class="meta">last 90 days · win rate + avg return</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="strategy-table">
+      <thead><tr>
+        <th>Strategy</th>
+        <th class="col-r">Total Calls</th>
+        <th class="col-r">30d Win %</th>
+        <th class="col-r">30d Avg Return</th>
+        <th class="col-r">90d Win %</th>
+        <th class="col-r">90d Avg Return</th>
+        <th class="col-r">Evaluated</th>
+      </tr></thead>
+      <tbody id="strategy-body"></tbody>
+    </table>
+  </div>
+
+  <div class="section-half">
+    <div>
+      <h2 class="section">🏆 Best Calls <span class="meta">last 60 days</span></h2>
+      <div class="table-wrap">
+        <table id="best-table">
+          <thead><tr>
+            <th>Date</th><th>Symbol</th><th>Strategy</th>
+            <th class="col-r">Entry</th><th class="col-r">30d Return</th>
+          </tr></thead>
+          <tbody id="best-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h2 class="section">📉 Worst Calls <span class="meta">last 60 days</span></h2>
+      <div class="table-wrap">
+        <table id="worst-table">
+          <thead><tr>
+            <th>Date</th><th>Symbol</th><th>Strategy</th>
+            <th class="col-r">Entry</th><th class="col-r">30d Return</th>
+          </tr></thead>
+          <tbody id="worst-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">
+    <span>📚 Full Ledger <span class="meta" id="ledger-meta">most recent 200 calls</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="ledger-table">
+      <thead><tr>
+        <th>Date</th><th>Symbol</th><th>Strategy</th><th>Tier</th><th class="col-r">α</th>
+        <th>Regime</th><th class="col-r">Entry</th>
+        <th class="col-r">1d</th><th class="col-r">7d</th><th class="col-r">30d</th>
+        <th class="col-r">90d</th><th class="col-r">180d</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody id="ledger-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer><p>Trade Journal · #16 · Pattern memory feeds back into #6 calibration · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_JOURNAL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/trade-journal.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+n.toFixed(d==null?2:d)+'%';}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return n.toFixed(d==null?2:d);}
+function fmtMoney(n){if(n==null||isNaN(n))return'—';return '$'+n.toFixed(2);}
+function fmtDate(s){if(!s)return'—';return s.substring(0,10);}
+function pnlCls(n){return n==null?'':(n>=0?'pnl-pos':'pnl-neg');}
+function tierChip(t){if(!t||t==='—')return'<span class="tier-chip" style="color:var(--text-mute)">—</span>';return `<span class="tier-chip tier-${esc(t)}">${esc(t)}</span>`;}
+function stratChip(s){return `<span class="strategy-chip strategy-${esc(s)}">${esc((s||'').replace(/_/g,' '))}</span>`;}
+
+function outcomeCell(o){
+  if(!o || o.return_pct == null) return '<span class="outcome-cell outcome-pending">—</span>';
+  return `<span class="outcome-cell ${pnlCls(o.return_pct)}">${fmtPct(o.return_pct, 1)}</span>`;
+}
+
+let data = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    data = await fetch(URL_JOURNAL + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
+    if(!data) throw new Error('trade-journal.json not yet generated. Evaluator runs daily at 23:00 UTC after market close.');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const hrs = Math.floor((Date.now() - t) / 3600000);
+    document.getElementById('updated').textContent = hrs < 1 ? 'just now' : hrs + 'h ago';
+    render();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('ledger-body').innerHTML =
+      `<tr><td colspan="13" class="empty-state"><div class="icon">📓</div>
+       <h3 style="margin:0 0 6px">No trades logged yet</h3>
+       <p>${esc(e.message)}</p>
+       <p style="margin-top:8px;font-size:11px;color:var(--text-mute)">trade-logger Lambda runs hourly at :50 and writes TIER S/A signals to DDB. After 24h the evaluator starts recording outcomes.</p>
+       </td></tr>`;
+  }
+}
+
+function render(){
+  const s = data.summary || {};
+
+  document.getElementById('summary-grid').innerHTML = [
+    {label:'Calls Logged (90d)', value:s.total_calls_90d || 0, sub:`${s.n_open || 0} open`, cls:'info'},
+    {label:'Evaluated (30d)', value:s.total_evaluated_30d || 0, sub:'matured calls', cls:'info'},
+    {label:'Win Rate 30d', value: s.overall_win_rate_30d_pct != null ? s.overall_win_rate_30d_pct + '%' : '—',
+     sub:'overall hit rate', cls: s.overall_win_rate_30d_pct >= 50 ? 'pos' : 'warn'},
+    {label:'Avg Return 30d', value: s.overall_avg_return_30d_pct != null ? fmtPct(s.overall_avg_return_30d_pct, 1) : '—',
+     sub:'across all strategies', cls: s.overall_avg_return_30d_pct >= 0 ? 'pos' : 'warn'},
+    {label:'Strategies', value: s.n_strategies_tracked || 0, sub:'tracked types', cls:'gold'},
+    {label:'Closed', value: s.n_closed_or_hit || 0, sub:'fully evaluated', cls:'info'},
+  ].map(c => `<div class="metric-card ${c.cls}">
+    <div class="metric-label">${esc(c.label)}</div>
+    <div class="metric-value">${c.value}</div>
+    <div class="metric-sub">${esc(c.sub)}</div>
+  </div>`).join('');
+
+  // Strategy table
+  const strategies = data.strategies || [];
+  const stbody = document.getElementById('strategy-body');
+  if(!strategies.length){
+    stbody.innerHTML = `<tr><td colspan="7" style="padding:18px;text-align:center;color:var(--text-mute);">No strategies evaluated yet. After 30 days of data, win rates start appearing.</td></tr>`;
+  } else {
+    stbody.innerHTML = strategies.map(s => `<tr>
+      <td>${stratChip(s.strategy)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${s.total_calls_90d}</td>
+      <td class="col-r ${pnlCls(s.win_rate_30d_pct ? s.win_rate_30d_pct - 50 : null)}" style="font-family:var(--font-mono);font-weight:600">
+        ${s.win_rate_30d_pct != null ? fmtNum(s.win_rate_30d_pct, 1) + '%' : '—'}
+      </td>
+      <td class="col-r ${pnlCls(s.avg_return_30d_pct)}" style="font-family:var(--font-mono);font-weight:600">
+        ${s.avg_return_30d_pct != null ? fmtPct(s.avg_return_30d_pct, 2) : '—'}
+      </td>
+      <td class="col-r ${pnlCls(s.win_rate_90d_pct ? s.win_rate_90d_pct - 50 : null)}" style="font-family:var(--font-mono);font-weight:600">
+        ${s.win_rate_90d_pct != null ? fmtNum(s.win_rate_90d_pct, 1) + '%' : '—'}
+      </td>
+      <td class="col-r ${pnlCls(s.avg_return_90d_pct)}" style="font-family:var(--font-mono);font-weight:600">
+        ${s.avg_return_90d_pct != null ? fmtPct(s.avg_return_90d_pct, 2) : '—'}
+      </td>
+      <td class="col-r" style="font-family:var(--font-mono);color:var(--text-dim)">
+        ${s.evaluated_30d}/${s.total_calls_90d}
+      </td>
+    </tr>`).join('');
+  }
+
+  // Best/worst tables
+  function renderBestWorst(rows, tbody){
+    if(!rows.length){
+      tbody.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--text-mute);font-size:11px;">No evaluations yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(c => {
+      const r = (c.outcome_30d && c.outcome_30d.return_pct);
+      return `<tr onclick="window.open('/stock/?symbol=${esc(c.symbol)}','_blank')">
+        <td style="font-family:var(--font-mono);font-size:11px">${fmtDate(c.call_date)}</td>
+        <td><span class="sym">${esc(c.symbol)}</span></td>
+        <td>${stratChip(c.strategy)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtMoney(c.entry_price)}</td>
+        <td class="col-r ${pnlCls(r)}" style="font-family:var(--font-mono);font-weight:600">${fmtPct(r, 1)}</td>
+      </tr>`;
+    }).join('');
+  }
+  renderBestWorst(data.best_calls_60d || [], document.getElementById('best-body'));
+  renderBestWorst(data.worst_calls_60d || [], document.getElementById('worst-body'));
+
+  // Full ledger
+  const ledger = data.ledger || [];
+  document.getElementById('ledger-meta').textContent = ledger.length + ' calls';
+  const lbody = document.getElementById('ledger-body');
+  if(!ledger.length){
+    lbody.innerHTML = `<tr><td colspan="13" class="empty-state"><div class="icon">📓</div><p>No calls logged yet.</p></td></tr>`;
+  } else {
+    lbody.innerHTML = ledger.map(c => `<tr onclick="window.open('/stock/?symbol=${esc(c.symbol)}','_blank')">
+      <td style="font-family:var(--font-mono);font-size:11px">${fmtDate(c.call_date)}</td>
+      <td><span class="sym">${esc(c.symbol)}</span></td>
+      <td>${stratChip(c.strategy)}</td>
+      <td>${tierChip(c.tier)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c.alpha_score != null ? c.alpha_score : '—'}</td>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">${esc(c.regime_at_call || '—')}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${fmtMoney(c.entry_price)}</td>
+      <td class="col-r">${outcomeCell(c.outcome_1d)}</td>
+      <td class="col-r">${outcomeCell(c.outcome_7d)}</td>
+      <td class="col-r">${outcomeCell(c.outcome_30d)}</td>
+      <td class="col-r">${outcomeCell(c.outcome_90d)}</td>
+      <td class="col-r">${outcomeCell(c.outcome_180d)}</td>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">${esc(c.outcome_status || 'OPEN')}</td>
+    </tr>`).join('');
+  }
+}
+
+load();
+setInterval(load, 600000);
+</script>
+
+</body>
+</html>

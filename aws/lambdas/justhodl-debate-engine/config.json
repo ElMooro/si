@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-debate-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Multi-Agent Debate Engine (#15). 5 Claude personas (Value/Growth/Macro/Quant/Short) evaluate each TIER S/A pick in parallel. Outputs consensus verdict + forced bear case + dissenting opinions.",
+  "environment": {
+    "MAX_TIER_S": "3",
+    "MAX_TIER_A": "3"
+  },
+  "inherit_env": [
+    {"from_function": "justhodl-earnings-sentiment", "keys": ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"]},
+    {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-debate-engine-daily",
+    "cron": "cron(15 12 * * ? *)",
+    "description": "Daily 12:15 UTC = 8:15am ET — after alpha-score (:07), confluence (:12), morning brief context settled"
+  }
+}

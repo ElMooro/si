@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚔ Debate Engine — 5-Persona Adversarial Analysis · JustHodl.AI</title>
+<meta name="description" content="5 specialized Claude personas (Value, Growth, Macro, Quant, Short) debate every TIER S/A pick. Bear case forced into every analysis.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚔%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --persona-value:#fbbf24; --persona-growth:#22d3ee; --persona-macro:#a78bfa;
+  --persona-quant:#34d399; --persona-short:#ef4444;
+  --verdict-buy:#00e676; --verdict-hold:#fbbf24; --verdict-sell:#ef4444;
+  --consensus-strongbuy:#00e676; --consensus-buy:#34d399; --consensus-hold:#fbbf24;
+  --consensus-divided:#fb923c; --consensus-sell:#ef4444;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1500px;margin:0 auto;}
+
+.hero{background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(239,68,68,.05));border:1px solid rgba(167,139,250,.20);border-radius:6px;padding:14px 18px;margin-bottom:14px;}
+.hero h2{margin:0 0 4px;font-size:15px;font-weight:600;}
+.hero p{margin:0;color:var(--text-dim);font-size:12px;line-height:1.55;}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.metric-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 12px;position:relative;overflow:hidden;}
+.metric-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.metric-card.strongbuy::before{background:var(--consensus-strongbuy);}
+.metric-card.buy::before{background:var(--consensus-buy);}
+.metric-card.hold::before{background:var(--consensus-hold);}
+.metric-card.divided::before{background:var(--consensus-divided);}
+.metric-card.sell::before{background:var(--consensus-sell);}
+.metric-label{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.metric-value{font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 10px;}
+
+.debate-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:14px 16px;margin-bottom:12px;position:relative;
+}
+.debate-header{
+  display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;gap:10px;
+}
+.debate-symbol{font-family:var(--font-mono);font-weight:700;font-size:20px;letter-spacing:-.5px;}
+.debate-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.consensus-chip{
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  padding:4px 9px;border-radius:3px;letter-spacing:.6px;
+}
+.consensus-STRONG_BUY{background:rgba(0,230,118,.18);color:var(--consensus-strongbuy);}
+.consensus-BUY{background:rgba(52,211,153,.18);color:var(--consensus-buy);}
+.consensus-HOLD{background:rgba(251,191,36,.18);color:var(--consensus-hold);}
+.consensus-DIVIDED{background:rgba(251,146,60,.18);color:var(--consensus-divided);}
+.consensus-SELL{background:rgba(239,68,68,.18);color:var(--consensus-sell);}
+
+.personas-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:10px;margin-bottom:12px;
+}
+.persona-box{
+  background:var(--panel-2);border:1px solid var(--border);border-radius:5px;
+  padding:10px 12px;position:relative;
+}
+.persona-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.persona-VALUE::before{background:var(--persona-value);}
+.persona-GROWTH::before{background:var(--persona-growth);}
+.persona-MACRO::before{background:var(--persona-macro);}
+.persona-QUANT::before{background:var(--persona-quant);}
+.persona-SHORT::before{background:var(--persona-short);}
+
+.persona-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.persona-name{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.persona-VALUE .persona-name{color:var(--persona-value);}
+.persona-GROWTH .persona-name{color:var(--persona-growth);}
+.persona-MACRO .persona-name{color:var(--persona-macro);}
+.persona-QUANT .persona-name{color:var(--persona-quant);}
+.persona-SHORT .persona-name{color:var(--persona-short);}
+
+.verdict-chip{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:3px;letter-spacing:.4px;
+}
+.verdict-BUY{background:rgba(0,230,118,.18);color:var(--verdict-buy);}
+.verdict-HOLD{background:rgba(251,191,36,.18);color:var(--verdict-hold);}
+.verdict-SELL{background:rgba(239,68,68,.18);color:var(--verdict-sell);}
+.verdict-ERROR{background:rgba(91,100,121,.18);color:var(--text-mute);}
+
+.persona-thesis{font-size:11.5px;line-height:1.5;color:var(--text);margin:6px 0 4px;}
+.persona-detail{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+
+.bear-case-box{
+  background:linear-gradient(135deg,rgba(239,68,68,.10),rgba(251,146,60,.04));
+  border:1px solid rgba(239,68,68,.30);border-radius:5px;
+  padding:12px 14px;margin-bottom:12px;
+}
+.bear-case-box h4{margin:0 0 6px;font-size:12px;color:var(--persona-short);display:flex;align-items:center;gap:6px;}
+.bear-case-text{font-size:12px;line-height:1.55;color:var(--text);}
+.bear-flags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
+.bear-flag-chip{
+  font-family:var(--font-mono);font-size:10px;background:rgba(239,68,68,.12);
+  color:var(--persona-short);padding:2px 7px;border-radius:3px;
+}
+
+.empty-state{
+  background:var(--panel);border:1px dashed var(--border-hi);border-radius:6px;
+  padding:36px 24px;text-align:center;
+}
+.empty-state .icon{font-size:36px;margin-bottom:10px;}
+.empty-state h3{margin:0 0 8px;}
+.empty-state p{margin:0;color:var(--text-dim);font-size:12px;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+.error{color:var(--neg);font-family:var(--font-mono);font-size:11px;padding:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔ Debate Engine <span class="badge">#15</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/alpha/">α Alpha</a>
+      <a href="/trades/">📓 Trades</a>
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <h2>5-Persona Adversarial AI Analysis</h2>
+    <p>Every TIER S/A pick is debated by 5 specialized Claude personas in parallel: <strong style="color:var(--persona-value)">💎 Value</strong> (Buffett), <strong style="color:var(--persona-growth)">🚀 Growth</strong> (Tiger), <strong style="color:var(--persona-macro)">🌐 Macro</strong> (Druckenmiller), <strong style="color:var(--persona-quant)">📊 Quant</strong> (Renaissance), <strong style="color:var(--persona-short)">🐻 Short</strong> (Hindenburg). The bear case is always forced into the output — no analysis without dissent.</p>
+  </div>
+
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <h2 class="section">📋 Today's Debates</h2>
+  <div id="debates-container"></div>
+
+</main>
+
+<footer><p>Debate Engine · #15 · 5 personas × parallel Claude haiku · daily 12:15 UTC · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_DEBATE = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/debate.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return n.toFixed(d==null?2:d);}
+
+let data = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    data = await fetch(URL_DEBATE + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
+    if(!data) throw new Error('debate.json not yet generated. Lambda runs daily at 12:15 UTC.');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const mins = Math.floor((Date.now() - t) / 60000);
+    document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : Math.floor(mins/60) + 'h ago';
+    render();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('debates-container').innerHTML =
+      `<div class="empty-state"><div class="icon">⚔</div>
+       <h3>No debates yet</h3>
+       <p>${esc(e.message)}</p>
+       <p style="margin-top:8px;font-size:11px;color:var(--text-mute)">First debate will appear after the next daily run.</p>
+       </div>`;
+  }
+}
+
+function render(){
+  const s = data.summary || {};
+  document.getElementById('summary-grid').innerHTML = [
+    {label:'Stocks Debated', value:data.stocks_debated || 0, sub:'top TIER S+A', cls:'buy'},
+    {label:'Strong Buy', value:s.n_strong_buy || 0, sub:'4-5 of 5 BUY', cls:'strongbuy'},
+    {label:'Buy', value:s.n_buy || 0, sub:'3 of 5 BUY', cls:'buy'},
+    {label:'Divided', value:s.n_divided || 0, sub:'2-2 split', cls:'divided'},
+    {label:'Hold', value:s.n_hold || 0, sub:'mixed signals', cls:'hold'},
+    {label:'Sell', value:s.n_sell || 0, sub:'3+ of 5 SELL', cls:'sell'},
+  ].map(c => `<div class="metric-card ${c.cls}">
+    <div class="metric-label">${esc(c.label)}</div>
+    <div class="metric-value">${c.value}</div>
+    <div class="metric-sub">${esc(c.sub)}</div>
+  </div>`).join('');
+
+  const debates = data.debates || [];
+  const container = document.getElementById('debates-container');
+  if(!debates.length){
+    container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No debates this run (no TIER S/A picks).</p></div>`;
+    return;
+  }
+
+  container.innerHTML = debates.map(d => {
+    const synth = d.synthesis || {};
+    const personas = d.personas || [];
+
+    const personasHtml = personas.map(p => {
+      const name = p.name || '';
+      const verdict = p.verdict || 'HOLD';
+      const conv = p.conviction;
+      const thesis = p.thesis || '';
+      const concerns = p.concerns;
+      // Persona-specific detail fields
+      let detail = '';
+      if(name === 'VALUE' && p.fair_value_view) detail = 'Fair value: ' + esc(p.fair_value_view);
+      else if(name === 'GROWTH' && p.tam_view) detail = 'TAM: ' + esc(p.tam_view);
+      else if(name === 'MACRO' && p.regime_fit) detail = 'Regime fit: ' + esc(p.regime_fit);
+      else if(name === 'QUANT' && p.expected_60d_return_pct != null) detail = 'Expected 60d: ' + (p.expected_60d_return_pct >= 0 ? '+' : '') + p.expected_60d_return_pct + '%';
+      else if(name === 'SHORT' && p.downside_target_pct != null) detail = 'Downside: ' + p.downside_target_pct + '%';
+      return `<div class="persona-box persona-${esc(name)}">
+        <div class="persona-head">
+          <div class="persona-name">${esc(p.icon || '')} ${esc(name)}</div>
+          <div>
+            ${conv != null ? `<span class="persona-detail" style="margin-right:6px">conv ${conv}</span>` : ''}
+            <span class="verdict-chip verdict-${esc(verdict)}">${esc(verdict)}</span>
+          </div>
+        </div>
+        <div class="persona-thesis">${esc(thesis)}</div>
+        ${concerns ? `<div class="persona-detail">⚠ ${esc(concerns)}</div>` : ''}
+        ${detail ? `<div class="persona-detail">${detail}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const counts = synth.verdict_counts || {};
+    const bearFlagsHtml = (synth.red_flags || []).slice(0,5).map(f =>
+      `<span class="bear-flag-chip">${esc(f)}</span>`).join('');
+
+    return `<div class="debate-card">
+      <div class="debate-header">
+        <div>
+          <span class="debate-symbol">${esc(d.symbol)}</span>
+          <span class="debate-meta" style="margin-left:14px">
+            α ${d.alpha_score || '—'} · tier ${d.tier || '—'} · conf ${d.confluence_tier || '—'}
+            ${d.options_flow_score ? ' · ⚡flow ' + d.options_flow_score : ''}
+            · conviction ${fmtNum(synth.avg_conviction, 0)}/100
+          </span>
+        </div>
+        <div class="debate-meta">
+          BUY ${counts.BUY || 0} · HOLD ${counts.HOLD || 0} · SELL ${counts.SELL || 0}
+          <span class="consensus-chip consensus-${esc(synth.consensus_verdict)}">${esc(synth.consensus_verdict || 'HOLD')}</span>
+        </div>
+      </div>
+
+      <div class="personas-grid">${personasHtml}</div>
+
+      <div class="bear-case-box">
+        <h4>🐻 Forced Bear Case <span style="color:var(--text-mute);font-weight:400;margin-left:auto;font-size:10px">— the disconfirming view you'd otherwise miss</span></h4>
+        <div class="bear-case-text">${esc(synth.bear_case || 'Bear case unavailable.')}</div>
+        ${bearFlagsHtml ? `<div class="bear-flags">${bearFlagsHtml}</div>` : ''}
+        ${synth.downside_target_pct != null ? `<div style="margin-top:6px;font-family:var(--font-mono);font-size:11px;color:var(--persona-short);font-weight:600">Downside target: ${synth.downside_target_pct}%</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 600000);  // refresh every 10 min
+</script>
+
+</body>
+</html>
