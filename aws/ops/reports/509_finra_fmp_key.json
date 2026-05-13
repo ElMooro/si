@@ -1,0 +1,145 @@
+{
+  "started": "2026-05-13T10:58:07.098263+00:00",
+  "n_lambdas": 179,
+  "fmp_holders": [
+    {
+      "name": "justhodl-volatility-squeeze-hunter",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ]
+    },
+    {
+      "name": "justhodl-theme-tier-classifier",
+      "env_keys": [
+        "FMP_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-global-macro",
+      "env_keys": [
+        "FRED_API_KEY",
+        "S3_BUCKET",
+        "FMP_KEY",
+        "S3_KEY_OUT"
+      ]
+    },
+    {
+      "name": "justhodl-wave-signal-logger",
+      "env_keys": [
+        "FMP_KEY",
+        "POLYGON_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-ma-tracker",
+      "env_keys": [
+        "FMP_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-cross-asset-regime",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "FMP_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-universe-builder",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "MIN_VOLUME",
+        "FMP_KEY",
+        "ENRICH_WORKERS",
+        "MIN_MCAP",
+        "S3_KEY",
+        "MAX_ENRICH"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-holdings",
+      "env_keys": [
+        "FMP_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-insider-cluster-scanner",
+      "env_keys": [
+        "S3_BUCKET",
+        "MAX_FILINGS_TO_PARSE",
+        "N_BUSINESS_DAYS_INDEX",
+        "CLUSTER_MIN_INSIDERS",
+        "FMP_KEY",
+        "MIN_BUY_VALUE_USD",
+        "SEC_USER_AGENT",
+        "LOOKBACK_DAYS",
+        "N_WORKERS",
+        "S3_KEY"
+      ]
+    },
+    {
+      "name": "justhodl-momentum-breakout",
+      "env_keys": [
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S",
+        "MIN_DOLLAR_VOL",
+        "FMP_KEY",
+        "N_WORKERS",
+        "MAX_TICKERS"
+      ]
+    }
+  ],
+  "fmp_key_source": "justhodl-volatility-squeeze-hunter",
+  "fmp_key_prefix": "wwVpi37S\u2026",
+  "finra_env_updated": [
+    "FMP_KEY",
+    "POLY_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "invoke_status": 200,
+  "fn_error": null,
+  "invoke_response": {
+    "success": true,
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "n_universe_analyzed": 0,
+    "n_squeeze_candidates": 0,
+    "vw_svr_pct": null,
+    "regime": "UNKNOWN",
+    "top_squeeze": [],
+    "alert_sent": false,
+    "elapsed_seconds": 0.72
+  },
+  "log_tail": "START RequestId: f1c6d7ef-0a08-4345-9857-1b70a98d059d Version: $LATEST\n=== FINRA-SHORT v1.0.0 \u00b7 2026-05-13T10:58:49.039764+00:00 ===\nloaded 11,461 tickers for 2026-05-12\nsp500 fetch err: HTTP Error 403: Forbidden\nuniverse: 0 S&P 500 tickers\nanalyzing 0 S&P 500 tickers in parallel...\nanalyzed 0 tickers with data\n\u2713 finra-short.json written (0.6 KB)\nEND RequestId: f1c6d7ef-0a08-4345-9857-1b70a98d059d\nREPORT RequestId: f1c6d7ef-0a08-4345-9857-1b70a98d059d\tDuration: 729.12 ms\tBilled Duration: 1268 ms\tMemory Size: 1024 MB\tMax Memory Used: 113 MB\tInit Duration: 538.87 ms\t\n",
+  "sidecar": {
+    "size_kb": 0.6,
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "elapsed_seconds": 0.49,
+    "market_composite": {
+      "regime": "UNKNOWN",
+      "volume_weighted_svr": null,
+      "volume_weighted_svr_pct": null,
+      "median_svr_pct": null,
+      "p10_svr_pct": null,
+      "p90_svr_pct": null,
+      "p99_svr_pct": null,
+      "n_analyzed": 0,
+      "n_universe_in_file": 0,
+      "n_high_svr": 0,
+      "n_extreme_z": 0
+    },
+    "n_squeeze_candidates": 0,
+    "top_squeeze_10": [],
+    "top_svr_10": [],
+    "top_zscore_10": [],
+    "sectors": {}
+  },
+  "finished": "2026-05-13T10:58:50.177477+00:00"
+}
