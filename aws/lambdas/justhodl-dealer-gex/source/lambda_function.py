@@ -106,7 +106,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # Yahoo Finance proxy (Cloudflare Worker) — solves AWS Lambda → Yahoo 429 issue
 # Custom-domain binding bypasses CF account's workers.dev allowlist
-YAHOO_PROXY_BASE = "https://yahoo-proxy.justhodl.ai"
+YAHOO_PROXY_BASE = "https://justhodl-yahoo-proxy.raafouis.workers.dev"
 # Auth token is read from SSM at cold start
 _PROXY_TOKEN_CACHE = None
 
