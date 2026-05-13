@@ -345,17 +345,44 @@ def extract_metrics(data,weights):
             ][:50]),
             "top_8k_event": (f.get("filings") or [{}])[0].get("item_label", "") if (f.get("filings") or []) else None,
         })(),
-        # 13F positions — institutional buying/selling
+        # 13F positions — institutional buying/selling (expanded for Bloomberg-grade insight)
         **(lambda t=data.get("filings_13f", {}): {
+            "filings_13f_quarter": t.get("as_of_quarter"),
             "n_funds_13f": t.get("funds_parsed"),
-            "top_buy_13f": (t.get("most_bought") or [{}])[0].get("ticker", "") if (t.get("most_bought") or []) else None,
-            "top_sell_13f": (t.get("most_sold") or [{}])[0].get("ticker", "") if (t.get("most_sold") or []) else None,
-            "n_top_buy_funds": (t.get("most_bought") or [{}])[0].get("n_funds_adding", 0) +
-                               (t.get("most_bought") or [{}])[0].get("n_funds_new_position", 0)
-                               if (t.get("most_bought") or []) else 0,
-            "n_top_sell_funds": (t.get("most_sold") or [{}])[0].get("n_funds_trimming", 0) +
-                                (t.get("most_sold") or [{}])[0].get("n_funds_exiting", 0)
-                                if (t.get("most_sold") or []) else 0,
+            "n_tickers_13f": len(t.get("aggregate_by_ticker") or {}),
+            "top_3_buys_13f": [
+                {"ticker": x.get("ticker"), "name": x.get("name"),
+                  "n_funds_adding": x.get("n_funds_adding", 0),
+                  "n_funds_new": x.get("n_funds_new_position", 0),
+                  "n_funds_holding": x.get("n_funds_holding", 0)}
+                for x in (t.get("most_bought") or [])[:3]
+            ],
+            "top_3_sells_13f": [
+                {"ticker": x.get("ticker"), "name": x.get("name"),
+                  "n_funds_trimming": x.get("n_funds_trimming", 0),
+                  "n_funds_exiting": x.get("n_funds_exiting", 0),
+                  "n_funds_holding": x.get("n_funds_holding", 0)}
+                for x in (t.get("most_sold") or [])[:3]
+            ],
+            "consensus_holds_13f": [
+                {"ticker": x.get("ticker"), "n_funds_holding": x.get("n_funds_holding")}
+                for x in (t.get("consensus_holds") or [])[:5]
+            ],
+            "rare_picks_13f": [
+                {"ticker": x.get("ticker"), "name": x.get("name"),
+                  "n_funds": x.get("n_funds_holding")}
+                for x in (t.get("rare_picks") or [])[:3]
+            ],
+            "berkshire_top_5_13f": (lambda b=(t.get("by_fund") or {}).get("BERKSHIRE", {}): [
+                {"ticker": p.get("ticker"), "value_b": round((p.get("value_usd") or 0) / 1e9, 1),
+                  "pct": p.get("pct_of_portfolio"), "change": p.get("change")}
+                for p in (b.get("top_positions") or [])[:5]
+            ])() if (t.get("by_fund") or {}).get("BERKSHIRE") else [],
+            "pershing_top_5_13f": (lambda p=(t.get("by_fund") or {}).get("PERSHING", {}): [
+                {"ticker": pp.get("ticker"), "value_b": round((pp.get("value_usd") or 0) / 1e9, 1),
+                  "pct": pp.get("pct_of_portfolio"), "change": pp.get("change")}
+                for pp in (p.get("top_positions") or [])[:5]
+            ])() if (t.get("by_fund") or {}).get("PERSHING") else [],
         })(),
         # 10-K/Q filings (recent material disclosures)
         **(lambda k=data.get("filings_10kq", {}): {

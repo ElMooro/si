@@ -357,6 +357,51 @@ def build_context(message):
                     lines.append(f"[{tkr} FINRA] SVR:{t.get('svr_pct')}% z:{t.get('z_score')} DTC:{t.get('days_to_cover')}d "
                                  f"momentum:{t.get('momentum_pct','?')}% score:{t.get('squeeze_score')} flags:{flag_str}")
 
+    # ─── Institutional 13F (always-on; top names always relevant) ──
+    f13 = get_s3('data/13f-positions.json')
+    if f13:
+        mb = (f13.get('most_bought') or [])[:5]
+        ms = (f13.get('most_sold') or [])[:5]
+        ch = (f13.get('consensus_holds') or [])[:5]
+        quarter = f13.get('as_of_quarter') or '?'
+        if mb:
+            buy_str = ', '.join(f"{x.get('ticker') or (x.get('name','?')[:12])}({x.get('n_funds_adding',0)}adds/{x.get('n_funds_holding',0)})"
+                                 for x in mb)
+            lines.append(f"[13F MOST BOUGHT {quarter}] {buy_str}")
+        if ms:
+            sell_str = ', '.join(f"{x.get('ticker') or (x.get('name','?')[:12])}({x.get('n_funds_trimming',0)}trims/{x.get('n_funds_holding',0)})"
+                                   for x in ms)
+            lines.append(f"[13F MOST SOLD {quarter}] {sell_str}")
+        if ch:
+            hold_str = ', '.join(f"{x.get('ticker') or (x.get('name','?')[:12])}({x.get('n_funds_holding')})"
+                                   for x in ch)
+            lines.append(f"[13F CONSENSUS HOLDS] {hold_str}")
+        funds = f13.get('by_fund', {})
+        if funds and isinstance(funds, dict):
+            top_funds = sorted(funds.items(),
+                                key=lambda x: -((x[1] or {}).get('total_value_usd', 0)
+                                                  if isinstance(x[1], dict) else 0))[:5]
+            fund_str = ', '.join(f"{k}(${(v or {}).get('total_value_usd',0)/1e9:.0f}B)"
+                                  for k, v in top_funds if isinstance(v, dict) and not v.get('error'))
+            if fund_str:
+                lines.append(f"[TOP 5 FUNDS BY AUM] {fund_str}")
+
+    # Per-ticker 13F detail when user mentions a specific stock
+    if stocks and f13:
+        agg = f13.get('aggregate_by_ticker', {}) or {}
+        for tkr in stocks:
+            t = agg.get(tkr)
+            if t:
+                n_hold = t.get('n_funds_holding', 0)
+                n_add = t.get('n_funds_adding', 0)
+                n_trim = t.get('n_funds_trimming', 0)
+                n_new = t.get('n_funds_new_position', 0)
+                n_exit = t.get('n_funds_exiting', 0)
+                val_b = (t.get('total_value', 0) or 0) / 1e9
+                bias = "ACCUMULATING" if n_add > n_trim else "DISTRIBUTING" if n_trim > n_add else "BALANCED"
+                lines.append(f"[{tkr} 13F] {n_hold} funds hold (${val_b:.1f}B), {n_add} adding, "
+                             f"{n_trim} trimming, {n_new} new pos, {n_exit} exiting · bias: {bias}")
+
     # ─── Sector Rotation (always-on; cross-asset cycle context) ──
     rot = get_s3('data/sector-rotation.json')
     if rot:
@@ -400,25 +445,6 @@ def build_context(message):
             eth_r = (ef.get('ETH') or {}).get('regime')
             if btc_r or eth_r:
                 lines.append(f"[EXCHANGE FLOWS] BTC:{btc_r}  ETH:{eth_r}")
-
-    # Institutional / 13F / insider context
-    if any(w in msg_up for w in ['INSTITUTIONAL','13F','BUFFETT','BURRY','ACKMAN','HEDGE FUND','SMART MONEY','INSIDER','BUYING','SELLING']):
-        f13 = get_s3('data/13f-positions.json')
-        if f13:
-            mb = (f13.get('most_bought') or [])[:5]
-            ms = (f13.get('most_sold') or [])[:5]
-            if mb:
-                buy_str = ', '.join(f"{x.get('ticker') or x.get('cusip','?')[:9]}({x.get('n_funds_adding',0)+x.get('n_funds_new_position',0)})" for x in mb)
-                lines.append(f"[13F MOST BOUGHT] {buy_str}")
-            if ms:
-                sell_str = ', '.join(f"{x.get('ticker') or x.get('cusip','?')[:9]}({x.get('n_funds_trimming',0)+x.get('n_funds_exiting',0)})" for x in ms)
-                lines.append(f"[13F MOST SOLD] {sell_str}")
-            funds = f13.get('by_fund', {})
-            if funds and isinstance(funds, dict):
-                # Top 5 funds by AUM
-                top_funds = sorted(funds.items(), key=lambda x: -((x[1] or {}).get('total_value_usd', 0) if isinstance(x[1], dict) else 0))[:5]
-                fund_str = ', '.join(f"{k}(${(v or {}).get('total_value_usd',0)/1e9:.0f}B)" for k, v in top_funds if isinstance(v, dict) and not v.get('error'))
-                lines.append(f"[TOP FUNDS BY AUM] {fund_str}")
 
     # Risk / regime / phase context
     if any(w in msg_up for w in ['MARKET','RISK','REGIME','SIGNAL','PORTFOLIO','INTEL','PHASE','CRISIS','STRESS']):
