@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Perp Funding — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%99%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);} .nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.euphoric_leverage{border-left:4px solid var(--neg);box-shadow:0 0 20px rgba(255,61,90,.3);}
+.regime-banner.capitulation_leverage{border-left:4px solid var(--gold);box-shadow:0 0 20px rgba(251,191,36,.3);}
+.regime-banner.bullish_leverage_dominant{border-left:4px solid var(--pos);}
+.regime-banner.bearish_leverage_dominant{border-left:4px solid var(--neg);}
+.regime-banner.high_dispersion{border-left:4px solid var(--accent);}
+.regime-banner.balanced{border-left:4px solid var(--info);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.accent{color:var(--accent);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;max-width:780px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:20px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);} .tile.gold .val{color:var(--gold);} .tile.accent .val{color:var(--accent);}
+.panel-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:18px;}
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+#bar-chart{height:320px;}
+.coin-table{width:100%;border-collapse:collapse;font-size:12px;}
+.coin-table th{padding:10px 14px;text-align:right;background:rgba(28,35,48,.4);font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);font-weight:500;}
+.coin-table th:first-child,.coin-table td:first-child{text-align:left;}
+.coin-table td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+.coin-table tr:hover{background:rgba(167,139,250,.04);}
+.coin-name{font-family:var(--font-ui);font-weight:600;}
+.regime-chip{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.3px;font-family:var(--font-mono);}
+.regime-chip.HIGHLY_BULLISH_LEVERAGE{background:rgba(255,61,90,.15);color:var(--neg);}
+.regime-chip.BULLISH_LEVERAGE{background:rgba(0,230,118,.15);color:var(--pos);}
+.regime-chip.BALANCED{background:rgba(34,211,238,.15);color:var(--info);}
+.regime-chip.BEARISH_LEVERAGE{background:rgba(251,191,36,.15);color:var(--gold);}
+.regime-chip.HIGHLY_BEARISH_LEVERAGE{background:rgba(167,139,250,.15);color:var(--accent);}
+.crowding-flag{margin-left:6px;color:var(--gold);font-size:10px;}
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🪙 Crypto Perp Funding <span class="badge">OKX · 10 COINS · HOURLY</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="tiles" class="tiles"></div>
+
+<div class="panel-grid">
+  <div class="chart-panel">
+    <div class="chart-title">📊 Funding Rate (Annualized %) by Coin</div>
+    <div id="bar-chart"></div>
+  </div>
+  <div class="chart-panel">
+    <div class="chart-title">📋 Full Coin Detail · Sorted by OI</div>
+    <div id="coin-table-wrap"><div class="loading">Loading coins…</div></div>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology</h3>
+  <p>Perpetual swaps fund every 8 hours. The funding rate is paid by the side with dominant exposure. <strong>Positive funding</strong>: longs pay shorts (market is leveraged long). <strong>Negative funding</strong>: shorts pay longs (leveraged short). Extreme funding indicates crowded positioning and squeeze risk.</p>
+  <p><strong>Per-coin regimes</strong> (per 8h funding):</p>
+  <p>
+    &gt; +0.03% → <strong>HIGHLY BULLISH LEVERAGE</strong> (≈33% annualized · long squeeze risk)<br>
+    +0.01–0.03% → <strong>BULLISH LEVERAGE</strong><br>
+    -0.01–0.01% → <strong>BALANCED</strong> (no major tilt)<br>
+    -0.03 to -0.01% → <strong>BEARISH LEVERAGE</strong><br>
+    &lt; -0.03% → <strong>HIGHLY BEARISH LEVERAGE</strong> (short squeeze setup)
+  </p>
+  <p><strong>Crowding flag</strong> appears when |z-score vs 30 periods| > 2 — current funding is statistically extreme relative to recent positioning.</p>
+  <p><strong>Composite regimes</strong>: <code>EUPHORIC_LEVERAGE</code> (≥3 coins highly bullish — top warning), <code>CAPITULATION_LEVERAGE</code> (≥3 coins highly bearish — contrarian long), <code>HIGH_DISPERSION</code> (cross-coin disagreement >10bps — trade individual names not index).</p>
+  <p><strong>Source:</strong> <code>www.okx.com/api/v5/public/funding-rate</code> + <code>/open-interest</code> + <code>/market/index-tickers</code> · refreshed hourly (funding settles every 8h, but intra-period drift matters).</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/crypto-funding.json";
+let DATA = null, BAR_CHART = null;
+
+function fmt(v, d=2){ return v == null ? '-' : v.toFixed(d); }
+function fmtPct(v, d=2){ if (v == null) return '-'; return (v >= 0 ? '+' : '') + v.toFixed(d) + '%'; }
+function fmtMoney(v){ if (v == null) return '-'; const a = Math.abs(v); if (a >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B'; if (a >= 1e6) return '$' + (v/1e6).toFixed(0) + 'M'; return '$' + v.toFixed(0); }
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL);
+    DATA = await r.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiles(); renderBarChart(); renderTable();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function regimeColor(regime) {
+  if (regime === 'EUPHORIC_LEVERAGE') return 'neg';
+  if (regime === 'CAPITULATION_LEVERAGE') return 'gold';
+  if (regime === 'BULLISH_LEVERAGE_DOMINANT') return 'pos';
+  if (regime === 'BEARISH_LEVERAGE_DOMINANT') return 'neg';
+  if (regime === 'HIGH_DISPERSION') return 'accent';
+  if (regime === 'BALANCED') return 'info';
+  return '';
+}
+
+function renderRegime() {
+  const c = DATA.market_composite || {};
+  const regime = DATA.composite_regime || 'BALANCED';
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${regime.toLowerCase()}">
+      <div>
+        <div class="regime-title ${regimeColor(regime)}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${DATA.composite_signal || ''}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">VW Funding</span><span class="val" style="color:${c.vw_funding_annualized_pct > 0 ? 'var(--pos)' : 'var(--neg)'}">${fmtPct(c.vw_funding_annualized_pct, 1)}</span></div>
+        <div><span class="label">Median</span><span class="val">${fmtPct(c.median_funding_annualized_pct, 1)}</span></div>
+        <div><span class="label">Total OI</span><span class="val">$${fmt(c.total_oi_usd_billions, 1)}B</span></div>
+        <div><span class="label">Coins</span><span class="val">${c.n_coins_analyzed}/10</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const c = DATA.market_composite || {};
+  const tiles = [
+    {lbl:"Highly Bullish", val: c.n_highly_bullish_leverage || 0, sub:'coins · long squeeze risk', cls: c.n_highly_bullish_leverage >= 2 ? 'neg' : ''},
+    {lbl:"Highly Bearish", val: c.n_highly_bearish_leverage || 0, sub:'coins · short squeeze setup', cls: c.n_highly_bearish_leverage >= 2 ? 'gold' : ''},
+    {lbl:"Extreme |z| > 2", val: (c.n_extreme_long_positioning || 0) + ' / ' + (c.n_extreme_short_positioning || 0), sub:'long / short crowding'},
+    {lbl:"Bullish vs Bearish", val: (c.n_bullish || 0) + ' / ' + (c.n_bearish || 0), sub:'coin count by side'},
+    {lbl:"Cross-Coin Range", val: fmt(c.funding_dispersion_pp, 4) + 'pp', sub:'max funding − min', cls: c.funding_dispersion_pp > 0.1 ? 'accent' : ''},
+    {lbl:"Max Funding", val: fmtPct(c.funding_max * 100, 4), sub:'highest among coins'},
+    {lbl:"Min Funding", val: fmtPct(c.funding_min * 100, 4), sub:'lowest among coins'},
+    {lbl:"Total OI (USD)", val: '$' + fmt(c.total_oi_usd_billions, 1) + 'B', sub:'across all 10 coins'},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function renderBarChart() {
+  const coins = Object.entries(DATA.by_coin || {})
+    .sort((a, b) => (b[1].oi_usd || 0) - (a[1].oi_usd || 0));
+  const labels = coins.map(([c, _]) => c);
+  const ann = coins.map(([_, d]) => d.annualized_pct);
+  const colors = ann.map(v => v > 30 ? '#ff3d5a' : v > 10 ? '#00e676' : v < -30 ? '#a78bfa' : v < -10 ? '#fbbf24' : '#22d3ee');
+  if (!BAR_CHART) BAR_CHART = echarts.init(document.getElementById('bar-chart'), null, {renderer:'canvas'});
+  BAR_CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'} },
+    grid: { left: 60, right: 30, top: 30, bottom: 50 },
+    xAxis: { type:'category', data:labels, axisLabel:{color:'#8b96a8'}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'Annualized %', axisLabel:{color:'#8b96a8', formatter:'{value}%'}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+    series: [{
+      type:'bar', data: ann.map((v,i) => ({value: v, itemStyle:{color: colors[i]}})),
+      label:{show:true, position:'top', color:'#e6ecf3', formatter: function(p) { return (p.value > 0 ? '+' : '') + p.value.toFixed(1) + '%'; }, fontSize:10},
+      markLine: {silent:true, symbol:'none', data:[
+        {yAxis:0, lineStyle:{color:'#8b96a8',type:'solid',width:1}},
+        {yAxis:33, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'+33% (Highly Bull)', color:'#ff3d5a'}},
+        {yAxis:-33, lineStyle:{color:'#a78bfa',type:'dashed',width:1}, label:{formatter:'-33% (Highly Bear)', color:'#a78bfa'}},
+      ]}
+    }]
+  });
+}
+
+function renderTable() {
+  const coins = Object.entries(DATA.by_coin || {})
+    .sort((a, b) => (b[1].oi_usd || 0) - (a[1].oi_usd || 0));
+  let html = '<table class="coin-table"><thead><tr>' +
+    '<th>Coin</th><th>Price</th><th>24h</th><th>Funding/8h</th><th>Annualized</th>' +
+    '<th>Z-Score</th><th>Momentum</th><th>OI (USD)</th><th>Regime</th></tr></thead><tbody>';
+  for (const [coin, d] of coins) {
+    const annClass = d.annualized_pct > 30 ? 'style="color:var(--neg)"' :
+                     d.annualized_pct > 10 ? 'style="color:var(--pos)"' :
+                     d.annualized_pct < -30 ? 'style="color:var(--accent)"' :
+                     d.annualized_pct < -10 ? 'style="color:var(--gold)"' : '';
+    const ch24 = d.change_24h_pct || 0;
+    const chClass = ch24 > 0 ? 'style="color:var(--pos)"' : (ch24 < 0 ? 'style="color:var(--neg)"' : '');
+    const momentum = d.funding_momentum;
+    const momClass = momentum > 0 ? 'style="color:var(--pos)"' : (momentum < 0 ? 'style="color:var(--neg)"' : '');
+    html += '<tr>' +
+      '<td><span class="coin-name">' + coin + '</span></td>' +
+      '<td>' + (d.spot_price ? '$' + d.spot_price.toLocaleString(undefined, {maximumFractionDigits: d.spot_price > 100 ? 0 : 4}) : '-') + '</td>' +
+      '<td ' + chClass + '>' + fmtPct(ch24, 2) + '</td>' +
+      '<td>' + (d.current_funding_pct != null ? (d.current_funding_pct > 0 ? '+' : '') + d.current_funding_pct.toFixed(4) + '%' : '-') + '</td>' +
+      '<td ' + annClass + '>' + fmtPct(d.annualized_pct, 1) + '</td>' +
+      '<td>' + (d.funding_z_score != null ? (d.funding_z_score > 0 ? '+' : '') + d.funding_z_score.toFixed(2) : '-') + '</td>' +
+      '<td ' + momClass + '>' + (momentum != null ? (momentum > 0 ? '+' : '') + (momentum * 100).toFixed(4) + '%' : '-') + '</td>' +
+      '<td>' + fmtMoney(d.oi_usd) + '</td>' +
+      '<td><span class="regime-chip ' + d.regime + '">' + d.regime.replace(/_/g, ' ') + '</span>' +
+        (d.crowding_flag ? '<span class="crowding-flag">⚠</span>' : '') + '</td>' +
+      '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('coin-table-wrap').innerHTML = html;
+}
+
+window.addEventListener('resize', () => { if (BAR_CHART) BAR_CHART.resize(); });
+load();
+setInterval(load, 5 * 60 * 1000);  // refresh every 5 min
+</script>
+</body>
+</html>

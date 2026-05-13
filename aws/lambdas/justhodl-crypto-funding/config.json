@@ -1,0 +1,17 @@
+{
+  "name": "justhodl-crypto-funding",
+  "function_name": "justhodl-crypto-funding",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_size": 512,
+  "memory_mb": 512,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "schedule": "cron(15 * ? * * *)",
+  "environment_keys": ["S3_BUCKET", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"],
+  "reserved_concurrency": 1,
+  "eventbridge_rules": ["justhodl-crypto-funding-hourly"],
+  "description": "Crypto perp funding rates + open interest engine (OKX top-10 coins). Hourly at :15."
+}

@@ -185,6 +185,8 @@ def load_all():
         "sector_rotation":"data/sector-rotation.json",
         # ─── DIX / Macro GEX (Bloomberg-Gap #4) ─────────────────────
         "dix":"data/dix.json",
+        # ─── Crypto Perp Funding (Bloomberg-Gap #6) ──────────────────
+        "crypto_funding":"data/crypto-funding.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
         "earnings_sentiment":"screener/earnings-sentiment.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
@@ -623,6 +625,33 @@ def extract_metrics(data,weights):
             "dix_n_sustained_dist_5d": (d.get("sustained_signals") or {}).get("n_last_5d_below_40"),
             "dix_data_date": d.get("data_date"),
             "dix_history_days": d.get("n_history_days"),
+        })(),
+        # ─── Crypto Perp Funding (Bloomberg-Gap #6) — OKX hourly ─────
+        **(lambda c=data.get("crypto_funding", {}): {
+            "crypto_funding_regime": c.get("composite_regime"),
+            "crypto_funding_signal": c.get("composite_signal"),
+            "crypto_vw_funding_ann_pct": (c.get("market_composite") or {}).get("vw_funding_annualized_pct"),
+            "crypto_median_funding_ann_pct": (c.get("market_composite") or {}).get("median_funding_annualized_pct"),
+            "crypto_total_oi_usd_b": (c.get("market_composite") or {}).get("total_oi_usd_billions"),
+            "crypto_funding_dispersion_pp": (c.get("market_composite") or {}).get("funding_dispersion_pp"),
+            "crypto_n_highly_bullish": (c.get("market_composite") or {}).get("n_highly_bullish_leverage"),
+            "crypto_n_highly_bearish": (c.get("market_composite") or {}).get("n_highly_bearish_leverage"),
+            "crypto_n_extreme_long_positioning": (c.get("market_composite") or {}).get("n_extreme_long_positioning"),
+            "crypto_n_extreme_short_positioning": (c.get("market_composite") or {}).get("n_extreme_short_positioning"),
+            "crypto_top_squeeze_candidates": [
+                {"coin": s.get("coin"), "regime": s.get("regime"),
+                  "z": s.get("z_score"), "ann_pct": s.get("annualized_pct"),
+                  "spot": s.get("spot"), "oi_b": s.get("oi_usd_b")}
+                for s in (c.get("squeeze_candidates") or [])[:3]
+            ],
+            "btc_funding_ann": ((c.get("by_coin") or {}).get("BTC") or {}).get("annualized_pct"),
+            "btc_spot": ((c.get("by_coin") or {}).get("BTC") or {}).get("spot_price"),
+            "btc_oi_usd_b": ((c.get("by_coin") or {}).get("BTC") or {}).get("oi_usd_b"),
+            "btc_regime": ((c.get("by_coin") or {}).get("BTC") or {}).get("regime"),
+            "eth_funding_ann": ((c.get("by_coin") or {}).get("ETH") or {}).get("annualized_pct"),
+            "eth_spot": ((c.get("by_coin") or {}).get("ETH") or {}).get("spot_price"),
+            "eth_oi_usd_b": ((c.get("by_coin") or {}).get("ETH") or {}).get("oi_usd_b"),
+            "eth_regime": ((c.get("by_coin") or {}).get("ETH") or {}).get("regime"),
         })(),
         # ─── Earnings Call Transcript NLP (Bloomberg-Gap #5) ─────────────
         # 210+ transcripts scored by Claude Haiku; institutional-grade

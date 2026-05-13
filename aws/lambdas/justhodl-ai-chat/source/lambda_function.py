@@ -275,6 +275,24 @@ def build_context(message):
             ms_str = ', '.join(f"{x.get('ticker') or x.get('symbol')}(iv:{x.get('iv_rank') or x.get('iv_percentile')})" for x in ms[:3])
             lines.append(f"[VOL MOST STRESSED] {ms_str}")
 
+    # ─── Synthetic MOVE + Credit Spreads (Bloomberg-Gap #7) ─────────
+    bv = get_s3('data/bond-vol.json')
+    if bv:
+        sm = bv.get('synthetic_move') or {}
+        cs = bv.get('credit_spreads') or {}
+        yc = bv.get('yield_curve') or {}
+        regime_b = bv.get('regime')
+        if regime_b:
+            lines.append(f"[BOND VOL REGIME] {regime_b} · {bv.get('regime_signal','')[:120]}")
+        if sm.get('current') is not None:
+            lines.append(f"[SYNTHETIC MOVE] {sm.get('current')} (z={sm.get('z_score_60d')}, {sm.get('percentile_1y','?')}% pct 1y) · 20d_ma:{sm.get('ma_20d')}")
+        if cs.get('hy_oas_pct') is not None:
+            lines.append(f"[CREDIT SPREADS] HY OAS:{cs.get('hy_oas_pct')}% (z={cs.get('hy_z_score_60d')}) · IG OAS:{cs.get('ig_oas_pct')}% (z={cs.get('ig_z_score_60d')})")
+        if yc.get('slope_2s10s_pp') is not None:
+            inv2_10 = " INVERTED" if yc.get('inverted_2s10s') else ""
+            inv3_10 = " INVERTED" if yc.get('inverted_3m10y') else ""
+            lines.append(f"[YIELD CURVE] 2s10s:{yc.get('slope_2s10s_pp')}pp{inv2_10} · 3m10y:{yc.get('slope_3m10y_pp')}pp{inv3_10}")
+
     aaii = get_s3('data/aaii-sentiment.json')
     if aaii:
         bull = aaii.get('bullish_pct')
@@ -416,6 +434,30 @@ def build_context(message):
                 lines.append(f"[VVIX/VOL-OF-VOL] VVIX:{cur.get('vvix')} ratio:{cur.get('vvix_vix_ratio')} · NDX premium:{cad.get('nasdaq_stress_premium')} · RUT premium:{cad.get('small_cap_stress_premium')}")
             if ss.get('n_5d_backwardated_30d_3m', 0) >= 2:
                 lines.append(f"[VIX SUSTAINED INVERSION] {ss.get('n_5d_backwardated_30d_3m')}/5 days backwardated — stress regime confirmed")
+
+    # ─── Crypto Perp Funding (Bloomberg-Gap #6 · OKX hourly) ──────────
+    cf = get_s3('data/crypto-funding.json')
+    if cf:
+        mc = cf.get('market_composite') or {}
+        regime_cf = cf.get('composite_regime')
+        sig_cf = cf.get('composite_signal', '')
+        if regime_cf:
+            lines.append(f"[CRYPTO FUNDING] {regime_cf} · VW ann:{mc.get('vw_funding_annualized_pct')}% · median:{mc.get('median_funding_annualized_pct')}% · OI ${mc.get('total_oi_usd_billions')}B")
+            lines.append(f"[CRYPTO SIGNAL] {sig_cf[:140]}")
+            n_hb = mc.get('n_highly_bullish_leverage', 0); n_hbear = mc.get('n_highly_bearish_leverage', 0)
+            n_el = mc.get('n_extreme_long_positioning', 0); n_es = mc.get('n_extreme_short_positioning', 0)
+            if n_hb + n_hbear > 0 or n_el + n_es > 0:
+                lines.append(f"[CRYPTO CROWDING] highly_bull:{n_hb} highly_bear:{n_hbear} · extreme_z long:{n_el} short:{n_es}")
+            sqz = (cf.get('squeeze_candidates') or [])[:3]
+            if sqz:
+                sqz_str = ', '.join(f"{s['coin']}({s.get('annualized_pct',0):+.1f}%/z{s.get('z_score',0):+.1f})" for s in sqz)
+                lines.append(f"[CRYPTO TOP SQUEEZE] {sqz_str}")
+            # Per-coin detail when user mentions BTC/ETH/etc
+            by_coin = cf.get('by_coin') or {}
+            for coin_kw in ('BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'MATIC'):
+                if coin_kw in msg_up and coin_kw in by_coin:
+                    d = by_coin[coin_kw]
+                    lines.append(f"[{coin_kw} PERP] ${d.get('spot_price',0):,.2f} ({d.get('change_24h_pct',0):+.2f}% 24h) · funding {d.get('annualized_pct',0):+.1f}% ann (z={d.get('funding_z_score','?')}) · OI ${d.get('oi_usd_b',0):.2f}B · {d.get('regime','?')}")
 
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
