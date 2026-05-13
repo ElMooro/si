@@ -1,0 +1,143 @@
+{
+  "started": "2026-05-13T13:39:34.482201+00:00",
+  "lambdas": {
+    "justhodl-vix-curve": {
+      "name": "justhodl-vix-curve",
+      "exists": true,
+      "last_modified": "2026-04-27T22:10:26.924+0000",
+      "memory": 256,
+      "timeout": 120,
+      "env_keys": [
+        "S3_BUCKET",
+        "S3_KEY"
+      ],
+      "rules": [],
+      "invoke_status": 200,
+      "fn_error": null,
+      "body_preview": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"steep_contango\\\", \\\"vix_30d\\\": 18.03, \\\"vix_3m\\\": 21.04}\"}",
+      "log_tail": "START RequestId: 822cb900-9319-4cf6-ad48-111541513b31 Version: $LATEST\nvix-curve: regime=steep_contango VIX30d=18.0 VIX3M=21.0 avg_slope=0.1217\nEND RequestId: 822cb900-9319-4cf6-ad48-111541513b31\nREPORT RequestId: 822cb900-9319-4cf6-ad48-111541513b31\tDuration: 2845.43 ms\tBilled Duration: 3168 ms\tMemory Size: 256 MB\tMax Memory Used: 95 MB\tInit Duration: 321.60 ms\t\n"
+    },
+    "justhodl-vol-regime": {
+      "name": "justhodl-vol-regime",
+      "exists": true,
+      "last_modified": "2026-05-07T15:33:58.000+0000",
+      "memory": 512,
+      "timeout": 240,
+      "env_keys": [
+        "POLY_KEY",
+        "S3_BUCKET",
+        "S3_KEY_OUT"
+      ],
+      "rules": [],
+      "invoke_status": 200,
+      "fn_error": null,
+      "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_with_iv\\\": 5, \\\"composite_score\\\": 35.2, \\\"composite_regime\\\": \\\"NORMAL\\\", \\\"duration_s\\\": 10.1}\"}",
+      "log_tail": "START RequestId: e883925a-421d-43ff-9039-17e59fdc6f7b Version: $LATEST\n[vol] Universe: 8 tickers (8 core + 0 watchlist)\n[vol] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&api_key=2f0 \u2192 HTTP Error 500: Internal Server Error\n[vol] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&api_key=2f0 \u2192 HTTP Error 500: Internal Server Error\n[vol] HTTP fail: https://api.stlouisfed.org/fred/series/observations?series_id=VXVCLS&api_key=2f0 \u2192 HTTP Error 429: Too Many Requests\n[vol] DONE in 10.1s \u00b7 5/8 with IV \u00b7 composite=35.2 (NORMAL)\nEND RequestId: e883925a-421d-43ff-9039-17e59fdc6f7b\nREPORT RequestId: e883925a-421d-43ff-9039-17e59fdc6f7b\tDuration: 10276.48 ms\tBilled Duration: 10277 ms\tMemory Size: 512 MB\tMax Memory Used: 102 MB\t\n"
+    }
+  },
+  "sidecars": {
+    "data/vix-curve.json": {
+      "size_kb": 0.5,
+      "modified": "2026-05-13T13:39:41",
+      "top_keys": [
+        "generated_at",
+        "vix_9d",
+        "vix_30d",
+        "vix_3m",
+        "vix_6m",
+        "vvix",
+        "slopes",
+        "regime",
+        "interpretation",
+        "fetch_errors",
+        "fetch_duration_s"
+      ],
+      "generated_at": "2026-05-13T13:39:40+00:00",
+      "version": null,
+      "regime": "steep_contango",
+      "vix_9d": 16.34,
+      "vix_3m": 21.04,
+      "vix_6m": 23.03
+    },
+    "data/vol-regime.json": {
+      "size_kb": 3.4,
+      "modified": "2026-05-13T13:39:54",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "n_tickers",
+        "n_with_iv",
+        "composite_score",
+        "composite_regime",
+        "regime_counts",
+        "weights",
+        "iv_sources_used",
+        "tickers",
+        "most_stressed",
+        "duration_s"
+      ],
+      "generated_at": null,
+      "version": null
+    }
+  },
+  "cboe_probes": {
+    "probes": [
+      {
+        "url": "boe.com/api/global/us_indices/daily_prices/VIX9D_History.csv",
+        "status": 200,
+        "bytes": 196103,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n01/04/2011,16.060000,16.060000,16.060000,16.060000\n01/05/2011,15.570000,15.570000,15.570000,15.570000\n01/06/2011,15.710000,15.710000,15.710000,15.710000\n01/07/2011,15.010000,15.010000,15.010000,15.010000\n01/10/2011,15.810000,15.810000,15.810000,15.810000\n01/11/2011,14.930000,14.930000,14.930000,14.930000\n01/12/2011,14.820000,14.820000,14.820000,14.820000\n01/13/2011,14.9200",
+        "elapsed_ms": 132
+      },
+      {
+        "url": ".cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+        "status": 200,
+        "bytes": 468076,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n01/02/1990,17.240000,17.240000,17.240000,17.240000\n01/03/1990,18.190000,18.190000,18.190000,18.190000\n01/04/1990,19.220000,19.220000,19.220000,19.220000\n01/05/1990,20.110000,20.110000,20.110000,20.110000\n01/08/1990,20.260000,20.260000,20.260000,20.260000\n01/09/1990,22.200000,22.200000,22.200000,22.200000\n01/10/1990,22.440000,22.440000,22.440000,22.440000\n01/11/1990,20.0500",
+        "elapsed_ms": 62
+      },
+      {
+        "url": "boe.com/api/global/us_indices/daily_prices/VIX3M_History.csv",
+        "status": 200,
+        "bytes": 213562,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n09/18/2009,25.910000,26.660000,25.910000,26.540000\n09/21/2009,26.960000,27.240000,26.170000,26.230000\n09/22/2009,25.970000,26.210000,25.650000,25.690000\n09/23/2009,25.700000,26.200000,25.010000,26.090000\n09/24/2009,26.100000,27.420000,25.990000,27.130000\n09/25/2009,27.390000,27.950000,26.950000,27.210000\n09/28/2009,27.310000,27.450000,26.240000,26.270000\n09/29/2009,26.1700",
+        "elapsed_ms": 57
+      },
+      {
+        "url": "boe.com/api/global/us_indices/daily_prices/VIX6M_History.csv",
+        "status": 200,
+        "bytes": 235594,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n01/02/2008,24.360000,24.360000,24.360000,24.360000\n01/03/2008,23.750000,23.750000,23.750000,23.750000\n01/04/2008,24.500000,24.500000,24.500000,24.500000\n01/07/2008,24.220000,24.220000,24.220000,24.220000\n01/08/2008,25.180000,25.180000,25.180000,25.180000\n01/09/2008,24.480000,24.480000,24.480000,24.480000\n01/10/2008,24.570000,24.570000,24.570000,24.570000\n01/11/2008,24.9600",
+        "elapsed_ms": 57
+      },
+      {
+        "url": "cboe.com/api/global/us_indices/daily_prices/VVIX_History.csv",
+        "status": 200,
+        "bytes": 106809,
+        "head": "DATE,VVIX\n03/06/2006,71.730000\n03/15/2006,15.710000\n03/16/2006,27.940000\n03/17/2006,28.600000\n03/20/2006,37.930000\n03/21/2006,37.350000\n04/11/2006,69.550000\n04/24/2006,63.420000\n04/25/2006,61.330000\n05/01/2006,61.960000\n05/22/2006,91.760000\n05/23/2006,88.660000\n05/24/2006,88.630000\n05/25/2006,82.640000\n05/26/2006,72.500000\n05/30/2006,82.140000\n05/31/2006,77.440000\n06/01/2006,74.080000\n06/02/2006,7",
+        "elapsed_ms": 63
+      },
+      {
+        "url": ".cboe.com/api/global/us_indices/daily_prices/VXN_History.csv",
+        "status": 200,
+        "bytes": 213861,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n09/14/2009,26.410000,26.480000,24.810000,24.930000\n09/15/2009,25.050000,25.180000,24.210000,24.610000\n09/16/2009,24.260000,24.480000,23.750000,24.020000\n09/17/2009,24.140000,24.490000,23.670000,24.260000\n09/18/2009,24.260000,24.880000,24.020000,24.690000\n09/21/2009,26.020000,26.030000,24.870000,24.920000\n09/22/2009,24.750000,24.920000,24.020000,24.080000\n09/23/2009,23.9500",
+        "elapsed_ms": 44
+      },
+      {
+        "url": ".cboe.com/api/global/us_indices/daily_prices/RVX_History.csv",
+        "status": 200,
+        "bytes": 213409,
+        "head": "DATE,OPEN,HIGH,LOW,CLOSE\n09/16/2009,28.890000,29.320000,28.660000,28.860000\n09/17/2009,29.110000,30.130000,28.740000,29.600000\n09/18/2009,29.600000,30.480000,29.500000,30.240000\n09/21/2009,32.090000,32.160000,29.890000,29.920000\n09/22/2009,29.480000,29.930000,28.960000,29.090000\n09/23/2009,29.200000,29.630000,28.290000,29.380000\n09/24/2009,29.400000,31.810000,29.260000,31.370000\n09/25/2009,31.4700",
+        "elapsed_ms": 43
+      },
+      {
+        "url": "https://cdn.cboe.com/api/global/delayed_quotes/futures.json",
+        "status": 403,
+        "elapsed_ms": 54
+      }
+    ]
+  },
+  "finished": "2026-05-13T13:39:58.275248+00:00"
+}
