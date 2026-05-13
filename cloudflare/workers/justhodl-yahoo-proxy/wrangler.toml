@@ -5,5 +5,14 @@ compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 
-# Secrets are set by the deploy-workers.yml workflow from AWS SSM:
-#   PROXY_TOKEN — auth token, matches /justhodl/ai-chat/auth-token in SSM
+# Bind branded custom domain — wrangler auto-provisions DNS + TLS on the
+# justhodl.ai zone. This bypasses the account-level workers.dev allowlist.
+[[routes]]
+pattern = "yahoo-proxy.justhodl.ai"
+custom_domain = true
+
+[observability]
+enabled = true
+
+# Secrets set by deploy-workers.yml from AWS SSM:
+#   PROXY_TOKEN — same value as /justhodl/ai-chat/auth-token
