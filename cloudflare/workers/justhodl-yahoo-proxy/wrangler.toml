@@ -3,13 +3,12 @@ main = "src/index.js"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Publish to <worker>.raafouis.workers.dev — same pattern as justhodl-ai-proxy.
+# Custom domain (yahoo-proxy.justhodl.ai) was attempted but requires the
+# domain to be pre-configured as a CF Custom Domain on this worker. workers.dev
+# subdomain works without that step. If we later want a branded domain, add it
+# via Cloudflare dashboard, then re-introduce the [[routes]] block.
 workers_dev = true
-
-# Bind branded custom domain — wrangler auto-provisions DNS + TLS on the
-# justhodl.ai zone. This bypasses the account-level workers.dev allowlist.
-[[routes]]
-pattern = "yahoo-proxy.justhodl.ai"
-custom_domain = true
 
 [observability]
 enabled = true

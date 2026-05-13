@@ -1,5 +1,5 @@
 /**
- * justhodl-yahoo-proxy
+ * justhodl-yahoo-proxy v1.0.1
  *
  * Proxies requests to Yahoo Finance through Cloudflare's anycast network.
  * Solves the AWS Lambda → Yahoo 429 problem (Yahoo aggressively rate-limits
