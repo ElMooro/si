@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-sector-rotation",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Sector Rotation & Money Flow Dashboard (#4) v1.0. 11 SPDR sectors + 14 cross-sector ratios. 9 institutional signals composite-scored 0-100: RS+slope+acceleration, Chaikin Money Flow, OBV slope, MFI, position vs 20/50/200 DMA, volume surge, regime-expected leadership, sub-sector confirmation. Early-rotation alerts via Telegram.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]},
+    {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-sector-rotation-hourly",
+    "cron": "cron(38 * * * ? *)",
+    "description": "Hourly at :38 — after anomaly detector (:33) settles, before alpha-score (:07 next hour)"
+  }
+}

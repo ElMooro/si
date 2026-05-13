@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🔄 Sector Rotation & Money Flow — Institutional Leadership Tracker · JustHodl.AI</title>
+<meta name="description" content="9 institutional signals composite-scored per sector: relative strength + slope + acceleration, Chaikin Money Flow, OBV slope, MFI, MA position, volume surge, 14 cross-sector ratios with z-scores, regime-expected leadership, sub-sector confirmation. Early-rotation alerts.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔄%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --risk-strong-on:#00e676; --risk-on:#34d399; --risk-neutral:#fbbf24;
+  --risk-off:#fb923c; --risk-strong-off:#ef4444;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1700px;margin:0 auto;}
+
+/* RISK-APPETITE HERO */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;background:linear-gradient(135deg,rgba(34,211,238,.06),rgba(167,139,250,.04));border:1px solid rgba(34,211,238,.18);border-radius:8px;padding:16px 22px;margin-bottom:14px;}
+@media (max-width:700px){.hero{grid-template-columns:1fr;}}
+.gauge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:160px;}
+.gauge-val{font-size:54px;font-weight:800;letter-spacing:-2px;line-height:1;font-family:var(--font-mono);}
+.gauge-scale{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:4px;letter-spacing:1px;}
+.gauge-label{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1.2px;margin-top:6px;padding:4px 10px;border-radius:3px;text-align:center;}
+.gauge-strong-on{color:var(--risk-strong-on);} .gauge-strong-on-bg{background:rgba(0,230,118,.18);}
+.gauge-on{color:var(--risk-on);}                 .gauge-on-bg{background:rgba(52,211,153,.18);}
+.gauge-neutral{color:var(--risk-neutral);}       .gauge-neutral-bg{background:rgba(251,191,36,.18);}
+.gauge-off{color:var(--risk-off);}               .gauge-off-bg{background:rgba(251,146,60,.18);}
+.gauge-strong-off{color:var(--risk-strong-off);} .gauge-strong-off-bg{background:rgba(239,68,68,.18);}
+
+.hero-info h2{font-size:14px;font-weight:600;margin:0 0 4px;}
+.hero-meta{color:var(--text-dim);font-size:12px;line-height:1.5;}
+.hero-meta strong{color:var(--text);}
+.hero-bar-wrap{position:relative;margin-top:10px;}
+.hero-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--panel-2);border:1px solid var(--border);}
+.hero-seg{flex:1;}
+.hero-seg.s0{background:linear-gradient(90deg,#ef4444,#fb923c);}
+.hero-seg.s1{background:linear-gradient(90deg,#fb923c,#fbbf24);}
+.hero-seg.s2{background:linear-gradient(90deg,#fbbf24,#22d3ee);}
+.hero-seg.s3{background:linear-gradient(90deg,#22d3ee,#34d399);}
+.hero-seg.s4{background:linear-gradient(90deg,#34d399,#00e676);}
+.hero-marker{position:absolute;top:-3px;height:18px;width:3px;background:white;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,.7);transition:left .4s;}
+.hero-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:var(--text-mute);margin-top:4px;}
+
+/* CYCLE BANNER */
+.cycle-banner{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:14px;}
+.cycle-icon{font-size:24px;}
+.cycle-info{flex:1;}
+.cycle-phase{font-family:var(--font-mono);font-weight:700;font-size:13px;letter-spacing:.8px;color:var(--gold);}
+.cycle-detail{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.cycle-expected{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);}
+.cycle-tag{font-family:var(--font-mono);font-size:9.5px;padding:1px 6px;border-radius:2px;background:rgba(167,139,250,.18);color:var(--accent);margin-left:4px;}
+.cycle-tag.matched{background:rgba(0,230,118,.18);color:var(--pos);}
+
+/* SUMMARY TILES */
+.tiles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;overflow:hidden;}
+.tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
+.tile.pos::before{background:var(--pos);}
+.tile.warn::before{background:var(--warn);}
+.tile.info::before{background:var(--info);}
+.tile.crit::before{background:var(--crit);}
+.tile.gold::before{background:var(--gold);}
+.tile-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.tile-value{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.1;}
+.tile-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:3px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+/* ROTATION ALERTS */
+.alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media (max-width:780px){.alerts-grid{grid-template-columns:1fr;}}
+.alert-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+.alert-card.in{border-left:4px solid var(--pos);}
+.alert-card.out{border-left:4px solid var(--neg);}
+.alert-card h3{margin:0 0 8px;font-size:12px;letter-spacing:.6px;color:var(--text-dim);text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.alert-card.in h3{color:var(--pos);}
+.alert-card.out h3{color:var(--neg);}
+.alert-row{padding:8px 0;border-bottom:1px solid rgba(28,35,48,.4);}
+.alert-row:last-child{border-bottom:none;}
+.alert-sym{font-family:var(--font-mono);font-weight:700;font-size:13px;}
+.alert-name{color:var(--text-dim);font-size:11px;margin-left:6px;}
+.alert-score{font-family:var(--font-mono);font-size:11px;color:var(--gold);font-weight:600;margin-left:6px;}
+.alert-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.flag-chip{font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px;letter-spacing:.3px;font-weight:600;}
+.flag-in{background:rgba(0,230,118,.15);color:var(--pos);}
+.flag-out{background:rgba(239,68,68,.15);color:var(--neg);}
+
+/* SECTOR CARDS */
+.sectors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;margin-bottom:14px;}
+.sector-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px;position:relative;}
+.sector-card.rotating-in{border-left:4px solid var(--pos);}
+.sector-card.rotating-out{border-left:4px solid var(--neg);}
+.sector-card.in-cycle{box-shadow:inset 0 0 0 1px rgba(251,191,36,.18);}
+.sector-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+.sector-sym{font-family:var(--font-mono);font-weight:700;font-size:16px;letter-spacing:-.4px;}
+.sector-name-line{font-size:11px;color:var(--text-dim);margin-left:6px;}
+.sector-rank-badge{font-family:var(--font-mono);font-size:9.5px;padding:1px 5px;border-radius:2px;background:rgba(167,139,250,.18);color:var(--accent);font-weight:600;letter-spacing:.4px;}
+
+.sector-score-row{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+.sector-score-big{font-size:30px;font-weight:800;font-family:var(--font-mono);letter-spacing:-1px;}
+.sector-score-big.high{color:var(--pos);}
+.sector-score-big.mid{color:var(--gold);}
+.sector-score-big.low{color:var(--neg);}
+.sector-score-label{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;}
+
+.score-components{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px;}
+.score-comp{font-family:var(--font-mono);font-size:9.5px;text-align:center;background:var(--panel-2);border-radius:3px;padding:4px 2px;}
+.score-comp .lbl{display:block;color:var(--text-mute);font-size:8.5px;letter-spacing:.3px;}
+.score-comp .v{display:block;font-weight:600;margin-top:2px;}
+.score-comp .v.h{color:var(--pos);} .score-comp .v.m{color:var(--gold);} .score-comp .v.l{color:var(--neg);}
+
+.sector-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-family:var(--font-mono);font-size:10.5px;margin-bottom:8px;}
+.sm-row{display:flex;justify-content:space-between;align-items:baseline;}
+.sm-row .lbl{color:var(--text-mute);font-size:9.5px;}
+.sm-row .v{font-weight:600;}
+.sm-row .v.pos{color:var(--pos);} .sm-row .v.neg{color:var(--neg);}
+
+.sector-flags{padding-top:8px;border-top:1px solid var(--border);}
+
+/* CROSS-SECTOR RATIOS */
+.ratios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:14px;}
+.ratio-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 12px;position:relative;}
+.ratio-card.bullish{border-left:3px solid var(--pos);}
+.ratio-card.bearish{border-left:3px solid var(--neg);}
+.ratio-card.neutral{border-left:3px solid var(--text-mute);}
+.ratio-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.ratio-label{font-family:var(--font-mono);font-weight:700;font-size:11.5px;letter-spacing:.4px;}
+.ratio-current{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.ratio-rets{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px;line-height:1.55;}
+.ratio-rets .pos-r{color:var(--pos);}
+.ratio-rets .neg-r{color:var(--neg);}
+.ratio-z{font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-bottom:4px;}
+.ratio-z.high-z{color:var(--crit);font-weight:600;}
+.ratio-interp{font-size:11px;color:var(--text);line-height:1.4;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+.empty-state{padding:32px;text-align:center;color:var(--text-mute);}
+.empty-state .icon{font-size:32px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔄 Sector Rotation &amp; Money Flow <span class="badge">#4</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/alpha/">α Alpha</a>
+      <a href="/debate/">⚔ Debate</a>
+      <a href="/anomaly/">⚠ Anomaly</a>
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <!-- RISK APPETITE HERO -->
+  <div class="hero">
+    <div class="gauge">
+      <div class="gauge-val gauge-neutral" id="risk-val">—</div>
+      <div class="gauge-scale">/ 100</div>
+      <div class="gauge-label gauge-neutral gauge-neutral-bg" id="risk-band">LOADING</div>
+    </div>
+    <div class="hero-info">
+      <h2>Risk Appetite Composite · 4-Ratio Cross-Asset Index</h2>
+      <p class="hero-meta">Combines <strong>Financials/Utilities</strong> · <strong>Discretionary/Staples</strong> · <strong>HY/Treasuries</strong> · <strong>Small/Large-Cap</strong> 21-day relative returns into a single risk-on/off composite. Above 55 = risk-on rotation in progress · below 45 = defensive flow.</p>
+      <div class="hero-bar-wrap">
+        <div class="hero-bar">
+          <div class="hero-seg s0"></div>
+          <div class="hero-seg s1"></div>
+          <div class="hero-seg s2"></div>
+          <div class="hero-seg s3"></div>
+          <div class="hero-seg s4"></div>
+        </div>
+        <div class="hero-marker" id="risk-marker" style="left:0%"></div>
+      </div>
+      <div class="hero-labels">
+        <span>0 STRONG OFF</span><span>30 OFF</span><span>50 NEUTRAL</span><span>70 ON</span><span>100 STRONG ON</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CYCLE BANNER -->
+  <div class="cycle-banner" id="cycle-banner"></div>
+
+  <!-- TILES -->
+  <div class="tiles-grid" id="tiles-grid"></div>
+
+  <!-- ROTATION ALERTS -->
+  <h2 class="section">
+    <span>🚨 Early Rotation Alerts <span class="meta">3+ signals aligned · enter before consensus</span></span>
+  </h2>
+  <div class="alerts-grid">
+    <div class="alert-card in" id="rotating-in-card">
+      <h3>📈 ROTATING IN (institutional accumulation)</h3>
+      <div id="rotating-in-body"><div class="empty-state">No rotation signals firing</div></div>
+    </div>
+    <div class="alert-card out" id="rotating-out-card">
+      <h3>📉 ROTATING OUT (institutional distribution)</h3>
+      <div id="rotating-out-body"><div class="empty-state">No distribution signals firing</div></div>
+    </div>
+  </div>
+
+  <!-- SECTOR CARDS -->
+  <h2 class="section">
+    <span>🎯 Sector Leadership Ranking <span class="meta">9-signal composite score 0-100 · sorted by rotation score</span></span>
+  </h2>
+  <div class="sectors-grid" id="sectors-grid"></div>
+
+  <!-- CROSS-SECTOR RATIOS -->
+  <h2 class="section">
+    <span>⚖ Cross-Sector Ratios <span class="meta">14 institutional pairs · z-scores vs 1Y mean</span></span>
+  </h2>
+  <div class="ratios-grid" id="ratios-grid"></div>
+
+</main>
+
+<footer><p>Sector Rotation &amp; Money Flow · #4 v1.0 · 11 SPDR sectors + 14 cross-asset ratios · hourly · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_ROTATION = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/sector-rotation.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(d==null?2:d)+'%';}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d==null?2:d);}
+function fmtSigned(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(d==null?2:d);}
+
+function riskBand(score){
+  if(score==null) return 'neutral';
+  if(score>=70) return 'strong-on';
+  if(score>=55) return 'on';
+  if(score>=45) return 'neutral';
+  if(score>=30) return 'off';
+  return 'strong-off';
+}
+
+let data = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    data = await fetch(URL_ROTATION + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
+    if(!data) throw new Error('sector-rotation.json not yet generated — Lambda runs hourly at :38');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const mins = Math.floor((Date.now() - t) / 60000);
+    document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : Math.floor(mins/60) + 'h ago';
+    render();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('sectors-grid').innerHTML = `<div class="empty-state"><div class="icon">🔄</div>${esc(e.message)}</div>`;
+  }
+}
+
+function render(){
+  // ─── Risk appetite ───
+  const ra = data.risk_appetite || {};
+  const score = ra.score;
+  const band = riskBand(score);
+  const valEl = document.getElementById('risk-val');
+  const lblEl = document.getElementById('risk-band');
+  valEl.textContent = score != null ? fmtNum(score, 1) : '—';
+  valEl.className = 'gauge-val gauge-' + band;
+  lblEl.textContent = ra.label || 'NEUTRAL';
+  lblEl.className = 'gauge-label gauge-' + band + ' gauge-' + band + '-bg';
+  document.getElementById('risk-marker').style.left = Math.min(99, Math.max(0, score || 50)) + '%';
+
+  // ─── Cycle banner ───
+  const ctx = data.macro_context || {};
+  const align = (data.summary || {}).leadership_alignment || {};
+  const matchedHtml = (align.matched || []).map(s => `<span class="cycle-tag matched">${esc(s)}</span>`).join('');
+  const missingHtml = (align.missing_expected || []).map(s => `<span class="cycle-tag">${esc(s)}</span>`).join('');
+  document.getElementById('cycle-banner').innerHTML = `
+    <div class="cycle-icon">🌐</div>
+    <div class="cycle-info">
+      <div class="cycle-phase">${esc(ctx.cycle_phase || 'UNKNOWN')}</div>
+      <div class="cycle-detail">MSS ${ctx.macro_stress_score != null ? ctx.macro_stress_score : '—'}/100 · regime ${esc(ctx.regime_label || '—')}</div>
+    </div>
+    <div style="text-align:right;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim)">
+      <div>Expected leaders: ${matchedHtml || '<span style="color:var(--text-mute)">none confirmed</span>'} ${missingHtml ? '· still missing: ' + missingHtml : ''}</div>
+      <div style="margin-top:3px">Alignment: <span style="color:${align.alignment_pct >= 67 ? 'var(--pos)' : align.alignment_pct >= 33 ? 'var(--gold)' : 'var(--neg)'}">${align.alignment_pct != null ? align.alignment_pct + '%' : '—'}</span></div>
+    </div>`;
+
+  // ─── Tiles ───
+  const s = data.summary || {};
+  const sectors = data.sectors || [];
+  const ratios = data.ratios || [];
+  document.getElementById('tiles-grid').innerHTML = [
+    {label:'Sectors Analyzed', value: s.n_sectors_analyzed || 0, sub:'11 SPDRs', cls:'info'},
+    {label:'Cross-Asset Ratios', value: ratios.length || 0, sub:'tracked institutional pairs', cls:'gold'},
+    {label:'Rotating IN', value: s.n_rotating_in || 0, sub:'3+ signals · accumulation', cls: (s.n_rotating_in || 0) > 0 ? 'pos' : 'info'},
+    {label:'Rotating OUT', value: s.n_rotating_out || 0, sub:'3+ signals · distribution', cls: (s.n_rotating_out || 0) > 0 ? 'crit' : 'info'},
+    {label:'Top Leader', value: (s.top_3_leaders && s.top_3_leaders[0]) ? s.top_3_leaders[0].sym : '—',
+     sub: (s.top_3_leaders && s.top_3_leaders[0]) ? 'score ' + s.top_3_leaders[0].score : 'highest rotation score', cls:'pos'},
+    {label:'Top Laggard', value: (s.bottom_3_laggards && s.bottom_3_laggards[0]) ? s.bottom_3_laggards[0].sym : '—',
+     sub: (s.bottom_3_laggards && s.bottom_3_laggards[0]) ? 'score ' + s.bottom_3_laggards[0].score : 'lowest rotation score', cls:'warn'},
+  ].map(t => `<div class="tile ${t.cls}">
+    <div class="tile-label">${esc(t.label)}</div>
+    <div class="tile-value">${t.value}</div>
+    <div class="tile-sub">${esc(t.sub)}</div>
+  </div>`).join('');
+
+  // ─── Rotation alerts ───
+  const ra2 = data.rotation_alerts || {};
+  function renderAlerts(list, kind, bodyId){
+    const body = document.getElementById(bodyId);
+    if(!list || !list.length){
+      body.innerHTML = '<div class="empty-state">No ' + kind + ' signals firing</div>';
+      return;
+    }
+    body.innerHTML = list.map(a => {
+      const sectorObj = sectors.find(s => s.symbol === a.sym) || {};
+      return `<div class="alert-row">
+        <span class="alert-sym">${esc(a.sym)}</span>
+        <span class="alert-name">${esc(sectorObj.name || '')}</span>
+        <span class="alert-score">score ${a.score}</span>
+        <div class="alert-flags">${(a.flags || []).map(f => `<span class="flag-chip flag-${kind}">${esc(f.replace(/_/g, ' '))}</span>`).join('')}</div>
+      </div>`;
+    }).join('');
+  }
+  renderAlerts(ra2.rotating_in, 'in', 'rotating-in-body');
+  renderAlerts(ra2.rotating_out, 'out', 'rotating-out-body');
+
+  // ─── Sector cards ───
+  function compCls(v){return v >= 65 ? 'h' : v >= 40 ? 'm' : 'l';}
+  function scoreCls(v){return v >= 65 ? 'high' : v >= 40 ? 'mid' : 'low';}
+  document.getElementById('sectors-grid').innerHTML = sectors.map(s => {
+    const sc = s.score_components || {};
+    const rotCls = s.rotating_in ? 'rotating-in' : s.rotating_out ? 'rotating-out' : '';
+    const cycleCls = s.in_current_cycle ? 'in-cycle' : '';
+    function row(lbl, val, cls){return `<div class="sm-row"><span class="lbl">${esc(lbl)}</span><span class="v ${cls || ''}">${val}</span></div>`;}
+    return `<div class="sector-card ${rotCls} ${cycleCls}">
+      <div class="sector-head">
+        <div>
+          <span class="sector-sym">${esc(s.symbol)}</span>
+          <span class="sector-name-line">${esc(s.name || '')}</span>
+        </div>
+        <span class="sector-rank-badge">#${s.rank} ${s.in_current_cycle ? '· in cycle ✓' : ''}</span>
+      </div>
+      <div class="sector-score-row">
+        <span class="sector-score-big ${scoreCls(s.rotation_score)}">${fmtNum(s.rotation_score, 0)}</span>
+        <span class="sector-score-label">rotation score</span>
+      </div>
+      <div class="score-components">
+        <div class="score-comp"><span class="lbl">RS Mom</span><span class="v ${compCls(sc.rs_momentum)}">${fmtNum(sc.rs_momentum, 0)}</span></div>
+        <div class="score-comp"><span class="lbl">M Flow</span><span class="v ${compCls(sc.money_flow)}">${fmtNum(sc.money_flow, 0)}</span></div>
+        <div class="score-comp"><span class="lbl">Breadth</span><span class="v ${compCls(sc.breadth)}">${fmtNum(sc.breadth, 0)}</span></div>
+        <div class="score-comp"><span class="lbl">Regime</span><span class="v ${compCls(sc.regime_fit)}">${fmtNum(sc.regime_fit, 0)}</span></div>
+        <div class="score-comp"><span class="lbl">Sub</span><span class="v ${compCls(sc.sub_sector)}">${fmtNum(sc.sub_sector, 0)}</span></div>
+      </div>
+      <div class="sector-metrics">
+        ${row('RS 1m', fmtPct(s.rs_1m_pct, 2), s.rs_1m_pct >= 0 ? 'pos' : 'neg')}
+        ${row('RS 3m', fmtPct(s.rs_3m_pct, 2), s.rs_3m_pct >= 0 ? 'pos' : 'neg')}
+        ${row('CMF', fmtNum(s.chaikin_money_flow_20, 3), (s.chaikin_money_flow_20 || 0) > 0 ? 'pos' : 'neg')}
+        ${row('MFI', fmtNum(s.money_flow_index_14, 1))}
+        ${row('vs 50dma', fmtPct(s.pct_vs_sma50, 1), (s.pct_vs_sma50 || 0) > 0 ? 'pos' : 'neg')}
+        ${row('Vol surge', s.volume_surge_ratio ? s.volume_surge_ratio.toFixed(2) + '×' : '—')}
+      </div>
+      ${(s.rotation_in_flags && s.rotation_in_flags.length) || (s.rotation_out_flags && s.rotation_out_flags.length) ? `
+        <div class="sector-flags">
+          ${(s.rotation_in_flags || []).map(f => `<span class="flag-chip flag-in">${esc(f.replace(/_/g, ' '))}</span>`).join(' ')}
+          ${(s.rotation_out_flags || []).map(f => `<span class="flag-chip flag-out">${esc(f.replace(/_/g, ' '))}</span>`).join(' ')}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+
+  // ─── Cross-sector ratios ───
+  document.getElementById('ratios-grid').innerHTML = (ratios || []).map(r => {
+    const ret21 = r.ret_21d_pct;
+    const ret63 = r.ret_63d_pct;
+    const ret5 = r.ret_5d_pct;
+    const cls = (ret21 || 0) > 1 ? 'bullish' : (ret21 || 0) < -1 ? 'bearish' : 'neutral';
+    const zCls = Math.abs(r.z_score_1y || 0) > 2 ? 'high-z' : '';
+    function rcls(v){return (v || 0) > 0 ? 'pos-r' : (v || 0) < 0 ? 'neg-r' : '';}
+    return `<div class="ratio-card ${cls}">
+      <div class="ratio-head">
+        <div>
+          <span class="ratio-label">${esc(r.label)}</span>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-mute);margin-top:1px">${esc(r.numerator)}/${esc(r.denominator)}</div>
+        </div>
+        <span class="ratio-current">${fmtNum(r.current, 3)}</span>
+      </div>
+      <div class="ratio-rets">
+        5d <span class="${rcls(ret5)}">${fmtPct(ret5, 2)}</span> · 21d <span class="${rcls(ret21)}">${fmtPct(ret21, 2)}</span> · 63d <span class="${rcls(ret63)}">${fmtPct(ret63, 2)}</span>
+      </div>
+      <div class="ratio-z ${zCls}">z=${fmtSigned(r.z_score_1y, 2)} · pct-rank ${r.pct_rank_1y != null ? r.pct_rank_1y + '%' : '—'} · ${r.above_sma50 ? '↑ above 50dma' : '↓ below 50dma'}</div>
+      <div class="ratio-interp">${esc(r.interp_active || '')}</div>
+    </div>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 300000);  // refresh every 5 min
+</script>
+
+</body>
+</html>
