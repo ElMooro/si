@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-13T13:48:16.855327+00:00",
+  "result": {
+    "probes": [
+      {
+        "url": "https://cdn.cboe.com/api/global/delayed_quotes/options/_MOVE.json",
+        "status": 403,
+        "body_preview": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>VPNQT9YVBRKGWX9Z</RequestId><HostId>wAQle2rl2xAbYCBAlVxmMn44/J/Y/xjaFVT9DebiaAWEIhHc+f",
+        "elapsed_ms": 142
+      },
+      {
+        "url": "https://cdn.cboe.com/api/global/delayed_quotes/options/MOVE.json",
+        "status": 403,
+        "body_preview": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>VPNNBG7WZQY3G7YK</RequestId><HostId>dCYz4ovjR0Er6w1VhbfYKaMohKDI/OsruwkjAf+E5eBIe+OVT4",
+        "elapsed_ms": 35
+      },
+      {
+        "url": "https://cdn.cboe.com/api/global/delayed_quotes/historical/VXTYN.csv",
+        "status": 403,
+        "body_preview": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>VPNPT99REQ0KADHT</RequestId><HostId>NUy8LA8z3s0Rtder/3v74EJCCJRiAF6U5twZ6OWZxDAjZmdV8S",
+        "elapsed_ms": 35
+      },
+      {
+        "url": "https://cdn.cboe.com/api/global/delayed_quotes/options/^MOVE.json",
+        "status": 403,
+        "body_preview": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>VPNGWE40VEF1G328</RequestId><HostId>baJ9fwz0ZLkNzCRnabM8nCSwtVjdVCgbrLF/FG/ye2C1I9XDyU",
+        "elapsed_ms": 41
+      },
+      {
+        "url": "https://www.cboe.com/us/options/market_statistics/historical_data/",
+        "status": 200,
+        "bytes": 605207,
+        "head": "<!DOCTYPE html>\n\n\n\n\n\n\n\n\n\n\n<html lang=\"en-us\">\n<head>\n    \n           \n\n\n\n\n\n    <script src=\"https://cdn.cookielaw.org/scripttemplates/otSDKStub.js\"  type=\"text/javascript\" charset=\"UTF-8\" data-domain-script=\"019682b2-f8a4-757a-b22a-a5dc76f8622e\" ></script>\n    <script type=\"text/javascript\">\n        function OptanonWrapper() { }\n    </script>\n\n    \n\n    <meta charset=\"utf-8\">\n    <meta http-equiv=",
+        "elapsed_ms": 223
+      },
+      {
+        "url": "https://stooq.com/q/d/l/?s=^move&i=d",
+        "status": 200,
+        "bytes": 342,
+        "head": "Get your apikey:\n\n1. Open https://stooq.com/q/d/?s=^move&get_apikey\n2. Enter the captcha code.\n3. Copy the CSV download link at the bottom of the page - it will contain the <apikey> variable.\n4. Append the <apikey> variable with its value to your requests, e.g.\n   https://stooq.com/q/d/l/?s=^move&i=d&apikey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n",
+        "elapsed_ms": 562
+      },
+      {
+        "url": "https://stooq.com/q/d/l/?s=move.us&i=d",
+        "status": 200,
+        "bytes": 346,
+        "head": "Get your apikey:\n\n1. Open https://stooq.com/q/d/?s=move.us&get_apikey\n2. Enter the captcha code.\n3. Copy the CSV download link at the bottom of the page - it will contain the <apikey> variable.\n4. Append the <apikey> variable with its value to your requests, e.g.\n   https://stooq.com/q/d/l/?s=move.us&i=d&apikey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n",
+        "elapsed_ms": 436
+      },
+      {
+        "url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&api_key=2f057499936072679d8843d7fce99989&file_type=json&sort_order=desc&limit=5",
+        "status": 200,
+        "bytes": 747,
+        "head": "{\"realtime_start\":\"2026-05-13\",\"realtime_end\":\"2026-05-13\",\"observation_start\":\"1600-01-01\",\"observation_end\":\"9999-12-31\",\"units\":\"lin\",\"output_type\":1,\"file_type\":\"json\",\"order_by\":\"observation_date\",\"sort_order\":\"desc\",\"count\":793,\"offset\":0,\"limit\":5,\"observations\":[{\"realtime_start\":\"2026-05-13\",\"realtime_end\":\"2026-05-13\",\"date\":\"2026-05-12\",\"value\":\"2.82\"},{\"realtime_start\":\"2026-05-13\",\"re",
+        "elapsed_ms": 114
+      }
+    ]
+  },
+  "finished": "2026-05-13T13:48:22.616821+00:00"
+}
