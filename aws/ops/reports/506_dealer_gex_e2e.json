@@ -1,0 +1,94 @@
+{
+  "started": "2026-05-13T10:40:01.605981+00:00",
+  "lambda_config": {
+    "runtime": "python3.12",
+    "memory_mb": 2048,
+    "timeout_s": 600,
+    "handler": "lambda_function.lambda_handler",
+    "role": "lambda-execution-role",
+    "env_keys": [
+      "POLY_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "code_size_kb": 11.0,
+    "last_modified": "2026-05-13T10:34:22.000+0000"
+  },
+  "schedule": {
+    "cron": "cron(7 13-21 ? * MON-FRI *)",
+    "state": "ENABLED",
+    "targets": [
+      "justhodl-dealer-gex",
+      "justhodl-dealer-gex"
+    ]
+  },
+  "sidecar": {
+    "size_kb": 31.5,
+    "last_modified": "2026-05-13T10:34:38",
+    "version": "1.2.1",
+    "elapsed_seconds": 6.76,
+    "underlyings_ok": 10,
+    "total_contracts_modeled": 19538,
+    "total_call_oi": 16346850,
+    "total_put_oi": 26036522,
+    "regimes": {
+      "NVDA": "POSITIVE_GAMMA",
+      "IWM": "NEGATIVE_GAMMA",
+      "SPY": "POSITIVE_GAMMA",
+      "TSLA": "POSITIVE_GAMMA",
+      "AAPL": "POSITIVE_GAMMA",
+      "QQQ": "POSITIVE_GAMMA",
+      "AMZN": "POSITIVE_GAMMA",
+      "META": "NEAR_FLIP",
+      "MSFT": "NEAR_FLIP",
+      "GOOGL": "NEAR_FLIP"
+    },
+    "market_composite": {
+      "spy_regime": "POSITIVE_GAMMA",
+      "spy_gex_billions": 1.566,
+      "spy_flip_level": null,
+      "spy_spot": 738.18,
+      "spy_pct_to_flip": null,
+      "spy_trading_bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+      "qqq_regime": "POSITIVE_GAMMA",
+      "iwm_regime": "NEGATIVE_GAMMA",
+      "index_gex_signs": "++-",
+      "composite_regime": "MOSTLY_POSITIVE_GAMMA",
+      "composite_signal": "Majority indices in positive gamma \u2014 mean-revert, buy dips at support, fade resistance"
+    },
+    "n_squeeze_candidates": 2
+  },
+  "probes": {
+    "page_gex": {
+      "url": "https://justhodl.ai/gex/",
+      "status": 200,
+      "bytes": 26962,
+      "body_head": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>\ud83d\udcd0 Dealer GEX & Gamma Positioning \u00b7 JustHodl.AI</title>\n<meta name=\"description\" content=\"Institutional dealer gamma exposure modeling. Zero-gamma flip levels, vanna/charm flows, max pain, IV skew, 0DTE concentration, squeeze candidates. SpotGamma-grade analytics",
+      "elapsed_ms": 150
+    },
+    "home": {
+      "url": "https://justhodl.ai/",
+      "status": 200,
+      "bytes": 83262,
+      "body_head": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">\n<title>JustHodl.AI \u00b7 Operator Console</title>\n<link rel=\"manifest\" href=\"/manifest.json\">\n<meta name=\"theme-color\" content=\"#facc15\">\n<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">\n<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucen",
+      "elapsed_ms": 25
+    },
+    "s3_sidecar": {
+      "url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/dealer-gex.json",
+      "status": 200,
+      "bytes": 32214,
+      "body_head": "{\"generated_at\":\"2026-05-13T10:34:37.009927+00:00\",\"generated_at_unix\":1778668477,\"version\":\"1.2.1\",\"elapsed_seconds\":6.76,\"calculation_config\":{\"risk_free_rate\":0.0425,\"expiry_horizon_days\":60,\"contract_multiplier\":100,\"n_underlyings\":10},\"market_composite\":{\"spy_regime\":\"POSITIVE_GAMMA\",\"spy_gex_billions\":1.566,\"spy_flip_level\":null,\"spy_spot\":738.18,\"spy_pct_to_flip\":null,\"spy_trading_bias\":\"Me",
+      "elapsed_ms": 94
+    },
+    "s3_history": {
+      "url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/dealer-gex-history.json",
+      "status": 200,
+      "bytes": 892,
+      "body_head": "{\"history\":[{\"ts\":1778665181,\"spy_gex_b\":null,\"spy_flip\":null,\"spy_spot\":738.18,\"spy_regime\":null,\"qqq_gex_b\":null,\"iwm_gex_b\":null},{\"ts\":1778665542,\"spy_gex_b\":null,\"spy_flip\":null,\"spy_spot\":738.18,\"spy_regime\":null,\"qqq_gex_b\":null,\"iwm_gex_b\":null},{\"ts\":1778666638,\"spy_gex_b\":null,\"spy_flip\":null,\"spy_spot\":738.18,\"spy_regime\":null,\"qqq_gex_b\":null,\"iwm_gex_b\":null},{\"ts\":1778666947,\"spy_gex",
+      "elapsed_ms": 57
+    },
+    "home_links_gex": true,
+    "home_mentions_dealer_gex": true
+  },
+  "finished": "2026-05-13T10:40:09.689998+00:00"
+}
