@@ -64,7 +64,7 @@ import boto3
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════
 
-VERSION = "2.0.0"
+VERSION = "3.0.0"  # institutional expansion: +15 FRED detectors (NFCI/ANFCI/STLFSI4/real yields/inflation expectations/recession nowcasts/balance-sheet liquidity/CNY/VXN/GVZ/OVX/mortgage rates) + Net Liquidity composite detector
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "signals/anomalies.json"
@@ -80,17 +80,18 @@ DEDUPE_HOURS = 12
 
 # Stress Score category weights (sum = 1.0)
 STRESS_WEIGHTS = {
-    "credit":           0.18,
-    "equity_vol":       0.15,
-    "rates":            0.13,
-    "funding":          0.10,
-    "currency":         0.08,
-    "cross_asset":      0.10,
-    "equity_internals": 0.08,
-    "commodity":        0.06,
-    "breadth":          0.06,
-    "macro":            0.03,
-    "crypto":           0.03,
+    "credit":              0.16,   # -0.02 → ceded to financial_conditions
+    "equity_vol":          0.13,   # -0.02
+    "rates":               0.12,   # -0.01
+    "financial_conditions": 0.10,   # NEW — NFCI/ANFCI/STLFSI4 combined
+    "funding":             0.10,
+    "currency":            0.07,   # -0.01
+    "cross_asset":         0.09,   # -0.01
+    "equity_internals":    0.07,   # -0.01
+    "commodity":           0.06,
+    "breadth":             0.06,
+    "macro":               0.03,
+    "crypto":              0.01,   # -0.02
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -212,7 +213,7 @@ def _round(v, digits=4):
 # ═══════════════════════════════════════════════════════════════════════
 
 FRED_DETECTORS = [
-    # RATES / YIELD CURVE
+    # ─────────── RATES / YIELD CURVE ───────────
     {"id": "T10Y2Y", "category": "rates", "name": "2s10s Spread",
      "watch_inversion": True, "unit": "%",
      "interp_pos": "Curve steepening — growth/inflation pricing in.",
@@ -223,28 +224,108 @@ FRED_DETECTORS = [
      "interp_pos": "Steepening — bond market pricing in growth.",
      "interp_neg": "Flattening — Fed's preferred recession signal weakening.",
      "interp_inverted": "INVERTED — Fed's most-watched recession signal triggered."},
-    # FUNDING
+    {"id": "DFII10", "category": "rates", "name": "10Y Real Yield (TIPS)", "unit": "%",
+     "interp_pos": "Real yields spiking — tightening financial conditions, risk-asset headwind.",
+     "interp_neg": "Real yields falling — easier conditions, gold/risk-asset tailwind."},
+    {"id": "DFII5", "category": "rates", "name": "5Y Real Yield (TIPS)", "unit": "%",
+     "interp_pos": "5Y real spike — front-end tightening, growth-stock risk.",
+     "interp_neg": "5Y real falling — front-end easing, growth tailwind."},
+    {"id": "T5YIFR", "category": "rates", "name": "5y5y Forward Inflation Expectation", "unit": "%",
+     "interp_pos": "Long-run inflation expectations un-anchoring upward — Fed credibility risk.",
+     "interp_neg": "Long-run inflation expectations falling — deflation/disinflation regime."},
+
+    # ─────────── FINANCIAL CONDITIONS (CRITICAL INSTITUTIONAL) ───────────
+    {"id": "NFCI", "category": "financial_conditions",
+     "name": "Chicago Fed Financial Conditions Index", "unit": "z",
+     "interp_pos": "NFCI rising — financial conditions tightening across credit/money/risk channels.",
+     "interp_neg": "NFCI falling — financial conditions loosening, risk-on environment."},
+    {"id": "ANFCI", "category": "financial_conditions",
+     "name": "Adjusted NFCI (controls for current macro state)", "unit": "z",
+     "interp_pos": "Adjusted NFCI rising — conditions tighter than macro state would imply, market-driven stress.",
+     "interp_neg": "Adjusted NFCI falling — conditions looser than macro state implies, complacency."},
+    {"id": "STLFSI4", "category": "financial_conditions",
+     "name": "St Louis Fed Financial Stress Index", "unit": "z",
+     "interp_pos": "Financial stress rising — bond/equity/credit/FX combined stress index up.",
+     "interp_neg": "Financial stress falling — calm across components."},
+
+    # ─────────── FUNDING ───────────
     {"id": "SOFR", "category": "funding", "name": "SOFR Overnight Rate", "unit": "%",
      "interp_pos": "Funding tightening — repo market stress building.",
      "interp_neg": "Funding loosening — liquidity flowing into markets."},
     {"id": "DTB3", "category": "funding", "name": "3M T-Bill Rate", "unit": "%",
      "interp_pos": "Short rates rising — Fed tightening priced in.",
      "interp_neg": "Short rates falling — rate cuts being priced in."},
-    # CURRENCY
+
+    # ─────────── LIQUIDITY (BALANCE SHEET) ───────────
+    {"id": "WALCL", "category": "funding",
+     "name": "Fed Balance Sheet (Total Assets)", "unit": "$mn",
+     "interp_pos": "Fed balance sheet expanding — liquidity injection (QE-style).",
+     "interp_neg": "Fed balance sheet contracting — QT, liquidity drain."},
+    {"id": "WTREGEN", "category": "funding",
+     "name": "Treasury General Account (TGA)", "unit": "$mn",
+     "interp_pos": "TGA building — Treasury draining liquidity from markets.",
+     "interp_neg": "TGA drawing down — Treasury releasing liquidity into markets."},
+    {"id": "RRPONTSYD", "category": "funding",
+     "name": "Reverse Repo Operations", "unit": "$mn",
+     "interp_pos": "RRP rising — money market funds parking cash at Fed, liquidity drain.",
+     "interp_neg": "RRP falling — cash leaving Fed RRP, market liquidity returning."},
+
+    # ─────────── CURRENCY ───────────
     {"id": "DTWEXBGS", "category": "currency", "name": "Broad Dollar Index", "unit": "idx",
      "interp_pos": "Dollar strengthening — risk-off / tightening flows.",
      "interp_neg": "Dollar weakening — risk-on / EM tailwind."},
     {"id": "DEXJPUS", "category": "currency", "name": "USD/JPY", "unit": "rate",
      "interp_pos": "Yen weakness — carry trade in play.",
      "interp_neg": "Yen strength — carry unwind, classic risk-off signal."},
-    # MACRO
+    {"id": "DEXCHUS", "category": "currency", "name": "USD/CNY (China)", "unit": "rate",
+     "interp_pos": "Yuan weakness — China devaluation pressure, EM/risk headwind.",
+     "interp_neg": "Yuan strength — China stabilizing, EM tailwind."},
+
+    # ─────────── MACRO / RECESSION NOWCAST ───────────
     {"id": "ICSA", "category": "macro", "name": "Initial Jobless Claims", "unit": "k",
      "interp_pos": "Claims rising — labor market weakening, recession risk.",
      "interp_neg": "Claims falling — labor strong, expansion continues."},
-    # COMMODITY (single-asset)
+    {"id": "SAHMREALTIME", "category": "macro",
+     "name": "Sahm Rule Recession Indicator", "unit": "%",
+     "interp_pos": "Sahm Rule near/above 0.5 — recession in progress per real-time labor signal.",
+     "interp_neg": "Sahm Rule falling — labor market re-strengthening."},
+    {"id": "RECPROUSM156N", "category": "macro",
+     "name": "NY Fed Recession Probability (12m forward)", "unit": "%",
+     "interp_pos": "Recession probability rising per NY Fed yield-curve model.",
+     "interp_neg": "Recession probability falling — yield curve dis-inverting."},
+    {"id": "CFNAI", "category": "macro",
+     "name": "Chicago Fed National Activity Index", "unit": "z",
+     "interp_pos": "CFNAI rising — broad economic activity accelerating.",
+     "interp_neg": "CFNAI < -0.7 historically marks recession; deep negative is the signal."},
+    {"id": "UMCSENT", "category": "macro",
+     "name": "U-Mich Consumer Sentiment", "unit": "idx",
+     "interp_pos": "Consumer sentiment rising — discretionary tailwind.",
+     "interp_neg": "Consumer sentiment falling — discretionary risk, savings rate up."},
+
+    # ─────────── EQUITY VOL FAMILY (broader than VIX/SKEW) ───────────
+    {"id": "VXNCLS", "category": "equity_vol",
+     "name": "VXN — Nasdaq 100 Volatility Index", "unit": "vol",
+     "interp_pos": "Nasdaq vol spike — tech-specific stress, single-name event risk.",
+     "interp_neg": "Nasdaq vol compressing — tech complacency."},
+    {"id": "GVZCLS", "category": "equity_vol",
+     "name": "GVZ — Gold Volatility Index", "unit": "vol",
+     "interp_pos": "Gold vol spiking — flight-to-quality regime shift in progress.",
+     "interp_neg": "Gold vol compressing — gold range-bound, regime stable."},
+    {"id": "OVXCLS", "category": "equity_vol",
+     "name": "OVX — Crude Oil Volatility Index", "unit": "vol",
+     "interp_pos": "Oil vol spiking — supply shock or demand collapse pricing in.",
+     "interp_neg": "Oil vol compressing — energy markets calm."},
+
+    # ─────────── COMMODITY (single-asset) ───────────
     {"id": "WTISPLC", "category": "commodity", "name": "WTI Crude Oil", "unit": "$/bbl",
      "interp_pos": "Oil surge — supply shock or demand spike.",
      "interp_neg": "Oil collapse — demand destruction or oversupply."},
+
+    # ─────────── HOUSING ───────────
+    {"id": "MORTGAGE30US", "category": "rates",
+     "name": "30Y Fixed Mortgage Rate", "unit": "%",
+     "interp_pos": "Mortgage rates spiking — housing freeze risk, REIT/builder headwind.",
+     "interp_neg": "Mortgage rates falling — housing affordability easing, refi wave possible."},
 ]
 
 
@@ -834,6 +915,63 @@ def detect_funding_stress():
     }, metric
 
 
+def detect_net_liquidity():
+    """Net Liquidity = Fed Balance Sheet (WALCL) - Treasury General Account (WTREGEN)
+                       - Reverse Repo (RRPONTSYD)
+
+    This is the "BTC liquidity proxy" / "true Fed liquidity" hedge funds watch.
+    Detects week-over-week regime shifts in dollar liquidity.
+
+    Returns 1w change z-score over 180-day history of weekly changes.
+    """
+    series = batch_fetch_fred(["WALCL", "WTREGEN", "RRPONTSYD"], 600)
+    walcl = series.get("WALCL", [])
+    tga = series.get("WTREGEN", [])
+    rrp = series.get("RRPONTSYD", [])
+    if len(walcl) < 50 or len(tga) < 50 or len(rrp) < 50:
+        return None, {"err": f"insufficient: walcl={len(walcl)} tga={len(tga)} rrp={len(rrp)}"}
+
+    walcl_by = {d["date"]: d["value"] for d in walcl}
+    tga_by = {d["date"]: d["value"] for d in tga}
+    rrp_by = {d["date"]: d["value"] for d in rrp}
+    common = sorted(set(walcl_by) & set(tga_by) & set(rrp_by))
+    if len(common) < 50: return None, {"err": f"common dates {len(common)}"}
+
+    # Compute net liquidity timeseries (in $bn for readability)
+    net_liq = [(walcl_by[d] - tga_by[d] - rrp_by[d]) / 1000.0 for d in common]
+    current = net_liq[-1]
+    prior_week = net_liq[-6] if len(net_liq) >= 6 else net_liq[0]
+    w_change = current - prior_week
+    # Weekly changes for z-score
+    weekly_changes = [net_liq[i] - net_liq[i-5] for i in range(5, len(net_liq))]
+    z, mean, _, _ = z_score(weekly_changes + [w_change])
+    # Also percentile rank current level over 5y
+    pct_5y = percentile_rank(current, net_liq)
+    metric = {
+        "net_liquidity_bn": _round(current, 1),
+        "1w_change_bn": _round(w_change, 1),
+        "1w_change_z": _round(z, 2),
+        "pct_rank_5y": pct_5y,
+        "walcl_bn": _round(walcl_by[common[-1]] / 1000, 1),
+        "tga_bn": _round(tga_by[common[-1]] / 1000, 1),
+        "rrp_bn": _round(rrp_by[common[-1]] / 1000, 1),
+        "as_of": common[-1],
+    }
+    if z is None: return None, metric
+    sev = classify_severity(abs(z))
+    if not sev: return None, metric
+    return {
+        "category": "funding",
+        "name": "Net Liquidity " + ("Surge" if z > 0 else "Drain"),
+        "severity": sev, "z_score": _round(z, 2),
+        "current_value": _round(current, 1),
+        "details": f"Net Liquidity ${current:,.0f}B · 1w Δ ${w_change:+,.0f}B (z={z:.2f}) · pct-rank-5y {pct_5y}",
+        "implication": ("Liquidity injection: WALCL up or TGA/RRP draining — risk-asset tailwind."
+                        if z > 0 else
+                        "Liquidity drain: TGA building or WALCL contracting — risk-asset headwind."),
+    }, metric
+
+
 def _vix_interp(v):
     if v < 13: return "extreme complacency"
     if v < 17: return "low fear"
@@ -1019,6 +1157,7 @@ def lambda_handler(event, context):
         ("crypto_signal",    detect_crypto_signal,           "crypto"),
         ("trend_reversion",  detect_trend_reversion,         "equity_internals"),
         ("funding_stress",   detect_funding_stress,          "funding"),
+        ("net_liquidity",    detect_net_liquidity,           "funding"),
     ]
     for name, fn, cat in complex_specs:
         t0 = time.time()

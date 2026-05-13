@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚠ Anomaly & Black-Swan Detector — Institutional Tail-Risk Monitor · JustHodl.AI</title>
+<meta name="description" content="41 institutional detectors across 12 categories: financial conditions (NFCI/ANFCI/STLFSI4), real yields, recession nowcasts, net liquidity, credit, rates, funding, currency, cross-asset, breadth, commodity, crypto. Macro Stress Score 0-100 with crisis cluster detection.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚠%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --sev-extreme:#ef4444; --sev-high:#fb923c; --sev-medium:#fbbf24; --sev-low:#a78bfa;
+  --mss-goldilocks:#00e676; --mss-normal:#22d3ee; --mss-elevated:#fbbf24;
+  --mss-high:#fb923c; --mss-crisis:#ef4444;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1700px;margin:0 auto;}
+
+/* MSS HERO GAUGE */
+.hero-mss{display:grid;grid-template-columns:auto 1fr;gap:24px;background:linear-gradient(135deg,rgba(239,68,68,.06),rgba(167,139,250,.04));border:1px solid rgba(239,68,68,.18);border-radius:8px;padding:18px 22px;margin-bottom:14px;}
+@media (max-width:700px){.hero-mss{grid-template-columns:1fr;}}
+.mss-gauge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:140px;}
+.mss-value{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1;font-family:var(--font-mono);}
+.mss-band-0,.mss-value.mss-band-0{color:var(--mss-goldilocks);}
+.mss-band-1,.mss-value.mss-band-1{color:var(--mss-normal);}
+.mss-band-2,.mss-value.mss-band-2{color:var(--mss-elevated);}
+.mss-band-3,.mss-value.mss-band-3{color:var(--mss-high);}
+.mss-band-4,.mss-value.mss-band-4{color:var(--mss-crisis);}
+.mss-scale{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:6px;letter-spacing:1px;}
+.mss-band-label{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1.5px;margin-top:6px;padding:3px 10px;border-radius:3px;}
+.mss-band-label.mss-band-0{background:rgba(0,230,118,.18);}
+.mss-band-label.mss-band-1{background:rgba(34,211,238,.18);}
+.mss-band-label.mss-band-2{background:rgba(251,191,36,.18);}
+.mss-band-label.mss-band-3{background:rgba(251,146,60,.18);}
+.mss-band-label.mss-band-4{background:rgba(239,68,68,.18);}
+
+.mss-info h2{font-size:14px;font-weight:600;margin:0 0 4px;}
+.mss-interp{color:var(--text-dim);font-size:12px;margin-bottom:10px;line-height:1.5;}
+.mss-bar-wrap{position:relative;}
+.mss-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--panel-2);margin-bottom:6px;border:1px solid var(--border);}
+.mss-bar-seg{flex:1;}
+.mss-bar-seg.s0{background:linear-gradient(90deg,#00e676,#22d3ee);}
+.mss-bar-seg.s1{background:linear-gradient(90deg,#22d3ee,#a78bfa);}
+.mss-bar-seg.s2{background:linear-gradient(90deg,#a78bfa,#fbbf24);}
+.mss-bar-seg.s3{background:linear-gradient(90deg,#fbbf24,#fb923c);}
+.mss-bar-seg.s4{background:linear-gradient(90deg,#fb923c,#ef4444);}
+.mss-marker{position:absolute;top:-3px;height:18px;width:3px;background:white;border-radius:2px;box-shadow:0 0 10px rgba(255,255,255,.7);transition:left .4s;}
+.mss-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;color:var(--text-mute);letter-spacing:.5px;}
+
+.mss-historical{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--text-mute);line-height:1.7;}
+.mss-historical strong{color:var(--text-dim);}
+
+/* CRISIS BANNER */
+.crisis-banner{background:linear-gradient(135deg,rgba(239,68,68,.20),rgba(251,146,60,.10));border:1px solid var(--crit);border-radius:8px;padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;animation:pulse 3s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 14px 2px rgba(239,68,68,.6);}}
+.crisis-icon{font-size:32px;flex-shrink:0;}
+.crisis-banner h3{margin:0 0 4px;font-size:14px;color:var(--crit);}
+.crisis-banner p{margin:0;font-size:12px;color:var(--text);line-height:1.5;}
+
+/* TILES */
+.tiles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;overflow:hidden;}
+.tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
+.tile.pos::before{background:var(--pos);}
+.tile.warn::before{background:var(--warn);}
+.tile.info::before{background:var(--info);}
+.tile.crit::before{background:var(--crit);}
+.tile.gold::before{background:var(--gold);}
+.tile-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.tile-value{font-size:20px;font-weight:700;letter-spacing:-.3px;line-height:1.1;}
+.tile-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+/* DETECTOR CARDS */
+.detector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;}
+.detector{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;}
+.detector::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px;}
+.detector.sev-EXTREME::before{background:var(--sev-extreme);box-shadow:0 0 8px var(--sev-extreme);}
+.detector.sev-HIGH::before{background:var(--sev-high);}
+.detector.sev-MEDIUM::before{background:var(--sev-medium);}
+.detector.sev-LOW::before{background:var(--sev-low);}
+.detector-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px;}
+.detector-name{font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--text);line-height:1.3;}
+.severity-chip{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:.5px;white-space:nowrap;flex-shrink:0;}
+.sev-EXTREME .severity-chip{background:rgba(239,68,68,.18);color:var(--sev-extreme);}
+.sev-HIGH    .severity-chip{background:rgba(251,146,60,.18);color:var(--sev-high);}
+.sev-MEDIUM  .severity-chip{background:rgba(251,191,36,.18);color:var(--sev-medium);}
+.sev-LOW     .severity-chip{background:rgba(167,139,250,.18);color:var(--sev-low);}
+.detector-cat{font-family:var(--font-mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.detector-details{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin:4px 0;line-height:1.45;}
+.detector-impl{font-size:11px;color:var(--text);line-height:1.45;margin-top:4px;}
+
+/* CATEGORY BREAKDOWN */
+.category-bars{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;margin-bottom:14px;}
+.cat-row{display:grid;grid-template-columns:200px 60px 1fr 60px;gap:12px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(28,35,48,.4);}
+.cat-row:last-child{border-bottom:none;}
+.cat-label{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;}
+.cat-weight{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-align:right;}
+.cat-bar-track{background:var(--bg);border-radius:3px;height:18px;position:relative;overflow:hidden;border:1px solid var(--border);}
+.cat-bar-fill{height:100%;border-radius:3px;transition:width .3s;}
+.cat-bar-fill.low{background:linear-gradient(90deg,rgba(0,230,118,.5),rgba(34,211,238,.5));}
+.cat-bar-fill.mid{background:linear-gradient(90deg,rgba(251,191,36,.5),rgba(251,146,60,.5));}
+.cat-bar-fill.high{background:linear-gradient(90deg,rgba(251,146,60,.6),rgba(239,68,68,.6));}
+.cat-contrib{font-family:var(--font-mono);font-size:11px;color:var(--text);text-align:right;font-weight:600;}
+
+/* METRICS TABLE */
+.metrics-wrap{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:auto;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+thead th{text-align:left;padding:9px 10px;font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;cursor:pointer;}
+thead th:hover{color:var(--text);}
+tbody td{padding:7px 10px;border-bottom:1px solid rgba(28,35,48,.5);}
+tbody tr:hover{background:rgba(28,35,48,.4);}
+tbody tr:last-child td{border-bottom:none;}
+.col-r{text-align:right;}
+.cat-tag{font-family:var(--font-mono);font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.4px;}
+.zval.pos{color:var(--neg);font-weight:600;}
+.zval.neg{color:var(--pos);font-weight:600;}
+.zval.neutral{color:var(--text-mute);}
+.zval.high{color:var(--crit);font-weight:700;}
+
+.empty-state{padding:40px 24px;text-align:center;color:var(--text-mute);}
+.empty-state .icon{font-size:32px;margin-bottom:10px;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚠ Anomaly &amp; Black-Swan Detector <span class="badge">#18</span></h1>
+    <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/alpha/">α Alpha</a>
+      <a href="/debate/">⚔ Debate</a>
+      <a href="/trades/">📓 Trades</a>
+      <a href="/portfolio/">📊 Portfolio</a>
+      <a href="/sizing/">📐 Sizing</a>
+      <a href="/catalyst/">🗓 Catalyst</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <!-- MACRO STRESS SCORE HERO -->
+  <div class="hero-mss">
+    <div class="mss-gauge">
+      <div class="mss-value mss-band-1" id="mss-value">—</div>
+      <div class="mss-scale">/ 100</div>
+      <div class="mss-band-label mss-band-1" id="mss-band">LOADING</div>
+    </div>
+    <div class="mss-info">
+      <h2>Macro Stress Score · Composite Tail-Risk Index</h2>
+      <p class="mss-interp" id="mss-interp">Loading current stress regime…</p>
+
+      <div class="mss-bar-wrap">
+        <div class="mss-bar">
+          <div class="mss-bar-seg s0"></div>
+          <div class="mss-bar-seg s1"></div>
+          <div class="mss-bar-seg s2"></div>
+          <div class="mss-bar-seg s3"></div>
+          <div class="mss-bar-seg s4"></div>
+        </div>
+        <div class="mss-marker" id="mss-marker" style="left:0%"></div>
+      </div>
+      <div class="mss-labels">
+        <span>0 Goldilocks</span><span>20</span><span>40 Elevated</span><span>60</span><span>80 Crisis</span><span>100</span>
+      </div>
+
+      <div class="mss-historical">
+        <strong>Historical analogs</strong> · Mar 2020 COVID ≈ <span style="color:var(--mss-crisis)">92</span> · Oct 2008 GFC ≈ <span style="color:var(--mss-crisis)">98</span> · Feb 2018 vol-shock ≈ <span style="color:var(--mss-elevated)">52</span> · Aug 2022 inflation peak ≈ <span style="color:var(--mss-elevated)">48</span> · Mar 2023 SVB ≈ <span style="color:var(--mss-high)">68</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRISIS CLUSTER BANNER (auto-shown when MSS >= 60 OR 3+ HIGH/EXTREME) -->
+  <div id="crisis-banner" style="display:none"></div>
+
+  <!-- SUMMARY TILES -->
+  <div class="tiles-grid" id="tiles-grid"></div>
+
+  <!-- CATEGORY BREAKDOWN -->
+  <h2 class="section">
+    <span>🌐 Category Stress Contribution <span class="meta">how each bucket feeds the composite MSS · weighted</span></span>
+  </h2>
+  <div class="category-bars" id="category-bars"></div>
+
+  <!-- ACTIVE ANOMALIES -->
+  <h2 class="section">
+    <span>🚨 Active Anomalies <span class="meta" id="anomalies-meta">sorted by severity</span></span>
+    <span class="meta" id="severity-counts"></span>
+  </h2>
+  <div class="detector-grid" id="detector-grid"></div>
+
+  <!-- FULL METRICS TABLE -->
+  <h2 class="section">
+    <span>📋 All Detectors <span class="meta" id="all-detectors-meta">institutional-grade indicator panel</span></span>
+    <span class="meta">click column header to sort</span>
+  </h2>
+  <div class="metrics-wrap">
+    <table id="metrics-table">
+      <thead><tr>
+        <th data-k="name">Detector</th>
+        <th data-k="category">Category</th>
+        <th class="col-r" data-k="current">Current</th>
+        <th class="col-r" data-k="z60">z60</th>
+        <th class="col-r" data-k="1w_change">1w Δ</th>
+        <th class="col-r" data-k="1w_change_z">1w Δ z</th>
+        <th class="col-r" data-k="pct_rank_5y">Pct Rank 5y</th>
+        <th data-k="as_of">As Of</th>
+      </tr></thead>
+      <tbody id="metrics-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer><p>Anomaly &amp; Black-Swan Detector · #18 · 41 institutional detectors across 12 categories · hourly refresh · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_ANOMALY = 'https://justhodl-dashboard-live.s3.amazonaws.com/signals/anomalies.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d==null?2:d);}
+function fmtSigned(n,d){if(n==null||isNaN(n))return'—';const v=Number(n);return(v>=0?'+':'')+v.toFixed(d==null?2:d);}
+
+function mssBand(score){
+  if(score==null) return 1;
+  if(score<20) return 0;
+  if(score<40) return 1;
+  if(score<60) return 2;
+  if(score<80) return 3;
+  return 4;
+}
+function mssBandLabel(b){return ['GOLDILOCKS','NORMAL','ELEVATED','HIGH STRESS','CRISIS'][b];}
+
+function categoryFmt(c){return (c||'').replace(/_/g,' ').toUpperCase();}
+
+let data = null, sortKey = null, sortDir = 1;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    data = await fetch(URL_ANOMALY + '?t=' + Date.now()).then(r => r.ok ? r.json() : null);
+    if(!data) throw new Error('anomalies.json not yet generated — Lambda runs hourly at :33');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const mins = Math.floor((Date.now() - t) / 60000);
+    document.getElementById('updated').textContent = mins < 1 ? 'just now' : mins < 60 ? mins + 'm ago' : Math.floor(mins/60) + 'h ago';
+    render();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('detector-grid').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠</div><div>${esc(e.message)}</div></div>`;
+  }
+}
+
+function render(){
+  const mss = data.macro_stress_score;
+  const band = mssBand(mss);
+
+  // MSS gauge
+  const mssEl = document.getElementById('mss-value');
+  mssEl.className = 'mss-value mss-band-' + band;
+  mssEl.textContent = fmtNum(mss, 1);
+
+  const bandEl = document.getElementById('mss-band');
+  bandEl.className = 'mss-band-label mss-band-' + band;
+  bandEl.textContent = mssBandLabel(band);
+
+  document.getElementById('mss-interp').textContent = data.stress_interpretation || '—';
+  document.getElementById('mss-marker').style.left = Math.min(99, Math.max(0, mss || 0)) + '%';
+
+  // Crisis banner
+  const high_or_ex = data.high_or_extreme_count || 0;
+  const banner = document.getElementById('crisis-banner');
+  if(mss >= 60 || high_or_ex >= 3){
+    banner.style.display = 'flex';
+    banner.className = 'crisis-banner';
+    banner.innerHTML = `
+      <div class="crisis-icon">🚨</div>
+      <div>
+        <h3>CRISIS CLUSTER ACTIVE</h3>
+        <p>Macro Stress at <strong>${fmtNum(mss,1)}/100</strong> with <strong>${high_or_ex}</strong> detectors firing HIGH or EXTREME. Reduce gross exposure · hedge tail risk · expect drawdowns. ${high_or_ex >= 5 ? 'Multiple cross-asset signals aligned — defensive posture warranted.' : ''}</p>
+      </div>`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Tiles
+  const bySev = data.by_severity || {};
+  const tiles = [
+    {label:'Active Anomalies', value:data.anomalies_count || 0, sub:`${data.detectors_count || 0} detectors total`, cls: data.anomalies_count > 5 ? 'warn' : 'info'},
+    {label:'EXTREME', value:bySev.EXTREME || 0, sub:'|z| > 5.0', cls: bySev.EXTREME > 0 ? 'crit' : 'pos'},
+    {label:'HIGH', value:bySev.HIGH || 0, sub:'|z| 3.5–5.0', cls: bySev.HIGH > 0 ? 'warn' : 'pos'},
+    {label:'MEDIUM', value:bySev.MEDIUM || 0, sub:'|z| 2.5–3.5', cls: 'gold'},
+    {label:'LOW', value:bySev.LOW || 0, sub:'|z| 2.0–2.5', cls: 'info'},
+    {label:'Categories', value:Object.keys(data.metrics_by_category || {}).length, sub:'with active metrics', cls: 'info'},
+    {label:'Alerts Sent', value:data.alerts_sent || 0, sub:'Telegram this run', cls: 'info'},
+  ];
+  document.getElementById('tiles-grid').innerHTML = tiles.map(t =>
+    `<div class="tile ${t.cls}">
+      <div class="tile-label">${esc(t.label)}</div>
+      <div class="tile-value">${t.value}</div>
+      <div class="tile-sub">${esc(t.sub)}</div>
+    </div>`
+  ).join('');
+
+  // Category breakdown
+  const contribs = data.stress_contributions || {};
+  // Static weight map — must match the Lambda's STRESS_WEIGHTS
+  const WEIGHTS = {
+    credit: 0.16, equity_vol: 0.13, rates: 0.12, financial_conditions: 0.10,
+    funding: 0.10, currency: 0.07, cross_asset: 0.09, equity_internals: 0.07,
+    commodity: 0.06, breadth: 0.06, macro: 0.03, crypto: 0.01,
+  };
+  const sortedCats = Object.entries(contribs).sort((a, b) => (b[1] || 0) - (a[1] || 0));
+  document.getElementById('category-bars').innerHTML = sortedCats.map(([cat, val]) => {
+    const w = WEIGHTS[cat] || 0;
+    const weighted = (val || 0) * w;
+    const barCls = val >= 60 ? 'high' : val >= 30 ? 'mid' : 'low';
+    return `<div class="cat-row">
+      <div class="cat-label">${categoryFmt(cat)}</div>
+      <div class="cat-weight">${(w * 100).toFixed(0)}% w</div>
+      <div class="cat-bar-track"><div class="cat-bar-fill ${barCls}" style="width:${Math.min(100, val || 0)}%"></div></div>
+      <div class="cat-contrib">${fmtNum(val, 1)}<br><span style="font-weight:400;color:var(--text-mute);font-size:9px">+${weighted.toFixed(1)} MSS</span></div>
+    </div>`;
+  }).join('');
+
+  // Active anomalies
+  const anomalies = data.anomalies || [];
+  document.getElementById('anomalies-meta').textContent = anomalies.length + ' firing';
+  const sevCounts = Object.entries(bySev).map(([k, v]) => `${k}: ${v}`).join(' · ');
+  document.getElementById('severity-counts').textContent = sevCounts;
+
+  const grid = document.getElementById('detector-grid');
+  if(anomalies.length === 0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">✓</div><div>No anomalies firing right now — markets calm across all 41 detectors.</div></div>`;
+  } else {
+    grid.innerHTML = anomalies.map(a => {
+      return `<div class="detector sev-${esc(a.severity || 'NONE')}">
+        <div class="detector-cat">${categoryFmt(a.category)}</div>
+        <div class="detector-head">
+          <div class="detector-name">${esc(a.name || '')}</div>
+          <span class="severity-chip">${esc(a.severity || '')} · z=${fmtNum(a.z_score, 2)}</span>
+        </div>
+        <div class="detector-details">${esc(a.details || '')}</div>
+        <div class="detector-impl">${esc(a.implication || '')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Full metrics table
+  buildMetricsTable();
+}
+
+function buildMetricsTable(){
+  // Flatten all metrics from metrics_by_category
+  const rows = [];
+  const mbc = data.metrics_by_category || {};
+  for(const [cat, items] of Object.entries(mbc)){
+    for(const [id, m] of Object.entries(items)){
+      if(m && typeof m === 'object'){
+        rows.push({
+          name: m.name || id,
+          category: cat,
+          current: m.current,
+          z60: m.z60,
+          '1w_change': m['1w_change'],
+          '1w_change_z': m['1w_change_z'],
+          pct_rank_5y: m.pct_rank_5y,
+          as_of: m.as_of,
+          err: m.err,
+          unit: m.unit || '',
+        });
+      }
+    }
+  }
+  // Also include extra metric objects keyed at top-level (e.g. complex detector outputs)
+  // Sort
+  if(sortKey){
+    rows.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if(av == null && bv == null) return 0;
+      if(av == null) return 1;
+      if(bv == null) return -1;
+      if(typeof av === 'number' && typeof bv === 'number') return (av - bv) * sortDir;
+      return String(av).localeCompare(String(bv)) * sortDir;
+    });
+  } else {
+    // default: sort by abs(z60) desc
+    rows.sort((a, b) => Math.abs(b.z60 || 0) - Math.abs(a.z60 || 0));
+  }
+
+  document.getElementById('all-detectors-meta').textContent = rows.length + ' active metrics';
+
+  const tbody = document.getElementById('metrics-body');
+  tbody.innerHTML = rows.map(r => {
+    const z60Cls = r.z60 == null ? 'neutral' :
+                    Math.abs(r.z60) >= 3.5 ? 'high' :
+                    r.z60 > 0 ? 'pos' : 'neg';
+    const wkzCls = r['1w_change_z'] == null ? 'neutral' :
+                    Math.abs(r['1w_change_z']) >= 3.5 ? 'high' :
+                    r['1w_change_z'] > 0 ? 'pos' : 'neg';
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px">${esc(r.name)}</td>
+      <td class="cat-tag">${categoryFmt(r.category)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${r.err ? '<span style="color:var(--text-mute)">err</span>' : (fmtNum(r.current, r.unit === '%' ? 3 : 2) + (r.unit ? '<span style="color:var(--text-mute);margin-left:3px">' + esc(r.unit) + '</span>' : ''))}</td>
+      <td class="col-r zval ${z60Cls}">${fmtSigned(r.z60, 2)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${fmtSigned(r['1w_change'], 3)}</td>
+      <td class="col-r zval ${wkzCls}">${fmtSigned(r['1w_change_z'], 2)}</td>
+      <td class="col-r" style="font-family:var(--font-mono);color:${r.pct_rank_5y >= 90 || r.pct_rank_5y <= 10 ? 'var(--gold)' : 'var(--text-dim)'}">${fmtNum(r.pct_rank_5y, 0)}${r.pct_rank_5y != null ? '%' : ''}</td>
+      <td style="font-family:var(--font-mono);color:var(--text-mute);font-size:10px">${esc((r.as_of || '').substring(0, 10))}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Sortable headers
+document.querySelectorAll('thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.k;
+    if(!k) return;
+    if(sortKey === k) sortDir *= -1;
+    else { sortKey = k; sortDir = ['current','z60','1w_change','1w_change_z','pct_rank_5y'].includes(k) ? -1 : 1; }
+    buildMetricsTable();
+  });
+});
+
+load();
+setInterval(load, 300000);  // refresh every 5 min
+</script>
+
+</body>
+</html>
