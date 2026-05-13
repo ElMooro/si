@@ -179,6 +179,10 @@ def load_all():
         "tenor_signals":"data/auction-tenor-signals.json",
         # ─── Global Business Cycle (OECD CLI across 35 economies) ────
         "global_cycle":"data/global-business-cycle.json",
+        # ─── Dealer GEX & Positioning (Bloomberg-Gap #1) ────────────
+        "dealer_gex":"data/dealer-gex.json",
+        # ─── Sector Rotation (Roadmap #4) ──────────────────────────────
+        "sector_rotation":"data/sector-rotation.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -500,6 +504,49 @@ def extract_metrics(data,weights):
                 for c in (n.get("components") or [])[:3]
             ],
             "macro_nowcast_generated_at": n.get("generated_at"),
+        })(),
+        # ─── Dealer GEX & Positioning (Bloomberg-Gap #1) ─────────────────
+        # Critical institutional input: drives intraday equity behavior
+        **(lambda g=data.get("dealer_gex", {}): {
+            "gex_composite_regime": (g.get("market_composite") or {}).get("composite_regime"),
+            "gex_index_signs": (g.get("market_composite") or {}).get("index_gex_signs"),
+            "gex_composite_signal": (g.get("market_composite") or {}).get("composite_signal"),
+            "gex_spy_dollars_b": ((g.get("underlyings") or {}).get("SPY") or {}).get("total_dealer_gex_billions"),
+            "gex_spy_regime": ((g.get("underlyings") or {}).get("SPY") or {}).get("regime"),
+            "gex_spy_flip": ((g.get("underlyings") or {}).get("SPY") or {}).get("zero_gamma_flip_level"),
+            "gex_spy_pcr": ((g.get("underlyings") or {}).get("SPY") or {}).get("pcr_oi"),
+            "gex_spy_0dte_pct": (((g.get("underlyings") or {}).get("SPY") or {}).get("zero_dte") or {}).get("vol_pct"),
+            "gex_qqq_b": ((g.get("underlyings") or {}).get("QQQ") or {}).get("total_dealer_gex_billions"),
+            "gex_iwm_b": ((g.get("underlyings") or {}).get("IWM") or {}).get("total_dealer_gex_billions"),
+            "gex_squeeze_candidates": [
+                {"sym": s.get("symbol"), "score": s.get("score"),
+                  "gex_b": s.get("gex_billions"), "regime": s.get("regime")}
+                for s in (g.get("squeeze_candidates") or [])[:3]
+            ],
+            "gex_n_squeeze": len(g.get("squeeze_candidates") or []),
+            "gex_generated_at": g.get("generated_at"),
+        })(),
+        # ─── Sector Rotation (Roadmap #4) ───────────────────────────────
+        **(lambda r=data.get("sector_rotation", {}): {
+            "rotation_top_3_sectors": [
+                {"sym": s.get("sym"), "score": s.get("score")}
+                for s in ((r.get("summary") or {}).get("top_3_leaders") or [])[:3]
+            ],
+            "rotation_bottom_2_laggards": [
+                {"sym": s.get("sym"), "score": s.get("score")}
+                for s in ((r.get("summary") or {}).get("bottom_3_laggards") or [])[:2]
+            ],
+            "rotation_risk_appetite_score": (r.get("risk_appetite") or {}).get("score"),
+            "rotation_risk_appetite_label": (r.get("risk_appetite") or {}).get("label"),
+            "rotation_macro_stress": (r.get("macro_context") or {}).get("macro_stress_score"),
+            "rotation_regime_label": (r.get("macro_context") or {}).get("regime_label"),
+            "rotation_cycle_phase": (r.get("macro_context") or {}).get("cycle_phase"),
+            "rotation_expected_leaders": (r.get("macro_context") or {}).get("expected_leaders"),
+            "rotation_alignment_pct": ((r.get("summary") or {}).get("leadership_alignment") or {}).get("alignment_pct"),
+            "rotation_n_in": (r.get("summary") or {}).get("n_rotating_in"),
+            "rotation_n_out": (r.get("summary") or {}).get("n_rotating_out"),
+            "rotation_top_ratio": ((r.get("ratios") or [{}])[0] if r.get("ratios") else None),
+            "rotation_generated_at": r.get("generated_at"),
         })(),
     }
 

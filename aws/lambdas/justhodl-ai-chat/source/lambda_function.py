@@ -292,6 +292,58 @@ def build_context(message):
             evts = '; '.join(f"{x.get('ticker','?')} {x.get('item_label','')[:40]}" for x in red_flags)
             lines.append(f"[8-K RED FLAGS 24h] {evts}")
 
+    # ─── Dealer GEX & Positioning (always-on; institutional gamma context) ──
+    gex = get_s3('data/dealer-gex.json')
+    if gex:
+        mc = gex.get('market_composite') or {}
+        ulying = gex.get('underlyings') or {}
+        spy = ulying.get('SPY') or {}
+        qqq = ulying.get('QQQ') or {}
+        iwm = ulying.get('IWM') or {}
+        if mc.get('composite_regime'):
+            lines.append(f"[DEALER GEX] composite={mc.get('composite_regime')} signs={mc.get('index_gex_signs')} signal={mc.get('composite_signal','')[:100]}")
+        if spy.get('regime'):
+            lines.append(f"[GEX SPY] ${spy.get('spot')} GEX=${spy.get('total_dealer_gex_billions')}B "
+                         f"regime={spy.get('regime')} P/C={spy.get('pcr_oi')} 0DTE={((spy.get('zero_dte') or {}).get('vol_pct') or 0)}%")
+        if qqq.get('total_dealer_gex_billions') is not None and iwm.get('total_dealer_gex_billions') is not None:
+            lines.append(f"[GEX QQQ/IWM] QQQ ${qqq.get('total_dealer_gex_billions')}B {qqq.get('regime')} · "
+                         f"IWM ${iwm.get('total_dealer_gex_billions')}B {iwm.get('regime')}")
+        # Squeeze candidates if any
+        sq = gex.get('squeeze_candidates') or []
+        if sq:
+            sq_str = ', '.join(f"{s.get('symbol')}(score:{s.get('score')} GEX:${s.get('gex_billions')}B)" for s in sq[:3])
+            lines.append(f"[GEX SQUEEZE CANDIDATES] {sq_str}")
+        # Per-ticker GEX detail when user mentions a specific name
+        for tkr in stocks:
+            r = ulying.get(tkr)
+            if r and not r.get('err'):
+                walls_c = (r.get('call_walls_top5') or [{}])[0]
+                walls_p = (r.get('put_walls_top5') or [{}])[0]
+                lines.append(f"[{tkr} GEX] ${r.get('spot')} GEX=${r.get('total_dealer_gex_billions')}B regime={r.get('regime')} "
+                             f"P/C OI:{r.get('pcr_oi')} call_wall:${walls_c.get('strike')}(OI:{walls_c.get('call_oi')}) "
+                             f"put_wall:${walls_p.get('strike')}(OI:{walls_p.get('put_oi')})")
+
+    # ─── Sector Rotation (always-on; cross-asset cycle context) ──
+    rot = get_s3('data/sector-rotation.json')
+    if rot:
+        summary = rot.get('summary') or {}
+        leaders = summary.get('top_3_leaders') or []
+        laggards = summary.get('bottom_3_laggards') or []
+        ra = rot.get('risk_appetite') or {}
+        mac = rot.get('macro_context') or {}
+        if leaders:
+            top3 = ', '.join(f"{s.get('sym')}({s.get('score')})" for s in leaders[:3])
+            bot2 = ', '.join(f"{s.get('sym')}({s.get('score')})" for s in laggards[-2:])
+            lines.append(f"[ROTATION TOP3] {top3}  BOTTOM2: {bot2}")
+        if ra.get('score') is not None:
+            la = summary.get('leadership_alignment') or {}
+            lines.append(f"[RISK APPETITE] {ra.get('score')}/100 ({ra.get('label','')}) cycle={mac.get('cycle_phase','?')} alignment={la.get('alignment_pct','?')}%")
+        # Top cross-sector ratio with biggest z-score
+        ratios = rot.get('ratios') or []
+        if ratios:
+            top_r = max(ratios, key=lambda r: abs(r.get('z') or 0))
+            lines.append(f"[TOP CROSS-SECTOR RATIO] {top_r.get('ratio')} z={top_r.get('z')} 21d={top_r.get('change_21d_pct','?')}%")
+
     # ─── Conditional deep context based on keywords ───────────────
     msg_up = message.upper()
 
