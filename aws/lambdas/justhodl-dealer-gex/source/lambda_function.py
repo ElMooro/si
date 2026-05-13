@@ -94,7 +94,7 @@ from collections import defaultdict
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/dealer-gex.json"
@@ -103,6 +103,11 @@ HISTORY_KEY = "data/dealer-gex-history.json"
 POLY_KEY = os.environ.get("POLY_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+# Yahoo Finance proxy (Cloudflare Worker) — solves AWS Lambda → Yahoo 429 issue
+YAHOO_PROXY_BASE = "https://justhodl-yahoo-proxy.raafouis.workers.dev"
+# Auth token is read from SSM at cold start
+_PROXY_TOKEN_CACHE = None
 
 # ─── Underlyings to model ───
 # SPY, QQQ, IWM = market-wide regimes (most important)
@@ -174,104 +179,107 @@ def bs_charm(S, K, T, r, sigma, is_call):
 # POLYGON OPTIONS DATA
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _get_proxy_token():
+    """Fetch proxy auth token from SSM (cached at module level)."""
+    global _PROXY_TOKEN_CACHE
+    if _PROXY_TOKEN_CACHE is not None:
+        return _PROXY_TOKEN_CACHE
+    try:
+        v = ssm.get_parameter(Name="/justhodl/ai-chat/auth-token",
+                               WithDecryption=True)["Parameter"]["Value"]
+        _PROXY_TOKEN_CACHE = v
+        return v
+    except Exception as e:
+        print(f"  proxy token SSM err: {str(e)[:80]}")
+        _PROXY_TOKEN_CACHE = ""
+        return ""
+
+
+def _proxy_fetch_json(path, timeout=HTTP_TIMEOUT):
+    """Fetch JSON from Yahoo via Cloudflare Worker proxy.
+    Worker uses CF anycast IPs which Yahoo doesn't rate-limit."""
+    url = f"{YAHOO_PROXY_BASE}{path}"
+    headers = {"User-Agent": "JustHodl-GEX/1.1",
+                "Accept": "application/json"}
+    token = _get_proxy_token()
+    if token: headers["x-justhodl-token"] = token
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
 def fetch_spot_price(symbol):
-    """Latest close from Polygon previous day aggregate, fall back to Yahoo."""
+    """Latest close from Polygon, fall back to Yahoo via proxy."""
     if POLY_KEY:
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={POLY_KEY}"
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.1"})
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
                 data = json.loads(r.read().decode("utf-8"))
             results = data.get("results") or []
             if results: return float(results[0]["c"])
         except Exception as e:
-            print(f"  polygon spot {symbol} err: {str(e)[:80]} — falling back to Yahoo")
-
-    # Yahoo fallback (also where we get the quote.regularMarketPrice from the options chain)
+            print(f"  polygon spot {symbol} err: {str(e)[:80]} — falling back to proxy")
     try:
-        url = f"https://query2.finance.yahoo.com/v7/finance/options/{symbol}"
-        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-                                   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-            data = json.loads(r.read().decode("utf-8"))
+        data = _proxy_fetch_json(f"/options/{symbol}")
         result = ((data.get("optionChain") or {}).get("result") or [])
         if result:
             quote = result[0].get("quote") or {}
-            price = quote.get("regularMarketPrice") or quote.get("postMarketPrice") or quote.get("preMarketPrice")
+            price = (quote.get("regularMarketPrice") or
+                     quote.get("postMarketPrice") or
+                     quote.get("preMarketPrice"))
             if price: return float(price)
     except Exception as e:
-        print(f"  yahoo spot {symbol} err: {str(e)[:80]}")
+        print(f"  proxy spot {symbol} err: {str(e)[:80]}")
     return None
 
 
 def fetch_options_chain_snapshot(underlying):
     """
-    Fetch full options chain from Yahoo Finance (free, no auth required).
-    Returns list of contract dicts in the schema our analyzer expects.
+    Fetch full options chain from Yahoo Finance via Cloudflare Worker proxy.
+    (Direct Yahoo calls from AWS Lambda IPs hit 429; proxy uses CF anycast.)
 
     Two-step fetch:
-      1. /v7/finance/options/{sym} — returns expirations list + first expiry's contracts
-      2. /v7/finance/options/{sym}?date={unix} — per-additional-expiry call
+      1. /options/{sym} — expirations list + first expiry's contracts
+      2. /options/{sym}?date={unix} — per-additional-expiry call
 
-    Yahoo provides: strike, openInterest, volume, impliedVolatility, lastPrice,
-                     bid, ask, expiration (unix ts), inTheMoney
-    Greeks (delta/gamma/vanna/charm) are computed ourselves via Black-Scholes.
+    Greeks (gamma/vanna/charm) computed by us via Black-Scholes.
     """
-    base_url = f"https://query2.finance.yahoo.com/v7/finance/options/{underlying}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "application/json",
-    }
-
     today = date.today()
-    cutoff_unix = int((today + timedelta(days=EXPIRY_HORIZON_DAYS)).strftime("%s") if False
-                       else int(time.mktime((today + timedelta(days=EXPIRY_HORIZON_DAYS)).timetuple())))
+    cutoff_unix = int(time.mktime(
+        (today + timedelta(days=EXPIRY_HORIZON_DAYS)).timetuple()))
 
-    # Step 1: initial call
     try:
-        req = urllib.request.Request(base_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-            data = json.loads(r.read().decode("utf-8"))
+        data = _proxy_fetch_json(f"/options/{underlying}")
     except Exception as e:
-        print(f"  yahoo chain {underlying} init err: {str(e)[:120]}")
+        print(f"  proxy options {underlying} init err: {str(e)[:120]}")
         return []
 
     result = ((data.get("optionChain") or {}).get("result") or [])
-    if not result:
-        return []
+    if not result: return []
     chain_data = result[0]
     expirations = chain_data.get("expirationDates") or []
     expirations_in_horizon = [e for e in expirations if e <= cutoff_unix]
 
     contracts = []
-    # First expiry's data is in the initial response
-    options_block = chain_data.get("options") or []
     seen_expiries = set()
 
     def parse_block(block):
         exp_ts = block.get("expirationDate")
-        if exp_ts in seen_expiries:
-            return
+        if exp_ts in seen_expiries: return
         seen_expiries.add(exp_ts)
         try:
             exp_str = datetime.fromtimestamp(exp_ts, tz=timezone.utc).date().isoformat()
-        except Exception:
-            return
+        except Exception: return
         for c in (block.get("calls") or []):
             contracts.append({
-                "ticker": c.get("contractSymbol"),
-                "type": "call",
-                "strike": c.get("strike"),
-                "expiry": exp_str,
+                "ticker": c.get("contractSymbol"), "type": "call",
+                "strike": c.get("strike"), "expiry": exp_str,
                 "open_interest": c.get("openInterest") or 0,
                 "volume": c.get("volume") or 0,
                 "iv": c.get("impliedVolatility"),
-                "gamma_polygon": None,  # we'll compute ourselves
-                "delta_polygon": None,
-                "vega_polygon": None,
-                "theta_polygon": None,
+                "gamma_polygon": None, "delta_polygon": None,
+                "vega_polygon": None, "theta_polygon": None,
                 "last_quote_bid": c.get("bid"),
                 "last_quote_ask": c.get("ask"),
                 "last_price": c.get("lastPrice"),
@@ -279,39 +287,30 @@ def fetch_options_chain_snapshot(underlying):
             })
         for p in (block.get("puts") or []):
             contracts.append({
-                "ticker": p.get("contractSymbol"),
-                "type": "put",
-                "strike": p.get("strike"),
-                "expiry": exp_str,
+                "ticker": p.get("contractSymbol"), "type": "put",
+                "strike": p.get("strike"), "expiry": exp_str,
                 "open_interest": p.get("openInterest") or 0,
                 "volume": p.get("volume") or 0,
                 "iv": p.get("impliedVolatility"),
-                "gamma_polygon": None,
-                "delta_polygon": None,
-                "vega_polygon": None,
-                "theta_polygon": None,
+                "gamma_polygon": None, "delta_polygon": None,
+                "vega_polygon": None, "theta_polygon": None,
                 "last_quote_bid": p.get("bid"),
                 "last_quote_ask": p.get("ask"),
                 "last_price": p.get("lastPrice"),
                 "in_the_money": p.get("inTheMoney"),
             })
 
-    for block in options_block:
+    for block in (chain_data.get("options") or []):
         parse_block(block)
 
-    # Step 2: fetch each remaining expiry in horizon (skip the one already loaded)
     for exp_ts in expirations_in_horizon:
-        if exp_ts in seen_expiries:
-            continue
-        url = f"{base_url}?date={exp_ts}"
+        if exp_ts in seen_expiries: continue
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-                d = json.loads(r.read().decode("utf-8"))
+            d = _proxy_fetch_json(f"/options/{underlying}?date={exp_ts}")
             for block in (((d.get("optionChain") or {}).get("result") or [{}])[0].get("options") or []):
                 parse_block(block)
         except Exception as e:
-            print(f"  yahoo {underlying} exp {exp_ts} err: {str(e)[:80]}")
+            print(f"  proxy {underlying} exp {exp_ts} err: {str(e)[:80]}")
             continue
 
     return contracts

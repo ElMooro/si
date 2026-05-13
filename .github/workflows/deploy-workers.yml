@@ -93,6 +93,10 @@ jobs:
             if [ "$w" = "justhodl-ai-proxy" ]; then
               echo "$AI_CHAT_TOKEN" | wrangler secret put AI_CHAT_TOKEN
             fi
+            # Yahoo proxy uses the same shared token for simplicity
+            if [ "$w" = "justhodl-yahoo-proxy" ]; then
+              echo "$AI_CHAT_TOKEN" | wrangler secret put PROXY_TOKEN
+            fi
 
             echo "✅ $w deployed"
             cd - > /dev/null

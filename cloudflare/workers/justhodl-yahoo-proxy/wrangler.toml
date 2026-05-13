@@ -1,0 +1,9 @@
+name = "justhodl-yahoo-proxy"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+
+# Secrets are set by the deploy-workers.yml workflow from AWS SSM:
+#   PROXY_TOKEN — auth token, matches /justhodl/ai-chat/auth-token in SSM
