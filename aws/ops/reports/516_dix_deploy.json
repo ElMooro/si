@@ -1,0 +1,109 @@
+{
+  "started": "2026-05-13T11:50:59.293147+00:00",
+  "env_inherited_keys": [
+    "TELEGRAM_TOKEN",
+    "TELEGRAM_CHAT_ID"
+  ],
+  "lambda": "created",
+  "schedule": "cron(0 22 ? * MON-FRI *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "dix_pct": 44.03,
+    "gex_billions": 7.542,
+    "dix_regime": "NEUTRAL",
+    "combined_regime": "NEUTRAL",
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 0.29
+  },
+  "log_tail": "START RequestId: 55ef43aa-bfa5-4959-b8fc-33ba724f948a Version: $LATEST\n=== DIX v1.0.0 \u00b7 2026-05-13T11:51:06.431795+00:00 ===\nfetched 3780 rows (2011-05-02 \u2192 2026-05-12)\n\u2713 dix.json written (2.9 KB)\n\u2713 dix-history.json written\nEND RequestId: 55ef43aa-bfa5-4959-b8fc-33ba724f948a\nREPORT RequestId: 55ef43aa-bfa5-4959-b8fc-33ba724f948a\tDuration: 435.50 ms\tBilled Duration: 1002 ms\tMemory Size: 512 MB\tMax Memory Used: 102 MB\tInit Duration: 566.19 ms\t\n",
+  "sidecar": {
+    "size_kb": 2.7,
+    "modified": "2026-05-13T11:51:07",
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "current": {
+      "date": "2026-05-12",
+      "price": 7400.96,
+      "dix": 0.44029,
+      "dix_pct": 44.03,
+      "gex": 7542266245.0,
+      "gex_billions": 7.542
+    },
+    "dix_regime": "NEUTRAL",
+    "gex_regime": "POSITIVE",
+    "combined_regime": "NEUTRAL",
+    "combined_signal": "Mixed signals \u2014 wait for confirmation",
+    "statistics": {
+      "dix_z_score_60d": -0.83,
+      "dix_percentile_1y": 14.3,
+      "dix_percentile_5y": 17.4,
+      "dix_percentile_all_time": 56.7
+    },
+    "moving_averages": {
+      "dix_5d_pct": 44.87,
+      "dix_20d_pct": 46.68,
+      "dix_60d_pct": 45.91,
+      "dix_252d_pct": 46.58,
+      "gex_5d": 10731639220.0,
+      "gex_20d": 8245419334.0,
+      "gex_60d": 4209499190.0
+    },
+    "sustained_signals": {
+      "n_last_5d_above_47": 0,
+      "n_last_20d_above_47": 8,
+      "n_last_5d_below_40": 0,
+      "n_last_20d_below_40": 0
+    },
+    "day_over_day": {
+      "dix_change_pp": -1.56,
+      "gex_change": -287650181.0,
+      "price_change_pct": -0.16
+    },
+    "backtest_20d_top": {
+      "<40": {
+        "n": 592,
+        "avg_return_pct": 0.23,
+        "win_rate_pct": 56.4,
+        "median": 0.67
+      },
+      "40-42": {
+        "n": 736,
+        "avg_return_pct": 0.64,
+        "win_rate_pct": 66.6,
+        "median": 1.22
+      },
+      "42-45": {
+        "n": 1186,
+        "avg_return_pct": 1.05,
+        "win_rate_pct": 70.4,
+        "median": 1.65
+      },
+      "45-47": {
+        "n": 555,
+        "avg_return_pct": 1.58,
+        "win_rate_pct": 70.3,
+        "median": 1.9
+      },
+      ">=47": {
+        "n": 691,
+        "avg_return_pct": 1.44,
+        "win_rate_pct": 68.6,
+        "median": 2.1
+      }
+    },
+    "n_history_days": 3780
+  },
+  "history_sidecar": {
+    "size_kb": 124.9,
+    "n_days": 3780,
+    "first_date": "2011-05-02",
+    "last_date": "2026-05-12"
+  },
+  "finished": "2026-05-13T11:51:07.044727+00:00"
+}
