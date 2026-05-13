@@ -296,9 +296,13 @@ def analyze_ticker(symbol, today_row, history_series):
 
     if len(svr_history) < 5:  # need at least a week of history
         return {"symbol": symbol, "svr": today_row["svr"],
+                  "svr_pct": round(today_row["svr"] * 100, 2) if today_row.get("svr") is not None else None,
                   "short_volume": today_row["short_volume"],
                   "total_volume": today_row["total_volume"],
-                  "insufficient_history": True}
+                  "z_score": None, "days_to_cover": None,
+                  "squeeze_score": 0, "squeeze_flags": [],
+                  "insufficient_history": True,
+                  "n_history_days": len(svr_history)}
 
     # Distributions for z-score (last 60 days)
     svr_60d = svr_history[-60:] if len(svr_history) >= 60 else svr_history

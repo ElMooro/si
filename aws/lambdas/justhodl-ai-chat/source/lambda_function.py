@@ -323,6 +323,40 @@ def build_context(message):
                              f"P/C OI:{r.get('pcr_oi')} call_wall:${walls_c.get('strike')}(OI:{walls_c.get('call_oi')}) "
                              f"put_wall:${walls_p.get('strike')}(OI:{walls_p.get('put_oi')})")
 
+    # ─── FINRA Daily Short Volume (Bloomberg-Gap #2) ──────────────────
+    short_d = get_s3('data/finra-short.json')
+    if short_d:
+        mc = short_d.get('market_composite') or {}
+        regime_s = mc.get('regime')
+        if regime_s:
+            lines.append(f"[FINRA SHORT] regime={regime_s} VW_SVR={mc.get('volume_weighted_svr_pct','?')}% median={mc.get('median_svr_pct','?')}% (date={short_d.get('data_date')})")
+        # Top 3 squeeze candidates
+        sq = short_d.get('squeeze_candidates') or []
+        if sq:
+            sq_str = ', '.join(f"{s.get('symbol')}(score:{s.get('squeeze_score')} SVR:{s.get('svr_pct')}% z:{s.get('z_score')})" for s in sq[:3])
+            lines.append(f"[FINRA SQUEEZE] {sq_str}")
+        # Top z-score (most abnormal shorting)
+        topz = short_d.get('top_zscore') or []
+        if topz:
+            tz = ', '.join(f"{t.get('symbol')}(z:{t.get('z_score')} SVR:{t.get('svr_pct')}%)" for t in topz[:3])
+            lines.append(f"[FINRA TOP Z-SCORE] {tz}")
+        # Sector with heaviest shorting today
+        sectors = short_d.get('sectors') or {}
+        if sectors:
+            top_sec = max(sectors.items(), key=lambda kv: kv[1].get('median_svr', 0) or 0)
+            lines.append(f"[FINRA TOP SHORT SECTOR] {top_sec[0]} median_svr={top_sec[1].get('median_svr')}% (n={top_sec[1].get('n_tickers')})")
+        # Per-ticker detail when user mentions a stock
+        ulying_data = short_d.get('tickers') or {}
+        for tkr in stocks:
+            t = ulying_data.get(tkr)
+            if t:
+                if t.get('insufficient_history'):
+                    lines.append(f"[{tkr} FINRA] SVR:{t.get('svr_pct')}% (building history — daily data accumulating)")
+                else:
+                    flag_str = ','.join(t.get('squeeze_flags') or [])[:80]
+                    lines.append(f"[{tkr} FINRA] SVR:{t.get('svr_pct')}% z:{t.get('z_score')} DTC:{t.get('days_to_cover')}d "
+                                 f"momentum:{t.get('momentum_pct','?')}% score:{t.get('squeeze_score')} flags:{flag_str}")
+
     # ─── Sector Rotation (always-on; cross-asset cycle context) ──
     rot = get_s3('data/sector-rotation.json')
     if rot:
