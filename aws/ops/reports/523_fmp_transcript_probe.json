@@ -1,0 +1,63 @@
+{
+  "started": "2026-05-13T17:55:03.508389+00:00",
+  "probes": {
+    "v3_AAPL_no_qy": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 190
+    },
+    "v3_AAPL_Q1_2026": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 31
+    },
+    "v3_AAPL_Q4_2025": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 28
+    },
+    "v3_AAPL_Q3_2025": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 17
+    },
+    "v4_batch_AAPL_2025": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 20
+    },
+    "v4_batch_AAPL_2024": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 19
+    },
+    "v4_earning_call_transcript_AAPL": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 19
+    },
+    "stable_earning_call_transcript_AAPL": {
+      "status": 400,
+      "err_body": "Query Error: Invalid or missing query parameter - year",
+      "elapsed_ms": 375
+    },
+    "stable_transcript_dates": {
+      "status": 200,
+      "bytes": 6310,
+      "preview": "[\n  {\n    \"quarter\": 2,\n    \"fiscalYear\": 2026,\n    \"date\": \"2026-04-30\"\n  },\n  {\n    \"quarter\": 1,\n    \"fiscalYear\": 2026,\n    \"date\": \"2026-01-29\"\n  },\n  {\n    \"quarter\": 4,\n    \"fiscalYear\": 2025,\n    \"date\": \"2025-10-30\"\n  },\n  {\n    \"quarter\": 3,\n    \"fiscalYear\": 2025,\n    \"date\": \"2025-07-31\"\n  },\n  {\n    \"quarter\": 2,\n    \"fiscalYear\": 2025,\n    \"date\": \"2025-05-01\"\n  },\n  {\n    \"quarter\": 1,\n    \"fiscalYear\": 2025,\n    \"date\": \"2025-01-30\"\n  },\n  {\n    \"quarter\": 4,\n    \"fiscalYear\": 2024,\n    \"date\": \"2024-10-31\"\n  },\n  {\n    \"quarter\": 3,\n    \"fiscalYear\": 2024,\n    \"date\": \"2024-08-01\"\n  },\n  {\n    \"quarter\": 2,\n    \"fiscalYear\": 2024,\n    \"date\": \"2024-05-02\"\n  },\n  {\n    \"quarter\": 1,\n    \"fiscalYear\": 2024,\n    \"date\": \"2024-02-01\"\n  },\n  {\n    \"quarter\": 4,\n    \"fiscalYear\": 2023,\n    \"date\": \"2023-11-02\"\n  },\n  {\n    \"quarter\": 3,\n    \"fiscalYear\": 2023,\n    \"date\": \"2023-08-03\"\n  },\n  {\n    \"quarter\": 2,\n    \"fiscalYear\": 2023,\n    \"date\": \"2023-05-04\"\n  },\n  {\n    \"quarter\": 1,\n    \"fiscalYear\": 2023,\n    \"date\": \"2023-02-02\"\n  },\n  {\n    \"quarter\": 4,\n    \"fiscalYear\": 2022,\n    \"date\": \"2022-10-27\"\n  },\n  {\n    \"quarter\": 3,\n    \"fiscalYear\": 2022,\n    \"date\": \"2022-07-28\"\n  },\n  {\n    \"quarter\": 2,\n    \"fiscalYear\": 2022,\n    \"date\": \"2022-04-28\"\n  },\n  {\n    \"quarter\": 1,\n    \"fiscalYear\": 2022,\n    \"date\": \"2022-01-27\"\n  },\n  {\n    \"quarter\": 4,\n    \"fiscalYear\": 2021,\n    \"date\": \"2021-10-28\"\n  },\n  {\n    \"quarter\": 3,\n    \"fiscalYear\": 2021,\n    \"dat",
+      "elapsed_ms": 17,
+      "is_empty_array": false
+    },
+    "sanity_quote_AAPL": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 18
+    },
+    "transcripts_latest_dates": {
+      "status": 403,
+      "err_body": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current APIs. \"\n}",
+      "elapsed_ms": 93
+    }
+  },
+  "finished": "2026-05-13T17:55:11.262341+00:00"
+}
