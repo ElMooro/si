@@ -1,0 +1,65 @@
+{
+  "started": "2026-05-13T10:16:47.198592+00:00",
+  "probes": {
+    "token_len": 43,
+    "p1": {
+      "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/",
+      "status": 404,
+      "body_preview": "error code: 1042",
+      "elapsed_ms": 65
+    },
+    "p2_auth_health": {
+      "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/",
+      "status": 404,
+      "body_preview": "error code: 1042",
+      "elapsed_ms": 16
+    },
+    "p3_auth_spy": {
+      "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/options/SPY",
+      "status": 404,
+      "body_preview": "error code: 1042",
+      "elapsed_ms": 17
+    },
+    "p4_no_auth_spy": {
+      "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/options/SPY",
+      "status": 404,
+      "body_preview": "error code: 1042",
+      "elapsed_ms": 20
+    }
+  },
+  "gex_status": 200,
+  "gex_response": {
+    "success": true,
+    "version": "1.1.0",
+    "n_underlyings": 0,
+    "spy_regime": null,
+    "spy_gex_b": null,
+    "spy_flip": null,
+    "composite_regime": null,
+    "n_squeeze_candidates": 0,
+    "alert_sent": false,
+    "elapsed_seconds": 0.5
+  },
+  "log_tail": "START RequestId: 37ef24ee-9210-47ea-a314-7da54477b1f6 Version: $LATEST\n=== DEALER-GEX v1.1.0 \u00b7 2026-05-13T10:16:57.005730+00:00 ===\nanalyzing SPY...\nanalyzing QQQ...\nanalyzing IWM...\nanalyzing NVDA...\nproxy options IWM init err: HTTP Error 404: Not Found\nanalyzing TSLA...\nproxy options SPY init err: HTTP Error 404: Not Found\nanalyzing AAPL...\nproxy options NVDA init err: HTTP Error 404: Not Found\nanalyzing META...\nproxy options QQQ init err: HTTP Error 404: Not Found\nanalyzing AMZN...\nproxy options AAPL init err: HTTP Error 404: Not Found\nanalyzing MSFT...\nproxy options TSLA init err: HTTP Error 404: Not Found\nanalyzing GOOGL...\nproxy options AMZN init err: HTTP Error 404: Not Found\nproxy options META init err: HTTP Error 404: Not Found\nproxy options MSFT init err: HTTP Error 404: Not Found\nproxy options GOOGL init err: HTTP Error 404: Not Found\n\u2713 dealer-gex.json written (1.0 KB)\nEND RequestId: 37ef24ee-9210-47ea-a314-7da54477b1f6\nREPORT RequestId: 37ef24ee-9210-47ea-a314-7da54477b1f6\tDuration: 499.10 ms\tBilled Duration: 1031 ms\tMemory Size: 2048 MB\tMax Memory Used: 110 MB\tInit Duration: 531.01 ms\t\n",
+  "sidecar": {
+    "modified": "2026-05-13T10:16:58",
+    "composite_regime": null,
+    "underlyings_ok": [],
+    "underlyings_err": {
+      "IWM": "no options chain",
+      "SPY": "no options chain",
+      "NVDA": "no options chain",
+      "QQQ": "no options chain",
+      "AAPL": "no options chain",
+      "TSLA": "no options chain",
+      "AMZN": "no options chain",
+      "META": "no options chain",
+      "MSFT": "no options chain",
+      "GOOGL": "no options chain"
+    },
+    "spy": {
+      "spot": 738.18
+    }
+  },
+  "finished": "2026-05-13T10:16:57.677938+00:00"
+}
