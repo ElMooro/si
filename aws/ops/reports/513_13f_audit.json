@@ -1,0 +1,118 @@
+{
+  "started": "2026-05-13T11:29:05.442787+00:00",
+  "lambdas": {
+    "justhodl-13f-positions": {
+      "name": "justhodl-13f-positions",
+      "exists": true,
+      "runtime": "python3.12",
+      "last_modified": "2026-05-03T17:19:49.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "state": "Active",
+      "env_keys": [
+        "FMP_KEY",
+        "MAX_PARALLEL",
+        "S3_BUCKET",
+        "S3_CACHE_PREFIX",
+        "S3_FILINGS_KEY",
+        "S3_KEY",
+        "USER_AGENT"
+      ],
+      "eventbridge_rules": [
+        {
+          "name": "justhodl-13f-positions-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ],
+      "recent_log_streams": [
+        {
+          "name": "2026/05/13/[$LATEST]8b3a35922a9f4ca8888b6687b83cb9e6",
+          "last_event": "2026-05-13T10:51:16"
+        },
+        {
+          "name": "2026/05/13/[$LATEST]a55868ed2bd94dee8eaaf0c741538e18",
+          "last_event": "2026-05-13T04:51:19"
+        },
+        {
+          "name": "2026/05/12/[$LATEST]c763d04be10940ca83ebc80869370fac",
+          "last_event": "2026-05-12T22:51:19"
+        }
+      ]
+    },
+    "justhodl-sec-13f": {
+      "name": "justhodl-sec-13f",
+      "exists": true,
+      "runtime": "python3.12",
+      "last_modified": "2026-05-03T17:17:52.000+0000",
+      "memory": 768,
+      "timeout": 300,
+      "state": "Active",
+      "env_keys": [
+        "S3_BUCKET"
+      ],
+      "eventbridge_rules": [],
+      "recent_log_streams": [
+        {
+          "name": "2026/05/12/[$LATEST]25f3bf65af834392b7b2d677995905f4",
+          "last_event": "2026-05-12T18:45:14"
+        },
+        {
+          "name": "2026/05/11/[$LATEST]2446f5c77c694b7598a0fc2ced718c2c",
+          "last_event": "2026-05-11T18:45:14"
+        },
+        {
+          "name": "2026/05/10/[$LATEST]9482e2006ce2401ea0bf7ac5cb09bf58",
+          "last_event": "2026-05-10T18:45:13"
+        }
+      ]
+    }
+  },
+  "sidecars": {
+    "data/13f-positions.json": {
+      "key": "data/13f-positions.json",
+      "exists": true,
+      "size_kb": 14264.4,
+      "modified": "2026-05-13T10:51:20",
+      "top_keys": [
+        "generated_at",
+        "as_of_quarter",
+        "funds_total",
+        "funds_parsed",
+        "funds_failed",
+        "fund_errors",
+        "by_fund",
+        "aggregate_by_ticker",
+        "most_bought",
+        "most_sold",
+        "consensus_holds",
+        "rare_picks",
+        "fetch_duration_s"
+      ],
+      "generated_at": "2026-05-13T10:51:18+00:00",
+      "version": null,
+      "n_funds": 17,
+      "n_tickers": 7949
+    },
+    "data/sec-13f.json": {
+      "key": "data/sec-13f.json",
+      "exists": false
+    },
+    "data/13f-filings.json": {
+      "key": "data/13f-filings.json",
+      "exists": false
+    }
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": {
+      "ok": true,
+      "funds_parsed": 17,
+      "funds_failed": 0,
+      "tickers_aggregated": 7949
+    },
+    "log_tail": "START RequestId: b23dde2e-152f-491b-9e84-9e7faee98b60 Version: $LATEST\nELLIOTT: no latest filing in index\nParsing 17 funds in parallel (max 3)\u2026\nBERKSHIRE: using cached positions (42)\nBRIDGEWATER: using cached positions (1040)\nRENAISSANCE: using cached positions (3185)\nAQR: using cached positions (3562)\nTWO_SIGMA: using cached positions (3534)\nCITADEL: using cached positions (6510)\nMILLENNIUM: using cached positions (4328)\nPERSHING: using cached positions (11)\nGREENLIGHT: using cached positions (40)\nSOROS: using cached positions (237)\nTIGER_GLOBAL: using cached positions (54)\nBAUPOST: using cached positions (32)\nCOATUE: using cached positions (52)\nSCION: using cached positions (8)\nDURATION: using cached positions (2301)\nPOINT72: using cached positions (2549)\nLONE_PINE: using cached positions (22)\nResolving 200 unique top CUSIPs via FMP\u2026\nresolved 0/200 via FMP\n13F positions: 17 funds parsed | 7949 unique tickers | top buy: AAPL\nEND RequestId: b23dde2e-152f-491b-9e84-9e7faee98b60\nREPORT RequestId: b23dde2e-152f-491b-9e84-9e7faee98b60\tDuration: 4243.93 ms\tBilled Duration: 4765 ms\tMemory Size: 1024 MB\tMax Memory Used: 236 MB\tInit Duration: 520.98 ms\t\n"
+  },
+  "finished": "2026-05-13T11:29:16.185346+00:00"
+}
