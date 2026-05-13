@@ -1,0 +1,60 @@
+{
+  "started": "2026-05-13T10:03:48.648748+00:00",
+  "deploy": "ok",
+  "invoke_status": 200,
+  "fn_error": null,
+  "invoke_response": {
+    "success": true,
+    "version": "1.1.0",
+    "n_underlyings": 0,
+    "spy_regime": null,
+    "spy_gex_b": null,
+    "spy_flip": null,
+    "composite_regime": null,
+    "n_squeeze_candidates": 0,
+    "alert_sent": false,
+    "elapsed_seconds": 0.49
+  },
+  "log_tail": "START RequestId: 1bcef5e9-183a-44ac-a812-d46ff6959b63 Version: $LATEST\n=== DEALER-GEX v1.1.0 \u00b7 2026-05-13T10:03:58.389696+00:00 ===\nanalyzing SPY...\nanalyzing QQQ...\nanalyzing IWM...\nanalyzing NVDA...\nproxy options SPY init err: <urlopen error [Errno 16] Device or resource busy>\nanalyzing TSLA...\nproxy options NVDA init err: <urlopen error [Errno 16] Device or resource busy>\nproxy options IWM init err: <urlopen error [Errno 16] Device or resource busy>\nanalyzing AAPL...\nproxy options QQQ init err: <urlopen error [Errno 16] Device or resource busy>\nanalyzing AMZN...\nanalyzing META...\nproxy options AMZN init err: <urlopen error [Errno 16] Device or resource busy>\nanalyzing MSFT...\nproxy options META init err: <urlopen error [Errno 16] Device or resource busy>\nanalyzing GOOGL...\nproxy options AAPL init err: <urlopen error [Errno 16] Device or resource busy>\nproxy options TSLA init err: <urlopen error [Errno 16] Device or resource busy>\nproxy options MSFT init err: <urlopen error [Errno 16] Device or resource busy>\nproxy options GOOGL init err: <urlopen error [Errno 16] Device or resource busy>\n\u2713 dealer-gex.json written (1.0 KB)\nEND RequestId: 1bcef5e9-183a-44ac-a812-d46ff6959b63\nREPORT RequestId: 1bcef5e9-183a-44ac-a812-d46ff6959b63\tDuration: 494.99 ms\tBilled Duration: 1035 ms\tMemory Size: 2048 MB\tMax Memory Used: 109 MB\tInit Duration: 539.99 ms\t\n",
+  "sidecar": {
+    "size_kb": 0.9,
+    "modified": "2026-05-13T10:03:59",
+    "version": "1.1.0",
+    "market_composite": {},
+    "n_squeeze_candidates": 0,
+    "squeeze_top_3": [],
+    "underlyings_summary": {
+      "SPY": {
+        "err": "no options chain"
+      },
+      "NVDA": {
+        "err": "no options chain"
+      },
+      "IWM": {
+        "err": "no options chain"
+      },
+      "QQQ": {
+        "err": "no options chain"
+      },
+      "AMZN": {
+        "err": "no options chain"
+      },
+      "META": {
+        "err": "no options chain"
+      },
+      "AAPL": {
+        "err": "no options chain"
+      },
+      "TSLA": {
+        "err": "no options chain"
+      },
+      "MSFT": {
+        "err": "no options chain"
+      },
+      "GOOGL": {
+        "err": "no options chain"
+      }
+    }
+  },
+  "finished": "2026-05-13T10:03:59.195044+00:00"
+}
