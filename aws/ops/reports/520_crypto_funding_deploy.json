@@ -1,0 +1,127 @@
+{
+  "started": "2026-05-13T14:03:35.028583+00:00",
+  "env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "lambda": "created",
+  "schedule": "cron(15 * ? * * *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_coins": 9,
+    "vw_funding_ann_pct": 8.76,
+    "composite_regime": "BALANCED",
+    "n_extreme_long": 0,
+    "n_extreme_short": 1,
+    "total_oi_usd_b": 5.14,
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 1.93
+  },
+  "log_tail": "START RequestId: 513f1ec4-9f76-4be8-82c8-d7e8de94bfe7 Version: $LATEST\n=== CRYPTO-FUNDING v1.0.0 \u00b7 2026-05-13T14:03:43.177998+00:00 ===\nfetched 9/10 coins\n\u2713 crypto-funding.json written (5.8 KB)\nEND RequestId: 513f1ec4-9f76-4be8-82c8-d7e8de94bfe7\nREPORT RequestId: 513f1ec4-9f76-4be8-82c8-d7e8de94bfe7\tDuration: 1990.54 ms\tBilled Duration: 2550 ms\tMemory Size: 512 MB\tMax Memory Used: 110 MB\tInit Duration: 558.57 ms\t\n",
+  "sidecar": {
+    "size_kb": 5.4,
+    "modified": "2026-05-13T14:03:46",
+    "version": "1.0.0",
+    "composite_regime": "BALANCED",
+    "composite_signal": "Funding balanced across coins \u00b7 no major positioning tilt",
+    "market_composite": {
+      "n_coins_analyzed": 9,
+      "vw_funding_per_8h": 8e-05,
+      "vw_funding_annualized_pct": 8.76,
+      "median_funding_per_8h": 6.05e-05,
+      "median_funding_annualized_pct": 6.62,
+      "funding_max": 0.0001,
+      "funding_min": -8.36e-05,
+      "funding_dispersion_pp": 0.0184,
+      "total_oi_usd_billions": 5.14,
+      "n_extreme_long_positioning": 0,
+      "n_extreme_short_positioning": 1,
+      "n_highly_bullish_leverage": 0,
+      "n_highly_bearish_leverage": 0,
+      "n_bullish": 0,
+      "n_bearish": 0
+    },
+    "squeeze_candidates": [
+      {
+        "coin": "AVAX",
+        "regime": "BALANCED",
+        "z_score": -2.96,
+        "annualized_pct": -9.15,
+        "oi_usd_b": 0.02,
+        "spot": 9.745,
+        "change_24h_pct": -0.54
+      },
+      {
+        "coin": "BTC",
+        "regime": "BALANCED",
+        "z_score": 1.74,
+        "annualized_pct": 8.64,
+        "oi_usd_b": 2.71,
+        "spot": 79656.1,
+        "change_24h_pct": -1.05
+      },
+      {
+        "coin": "ETH",
+        "regime": "BALANCED",
+        "z_score": 1.23,
+        "annualized_pct": 10.94,
+        "oi_usd_b": 1.8,
+        "spot": 2259.26,
+        "change_24h_pct": -0.63
+      },
+      {
+        "coin": "XRP",
+        "regime": "BALANCED",
+        "z_score": 0.77,
+        "annualized_pct": 10.95,
+        "oi_usd_b": 0.1,
+        "spot": 1.4246,
+        "change_24h_pct": -0.75
+      },
+      {
+        "coin": "SOL",
+        "regime": "BALANCED",
+        "z_score": -0.59,
+        "annualized_pct": -0.62,
+        "oi_usd_b": 0.28,
+        "spot": 91.69,
+        "change_24h_pct": -3.26
+      }
+    ],
+    "by_coin_keys": [
+      "DOGE",
+      "ADA",
+      "AVAX",
+      "LINK",
+      "SOL",
+      "ETH",
+      "BNB",
+      "XRP",
+      "BTC"
+    ],
+    "btc_summary": {
+      "spot_price": 79656.1,
+      "change_24h_pct": -1.05,
+      "annualized_pct": 8.64,
+      "funding_z_score": 1.74,
+      "oi_usd_b": 2.71,
+      "regime": "BALANCED",
+      "crowding_flag": false
+    },
+    "eth_summary": {
+      "spot_price": 2259.26,
+      "change_24h_pct": -0.63,
+      "annualized_pct": 10.94,
+      "funding_z_score": 1.23,
+      "oi_usd_b": 1.8,
+      "regime": "BALANCED"
+    }
+  },
+  "finished": "2026-05-13T14:03:45.466480+00:00"
+}
