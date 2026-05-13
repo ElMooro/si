@@ -1,0 +1,36 @@
+{
+  "started": "2026-05-13T11:12:30.410869+00:00",
+  "lambda_last_modified": "2026-05-13T11:09:11.000+0000",
+  "lambda_memory": 1024,
+  "lambda_timeout": 300,
+  "status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.1.0",
+    "data_date": "2026-05-12",
+    "n_universe_analyzed": 501,
+    "n_squeeze_candidates": 0,
+    "vw_svr_pct": 45.79,
+    "regime": "NORMAL",
+    "top_squeeze": [],
+    "alert_sent": false,
+    "elapsed_seconds": 0.64
+  },
+  "log_tail": "START RequestId: a2c968d4-e1c8-4f55-b99f-e4a8cee7f8c1 Version: $LATEST\n=== FINRA-SHORT v1.1.0 \u00b7 2026-05-13T11:12:33.178318+00:00 ===\nloaded 11,461 tickers for 2026-05-12\nloaded 503 S&P 500 names from GitHub datahub\nuniverse: 503 S&P 500 tickers\nanalyzing 503 S&P 500 tickers in parallel...\nanalyzed 501 tickers with data\n\u2713 finra-short.json written (91.1 KB)\nEND RequestId: a2c968d4-e1c8-4f55-b99f-e4a8cee7f8c1\nREPORT RequestId: a2c968d4-e1c8-4f55-b99f-e4a8cee7f8c1\tDuration: 648.52 ms\tBilled Duration: 1083 ms\tMemory Size: 1024 MB\tMax Memory Used: 114 MB\tInit Duration: 433.73 ms\t\n",
+  "sidecar": {
+    "size_kb": 91.1,
+    "modified": "2026-05-13T11:12:34",
+    "version": "1.1.0",
+    "data_date": "2026-05-12",
+    "n_universe_analyzed": null,
+    "n_squeeze_candidates": null,
+    "vw_svr_pct": null,
+    "regime": null,
+    "top_squeeze": [],
+    "top_svr_changes": [],
+    "summary": null,
+    "sectors_top3_short": {}
+  },
+  "finished": "2026-05-13T11:12:33.990185+00:00"
+}
