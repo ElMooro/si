@@ -95,7 +95,7 @@ from collections import defaultdict
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/dealer-gex.json"
@@ -365,21 +365,25 @@ def calculate_gex_per_contract(contract, spot, today):
 def find_zero_gamma_flip(contracts, base_spot, today):
     """
     Find the price level where total dealer GEX crosses zero.
-    Iterate spot scenarios in 0.25% increments from -5% to +5%.
+    Iterates spot scenarios in 0.5% increments from -15% to +15%.
+
+    Wider range than the previous ±5% to handle index-level positioning
+    where the flip often sits 5-12% from spot, especially in trending regimes.
     """
     best_flip = None
     prev_gex = None
-    for pct in range(-500, 501, 25):  # -5% to +5% in 0.25% steps
+    # -15% to +15% in 0.5% steps (61 iterations)
+    for pct in range(-1500, 1501, 50):
         test_spot = base_spot * (1 + pct / 10000)
         total_gex = 0
         for c in contracts:
             g, _, _, _ = calculate_gex_per_contract(c, test_spot, today)
             total_gex += g
         if prev_gex is not None and (prev_gex * total_gex < 0):
-            # Sign change — interpolate
+            # Sign change — linear-interpolate between the two test_spot points
             try:
                 ratio = prev_gex / (prev_gex - total_gex)
-                prev_spot = base_spot * (1 + (pct - 25) / 10000)
+                prev_spot = base_spot * (1 + (pct - 50) / 10000)
                 best_flip = prev_spot + ratio * (test_spot - prev_spot)
                 break
             except Exception:
@@ -539,30 +543,31 @@ def analyze_underlying(symbol):
                 zero_dte_vol += vol
         except Exception: pass
 
-    # ─── Zero gamma flip ───
+    # ─── Zero gamma flip (informational — does NOT gate regime) ───
     flip = find_zero_gamma_flip(contracts_in_horizon, spot, today)
-
-    # ─── Regime classification ───
     above_flip = (flip is not None and spot > flip)
     pct_to_flip = round((spot / flip - 1) * 100, 2) if flip else None
 
-    # Standardize total GEX in $-billions
+    # ─── Regime classification (institutional convention) ───
+    # Primary driver is TOTAL DEALER GEX SIGN. Flip level is shown alongside
+    # for context but doesn't gate the regime decision (per SpotGamma /
+    # Tier1Alpha methodology).
     gex_b = total_gex / 1e9
-    if gex_b > 5 and above_flip:
+    if gex_b > 5:
         regime = "STRONG_POSITIVE_GAMMA"
-        bias = "Fade rallies · buy dips · sell volatility"
-    elif gex_b > 0 and above_flip:
+        bias = "Fade rallies · buy dips · sell volatility · low realized vol expected"
+    elif gex_b > 0.5:
         regime = "POSITIVE_GAMMA"
-        bias = "Mean-revert · low realized vol · range-bound"
-    elif abs(gex_b) < 0.5:
+        bias = "Mean-revert · low vol regime · range-bound · dealers stabilize tape"
+    elif abs(gex_b) <= 0.5:
         regime = "NEAR_FLIP"
-        bias = "Whipsaw zone · reduce position size · directional unstable"
+        bias = "Unstable zone · whipsaw risk · reduce position size · regime can shift suddenly"
     elif gex_b < -3:
         regime = "STRONG_NEGATIVE_GAMMA"
-        bias = "Momentum/explosive · gap risk · trend persistence"
+        bias = "Momentum/explosive · gap risk · trend persistence · dealers amplify moves"
     else:
         regime = "NEGATIVE_GAMMA"
-        bias = "Trend follow · buy rips on confirmation · expect vol expansion"
+        bias = "Trend follow · expect vol expansion · dealers buy strength / sell weakness"
 
     # ─── Strike walls (top 5 calls, top 5 puts) ───
     call_walls = sorted(by_strike_oi.items(), key=lambda kv: -kv[1]["call_oi"])[:5]
@@ -699,24 +704,37 @@ def lambda_handler(event, context):
             "qqq_regime": (results.get("QQQ") or {}).get("regime"),
             "iwm_regime": (results.get("IWM") or {}).get("regime"),
         }
-        # Risk-on/off composite from gamma regimes
-        regimes = [r for r in [spy.get("regime"),
-                                  (results.get("QQQ") or {}).get("regime"),
-                                  (results.get("IWM") or {}).get("regime")] if r]
-        positive_count = sum(1 for r in regimes if "POSITIVE" in r)
-        negative_count = sum(1 for r in regimes if "NEGATIVE" in r)
-        if positive_count == 3:
+        # Risk-on/off composite from GEX signs directly (avoids ambiguity in regime labels)
+        index_data = [(sym, (results.get(sym) or {})) for sym in ("SPY", "QQQ", "IWM")]
+        gex_signs = []
+        for _, r in index_data:
+            g = r.get("total_dealer_gex_billions")
+            if g is None: continue
+            if g > 0.5: gex_signs.append("+")
+            elif g < -0.5: gex_signs.append("-")
+            else: gex_signs.append("0")
+        n_pos = gex_signs.count("+")
+        n_neg = gex_signs.count("-")
+        n_near = gex_signs.count("0")
+        market_composite["index_gex_signs"] = "".join(gex_signs)  # e.g. "++-"
+        if n_pos == 3:
             market_composite["composite_regime"] = "ALL_POSITIVE_GAMMA"
-            market_composite["composite_signal"] = "Low vol, range-bound — sell vol, fade extremes"
-        elif negative_count >= 2:
+            market_composite["composite_signal"] = "Strong positive gamma across SPY/QQQ/IWM — sell vol, fade extremes, expect low realized vol"
+        elif n_neg == 3:
+            market_composite["composite_regime"] = "ALL_NEGATIVE_GAMMA"
+            market_composite["composite_signal"] = "Strong negative gamma across all indices — volatility expanding, trend follow, reduce size"
+        elif n_neg >= 2:
             market_composite["composite_regime"] = "NEGATIVE_GAMMA_DOMINANT"
-            market_composite["composite_signal"] = "Volatility expanding — trend follow, reduce size"
-        elif positive_count >= 2:
+            market_composite["composite_signal"] = "Majority indices in negative gamma — vol regime favors trend, gap risk elevated"
+        elif n_pos >= 2:
             market_composite["composite_regime"] = "MOSTLY_POSITIVE_GAMMA"
-            market_composite["composite_signal"] = "Mean-reverting — buy dips at support, fade resistance"
+            market_composite["composite_signal"] = "Majority indices in positive gamma — mean-revert, buy dips at support, fade resistance"
+        elif n_near >= 2:
+            market_composite["composite_regime"] = "NEAR_FLIP_UNSTABLE"
+            market_composite["composite_signal"] = "Indices clustered near zero-gamma — regime can shift suddenly, reduce size"
         else:
             market_composite["composite_regime"] = "MIXED_GAMMA"
-            market_composite["composite_signal"] = "Cross-index disagreement — neutral, watch SPY flip"
+            market_composite["composite_signal"] = "Cross-index disagreement on positioning — neutral stance, watch SPY GEX evolution"
 
     # ─── Single-name squeeze candidates ───
     # Stocks with: high P/C ratio, large negative gamma, dealers short
@@ -791,7 +809,9 @@ def lambda_handler(event, context):
 
     # ─── Telegram alert on regime shift ───
     alert_sent = False
-    if market_composite.get("composite_regime") in ("NEGATIVE_GAMMA_DOMINANT", "ALL_POSITIVE_GAMMA"):
+    if market_composite.get("composite_regime") in (
+        "ALL_NEGATIVE_GAMMA", "NEGATIVE_GAMMA_DOMINANT", "ALL_POSITIVE_GAMMA"
+    ):
         chat_id = get_chat_id()
         if chat_id:
             lines = [f"📐 *Dealer GEX Regime — {market_composite['composite_regime']}*",
