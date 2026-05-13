@@ -439,6 +439,35 @@ def build_context(message):
                     d = by_coin[coin_kw]
                     lines.append(f"[{coin_kw} PERP] ${d.get('spot_price',0):,.2f} ({d.get('change_24h_pct',0):+.2f}% 24h) · funding {d.get('annualized_pct',0):+.1f}% ann (z={d.get('funding_z_score','?')}) · OI ${d.get('oi_usd_b',0):.2f}B · {d.get('regime','?')}")
 
+    # ─── Earnings Call NLP (Bloomberg-Gap #7 · daily 14:00 UTC) ──────
+    ern = get_s3('data/earnings-nlp.json')
+    if ern:
+        sm = ern.get('market_summary') or {}
+        ranked = ern.get('ranked') or {}
+        regime_e = sm.get('regime')
+        sig_e = sm.get('signal', '')
+        if regime_e:
+            lines.append(f"[EARNINGS NLP REGIME] {regime_e} · median tone:{sm.get('median_tone')} · raises:{(sm.get('guidance_breakdown') or {}).get('RAISED',0)} cuts:{(sm.get('guidance_breakdown') or {}).get('LOWERED',0)} (n={sm.get('n_scored')})")
+            lines.append(f"[EARNINGS NLP SIGNAL] {sig_e[:140]}")
+        # Top improvers
+        imp = ranked.get('biggest_improvers') or []
+        if imp:
+            imp_str = ', '.join(f"{x['ticker']}(+{x['tone_shift_pp']}pp/{x.get('guidance','?')})" for x in imp[:5])
+            lines.append(f"[EARNINGS TOP IMPROVERS] {imp_str}")
+        det = ranked.get('biggest_deteriorators') or []
+        if det:
+            det_str = ', '.join(f"{x['ticker']}({x['tone_shift_pp']}pp/{x.get('guidance','?')})" for x in det[:5])
+            lines.append(f"[EARNINGS TOP DETERIORATORS] {det_str}")
+        # Per-ticker detail when user mentions a name
+        by_t = ern.get('by_ticker') or {}
+        for tkr in (stocks or []):
+            t = by_t.get(tkr)
+            if t and t.get('management_tone') is not None:
+                shift_str = f" (Δ{t['tone_shift_pp']:+}pp vs {t.get('prior_quarter_period','prior')})" if t.get('tone_shift_pp') is not None else ""
+                lines.append(f"[{tkr} EARNINGS] {t.get('period')} tone:{t.get('management_tone')}{shift_str} · guidance:{t.get('guidance_direction')} · confidence:{t.get('confidence')} · demand:{t.get('demand_signal')} · margin:{t.get('margin_signal')}")
+                if t.get('summary'): lines.append(f"  ↳ {t['summary'][:180]}")
+                if t.get('key_themes'): lines.append(f"  ↳ themes: {' · '.join(t['key_themes'][:3])}")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:

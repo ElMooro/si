@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earnings Call NLP — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%99%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.earnings_strength{border-left:4px solid var(--pos);}
+.regime-banner.earnings_constructive{border-left:4px solid var(--info);}
+.regime-banner.earnings_neutral{border-left:4px solid var(--text-mute);}
+.regime-banner.earnings_cautious{border-left:4px solid var(--gold);}
+.regime-banner.earnings_weakness{border-left:4px solid var(--neg);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);} .tile.info .val{color:var(--info);} .tile.gold .val{color:var(--gold);}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+@media (max-width:900px){.row-2col{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+
+.row{padding:10px 14px;border-bottom:1px solid rgba(28,35,48,.5);display:grid;grid-template-columns:60px 1fr auto auto;gap:12px;align-items:center;}
+.row:last-child{border-bottom:0;}
+.row:hover{background:rgba(167,139,250,.04);}
+.r-ticker{font-family:var(--font-mono);font-weight:600;}
+.r-summary{color:var(--text-dim);font-size:12px;line-height:1.35;}
+.r-tone{font-family:var(--font-mono);font-weight:600;text-align:right;width:80px;}
+.r-tone.pos{color:var(--pos);} .r-tone.neg{color:var(--neg);}
+.r-pill{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border-hi);text-transform:uppercase;letter-spacing:.4px;}
+.r-pill.raised{background:rgba(0,230,118,.08);color:var(--pos);border-color:rgba(0,230,118,.4);}
+.r-pill.lowered{background:rgba(255,61,90,.08);color:var(--neg);border-color:rgba(255,61,90,.4);}
+.r-pill.maintained{background:rgba(34,211,238,.08);color:var(--info);border-color:rgba(34,211,238,.4);}
+.r-pill.none{color:var(--text-mute);}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;}
+.full-table th{padding:10px 14px;text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table td{padding:11px 14px;border-bottom:1px solid rgba(28,35,48,.5);}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table .t-ticker{font-family:var(--font-mono);font-weight:600;color:var(--text);}
+.full-table .t-tone{font-family:var(--font-mono);font-weight:600;text-align:right;}
+.full-table .t-tone.pos{color:var(--pos);} .full-table .t-tone.neg{color:var(--neg);}
+.full-table .t-shift{font-family:var(--font-mono);text-align:right;}
+.full-table .t-shift.pos{color:var(--pos);} .full-table .t-shift.neg{color:var(--neg);}
+.full-table .t-summary{color:var(--text-dim);font-size:11px;max-width:480px;}
+.full-table .t-themes{font-family:var(--font-mono);font-size:10px;color:var(--accent);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🎙 Earnings Call NLP <span class="badge">FMP × CLAUDE HAIKU</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div id="tiles" class="tiles"></div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">📈 Biggest Tone Improvers (QoQ)</div>
+    <div id="improvers"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📉 Biggest Tone Deteriorators (QoQ)</div>
+    <div id="deteriorators"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🟢 Most Bullish Tone (Absolute)</div>
+    <div id="most-bullish"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🔴 Most Bearish Tone (Absolute)</div>
+    <div id="most-bearish"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-bottom:18px;">
+  <div class="panel-title">📊 Full Universe · Per-Ticker NLP Scores</div>
+  <div style="overflow-x:auto">
+    <table class="full-table">
+      <thead><tr>
+        <th>Ticker</th><th>Period</th><th style="text-align:right">Tone</th><th style="text-align:right">QoQ Shift</th>
+        <th>Guidance</th><th>Confidence</th><th>Demand</th><th>Margin</th><th>Summary</th><th>Themes</th>
+      </tr></thead>
+      <tbody id="full-tbody"><tr><td colspan="10" class="loading">Loading universe…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology · Earnings Call NLP</h3>
+  <p>Each earnings season, we fetch the latest call transcripts for ~30 top S&P names via FMP Premium and run them through Claude Haiku 4.5 to extract:</p>
+  <p>• <strong>Management Tone</strong> (-100 to +100): integer score capturing the overall tone — crisis language, hedging, or confidence/strength signals all bake in.</p>
+  <p>• <strong>Guidance Direction</strong>: RAISED, MAINTAINED, LOWERED, or NONE. The single highest-signal field in earnings releases.</p>
+  <p>• <strong>Confidence Level</strong>: LOW / MEDIUM / HIGH — how forcefully management commits to forward outlook.</p>
+  <p>• <strong>Demand & Margin Signals</strong>: STRONG/STEADY/WEAKENING/MIXED and EXPANDING/STABLE/COMPRESSING/MIXED. The two questions every analyst asks.</p>
+  <p>• <strong>Key Themes</strong>: 3 short phrases capturing what they actually talked about (AI infra, China headwinds, etc.).</p>
+  <p><strong>QoQ Tone Shift</strong> is the real alpha. A CFO who pivoted from "strong demand" to "choppy execution" shows up here even when the headline tone is still positive. Each transcript is cached in S3 so we can reach back ≥1 quarter for delta.</p>
+  <p><strong>Regime classification:</strong> <code>EARNINGS_STRENGTH</code> (median ≥60, raises ≥3× cuts) · <code>EARNINGS_CONSTRUCTIVE</code> (median ≥50) · <code>EARNINGS_NEUTRAL</code> · <code>EARNINGS_CAUTIOUS</code> (median ≤40) · <code>EARNINGS_WEAKNESS</code> (median ≤30 + cuts &gt; raises).</p>
+  <p><strong>Source:</strong> <code>FMP /v3/earning_call_transcript</code> + <code>claude-haiku-4-5-20251001</code>. Refresh daily 14:00 UTC weekdays.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/earnings-nlp.json";
+let DATA = null;
+
+function fmtTone(v) { return v == null ? '-' : (v > 0 ? '+' : '') + v; }
+function toneCls(v) { return v == null ? '' : (v > 20 ? 'pos' : (v < -20 ? 'neg' : '')); }
+function guidanceCls(g) { return g ? g.toLowerCase() : 'none'; }
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL);
+    DATA = await r.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiles(); renderRankings(); renderFullTable();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + ' — Lambda may not have run yet.</div>';
+  }
+}
+
+function renderRegime() {
+  const sm = DATA.market_summary || {};
+  const regime = sm.regime || 'NEUTRAL';
+  const signal = sm.signal || '';
+  const rcls = regime.toLowerCase();
+  let titleCls = 'mute';
+  if (regime === 'EARNINGS_STRENGTH') titleCls = 'pos';
+  else if (regime === 'EARNINGS_CONSTRUCTIVE') titleCls = 'info';
+  else if (regime === 'EARNINGS_CAUTIOUS') titleCls = 'gold';
+  else if (regime === 'EARNINGS_WEAKNESS') titleCls = 'neg';
+
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${titleCls}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Median Tone</span><span class="val">${fmtTone(sm.median_tone)}</span></div>
+        <div><span class="label">Scored</span><span class="val">${sm.n_scored || 0}</span></div>
+        <div><span class="label">Raises:Cuts</span><span class="val">${(sm.guidance_breakdown||{}).RAISED || 0}:${(sm.guidance_breakdown||{}).LOWERED || 0}</span></div>
+        <div><span class="label">Ratio</span><span class="val">${sm.raised_to_lowered_ratio || '-'}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const sm = DATA.market_summary || {};
+  const td = sm.tone_distribution || {};
+  const cd = sm.confidence_breakdown || {};
+  const gd = sm.guidance_breakdown || {};
+  const tiles = [
+    {lbl:"Mean Tone", val: fmtTone(sm.mean_tone), sub:`Median: ${fmtTone(sm.median_tone)}`, cls: toneCls(sm.mean_tone)},
+    {lbl:"P10 / P90 Tone", val: `${fmtTone(td.p10)} → ${fmtTone(td.p90)}`, sub:`P25/P75: ${fmtTone(td.p25)}/${fmtTone(td.p75)}`},
+    {lbl:"High Confidence Calls", val: cd.HIGH || 0, sub:`Med: ${cd.MEDIUM||0}  Low: ${cd.LOW||0}`, cls: (cd.HIGH||0) > (cd.LOW||0) ? 'pos' : 'gold'},
+    {lbl:"Coverage", val: `${DATA.n_with_data}/${DATA.n_tickers}`, sub:`${DATA.n_with_err||0} errors`},
+    {lbl:"Guidance Raises", val: gd.RAISED || 0, sub:`Maintained: ${gd.MAINTAINED||0}`, cls: 'pos'},
+    {lbl:"Guidance Cuts", val: gd.LOWERED || 0, sub:`None given: ${gd.NONE||0}`, cls: (gd.LOWERED||0) > 0 ? 'neg' : ''},
+    {lbl:"Big Improvers", val: (DATA.ranked||{}).biggest_improvers?.length || 0, sub:"shift ≥+5pp QoQ"},
+    {lbl:"Big Deteriorators", val: (DATA.ranked||{}).biggest_deteriorators?.length || 0, sub:"shift ≤-5pp QoQ"},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function rankRow(r) {
+  const tcls = toneCls(r.current_tone || r.tone);
+  const sign = r.tone_shift_pp != null && r.tone_shift_pp > 0 ? '+' : '';
+  const gcls = guidanceCls(r.guidance);
+  const tone = r.current_tone != null ? r.current_tone : r.tone;
+  const shiftHtml = r.tone_shift_pp != null
+    ? `<span class="r-tone ${r.tone_shift_pp >= 0 ? 'pos' : 'neg'}">${sign}${r.tone_shift_pp}</span>`
+    : `<span class="r-tone">${fmtTone(tone)}</span>`;
+  return `<div class="row">
+    <span class="r-ticker">${r.ticker}</span>
+    <span class="r-summary">${r.summary || ''}</span>
+    ${shiftHtml}
+    <span class="r-pill ${gcls}">${r.guidance || '-'}</span>
+  </div>`;
+}
+
+function renderRankings() {
+  const ranked = DATA.ranked || {};
+  ['biggest_improvers','biggest_deteriorators'].forEach(key => {
+    const elId = key === 'biggest_improvers' ? 'improvers' : 'deteriorators';
+    const items = ranked[key] || [];
+    if (!items.length) {
+      document.getElementById(elId).innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-mute)">No data yet (first run needs 2+ quarters cached)</div>';
+      return;
+    }
+    document.getElementById(elId).innerHTML = items.map(rankRow).join('');
+  });
+  ['most_bullish_tone','most_bearish_tone'].forEach(key => {
+    const elId = key === 'most_bullish_tone' ? 'most-bullish' : 'most-bearish';
+    const items = ranked[key] || [];
+    if (!items.length) {
+      document.getElementById(elId).innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-mute)">—</div>';
+      return;
+    }
+    document.getElementById(elId).innerHTML = items.map(rankRow).join('');
+  });
+}
+
+function renderFullTable() {
+  const by = DATA.by_ticker || {};
+  const rows = Object.entries(by).filter(([k,v]) => v.management_tone != null);
+  rows.sort((a,b) => (b[1].management_tone||0) - (a[1].management_tone||0));
+  if (!rows.length) {
+    document.getElementById('full-tbody').innerHTML = '<tr><td colspan="10" style="padding:30px;text-align:center;color:var(--text-mute)">No scored tickers yet — first run may still be processing.</td></tr>';
+    return;
+  }
+  document.getElementById('full-tbody').innerHTML = rows.map(([tkr, v]) => `
+    <tr>
+      <td class="t-ticker">${tkr}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${v.period||'-'}</td>
+      <td class="t-tone ${toneCls(v.management_tone)}">${fmtTone(v.management_tone)}</td>
+      <td class="t-shift ${v.tone_shift_pp == null ? '' : (v.tone_shift_pp >= 0 ? 'pos' : 'neg')}">${v.tone_shift_pp == null ? '-' : (v.tone_shift_pp > 0 ? '+' : '') + v.tone_shift_pp}</td>
+      <td><span class="r-pill ${guidanceCls(v.guidance_direction)}">${v.guidance_direction || '-'}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${v.confidence||'-'}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${v.demand_signal||'-'}</span></td>
+      <td><span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim)">${v.margin_signal||'-'}</span></td>
+      <td class="t-summary">${v.summary || ''}</td>
+      <td class="t-themes">${(v.key_themes||[]).join(' · ')}</td>
+    </tr>`).join('');
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

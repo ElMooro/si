@@ -189,6 +189,8 @@ def load_all():
         "crypto_funding":"data/crypto-funding.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
         "earnings_sentiment":"screener/earnings-sentiment.json",
+        # ─── Earnings Call NLP (Bloomberg-Gap #7 · daily) ─────────────
+        "earnings_nlp":"data/earnings-nlp.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
         "vol_regime":"data/vol-regime.json",
     }
@@ -674,6 +676,38 @@ def extract_metrics(data,weights):
                 for x in ((e.get("summary") or {}).get("most_bearish") or [])[:3]
             ],
             "earnings_nlp_generated_at": e.get("generated_at"),
+        })(),
+        # ─── Earnings Call NLP v2 (Bloomberg-Gap #7) — top 30 names ──
+        # Live Claude Haiku scoring of management tone, guidance direction,
+        # and QoQ tone shift (the alpha signal in earnings).
+        **(lambda n=data.get("earnings_nlp", {}): {
+            "earnings_nlp_v2_regime": (n.get("market_summary") or {}).get("regime"),
+            "earnings_nlp_v2_signal": (n.get("market_summary") or {}).get("signal"),
+            "earnings_nlp_v2_median_tone": (n.get("market_summary") or {}).get("median_tone"),
+            "earnings_nlp_v2_mean_tone": (n.get("market_summary") or {}).get("mean_tone"),
+            "earnings_nlp_v2_n_scored": (n.get("market_summary") or {}).get("n_scored"),
+            "earnings_nlp_v2_raises": ((n.get("market_summary") or {}).get("guidance_breakdown") or {}).get("RAISED"),
+            "earnings_nlp_v2_cuts": ((n.get("market_summary") or {}).get("guidance_breakdown") or {}).get("LOWERED"),
+            "earnings_nlp_v2_raises_to_cuts": (n.get("market_summary") or {}).get("raised_to_lowered_ratio"),
+            "earnings_nlp_v2_biggest_improvers": [
+                {"ticker": x.get("ticker"), "shift_pp": x.get("tone_shift_pp"),
+                  "current_tone": x.get("current_tone"), "guidance": x.get("guidance")}
+                for x in ((n.get("ranked") or {}).get("biggest_improvers") or [])[:5]
+            ],
+            "earnings_nlp_v2_biggest_deteriorators": [
+                {"ticker": x.get("ticker"), "shift_pp": x.get("tone_shift_pp"),
+                  "current_tone": x.get("current_tone"), "guidance": x.get("guidance")}
+                for x in ((n.get("ranked") or {}).get("biggest_deteriorators") or [])[:5]
+            ],
+            "earnings_nlp_v2_most_bullish_tone": [
+                {"ticker": x.get("ticker"), "tone": x.get("tone"), "guidance": x.get("guidance")}
+                for x in ((n.get("ranked") or {}).get("most_bullish_tone") or [])[:5]
+            ],
+            "earnings_nlp_v2_most_bearish_tone": [
+                {"ticker": x.get("ticker"), "tone": x.get("tone"), "guidance": x.get("guidance")}
+                for x in ((n.get("ranked") or {}).get("most_bearish_tone") or [])[:5]
+            ],
+            "earnings_nlp_v2_generated_at": n.get("generated_at"),
         })(),
     }
 
