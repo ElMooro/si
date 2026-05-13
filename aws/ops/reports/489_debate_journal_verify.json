@@ -1,0 +1,303 @@
+{
+  "started": "2026-05-13T00:06:50.841958+00:00",
+  "test": {
+    "lambdas": {
+      "justhodl-debate-engine": {
+        "deployed": true,
+        "modified": "2026-05-13T00:06:23",
+        "memory": 1024,
+        "timeout": 600,
+        "env_keys": [
+          "MAX_TIER_A",
+          "TELEGRAM_TOKEN",
+          "ANTHROPIC_MODEL",
+          "TELEGRAM_CHAT_ID",
+          "MAX_TIER_S",
+          "ANTHROPIC_API_KEY"
+        ]
+      },
+      "justhodl-trade-logger": {
+        "deployed": true,
+        "modified": "2026-05-13T00:06:40",
+        "memory": 512,
+        "timeout": 240,
+        "env_keys": [
+          "POLY_KEY"
+        ]
+      },
+      "justhodl-trade-evaluator": {
+        "deployed": true,
+        "modified": "2026-05-13T00:06:33",
+        "memory": 1024,
+        "timeout": 600,
+        "env_keys": [
+          "POLY_KEY"
+        ]
+      }
+    },
+    "ddb": {
+      "table": {
+        "exists": true,
+        "status": "ACTIVE",
+        "item_count": 0,
+        "size_bytes": 0,
+        "gsi": [
+          "by-strategy",
+          "by-symbol"
+        ]
+      },
+      "call_count": 56
+    },
+    "schedules": {
+      "justhodl-debate-engine-daily": {
+        "exists": true,
+        "schedule": "cron(15 12 * * ? *)",
+        "state": "ENABLED"
+      },
+      "justhodl-trade-logger-hourly": {
+        "exists": true,
+        "schedule": "cron(50 * * * ? *)",
+        "state": "ENABLED"
+      },
+      "justhodl-trade-evaluator-daily": {
+        "exists": true,
+        "schedule": "cron(0 23 * * ? *)",
+        "state": "ENABLED"
+      }
+    },
+    "sidecars": {
+      "data/debate.json": {
+        "exists": true,
+        "size_kb": 17.9,
+        "last_modified": "2026-05-13T00:10:34",
+        "top_keys": [
+          "generated_at",
+          "generated_at_unix",
+          "version",
+          "model",
+          "elapsed_seconds",
+          "stocks_debated",
+          "personas",
+          "summary",
+          "debates"
+        ],
+        "version": "1.0.0",
+        "summary": {
+          "n_strong_buy": 0,
+          "n_buy": 0,
+          "n_hold": 1,
+          "n_divided": 1,
+          "n_sell": 0,
+          "top_consensus": []
+        },
+        "generated_at": "2026-05-13T00:10:33.011154+00:00",
+        "n_debates": 2,
+        "n_ledger": null,
+        "n_strategies": null,
+        "first_debate_sample": {
+          "symbol": "VRT",
+          "alpha_score": 83,
+          "tier": "A",
+          "confluence_tier": null,
+          "regime_adj_score": 78,
+          "options_flow_score": 85.0,
+          "personas": [
+            {
+              "verdict": "SELL",
+              "conviction": 72,
+              "thesis": "VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnected from fundamentals\u2014even a quality compounder doesn't justify this multiple given forward P/E of 34x remains elevated.",
+              "concerns": "Massive valuation gap: $141B market cap on $10B revenue implies extreme expectations already priced in. High beta (2.1) means drawdown risk in any market correction. EPS growth spike (164%) likely unsustainable\u2014needs verification it's not one-time benefit.",
+              "fair_value_view": "At 33.96x forward P/E, VRT would need 30%+ perpetual growth to justify current price. DCF -95% downside flags severe overvaluation. Even accounting for AI tailwinds (data center cooling), margin of safety is negative. Fair value likely $120-180 range.",
+              "name": "VALUE",
+              "icon": "\ud83d\udc8e"
+            },
+            {
+              "verdict": "BUY",
+              "conviction": 82,
+              "thesis": "VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x forward PE is justified by 164% EPS growth and high-conviction smart money alignment.",
+              "concerns": "Valuation compression risk if growth decelerates below 20%; elevated beta (2.1) amplifies downside in macro stress. DCF suggests current price may embed aggressive terminal assumptions.",
+              "tam_view": "TAM expanding rapidly: AI data center capex accelerating (hyperscalers spending $100B+/year on infrastructure). Vertiv's cooling & power solutions are mission-critical, non-discretionary, sticky. TAM growing 15-20% annually; Vertiv can grow 2-3x TAM if it gains share in edge/AI segments.",
+              "name": "GROWTH",
+              "icon": "\ud83d\ude80"
+            },
+            {
+              "verdict": "HOLD",
+              "conviction": 62,
+              "thesis": "VRT shows exceptional quality (Piotroski 9/9, 28% revenue growth, 42% ROE) and bullish technicals (100 momentum, insider cluster buy), but stretched valuation (PE 90, -95% DCF upside) in a Normal macro regime makes entry timing poor. Wait for pullback or earnings confirmation.",
+              "concerns": "Extreme valuation disconnect (PE 90 vs 34 forward PE suggests unsustainable euphoria). Beta 2.1 amplifies downside in any macro stress. Analyst grade missing suggests skepticism. High short squeeze setup may be momentum trap into resistance.",
+              "regime_fit": "OK",
+              "name": "MACRO",
+              "icon": "\ud83c\udf10"
+            },
+            {
+              "verdict": "BUY",
+              "conviction": 72,
+              "thesis": "Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with short squeeze setup\u2014institutional accumulation evident. Macro stress low (34/100).",
+              "concerns": "Valuation stretched: PE 90.2x, DCF shows \u221294.9% downside. Forward PE 33.96x still elevated. High beta (2.1) amplifies drawdown risk. +55% momentum suggests fade risk if sentiment rolls; crowded AI narrative may compress margins. Watch analyst disconnect (40/100).",
+              "expected_60d_return_pct": 12,
+              "name": "QUANT",
+              "icon": "\ud83d\udcca"
+            },
+            {
+              "verdict": "SELL",
+              "conviction": 78,
+              "thesis": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap.",
+              "red_flags": [
+                "P/E of 90.2x vs forward 34x signals massive reset risk; peak revenue growth cannot sustain this multiple forever",
+                "DCF valuation model implies -94.9% downside\u2014structural warning that terminal value assumptions are unrealistic",
+                "EPS growth of 164% YoY is unsustainable; law of large numbers + competitive pressure (data center power mgmt commoditizing) will compress margins",
+                "Insider cluster buy at $367 after 55% run in 90d is contrarian signal\u2014insiders may be front-running secondary offering or locking in compensation",
+                "Options flow shows 3x call volume & high short squeeze setup\u2014classic retail FOMO trade, not institutional conviction; momentum reversal imminent",
+                "Debt-to-equity of 0.75x is rising; refinancing risk if rates stay elevated and growth slows post-hype cycle",
+                "Analyst coverage weak (grade missing, low 40 sentiment score) despite 83 alpha; institutions not supporting valuation",
+                "Revenue growth 28% YoY will decelerate as AI spending normalize and capex cycles complete; gross margin 36% vulnerable to competition"
+              ],
+              "downside_target_pct": -65,
+              "name": "SHORT",
+              "icon": "\ud83d\udc3b"
+            }
+          ],
+          "synthesis": {
+            "consensus_verdict": "DIVIDED",
+            "consensus_direction": "HOLD",
+            "verdict_counts": {
+              "BUY": 2,
+              "HOLD": 1,
+              "SELL": 2,
+              "ERROR": 0
+            },
+            "avg_conviction": 73.2,
+            "bear_case": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap.",
+            "red_flags": [
+              "P/E of 90.2x vs forward 34x signals massive reset risk; peak revenue growth cannot sustain this multiple forever",
+              "DCF valuation model implies -94.9% downside\u2014structural warning that terminal value assumptions are unrealistic",
+              "EPS growth of 164% YoY is unsustainable; law of large numbers + competitive pressure (data center power mgmt commoditizing) will compress margins",
+              "Insider cluster buy at $367 after 55% run in 90d is contrarian signal\u2014insiders may be front-running secondary offering or locking in compensation",
+              "Options flow shows 3x call volume & high short squeeze setup\u2014classic retail FOMO trade, not institutional conviction; momentum reversal imminent",
+              "Debt-to-equity of 0.75x is rising; refinancing risk if rates stay elevated and growth slows post-hype cycle",
+              "Analyst coverage weak (grade missing, low 40 sentiment score) despite 83 alpha; institutions not supporting valuation",
+              "Revenue growth 28% YoY will decelerate as AI spending normalize and capex cycles complete; gross margin 36% vulnerable to competition"
+            ],
+            "downside_target_pct": -65,
+            "dissenters": [
+              {
+                "name": "VALUE",
+                "icon": "\ud83d\udc8e",
+                "verdict": "SELL",
+                "thesis": "VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnected from fundamentals\u2014even a quality compounder doesn't justify this multiple given forward P/E of 34x"
+              },
+              {
+                "name": "GROWTH",
+                "icon": "\ud83d\ude80",
+                "verdict": "BUY",
+                "thesis": "VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x forward PE is justified by 164% EPS growth and high-conviction smart money alignment."
+              },
+              {
+                "name": "QUANT",
+                "icon": "\ud83d\udcca",
+                "verdict": "BUY",
+                "thesis": "Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with short squeeze setup\u2014institutional accumulation evident. Macro stress low (34/100)."
+              },
+              {
+                "name": "SHORT",
+                "icon": "\ud83d\udc3b",
+                "verdict": "SELL",
+                "thesis": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap."
+              }
+            ]
+          },
+          "verdict_lines": [
+            "\ud83d\udc8e Value: SELL. VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnecte",
+            "\ud83d\ude80 Growth: BUY. VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x for",
+            "\ud83c\udf10 Macro: HOLD. VRT shows exceptional quality (Piotroski 9/9, 28% revenue growth, 42% ROE) and bullish technicals (100 momentum, insider cluster buy), but stretched valuation (PE 90, -95% DCF upside) in a Normal macr",
+            "\ud83d\udcca Quant: BUY. Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with",
+            "\ud83d\udc3b Short: SELL. VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation a"
+          ],
+          "debate_elapsed_seconds": 5.49
+        }
+      },
+      "data/trade-journal.json": {
+        "exists": true,
+        "size_kb": 32.5,
+        "last_modified": "2026-05-13T00:10:37",
+        "top_keys": [
+          "generated_at",
+          "generated_at_unix",
+          "version",
+          "lookback_days",
+          "summary",
+          "strategies",
+          "best_calls_60d",
+          "worst_calls_60d",
+          "ledger"
+        ],
+        "version": "1.0.0",
+        "summary": {
+          "total_calls_90d": 56,
+          "total_evaluated_30d": 0,
+          "overall_win_rate_30d_pct": null,
+          "overall_avg_return_30d_pct": null,
+          "n_strategies_tracked": 3,
+          "n_open": 56,
+          "n_closed_or_hit": 0
+        },
+        "generated_at": "2026-05-13T00:10:36.153525+00:00",
+        "n_debates": null,
+        "n_ledger": 56,
+        "n_strategies": 3,
+        "first_debate_sample": null
+      }
+    },
+    "invokes": {
+      "debate": {
+        "status": 200,
+        "fn_error": null,
+        "response": {
+          "success": true,
+          "version": "1.0.0",
+          "stocks_debated": 2,
+          "summary": {
+            "n_strong_buy": 0,
+            "n_buy": 0,
+            "n_hold": 1,
+            "n_divided": 1,
+            "n_sell": 0,
+            "top_consensus": []
+          },
+          "elapsed_seconds": 14.16
+        },
+        "log_tail": "START RequestId: 557c1597-9257-4f3b-bdfe-14deb0f5ae3e Version: $LATEST\n=== DEBATE ENGINE v1.0.0 \u00b7 2026-05-13T00:10:18.848744+00:00 ===\ndebating 2 stocks: ['VRT', 'NVDA']\nVRT \u2713 consensus=DIVIDED conviction=73.2 (5.49s)\nNVDA \u2713 consensus=HOLD conviction=69.0 (8.06s)\n\u2713 debate.json written (2 debates, 14.16s total)\nEND RequestId: 557c1597-9257-4f3b-bdfe-14deb0f5ae3e\nREPORT RequestId: 557c1597-9257-4f3b-bdfe-14deb0f5ae3e\tDuration: 14262.52 ms\tBilled Duration: 14735 ms\tMemory Size: 1024 MB\tMax Memory Used: 115 MB\tInit Duration: 471.63 ms\t\n"
+      },
+      "trade_logger": {
+        "status": 200,
+        "fn_error": null,
+        "response": {
+          "success": true,
+          "version": "1.0.0",
+          "candidates": 56,
+          "logged": 56,
+          "duplicates": 0,
+          "price_failed": 0,
+          "elapsed_seconds": 1.49
+        },
+        "log_tail": "START RequestId: 840a4e21-a931-4283-a220-0a4d289f2236 Version: $LATEST\n=== TRADE LOGGER v1.0.0 \u00b7 2026-05-13T00:10:33.826297+00:00 ===\ncandidate calls: 56 (after batch dedup)\nlogged=56, dup=0, price_fail=0, elapsed=1.49s\nEND RequestId: 840a4e21-a931-4283-a220-0a4d289f2236\nREPORT RequestId: 840a4e21-a931-4283-a220-0a4d289f2236\tDuration: 1500.80 ms\tBilled Duration: 2047 ms\tMemory Size: 512 MB\tMax Memory Used: 107 MB\tInit Duration: 545.50 ms\t\n"
+      },
+      "trade_evaluator": {
+        "status": 200,
+        "fn_error": null,
+        "response": {
+          "success": true,
+          "version": "1.0.0",
+          "n_calls_scanned": 56,
+          "n_updated": 0,
+          "n_strategies_tracked": 3,
+          "overall_win_rate_30d_pct": null,
+          "overall_avg_return_30d_pct": null,
+          "elapsed_seconds": 0.14
+        },
+        "log_tail": "START RequestId: 8bd0ec0f-1224-494f-a1dd-f932d5ad58e8 Version: $LATEST\n=== TRADE EVALUATOR v1.0.0 \u00b7 2026-05-13T00:10:36.098024+00:00 ===\nscanned 56 calls\nupdated=0  unchanged=56  unevaluable=0\n\u2713 trade-journal.json written (56 ledger entries, 3 strategies)\nEND RequestId: 8bd0ec0f-1224-494f-a1dd-f932d5ad58e8\nREPORT RequestId: 8bd0ec0f-1224-494f-a1dd-f932d5ad58e8\tDuration: 146.91 ms\tBilled Duration: 697 ms\tMemory Size: 1024 MB\tMax Memory Used: 98 MB\tInit Duration: 549.67 ms\t\n"
+      }
+    }
+  },
+  "finished": "2026-05-13T00:10:36.727034+00:00"
+}
