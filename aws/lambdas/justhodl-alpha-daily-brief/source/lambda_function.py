@@ -45,6 +45,8 @@ CONFLUENCE_KEY = "signals/confluence.json"
 REGIME_KEY = "signals/regime-picks.json"
 SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
+DEBATE_KEY = "data/debate.json"
+ANOMALIES_KEY = "signals/anomalies.json"
 
 BRIEF_MD_KEY = "data/alpha-brief.md"
 BRIEF_JSON_KEY = "data/alpha-brief.json"
@@ -90,6 +92,8 @@ def build_context_bundle():
     confluence = load_sidecar(CONFLUENCE_KEY, {})
     regime = load_sidecar(REGIME_KEY, {})
     sentiment = load_sidecar(SENTIMENT_KEY, {})
+    debate = load_sidecar(DEBATE_KEY, {})
+    anomalies = load_sidecar(ANOMALIES_KEY, {})
 
     # Top 10 alpha-ranked stocks
     top_alpha = [s for s in (alpha.get("stocks") or [])
@@ -151,16 +155,54 @@ def build_context_bundle():
                   "reason": trim(s.get("sentimentReason"), 100)} for s in top_bears],
     }
 
+    # ─── DEBATE: 5-persona adversarial analysis (compact form for prompt) ───
+    # debate.json schema: { debates: [ {symbol, alpha_score, synthesis: {consensus_verdict,
+    #     bear_case, red_flags, downside_target_pct, avg_conviction}, personas: [...]} ] }
+    debate_by_sym = {}
+    for d in (debate.get("debates") or []):
+        sym = d.get("symbol")
+        if not sym: continue
+        synth = d.get("synthesis") or {}
+        # Compact per-persona one-liners (verdict + thesis truncated)
+        persona_lines = []
+        for p in (d.get("personas") or []):
+            name = p.get("name")
+            verdict = p.get("verdict", "?")
+            conv = p.get("conviction")
+            thesis = trim(p.get("thesis"), 140)
+            if not name or verdict == "ERROR": continue
+            persona_lines.append({
+                "persona": name, "verdict": verdict,
+                "conviction": conv, "thesis": thesis,
+            })
+        debate_by_sym[sym] = {
+            "sym": sym,
+            "consensus": synth.get("consensus_verdict"),
+            "avg_conviction": synth.get("avg_conviction"),
+            "verdict_counts": synth.get("verdict_counts"),
+            "bear_case": trim(synth.get("bear_case"), 360),
+            "red_flags": (synth.get("red_flags") or [])[:4],
+            "downside_target_pct": synth.get("downside_target_pct"),
+            "personas": persona_lines,
+        }
+
+    # Macro stress score for top-of-brief context
+    macro_stress = anomalies.get("macro_stress_score")
+    macro_interp = anomalies.get("stress_interpretation")
+
     return {
         "regime": confluence.get("regime") or regime.get("regime") or "UNKNOWN",
         "regime_confidence": confluence.get("regime_confidence", 0),
         "regime_logic": regime.get("regime_logic"),
+        "macro_stress_score": macro_stress,
+        "macro_stress_interp": macro_interp,
         "tier_distribution": alpha.get("tier_distribution"),
         "top_alpha": top_alpha_brief,
         "confluence": confluence_brief,
         "regime_picks": regime_brief,
         "diffs": diff_brief,
         "news": news_brief,
+        "debate_by_sym": debate_by_sym,
     }
 
 
@@ -187,11 +229,44 @@ def call_claude(prompt):
 def synthesize_brief(context):
     """Send context to Claude, return markdown brief."""
     today = datetime.now(timezone.utc).strftime("%a %b %d, %Y")
+    mss = context.get("macro_stress_score")
+    mss_line = (f"MACRO STRESS: {mss}/100 — {context.get('macro_stress_interp','')}"
+                  if mss is not None else "")
+
+    debate_block = context.get("debate_by_sym") or {}
+    has_debates = bool(debate_block)
+
+    if has_debates:
+        debate_section = (
+            f"\n═══ 5-PERSONA DEBATE OUTPUT (FORCED BEAR CASE FOR EACH) ═══\n"
+            f"{json.dumps(list(debate_block.values()), indent=2)[:3500]}\n"
+        )
+        debate_rules = (
+            "\n⚔ BEAR-CASE REQUIREMENT (forced disconfirming view):\n"
+            "- If a stock you are recommending has debate output above, you MUST include "
+            "a '**Bear case (Short persona):**' line under that pick with the short persona's "
+            "concrete thesis + at least one red flag and the downside_target_pct.\n"
+            "- If consensus is DIVIDED or SELL, recommend HOLD instead of LONG unless "
+            "you can explicitly defeat the bear case.\n"
+            "- The bear view is not optional — surface it even when you disagree.\n"
+        )
+    else:
+        debate_section = (
+            f"\n═══ DEBATE OUTPUT ═══\n(No debate sidecar today — explicitly note this and "
+            f"write your own bear case for each LONG.)\n"
+        )
+        debate_rules = (
+            "\n⚔ NO DEBATE DATA TODAY — write your own bear case for each LONG recommendation "
+            "(specific to that stock: valuation excess, competitive threat, regime headwind, "
+            "or accounting concern). Don't skip it.\n"
+        )
+
     prompt = f"""You are a senior portfolio analyst writing the morning brief for an institutional investor.
 
 TODAY: {today}
 MACRO REGIME: {context['regime']} (confidence {context['regime_confidence']:.0%})
 REGIME LOGIC: {context.get('regime_logic','')}
+{mss_line}
 
 ═══ TOP 10 ALPHA-RANKED STOCKS ═══
 {json.dumps(context['top_alpha'], indent=2)[:3000]}
@@ -207,32 +282,38 @@ REGIME LOGIC: {context.get('regime_logic','')}
 
 ═══ TOP NEWS-SENTIMENT MOVES ═══
 {json.dumps(context['news'], indent=2)[:2000]}
-
+{debate_section}
 ═══════════════════════════════════════════════════════════
 TASK: Write a concise morning brief in MARKDOWN format following this EXACT structure.
-Be decisive — name specific tickers + specific dollar levels where possible. Total length: 400-600 words.
+Be decisive — name specific tickers + specific dollar levels where possible. Total length: 500-750 words.
 
 ```
 # 🎯 JustHodl Alpha Brief · {today}
 
 ## REGIME STATUS
-[1-2 sentences: current regime, confidence, what's shifted since yesterday, what it means for positioning]
+[1-2 sentences: current regime, confidence, what's shifted since yesterday, what it means for positioning. Include macro stress if available.]
 
 ## TODAY'S TOP 3 TRADES
 
 ### 1. LONG/SHORT $TICKER  [Tier · α=XX]
 [Why this trade — 2-3 sentences citing specific signals from data above]
 **Setup**: entry zone · target · stop · R/R
+**Bear case (Short persona):** [the disconfirming view — specific thesis + 1-2 red flags + downside%. Required.]
 
 ### 2. ...
+[Same structure incl. Bear case]
 
 ### 3. ...
+[Same structure incl. Bear case]
 
 ## TIER UPGRADES & DOWNGRADES
 [Brief bullet list of stocks that moved tier since yesterday — name + direction + key reason]
 
 ## NEWS SIGNAL OF THE DAY
 [1 bullet for most-bullish news + 1 for most-bearish]
+
+## DEBATE DISSENT (if any)
+[If any debated stock had DIVIDED or SELL consensus, surface it here with the bear case. Otherwise note "5-persona debates aligned today."]
 
 ## MACRO FLAGS TO WATCH
 [2-3 specific things — regime fragility, yield curve, sector flows]
@@ -244,7 +325,7 @@ Rules:
 - For each trade, cite the specific factor scores that justify it.
 - Reference regime fit explicitly: "X benefits from {context['regime']} regime because..."
 - Be DECISIVE. Not "could be" — "this IS" or "this ISN'T."
-"""
+{debate_rules}"""
     return call_claude(prompt)
 
 
@@ -277,7 +358,8 @@ def lambda_handler(event, context):
     bundle = build_context_bundle()
     print(f"  bundled: {len(bundle.get('top_alpha',[]))} alpha · "
           f"{len(bundle.get('confluence',[]))} confluence · "
-          f"{len(bundle.get('regime_picks',[]))} regime picks")
+          f"{len(bundle.get('regime_picks',[]))} regime picks · "
+          f"{len(bundle.get('debate_by_sym') or {})} debates")
 
     # 2. Synthesize with Claude
     try:
@@ -292,10 +374,12 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "model": CLAUDE_MODEL,
         "regime": bundle.get("regime"),
+        "macro_stress_score": bundle.get("macro_stress_score"),
         "brief_markdown": brief_md,
         "context_summary": {
             "n_top_alpha": len(bundle.get("top_alpha", [])),
             "n_confluence": len(bundle.get("confluence", [])),
+            "n_debates": len(bundle.get("debate_by_sym") or {}),
             "regime": bundle.get("regime"),
         },
     }
