@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIX Term Structure — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:'Inter','Segoe UI',system-ui,sans-serif;--font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;}
+*{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);} .nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.normal_contango{border-left:4px solid var(--pos);}
+.regime-banner.steep_contango_grind{border-left:4px solid var(--info);}
+.regime-banner.flat_transition{border-left:4px solid var(--gold);}
+.regime-banner.backwardated{border-left:4px solid var(--neg);}
+.regime-banner.backwardated_stress{border-left:4px solid var(--neg);box-shadow:0 0 20px rgba(255,61,90,.3);}
+.regime-banner.vol_of_vol_spike{border-left:4px solid var(--accent);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.accent{color:var(--accent);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;max-width:700px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:20px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);} .tile.gold .val{color:var(--gold);}
+.panel-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:18px;}
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.chart-controls{display:flex;gap:8px;}
+.chart-controls button{background:transparent;border:1px solid var(--border-hi);color:var(--text-dim);padding:4px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;}
+.chart-controls button:hover{color:var(--text);border-color:var(--accent);}
+.chart-controls button.active{color:var(--accent);border-color:var(--accent);background:rgba(167,139,250,.08);}
+#chart{height:560px;}
+#term-chart{height:280px;}
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media (max-width: 900px) { .row-2col { grid-template-columns: 1fr; } }
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>📈 VIX Term Structure <span class="badge">CBOE · 16Y</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="tiles" class="tiles"></div>
+
+<div class="panel-grid">
+  <div class="chart-panel">
+    <div class="chart-title">📐 Current Term Structure Shape</div>
+    <div id="term-chart"></div>
+  </div>
+
+  <div class="chart-panel">
+    <div class="chart-title">
+      <span>VIX Indices + Term Structure Spread · Historical</span>
+      <div class="chart-controls">
+        <button data-range="60">3M</button>
+        <button data-range="252" class="active">1Y</button>
+        <button data-range="756">3Y</button>
+        <button data-range="1764">7Y</button>
+      </div>
+    </div>
+    <div id="chart"></div>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology</h3>
+  <p>The VIX term structure is the curve formed by VIX-style indices at different forward tenors: <strong>VIX9D</strong> (9-day), <strong>VIX</strong> (30-day), <strong>VIX3M</strong> (3-month), <strong>VIX6M</strong> (6-month). The shape of this curve carries information distinct from spot VIX.</p>
+  <p><strong>Contango</strong> (front below back, spreads <0): normal calm state. Steep contango at low VIX = vol-sell carry regime. <strong>Backwardation</strong> (front above back, spreads >0): market pricing IMMEDIATE stress; historically marks ~80% of equity drawdowns. The reversion from backwardation to contango is often the bottom.</p>
+  <p><strong>Cross-asset dispersion:</strong> <code>VXN - VIX</code> measures growth/tech stress relative to S&P (when positive and elevated, Nasdaq is pricing more risk). <code>RVX - VIX</code> measures small-cap stress. <code>VVIX/VIX</code> ratio is vol-of-vol: high ratio = uncertainty about future vol magnitude.</p>
+  <p><strong>Sustained inversion:</strong> n days backwardated in the last 5/20 trading days. 2+/5 = stress regime confirmed. Reversion from sustained inversion = often the local low.</p>
+  <p><strong>Source:</strong> <code>cdn.cboe.com/api/global/us_indices/daily_prices/</code> · daily CSV files · history back to 2009-2011 · refreshed every 30 min during US market hours.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/vix-curve.json";
+const HISTORY_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/vix-curve-history.json";
+let SUMMARY = null, HISTORY = null, CHART = null, TERM_CHART = null, CURRENT_RANGE = 252;
+
+function fmt(v, d=2) { return v == null ? '-' : v.toFixed(d); }
+function fmtPct(v, d=1) { return v == null ? '-' : (v >= 0 ? '+' : '') + v.toFixed(d) + '%'; }
+
+async function load() {
+  try {
+    const [s, h] = await Promise.all([fetch(SIDECAR_URL), fetch(HISTORY_URL)]);
+    SUMMARY = await s.json(); HISTORY = await h.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (SUMMARY.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiles(); renderTermStructure(); renderChart();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function regimeColor(regime) {
+  if (regime === 'BACKWARDATED_STRESS' || regime === 'BACKWARDATED') return 'neg';
+  if (regime === 'VOL_OF_VOL_SPIKE') return 'accent';
+  if (regime === 'FLAT_TRANSITION') return 'gold';
+  if (regime === 'STEEP_CONTANGO_GRIND') return 'info';
+  if (regime === 'NORMAL_CONTANGO') return 'pos';
+  return 'mute';
+}
+
+function renderRegime() {
+  const regime = SUMMARY.composite_regime || 'NEUTRAL';
+  const signal = SUMMARY.composite_signal || '';
+  const cur = SUMMARY.current || {};
+  const pr = SUMMARY.percentile_ranks || {};
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${regime.toLowerCase()}">
+      <div>
+        <div class="regime-title ${regimeColor(regime)}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">VIX</span><span class="val">${fmt(cur.vix)}</span></div>
+        <div><span class="label">VIX3M</span><span class="val">${fmt(cur.vix3m)}</span></div>
+        <div><span class="label">VVIX</span><span class="val">${fmt(cur.vvix)}</span></div>
+        <div><span class="label">1Y PCT</span><span class="val">${pr.vix_pct_1y}%</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const cur = SUMMARY.current || {};
+  const sp = SUMMARY.spreads || {};
+  const sr = SUMMARY.spread_regimes || {};
+  const zs = SUMMARY.z_scores_60d || {};
+  const pr = SUMMARY.percentile_ranks || {};
+  const ss = SUMMARY.sustained_signals || {};
+  const cad = SUMMARY.cross_asset_dispersion || {};
+  const dod = SUMMARY.day_over_day || {};
+  const tiles = [
+    {lbl:"VIX9D", val: fmt(cur.vix9d), sub: `Δ ${fmtPct(dod.vix9d_change, 2)}`, cls: dod.vix9d_change > 0 ? 'neg' : 'pos'},
+    {lbl:"VIX (30d)", val: fmt(cur.vix), sub: `z=${zs.vix_z} · 1y:${pr.vix_pct_1y}%`, cls: zs.vix_z > 1 ? 'neg' : (zs.vix_z < -1 ? 'pos' : '')},
+    {lbl:"VIX3M", val: fmt(cur.vix3m), sub: `z=${zs.vix3m_z}`},
+    {lbl:"VIX6M", val: fmt(cur.vix6m), sub: `Δ today: -`},
+    {lbl:"Spread 30d-3m", val: (sp['30d_vs_3m'] >= 0 ? '+' : '') + fmt(sp['30d_vs_3m']), sub: sr['30d_3m'] || ''},
+    {lbl:"Avg Slope", val: (sp.avg_slope_30d_to_6m >= 0 ? '+' : '') + fmt(sp.avg_slope_30d_to_6m), sub: 'mean(30d-3m, 3m-6m)'},
+    {lbl:"VVIX/VIX", val: fmt(cur.vvix_vix_ratio), sub: `VVIX: ${fmt(cur.vvix)}`, cls: cur.vvix_vix_ratio > 7 ? 'gold' : ''},
+    {lbl:"VXN-VIX (NDX Stress)", val: (cad.vxn_minus_vix >= 0 ? '+' : '') + fmt(cad.vxn_minus_vix), sub: cad.nasdaq_stress_premium || '', cls: cad.nasdaq_stress_premium === 'ELEVATED' ? 'neg' : ''},
+    {lbl:"RVX-VIX (RUT Stress)", val: (cad.rvx_minus_vix >= 0 ? '+' : '') + fmt(cad.rvx_minus_vix), sub: cad.small_cap_stress_premium || '', cls: cad.small_cap_stress_premium === 'ELEVATED' ? 'neg' : ''},
+    {lbl:"Sustained Inversion", val: `${ss.n_5d_backwardated_30d_3m}/5`, sub: `Last 20d: ${ss.n_20d_backwardated_30d_3m}/20`, cls: ss.n_5d_backwardated_30d_3m >= 2 ? 'neg' : ''},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function renderTermStructure() {
+  const cur = SUMMARY.current || {};
+  const tenors = ['VIX9D (9d)', 'VIX (30d)', 'VIX3M (~63d)', 'VIX6M (~126d)'];
+  const values = [cur.vix9d, cur.vix, cur.vix3m, cur.vix6m];
+  if (!TERM_CHART) TERM_CHART = echarts.init(document.getElementById('term-chart'), null, {renderer:'canvas'});
+  TERM_CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'} },
+    grid: { left: 60, right: 30, top: 20, bottom: 40 },
+    xAxis: { type:'category', data: tenors, axisLabel:{color:'#8b96a8'}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'IV (%)', axisLabel:{color:'#8b96a8'}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+    series: [{
+      type: 'line', data: values, smooth: false, symbol:'circle', symbolSize:10,
+      lineStyle:{color:'#a78bfa', width:3},
+      itemStyle:{color:'#fbbf24'},
+      label:{show:true, position:'top', color:'#e6ecf3', formatter:'{c}'},
+      areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(167,139,250,.4)'},{offset:1,color:'rgba(167,139,250,0)'}]) },
+    }]
+  });
+}
+
+function renderChart() {
+  if (!HISTORY || !HISTORY.dates) return;
+  const n = HISTORY.dates.length;
+  const slice = Math.max(0, n - CURRENT_RANGE);
+  const dates = HISTORY.dates.slice(slice);
+  const ser = HISTORY.series;
+  const sp = HISTORY.spreads;
+  if (!CHART) CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  CHART.setOption({
+    backgroundColor:'transparent',
+    tooltip:{ trigger:'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'}, axisPointer:{type:'cross',lineStyle:{color:'#5b6479'}}},
+    legend:{ data:['VIX9D','VIX','VIX3M','VIX6M','VVIX/10','Spread 30d-3m','Spread 9d-30d'], textStyle:{color:'#e6ecf3'}, top:6 },
+    grid:[{left:60,right:60,top:42,height:'52%'},{left:60,right:60,top:'68%',height:'24%'}],
+    xAxis:[
+      { type:'category', data:dates, gridIndex:0, axisLabel:{color:'#8b96a8',fontSize:10}, axisLine:{lineStyle:{color:'#2a3548'}}},
+      { type:'category', data:dates, gridIndex:1, axisLabel:{color:'#8b96a8',fontSize:10}, axisLine:{lineStyle:{color:'#2a3548'}}}
+    ],
+    yAxis:[
+      { type:'value', gridIndex:0, name:'IV', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}}},
+      { type:'value', gridIndex:1, name:'Spread', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}}}
+    ],
+    series:[
+      { name:'VIX9D', type:'line', data: ser.vix9d.slice(slice), xAxisIndex:0, yAxisIndex:0, showSymbol:false, smooth:true, lineStyle:{color:'#22d3ee', width:1.5}},
+      { name:'VIX', type:'line', data: ser.vix.slice(slice), xAxisIndex:0, yAxisIndex:0, showSymbol:false, smooth:true, lineStyle:{color:'#fbbf24', width:2}},
+      { name:'VIX3M', type:'line', data: ser.vix3m.slice(slice), xAxisIndex:0, yAxisIndex:0, showSymbol:false, smooth:true, lineStyle:{color:'#a78bfa', width:1.5}},
+      { name:'VIX6M', type:'line', data: ser.vix6m.slice(slice), xAxisIndex:0, yAxisIndex:0, showSymbol:false, smooth:true, lineStyle:{color:'#00e676', width:1.5, opacity:0.7}},
+      { name:'VVIX/10', type:'line', data: ser.vvix.slice(slice).map(v => v ? v/10 : null), xAxisIndex:0, yAxisIndex:0, showSymbol:false, smooth:true, lineStyle:{color:'#ff3d5a', width:1, type:'dashed', opacity:0.6}},
+      { name:'Spread 30d-3m', type:'line', data: sp['30d_vs_3m'].slice(slice), xAxisIndex:1, yAxisIndex:1, showSymbol:false, lineStyle:{color:'#fbbf24', width:1.5},
+        areaStyle:{color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(251,191,36,.3)'},{offset:1,color:'rgba(251,191,36,0)'}])},
+        markLine:{silent:true, symbol:'none', data:[
+          {yAxis:0, lineStyle:{color:'#8b96a8',type:'dashed',width:1}, label:{formatter:'Zero',color:'#8b96a8'}},
+          {yAxis:2, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'Backwardation',color:'#ff3d5a'}},
+        ]}},
+      { name:'Spread 9d-30d', type:'line', data: sp['9d_vs_30d'].slice(slice), xAxisIndex:1, yAxisIndex:1, showSymbol:false, lineStyle:{color:'#22d3ee', width:1}}
+    ]
+  });
+}
+
+document.querySelectorAll('.chart-controls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-controls button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    CURRENT_RANGE = parseInt(btn.dataset.range);
+    renderChart();
+  });
+});
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); if (TERM_CHART) TERM_CHART.resize(); });
+load();
+setInterval(load, 5 * 60 * 1000);  // refresh every 5 min
+</script>
+</body>
+</html>
