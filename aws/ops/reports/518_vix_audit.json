@@ -1,0 +1,132 @@
+{
+  "started": "2026-05-13T13:33:34.844779+00:00",
+  "lambdas": {
+    "justhodl-vix-curve": {
+      "name": "justhodl-vix-curve",
+      "exists": true,
+      "memory": 256,
+      "timeout": 120,
+      "last_modified": "2026-04-27T22:10:26.924+0000",
+      "env_keys": [
+        "S3_BUCKET",
+        "S3_KEY"
+      ],
+      "rules": [],
+      "invoke_status": 200,
+      "invoke_fn_err": null,
+      "invoke_response": {
+        "ok": true,
+        "regime": "steep_contango",
+        "vix_30d": 18.04,
+        "vix_3m": 21.04
+      }
+    },
+    "justhodl-vol-regime": {
+      "name": "justhodl-vol-regime",
+      "exists": true,
+      "memory": 512,
+      "timeout": 240,
+      "last_modified": "2026-05-07T15:33:58.000+0000",
+      "env_keys": [
+        "POLY_KEY",
+        "S3_BUCKET",
+        "S3_KEY_OUT"
+      ],
+      "rules": [],
+      "invoke_status": 200,
+      "invoke_fn_err": null,
+      "invoke_response": {
+        "ok": true,
+        "n_with_iv": 6,
+        "composite_score": 45.8,
+        "composite_regime": "CONCERNED",
+        "duration_s": 2.3
+      }
+    },
+    "justhodl-volatility-squeeze-hunter": {
+      "name": "justhodl-volatility-squeeze-hunter",
+      "exists": true,
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-06T13:47:59.000+0000",
+      "env_keys": [
+        "FMP_KEY",
+        "MAX_TICKERS",
+        "N_WORKERS",
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S"
+      ],
+      "rules": [],
+      "invoke_status": 200,
+      "invoke_fn_err": null,
+      "invoke_response": {
+        "n_evaluated": 1306,
+        "n_tier_s": 9,
+        "n_tier_a": 36,
+        "n_tier_b": 107,
+        "duration_s": 35.5
+      }
+    }
+  },
+  "sidecars": {
+    "data/vix-curve.json": {
+      "exists": true,
+      "size_kb": 0.5,
+      "modified": "2026-05-13T13:33:47",
+      "top_keys": [
+        "generated_at",
+        "vix_9d",
+        "vix_30d",
+        "vix_3m",
+        "vix_6m",
+        "vvix",
+        "slopes",
+        "regime",
+        "interpretation",
+        "fetch_errors",
+        "fetch_duration_s"
+      ],
+      "sample_vix_9d": 16.34,
+      "sample_vix_3m": 21.04,
+      "sample_vix_6m": 23.03,
+      "sample_regime": "steep_contango",
+      "sample_generated_at": "2026-05-13T13:33:46+00:00"
+    },
+    "data/vol-regime.json": {
+      "exists": true,
+      "size_kb": 3.6,
+      "modified": "2026-05-13T13:33:58",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "n_tickers",
+        "n_with_iv",
+        "composite_score",
+        "composite_regime",
+        "regime_counts",
+        "weights",
+        "iv_sources_used",
+        "tickers",
+        "most_stressed",
+        "duration_s"
+      ]
+    },
+    "data/volatility-squeeze.json": {
+      "exists": true,
+      "size_kb": 647.3,
+      "modified": "2026-05-13T13:34:42",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "sample_generated_at": "2026-05-13T13:34:41+00:00"
+    }
+  },
+  "finished": "2026-05-13T13:34:42.924146+00:00"
+}
