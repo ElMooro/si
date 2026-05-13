@@ -6,11 +6,12 @@ flow IS the intraday market — this Lambda computes it.
 
 DATA SOURCES
 ────────────
-  • Options chains: Yahoo Finance (free, no subscription required)
-                     /v7/finance/options/{symbol} endpoint
-                     Provides: strike, OI, volume, IV, bid/ask per contract
-  • Spot prices: Polygon /v2/aggs/prev (fallback to Yahoo quote)
-  • Greeks: computed by us via Black-Scholes (more transparent than vendor)
+  • Options chains: CBOE delayed-quote CDN (free, 15-min delayed)
+                     https://cdn.cboe.com/api/global/delayed_quotes/options/{sym}.json
+                     Provides: full chain in one call with strike, OI, volume,
+                     IV, dealer-precomputed greeks, bid/ask, underlying price
+  • Spot prices: Polygon /v2/aggs/prev (fallback to CBOE underlying_price)
+  • Greeks: prefer CBOE's precomputed values, fall back to in-house Black-Scholes
 
 THE INSTITUTIONAL CONCEPT
 ─────────────────────────
@@ -94,7 +95,7 @@ from collections import defaultdict
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/dealer-gex.json"
@@ -104,11 +105,11 @@ POLY_KEY = os.environ.get("POLY_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-# Yahoo Finance proxy (Cloudflare Worker) — solves AWS Lambda → Yahoo 429 issue
-# Custom-domain binding bypasses CF account's workers.dev allowlist
-YAHOO_PROXY_BASE = "https://justhodl-yahoo-proxy.raafouis.workers.dev"
-# Auth token is read from SSM at cold start
-_PROXY_TOKEN_CACHE = None
+# CBOE delayed-quote CDN — free, comprehensive options chains (15-min delayed).
+# Returns FULL chain in one call: strikes, OI, volume, IV, dealer-precomputed
+# greeks (delta/gamma/theta/vega), bid/ask, last price, underlying price.
+# Served from CBOE's CDN with no rate limiting on cloud-provider IPs.
+CBOE_BASE = "https://cdn.cboe.com/api/global/delayed_quotes/options"
 
 # ─── Underlyings to model ───
 # SPY, QQQ, IWM = market-wide regimes (most important)
@@ -177,143 +178,131 @@ def bs_charm(S, K, T, r, sigma, is_call):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# POLYGON OPTIONS DATA
+# CBOE DELAYED-QUOTE OPTIONS DATA (free CDN, no rate limits on AWS IPs)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def _get_proxy_token():
-    """Fetch proxy auth token from SSM (cached at module level)."""
-    global _PROXY_TOKEN_CACHE
-    if _PROXY_TOKEN_CACHE is not None:
-        return _PROXY_TOKEN_CACHE
-    try:
-        v = ssm.get_parameter(Name="/justhodl/ai-chat/auth-token",
-                               WithDecryption=True)["Parameter"]["Value"]
-        _PROXY_TOKEN_CACHE = v
-        return v
-    except Exception as e:
-        print(f"  proxy token SSM err: {str(e)[:80]}")
-        _PROXY_TOKEN_CACHE = ""
-        return ""
+def _parse_occ_symbol(occ):
+    """
+    Parse OCC-standard option symbol → (underlying, expiry_date, type, strike).
+    Format: SPY240515C00400000
+            └┬─┘└─┬──┘└─┬─┘└──┬──┘
+        underlying YYMMDD C/P  strike×1000 (8 chars zero-padded)
+
+    Handles tickers up to 6 chars (e.g. GOOGL, BRKB).
+    """
+    if not occ: return None
+    s = occ.strip().upper()
+    # Find the position where 6-digit date starts (after underlying ticker)
+    for i in range(1, 7):
+        rest = s[i:]
+        if len(rest) >= 15 and rest[:6].isdigit() and rest[6] in ("C", "P"):
+            try:
+                yy = int(rest[0:2]); mm = int(rest[2:4]); dd = int(rest[4:6])
+                year = 2000 + yy if yy < 70 else 1900 + yy
+                exp = date(year, mm, dd)
+                opt_type = "call" if rest[6] == "C" else "put"
+                strike_raw = rest[7:15]
+                strike = int(strike_raw) / 1000.0
+                return (s[:i], exp, opt_type, strike)
+            except Exception:
+                continue
+    return None
 
 
-def _proxy_fetch_json(path, timeout=HTTP_TIMEOUT):
-    """Fetch JSON from Yahoo via Cloudflare Worker proxy.
-    Worker uses CF anycast IPs which Yahoo doesn't rate-limit."""
-    url = f"{YAHOO_PROXY_BASE}{path}"
-    headers = {"User-Agent": "JustHodl-GEX/1.1",
+def fetch_cboe_chain(underlying):
+    """Fetch full options chain from CBOE CDN. One call, full chain."""
+    url = f"{CBOE_BASE}/{underlying}.json"
+    headers = {"User-Agent": "Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36",
                 "Accept": "application/json"}
-    token = _get_proxy_token()
-    if token: headers["x-justhodl-token"] = token
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        print(f"  cboe {underlying} err: {str(e)[:120]}")
+        return None
 
 
 def fetch_spot_price(symbol):
-    """Latest close from Polygon, fall back to Yahoo via proxy."""
+    """Latest close from Polygon, fall back to CBOE chain's underlying_price."""
     if POLY_KEY:
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={POLY_KEY}"
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.1"})
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.2"})
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
                 data = json.loads(r.read().decode("utf-8"))
             results = data.get("results") or []
             if results: return float(results[0]["c"])
         except Exception as e:
-            print(f"  polygon spot {symbol} err: {str(e)[:80]} — falling back to proxy")
+            print(f"  polygon spot {symbol} err: {str(e)[:80]} — falling back to CBOE")
+    # CBOE fallback (parsed in fetch_options_chain_snapshot, but for spot-only
+    # callers we can also call CBOE here)
     try:
-        data = _proxy_fetch_json(f"/options/{symbol}")
-        result = ((data.get("optionChain") or {}).get("result") or [])
-        if result:
-            quote = result[0].get("quote") or {}
-            price = (quote.get("regularMarketPrice") or
-                     quote.get("postMarketPrice") or
-                     quote.get("preMarketPrice"))
-            if price: return float(price)
+        d = fetch_cboe_chain(symbol)
+        if d:
+            data = d.get("data") or {}
+            for k in ("current_price", "last_trade_price", "close"):
+                if k in data and data[k]: return float(data[k])
+            # Some symbols have it on first option
+            options = data.get("options") or []
+            if options:
+                up = options[0].get("underlying_price")
+                if up: return float(up)
     except Exception as e:
-        print(f"  proxy spot {symbol} err: {str(e)[:80]}")
+        print(f"  cboe spot {symbol} err: {str(e)[:80]}")
     return None
 
 
 def fetch_options_chain_snapshot(underlying):
     """
-    Fetch full options chain from Yahoo Finance via Cloudflare Worker proxy.
-    (Direct Yahoo calls from AWS Lambda IPs hit 429; proxy uses CF anycast.)
+    Fetch full options chain from CBOE CDN.
+    CBOE returns ALL contracts in one call. We parse the OCC symbol on each
+    option to extract strike/expiry/type, and filter to expiries within the
+    EXPIRY_HORIZON_DAYS window.
 
-    Two-step fetch:
-      1. /options/{sym} — expirations list + first expiry's contracts
-      2. /options/{sym}?date={unix} — per-additional-expiry call
-
-    Greeks (gamma/vanna/charm) computed by us via Black-Scholes.
+    CBOE provides precomputed greeks (delta/gamma/theta/vega) and IV per
+    contract. We use their gamma where present; otherwise compute via BS.
     """
     today = date.today()
-    cutoff_unix = int(time.mktime(
-        (today + timedelta(days=EXPIRY_HORIZON_DAYS)).timetuple()))
-
-    try:
-        data = _proxy_fetch_json(f"/options/{underlying}")
-    except Exception as e:
-        print(f"  proxy options {underlying} init err: {str(e)[:120]}")
-        return []
-
-    result = ((data.get("optionChain") or {}).get("result") or [])
-    if not result: return []
-    chain_data = result[0]
-    expirations = chain_data.get("expirationDates") or []
-    expirations_in_horizon = [e for e in expirations if e <= cutoff_unix]
-
+    cutoff = today + timedelta(days=EXPIRY_HORIZON_DAYS)
+    d = fetch_cboe_chain(underlying)
+    if not d: return []
+    data = d.get("data") or {}
+    options = data.get("options") or []
     contracts = []
-    seen_expiries = set()
 
-    def parse_block(block):
-        exp_ts = block.get("expirationDate")
-        if exp_ts in seen_expiries: return
-        seen_expiries.add(exp_ts)
-        try:
-            exp_str = datetime.fromtimestamp(exp_ts, tz=timezone.utc).date().isoformat()
-        except Exception: return
-        for c in (block.get("calls") or []):
-            contracts.append({
-                "ticker": c.get("contractSymbol"), "type": "call",
-                "strike": c.get("strike"), "expiry": exp_str,
-                "open_interest": c.get("openInterest") or 0,
-                "volume": c.get("volume") or 0,
-                "iv": c.get("impliedVolatility"),
-                "gamma_polygon": None, "delta_polygon": None,
-                "vega_polygon": None, "theta_polygon": None,
-                "last_quote_bid": c.get("bid"),
-                "last_quote_ask": c.get("ask"),
-                "last_price": c.get("lastPrice"),
-                "in_the_money": c.get("inTheMoney"),
-            })
-        for p in (block.get("puts") or []):
-            contracts.append({
-                "ticker": p.get("contractSymbol"), "type": "put",
-                "strike": p.get("strike"), "expiry": exp_str,
-                "open_interest": p.get("openInterest") or 0,
-                "volume": p.get("volume") or 0,
-                "iv": p.get("impliedVolatility"),
-                "gamma_polygon": None, "delta_polygon": None,
-                "vega_polygon": None, "theta_polygon": None,
-                "last_quote_bid": p.get("bid"),
-                "last_quote_ask": p.get("ask"),
-                "last_price": p.get("lastPrice"),
-                "in_the_money": p.get("inTheMoney"),
-            })
-
-    for block in (chain_data.get("options") or []):
-        parse_block(block)
-
-    for exp_ts in expirations_in_horizon:
-        if exp_ts in seen_expiries: continue
-        try:
-            d = _proxy_fetch_json(f"/options/{underlying}?date={exp_ts}")
-            for block in (((d.get("optionChain") or {}).get("result") or [{}])[0].get("options") or []):
-                parse_block(block)
-        except Exception as e:
-            print(f"  proxy {underlying} exp {exp_ts} err: {str(e)[:80]}")
-            continue
-
+    # CBOE inflicts no contract limit; chain can be 5000-10000 lines
+    for o in options:
+        parsed = _parse_occ_symbol(o.get("option"))
+        if not parsed: continue
+        _, exp_date, opt_type, strike = parsed
+        if exp_date < today or exp_date > cutoff: continue
+        oi = o.get("open_interest")
+        if oi is None or oi <= 0: continue
+        iv = o.get("iv")
+        if iv is None: continue
+        # CBOE returns IV as decimal (e.g. 0.2345) for stocks; sanity check
+        try: iv = float(iv)
+        except: continue
+        if iv <= 0 or iv > 5: continue  # discard junk values
+        contracts.append({
+            "ticker": o.get("option"),
+            "type": opt_type,
+            "strike": strike,
+            "expiry": exp_date.isoformat(),
+            "open_interest": int(oi),
+            "volume": int(o.get("volume") or 0),
+            "iv": iv,
+            # CBOE-provided greeks (more accurate than recomputing)
+            "gamma_polygon": o.get("gamma"),  # field name retained for compatibility
+            "delta_polygon": o.get("delta"),
+            "vega_polygon": o.get("vega"),
+            "theta_polygon": o.get("theta"),
+            "last_quote_bid": o.get("bid"),
+            "last_quote_ask": o.get("ask"),
+            "last_price": o.get("last_trade_price"),
+            "in_the_money": None,
+        })
     return contracts
 
 
