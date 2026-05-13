@@ -1,0 +1,34 @@
+{
+  "started": "2026-05-13T11:43:12.929618+00:00",
+  "result": {
+    "probes": [
+      {
+        "url": "https://squeezemetrics.com/monitor/static/DIX.csv",
+        "status": 200,
+        "bytes": 216936,
+        "head": "date,price,dix,gex\r\n2011-05-02,1361.219971,0.37884209915686345,1897312571.4860\r\n2011-05-03,1356.619995,0.38341107994146323,1859730656.1300\r\n2011-05-04,1347.319946,0.39212179979185374,1717763844.5350\r\n2011-05-05,1335.099976,0.4054570196735625,1361864280.2750\r\n2011-05-06,1340.199951,0.41864866545256374,1490328625.9800\r\n2011-05-09,1346.290039,0.4103205027781488,1677058729.0400\r\n2011-05-10,1357.160034,0.3928514271714904,2034952130.6900\r\n2011-05-11,1342.079956,0.40081409772494436,1536770884.9200\r\n2011-05-12,1348.650024,0.3875339951676699,1674923266.0950\r\n2011-05-13,1337.77002,0.4055951917654673,121",
+        "elapsed_ms": 125
+      },
+      {
+        "url": "https://squeezemetrics.com/monitor/download/dix.csv",
+        "status": 404,
+        "body_preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n<!-- a padding to disable MSIE and Chrome friendly err",
+        "elapsed_ms": 9
+      },
+      {
+        "url": "https://squeezemetrics.com/data/dix.csv",
+        "status": 404,
+        "body_preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n<!-- a padding to disable MSIE and Chrome friendly err",
+        "elapsed_ms": 8
+      },
+      {
+        "url": "https://squeezemetrics.com/dix",
+        "status": 404,
+        "body_preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx</center>\r\n</body>\r\n</html>\r\n<!-- a padding to disable MSIE and Chrome friendly err",
+        "elapsed_ms": 10
+      }
+    ]
+  },
+  "log_tail": "START RequestId: 66927901-e522-42ba-ab2f-ea5bd2aff984 Version: $LATEST\nEND RequestId: 66927901-e522-42ba-ab2f-ea5bd2aff984\nREPORT RequestId: 66927901-e522-42ba-ab2f-ea5bd2aff984\tDuration: 156.73 ms\tBilled Duration: 289 ms\tMemory Size: 512 MB\tMax Memory Used: 53 MB\tInit Duration: 132.11 ms\t\n",
+  "finished": "2026-05-13T11:43:19.559842+00:00"
+}
