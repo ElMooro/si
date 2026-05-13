@@ -1,0 +1,100 @@
+{
+  "started": "2026-05-13T13:47:26.810873+00:00",
+  "env_keys": [
+    "S3_BUCKET",
+    "S3_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "lambda": "updated",
+  "schedule": "cron(0,30 13-21 ? * MON-FRI *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "2.0.0",
+    "data_date": "2026-05-12",
+    "vix": 17.99,
+    "vix3m": 21.04,
+    "spread_30d_3m": -3.05,
+    "composite_regime": "NORMAL_CONTANGO",
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 1.35
+  },
+  "log_tail": "START RequestId: c95499d5-a346-4424-bd97-0103a68d61e9 Version: $LATEST\n=== VIX-CURVE v2.0.0 \u00b7 2026-05-13T13:47:42.368505+00:00 ===\nfetched vix9d: 3861 rows in 0.20s\nfetched vix: 9183 rows in 0.20s\nfetched vix3m: 4187 rows in 0.10s\nfetched vix6m: 4619 rows in 0.13s\nfetched vvix: 5018 rows in 0.16s\nfetched vxn: 4193 rows in 0.24s\nfetched rvx: 4184 rows in 0.12s\n4187 common date intersections\n\u2713 vix-curve.json written (1.6 KB)\n\u2713 vix-curve-history.json written\nEND RequestId: c95499d5-a346-4424-bd97-0103a68d61e9\nREPORT RequestId: c95499d5-a346-4424-bd97-0103a68d61e9\tDuration: 1515.62 ms\tBilled Duration: 2047 ms\tMemory Size: 512 MB\tMax Memory Used: 108 MB\tInit Duration: 530.91 ms\t\n",
+  "sidecar": {
+    "size_kb": 1.4,
+    "modified": "2026-05-13T13:47:44",
+    "version": "2.0.0",
+    "data_date": "2026-05-12",
+    "current": {
+      "vix9d": 16.34,
+      "vix": 17.99,
+      "vix3m": 21.04,
+      "vix6m": 23.03,
+      "vvix": 98.55,
+      "vxn": 24.13,
+      "rvx": 23.85,
+      "vvix_vix_ratio": 5.48
+    },
+    "spreads": {
+      "9d_vs_30d": -1.65,
+      "30d_vs_3m": -3.05,
+      "3m_vs_6m": -1.99,
+      "9d_vs_6m": -6.69,
+      "avg_slope_30d_to_6m": -2.52
+    },
+    "spread_regimes": {
+      "9d_30d": "CONTANGO",
+      "30d_3m": "STEEP_CONTANGO",
+      "3m_6m": "CONTANGO",
+      "9d_6m": "STEEP_CONTANGO"
+    },
+    "composite_regime": "NORMAL_CONTANGO",
+    "composite_signal": "Normal contango \u00b7 vol pricing balanced across curve \u00b7 no immediate stress",
+    "z_scores_60d": {
+      "vix9d_z": -0.9,
+      "vix_z": -0.94,
+      "vix3m_z": -0.8,
+      "spread_30d_3m_z": -1.15,
+      "spread_9d_30d_z": -0.61
+    },
+    "percentile_ranks": {
+      "vix_pct_1y": 60.7,
+      "vix_pct_all_time": 58.3,
+      "spread_30d_3m_pct_1y": 28.2
+    },
+    "sustained_signals": {
+      "n_5d_backwardated_30d_3m": 0,
+      "n_20d_backwardated_30d_3m": 0,
+      "n_5d_front_inverted_9d_30d": 0,
+      "n_20d_front_inverted_9d_30d": 0
+    },
+    "cross_asset_dispersion": {
+      "vxn_minus_vix": 6.14,
+      "rvx_minus_vix": 5.86,
+      "nasdaq_stress_premium": "ELEVATED",
+      "small_cap_stress_premium": "NORMAL"
+    },
+    "n_history_days": 4187,
+    "history_first_date": "2009-09-18"
+  },
+  "history_sidecar": {
+    "size_kb": 157.1,
+    "n_days": 1764,
+    "first_date": "2019-05-07",
+    "last_date": "2026-05-12",
+    "series_keys": [
+      "vix9d",
+      "vix",
+      "vix3m",
+      "vix6m",
+      "vvix",
+      "vxn",
+      "rvx"
+    ]
+  },
+  "finished": "2026-05-13T13:47:44.400706+00:00"
+}
