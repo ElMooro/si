@@ -187,6 +187,8 @@ def load_all():
         "dix":"data/dix.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
         "earnings_sentiment":"screener/earnings-sentiment.json",
+        # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
+        "vol_regime":"data/vol-regime.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -403,12 +405,24 @@ def extract_metrics(data,weights):
             "btc_flow_regime": (e.get("BTC") or {}).get("regime"),
             "eth_flow_regime": (e.get("ETH") or {}).get("regime"),
         })(),
-        # VIX curve (term structure of volatility)
+        # VIX term structure (Bloomberg-Gap #6) — full curve + slopes + VVIX
         **(lambda v=data.get("vix_curve", {}): {
-            "vix_spot": v.get("vix_spot") or v.get("spot"),
-            "vix_3m": v.get("vix_3m") or v.get("3m"),
+            "vix_9d": v.get("vix_9d"),
+            "vix_30d": v.get("vix_30d") or v.get("vix_spot") or v.get("spot"),
+            "vix_3m": v.get("vix_3m"),
+            "vix_6m": v.get("vix_6m"),
+            "vvix": v.get("vvix"),
             "vix_curve_regime": v.get("regime"),
-            "vix_slope_3m_spot": v.get("slope_3m_spot") or v.get("slope"),
+            "vix_slopes": v.get("slopes"),
+            "vix_interpretation": v.get("interpretation"),
+            "vix_curve_generated_at": v.get("generated_at"),
+        })(),
+        # Vol Regime composite (cross-ticker IV stress)
+        **(lambda v=data.get("vol_regime", {}) if data.get("vol_regime") else {}: {
+            "vol_regime_composite": v.get("composite_regime"),
+            "vol_regime_score": v.get("composite_score"),
+            "vol_regime_n_tickers": v.get("n_with_iv"),
+            "vol_regime_most_stressed": (v.get("most_stressed") or [])[:3],
         })(),
         # Auction crisis (Treasury auction stress)
         **(lambda a=data.get("auction_crisis", {}): {

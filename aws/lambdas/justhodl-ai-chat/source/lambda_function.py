@@ -242,13 +242,38 @@ def build_context(message):
         if interp.get('decisive_call'):
             lines.append(f"[GBC DECISIVE CALL] {interp['decisive_call']}")
 
+    # ─── VIX Term Structure (Bloomberg-Gap #6) ──────────────────────
     vix = get_s3('data/vix-curve.json')
     if vix:
-        spot = vix.get('vix_spot') or vix.get('spot')
-        v3m = vix.get('vix_3m') or vix.get('3m')
-        slope = vix.get('slope_3m_spot') or vix.get('slope')
+        v9 = vix.get('vix_9d')
+        v30 = vix.get('vix_30d') or vix.get('vix_spot') or vix.get('spot')
+        v3m = vix.get('vix_3m')
+        v6m = vix.get('vix_6m')
+        vvix = vix.get('vvix')
         regime_v = vix.get('regime') or 'unknown'
-        lines.append(f"[VIX CURVE] Spot:{spot}  3M:{v3m}  Slope:{slope}  Regime:{regime_v}")
+        slopes = vix.get('slopes') or {}
+        interp = vix.get('interpretation') or {}
+        lines.append(f"[VIX TERM STRUCTURE] 9D:{v9} 30D:{v30} 3M:{v3m} 6M:{v6m} VVIX:{vvix} · regime={regime_v}")
+        if slopes:
+            slope_str = ' · '.join(f"{k}:{v}" for k, v in slopes.items() if v is not None)
+            lines.append(f"[VIX SLOPES] {slope_str}")
+        if isinstance(interp, dict) and interp.get('signal'):
+            lines.append(f"[VIX SIGNAL] {interp.get('signal')} · {interp.get('rationale', '')[:120]}")
+        elif isinstance(interp, str) and interp:
+            lines.append(f"[VIX SIGNAL] {interp[:150]}")
+
+    # ─── Vol Regime composite (cross-ticker IV stress aggregate) ────
+    vr = get_s3('data/vol-regime.json')
+    if vr:
+        cr = vr.get('composite_regime')
+        cs = vr.get('composite_score')
+        n = vr.get('n_with_iv')
+        if cr:
+            lines.append(f"[VOL REGIME] composite={cr} score={cs}/100 (across {n} tickers)")
+        ms = vr.get('most_stressed') or []
+        if ms:
+            ms_str = ', '.join(f"{x.get('ticker') or x.get('symbol')}(iv:{x.get('iv_rank') or x.get('iv_percentile')})" for x in ms[:3])
+            lines.append(f"[VOL MOST STRESSED] {ms_str}")
 
     aaii = get_s3('data/aaii-sentiment.json')
     if aaii:
