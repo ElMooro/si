@@ -1,0 +1,158 @@
+{
+  "started": "2026-05-13T11:17:12.491190+00:00",
+  "size_kb": 91.1,
+  "modified": "2026-05-13T11:12:34",
+  "top_level_keys": [
+    "generated_at",
+    "generated_at_unix",
+    "version",
+    "data_date",
+    "elapsed_seconds",
+    "config",
+    "market_composite",
+    "squeeze_candidates",
+    "top_svr",
+    "top_zscore",
+    "sectors",
+    "tickers"
+  ],
+  "samples": {
+    "generated_at": {
+      "type": "str",
+      "value": "2026-05-13T11:12:33.667761+00:00"
+    },
+    "generated_at_unix": {
+      "type": "int",
+      "value": 1778670753
+    },
+    "version": {
+      "type": "str",
+      "value": "1.1.0"
+    },
+    "data_date": {
+      "type": "str",
+      "value": "2026-05-12"
+    },
+    "elapsed_seconds": {
+      "type": "float",
+      "value": 0.49
+    },
+    "config": {
+      "type": "dict",
+      "keys": [
+        "universe",
+        "history_days",
+        "squeeze_thresholds"
+      ],
+      "n_keys": 3,
+      "first_value": "S&P 500"
+    },
+    "market_composite": {
+      "type": "dict",
+      "keys": [
+        "regime",
+        "volume_weighted_svr",
+        "volume_weighted_svr_pct",
+        "median_svr_pct",
+        "p10_svr_pct",
+        "p90_svr_pct",
+        "p99_svr_pct",
+        "n_analyzed",
+        "n_universe_in_file",
+        "n_high_svr",
+        "n_extreme_z"
+      ],
+      "n_keys": 11,
+      "first_value": "NORMAL"
+    },
+    "squeeze_candidates": {
+      "type": "list",
+      "len": 0,
+      "first_2": []
+    },
+    "top_svr": {
+      "type": "list",
+      "len": 30,
+      "first_2": [
+        {
+          "symbol": "TYL",
+          "name": "Tyler Technologies",
+          "sector": "Information Technology",
+          "svr_pct": null,
+          "z_score": null,
+          "short_volume": 1623781.331369,
+          "total_volume": 1857664.215557
+        },
+        {
+          "symbol": "RVTY",
+          "name": "Revvity",
+          "sector": "Health Care",
+          "svr_pct": null,
+          "z_score": null,
+          "short_volume": 475598.482663,
+          "total_volume": 546081.346932
+        }
+      ]
+    },
+    "top_zscore": {
+      "type": "list",
+      "len": 0,
+      "first_2": []
+    },
+    "sectors": {
+      "type": "dict",
+      "keys": [
+        "Industrials",
+        "Utilities",
+        "Materials",
+        "Energy",
+        "Consumer Discretionary",
+        "Consumer Staples",
+        "Real Estate",
+        "Financials",
+        "Information Technology",
+        "Health Care",
+        "Communication Services"
+      ],
+      "n_keys": 11,
+      "first_value": {
+        "n_tickers": 79,
+        "median_svr": 54.25,
+        "mean_svr": 53.14,
+        "max_svr": 86.35,
+        "total_volume": 76064270.0
+      }
+    },
+    "tickers": {
+      "type": "dict",
+      "keys": [
+        "HAL",
+        "NCLH",
+        "ERIE",
+        "APP",
+        "CPT",
+        "NVDA",
+        "CEG",
+        "QCOM",
+        "GNRC",
+        "WY",
+        "AVGO",
+        "PLTR",
+        "BG",
+        "TTWO",
+        "AEP"
+      ],
+      "n_keys": 501,
+      "first_value": {
+        "symbol": "HAL",
+        "svr": 0.5301,
+        "short_volume": 2633274.910148,
+        "total_volume": 4967090.277119,
+        "insufficient_history": true,
+        "sector": "Energy",
+        "name": "Halliburton"
+      }
+    }
+  },
+  "finished": "2026-05-13T11:17:12.723535+00:00"
+}
