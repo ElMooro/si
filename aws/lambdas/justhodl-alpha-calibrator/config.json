@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-alpha-calibrator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Institutional-grade self-improvement engine (#1). Weekly reads justhodl-trades DDB, computes per-strategy Sharpe/Sortino/expectancy/profit-factor + Wilson CI + t-stats, Information Coefficients per alpha component, factor attribution OLS regression with R²/p-values, Bayesian shrinkage weight update with guardrails, champion/challenger A/B deployment. Writes audit log + proposed weights (manual approval default).",
+  "environment": {
+    "LOOKBACK_DAYS": "120",
+    "MIN_OBS_FOR_STAT": "30",
+    "MIN_OBS_FOR_WEIGHT_UPDATE": "60"
+  },
+  "inherit_env": [
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]},
+    {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-alpha-calibrator-weekly",
+    "cron": "cron(0 9 ? * SUN *)",
+    "description": "Weekly Sunday 09:00 UTC = 5am ET — after Saturday's trade-evaluator daily run (30d outcomes freshest)"
+  }
+}

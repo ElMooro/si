@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📐 Alpha Calibration — Self-Improvement Loop · JustHodl.AI</title>
+<meta name="description" content="Institutional-grade self-calibration engine. Per-strategy Sharpe/Sortino/expectancy + Wilson CI + t-stats. Information Coefficients per alpha component. Factor attribution OLS with R²/p-values. Bayesian shrinkage weight update with guardrails. Champion/challenger A/B deployment.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --warn:#fb923c; --crit:#ef4444;
+  --sig:#22d3ee; --not-sig:#5b6479;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:var(--info);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;}
+.nav-links a{color:var(--text-dim);}
+
+main{padding:20px;max-width:1700px;margin:0 auto;}
+
+.hero{display:grid;grid-template-columns:1fr auto;gap:20px;background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(167,139,250,.04));border:1px solid rgba(251,191,36,.18);border-radius:8px;padding:16px 20px;margin-bottom:14px;}
+.hero h2{margin:0 0 4px;font-size:15px;font-weight:600;}
+.hero p{margin:0;color:var(--text-dim);font-size:12px;line-height:1.55;}
+.deployment-badge{font-family:var(--font-mono);font-size:11px;padding:8px 14px;border-radius:5px;text-align:center;white-space:nowrap;}
+.deployment-badge.active{background:rgba(0,230,118,.15);color:var(--pos);border:1px solid rgba(0,230,118,.3);}
+.deployment-badge.proposed{background:rgba(251,191,36,.15);color:var(--gold);border:1px solid rgba(251,191,36,.3);}
+.deployment-badge.insufficient{background:rgba(91,100,121,.15);color:var(--text-mute);border:1px solid var(--border);}
+
+.tiles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px 13px;position:relative;overflow:hidden;}
+.tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.6;}
+.tile.pos::before{background:var(--pos);}
+.tile.warn::before{background:var(--warn);}
+.tile.info::before{background:var(--info);}
+.tile.gold::before{background:var(--gold);}
+.tile-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;color:var(--text-mute);text-transform:uppercase;margin-bottom:3px;}
+.tile-value{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.1;}
+.tile-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+h2.section{font-size:13px;font-weight:600;margin:18px 0 8px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+h2.section .meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.4px;}
+
+/* Two-column layout for weights side-by-side */
+.weights-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media (max-width:880px){.weights-grid{grid-template-columns:1fr;}}
+.weights-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.weights-card h3{margin:0 0 10px;font-size:12px;letter-spacing:.6px;color:var(--text-dim);text-transform:uppercase;}
+.weight-row{display:grid;grid-template-columns:100px 1fr 60px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(28,35,48,.4);}
+.weight-row:last-child{border-bottom:none;}
+.weight-comp{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;}
+.weight-bar-track{background:var(--bg);border-radius:3px;height:14px;position:relative;overflow:hidden;border:1px solid var(--border);}
+.weight-bar-fill{height:100%;background:linear-gradient(90deg,rgba(167,139,250,.4),rgba(34,211,238,.5));border-radius:3px;}
+.weight-pct{font-family:var(--font-mono);font-size:11px;font-weight:600;text-align:right;color:var(--text);}
+.weight-delta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-left:6px;}
+.weight-delta.pos{color:var(--pos);}
+.weight-delta.neg{color:var(--neg);}
+
+/* Tables */
+.table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:auto;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+thead th{text-align:left;padding:9px 10px;font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--panel-2);position:sticky;top:0;}
+tbody td{padding:7px 10px;border-bottom:1px solid rgba(28,35,48,.5);vertical-align:top;}
+tbody tr:hover{background:rgba(28,35,48,.4);}
+tbody tr:last-child td{border-bottom:none;}
+.col-r{text-align:right;}
+
+.sig-chip{font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:2px;letter-spacing:.4px;font-weight:700;}
+.sig-yes{background:rgba(34,211,238,.18);color:var(--sig);}
+.sig-no{color:var(--text-mute);background:rgba(91,100,121,.10);}
+.sig-strong{background:rgba(0,230,118,.18);color:var(--pos);}
+
+.pos-val{color:var(--pos);font-weight:600;}
+.neg-val{color:var(--neg);font-weight:600;}
+.neutral-val{color:var(--text-mute);}
+
+.empty-state{padding:36px 24px;text-align:center;color:var(--text-mute);}
+.empty-state .icon{font-size:32px;margin-bottom:10px;}
+
+/* Per-strategy detail card */
+.strat-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;margin-bottom:10px;}
+.strat-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.strat-name{font-family:var(--font-mono);font-weight:700;font-size:12.5px;letter-spacing:.4px;}
+.strat-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;font-size:11px;}
+.strat-metric{font-family:var(--font-mono);}
+.strat-metric .label{color:var(--text-mute);font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:2px;}
+.strat-metric .val{color:var(--text);font-weight:600;font-size:13px;}
+.strat-regime{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
+.regime-row{display:inline-block;margin-right:14px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);}
+
+.formula-box{background:var(--panel-2);border:1px solid var(--border);border-radius:5px;padding:12px 14px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:14px;line-height:1.6;}
+.formula-box code{color:var(--accent);}
+.formula-box .h{color:var(--gold);font-weight:600;}
+
+footer{text-align:center;padding:24px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📐 Alpha Calibration <span class="badge">#1</span></h1>
+  <div class="header-meta">
+    <span><span class="dot"></span><span id="status">Loading…</span></span>
+    <span id="updated"></span>
+    <span class="nav-links">
+      <a href="/alpha/">α Alpha</a>
+      <a href="/trades/">📓 Trades</a>
+      <a href="/debate/">⚔ Debate</a>
+      <a href="/anomaly/">⚠ Anomaly</a>
+      <a href="/">🏠 Home</a>
+    </span>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <div>
+      <h2>Self-Improvement Loop · Institutional Quant Diagnostics</h2>
+      <p>Reads the trade journal weekly and recomputes optimal alpha-score weights using <strong style="color:var(--gold)">Information Coefficients</strong>, <strong style="color:var(--gold)">factor attribution OLS regression</strong>, <strong style="color:var(--gold)">Wilson confidence intervals</strong>, and <strong style="color:var(--gold)">Bayesian shrinkage</strong> with hard guardrails. Champion/challenger A/B with manual approval default. After 60+ trades, weight changes become statistically defensible.</p>
+    </div>
+    <div id="deployment-badge"></div>
+  </div>
+
+  <div class="tiles-grid" id="tiles-grid"></div>
+
+  <h2 class="section">
+    <span>⚖ Weight Evolution <span class="meta">current vs proposed · shrinkage + guardrails applied</span></span>
+    <span class="meta" id="weights-meta">—</span>
+  </h2>
+  <div class="weights-grid">
+    <div class="weights-card">
+      <h3>CURRENT (in production)</h3>
+      <div id="current-weights"></div>
+    </div>
+    <div class="weights-card">
+      <h3>PROPOSED (this calibration)</h3>
+      <div id="proposed-weights"></div>
+    </div>
+  </div>
+
+  <h2 class="section">
+    <span>🎯 Per-Strategy Performance <span class="meta">Sharpe · Sortino · expectancy · profit factor · t-stat · p-value · vs SPY</span></span>
+  </h2>
+  <div id="strategies-list"></div>
+
+  <h2 class="section">
+    <span>⚡ Information Coefficients <span class="meta">corr(component_score_at_call, forward_return) at 1d / 7d / 30d / 90d</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="ic-table">
+      <thead><tr>
+        <th>Component</th>
+        <th class="col-r">IC 1d</th><th>n / sig</th>
+        <th class="col-r">IC 7d</th><th>n / sig</th>
+        <th class="col-r">IC 30d</th><th>n / sig</th>
+        <th class="col-r">IC 90d</th><th>n / sig</th>
+      </tr></thead>
+      <tbody id="ic-body"></tbody>
+    </table>
+  </div>
+
+  <h2 class="section">
+    <span>🔬 Factor Attribution OLS <span class="meta" id="ols-meta">return_30d ~ alpha_components</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="ols-table">
+      <thead><tr>
+        <th>Factor</th>
+        <th class="col-r">Coefficient (β)</th>
+        <th class="col-r">Std Error</th>
+        <th class="col-r">t-stat</th>
+        <th class="col-r">p-value</th>
+        <th>Significance</th>
+      </tr></thead>
+      <tbody id="ols-body"></tbody>
+    </table>
+  </div>
+
+  <h2 class="section">
+    <span>📐 Methodology Reference <span class="meta">how this calibrator works</span></span>
+  </h2>
+  <div class="formula-box">
+<div class="h">PER-STRATEGY STATISTICS</div>
+sharpe_annualized = <code>(mean_return / std) × √12</code> &nbsp;·&nbsp; sortino = <code>(mean / downside_std) × √12</code><br>
+expectancy = <code>win_rate × avg_win + loss_rate × avg_loss</code><br>
+profit_factor = <code>sum(wins) / |sum(losses)|</code><br>
+wilson_ci_95 = <code>(p + z²/2n ± z·√(p(1-p)/n + z²/4n²)) / (1 + z²/n)</code> &nbsp; where z=1.96<br>
+t_stat = <code>(mean - 0) / (std / √n)</code> &nbsp;·&nbsp; p = two-tailed t-distribution
+
+<div class="h" style="margin-top:10px">INFORMATION COEFFICIENTS</div>
+IC_h = <code>corr(component_score_at_call, return_h)</code> for h ∈ {1d, 7d, 30d, 90d}<br>
+IC standard error = <code>√((1 - IC²) / (n-2))</code> &nbsp;·&nbsp; t = IC / SE
+
+<div class="h" style="margin-top:10px">FACTOR ATTRIBUTION OLS</div>
+return_30d ~ β₀ + β₁·quality + β₂·growth + … + β₈·options_flow<br>
+β = <code>(X'X)⁻¹ X'y</code> &nbsp;·&nbsp; coefficients centered around component=50<br>
+data_implied_weight[i] = <code>max(0, β[i]) / Σ max(0, β[j])</code>
+
+<div class="h" style="margin-top:10px">BAYESIAN WEIGHT UPDATE</div>
+proposed = <code>(1 - λ) × current + λ × data_implied</code><br>
+λ = <code>min(N / 200, 0.40)</code> &nbsp;·&nbsp; capped shrinkage<br>
+guardrail: <code>|Δweight| ≤ 0.03</code> per cycle &nbsp;·&nbsp; floor 0.04 &nbsp;·&nbsp; ceiling 0.22<br>
+renormalize: <code>Σ weights = 1.00</code>
+
+<div class="h" style="margin-top:10px">DEPLOYMENT GATES</div>
+auto-apply requires ALL of:
+&nbsp;&nbsp;1. <code>auto_apply_calibrations</code> flag = true (manual approval default)<br>
+&nbsp;&nbsp;2. <code>n_obs ≥ 60</code> evaluated 30d outcomes<br>
+&nbsp;&nbsp;3. At least one factor with attribution <code>p &lt; 0.05</code><br>
+Otherwise: weights logged as "proposed" only, alpha-score uses current.
+  </div>
+
+  <h2 class="section">
+    <span>📊 Calibration History <span class="meta">rolling 52-week audit log</span></span>
+  </h2>
+  <div class="table-wrap">
+    <table id="history-table">
+      <thead><tr>
+        <th>Date</th>
+        <th class="col-r">Trades</th>
+        <th class="col-r">Win 30d</th>
+        <th class="col-r">Avg Return</th>
+        <th class="col-r">R²</th>
+        <th>Decision</th>
+      </tr></thead>
+      <tbody id="history-body"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer><p>Alpha Calibration · #1 · Weekly Sunday 09:00 UTC · institutional self-improvement loop · <a href="/">JustHodl.AI</a></p></footer>
+
+<script>
+const URL_LATEST = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/calibration-latest.json';
+const URL_HISTORY = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/calibration-history.json';
+
+function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(d==null?2:d)+'%';}
+function fmtNum(n,d){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d==null?2:d);}
+function fmtPctRaw(n,d){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d==null?2:d)+'%';}
+function fmtDate(s){if(!s)return'—';return s.substring(0,10);}
+function sigChip(p, t){
+  if(p == null || t == null) return '<span class="sig-chip sig-no">—</span>';
+  if(p < 0.01) return '<span class="sig-chip sig-strong">p&lt;.01</span>';
+  if(p < 0.05) return '<span class="sig-chip sig-yes">p&lt;.05</span>';
+  if(p < 0.10) return '<span class="sig-chip sig-no" style="opacity:.7">p&lt;.10</span>';
+  return '<span class="sig-chip sig-no">ns</span>';
+}
+function deltaCls(d){if(d == null) return ''; if(Math.abs(d) < 0.005) return ''; return d > 0 ? 'pos' : 'neg';}
+function deltaSign(d){if(d == null || Math.abs(d) < 0.005) return ''; return d > 0 ? '+' : '';}
+
+let data = null, history = null;
+
+async function load(){
+  document.getElementById('status').textContent = 'Loading…';
+  try {
+    const [latest, hist] = await Promise.all([
+      fetch(URL_LATEST + '?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(URL_HISTORY + '?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    data = latest;
+    history = hist;
+    if(!data) throw new Error('calibration-latest.json not yet generated — calibrator runs weekly Sunday 09:00 UTC.');
+    document.getElementById('status').textContent = 'Live';
+    document.querySelector('.dot').style.background = '#00e676';
+    const t = new Date(data.generated_at);
+    const hrs = Math.floor((Date.now() - t) / 3600000);
+    document.getElementById('updated').textContent = hrs < 1 ? 'just now' : hrs < 24 ? hrs + 'h ago' : Math.floor(hrs / 24) + 'd ago';
+    render();
+  } catch(e){
+    document.getElementById('status').textContent = 'Error';
+    document.querySelector('.dot').style.background = '#ff3d5a';
+    document.getElementById('strategies-list').innerHTML =
+      `<div class="empty-state"><div class="icon">📐</div><h3 style="margin:0 0 6px">No calibration yet</h3><p>${esc(e.message)}</p><p style="margin-top:8px;font-size:11px">Needs at least 60 evaluated 30-day outcomes (typically 60+ days after trade journal first fills).</p></div>`;
+  }
+}
+
+function render(){
+  const s = data.summary || {};
+  const dep = data.deployment_decision || {};
+
+  // Deployment badge
+  let badge, badgeCls;
+  if(dep.would_auto_apply){badge = '✅ AUTO-APPLIED'; badgeCls = 'active';}
+  else if(data.proposed_weights){badge = '⏸ PROPOSED'; badgeCls = 'proposed';}
+  else {badge = '⌛ INSUFFICIENT DATA'; badgeCls = 'insufficient';}
+  document.getElementById('deployment-badge').innerHTML =
+    `<div class="deployment-badge ${badgeCls}">${badge}<div style="font-size:9px;color:var(--text-mute);margin-top:4px">${esc(dep.reason || '')}</div></div>`;
+
+  // Tiles
+  const cfg = data.config || {};
+  document.getElementById('tiles-grid').innerHTML = [
+    {label:'Trades Analyzed', value: s.n_trades_analyzed || 0, sub: 'last ' + (cfg.lookback_days || 120) + ' days', cls:'info'},
+    {label:'Evaluated 30d', value: s.n_evaluated_30d || 0, sub: 'matured', cls:'info'},
+    {label:'Win Rate', value: s.overall_30d_win_rate != null ? (s.overall_30d_win_rate * 100).toFixed(1) + '%' : '—', sub: 'overall 30d', cls: (s.overall_30d_win_rate || 0) >= 0.5 ? 'pos' : 'warn'},
+    {label:'Avg Return', value: fmtPct(s.overall_30d_avg_return_pct, 1), sub: 'across all strategies', cls: (s.overall_30d_avg_return_pct || 0) >= 0 ? 'pos' : 'warn'},
+    {label:'Strategies', value: s.n_strategies_with_data || 0, sub: (s.n_strategies_sufficient || 0) + ' sufficient', cls:'info'},
+    {label:'Significant', value: s.n_significant_strategies || 0, sub: 'p < 0.05', cls: (s.n_significant_strategies || 0) > 0 ? 'pos' : 'gold'},
+  ].map(t => `<div class="tile ${t.cls}">
+    <div class="tile-label">${esc(t.label)}</div>
+    <div class="tile-value">${t.value}</div>
+    <div class="tile-sub">${esc(t.sub)}</div>
+  </div>`).join('');
+
+  // Weight evolution
+  const current = data.current_weights || {};
+  const proposed = data.proposed_weights || current;
+  const deltas = data.weight_deltas || {};
+  const components = Object.keys(current);
+
+  document.getElementById('weights-meta').textContent =
+    data.guardrails && !data.guardrails.insufficient_obs
+    ? `λ=${data.guardrails.shrinkage_lambda || '?'} · n=${data.guardrails.n_obs_used || '?'} · shift cap ±${data.guardrails.max_shift_pp || '?'}`
+    : `awaiting more data (need ${cfg.min_obs_for_weight_update || 60} obs)`;
+
+  function renderWeightSet(targetId, w, showDelta){
+    const html = components.map(c => {
+      const v = w[c] || 0;
+      const pct = v * 100;
+      const d = showDelta ? (deltas[c] || 0) : null;
+      const dPct = d ? (d * 100) : null;
+      return `<div class="weight-row">
+        <div class="weight-comp">${esc(c)}</div>
+        <div class="weight-bar-track"><div class="weight-bar-fill" style="width:${Math.min(100, pct * 4)}%"></div></div>
+        <div class="weight-pct">${pct.toFixed(2)}%${showDelta && d ? `<span class="weight-delta ${deltaCls(d)}">${deltaSign(d)}${dPct.toFixed(2)}</span>` : ''}</div>
+      </div>`;
+    }).join('');
+    document.getElementById(targetId).innerHTML = html;
+  }
+  renderWeightSet('current-weights', current, false);
+  renderWeightSet('proposed-weights', proposed, true);
+
+  // Per-strategy cards
+  const perStrat = data.per_strategy || [];
+  document.getElementById('strategies-list').innerHTML = perStrat.length === 0 ?
+    '<div class="empty-state">No strategies with data yet.</div>' :
+    perStrat.map(s => {
+      const sig = s.significant_05;
+      const metrics = [
+        {label:'N (eval/total)', val: `${s.n_evaluated_30d || 0}/${s.n_total || 0}`},
+        {label:'Win Rate', val: s.win_rate_30d != null ? (s.win_rate_30d * 100).toFixed(1) + '%' : '—'},
+        {label:'95% CI', val: s.win_rate_95ci ? `[${(s.win_rate_95ci[0] * 100).toFixed(0)}, ${(s.win_rate_95ci[1] * 100).toFixed(0)}]` : '—'},
+        {label:'Avg Return', val: fmtPct(s.avg_return_30d_pct, 2)},
+        {label:'Median', val: fmtPct(s.median_return_30d_pct, 2)},
+        {label:'Sharpe', val: fmtNum(s.sharpe_annualized, 2)},
+        {label:'Sortino', val: fmtNum(s.sortino_annualized, 2)},
+        {label:'Expectancy', val: fmtPct(s.expectancy_pct, 2)},
+        {label:'Profit Factor', val: fmtNum(s.profit_factor, 2)},
+        {label:'Max DD', val: fmtPct(s.max_drawdown_pct, 1)},
+        {label:'t-stat', val: fmtNum(s.t_stat, 2)},
+        {label:'p-value', val: fmtNum(s.p_value, 4)},
+      ];
+      const vsBase = s.vs_base_rate || {};
+      const baseInfo = vsBase.n_compared >= 5 ?
+        `· vs SPY (n=${vsBase.n_compared}): excess ${fmtPct(vsBase.avg_excess_return_pct, 2)} · win prem ${fmtPct(vsBase.win_rate_premium_pct, 1)}` : '';
+      const regimes = s.by_regime || {};
+      const regimeHtml = Object.entries(regimes).map(([r, rs]) =>
+        `<span class="regime-row"><span style="color:var(--text-mute)">${esc(r)}:</span> n=${rs.n} · wr ${(rs.win_rate * 100).toFixed(0)}% · ret ${fmtPct(rs.avg_return_pct, 1)}</span>`
+      ).join('');
+      return `<div class="strat-card">
+        <div class="strat-head">
+          <div>
+            <span class="strat-name">${esc(s.strategy)}</span>
+            ${sig ? '<span class="sig-chip sig-yes" style="margin-left:8px">SIGNIFICANT p&lt;.05</span>' : ''}
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-mute)">${esc(baseInfo)}</div>
+        </div>
+        <div class="strat-metrics">
+          ${metrics.map(m => `<div class="strat-metric"><span class="label">${esc(m.label)}</span><span class="val">${m.val}</span></div>`).join('')}
+        </div>
+        ${regimeHtml ? `<div class="strat-regime"><span style="color:var(--text-mute);font-size:10px;letter-spacing:.5px;text-transform:uppercase;margin-right:10px">BY REGIME:</span>${regimeHtml}</div>` : ''}
+      </div>`;
+    }).join('');
+
+  // Information Coefficients table
+  const ic = data.information_coefficients || {};
+  const icBody = document.getElementById('ic-body');
+  const comps = ['quality','growth','momentum','smart_money','sentiment','analysts','insiders','options_flow'];
+  icBody.innerHTML = comps.map(c => {
+    const row = ic[c] || {};
+    function cell(h){
+      const x = row[h] || {};
+      if(x.insufficient || x.ic == null) return {ic: '<span class="neutral-val">—</span>', sig: `<span style="color:var(--text-mute);font-size:10px">n=${x.n || 0}</span>`};
+      const icVal = x.ic;
+      const cls = icVal > 0.05 ? 'pos-val' : icVal < -0.05 ? 'neg-val' : 'neutral-val';
+      return {ic: `<span class="${cls}">${(icVal >= 0 ? '+' : '') + icVal.toFixed(3)}</span>`, sig: `${sigChip(x.p_value, x.t_stat)} <span style="color:var(--text-mute);font-size:9px">n=${x.n}</span>`};
+    }
+    const c1 = cell('1d'); const c7 = cell('7d'); const c30 = cell('30d'); const c90 = cell('90d');
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-weight:600">${esc(c)}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c1.ic}</td><td>${c1.sig}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c7.ic}</td><td>${c7.sig}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c30.ic}</td><td>${c30.sig}</td>
+      <td class="col-r" style="font-family:var(--font-mono)">${c90.ic}</td><td>${c90.sig}</td>
+    </tr>`;
+  }).join('');
+
+  // OLS regression
+  const attr = data.factor_attribution || {};
+  const olsBody = document.getElementById('ols-body');
+  if(attr.insufficient || attr.regression_failed){
+    document.getElementById('ols-meta').textContent = `insufficient data (n=${attr.n_obs || 0}, need ${attr.required || comps.length + 10})`;
+    olsBody.innerHTML = `<tr><td colspan="6" style="padding:18px;text-align:center;color:var(--text-mute);">Regression awaiting more evaluated trades. Need ${attr.required || (comps.length + 10)} observations minimum, have ${attr.n_obs || 0}.</td></tr>`;
+  } else {
+    document.getElementById('ols-meta').textContent = `return_30d ~ alpha_components · n=${attr.n_obs} · R²=${attr.r_squared} · adj R²=${attr.adj_r_squared} · σ=${attr.sigma}`;
+    const coefs = attr.coefficients || {};
+    const factorOrder = ['intercept', ...comps];
+    olsBody.innerHTML = factorOrder.map(f => {
+      const c = coefs[f] || {};
+      const beta = c.value;
+      const cls = beta != null ? (beta > 0 ? 'pos-val' : beta < 0 ? 'neg-val' : 'neutral-val') : 'neutral-val';
+      return `<tr>
+        <td style="font-family:var(--font-mono);font-weight:${f === 'intercept' ? '400' : '600'}">${esc(f)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)" class="${cls}">${beta != null ? (beta >= 0 ? '+' : '') + beta.toFixed(5) : '—'}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtNum(c.se, 5)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtNum(c.t_stat, 2)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtNum(c.p_value, 4)}</td>
+        <td>${sigChip(c.p_value, c.t_stat)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // History
+  const histEntries = (history && history.history) || [];
+  const histBody = document.getElementById('history-body');
+  if(histEntries.length === 0){
+    histBody.innerHTML = `<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--text-mute);">No prior calibrations yet — this is the first run.</td></tr>`;
+  } else {
+    histBody.innerHTML = [...histEntries].reverse().slice(0, 26).map(h => {
+      const sum = h.summary || {};
+      const dep = h.deployment_decision || {};
+      return `<tr>
+        <td style="font-family:var(--font-mono);font-size:10px">${fmtDate(h.generated_at)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${sum.n_trades_analyzed || '—'}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${sum.overall_30d_win_rate != null ? (sum.overall_30d_win_rate * 100).toFixed(1) + '%' : '—'}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtPct(sum.overall_30d_avg_return_pct, 2)}</td>
+        <td class="col-r" style="font-family:var(--font-mono)">${fmtNum(h.r_squared, 3)}</td>
+        <td>${dep.would_auto_apply ? '<span class="sig-chip sig-yes">APPLIED</span>' : '<span class="sig-chip sig-no">PROPOSED</span>'} <span style="color:var(--text-mute);font-size:10px;margin-left:6px">${esc((dep.reason || '').substring(0, 40))}</span></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+load();
+setInterval(load, 600000);
+</script>
+
+</body>
+</html>

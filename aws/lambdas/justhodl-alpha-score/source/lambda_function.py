@@ -58,9 +58,10 @@ SCREENER_KEY = "screener/data.json"
 SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
 OPTIONS_FLOW_KEY = "data/options-flow.json"
+ALPHA_WEIGHTS_KEY = "screener/alpha-weights.json"   # optional override from calibrator (#1)
 OUTPUT_KEY = "screener/alpha-score.json"
 
-MODEL_VERSION = "1.1.0"  # bumped — options-flow added as 8th factor
+MODEL_VERSION = "1.2.0"  # adds optional dynamic weight loading from calibrator
 
 # Factor weights — must sum to 1.0
 # Rebalanced 2026-05-12 to incorporate options-flow as the 8th factor.
@@ -608,6 +609,33 @@ def lambda_handler(event, context):
     started = time.time()
     print(f"=== ALPHA SCORE ENGINE v{MODEL_VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
 
+    # 0. Optional dynamic weights override from calibrator (#1)
+    #    Only applied if alpha-weights.json has auto_apply_calibrations=true AND
+    #    active_weights sums to ~1.00 AND all 8 components present.
+    #    Otherwise falls back to hardcoded WEIGHTS.
+    active_weights = WEIGHTS
+    weights_source = "hardcoded_default"
+    weights_calibration_version = None
+    weights_active_since = None
+    try:
+        aw = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=ALPHA_WEIGHTS_KEY)["Body"].read())
+        if aw.get("auto_apply_calibrations") is True:
+            candidate = aw.get("active_weights") or {}
+            # Safety gates
+            if (isinstance(candidate, dict)
+                    and set(candidate.keys()) == set(WEIGHTS.keys())
+                    and abs(sum(candidate.values()) - 1.0) < 0.01
+                    and all(isinstance(v, (int, float)) and 0.01 < v < 0.30 for v in candidate.values())):
+                active_weights = {k: float(candidate[k]) for k in WEIGHTS}
+                weights_source = "calibrator_active"
+                weights_calibration_version = aw.get("last_calibration_version")
+                weights_active_since = aw.get("active_since")
+                print(f"  ✓ using calibrator weights (v{weights_calibration_version}, since {weights_active_since})")
+            else:
+                print(f"  ⚠ alpha-weights.json failed safety gates, using hardcoded defaults")
+    except Exception as e:
+        print(f"  alpha-weights sidecar unavailable (using defaults): {str(e)[:120]}")
+
     # 1. Load screener
     try:
         screener = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=SCREENER_KEY)["Body"].read())
@@ -683,11 +711,11 @@ def lambda_handler(event, context):
         }
 
         # Weighted alpha. Missing components are skipped + re-weight the rest.
-        active_weight = sum(WEIGHTS[k] for k, v in components.items() if v is not None)
+        active_weight = sum(active_weights[k] for k, v in components.items() if v is not None)
         if active_weight == 0:
             alpha = None
         else:
-            alpha = sum(components[k] * WEIGHTS[k] for k in components if components[k] is not None) / active_weight
+            alpha = sum(components[k] * active_weights[k] for k in components if components[k] is not None) / active_weight
             alpha = round(alpha)
 
         # Coverage = how many of the 7 factors had data
@@ -738,7 +766,11 @@ def lambda_handler(event, context):
         "count": len(all_stocks),
         "scored_count": len(ranked),
         "tier_distribution": tiers,
-        "weights": WEIGHTS,
+        "weights": active_weights,
+        "weights_source": weights_source,
+        "weights_calibration_version": weights_calibration_version,
+        "weights_active_since": weights_active_since,
+        "weights_default_fallback": WEIGHTS,
         "inputs": {
             "screener_generated_at": screener.get("generated_at"),
             "sentiment_generated_at": sent_generated,
