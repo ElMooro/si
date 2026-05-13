@@ -346,7 +346,7 @@ def fetch_etf_holdings(ticker, fallback_top=None):
     # Try newer stable endpoint first
     urls_to_try = [
         "https://financialmodelingprep.com/stable/etf/holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
-        "https://financialmodelingprep.com/api/v3/etf-holder/" + ticker + "?apikey=" + FMP_KEY,
+        "https://financialmodelingprep.com/stable/etf/holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
     ]
     for url in urls_to_try:
         try:

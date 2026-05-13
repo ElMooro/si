@@ -90,11 +90,11 @@ def put_s3_json(key, body, cache="public, max-age=600"):
 
 def get_ticker_metrics(ticker):
     """Pull a slim metrics snapshot via FMP."""
-    profile = fetch_json(f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={FMP_KEY}")
+    profile = fetch_json(f"https://financialmodelingprep.com/stable/profile?symbol={ticker}&apikey={FMP_KEY}")
     if not profile or not isinstance(profile, list) or not profile:
         return {"ticker": ticker, "error": "no_data"}
     p = profile[0]
-    ratios = fetch_json(f"https://financialmodelingprep.com/api/v3/key-metrics-ttm/{ticker}?apikey={FMP_KEY}")
+    ratios = fetch_json(f"https://financialmodelingprep.com/stable/key-metrics-ttm?symbol={ticker}&apikey={FMP_KEY}")
     r = ratios[0] if isinstance(ratios, list) and ratios else {}
     return {
         "ticker": ticker,

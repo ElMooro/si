@@ -534,7 +534,7 @@ def cusip_to_ticker_via_fmp(cusip: str, name: str):
     if not FMP_KEY:
         return None, name
     try:
-        url = f"https://financialmodelingprep.com/api/v3/cusip/{cusip}?apikey={FMP_KEY}"
+        url = f"https://financialmodelingprep.com/stable/cusip?cusip={cusip}&apikey={FMP_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=8) as r:
             data = json.loads(r.read())

@@ -188,7 +188,7 @@ def _fetch_price_fmp(ticker: str):
     if not FMP_KEY or not ticker:
         return None
     try:
-        url = f"https://financialmodelingprep.com/api/v3/quote/{ticker}?apikey={FMP_KEY}"
+        url = f"https://financialmodelingprep.com/stable/quote?symbol={ticker}&apikey={FMP_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=8) as r:
             data = json.loads(r.read())
