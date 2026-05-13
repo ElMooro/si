@@ -1,0 +1,57 @@
+{
+  "started": "2026-05-13T10:52:50.740908+00:00",
+  "env_keys_inherited": [
+    "POLY_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "warning": "FMP_KEY not found in any source Lambda \u2014 sp500 universe will be empty",
+  "deploy": "created",
+  "schedule": "ok",
+  "invoke_status": 200,
+  "fn_error": null,
+  "invoke_response": {
+    "success": true,
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "n_universe_analyzed": 0,
+    "n_squeeze_candidates": 0,
+    "vw_svr_pct": null,
+    "regime": "UNKNOWN",
+    "top_squeeze": [],
+    "alert_sent": false,
+    "elapsed_seconds": 0.52
+  },
+  "log_tail": "START RequestId: 8eda7d2c-4684-466b-9726-fc26f5d16848 Version: $LATEST\n=== FINRA-SHORT v1.0.0 \u00b7 2026-05-13T10:52:57.318949+00:00 ===\nloaded 11,461 tickers for 2026-05-12\nuniverse: 0 S&P 500 tickers\nanalyzing 0 S&P 500 tickers in parallel...\nanalyzed 0 tickers with data\n\u2713 finra-short.json written (0.6 KB)\nEND RequestId: 8eda7d2c-4684-466b-9726-fc26f5d16848\nREPORT RequestId: 8eda7d2c-4684-466b-9726-fc26f5d16848\tDuration: 529.53 ms\tBilled Duration: 1081 ms\tMemory Size: 1024 MB\tMax Memory Used: 110 MB\tInit Duration: 551.13 ms\t\n",
+  "sidecar": {
+    "size_kb": 0.6,
+    "modified": "2026-05-13T10:52:58",
+    "version": "1.0.0",
+    "data_date": "2026-05-12",
+    "elapsed_seconds": 0.34,
+    "market_composite": {
+      "regime": "UNKNOWN",
+      "volume_weighted_svr": null,
+      "volume_weighted_svr_pct": null,
+      "median_svr_pct": null,
+      "p10_svr_pct": null,
+      "p90_svr_pct": null,
+      "p99_svr_pct": null,
+      "n_analyzed": 0,
+      "n_universe_in_file": 0,
+      "n_high_svr": 0,
+      "n_extreme_z": 0
+    },
+    "n_squeeze_candidates": 0,
+    "top_squeeze_5": [],
+    "top_svr_5": [],
+    "top_zscore_5": [],
+    "sectors_top_3": {}
+  },
+  "history": {
+    "size_kb": 1192.1,
+    "modified": "2026-05-13T10:52:58",
+    "n_tickers_with_history": 11461
+  },
+  "finished": "2026-05-13T10:52:58.263106+00:00"
+}
