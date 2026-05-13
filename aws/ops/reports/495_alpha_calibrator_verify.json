@@ -1,0 +1,89 @@
+{
+  "started": "2026-05-13T08:55:28.015345+00:00",
+  "test": {
+    "justhodl-alpha-calibrator": {
+      "deployed": false,
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-alpha-calibrator"
+    },
+    "justhodl-alpha-score": {
+      "deployed": true,
+      "modified": "2026-05-12T23:36:39",
+      "memory": 1024,
+      "timeout": 120,
+      "env": []
+    },
+    "schedule": {
+      "exists": false
+    },
+    "calibrator_invoke_err": "An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-alpha-calibrator:$LATEST",
+    "alpha_score_invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": {
+        "success": true,
+        "scored": 503,
+        "tier_distribution": {
+          "S": 0,
+          "A": 2,
+          "B": 19,
+          "C": 393,
+          "D": 89
+        },
+        "elapsed_seconds": 0.64
+      },
+      "log_tail": "/var/task/lambda_function.py:45: SyntaxWarning: invalid escape sequence '\\$'\nwrites 1 sidecar back. <5 seconds for 503 stocks. <\\$0.01 per run.\nSTART RequestId: e53efe75-6077-49c3-bed5-dbdc49efc545 Version: $LATEST\n=== ALPHA SCORE ENGINE v1.1.0 \u00b7 2026-05-13T08:58:53.318378+00:00 ===\ninputs: 503 stocks \u00b7 503 sentiment \u00b7 4053 smart-money \u00b7 144 options-flow\nscored 503 of 503 stocks \u00b7 0.6s\ntiers: S=0 A=2 B=19 C=393 D=89\nwrote 291.5 KB to s3://justhodl-dashboard-live/screener/alpha-score.json\nEND RequestId: e53efe75-6077-49c3-bed5-dbdc49efc545\nREPORT RequestId: e53efe75-6077-49c3-bed5-dbdc49efc545\tDuration: 717.71 ms\tBilled Duration: 1224 ms\tMemory Size: 1024 MB\tMax Memory Used: 116 MB\tInit Duration: 505.69 ms\t\n"
+    },
+    "sidecars": {
+      "data/calibration-latest.json": {
+        "exists": false,
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      },
+      "data/calibration-history.json": {
+        "exists": false,
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      },
+      "screener/alpha-weights.json": {
+        "exists": false,
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      },
+      "screener/alpha-score.json": {
+        "exists": true,
+        "size_kb": 272.1,
+        "modified": "2026-05-13T08:58:54",
+        "model_version": "1.1.0",
+        "weights_source": null,
+        "weights_calibration_version": null,
+        "weights": {
+          "quality": 0.16,
+          "growth": 0.17,
+          "momentum": 0.14,
+          "smart_money": 0.16,
+          "sentiment": 0.1,
+          "analysts": 0.08,
+          "insiders": 0.11,
+          "options_flow": 0.08
+        },
+        "n_stocks": 503
+      }
+    },
+    "pages": {
+      "https://justhodl.ai/": {
+        "status": 200,
+        "size_kb": 80.2,
+        "has_calibration_nav": true,
+        "n_calibration_links": 2,
+        "has_intelligence_pipeline_block": true
+      },
+      "https://justhodl.ai/calibration/": {
+        "status": 200,
+        "size_kb": 26.2,
+        "title": "\ud83d\udcd0 Alpha Calibration \u2014 Self-Improvement Loop \u00b7 JustHodl.AI",
+        "has_methodology_box": true,
+        "has_weight_evolution": true,
+        "has_ic_table": true,
+        "has_ols_section": true
+      }
+    }
+  },
+  "finished": "2026-05-13T08:58:54.535496+00:00"
+}
