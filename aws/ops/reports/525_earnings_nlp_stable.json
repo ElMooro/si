@@ -1,0 +1,173 @@
+{
+  "started": "2026-05-13T23:46:37.064249+00:00",
+  "update": "ok",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.1.0",
+    "n_tickers": 30,
+    "n_with_data": 29,
+    "n_with_err": 1,
+    "regime": "EARNINGS_STRENGTH",
+    "median_tone": 72,
+    "n_improvers": 0,
+    "n_deteriorators": 0,
+    "alert_sent": false,
+    "elapsed_seconds": 12.1
+  },
+  "log_tail": "START RequestId: b26d216e-3d5f-4eb3-9a26-71a5ed637a15 Version: $LATEST\n=== earnings-nlp v1.1.0 \u00b7 2026-05-13T23:46:46.428477+00:00 ===\nuniverse: 30 tickers\nANTHROPIC_API_KEY present: True\n\u2713 AAPL 2026-Q2 [new] tone=82 guidance=NONE\n\u2713 META 2026-Q1 [new] tone=75 guidance=RAISED\n\u2717 BRK-B: no transcript metadata\n\u2713 AMZN 2026-Q1 [new] tone=78 guidance=RAISED\n\u2713 NVDA 2026-Q4 [new] tone=85 guidance=RAISED\n\u2713 MSFT 2026-Q3 [new] tone=78 guidance=NONE\n\u2713 GOOGL 2026-Q1 [new] tone=78 guidance=NONE\n\u2713 AVGO 2026-Q1 [new] tone=85 guidance=RAISED\n\u2713 TSLA 2026-Q1 [new] tone=75 guidance=RAISED\n\u2713 WMT 2026-Q4 [new] tone=78 guidance=NONE\n\u2713 LLY 2026-Q1 [new] tone=72 guidance=MAINTAINED\n\u2713 V 2026-Q2 [new] tone=78 guidance=RAISED\n\u2713 JPM 2026-Q1 [new] tone=35 guidance=MAINTAINED\n\u2713 UNH 2026-Q1 [new] tone=62 guidance=MAINTAINED\n\u2713 XOM 2026-Q1 [new] tone=68 guidance=MAINTAINED\n\u2713 MA 2026-Q1 [new] tone=72 guidance=NONE\n\u2713 ORCL 2026-Q3 [new] tone=78 guidance=RAISED\n\u2713 PG 2026-Q3 [new] tone=62 guidance=MAINTAINED\n\u2713 HD 2025-Q4 [new] tone=25 guidance=LOWERED\n\u2713 COST 2026-Q2 [new] tone=72 guidance=RAISED\n\u2713 KO 2026-Q1 [new] tone=62 guidance=MAINTAINED\n\u2713 ABBV 2026-Q1 [new] tone=78 guidance=RAISED\n\u2713 BAC 2026-Q1 [new] tone=72 guidance=MAINTAINED\n\u2713 JNJ 2026-Q1 [new] tone=78 guidance=RAISED\n\u2713 CVX 2026-Q1 [new] tone=62 guidance=MAINTAINED\n\u2713 MRK 2026-Q1 [new] tone=72 guidance=MAINTAINED\n\u2713 PEP 2026-Q1 [new] tone=68 guidance=MAINTAINED\n\u2713 CSCO 2026-Q2 [new] tone=78 guidance=RAISED\n\u2713 ADBE 2026-Q1 [new] tone=72 guidance=MAINTAINED\n\u2713 TMO 2026-Q1 [new] tone=72 guidance=MAINTAINED\n\u2713 data/earnings-nlp.json written\nEND RequestId: b26d216e-3d5f-4eb3-9a26-71a5ed637a15\nREPORT RequestId: b26d216e-3d5f-4eb3-9a26-71a5ed637a15\tDuration: 12103.84 ms\tBilled Duration: 12649 ms\tMemory Size: 512 MB\tMax Memory Used: 110 MB\tInit Duration: 544.68 ms\t\n",
+  "sidecar": {
+    "size_kb": 23.6,
+    "modified": "2026-05-13T23:46:59",
+    "version": "1.1.0",
+    "model": "claude-haiku-4-5-20251001",
+    "n_tickers": 30,
+    "n_with_data": 29,
+    "n_with_err": 1,
+    "market_summary": {
+      "n_scored": 29,
+      "median_tone": 72,
+      "mean_tone": 70.8,
+      "tone_distribution": {
+        "p10": 62,
+        "p25": 68,
+        "p75": 78,
+        "p90": 82
+      },
+      "guidance_breakdown": {
+        "NONE": 5,
+        "RAISED": 11,
+        "MAINTAINED": 12,
+        "LOWERED": 1
+      },
+      "confidence_breakdown": {
+        "HIGH": 26,
+        "MEDIUM": 3
+      },
+      "raised_to_lowered_ratio": 11.0,
+      "regime": "EARNINGS_STRENGTH",
+      "signal": "Strong management confidence; raise/lower ratio favorable"
+    },
+    "n_improvers": 0,
+    "n_deteriorators": 0,
+    "sample_scored": [
+      {
+        "ticker": "AAPL",
+        "period": "2026-Q2",
+        "tone": 82,
+        "guidance": "NONE",
+        "confidence": "HIGH",
+        "demand": "STRONG",
+        "margin": "STABLE",
+        "themes": [
+          "Leadership transition and succession confidence",
+          "Record revenue growth and iPhone strength",
+          "Geographic expansion with India opportunity focus"
+        ],
+        "summary": "Management exhibits strong confidence in business fundamentals with double-digit growth across all segments, successful product launches, and optimism about future roadmap, while executing a planned leadership transition."
+      },
+      {
+        "ticker": "META",
+        "period": "2026-Q1",
+        "tone": 75,
+        "guidance": "RAISED",
+        "confidence": "HIGH",
+        "demand": "STRONG",
+        "margin": "COMPRESSING",
+        "themes": [
+          "AI model advancement and personal agents",
+          "Strong user engagement across apps",
+          "Infrastructure investment and compute efficiency"
+        ],
+        "summary": "Meta demonstrated strong operational momentum with record user engagement and AI breakthroughs, though raised CapEx guidance signals near-term margin pressure offset by confidence in long-term AI-driven monetization opportunities."
+      },
+      {
+        "ticker": "AMZN",
+        "period": "2026-Q1",
+        "tone": 78,
+        "guidance": "RAISED",
+        "confidence": "HIGH",
+        "demand": "STRONG",
+        "margin": "EXPANDING",
+        "themes": [
+          "AI acceleration and market leadership",
+          "AWS growth at 15-year peak",
+          "Agentic AI applications transforming operations"
+        ],
+        "summary": "Management projects exceptional confidence in AI-driven AWS growth with strong demand signals, highlighted by 28% YoY acceleration, $150B annualized run rate, and transformative agentic AI applications reshaping business operations."
+      },
+      {
+        "ticker": "NVDA",
+        "period": "2026-Q4",
+        "tone": 85,
+        "guidance": "RAISED",
+        "confidence": "HIGH",
+        "demand": "STRONG",
+        "margin": "EXPANDING",
+        "themes": [
+          "Record revenue growth and Blackwell acceleration",
+          "Agentic AI inflection driving capacity expansion",
+          "Sovereign AI and geographic diversification"
+        ],
+        "summary": "Management projects accelerating growth beyond $500B Blackwell opportunity with extreme confidence in AI infrastructure buildout driven by agentic systems and token monetization."
+      },
+      {
+        "ticker": "MSFT",
+        "period": "2026-Q3",
+        "tone": 78,
+        "guidance": "NONE",
+        "confidence": "HIGH",
+        "demand": "STRONG",
+        "margin": "EXPANDING",
+        "themes": [
+          "AI infrastructure acceleration and capacity expansion",
+          "Agentic systems and platform differentiation",
+          "Cloud revenue growth and consumption-based pricing models"
+        ],
+        "summary": "Microsoft delivered record Cloud and AI results with strong execution on infrastructure and agentic platforms, demonstrating exceptional demand and operational optimization driving margin expansion."
+      }
+    ],
+    "first_5_errors": [
+      {
+        "ticker": "BRK-B",
+        "err": "no transcript metadata"
+      }
+    ],
+    "top_3_bullish": [
+      {
+        "ticker": "NVDA",
+        "tone": 85,
+        "guidance": "RAISED"
+      },
+      {
+        "ticker": "AVGO",
+        "tone": 85,
+        "guidance": "RAISED"
+      },
+      {
+        "ticker": "AAPL",
+        "tone": 82,
+        "guidance": "NONE"
+      }
+    ],
+    "top_3_bearish": [
+      {
+        "ticker": "HD",
+        "tone": 25,
+        "guidance": "LOWERED"
+      },
+      {
+        "ticker": "JPM",
+        "tone": 35,
+        "guidance": "MAINTAINED"
+      },
+      {
+        "ticker": "UNH",
+        "tone": 62,
+        "guidance": "MAINTAINED"
+      }
+    ]
+  },
+  "finished": "2026-05-13T23:46:58.697642+00:00"
+}
