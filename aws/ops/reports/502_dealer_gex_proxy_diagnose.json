@@ -1,0 +1,88 @@
+{
+  "started": "2026-05-13T10:08:53.491715+00:00",
+  "probe_lambda_created": true,
+  "probes": {
+    "token_len": 43,
+    "probes": [
+      {
+        "desc": "workers.dev /",
+        "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/",
+        "status": 404,
+        "body_preview": "error code: 1042",
+        "elapsed_ms": 71
+      },
+      {
+        "desc": "workers.dev / with token",
+        "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/",
+        "status": 404,
+        "body_preview": "error code: 1042",
+        "elapsed_ms": 18
+      },
+      {
+        "desc": "workers.dev /options/SPY with token",
+        "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/options/SPY",
+        "status": 404,
+        "body_preview": "error code: 1042",
+        "elapsed_ms": 14
+      },
+      {
+        "desc": "workers.dev /options/SPY with token + browser UA",
+        "url": "https://justhodl-yahoo-proxy.raafouis.workers.dev/options/SPY",
+        "status": 404,
+        "body_preview": "{\"type\":\"https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/\",\"title\":\"Error 1042: Cloudflare Error\",\"status\":404,\"detail\":\"No Workers script was found for this host on workers.dev.\",\"instance\":\"9fb0dd6b2ceb387c\",\"error_code\":1042,\"error_name\":\"workers_dev_script_not_found\",\"error_category\":\"worker\",\"ray_id\":\"9fb0dd6b2ceb387c\",\"timestamp\":\"2026-05-13T10:08:58Z\",\"zone\":\"justhodl-yahoo-proxy.raafouis.workers.dev\",\"cloudflare_error\":true,\"retryable\":f",
+        "elapsed_ms": 26
+      },
+      {
+        "desc": "yahoo-proxy.justhodl.ai /",
+        "url": "https://yahoo-proxy.justhodl.ai/",
+        "status": "EXCEPTION",
+        "err": "<urlopen error [Errno 16] Device or resource busy>",
+        "elapsed_ms": 31
+      },
+      {
+        "desc": "Yahoo direct from AWS",
+        "url": "https://query2.finance.yahoo.com/v7/finance/options/SPY",
+        "status": 429,
+        "body_preview": "Too Many Requests\r\n",
+        "elapsed_ms": 28
+      }
+    ]
+  },
+  "probe_cleaned": true,
+  "gex_redeploy": "ok",
+  "gex_invoke_status": 200,
+  "gex_response": {
+    "success": true,
+    "version": "1.1.0",
+    "n_underlyings": 0,
+    "spy_regime": null,
+    "spy_gex_b": null,
+    "spy_flip": null,
+    "composite_regime": null,
+    "n_squeeze_candidates": 0,
+    "alert_sent": false,
+    "elapsed_seconds": 0.5
+  },
+  "gex_log_tail": "START RequestId: 25fab9dc-deaa-416c-bac7-5f815a83cb8c Version: $LATEST\n=== DEALER-GEX v1.1.0 \u00b7 2026-05-13T10:09:07.078101+00:00 ===\nanalyzing SPY...\nanalyzing QQQ...\nanalyzing IWM...\nanalyzing NVDA...\nproxy options QQQ init err: HTTP Error 404: Not Found\nanalyzing TSLA...\nproxy options SPY init err: HTTP Error 404: Not Found\nanalyzing AAPL...\nproxy options IWM init err: HTTP Error 404: Not Found\nanalyzing META...\nproxy options NVDA init err: HTTP Error 404: Not Found\nanalyzing AMZN...\nproxy options AMZN init err: HTTP Error 404: Not Found\nanalyzing MSFT...\nproxy options TSLA init err: HTTP Error 404: Not Found\nanalyzing GOOGL...\nproxy options AAPL init err: HTTP Error 404: Not Found\nproxy options META init err: HTTP Error 404: Not Found\nproxy options GOOGL init err: HTTP Error 404: Not Found\nproxy options MSFT init err: HTTP Error 404: Not Found\n\u2713 dealer-gex.json written (1.0 KB)\nEND RequestId: 25fab9dc-deaa-416c-bac7-5f815a83cb8c\nREPORT RequestId: 25fab9dc-deaa-416c-bac7-5f815a83cb8c\tDuration: 505.61 ms\tBilled Duration: 1043 ms\tMemory Size: 2048 MB\tMax Memory Used: 110 MB\tInit Duration: 537.18 ms\t\n",
+  "sidecar": {
+    "modified": "2026-05-13T10:09:08",
+    "composite_regime": null,
+    "underlyings_with_data": [],
+    "underlyings_errors": {
+      "QQQ": "no options chain",
+      "SPY": "no options chain",
+      "IWM": "no options chain",
+      "NVDA": "no options chain",
+      "AMZN": "no options chain",
+      "TSLA": "no options chain",
+      "AAPL": "no options chain",
+      "META": "no options chain",
+      "GOOGL": "no options chain",
+      "MSFT": "no options chain"
+    },
+    "spy_summary": {
+      "spot": 738.18
+    }
+  },
+  "finished": "2026-05-13T10:09:07.915510+00:00"
+}
