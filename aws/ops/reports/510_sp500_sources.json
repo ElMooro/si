@@ -1,0 +1,45 @@
+{
+  "started": "2026-05-13T11:03:48.128902+00:00",
+  "result": {
+    "probes": {
+      "fmp_sp500": {
+        "url": "https://financialmodelingprep.com/api/v3/sp500_constituent?apikey=wwVpi37SWHoNAz",
+        "status": 403,
+        "err": true,
+        "elapsed_ms": 103
+      },
+      "fmp_sp500_historical": {
+        "url": "https://financialmodelingprep.com/api/v3/historical/sp500_constituent?apikey=wwV",
+        "status": 403,
+        "err": true,
+        "elapsed_ms": 16
+      },
+      "fmp_symbol_list": {
+        "url": "https://financialmodelingprep.com/api/v3/stock/list?apikey=wwVpi37SWHoNAzacFNVCD",
+        "status": 403,
+        "err": true,
+        "elapsed_ms": 12
+      },
+      "github_datahub": {
+        "url": "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/const",
+        "status": 200,
+        "bytes": 53649,
+        "head": "Symbol,Security,GICS Sector,GICS Sub-Industry,Headquarters Location,Date added,CIK,Founded\nMMM,3M,Industrials,Industrial Conglomerates,\"Saint Paul, Minnesota\",1957-03-04,66740,1902\nAOS,A. O. Smith,Industrials,Building Products,\"Milwaukee, Wisconsin\",2017-07-26,91142,1916\nABT,Abbott Laboratories,Health Care,Health Care Equipment,\"North Chicago, Illinois\",1957-03-04,1800,1888\nABBV,AbbVie,Health Care,Biotechnology,\"North Chicago, Illinois\",2012-12-31,1551152,2013 (1888)\nACN,Accenture,Information Technology,IT Consulting & Other Services,\"Dublin, Ireland\",2011-07-06,1467373,1989\nADBE,Adobe Inc.,In",
+        "elapsed_ms": 12
+      },
+      "wikipedia": {
+        "url": "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+        "status": 200,
+        "bytes": 847138,
+        "head": "<!DOCTYPE html>\n<html class=\"client-nojs vector-feature-language-in-header-enabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-theme-clientpref-thumb-standard\" lang",
+        "elapsed_ms": 39
+      },
+      "s3:screener/data.json": {
+        "status": 200,
+        "size_kb": 1804.9,
+        "modified": "2026-05-13T09:19:12"
+      }
+    }
+  },
+  "finished": "2026-05-13T11:03:57.127379+00:00"
+}
