@@ -1,0 +1,62 @@
+{
+  "started": "2026-05-13T13:37:49.693214+00:00",
+  "relevant_rules": [
+    {
+      "name": "justhodl-vix-curve-4h",
+      "schedule": "rate(4 hours)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-vix-curve"
+      ]
+    },
+    {
+      "name": "justhodl-volatility-squeeze-hunter-daily",
+      "schedule": "cron(30 11 * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-volatility-squeeze-hunter"
+      ]
+    },
+    {
+      "name": "openbb-vix-check",
+      "schedule": "cron(0/15 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "targets": [
+        "openbb-vix_alert"
+      ]
+    },
+    {
+      "name": "vol-regime-hourly",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-vol-regime"
+      ]
+    }
+  ],
+  "total_rules_scanned": 230,
+  "schedule_plans": [
+    {
+      "name": "justhodl-vix-curve",
+      "action": "already_scheduled",
+      "rule": "justhodl-vix-curve-4h",
+      "schedule": "rate(4 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-vol-regime",
+      "action": "already_scheduled",
+      "rule": "vol-regime-hourly",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-volatility-squeeze-hunter",
+      "action": "already_scheduled",
+      "rule": "justhodl-volatility-squeeze-hunter-daily",
+      "schedule": "cron(30 11 * * ? *)",
+      "state": "ENABLED"
+    }
+  ],
+  "finished": "2026-05-13T13:38:05.003515+00:00"
+}
