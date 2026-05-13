@@ -1,0 +1,49 @@
+{
+  "started": "2026-05-13T09:00:50.168746+00:00",
+  "alpha_calibrator": {
+    "env_keys": [
+      "LOOKBACK_DAYS",
+      "MIN_OBS_FOR_STAT",
+      "MIN_OBS_FOR_WEIGHT_UPDATE",
+      "POLY_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "create": "ok",
+    "schedule": "ok",
+    "first_run": {
+      "status": 200,
+      "fn_error": null,
+      "response": {
+        "success": true,
+        "version": "1.0.0",
+        "n_calls": 59,
+        "n_strategies": 3,
+        "n_significant": 0,
+        "proposed_weights": null,
+        "would_auto_apply": false,
+        "alert_sent": true,
+        "elapsed_seconds": 0.84
+      }
+    }
+  },
+  "alpha_score": {
+    "update": "ok",
+    "invoke": {
+      "status": 200,
+      "response": {
+        "success": true,
+        "scored": 503,
+        "tier_distribution": {
+          "S": 0,
+          "A": 2,
+          "B": 19,
+          "C": 393,
+          "D": 89
+        },
+        "elapsed_seconds": 0.66
+      }
+    }
+  },
+  "finished": "2026-05-13T09:01:06.852736+00:00"
+}
