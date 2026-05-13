@@ -73,7 +73,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/finra-short.json"
@@ -104,17 +104,53 @@ ssm = boto3.client("ssm", region_name="us-east-1")
 # ═══════════════════════════════════════════════════════════════════════════
 
 def get_sp500_universe():
-    """Fetch current S&P 500 constituent list from FMP."""
-    if not FMP_KEY: return []
-    url = f"https://financialmodelingprep.com/api/v3/sp500_constituent?apikey={FMP_KEY}"
+    """
+    Fetch current S&P 500 constituent list.
+    Source priority:
+      1. GitHub datahub CSV (free, no auth, AWS-IP friendly, ~503 names)
+         https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv
+      2. FMP /v3/sp500_constituent (paid; may 403 on user's tier)
+    Returns list of (symbol, sector, name) tuples.
+    """
+    # ── Source 1: GitHub datahub (preferred) ──
+    url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-FINRA/1.0"})
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "JustHodl-FINRA/1.0",
+            "Accept": "text/csv",
+        })
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        return [(d["symbol"], d.get("sector"), d.get("name")) for d in data]
+            text = r.read().decode("utf-8")
+        import csv as _csv
+        from io import StringIO
+        reader = _csv.DictReader(StringIO(text))
+        out = []
+        for row in reader:
+            sym = (row.get("Symbol") or "").strip().upper()
+            if not sym: continue
+            # GitHub CSV uses class-letter notation (BRK.B); FINRA uses BRK.B too
+            sector = (row.get("GICS Sector") or "").strip() or None
+            name = (row.get("Security") or "").strip() or None
+            out.append((sym, sector, name))
+        if out:
+            print(f"  loaded {len(out)} S&P 500 names from GitHub datahub")
+            return out
     except Exception as e:
-        print(f"  sp500 fetch err: {str(e)[:120]}")
-        return []
+        print(f"  github sp500 fetch err: {str(e)[:120]} — trying FMP")
+
+    # ── Source 2: FMP (fallback if user upgrades tier) ──
+    if FMP_KEY:
+        fmp_url = f"https://financialmodelingprep.com/api/v3/sp500_constituent?apikey={FMP_KEY}"
+        try:
+            req = urllib.request.Request(fmp_url, headers={"User-Agent": "JustHodl-FINRA/1.0"})
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            out = [(d["symbol"], d.get("sector"), d.get("name")) for d in data if d.get("symbol")]
+            print(f"  loaded {len(out)} S&P 500 names from FMP")
+            return out
+        except Exception as e:
+            print(f"  fmp sp500 fetch err: {str(e)[:120]}")
+    return []
 
 
 def load_history():
