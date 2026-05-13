@@ -1,0 +1,189 @@
+{
+  "started": "2026-05-13T10:34:21.603074+00:00",
+  "deploy": "ok",
+  "invoke_status": 200,
+  "fn_error": null,
+  "invoke_response": {
+    "success": true,
+    "version": "1.2.1",
+    "n_underlyings": 10,
+    "spy_regime": "POSITIVE_GAMMA",
+    "spy_gex_b": 1.566,
+    "spy_flip": null,
+    "composite_regime": "MOSTLY_POSITIVE_GAMMA",
+    "n_squeeze_candidates": 2,
+    "alert_sent": false,
+    "elapsed_seconds": 6.93
+  },
+  "log_tail": "START RequestId: 56b492de-6eb5-4dc8-bd78-0941713585ca Version: $LATEST\n=== DEALER-GEX v1.2.1 \u00b7 2026-05-13T10:34:30.251469+00:00 ===\nanalyzing SPY...\nanalyzing QQQ...\nanalyzing IWM...\nanalyzing NVDA...\n1256 contracts in 60d horizon\n1876 contracts in 60d horizon\n4332 contracts in 60d horizon\nanalyzing TSLA...\n4164 contracts in 60d horizon\nanalyzing AAPL...\n2108 contracts in 60d horizon\nanalyzing META...\n800 contracts in 60d horizon\nanalyzing AMZN...\nanalyzing MSFT...\n2002 contracts in 60d horizon\n765 contracts in 60d horizon\nanalyzing GOOGL...\n1119 contracts in 60d horizon\n1116 contracts in 60d horizon\n\u2713 dealer-gex.json written (34.6 KB)\nEND RequestId: 56b492de-6eb5-4dc8-bd78-0941713585ca\nREPORT RequestId: 56b492de-6eb5-4dc8-bd78-0941713585ca\tDuration: 6932.47 ms\tBilled Duration: 7477 ms\tMemory Size: 2048 MB\tMax Memory Used: 159 MB\tInit Duration: 544.08 ms\t\n",
+  "sidecar": {
+    "size_kb": 31.5,
+    "modified": "2026-05-13T10:34:38",
+    "version": "1.2.1",
+    "elapsed": 6.76,
+    "market_composite": {
+      "spy_regime": "POSITIVE_GAMMA",
+      "spy_gex_billions": 1.566,
+      "spy_flip_level": null,
+      "spy_spot": 738.18,
+      "spy_pct_to_flip": null,
+      "spy_trading_bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+      "qqq_regime": "POSITIVE_GAMMA",
+      "iwm_regime": "NEGATIVE_GAMMA",
+      "index_gex_signs": "++-",
+      "composite_regime": "MOSTLY_POSITIVE_GAMMA",
+      "composite_signal": "Majority indices in positive gamma \u2014 mean-revert, buy dips at support, fade resistance"
+    },
+    "squeeze_top": [
+      {
+        "symbol": "META",
+        "score": 60,
+        "gex_billions": 0.22,
+        "pcr_oi": 0.562,
+        "spot": 603.0,
+        "regime": "NEAR_FLIP"
+      },
+      {
+        "symbol": "MSFT",
+        "score": 60,
+        "gex_billions": 0.301,
+        "pcr_oi": 0.501,
+        "spot": 407.77,
+        "regime": "NEAR_FLIP"
+      }
+    ],
+    "underlyings": {
+      "NVDA": {
+        "spot": 220.78,
+        "gex_b": 1.833,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 0.832,
+        "skew": 0.0075,
+        "zero_dte_pct": 49.8,
+        "n_contracts": 1256,
+        "err": null
+      },
+      "IWM": {
+        "spot": 282.57,
+        "gex_b": -0.623,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "NEGATIVE_GAMMA",
+        "bias": "Trend follow \u00b7 expect vol expansion \u00b7 dealers buy strength / sell weakness",
+        "pcr_oi": 3.185,
+        "skew": 0.0465,
+        "zero_dte_pct": 14.9,
+        "n_contracts": 1876,
+        "err": null
+      },
+      "SPY": {
+        "spot": 738.18,
+        "gex_b": 1.566,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 3.257,
+        "skew": 0.0466,
+        "zero_dte_pct": 42.9,
+        "n_contracts": 4164,
+        "err": null
+      },
+      "TSLA": {
+        "spot": 433.45,
+        "gex_b": 0.978,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 0.772,
+        "skew": -0.0214,
+        "zero_dte_pct": 53.7,
+        "n_contracts": 2108,
+        "err": null
+      },
+      "AAPL": {
+        "spot": 294.8,
+        "gex_b": 1.627,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 0.76,
+        "skew": 0.0284,
+        "zero_dte_pct": 50.4,
+        "n_contracts": 800,
+        "err": null
+      },
+      "QQQ": {
+        "spot": 707.24,
+        "gex_b": 0.686,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 2.009,
+        "skew": 0.0505,
+        "zero_dte_pct": 40.1,
+        "n_contracts": 4332,
+        "err": null
+      },
+      "AMZN": {
+        "spot": 265.82,
+        "gex_b": 0.512,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "POSITIVE_GAMMA",
+        "bias": "Mean-revert \u00b7 low vol regime \u00b7 range-bound \u00b7 dealers stabilize tape",
+        "pcr_oi": 0.733,
+        "skew": 0.0334,
+        "zero_dte_pct": 36.2,
+        "n_contracts": 765,
+        "err": null
+      },
+      "META": {
+        "spot": 603.0,
+        "gex_b": 0.22,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "NEAR_FLIP",
+        "bias": "Unstable zone \u00b7 whipsaw risk \u00b7 reduce position size \u00b7 regime can shift suddenly",
+        "pcr_oi": 0.562,
+        "skew": 0.0162,
+        "zero_dte_pct": 45.5,
+        "n_contracts": 2002,
+        "err": null
+      },
+      "MSFT": {
+        "spot": 407.77,
+        "gex_b": 0.301,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "NEAR_FLIP",
+        "bias": "Unstable zone \u00b7 whipsaw risk \u00b7 reduce position size \u00b7 regime can shift suddenly",
+        "pcr_oi": 0.501,
+        "skew": 0.0095,
+        "zero_dte_pct": 43.1,
+        "n_contracts": 1119,
+        "err": null
+      },
+      "GOOGL": {
+        "spot": 387.35,
+        "gex_b": 0.32,
+        "flip": null,
+        "pct_to_flip": null,
+        "regime": "NEAR_FLIP",
+        "bias": "Unstable zone \u00b7 whipsaw risk \u00b7 reduce position size \u00b7 regime can shift suddenly",
+        "pcr_oi": 1.451,
+        "skew": 0.0155,
+        "zero_dte_pct": 34.8,
+        "n_contracts": 1116,
+        "err": null
+      }
+    }
+  },
+  "finished": "2026-05-13T10:34:37.555447+00:00"
+}
