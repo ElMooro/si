@@ -185,6 +185,8 @@ def load_all():
         "sector_rotation":"data/sector-rotation.json",
         # ─── DIX / Macro GEX (Bloomberg-Gap #4) ─────────────────────
         "dix":"data/dix.json",
+        # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
+        "earnings_sentiment":"screener/earnings-sentiment.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -594,6 +596,28 @@ def extract_metrics(data,weights):
             "dix_n_sustained_dist_5d": (d.get("sustained_signals") or {}).get("n_last_5d_below_40"),
             "dix_data_date": d.get("data_date"),
             "dix_history_days": d.get("n_history_days"),
+        })(),
+        # ─── Earnings Call Transcript NLP (Bloomberg-Gap #5) ─────────────
+        # 210+ transcripts scored by Claude Haiku; institutional-grade
+        # forward-looking sentiment & guidance changes
+        **(lambda e=data.get("earnings_sentiment", {}): {
+            "earnings_nlp_n_transcripts": (e.get("summary") or {}).get("n_transcripts"),
+            "earnings_nlp_guidance_distribution": (e.get("summary") or {}).get("guidance_changes"),
+            "earnings_nlp_top_3_bullish": [
+                {"symbol": x.get("symbol"), "sentiment": x.get("sentiment"),
+                  "confidence": x.get("confidence"),
+                  "date": x.get("date"),
+                  "summary": (x.get("summary") or "")[:120]}
+                for x in ((e.get("summary") or {}).get("most_bullish") or [])[:3]
+            ],
+            "earnings_nlp_top_3_bearish": [
+                {"symbol": x.get("symbol"), "sentiment": x.get("sentiment"),
+                  "confidence": x.get("confidence"),
+                  "date": x.get("date"),
+                  "summary": (x.get("summary") or "")[:120]}
+                for x in ((e.get("summary") or {}).get("most_bearish") or [])[:3]
+            ],
+            "earnings_nlp_generated_at": e.get("generated_at"),
         })(),
     }
 

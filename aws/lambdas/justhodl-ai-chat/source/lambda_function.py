@@ -323,6 +323,55 @@ def build_context(message):
                              f"P/C OI:{r.get('pcr_oi')} call_wall:${walls_c.get('strike')}(OI:{walls_c.get('call_oi')}) "
                              f"put_wall:${walls_p.get('strike')}(OI:{walls_p.get('put_oi')})")
 
+    # ─── Earnings Call Sentiment NLP (Bloomberg-Gap #5) ──────────────
+    es = get_s3('screener/earnings-sentiment.json')
+    if es:
+        summary = es.get('summary') or {}
+        n_total = summary.get('n_transcripts')
+        gc = summary.get('guidance_changes') or {}
+        if n_total:
+            gc_str = f"raised:{gc.get('raised',0)} maintained:{gc.get('maintained',0)} lowered:{gc.get('lowered',0)} withdrawn:{gc.get('withdrawn',0)}"
+            lines.append(f"[EARNINGS NLP] {n_total} call transcripts scored by Claude · guidance: {gc_str}")
+        # Most bullish 3
+        bull = (summary.get('most_bullish') or [])[:3]
+        if bull:
+            b_str = ' · '.join(f"{x.get('symbol')}({x.get('sentiment')})" for x in bull)
+            lines.append(f"[EARNINGS BULLISH] {b_str}")
+            # Include 1-line summary of #1
+            if bull and bull[0].get('one_line_summary') or bull[0].get('summary'):
+                top = bull[0]
+                lines.append(f"  ↳ {top.get('symbol')}: {(top.get('summary') or top.get('one_line_summary') or '')[:160]}")
+        # Most bearish 3
+        bear = (summary.get('most_bearish') or [])[:3]
+        if bear:
+            br_str = ' · '.join(f"{x.get('symbol')}({x.get('sentiment')})" for x in bear)
+            lines.append(f"[EARNINGS BEARISH] {br_str}")
+            if bear and bear[0].get('summary'):
+                top = bear[0]
+                lines.append(f"  ↳ {top.get('symbol')}: {(top.get('summary') or top.get('one_line_summary') or '')[:160]}")
+        # Per-ticker transcript when user mentions a stock
+        transcripts = es.get('transcripts') or []
+        if stocks and transcripts:
+            # Build symbol-index for fast lookup, taking most recent transcript per symbol
+            by_sym = {}
+            for t in transcripts:
+                sym = t.get('symbol')
+                if not sym: continue
+                # Keep latest by date
+                existing = by_sym.get(sym)
+                if not existing or (t.get('transcript_date','') > existing.get('transcript_date','')):
+                    by_sym[sym] = t
+            for tkr in stocks:
+                t = by_sym.get(tkr)
+                if t:
+                    lines.append(f"[{tkr} EARNINGS CALL] {t.get('transcript_date')} · sentiment:{t.get('overall_sentiment')} confidence:{t.get('confidence_score')} guidance:{t.get('forward_guidance')}")
+                    summ = t.get('one_line_summary') or t.get('summary') or ''
+                    if summ: lines.append(f"  ↳ {summ[:200]}")
+                    pos = t.get('key_positives') or []
+                    neg = t.get('key_concerns') or []
+                    if pos: lines.append(f"  ↳ +: {' · '.join(p[:50] for p in pos[:2])}")
+                    if neg: lines.append(f"  ↳ −: {' · '.join(n[:50] for n in neg[:2])}")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:
