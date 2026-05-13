@@ -1,0 +1,91 @@
+{
+  "started": "2026-05-13T15:42:50.320249+00:00",
+  "lambda": {
+    "exists": true,
+    "last_modified": "2026-05-13T14:04:03.000+0000",
+    "mem": 512,
+    "to": 60,
+    "env_keys": [
+      "S3_BUCKET",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "state": "Active",
+    "rules": [
+      {
+        "name": "justhodl-crypto-funding-hourly",
+        "schedule": "cron(15 * ? * * *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": {
+      "success": true,
+      "version": "1.0.0",
+      "n_coins": 9,
+      "vw_funding_ann_pct": 8.43,
+      "composite_regime": "BALANCED",
+      "n_extreme_long": 0,
+      "n_extreme_short": 2,
+      "total_oi_usd_b": 5.27,
+      "regime_changed": false,
+      "alert_sent": false,
+      "elapsed_seconds": 1.67
+    }
+  },
+  "sidecar": {
+    "size_kb": 5.4,
+    "modified": "2026-05-13T15:42:59",
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "source",
+      "elapsed_seconds",
+      "config",
+      "market_composite",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior",
+      "squeeze_candidates",
+      "by_coin"
+    ],
+    "version": "1.0.0",
+    "generated_at": "2026-05-13T15:42:58.290633+00:00",
+    "composite_regime": "BALANCED",
+    "composite_signal": "Funding balanced across coins \u00b7 no major positioning tilt",
+    "market_composite": {
+      "n_coins_analyzed": 9,
+      "vw_funding_per_8h": 7.7e-05,
+      "vw_funding_annualized_pct": 8.43,
+      "median_funding_per_8h": 4.87e-05,
+      "median_funding_annualized_pct": 5.33,
+      "funding_max": 0.0001,
+      "funding_min": -0.0001193,
+      "funding_dispersion_pp": 0.0219,
+      "total_oi_usd_billions": 5.27,
+      "n_extreme_long_positioning": 0,
+      "n_extreme_short_positioning": 2,
+      "n_highly_bullish_leverage": 0,
+      "n_highly_bearish_leverage": 0,
+      "n_bullish": 0,
+      "n_bearish": 1
+    },
+    "n_coins": 9,
+    "sample_coin_keys": [
+      "DOGE",
+      "BTC",
+      "ETH",
+      "SOL",
+      "LINK",
+      "AVAX",
+      "ADA",
+      "XRP",
+      "BNB"
+    ]
+  },
+  "finished": "2026-05-13T15:42:58.549369+00:00"
+}
