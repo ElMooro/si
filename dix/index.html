@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DIX & GEX — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%91%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.bullish_stabilized{border-left:4px solid var(--pos);}
+.regime-banner.bullish_volatile{border-left:4px solid var(--gold);}
+.regime-banner.bearish_gamma_risk{border-left:4px solid var(--neg);}
+.regime-banner.distribution_capped{border-left:4px solid var(--info);}
+.regime-banner.neutral{border-left:4px solid var(--text-mute);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);}
+
+.panel-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:18px;}
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.chart-controls{display:flex;gap:8px;}
+.chart-controls button{background:transparent;border:1px solid var(--border-hi);color:var(--text-dim);padding:4px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;}
+.chart-controls button:hover{color:var(--text);border-color:var(--accent);}
+.chart-controls button.active{color:var(--accent);border-color:var(--accent);background:rgba(167,139,250,.08);}
+#chart{height:520px;}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media (max-width: 900px) { .row-2col { grid-template-columns: 1fr; } }
+
+.bt-table{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--font-mono);}
+.bt-table th,.bt-table td{padding:9px 12px;text-align:right;border-bottom:1px solid rgba(28,35,48,.6);}
+.bt-table th{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);background:rgba(28,35,48,.4);font-weight:500;}
+.bt-table td:first-child,.bt-table th:first-child{text-align:left;}
+.bt-table tr:last-child td{border-bottom:0;}
+.bt-table .n-low{color:var(--text-mute);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🌑 DIX & GEX <span class="badge">SQUEEZEMETRICS · 15Y</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="tiles" class="tiles"></div>
+<div class="panel-grid">
+  <div class="chart-panel">
+    <div class="chart-title">
+      <span>DIX (Dark Index) & SPX Price · Historical View</span>
+      <div class="chart-controls">
+        <button data-range="252" class="active">1Y</button>
+        <button data-range="1260">5Y</button>
+        <button data-range="0">ALL</button>
+      </div>
+    </div>
+    <div id="chart"></div>
+  </div>
+
+  <div class="row-2col">
+    <div class="chart-panel">
+      <div class="chart-title">📈 Forward 20-Day Return by DIX Bucket (Backtest)</div>
+      <div id="backtest20"><div class="loading">Loading backtest…</div></div>
+    </div>
+    <div class="chart-panel">
+      <div class="chart-title">📊 Forward 60-Day Return by DIX Bucket (Backtest)</div>
+      <div id="backtest60"><div class="loading">Loading backtest…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology</h3>
+  <p>The <strong>Dark Index (DIX)</strong> from Squeezemetrics measures the buy/sell imbalance of S&P 500 volume executed in off-exchange dark pools. When DIX is high (&ge;47%), institutions are accumulating quietly via block trades — historically a strong forward-return signal.</p>
+  <p><code>DIX_pct = dark_pool_buy_volume / dark_pool_total_volume</code></p>
+  <p><strong>GEX</strong> here is total dealer gamma exposure on SPX/SPY (sister metric to our per-symbol justhodl-dealer-gex). Positive GEX = dealers stabilize. Negative GEX = dealers amplify.</p>
+  <p><strong>Combined regimes:</strong> <code>BULLISH_STABILIZED</code> (DIX&ge;45 + GEX&gt;0): institutional accumulation into low-vol — melt-up risk. <code>BULLISH_VOLATILE</code> (DIX&ge;45 + GEX&lt;0): accumulation against gamma — bullish but choppy. <code>BEARISH_GAMMA_RISK</code> (DIX&lt;42 + GEX&lt;0): distribution + negative gamma — gap-down risk. <code>DISTRIBUTION_CAPPED</code> (DIX&lt;42 + GEX&gt;0): distribution capped by dealer stability.</p>
+  <p><strong>Source:</strong> <code>squeezemetrics.com/monitor/static/DIX.csv</code> · daily update ~5PM ET · 15+ years of history from 2011.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/dix.json";
+const HISTORY_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/dix-history.json";
+let SUMMARY = null, HISTORY = null, CHART = null, CURRENT_RANGE = 252;
+
+function fmtPct(v, d=1) { return v == null ? '-' : (v >= 0 ? '+' : '') + v.toFixed(d) + '%'; }
+function fmtNum(v, d=2) { return v == null ? '-' : v.toFixed(d); }
+
+async function load() {
+  try {
+    const [s, h] = await Promise.all([fetch(SIDECAR_URL), fetch(HISTORY_URL)]);
+    SUMMARY = await s.json(); HISTORY = await h.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (SUMMARY.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiles(); renderChart(); renderBacktests();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function renderRegime() {
+  const c = SUMMARY.current || {};
+  const stats = SUMMARY.statistics || {};
+  const regime = SUMMARY.combined_regime || 'NEUTRAL';
+  const signal = SUMMARY.combined_signal || '';
+  const rcls = regime.toLowerCase();
+  let titleCls = 'mute';
+  if (regime === 'BULLISH_STABILIZED') titleCls = 'pos';
+  else if (regime === 'BULLISH_VOLATILE') titleCls = 'gold';
+  else if (regime === 'BEARISH_GAMMA_RISK') titleCls = 'neg';
+  else if (regime === 'DISTRIBUTION_CAPPED') titleCls = 'info';
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${titleCls}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">DIX</span><span class="val">${c.dix_pct}%</span></div>
+        <div><span class="label">GEX</span><span class="val">${c.gex_billions >= 0 ? '+' : ''}${c.gex_billions}B</span></div>
+        <div><span class="label">SPX</span><span class="val">$${c.price}</span></div>
+        <div><span class="label">1Y PCT</span><span class="val">${stats.dix_percentile_1y || '-'}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const c = SUMMARY.current || {};
+  const ma = SUMMARY.moving_averages || {};
+  const stats = SUMMARY.statistics || {};
+  const ss = SUMMARY.sustained_signals || {};
+  const dod = SUMMARY.day_over_day || {};
+  const tiles = [
+    {lbl:"DIX 5d Avg", val: ma.dix_5d_pct + "%", sub:`20d: ${ma.dix_20d_pct}% · 60d: ${ma.dix_60d_pct}%`},
+    {lbl:"DIX z-score (60d)", val: fmtNum(stats.dix_z_score_60d), sub:`1y pct: ${stats.dix_percentile_1y}%`, cls: stats.dix_z_score_60d > 1 ? 'pos' : (stats.dix_z_score_60d < -1 ? 'neg' : '')},
+    {lbl:"GEX (Macro)", val: (c.gex_billions >= 0 ? '+' : '') + c.gex_billions + 'B', sub:`20d avg: ${(ma.gex_20d/1e9).toFixed(2)}B`, cls: c.gex_billions > 0 ? 'pos' : 'neg'},
+    {lbl:"Day Change", val: fmtPct(dod.price_change_pct), sub:`ΔDIX: ${dod.dix_change_pp >= 0 ? '+' : ''}${dod.dix_change_pp} pp`, cls: dod.price_change_pct > 0 ? 'pos' : (dod.price_change_pct < 0 ? 'neg' : '')},
+    {lbl:"Days ≥47 (last 5)", val: ss.n_last_5d_above_47 + " / 5", sub:`Last 20d: ${ss.n_last_20d_above_47} / 20`, cls: ss.n_last_5d_above_47 >= 3 ? 'pos' : ''},
+    {lbl:"Days <40 (last 5)", val: ss.n_last_5d_below_40 + " / 5", sub:`Last 20d: ${ss.n_last_20d_below_40} / 20`, cls: ss.n_last_5d_below_40 >= 3 ? 'neg' : ''},
+    {lbl:"History", val: SUMMARY.n_history_days + " days", sub:`Since ${SUMMARY.history_first_date}`},
+    {lbl:"5y Pct Rank", val: stats.dix_percentile_5y == null ? '-' : stats.dix_percentile_5y + '%', sub:`All-time: ${stats.dix_percentile_all_time}%`},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub || ''}</div>
+    </div>`).join('');
+}
+
+function renderChart() {
+  if (!HISTORY || !HISTORY.dates) return;
+  const n = HISTORY.dates.length;
+  const slice = CURRENT_RANGE === 0 ? 0 : Math.max(0, n - CURRENT_RANGE);
+  const dates = HISTORY.dates.slice(slice);
+  const dix = HISTORY.dix_pct.slice(slice);
+  const price = HISTORY.price.slice(slice);
+  const gex = HISTORY.gex_billions.slice(slice);
+
+  if (!CHART) {
+    CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  }
+  CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'},
+                axisPointer: { type: 'cross', lineStyle:{color:'#5b6479'} } },
+    legend: { data: ['DIX %', 'SPX Price', 'GEX (B)'], textStyle:{color:'#e6ecf3'}, top:6 },
+    grid: [{left:60, right:60, top:42, height:'46%'}, {left:60, right:60, top:'62%', height:'30%'}],
+    xAxis: [
+      { type: 'category', data: dates, gridIndex:0, axisLabel:{color:'#8b96a8',fontSize:10}, axisLine:{lineStyle:{color:'#2a3548'}} },
+      { type: 'category', data: dates, gridIndex:1, axisLabel:{color:'#8b96a8',fontSize:10}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    ],
+    yAxis: [
+      { type:'value', gridIndex:0, name:'DIX %', position:'left', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+      { type:'value', gridIndex:0, name:'SPX', position:'right', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{show:false} },
+      { type:'value', gridIndex:1, name:'GEX (B)', position:'left', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+    ],
+    series: [
+      { name:'DIX %', type:'line', data: dix, xAxisIndex:0, yAxisIndex:0, smooth:true, showSymbol:false,
+        lineStyle:{color:'#a78bfa', width:2},
+        areaStyle:{color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(167,139,250,.4)'},{offset:1,color:'rgba(167,139,250,0)'}])},
+        markLine: { silent:true, symbol:'none', label:{position:'end',fontSize:10},
+          data: [
+            {yAxis:47, lineStyle:{color:'#00e676',type:'dashed',width:1}, label:{formatter:'47% (Strong Acc)',color:'#00e676'}},
+            {yAxis:45, lineStyle:{color:'#22d3ee',type:'dashed',width:1}, label:{formatter:'45% (Acc)',color:'#22d3ee'}},
+            {yAxis:40, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'40% (Dist)',color:'#ff3d5a'}},
+          ]},
+      },
+      { name:'SPX Price', type:'line', data: price, xAxisIndex:0, yAxisIndex:1, smooth:true, showSymbol:false,
+        lineStyle:{color:'#22d3ee', width:1.5, opacity:0.7} },
+      { name:'GEX (B)', type:'line', data: gex, xAxisIndex:1, yAxisIndex:2, showSymbol:false,
+        lineStyle:{color:'#fbbf24', width:1.5},
+        areaStyle:{color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'rgba(251,191,36,.3)'},{offset:1,color:'rgba(251,191,36,0)'}])},
+        markLine: { silent:true, symbol:'none', data:[{yAxis:0, lineStyle:{color:'#8b96a8',type:'dashed',width:1}}]},
+      },
+    ],
+  });
+}
+
+function renderBacktests() {
+  const bt = SUMMARY.backtest_forward_returns_by_dix_bucket || {};
+  ["20","60"].forEach(h => {
+    const data = bt['forward_' + h + 'd'] || {};
+    const buckets = ['<40', '40-42', '42-45', '45-47', '>=47'];
+    let html = '<table class="bt-table"><thead><tr><th>DIX Bucket</th><th>N</th><th>Avg Return</th><th>Median</th><th>Win Rate</th></tr></thead><tbody>';
+    buckets.forEach(b => {
+      const r = data[b] || {n:0};
+      if (r.n === 0) { html += `<tr><td>${b}%</td><td class="n-low">0</td><td>-</td><td>-</td><td>-</td></tr>`; return; }
+      const retClass = r.avg_return_pct > 0 ? 'style="color:var(--pos)"' : 'style="color:var(--neg)"';
+      const winClass = r.win_rate_pct >= 60 ? 'style="color:var(--pos)"' : (r.win_rate_pct <= 45 ? 'style="color:var(--neg)"' : '');
+      html += `<tr><td>${b}%</td><td>${r.n}</td><td ${retClass}>${fmtPct(r.avg_return_pct, 2)}</td><td>${fmtPct(r.median, 2)}</td><td ${winClass}>${r.win_rate_pct}%</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('backtest' + h).innerHTML = html;
+  });
+}
+
+document.querySelectorAll('.chart-controls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-controls button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    CURRENT_RANGE = parseInt(btn.dataset.range);
+    renderChart();
+  });
+});
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); });
+load();
+setInterval(load, 10 * 60 * 1000);  // refresh every 10 min
+</script>
+</body>
+</html>

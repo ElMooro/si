@@ -183,6 +183,8 @@ def load_all():
         "dealer_gex":"data/dealer-gex.json",
         # ─── Sector Rotation (Roadmap #4) ──────────────────────────────
         "sector_rotation":"data/sector-rotation.json",
+        # ─── DIX / Macro GEX (Bloomberg-Gap #4) ─────────────────────
+        "dix":"data/dix.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -574,6 +576,24 @@ def extract_metrics(data,weights):
             "rotation_n_out": (r.get("summary") or {}).get("n_rotating_out"),
             "rotation_top_ratio": ((r.get("ratios") or [{}])[0] if r.get("ratios") else None),
             "rotation_generated_at": r.get("generated_at"),
+        })(),
+        # ─── DIX / Macro GEX (Bloomberg-Gap #4) ─────────────────────
+        **(lambda d=data.get("dix", {}): {
+            "dix_pct": (d.get("current") or {}).get("dix_pct"),
+            "dix_regime": d.get("dix_regime"),
+            "dix_combined_regime": d.get("combined_regime"),
+            "dix_combined_signal": d.get("combined_signal"),
+            "dix_z_60d": (d.get("statistics") or {}).get("dix_z_score_60d"),
+            "dix_percentile_1y": (d.get("statistics") or {}).get("dix_percentile_1y"),
+            "dix_5d_avg": (d.get("moving_averages") or {}).get("dix_5d_pct"),
+            "dix_20d_avg": (d.get("moving_averages") or {}).get("dix_20d_pct"),
+            "dix_60d_avg": (d.get("moving_averages") or {}).get("dix_60d_pct"),
+            "macro_gex_billions": (d.get("current") or {}).get("gex_billions"),
+            "macro_gex_regime": d.get("gex_regime"),
+            "dix_n_sustained_accum_5d": (d.get("sustained_signals") or {}).get("n_last_5d_above_47"),
+            "dix_n_sustained_dist_5d": (d.get("sustained_signals") or {}).get("n_last_5d_below_40"),
+            "dix_data_date": d.get("data_date"),
+            "dix_history_days": d.get("n_history_days"),
         })(),
     }
 

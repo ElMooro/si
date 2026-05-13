@@ -323,6 +323,23 @@ def build_context(message):
                              f"P/C OI:{r.get('pcr_oi')} call_wall:${walls_c.get('strike')}(OI:{walls_c.get('call_oi')}) "
                              f"put_wall:${walls_p.get('strike')}(OI:{walls_p.get('put_oi')})")
 
+    # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
+    dix_d = get_s3('data/dix.json')
+    if dix_d:
+        cur = dix_d.get('current') or {}
+        stats = dix_d.get('statistics') or {}
+        ma = dix_d.get('moving_averages') or {}
+        comb = dix_d.get('combined_regime') or '?'
+        sig = dix_d.get('combined_signal', '')
+        lines.append(f"[DIX REGIME] {comb} · DIX={cur.get('dix_pct')}% (z={stats.get('dix_z_score_60d')}, {stats.get('dix_percentile_1y','?')}% pct 1y) · GEX={cur.get('gex_billions')}B")
+        lines.append(f"[DIX SIGNAL] {sig[:120]}")
+        lines.append(f"[DIX MA] 5d:{ma.get('dix_5d_pct')}% 20d:{ma.get('dix_20d_pct')}% 60d:{ma.get('dix_60d_pct')}%")
+        ss = dix_d.get('sustained_signals') or {}
+        if ss.get('n_last_5d_above_47', 0) >= 3:
+            lines.append(f"[DIX SUSTAINED ACCUM] {ss.get('n_last_5d_above_47')}/5 days ≥47% — strong institutional accumulation")
+        elif ss.get('n_last_5d_below_40', 0) >= 3:
+            lines.append(f"[DIX SUSTAINED DIST] {ss.get('n_last_5d_below_40')}/5 days <40% — institutional distribution warning")
+
     # ─── FINRA Daily Short Volume (Bloomberg-Gap #2) ──────────────────
     short_d = get_s3('data/finra-short.json')
     if short_d:
