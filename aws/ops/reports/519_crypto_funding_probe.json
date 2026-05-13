@@ -1,0 +1,63 @@
+{
+  "started": "2026-05-13T13:54:14.274697+00:00",
+  "result": {
+    "probes": [
+      {
+        "url": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP",
+        "status": 200,
+        "bytes": 524,
+        "head": "{\"code\":\"0\",\"data\":[{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000796148384369\",\"fundingTime\":\"1778688000000\",\"impactValue\":\"20000.0000000000000000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"interestRate\":\"0.0001000000000000\",\"maxFundingRate\":\"0.00375\",\"method\":\"current_period\",\"minFundingRate\":\"-0.00375\",\"nextFundingRate\":\"\",\"nextFundingTime\":\"1778716800000\",\"premium\":\"-0.0004278447914603\",\"prevFundingTime\":\"1778659200000\",\"settFundingRate\":\"0.0000443753742934\",\"settState\":\"settled\",\"ts\":\"17",
+        "elapsed_ms": 337
+      },
+      {
+        "url": "https://www.okx.com/api/v5/public/funding-rate-history?instId=BTC-USDT-SWAP&limit=10",
+        "status": 200,
+        "bytes": 1980,
+        "head": "{\"code\":\"0\",\"data\":[{\"formulaType\":\"withRate\",\"fundingRate\":\"0.0000443753742934\",\"fundingTime\":\"1778659200000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"0.0000443753742934\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"-0.0000108837927404\",\"fundingTime\":\"1778630400000\",\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"method\":\"current_period\",\"realizedRate\":\"-0.0000108837927404\"},{\"formulaType\":\"withRate\",\"fundingRate\":\"-0.000063522672516\",\"fundingTime\":\"17786016",
+        "elapsed_ms": 247
+      },
+      {
+        "url": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP&instId=BTC-USDT-SWAP",
+        "status": 200,
+        "bytes": 186,
+        "head": "{\"code\":\"0\",\"data\":[{\"instId\":\"BTC-USDT-SWAP\",\"instType\":\"SWAP\",\"oi\":\"3381992.9500000225\",\"oiCcy\":\"33819.929500000225\",\"oiUsd\":\"2694308649.5258679249175\",\"ts\":\"1778680459447\"}],\"msg\":\"\"}",
+        "elapsed_ms": 249
+      },
+      {
+        "url": "https://www.okx.com/api/v5/market/index-tickers?instId=BTC-USDT",
+        "status": 200,
+        "bytes": 188,
+        "head": "{\"code\":\"0\",\"msg\":\"\",\"data\":[{\"instId\":\"BTC-USDT\",\"idxPx\":\"79695.5\",\"high24h\":\"81312.9\",\"sodUtc0\":\"80499.7\",\"open24h\":\"80668\",\"low24h\":\"79577.1\",\"sodUtc8\":\"80334.4\",\"ts\":\"1778680458620\"}]}",
+        "elapsed_ms": 247
+      },
+      {
+        "url": "https://api.bybit.com/v5/market/tickers?category=linear&symbol=BTCUSDT",
+        "status": 403,
+        "elapsed_ms": 18
+      },
+      {
+        "url": "https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT&limit=5",
+        "status": 403,
+        "elapsed_ms": 8
+      },
+      {
+        "url": "i.bybit.com/v5/market/open-interest?category=linear&symbol=BTCUSDT&intervalTime=1h&limit=5",
+        "status": 403,
+        "elapsed_ms": 8
+      },
+      {
+        "url": "https://www.bitmex.com/api/v1/liquidation?symbol=XBTUSD&count=5&reverse=true",
+        "status": 200,
+        "bytes": 2,
+        "head": "[]",
+        "elapsed_ms": 338
+      },
+      {
+        "url": "https://api.coinalyze.net/v1/exchanges",
+        "status": 401,
+        "elapsed_ms": 178
+      }
+    ]
+  },
+  "finished": "2026-05-13T13:54:20.701951+00:00"
+}
