@@ -1,0 +1,115 @@
+{
+  "started": "2026-05-13T09:04:30.123459+00:00",
+  "test": {
+    "data/calibration-latest.json": {
+      "exists": true,
+      "size_kb": 2.5,
+      "modified": "2026-05-13T09:00:58",
+      "version": "1.0.0",
+      "summary": {
+        "n_trades_analyzed": 59,
+        "n_evaluated_30d": 0,
+        "n_strategies_with_data": 3,
+        "n_strategies_sufficient": 0,
+        "n_significant_strategies": 0,
+        "overall_30d_avg_return_pct": null,
+        "overall_30d_win_rate": null
+      },
+      "deployment_decision": {
+        "auto_apply_calibrations_flag": false,
+        "would_auto_apply": false,
+        "reason": "Insufficient data (n=0 < 60)"
+      },
+      "current_weights": {
+        "quality": 0.16,
+        "growth": 0.17,
+        "momentum": 0.14,
+        "smart_money": 0.16,
+        "sentiment": 0.1,
+        "analysts": 0.08,
+        "insiders": 0.11,
+        "options_flow": 0.08
+      },
+      "proposed_weights": null,
+      "n_per_strategy": 3,
+      "per_strategy_summary": [
+        {
+          "strategy": "TIER_A_ALPHA",
+          "n_total": 2,
+          "n_evaluated_30d": 0,
+          "statistically_sufficient": false
+        },
+        {
+          "strategy": "REGIME_PICK",
+          "n_total": 8,
+          "n_evaluated_30d": 0,
+          "statistically_sufficient": false
+        },
+        {
+          "strategy": "OPTIONS_TIER_A",
+          "n_total": 49,
+          "n_evaluated_30d": 0,
+          "statistically_sufficient": false
+        }
+      ],
+      "attribution": {
+        "n_obs": 0,
+        "insufficient": true,
+        "required": 18
+      }
+    },
+    "data/calibration-history.json": {
+      "exists": true,
+      "size_kb": 0.7,
+      "modified": "2026-05-13T09:00:58",
+      "n_entries": 1,
+      "last_updated": "2026-05-13T09:00:57.204890+00:00"
+    },
+    "screener/alpha-weights.json": {
+      "exists": true,
+      "size_kb": 0.5,
+      "modified": "2026-05-13T09:00:58",
+      "auto_apply_calibrations": false,
+      "active_weights": {
+        "quality": 0.16,
+        "growth": 0.17,
+        "momentum": 0.14,
+        "smart_money": 0.16,
+        "sentiment": 0.1,
+        "analysts": 0.08,
+        "insiders": 0.11,
+        "options_flow": 0.08
+      },
+      "proposed_weights": {
+        "quality": 0.16,
+        "growth": 0.17,
+        "momentum": 0.14,
+        "smart_money": 0.16,
+        "sentiment": 0.1,
+        "analysts": 0.08,
+        "insiders": 0.11,
+        "options_flow": 0.08
+      },
+      "last_calibration_version": "1.0.0"
+    },
+    "screener/alpha-score.json": {
+      "exists": true,
+      "size_kb": 272.3,
+      "modified": "2026-05-13T09:01:07",
+      "model_version": "1.2.0",
+      "weights_source": "hardcoded_default",
+      "weights": {
+        "quality": 0.16,
+        "growth": 0.17,
+        "momentum": 0.14,
+        "smart_money": 0.16,
+        "sentiment": 0.1,
+        "analysts": 0.08,
+        "insiders": 0.11,
+        "options_flow": 0.08
+      },
+      "n_stocks": 503
+    }
+  },
+  "finished": "2026-05-13T09:04:37.147166+00:00"
+}
