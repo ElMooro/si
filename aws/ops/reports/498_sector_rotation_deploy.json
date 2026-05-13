@@ -1,0 +1,211 @@
+{
+  "started": "2026-05-13T09:22:07.493875+00:00",
+  "env_keys": [
+    "POLY_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "deploy": "updated",
+  "schedule": "ok",
+  "invoke_status": 200,
+  "fn_error": null,
+  "invoke_response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_sectors": 11,
+    "n_ratios": 14,
+    "n_rotating_in": 1,
+    "n_rotating_out": 0,
+    "risk_appetite_score": 53.9,
+    "risk_appetite_label": "NEUTRAL",
+    "cycle_phase": "EXPANSION-MID",
+    "top_leader": "XLK",
+    "alert_sent": false,
+    "elapsed_seconds": 0.9
+  },
+  "log_tail": "START RequestId: 1abe8fa6-03ad-4f72-adcf-8cef141fb4ee Version: $LATEST\n=== SECTOR ROTATION v1.0.0 \u00b7 2026-05-13T09:22:22.818376+00:00 ===\nfetching 28 ETFs...\n\u2713 28/28 loaded\nmacro: MSS=38.4 \u00b7 regime=NORMAL \u00b7 cycle=EXPANSION-MID\n\u2713 sector-rotation.json written\ntelegram err: HTTP Error 400: Bad Request\nEND RequestId: 1abe8fa6-03ad-4f72-adcf-8cef141fb4ee\nREPORT RequestId: 1abe8fa6-03ad-4f72-adcf-8cef141fb4ee\tDuration: 904.97 ms\tBilled Duration: 1429 ms\tMemory Size: 1024 MB\tMax Memory Used: 116 MB\tInit Duration: 523.19 ms\t\n",
+  "sidecar": {
+    "size_kb": 18.8,
+    "modified": "2026-05-13T09:22:24",
+    "version": "1.0.0",
+    "macro_context": {
+      "macro_stress_score": 38.4,
+      "regime_label": "NORMAL",
+      "cycle_phase": "EXPANSION-MID",
+      "expected_leaders": [
+        "XLK",
+        "XLF",
+        "XLE",
+        "XLI",
+        "XLB",
+        "XLC"
+      ]
+    },
+    "risk_appetite": {
+      "score": 53.9,
+      "label": "NEUTRAL",
+      "components": 4
+    },
+    "summary": {
+      "n_sectors_analyzed": 11,
+      "n_rotating_in": 1,
+      "n_rotating_out": 0,
+      "top_3_leaders": [
+        {
+          "sym": "XLK",
+          "score": 91.0
+        },
+        {
+          "sym": "XLB",
+          "score": 58.8
+        },
+        {
+          "sym": "XLC",
+          "score": 57.6
+        }
+      ],
+      "bottom_3_laggards": [
+        {
+          "sym": "XLF",
+          "score": 29.4
+        },
+        {
+          "sym": "XLU",
+          "score": 26.4
+        },
+        {
+          "sym": "XLV",
+          "score": 24.6
+        }
+      ],
+      "leadership_alignment": {
+        "expected_for_cycle": [
+          "XLK",
+          "XLF",
+          "XLE",
+          "XLI",
+          "XLB",
+          "XLC"
+        ],
+        "actual_top_3": [
+          "XLK",
+          "XLB",
+          "XLC"
+        ],
+        "matched": [
+          "XLK",
+          "XLB",
+          "XLC"
+        ],
+        "missing_expected": [
+          "XLF",
+          "XLE",
+          "XLI"
+        ],
+        "alignment_pct": 50.0
+      }
+    },
+    "n_sectors": 11,
+    "n_ratios": 14,
+    "rotation_alerts": {
+      "rotating_in": [
+        {
+          "sym": "XLK",
+          "score": 91.0,
+          "flags": [
+            "RS_ACCELERATING",
+            "BUYING_PRESSURE",
+            "SUB_SECTOR_LEADING",
+            "MFI_BULLISH"
+          ]
+        }
+      ],
+      "rotating_out": []
+    },
+    "top_5_sectors": [
+      {
+        "sym": "XLK",
+        "score": 91.0,
+        "rs_3m": 16.25,
+        "cmf": 0.537,
+        "mfi": 75.1,
+        "rotating_in": true,
+        "rotating_out": false,
+        "in_cycle": true
+      },
+      {
+        "sym": "XLB",
+        "score": 58.8,
+        "rs_3m": -8.11,
+        "cmf": -0.1046,
+        "mfi": 49.3,
+        "rotating_in": false,
+        "rotating_out": false,
+        "in_cycle": true
+      },
+      {
+        "sym": "XLC",
+        "score": 57.6,
+        "rs_3m": -8.12,
+        "cmf": -0.0678,
+        "mfi": 40.1,
+        "rotating_in": false,
+        "rotating_out": false,
+        "in_cycle": true
+      },
+      {
+        "sym": "XLRE",
+        "score": 56.9,
+        "rs_3m": -2.59,
+        "cmf": 0.0888,
+        "mfi": 54.1,
+        "rotating_in": false,
+        "rotating_out": false,
+        "in_cycle": false
+      },
+      {
+        "sym": "XLY",
+        "score": 52.6,
+        "rs_3m": -6.69,
+        "cmf": -0.0706,
+        "mfi": 53.3,
+        "rotating_in": false,
+        "rotating_out": false,
+        "in_cycle": false
+      }
+    ],
+    "key_ratios": [
+      {
+        "label": "Financials/Utilities",
+        "ret_21d": 2.5,
+        "z_1y": -0.874,
+        "direction": "rising"
+      },
+      {
+        "label": "Discretionary/Staples",
+        "ret_21d": 0.28,
+        "z_1y": -0.234,
+        "direction": "rising"
+      },
+      {
+        "label": "Tech/Energy",
+        "ret_21d": 19.36,
+        "z_1y": 0.396,
+        "direction": "rising"
+      },
+      {
+        "label": "Small-Cap/Large-Cap",
+        "ret_21d": -0.92,
+        "z_1y": 1.232,
+        "direction": "falling"
+      },
+      {
+        "label": "HY Credit/Treasuries",
+        "ret_21d": 0.74,
+        "z_1y": 1.241,
+        "direction": "rising"
+      }
+    ]
+  },
+  "finished": "2026-05-13T09:22:23.862340+00:00"
+}
