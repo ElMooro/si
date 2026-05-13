@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-dealer-gex",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 2048,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Dealer Gamma Exposure & Positioning Engine. Models market-maker options inventory across SPY/QQQ/IWM + 7 single names. Computes per-strike GEX, zero-gamma flip level, vanna/charm exposure, max pain, IV skew, 0DTE concentration, P/C ratios. Outputs regime classification + squeeze candidates.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]},
+    {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "justhodl-dealer-gex-hourly",
+    "cron": "cron(7 13-21 ? * MON-FRI *)",
+    "description": "Hourly :07 during US market hours (9:07 AM - 5:07 PM ET) Mon-Fri — gamma matters most when market is open"
+  }
+}
