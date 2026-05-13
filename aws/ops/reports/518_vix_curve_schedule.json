@@ -1,0 +1,107 @@
+{
+  "started": "2026-05-13T15:36:11.044306+00:00",
+  "full_sidecar": {
+    "generated_at": "2026-05-13T15:32:11.104009+00:00",
+    "generated_at_unix": 1778686331,
+    "version": "2.0.0",
+    "source": "cdn.cboe.com/api/global/us_indices/daily_prices",
+    "data_date": "2026-05-12",
+    "elapsed_seconds": 1.33,
+    "current": {
+      "vix9d": 16.34,
+      "vix": 17.99,
+      "vix3m": 21.04,
+      "vix6m": 23.03,
+      "vvix": 98.55,
+      "vxn": 24.13,
+      "rvx": 23.85,
+      "vvix_vix_ratio": 5.48
+    },
+    "spreads": {
+      "9d_vs_30d": -1.65,
+      "30d_vs_3m": -3.05,
+      "3m_vs_6m": -1.99,
+      "9d_vs_6m": -6.69,
+      "avg_slope_30d_to_6m": -2.52
+    },
+    "spread_regimes": {
+      "9d_30d": "CONTANGO",
+      "30d_3m": "STEEP_CONTANGO",
+      "3m_6m": "CONTANGO",
+      "9d_6m": "STEEP_CONTANGO"
+    },
+    "composite_regime": "NORMAL_CONTANGO",
+    "composite_signal": "Normal contango \u00b7 vol pricing balanced across curve \u00b7 no immediate stress",
+    "regime_changed_from_prior": false,
+    "z_scores_60d": {
+      "vix9d_z": -0.9,
+      "vix_z": -0.94,
+      "vix3m_z": -0.8,
+      "spread_30d_3m_z": -1.15,
+      "spread_9d_30d_z": -0.61
+    },
+    "percentile_ranks": {
+      "vix_pct_1y": 60.7,
+      "vix_pct_all_time": 58.3,
+      "spread_30d_3m_pct_1y": 28.2
+    },
+    "sustained_signals": {
+      "n_5d_backwardated_30d_3m": 0,
+      "n_20d_backwardated_30d_3m": 0,
+      "n_5d_front_inverted_9d_30d": 0,
+      "n_20d_front_inverted_9d_30d": 0
+    },
+    "cross_asset_dispersion": {
+      "vxn_minus_vix": 6.14,
+      "rvx_minus_vix": 5.86,
+      "nasdaq_stress_premium": "ELEVATED",
+      "small_cap_stress_premium": "NORMAL"
+    },
+    "day_over_day": {
+      "vix_change": -0.39,
+      "vix9d_change": -0.55,
+      "vix3m_change": -0.2,
+      "spread_30d_3m_change": -0.19
+    },
+    "thresholds": {
+      "steep_contango": -3,
+      "contango_min": -1,
+      "flat_max": 0.5,
+      "backwardation_min": 2,
+      "vvix_vix_spike": 7
+    },
+    "n_history_days": 4187,
+    "history_first_date": "2009-09-18"
+  },
+  "history_meta": {
+    "n_days": 1764,
+    "first_date": "2019-05-07",
+    "last_date": "2026-05-12",
+    "series_keys": [
+      "vix9d",
+      "vix",
+      "vix3m",
+      "vix6m",
+      "vvix",
+      "vxn",
+      "rvx"
+    ],
+    "spreads_keys": [
+      "30d_vs_3m",
+      "9d_vs_30d"
+    ],
+    "sample_series_lengths": {
+      "vix9d": 1764,
+      "vix": 1764,
+      "vix3m": 1764,
+      "vix6m": 1764,
+      "vvix": 1764,
+      "vxn": 1764,
+      "rvx": 1764
+    }
+  },
+  "schedule": "cron(0,30 13-21 ? * MON-FRI *)",
+  "rule_state": "ENABLED",
+  "mem_updated": "512MB/120s",
+  "finished": "2026-05-13T15:36:12.802919+00:00"
+}
