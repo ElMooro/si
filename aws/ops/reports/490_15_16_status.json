@@ -1,0 +1,457 @@
+{
+  "started": "2026-05-13T00:17:49.171990+00:00",
+  "test": {
+    "justhodl-debate-engine": {
+      "deployed": true,
+      "mod": "2026-05-13T00:06:23",
+      "mem": 1024,
+      "timeout": 600
+    },
+    "justhodl-trade-logger": {
+      "deployed": true,
+      "mod": "2026-05-13T00:06:40",
+      "mem": 512,
+      "timeout": 240
+    },
+    "justhodl-trade-evaluator": {
+      "deployed": true,
+      "mod": "2026-05-13T00:06:33",
+      "mem": 1024,
+      "timeout": 600
+    },
+    "ddb_call_count": 56,
+    "sidecars": {
+      "data/debate.json": {
+        "exists": true,
+        "size_kb": 17.9,
+        "modified": "2026-05-13T00:10:34",
+        "generated_at": "2026-05-13T00:10:33.011154+00:00",
+        "version": "1.0.0",
+        "n_debates": 2,
+        "summary": {
+          "n_strong_buy": 0,
+          "n_buy": 0,
+          "n_hold": 1,
+          "n_divided": 1,
+          "n_sell": 0,
+          "top_consensus": []
+        },
+        "debates_full": [
+          {
+            "symbol": "VRT",
+            "alpha_score": 83,
+            "tier": "A",
+            "confluence_tier": null,
+            "regime_adj_score": 78,
+            "options_flow_score": 85.0,
+            "personas": [
+              {
+                "verdict": "SELL",
+                "conviction": 72,
+                "thesis": "VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnected from fundamentals\u2014even a quality compounder doesn't justify this multiple given forward P/E of 34x remains elevated.",
+                "concerns": "Massive valuation gap: $141B market cap on $10B revenue implies extreme expectations already priced in. High beta (2.1) means drawdown risk in any market correction. EPS growth spike (164%) likely unsustainable\u2014needs verification it's not one-time benefit.",
+                "fair_value_view": "At 33.96x forward P/E, VRT would need 30%+ perpetual growth to justify current price. DCF -95% downside flags severe overvaluation. Even accounting for AI tailwinds (data center cooling), margin of safety is negative. Fair value likely $120-180 range.",
+                "name": "VALUE",
+                "icon": "\ud83d\udc8e"
+              },
+              {
+                "verdict": "BUY",
+                "conviction": 82,
+                "thesis": "VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x forward PE is justified by 164% EPS growth and high-conviction smart money alignment.",
+                "concerns": "Valuation compression risk if growth decelerates below 20%; elevated beta (2.1) amplifies downside in macro stress. DCF suggests current price may embed aggressive terminal assumptions.",
+                "tam_view": "TAM expanding rapidly: AI data center capex accelerating (hyperscalers spending $100B+/year on infrastructure). Vertiv's cooling & power solutions are mission-critical, non-discretionary, sticky. TAM growing 15-20% annually; Vertiv can grow 2-3x TAM if it gains share in edge/AI segments.",
+                "name": "GROWTH",
+                "icon": "\ud83d\ude80"
+              },
+              {
+                "verdict": "HOLD",
+                "conviction": 62,
+                "thesis": "VRT shows exceptional quality (Piotroski 9/9, 28% revenue growth, 42% ROE) and bullish technicals (100 momentum, insider cluster buy), but stretched valuation (PE 90, -95% DCF upside) in a Normal macro regime makes entry timing poor. Wait for pullback or earnings confirmation.",
+                "concerns": "Extreme valuation disconnect (PE 90 vs 34 forward PE suggests unsustainable euphoria). Beta 2.1 amplifies downside in any macro stress. Analyst grade missing suggests skepticism. High short squeeze setup may be momentum trap into resistance.",
+                "regime_fit": "OK",
+                "name": "MACRO",
+                "icon": "\ud83c\udf10"
+              },
+              {
+                "verdict": "BUY",
+                "conviction": 72,
+                "thesis": "Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with short squeeze setup\u2014institutional accumulation evident. Macro stress low (34/100).",
+                "concerns": "Valuation stretched: PE 90.2x, DCF shows \u221294.9% downside. Forward PE 33.96x still elevated. High beta (2.1) amplifies drawdown risk. +55% momentum suggests fade risk if sentiment rolls; crowded AI narrative may compress margins. Watch analyst disconnect (40/100).",
+                "expected_60d_return_pct": 12,
+                "name": "QUANT",
+                "icon": "\ud83d\udcca"
+              },
+              {
+                "verdict": "SELL",
+                "conviction": 78,
+                "thesis": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap.",
+                "red_flags": [
+                  "P/E of 90.2x vs forward 34x signals massive reset risk; peak revenue growth cannot sustain this multiple forever",
+                  "DCF valuation model implies -94.9% downside\u2014structural warning that terminal value assumptions are unrealistic",
+                  "EPS growth of 164% YoY is unsustainable; law of large numbers + competitive pressure (data center power mgmt commoditizing) will compress margins",
+                  "Insider cluster buy at $367 after 55% run in 90d is contrarian signal\u2014insiders may be front-running secondary offering or locking in compensation",
+                  "Options flow shows 3x call volume & high short squeeze setup\u2014classic retail FOMO trade, not institutional conviction; momentum reversal imminent",
+                  "Debt-to-equity of 0.75x is rising; refinancing risk if rates stay elevated and growth slows post-hype cycle",
+                  "Analyst coverage weak (grade missing, low 40 sentiment score) despite 83 alpha; institutions not supporting valuation",
+                  "Revenue growth 28% YoY will decelerate as AI spending normalize and capex cycles complete; gross margin 36% vulnerable to competition"
+                ],
+                "downside_target_pct": -65,
+                "name": "SHORT",
+                "icon": "\ud83d\udc3b"
+              }
+            ],
+            "synthesis": {
+              "consensus_verdict": "DIVIDED",
+              "consensus_direction": "HOLD",
+              "verdict_counts": {
+                "BUY": 2,
+                "HOLD": 1,
+                "SELL": 2,
+                "ERROR": 0
+              },
+              "avg_conviction": 73.2,
+              "bear_case": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap.",
+              "red_flags": [
+                "P/E of 90.2x vs forward 34x signals massive reset risk; peak revenue growth cannot sustain this multiple forever",
+                "DCF valuation model implies -94.9% downside\u2014structural warning that terminal value assumptions are unrealistic",
+                "EPS growth of 164% YoY is unsustainable; law of large numbers + competitive pressure (data center power mgmt commoditizing) will compress margins",
+                "Insider cluster buy at $367 after 55% run in 90d is contrarian signal\u2014insiders may be front-running secondary offering or locking in compensation",
+                "Options flow shows 3x call volume & high short squeeze setup\u2014classic retail FOMO trade, not institutional conviction; momentum reversal imminent",
+                "Debt-to-equity of 0.75x is rising; refinancing risk if rates stay elevated and growth slows post-hype cycle",
+                "Analyst coverage weak (grade missing, low 40 sentiment score) despite 83 alpha; institutions not supporting valuation",
+                "Revenue growth 28% YoY will decelerate as AI spending normalize and capex cycles complete; gross margin 36% vulnerable to competition"
+              ],
+              "downside_target_pct": -65,
+              "dissenters": [
+                {
+                  "name": "VALUE",
+                  "icon": "\ud83d\udc8e",
+                  "verdict": "SELL",
+                  "thesis": "VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnected from fundamentals\u2014even a quality compounder doesn't justify this multiple given forward P/E of 34x"
+                },
+                {
+                  "name": "GROWTH",
+                  "icon": "\ud83d\ude80",
+                  "verdict": "BUY",
+                  "thesis": "VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x forward PE is justified by 164% EPS growth and high-conviction smart money alignment."
+                },
+                {
+                  "name": "QUANT",
+                  "icon": "\ud83d\udcca",
+                  "verdict": "BUY",
+                  "thesis": "Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with short squeeze setup\u2014institutional accumulation evident. Macro stress low (34/100)."
+                },
+                {
+                  "name": "SHORT",
+                  "icon": "\ud83d\udc3b",
+                  "verdict": "SELL",
+                  "thesis": "VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation at inflated prices. Options flow shows classic squeeze setup\u2014retail FOMO trap."
+                }
+              ]
+            },
+            "verdict_lines": [
+              "\ud83d\udc8e Value: SELL. VRT shows excellent operational quality (Piotroski 9/9, 42% ROE, 28% revenue growth) and insider conviction, but trades at 90x P/E with DCF suggesting 95% downside. Valuation is completely disconnecte",
+              "\ud83d\ude80 Growth: BUY. VRT is a rare A-tier compounder: 28% revenue growth, pristine Piotroski 9/9 financials, massive insider cluster buying, and positioned in critical AI infrastructure (power/cooling). Trading at 34x for",
+              "\ud83c\udf10 Macro: HOLD. VRT shows exceptional quality (Piotroski 9/9, 28% revenue growth, 42% ROE) and bullish technicals (100 momentum, insider cluster buy), but stretched valuation (PE 90, -95% DCF upside) in a Normal macr",
+              "\ud83d\udcca Quant: BUY. Pristine Piotroski 9/9 + Tier-A insider cluster buy (58.96M USD net, 20 buyers/90d) + explosive momentum (+55.2% YoY, +28% revenue) signal genuine quality. Options flow shows 3x call volume surge with",
+              "\ud83d\udc3b Short: SELL. VRT's 90x P/E is indefensible despite momentum. DCF implies 95% downside. Valuation assumes perpetual 28% growth with margin expansion that risks normalization. Insider buying may signal desperation a"
+            ],
+            "debate_elapsed_seconds": 5.49
+          },
+          {
+            "symbol": "NVDA",
+            "alpha_score": 80,
+            "tier": "A",
+            "confluence_tier": null,
+            "regime_adj_score": 81,
+            "options_flow_score": 48.0,
+            "personas": [
+              {
+                "verdict": "HOLD",
+                "conviction": 62,
+                "thesis": "NVDA has exceptional quality (Piotroski 9/9, 62.88% ROIC, 60% operating margin) and genuine AI moat, but trades at 44.8x P/E with only 11% DCF upside\u2014insufficient margin of safety for 5.3T market cap. Forward P/E of 17x is reasonable IF growth sustains, but execution risk is high at this scale.",
+                "concerns": "Valuation leaves little room for disappointment despite quality; insider net selling of $164M last 90d conflicts with cluster buy signal; semiconductor cycle risk and geopolitical exposure (China) not fully priced in.",
+                "fair_value_view": "Intrinsic value ~$245 (11% upside per DCF), but requires sustained 50%+ growth. Current price of $221 fairly values base case; upside capped without multiple expansion. Better entry near $180-190.",
+                "name": "VALUE",
+                "icon": "\ud83d\udc8e"
+              },
+              {
+                "verdict": "BUY",
+                "conviction": 87,
+                "thesis": "NVDA is a genuine AI infrastructure compounder with 65%+ revenue/EPS growth, pristine 9/9 Piotroski financials, and 104% ROE. The semiconductor TAM for AI accelerators is expanding explosively; NVDA dominates with winner-take-most dynamics. Trading at 17x forward PE with 65% growth justifies premium multiple.",
+                "concerns": "Valuation is stretched at 44.8x trailing PE; competition from AMD/Intel/custom chips could erode moat. $164M insider net selling over 90d hints caution on near-term catalysts despite cluster buying.",
+                "tam_view": "AI infrastructure TAM expanding 40%+ CAGR. GPU/accelerator market shifting from gaming to enterprise/cloud\u2014multi-decade secular growth as ML/LLMs proliferate across every vertical.",
+                "name": "GROWTH",
+                "icon": "\ud83d\ude80"
+              },
+              {
+                "verdict": "HOLD",
+                "conviction": 62,
+                "thesis": "NVDA is a pristine quality compounder (Piotroski 9/9, 104% ROE) with massive AI tailwinds, but valuation at 44.8x trailing PE with 17.1x forward is stretched for a macro regime normalizing from easing stress. Earnings in 7 days is binary risk with already-priced-in growth expectations.",
+                "concerns": "Macro stress score only 34 (no panic buffer for mean reversion). Forward PE 17x assumes 120%+ growth sustainability. $164M insider net selling contradicts 3-insider cluster buy signal. Options flow shows call vol spike (positioning crowded). Rate environment shift would compress multiple.",
+                "regime_fit": "OK",
+                "name": "MACRO",
+                "icon": "\ud83c\udf10"
+              },
+              {
+                "verdict": "HOLD",
+                "conviction": 62,
+                "thesis": "Stellar quality (Piotroski 9/9, ROE 104%, margins 71%) and momentum (+79.5% YoY) support valuation, but forward PE 17.13 embedded with ~65% growth already priced. Smart money confidence (Millennium 22.7%) + insider cluster buy are positive, but $164M net insider selling and options flow weakness (CALL_VOL_3X, shorts easing) suggest late-cycle positioning. Earnings surprise beat streak (7x) faces tough comps into May 20 print.",
+                "concerns": "Momentum factor crowded and prone to rotation; options data deteriorating (shorts covering, not accumulating). Insider selling conflicts with cluster buy signal\u2014management hedging risk. Forward earnings cushion thin given 65% revenue growth already baked into 17x forward multiple.",
+                "expected_60d_return_pct": 8,
+                "name": "QUANT",
+                "icon": "\ud83d\udcca"
+              },
+              {
+                "verdict": "SELL",
+                "conviction": 72,
+                "thesis": "NVDA trades at 44.8x P/E despite 17.1x forward\u2014massive valuation cliff pre-earnings (May 20). $164M insider net selling in 90d vs. clustering optics. AI demand pull-forward risk acute; margins at unsustainable 60% ops\u2014commoditization inevitable. Options show call vol explosion (3x) + call/put ratio compression, indicating smart money de-risking. Market cap $5.3T demands perfection; any guidance miss triggers 25-35% correction.",
+                "red_flags": [
+                  "Valuation disconnect: 44.8x trailing P/E vs. 17.1x forward implies 61% earnings growth baked in; historical AI bubble precedent (2022-2023 peak reversions -60%+)",
+                  "Insider net selling $164M last 90d (despite 'cluster buy' narrative\u2014net is what matters); executives dumping at peak",
+                  "Options flow deterioration: Call volume 3x normal + absolute put/call ratio at 3x suggests sophisticated sellers hedging; SHORTS_EASING flag indicates squeeze unwind starting",
+                  "Earnings cliff risk: Consensus EPS $1.70 vs. $0.77 YoY (+121% expectation); 7-beat streak creates elevated miss probability; earnings May 20 with stock at all-time highs = binary event",
+                  "Margin expansion unsustainable: 60.4% operating margin at peak cycle; GPU/AI competition (AMD, Intel foundries, custom chips by hyperscalers) will compress by 800-1200bps over 18mo",
+                  "AI demand pull-forward exhaustion: Semiconductor demand +497% noted as positive, but this is peak cycle indicator; hyperscalers capex already front-loaded; deceleration vs. growth expectations will disappoint",
+                  "Macro stress score 34/100 masks duration risk: At 2.244 beta, NVDA is 2x market sensitivity; Fed tightening surprises or earnings recession will accelerate rotation out",
+                  "Forward P/E 17.1x still 40% above semiconductor sector average (~12x); zero margin of safety even if growth sustains"
+                ],
+                "downside_target_pct": -35,
+                "name": "SHORT",
+                "icon": "\ud83d\udc3b"
+              }
+            ],
+            "synthesis": {
+              "consensus_verdict": "HOLD",
+              "consensus_direction": "HOLD",
+              "verdict_counts": {
+                "BUY": 1,
+                "HOLD": 3,
+                "SELL": 1,
+                "ERROR": 0
+              },
+              "avg_conviction": 69.0,
+              "bear_case": "NVDA trades at 44.8x P/E despite 17.1x forward\u2014massive valuation cliff pre-earnings (May 20). $164M insider net selling in 90d vs. clustering optics. AI demand pull-forward risk acute; margins at unsustainable 60% ops\u2014commoditization inevitable. Options show call vol explosion (3x) + call/put ratio compression, indicating smart money de-risking. Market cap $5.3T demands perfection; any guidance miss triggers 25-35% correction.",
+              "red_flags": [
+                "Valuation disconnect: 44.8x trailing P/E vs. 17.1x forward implies 61% earnings growth baked in; historical AI bubble precedent (2022-2023 peak reversions -60%+)",
+                "Insider net selling $164M last 90d (despite 'cluster buy' narrative\u2014net is what matters); executives dumping at peak",
+                "Options flow deterioration: Call volume 3x normal + absolute put/call ratio at 3x suggests sophisticated sellers hedging; SHORTS_EASING flag indicates squeeze unwind starting",
+                "Earnings cliff risk: Consensus EPS $1.70 vs. $0.77 YoY (+121% expectation); 7-beat streak creates elevated miss probability; earnings May 20 with stock at all-time highs = binary event",
+                "Margin expansion unsustainable: 60.4% operating margin at peak cycle; GPU/AI competition (AMD, Intel foundries, custom chips by hyperscalers) will compress by 800-1200bps over 18mo",
+                "AI demand pull-forward exhaustion: Semiconductor demand +497% noted as positive, but this is peak cycle indicator; hyperscalers capex already front-loaded; deceleration vs. growth expectations will disappoint",
+                "Macro stress score 34/100 masks duration risk: At 2.244 beta, NVDA is 2x market sensitivity; Fed tightening surprises or earnings recession will accelerate rotation out",
+                "Forward P/E 17.1x still 40% above semiconductor sector average (~12x); zero margin of safety even if growth sustains"
+              ],
+              "downside_target_pct": -35,
+              "dissenters": [
+                {
+                  "name": "GROWTH",
+                  "icon": "\ud83d\ude80",
+                  "verdict": "BUY",
+                  "thesis": "NVDA is a genuine AI infrastructure compounder with 65%+ revenue/EPS growth, pristine 9/9 Piotroski financials, and 104% ROE. The semiconductor TAM for AI accelerators is expanding explosively; NVDA dominates with winner-take-most dynamics. Trading at 17x forward PE with 65% growth justifies premium"
+                },
+                {
+                  "name": "SHORT",
+                  "icon": "\ud83d\udc3b",
+                  "verdict": "SELL",
+                  "thesis": "NVDA trades at 44.8x P/E despite 17.1x forward\u2014massive valuation cliff pre-earnings (May 20). $164M insider net selling in 90d vs. clustering optics. AI demand pull-forward risk acute; margins at unsustainable 60% ops\u2014commoditization inevitable. Options show call vol explosion (3x) + call/put ratio "
+                }
+              ]
+            },
+            "verdict_lines": [
+              "\ud83d\udc8e Value: HOLD. NVDA has exceptional quality (Piotroski 9/9, 62.88% ROIC, 60% operating margin) and genuine AI moat, but trades at 44.8x P/E with only 11% DCF upside\u2014insufficient margin of safety for 5.3T market cap.",
+              "\ud83d\ude80 Growth: BUY. NVDA is a genuine AI infrastructure compounder with 65%+ revenue/EPS growth, pristine 9/9 Piotroski financials, and 104% ROE. The semiconductor TAM for AI accelerators is expanding explosively; NVDA d",
+              "\ud83c\udf10 Macro: HOLD. NVDA is a pristine quality compounder (Piotroski 9/9, 104% ROE) with massive AI tailwinds, but valuation at 44.8x trailing PE with 17.1x forward is stretched for a macro regime normalizing from easing",
+              "\ud83d\udcca Quant: HOLD. Stellar quality (Piotroski 9/9, ROE 104%, margins 71%) and momentum (+79.5% YoY) support valuation, but forward PE 17.13 embedded with ~65% growth already priced. Smart money confidence (Millennium 22",
+              "\ud83d\udc3b Short: SELL. NVDA trades at 44.8x P/E despite 17.1x forward\u2014massive valuation cliff pre-earnings (May 20). $164M insider net selling in 90d vs. clustering optics. AI demand pull-forward risk acute; margins at unsu"
+            ],
+            "debate_elapsed_seconds": 8.06
+          }
+        ]
+      },
+      "data/trade-journal.json": {
+        "exists": true,
+        "size_kb": 32.5,
+        "modified": "2026-05-13T00:10:37",
+        "generated_at": "2026-05-13T00:10:36.153525+00:00",
+        "version": "1.0.0",
+        "n_ledger": 56,
+        "summary": {
+          "total_calls_90d": 56,
+          "total_evaluated_30d": 0,
+          "overall_win_rate_30d_pct": null,
+          "overall_avg_return_30d_pct": null,
+          "n_strategies_tracked": 3,
+          "n_open": 56,
+          "n_closed_or_hit": 0
+        },
+        "strategies": [
+          {
+            "strategy": "OPTIONS_TIER_A",
+            "total_calls_90d": 49,
+            "evaluated_30d": 0,
+            "win_rate_30d_pct": null,
+            "avg_return_30d_pct": null,
+            "evaluated_90d": 0,
+            "win_rate_90d_pct": null,
+            "avg_return_90d_pct": null
+          },
+          {
+            "strategy": "REGIME_PICK",
+            "total_calls_90d": 5,
+            "evaluated_30d": 0,
+            "win_rate_30d_pct": null,
+            "avg_return_30d_pct": null,
+            "evaluated_90d": 0,
+            "win_rate_90d_pct": null,
+            "avg_return_90d_pct": null
+          },
+          {
+            "strategy": "TIER_A_ALPHA",
+            "total_calls_90d": 2,
+            "evaluated_30d": 0,
+            "win_rate_30d_pct": null,
+            "avg_return_30d_pct": null,
+            "evaluated_90d": 0,
+            "win_rate_90d_pct": null,
+            "avg_return_90d_pct": null
+          }
+        ],
+        "ledger_first_5": [
+          {
+            "call_date": "2026-05-13",
+            "call_timestamp": "2026-05-13T00:10:35.306055+00:00",
+            "symbol": "PNC",
+            "name": "The PNC Financial Services Group, Inc.",
+            "sector": "Financial Services",
+            "strategy": "OPTIONS_TIER_A",
+            "alpha_score": 48.0,
+            "tier": "D",
+            "entry_price": 215.725,
+            "regime_at_call": "NORMAL",
+            "macro_stress_at_call": 34.0,
+            "outcome_1d": null,
+            "outcome_7d": null,
+            "outcome_30d": null,
+            "outcome_90d": null,
+            "outcome_180d": null,
+            "outcome_status": "OPEN",
+            "rationale": "Options flow TIER A \u00b7 score 68.0 \u00b7 CPR_RISING, CALL_VOL_3X, SHORTS_EASING",
+            "signals_firing": [
+              "CPR_RISING",
+              "CALL_VOL_3X",
+              "SHORTS_EASING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ]
+          },
+          {
+            "call_date": "2026-05-13",
+            "call_timestamp": "2026-05-13T00:10:35.297360+00:00",
+            "symbol": "SYK",
+            "name": "Stryker Corporation",
+            "sector": "Healthcare",
+            "strategy": "OPTIONS_TIER_A",
+            "alpha_score": 52.0,
+            "tier": "C",
+            "entry_price": 295.07,
+            "regime_at_call": "NORMAL",
+            "macro_stress_at_call": 34.0,
+            "outcome_1d": null,
+            "outcome_7d": null,
+            "outcome_30d": null,
+            "outcome_90d": null,
+            "outcome_180d": null,
+            "outcome_status": "OPEN",
+            "rationale": "Options flow TIER A \u00b7 score 68.0 \u00b7 CPR_SURGING, CALL_VOL_3X",
+            "signals_firing": [
+              "CPR_SURGING",
+              "CALL_VOL_3X"
+            ]
+          },
+          {
+            "call_date": "2026-05-13",
+            "call_timestamp": "2026-05-13T00:10:35.291856+00:00",
+            "symbol": "PFE",
+            "name": "Pfizer Inc.",
+            "sector": "Healthcare",
+            "strategy": "OPTIONS_TIER_A",
+            "alpha_score": 56.0,
+            "tier": "C",
+            "entry_price": 25.91,
+            "regime_at_call": "NORMAL",
+            "macro_stress_at_call": 34.0,
+            "outcome_1d": null,
+            "outcome_7d": null,
+            "outcome_30d": null,
+            "outcome_90d": null,
+            "outcome_180d": null,
+            "outcome_status": "OPEN",
+            "rationale": "Options flow TIER A \u00b7 score 68.0 \u00b7 CPR_SURGING, CALL_VOL_3X",
+            "signals_firing": [
+              "CPR_SURGING",
+              "CALL_VOL_3X"
+            ]
+          },
+          {
+            "call_date": "2026-05-13",
+            "call_timestamp": "2026-05-13T00:10:35.285810+00:00",
+            "symbol": "COST",
+            "name": "Costco Wholesale Corporation",
+            "sector": "Consumer Defensive",
+            "strategy": "OPTIONS_TIER_A",
+            "alpha_score": 60.0,
+            "tier": "C",
+            "entry_price": 1021.1453,
+            "regime_at_call": "NORMAL",
+            "macro_stress_at_call": 34.0,
+            "outcome_1d": null,
+            "outcome_7d": null,
+            "outcome_30d": null,
+            "outcome_90d": null,
+            "outcome_180d": null,
+            "outcome_status": "OPEN",
+            "rationale": "Options flow TIER A \u00b7 score 68.0 \u00b7 CPR_RISING, CALL_VOL_3X, ABS_CPR_3X",
+            "signals_firing": [
+              "CPR_RISING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X"
+            ]
+          },
+          {
+            "call_date": "2026-05-13",
+            "call_timestamp": "2026-05-13T00:10:35.272083+00:00",
+            "symbol": "MA",
+            "name": "Mastercard Incorporated",
+            "sector": "Financial Services",
+            "strategy": "OPTIONS_TIER_A",
+            "alpha_score": 74.0,
+            "tier": "B",
+            "entry_price": 501.43,
+            "regime_at_call": "NORMAL",
+            "macro_stress_at_call": 34.0,
+            "outcome_1d": null,
+            "outcome_7d": null,
+            "outcome_30d": null,
+            "outcome_90d": null,
+            "outcome_180d": null,
+            "outcome_status": "OPEN",
+            "rationale": "Options flow TIER A \u00b7 score 68.0 \u00b7 CPR_SURGING, CALL_VOL_3X",
+            "signals_firing": [
+              "CPR_SURGING",
+              "CALL_VOL_3X"
+            ]
+          }
+        ]
+      }
+    },
+    "daily_brief": {
+      "deployed": true,
+      "mod": "2026-05-12T14:27:03",
+      "env": [
+        "TELEGRAM_TOKEN",
+        "ANTHROPIC_API_KEY"
+      ]
+    }
+  },
+  "finished": "2026-05-13T00:17:56.718872+00:00"
+}
