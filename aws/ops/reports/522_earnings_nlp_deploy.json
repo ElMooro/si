@@ -1,0 +1,47 @@
+{
+  "started": "2026-05-13T17:50:22.769066+00:00",
+  "env_inherited_keys": [
+    "ANTHROPIC_API_KEY",
+    "FMP_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "has_anthropic_key": true,
+  "anthropic_model": "(unset)",
+  "lambda": "created",
+  "schedule": "cron(0 14 ? * MON-FRI *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_tickers": 30,
+    "n_with_data": 0,
+    "n_with_err": 30,
+    "regime": null,
+    "median_tone": null,
+    "n_improvers": 0,
+    "n_deteriorators": 0,
+    "alert_sent": false,
+    "elapsed_seconds": 0.6
+  },
+  "log_tail": "START RequestId: b6287f8a-3fd4-4cb8-bd9a-df3cc5eac49e Version: $LATEST\n=== earnings-nlp v1.0.0 \u00b7 2026-05-13T17:50:31.804576+00:00 ===\nuniverse: 30 tickers\nANTHROPIC_API_KEY present: True\n\u2717 GOOGL: no transcript metadata\n\u2717 MSFT: no transcript metadata\n\u2717 AAPL: no transcript metadata\n\u2717 AMZN: no transcript metadata\n\u2717 TSLA: no transcript metadata\n\u2717 NVDA: no transcript metadata\n\u2717 META: no transcript metadata\n\u2717 BRK-B: no transcript metadata\n\u2717 AVGO: no transcript metadata\n\u2717 WMT: no transcript metadata\n\u2717 JPM: no transcript metadata\n\u2717 LLY: no transcript metadata\n\u2717 V: no transcript metadata\n\u2717 XOM: no transcript metadata\n\u2717 UNH: no transcript metadata\n\u2717 PG: no transcript metadata\n\u2717 JNJ: no transcript metadata\n\u2717 MA: no transcript metadata\n\u2717 HD: no transcript metadata\n\u2717 BAC: no transcript metadata\n\u2717 ABBV: no transcript metadata\n\u2717 KO: no transcript metadata\n\u2717 ORCL: no transcript metadata\n\u2717 CVX: no transcript metadata\n\u2717 MRK: no transcript metadata\n\u2717 PEP: no transcript metadata\n\u2717 ADBE: no transcript metadata\n\u2717 COST: no transcript metadata\n\u2717 TMO: no transcript metadata\n\u2717 CSCO: no transcript metadata\n\u2713 data/earnings-nlp.json written\nEND RequestId: b6287f8a-3fd4-4cb8-bd9a-df3cc5eac49e\nREPORT RequestId: b6287f8a-3fd4-4cb8-bd9a-df3cc5eac49e\tDuration: 705.49 ms\tBilled Duration: 1264 ms\tMemory Size: 1024 MB\tMax Memory Used: 110 MB\tInit Duration: 558.33 ms\t\n",
+  "sidecar": {
+    "size_kb": 2.2,
+    "modified": "2026-05-13T17:50:33",
+    "version": "1.0.0",
+    "model": "claude-haiku-4-5-20251001",
+    "n_tickers": 30,
+    "n_with_data": 0,
+    "n_with_err": 30,
+    "market_summary": {
+      "err": "no valid scores",
+      "n": 0
+    },
+    "sample_scored_tickers": [],
+    "n_improvers": 0,
+    "n_deteriorators": 0
+  },
+  "finished": "2026-05-13T17:50:32.697428+00:00"
+}
