@@ -1,0 +1,2166 @@
+{
+  "started": "2026-05-13T13:24:27.434403+00:00",
+  "lambdas": {
+    "justhodl-earnings-sentiment": {
+      "name": "justhodl-earnings-sentiment",
+      "exists": true,
+      "memory": 1024,
+      "timeout": 900,
+      "last_modified": "2026-05-11T18:59:44.897+0000",
+      "env_keys": [
+        "ANTHROPIC_API_KEY",
+        "ANTHROPIC_MODEL",
+        "FMP_KEY"
+      ],
+      "rules": [
+        {
+          "name": "justhodl-earnings-sentiment-daily",
+          "schedule": "cron(0 10 * * ? *)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    "justhodl-earnings-tracker": {
+      "name": "justhodl-earnings-tracker",
+      "exists": true,
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-05-03T23:58:02.000+0000",
+      "env_keys": [
+        "FMP_KEY",
+        "MAX_PARALLEL",
+        "POLYGON_KEY",
+        "S3_BUCKET",
+        "S3_KEY"
+      ],
+      "rules": [
+        {
+          "name": "justhodl-earnings-tracker-6h",
+          "schedule": "rate(6 hours)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    "justhodl-earnings-pead": {
+      "name": "justhodl-earnings-pead",
+      "exists": true,
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-06T13:57:55.000+0000",
+      "env_keys": [
+        "FMP_KEY",
+        "MAX_TICKERS",
+        "N_WORKERS",
+        "S3_BUCKET",
+        "TIMEOUT_BUDGET_S"
+      ],
+      "rules": [
+        {
+          "name": "justhodl-earnings-pead-daily",
+          "schedule": "cron(0 8 * * ? *)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    "justhodl-earnings-whisper": {
+      "name": "justhodl-earnings-whisper",
+      "exists": true,
+      "memory": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-07T10:58:18.000+0000",
+      "env_keys": [
+        "S3_BUCKET",
+        "S3_KEY_OUT"
+      ],
+      "rules": [
+        {
+          "name": "earnings-whisper-daily",
+          "schedule": "cron(15 8 * * ? *)",
+          "state": "ENABLED"
+        }
+      ]
+    }
+  },
+  "sidecars": {
+    "screener/earnings-sentiment.json": {
+      "exists": true,
+      "size_kb": 265.5,
+      "modified": "2026-05-13T10:02:40",
+      "top_keys": [
+        "generated_at",
+        "elapsed_seconds",
+        "n_new_this_run",
+        "n_candidates",
+        "summary",
+        "transcripts"
+      ],
+      "generated_at": "2026-05-13T10:02:39.400281+00:00",
+      "n_transcripts": 210,
+      "sample_3_transcripts": [
+        {
+          "symbol": "VFF",
+          "date": "2026-05-11",
+          "sentiment": 72,
+          "confidence": 78,
+          "guidance": "maintained",
+          "summary": "Village Farms delivered strong YoY growth driven by international expansion and Canadian leadership, with confidence in "
+        },
+        {
+          "symbol": "CMPGF",
+          "date": "2026-05-11",
+          "sentiment": 82,
+          "confidence": 85,
+          "guidance": "raised",
+          "summary": "Compass delivered strong H1 results with raised FY guidance, driven by robust organic growth and margin expansion across"
+        },
+        {
+          "symbol": "UNIT",
+          "date": "2026-05-11",
+          "sentiment": 82,
+          "confidence": 85,
+          "guidance": "maintained",
+          "summary": "Uniti executing fiber strategy with strong Q1 results, positioning for AI-driven hyperscaler tailwinds and future infere"
+        }
+      ],
+      "summary": {
+        "n_transcripts": 210,
+        "most_bullish": [
+          {
+            "symbol": "CDNL",
+            "name": "Cardinal Infrastructure Group Inc. Class A Common Stock",
+            "sentiment": 88,
+            "confidence": 85,
+            "summary": "Cardinal delivered exceptional Q1 results with record backlog and raised 2026 guidance, driven by successful ALGC integration and market diversification.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "CAMT.TA",
+            "name": "Camtek Ltd.",
+            "sentiment": 85,
+            "confidence": 82,
+            "summary": "Camtek enters unprecedented growth cycle driven by AI/HBM demand with record orders and expanded 2B TAM through Visual Layer acquisition.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "ONON",
+            "name": "On Holding AG",
+            "sentiment": 85,
+            "confidence": 82,
+            "summary": "On delivered exceptionally strong Q1 growth with premium margin expansion driven by innovation and brand momentum across regions.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "KRMN",
+            "name": "Karman Holdings Inc.",
+            "sentiment": 85,
+            "confidence": 82,
+            "summary": "Karman delivered record Q1 results with raised guidance, strong backlog, and favorable defense-space budget tailwinds ahead.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "CINT",
+            "name": "CI&T Inc",
+            "sentiment": 85,
+            "confidence": 82,
+            "summary": "CI&T delivered strong Q1 with record revenue and raised full-year guidance, driven by accelerating AI deployment and emerging monetization models.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "LQDA",
+            "name": "Liquidia Corporation",
+            "sentiment": 85,
+            "confidence": 80,
+            "summary": "Liquidia demonstrates exceptional early commercial execution with YUTREPIA, achieving profitability while maintaining 2027 guidance of $1B revenue.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "ETOR",
+            "name": "eToro Group Ltd.",
+            "sentiment": 82,
+            "confidence": 78,
+            "summary": "eToro delivered record Q1 results with strong growth across funded accounts and diversified asset classes, powered by AI innovation and expanded global reach.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "VG",
+            "name": "Venture Global, Inc.",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "Venture Global significantly raised 2026 EBITDA guidance on strong operational execution and robust LNG contracting momentum.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "CAMT",
+            "name": "Camtek Ltd.",
+            "sentiment": 82,
+            "confidence": 85,
+            "summary": "Camtek achieved record orders and strong Q1 growth driven by AI and HBM demand, with confident 2026-27 outlook despite near-term margin pressure.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "NOPMF",
+            "name": "Neo Performance Materials Inc.",
+            "sentiment": 82,
+            "confidence": 78,
+            "summary": "Neo delivered record Q1 results with doubled EBITDA and raised FY26 guidance, driven by critical materials demand.",
+            "date": "2026-05-12"
+          }
+        ],
+        "most_bearish": [
+          {
+            "symbol": "FSK",
+            "name": "FS KKR Capital Corp.",
+            "sentiment": -45,
+            "confidence": -35,
+            "summary": "FSK undertakes major restructuring amid 9.9% NAV decline and portfolio stress, deploying capital support measures.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "RTTNY",
+            "name": "Rottneros AB (publ)",
+            "sentiment": -35,
+            "confidence": -25,
+            "summary": "Rottneros faces persistent market headwinds offset partially by wood cost declines and covenant relief.",
+            "date": "2026-05-09"
+          },
+          {
+            "symbol": "UEIC",
+            "name": "Universal Electronics Inc.",
+            "sentiment": -35,
+            "confidence": -25,
+            "summary": "UEIC maintains restructuring course amid 14% revenue decline, improving EPS through cost discipline rather than growth.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "GTM",
+            "name": "ZoomInfo Technologies Inc.",
+            "sentiment": -35,
+            "confidence": 25,
+            "summary": "ZoomInfo beat Q1 but faces macro headwinds and AI uncertainty, cutting full-year guidance amid strategic workforce restructuring.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "SNBR",
+            "name": "Sleep Number Corporation",
+            "sentiment": -25,
+            "confidence": 25,
+            "summary": "Sleep Number stabilized Q1 with turnaround progress but faces significant near-term capital structure uncertainty requiring strategic solutions.",
+            "date": "2026-05-12"
+          },
+          {
+            "symbol": "BTMDW",
+            "name": "biote Corp.",
+            "sentiment": -25,
+            "confidence": -15,
+            "summary": "Biote maintains full-year guidance despite Q1 miss from temporary product recall, betting on commercial investments for H2 recovery.",
+            "date": "2026-05-07"
+          },
+          {
+            "symbol": "DRCT",
+            "name": "Direct Digital Holdings, Inc.",
+            "sentiment": -25,
+            "confidence": -15,
+            "summary": "DRCT shows operational improvement and strategic pivots but faces revenue headwinds and tight liquidity requiring successful M&A execution.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "0K3B.L",
+            "name": "The Mosaic Company",
+            "sentiment": -15,
+            "confidence": 25,
+            "summary": "Mosaic navigates geopolitical pressures and raw material constraints by temporarily reducing production while maintaining long-term confidence.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "MOS",
+            "name": "The Mosaic Company",
+            "sentiment": -15,
+            "confidence": 35,
+            "summary": "Mosaic differentiates amid challenging market dynamics, but temporary production curtailments and reduced CapEx reflect near-term uncertainty.",
+            "date": "2026-05-11"
+          },
+          {
+            "symbol": "AAG.DE",
+            "name": "Aumann AG",
+            "sentiment": 15,
+            "confidence": 25,
+            "summary": "Aumann navigates weak automotive demand through Next Automation expansion while maintaining profitability amid structural market headwinds.",
+            "date": "2026-05-12"
+          }
+        ],
+        "guidance_changes": {
+          "maintained": 126,
+          "none": 25,
+          "raised": 48,
+          "withdrawn": 2,
+          "lowered": 9
+        }
+      }
+    },
+    "data/earnings-tracker.json": {
+      "exists": true,
+      "size_kb": 35.4,
+      "modified": "2026-05-13T11:46:36",
+      "top_keys": [
+        "version",
+        "generated_at",
+        "watchlist_size",
+        "upcoming_14d",
+        "n_upcoming",
+        "recent_results_30d",
+        "n_recent",
+        "pead_signals",
+        "n_pead",
+        "aggregate_stats",
+        "duration_s",
+        "data_sources"
+      ],
+      "generated_at": "2026-05-13T11:46:35.921773+00:00"
+    },
+    "data/earnings-pead.json": {
+      "exists": true,
+      "size_kb": 662.1,
+      "modified": "2026-05-13T08:00:24",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "generated_at": "2026-05-13T08:00:23+00:00",
+      "summary": {
+        "top_25_overall": [
+          {
+            "symbol": "GOOG",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 90.7,
+            "avg_surprise_4q": 32.2,
+            "days_since_earnings": 14.0,
+            "drift_active": true,
+            "post_earnings_return": 10.5,
+            "cap_bucket": "mega",
+            "market_cap": 4642253115859,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Communication Services"
+          },
+          {
+            "symbol": "GOOGL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 93.6,
+            "avg_surprise_4q": 33.9,
+            "days_since_earnings": 14.0,
+            "drift_active": true,
+            "post_earnings_return": 10.7,
+            "cap_bucket": "mega",
+            "market_cap": 4684948007994,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Communication Services"
+          },
+          {
+            "symbol": "SNDK",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 5,
+            "latest_surprise_pct": 60.1,
+            "avg_surprise_4q": 172.9,
+            "days_since_earnings": 13.0,
+            "drift_active": true,
+            "post_earnings_return": 32.4,
+            "cap_bucket": "mega",
+            "market_cap": 215029278795,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Technology"
+          },
+          {
+            "symbol": "NEM",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 6,
+            "latest_surprise_pct": 40.1,
+            "avg_surprise_4q": 34.6,
+            "days_since_earnings": 20.0,
+            "drift_active": true,
+            "post_earnings_return": 7.8,
+            "cap_bucket": "large",
+            "market_cap": 127775390323,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Basic Materials"
+          },
+          {
+            "symbol": "FIX",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 54.3,
+            "avg_surprise_4q": 39.8,
+            "days_since_earnings": 20.0,
+            "drift_active": true,
+            "post_earnings_return": 13.7,
+            "cap_bucket": "large",
+            "market_cap": 71018074226,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "BE",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 6,
+            "latest_surprise_pct": 255.1,
+            "avg_surprise_4q": 269.1,
+            "days_since_earnings": 15.0,
+            "drift_active": true,
+            "post_earnings_return": 24.0,
+            "cap_bucket": "large",
+            "market_cap": 67480089241,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "EL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 37.9,
+            "avg_surprise_4q": 32.7,
+            "days_since_earnings": 12.0,
+            "drift_active": true,
+            "post_earnings_return": 7.0,
+            "cap_bucket": "large",
+            "market_cap": 30702560359,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Consumer Defensive"
+          },
+          {
+            "symbol": "STRL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 56.8,
+            "avg_surprise_4q": 29.5,
+            "days_since_earnings": 9.0,
+            "drift_active": true,
+            "post_earnings_return": 60.8,
+            "cap_bucket": "large",
+            "market_cap": 26124485235,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "MRNA",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 60.9,
+            "avg_surprise_4q": 44.8,
+            "days_since_earnings": 12.0,
+            "drift_active": true,
+            "post_earnings_return": 17.4,
+            "cap_bucket": "large",
+            "market_cap": 21136790220,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Healthcare"
+          },
+          {
+            "symbol": "AGX",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 74.4,
+            "avg_surprise_4q": 38.2,
+            "days_since_earnings": 48.0,
+            "drift_active": true,
+            "post_earnings_return": 65.8,
+            "cap_bucket": "mid",
+            "market_cap": 9507216270,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "SSRM",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 5,
+            "latest_surprise_pct": 42.0,
+            "avg_surprise_4q": 54.0,
+            "days_since_earnings": 8.0,
+            "drift_active": true,
+            "post_earnings_return": 26.5,
+            "cap_bucket": "mid",
+            "market_cap": 7415728340,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Basic Materials"
+          },
+          {
+            "symbol": "MYRG",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 7,
+            "latest_surprise_pct": 43.1,
+            "avg_surprise_4q": 24.8,
+            "days_since_earnings": 14.0,
+            "drift_active": true,
+            "post_earnings_return": 34.8,
+            "cap_bucket": "mid",
+            "market_cap": 7089009170,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "MU",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 32.8,
+            "avg_surprise_4q": 19.7,
+            "days_since_earnings": 56.0,
+            "drift_active": true,
+            "post_earnings_return": 66.0,
+            "cap_bucket": "mega",
+            "market_cap": 864495263400,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Technology"
+          },
+          {
+            "symbol": "PWR",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 31.4,
+            "avg_surprise_4q": 10.0,
+            "days_since_earnings": 13.0,
+            "drift_active": true,
+            "post_earnings_return": 5.2,
+            "cap_bucket": "large",
+            "market_cap": 114917448600,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "FTNT",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 32.5,
+            "avg_surprise_4q": 16.8,
+            "days_since_earnings": 7.0,
+            "drift_active": true,
+            "post_earnings_return": 26.6,
+            "cap_bucket": "large",
+            "market_cap": 84255145880,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Technology"
+          },
+          {
+            "symbol": "MTZ",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 40.5,
+            "avg_surprise_4q": 14.8,
+            "days_since_earnings": 13.0,
+            "drift_active": true,
+            "post_earnings_return": 6.7,
+            "cap_bucket": "large",
+            "market_cap": 33211499087,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "HXL",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 4,
+            "latest_surprise_pct": 40.5,
+            "avg_surprise_4q": 18.6,
+            "days_since_earnings": 21.0,
+            "drift_active": true,
+            "post_earnings_return": 6.1,
+            "cap_bucket": "mid",
+            "market_cap": 6973244640,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Industrials"
+          },
+          {
+            "symbol": "WELL",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 53.2,
+            "avg_surprise_4q": 38.2,
+            "days_since_earnings": 15.0,
+            "drift_active": true,
+            "post_earnings_return": 1.5,
+            "cap_bucket": "large",
+            "market_cap": 153536295000,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Real Estate"
+          },
+          {
+            "symbol": "PLD",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 30.3,
+            "avg_surprise_4q": 31.1,
+            "days_since_earnings": 27.0,
+            "drift_active": true,
+            "post_earnings_return": 1.1,
+            "cap_bucket": "large",
+            "market_cap": 134032910880,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Real Estate"
+          },
+          {
+            "symbol": "FCX",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 5,
+            "latest_surprise_pct": 22.2,
+            "avg_surprise_4q": 31.4,
+            "days_since_earnings": 20.0,
+            "drift_active": true,
+            "post_earnings_return": 7.4,
+            "cap_bucket": "large",
+            "market_cap": 94929259808,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_15%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "sector": "Basic Materials"
+          },
+          {
+            "symbol": "PSX",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 4,
+            "latest_surprise_pct": 190.3,
+            "avg_surprise_4q": 65.3,
+            "days_since_earnings": 14.0,
+            "drift_active": true,
+            "post_earnings_return": 1.1,
+            "cap_bucket": "large",
+            "market_cap": 70336030559,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Energy"
+          },
+          {
+            "symbol": "ALL",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 45.7,
+            "avg_surprise_4q": 54.9,
+            "days_since_earnings": 14.0,
+            "drift_active": true,
+            "post_earnings_return": 1.5,
+            "cap_bucket": "large",
+            "market_cap": 55466502870,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Financial Services"
+          },
+          {
+            "symbol": "RKT",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 6,
+            "latest_surprise_pct": 30.4,
+            "avg_surprise_4q": 38.9,
+            "days_since_earnings": 6.0,
+            "drift_active": true,
+            "post_earnings_return": 4.6,
+            "cap_bucket": "large",
+            "market_cap": 41795409923,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Financial Services"
+          },
+          {
+            "symbol": "IRM",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 8,
+            "latest_surprise_pct": 185.4,
+            "avg_surprise_4q": 84.2,
+            "days_since_earnings": 13.0,
+            "drift_active": true,
+            "post_earnings_return": 0.2,
+            "cap_bucket": "large",
+            "market_cap": 37550589989,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Real Estate"
+          },
+          {
+            "symbol": "FITBM",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "beat_streak": 5,
+            "latest_surprise_pct": 245.0,
+            "avg_surprise_4q": 67.3,
+            "days_since_earnings": 26.0,
+            "drift_active": true,
+            "post_earnings_return": 1.3,
+            "cap_bucket": "large",
+            "market_cap": 23781472248,
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "sector": "Financial Services"
+          }
+        ],
+        "tier_s": [
+          "GOOG",
+          "GOOGL",
+          "SNDK",
+          "NEM",
+          "FIX",
+          "BE",
+          "EL",
+          "STRL",
+          "MRNA",
+          "AGX",
+          "SSRM",
+          "MYRG",
+          "MU",
+          "PWR",
+          "FTNT",
+          "MTZ",
+          "HXL",
+          "WELL",
+          "PLD",
+          "FCX",
+          "PSX",
+          "ALL",
+          "RKT",
+          "IRM",
+          "FITBM",
+          "SITM",
+          "FRT",
+          "KRYS",
+          "AGCO",
+          "FROG",
+          "THG",
+          "INTC",
+          "CNC",
+          "LLY",
+          "STX",
+          "VRT",
+          "CVS",
+          "FDX",
+          "DDOG",
+          "EME",
+          "TWLO",
+          "LTH",
+          "HSY",
+          "BIIB",
+          "FAF",
+          "REGN",
+          "VLO",
+          "GM",
+          "CUK",
+          "FITB",
+          "EXR",
+          "BG",
+          "AFRM",
+          "FR",
+          "REXR",
+          "LEVI"
+        ],
+        "tier_s_full": [
+          {
+            "symbol": "GOOG",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-29",
+              "days_since_earnings": 14.0,
+              "drift_active": true,
+              "latest_surprise_pct": 90.7,
+              "avg_surprise_4q": 32.2,
+              "post_earnings_return_pct": 10.5,
+              "market_cap": 4642253115859,
+              "cap_bucket": "mega",
+              "sector": "Communication Services",
+              "industry": "Internet Content & Information"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-29",
+                "actual": 5.11,
+                "estimate": 2.68,
+                "surprise_pct": 90.67164179104478,
+                "beat": true
+              },
+              {
+                "date": "2026-02-04",
+                "actual": 2.82,
+                "estimate": 2.63,
+                "surprise_pct": 7.2243346007604545,
+                "beat": true
+              },
+              {
+                "date": "2025-10-29",
+                "actual": 2.87,
+                "estimate": 2.3,
+                "surprise_pct": 24.78260869565219,
+                "beat": true
+              },
+              {
+                "date": "2025-07-23",
+                "actual": 2.31,
+                "estimate": 2.18,
+                "surprise_pct": 5.963302752293573,
+                "beat": true
+              },
+              {
+                "date": "2025-04-24",
+                "actual": 2.81,
+                "estimate": 2.02,
+                "surprise_pct": 39.10891089108911,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "GOOGL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-29",
+              "days_since_earnings": 14.0,
+              "drift_active": true,
+              "latest_surprise_pct": 93.6,
+              "avg_surprise_4q": 33.9,
+              "post_earnings_return_pct": 10.7,
+              "market_cap": 4684948007994,
+              "cap_bucket": "mega",
+              "sector": "Communication Services",
+              "industry": "Internet Content & Information"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-29",
+                "actual": 5.11,
+                "estimate": 2.64,
+                "surprise_pct": 93.56060606060606,
+                "beat": true
+              },
+              {
+                "date": "2026-02-04",
+                "actual": 2.82,
+                "estimate": 2.57,
+                "surprise_pct": 9.72762645914397,
+                "beat": true
+              },
+              {
+                "date": "2025-10-29",
+                "actual": 2.87,
+                "estimate": 2.3,
+                "surprise_pct": 24.78260869565219,
+                "beat": true
+              },
+              {
+                "date": "2025-07-23",
+                "actual": 2.31,
+                "estimate": 2.15,
+                "surprise_pct": 7.441860465116286,
+                "beat": true
+              },
+              {
+                "date": "2025-04-24",
+                "actual": 2.81,
+                "estimate": 2.02,
+                "surprise_pct": 39.10891089108911,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "SNDK",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 5,
+            "metrics": {
+              "latest_earnings_date": "2026-04-30",
+              "days_since_earnings": 13.0,
+              "drift_active": true,
+              "latest_surprise_pct": 60.1,
+              "avg_surprise_4q": 172.9,
+              "post_earnings_return_pct": 32.4,
+              "market_cap": 215029278795,
+              "cap_bucket": "mega",
+              "sector": "Technology",
+              "industry": "Hardware, Equipment & Parts"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-30",
+                "actual": 23.41,
+                "estimate": 14.62,
+                "surprise_pct": 60.12311901504789,
+                "beat": true
+              },
+              {
+                "date": "2026-01-29",
+                "actual": 6.2,
+                "estimate": 3.62,
+                "surprise_pct": 71.27071823204419,
+                "beat": true
+              },
+              {
+                "date": "2025-11-06",
+                "actual": 1.22,
+                "estimate": 0.883,
+                "surprise_pct": 38.165345413363525,
+                "beat": true
+              },
+              {
+                "date": "2025-08-14",
+                "actual": 0.29,
+                "estimate": 0.04661,
+                "surprise_pct": 522.1840806693842,
+                "beat": true
+              },
+              {
+                "date": "2025-05-07",
+                "actual": -0.3,
+                "estimate": -0.39,
+                "surprise_pct": 23.076923076923084,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "NEM",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 6,
+            "metrics": {
+              "latest_earnings_date": "2026-04-23",
+              "days_since_earnings": 20.0,
+              "drift_active": true,
+              "latest_surprise_pct": 40.1,
+              "avg_surprise_4q": 34.6,
+              "post_earnings_return_pct": 7.8,
+              "market_cap": 127775390323,
+              "cap_bucket": "large",
+              "sector": "Basic Materials",
+              "industry": "Gold"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-23",
+                "actual": 2.9,
+                "estimate": 2.07,
+                "surprise_pct": 40.09661835748793,
+                "beat": true
+              },
+              {
+                "date": "2026-02-19",
+                "actual": 2.52,
+                "estimate": 2.07,
+                "surprise_pct": 21.73913043478262,
+                "beat": true
+              },
+              {
+                "date": "2025-10-23",
+                "actual": 1.71,
+                "estimate": 1.44,
+                "surprise_pct": 18.750000000000004,
+                "beat": true
+              },
+              {
+                "date": "2025-07-24",
+                "actual": 1.43,
+                "estimate": 0.905,
+                "surprise_pct": 58.01104972375689,
+                "beat": true
+              },
+              {
+                "date": "2025-04-23",
+                "actual": 1.25,
+                "estimate": 0.916,
+                "surprise_pct": 36.46288209606986,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "FIX",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-23",
+              "days_since_earnings": 20.0,
+              "drift_active": true,
+              "latest_surprise_pct": 54.3,
+              "avg_surprise_4q": 39.8,
+              "post_earnings_return_pct": 13.7,
+              "market_cap": 71018074226,
+              "cap_bucket": "large",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-23",
+                "actual": 10.51,
+                "estimate": 6.81,
+                "surprise_pct": 54.33186490455213,
+                "beat": true
+              },
+              {
+                "date": "2026-02-19",
+                "actual": 9.37,
+                "estimate": 6.75,
+                "surprise_pct": 38.8148148148148,
+                "beat": true
+              },
+              {
+                "date": "2025-10-23",
+                "actual": 8.25,
+                "estimate": 6.29,
+                "surprise_pct": 31.160572337042925,
+                "beat": true
+              },
+              {
+                "date": "2025-07-24",
+                "actual": 6.53,
+                "estimate": 4.84,
+                "surprise_pct": 34.91735537190084,
+                "beat": true
+              },
+              {
+                "date": "2025-04-24",
+                "actual": 4.75,
+                "estimate": 3.66,
+                "surprise_pct": 29.781420765027317,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "BE",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 6,
+            "metrics": {
+              "latest_earnings_date": "2026-04-28",
+              "days_since_earnings": 15.0,
+              "drift_active": true,
+              "latest_surprise_pct": 255.1,
+              "avg_surprise_4q": 269.1,
+              "post_earnings_return_pct": 24.0,
+              "market_cap": 67480089241,
+              "cap_bucket": "large",
+              "sector": "Industrials",
+              "industry": "Electrical Equipment & Parts"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-28",
+                "actual": 0.44,
+                "estimate": 0.1239,
+                "surprise_pct": 255.12510088781278,
+                "beat": true
+              },
+              {
+                "date": "2026-02-05",
+                "actual": 0.45,
+                "estimate": 0.3068,
+                "surprise_pct": 46.67535853976531,
+                "beat": true
+              },
+              {
+                "date": "2025-10-28",
+                "actual": 0.15,
+                "estimate": 0.1007,
+                "surprise_pct": 48.957298907646475,
+                "beat": true
+              },
+              {
+                "date": "2025-07-31",
+                "actual": 0.1,
+                "estimate": 0.01211,
+                "surprise_pct": 725.7638315441785,
+                "beat": true
+              },
+              {
+                "date": "2025-04-30",
+                "actual": 0.03,
+                "estimate": -0.07,
+                "surprise_pct": 142.85714285714286,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "EL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-05-01",
+              "days_since_earnings": 12.0,
+              "drift_active": true,
+              "latest_surprise_pct": 37.9,
+              "avg_surprise_4q": 32.7,
+              "post_earnings_return_pct": 7.0,
+              "market_cap": 30702560359,
+              "cap_bucket": "large",
+              "sector": "Consumer Defensive",
+              "industry": "Household & Personal Products"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-05-01",
+                "actual": 0.91,
+                "estimate": 0.66,
+                "surprise_pct": 37.878787878787875,
+                "beat": true
+              },
+              {
+                "date": "2026-02-05",
+                "actual": 0.89,
+                "estimate": 0.835,
+                "surprise_pct": 6.586826347305395,
+                "beat": true
+              },
+              {
+                "date": "2025-10-30",
+                "actual": 0.32,
+                "estimate": 0.1757,
+                "surprise_pct": 82.1286283437678,
+                "beat": true
+              },
+              {
+                "date": "2025-08-20",
+                "actual": 0.09,
+                "estimate": 0.08633,
+                "surprise_pct": 4.25112938723502,
+                "beat": true
+              },
+              {
+                "date": "2025-05-01",
+                "actual": 0.65,
+                "estimate": 0.3127,
+                "surprise_pct": 107.86696514230894,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "STRL",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-05-04",
+              "days_since_earnings": 9.0,
+              "drift_active": true,
+              "latest_surprise_pct": 56.8,
+              "avg_surprise_4q": 29.5,
+              "post_earnings_return_pct": 60.8,
+              "market_cap": 26124485235,
+              "cap_bucket": "large",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-05-04",
+                "actual": 3.59,
+                "estimate": 2.29,
+                "surprise_pct": 56.768558951965055,
+                "beat": true
+              },
+              {
+                "date": "2026-02-25",
+                "actual": 3.08,
+                "estimate": 2.62,
+                "surprise_pct": 17.557251908396946,
+                "beat": true
+              },
+              {
+                "date": "2025-11-03",
+                "actual": 3.48,
+                "estimate": 2.79,
+                "surprise_pct": 24.73118279569892,
+                "beat": true
+              },
+              {
+                "date": "2025-08-04",
+                "actual": 2.69,
+                "estimate": 2.26,
+                "surprise_pct": 19.02654867256638,
+                "beat": true
+              },
+              {
+                "date": "2025-05-05",
+                "actual": 1.63,
+                "estimate": 1.58,
+                "surprise_pct": 3.164556962025305,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "MRNA",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-05-01",
+              "days_since_earnings": 12.0,
+              "drift_active": true,
+              "latest_surprise_pct": 60.9,
+              "avg_surprise_4q": 44.8,
+              "post_earnings_return_pct": 17.4,
+              "market_cap": 21136790220,
+              "cap_bucket": "large",
+              "sector": "Healthcare",
+              "industry": "Biotechnology"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-05-01",
+                "actual": -1.18,
+                "estimate": -3.02,
+                "surprise_pct": 60.9271523178808,
+                "beat": true
+              },
+              {
+                "date": "2026-02-13",
+                "actual": -2.11,
+                "estimate": -2.54,
+                "surprise_pct": 16.929133858267722,
+                "beat": true
+              },
+              {
+                "date": "2025-11-06",
+                "actual": -0.51,
+                "estimate": -1.87,
+                "surprise_pct": 72.72727272727273,
+                "beat": true
+              },
+              {
+                "date": "2025-08-01",
+                "actual": -2.13,
+                "estimate": -2.99,
+                "surprise_pct": 28.762541806020074,
+                "beat": true
+              },
+              {
+                "date": "2025-05-01",
+                "actual": -2.52,
+                "estimate": -2.92,
+                "surprise_pct": 13.698630136986298,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "AGX",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-03-26",
+              "days_since_earnings": 48.0,
+              "drift_active": true,
+              "latest_surprise_pct": 74.4,
+              "avg_surprise_4q": 38.2,
+              "post_earnings_return_pct": 65.8,
+              "market_cap": 9507216270,
+              "cap_bucket": "mid",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-03-26",
+                "actual": 3.47,
+                "estimate": 1.99,
+                "surprise_pct": 74.37185929648243,
+                "beat": true
+              },
+              {
+                "date": "2025-12-04",
+                "actual": 2.17,
+                "estimate": 2.05,
+                "surprise_pct": 5.853658536585372,
+                "beat": true
+              },
+              {
+                "date": "2025-09-04",
+                "actual": 2.5,
+                "estimate": 1.99,
+                "surprise_pct": 25.628140703517587,
+                "beat": true
+              },
+              {
+                "date": "2025-06-04",
+                "actual": 1.6,
+                "estimate": 1.09,
+                "surprise_pct": 46.78899082568807,
+                "beat": true
+              },
+              {
+                "date": "2025-03-27",
+                "actual": 2.22,
+                "estimate": 1.15,
+                "surprise_pct": 93.04347826086959,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "SSRM",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 5,
+            "metrics": {
+              "latest_earnings_date": "2026-05-05",
+              "days_since_earnings": 8.0,
+              "drift_active": true,
+              "latest_surprise_pct": 42.0,
+              "avg_surprise_4q": 54.0,
+              "post_earnings_return_pct": 26.5,
+              "market_cap": 7415728340,
+              "cap_bucket": "mid",
+              "sector": "Basic Materials",
+              "industry": "Gold"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-05-05",
+                "actual": 1.15,
+                "estimate": 0.81,
+                "surprise_pct": 41.97530864197529,
+                "beat": true
+              },
+              {
+                "date": "2026-02-17",
+                "actual": 0.88,
+                "estimate": 0.59,
+                "surprise_pct": 49.15254237288136,
+                "beat": true
+              },
+              {
+                "date": "2025-11-04",
+                "actual": 0.32,
+                "estimate": 0.31,
+                "surprise_pct": 3.2258064516129057,
+                "beat": true
+              },
+              {
+                "date": "2025-08-05",
+                "actual": 0.51,
+                "estimate": 0.23,
+                "surprise_pct": 121.73913043478262,
+                "beat": true
+              },
+              {
+                "date": "2025-05-06",
+                "actual": 0.29,
+                "estimate": 0.08,
+                "surprise_pct": 262.49999999999994,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "MYRG",
+            "score": 90.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 7,
+            "metrics": {
+              "latest_earnings_date": "2026-04-29",
+              "days_since_earnings": 14.0,
+              "drift_active": true,
+              "latest_surprise_pct": 43.1,
+              "avg_surprise_4q": 24.8,
+              "post_earnings_return_pct": 34.8,
+              "market_cap": 7089009170,
+              "cap_bucket": "mid",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-29",
+                "actual": 2.99,
+                "estimate": 2.09,
+                "surprise_pct": 43.062200956937815,
+                "beat": true
+              },
+              {
+                "date": "2026-02-25",
+                "actual": 2.33,
+                "estimate": 1.73,
+                "surprise_pct": 34.6820809248555,
+                "beat": true
+              },
+              {
+                "date": "2025-10-29",
+                "actual": 2.05,
+                "estimate": 1.82,
+                "surprise_pct": 12.637362637362623,
+                "beat": true
+              },
+              {
+                "date": "2025-07-30",
+                "actual": 1.7,
+                "estimate": 1.56,
+                "surprise_pct": 8.974358974358967,
+                "beat": true
+              },
+              {
+                "date": "2025-04-30",
+                "actual": 1.45,
+                "estimate": 1.23,
+                "surprise_pct": 17.886178861788615,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "MU",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-03-18",
+              "days_since_earnings": 56.0,
+              "drift_active": true,
+              "latest_surprise_pct": 32.8,
+              "avg_surprise_4q": 19.7,
+              "post_earnings_return_pct": 66.0,
+              "market_cap": 864495263400,
+              "cap_bucket": "mega",
+              "sector": "Technology",
+              "industry": "Semiconductors"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-03-18",
+                "actual": 12.2,
+                "estimate": 9.19,
+                "surprise_pct": 32.752992383025024,
+                "beat": true
+              },
+              {
+                "date": "2025-12-17",
+                "actual": 4.78,
+                "estimate": 3.96,
+                "surprise_pct": 20.707070707070717,
+                "beat": true
+              },
+              {
+                "date": "2025-09-23",
+                "actual": 3.03,
+                "estimate": 2.86,
+                "surprise_pct": 5.9440559440559415,
+                "beat": true
+              },
+              {
+                "date": "2025-06-25",
+                "actual": 1.91,
+                "estimate": 1.6,
+                "surprise_pct": 19.37499999999999,
+                "beat": true
+              },
+              {
+                "date": "2025-03-20",
+                "actual": 1.56,
+                "estimate": 1.43,
+                "surprise_pct": 9.090909090909099,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "PWR",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-30",
+              "days_since_earnings": 13.0,
+              "drift_active": true,
+              "latest_surprise_pct": 31.4,
+              "avg_surprise_4q": 10.0,
+              "post_earnings_return_pct": 5.2,
+              "market_cap": 114917448600,
+              "cap_bucket": "large",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-30",
+                "actual": 2.68,
+                "estimate": 2.04,
+                "surprise_pct": 31.37254901960785,
+                "beat": true
+              },
+              {
+                "date": "2026-02-19",
+                "actual": 3.16,
+                "estimate": 3.02,
+                "surprise_pct": 4.635761589403978,
+                "beat": true
+              },
+              {
+                "date": "2025-10-30",
+                "actual": 3.33,
+                "estimate": 3.25,
+                "surprise_pct": 2.4615384615384635,
+                "beat": true
+              },
+              {
+                "date": "2025-07-31",
+                "actual": 2.48,
+                "estimate": 2.44,
+                "surprise_pct": 1.6393442622950833,
+                "beat": true
+              },
+              {
+                "date": "2025-05-01",
+                "actual": 1.78,
+                "estimate": 1.67,
+                "surprise_pct": 6.586826347305395,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "FTNT",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-05-06",
+              "days_since_earnings": 7.0,
+              "drift_active": true,
+              "latest_surprise_pct": 32.5,
+              "avg_surprise_4q": 16.8,
+              "post_earnings_return_pct": 26.6,
+              "market_cap": 84255145880,
+              "cap_bucket": "large",
+              "sector": "Technology",
+              "industry": "Software - Infrastructure"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-05-06",
+                "actual": 0.82,
+                "estimate": 0.619,
+                "surprise_pct": 32.47172859450727,
+                "beat": true
+              },
+              {
+                "date": "2026-02-05",
+                "actual": 0.81,
+                "estimate": 0.743,
+                "surprise_pct": 9.017496635262457,
+                "beat": true
+              },
+              {
+                "date": "2025-11-05",
+                "actual": 0.74,
+                "estimate": 0.631,
+                "surprise_pct": 17.27416798732171,
+                "beat": true
+              },
+              {
+                "date": "2025-08-06",
+                "actual": 0.64,
+                "estimate": 0.59,
+                "surprise_pct": 8.474576271186448,
+                "beat": true
+              },
+              {
+                "date": "2025-05-07",
+                "actual": 0.58,
+                "estimate": 0.531,
+                "surprise_pct": 9.227871939736334,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "MTZ",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-30",
+              "days_since_earnings": 13.0,
+              "drift_active": true,
+              "latest_surprise_pct": 40.5,
+              "avg_surprise_4q": 14.8,
+              "post_earnings_return_pct": 6.7,
+              "market_cap": 33211499087,
+              "cap_bucket": "large",
+              "sector": "Industrials",
+              "industry": "Engineering & Construction"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-30",
+                "actual": 1.39,
+                "estimate": 0.989,
+                "surprise_pct": 40.546006066734066,
+                "beat": true
+              },
+              {
+                "date": "2026-02-26",
+                "actual": 2.07,
+                "estimate": 1.95,
+                "surprise_pct": 6.153846153846148,
+                "beat": true
+              },
+              {
+                "date": "2025-10-30",
+                "actual": 2.48,
+                "estimate": 2.32,
+                "surprise_pct": 6.896551724137938,
+                "beat": true
+              },
+              {
+                "date": "2025-07-31",
+                "actual": 1.49,
+                "estimate": 1.41,
+                "surprise_pct": 5.6737588652482325,
+                "beat": true
+              },
+              {
+                "date": "2025-05-01",
+                "actual": 0.51,
+                "estimate": 0.3351,
+                "surprise_pct": 52.19337511190689,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "HXL",
+            "score": 85.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_10%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 4,
+            "metrics": {
+              "latest_earnings_date": "2026-04-22",
+              "days_since_earnings": 21.0,
+              "drift_active": true,
+              "latest_surprise_pct": 40.5,
+              "avg_surprise_4q": 18.6,
+              "post_earnings_return_pct": 6.1,
+              "market_cap": 6973244640,
+              "cap_bucket": "mid",
+              "sector": "Industrials",
+              "industry": "Aerospace & Defense"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-22",
+                "actual": 0.59,
+                "estimate": 0.42,
+                "surprise_pct": 40.476190476190474,
+                "beat": true
+              },
+              {
+                "date": "2026-01-28",
+                "actual": 0.52,
+                "estimate": 0.489,
+                "surprise_pct": 6.339468302658492,
+                "beat": true
+              },
+              {
+                "date": "2025-10-22",
+                "actual": 0.37,
+                "estimate": 0.3612,
+                "surprise_pct": 2.4363233665559174,
+                "beat": true
+              },
+              {
+                "date": "2025-07-24",
+                "actual": 0.6,
+                "estimate": 0.48,
+                "surprise_pct": 25.0,
+                "beat": true
+              },
+              {
+                "date": "2025-04-21",
+                "actual": 0.37,
+                "estimate": 0.43,
+                "surprise_pct": -13.953488372093023,
+                "beat": false
+              }
+            ]
+          },
+          {
+            "symbol": "WELL",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-28",
+              "days_since_earnings": 15.0,
+              "drift_active": true,
+              "latest_surprise_pct": 53.2,
+              "avg_surprise_4q": 38.2,
+              "post_earnings_return_pct": 1.5,
+              "market_cap": 153536295000,
+              "cap_bucket": "large",
+              "sector": "Real Estate",
+              "industry": "REIT - Healthcare Facilities"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-28",
+                "actual": 1.04,
+                "estimate": 0.679,
+                "surprise_pct": 53.166421207658324,
+                "beat": true
+              },
+              {
+                "date": "2026-02-10",
+                "actual": 1.13,
+                "estimate": 0.59,
+                "surprise_pct": 91.52542372881355,
+                "beat": true
+              },
+              {
+                "date": "2025-10-27",
+                "actual": 1.34,
+                "estimate": 1.3,
+                "surprise_pct": 3.0769230769230793,
+                "beat": true
+              },
+              {
+                "date": "2025-07-28",
+                "actual": 1.28,
+                "estimate": 1.22,
+                "surprise_pct": 4.9180327868852505,
+                "beat": true
+              },
+              {
+                "date": "2025-04-28",
+                "actual": 1.2,
+                "estimate": 1.15,
+                "surprise_pct": 4.347826086956526,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "PLD",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_30%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_POSITIVE"
+            ],
+            "beat_streak": 8,
+            "metrics": {
+              "latest_earnings_date": "2026-04-16",
+              "days_since_earnings": 27.0,
+              "drift_active": true,
+              "latest_surprise_pct": 30.3,
+              "avg_surprise_4q": 31.1,
+              "post_earnings_return_pct": 1.1,
+              "market_cap": 134032910880,
+              "cap_bucket": "large",
+              "sector": "Real Estate",
+              "industry": "REIT - Industrial"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-16",
+                "actual": 1.05,
+                "estimate": 0.806,
+                "surprise_pct": 30.272952853598014,
+                "beat": true
+              },
+              {
+                "date": "2026-01-21",
+                "actual": 1.44,
+                "estimate": 0.77,
+                "surprise_pct": 87.012987012987,
+                "beat": true
+              },
+              {
+                "date": "2025-10-15",
+                "actual": 1.49,
+                "estimate": 1.44,
+                "surprise_pct": 3.472222222222225,
+                "beat": true
+              },
+              {
+                "date": "2025-07-16",
+                "actual": 1.46,
+                "estimate": 1.41,
+                "surprise_pct": 3.5460992907801447,
+                "beat": true
+              },
+              {
+                "date": "2025-04-16",
+                "actual": 1.42,
+                "estimate": 1.38,
+                "surprise_pct": 2.898550724637684,
+                "beat": true
+              }
+            ]
+          },
+          {
+            "symbol": "FCX",
+            "score": 83.0,
+            "tier": "TIER_S_PEAD_DRIFT",
+            "flags": [
+              "BEAT_STREAK_4Q+",
+              "BIG_BEAT_15%+",
+              "AVG_SURPRISE_20%+",
+              "DRIFT_ACTIVE",
+              "DRIFT_CONFIRMED_5%+"
+            ],
+            "beat_streak": 5,
+            "metrics": {
+              "latest_earnings_date": "2026-04-23",
+              "days_since_earnings": 20.0,
+              "drift_active": true,
+              "latest_surprise_pct": 22.2,
+              "avg_surprise_4q": 31.4,
+              "post_earnings_return_pct": 7.4,
+              "market_cap": 94929259808,
+              "cap_bucket": "large",
+              "sector": "Basic Materials",
+              "industry": "Copper"
+            },
+            "surprise_history": [
+              {
+                "date": "2026-04-23",
+                "actual": 0.57,
+                "estimate": 0.4665,
+                "surprise_pct": 22.186495176848858,
+                "beat": true
+              },
+              {
+                "date": "2026-01-22",
+                "actual": 0.47,
+                "estimate": 0.2852,
+                "surprise_pct": 64.79663394109394,
+                "beat": true
+              },
+              {
+                "date": "2025-10-23",
+                "actual": 0.5,
+                "estimate": 0.4212,
+                "surprise_pct": 18.70845204178537,
+                "beat": true
+              },
+              {
+                "date": "2025-07-23",
+                "actual": 0.54,
+                "estimate": 0.4497,
+                "surprise_pct": 20.08005336891262,
+                "beat": true
+              },
+              {
+                "date": "2025-04-24",
+                "actual": 0.24,
+                "estimate": 0.2377,
+                "surprise_pct": 0.9676062263357158,
+                "beat": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "finished": "2026-05-13T13:24:47.775210+00:00"
+}
