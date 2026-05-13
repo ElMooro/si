@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Credit Stress — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%B3%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.benign,.regime-banner.constructive{border-left:4px solid var(--pos);}
+.regime-banner.meltup_prone{border-left:4px solid var(--gold);}
+.regime-banner.neutral_watching{border-left:4px solid var(--info);}
+.regime-banner.stress_building,.regime-banner.stress_acute{border-left:4px solid var(--neg);}
+.regime-banner.crisis_regime{border-left:4px solid var(--neg);background:rgba(255,61,90,.06);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.section-title{font-size:11px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin:16px 0 8px;font-family:var(--font-mono);}
+
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;}
+.tier-tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;}
+.tier-tile .name{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:4px;}
+.tier-tile .rating{font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-bottom:6px;}
+.tier-tile .val{font-size:24px;font-weight:600;letter-spacing:-.5px;}
+.tier-tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tier-tile .chg{font-family:var(--font-mono);font-size:10px;margin-top:2px;}
+.tier-tile .chg.pos{color:var(--pos);} .tier-tile .chg.neg{color:var(--neg);}
+
+.derived-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.derived-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.derived-card .name{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.derived-card .v{font-size:22px;font-weight:600;}
+.derived-card .desc{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+@media (max-width:860px){.derived-grid{grid-template-columns:repeat(2,1fr);}}
+
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:18px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.chart-controls{display:flex;gap:8px;}
+.chart-controls button{background:transparent;border:1px solid var(--border-hi);color:var(--text-dim);padding:4px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;cursor:pointer;}
+.chart-controls button:hover{color:var(--text);border-color:var(--accent);}
+.chart-controls button.active{color:var(--accent);border-color:var(--accent);background:rgba(167,139,250,.08);}
+#chart{height:480px;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>💳 Credit Stress <span class="badge">ICE BOFA · 12 SERIES</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div class="section-title">US Investment Grade · OAS by Rating Tier</div>
+<div id="ig-tier" class="tier-grid"></div>
+
+<div class="section-title">US High Yield · OAS by Rating Tier</div>
+<div id="hy-tier" class="tier-grid"></div>
+
+<div class="section-title">Emerging Markets · OAS by Tier</div>
+<div id="em-tier" class="tier-grid"></div>
+
+<div class="section-title">Derived Spreads · Quality & Risk Dispersion</div>
+<div id="derived" class="derived-grid"></div>
+
+<div class="chart-panel">
+  <div class="chart-title">
+    <span>Historical Credit Spreads · HY/IG/EM</span>
+    <div class="chart-controls">
+      <button data-range="63" class="active">3M</button>
+      <button data-range="252">1Y</button>
+      <button data-range="756">3Y</button>
+      <button data-range="0">5Y</button>
+    </div>
+  </div>
+  <div id="chart"></div>
+</div>
+
+<div class="method">
+  <h3>Methodology · How to Read Credit Stress</h3>
+  <p><strong>OAS (Option-Adjusted Spread)</strong> measures the spread of corporate bonds over Treasuries, adjusted for embedded options. It's the canonical risk premium: when OAS widens, credit investors are demanding higher compensation for the same default risk — equities historically follow with a 2-8 week lag.</p>
+  <p><strong>HY OAS regime thresholds:</strong> <code>&lt;3%</code> BENIGN · <code>3-4.5%</code> NEUTRAL · <code>4.5-6%</code> STRESSED · <code>6-8%</code> ACUTE · <code>&gt;8%</code> CRISIS. The 2008 GFC peak was 21%. The 2020 COVID peak was 11%.</p>
+  <p><strong>Quality dispersion</strong> within tiers is the second-order signal. <code>BBB-AAA</code> spread captures IG cycle stress (BBB is the lowest IG, most cycle-sensitive). <code>CCC-BB</code> spread captures HY tail risk — when CCC widens but BB doesn't, the riskiest names are being repriced.</p>
+  <p><strong>HY-IG</strong> is the canonical risk-on/off macro spread. Historically &gt;3% signals risk-off regime.</p>
+  <p><strong>Cross-asset confirmation:</strong> 10y-2y curve inversion is the recession leading indicator; an inverted curve with widening credit is the most reliable pre-recession signal in modern macro.</p>
+  <p><strong>Source:</strong> FRED ICE BofA OAS series · daily 4:00 PM ET refresh · 10 years of history.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/credit-stress.json";
+const HISTORY_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/credit-stress-history.json";
+let SUMMARY = null, HISTORY = null, CHART = null, CURRENT_RANGE = 63;
+
+function fmtPct(v, d=2) { return v == null ? '-' : v.toFixed(d) + '%'; }
+function fmtBps(v, d=1) { return v == null ? '-' : (v >= 0 ? '+' : '') + v.toFixed(d) + ' bps'; }
+
+async function load() {
+  try {
+    const [s, h] = await Promise.all([fetch(SIDECAR_URL), fetch(HISTORY_URL)]);
+    SUMMARY = await s.json();
+    try { HISTORY = await h.json(); } catch(e) { HISTORY = null; }
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (SUMMARY.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiers(); renderDerived(); renderChart();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + ' — Lambda may not have run yet.</div>';
+  }
+}
+
+function renderRegime() {
+  const r = SUMMARY.regimes || {};
+  const regime = r.composite_regime || 'NEUTRAL';
+  const signal = r.composite_signal || '';
+  const rcls = regime.toLowerCase();
+  let titleCls = 'mute';
+  if (regime === 'BENIGN' || regime === 'CONSTRUCTIVE') titleCls = 'pos';
+  else if (regime === 'MELTUP_PRONE') titleCls = 'gold';
+  else if (regime === 'NEUTRAL_WATCHING') titleCls = 'info';
+  else if (regime === 'STRESS_BUILDING' || regime === 'STRESS_ACUTE' || regime === 'CRISIS_REGIME') titleCls = 'neg';
+
+  const m = SUMMARY.metrics || {};
+  const hy = (m.BAMLH0A0HYM2 || {}).current;
+  const ig = (m.BAMLC0A0CM || {}).current;
+  const hyZ = (m.BAMLH0A0HYM2 || {}).z_score_60d;
+  const hyPct = (m.BAMLH0A0HYM2 || {}).pct_1y;
+
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${titleCls}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">HY OAS</span><span class="val">${fmtPct(hy)}</span></div>
+        <div><span class="label">IG OAS</span><span class="val">${fmtPct(ig)}</span></div>
+        <div><span class="label">HY z-60d</span><span class="val">${hyZ == null ? '-' : (hyZ > 0 ? '+' : '') + hyZ.toFixed(2)}</span></div>
+        <div><span class="label">HY 1y pct</span><span class="val">${hyPct == null ? '-' : hyPct + '%'}</span></div>
+      </div>
+    </div>`;
+}
+
+function tierTile(sid, meta, m) {
+  const cur = m.current;
+  const dod = m.dod_change_bps;
+  const z = m.z_score_60d;
+  const pct1y = m.pct_1y;
+  const chgCls = dod == null ? '' : (dod > 0 ? 'neg' : (dod < 0 ? 'pos' : ''));
+  return `<div class="tier-tile">
+    <div class="name">${meta.name}</div>
+    <div class="rating">${meta.rating}</div>
+    <div class="val">${fmtPct(cur)}</div>
+    <div class="sub">z: ${z == null ? '-' : (z>0?'+':'')+z.toFixed(2)} · 1y pct: ${pct1y || '-'}%</div>
+    <div class="chg ${chgCls}">${fmtBps(dod)}</div>
+  </div>`;
+}
+
+function renderTiers() {
+  const m = SUMMARY.metrics || {};
+  const igOrder = ['BAMLC0A0CM','BAMLC0A1CAAA','BAMLC0A2CAA','BAMLC0A3CA','BAMLC0A4CBBB'];
+  const hyOrder = ['BAMLH0A0HYM2','BAMLH0A1HYBB','BAMLH0A2HYB','BAMLH0A3HYC'];
+  const emOrder = ['BAMLEMCBPIOAS','BAMLEMHBHYCRPIOAS','T10Y2Y'];
+
+  document.getElementById('ig-tier').innerHTML = igOrder
+    .filter(sid => m[sid] && !m[sid].err)
+    .map(sid => tierTile(sid, m[sid].meta, m[sid])).join('');
+  document.getElementById('hy-tier').innerHTML = hyOrder
+    .filter(sid => m[sid] && !m[sid].err)
+    .map(sid => tierTile(sid, m[sid].meta, m[sid])).join('');
+  document.getElementById('em-tier').innerHTML = emOrder
+    .filter(sid => m[sid] && !m[sid].err)
+    .map(sid => tierTile(sid, m[sid].meta, m[sid])).join('');
+}
+
+function renderDerived() {
+  const d = SUMMARY.derived_spreads || {};
+  const cards = [
+    {name:'HY − IG', v: d.hy_minus_ig, desc: 'Canonical risk-on/off macro spread'},
+    {name:'BBB − AAA', v: d.bbb_minus_aaa, desc: 'IG quality dispersion (cycle-sensitive)'},
+    {name:'CCC − BB', v: d.ccc_minus_bb, desc: 'HY tail-risk dispersion'},
+    {name:'EM HY − US HY', v: d.em_hy_minus_us_hy, desc: 'EM premium vs US HY'},
+  ];
+  document.getElementById('derived').innerHTML = cards.map(c => `
+    <div class="derived-card">
+      <div class="name">${c.name}</div>
+      <div class="v">${c.v == null ? '-' : (c.v >= 0 ? '+' : '') + c.v.toFixed(2) + '%'}</div>
+      <div class="desc">${c.desc}</div>
+    </div>`).join('');
+}
+
+function renderChart() {
+  if (!HISTORY || !HISTORY.dates) return;
+  const n = HISTORY.dates.length;
+  const slice = CURRENT_RANGE === 0 ? 0 : Math.max(0, n - CURRENT_RANGE);
+  const dates = HISTORY.dates.slice(slice);
+  const ser = HISTORY.series || {};
+
+  const seriesData = [
+    {name:'HY OAS', data: (ser.BAMLH0A0HYM2||[]).slice(slice), color:'#ff3d5a', emphasis:true},
+    {name:'IG OAS', data: (ser.BAMLC0A0CM||[]).slice(slice), color:'#22d3ee'},
+    {name:'BBB OAS', data: (ser.BAMLC0A4CBBB||[]).slice(slice), color:'#a78bfa'},
+    {name:'EM HY OAS', data: (ser.BAMLEMHBHYCRPIOAS||[]).slice(slice), color:'#fbbf24'},
+    {name:'CCC OAS', data: (ser.BAMLH0A3HYC||[]).slice(slice), color:'#fb7185'},
+  ];
+
+  if (!CHART) {
+    CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  }
+  CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger:'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'},
+               axisPointer: { type:'cross', lineStyle:{color:'#5b6479'} } },
+    legend: { data: seriesData.map(s => s.name), textStyle:{color:'#e6ecf3'}, top:6 },
+    grid: {left:60, right:60, top:40, bottom:40},
+    xAxis: { type:'category', data: dates, axisLabel:{color:'#8b96a8',fontSize:10}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'OAS (%)', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+    series: seriesData.map(s => ({
+      name: s.name, type:'line', data: s.data, smooth:true, showSymbol:false,
+      lineStyle:{color: s.color, width: s.emphasis ? 2.5 : 1.5},
+      markLine: s.name === 'HY OAS' ? {
+        silent:true, symbol:'none', label:{position:'end', fontSize:10},
+        data:[
+          {yAxis:3.0, lineStyle:{color:'#00e676',type:'dashed',width:1}, label:{formatter:'3% Benign',color:'#00e676'}},
+          {yAxis:4.5, lineStyle:{color:'#fbbf24',type:'dashed',width:1}, label:{formatter:'4.5% Stressed',color:'#fbbf24'}},
+          {yAxis:6.0, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'6% Acute',color:'#ff3d5a'}},
+        ]
+      } : undefined,
+    })),
+  });
+}
+
+document.querySelectorAll('.chart-controls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chart-controls button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    CURRENT_RANGE = parseInt(btn.dataset.range);
+    renderChart();
+  });
+});
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); });
+load();
+setInterval(load, 10 * 60 * 1000);
+</script>
+</body>
+</html>

@@ -468,6 +468,29 @@ def build_context(message):
                 if t.get('summary'): lines.append(f"  ↳ {t['summary'][:180]}")
                 if t.get('key_themes'): lines.append(f"  ↳ themes: {' · '.join(t['key_themes'][:3])}")
 
+    # ─── Credit Stress (Bloomberg-Gap #8 · daily 20:00 UTC) ──────────
+    cs = get_s3('data/credit-stress.json')
+    if cs:
+        reg = cs.get('regimes') or {}
+        m = cs.get('metrics') or {}
+        d = cs.get('derived_spreads') or {}
+        comp = reg.get('composite_regime')
+        sig = reg.get('composite_signal', '')
+        hy = (m.get('BAMLH0A0HYM2') or {}).get('current')
+        ig = (m.get('BAMLC0A0CM') or {}).get('current')
+        hy_z = (m.get('BAMLH0A0HYM2') or {}).get('z_score_60d')
+        hy_pct = (m.get('BAMLH0A0HYM2') or {}).get('pct_1y')
+        if comp:
+            lines.append(f"[CREDIT STRESS] {comp} · HY:{hy}% (z={hy_z}, {hy_pct}% pct1y) · IG:{ig}%")
+            lines.append(f"[CREDIT SIGNAL] {sig[:140]}")
+        if d.get('hy_minus_ig') is not None:
+            lines.append(f"[CREDIT SPREADS] HY-IG:{d.get('hy_minus_ig')}% · BBB-AAA:{d.get('bbb_minus_aaa')}% · CCC-BB:{d.get('ccc_minus_bb')}% · EM_HY-US_HY:{d.get('em_hy_minus_us_hy')}%")
+        # Curve cross-check
+        curve = (m.get('T10Y2Y') or {}).get('current')
+        if curve is not None:
+            inv = "INVERTED" if curve < 0 else "POSITIVE"
+            lines.append(f"[YIELD CURVE 10y-2y] {curve}% ({inv})")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:

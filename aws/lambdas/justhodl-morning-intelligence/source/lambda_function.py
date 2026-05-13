@@ -191,6 +191,8 @@ def load_all():
         "earnings_sentiment":"screener/earnings-sentiment.json",
         # ─── Earnings Call NLP (Bloomberg-Gap #7 · daily) ─────────────
         "earnings_nlp":"data/earnings-nlp.json",
+        # ─── Credit Stress (Bloomberg-Gap #8 · daily 20:00 UTC) ──────
+        "credit_stress":"data/credit-stress.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
         "vol_regime":"data/vol-regime.json",
     }
@@ -708,6 +710,28 @@ def extract_metrics(data,weights):
                 for x in ((n.get("ranked") or {}).get("most_bearish_tone") or [])[:5]
             ],
             "earnings_nlp_v2_generated_at": n.get("generated_at"),
+        })(),
+        # ─── Credit Stress (Bloomberg-Gap #8 · daily) — ICE BofA OAS ──
+        **(lambda c=data.get("credit_stress", {}): {
+            "credit_hy_oas_pct": ((c.get("metrics") or {}).get("BAMLH0A0HYM2") or {}).get("current"),
+            "credit_ig_oas_pct": ((c.get("metrics") or {}).get("BAMLC0A0CM") or {}).get("current"),
+            "credit_bbb_oas_pct": ((c.get("metrics") or {}).get("BAMLC0A4CBBB") or {}).get("current"),
+            "credit_ccc_oas_pct": ((c.get("metrics") or {}).get("BAMLH0A3HYC") or {}).get("current"),
+            "credit_em_hy_oas_pct": ((c.get("metrics") or {}).get("BAMLEMHBHYCRPIOAS") or {}).get("current"),
+            "credit_hy_z_60d": ((c.get("metrics") or {}).get("BAMLH0A0HYM2") or {}).get("z_score_60d"),
+            "credit_hy_pct_1y": ((c.get("metrics") or {}).get("BAMLH0A0HYM2") or {}).get("pct_1y"),
+            "credit_hy_dod_bps": ((c.get("metrics") or {}).get("BAMLH0A0HYM2") or {}).get("dod_change_bps"),
+            "credit_hy_regime": (c.get("regimes") or {}).get("hy_regime"),
+            "credit_ig_regime": (c.get("regimes") or {}).get("ig_regime"),
+            "credit_composite_regime": c.get("composite_regime"),
+            "credit_composite_signal": c.get("composite_signal"),
+            "credit_hy_minus_ig": (c.get("derived_spreads") or {}).get("hy_minus_ig"),
+            "credit_bbb_minus_aaa": (c.get("derived_spreads") or {}).get("bbb_minus_aaa"),
+            "credit_ccc_minus_bb": (c.get("derived_spreads") or {}).get("ccc_minus_bb"),
+            "credit_em_hy_minus_us_hy": (c.get("derived_spreads") or {}).get("em_hy_minus_us_hy"),
+            "yield_curve_10y_2y": ((c.get("metrics") or {}).get("T10Y2Y") or {}).get("current"),
+            "credit_data_date": c.get("data_date"),
+            "credit_generated_at": c.get("generated_at"),
         })(),
     }
 
