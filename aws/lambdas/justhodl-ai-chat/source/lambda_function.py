@@ -397,6 +397,26 @@ def build_context(message):
                     if pos: lines.append(f"  ↳ +: {' · '.join(p[:50] for p in pos[:2])}")
                     if neg: lines.append(f"  ↳ −: {' · '.join(n[:50] for n in neg[:2])}")
 
+    # ─── VIX Term Structure (Bloomberg-Gap #5 · 30-min refresh) ──────
+    vix_d = get_s3('data/vix-curve.json')
+    if vix_d:
+        cur = vix_d.get('current') or {}
+        sp = vix_d.get('spreads') or {}
+        zs = vix_d.get('z_scores_60d') or {}
+        pr = vix_d.get('percentile_ranks') or {}
+        ss = vix_d.get('sustained_signals') or {}
+        cad = vix_d.get('cross_asset_dispersion') or {}
+        regime_v = vix_d.get('composite_regime')
+        sig_v = vix_d.get('composite_signal', '')
+        if regime_v:
+            lines.append(f"[VIX TERM STRUCTURE] {regime_v} · {sig_v[:120]}")
+            lines.append(f"[VIX LEVELS] 9d:{cur.get('vix9d')} 30d:{cur.get('vix')} 3m:{cur.get('vix3m')} 6m:{cur.get('vix6m')} · 1y pct: {pr.get('vix_pct_1y')}%")
+            lines.append(f"[VIX SPREADS] 9d-30d:{sp.get('9d_vs_30d')} 30d-3m:{sp.get('30d_vs_3m')} 3m-6m:{sp.get('3m_vs_6m')} · slope:{sp.get('avg_slope_30d_to_6m')}")
+            if cur.get('vvix'):
+                lines.append(f"[VVIX/VOL-OF-VOL] VVIX:{cur.get('vvix')} ratio:{cur.get('vvix_vix_ratio')} · NDX premium:{cad.get('nasdaq_stress_premium')} · RUT premium:{cad.get('small_cap_stress_premium')}")
+            if ss.get('n_5d_backwardated_30d_3m', 0) >= 2:
+                lines.append(f"[VIX SUSTAINED INVERSION] {ss.get('n_5d_backwardated_30d_3m')}/5 days backwardated — stress regime confirmed")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:
