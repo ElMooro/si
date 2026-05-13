@@ -4,6 +4,14 @@ justhodl-dealer-gex — DEALER GAMMA EXPOSURE & POSITIONING ENGINE
 Models market-maker (dealer) options positioning. The dealer's delta hedging
 flow IS the intraday market — this Lambda computes it.
 
+DATA SOURCES
+────────────
+  • Options chains: Yahoo Finance (free, no subscription required)
+                     /v7/finance/options/{symbol} endpoint
+                     Provides: strike, OI, volume, IV, bid/ask per contract
+  • Spot prices: Polygon /v2/aggs/prev (fallback to Yahoo quote)
+  • Greeks: computed by us via Black-Scholes (more transparent than vendor)
+
 THE INSTITUTIONAL CONCEPT
 ─────────────────────────
 Market makers are net SHORT options (they sell to retail and hedge with stock).
@@ -167,72 +175,145 @@ def bs_charm(S, K, T, r, sigma, is_call):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def fetch_spot_price(symbol):
-    """Latest close from previous day aggregate."""
-    if not POLY_KEY: return None
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={POLY_KEY}"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.0"})
-        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        results = data.get("results") or []
-        return float(results[0]["c"]) if results else None
-    except Exception as e:
-        print(f"  spot {symbol} err: {str(e)[:120]}")
-        return None
-
-
-def fetch_options_chain_snapshot(underlying):
-    """
-    Fetch full options chain snapshot from Polygon /v3/snapshot/options/{underlying}.
-    Returns list of contract dicts with greeks, IV, OI, volume, strike, expiry, type.
-    Paginated.
-    """
-    if not POLY_KEY: return []
-    contracts = []
-    cursor = None
-    page = 0
-    while True:
-        params = {"limit": 250, "apiKey": POLY_KEY}
-        if cursor: params["cursor"] = cursor
-        url = (f"https://api.polygon.io/v3/snapshot/options/{underlying}?"
-                + urllib.parse.urlencode(params))
+    """Latest close from Polygon previous day aggregate, fall back to Yahoo."""
+    if POLY_KEY:
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={POLY_KEY}"
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-GEX/1.0"})
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
                 data = json.loads(r.read().decode("utf-8"))
+            results = data.get("results") or []
+            if results: return float(results[0]["c"])
         except Exception as e:
-            print(f"  chain {underlying} page {page} err: {str(e)[:120]}")
-            break
-        results = data.get("results") or []
-        if not results: break
-        for c in results:
-            details = c.get("details") or {}
-            greeks = c.get("greeks") or {}
-            day = c.get("day") or {}
-            contracts.append({
-                "ticker": details.get("ticker"),
-                "type": details.get("contract_type"),  # 'call' or 'put'
-                "strike": details.get("strike_price"),
-                "expiry": details.get("expiration_date"),
-                "open_interest": c.get("open_interest") or 0,
-                "volume": day.get("volume") or 0,
-                "iv": c.get("implied_volatility"),
-                "gamma_polygon": greeks.get("gamma"),
-                "delta_polygon": greeks.get("delta"),
-                "vega_polygon": greeks.get("vega"),
-                "theta_polygon": greeks.get("theta"),
-                "last_quote_bid": (c.get("last_quote") or {}).get("bid"),
-                "last_quote_ask": (c.get("last_quote") or {}).get("ask"),
-            })
-        cursor = data.get("next_url")
-        if not cursor or page >= 30:  # max 7500 contracts (sufficient for any chain)
-            break
-        # Extract cursor token from next_url
+            print(f"  polygon spot {symbol} err: {str(e)[:80]} — falling back to Yahoo")
+
+    # Yahoo fallback (also where we get the quote.regularMarketPrice from the options chain)
+    try:
+        url = f"https://query2.finance.yahoo.com/v7/finance/options/{symbol}"
+        headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                                   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        result = ((data.get("optionChain") or {}).get("result") or [])
+        if result:
+            quote = result[0].get("quote") or {}
+            price = quote.get("regularMarketPrice") or quote.get("postMarketPrice") or quote.get("preMarketPrice")
+            if price: return float(price)
+    except Exception as e:
+        print(f"  yahoo spot {symbol} err: {str(e)[:80]}")
+    return None
+
+
+def fetch_options_chain_snapshot(underlying):
+    """
+    Fetch full options chain from Yahoo Finance (free, no auth required).
+    Returns list of contract dicts in the schema our analyzer expects.
+
+    Two-step fetch:
+      1. /v7/finance/options/{sym} — returns expirations list + first expiry's contracts
+      2. /v7/finance/options/{sym}?date={unix} — per-additional-expiry call
+
+    Yahoo provides: strike, openInterest, volume, impliedVolatility, lastPrice,
+                     bid, ask, expiration (unix ts), inTheMoney
+    Greeks (delta/gamma/vanna/charm) are computed ourselves via Black-Scholes.
+    """
+    base_url = f"https://query2.finance.yahoo.com/v7/finance/options/{underlying}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+    }
+
+    today = date.today()
+    cutoff_unix = int((today + timedelta(days=EXPIRY_HORIZON_DAYS)).strftime("%s") if False
+                       else int(time.mktime((today + timedelta(days=EXPIRY_HORIZON_DAYS)).timetuple())))
+
+    # Step 1: initial call
+    try:
+        req = urllib.request.Request(base_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            data = json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        print(f"  yahoo chain {underlying} init err: {str(e)[:120]}")
+        return []
+
+    result = ((data.get("optionChain") or {}).get("result") or [])
+    if not result:
+        return []
+    chain_data = result[0]
+    expirations = chain_data.get("expirationDates") or []
+    expirations_in_horizon = [e for e in expirations if e <= cutoff_unix]
+
+    contracts = []
+    # First expiry's data is in the initial response
+    options_block = chain_data.get("options") or []
+    seen_expiries = set()
+
+    def parse_block(block):
+        exp_ts = block.get("expirationDate")
+        if exp_ts in seen_expiries:
+            return
+        seen_expiries.add(exp_ts)
         try:
-            from urllib.parse import urlparse, parse_qs
-            cursor = parse_qs(urlparse(cursor).query).get("cursor", [None])[0]
-        except Exception: break
-        page += 1
+            exp_str = datetime.fromtimestamp(exp_ts, tz=timezone.utc).date().isoformat()
+        except Exception:
+            return
+        for c in (block.get("calls") or []):
+            contracts.append({
+                "ticker": c.get("contractSymbol"),
+                "type": "call",
+                "strike": c.get("strike"),
+                "expiry": exp_str,
+                "open_interest": c.get("openInterest") or 0,
+                "volume": c.get("volume") or 0,
+                "iv": c.get("impliedVolatility"),
+                "gamma_polygon": None,  # we'll compute ourselves
+                "delta_polygon": None,
+                "vega_polygon": None,
+                "theta_polygon": None,
+                "last_quote_bid": c.get("bid"),
+                "last_quote_ask": c.get("ask"),
+                "last_price": c.get("lastPrice"),
+                "in_the_money": c.get("inTheMoney"),
+            })
+        for p in (block.get("puts") or []):
+            contracts.append({
+                "ticker": p.get("contractSymbol"),
+                "type": "put",
+                "strike": p.get("strike"),
+                "expiry": exp_str,
+                "open_interest": p.get("openInterest") or 0,
+                "volume": p.get("volume") or 0,
+                "iv": p.get("impliedVolatility"),
+                "gamma_polygon": None,
+                "delta_polygon": None,
+                "vega_polygon": None,
+                "theta_polygon": None,
+                "last_quote_bid": p.get("bid"),
+                "last_quote_ask": p.get("ask"),
+                "last_price": p.get("lastPrice"),
+                "in_the_money": p.get("inTheMoney"),
+            })
+
+    for block in options_block:
+        parse_block(block)
+
+    # Step 2: fetch each remaining expiry in horizon (skip the one already loaded)
+    for exp_ts in expirations_in_horizon:
+        if exp_ts in seen_expiries:
+            continue
+        url = f"{base_url}?date={exp_ts}"
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                d = json.loads(r.read().decode("utf-8"))
+            for block in (((d.get("optionChain") or {}).get("result") or [{}])[0].get("options") or []):
+                parse_block(block)
+        except Exception as e:
+            print(f"  yahoo {underlying} exp {exp_ts} err: {str(e)[:80]}")
+            continue
+
     return contracts
 
 
