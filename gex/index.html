@@ -276,8 +276,17 @@ function render(){
     if(r.err) return `<div class="idx-card"><div class="idx-head"><div class="idx-sym">${sym}</div></div><div class="empty-state">${esc(r.err)}</div></div>`;
     const rc = regimeClass(r.regime);
     const flipDist = r.spot_pct_to_flip;
-    // Calculate marker position on flip bar (-2% to +2% range → 0-100%)
-    const markerPct = Math.max(0, Math.min(100, 50 + (flipDist || 0) * 12.5));
+    const gexB = r.total_dealer_gex_billions || 0;
+    // Marker position on flip bar (0% = strong neg gamma, 50% = flip, 100% = strong pos gamma)
+    // If we found a flip level: use spot's distance from it (each 1% = 12.5 bar-%)
+    // If no flip in ±15% range: use GEX sign + magnitude as proxy (1B = 12 bar-% from 50)
+    let markerPct;
+    if (flipDist != null) {
+      markerPct = Math.max(2, Math.min(98, 50 + flipDist * 12.5));
+    } else {
+      // No flip within ±15% — far from regime change. Anchor by GEX magnitude.
+      markerPct = Math.max(2, Math.min(98, 50 + Math.sign(gexB) * Math.min(48, Math.abs(gexB) * 12)));
+    }
     return `<div class="idx-card regime-${rc}">
       <div class="idx-head">
         <div><span class="idx-sym">${sym}</span></div>
@@ -294,7 +303,7 @@ function render(){
         <div class="flip-bar">
           <div class="flip-marker" style="left:${markerPct}%"></div>
         </div>
-        <div class="flip-labels"><span>−2% (neg γ)</span><span>FLIP</span><span>+2% (pos γ)</span></div>
+        <div class="flip-labels"><span>${flipDist != null ? '−2% (neg γ)' : 'NEG GAMMA'}</span><span>${flipDist != null ? 'FLIP' : ''}</span><span>${flipDist != null ? '+2% (pos γ)' : 'POS GAMMA'}</span></div>
       </div>
       <div class="idx-bias">${esc(r.trading_bias || '')}</div>
     </div>`;
