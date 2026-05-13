@@ -76,7 +76,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/earnings-nlp.json"
@@ -140,26 +140,20 @@ def s3_put_json(key, data, cache_control="public, max-age=900"):
 
 def get_latest_transcript_meta(ticker):
     """Returns most recent (year, quarter, date) or None.
-    Uses the v4 batch metadata endpoint which is fast."""
+    Uses FMP /stable/earning-call-transcript-dates which lists ALL transcripts
+    in reverse-chronological order with {quarter, fiscalYear, date}.
+    """
     try:
-        # Try current year first
-        now = datetime.now(timezone.utc)
-        current_year = now.year
-        for year in (current_year, current_year - 1):
-            url = (f"https://financialmodelingprep.com/api/v4/batch_earning_call_transcript/"
-                    f"{ticker}?year={year}&apikey={FMP_KEY}")
-            try:
-                data = http_get_json(url, timeout=15)
-            except Exception:
-                continue
-            if isinstance(data, list) and data:
-                # Sort by date desc; v4 returns list of {symbol, period, year, quarter, date}
-                latest = sorted(data, key=lambda x: x.get("date", ""), reverse=True)[0]
-                q = latest.get("quarter")
-                y = latest.get("year") or year
-                d = latest.get("date")
-                if q and y:
-                    return {"quarter": int(q), "year": int(y), "date": d}
+        url = (f"https://financialmodelingprep.com/stable/earning-call-transcript-dates"
+                f"?symbol={ticker}&apikey={FMP_KEY}")
+        data = http_get_json(url, timeout=15)
+        if isinstance(data, list) and data:
+            latest = data[0]  # already sorted desc by date
+            q = latest.get("quarter")
+            y = latest.get("fiscalYear")
+            d = latest.get("date")
+            if q is not None and y is not None:
+                return {"quarter": int(q), "year": int(y), "date": d}
         return None
     except Exception as e:
         print(f"  {ticker} meta err: {str(e)[:80]}")
@@ -167,11 +161,13 @@ def get_latest_transcript_meta(ticker):
 
 
 def fetch_transcript_content(ticker, year, quarter):
-    """Fetch single transcript. Returns content text or None."""
-    url = (f"https://financialmodelingprep.com/api/v3/earning_call_transcript/"
-            f"{ticker}?quarter={quarter}&year={year}&apikey={FMP_KEY}")
+    """Fetch single transcript via FMP /stable/. Returns transcript object or None.
+    Response shape: [{symbol, period, year, date, content}]
+    """
+    url = (f"https://financialmodelingprep.com/stable/earning-call-transcript"
+            f"?symbol={ticker}&year={year}&quarter={quarter}&apikey={FMP_KEY}")
     try:
-        data = http_get_json(url, timeout=20)
+        data = http_get_json(url, timeout=25)
         if isinstance(data, list) and data:
             return data[0]
     except Exception as e:
