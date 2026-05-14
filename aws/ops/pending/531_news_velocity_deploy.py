@@ -4,7 +4,7 @@ import io, json, os, time as _time, zipfile, base64
 from datetime import datetime, timezone
 import boto3
 
-REPORT = "aws/ops/reports/530_news_velocity_deploy.json"
+REPORT = "aws/ops/reports/531_news_velocity_deploy.json"
 NAME = "justhodl-news-velocity"
 SOURCE = "aws/lambdas/justhodl-news-velocity/source/lambda_function.py"
 ROLE = "arn:aws:iam::857687956942:role/lambda-execution-role"
