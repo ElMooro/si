@@ -1,0 +1,624 @@
+{
+  "started": "2026-05-14T14:01:44.969008+00:00",
+  "sidecars": {
+    "regime-anomaly": {
+      "key": "data/regime-anomaly.json",
+      "exists": true,
+      "size_kb": 3.3,
+      "modified": "2026-05-13T15:10:39",
+      "top_level_keys": [
+        "schema_version",
+        "generated_at",
+        "elapsed_sec",
+        "hmm",
+        "anomaly",
+        "training_window",
+        "training_progress",
+        "fit_method"
+      ],
+      "regime_signal_fields": {
+        "hmm.current_state": "3",
+        "hmm.state_label": "CRISIS",
+        "hmm.expected_regime_duration_obs": "21.3",
+        "anomaly.composite_anomaly_score": "0",
+        "training_window.signal_count": "8"
+      }
+    },
+    "macro-nowcast": {
+      "key": "data/macro-nowcast.json",
+      "exists": true,
+      "size_kb": 23.2,
+      "modified": "2026-05-14T13:12:25",
+      "top_level_keys": [
+        "v",
+        "generated_at",
+        "duration_s",
+        "raw_score",
+        "normalized_score",
+        "regime",
+        "regime_color",
+        "coverage_pct",
+        "n_components_used",
+        "n_components_failed",
+        "components",
+        "historical_scores",
+        "historical_summary",
+        "regime_spy_performance",
+        "regime_spy_horizons",
+        "thresholds",
+        "data_sources",
+        "methodology"
+      ],
+      "regime_signal_fields": {
+        "regime": "SLOWING",
+        "regime_color": "amber",
+        "historical_scores[0].regime": "SLOWING",
+        "historical_scores[0].regime_color": "amber"
+      }
+    },
+    "cross-asset-regime": {
+      "key": "data/cross-asset-regime.json",
+      "exists": true,
+      "size_kb": 5.7,
+      "modified": "2026-05-14T13:15:41",
+      "top_level_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "asset_universe",
+        "stats",
+        "regime_5d",
+        "regime_20d",
+        "regime_60d",
+        "regime_change",
+        "correlation_matrix_30d",
+        "correlation_matrix_90d",
+        "correlation_breaks",
+        "alerts"
+      ],
+      "regime_signal_fields": {
+        "regime_5d.regime": "MIXED",
+        "regime_20d.regime": "REFLATION",
+        "regime_60d.regime": "TIGHTENING"
+      }
+    },
+    "compound-signals": {
+      "key": "data/compound-signals.json",
+      "exists": true,
+      "size_kb": 25.3,
+      "modified": "2026-05-14T13:46:32",
+      "top_level_keys": [
+        "schema_version",
+        "generated_at",
+        "duration_s",
+        "feed_stats",
+        "stats",
+        "compound",
+        "new_alerts"
+      ],
+      "regime_signal_fields": {
+        "stats.n_multi_signal": "43"
+      }
+    },
+    "dealer-gex": {
+      "key": "data/dealer-gex.json",
+      "exists": true,
+      "size_kb": 33.0,
+      "modified": "2026-05-14T13:07:24",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "calculation_config",
+        "market_composite",
+        "squeeze_candidates",
+        "underlyings"
+      ],
+      "regime_signal_fields": {
+        "market_composite.spy_regime": "POSITIVE_GAMMA",
+        "market_composite.qqq_regime": "POSITIVE_GAMMA",
+        "market_composite.iwm_regime": "NEGATIVE_GAMMA",
+        "market_composite.composite_regime": "MOSTLY_POSITIVE_GAMMA",
+        "market_composite.composite_signal": "Majority indices in positive gamma \u2014 mean-revert, buy dips at support, fade resi",
+        "underlyings.NVDA.regime": "POSITIVE_GAMMA",
+        "underlyings.IWM.regime": "NEGATIVE_GAMMA",
+        "underlyings.SPY.regime": "POSITIVE_GAMMA",
+        "underlyings.QQQ.regime": "POSITIVE_GAMMA",
+        "underlyings.TSLA.regime": "POSITIVE_GAMMA",
+        "underlyings.AAPL.regime": "POSITIVE_GAMMA",
+        "underlyings.AMZN.regime": "POSITIVE_GAMMA",
+        "underlyings.MSFT.regime": "NEAR_FLIP",
+        "underlyings.GOOGL.regime": "POSITIVE_GAMMA",
+        "underlyings.META.regime": "NEAR_FLIP"
+      }
+    },
+    "vix-curve": {
+      "key": "data/vix-curve.json",
+      "exists": true,
+      "size_kb": 1.4,
+      "modified": "2026-05-14T14:00:18",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "data_date",
+        "elapsed_seconds",
+        "current",
+        "spreads",
+        "spread_regimes",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "z_scores_60d",
+        "percentile_ranks",
+        "sustained_signals",
+        "cross_asset_dispersion",
+        "day_over_day",
+        "thresholds",
+        "n_history_days",
+        "history_first_date"
+      ],
+      "regime_signal_fields": {
+        "composite_regime": "NORMAL_CONTANGO",
+        "composite_signal": "Normal contango \u00b7 vol pricing balanced across curve \u00b7 no immediate stress",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "crypto-funding": {
+      "key": "data/crypto-funding.json",
+      "exists": true,
+      "size_kb": 5.4,
+      "modified": "2026-05-14T13:15:52",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "config",
+        "market_composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "squeeze_candidates",
+        "by_coin"
+      ],
+      "regime_signal_fields": {
+        "composite_regime": "BALANCED",
+        "composite_signal": "Funding balanced across coins \u00b7 no major positioning tilt",
+        "regime_changed_from_prior": "False",
+        "squeeze_candidates[0].regime": "BALANCED",
+        "by_coin.ADA.regime": "BALANCED",
+        "by_coin.BTC.regime": "BALANCED",
+        "by_coin.AVAX.regime": "BALANCED",
+        "by_coin.DOGE.regime": "BALANCED",
+        "by_coin.ETH.regime": "BALANCED",
+        "by_coin.BNB.regime": "BALANCED",
+        "by_coin.SOL.regime": "BALANCED",
+        "by_coin.LINK.regime": "BALANCED",
+        "by_coin.XRP.regime": "BALANCED"
+      }
+    },
+    "credit-stress": {
+      "key": "data/credit-stress.json",
+      "exists": true,
+      "size_kb": 3.8,
+      "modified": "2026-05-13T23:58:14",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "data_date",
+        "current_bps",
+        "metrics",
+        "derived_spreads",
+        "regimes",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "thresholds"
+      ],
+      "regime_signal_fields": {
+        "regimes.hy_regime": "BENIGN_RISK_ON",
+        "regimes.ig_regime": "TIGHT",
+        "regimes.composite_regime": "MELTUP_PRONE",
+        "regimes.composite_signal": "HY OAS 2.82% (very tight) and compressing \u2014 credit complacency, melt-up risk",
+        "composite_regime": "MELTUP_PRONE",
+        "composite_signal": "HY OAS 2.82% (very tight) and compressing \u2014 credit complacency, melt-up risk",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "retail-sentiment": {
+      "key": "data/retail-sentiment.json",
+      "exists": true,
+      "size_kb": 23.9,
+      "modified": "2026-05-14T14:00:50",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "sources",
+        "elapsed_seconds",
+        "n_all_stocks",
+        "n_wsb",
+        "n_stocks",
+        "n_investing",
+        "n_with_stwt_data",
+        "market_regime",
+        "market_regime_signal",
+        "market_regime_data",
+        "regime_changed_from_prior",
+        "top_30_by_mentions",
+        "ranked",
+        "stocktwits_trending",
+        "subreddit_breakdown"
+      ],
+      "regime_signal_fields": {
+        "market_regime": "NORMAL",
+        "market_regime_signal": "Total mentions 6,430 in typical range",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "news-velocity": {
+      "key": "data/news-velocity.json",
+      "exists": true,
+      "size_kb": 2.0,
+      "modified": "2026-05-14T13:05:29",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "n_surge",
+        "n_elevated",
+        "n_subdued",
+        "by_ticker",
+        "ranked",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior"
+      ],
+      "regime_signal_fields": {
+        "composite_regime": "ATTENTION_NORMAL",
+        "composite_signal": "Article volumes distributed normally; no single name dominating",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "cb-stance": {
+      "key": "data/cb-stance.json",
+      "exists": true,
+      "size_kb": 3.4,
+      "modified": "2026-05-14T12:00:47",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "elapsed_seconds",
+        "n_fomc_statements_scored",
+        "fed",
+        "regime_changed_from_prior",
+        "new_statement_since_last_run"
+      ],
+      "regime_signal_fields": {
+        "n_fomc_statements_scored": "5",
+        "fed.latest_statement.balance_sheet_stance": "NOT_DISCUSSED",
+        "fed.prior_statement_date": "20260318",
+        "fed.shift_classification": "HAWKISH_DRIFT",
+        "fed.regime": "MILD_HAWKISH",
+        "fed.regime_signal": "Restrictive but moderating; mixed for risk",
+        "regime_changed_from_prior": "False",
+        "new_statement_since_last_run": "False"
+      }
+    },
+    "global-markets": {
+      "key": "data/global-markets.json",
+      "exists": true,
+      "size_kb": 25.0,
+      "modified": "2026-05-14T12:15:44",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "n_etfs",
+        "n_with_data",
+        "n_with_err",
+        "by_sym",
+        "composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "history_60d"
+      ],
+      "regime_signal_fields": {
+        "composite.composite_regime": "US_LED_BULL",
+        "composite.composite_signal": "US leading by +3.5pp \u2014 narrow but firm leadership",
+        "composite_regime": "US_LED_BULL",
+        "composite_signal": "US leading by +3.5pp \u2014 narrow but firm leadership",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "commodity-curves": {
+      "key": "data/commodity-curves.json",
+      "exists": true,
+      "size_kb": 6.2,
+      "modified": "2026-05-14T11:50:28",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "source",
+        "spy_20d",
+        "fred_metrics",
+        "etf_metrics",
+        "n_fred",
+        "n_etf",
+        "n_fred_with_data",
+        "n_etf_with_data",
+        "composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior"
+      ],
+      "regime_signal_fields": {
+        "composite.composite_regime": "INFLATIONARY_PUSH",
+        "composite.composite_signal": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuildi",
+        "composite_regime": "INFLATIONARY_PUSH",
+        "composite_signal": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuildi",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "insider-clusters": {
+      "key": "data/insider-clusters.json",
+      "exists": true,
+      "size_kb": 70.8,
+      "modified": "2026-05-13T14:41:23",
+      "top_level_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "lookback_days",
+        "duration_s",
+        "stats",
+        "thresholds",
+        "clusters"
+      ],
+      "regime_signal_fields": {
+        "stats.n_strong_signals": "8",
+        "clusters[0].signal_type": "ceo_conviction"
+      }
+    },
+    "options-flow": {
+      "key": "data/options-flow.json",
+      "exists": true,
+      "size_kb": 77.1,
+      "modified": "2026-05-14T11:50:52",
+      "top_level_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "regime_signal_fields": {}
+    },
+    "dix-history": {
+      "key": "data/dix-history.json",
+      "exists": true,
+      "size_kb": 124.9,
+      "modified": "2026-05-13T22:00:51",
+      "top_level_keys": [
+        "generated_at",
+        "n_days",
+        "first_date",
+        "last_date",
+        "dates",
+        "price",
+        "dix_pct",
+        "gex_billions"
+      ],
+      "regime_signal_fields": {}
+    },
+    "finra-short": {
+      "key": "data/finra-short.json",
+      "exists": true,
+      "size_kb": 143.9,
+      "modified": "2026-05-14T01:00:03",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "data_date",
+        "elapsed_seconds",
+        "config",
+        "market_composite",
+        "squeeze_candidates",
+        "top_svr",
+        "top_zscore",
+        "sectors",
+        "tickers"
+      ],
+      "regime_signal_fields": {
+        "market_composite.regime": "NORMAL"
+      }
+    },
+    "13f-positions": {
+      "key": "data/13f-positions.json",
+      "exists": true,
+      "size_kb": 14263.0,
+      "modified": "2026-05-14T10:51:23",
+      "top_level_keys": [
+        "generated_at",
+        "as_of_quarter",
+        "funds_total",
+        "funds_parsed",
+        "funds_failed",
+        "fund_errors",
+        "by_fund",
+        "aggregate_by_ticker",
+        "most_bought",
+        "most_sold",
+        "consensus_holds",
+        "rare_picks",
+        "fetch_duration_s"
+      ],
+      "regime_signal_fields": {}
+    },
+    "earnings-nlp": {
+      "key": "data/earnings-nlp.json",
+      "exists": true,
+      "size_kb": 23.8,
+      "modified": "2026-05-14T14:00:19",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "by_ticker",
+        "ranked",
+        "market_summary",
+        "regime_changed_from_prior"
+      ],
+      "regime_signal_fields": {
+        "by_ticker.AAPL.demand_signal": "STRONG",
+        "by_ticker.AAPL.margin_signal": "STABLE",
+        "by_ticker.AAPL.shift_classification": "NO_PRIOR",
+        "by_ticker.GOOGL.demand_signal": "STRONG",
+        "by_ticker.GOOGL.margin_signal": "EXPANDING",
+        "by_ticker.GOOGL.shift_classification": "NO_PRIOR",
+        "by_ticker.TSLA.demand_signal": "STRONG",
+        "by_ticker.TSLA.margin_signal": "MIXED",
+        "by_ticker.TSLA.shift_classification": "NO_PRIOR",
+        "by_ticker.AVGO.demand_signal": "STRONG",
+        "by_ticker.AVGO.margin_signal": "EXPANDING",
+        "by_ticker.AVGO.shift_classification": "NO_PRIOR",
+        "by_ticker.MSFT.demand_signal": "STRONG",
+        "by_ticker.MSFT.margin_signal": "EXPANDING",
+        "by_ticker.MSFT.shift_classification": "NO_PRIOR",
+        "by_ticker.AMZN.demand_signal": "STRONG",
+        "by_ticker.AMZN.margin_signal": "EXPANDING",
+        "by_ticker.AMZN.shift_classification": "NO_PRIOR",
+        "by_ticker.WMT.demand_signal": "STRONG",
+        "by_ticker.WMT.margin_signal": "EXPANDING",
+        "by_ticker.WMT.shift_classification": "NO_PRIOR",
+        "by_ticker.NVDA.demand_signal": "STRONG",
+        "by_ticker.NVDA.margin_signal": "EXPANDING",
+        "by_ticker.NVDA.shift_classification": "NO_PRIOR",
+        "by_ticker.V.demand_signal": "STRONG",
+        "by_ticker.V.margin_signal": "EXPANDING",
+        "by_ticker.V.shift_classification": "NO_PRIOR",
+        "by_ticker.UNH.demand_signal": "STEADY",
+        "by_ticker.UNH.margin_signal": "EXPANDING",
+        "by_ticker.UNH.shift_classification": "NO_PRIOR",
+        "by_ticker.META.demand_signal": "STRONG",
+        "by_ticker.META.margin_signal": "COMPRESSING",
+        "by_ticker.META.shift_classification": "NO_PRIOR",
+        "by_ticker.MA.demand_signal": "STRONG",
+        "by_ticker.MA.margin_signal": "EXPANDING",
+        "by_ticker.MA.shift_classification": "NO_PRIOR",
+        "by_ticker.JPM.demand_signal": "STRONG",
+        "by_ticker.JPM.margin_signal": "COMPRESSING",
+        "by_ticker.JPM.shift_classification": "NO_PRIOR",
+        "by_ticker.LLY.demand_signal": "STRONG",
+        "by_ticker.LLY.margin_signal": "EXPANDING",
+        "by_ticker.LLY.shift_classification": "NO_PRIOR",
+        "by_ticker.JNJ.demand_signal": "STRONG",
+        "by_ticker.JNJ.margin_signal": "STABLE",
+        "by_ticker.JNJ.shift_classification": "NO_PRIOR",
+        "by_ticker.ORCL.demand_signal": "STRONG",
+        "by_ticker.ORCL.margin_signal": "EXPANDING",
+        "by_ticker.ORCL.shift_classification": "NO_PRIOR",
+        "by_ticker.XOM.demand_signal": "STRONG",
+        "by_ticker.XOM.margin_signal": "EXPANDING",
+        "by_ticker.XOM.shift_classification": "NO_PRIOR",
+        "by_ticker.HD.demand_signal": "WEAKENING",
+        "by_ticker.HD.margin_signal": "COMPRESSING",
+        "by_ticker.HD.shift_classification": "NO_PRIOR",
+        "by_ticker.PG.demand_signal": "STRONG",
+        "by_ticker.PG.margin_signal": "COMPRESSING",
+        "by_ticker.PG.shift_classification": "NO_PRIOR",
+        "by_ticker.ABBV.demand_signal": "STRONG",
+        "by_ticker.ABBV.margin_signal": "STABLE",
+        "by_ticker.ABBV.shift_classification": "NO_PRIOR",
+        "by_ticker.COST.demand_signal": "STRONG",
+        "by_ticker.COST.margin_signal": "STABLE",
+        "by_ticker.COST.shift_classification": "NO_PRIOR",
+        "by_ticker.BAC.demand_signal": "STRONG",
+        "by_ticker.BAC.margin_signal": "EXPANDING",
+        "by_ticker.BAC.shift_classification": "NO_PRIOR",
+        "by_ticker.CVX.demand_signal": "STRONG",
+        "by_ticker.CVX.margin_signal": "EXPANDING",
+        "by_ticker.CVX.shift_classification": "NO_PRIOR",
+        "by_ticker.PEP.demand_signal": "STRONG",
+        "by_ticker.PEP.margin_signal": "MIXED",
+        "by_ticker.PEP.shift_classification": "NO_PRIOR",
+        "by_ticker.MRK.demand_signal": "STRONG",
+        "by_ticker.MRK.margin_signal": "STABLE",
+        "by_ticker.MRK.shift_classification": "NO_PRIOR",
+        "by_ticker.ADBE.demand_signal": "STRONG",
+        "by_ticker.ADBE.margin_signal": "STABLE",
+        "by_ticker.ADBE.shift_classification": "NO_PRIOR",
+        "by_ticker.TMO.demand_signal": "STRONG",
+        "by_ticker.TMO.margin_signal": "STABLE",
+        "by_ticker.TMO.shift_classification": "NO_PRIOR",
+        "by_ticker.KO.demand_signal": "STRONG",
+        "by_ticker.KO.margin_signal": "EXPANDING",
+        "by_ticker.KO.shift_classification": "NO_PRIOR",
+        "by_ticker.CSCO.demand_signal": "STRONG",
+        "by_ticker.CSCO.margin_signal": "STABLE",
+        "by_ticker.CSCO.shift_classification": "STABLE",
+        "market_summary.regime": "EARNINGS_STRENGTH",
+        "market_summary.signal": "Strong management confidence; raise/lower ratio favorable",
+        "regime_changed_from_prior": "False"
+      }
+    },
+    "khalid-index": {
+      "key": "data/khalid-index.json",
+      "exists": false,
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    "risk-dashboard": {
+      "key": "data/risk-dashboard.json",
+      "exists": false,
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    "daily-summary": {
+      "key": "data/daily-summary.json",
+      "exists": false,
+      "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "potential_aggregator_lambdas": [
+    {
+      "name": "justhodl-cross-asset-regime",
+      "memory": 512,
+      "modified": "2026-05-06T10:41:13.645+0000"
+    },
+    {
+      "name": "justhodl-bond-regime-detector",
+      "memory": 256,
+      "modified": "2026-04-25T15:33:08.748+0000"
+    }
+  ],
+  "finished": "2026-05-14T14:01:48.882672+00:00"
+}
