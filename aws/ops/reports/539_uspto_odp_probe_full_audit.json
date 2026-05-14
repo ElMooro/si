@@ -1,0 +1,206 @@
+{
+  "started": "2026-05-14T12:11:41.743819+00:00",
+  "odp_probes": {
+    "odp_landing": {
+      "url": "https://data.uspto.gov",
+      "status": 200,
+      "bytes": 20666,
+      "preview": "<!doctype html>\n<html lang=\"en\" data-beasties-container>\n<head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n  <meta charset=\"utf-8\">\n  <base href=\"/\">\n  <meta name=\"viewport\" c",
+      "content_type": "text/html",
+      "elapsed_ms": 374,
+      "WORKS": true
+    },
+    "odp_api_docs": {
+      "url": "https://data.uspto.gov/apis",
+      "status": 200,
+      "bytes": 20666,
+      "preview": "<!doctype html>\n<html lang=\"en\" data-beasties-container>\n<head><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n  <meta charset=\"utf-8\">\n  <base href=\"/\">\n  <meta name=\"viewport\" c",
+      "content_type": "text/html",
+      "elapsed_ms": 240,
+      "WORKS": true
+    },
+    "odp_search_open": {
+      "url": "https://api.uspto.gov/api/v1/patent/applications/search?searchText=Apple&rows=2",
+      "status": 403,
+      "err_body": "{\"message\":\"Forbidden\"}",
+      "elapsed_ms": -1
+    },
+    "odp_search_v2": {
+      "url": "https://api.uspto.gov/openapi/v1/patent/applications",
+      "status": 403,
+      "err_body": "{\"message\":\"Missing Authentication Token\"}",
+      "elapsed_ms": -1
+    },
+    "odp_grants_recent": {
+      "url": "https://api.uspto.gov/openapi/v1/patent/grants?fromDate=2026-05-07&toDate=2026-05-14",
+      "status": 403,
+      "err_body": "{\"message\":\"Missing Authentication Token\"}",
+      "elapsed_ms": -1
+    },
+    "bulk_xml_landing": {
+      "url": "https://bulkdata.uspto.gov/data/patent/grant/redbook/2026/",
+      "err": "<urlopen error [Errno -5] No address associated with hostname>",
+      "elapsed_ms": -1
+    },
+    "bulk_xml_index": {
+      "url": "https://bulkdata.uspto.gov/data/patent/grant/2026/",
+      "err": "<urlopen error [Errno -5] No address associated with hostname>",
+      "elapsed_ms": -1
+    },
+    "peds_status": {
+      "url": "https://ped.uspto.gov/api/queries",
+      "err": "<urlopen error [Errno -5] No address associated with hostname>",
+      "elapsed_ms": -1
+    },
+    "google_patents_search": {
+      "url": "https://patents.google.com/xhr/query?url=q%3DApple%26assignee%3DApple%26after%3Dpriority%3A20260501",
+      "status": 200,
+      "bytes": 146,
+      "preview": "{\"results\":{\"total_num_results\":0, \"total_num_pages\":0, \"many_results\":false, \"num_page\":0, \"cluster\":[{}], \"chem_exhausted\":false, \"summary\":{}}}",
+      "content_type": "application/json",
+      "elapsed_ms": 256,
+      "WORKS": true
+    }
+  },
+  "sidecar_audit": {
+    "data/dealer-gex.json": {
+      "label": "BUILD 1+13 \u00b7 Dealer GEX + 0DTE",
+      "size_kb": 33.0,
+      "modified": "2026-05-14T12:04:15",
+      "age_min": 7.5,
+      "fresh": true,
+      "version": "1.3.0",
+      "composite_regime": null
+    },
+    "data/finra-short.json": {
+      "label": "BUILD 2 \u00b7 FINRA Short",
+      "size_kb": 143.9,
+      "modified": "2026-05-14T01:00:03",
+      "age_min": 671.7,
+      "fresh": true,
+      "version": "1.1.0",
+      "composite_regime": null
+    },
+    "data/13f-positions.json": {
+      "label": "BUILD 3 \u00b7 13F Smart Money",
+      "size_kb": 14263.0,
+      "modified": "2026-05-14T10:51:23",
+      "age_min": 80.3,
+      "fresh": true,
+      "version": null,
+      "composite_regime": null
+    },
+    "data/dix-history.json": {
+      "label": "BUILD 4 \u00b7 DIX (Squeezemetrics)",
+      "size_kb": 124.9,
+      "modified": "2026-05-13T22:00:51",
+      "age_min": 850.9,
+      "fresh": true,
+      "version": null,
+      "composite_regime": null
+    },
+    "data/vix-term-structure.json": {
+      "label": "BUILD 5 \u00b7 VIX Term v2",
+      "err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "data/crypto-funding.json": {
+      "label": "BUILD 6 \u00b7 Crypto Funding",
+      "size_kb": 5.4,
+      "modified": "2026-05-14T11:15:52",
+      "age_min": 55.9,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": "BALANCED"
+    },
+    "data/earnings-nlp.json": {
+      "label": "BUILD 7 \u00b7 Earnings NLP",
+      "size_kb": 23.6,
+      "modified": "2026-05-13T23:46:59",
+      "age_min": 744.7,
+      "fresh": true,
+      "version": "1.1.0",
+      "composite_regime": null
+    },
+    "data/credit-stress.json": {
+      "label": "BUILD 8 \u00b7 Credit Stress",
+      "size_kb": 3.8,
+      "modified": "2026-05-13T23:58:14",
+      "age_min": 733.5,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": "MELTUP_PRONE"
+    },
+    "data/retail-sentiment.json": {
+      "label": "BUILD 9 \u00b7 Retail Sentiment",
+      "size_kb": 23.9,
+      "modified": "2026-05-14T12:00:50",
+      "age_min": 10.9,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": null
+    },
+    "data/news-velocity.json": {
+      "label": "BUILD 10 \u00b7 News Velocity",
+      "size_kb": 2.6,
+      "modified": "2026-05-14T12:09:51",
+      "age_min": 1.9,
+      "fresh": true,
+      "version": "1.1.0",
+      "composite_regime": "ATTENTION_NORMAL"
+    },
+    "data/cb-stance.json": {
+      "label": "BUILD 11 \u00b7 CB Stance",
+      "size_kb": 3.4,
+      "modified": "2026-05-14T12:00:47",
+      "age_min": 10.9,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": null,
+      "fed_regime": "MILD_HAWKISH",
+      "fed_hawkish_score": 25
+    },
+    "data/global-markets.json": {
+      "label": "BUILD 14 \u00b7 Global Markets",
+      "size_kb": 25.0,
+      "modified": "2026-05-14T09:15:44",
+      "age_min": 176.0,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": "US_LED_BULL",
+      "top_3": [
+        "EWY",
+        "QQQ",
+        "EEM"
+      ]
+    },
+    "data/commodity-curves.json": {
+      "label": "BUILD 15 \u00b7 Commodity Curves",
+      "size_kb": 6.2,
+      "modified": "2026-05-14T11:50:28",
+      "age_min": 21.3,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": "INFLATIONARY_PUSH",
+      "spy_20d": 6.05,
+      "top_3": [
+        "USO",
+        "SLV",
+        "PDBC"
+      ]
+    },
+    "data/options-flow-scanner.json": {
+      "label": "BONUS \u00b7 Options Flow Scanner",
+      "err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "data/insider-transactions.json": {
+      "label": "BONUS \u00b7 Insider Transactions",
+      "size_kb": 10.9,
+      "modified": "2026-05-14T12:03:56",
+      "age_min": 7.8,
+      "fresh": true,
+      "version": "1.0.0",
+      "composite_regime": "INSIDER_NORMAL"
+    }
+  },
+  "finished": "2026-05-14T12:11:47.040025+00:00"
+}
