@@ -1,0 +1,825 @@
+{
+  "started": "2026-05-14T12:16:16.652081+00:00",
+  "vix_curve": {
+    "size_kb": 1.4,
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "source",
+      "data_date",
+      "elapsed_seconds",
+      "current",
+      "spreads",
+      "spread_regimes",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior",
+      "z_scores_60d",
+      "percentile_ranks",
+      "sustained_signals",
+      "cross_asset_dispersion",
+      "day_over_day",
+      "thresholds",
+      "n_history_days",
+      "history_first_date"
+    ],
+    "version": "2.0.0",
+    "generated_at": "2026-05-14T10:10:54.767612+00:00",
+    "composite_regime": "NORMAL_CONTANGO",
+    "composite_signal": "Normal contango \u00b7 vol pricing balanced across curve \u00b7 no immediate stress"
+  },
+  "vix_curve_history": {
+    "size_kb": 157.1,
+    "top_keys": [
+      "generated_at",
+      "n_days",
+      "first_date",
+      "last_date",
+      "dates",
+      "series",
+      "spreads"
+    ],
+    "generated_at": "2026-05-14T10:10:54.767612+00:00"
+  },
+  "options_flow": {
+    "size_kb": 77.1,
+    "top_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "summary",
+      "all_qualifying"
+    ],
+    "generated_at": "2026-05-14T11:50:51+00:00",
+    "method": "options_flow_scanner_v1",
+    "schema_version": 1,
+    "all_qualifying_sample": [
+      {
+        "symbol": "SO",
+        "score": 100.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 93.14,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 29.47,
+          "avg_cpr_older": 1.12,
+          "cpr_change_pct": 2525.9,
+          "total_call_vol_5d": 3407,
+          "total_put_vol_5d": 204,
+          "call_vol_surge": 6.14,
+          "short_metrics": {
+            "recent_avg_short_pct": 54.4,
+            "older_avg_short_pct": 65.2,
+            "short_pct_change": -10.8,
+            "avg_total_vol_5d": 1730202,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "HCA",
+        "score": 95.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_2X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "metrics": {
+          "spot": 427.54,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 2.69,
+          "avg_cpr_older": 0.27,
+          "cpr_change_pct": 878.6,
+          "total_call_vol_5d": 1008,
+          "total_put_vol_5d": 279,
+          "call_vol_surge": 19.41,
+          "short_metrics": {
+            "recent_avg_short_pct": 55.7,
+            "older_avg_short_pct": 67.0,
+            "short_pct_change": -11.35,
+            "avg_total_vol_5d": 548960,
+            "n_finra_days": 20
+          }
+        }
+      },
+      {
+        "symbol": "LLY",
+        "score": 93.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "metrics": {
+          "spot": 1015.93,
+          "n_call_contracts": 10,
+          "n_put_contracts": 10,
+          "avg_cpr_recent_5d": 89.39,
+          "avg_cpr_older": 26.01,
+          "cpr_change_pct": 243.6,
+          "total_call_vol_5d": 8933,
+          "total_put_vol_5d": 699,
+          "call_vol_surge": 11.47,
+          "short_metrics": {
+            "recent_avg_short_pct": 42.1,
+            "older_avg_short_pct": 49.3,
+            "short_pct_change": -7.2,
+            "avg_total_vol_5d": 1171457,
+            "n_finra_days": 20
+          }
+        }
+      }
+    ]
+  },
+  "options_gamma": {
+    "size_kb": 0.4,
+    "top_keys": [
+      "generated_at",
+      "underlying",
+      "spot",
+      "vix",
+      "regime",
+      "interpretation",
+      "market_closed",
+      "last_valid_at",
+      "last_valid_total_gex",
+      "last_valid_regime",
+      "fetch_duration_s"
+    ],
+    "generated_at": "2026-05-14T12:14:50+00:00",
+    "regime": "market_closed",
+    "vix": 16
+  },
+  "insider_trades": {
+    "size_kb": 50.4,
+    "top_keys": [
+      "generated_at",
+      "window_days",
+      "cluster_window_days",
+      "thresholds",
+      "stats",
+      "clusters",
+      "big_buys",
+      "transactions"
+    ],
+    "generated_at": "2026-05-14T12:03:55+00:00",
+    "clusters_sample": [
+      {
+        "ticker": "N/A",
+        "company": "John Hancock GA Senior Loan Trust",
+        "cik": "0001742951",
+        "insider_count": 4,
+        "transactions": 4,
+        "total_shares": 1443386,
+        "total_value": 24373262.53,
+        "avg_price": 16.89,
+        "first_filing": "2026-04-30T13:21:20-04:00",
+        "last_filing": "2026-05-04T10:42:54-04:00",
+        "insiders": [
+          {
+            "name": "Manufacturers Life Reinsurance Ltd",
+            "role": "10% Owner",
+            "shares": 986700,
+            "value": 15994407.38
+          },
+          {
+            "name": "Manufacturers Life Insurance Co (Bermuda Branch)",
+            "role": "10% Owner",
+            "shares": 246675,
+            "value": 3998601.85
+          },
+          {
+            "name": "UNIVERSITY OF TEXAS/TEXAS AM INVESTMENT MANAGEMENT CO",
+            "role": "10% Owner",
+            "shares": 86674,
+            "value": 2380952.38
+          },
+          {
+            "name": "Manulife (Singapore) Pte. Ltd.",
+            "role": "10% Owner",
+            "shares": 123337,
+            "value": 1999300.92
+          }
+        ]
+      },
+      {
+        "ticker": "PATK",
+        "company": "PATRICK INDUSTRIES INC",
+        "cik": "0000076605",
+        "insider_count": 5,
+        "transactions": 5,
+        "total_shares": 27150,
+        "total_value": 2386844.48,
+        "avg_price": 87.91,
+        "first_filing": "2026-05-06T07:51:02-04:00",
+        "last_filing": "2026-05-06T07:56:06-04:00",
+        "insiders": [
+          {
+            "name": "WELCH M SCOTT",
+            "role": "Director",
+            "shares": 10000,
+            "value": 882250.0
+          },
+          {
+            "name": "NEMETH ANDY L",
+            "role": "Director, Chief Executive Officer",
+            "shares": 10000,
+            "value": 880000.0
+          },
+          {
+            "name": "Roeder Charles R",
+            "role": "President - RV",
+            "shares": 5750,
+            "value": 505018.48
+          },
+          {
+            "name": "Filer Matthew S",
+            "role": "Other",
+            "shares": 1000,
+            "value": 85500.0
+          },
+          {
+            "name": "Augsburger Blake",
+            "role": "Director",
+            "shares": 400,
+            "value": 34076.0
+          }
+        ]
+      },
+      {
+        "ticker": "POOL",
+        "company": "POOL CORP",
+        "cik": "0000945841",
+        "insider_count": 3,
+        "transactions": 3,
+        "total_shares": 11464,
+        "total_value": 2183273.56,
+        "avg_price": 190.45,
+        "first_filing": "2026-05-08T11:53:51-04:00",
+        "last_filing": "2026-05-08T11:57:36-04:00",
+        "insiders": [
+          {
+            "name": "PEREZ DE LA MESA MANUEL J",
+            "role": "Director",
+            "shares": 10000,
+            "value": 1900000.0
+          },
+          {
+            "name": "STOKELY JOHN E",
+            "role": "Director",
+            "shares": 1000,
+            "value": 193065.0
+          },
+          {
+            "name": "Hope James D",
+            "role": "Director",
+            "shares": 464,
+            "value": 90208.56
+          }
+        ]
+      }
+    ]
+  },
+  "insider_clusters": {
+    "size_kb": 70.8,
+    "top_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "lookback_days",
+      "duration_s",
+      "stats",
+      "thresholds",
+      "clusters"
+    ],
+    "generated_at": "2026-05-13T14:41:22.240699+00:00",
+    "method": "insider_cluster_scanner_v2",
+    "schema_version": "2.0",
+    "clusters_sample": [
+      {
+        "ticker": "PLSE",
+        "company": "PULSE BIOSCIENCES, INC.",
+        "cik": "0001625101",
+        "n_insiders": 2,
+        "n_transactions": 2,
+        "total_shares": 675233,
+        "total_value": 13295337.77,
+        "avg_price": 19.69,
+        "first_buy": "2026-05-11",
+        "last_buy": "2026-05-11",
+        "highest_role": "Director, Chief Executive Officer",
+        "has_ceo": true,
+        "has_cfo": false,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": [
+          {
+            "name": "LAVIOLETTE PAUL A",
+            "role": "Director, Chief Executive Officer",
+            "n_buys": 1,
+            "total_shares": 15000,
+            "total_value": 295350.0,
+            "role_tier": 100
+          },
+          {
+            "name": "DUGGAN ROBERT W",
+            "role": "Director, 10% Owner",
+            "n_buys": 1,
+            "total_shares": 660233,
+            "total_value": 12999987.77,
+            "role_tier": 20
+          }
+        ],
+        "transactions": [
+          {
+            "ticker": "PLSE",
+            "insider_name": "DUGGAN ROBERT W",
+            "role": "Director, 10% Owner",
+            "role_tier": 20,
+            "shares": 660233,
+            "price": 19.69,
+            "value": 12999987.77,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0001437749-26-016188"
+          },
+          {
+            "ticker": "PLSE",
+            "insider_name": "LAVIOLETTE PAUL A",
+            "role": "Director, Chief Executive Officer",
+            "role_tier": 100,
+            "shares": 15000,
+            "price": 19.69,
+            "value": 295350.0,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0001437749-26-016190"
+          }
+        ],
+        "score": 85.5,
+        "signal_type": "ceo_conviction",
+        "fundamentals": {
+          "market_cap": 1595784270,
+          "price_now": 23.39,
+          "high_52w": 26.3,
+          "low_52w": 12.56,
+          "pct_from_52w_high": -11.06,
+          "pct_from_52w_low": 86.23,
+          "sector": "Healthcare",
+          "industry": "Medical - Instruments & Supplies",
+          "country": "US",
+          "company_name": "Pulse Biosciences, Inc.",
+          "shares_outstanding": 0
+        },
+        "rationale": "CEO (+1 other) bought $13.30M of PLSE over 0d at $19.69 avg \u2014 stock 11% below 52w high"
+      },
+      {
+        "ticker": "FLUT",
+        "company": "Flutter Entertainment plc",
+        "cik": "0001635327",
+        "n_insiders": 5,
+        "n_transactions": 5,
+        "total_shares": 7309,
+        "total_value": 745991.91,
+        "avg_price": 102.06,
+        "first_buy": "2026-05-08",
+        "last_buy": "2026-05-11",
+        "highest_role": "Director, Chief Executive Officer",
+        "has_ceo": true,
+        "has_cfo": false,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": [
+          {
+            "name": "Jackson Jeremy Peter",
+            "role": "Director, Chief Executive Officer",
+            "n_buys": 1,
+            "total_shares": 2400,
+            "total_value": 244655.52,
+            "role_tier": 100
+          },
+          {
+            "name": "Bishop James Philip",
+            "role": "Chief Operating Officer",
+            "n_buys": 1,
+            "total_shares": 1000,
+            "total_value": 99750.7,
+            "role_tier": 75
+          },
+          {
+            "name": "LIU DON H",
+            "role": "Chief Legal Officer",
+            "n_buys": 1,
+            "total_shares": 1459,
+            "total_value": 149999.91,
+            "role_tier": 65
+          },
+          {
+            "name": "BRYANT JOHN A",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 1950,
+            "total_value": 200585.78,
+            "role_tier": 40
+          },
+          {
+            "name": "Bomhard Stefan Andreas",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 500,
+            "total_value": 51000.0,
+            "role_tier": 40
+          }
+        ],
+        "transactions": [
+          {
+            "ticker": "FLUT",
+            "insider_name": "BRYANT JOHN A",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 1950,
+            "price": 102.8645,
+            "value": 200585.78,
+            "txn_date": "2026-05-08",
+            "filed_date": "2026051",
+            "accession": "0001185941-26-000006"
+          },
+          {
+            "ticker": "FLUT",
+            "insider_name": "Bomhard Stefan Andreas",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 500,
+            "price": 102.0,
+            "value": 51000.0,
+            "txn_date": "2026-05-08",
+            "filed_date": "2026051",
+            "accession": "0002091147-26-000009"
+          },
+          {
+            "ticker": "FLUT",
+            "insider_name": "LIU DON H",
+            "role": "Chief Legal Officer",
+            "role_tier": 65,
+            "shares": 1459,
+            "price": 102.78,
+            "value": 149999.91,
+            "txn_date": "2026-05-08",
+            "filed_date": "2026051",
+            "accession": "0001192870-26-000008"
+          },
+          {
+            "ticker": "FLUT",
+            "insider_name": "Jackson Jeremy Peter",
+            "role": "Director, Chief Executive Officer",
+            "role_tier": 100,
+            "shares": 2400,
+            "price": 101.9398,
+            "value": 244655.52,
+            "txn_date": "2026-05-08",
+            "filed_date": "2026051",
+            "accession": "0002012791-26-000009"
+          },
+          {
+            "ticker": "FLUT",
+            "insider_name": "Bishop James Philip",
+            "role": "Chief Operating Officer",
+            "role_tier": 75,
+            "shares": 1000,
+            "price": 99.7507,
+            "value": 99750.7,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0002012862-26-000009"
+          }
+        ],
+        "score": 84.5,
+        "signal_type": "executive_cluster",
+        "fundamentals": {
+          "market_cap": 16516920668,
+          "price_now": 94.94,
+          "high_52w": 313.685,
+          "low_52w": 92.22,
+          "pct_from_52w_high": -69.73,
+          "pct_from_52w_low": 2.95,
+          "sector": "Consumer Cyclical",
+          "industry": "Gambling, Resorts & Casinos",
+          "country": "IE",
+          "company_name": "Flutter Entertainment plc",
+          "shares_outstanding": 0
+        },
+        "rationale": "CEO (+4 other) bought $746k of FLUT over 3d at $102.06 avg \u2014 stock 70% off 52w high"
+      },
+      {
+        "ticker": "XRN",
+        "company": "Chiron Real Estate Inc.",
+        "cik": "0001533615",
+        "n_insiders": 5,
+        "n_transactions": 6,
+        "total_shares": 11065,
+        "total_value": 374546.22,
+        "avg_price": 33.85,
+        "first_buy": "2026-05-11",
+        "last_buy": "2026-05-12",
+        "highest_role": "CFO and Treasurer",
+        "has_ceo": true,
+        "has_cfo": true,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": [
+          {
+            "name": "KIERNAN ROBERT J",
+            "role": "CFO and Treasurer",
+            "n_buys": 1,
+            "total_shares": 3000,
+            "total_value": 100470.0,
+            "role_tier": 90
+          },
+          {
+            "name": "Holley Danica",
+            "role": "COO",
+            "n_buys": 1,
+            "total_shares": 1490,
+            "total_value": 50645.1,
+            "role_tier": 75
+          },
+          {
+            "name": "Decker Mark Okey Jr",
+            "role": "Director, CEO and President",
+            "n_buys": 2,
+            "total_shares": 5000,
+            "total_value": 169700.0,
+            "role_tier": 40
+          },
+          {
+            "name": "Cole Henry",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 575,
+            "total_value": 19731.12,
+            "role_tier": 40
+          },
+          {
+            "name": "Crowley Paula",
+            "role": "Director",
+            "n_buys": 1,
+            "total_shares": 1000,
+            "total_value": 34000.0,
+            "role_tier": 40
+          }
+        ],
+        "transactions": [
+          {
+            "ticker": "XRN",
+            "insider_name": "KIERNAN ROBERT J",
+            "role": "CFO and Treasurer",
+            "role_tier": 90,
+            "shares": 3000,
+            "price": 33.49,
+            "value": 100470.0,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-059537"
+          },
+          {
+            "ticker": "XRN",
+            "insider_name": "Cole Henry",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 575,
+            "price": 34.315,
+            "value": 19731.12,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-058864"
+          },
+          {
+            "ticker": "XRN",
+            "insider_name": "Crowley Paula",
+            "role": "Director",
+            "role_tier": 40,
+            "shares": 1000,
+            "price": 34.0,
+            "value": 34000.0,
+            "txn_date": "2026-05-11",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-058865"
+          },
+          {
+            "ticker": "XRN",
+            "insider_name": "Decker Mark Okey Jr",
+            "role": "Director, CEO and President",
+            "role_tier": 40,
+            "shares": 1000,
+            "price": 33.74,
+            "value": 33740.0,
+            "txn_date": "2026-05-12",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-059532"
+          },
+          {
+            "ticker": "XRN",
+            "insider_name": "Decker Mark Okey Jr",
+            "role": "Director, CEO and President",
+            "role_tier": 40,
+            "shares": 4000,
+            "price": 33.99,
+            "value": 135960.0,
+            "txn_date": "2026-05-12",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-059532"
+          },
+          {
+            "ticker": "XRN",
+            "insider_name": "Holley Danica",
+            "role": "COO",
+            "role_tier": 75,
+            "shares": 1490,
+            "price": 33.99,
+            "value": 50645.1,
+            "txn_date": "2026-05-12",
+            "filed_date": "2026051",
+            "accession": "0001104659-26-059535"
+          }
+        ],
+        "score": 83.5,
+        "signal_type": "smart_money_dual",
+        "fundamentals": {
+          "market_cap": 447337254,
+          "price_now": 33.8,
+          "high_52w": 39.93,
+          "low_52w": 29.05,
+          "pct_from_52w_high": -15.35,
+          "pct_from_52w_low": 16.35,
+          "sector": "Financial Services",
+          "industry": "REIT - Industrial",
+          "country": "US",
+          "company_name": "Chiron Real Estate Inc.",
+          "shares_outstanding": 0
+        },
+        "rationale": "CEO + CFO + 3 director(s) bought $375k of XRN over 1d at $33.85 avg \u2014 stock 15% off 52w high"
+      }
+    ]
+  },
+  "insider_transactions": {
+    "size_kb": 10.9,
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "source",
+      "elapsed_seconds",
+      "universe",
+      "n_tickers",
+      "n_with_data",
+      "n_with_err",
+      "n_cluster_buys",
+      "total_buy_value_30d_usd",
+      "total_sell_value_30d_usd",
+      "by_ticker",
+      "ranked",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior"
+    ],
+    "version": "1.0.0",
+    "generated_at": "2026-05-14T12:03:55.958917+00:00",
+    "composite_regime": "INSIDER_NORMAL",
+    "composite_signal": "Balanced activity \u00b7 $0.0M buys vs $0.0M sells 30d",
+    "n_tickers": 30,
+    "n_with_data": 30,
+    "n_cluster_buys": 0,
+    "total_buy_value_30d_usd": 0,
+    "total_sell_value_30d_usd": 0,
+    "by_ticker_keys": [
+      "NVDA",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "AAPL",
+      "TSLA",
+      "META",
+      "WMT",
+      "V",
+      "AVGO"
+    ],
+    "by_ticker_sample": {
+      "NVDA": {
+        "ticker": "NVDA",
+        "name": "Nvidia",
+        "n_form4_7d": 0,
+        "n_form4_14d": 0,
+        "n_form4_30d": 0,
+        "n_form4_90d": 19,
+        "n_buys_30d": 0,
+        "n_sells_30d": 0,
+        "n_distinct_buyers_30d": 0,
+        "n_distinct_sellers_30d": 0,
+        "buy_value_30d_usd": 0,
+        "sell_value_30d_usd": 0,
+        "buy_sell_dollar_ratio": 0.0,
+        "cluster_buy_flag": false,
+        "cluster_sell_flag": false,
+        "recent_txns_top_5": []
+      },
+      "MSFT": {
+        "ticker": "MSFT",
+        "name": "Microsoft",
+        "n_form4_7d": 0,
+        "n_form4_14d": 0,
+        "n_form4_30d": 1,
+        "n_form4_90d": 20,
+        "n_buys_30d": 0,
+        "n_sells_30d": 0,
+        "n_distinct_buyers_30d": 0,
+        "n_distinct_sellers_30d": 0,
+        "buy_value_30d_usd": 0,
+        "sell_value_30d_usd": 0,
+        "buy_sell_dollar_ratio": 0.0,
+        "cluster_buy_flag": false,
+        "cluster_sell_flag": false,
+        "recent_txns_top_5": []
+      },
+      "GOOGL": {
+        "ticker": "GOOGL",
+        "name": "Alphabet",
+        "n_form4_7d": 0,
+        "n_form4_14d": 1,
+        "n_form4_30d": 7,
+        "n_form4_90d": 43,
+        "n_buys_30d": 0,
+        "n_sells_30d": 0,
+        "n_distinct_buyers_30d": 0,
+        "n_distinct_sellers_30d": 0,
+        "buy_value_30d_usd": 0,
+        "sell_value_30d_usd": 0,
+        "buy_sell_dollar_ratio": 0.0,
+        "cluster_buy_flag": false,
+        "cluster_sell_flag": false,
+        "recent_txns_top_5": []
+      }
+    }
+  },
+  "lambdas_match": {
+    "justhodl-insider-cluster-scanner": {
+      "last_modified": "2026-05-05T18:39:33.000+0000",
+      "runtime": "python3.12",
+      "memory": 1536,
+      "timeout": 900
+    },
+    "justhodl-insider-trades": {
+      "last_modified": "2026-04-27T21:56:19.000+0000",
+      "runtime": "python3.12",
+      "memory": 512,
+      "timeout": 300
+    },
+    "justhodl-options-flow": {
+      "last_modified": "2026-05-06T21:36:11.000+0000",
+      "runtime": "python3.11",
+      "memory": 1024,
+      "timeout": 300
+    },
+    "justhodl-options-flow-scanner": {
+      "last_modified": "2026-05-06T08:50:22.000+0000",
+      "runtime": "python3.12",
+      "memory": 2048,
+      "timeout": 600
+    },
+    "justhodl-vix-curve": {
+      "last_modified": "2026-05-13T15:36:12.000+0000",
+      "runtime": "python3.12",
+      "memory": 512,
+      "timeout": 120
+    },
+    "justhodl-options-gamma": {
+      "last_modified": "2026-04-27T22:36:07.000+0000",
+      "runtime": "python3.12",
+      "memory": 1024,
+      "timeout": 300
+    },
+    "justhodl-insider-transactions": {
+      "last_modified": "2026-05-14T12:04:15.000+0000",
+      "runtime": "python3.12",
+      "memory": 512,
+      "timeout": 600
+    }
+  },
+  "finished": "2026-05-14T12:16:19.321423+00:00"
+}
