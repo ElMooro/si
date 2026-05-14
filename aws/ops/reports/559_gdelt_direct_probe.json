@@ -1,0 +1,443 @@
+{
+  "started": "2026-05-14T17:40:47.241210+00:00",
+  "lambda_create": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "results": [
+    {
+      "ticker": "AAPL",
+      "query": "AAPL OR \"Apple Inc\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=AAPL%20OR%20%22Apple%20Inc%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "http_err_code": 429,
+      "http_err_body": "Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.\n\n"
+    },
+    {
+      "ticker": "MSFT",
+      "query": "MSFT OR \"Microsoft\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=MSFT%20OR%20%22Microsoft%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "http_err_code": 429,
+      "http_err_body": "Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.\n\n"
+    },
+    {
+      "ticker": "NVDA",
+      "query": "NVDA OR \"Nvidia\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=NVDA%20OR%20%22Nvidia%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "http_err_code": 429,
+      "http_err_body": "Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.\n\n"
+    },
+    {
+      "ticker": "TSLA",
+      "query": "TSLA OR \"Tesla Inc\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=TSLA%20OR%20%22Tesla%20Inc%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "http_err_code": 429,
+      "http_err_body": "Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries.\n\n"
+    },
+    {
+      "ticker": "V",
+      "query": "\"Visa Inc\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=%22Visa%20Inc%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "status": 200,
+      "body_size": 12857,
+      "elapsed_s": 9.53,
+      "data_keys": [
+        "query_details",
+        "timeline"
+      ],
+      "timeline_len": 1,
+      "timeline_first_series": "Volume Intensity",
+      "timeline_n_points": 30,
+      "timeline_first_3": [
+        {
+          "date": "20260415T000000Z",
+          "value": 0.0006,
+          "toparts": [
+            {
+              "url": "https://www.etftrends.com/active-etf-content-hub/active-financials-etf-holds-sector-earnings-leaders/",
+              "title": "Active Financials ETF Holds Sector Earnings Leaders"
+            }
+          ]
+        },
+        {
+          "date": "20260416T000000Z",
+          "value": 0.0022,
+          "toparts": [
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/visa-v-traded-lower-despite-150544333.html",
+              "title": "Visa ( V ) Traded Lower Despite Consistent Strong Performance"
+            },
+            {
+              "url": "https://biz.heraldcorp.com/article/10718715",
+              "title": " [ \uae30\uace0 ] \uad6d\uacbd \uc9c0\uc6b0\ub294 \uacb0\uc81c , \ube14\ub85d\uccb4\uc778 \ud398\uc774\uba3c\ud2b8 \uc2dc\ub300\uac00 \ub2e4\uac00\uc628\ub2e4"
+            },
+            {
+              "url": "https://www.finanznachrichten.de/nachrichten-2026-04/68213719-payabl-launches-click-to-pay-with-visa-to-help-merchants-improve-checkout-conversion-and-reduce-fraud-004.htm",
+              "title": "payabl . launches Click to Pay with Visa to help merchants improve checkout conversion and reduce fraud"
+            },
+            {
+              "url": "https://www.finanznachrichten.de/nachrichten-2026-04/68213674-allied-market-research-fleet-card-market-expected-to-reach-dollar-4756-6-billion-by-2034-008.htm",
+              "title": "Allied Market Research : Fleet Card Market Expected to Reach $4756 . 6 Billion by 2034"
+            }
+          ]
+        },
+        {
+          "date": "20260417T000000Z",
+          "value": 0.0006,
+          "toparts": [
+            {
+              "url": "https://www.defenseworld.net/2026/04/17/bingham-private-wealth-llc-acquires-new-stake-in-visa-inc-v.html",
+              "title": "Bingham Private Wealth LLC Acquires New Stake in Visa Inc . $V"
+            }
+          ]
+        }
+      ],
+      "timeline_last_3": [
+        {
+          "date": "20260512T000000Z",
+          "value": 0.0012,
+          "toparts": [
+            {
+              "url": "https://www.arabnet5.com/news/%C3%C8%D1%D2%E5%E3-%DF%E6%DF-%E6-%E3%C7%D3%DF-%CA%D1%C7%E3%C8-%ED%CD%D4%CF-%DA%E3%C7%E1%DE%C9-%C7%E1%CA%DF%E4%E6%E1%E6%CC%ED%C7-%E6%C7%E1%D8%ED%D1%C7%E4-%DD%ED-%D2%ED%C7%D1%CA%E5-%E1%E1%D5%ED%E4-584510",
+              "title": "\u0623\u0628\u0631\u0632\u0647\u0645 \u0643\u0648\u0643 \u0648 \u0645\u0627\u0633\u0643 .. \u062a\u0631\u0627\u0645\u0628 \u064a\u062d\u0634\u062f \u0639\u0645\u0627\u0644\u0642\u0629 \u0627\u0644\u062a\u0643\u0646\u0648\u0644\u0648\u062c\u064a\u0627 \u0648\u0627\u0644\u0637\u064a\u0631\u0627\u0646 \u0641\u064a \u0632\u064a\u0627\u0631\u062a\u0647 \u0644\u0644\u0635\u064a\u0646"
+            },
+            {
+              "url": "https://www.arabnet5.com/news/2/584510/%C3%C8%D1%D2%E5%E3-%DF%E6%DF-%E6-%E3%C7%D3%DF-%CA%D1%C7%E3%C8-%ED%CD%D4%CF-%DA%E3%C7%E1%DE%C9-%C7%E1%CA%DF%E4%E6%E1%E6%CC%ED%C7-%E6%C7%E1%D8%ED%D1%C7%E4-%DD%ED-%D2%ED%C7%D1%CA%E5-%E1%E1%D5%ED%E4",
+              "title": "\u0623\u0628\u0631\u0632\u0647\u0645 \u0643\u0648\u0643 \u0648 \u0645\u0627\u0633\u0643 .. \u062a\u0631\u0627\u0645\u0628 \u064a\u062d\u0634\u062f \u0639\u0645\u0627\u0644\u0642\u0629 \u0627\u0644\u062a\u0643\u0646\u0648\u0644\u0648\u062c\u064a\u0627 \u0648\u0627\u0644\u0637\u064a\u0631\u0627\u0646 \u0641\u064a \u0632\u064a\u0627\u0631\u062a\u0647 \u0644\u0644\u0635\u064a\u0646"
+            }
+          ]
+        },
+        {
+          "date": "20260513T000000Z",
+          "value": 0.0012,
+          "toparts": [
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/madison-asset-management-llc-has-124-69-million-position-in-visa-inc-v.html",
+              "title": "Madison Asset Management LLC Has $124 . 69 Million Position in Visa Inc . $V"
+            },
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/trek-financial-llc-cuts-stock-holdings-in-visa-inc-v.html",
+              "title": "Trek Financial LLC Cuts Stock Holdings in Visa Inc . $V"
+            }
+          ]
+        },
+        {
+          "date": "20260514T000000Z",
+          "value": 0.0009,
+          "toparts": [
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/visa-nysev-stock-price-up-1-6-still-a-buy.html",
+              "title": "Visa ( NYSE : V ) Stock Price Up 1 . 6 % \u2013 Still a Buy ? "
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ticker": "MA",
+      "query": "\"Mastercard\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=%22Mastercard%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "status": 200,
+      "body_size": 63235,
+      "elapsed_s": 5.52,
+      "data_keys": [
+        "query_details",
+        "timeline"
+      ],
+      "timeline_len": 1,
+      "timeline_first_series": "Volume Intensity",
+      "timeline_n_points": 30,
+      "timeline_first_3": [
+        {
+          "date": "20260415T000000Z",
+          "value": 0.0229,
+          "toparts": [
+            {
+              "url": "https://dailyhive.com/canada/new-mastercard-canada-airline",
+              "title": "New Canadian Mastercard offers travel perks with major airline | Daily Hive"
+            },
+            {
+              "url": "https://finance.sina.com.cn/tech/roll/2026-04-16/doc-inhurihs3188807.shtml",
+              "title": "\u4e07\u4e8b\u8fbe\u4e2d\u56fd\u4fe1\u7528\u5361\u4eca\u65e5\u6b63\u5f0f\u652f\u6301Apple Pay \uff01 \u4e2d\u884c \u3001 \u519c\u884c\u7b49\u56db\u5927\u94f6\u884c\u9996\u53d1"
+            },
+            {
+              "url": "https://n.yam.com/Article/20260416192709",
+              "title": "AI\u4ee3\u7406\u5f0f\u4ea4\u6613\u6311\u6230\u8cc7\u5b89 \u842c\u4e8b\u9054\u5361\u591a\u5c64\u9632\u8b77\u64cb\u8a50"
+            },
+            {
+              "url": "https://www.bfmtv.com/tech/bons-plans/banque-en-ligne/les-internautes-s-affolent-en-voyant-cette-offre-de-250-euros-chez-la-banque-fortuneo_AB-202604150008.html",
+              "title": "Les internautes saffolent en voyant cette offre de 250 euros chez la banque Fortuneo"
+            },
+            {
+              "url": "https://www.cna.com.tw/news/afe/202604150176.aspx",
+              "title": "\u5f6d\u91d1\u9686 \uff1a \u9ad8\u5ea6\u95dc\u6ce8AI\u4ee3\u7406\u4ea4\u6613\u767c\u5c55 \u5c07\u7814\u64ec\u56e0\u61c9\u65b9\u6848 | \u7522\u7d93"
+            },
+            {
+              "url": "https://www.cna.com.tw:443/news/afe/202604150176.aspx",
+              "title": "\u5f6d\u91d1\u9686 \uff1a \u9ad8\u5ea6\u95dc\u6ce8AI\u4ee3\u7406\u4ea4\u6613\u767c\u5c55 \u5c07\u7814\u64ec\u56e0\u61c9\u65b9\u6848 | \u7522\u7d93"
+            },
+            {
+              "url": "https://www.americanbanker.com/payments/opinion/mastercards-1-8-billion-bet-heralds-the-collapse-of-financial-silos",
+              "title": "Mastercard $1 . 8 billion bet heralds the collapse of financial silos"
+            },
+            {
+              "url": "https://www.prestigeonline.com/hk/lifestyle/culture-plus-entertainment/charlie-puth-concert-in-hong-kong-2026-whatevers-clever-world-tour/",
+              "title": "Charlie Puth concert in Hong Kong : Whatever Clever ! World Tour 2026 \u2013 PrestigeOnline Hong Kong"
+            },
+            {
+              "url": "https://fr.allafrica.com/stories/202604150350.html",
+              "title": "S\u00e9n\u00e9gal : 85 , 8 millions de FCfa mobilis\u00e9s au profit de 39 Gie de Thi\u00e8s"
+            },
+            {
+              "url": "https://www.ghanamma.com/2026/04/15/kcb-bank-kenya-and-craft-silicon-advance-digital-payments-with-tourist-app/",
+              "title": "KCB Bank Kenya and Craft Silicon Advance Digital Payments with Tourist App"
+            }
+          ]
+        },
+        {
+          "date": "20260416T000000Z",
+          "value": 0.0219,
+          "toparts": [
+            {
+              "url": "https://www.edaily.co.kr/News/Read?newsId=04191846645416776&mediaCodeNo=257",
+              "title": "\uc2e0\ud55c\uc740\ud589 ,  \uc3e0\ud2b8\uce74  300\ub9cc\uc7a5 \ub3cc\ud30c \uae30\ub150 \uc138\ub808\uba38\ub2c8 \uc9c4\ud589"
+            },
+            {
+              "url": "https://www.cqnews.net/web/content_1494312998464942080.html",
+              "title": "\u4e07\u4e8b\u8fbe\u5361\u6765\u4e86 \uff1a \u652f\u6301\u4e2d\u56fd\u6301\u5361\u4eba\u7528Apple Pay\u8de8\u5883\u652f\u4ed8 - \u534e\u9f99\u7f51"
+            },
+            {
+              "url": "https://www.pymnts.com/partnerships/2026/lobster-cash-teams-with-mastercard-to-secure-agentic-card-transactions/",
+              "title": "Lobster . cash Teams With Mastercard on Agentic Card Transactions"
+            },
+            {
+              "url": "https://www.bankingday.com/eftpos-international-dreams",
+              "title": "Eftpo international dreams"
+            },
+            {
+              "url": "https://finance.sina.com.cn/tech/mobile/n/n/2026-04-16/doc-inhusenq1721872.shtml",
+              "title": "\u4e07\u4e8b\u8fbe\u5361\u643a\u624b\u4e07\u4e8b\u7f51\u8054 \uff1a \u4e2d\u56fd\u6301\u5361\u4eba Apple Pay \u8de8\u5883\u652f\u4ed8\u6b63\u5f0f\u5f00\u901a \uff0c \u5883\u5916\u6570\u5b57\u652f\u4ed8\u8fc8\u5165\u65b0\u65f6\u4ee3"
+            },
+            {
+              "url": "https://www.setn.com/News.aspx?NewsID=1823129",
+              "title": "AI\u652f\u4ed8\u5143\u5e74 \uff01 \u6a5f\u5668\u4eba\u5e6b\u4f60\u8cfc\u7269\u5b89\u5168\u55ce \uff1f \u842c\u4e8b\u9054\u5361\u51fa\u62db\u4e86 | \u8ca1\u7d93 | \u4e09\u7acb\u65b0\u805e\u7db2 SETN . COM"
+            },
+            {
+              "url": "https://zdnet.co.kr/view/?no=20260416141533",
+              "title": "\uc2e0\ud55c\u9280  \uc3e0\ud2b8\ub798\ube14 \uccb4\ud06c\uce74\ub4dc  \ub85c \ub3d9\ub300\ubb38\uc5fd\ub5a1 \uc8fc\ubb38 \uc2dc 7000\uc6d0 \ud560\uc778"
+            },
+            {
+              "url": "https://www.chinatimes.com/realtimenews/20260416000993-260410",
+              "title": " \u300a \u91d1\u878d \u300b \u4ee3\u7406\u5f0fAI\u4f86\u4e86 \uff01 \u806f\u5361\u4e2d\u5fc3\u591a\u65b9\u5408\u4f5c\u76fc\u5efa\u69cb\u672c\u571fAI Agent - \u8ca1\u7d93"
+            },
+            {
+              "url": "https://pakobserver.net/visa-mastercard-face-scrutiny-over-250-million-outflows-as-pakistan-seeks-cheaper-payments/",
+              "title": "Visa , Mastercard face scrutiny over $250 Million outflows as Pakistan seeks Cheaper Payments"
+            },
+            {
+              "url": "http://hy.stock.cnfol.com/hangyejingcui/20260416/32147622.shtml",
+              "title": "\u4e2d\u56fd\u94f6\u884c\u4e07\u4e8b\u8fbe\u4fe1\u7528\u5361\u652f\u6301Apple Pay \u66f4\u5b89\u5168\u4fbf\u6377\u7684\u5883\u5916\u652f\u4ed8\u4f53\u9a8c _ \u4ea7\u4e1a\u8d44\u8baf _ \u884c\u4e1a _ \u4e2d\u91d1\u5728\u7ebf"
+            }
+          ]
+        },
+        {
+          "date": "20260417T000000Z",
+          "value": 0.0173,
+          "toparts": [
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/visa-vs-mastercard-one-built-152013584.html",
+              "title": "Visa vs . Mastercard : This One Is Built to Survive the Next Recession"
+            },
+            {
+              "url": "https://www.traveldailynews.asia/technology/mastercard-enables-contactless-transit-payments-for-visitors-in-south-korea/",
+              "title": "Mastercard enables contactless transit payments for visitors in South Korea"
+            },
+            {
+              "url": "https://www.newsghana.com.gh/12-ghanaian-edtech-startups-join-mastercard-foundation-fellowships-third-cohort/",
+              "title": "12 Ghanaian EdTech Startups Join Mastercard Foundation Fellowship Third Cohort"
+            },
+            {
+              "url": "https://thebftonline.com/2026/04/17/mest-africas-3rd-mastercard-foundation-edtech-fellowship-cohort-kicks-off/",
+              "title": "MEST Africa 3rd Mastercard Foundation EdTech Fellowship Cohort kicks - off - The Business & Financial Times"
+            },
+            {
+              "url": "https://www.teraz.sk/ekonomika/ludia-rozhodli-lidl-potvrdil-poziciu/956170-clanok.html",
+              "title": "\u013dudia rozhodli : Lidl potvrdil poz\u00edciu l\u00eddra"
+            },
+            {
+              "url": "https://www.24hod.sk/2026-04-17/30/tlacove-spravy/",
+              "title": "24hod . sk - Tla\u010dov\u00e9 spr\u00e1vy"
+            },
+            {
+              "url": "https://www.24hod.sk/retail-park-coop-jednota-prievidza-s-titulom-inovator-roka-aj-ocenenim-v-stavbe-roka-cl824747.html",
+              "title": "Retail park COOP Jednota Prievidza s titulom Inov\u00e1tor roka aj ocenen\u00edm v Stavbe roka"
+            },
+            {
+              "url": "https://h24info.ma/economie/gitex-africa-2026-le-groupe-bcp-devoile-sa-strategie-digitale-et-continentale/",
+              "title": "GITEX Africa 2026 : le Groupe BCP d\u00e9voile sa strat\u00e9gie digitale et continentale , H24info"
+            },
+            {
+              "url": "http://baystreet.ca/articles/stockstowatch/120074/Sezzle-Akamai-Fastly-and-Cloudflare-on-Sale",
+              "title": "Baystreet . ca - Sezzle , Akamai , Fastly , and Cloudflare on Sale"
+            },
+            {
+              "url": "https://www.bfmtv.com/tech/bons-plans/banque-en-ligne/voici-comment-obtenir-jusqu-a-250-euros-grace-a-fortuneo_AB-202604170019.html",
+              "title": "Voici comment obtenir jusqu  \u00e0 250 euros gr\u00e2ce \u00e0 Fortuneo"
+            }
+          ]
+        }
+      ],
+      "timeline_last_3": [
+        {
+          "date": "20260512T000000Z",
+          "value": 0.0759,
+          "toparts": [
+            {
+              "url": "https://www.finanznachrichten.de/nachrichten-2026-05/68470361-caf-and-mastercard-join-forces-to-expand-access-to-finance-for-across-latin-america-and-the-caribbean-200.htm",
+              "title": "CAF and Mastercard Join Forces To Expand Access to Finance for Across Latin America and the Caribbean"
+            },
+            {
+              "url": "https://eturbonews.com/johannesburg-expected-welcome-36-million-international-overnight/",
+              "title": "Johannesburg expected to welcome 3 . 6 million international overnight visitors in 2016"
+            },
+            {
+              "url": "https://economictimes.indiatimes.com/news/international/global-trends/us-ceos-seek-china-business-gains-from-trump-xi-summit/articleshow/131035448.cms",
+              "title": "US CEOs seek China business gains from Trump - Xi summit"
+            },
+            {
+              "url": "https://www.openpr.com/news/4510021/cryptocurrency-news-pepeto-presale-hits-9-2m-as-circle-raises",
+              "title": "Cryptocurrency News : Pepeto Presale Hits $9 . 2M as Circle Raises"
+            },
+            {
+              "url": "https://news.gooya.com/2026/05/post-109414.php",
+              "title": "\u0647\u0631\u06a9\u06cc \u0627\u06cc\u0646\u062a\u0631\u0646\u062a \u0645\u06cc\u062e\u0648\u0627\u062f \u062c\u0645\u0639 \u06a9\u0646\u0647 \u0628\u0631\u0647 \u0633\u0648\u0631\u06cc\u0647 \u0648 \u0627\u0641\u063a\u0627\u0646\u0633\u062a\u0627\u0646"
+            },
+            {
+              "url": "https://www.fool.com/investing/2026/05/12/1-stock-im-consistently-loading-up-on-no-questions/?source=iedfolrf0000001",
+              "title": "1 Stock Im Consistently Loading Up On , No Questions Asked"
+            },
+            {
+              "url": "https://iphoneaddict.fr/post/news-428412-apple-active-tap-to-pay-iphone-afrique-sud",
+              "title": "Apple active Tap to Pay sur iPhone en Afrique du Sud"
+            },
+            {
+              "url": "https://www.haberler.com/kripto-para/spot-xrp-etflerine-ocaktan-bu-yana-en-yuksek-19838944-haberi/",
+              "title": "Spot XRP ETFlerine ocaktan bu yana en y\u00fcksek g\u00fcnl\u00fck giri\u015f ya\u015fand\u0131"
+            },
+            {
+              "url": "https://www.capitalfm.co.ke/business/2026/05/mbadi-defends-proposed-tax-on-visa-mastercard-transactions/",
+              "title": "Mbadi defends proposed tax on Visa , Mastercard transactions"
+            },
+            {
+              "url": "https://www.vetogate.com/5653507",
+              "title": "\u0644\u0645\u0627\u0630\u0627 \u0642\u0631\u0631 \u062a\u0631\u0627\u0645\u0628 \u0627\u0635\u0637\u062d\u0627\u0628 \u0645\u0627\u0633\u0643 \u0641\u064a \u0632\u064a\u0627\u0631\u062a\u0647 \u0644\u0644\u0635\u064a\u0646 \u061f \u0648\u0645\u0627 \u0639\u0644\u0627\u0642\u062a\u0629 \u0628\u0640  \u062a\u0633\u0644\u0627  "
+            }
+          ]
+        },
+        {
+          "date": "20260513T000000Z",
+          "value": 0.0951,
+          "toparts": [
+            {
+              "url": "https://www.tickerreport.com/banking-finance/13438886/first-foundation-advisors-trims-stock-position-in-mastercard-incorporated-ma.html",
+              "title": "First Foundation Advisors Trims Stock Position in Mastercard Incorporated $MA"
+            },
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/virginia-retirement-systems-et-al-trims-holdings-in-mastercard-incorporated-ma.html",
+              "title": "VIRGINIA RETIREMENT SYSTEMS ET Al Trims Holdings in Mastercard Incorporated $MA"
+            },
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/stonebridge-financial-group-llc-mo-makes-new-investment-in-mastercard-incorporated-ma.html",
+              "title": "Stonebridge Financial Group LLC MO Makes New Investment in Mastercard Incorporated $MA"
+            },
+            {
+              "url": "https://www.dailypolitical.com/2026/05/13/ameritas-advisory-services-llc-has-7-09-million-stock-holdings-in-mastercard-incorporated-ma.html",
+              "title": "Ameritas Advisory Services LLC Has $7 . 09 Million Stock Holdings in Mastercard Incorporated $MA"
+            },
+            {
+              "url": "https://allafrica.com/stories/202605130308.html",
+              "title": "Nigeria : Bmoni , Mastercard Team Up to Unlock Instant Card Access for Consumers in Nigeria"
+            },
+            {
+              "url": "https://www.bfmtv.com/tech/bons-plans/banque-en-ligne/une-carte-gold-pour-0-euro-ca-vous-tente-voici-la-banque-en-ligne-genereuse_AB-202605130398.html",
+              "title": "Une carte Gold pour 0 euro , \u00e7a vous tente ? Voici la banque en ligne g\u00e9n\u00e9reuse"
+            },
+            {
+              "url": "https://www.dailyforex.com/stock-market-today/2026/05/mastercard-stock-signal-12-may-2026/245094",
+              "title": "Mastercard ( NYSE : MA ) Stock Signal 12 / 05"
+            },
+            {
+              "url": "https://www.aktuality.sk/clanok/am3Jk1u/koniec-pohodlia-zadarmo-mnohe-banky-skrtaju-vyhodu-ktoru-slovaci-radi-vyuzivali/",
+              "title": "Koniec pohodlia zadarmo ? Mnoh\u00e9 banky \u0161krtaj\u00fa v\u00fdhodu , ktor\u00fa Slov\u00e1ci radi vyu\u017e\u00edvali"
+            },
+            {
+              "url": "https://hnonline.sk/finweb/ekonomika/96280840-slovaci-su-uz-z-obrazoviek-unaveni-chcu-travit-viac-casu-mimo-digitalneho-prostredia-ukazuje-studia",
+              "title": "Slov\u00e1ci s\u00fa u\u017e z obrazoviek unaven\u00ed , chc\u00fa tr\u00e1vi\u0165 viac \u010dasu mimo digit\u00e1lneho prostredia , ukazuje \u0161t\u00fadia"
+            },
+            {
+              "url": "https://naslovi.net/2026-05-13/nedeljnik/ilon-mask-tim-kuk-i-huang-iz-nvidia-u-trampovoj-delegaciji-za-posetu-kini/41809470",
+              "title": "Ilon Mask , Tim Kuk i Huang iz Nvidia u Trampovoj delegaciji za posetu Kini"
+            }
+          ]
+        },
+        {
+          "date": "20260514T000000Z",
+          "value": 0.0452,
+          "toparts": [
+            {
+              "url": "https://retailtimes.co.uk/how-visa-and-mastercard-are-helping-to-tackle-the-uks-illegal-online-gambling-market/",
+              "title": "How Visa and Mastercard are helping to tackle the united kingdom illegal online gambling market"
+            },
+            {
+              "url": "https://www.finanznachrichten.de/nachrichten-2026-05/68495322-intel-corporation-intel-named-official-compute-partner-of-mclaren-racing-004.htm",
+              "title": "Intel Corporation : Intel Named Official Compute Partner of McLaren Racing"
+            },
+            {
+              "url": "https://insideretail.asia/2026/05/14/why-us-businesses-have-a-lot-riding-on-trumps-china-summit/",
+              "title": "Why US businesses have a lot riding on Trump China summit"
+            },
+            {
+              "url": "http://africa.chinadaily.com.cn/a/202605/14/WS6a04a172a310d6866eb48726.html",
+              "title": "US business leaders express confidence in Chinese market"
+            },
+            {
+              "url": "http://europe.chinadaily.com.cn/a/202605/14/WS6a04a172a310d6866eb48726.html",
+              "title": "US business leaders express confidence in Chinese market"
+            },
+            {
+              "url": "https://www.moneycontrol.com/news/business/personal-finance/how-to-spot-and-avoid-hidden-fx-conversion-charges-on-your-credit-card-13919308.html",
+              "title": "How Forex Charges Affect Your Credit Card Fees"
+            },
+            {
+              "url": "https://www.cubaheadlines.com/articles/329183",
+              "title": "Trump to Meet Xi Jinping in China on Key Day of State Visit"
+            },
+            {
+              "url": "https://spotlightreport.net/music/feid-announces-inaugural-visit-to-australia",
+              "title": "Feid Announces Inaugural Visit To Australia - Spotlight Report"
+            },
+            {
+              "url": "https://www.traveldailymedia.com/mastercard-projects-245-million-muslim-travellers-by-2030/",
+              "title": "Mastercard projects 245 million Muslim travellers by 2030"
+            },
+            {
+              "url": "https://finance.yahoo.com/news/jpmorgan-files-launch-tokenized-money-213114540.html",
+              "title": "JPMorgan Files to Launch Tokenized Money Market Fund on Ethereum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ticker": "XOM",
+      "query": "XOM OR \"ExxonMobil\"",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=XOM%20OR%20%22ExxonMobil%22&mode=TimelineVolInfo&timespan=30d&format=json",
+      "status": 200,
+      "body_size": 56,
+      "elapsed_s": 2.37,
+      "parse_err": "Expecting value: line 1 column 1 (char 0)",
+      "body_excerpt": "Queries containing OR'd terms must be surrounded by ().\n"
+    }
+  ],
+  "log_tail": "START RequestId: 3dc5582f-0856-4902-a9f2-79f3087eddbb Version: $LATEST\nEND RequestId: 3dc5582f-0856-4902-a9f2-79f3087eddbb\nREPORT RequestId: 3dc5582f-0856-4902-a9f2-79f3087eddbb\tDuration: 58472.38 ms\tBilled Duration: 58622 ms\tMemory Size: 256 MB\tMax Memory Used: 53 MB\tInit Duration: 149.04 ms\t\n",
+  "cleanup": "OK",
+  "finished": "2026-05-14T17:41:54.183214+00:00"
+}
