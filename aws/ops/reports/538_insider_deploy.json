@@ -1,0 +1,70 @@
+{
+  "started": "2026-05-14T12:03:45.470920+00:00",
+  "env_keys": [
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "lambda": "created",
+  "schedule": "cron(0 1 ? * MON-SAT *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_tickers": 30,
+    "n_with_data": 30,
+    "n_cluster_buys": 0,
+    "total_buy_30d_usd": 0,
+    "total_sell_30d_usd": 0,
+    "regime": "INSIDER_NORMAL",
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 1.9
+  },
+  "log_tail": "START RequestId: 22236137-45db-4bfc-b315-2195b3cfd523 Version: $LATEST\n=== insider-transactions v1.0.0 \u00b7 2026-05-14T12:03:54.066266+00:00 ===\nuniverse: 30 tickers\n\u2713 NVDA   7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 MSFT   7d: 0 14d: 0 30d: 1 buys30d:0 sells30d:0\n\u2713 GOOGL  7d: 0 14d: 1 30d: 7 buys30d:0 sells30d:0\n\u2713 AMZN   7d: 0 14d: 4 30d: 7 buys30d:0 sells30d:0\n\u2713 AAPL   7d: 2 14d: 2 30d: 5 buys30d:0 sells30d:0\n\u2713 TSLA   7d: 0 14d: 1 30d: 2 buys30d:0 sells30d:0\n\u2713 META   7d: 2 14d: 4 30d: 8 buys30d:0 sells30d:0\n\u2713 WMT    7d: 4 14d: 4 30d: 8 buys30d:0 sells30d:0\n\u2713 V      7d: 1 14d: 2 30d: 2 buys30d:0 sells30d:0\n\u2713 AVGO   7d: 0 14d: 0 30d: 8 buys30d:0 sells30d:0\n\u2713 LLY    7d: 1 14d: 1 30d: 5 buys30d:0 sells30d:0\n\u2713 MA     7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 XOM    7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 UNH    7d: 0 14d: 0 30d: 1 buys30d:0 sells30d:0\n\u2713 JPM    7d: 0 14d: 3 30d:11 buys30d:0 sells30d:0\n\u2713 PG     7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 HD     7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 COST   7d: 0 14d: 0 30d: 0 buys30d:0 sells30d:0\n\u2713 CVX    7d: 2 14d: 2 30d: 2 buys30d:0 sells30d:0\n\u2713 KO     7d: 2 14d: 2 30d: 2 buys30d:0 sells30d:0\n\u2713 ABBV   7d:11 14d:11 30d:11 buys30d:0 sells30d:0\n\u2713 JNJ    7d: 0 14d: 1 30d:12 buys30d:0 sells30d:0\n\u2713 BAC    7d: 2 14d:16 30d:18 buys30d:0 sells30d:0\n\u2713 PEP    7d: 1 14d: 1 30d: 1 buys30d:0 sells30d:0\n\u2713 ORCL   7d: 1 14d: 1 30d: 4 buys30d:0 sells30d:0\n\u2713 TMO    7d: 0 14d: 0 30d: 1 buys30d:0 sells30d:0\n\u2713 MRK    7d:12 14d:25 30d:25 buys30d:0 sells30d:0\n\u2713 CSCO   7d: 7 14d: 7 30d: 7 buys30d:0 sells30d:0\n\u2713 ADBE   7d: 0 14d: 2 30d:21 buys30d:0 sells30d:0\n\u2713 AMD    7d: 2 14d: 2 30d: 4 buys30d:0 sells30d:0\n\u2713 insider-transactions.json written\nEND RequestId: 22236137-45db-4bfc-b315-2195b3cfd523\nREPORT RequestId: 22236137-45db-4bfc-b315-2195b3cfd523\tDuration: 1941.19 ms\tBilled Duration: 2483 ms\tMemory Size: 1024 MB\tMax Memory Used: 135 MB\tInit Duration: 541.73 ms\t\n",
+  "sidecar": {
+    "size_kb": 10.9,
+    "modified": "2026-05-14T12:03:56",
+    "version": "1.0.0",
+    "n_tickers": 30,
+    "n_with_data": 30,
+    "n_with_err": 0,
+    "n_cluster_buys": 0,
+    "total_buy_value_30d_usd": 0,
+    "total_sell_value_30d_usd": 0,
+    "composite_regime": "INSIDER_NORMAL",
+    "composite_signal": "Balanced activity \u00b7 $0.0M buys vs $0.0M sells 30d",
+    "biggest_buy_dollars_30d": [],
+    "biggest_sell_dollars_30d": [],
+    "cluster_buys": [],
+    "most_active_14d": [
+      {
+        "ticker": "MRK",
+        "n_form4_14d": 25,
+        "n_form4_7d": 12
+      },
+      {
+        "ticker": "BAC",
+        "n_form4_14d": 16,
+        "n_form4_7d": 2
+      },
+      {
+        "ticker": "ABBV",
+        "n_form4_14d": 11,
+        "n_form4_7d": 11
+      },
+      {
+        "ticker": "CSCO",
+        "n_form4_14d": 7,
+        "n_form4_7d": 7
+      },
+      {
+        "ticker": "AMZN",
+        "n_form4_14d": 4,
+        "n_form4_7d": 0
+      }
+    ]
+  },
+  "finished": "2026-05-14T12:03:56.221689+00:00"
+}
