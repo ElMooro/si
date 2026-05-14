@@ -1,0 +1,4680 @@
+{
+  "started": "2026-05-14T11:50:21.595741+00:00",
+  "all_lambdas_matching": {
+    "commodity": [
+      "justhodl-commodity-curves"
+    ],
+    "uspto_patent": [],
+    "options_0dte": [
+      "justhodl-options-flow",
+      "justhodl-options-flow-scanner",
+      "justhodl-options-gamma"
+    ]
+  },
+  "commodity_curves": {
+    "name": "justhodl-commodity-curves",
+    "exists": true,
+    "last_modified": "2026-05-14T11:43:13.000+0000",
+    "memory": 512,
+    "timeout": 120,
+    "env_keys": [
+      "FMP_KEY",
+      "FRED_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "rules": [
+      {
+        "name": "justhodl-commodity-curves-daily",
+        "schedule": "cron(0 21 ? * MON-FRI *)",
+        "state": "ENABLED"
+      }
+    ],
+    "invoke_status": 200,
+    "fn_error": null,
+    "invoke_response": {
+      "success": true,
+      "version": "1.0.0",
+      "regime": "INFLATIONARY_PUSH",
+      "n_fred_loaded": 3,
+      "n_etf_loaded": 10,
+      "spy_20d": 6.05,
+      "top_3": [
+        "USO",
+        "SLV",
+        "PDBC"
+      ],
+      "regime_changed": false,
+      "alert_sent": false,
+      "elapsed_seconds": 0.7
+    },
+    "log_tail": "START RequestId: e846db48-db4e-4063-b3dc-dadfa2f830d2 Version: $LATEST\n=== commodity-curves v1.0.0 \u00b7 2026-05-14T11:50:26.795255+00:00 ===\nfetching 4 FRED series + 10 ETFs in parallel...\n\u2713 FRED DCOILBRENTEU         Brent Crude        106.11 USD/bbl      5d=-10.27% 20d=-10.88% ytd=+71.20%\n\u2713 FRED DHHNGSP              Natural Gas        2.82 USD/mmBtu    5d=+5.62% 20d=+1.08% ytd=+0.00%\n\u2713 FRED DCOILWTICO           WTI Crude          101.56 USD/bbl      5d=-7.47% 20d=+0.83% ytd=+77.52%\nfred GOLDAMGBD228NLBM err: HTTP Error 400: Bad Request\n\u2717 FRED GOLDAMGBD228NLBM: insufficient data (0)\n\u2713 ETF XLE   Energy Sector (equity)       57.63 1d=+0.10% 5d=+1.11% 20d=+3.35% ytd=+26.24%\n\u2713 ETF UNG   US Natural Gas Fund          10.98 1d=+0.64% 5d=+5.07% 20d=+3.78% ytd=-8.96%\n\u2713 ETF USO   US Oil Fund (WTI proxy)     142.04 1d=-1.57% 5d=+6.04% 20d=+15.87% ytd=+105.97%\n\u2713 ETF GLD   Gold (SPDR)                 430.50 1d=-0.56% 5d=-0.11% 20d=-2.26% ytd=+8.09%\n\u2713 ETF DBA   Agriculture (Invesco DB)     28.73 1d=+0.56% 5d=+2.39% 20d=+5.74% ytd=+12.40%\n\u2713 ETF SLV   Silver (iShares)             79.35 1d=+1.02% 5d=+13.15% 20d=+10.45% ytd=+20.68%\n\u2713 ETF XME   Metals & Mining             123.34 1d=-0.21% 5d=-0.64% 20d=+6.62% ytd=+14.70%\n\u2713 ETF CPER  US Copper Index Fund         40.27 1d=-0.42% 5d=+7.27% 20d=+8.08% ytd=+15.12%\n\u2713 ETF GUNR  Global Natural Resources     55.86 1d=+0.27% 5d=+1.55% 20d=+1.38% ytd=+19.92%\n\u2713 ETF PDBC  Diversified Commodity Bas    18.70 1d=-1.11% 5d=+3.72% 20d=+8.53% ytd=+40.81%\n\u2713 commodity-curves.json written\ntg err: HTTP Error 400: Bad Request\nEND RequestId: e846db48-db4e-4063-b3dc-dadfa2f830d2\nREPORT RequestId: e846db48-db4e-4063-b3dc-dadfa2f830d2\tDuration: 1025.12 ms\tBilled Duration: 1026 ms\tMemory Size: 512 MB\tMax Memory Used: 107 MB\t\n"
+  },
+  "commodity_sidecar": {
+    "exists": true,
+    "size_kb": 6.2,
+    "modified": "2026-05-14T11:50:28",
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "elapsed_seconds",
+      "source",
+      "spy_20d",
+      "fred_metrics",
+      "etf_metrics",
+      "n_fred",
+      "n_etf",
+      "n_fred_with_data",
+      "n_etf_with_data",
+      "composite",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior"
+    ],
+    "composite_regime": "INFLATIONARY_PUSH",
+    "composite_signal": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuilding",
+    "version": "1.0.0",
+    "generated_at": "2026-05-14T11:50:27.534861+00:00",
+    "n_etfs": null,
+    "n_fred": 4,
+    "n_with_data": null,
+    "ratios": {
+      "wti_minus_brent": -4.55,
+      "gold_silver_ratio_etf": 5.43,
+      "gold_minus_pdbc_20d_pp": -10.79,
+      "industrial_minus_precious_20d_pp": 3.25,
+      "xle_minus_spy_20d_pp": -2.7,
+      "energy_minus_metals_20d_pp": 2.26
+    },
+    "top_3_20d": [
+      "USO",
+      "SLV",
+      "PDBC"
+    ],
+    "bottom_3_20d": [
+      "XLE",
+      "GUNR",
+      "GLD"
+    ],
+    "fred_metrics_sample": [
+      {
+        "sid": "DCOILBRENTEU",
+        "name": "Brent Crude",
+        "current": 106.11,
+        "ret_20d": -10.88
+      },
+      {
+        "sid": "DHHNGSP",
+        "name": "Natural Gas",
+        "current": 2.82,
+        "ret_20d": 1.08
+      },
+      {
+        "sid": "DCOILWTICO",
+        "name": "WTI Crude",
+        "current": 101.56,
+        "ret_20d": 0.83
+      },
+      {
+        "sid": "GOLDAMGBD228NLBM",
+        "name": "Gold (LBMA AM)",
+        "current": null,
+        "ret_20d": null
+      }
+    ],
+    "etf_metrics_sample": []
+  },
+  "uspto_sidecar_v1": {
+    "exists": false
+  },
+  "uspto_sidecar_v2": {
+    "exists": false
+  },
+  "options_justhodl-options-flow": {
+    "name": "justhodl-options-flow",
+    "exists": true,
+    "last_modified": "2026-05-06T21:36:11.000+0000",
+    "memory": 1024,
+    "timeout": 300,
+    "env_keys": [
+      "AV_KEY",
+      "FRED_KEY",
+      "NEWS_KEY",
+      "POLYGON_KEY"
+    ],
+    "rules": [],
+    "invoke_status": 200,
+    "fn_error": null,
+    "invoke_response": {
+      "error": "unauthorized",
+      "message": "Missing API key. Pass 'Authorization: Bearer jhd_<key>' or 'x-api-key: jhd_<key>'."
+    },
+    "log_tail": "START RequestId: e1e72698-7c1e-4c81-87e6-b770c2e2c035 Version: $LATEST\nEND RequestId: e1e72698-7c1e-4c81-87e6-b770c2e2c035\nREPORT RequestId: e1e72698-7c1e-4c81-87e6-b770c2e2c035\tDuration: 1.86 ms\tBilled Duration: 2 ms\tMemory Size: 1024 MB\tMax Memory Used: 66 MB\t\n"
+  },
+  "options_justhodl-options-flow-scanner": {
+    "name": "justhodl-options-flow-scanner",
+    "exists": true,
+    "last_modified": "2026-05-06T08:50:22.000+0000",
+    "memory": 2048,
+    "timeout": 600,
+    "env_keys": [
+      "DAYS_BACK",
+      "MAX_TICKERS",
+      "N_WORKERS",
+      "POLY_KEY",
+      "S3_BUCKET",
+      "TIMEOUT_BUDGET_S"
+    ],
+    "rules": [],
+    "invoke_status": 200,
+    "fn_error": null,
+    "invoke_response": {
+      "n_evaluated": 145,
+      "n_tier_a": 51,
+      "n_tier_b": 27,
+      "duration_s": 18.1
+    },
+    "log_tail": "START RequestId: af917632-81c5-4aab-b751-d079ca27e7db Version: $LATEST\n[opt-flow] starting v1.0\n[opt-flow] universe: 150 tickers\n[opt-flow] fetching FINRA short volume history (20 days)...\n[opt-flow] FINRA: 12569 tickers, 2.3s\n[opt-flow] OK: 145, no_data: 5\n[opt-flow] wrote 78986b to data/options-flow.json\n[opt-flow] tier_a=51 tier_b=27\n[opt-flow] TOP: [('SO', 100.0, 'TIER_A_BULLISH_FLOW'), ('HCA', 95.0, 'TIER_A_BULLISH_FLOW'), ('LLY', 93.0, 'TIER_A_BULLISH_FLOW'), ('PLD', 93.0, 'TIER_A_BULLISH_FLOW'), ('WM', 90.0, 'TIER_A_BULLISH_FLOW'), ('META', 85.0, 'TIER_A_BULLISH_FLOW'), ('XOM', 85.0, 'TIER_A_BULLISH_FLOW'), ('ADI', 85.0, 'TIER_A_BULLISH_FLOW')]\nEND RequestId: af917632-81c5-4aab-b751-d079ca27e7db\nREPORT RequestId: af917632-81c5-4aab-b751-d079ca27e7db\tDuration: 18293.58 ms\tBilled Duration: 18807 ms\tMemory Size: 2048 MB\tMax Memory Used: 171 MB\tInit Duration: 512.99 ms\t\n"
+  },
+  "options_justhodl-options-gamma": {
+    "name": "justhodl-options-gamma",
+    "exists": true,
+    "last_modified": "2026-04-27T22:36:07.000+0000",
+    "memory": 1024,
+    "timeout": 300,
+    "env_keys": [
+      "POLYGON_KEY",
+      "S3_BUCKET",
+      "UNDERLYING"
+    ],
+    "rules": [],
+    "invoke_status": 200,
+    "fn_error": null,
+    "invoke_response": {
+      "ok": true,
+      "market_closed": true
+    },
+    "log_tail": "START RequestId: 9eff18f2-4391-41f8-ac5e-b11d19628c46 Version: $LATEST\nGEX: market closed \u2014 wrote marker (last valid: 2026-05-14T11:44:50+00:00)\nEND RequestId: 9eff18f2-4391-41f8-ac5e-b11d19628c46\nREPORT RequestId: 9eff18f2-4391-41f8-ac5e-b11d19628c46\tDuration: 565.65 ms\tBilled Duration: 876 ms\tMemory Size: 1024 MB\tMax Memory Used: 95 MB\tInit Duration: 309.43 ms\t\n"
+  },
+  "zerodte_sidecar_v1": {
+    "exists": false
+  },
+  "zerodte_sidecar_v2": {
+    "exists": true,
+    "size_kb": 77.1,
+    "modified": "2026-05-14T11:50:52",
+    "top_keys": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "summary",
+      "all_qualifying"
+    ],
+    "composite_regime": null,
+    "composite_signal": null,
+    "version": null,
+    "generated_at": "2026-05-14T11:50:51+00:00",
+    "data": {
+      "schema_version": 1,
+      "method": "options_flow_scanner_v1",
+      "generated_at": "2026-05-14T11:50:51+00:00",
+      "duration_s": 18.1,
+      "stats": {
+        "n_universe": 150,
+        "n_evaluated": 145,
+        "n_no_data": 5,
+        "n_tier_a": 51,
+        "n_tier_b": 27,
+        "n_finra_tickers": 12569
+      },
+      "summary": {
+        "top_25_overall": [
+          {
+            "symbol": "SO",
+            "score": 100.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 93.14,
+            "cpr_recent": 29.47,
+            "cpr_change_pct": 2525.9,
+            "call_vol_surge": 6.14,
+            "short_pct_change": -10.8
+          },
+          {
+            "symbol": "HCA",
+            "score": 95.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_2X",
+              "SHORTS_COVERING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 427.54,
+            "cpr_recent": 2.69,
+            "cpr_change_pct": 878.6,
+            "call_vol_surge": 19.41,
+            "short_pct_change": -11.35
+          },
+          {
+            "symbol": "LLY",
+            "score": 93.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 1015.93,
+            "cpr_recent": 89.39,
+            "cpr_change_pct": 243.6,
+            "call_vol_surge": 11.47,
+            "short_pct_change": -7.2
+          },
+          {
+            "symbol": "PLD",
+            "score": 93.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 142.0,
+            "cpr_recent": 41.45,
+            "cpr_change_pct": 852.2,
+            "call_vol_surge": 3.18,
+            "short_pct_change": -4.96
+          },
+          {
+            "symbol": "WM",
+            "score": 90.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_COVERING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 216.44,
+            "cpr_recent": 1.74,
+            "cpr_change_pct": 256.3,
+            "call_vol_surge": 3.06,
+            "short_pct_change": -10.67
+          },
+          {
+            "symbol": "META",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 616.63,
+            "cpr_recent": 8.55,
+            "cpr_change_pct": 285.5,
+            "call_vol_surge": 9.25,
+            "short_pct_change": -5.39
+          },
+          {
+            "symbol": "XOM",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 151.56,
+            "cpr_recent": 7.53,
+            "cpr_change_pct": 122.8,
+            "call_vol_surge": 4.64,
+            "short_pct_change": 3.52
+          },
+          {
+            "symbol": "ADI",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 432.39,
+            "cpr_recent": 175.77,
+            "cpr_change_pct": 267.3,
+            "call_vol_surge": 7.38,
+            "short_pct_change": -6.32
+          },
+          {
+            "symbol": "AMGN",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 336.45,
+            "cpr_recent": 18.44,
+            "cpr_change_pct": 859.2,
+            "call_vol_surge": 4.17,
+            "short_pct_change": 0.84
+          },
+          {
+            "symbol": "DE",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 580.65,
+            "cpr_recent": 8.55,
+            "cpr_change_pct": 334.2,
+            "call_vol_surge": 15.04,
+            "short_pct_change": 0.55
+          },
+          {
+            "symbol": "PANW",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 227.79,
+            "cpr_recent": 465.92,
+            "cpr_change_pct": 5797.7,
+            "call_vol_surge": 174.3,
+            "short_pct_change": 10.6
+          },
+          {
+            "symbol": "COP",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 117.4,
+            "cpr_recent": 14.0,
+            "cpr_change_pct": 1530.8,
+            "call_vol_surge": 7.32,
+            "short_pct_change": -0.5
+          },
+          {
+            "symbol": "CRWD",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 562.57,
+            "cpr_recent": 71.67,
+            "cpr_change_pct": 184.8,
+            "call_vol_surge": 30.08,
+            "short_pct_change": 4.44
+          },
+          {
+            "symbol": "VRT",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 369.99,
+            "cpr_recent": 116.39,
+            "cpr_change_pct": 156.2,
+            "call_vol_surge": 6.16,
+            "short_pct_change": -0.36
+          },
+          {
+            "symbol": "CMCSA",
+            "score": 85.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 24.94,
+            "cpr_recent": 4.91,
+            "cpr_change_pct": 3975.1,
+            "call_vol_surge": 51.74,
+            "short_pct_change": -6.17
+          },
+          {
+            "symbol": "ANET",
+            "score": 80.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_2X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 140.69,
+            "cpr_recent": 2.26,
+            "cpr_change_pct": 255.5,
+            "call_vol_surge": 11.74,
+            "short_pct_change": -5.74
+          },
+          {
+            "symbol": "AMT",
+            "score": 80.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_2X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 173.87,
+            "cpr_recent": 2.59,
+            "cpr_change_pct": 500.0,
+            "call_vol_surge": 4.74,
+            "short_pct_change": -19.63
+          },
+          {
+            "symbol": "CVX",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X"
+            ],
+            "spot": 185.99,
+            "cpr_recent": 4.86,
+            "cpr_change_pct": 299.3,
+            "call_vol_surge": 4.02,
+            "short_pct_change": 2.92
+          },
+          {
+            "symbol": "AXP",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_EASING",
+              "HIGH_SHORT_SQUEEZE_SETUP"
+            ],
+            "spot": 309.61,
+            "cpr_recent": 0.73,
+            "cpr_change_pct": 160.1,
+            "call_vol_surge": 25.47,
+            "short_pct_change": -1.17
+          },
+          {
+            "symbol": "IBM",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 214.64,
+            "cpr_recent": 1.03,
+            "cpr_change_pct": 1654.6,
+            "call_vol_surge": 41.14,
+            "short_pct_change": -4.82
+          },
+          {
+            "symbol": "T",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 24.75,
+            "cpr_recent": 1.1,
+            "cpr_change_pct": 242.5,
+            "call_vol_surge": 10.95,
+            "short_pct_change": -10.17
+          },
+          {
+            "symbol": "LOW",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 220.39,
+            "cpr_recent": 0.27,
+            "cpr_change_pct": 215.2,
+            "call_vol_surge": 17.15,
+            "short_pct_change": -7.31
+          },
+          {
+            "symbol": "PNC",
+            "score": 78.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_COVERING"
+            ],
+            "spot": 209.86,
+            "cpr_recent": 0.85,
+            "cpr_change_pct": 245.7,
+            "call_vol_surge": 3.48,
+            "short_pct_change": -6.11
+          },
+          {
+            "symbol": "COST",
+            "score": 76.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_RISING",
+              "CALL_VOL_3X",
+              "ABS_CPR_3X",
+              "SHORTS_EASING"
+            ],
+            "spot": 1033.08,
+            "cpr_recent": 79.58,
+            "cpr_change_pct": 46.9,
+            "call_vol_surge": 6.01,
+            "short_pct_change": -2.12
+          },
+          {
+            "symbol": "ISRG",
+            "score": 76.0,
+            "tier": "TIER_A_BULLISH_FLOW",
+            "flags": [
+              "CPR_SURGING",
+              "CALL_VOL_3X",
+              "SHORTS_EASING"
+            ],
+            "spot": 432.27,
+            "cpr_recent": 1.76,
+            "cpr_change_pct": 3487.7,
+            "call_vol_surge": 81.86,
+            "short_pct_change": -1.7
+          }
+        ],
+        "tier_a": [
+          "SO",
+          "HCA",
+          "LLY",
+          "PLD",
+          "WM",
+          "META",
+          "XOM",
+          "ADI",
+          "AMGN",
+          "DE",
+          "PANW",
+          "COP",
+          "CRWD",
+          "VRT",
+          "CMCSA",
+          "ANET",
+          "AMT",
+          "CVX",
+          "AXP",
+          "IBM",
+          "T",
+          "LOW",
+          "PNC",
+          "COST",
+          "ISRG",
+          "PFE",
+          "DUK",
+          "ELV",
+          "MSFT",
+          "WFC",
+          "ABT",
+          "MCK",
+          "MRK",
+          "NOC",
+          "BMY",
+          "PG",
+          "HD",
+          "PEP",
+          "MCD",
+          "TMO",
+          "APH",
+          "DHR",
+          "SYK",
+          "USB",
+          "BSX",
+          "MMM",
+          "JPM",
+          "EMR",
+          "TXN",
+          "FCX",
+          "MDLZ"
+        ]
+      },
+      "all_qualifying": [
+        {
+          "symbol": "SO",
+          "score": 100.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 93.14,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 29.47,
+            "avg_cpr_older": 1.12,
+            "cpr_change_pct": 2525.9,
+            "total_call_vol_5d": 3407,
+            "total_put_vol_5d": 204,
+            "call_vol_surge": 6.14,
+            "short_metrics": {
+              "recent_avg_short_pct": 54.4,
+              "older_avg_short_pct": 65.2,
+              "short_pct_change": -10.8,
+              "avg_total_vol_5d": 1730202,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "HCA",
+          "score": 95.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 427.54,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.69,
+            "avg_cpr_older": 0.27,
+            "cpr_change_pct": 878.6,
+            "total_call_vol_5d": 1008,
+            "total_put_vol_5d": 279,
+            "call_vol_surge": 19.41,
+            "short_metrics": {
+              "recent_avg_short_pct": 55.7,
+              "older_avg_short_pct": 67.0,
+              "short_pct_change": -11.35,
+              "avg_total_vol_5d": 548960,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "LLY",
+          "score": 93.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 1015.93,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 89.39,
+            "avg_cpr_older": 26.01,
+            "cpr_change_pct": 243.6,
+            "total_call_vol_5d": 8933,
+            "total_put_vol_5d": 699,
+            "call_vol_surge": 11.47,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.1,
+              "older_avg_short_pct": 49.3,
+              "short_pct_change": -7.2,
+              "avg_total_vol_5d": 1171457,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PLD",
+          "score": 93.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 142.0,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 41.45,
+            "avg_cpr_older": 4.35,
+            "cpr_change_pct": 852.2,
+            "total_call_vol_5d": 1358,
+            "total_put_vol_5d": 151,
+            "call_vol_surge": 3.18,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.5,
+              "older_avg_short_pct": 50.4,
+              "short_pct_change": -4.96,
+              "avg_total_vol_5d": 1073136,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WM",
+          "score": 90.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 216.44,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.74,
+            "avg_cpr_older": 0.49,
+            "cpr_change_pct": 256.3,
+            "total_call_vol_5d": 1255,
+            "total_put_vol_5d": 713,
+            "call_vol_surge": 3.06,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.8,
+              "older_avg_short_pct": 63.5,
+              "short_pct_change": -10.67,
+              "avg_total_vol_5d": 798158,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "META",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 616.63,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 8.55,
+            "avg_cpr_older": 2.22,
+            "cpr_change_pct": 285.5,
+            "total_call_vol_5d": 69274,
+            "total_put_vol_5d": 12391,
+            "call_vol_surge": 9.25,
+            "short_metrics": {
+              "recent_avg_short_pct": 38.2,
+              "older_avg_short_pct": 43.6,
+              "short_pct_change": -5.39,
+              "avg_total_vol_5d": 5662138,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "XOM",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 151.56,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 7.53,
+            "avg_cpr_older": 3.38,
+            "cpr_change_pct": 122.8,
+            "total_call_vol_5d": 44779,
+            "total_put_vol_5d": 7155,
+            "call_vol_surge": 4.64,
+            "short_metrics": {
+              "recent_avg_short_pct": 50.8,
+              "older_avg_short_pct": 47.3,
+              "short_pct_change": 3.52,
+              "avg_total_vol_5d": 5033547,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ADI",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 432.39,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 175.77,
+            "avg_cpr_older": 47.86,
+            "cpr_change_pct": 267.3,
+            "total_call_vol_5d": 3708,
+            "total_put_vol_5d": 262,
+            "call_vol_surge": 7.38,
+            "short_metrics": {
+              "recent_avg_short_pct": 39.0,
+              "older_avg_short_pct": 45.4,
+              "short_pct_change": -6.32,
+              "avg_total_vol_5d": 1270184,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AMGN",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 336.45,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 18.44,
+            "avg_cpr_older": 1.92,
+            "cpr_change_pct": 859.2,
+            "total_call_vol_5d": 1095,
+            "total_put_vol_5d": 145,
+            "call_vol_surge": 4.17,
+            "short_metrics": {
+              "recent_avg_short_pct": 57.3,
+              "older_avg_short_pct": 56.4,
+              "short_pct_change": 0.84,
+              "avg_total_vol_5d": 573092,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "DE",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 580.65,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 8.55,
+            "avg_cpr_older": 1.97,
+            "cpr_change_pct": 334.2,
+            "total_call_vol_5d": 1093,
+            "total_put_vol_5d": 181,
+            "call_vol_surge": 15.04,
+            "short_metrics": {
+              "recent_avg_short_pct": 64.4,
+              "older_avg_short_pct": 63.9,
+              "short_pct_change": 0.55,
+              "avg_total_vol_5d": 353607,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PANW",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 227.79,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 465.92,
+            "avg_cpr_older": 7.9,
+            "cpr_change_pct": 5797.7,
+            "total_call_vol_5d": 6885,
+            "total_put_vol_5d": 133,
+            "call_vol_surge": 174.3,
+            "short_metrics": {
+              "recent_avg_short_pct": 60.8,
+              "older_avg_short_pct": 50.2,
+              "short_pct_change": 10.6,
+              "avg_total_vol_5d": 3610579,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "COP",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 117.4,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 14.0,
+            "avg_cpr_older": 0.86,
+            "cpr_change_pct": 1530.8,
+            "total_call_vol_5d": 3098,
+            "total_put_vol_5d": 358,
+            "call_vol_surge": 7.32,
+            "short_metrics": {
+              "recent_avg_short_pct": 50.3,
+              "older_avg_short_pct": 50.8,
+              "short_pct_change": -0.5,
+              "avg_total_vol_5d": 2207065,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CRWD",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 562.57,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 71.67,
+            "avg_cpr_older": 25.16,
+            "cpr_change_pct": 184.8,
+            "total_call_vol_5d": 3957,
+            "total_put_vol_5d": 329,
+            "call_vol_surge": 30.08,
+            "short_metrics": {
+              "recent_avg_short_pct": 50.3,
+              "older_avg_short_pct": 45.8,
+              "short_pct_change": 4.44,
+              "avg_total_vol_5d": 1562749,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "VRT",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 369.99,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 116.39,
+            "avg_cpr_older": 45.43,
+            "cpr_change_pct": 156.2,
+            "total_call_vol_5d": 3459,
+            "total_put_vol_5d": 726,
+            "call_vol_surge": 6.16,
+            "short_metrics": {
+              "recent_avg_short_pct": 54.5,
+              "older_avg_short_pct": 54.8,
+              "short_pct_change": -0.36,
+              "avg_total_vol_5d": 2484749,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CMCSA",
+          "score": 85.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 24.94,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 4.91,
+            "avg_cpr_older": 0.12,
+            "cpr_change_pct": 3975.1,
+            "total_call_vol_5d": 5751,
+            "total_put_vol_5d": 4990,
+            "call_vol_surge": 51.74,
+            "short_metrics": {
+              "recent_avg_short_pct": 33.7,
+              "older_avg_short_pct": 39.9,
+              "short_pct_change": -6.17,
+              "avg_total_vol_5d": 12765613,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ANET",
+          "score": 80.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 140.69,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.26,
+            "avg_cpr_older": 0.64,
+            "cpr_change_pct": 255.5,
+            "total_call_vol_5d": 8606,
+            "total_put_vol_5d": 5396,
+            "call_vol_surge": 11.74,
+            "short_metrics": {
+              "recent_avg_short_pct": 38.2,
+              "older_avg_short_pct": 43.9,
+              "short_pct_change": -5.74,
+              "avg_total_vol_5d": 7499214,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AMT",
+          "score": 80.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 173.87,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.59,
+            "avg_cpr_older": 0.43,
+            "cpr_change_pct": 500.0,
+            "total_call_vol_5d": 574,
+            "total_put_vol_5d": 312,
+            "call_vol_surge": 4.74,
+            "short_metrics": {
+              "recent_avg_short_pct": 19.1,
+              "older_avg_short_pct": 38.8,
+              "short_pct_change": -19.63,
+              "avg_total_vol_5d": 1228276,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CVX",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 185.99,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 4.86,
+            "avg_cpr_older": 1.22,
+            "cpr_change_pct": 299.3,
+            "total_call_vol_5d": 11622,
+            "total_put_vol_5d": 2673,
+            "call_vol_surge": 4.02,
+            "short_metrics": {
+              "recent_avg_short_pct": 44.3,
+              "older_avg_short_pct": 41.3,
+              "short_pct_change": 2.92,
+              "avg_total_vol_5d": 2746304,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AXP",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 309.61,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.73,
+            "avg_cpr_older": 0.28,
+            "cpr_change_pct": 160.1,
+            "total_call_vol_5d": 3252,
+            "total_put_vol_5d": 3663,
+            "call_vol_surge": 25.47,
+            "short_metrics": {
+              "recent_avg_short_pct": 56.8,
+              "older_avg_short_pct": 58.0,
+              "short_pct_change": -1.17,
+              "avg_total_vol_5d": 1041695,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "IBM",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 214.64,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.03,
+            "avg_cpr_older": 0.06,
+            "cpr_change_pct": 1654.6,
+            "total_call_vol_5d": 4715,
+            "total_put_vol_5d": 5391,
+            "call_vol_surge": 41.14,
+            "short_metrics": {
+              "recent_avg_short_pct": 44.4,
+              "older_avg_short_pct": 49.2,
+              "short_pct_change": -4.82,
+              "avg_total_vol_5d": 2550828,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "T",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 24.75,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.1,
+            "avg_cpr_older": 0.32,
+            "cpr_change_pct": 242.5,
+            "total_call_vol_5d": 17901,
+            "total_put_vol_5d": 15732,
+            "call_vol_surge": 10.95,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.3,
+              "older_avg_short_pct": 55.5,
+              "short_pct_change": -10.17,
+              "avg_total_vol_5d": 14831722,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "LOW",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 220.39,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.27,
+            "avg_cpr_older": 0.09,
+            "cpr_change_pct": 215.2,
+            "total_call_vol_5d": 343,
+            "total_put_vol_5d": 767,
+            "call_vol_surge": 17.15,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.7,
+              "older_avg_short_pct": 57.0,
+              "short_pct_change": -7.31,
+              "avg_total_vol_5d": 1014962,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PNC",
+          "score": 78.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 209.86,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.85,
+            "avg_cpr_older": 0.25,
+            "cpr_change_pct": 245.7,
+            "total_call_vol_5d": 67,
+            "total_put_vol_5d": 225,
+            "call_vol_surge": 3.48,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.7,
+              "older_avg_short_pct": 53.8,
+              "short_pct_change": -6.11,
+              "avg_total_vol_5d": 694053,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "COST",
+          "score": 76.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 1033.08,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 79.58,
+            "avg_cpr_older": 54.17,
+            "cpr_change_pct": 46.9,
+            "total_call_vol_5d": 10847,
+            "total_put_vol_5d": 950,
+            "call_vol_surge": 6.01,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.5,
+              "older_avg_short_pct": 47.6,
+              "short_pct_change": -2.12,
+              "avg_total_vol_5d": 608219,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ISRG",
+          "score": 76.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 432.27,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.76,
+            "avg_cpr_older": 0.05,
+            "cpr_change_pct": 3487.7,
+            "total_call_vol_5d": 913,
+            "total_put_vol_5d": 2807,
+            "call_vol_surge": 81.86,
+            "short_metrics": {
+              "recent_avg_short_pct": 46.6,
+              "older_avg_short_pct": 48.3,
+              "short_pct_change": -1.7,
+              "avg_total_vol_5d": 1003491,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PFE",
+          "score": 76.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 25.96,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.81,
+            "avg_cpr_older": 1.01,
+            "cpr_change_pct": 79.7,
+            "total_call_vol_5d": 58539,
+            "total_put_vol_5d": 34795,
+            "call_vol_surge": 5.29,
+            "short_metrics": {
+              "recent_avg_short_pct": 44.6,
+              "older_avg_short_pct": 46.3,
+              "short_pct_change": -1.74,
+              "avg_total_vol_5d": 15972814,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "DUK",
+          "score": 76.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 123.9,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.47,
+            "avg_cpr_older": 0.77,
+            "cpr_change_pct": 91.0,
+            "total_call_vol_5d": 1498,
+            "total_put_vol_5d": 1642,
+            "call_vol_surge": 2.43,
+            "short_metrics": {
+              "recent_avg_short_pct": 57.4,
+              "older_avg_short_pct": 58.5,
+              "short_pct_change": -1.14,
+              "avg_total_vol_5d": 1168768,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ELV",
+          "score": 76.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 399.64,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 57.08,
+            "avg_cpr_older": 45.63,
+            "cpr_change_pct": 25.1,
+            "total_call_vol_5d": 1475,
+            "total_put_vol_5d": 270,
+            "call_vol_surge": 3.43,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.1,
+              "older_avg_short_pct": 48.5,
+              "short_pct_change": -1.41,
+              "avg_total_vol_5d": 786088,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MSFT",
+          "score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 405.21,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.37,
+            "avg_cpr_older": 0.89,
+            "cpr_change_pct": 54.4,
+            "total_call_vol_5d": 56754,
+            "total_put_vol_5d": 36306,
+            "call_vol_surge": 4.84,
+            "short_metrics": {
+              "recent_avg_short_pct": 29.0,
+              "older_avg_short_pct": 40.7,
+              "short_pct_change": -11.67,
+              "avg_total_vol_5d": 11609501,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WFC",
+          "score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 73.53,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.51,
+            "avg_cpr_older": 0.2,
+            "cpr_change_pct": 636.6,
+            "total_call_vol_5d": 16915,
+            "total_put_vol_5d": 43793,
+            "call_vol_surge": 478.03,
+            "short_metrics": {
+              "recent_avg_short_pct": 34.8,
+              "older_avg_short_pct": 38.3,
+              "short_pct_change": -3.54,
+              "avg_total_vol_5d": 7908000,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ABT",
+          "score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 83.82,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.5,
+            "avg_cpr_older": 0.03,
+            "cpr_change_pct": 4286.9,
+            "total_call_vol_5d": 4881,
+            "total_put_vol_5d": 3909,
+            "call_vol_surge": 181.62,
+            "short_metrics": {
+              "recent_avg_short_pct": 18.9,
+              "older_avg_short_pct": 33.6,
+              "short_pct_change": -14.72,
+              "avg_total_vol_5d": 5987068,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MCK",
+          "score": 75.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 737.18,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.47,
+            "avg_cpr_older": 0.25,
+            "cpr_change_pct": 486.7,
+            "total_call_vol_5d": 1025,
+            "total_put_vol_5d": 1397,
+            "call_vol_surge": 75.93,
+            "short_metrics": {
+              "recent_avg_short_pct": 27.0,
+              "older_avg_short_pct": 36.1,
+              "short_pct_change": -9.06,
+              "avg_total_vol_5d": 627134,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MRK",
+          "score": 73.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X"
+          ],
+          "metrics": {
+            "spot": 113.45,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.49,
+            "avg_cpr_older": 0.73,
+            "cpr_change_pct": 241.8,
+            "total_call_vol_5d": 3631,
+            "total_put_vol_5d": 3022,
+            "call_vol_surge": 4.22,
+            "short_metrics": {
+              "recent_avg_short_pct": 46.7,
+              "older_avg_short_pct": 44.5,
+              "short_pct_change": 2.26,
+              "avg_total_vol_5d": 2232995,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "NOC",
+          "score": 73.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_2X"
+          ],
+          "metrics": {
+            "spot": 551.8,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.66,
+            "avg_cpr_older": 0.22,
+            "cpr_change_pct": 1118.6,
+            "total_call_vol_5d": 506,
+            "total_put_vol_5d": 256,
+            "call_vol_surge": 5.12,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.2,
+              "older_avg_short_pct": 46.2,
+              "short_pct_change": 2.98,
+              "avg_total_vol_5d": 280905,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "BMY",
+          "score": 71.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 56.39,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.21,
+            "avg_cpr_older": 0.23,
+            "cpr_change_pct": 422.8,
+            "total_call_vol_5d": 8762,
+            "total_put_vol_5d": 7055,
+            "call_vol_surge": 44.41,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.0,
+              "older_avg_short_pct": 43.7,
+              "short_pct_change": -1.7,
+              "avg_total_vol_5d": 2948052,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PG",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 142.24,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.66,
+            "avg_cpr_older": 0.38,
+            "cpr_change_pct": 74.5,
+            "total_call_vol_5d": 2355,
+            "total_put_vol_5d": 2700,
+            "call_vol_surge": 8.99,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.1,
+              "older_avg_short_pct": 49.4,
+              "short_pct_change": 2.72,
+              "avg_total_vol_5d": 2543227,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "HD",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 302.55,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.42,
+            "avg_cpr_older": 0.02,
+            "cpr_change_pct": 2595.4,
+            "total_call_vol_5d": 3135,
+            "total_put_vol_5d": 5866,
+            "call_vol_surge": 105.86,
+            "short_metrics": {
+              "recent_avg_short_pct": 30.5,
+              "older_avg_short_pct": 38.1,
+              "short_pct_change": -7.63,
+              "avg_total_vol_5d": 2087090,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PEP",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 149.27,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.75,
+            "avg_cpr_older": 0.08,
+            "cpr_change_pct": 880.7,
+            "total_call_vol_5d": 2882,
+            "total_put_vol_5d": 6322,
+            "call_vol_surge": 15.64,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.5,
+              "older_avg_short_pct": 51.0,
+              "short_pct_change": 1.5,
+              "avg_total_vol_5d": 1936659,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MCD",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 275.7,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.89,
+            "avg_cpr_older": 0.04,
+            "cpr_change_pct": 2354.5,
+            "total_call_vol_5d": 7593,
+            "total_put_vol_5d": 8962,
+            "call_vol_surge": 151.86,
+            "short_metrics": {
+              "recent_avg_short_pct": 56.0,
+              "older_avg_short_pct": 51.5,
+              "short_pct_change": 4.54,
+              "avg_total_vol_5d": 2046526,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "TMO",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 446.03,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.09,
+            "avg_cpr_older": 0.02,
+            "cpr_change_pct": 319.6,
+            "total_call_vol_5d": 77,
+            "total_put_vol_5d": 1004,
+            "call_vol_surge": 15.4,
+            "short_metrics": {
+              "recent_avg_short_pct": 26.3,
+              "older_avg_short_pct": 40.6,
+              "short_pct_change": -14.33,
+              "avg_total_vol_5d": 1285905,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "APH",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 124.64,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.74,
+            "avg_cpr_older": 0.06,
+            "cpr_change_pct": 1143.7,
+            "total_call_vol_5d": 1389,
+            "total_put_vol_5d": 5151,
+            "call_vol_surge": 33.75,
+            "short_metrics": {
+              "recent_avg_short_pct": 27.7,
+              "older_avg_short_pct": 41.8,
+              "short_pct_change": -14.1,
+              "avg_total_vol_5d": 6137948,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "DHR",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 165.99,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.07,
+            "avg_cpr_older": 0.01,
+            "cpr_change_pct": 952.1,
+            "total_call_vol_5d": 184,
+            "total_put_vol_5d": 1813,
+            "call_vol_surge": 36.8,
+            "short_metrics": {
+              "recent_avg_short_pct": 26.6,
+              "older_avg_short_pct": 35.9,
+              "short_pct_change": -9.35,
+              "avg_total_vol_5d": 2238441,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SYK",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 302.09,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 6.22,
+            "avg_cpr_older": 2.16,
+            "cpr_change_pct": 187.9,
+            "total_call_vol_5d": 1794,
+            "total_put_vol_5d": 329,
+            "call_vol_surge": 1.52,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.4,
+              "older_avg_short_pct": 46.1,
+              "short_pct_change": 6.33,
+              "avg_total_vol_5d": 1114836,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "USB",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 52.74,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.28,
+            "avg_cpr_older": 0.28,
+            "cpr_change_pct": 363.4,
+            "total_call_vol_5d": 3181,
+            "total_put_vol_5d": 5328,
+            "call_vol_surge": 24.18,
+            "short_metrics": {
+              "recent_avg_short_pct": 37.3,
+              "older_avg_short_pct": 50.7,
+              "short_pct_change": -13.39,
+              "avg_total_vol_5d": 3636210,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "BSX",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 53.06,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.67,
+            "avg_cpr_older": 0.11,
+            "cpr_change_pct": 512.9,
+            "total_call_vol_5d": 1431,
+            "total_put_vol_5d": 3114,
+            "call_vol_surge": 49.06,
+            "short_metrics": {
+              "recent_avg_short_pct": 27.2,
+              "older_avg_short_pct": 33.5,
+              "short_pct_change": -6.27,
+              "avg_total_vol_5d": 8407887,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MMM",
+          "score": 70.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 147.1,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 18.08,
+            "avg_cpr_older": 1.48,
+            "cpr_change_pct": 1121.6,
+            "total_call_vol_5d": 2132,
+            "total_put_vol_5d": 318,
+            "call_vol_surge": 10.01,
+            "short_metrics": {
+              "recent_avg_short_pct": 34.1,
+              "older_avg_short_pct": 34.1,
+              "short_pct_change": -0.1,
+              "avg_total_vol_5d": 1219306,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "JPM",
+          "score": 68.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X"
+          ],
+          "metrics": {
+            "spot": 300.25,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.35,
+            "avg_cpr_older": 0.61,
+            "cpr_change_pct": 119.7,
+            "total_call_vol_5d": 13603,
+            "total_put_vol_5d": 13110,
+            "call_vol_surge": 11.08,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.3,
+              "older_avg_short_pct": 49.0,
+              "short_pct_change": 0.36,
+              "avg_total_vol_5d": 2716320,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "EMR",
+          "score": 68.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CPR_SURGING",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 137.76,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.7,
+            "avg_cpr_older": 1.48,
+            "cpr_change_pct": 285.4,
+            "total_call_vol_5d": 34,
+            "total_put_vol_5d": 48,
+            "call_vol_surge": 1.01,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.5,
+              "older_avg_short_pct": 60.0,
+              "short_pct_change": -14.5,
+              "avg_total_vol_5d": 1263414,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "TXN",
+          "score": 66.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 306.34,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 61.67,
+            "avg_cpr_older": 51.07,
+            "cpr_change_pct": 20.8,
+            "total_call_vol_5d": 2432,
+            "total_put_vol_5d": 289,
+            "call_vol_surge": 2.39,
+            "short_metrics": {
+              "recent_avg_short_pct": 44.0,
+              "older_avg_short_pct": 47.9,
+              "short_pct_change": -3.84,
+              "avg_total_vol_5d": 2506851,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "FCX",
+          "score": 65.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 67.16,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 174.44,
+            "avg_cpr_older": 147.06,
+            "cpr_change_pct": 18.6,
+            "total_call_vol_5d": 13748,
+            "total_put_vol_5d": 583,
+            "call_vol_surge": 6.16,
+            "short_metrics": {
+              "recent_avg_short_pct": 55.7,
+              "older_avg_short_pct": 44.0,
+              "short_pct_change": 11.69,
+              "avg_total_vol_5d": 5554837,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MDLZ",
+          "score": 65.0,
+          "tier": "TIER_A_BULLISH_FLOW",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 61.52,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.62,
+            "avg_cpr_older": 11.41,
+            "cpr_change_pct": -77.1,
+            "total_call_vol_5d": 644,
+            "total_put_vol_5d": 271,
+            "call_vol_surge": 4.1,
+            "short_metrics": {
+              "recent_avg_short_pct": 51.0,
+              "older_avg_short_pct": 54.1,
+              "short_pct_change": -3.12,
+              "avg_total_vol_5d": 2167238,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GOOGL",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 402.62,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 32.82,
+            "avg_cpr_older": 226.67,
+            "cpr_change_pct": -85.5,
+            "total_call_vol_5d": 118405,
+            "total_put_vol_5d": 7422,
+            "call_vol_surge": 3.25,
+            "short_metrics": {
+              "recent_avg_short_pct": 41.4,
+              "older_avg_short_pct": 45.6,
+              "short_pct_change": -4.19,
+              "avg_total_vol_5d": 8705959,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "TSLA",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 445.27,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 45.83,
+            "avg_cpr_older": 162.47,
+            "cpr_change_pct": -71.8,
+            "total_call_vol_5d": 530652,
+            "total_put_vol_5d": 161950,
+            "call_vol_surge": 23.28,
+            "short_metrics": {
+              "recent_avg_short_pct": 48.4,
+              "older_avg_short_pct": 55.2,
+              "short_pct_change": -6.79,
+              "avg_total_vol_5d": 32322579,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AMD",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 445.5,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 37.94,
+            "avg_cpr_older": 810.13,
+            "cpr_change_pct": -95.3,
+            "total_call_vol_5d": 100585,
+            "total_put_vol_5d": 57657,
+            "call_vol_surge": 12.81,
+            "short_metrics": {
+              "recent_avg_short_pct": 53.9,
+              "older_avg_short_pct": 56.1,
+              "short_pct_change": -2.11,
+              "avg_total_vol_5d": 20927887,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PLTR",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_3X"
+          ],
+          "metrics": {
+            "spot": 130.05,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.27,
+            "avg_cpr_older": 0.1,
+            "cpr_change_pct": 163.3,
+            "total_call_vol_5d": 49375,
+            "total_put_vol_5d": 109435,
+            "call_vol_surge": 20.45,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.2,
+              "older_avg_short_pct": 42.2,
+              "short_pct_change": 0.04,
+              "avg_total_vol_5d": 21332095,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "DELL",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 243.87,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.3,
+            "avg_cpr_older": 36.17,
+            "cpr_change_pct": -85.3,
+            "total_call_vol_5d": 7192,
+            "total_put_vol_5d": 2996,
+            "call_vol_surge": 15.98,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.6,
+              "older_avg_short_pct": 51.2,
+              "short_pct_change": -3.61,
+              "avg_total_vol_5d": 3508739,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MNST",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 85.93,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 77.18,
+            "avg_cpr_older": 150.21,
+            "cpr_change_pct": -48.6,
+            "total_call_vol_5d": 3705,
+            "total_put_vol_5d": 2058,
+            "call_vol_surge": 4.42,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.1,
+              "older_avg_short_pct": 51.3,
+              "short_pct_change": -9.27,
+              "avg_total_vol_5d": 3035220,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "UPS",
+          "score": 63.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 98.43,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.86,
+            "avg_cpr_older": 0.44,
+            "cpr_change_pct": 95.0,
+            "total_call_vol_5d": 3575,
+            "total_put_vol_5d": 3120,
+            "call_vol_surge": 2.46,
+            "short_metrics": {
+              "recent_avg_short_pct": 62.5,
+              "older_avg_short_pct": 62.0,
+              "short_pct_change": 0.48,
+              "avg_total_vol_5d": 2172970,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "HON",
+          "score": 60.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_SURGING",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 217.96,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 18.21,
+            "avg_cpr_older": 7.4,
+            "cpr_change_pct": 146.2,
+            "total_call_vol_5d": 918,
+            "total_put_vol_5d": 249,
+            "call_vol_surge": 1.38,
+            "short_metrics": {
+              "recent_avg_short_pct": 59.0,
+              "older_avg_short_pct": 52.2,
+              "short_pct_change": 6.8,
+              "avg_total_vol_5d": 1284812,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "COF",
+          "score": 60.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 181.54,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.21,
+            "avg_cpr_older": 0.15,
+            "cpr_change_pct": 35.4,
+            "total_call_vol_5d": 297,
+            "total_put_vol_5d": 1283,
+            "call_vol_surge": 3.29,
+            "short_metrics": {
+              "recent_avg_short_pct": 24.7,
+              "older_avg_short_pct": 35.1,
+              "short_pct_change": -10.37,
+              "avg_total_vol_5d": 1663467,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CI",
+          "score": 60.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_SURGING",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 300.71,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 26.93,
+            "avg_cpr_older": 16.07,
+            "cpr_change_pct": 67.6,
+            "total_call_vol_5d": 531,
+            "total_put_vol_5d": 346,
+            "call_vol_surge": 1.34,
+            "short_metrics": {
+              "recent_avg_short_pct": 38.6,
+              "older_avg_short_pct": 41.6,
+              "short_pct_change": -3.02,
+              "avg_total_vol_5d": 655071,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "QCOM",
+          "score": 58.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_2X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 213.17,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.78,
+            "avg_cpr_older": 347.56,
+            "cpr_change_pct": -99.2,
+            "total_call_vol_5d": 26246,
+            "total_put_vol_5d": 12582,
+            "call_vol_surge": 10.49,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.0,
+              "older_avg_short_pct": 53.4,
+              "short_pct_change": -1.42,
+              "avg_total_vol_5d": 16134793,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CSCO",
+          "score": 56.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 101.87,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 26.55,
+            "avg_cpr_older": 55.0,
+            "cpr_change_pct": -51.7,
+            "total_call_vol_5d": 13760,
+            "total_put_vol_5d": 3808,
+            "call_vol_surge": 50.04,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.9,
+              "older_avg_short_pct": 49.0,
+              "short_pct_change": -1.12,
+              "avg_total_vol_5d": 10219504,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GOOG",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 399.04,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 12.72,
+            "avg_cpr_older": 419.64,
+            "cpr_change_pct": -97.0,
+            "total_call_vol_5d": 71802,
+            "total_put_vol_5d": 8385,
+            "call_vol_surge": 4.5,
+            "short_metrics": {
+              "recent_avg_short_pct": 28.7,
+              "older_avg_short_pct": 35.4,
+              "short_pct_change": -6.65,
+              "avg_total_vol_5d": 5486170,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AAPL",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 298.87,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 14.81,
+            "avg_cpr_older": 724.02,
+            "cpr_change_pct": -98.0,
+            "total_call_vol_5d": 499651,
+            "total_put_vol_5d": 46124,
+            "call_vol_surge": 6.02,
+            "short_metrics": {
+              "recent_avg_short_pct": 39.3,
+              "older_avg_short_pct": 44.7,
+              "short_pct_change": -5.44,
+              "avg_total_vol_5d": 15000959,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WMT",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 131.47,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.85,
+            "avg_cpr_older": 15.07,
+            "cpr_change_pct": -61.2,
+            "total_call_vol_5d": 63328,
+            "total_put_vol_5d": 14728,
+            "call_vol_surge": 3.33,
+            "short_metrics": {
+              "recent_avg_short_pct": 50.4,
+              "older_avg_short_pct": 51.1,
+              "short_pct_change": -0.73,
+              "avg_total_vol_5d": 4397595,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MU",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 803.63,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 38.26,
+            "avg_cpr_older": 666.22,
+            "cpr_change_pct": -94.3,
+            "total_call_vol_5d": 223748,
+            "total_put_vol_5d": 35255,
+            "call_vol_surge": 19.17,
+            "short_metrics": {
+              "recent_avg_short_pct": 36.7,
+              "older_avg_short_pct": 42.1,
+              "short_pct_change": -5.44,
+              "avg_total_vol_5d": 29880559,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PM",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 187.91,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 18.24,
+            "avg_cpr_older": 19.04,
+            "cpr_change_pct": -4.2,
+            "total_call_vol_5d": 3504,
+            "total_put_vol_5d": 498,
+            "call_vol_surge": 32.1,
+            "short_metrics": {
+              "recent_avg_short_pct": 61.3,
+              "older_avg_short_pct": 48.5,
+              "short_pct_change": 12.8,
+              "avg_total_vol_5d": 1997335,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "BA",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 240.6,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 32.24,
+            "avg_cpr_older": 70.58,
+            "cpr_change_pct": -54.3,
+            "total_call_vol_5d": 78825,
+            "total_put_vol_5d": 4354,
+            "call_vol_surge": 4.39,
+            "short_metrics": {
+              "recent_avg_short_pct": 54.0,
+              "older_avg_short_pct": 46.9,
+              "short_pct_change": 7.1,
+              "avg_total_vol_5d": 3005808,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "STX",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 817.35,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 15.56,
+            "avg_cpr_older": 51.58,
+            "cpr_change_pct": -69.8,
+            "total_call_vol_5d": 2314,
+            "total_put_vol_5d": 765,
+            "call_vol_surge": 5.17,
+            "short_metrics": {
+              "recent_avg_short_pct": 25.5,
+              "older_avg_short_pct": 38.5,
+              "short_pct_change": -12.95,
+              "avg_total_vol_5d": 2100177,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CRM",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 165.84,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.29,
+            "avg_cpr_older": 0.44,
+            "cpr_change_pct": -33.3,
+            "total_call_vol_5d": 4924,
+            "total_put_vol_5d": 15049,
+            "call_vol_surge": 3.63,
+            "short_metrics": {
+              "recent_avg_short_pct": 56.3,
+              "older_avg_short_pct": 59.6,
+              "short_pct_change": -3.31,
+              "avg_total_vol_5d": 4055562,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "LMT",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 519.94,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.76,
+            "avg_cpr_older": 11.94,
+            "cpr_change_pct": -51.7,
+            "total_call_vol_5d": 2288,
+            "total_put_vol_5d": 451,
+            "call_vol_surge": 3.79,
+            "short_metrics": {
+              "recent_avg_short_pct": 53.5,
+              "older_avg_short_pct": 41.0,
+              "short_pct_change": 12.57,
+              "avg_total_vol_5d": 557804,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "INTU",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 371.71,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.19,
+            "avg_cpr_older": 0.18,
+            "cpr_change_pct": 6.2,
+            "total_call_vol_5d": 452,
+            "total_put_vol_5d": 2611,
+            "call_vol_surge": 6.49,
+            "short_metrics": {
+              "recent_avg_short_pct": 53.0,
+              "older_avg_short_pct": 56.2,
+              "short_pct_change": -3.19,
+              "avg_total_vol_5d": 923472,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "EPD",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 38.29,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 6.34,
+            "avg_cpr_older": 21.5,
+            "cpr_change_pct": -70.5,
+            "total_call_vol_5d": 7917,
+            "total_put_vol_5d": 2525,
+            "call_vol_surge": 3.98,
+            "short_metrics": {
+              "recent_avg_short_pct": 36.2,
+              "older_avg_short_pct": 45.0,
+              "short_pct_change": -8.81,
+              "avg_total_vol_5d": 1407450,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CIEN",
+          "score": 55.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 577.9,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 13.49,
+            "avg_cpr_older": 14.38,
+            "cpr_change_pct": -6.2,
+            "total_call_vol_5d": 569,
+            "total_put_vol_5d": 74,
+            "call_vol_surge": 6.44,
+            "short_metrics": {
+              "recent_avg_short_pct": 33.5,
+              "older_avg_short_pct": 42.5,
+              "short_pct_change": -9.02,
+              "avg_total_vol_5d": 803588,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "BAC",
+          "score": 53.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_RISING",
+            "CALL_VOL_3X"
+          ],
+          "metrics": {
+            "spot": 49.84,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.33,
+            "avg_cpr_older": 0.25,
+            "cpr_change_pct": 33.0,
+            "total_call_vol_5d": 20588,
+            "total_put_vol_5d": 74808,
+            "call_vol_surge": 4.76,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.2,
+              "older_avg_short_pct": 40.3,
+              "short_pct_change": 4.84,
+              "avg_total_vol_5d": 9973361,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "EQIX",
+          "score": 53.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CPR_SURGING"
+          ],
+          "metrics": {
+            "spot": 1077.28,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.55,
+            "avg_cpr_older": 0.88,
+            "cpr_change_pct": 75.9,
+            "total_call_vol_5d": 122,
+            "total_put_vol_5d": 119,
+            "call_vol_surge": 1.55,
+            "short_metrics": {
+              "recent_avg_short_pct": 44.9,
+              "older_avg_short_pct": 31.3,
+              "short_pct_change": 13.68,
+              "avg_total_vol_5d": 143205,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SNPS",
+          "score": 51.0,
+          "tier": "TIER_B_FLOW_BUILDING",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_2X",
+            "SHORTS_EASING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 509.28,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.32,
+            "avg_cpr_older": 12.55,
+            "cpr_change_pct": -81.5,
+            "total_call_vol_5d": 277,
+            "total_put_vol_5d": 342,
+            "call_vol_surge": 2.82,
+            "short_metrics": {
+              "recent_avg_short_pct": 51.8,
+              "older_avg_short_pct": 53.6,
+              "short_pct_change": -1.72,
+              "avg_total_vol_5d": 495212,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "INTC",
+          "score": 49.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 120.29,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.26,
+            "avg_cpr_older": 971.13,
+            "cpr_change_pct": -99.5,
+            "total_call_vol_5d": 181546,
+            "total_put_vol_5d": 116499,
+            "call_vol_surge": 2.96,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.0,
+              "older_avg_short_pct": 49.0,
+              "short_pct_change": -1.98,
+              "avg_total_vol_5d": 74923574,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "NVDA",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 225.83,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 74.84,
+            "avg_cpr_older": 239.76,
+            "cpr_change_pct": -68.8,
+            "total_call_vol_5d": 932116,
+            "total_put_vol_5d": 88607,
+            "call_vol_surge": 8.3,
+            "short_metrics": {
+              "recent_avg_short_pct": 41.0,
+              "older_avg_short_pct": 40.8,
+              "short_pct_change": 0.16,
+              "avg_total_vol_5d": 69918521,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AMAT",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 436.61,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 9.49,
+            "avg_cpr_older": 85.85,
+            "cpr_change_pct": -88.9,
+            "total_call_vol_5d": 5253,
+            "total_put_vol_5d": 1778,
+            "call_vol_surge": 5.03,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.4,
+              "older_avg_short_pct": 34.3,
+              "short_pct_change": 8.14,
+              "avg_total_vol_5d": 2217649,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GS",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 955.42,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 10.21,
+            "avg_cpr_older": 48.6,
+            "cpr_change_pct": -79.0,
+            "total_call_vol_5d": 5645,
+            "total_put_vol_5d": 626,
+            "call_vol_surge": 2.49,
+            "short_metrics": {
+              "recent_avg_short_pct": 61.6,
+              "older_avg_short_pct": 53.8,
+              "short_pct_change": 7.73,
+              "avg_total_vol_5d": 609968,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ARM",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 221.21,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 7.22,
+            "avg_cpr_older": 37.58,
+            "cpr_change_pct": -80.8,
+            "total_call_vol_5d": 21449,
+            "total_put_vol_5d": 4351,
+            "call_vol_surge": 2.61,
+            "short_metrics": {
+              "recent_avg_short_pct": 51.4,
+              "older_avg_short_pct": 52.0,
+              "short_pct_change": -0.52,
+              "avg_total_vol_5d": 5393724,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SNDK",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 1447.23,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 11.08,
+            "avg_cpr_older": 167.03,
+            "cpr_change_pct": -93.4,
+            "total_call_vol_5d": 14011,
+            "total_put_vol_5d": 9235,
+            "call_vol_surge": 5.65,
+            "short_metrics": {
+              "recent_avg_short_pct": 46.3,
+              "older_avg_short_pct": 40.1,
+              "short_pct_change": 6.22,
+              "avg_total_vol_5d": 7221636,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GLW",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 206.51,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 59.45,
+            "avg_cpr_older": 177.08,
+            "cpr_change_pct": -66.4,
+            "total_call_vol_5d": 24483,
+            "total_put_vol_5d": 2977,
+            "call_vol_surge": 6.29,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.9,
+              "older_avg_short_pct": 36.6,
+              "short_pct_change": 11.31,
+              "avg_total_vol_5d": 8748974,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GILD",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 133.05,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 3.41,
+            "avg_cpr_older": 47.16,
+            "cpr_change_pct": -92.8,
+            "total_call_vol_5d": 2558,
+            "total_put_vol_5d": 1087,
+            "call_vol_surge": 2.79,
+            "short_metrics": {
+              "recent_avg_short_pct": 50.5,
+              "older_avg_short_pct": 43.3,
+              "short_pct_change": 7.26,
+              "avg_total_vol_5d": 2341074,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SCCO",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 191.89,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 9.79,
+            "avg_cpr_older": 47.17,
+            "cpr_change_pct": -79.2,
+            "total_call_vol_5d": 879,
+            "total_put_vol_5d": 122,
+            "call_vol_surge": 2.4,
+            "short_metrics": {
+              "recent_avg_short_pct": 60.2,
+              "older_avg_short_pct": 56.2,
+              "short_pct_change": 3.95,
+              "avg_total_vol_5d": 707247,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WELL",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 220.14,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 59.09,
+            "avg_cpr_older": 71.33,
+            "cpr_change_pct": -17.2,
+            "total_call_vol_5d": 1448,
+            "total_put_vol_5d": 149,
+            "call_vol_surge": 1.62,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.9,
+              "older_avg_short_pct": 51.2,
+              "short_pct_change": -8.24,
+              "avg_total_vol_5d": 980950,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "NEM",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "SHORTS_COVERING",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 118.96,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.07,
+            "avg_cpr_older": 2.79,
+            "cpr_change_pct": -61.7,
+            "total_call_vol_5d": 1334,
+            "total_put_vol_5d": 1486,
+            "call_vol_surge": 2.67,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.8,
+              "older_avg_short_pct": 56.0,
+              "short_pct_change": -3.23,
+              "avg_total_vol_5d": 2340715,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SPGI",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CPR_SURGING",
+            "CALL_VOL_2X"
+          ],
+          "metrics": {
+            "spot": 406.55,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.05,
+            "avg_cpr_older": 0.02,
+            "cpr_change_pct": 128.7,
+            "total_call_vol_5d": 27,
+            "total_put_vol_5d": 435,
+            "call_vol_surge": 2.06,
+            "short_metrics": {
+              "recent_avg_short_pct": 39.2,
+              "older_avg_short_pct": 34.2,
+              "short_pct_change": 5.01,
+              "avg_total_vol_5d": 836335,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MO",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 71.56,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 35.15,
+            "avg_cpr_older": 88.58,
+            "cpr_change_pct": -60.3,
+            "total_call_vol_5d": 24873,
+            "total_put_vol_5d": 907,
+            "call_vol_surge": 7.55,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.5,
+              "older_avg_short_pct": 49.5,
+              "short_pct_change": -0.04,
+              "avg_total_vol_5d": 3044845,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PGR",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 195.96,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.18,
+            "avg_cpr_older": 0.4,
+            "cpr_change_pct": -55.9,
+            "total_call_vol_5d": 159,
+            "total_put_vol_5d": 1038,
+            "call_vol_surge": 5.59,
+            "short_metrics": {
+              "recent_avg_short_pct": 43.4,
+              "older_avg_short_pct": 52.3,
+              "short_pct_change": -8.82,
+              "avg_total_vol_5d": 1218476,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "VRTX",
+          "score": 48.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 453.06,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 25.67,
+            "avg_cpr_older": 32.07,
+            "cpr_change_pct": -20.0,
+            "total_call_vol_5d": 384,
+            "total_put_vol_5d": 26,
+            "call_vol_surge": 2.34,
+            "short_metrics": {
+              "recent_avg_short_pct": 63.4,
+              "older_avg_short_pct": 54.5,
+              "short_pct_change": 8.93,
+              "avg_total_vol_5d": 406909,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GEV",
+          "score": 45.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 1062.57,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.6,
+            "avg_cpr_older": 3.74,
+            "cpr_change_pct": -57.3,
+            "total_call_vol_5d": 1044,
+            "total_put_vol_5d": 837,
+            "call_vol_surge": 5.29,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.7,
+              "older_avg_short_pct": 40.2,
+              "short_pct_change": 12.45,
+              "avg_total_vol_5d": 917928,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "V",
+          "score": 43.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_2X"
+          ],
+          "metrics": {
+            "spot": 320.31,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.7,
+            "avg_cpr_older": 11.15,
+            "cpr_change_pct": -75.8,
+            "total_call_vol_5d": 6695,
+            "total_put_vol_5d": 2803,
+            "call_vol_surge": 3.09,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.1,
+              "older_avg_short_pct": 45.2,
+              "short_pct_change": 3.86,
+              "avg_total_vol_5d": 2462192,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "RTX",
+          "score": 43.0,
+          "tier": "WATCH",
+          "flags": [
+            "CPR_RISING",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 178.11,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 8.29,
+            "avg_cpr_older": 6.59,
+            "cpr_change_pct": 25.8,
+            "total_call_vol_5d": 6760,
+            "total_put_vol_5d": 935,
+            "call_vol_surge": 1.19,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.3,
+              "older_avg_short_pct": 34.5,
+              "short_pct_change": 10.76,
+              "avg_total_vol_5d": 1936323,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "UNH",
+          "score": 41.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 401.16,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 417.18,
+            "avg_cpr_older": 2408.29,
+            "cpr_change_pct": -82.7,
+            "total_call_vol_5d": 58390,
+            "total_put_vol_5d": 1668,
+            "call_vol_surge": 2.97,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.3,
+              "older_avg_short_pct": 45.7,
+              "short_pct_change": -0.37,
+              "avg_total_vol_5d": 2740860,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ABBV",
+          "score": 41.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 208.5,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 7.41,
+            "avg_cpr_older": 10.34,
+            "cpr_change_pct": -28.3,
+            "total_call_vol_5d": 7337,
+            "total_put_vol_5d": 1604,
+            "call_vol_surge": 2.14,
+            "short_metrics": {
+              "recent_avg_short_pct": 30.4,
+              "older_avg_short_pct": 33.2,
+              "short_pct_change": -2.86,
+              "avg_total_vol_5d": 2071455,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "KO",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 80.26,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 14.92,
+            "avg_cpr_older": 68.98,
+            "cpr_change_pct": -78.4,
+            "total_call_vol_5d": 32871,
+            "total_put_vol_5d": 5518,
+            "call_vol_surge": 1.82,
+            "short_metrics": {
+              "recent_avg_short_pct": 54.1,
+              "older_avg_short_pct": 45.1,
+              "short_pct_change": 9.06,
+              "avg_total_vol_5d": 4409319,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "TJX",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 147.03,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.22,
+            "avg_cpr_older": 1.84,
+            "cpr_change_pct": -88.2,
+            "total_call_vol_5d": 394,
+            "total_put_vol_5d": 5107,
+            "call_vol_surge": 34.15,
+            "short_metrics": {
+              "recent_avg_short_pct": 36.5,
+              "older_avg_short_pct": 42.3,
+              "short_pct_change": -5.76,
+              "avg_total_vol_5d": 1858068,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "APP",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 453.53,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.08,
+            "avg_cpr_older": 3.84,
+            "cpr_change_pct": -71.7,
+            "total_call_vol_5d": 4991,
+            "total_put_vol_5d": 4413,
+            "call_vol_surge": 4.67,
+            "short_metrics": {
+              "recent_avg_short_pct": 56.7,
+              "older_avg_short_pct": 54.2,
+              "short_pct_change": 2.57,
+              "avg_total_vol_5d": 3448333,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "BKNG",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 155.03,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.12,
+            "avg_cpr_older": 0.61,
+            "cpr_change_pct": -80.9,
+            "total_call_vol_5d": 50,
+            "total_put_vol_5d": 957,
+            "call_vol_surge": 10.0,
+            "short_metrics": {
+              "recent_avg_short_pct": 34.2,
+              "older_avg_short_pct": 38.1,
+              "short_pct_change": -3.93,
+              "avg_total_vol_5d": 2751650,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CEG",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 274.89,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.16,
+            "avg_cpr_older": 0.26,
+            "cpr_change_pct": -36.0,
+            "total_call_vol_5d": 633,
+            "total_put_vol_5d": 2860,
+            "call_vol_surge": 17.14,
+            "short_metrics": {
+              "recent_avg_short_pct": 59.1,
+              "older_avg_short_pct": 51.1,
+              "short_pct_change": 7.94,
+              "avg_total_vol_5d": 1744986,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "LITE",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 1030.37,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 12.86,
+            "avg_cpr_older": 17.48,
+            "cpr_change_pct": -26.4,
+            "total_call_vol_5d": 1993,
+            "total_put_vol_5d": 720,
+            "call_vol_surge": 7.18,
+            "short_metrics": {
+              "recent_avg_short_pct": 36.9,
+              "older_avg_short_pct": 34.6,
+              "short_pct_change": 2.25,
+              "avg_total_vol_5d": 3076461,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ABNB",
+          "score": 40.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 132.97,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.13,
+            "avg_cpr_older": 0.44,
+            "cpr_change_pct": -70.8,
+            "total_call_vol_5d": 260,
+            "total_put_vol_5d": 3072,
+            "call_vol_surge": 9.52,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.1,
+              "older_avg_short_pct": 43.9,
+              "short_pct_change": 8.19,
+              "avg_total_vol_5d": 2000195,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WDC",
+          "score": 39.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_2X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 494.09,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.94,
+            "avg_cpr_older": 48.4,
+            "cpr_change_pct": -96.0,
+            "total_call_vol_5d": 2202,
+            "total_put_vol_5d": 3321,
+            "call_vol_surge": 2.86,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.9,
+              "older_avg_short_pct": 51.0,
+              "short_pct_change": -1.15,
+              "avg_total_vol_5d": 3487488,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CAT",
+          "score": 38.0,
+          "tier": "WATCH",
+          "flags": [
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 902.3,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.41,
+            "avg_cpr_older": 62.61,
+            "cpr_change_pct": -97.7,
+            "total_call_vol_5d": 1846,
+            "total_put_vol_5d": 1558,
+            "call_vol_surge": 1.81,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.9,
+              "older_avg_short_pct": 55.2,
+              "short_pct_change": -7.35,
+              "avg_total_vol_5d": 948400,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "LRCX",
+          "score": 38.0,
+          "tier": "WATCH",
+          "flags": [
+            "CALL_VOL_3X"
+          ],
+          "metrics": {
+            "spot": 295.44,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.88,
+            "avg_cpr_older": 40.6,
+            "cpr_change_pct": -95.4,
+            "total_call_vol_5d": 3144,
+            "total_put_vol_5d": 2307,
+            "call_vol_surge": 4.4,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.9,
+              "older_avg_short_pct": 47.8,
+              "short_pct_change": 2.1,
+              "avg_total_vol_5d": 2781479,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PWR",
+          "score": 38.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 773.72,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 7.49,
+            "avg_cpr_older": 138.67,
+            "cpr_change_pct": -94.6,
+            "total_call_vol_5d": 1101,
+            "total_put_vol_5d": 207,
+            "call_vol_surge": 1.07,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.6,
+              "older_avg_short_pct": 63.9,
+              "short_pct_change": -21.34,
+              "avg_total_vol_5d": 566521,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "FTNT",
+          "score": 38.0,
+          "tier": "WATCH",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 117.69,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 46.8,
+            "avg_cpr_older": 46.8,
+            "cpr_change_pct": 0.0,
+            "total_call_vol_5d": 2420,
+            "total_put_vol_5d": 74,
+            "call_vol_surge": 1.0,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.8,
+              "older_avg_short_pct": 51.9,
+              "short_pct_change": -6.14,
+              "avg_total_vol_5d": 3222181,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AMZN",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 270.13,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 3.06,
+            "avg_cpr_older": 67.24,
+            "cpr_change_pct": -95.4,
+            "total_call_vol_5d": 119986,
+            "total_put_vol_5d": 41608,
+            "call_vol_surge": 2.47,
+            "short_metrics": {
+              "recent_avg_short_pct": 37.1,
+              "older_avg_short_pct": 35.0,
+              "short_pct_change": 2.05,
+              "avg_total_vol_5d": 13917544,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MS",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 193.86,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 4.07,
+            "avg_cpr_older": 10.03,
+            "cpr_change_pct": -59.4,
+            "total_call_vol_5d": 5184,
+            "total_put_vol_5d": 1945,
+            "call_vol_surge": 1.58,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.6,
+              "older_avg_short_pct": 44.0,
+              "short_pct_change": 1.6,
+              "avg_total_vol_5d": 1728794,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "VZ",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 47.21,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.5,
+            "avg_cpr_older": 1.62,
+            "cpr_change_pct": -69.2,
+            "total_call_vol_5d": 10889,
+            "total_put_vol_5d": 23750,
+            "call_vol_surge": 1.56,
+            "short_metrics": {
+              "recent_avg_short_pct": 49.9,
+              "older_avg_short_pct": 56.3,
+              "short_pct_change": -6.4,
+              "avg_total_vol_5d": 6628030,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MRVL",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_2X",
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 177.95,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 46.77,
+            "avg_cpr_older": 395.0,
+            "cpr_change_pct": -88.2,
+            "total_call_vol_5d": 36762,
+            "total_put_vol_5d": 3464,
+            "call_vol_surge": 2.94,
+            "short_metrics": {
+              "recent_avg_short_pct": 27.7,
+              "older_avg_short_pct": 27.1,
+              "short_pct_change": 0.66,
+              "avg_total_vol_5d": 9499413,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "HWM",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 273.1,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 6.21,
+            "avg_cpr_older": 39.23,
+            "cpr_change_pct": -84.2,
+            "total_call_vol_5d": 295,
+            "total_put_vol_5d": 80,
+            "call_vol_surge": 1.5,
+            "short_metrics": {
+              "recent_avg_short_pct": 48.0,
+              "older_avg_short_pct": 38.4,
+              "short_pct_change": 9.61,
+              "avg_total_vol_5d": 1265257,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CMI",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_2X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 709.57,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.76,
+            "avg_cpr_older": 115.97,
+            "cpr_change_pct": -97.6,
+            "total_call_vol_5d": 469,
+            "total_put_vol_5d": 201,
+            "call_vol_surge": 0.69,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.1,
+              "older_avg_short_pct": 48.2,
+              "short_pct_change": -3.08,
+              "avg_total_vol_5d": 371209,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ADP",
+          "score": 33.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_2X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 208.63,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.21,
+            "avg_cpr_older": 12.3,
+            "cpr_change_pct": -90.2,
+            "total_call_vol_5d": 442,
+            "total_put_vol_5d": 291,
+            "call_vol_surge": 2.45,
+            "short_metrics": {
+              "recent_avg_short_pct": 70.7,
+              "older_avg_short_pct": 56.4,
+              "short_pct_change": 14.32,
+              "avg_total_vol_5d": 1117583,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "IBKR",
+          "score": 31.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 85.12,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 3.13,
+            "avg_cpr_older": 96.89,
+            "cpr_change_pct": -96.8,
+            "total_call_vol_5d": 1236,
+            "total_put_vol_5d": 1526,
+            "call_vol_surge": 1.07,
+            "short_metrics": {
+              "recent_avg_short_pct": 47.9,
+              "older_avg_short_pct": 50.1,
+              "short_pct_change": -2.25,
+              "avg_total_vol_5d": 1645065,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GE",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 294.71,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 3.86,
+            "avg_cpr_older": 66.93,
+            "cpr_change_pct": -94.2,
+            "total_call_vol_5d": 3046,
+            "total_put_vol_5d": 941,
+            "call_vol_surge": 0.97,
+            "short_metrics": {
+              "recent_avg_short_pct": 55.9,
+              "older_avg_short_pct": 49.6,
+              "short_pct_change": 6.29,
+              "avg_total_vol_5d": 1558569,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "NEE",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 94.85,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.56,
+            "avg_cpr_older": 343.84,
+            "cpr_change_pct": -98.4,
+            "total_call_vol_5d": 7176,
+            "total_put_vol_5d": 1490,
+            "call_vol_surge": 1.49,
+            "short_metrics": {
+              "recent_avg_short_pct": 60.2,
+              "older_avg_short_pct": 60.8,
+              "short_pct_change": -0.6,
+              "avg_total_vol_5d": 2691008,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SBUX",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 105.95,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.48,
+            "avg_cpr_older": 91.89,
+            "cpr_change_pct": -98.4,
+            "total_call_vol_5d": 6179,
+            "total_put_vol_5d": 4498,
+            "call_vol_surge": 1.7,
+            "short_metrics": {
+              "recent_avg_short_pct": 63.6,
+              "older_avg_short_pct": 55.2,
+              "short_pct_change": 8.35,
+              "avg_total_vol_5d": 2264717,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CME",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 297.13,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 14.89,
+            "avg_cpr_older": 77.72,
+            "cpr_change_pct": -80.8,
+            "total_call_vol_5d": 541,
+            "total_put_vol_5d": 109,
+            "call_vol_surge": 0.93,
+            "short_metrics": {
+              "recent_avg_short_pct": 31.9,
+              "older_avg_short_pct": 41.1,
+              "short_pct_change": -9.19,
+              "avg_total_vol_5d": 1148580,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "NOW",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_3X"
+          ],
+          "metrics": {
+            "spot": 87.05,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.95,
+            "avg_cpr_older": 1.82,
+            "cpr_change_pct": 6.8,
+            "total_call_vol_5d": 15436,
+            "total_put_vol_5d": 7728,
+            "call_vol_surge": 4.23,
+            "short_metrics": {
+              "recent_avg_short_pct": 37.0,
+              "older_avg_short_pct": 37.6,
+              "short_pct_change": -0.61,
+              "avg_total_vol_5d": 10079715,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "WMB",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 75.71,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 115.32,
+            "avg_cpr_older": 264.4,
+            "cpr_change_pct": -56.4,
+            "total_call_vol_5d": 1184,
+            "total_put_vol_5d": 31,
+            "call_vol_surge": 0.44,
+            "short_metrics": {
+              "recent_avg_short_pct": 60.8,
+              "older_avg_short_pct": 46.2,
+              "short_pct_change": 14.6,
+              "avg_total_vol_5d": 2066902,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "SLB",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 55.38,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 7.43,
+            "avg_cpr_older": 8.26,
+            "cpr_change_pct": -10.0,
+            "total_call_vol_5d": 10209,
+            "total_put_vol_5d": 2066,
+            "call_vol_surge": 1.08,
+            "short_metrics": {
+              "recent_avg_short_pct": 57.1,
+              "older_avg_short_pct": 57.9,
+              "short_pct_change": -0.81,
+              "avg_total_vol_5d": 3481542,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MPWR",
+          "score": 30.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 1650.35,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 5.43,
+            "avg_cpr_older": 6.98,
+            "cpr_change_pct": -22.2,
+            "total_call_vol_5d": 126,
+            "total_put_vol_5d": 26,
+            "call_vol_surge": 1.26,
+            "short_metrics": {
+              "recent_avg_short_pct": 60.9,
+              "older_avg_short_pct": 55.3,
+              "short_pct_change": 5.61,
+              "avg_total_vol_5d": 193846,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CDNS",
+          "score": 28.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 354.55,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.49,
+            "avg_cpr_older": 16.35,
+            "cpr_change_pct": -90.9,
+            "total_call_vol_5d": 139,
+            "total_put_vol_5d": 147,
+            "call_vol_surge": 1.37,
+            "short_metrics": {
+              "recent_avg_short_pct": 46.4,
+              "older_avg_short_pct": 55.3,
+              "short_pct_change": -8.84,
+              "avg_total_vol_5d": 768591,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "AVGO",
+          "score": 26.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "CALL_VOL_2X",
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 416.79,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.2,
+            "avg_cpr_older": 11.26,
+            "cpr_change_pct": -89.3,
+            "total_call_vol_5d": 19419,
+            "total_put_vol_5d": 19234,
+            "call_vol_surge": 2.42,
+            "short_metrics": {
+              "recent_avg_short_pct": 34.1,
+              "older_avg_short_pct": 36.2,
+              "short_pct_change": -2.03,
+              "avg_total_vol_5d": 7161137,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "KLAC",
+          "score": 25.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_2X",
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 1849.71,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.75,
+            "avg_cpr_older": 6.72,
+            "cpr_change_pct": -59.1,
+            "total_call_vol_5d": 331,
+            "total_put_vol_5d": 314,
+            "call_vol_surge": 1.36,
+            "short_metrics": {
+              "recent_avg_short_pct": 59.0,
+              "older_avg_short_pct": 58.0,
+              "short_pct_change": 0.99,
+              "avg_total_vol_5d": 324852,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "JNJ",
+          "score": 23.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 230.42,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 13.94,
+            "avg_cpr_older": 13.92,
+            "cpr_change_pct": 0.2,
+            "total_call_vol_5d": 15372,
+            "total_put_vol_5d": 3021,
+            "call_vol_surge": 1.23,
+            "short_metrics": {
+              "recent_avg_short_pct": 42.1,
+              "older_avg_short_pct": 40.0,
+              "short_pct_change": 2.11,
+              "avg_total_vol_5d": 2162501,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CVS",
+          "score": 23.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 98.11,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 40.37,
+            "avg_cpr_older": 40.37,
+            "cpr_change_pct": 0.0,
+            "total_call_vol_5d": 1360,
+            "total_put_vol_5d": 226,
+            "call_vol_surge": 1.0,
+            "short_metrics": {
+              "recent_avg_short_pct": 48.5,
+              "older_avg_short_pct": 42.1,
+              "short_pct_change": 6.42,
+              "avg_total_vol_5d": 4844179,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "FDX",
+          "score": 20.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_COVERING"
+          ],
+          "metrics": {
+            "spot": 369.7,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 1.71,
+            "avg_cpr_older": 7.9,
+            "cpr_change_pct": -78.3,
+            "total_call_vol_5d": 266,
+            "total_put_vol_5d": 413,
+            "call_vol_surge": 0.43,
+            "short_metrics": {
+              "recent_avg_short_pct": 38.4,
+              "older_avg_short_pct": 42.9,
+              "short_pct_change": -4.49,
+              "avg_total_vol_5d": 494537,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "PH",
+          "score": 18.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_2X"
+          ],
+          "metrics": {
+            "spot": 882.37,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.11,
+            "avg_cpr_older": 35.85,
+            "cpr_change_pct": -94.1,
+            "total_call_vol_5d": 131,
+            "total_put_vol_5d": 103,
+            "call_vol_surge": 0.39,
+            "short_metrics": {
+              "recent_avg_short_pct": 48.7,
+              "older_avg_short_pct": 42.2,
+              "short_pct_change": 6.54,
+              "avg_total_vol_5d": 246512,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "DIS",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 104.92,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.59,
+            "avg_cpr_older": 4.64,
+            "cpr_change_pct": -87.4,
+            "total_call_vol_5d": 4001,
+            "total_put_vol_5d": 7922,
+            "call_vol_surge": 1.4,
+            "short_metrics": {
+              "recent_avg_short_pct": 52.1,
+              "older_avg_short_pct": 46.1,
+              "short_pct_change": 6.02,
+              "avg_total_vol_5d": 3667894,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "UNP",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 264.65,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.91,
+            "avg_cpr_older": 30.14,
+            "cpr_change_pct": -97.0,
+            "total_call_vol_5d": 584,
+            "total_put_vol_5d": 612,
+            "call_vol_surge": 0.43,
+            "short_metrics": {
+              "recent_avg_short_pct": 59.5,
+              "older_avg_short_pct": 58.2,
+              "short_pct_change": 1.32,
+              "avg_total_vol_5d": 735854,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "UBER",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 74.7,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.63,
+            "avg_cpr_older": 1.31,
+            "cpr_change_pct": -52.4,
+            "total_call_vol_5d": 10337,
+            "total_put_vol_5d": 18545,
+            "call_vol_surge": 1.25,
+            "short_metrics": {
+              "recent_avg_short_pct": 53.7,
+              "older_avg_short_pct": 44.5,
+              "short_pct_change": 9.27,
+              "avg_total_vol_5d": 7569325,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ADBE",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 236.07,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.26,
+            "avg_cpr_older": 0.76,
+            "cpr_change_pct": -66.2,
+            "total_call_vol_5d": 1867,
+            "total_put_vol_5d": 5812,
+            "call_vol_surge": 1.49,
+            "short_metrics": {
+              "recent_avg_short_pct": 57.4,
+              "older_avg_short_pct": 56.8,
+              "short_pct_change": 0.57,
+              "avg_total_vol_5d": 1468900,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MAR",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "HIGH_SHORT_SQUEEZE_SETUP"
+          ],
+          "metrics": {
+            "spot": 350.19,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.89,
+            "avg_cpr_older": 7.76,
+            "cpr_change_pct": -88.5,
+            "total_call_vol_5d": 101,
+            "total_put_vol_5d": 109,
+            "call_vol_surge": 0.57,
+            "short_metrics": {
+              "recent_avg_short_pct": 56.4,
+              "older_avg_short_pct": 53.1,
+              "short_pct_change": 3.27,
+              "avg_total_vol_5d": 439490,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "CSX",
+          "score": 15.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "ABS_CPR_3X"
+          ],
+          "metrics": {
+            "spot": 44.4,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 4.28,
+            "avg_cpr_older": 9.97,
+            "cpr_change_pct": -57.1,
+            "total_call_vol_5d": 543,
+            "total_put_vol_5d": 328,
+            "call_vol_surge": 0.34,
+            "short_metrics": {
+              "recent_avg_short_pct": 32.5,
+              "older_avg_short_pct": 33.0,
+              "short_pct_change": -0.54,
+              "avg_total_vol_5d": 4085331,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ORCL",
+          "score": 13.0,
+          "tier": "NEUTRAL",
+          "flags": [
+            "SHORTS_EASING"
+          ],
+          "metrics": {
+            "spot": 189.76,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 2.0,
+            "avg_cpr_older": 168.94,
+            "cpr_change_pct": -98.8,
+            "total_call_vol_5d": 44311,
+            "total_put_vol_5d": 29369,
+            "call_vol_surge": 1.25,
+            "short_metrics": {
+              "recent_avg_short_pct": 39.1,
+              "older_avg_short_pct": 41.9,
+              "short_pct_change": -2.83,
+              "avg_total_vol_5d": 9408521,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "MA",
+          "score": 8.0,
+          "tier": "NEUTRAL",
+          "flags": [],
+          "metrics": {
+            "spot": 490.64,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.43,
+            "avg_cpr_older": 0.42,
+            "cpr_change_pct": 2.5,
+            "total_call_vol_5d": 400,
+            "total_put_vol_5d": 1842,
+            "call_vol_surge": 1.17,
+            "short_metrics": {
+              "recent_avg_short_pct": 45.3,
+              "older_avg_short_pct": 38.1,
+              "short_pct_change": 7.19,
+              "avg_total_vol_5d": 1552984,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "C",
+          "score": 0.0,
+          "tier": "NEUTRAL",
+          "flags": [],
+          "metrics": {
+            "spot": 124.08,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.36,
+            "avg_cpr_older": 1.97,
+            "cpr_change_pct": -81.6,
+            "total_call_vol_5d": 6149,
+            "total_put_vol_5d": 19401,
+            "call_vol_surge": 1.37,
+            "short_metrics": {
+              "recent_avg_short_pct": 30.8,
+              "older_avg_short_pct": 27.8,
+              "short_pct_change": 2.96,
+              "avg_total_vol_5d": 4381551,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "TMUS",
+          "score": 0.0,
+          "tier": "NEUTRAL",
+          "flags": [],
+          "metrics": {
+            "spot": 190.28,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.9,
+            "avg_cpr_older": 5.42,
+            "cpr_change_pct": -83.4,
+            "total_call_vol_5d": 435,
+            "total_put_vol_5d": 505,
+            "call_vol_surge": 0.27,
+            "short_metrics": {
+              "recent_avg_short_pct": 36.5,
+              "older_avg_short_pct": 27.2,
+              "short_pct_change": 9.24,
+              "avg_total_vol_5d": 1439663,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "GD",
+          "score": 0.0,
+          "tier": "NEUTRAL",
+          "flags": [],
+          "metrics": {
+            "spot": 341.36,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.53,
+            "avg_cpr_older": 29.6,
+            "cpr_change_pct": -98.2,
+            "total_call_vol_5d": 70,
+            "total_put_vol_5d": 259,
+            "call_vol_surge": 0.22,
+            "short_metrics": {
+              "recent_avg_short_pct": 33.5,
+              "older_avg_short_pct": 32.5,
+              "short_pct_change": 0.98,
+              "avg_total_vol_5d": 377900,
+              "n_finra_days": 20
+            }
+          }
+        },
+        {
+          "symbol": "ICE",
+          "score": 0.0,
+          "tier": "NEUTRAL",
+          "flags": [],
+          "metrics": {
+            "spot": 154.8,
+            "n_call_contracts": 10,
+            "n_put_contracts": 10,
+            "avg_cpr_recent_5d": 0.24,
+            "avg_cpr_older": 1.05,
+            "cpr_change_pct": -76.8,
+            "total_call_vol_5d": 176,
+            "total_put_vol_5d": 858,
+            "call_vol_surge": 1.27,
+            "short_metrics": {
+              "recent_avg_short_pct": 28.2,
+              "older_avg_short_pct": 21.4,
+              "short_pct_change": 6.78,
+              "avg_total_vol_5d": 1002186,
+              "n_finra_days": 20
+            }
+          }
+        }
+      ]
+    }
+  },
+  "finished": "2026-05-14T11:50:55.872694+00:00"
+}
