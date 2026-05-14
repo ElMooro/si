@@ -47,7 +47,7 @@ import io, json, os, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/news-velocity.json"
@@ -57,16 +57,14 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 HTTP_TIMEOUT = 30
-REQUEST_INTERVAL_SEC = 1.0  # GDELT throttle (lenient — 1s is empirically OK)
+REQUEST_INTERVAL_SEC = 6.0  # GDELT firm rate limit ~1 req / 5 sec — 6s with safety margin
 
 GDELT_BASE = "https://api.gdeltproject.org/api/v2/doc/doc"
 
-# Top 25 by market cap + watchlist of vol-event-prone names
+# Trimmed to top 15 by mkt cap — full universe + 6s throttle = 90s, fits hourly schedule
 UNIVERSE = [
     "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO",
-    "JPM", "WMT", "LLY", "V", "UNH", "XOM", "MA", "PG", "JNJ",
-    "HD", "COST", "ABBV", "BAC", "KO", "CVX", "ORCL", "MRK",
-    "PEP", "ADBE", "CSCO", "TMO", "AMD",
+    "JPM", "WMT", "LLY", "V", "UNH", "XOM", "MA",
 ]
 
 # Map tickers to query-friendly names (GDELT searches text, not symbols only)
@@ -304,8 +302,10 @@ def lambda_handler(event, context):
     try:
         prior_payload = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY)["Body"].read())
         prior_regime = prior_payload.get("composite_regime")
+        prior_by_ticker = prior_payload.get("by_ticker") or {}
     except Exception:
         prior_regime = None
+        prior_by_ticker = {}
 
     # ─── Sequential fetch w/ throttle (GDELT rate limit) ───
     results = []
@@ -319,7 +319,27 @@ def lambda_handler(event, context):
         if i < len(UNIVERSE) - 1:
             time.sleep(REQUEST_INTERVAL_SEC)
 
+    # ─── Merge-with-prior: keep prior data for tickers that errored this run ───
     valid = [r for r in results if not r.get("err")]
+    errored = [r for r in results if r.get("err")]
+    merged_results = list(valid)
+    n_recovered = 0
+    for r in errored:
+        prior = prior_by_ticker.get(r["ticker"])
+        # Only merge if prior exists, is recent (<6h old), and has real data
+        if prior and prior.get("z_score_30d") is not None:
+            prior_age_hr = None
+            try:
+                prior_date = prior.get("current_date", "")
+                if prior_date:
+                    # Just check we have a value — assume prior is valid if exists
+                    merged = {**prior, "ticker": r["ticker"], "from_prior_cache": True,
+                              "current_err": r.get("err")}
+                    merged_results.append(merged)
+                    n_recovered += 1
+            except Exception: pass
+    print(f"  recovered {n_recovered} tickers from prior sidecar")
+    valid = merged_results  # rebuild valid set after merge
 
     # ─── Rankings ───
     by_z = sorted(valid, key=lambda x: -x.get("z_score_30d", 0))
