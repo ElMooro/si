@@ -1,0 +1,239 @@
+{
+  "started": "2026-05-14T17:32:36.890003+00:00",
+  "sidecar": {
+    "size_kb": 1.97,
+    "modified": "2026-05-14T17:04:37",
+    "top_level": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "source",
+      "elapsed_seconds",
+      "universe",
+      "n_tickers",
+      "n_with_data",
+      "n_with_err",
+      "n_surge",
+      "n_elevated",
+      "n_subdued",
+      "by_ticker",
+      "ranked",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior"
+    ],
+    "full": {
+      "generated_at": "2026-05-14T17:04:36.053647+00:00",
+      "generated_at_unix": 1778778276,
+      "version": "1.1.0",
+      "source": "api.gdeltproject.org/api/v2/doc/doc",
+      "elapsed_seconds": 238.0,
+      "universe": [
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "META",
+        "TSLA",
+        "AVGO",
+        "JPM",
+        "WMT",
+        "LLY",
+        "V",
+        "UNH",
+        "XOM",
+        "MA"
+      ],
+      "n_tickers": 15,
+      "n_with_data": 1,
+      "n_with_err": 14,
+      "n_surge": 0,
+      "n_elevated": 1,
+      "n_subdued": 0,
+      "by_ticker": {
+        "AAPL": {
+          "ticker": "AAPL",
+          "err": "no GDELT data"
+        },
+        "MSFT": {
+          "ticker": "MSFT",
+          "err": "no GDELT data"
+        },
+        "GOOGL": {
+          "ticker": "GOOGL",
+          "err": "no GDELT data"
+        },
+        "AMZN": {
+          "ticker": "AMZN",
+          "err": "no GDELT data"
+        },
+        "NVDA": {
+          "ticker": "NVDA",
+          "err": "no GDELT data"
+        },
+        "META": {
+          "ticker": "META",
+          "err": "no GDELT data"
+        },
+        "TSLA": {
+          "ticker": "TSLA",
+          "err": "no GDELT data"
+        },
+        "AVGO": {
+          "ticker": "AVGO",
+          "err": "no GDELT data"
+        },
+        "JPM": {
+          "ticker": "JPM",
+          "err": "no GDELT data"
+        },
+        "WMT": {
+          "ticker": "WMT",
+          "err": "no GDELT data"
+        },
+        "LLY": {
+          "ticker": "LLY",
+          "err": "no GDELT data"
+        },
+        "V": {
+          "ticker": "V",
+          "err": "no GDELT data"
+        },
+        "UNH": {
+          "ticker": "UNH",
+          "err": "no GDELT data"
+        },
+        "XOM": {
+          "ticker": "XOM",
+          "err": "no GDELT data"
+        },
+        "MA": {
+          "ticker": "MA",
+          "current_volume": 0.0508,
+          "current_date": "2026-05-14",
+          "avg_3d": 0.0739,
+          "avg_7d": 0.0478,
+          "avg_30d": 0.0291,
+          "stdev_30d": 0.0192,
+          "z_score_30d": 1.13,
+          "velocity_pct": 74.5,
+          "velocity_flag": "ELEVATED",
+          "n_days": 30,
+          "timeline_last_7": [
+            {
+              "date": "2026-05-08",
+              "value": 0.0251
+            },
+            {
+              "date": "2026-05-09",
+              "value": 0.0188
+            },
+            {
+              "date": "2026-05-10",
+              "value": 0.0107
+            },
+            {
+              "date": "2026-05-11",
+              "value": 0.0579
+            },
+            {
+              "date": "2026-05-12",
+              "value": 0.0759
+            },
+            {
+              "date": "2026-05-13",
+              "value": 0.0951
+            },
+            {
+              "date": "2026-05-14",
+              "value": 0.0508
+            }
+          ]
+        }
+      },
+      "ranked": {
+        "top_5_velocity": [
+          {
+            "ticker": "MA",
+            "z_score": 1.13,
+            "velocity_pct": 74.5,
+            "current": 0.0508,
+            "flag": "ELEVATED"
+          }
+        ],
+        "top_5_attention": [
+          {
+            "ticker": "MA",
+            "current": 0.0508,
+            "avg_30d": 0.0291,
+            "z_score": 1.13
+          }
+        ],
+        "top_5_7d_avg": [
+          {
+            "ticker": "MA",
+            "avg_7d": 0.0478,
+            "avg_30d": 0.0291
+          }
+        ],
+        "bottom_5_subdued": [
+          {
+            "ticker": "MA",
+            "z_score": 1.13,
+            "current": 0.0508
+          }
+        ]
+      },
+      "composite_regime": "ATTENTION_NORMAL",
+      "composite_signal": "Article volumes distributed normally; no single name dominating",
+      "regime_changed_from_prior": true
+    }
+  },
+  "lambda": {
+    "state": "Active",
+    "memory": 512,
+    "timeout": 600,
+    "last_modified": "2026-05-14T01:20:51.000+0000",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "env_keys": [
+      "TELEGRAM_TOKEN",
+      "TELEGRAM_CHAT_ID"
+    ]
+  },
+  "recent_logs_n": 20,
+  "recent_logs": [
+    "TSLA 429 rate-limited",
+    "\u2717 TSLA: no GDELT data",
+    "AVGO 429 rate-limited",
+    "\u2717 AVGO: no GDELT data",
+    "JPM err: Expecting value: line 1 column 1 (char 0)",
+    "\u2717 JPM: no GDELT data",
+    "WMT err: Expecting value: line 1 column 1 (char 0)",
+    "\u2717 WMT: no GDELT data",
+    "LLY err: Expecting value: line 1 column 1 (char 0)",
+    "\u2717 LLY: no GDELT data",
+    "V 429 rate-limited",
+    "\u2717 V: no GDELT data",
+    "UNH 429 rate-limited",
+    "\u2717 UNH: no GDELT data",
+    "XOM 429 rate-limited",
+    "\u2717 XOM: no GDELT data",
+    "\u2713 MA cur=0.0508 z=+1.13 ELEVATED",
+    "recovered 0 tickers from prior sidecar",
+    "\u2713 news-velocity.json written (1/15 ok)",
+    "tg err: HTTP Error 400: Bad Request"
+  ],
+  "force_invoke_err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-news-velocity/invocations\"",
+  "sidecar_after": {
+    "size_kb": 1.96,
+    "modified": "2026-05-14T17:37:42",
+    "composite_regime": "ATTENTION_NORMAL",
+    "composite_signal": "Article volumes distributed normally; no single name dominating",
+    "n_with_data": 1,
+    "n_surge": 0,
+    "n_elevated": 0
+  },
+  "finished": "2026-05-14T17:37:48.872559+00:00"
+}
