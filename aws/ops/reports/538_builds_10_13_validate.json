@@ -1,0 +1,360 @@
+{
+  "started": "2026-05-14T12:04:02.536847+00:00",
+  "build_13_dealer_gex": {
+    "audit": {
+      "name": "justhodl-dealer-gex",
+      "exists": true,
+      "last_modified": "2026-05-14T12:01:39.000+0000",
+      "memory": 2048,
+      "timeout": 600,
+      "env_keys": [
+        "POLY_KEY",
+        "TELEGRAM_CHAT_ID",
+        "TELEGRAM_TOKEN"
+      ],
+      "description": "Dealer GEX & Positioning v1.0 (SpotGamma-grade)",
+      "rules": [
+        {
+          "name": "justhodl-dealer-gex-hourly",
+          "schedule": "cron(7 13-21 ? * MON-FRI *)",
+          "state": "ENABLED"
+        }
+      ]
+    },
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": {
+        "success": true,
+        "version": "1.3.0",
+        "n_underlyings": 10,
+        "spy_regime": "POSITIVE_GAMMA",
+        "spy_gex_b": 2.268,
+        "spy_flip": 631.15,
+        "composite_regime": "MOSTLY_POSITIVE_GAMMA",
+        "n_squeeze_candidates": 0,
+        "alert_sent": false,
+        "elapsed_seconds": 6.31
+      },
+      "log_tail": "START RequestId: 05a42e51-ae58-4b64-b63f-5236652571de Version: $LATEST\n=== DEALER-GEX v1.3.0 \u00b7 2026-05-14T12:04:08.273831+00:00 ===\nanalyzing SPY...\nanalyzing QQQ...\nanalyzing IWM...\nanalyzing NVDA...\n1937 contracts in 60d horizon\n1238 contracts in 60d horizon\n4328 contracts in 60d horizon\nanalyzing TSLA...\n4150 contracts in 60d horizon\nanalyzing AAPL...\nanalyzing META...\n1970 contracts in 60d horizon\n815 contracts in 60d horizon\n1960 contracts in 60d horizon\nanalyzing AMZN...\nanalyzing MSFT...\n720 contracts in 60d horizon\nanalyzing GOOGL...\n1065 contracts in 60d horizon\n1141 contracts in 60d horizon\n\u2713 dealer-gex.json written (36.3 KB)\nEND RequestId: 05a42e51-ae58-4b64-b63f-5236652571de\nREPORT RequestId: 05a42e51-ae58-4b64-b63f-5236652571de\tDuration: 6310.43 ms\tBilled Duration: 6968 ms\tMemory Size: 2048 MB\tMax Memory Used: 157 MB\tInit Duration: 656.68 ms\t\n"
+    },
+    "sidecar": {
+      "size_kb": 33.0,
+      "modified": "2026-05-14T12:04:15",
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "calculation_config",
+        "market_composite",
+        "squeeze_candidates",
+        "underlyings"
+      ],
+      "version": "1.3.0",
+      "generated_at": "2026-05-14T12:04:14.276509+00:00",
+      "composite_regime": "MOSTLY_POSITIVE_GAMMA",
+      "composite_signal": "Majority indices in positive gamma \u2014 mean-revert, buy dips at support, fade resistance",
+      "zero_dte_samples": {
+        "SPY": {
+          "spot": 742.31,
+          "total_gex_b": 2.268,
+          "0dte_keys": [
+            "call_oi",
+            "call_vol",
+            "call_walls_oi",
+            "gex_billions",
+            "oi",
+            "oi_pct",
+            "pcr_oi",
+            "pcr_vol",
+            "pct_to_pin",
+            "pin_strike",
+            "put_oi",
+            "put_vol",
+            "put_walls_oi",
+            "vol",
+            "vol_pct"
+          ],
+          "vol_pct": 42.1,
+          "oi_pct": 4.2,
+          "call_oi": 232128,
+          "put_oi": 303247,
+          "call_vol": 651507,
+          "put_vol": 675308,
+          "pcr_oi": 1.306,
+          "pcr_vol": 1.037,
+          "gex_billions": 0.905,
+          "call_walls_oi": [
+            {
+              "strike": 765.0,
+              "oi": 23461
+            },
+            {
+              "strike": 766.0,
+              "oi": 21672
+            }
+          ],
+          "put_walls_oi": [
+            {
+              "strike": 724.0,
+              "oi": 26209
+            },
+            {
+              "strike": 728.0,
+              "oi": 18674
+            }
+          ],
+          "pin_strike": 738.0,
+          "pct_to_pin": -0.58
+        },
+        "QQQ": {
+          "spot": 714.71,
+          "total_gex_b": 0.891,
+          "0dte_keys": [
+            "call_oi",
+            "call_vol",
+            "call_walls_oi",
+            "gex_billions",
+            "oi",
+            "oi_pct",
+            "pcr_oi",
+            "pcr_vol",
+            "pct_to_pin",
+            "pin_strike",
+            "put_oi",
+            "put_vol",
+            "put_walls_oi",
+            "vol",
+            "vol_pct"
+          ],
+          "vol_pct": 39.9,
+          "oi_pct": 5.3,
+          "call_oi": 112528,
+          "put_oi": 226285,
+          "call_vol": 369275,
+          "put_vol": 455764,
+          "pcr_oi": 2.011,
+          "pcr_vol": 1.234,
+          "gex_billions": 0.047,
+          "call_walls_oi": [
+            {
+              "strike": 725.0,
+              "oi": 11557
+            },
+            {
+              "strike": 715.0,
+              "oi": 6655
+            }
+          ],
+          "put_walls_oi": [
+            {
+              "strike": 710.0,
+              "oi": 17755
+            },
+            {
+              "strike": 700.0,
+              "oi": 12863
+            }
+          ],
+          "pin_strike": 710.0,
+          "pct_to_pin": -0.66
+        },
+        "IWM": {
+          "spot": 282.67,
+          "total_gex_b": -0.628,
+          "0dte_keys": [
+            "call_oi",
+            "call_vol",
+            "call_walls_oi",
+            "gex_billions",
+            "oi",
+            "oi_pct",
+            "pcr_oi",
+            "pcr_vol",
+            "pct_to_pin",
+            "pin_strike",
+            "put_oi",
+            "put_vol",
+            "put_walls_oi",
+            "vol",
+            "vol_pct"
+          ],
+          "vol_pct": 18.9,
+          "oi_pct": 1.4,
+          "call_oi": 29266,
+          "put_oi": 51948,
+          "call_vol": 51401,
+          "put_vol": 74576,
+          "pcr_oi": 1.775,
+          "pcr_vol": 1.451,
+          "gex_billions": -0.059,
+          "call_walls_oi": [
+            {
+              "strike": 285.0,
+              "oi": 5432
+            },
+            {
+              "strike": 284.0,
+              "oi": 2926
+            }
+          ],
+          "put_walls_oi": [
+            {
+              "strike": 281.0,
+              "oi": 9245
+            },
+            {
+              "strike": 277.0,
+              "oi": 6327
+            }
+          ],
+          "pin_strike": 281.0,
+          "pct_to_pin": -0.59
+        }
+      },
+      "v130_fields_present": true
+    }
+  },
+  "build_10_news_velocity": {
+    "audit": {
+      "name": "justhodl-news-velocity",
+      "exists": true,
+      "last_modified": "2026-05-14T01:20:51.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "env_keys": [
+        "TELEGRAM_CHAT_ID",
+        "TELEGRAM_TOKEN"
+      ],
+      "description": "GDELT news article velocity engine",
+      "rules": []
+    },
+    "invoke": {
+      "err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-news-velocity/invocations\""
+    },
+    "sidecar": {
+      "size_kb": 2.6,
+      "modified": "2026-05-14T12:08:51",
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "n_surge",
+        "n_elevated",
+        "n_subdued",
+        "by_ticker",
+        "ranked",
+        "composite_regime"
+      ],
+      "version": "1.1.0",
+      "generated_at": "2026-05-14T12:08:50.646009+00:00",
+      "n_tickers": 15,
+      "n_with_data": 2,
+      "n_with_err": 13,
+      "composite_regime": "ATTENTION_NORMAL",
+      "composite_signal": "Article volumes distributed normally; no single name dominating",
+      "ranked_top_velocity": [
+        {
+          "ticker": "MA",
+          "z_score": 1.25,
+          "velocity_pct": 82.9,
+          "current": 0.0534,
+          "flag": "ELEVATED"
+        },
+        {
+          "ticker": "V",
+          "z_score": 0.34,
+          "velocity_pct": 30.4,
+          "current": 0.0016,
+          "flag": "NORMAL"
+        }
+      ],
+      "ranked_bottom_subdued": [
+        {
+          "ticker": "V",
+          "z_score": 0.34,
+          "current": 0.0016
+        },
+        {
+          "ticker": "MA",
+          "z_score": 1.25,
+          "current": 0.0534
+        }
+      ],
+      "n_from_prior_cache": 0
+    }
+  },
+  "audit_options_flow_scanner": {
+    "name": "justhodl-options-flow-scanner",
+    "exists": true,
+    "last_modified": "2026-05-06T08:50:22.000+0000",
+    "memory": 2048,
+    "timeout": 600,
+    "env_keys": [
+      "DAYS_BACK",
+      "MAX_TICKERS",
+      "N_WORKERS",
+      "POLY_KEY",
+      "S3_BUCKET",
+      "TIMEOUT_BUDGET_S"
+    ],
+    "description": "",
+    "rules": []
+  },
+  "audit_google_trends": {
+    "name": "justhodl-google-trends",
+    "exists": true,
+    "last_modified": "2026-05-14T01:03:52.289+0000",
+    "memory": 512,
+    "timeout": 300,
+    "env_keys": [
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "description": "Real Google Trends Lambda \u2014 daily trending + 6 attention indices",
+    "rules": []
+  },
+  "audit_commodity_curves": {
+    "name": "justhodl-commodity-curves",
+    "exists": true,
+    "last_modified": "2026-05-14T11:43:13.000+0000",
+    "memory": 512,
+    "timeout": 120,
+    "env_keys": [
+      "FMP_KEY",
+      "FRED_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "description": "Commodity cross-asset curves engine",
+    "rules": [
+      {
+        "name": "justhodl-commodity-curves-daily",
+        "schedule": "cron(0 21 ? * MON-FRI *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "audit_global_markets": {
+    "name": "justhodl-global-markets",
+    "exists": true,
+    "last_modified": "2026-05-14T01:30:12.000+0000",
+    "memory": 512,
+    "timeout": 120,
+    "env_keys": [
+      "FMP_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "description": "Cross-asset regional ETF coherence engine",
+    "rules": []
+  },
+  "finished": "2026-05-14T12:09:48.464319+00:00"
+}
