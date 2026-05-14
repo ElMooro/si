@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commodity Curves — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A2%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.inflationary_push{border-left:4px solid var(--neg);background:rgba(255,61,90,.05);}
+.regime-banner.inflationary_cooling{border-left:4px solid var(--pos);}
+.regime-banner.precious_leading{border-left:4px solid var(--gold);}
+.regime-banner.industrial_leading{border-left:4px solid var(--info);}
+.regime-banner.divergent{border-left:4px solid var(--accent);}
+.regime-banner.subdued{border-left:4px solid var(--text-mute);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.accent{color:var(--accent);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.section-title{font-size:11px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin:16px 0 8px;font-family:var(--font-mono);}
+
+.spot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:14px;}
+.spot-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;}
+.spot-card .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:4px;}
+.spot-card .val{font-size:24px;font-weight:600;letter-spacing:-.5px;}
+.spot-card .unit{font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-left:6px;}
+.spot-card .ret{font-family:var(--font-mono);font-size:10px;margin-top:4px;}
+.ret.pos{color:var(--pos);} .ret.neg{color:var(--neg);}
+
+.ratio-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+.ratio-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;text-align:center;}
+.ratio-card .lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.ratio-card .v{font-size:20px;font-weight:600;}
+.ratio-card .v.pos{color:var(--pos);} .ratio-card .v.neg{color:var(--neg);}
+.ratio-card .desc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px;}
+@media (max-width:1100px){.ratio-grid{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:680px){.ratio-grid{grid-template-columns:repeat(2,1fr);}}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.full-table th{padding:10px 14px;text-align:right;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table th:first-child,.full-table th:nth-child(2),.full-table th:nth-child(3){text-align:left;}
+.full-table td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+.full-table td:first-child,.full-table td:nth-child(2),.full-table td:nth-child(3){text-align:left;}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table tr:last-child td{border-bottom:0;}
+.t-sym{font-weight:600;color:var(--text);}
+.t-name{color:var(--text-dim);font-size:11px;}
+.t-cat{font-family:var(--font-mono);font-size:10px;color:var(--accent);}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🛢️ Commodity Curves <span class="badge">FRED SPOTS + 10 ETF PROXIES</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div class="section-title">Spot Prices · FRED Daily Series</div>
+<div id="spot-grid" class="spot-grid"></div>
+
+<div class="section-title">Derived Cross-Asset Ratios (20d performance unless noted)</div>
+<div id="ratio-grid" class="ratio-grid"></div>
+
+<div class="section-title">ETF Proxy Universe · Ranked by 20d Return</div>
+<table class="full-table">
+  <thead><tr>
+    <th>Symbol</th><th>Name</th><th>Category</th>
+    <th>Price</th><th>1D %</th>
+    <th>5D %</th><th>20D %</th><th>60D %</th><th>YTD %</th>
+    <th>σ 60d ann</th><th>RS vs SPY 20d</th>
+  </tr></thead>
+  <tbody id="tbody"><tr><td colspan="11" class="loading">Loading universe…</td></tr></tbody>
+</table>
+
+<div class="method">
+  <h3>Methodology · Commodity Cross-Asset Engine</h3>
+  <p>4 FRED daily spot series (WTI, Brent, Natural Gas, LBMA Gold) joined with 10 USD-traded commodity ETF proxies (USO, UNG, XLE, GLD, SLV, XME, CPER, DBA, PDBC, GUNR).</p>
+  <p><strong>Cross-asset ratios surfaced:</strong></p>
+  <p><code>WTI − Brent</code> — transatlantic crude basis · positive = US supply tight</p>
+  <p><code>Gold/Silver ratio</code> — &gt;80 risk-off, &lt;60 risk-on (silver leads gold in industrial/growth phases)</p>
+  <p><code>Gold − PDBC (20d)</code> — defensive vs broad commodity preference</p>
+  <p><code>Industrial − Precious (20d)</code> — growth vs hedge demand</p>
+  <p><code>XLE − SPY (20d)</code> — energy equity leadership vs broad US</p>
+  <p><code>Energy − Metals (20d)</code> — relative cyclical position</p>
+  <p><strong>Composite regimes:</strong></p>
+  <p><code>INFLATIONARY_PUSH</code> — PDBC &gt; +5% 20d AND XLE &gt; +3% 20d · broad commodity rally, inflation rebuilding</p>
+  <p><code>INFLATIONARY_COOLING</code> — PDBC &lt; -3% 20d AND USO &lt; 0% · disinflation tailwind</p>
+  <p><code>PRECIOUS_LEADING</code> — Gold beats PDBC by 5+pp AND Gold &gt; 0 · defensive hedge bid (risk-off macro setup)</p>
+  <p><code>INDUSTRIAL_LEADING</code> — CPER + XME beat Gold + Silver by 5+pp · growth/manufacturing recovery</p>
+  <p><code>SUBDUED</code> — |PDBC| &lt; 2% AND |Gold| &lt; 2% · low-vol regime, commodities range-bound</p>
+  <p><code>DIVERGENT</code> — Mixed energy vs metals vs ag</p>
+  <p><strong>Source:</strong> FRED REST API + FMP /stable/quote + /stable/historical-price-eod/full · refresh daily 21:00 UTC.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/commodity-curves.json";
+let DATA = null;
+
+function fmtPct(v, d=2) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(d) + '%'; }
+function fmtPp(v, d=1) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(d) + 'pp'; }
+function cls(v) { return v == null ? '' : (v > 0 ? 't-pos' : (v < 0 ? 't-neg' : '')); }
+
+async function load() {
+  try {
+    DATA = await (await fetch(SIDECAR_URL)).json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0,16).replace('T',' ') + ' UTC';
+    renderRegime(); renderSpots(); renderRatios(); renderTable();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function renderRegime() {
+  const r = DATA.composite_regime || 'UNKNOWN';
+  const s = DATA.composite_signal || '';
+  const rcls = r.toLowerCase();
+  let tcls = '';
+  if (r === 'INFLATIONARY_PUSH') tcls = 'neg';
+  else if (r === 'INFLATIONARY_COOLING') tcls = 'pos';
+  else if (r === 'PRECIOUS_LEADING') tcls = 'gold';
+  else if (r === 'INDUSTRIAL_LEADING') tcls = 'info';
+  else if (r === 'DIVERGENT') tcls = 'accent';
+
+  // SPY 20d in stats
+  const spy20 = DATA.spy_20d;
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${tcls}">${r.replace(/_/g,' ')}</div>
+        <div class="regime-signal">${s}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">SPY 20D</span><span class="val">${fmtPct(spy20, 1)}</span></div>
+        <div><span class="label">FRED Series</span><span class="val">${DATA.n_fred_with_data}/${DATA.n_fred}</span></div>
+        <div><span class="label">ETF Proxies</span><span class="val">${DATA.n_etf_with_data}/${DATA.n_etf}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderSpots() {
+  const fm = DATA.fred_metrics || [];
+  document.getElementById('spot-grid').innerHTML = fm
+    .filter(f => !f.err)
+    .map(f => {
+      const r5cls = (f.ret_5d || 0) > 0 ? 'pos' : ((f.ret_5d || 0) < 0 ? 'neg' : '');
+      const r20cls = (f.ret_20d || 0) > 0 ? 'pos' : ((f.ret_20d || 0) < 0 ? 'neg' : '');
+      const rytdcls = (f.ret_ytd || 0) > 0 ? 'pos' : ((f.ret_ytd || 0) < 0 ? 'neg' : '');
+      return `<div class="spot-card">
+        <div class="lbl">${f.name}</div>
+        <div class="val">${f.current}<span class="unit">${f.unit || ''}</span></div>
+        <div class="ret">
+          <span class="${r5cls}">5d: ${fmtPct(f.ret_5d)}</span>
+          &nbsp;·&nbsp;
+          <span class="${r20cls}">20d: ${fmtPct(f.ret_20d)}</span>
+          &nbsp;·&nbsp;
+          <span class="${rytdcls}">YTD: ${fmtPct(f.ret_ytd)}</span>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderRatios() {
+  const r = (DATA.composite || {}).ratios || {};
+  const cards = [
+    {lbl: 'WTI − Brent', v: r.wti_minus_brent, suffix: '', desc: 'Transatlantic crude basis (USD)'},
+    {lbl: 'Gold/Silver', v: r.gold_silver_ratio_etf, suffix: '', desc: '>80 risk-off, <60 risk-on'},
+    {lbl: 'Gold − PDBC 20d', v: r.gold_minus_pdbc_20d_pp, suffix: 'pp', desc: 'Hedge vs broad commodity'},
+    {lbl: 'Industrial − Precious 20d', v: r.industrial_minus_precious_20d_pp, suffix: 'pp', desc: 'Growth vs defensive'},
+    {lbl: 'XLE − SPY 20d', v: r.xle_minus_spy_20d_pp, suffix: 'pp', desc: 'Energy equity leadership'},
+    {lbl: 'Energy − Metals 20d', v: r.energy_minus_metals_20d_pp, suffix: 'pp', desc: 'Relative cyclical position'},
+  ];
+  document.getElementById('ratio-grid').innerHTML = cards.map(c => {
+    const cl = c.v == null ? '' : (c.v > 0 ? 'pos' : 'neg');
+    let display = '-';
+    if (c.v != null) {
+      if (c.suffix === 'pp') display = (c.v > 0 ? '+' : '') + c.v.toFixed(1) + 'pp';
+      else display = c.v.toFixed(2);
+    }
+    return `<div class="ratio-card">
+      <div class="lbl">${c.lbl}</div>
+      <div class="v ${cl}">${display}</div>
+      <div class="desc">${c.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTable() {
+  const ranked = ((DATA.composite || {}).ranked_20d) || [];
+  if (!ranked.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="11" class="loading">No data</td></tr>';
+    return;
+  }
+  document.getElementById('tbody').innerHTML = ranked.map(r => `
+    <tr>
+      <td><span class="t-sym">${r.sym}</span></td>
+      <td><span class="t-name">${r.name}</span></td>
+      <td><span class="t-cat">${r.category}</span></td>
+      <td>${r.current == null ? '-' : r.current.toFixed(2)}</td>
+      <td class="${cls(r.change_1d_pct)}">${fmtPct(r.change_1d_pct)}</td>
+      <td class="${cls(r.ret_5d)}">${fmtPct(r.ret_5d)}</td>
+      <td class="${cls(r.ret_20d)}">${fmtPct(r.ret_20d)}</td>
+      <td class="${cls(r.ret_60d)}">${fmtPct(r.ret_60d)}</td>
+      <td class="${cls(r.ret_ytd)}">${fmtPct(r.ret_ytd)}</td>
+      <td>${r.vol_60d_ann_pct == null ? '-' : r.vol_60d_ann_pct + '%'}</td>
+      <td class="${cls(r.rs_vs_spy_20d)}">${fmtPp(r.rs_vs_spy_20d)}</td>
+    </tr>`).join('');
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

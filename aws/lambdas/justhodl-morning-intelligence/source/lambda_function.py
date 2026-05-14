@@ -197,6 +197,8 @@ def load_all():
         "news_velocity":"data/news-velocity.json",
         # ─── Global Markets (Bloomberg-Gap #14 · 3h refresh) ─────────
         "global_markets":"data/global-markets.json",
+        # ─── Commodity Curves (Bloomberg-Gap #15 · daily 21:00 UTC) ──
+        "commodity_curves":"data/commodity-curves.json",
         # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────
         "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
@@ -777,6 +779,22 @@ def extract_metrics(data,weights):
             "global_top_3_ytd": (g.get("composite") or {}).get("top_3_by_ytd"),
             "global_pairs": (g.get("composite") or {}).get("pairs"),
             "global_generated_at": g.get("generated_at"),
+        })(),
+        # ─── Commodity Curves (Bloomberg-Gap #15) — FRED + ETF proxy ──
+        **(lambda c=data.get("commodity_curves", {}): {
+            "commodity_regime": c.get("composite_regime"),
+            "commodity_signal": c.get("composite_signal"),
+            "commodity_top_3_20d": (c.get("composite") or {}).get("top_3_by_20d"),
+            "commodity_bottom_3_20d": (c.get("composite") or {}).get("bottom_3_by_20d"),
+            "commodity_ratios": (c.get("composite") or {}).get("ratios"),
+            "wti_current": next((f.get("current") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "DCOILWTICO"), None),
+            "wti_20d_pct": next((f.get("ret_20d") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "DCOILWTICO"), None),
+            "brent_current": next((f.get("current") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "DCOILBRENTEU"), None),
+            "natgas_current": next((f.get("current") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "DHHNGSP"), None),
+            "natgas_20d_pct": next((f.get("ret_20d") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "DHHNGSP"), None),
+            "gold_current": next((f.get("current") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "GOLDAMGBD228NLBM"), None),
+            "gold_20d_pct": next((f.get("ret_20d") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "GOLDAMGBD228NLBM"), None),
+            "commodity_generated_at": c.get("generated_at"),
         })(),
         # ─── Central Bank Stance (Bloomberg-Gap #11) — Fed FOMC NLP ──
         **(lambda cb=data.get("cb_stance", {}): {

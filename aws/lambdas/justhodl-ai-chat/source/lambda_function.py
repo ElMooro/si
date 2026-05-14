@@ -532,6 +532,33 @@ def build_context(message):
         if top3 and bot3:
             lines.append(f"[GLOBAL LEADERS] top3 20d: {' '.join(top3)} · bottom3: {' '.join(bot3)}")
 
+    # ─── Commodity Curves (Bloomberg-Gap #15 · daily 21:00 UTC) ──────
+    cc = get_s3('data/commodity-curves.json')
+    if cc:
+        comp = cc.get('composite') or {}
+        regime_c = cc.get('composite_regime')
+        sig_c = cc.get('composite_signal', '')
+        if regime_c:
+            lines.append(f"[COMMODITY REGIME] {regime_c}")
+            lines.append(f"[COMMODITY SIGNAL] {sig_c[:160]}")
+        ratios = comp.get('ratios') or {}
+        if ratios:
+            lines.append(f"[COMMODITY RATIOS] WTI-Brent:${ratios.get('wti_minus_brent')} · Au/Ag:{ratios.get('gold_silver_ratio_etf')} · "
+                          f"Au-PDBC:{ratios.get('gold_minus_pdbc_20d_pp')}pp · Ind-Prec:{ratios.get('industrial_minus_precious_20d_pp')}pp · "
+                          f"XLE-SPY:{ratios.get('xle_minus_spy_20d_pp')}pp · Energy-Metals:{ratios.get('energy_minus_metals_20d_pp')}pp")
+        # Spot prices (top 3 FRED series)
+        fred = cc.get('fred_metrics') or []
+        fred_summary = []
+        for f in fred[:4]:
+            if not f.get('err'):
+                fred_summary.append(f"{f.get('name','?').split(' ')[0]}:${f.get('current')} ({f.get('ret_20d')}%/20d)")
+        if fred_summary:
+            lines.append(f"[COMMODITY SPOTS] {' · '.join(fred_summary)}")
+        top3_c = comp.get('top_3_by_20d') or []
+        bot3_c = comp.get('bottom_3_by_20d') or []
+        if top3_c and bot3_c:
+            lines.append(f"[COMMODITY LEADERS] top3 20d: {' '.join(top3_c)} · bottom3: {' '.join(bot3_c)}")
+
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
     rs = get_s3('data/retail-sentiment.json')
     if rs:
