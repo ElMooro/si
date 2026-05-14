@@ -1,0 +1,174 @@
+{
+  "started": "2026-05-14T17:47:00.696394+00:00",
+  "lambda_last_modified": "2026-05-14T17:47:00.000+0000",
+  "lambda_state": "Active",
+  "invoke_err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-news-velocity/invocations\"",
+  "sidecar": {
+    "size_kb": 4.06,
+    "modified": "2026-05-14T17:51:53",
+    "version": "1.2.0",
+    "composite_regime": "ATTENTION_NORMAL",
+    "composite_signal": "Article volumes distributed normally; no single name dominating",
+    "n_tickers": 15,
+    "n_with_data": 4,
+    "n_with_err": 11,
+    "n_surge": 0,
+    "n_elevated": 0,
+    "n_subdued": 0,
+    "elapsed_seconds": 230.3,
+    "top_5_velocity": [
+      {
+        "ticker": "META",
+        "z_score": -0.01,
+        "velocity_pct": -0.2,
+        "current": 0.2538,
+        "flag": "NORMAL"
+      },
+      {
+        "ticker": "AAPL",
+        "z_score": -0.2,
+        "velocity_pct": -10.0,
+        "current": 0.0199,
+        "flag": "NORMAL"
+      },
+      {
+        "ticker": "XOM",
+        "z_score": -0.31,
+        "velocity_pct": -19.9,
+        "current": 0.0181,
+        "flag": "NORMAL"
+      },
+      {
+        "ticker": "GOOGL",
+        "z_score": -0.64,
+        "velocity_pct": -31.7,
+        "current": 0.0641,
+        "flag": "NORMAL"
+      }
+    ],
+    "top_5_z_30d": [],
+    "per_ticker_summary": [
+      {
+        "ticker": "AAPL",
+        "z": -0.2,
+        "flag": "NORMAL",
+        "current": 0.0199,
+        "err": null,
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "MSFT",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "GOOGL",
+        "z": -0.64,
+        "flag": "NORMAL",
+        "current": 0.0641,
+        "err": null,
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "AMZN",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "NVDA",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "META",
+        "z": -0.01,
+        "flag": "NORMAL",
+        "current": 0.2538,
+        "err": null,
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "TSLA",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "AVGO",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "JPM",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "WMT",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "LLY",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "V",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "UNH",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "XOM",
+        "z": -0.31,
+        "flag": "NORMAL",
+        "current": 0.0181,
+        "err": null,
+        "from_prior_cache": null
+      },
+      {
+        "ticker": "MA",
+        "z": null,
+        "flag": null,
+        "current": null,
+        "err": "no GDELT data",
+        "from_prior_cache": null
+      }
+    ]
+  },
+  "finished": "2026-05-14T17:52:14.803864+00:00"
+}
