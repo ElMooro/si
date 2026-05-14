@@ -199,6 +199,8 @@ def load_all():
         "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
         "retail_sentiment":"data/retail-sentiment.json",
+        # ─── Google Trends real attention indices (Bloomberg-Gap #10) ──
+        "google_trends":"data/google-trends.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
         "vol_regime":"data/vol-regime.json",
     }
@@ -819,6 +821,25 @@ def extract_metrics(data,weights):
             "retail_wsb_only_top_5": ((rs.get("subreddit_breakdown") or {}).get("wsb_only") or [])[:5],
             "retail_consensus_wsb_stocks": ((rs.get("subreddit_breakdown") or {}).get("consensus_wsb_and_stocks") or [])[:5],
             "retail_generated_at": rs.get("generated_at"),
+        })(),
+        # ─── Google Trends Real Attention Indices (Bloomberg-Gap #10) ──
+        **(lambda gt=data.get("google_trends", {}): {
+            "gtrends_regime": gt.get("composite_regime"),
+            "gtrends_signal": gt.get("composite_signal"),
+            "gtrends_market_fear": gt.get("market_fear_index"),
+            "gtrends_bull_bear_pulse": gt.get("bull_bear_pulse"),
+            "gtrends_crypto_fear": ((gt.get("indices") or {}).get("crypto_fear") or {}).get("current"),
+            "gtrends_recession_fear": ((gt.get("indices") or {}).get("recession_fear") or {}).get("current"),
+            "gtrends_employment_stress": ((gt.get("indices") or {}).get("employment_stress") or {}).get("current"),
+            "gtrends_melt_up": ((gt.get("indices") or {}).get("melt_up_attention") or {}).get("current"),
+            "gtrends_fed_attention": ((gt.get("indices") or {}).get("fed_attention") or {}).get("current"),
+            "gtrends_ai_hype": ((gt.get("indices") or {}).get("ai_hype") or {}).get("current"),
+            "gtrends_crypto_fear_delta": ((gt.get("indices") or {}).get("crypto_fear") or {}).get("delta_pp"),
+            "gtrends_recession_delta": ((gt.get("indices") or {}).get("recession_fear") or {}).get("delta_pp"),
+            "gtrends_melt_up_delta": ((gt.get("indices") or {}).get("melt_up_attention") or {}).get("delta_pp"),
+            "gtrends_daily_top_5": [t.get("title") for t in (gt.get("daily_trending_us") or [])[:5]],
+            "gtrends_n_indices_loaded": gt.get("n_indices_loaded"),
+            "gtrends_generated_at": gt.get("generated_at"),
         })(),
     }
 

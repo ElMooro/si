@@ -557,6 +557,26 @@ def build_context(message):
                               f"rank Δ:{t.get('rank_climb',0):+d} · "
                               f"StockTwits B/B:{bb if bb else 'no data'}")
 
+    # ─── Google Trends Real Attention Indices (BUILD 10 · 4h refresh) ──
+    gt = get_s3('data/google-trends.json')
+    if gt:
+        regime_g = gt.get('composite_regime')
+        sig_g = gt.get('composite_signal', '')
+        idxs = gt.get('indices') or {}
+        if regime_g:
+            lines.append(f"[GOOGLE TRENDS REGIME] {regime_g} · market_fear:{gt.get('market_fear_index')} · B/B pulse:{gt.get('bull_bear_pulse')}")
+            lines.append(f"[GOOGLE TRENDS SIGNAL] {sig_g[:140]}")
+        # Index detail
+        for k in ('crypto_fear','recession_fear','employment_stress','melt_up_attention','fed_attention','ai_hype'):
+            idx = idxs.get(k) or {}
+            if idx.get('current') is not None and idx.get('regime') in ('SPIKE','ELEVATED'):
+                lines.append(f"[TRENDS {k.upper()}] {idx.get('current')} (Δ{idx.get('delta_pp'):+}pp 7d) · {idx.get('regime')}")
+        # Daily trending headlines
+        daily = gt.get('daily_trending_us') or []
+        if daily[:5]:
+            top5 = ', '.join(d.get('title','')[:30] for d in daily[:5] if d.get('title'))
+            lines.append(f"[GOOGLE TRENDING NOW] {top5}")
+
     # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────────
     cb = get_s3('data/cb-stance.json')
     if cb:

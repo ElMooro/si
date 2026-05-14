@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Google Trends · Retail Attention — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%8E%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1500px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.complacency{border-left:4px solid var(--text-mute);}
+.regime-banner.normal{border-left:4px solid var(--info);}
+.regime-banner.stress_building{border-left:4px solid var(--gold);}
+.regime-banner.crisis_attention{border-left:4px solid var(--neg);background:rgba(255,61,90,.06);}
+.regime-banner.melt_up_attention{border-left:4px solid var(--accent);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.accent{color:var(--accent);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.index-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;}
+.idx-tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.idx-tile.spike{border-left:3px solid var(--neg);}
+.idx-tile.elevated{border-left:3px solid var(--gold);}
+.idx-tile.watching{border-left:3px solid var(--info);}
+.idx-tile.tranquil{border-left:3px solid var(--text-mute);}
+.idx-tile .name{font-family:var(--font-mono);font-size:11px;letter-spacing:.5px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px;font-weight:500;}
+.idx-tile .val{font-size:30px;font-weight:700;letter-spacing:-1px;}
+.idx-tile .delta{font-family:var(--font-mono);font-size:12px;margin-top:4px;}
+.idx-tile .delta.pos{color:var(--pos);} .idx-tile .delta.neg{color:var(--neg);}
+.idx-tile .regime{font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-top:6px;letter-spacing:.5px;}
+.idx-tile .terms{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:8px;line-height:1.5;}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+@media (max-width:900px){.row-2col{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+
+.trending-row{padding:11px 16px;border-bottom:1px solid rgba(28,35,48,.5);display:flex;align-items:center;gap:12px;}
+.trending-row:last-child{border-bottom:0;}
+.trending-row .rank{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);width:24px;}
+.trending-row .title{flex:1;font-size:13px;color:var(--text);}
+.trending-row .traffic{font-family:var(--font-mono);font-size:11px;color:var(--gold);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🔎 Google Trends <span class="badge">REAL DATA · 6 ATTENTION INDICES</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div id="indices" class="index-grid"></div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🔥 Daily Trending Searches (US)</div>
+    <div id="trending"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📊 Bull/Bear Pulse · Index Detail</div>
+    <div id="pulse-detail" style="padding:14px"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology · Real Google Trends Data</h3>
+  <p>Each of the six attention indices is computed from <strong>real Google Trends interest values</strong> (0-100 normalized) for a curated set of query terms. No randomization, no fabricated data — every value comes from <code>trends.google.com</code> directly.</p>
+  <p><strong>Indices:</strong></p>
+  <ul style="margin:6px 0;padding-left:20px">
+    <li><code>crypto_fear</code>: mean of "bitcoin crash", "crypto crash", "cryptocurrency scam"</li>
+    <li><code>recession_fear</code>: mean of "recession", "financial crisis", "stock market crash"</li>
+    <li><code>employment_stress</code>: mean of "layoffs", "unemployment", "looking for a job"</li>
+    <li><code>melt_up_attention</code>: mean of "buy stocks", "all time high", "trending stocks"</li>
+    <li><code>fed_attention</code>: mean of "fed rate hike", "fomc meeting", "powell speech"</li>
+    <li><code>ai_hype</code>: mean of "ai stocks", "nvidia stock", "openai"</li>
+  </ul>
+  <p><strong>Delta (Δpp)</strong> = current value minus 7-days-ago value. The change in retail attention is more informative than the absolute level — a +30pp spike is the alpha signal.</p>
+  <p><strong>Regime thresholds:</strong> <code>TRANQUIL</code> &lt;30 · <code>WATCHING</code> 30-55 · <code>ELEVATED</code> ≥55 OR Δ≥15pp · <code>SPIKE</code> ≥75 OR Δ≥30pp.</p>
+  <p><strong>Composite regime</strong> aggregates the indices:</p>
+  <ul style="margin:6px 0;padding-left:20px">
+    <li><code>CRISIS_ATTENTION</code> — crypto_fear AND recession_fear both elevated</li>
+    <li><code>MELT_UP_ATTENTION</code> — melt_up_attention spiking with low fear</li>
+    <li><code>STRESS_BUILDING</code> — one+ fear indices elevated</li>
+    <li><code>COMPLACENCY</code> — all indices tranquil (often pre-event quiet)</li>
+    <li><code>NORMAL</code> — mixed</li>
+  </ul>
+  <p><strong>Source:</strong> <code>trends.google.com/trends/api/dailytrends</code> + <code>widgetdata/multiline</code> · refresh every 4 hours.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/google-trends.json";
+let DATA = null;
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL);
+    DATA = await r.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderIndices(); renderTrending(); renderPulse();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + ' — Lambda may not have run yet. First run takes ~2 min (rate-limited fetches).</div>';
+  }
+}
+
+function renderRegime() {
+  const regime = DATA.composite_regime || 'NORMAL';
+  const signal = DATA.composite_signal || '';
+  const rcls = regime.toLowerCase();
+  let titleCls = 'mute';
+  if (regime === 'COMPLACENCY') titleCls = 'mute';
+  else if (regime === 'NORMAL') titleCls = 'info';
+  else if (regime === 'STRESS_BUILDING') titleCls = 'gold';
+  else if (regime === 'CRISIS_ATTENTION') titleCls = 'neg';
+  else if (regime === 'MELT_UP_ATTENTION') titleCls = 'accent';
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${titleCls}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Market Fear</span><span class="val">${DATA.market_fear_index}</span></div>
+        <div><span class="label">B/B Pulse</span><span class="val">${DATA.bull_bear_pulse > 0 ? '+' : ''}${DATA.bull_bear_pulse}</span></div>
+        <div><span class="label">Indices Loaded</span><span class="val">${DATA.n_indices_loaded}/6</span></div>
+        <div><span class="label">Daily Trending</span><span class="val">${DATA.n_daily_trending || 0}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderIndices() {
+  const idxs = DATA.indices || {};
+  const order = ['crypto_fear','recession_fear','employment_stress','melt_up_attention','fed_attention','ai_hype'];
+  document.getElementById('indices').innerHTML = order.map(k => {
+    const idx = idxs[k] || {};
+    if (idx.err) return `<div class="idx-tile"><div class="name">${k}</div><div class="val">—</div><div class="terms">err: ${idx.err}</div></div>`;
+    const regCls = (idx.regime || 'tranquil').toLowerCase();
+    const dcls = idx.delta_pp > 0 ? 'neg' : (idx.delta_pp < 0 ? 'pos' : '');
+    const dsign = idx.delta_pp > 0 ? '+' : '';
+    const terms = Object.entries(idx.per_term_current || {}).map(([t, v]) => `${t}: ${v}`).join(' · ');
+    return `<div class="idx-tile ${regCls}">
+      <div class="name">${k.replace(/_/g, ' ')}</div>
+      <div class="val">${idx.current}</div>
+      <div class="delta ${dcls}">${dsign}${idx.delta_pp}pp vs 7d ago</div>
+      <div class="regime">${idx.regime}</div>
+      <div class="terms">${terms}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTrending() {
+  const items = DATA.daily_trending_us || [];
+  if (!items.length) {
+    document.getElementById('trending').innerHTML = '<div class="loading">No data</div>';
+    return;
+  }
+  document.getElementById('trending').innerHTML = items.slice(0, 15).map((t, i) => `
+    <div class="trending-row">
+      <span class="rank">#${i+1}</span>
+      <span class="title">${t.title}</span>
+      <span class="traffic">${t.traffic_estimate}</span>
+    </div>`).join('');
+}
+
+function renderPulse() {
+  const idxs = DATA.indices || {};
+  const fear = ((idxs.crypto_fear?.current || 0) + (idxs.recession_fear?.current || 0)) / 2;
+  const greed = idxs.melt_up_attention?.current || 0;
+  document.getElementById('pulse-detail').innerHTML = `
+    <div style="font-family:var(--font-mono);font-size:12px;line-height:1.8">
+      <strong style="color:var(--neg)">Fear:</strong> ${fear.toFixed(1)} (crypto+recession mean)<br>
+      <strong style="color:var(--pos)">Greed:</strong> ${greed.toFixed(1)} (melt-up attention)<br>
+      <strong>Pulse:</strong> ${DATA.bull_bear_pulse > 0 ? '+' : ''}${DATA.bull_bear_pulse}
+      ${DATA.bull_bear_pulse > 0 ? '<span style="color:var(--pos)"> · greed dominant</span>' : '<span style="color:var(--neg)"> · fear dominant</span>'}
+      <br><br>
+      <em style="color:var(--text-mute);font-size:11px;line-height:1.6">When fear &gt; greed by 20+, retail attention is mass-defensive — historically a contrarian buy signal. When greed &gt; fear by 20+, attention is mass-bullish — contrarian caution.</em>
+    </div>`;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
