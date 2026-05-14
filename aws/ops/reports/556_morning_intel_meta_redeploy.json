@@ -1,0 +1,13 @@
+{
+  "started": "2026-05-14T17:12:31.789259+00:00",
+  "pre_last_modified": "2026-05-14T17:07:51.000+0000",
+  "pre_state": "Active",
+  "post_last_modified": "2026-05-14T17:12:32.000+0000",
+  "deployed": "OK",
+  "invoke_status": 200,
+  "fn_error": "Unhandled",
+  "response_size": 428,
+  "response_excerpt": "{\"errorMessage\": \"'str' object has no attribute 'get'\", \"errorType\": \"AttributeError\", \"requestId\": \"70d765d7-1352-4850-9438-fd377aea7774\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 1120, in lambda_handler\\n    m=extract_metrics(all_data,weights)\\n\", \"  File \\\"/var/task/lambda_function.py\\\", line 247, in extract_metrics\\n    alerts=[str(a.get(\\\"message\\\",a))[:80] for a in edge.get(\\\"alerts\\\",[])[:3]]\\n\"]}",
+  "log_tail": "WARN: ka_aliases unavailable: No module named 'ka_aliases'\nWARN: calibration module unavailable: No module named 'calibration'\nSTART RequestId: 70d765d7-1352-4850-9438-fd377aea7774 Version: $LATEST\n[START] morning-intelligence v3 action=morning\n[WEIGHTS] 43 loaded\n[S3] data/google-trends.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1120, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 247, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]\nEND RequestId: 70d765d7-1352-4850-9438-fd377aea7774\nREPORT RequestId: 70d765d7-1352-4850-9438-fd377aea7774\tDuration: 3943.41 ms\tBilled Duration: 4615 ms\tMemory Size: 512 MB\tMax Memory Used: 188 MB\tInit Duration: 671.13 ms\t\n",
+  "finished": "2026-05-14T17:12:44.619979+00:00"
+}
