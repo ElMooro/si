@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta-Regime — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24; --orange:#fb923c;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+/* META REGIME BANNER */
+.meta-banner{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px 28px;margin-bottom:20px;display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;}
+@media (max-width:900px){.meta-banner{grid-template-columns:1fr;gap:16px;text-align:left;}}
+.meta-banner.melt-up{border-left:4px solid var(--pos);background:linear-gradient(135deg,rgba(0,230,118,.07),var(--panel));}
+.meta-banner.goldilocks{border-left:4px solid var(--info);background:linear-gradient(135deg,rgba(34,211,238,.07),var(--panel));}
+.meta-banner.late-cycle{border-left:4px solid var(--orange);background:linear-gradient(135deg,rgba(251,146,60,.07),var(--panel));}
+.meta-banner.normal{border-left:4px solid var(--text-mute);}
+.meta-banner.defensive{border-left:4px solid var(--gold);background:linear-gradient(135deg,rgba(251,191,36,.07),var(--panel));}
+.meta-banner.risk-off{border-left:4px solid var(--neg);background:linear-gradient(135deg,rgba(255,61,90,.07),var(--panel));}
+.meta-banner.crisis{border-left:4px solid var(--neg);background:linear-gradient(135deg,rgba(255,61,90,.13),var(--panel));}
+.meta-banner h2{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);margin:0 0 6px 0;font-weight:500;}
+.meta-banner .regime{font-size:36px;font-weight:700;letter-spacing:-.5px;line-height:1;}
+.meta-banner .regime.melt-up{color:var(--pos);}
+.meta-banner .regime.goldilocks{color:var(--info);}
+.meta-banner .regime.late-cycle{color:var(--orange);}
+.meta-banner .regime.normal{color:var(--text);}
+.meta-banner .regime.defensive{color:var(--gold);}
+.meta-banner .regime.risk-off{color:var(--neg);}
+.meta-banner .regime.crisis{color:var(--neg);text-shadow:0 0 12px rgba(255,61,90,.3);}
+.meta-banner .narrative{font-size:14px;color:var(--text-dim);margin-top:10px;max-width:780px;line-height:1.55;}
+.meta-score{font-family:var(--font-mono);text-align:right;}
+.meta-score .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.meta-score .val{font-size:42px;font-weight:700;line-height:1;margin-top:4px;}
+.meta-score .val.pos{color:var(--pos);} .meta-score .val.neg{color:var(--neg);}
+.meta-score .sub{font-size:10px;color:var(--text-mute);margin-top:6px;}
+
+/* DIMENSIONS PANEL */
+.section-title{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);margin:24px 0 12px 0;font-weight:500;display:flex;justify-content:space-between;align-items:center;}
+.section-title .right{color:var(--text-mute);font-size:10px;}
+.dims-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:18px;}
+@media (max-width:1200px){.dims-grid{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:760px){.dims-grid{grid-template-columns:repeat(2,1fr);}}
+.dim{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px;position:relative;overflow:hidden;}
+.dim::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--text-mute);}
+.dim.pos::after{background:var(--pos);}
+.dim.strong-pos::after{background:var(--pos);box-shadow:0 0 8px var(--pos);}
+.dim.neg::after{background:var(--neg);}
+.dim.strong-neg::after{background:var(--neg);box-shadow:0 0 8px var(--neg);}
+.dim .name{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);}
+.dim .score{font-family:var(--font-mono);font-size:24px;font-weight:600;margin-top:6px;line-height:1;}
+.dim .score.pos{color:var(--pos);} .dim .score.neg{color:var(--neg);} .dim .score.neutral{color:var(--text-dim);}
+.dim .n{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:4px;}
+
+/* 15-MODULE GRID */
+.mods-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media (max-width:1100px){.mods-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:680px){.mods-grid{grid-template-columns:1fr;}}
+.mod{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px 16px;cursor:pointer;text-decoration:none;color:inherit;transition:all .15s;display:block;}
+.mod:hover{border-color:var(--border-hi);transform:translateY(-1px);}
+.mod.pos{border-left:3px solid var(--pos);}
+.mod.neg{border-left:3px solid var(--neg);}
+.mod.neutral{border-left:3px solid var(--text-mute);}
+.mod-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+.mod-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
+.mod-label .emoji{font-size:14px;}
+.mod-dim{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-mute);padding:2px 6px;border:1px solid var(--border-hi);border-radius:2px;}
+.mod-regime{font-family:var(--font-mono);font-size:14px;font-weight:600;margin:6px 0;letter-spacing:.3px;}
+.mod-regime.pos{color:var(--pos);} .mod-regime.neg{color:var(--neg);} .mod-regime.neutral{color:var(--text-dim);}
+.mod-signal{font-size:11.5px;color:var(--text-dim);line-height:1.45;min-height:32px;}
+.mod-foot{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);margin-top:8px;display:flex;justify-content:space-between;}
+.mod-missing{font-family:var(--font-mono);font-size:11px;color:var(--neg);font-style:italic;}
+
+/* HISTORY SPARK */
+.history-bar{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px 18px;margin-top:20px;}
+.spark-row{display:grid;grid-template-columns:160px 1fr 60px;gap:14px;align-items:center;font-family:var(--font-mono);font-size:11px;padding:8px 0;border-bottom:1px solid rgba(28,35,48,.4);}
+.spark-row:last-child{border-bottom:0;}
+.spark-label{color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;font-size:10px;}
+.spark-line{display:flex;height:18px;gap:1px;align-items:stretch;}
+.spark-cell{flex:1;border-radius:1px;min-width:2px;}
+.spark-val{text-align:right;color:var(--text-dim);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:20px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.method ul{margin:8px 0;padding-left:18px;}
+.method li{margin:4px 0;}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🧭 Meta-Regime <span class="badge">15-MODULE COMPOSITE</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+
+<main>
+
+<div class="meta-banner" id="meta-banner">
+  <div>
+    <h2>Meta-Regime · 7 Dimensions · 15 Modules</h2>
+    <div class="regime" id="meta-regime">LOADING…</div>
+    <div class="narrative" id="meta-narrative">Aggregating 15 Bloomberg-Gap regime modules…</div>
+  </div>
+  <div></div>
+  <div class="meta-score">
+    <div class="label">Composite Score</div>
+    <div class="val" id="composite-score">—</div>
+    <div class="sub">Range −100 to +100</div>
+  </div>
+</div>
+
+<div class="section-title">7 Dimensions <span class="right" id="n-modules">—</span></div>
+<div class="dims-grid" id="dims-grid"><div class="loading">…</div></div>
+
+<div class="section-title">15 Modules <span class="right">click to drill down</span></div>
+<div class="mods-grid" id="mods-grid"><div class="loading">Loading 15 modules…</div></div>
+
+<div class="section-title">Regime History · 24 hours <span class="right" id="hist-meta">—</span></div>
+<div class="history-bar" id="history-bar"><div class="loading">…</div></div>
+
+<div class="method">
+<h3>Methodology · Bloomberg-Gap Meta-Regime</h3>
+<p>The 15 Bloomberg-Gap modules each emit a regime label for their slice of the market (vol, gamma, credit, funding, retail flow, news, central bank, global cross-section, commodities, insider behavior, etc.). This page fuses them into a single meta-state.</p>
+<p><strong>Step 1 — Module polarity.</strong> Each module's regime label maps to a polarity in <code>{−1, 0, +1}</code>. Polarities are direction-aware: e.g., <code>OVERSHORT</code> funding is bullish-for-spot (squeeze risk), <code>CAPITULATION</code> retail is contrarian-positive, <code>MELTUP_PRONE</code> credit is short-term positive but tail-risk-elevated.</p>
+<p><strong>Step 2 — 7 Dimensions.</strong> Each module belongs to one dimension; dimension score = mean of its constituents.</p>
+<ul>
+  <li><code>VOL</code> — dealer-gex, vix-curve · stress vs calm</li>
+  <li><code>RISK_ON</code> — credit, crypto-funding, retail · risk appetite</li>
+  <li><code>LIQUIDITY</code> — dix, options-flow · market-making capacity + flow density</li>
+  <li><code>POLICY</code> — cb-stance · Fed restrictiveness (negative = hawkish)</li>
+  <li><code>REFLATION</code> — commodity-curves, global-markets · inflation/cyclical bias</li>
+  <li><code>SMART_MONEY</code> — insider-clusters, 13F, finra-short · institutional positioning</li>
+  <li><code>FUNDAMENTALS</code> — earnings-nlp, news-velocity · earnings tone + media flow</li>
+</ul>
+<p><strong>Step 3 — Composite score.</strong> Weighted mean × 100 (range −100..+100). VOL and RISK_ON get higher weights (1.5×) because they're the most predictive of near-term returns.</p>
+<p><strong>Step 4 — Meta-regime classifier (rule-based).</strong></p>
+<ul>
+  <li><code>MELT_UP</code> — vol low + risk-on high + fundamentals strong + liquidity supportive</li>
+  <li><code>GOLDILOCKS</code> — vol calm + reflation contained + policy not too hawkish</li>
+  <li><code>LATE_CYCLE</code> — risk-on continues BUT policy hawkish + reflation elevated (classic pre-correction)</li>
+  <li><code>NORMAL</code> — balanced, no extremes</li>
+  <li><code>DEFENSIVE</code> — 2-3 dimensions turning negative</li>
+  <li><code>RISK_OFF</code> — vol up + risk appetite weakening</li>
+  <li><code>CRISIS</code> — 5+ dimensions negative or vol explosion</li>
+</ul>
+<p><strong>Why this is useful:</strong> regime changes in any one module can be noise. Concurrent shifts across multiple dimensions are signal. Bloomberg's market-state summary across the top of every terminal does exactly this; here we get the same lens for our 15 proprietary modules, with Telegram alerts on regime change.</p>
+<p><strong>Refresh:</strong> Lambda runs every hour at :15 (after most constituent modules refresh). Snapshots stored 168 hours back.</p>
+</div>
+</main>
+
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-composite.json";
+const HIST_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/regime-composite-history.json";
+
+const fmtSigned = n => (n == null) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(1);
+const fmtSignedScore = n => (n == null) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(2);
+const fmtAge = m => {
+  if (m == null) return "—";
+  if (m < 60) return m.toFixed(0) + "min";
+  if (m < 1440) return (m/60).toFixed(1) + "h";
+  return (m/1440).toFixed(1) + "d";
+};
+const polClass = p => p > 0.3 ? "pos" : p < -0.3 ? "neg" : "neutral";
+const polClassStrict = p => p >= 0.5 ? "strong-pos" : p > 0 ? "pos" : p <= -0.5 ? "strong-neg" : p < 0 ? "neg" : "neutral";
+
+const DIM_LABELS = {
+  vol: "Vol", risk_on: "Risk-On", liquidity: "Liquidity", policy: "Policy",
+  reflation: "Reflation", smart_money: "Smart Money", fundamentals: "Fundamentals"
+};
+const DIM_ORDER = ["vol", "risk_on", "liquidity", "policy", "reflation", "smart_money", "fundamentals"];
+
+function render(data) {
+  const banner = document.getElementById('meta-banner');
+  banner.className = 'meta-banner ' + (data.meta_class || 'normal');
+  const r = document.getElementById('meta-regime');
+  r.textContent = (data.meta_regime || '—').replace(/_/g, ' ');
+  r.className = 'regime ' + (data.meta_class || 'normal');
+  document.getElementById('meta-narrative').textContent = data.meta_narrative || '—';
+  const sc = document.getElementById('composite-score');
+  sc.textContent = fmtSigned(data.composite_score);
+  sc.className = 'val ' + (data.composite_score > 0 ? 'pos' : data.composite_score < 0 ? 'neg' : '');
+  document.getElementById('gen-time').textContent = 'GEN ' + (data.generated_at || '').slice(0, 16) + ' UTC';
+  document.getElementById('n-modules').textContent =
+    (data.n_modules_with_data || 0) + '/' + (data.n_modules_total || 15) + ' modules · ' +
+    (data.duration_s || 0).toFixed(1) + 's';
+
+  // Dimensions
+  const dims = data.dimensions || {};
+  document.getElementById('dims-grid').innerHTML = DIM_ORDER.map(d => {
+    const dd = dims[d] || {score: 0, n: 0};
+    return `<div class="dim ${polClassStrict(dd.score)}">
+      <div class="name">${DIM_LABELS[d]}</div>
+      <div class="score ${polClass(dd.score)}">${fmtSignedScore(dd.score)}</div>
+      <div class="n">${dd.n} modules</div>
+    </div>`;
+  }).join('');
+
+  // Modules
+  const mods = data.modules || [];
+  document.getElementById('mods-grid').innerHTML = mods.map(m => {
+    if (m.missing) {
+      return `<a class="mod neutral" href="${m.page||'#'}">
+        <div class="mod-head">
+          <div class="mod-label"><span class="emoji">${m.emoji||'•'}</span>${m.label}</div>
+          <div class="mod-dim">${DIM_LABELS[m.dimension]||m.dimension}</div>
+        </div>
+        <div class="mod-missing">DATA MISSING</div>
+      </a>`;
+    }
+    return `<a class="mod ${polClass(m.polarity)}" href="${m.page||'#'}">
+      <div class="mod-head">
+        <div class="mod-label"><span class="emoji">${m.emoji||'•'}</span>${m.label}</div>
+        <div class="mod-dim">${DIM_LABELS[m.dimension]||m.dimension}</div>
+      </div>
+      <div class="mod-regime ${polClass(m.polarity)}">${(m.regime||'—').replace(/_/g,' ')}</div>
+      <div class="mod-signal">${m.signal || '—'}</div>
+      <div class="mod-foot">
+        <span>polarity ${m.polarity>=0?'+':''}${m.polarity}</span>
+        <span>${fmtAge(m.age_minutes)} ago</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function renderHistory(hist) {
+  const snapshots = (hist.snapshots || []).slice(-24);
+  if (!snapshots.length) {
+    document.getElementById('history-bar').innerHTML = '<div class="loading">No history yet.</div>';
+    return;
+  }
+  const colorFor = (score) => {
+    if (score >= 30) return 'var(--pos)';
+    if (score >= 0) return 'rgba(0,230,118,0.4)';
+    if (score >= -30) return 'rgba(255,61,90,0.4)';
+    return 'var(--neg)';
+  };
+  // 8 rows: composite + 7 dims
+  const series = [
+    {label: 'COMPOSITE', vals: snapshots.map(s => s.composite_score)},
+  ].concat(DIM_ORDER.map(d => ({
+    label: DIM_LABELS[d].toUpperCase(),
+    vals: snapshots.map(s => (s.dim_scores||{})[d] * 100)
+  })));
+  document.getElementById('hist-meta').textContent = snapshots.length + ' snapshots';
+  document.getElementById('history-bar').innerHTML = series.map(s => {
+    const cells = s.vals.map(v => `<div class="spark-cell" style="background:${colorFor(v)}" title="${v && v.toFixed(0)}"></div>`).join('');
+    const latest = s.vals[s.vals.length - 1];
+    return `<div class="spark-row">
+      <div class="spark-label">${s.label}</div>
+      <div class="spark-line">${cells}</div>
+      <div class="spark-val">${latest != null ? (latest>=0?'+':'') + latest.toFixed(0) : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL + "?_=" + Date.now(), {cache: "no-cache"});
+    const data = await r.json();
+    document.getElementById('status').textContent = "live";
+    render(data);
+  } catch (e) {
+    document.getElementById('status').textContent = "error";
+    document.getElementById('meta-narrative').textContent = "Failed to load: " + (e.message || e);
+    document.getElementById('mods-grid').innerHTML = '<div class="loading">Sidecar not yet generated. Waiting for first Lambda run…</div>';
+  }
+  try {
+    const r2 = await fetch(HIST_URL + "?_=" + Date.now(), {cache: "no-cache"});
+    const hist = await r2.json();
+    renderHistory(hist);
+  } catch (e) {
+    document.getElementById('history-bar').innerHTML = '<div class="loading">No history yet.</div>';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

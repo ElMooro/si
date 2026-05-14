@@ -1,0 +1,14 @@
+{
+  "FunctionName": "justhodl-regime-composite",
+  "Runtime": "python3.12",
+  "Handler": "lambda_function.lambda_handler",
+  "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "MemorySize": 512,
+  "Timeout": 60,
+  "Description": "Bloomberg-Gap 15-module meta-regime engine. Aggregates regime labels across 7 dimensions into a single META_REGIME with Telegram alerts on change.",
+  "Environment": {
+    "Variables": {
+      "S3_BUCKET": "justhodl-dashboard-live"
+    }
+  }
+}
