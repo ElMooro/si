@@ -533,6 +533,35 @@ def build_context(message):
                               f"rank Δ:{t.get('rank_climb',0):+d} · "
                               f"StockTwits B/B:{bb if bb else 'no data'}")
 
+    # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────────
+    cb = get_s3('data/cb-stance.json')
+    if cb:
+        fed = cb.get('fed') or {}
+        latest = fed.get('latest_statement') or {}
+        regime = fed.get('regime')
+        sig = fed.get('regime_signal', '')
+        if regime:
+            lines.append(f"[FED FOMC REGIME] {regime} · hawkish:{latest.get('hawkish_score')} · action:{latest.get('policy_action')} {latest.get('policy_action_size_bps','?')}bps · guidance:{latest.get('forward_guidance')}")
+            lines.append(f"[FED SIGNAL] {sig[:140]}")
+        delta = fed.get('delta_hawkish_score')
+        shift = fed.get('shift_classification')
+        if delta is not None:
+            lines.append(f"[FED DELTA-HAWKISH] {delta:+d} vs prior ({shift}) · last:{latest.get('date')}, prior:{fed.get('prior_statement_date')}")
+        # Concerns + balance sheet
+        conc = []
+        for kk, lbl in [('inflation_concern','infl'), ('growth_concern','growth'), ('labor_concern','labor'), ('balance_sheet_stance','QT')]:
+            v = latest.get(kk)
+            if v: conc.append(f"{lbl}:{v}")
+        if conc: lines.append(f"[FED CONCERNS] {' · '.join(conc)}")
+        # Themes + notable phrases (the language alpha)
+        themes = latest.get('key_themes') or []
+        if themes: lines.append(f"[FED THEMES] {' · '.join(themes[:3])}")
+        phr = latest.get('notable_phrases') or []
+        if phr: lines.append(f"[FED NOTABLE LANG] {' / '.join(p[:60] for p in phr[:3])}")
+        # Summary
+        summ = latest.get('summary')
+        if summ: lines.append(f"[FED SUMMARY] {summ[:200]}")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:

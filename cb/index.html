@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Central Bank Stance — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A6%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1400px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.hawkish_stance{border-left:4px solid var(--neg);}
+.regime-banner.mild_hawkish,.regime-banner.transition_hawkish{border-left:4px solid var(--gold);}
+.regime-banner.neutral{border-left:4px solid var(--info);}
+.regime-banner.transition_dovish,.regime-banner.mild_dovish{border-left:4px solid var(--accent);}
+.regime-banner.dovish_stance{border-left:4px solid var(--pos);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.purple{color:var(--accent);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.section-title{font-size:11px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin:18px 0 8px;font-family:var(--font-mono);font-weight:600;}
+
+.fact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.fact-tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.fact-tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.fact-tile .val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.fact-tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.fact-tile.pos .val{color:var(--pos);} .fact-tile.neg .val{color:var(--neg);} .fact-tile.gold .val{color:var(--gold);} .fact-tile.info .val{color:var(--info);}
+
+.statement-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px 18px;margin-bottom:12px;}
+.statement-row.latest{border-left:4px solid var(--accent);}
+.statement-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:12px;flex-wrap:wrap;}
+.statement-date{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);}
+.statement-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.statement-score{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:-.5px;text-align:right;}
+.statement-score.pos{color:var(--neg);} .statement-score.neg{color:var(--pos);} .statement-score.mid{color:var(--info);}
+.statement-summary{font-size:13px;color:var(--text);line-height:1.5;margin:8px 0;}
+.statement-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.pill{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border-hi);text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);}
+.pill.hike{background:rgba(255,61,90,.08);color:var(--neg);border-color:rgba(255,61,90,.4);}
+.pill.cut{background:rgba(0,230,118,.08);color:var(--pos);border-color:rgba(0,230,118,.4);}
+.pill.hold{background:rgba(34,211,238,.08);color:var(--info);border-color:rgba(34,211,238,.4);}
+.pill.hawkish{background:rgba(255,61,90,.08);color:var(--neg);border-color:rgba(255,61,90,.4);}
+.pill.dovish{background:rgba(0,230,118,.08);color:var(--pos);border-color:rgba(0,230,118,.4);}
+.pill.neutral_p{background:rgba(34,211,238,.08);color:var(--info);border-color:rgba(34,211,238,.4);}
+.pill.high{color:var(--neg);}
+.pill.low{color:var(--pos);}
+
+.themes-and-phrases{margin-top:10px;font-size:12px;}
+.themes-and-phrases .label{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.themes-and-phrases .themes{color:var(--accent);font-family:var(--font-mono);font-size:11px;}
+.themes-and-phrases .phrases{color:var(--text-dim);font-style:italic;}
+
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:18px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+#chart{height:340px;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🏦 Central Bank Stance <span class="badge">FED FOMC · CLAUDE HAIKU</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div id="facts" class="fact-grid"></div>
+
+<div class="chart-panel">
+  <div class="chart-title">📈 Hawkish Score Trajectory (last N FOMC statements)</div>
+  <div id="chart"></div>
+</div>
+
+<div class="section-title">🏛 Latest Statement — Full Detail</div>
+<div id="latest-statement"></div>
+
+<div class="section-title">📜 Statement History — Prior 4 FOMC Meetings</div>
+<div id="prior-statements"></div>
+
+<div class="method">
+  <h3>Methodology · Hawkish/Dovish Scoring</h3>
+  <p>Each FOMC statement is fetched from the Federal Reserve monetary policy RSS feed and passed through Claude Haiku 4.5 with a structured prompt. The model returns:</p>
+  <p><strong>hawkish_score</strong> (-100 to +100): the canonical scalar. -100 = aggressive easing language, 0 = neutral hold, +100 = aggressive tightening. This integrates the full statement — current action, forward guidance, balance sheet stance, and qualifying language ("highly attentive," "data-dependent," "for some time").</p>
+  <p><strong>Forward guidance</strong> classification: HAWKISH / NEUTRAL / DOVISH / DATA_DEPENDENT. <strong>Concern dimensions</strong>: inflation, growth, labor — each scored HIGH/MEDIUM/LOW. <strong>Balance sheet</strong>: TIGHTENING / STABLE / EXPANDING / NOT_DISCUSSED.</p>
+  <p><strong>Delta-hawkish</strong> is the real alpha. Comparing tone to the prior meeting catches subtle pivots before the consensus rate path moves. Thresholds: <code>≥+15</code> HAWKISH_PIVOT · <code>+5..+15</code> HAWKISH_DRIFT · <code>-5..+5</code> STABLE · <code>-15..-5</code> DOVISH_DRIFT · <code>≤-15</code> DOVISH_PIVOT.</p>
+  <p><strong>Regime classification</strong> blends absolute score and recent shift:</p>
+  <ul style="margin:6px 0;padding-left:20px;">
+    <li><code>HAWKISH_STANCE</code> · score ≥+50 — restrictive; equities priced for tight money</li>
+    <li><code>MILD_HAWKISH</code> / <code>TRANSITION_DOVISH</code> · score 20-50 with vs without dovish drift</li>
+    <li><code>NEUTRAL</code> · score -20 to +20</li>
+    <li><code>MILD_DOVISH</code> / <code>TRANSITION_HAWKISH</code> · score -50 to -20</li>
+    <li><code>DOVISH_STANCE</code> · score ≤-50 — aggressive easing; risk-supportive</li>
+  </ul>
+  <p><strong>Data:</strong> Federal Reserve press release RSS + statement HTML scrape · refresh every 6h · cached per-statement in S3 so subsequent runs are nearly instant.</p>
+  <p><em>ECB, BoE, BoJ coverage coming in v1.1.0.</em></p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/cb-stance.json";
+let DATA = null, CHART = null;
+
+function fmtScore(s) { return s == null ? '-' : (s >= 0 ? '+' : '') + s; }
+function scoreClass(s) { return s == null ? 'mid' : (s > 30 ? 'pos' : (s < -30 ? 'neg' : 'mid')); }
+function actionClass(a) { return ({'HIKE':'hike','CUT':'cut','HOLD':'hold'})[a] || 'hold'; }
+function guidanceClass(g) { return ({'HAWKISH':'hawkish','DOVISH':'dovish','NEUTRAL':'neutral_p','DATA_DEPENDENT':'neutral_p'})[g] || 'neutral_p'; }
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL);
+    DATA = await r.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderFacts(); renderLatest(); renderPriors(); renderChart();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + ' — Lambda may not have run yet.</div>';
+  }
+}
+
+function renderRegime() {
+  const f = DATA.fed || {};
+  const regime = f.regime || 'UNKNOWN';
+  const signal = f.regime_signal || '';
+  const rcls = regime.toLowerCase();
+  let tcls = 'mute';
+  if (regime.includes('HAWKISH_STANCE')) tcls = 'neg';
+  else if (regime.includes('HAWKISH')) tcls = 'gold';
+  else if (regime.includes('DOVISH_STANCE')) tcls = 'pos';
+  else if (regime.includes('DOVISH')) tcls = 'purple';
+  else if (regime === 'NEUTRAL') tcls = 'info';
+  const latest = f.latest_statement || {};
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${tcls}">${regime.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Hawkish</span><span class="val">${fmtScore(latest.hawkish_score)}</span></div>
+        <div><span class="label">Δ vs prior</span><span class="val">${fmtScore(f.delta_hawkish_score)}</span></div>
+        <div><span class="label">Action</span><span class="val">${latest.policy_action || '-'}</span></div>
+        <div><span class="label">Guidance</span><span class="val" style="font-size:13px;">${latest.forward_guidance || '-'}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderFacts() {
+  const f = DATA.fed || {};
+  const latest = f.latest_statement || {};
+  const tiles = [
+    {lbl:'Latest FOMC Date', val: latest.date || '-', sub: 'YYYYMMDD format'},
+    {lbl:'Δ Hawkish vs Prior', val: fmtScore(f.delta_hawkish_score), sub: f.shift_classification || '-',
+      cls: (f.delta_hawkish_score > 5 ? 'neg' : (f.delta_hawkish_score < -5 ? 'pos' : ''))},
+    {lbl:'Inflation Concern', val: latest.inflation_concern || '-', sub:''},
+    {lbl:'Growth Concern', val: latest.growth_concern || '-', sub:''},
+    {lbl:'Labor Concern', val: latest.labor_concern || '-', sub:''},
+    {lbl:'Balance Sheet', val: latest.balance_sheet_stance || '-', sub:''},
+  ];
+  document.getElementById('facts').innerHTML = tiles.map(t => `
+    <div class="fact-tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function statementCard(s, isLatest) {
+  const phrases = (s.notable_phrases || []).map(p => `"${p}"`).join(' · ');
+  const themes = (s.key_themes || []).join(' · ');
+  return `<div class="statement-row ${isLatest ? 'latest' : ''}">
+    <div class="statement-head">
+      <div>
+        <div class="statement-date">${s.date}</div>
+        <div class="statement-meta">${s.title || s.url || ''}</div>
+      </div>
+      <div>
+        <div class="statement-score ${scoreClass(s.hawkish_score)}">${fmtScore(s.hawkish_score)}</div>
+        <div class="statement-tags">
+          <span class="pill ${actionClass(s.policy_action || s.action)}">${s.policy_action || s.action || '-'}${s.policy_action_size_bps ? ' ' + s.policy_action_size_bps + 'bps' : ''}</span>
+          <span class="pill ${guidanceClass(s.forward_guidance || s.guidance)}">${s.forward_guidance || s.guidance || '-'}</span>
+        </div>
+      </div>
+    </div>
+    <div class="statement-summary">${s.summary || ''}</div>
+    ${themes ? `<div class="themes-and-phrases"><div class="label">Themes</div><div class="themes">${themes}</div></div>` : ''}
+    ${phrases ? `<div class="themes-and-phrases"><div class="label">Notable Phrases</div><div class="phrases">${phrases}</div></div>` : ''}
+  </div>`;
+}
+
+function renderLatest() {
+  const f = DATA.fed || {};
+  const latest = f.latest_statement || {};
+  if (!latest.date) {
+    document.getElementById('latest-statement').innerHTML = '<div class="loading">No statement scored yet</div>';
+    return;
+  }
+  document.getElementById('latest-statement').innerHTML = statementCard(latest, true);
+}
+
+function renderPriors() {
+  const f = DATA.fed || {};
+  const list = (f.recent_statements || []).slice(1);
+  if (!list.length) {
+    document.getElementById('prior-statements').innerHTML = '<div class="loading">No prior statements yet</div>';
+    return;
+  }
+  document.getElementById('prior-statements').innerHTML = list.map(s => statementCard(s, false)).join('');
+}
+
+function renderChart() {
+  const f = DATA.fed || {};
+  const list = (f.recent_statements || []).slice().reverse(); // oldest first
+  if (!list.length) return;
+  if (!CHART) CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger:'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'} },
+    grid: {left:60, right:40, top:30, bottom:50},
+    xAxis: { type:'category', data: list.map(s=>s.date), axisLabel:{color:'#8b96a8',fontSize:10,rotate:30}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'Hawkish Score', axisLabel:{color:'#8b96a8',fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}}, min:-100, max:100 },
+    series: [{
+      type:'line', data: list.map(s=>s.hawkish_score), smooth:false, symbol:'circle', symbolSize:8,
+      itemStyle:{color:'#a78bfa'}, lineStyle:{color:'#a78bfa', width:2.5},
+      label:{show:true, position:'top', formatter:p=>(p.value>=0?'+':'')+p.value, color:'#e6ecf3', fontFamily:'JetBrains Mono', fontSize:11},
+      markLine:{silent:true, symbol:'none', data:[
+        {yAxis:0, lineStyle:{color:'#5b6479',type:'dashed',width:1}, label:{formatter:'Neutral', color:'#5b6479', fontSize:10}},
+        {yAxis:50, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'Hawkish Stance', color:'#ff3d5a', fontSize:10}},
+        {yAxis:-50, lineStyle:{color:'#00e676',type:'dashed',width:1}, label:{formatter:'Dovish Stance', color:'#00e676', fontSize:10}},
+      ]},
+    }],
+  });
+}
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); });
+load();
+setInterval(load, 10 * 60 * 1000);
+</script>
+</body>
+</html>

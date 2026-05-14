@@ -193,6 +193,8 @@ def load_all():
         "earnings_nlp":"data/earnings-nlp.json",
         # ─── Credit Stress (Bloomberg-Gap #8 · daily 20:00 UTC) ──────
         "credit_stress":"data/credit-stress.json",
+        # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────
+        "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
         "retail_sentiment":"data/retail-sentiment.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
@@ -734,6 +736,29 @@ def extract_metrics(data,weights):
             "yield_curve_10y_2y": ((c.get("metrics") or {}).get("T10Y2Y") or {}).get("current"),
             "credit_data_date": c.get("data_date"),
             "credit_generated_at": c.get("generated_at"),
+        })(),
+        # ─── Central Bank Stance (Bloomberg-Gap #11) — Fed FOMC NLP ──
+        **(lambda cb=data.get("cb_stance", {}): {
+            "fed_regime": (cb.get("fed") or {}).get("regime"),
+            "fed_regime_signal": (cb.get("fed") or {}).get("regime_signal"),
+            "fed_latest_hawkish_score": ((cb.get("fed") or {}).get("latest_statement") or {}).get("hawkish_score"),
+            "fed_latest_policy_action": ((cb.get("fed") or {}).get("latest_statement") or {}).get("policy_action"),
+            "fed_latest_action_size_bps": ((cb.get("fed") or {}).get("latest_statement") or {}).get("policy_action_size_bps"),
+            "fed_latest_forward_guidance": ((cb.get("fed") or {}).get("latest_statement") or {}).get("forward_guidance"),
+            "fed_latest_inflation_concern": ((cb.get("fed") or {}).get("latest_statement") or {}).get("inflation_concern"),
+            "fed_latest_growth_concern": ((cb.get("fed") or {}).get("latest_statement") or {}).get("growth_concern"),
+            "fed_latest_labor_concern": ((cb.get("fed") or {}).get("latest_statement") or {}).get("labor_concern"),
+            "fed_latest_balance_sheet_stance": ((cb.get("fed") or {}).get("latest_statement") or {}).get("balance_sheet_stance"),
+            "fed_latest_key_themes": ((cb.get("fed") or {}).get("latest_statement") or {}).get("key_themes"),
+            "fed_latest_notable_phrases": ((cb.get("fed") or {}).get("latest_statement") or {}).get("notable_phrases"),
+            "fed_latest_summary": ((cb.get("fed") or {}).get("latest_statement") or {}).get("summary"),
+            "fed_latest_date": ((cb.get("fed") or {}).get("latest_statement") or {}).get("date"),
+            "fed_prior_date": (cb.get("fed") or {}).get("prior_statement_date"),
+            "fed_prior_hawkish_score": (cb.get("fed") or {}).get("prior_hawkish_score"),
+            "fed_delta_hawkish_score": (cb.get("fed") or {}).get("delta_hawkish_score"),
+            "fed_shift_classification": (cb.get("fed") or {}).get("shift_classification"),
+            "fed_recent_statements_count": len((cb.get("fed") or {}).get("recent_statements") or []),
+            "fed_generated_at": cb.get("generated_at"),
         })(),
         # ─── Retail Sentiment (Bloomberg-Gap #9) — ApeWisdom + StockTwits ──
         **(lambda rs=data.get("retail_sentiment", {}): {
