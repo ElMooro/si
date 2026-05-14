@@ -1,0 +1,231 @@
+{
+  "started": "2026-05-14T01:29:51.193268+00:00",
+  "env_keys": [
+    "FMP_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "lambda": "created",
+  "schedule": "cron(15 0/3 ? * * *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_etfs": 15,
+    "n_with_data": 15,
+    "composite_regime": "US_LED_BULL",
+    "spy_20d": 6.05,
+    "intl_avg_20d": 2.54,
+    "us_minus_intl_20d_pp": 3.51,
+    "top_3": [
+      "EWY",
+      "QQQ",
+      "EEM"
+    ],
+    "alert_sent": false,
+    "elapsed_seconds": 1.1
+  },
+  "log_tail": "START RequestId: df36bcf3-f588-45a3-aa8e-5c6439e6d2ad Version: $LATEST\n=== global-markets v1.0.0 \u00b7 2026-05-14T01:29:59.639337+00:00 ===\nuniverse: 15 ETFs\n\u2713 EFA      103.83 1d=+0.67% 5d=-0.94% 20d=+0.50% ytd=+7.00% \u03c3=22.6%\n\u2713 EEM       67.21 1d=+2.11% 5d=-0.41% 20d=+8.05% ytd=+19.51% \u03c3=30.7%\n\u2713 VEU       82.96 1d=+1.04% 5d=-0.60% 20d=+3.07% ytd=+11.07% \u03c3=23.5%\n\u2713 IWM      282.67 1d=+0.04% 5d=-1.44% 20d=+4.93% ytd=+13.62% \u03c3=20.8%\n\u2713 EWG       42.16 1d=+0.52% 5d=-3.01% 20d=-0.47% ytd=-0.94% \u03c3=25.5%\n\u2713 ACWI     155.88 1d=+0.80% 5d=+0.31% 20d=+4.76% ytd=+9.40% \u03c3=17.9%\n\u2713 EWJ       93.09 1d=+1.12% 5d=+1.54% 20d=+4.51% ytd=+14.46% \u03c3=26.0%\n\u2713 QQQ      714.71 1d=+1.06% 5d=+2.72% 20d=+12.13% ytd=+16.57% \u03c3=19.4%\n\u2713 SPY      742.31 1d=+0.56% 5d=+1.16% 20d=+6.05% ytd=+8.66% \u03c3=14.9%\n\u2713 EWU       46.90 1d=+0.64% 5d=-1.14% 20d=-1.88% ytd=+5.49% \u03c3=20.4%\n\u2713 EWZ       36.78 1d=-3.82% 5d=-7.82% 20d=-11.29% ytd=+14.22% \u03c3=31.2%\n\u2713 EWA       29.12 1d=-0.68% 5d=-3.32% 20d=-3.77% ytd=+10.01% \u03c3=24.2%\n\u2713 EWY      188.63 1d=+5.68% 5d=+3.65% 20d=+30.16% ytd=+84.53% \u03c3=65.4%\n\u2713 INDA      47.98 1d=+0.97% 5d=-4.10% 20d=-4.00% ytd=-12.06% \u03c3=22.4%\n\u2713 MCHI      59.79 1d=+2.71% 5d=+1.84% 20d=+3.03% ytd=-3.94% \u03c3=20.9%\n\u2713 global-markets.json written\nEND RequestId: df36bcf3-f588-45a3-aa8e-5c6439e6d2ad\nREPORT RequestId: df36bcf3-f588-45a3-aa8e-5c6439e6d2ad\tDuration: 1126.74 ms\tBilled Duration: 1666 ms\tMemory Size: 512 MB\tMax Memory Used: 113 MB\tInit Duration: 538.47 ms\t\n",
+  "sidecar": {
+    "size_kb": 25.0,
+    "modified": "2026-05-14T01:30:01",
+    "version": "1.0.0",
+    "n_etfs": 15,
+    "n_with_data": 15,
+    "n_with_err": 0,
+    "composite_regime": "US_LED_BULL",
+    "composite_signal": "US leading by +3.5pp \u2014 narrow but firm leadership",
+    "spy_20d": 6.05,
+    "intl_avg_20d": 2.54,
+    "us_minus_intl_20d_pp": 3.51,
+    "n_positive_20d": 10,
+    "pct_positive": 66.7,
+    "pairs": {
+      "qqq_minus_spy_20d": 6.08,
+      "iwm_minus_spy_20d": -1.12,
+      "eem_minus_spy_20d": 2.0,
+      "efa_minus_spy_20d": -5.55,
+      "eem_minus_efa_20d": 7.55
+    },
+    "top_3_by_20d": [
+      "EWY",
+      "QQQ",
+      "EEM"
+    ],
+    "bottom_3_by_20d": [
+      "EWA",
+      "INDA",
+      "EWZ"
+    ],
+    "ranked_full": [
+      {
+        "sym": "EWY",
+        "name": "South Korea",
+        "region": "South Korea",
+        "ret_20d": 30.16,
+        "ret_5d": 3.65,
+        "ret_60d": 44.34,
+        "ret_ytd": 84.53,
+        "vol_60d_ann_pct": 65.4,
+        "rs_vs_spy_20d": 24.11
+      },
+      {
+        "sym": "QQQ",
+        "name": "US Tech (NDX)",
+        "region": "US",
+        "ret_20d": 12.13,
+        "ret_5d": 2.72,
+        "ret_60d": 18.86,
+        "ret_ytd": 16.57,
+        "vol_60d_ann_pct": 19.4,
+        "rs_vs_spy_20d": 6.08
+      },
+      {
+        "sym": "EEM",
+        "name": "Emerging Markets",
+        "region": "EM",
+        "ret_20d": 8.05,
+        "ret_5d": -0.41,
+        "ret_60d": 10.42,
+        "ret_ytd": 19.51,
+        "vol_60d_ann_pct": 30.7,
+        "rs_vs_spy_20d": 2.0
+      },
+      {
+        "sym": "SPY",
+        "name": "US Large Cap",
+        "region": "US",
+        "ret_20d": 6.05,
+        "ret_5d": 1.16,
+        "ret_60d": 8.71,
+        "ret_ytd": 8.66,
+        "vol_60d_ann_pct": 14.9,
+        "rs_vs_spy_20d": null
+      },
+      {
+        "sym": "IWM",
+        "name": "US Small Cap (RUT)",
+        "region": "US",
+        "ret_20d": 4.93,
+        "ret_5d": -1.44,
+        "ret_60d": 7.46,
+        "ret_ytd": 13.62,
+        "vol_60d_ann_pct": 20.8,
+        "rs_vs_spy_20d": -1.12
+      },
+      {
+        "sym": "ACWI",
+        "name": "All Country World",
+        "region": "Global",
+        "ret_20d": 4.76,
+        "ret_5d": 0.31,
+        "ret_60d": 6.77,
+        "ret_ytd": 9.4,
+        "vol_60d_ann_pct": 17.9,
+        "rs_vs_spy_20d": -1.29
+      },
+      {
+        "sym": "EWJ",
+        "name": "Japan",
+        "region": "Japan",
+        "ret_20d": 4.51,
+        "ret_5d": 1.54,
+        "ret_60d": 1.33,
+        "ret_ytd": 14.46,
+        "vol_60d_ann_pct": 26.0,
+        "rs_vs_spy_20d": -1.54
+      },
+      {
+        "sym": "VEU",
+        "name": "All-World ex-US",
+        "region": "World ex-US",
+        "ret_20d": 3.07,
+        "ret_5d": -0.6,
+        "ret_60d": 3.26,
+        "ret_ytd": 11.07,
+        "vol_60d_ann_pct": 23.5,
+        "rs_vs_spy_20d": -2.98
+      },
+      {
+        "sym": "MCHI",
+        "name": "China (MSCI)",
+        "region": "China",
+        "ret_20d": 3.03,
+        "ret_5d": 1.84,
+        "ret_60d": -1.35,
+        "ret_ytd": -3.94,
+        "vol_60d_ann_pct": 20.9,
+        "rs_vs_spy_20d": -3.02
+      },
+      {
+        "sym": "EFA",
+        "name": "Developed ex-US",
+        "region": "DM ex-US",
+        "ret_20d": 0.5,
+        "ret_5d": -0.94,
+        "ret_60d": -0.37,
+        "ret_ytd": 7.0,
+        "vol_60d_ann_pct": 22.6,
+        "rs_vs_spy_20d": -5.55
+      },
+      {
+        "sym": "EWG",
+        "name": "Germany",
+        "region": "Germany",
+        "ret_20d": -0.47,
+        "ret_5d": -3.01,
+        "ret_60d": -4.27,
+        "ret_ytd": -0.94,
+        "vol_60d_ann_pct": 25.5,
+        "rs_vs_spy_20d": -6.52
+      },
+      {
+        "sym": "EWU",
+        "name": "UK",
+        "region": "UK",
+        "ret_20d": -1.88,
+        "ret_5d": -1.14,
+        "ret_60d": -1.1,
+        "ret_ytd": 5.49,
+        "vol_60d_ann_pct": 20.4,
+        "rs_vs_spy_20d": -7.93
+      },
+      {
+        "sym": "EWA",
+        "name": "Australia",
+        "region": "Australia",
+        "ret_20d": -3.77,
+        "ret_5d": -3.32,
+        "ret_60d": -0.68,
+        "ret_ytd": 10.01,
+        "vol_60d_ann_pct": 24.2,
+        "rs_vs_spy_20d": -9.82
+      },
+      {
+        "sym": "INDA",
+        "name": "India",
+        "region": "India",
+        "ret_20d": -4.0,
+        "ret_5d": -4.1,
+        "ret_60d": -9.93,
+        "ret_ytd": -12.06,
+        "vol_60d_ann_pct": 22.4,
+        "rs_vs_spy_20d": -10.05
+      },
+      {
+        "sym": "EWZ",
+        "name": "Brazil",
+        "region": "Brazil",
+        "ret_20d": -11.29,
+        "ret_5d": -7.82,
+        "ret_60d": -2.54,
+        "ret_ytd": 14.22,
+        "vol_60d_ann_pct": 31.2,
+        "rs_vs_spy_20d": -17.34
+      }
+    ]
+  },
+  "finished": "2026-05-14T01:30:00.907531+00:00"
+}
