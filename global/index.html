@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Markets — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8D%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.global_broad_bull{border-left:4px solid var(--pos);}
+.regime-banner.us_led_bull{border-left:4px solid var(--info);}
+.regime-banner.row_led_bull{border-left:4px solid var(--gold);}
+.regime-banner.divergent{border-left:4px solid var(--accent);}
+.regime-banner.global_broad_bear{border-left:4px solid var(--neg);background:rgba(255,61,90,.05);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.accent{color:var(--accent);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.pair-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.pair-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;text-align:center;}
+.pair-card .lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.pair-card .v{font-size:20px;font-weight:600;letter-spacing:-.3px;}
+.pair-card .v.pos{color:var(--pos);} .pair-card .v.neg{color:var(--neg);}
+.pair-card .desc{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:4px;}
+@media (max-width:1000px){.pair-grid{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:680px){.pair-grid{grid-template-columns:repeat(2,1fr);}}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.full-table th{padding:10px 14px;text-align:right;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table th:first-child,.full-table th:nth-child(2){text-align:left;}
+.full-table td{padding:11px 14px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+.full-table td:first-child,.full-table td:nth-child(2){text-align:left;}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table tr:last-child td{border-bottom:0;}
+.t-sym{font-weight:600;color:var(--text);}
+.t-name{color:var(--text-dim);font-size:11px;}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);}
+
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin:18px 0;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+#chart{height:480px;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🌍 Global Markets <span class="badge">15 REGIONS · USD-PROXIES</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div id="pair-grid" class="pair-grid"></div>
+
+<table class="full-table">
+  <thead><tr>
+    <th>Symbol</th><th>Region</th>
+    <th>Price</th><th>1D %</th>
+    <th>5D %</th><th>20D %</th><th>60D %</th><th>YTD %</th>
+    <th>σ 60d (ann)</th><th>RS vs SPY 20d</th>
+  </tr></thead>
+  <tbody id="tbody"><tr><td colspan="10" class="loading">Loading universe…</td></tr></tbody>
+</table>
+
+<div class="chart-panel">
+  <div class="chart-title">📈 60-Day Normalized Returns · All Regions vs SPY</div>
+  <div id="chart"></div>
+</div>
+
+<div class="method">
+  <h3>Methodology · Cross-Asset Regional Coherence</h3>
+  <p>15 region/country/style ETFs sampled from FMP /stable/ for current price + 180d daily close history. All USD-denominated, traded on US exchanges (NYSE/NASDAQ) for clean comparison.</p>
+  <p><strong>Relative Strength vs SPY</strong> is the key leadership signal. <code>RS_20d = etf_20d_return − SPY_20d_return</code> in percentage points. Positive RS = outperforming US large-caps over 20 sessions.</p>
+  <p><strong>Composite Regimes:</strong></p>
+  <p><code>GLOBAL_BROAD_BULL</code> — 70%+ regions positive 20d, narrow US-intl gap (synchronized advance).</p>
+  <p><code>US_LED_BULL</code> — US ahead by 3+pp vs intl (narrow leadership; vulnerable to rotation).</p>
+  <p><code>ROW_LED_BULL</code> — Intl ahead by 3+pp vs US (rotation underway; possible US underperformance regime).</p>
+  <p><code>DIVERGENT</code> — Wide dispersion, mixed signals (tactical environment).</p>
+  <p><code>GLOBAL_BROAD_BEAR</code> — &lt;30% regions positive (broad risk-off).</p>
+  <p><strong>Pair signals:</strong> <code>QQQ−SPY</code> tech leadership · <code>IWM−SPY</code> small-cap risk-on · <code>EEM−SPY</code> EM vs US · <code>EFA−SPY</code> DM ex-US vs US · <code>EEM−EFA</code> EM vs DM dispersion.</p>
+  <p><strong>Source:</strong> FMP /stable/quote + /stable/historical-price-eod/full · refresh every 3 hours.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/global-markets.json";
+let DATA = null, CHART = null;
+
+function fmtPct(v, d=2) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(d) + '%'; }
+function fmtPp(v, d=1) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(d) + 'pp'; }
+function cls(v) { return v == null ? '' : (v > 0 ? 't-pos' : (v < 0 ? 't-neg' : '')); }
+
+async function load() {
+  try {
+    DATA = await (await fetch(SIDECAR_URL)).json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0,16).replace('T',' ') + ' UTC';
+    renderRegime(); renderPairs(); renderTable(); renderChart();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function renderRegime() {
+  const c = DATA.composite || {};
+  const r = DATA.composite_regime || 'UNKNOWN';
+  const s = DATA.composite_signal || '';
+  const rcls = r.toLowerCase();
+  let tcls = 'mute';
+  if (r === 'GLOBAL_BROAD_BULL') tcls = 'pos';
+  else if (r === 'US_LED_BULL') tcls = 'info';
+  else if (r === 'ROW_LED_BULL') tcls = 'gold';
+  else if (r === 'DIVERGENT') tcls = 'accent';
+  else if (r === 'GLOBAL_BROAD_BEAR') tcls = 'neg';
+
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${tcls}">${r.replace(/_/g,' ')}</div>
+        <div class="regime-signal">${s}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">SPY 20D</span><span class="val">${fmtPct(c.spy_20d, 1)}</span></div>
+        <div><span class="label">Intl Avg 20D</span><span class="val">${fmtPct(c.intl_avg_20d, 1)}</span></div>
+        <div><span class="label">US−Intl</span><span class="val">${fmtPp(c.us_minus_intl_20d_pp)}</span></div>
+        <div><span class="label">% Positive</span><span class="val">${c.pct_positive}%</span></div>
+      </div>
+    </div>`;
+}
+
+function renderPairs() {
+  const p = (DATA.composite || {}).pairs || {};
+  const cards = [
+    {lbl: 'QQQ−SPY', v: p.qqq_minus_spy_20d, desc: 'Tech leadership (20d)'},
+    {lbl: 'IWM−SPY', v: p.iwm_minus_spy_20d, desc: 'Small-cap risk-on (20d)'},
+    {lbl: 'EEM−SPY', v: p.eem_minus_spy_20d, desc: 'EM vs US (20d)'},
+    {lbl: 'EFA−SPY', v: p.efa_minus_spy_20d, desc: 'DM ex-US vs US (20d)'},
+    {lbl: 'EEM−EFA', v: p.eem_minus_efa_20d, desc: 'EM vs DM (20d)'},
+  ];
+  document.getElementById('pair-grid').innerHTML = cards.map(c => {
+    const cl = c.v == null ? '' : (c.v > 0 ? 'pos' : 'neg');
+    return `<div class="pair-card">
+      <div class="lbl">${c.lbl}</div>
+      <div class="v ${cl}">${fmtPp(c.v)}</div>
+      <div class="desc">${c.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTable() {
+  const ranked = ((DATA.composite || {}).ranked_20d) || [];
+  if (!ranked.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="10" class="loading">No data</td></tr>';
+    return;
+  }
+  document.getElementById('tbody').innerHTML = ranked.map(r => {
+    const cur = (DATA.by_sym || {})[r.sym] || {};
+    return `<tr>
+      <td><span class="t-sym">${r.sym}</span></td>
+      <td><span class="t-name">${r.name} · ${r.region}</span></td>
+      <td>${cur.current == null ? '-' : cur.current.toFixed(2)}</td>
+      <td class="${cls(cur.change_1d_pct)}">${fmtPct(cur.change_1d_pct)}</td>
+      <td class="${cls(r.ret_5d)}">${fmtPct(r.ret_5d)}</td>
+      <td class="${cls(r.ret_20d)}">${fmtPct(r.ret_20d)}</td>
+      <td class="${cls(r.ret_60d)}">${fmtPct(r.ret_60d)}</td>
+      <td class="${cls(r.ret_ytd)}">${fmtPct(r.ret_ytd)}</td>
+      <td>${r.vol_60d_ann_pct == null ? '-' : r.vol_60d_ann_pct + '%'}</td>
+      <td class="${cls(r.rs_vs_spy_20d)}">${r.sym === 'SPY' ? '-' : fmtPp(r.rs_vs_spy_20d)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderChart() {
+  const hist = DATA.history_60d || {};
+  const syms = Object.keys(hist).filter(s => (hist[s].closes || []).length >= 30);
+  if (!syms.length) return;
+  // Normalize each series to 100 at first date
+  const dates = hist['SPY'] ? hist['SPY'].dates : (hist[syms[0]] || {}).dates;
+  const series = syms.map(s => {
+    const closes = hist[s].closes || [];
+    if (!closes.length) return null;
+    const base = closes[0];
+    const normalized = closes.map(c => (c / base) * 100);
+    return {name: s, data: normalized};
+  }).filter(Boolean);
+
+  const colors = {
+    SPY:'#22d3ee', QQQ:'#a78bfa', IWM:'#fbbf24',
+    EFA:'#00e676', VEU:'#34d399', EEM:'#fb7185',
+    EWJ:'#f472b6', EWG:'#facc15', EWU:'#60a5fa',
+    MCHI:'#ef4444', INDA:'#fb923c', EWZ:'#84cc16',
+    EWY:'#a855f7', EWA:'#06b6d4', ACWI:'#8b96a8',
+  };
+
+  if (!CHART) CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger:'axis', backgroundColor:'#10151d', borderColor:'#2a3548',
+               textStyle:{color:'#e6ecf3'}, axisPointer:{type:'cross', lineStyle:{color:'#5b6479'}} },
+    legend: { data: syms, textStyle:{color:'#e6ecf3', fontSize:11}, top:6 },
+    grid: {left:60, right:60, top:42, bottom:40},
+    xAxis: { type:'category', data: dates, axisLabel:{color:'#8b96a8',fontSize:10},
+             axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'Normalized (T=100)',
+             axisLabel:{color:'#8b96a8',fontSize:10},
+             splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}},
+             markLine: { silent:true, data:[{yAxis:100, lineStyle:{color:'#5b6479',type:'dashed'}}]} },
+    series: series.map(s => ({
+      name: s.name, type:'line', data: s.data, smooth:true, showSymbol:false,
+      lineStyle:{color: colors[s.name] || '#8b96a8', width: s.name === 'SPY' ? 2.5 : 1.3},
+    })),
+  });
+}
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); });
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

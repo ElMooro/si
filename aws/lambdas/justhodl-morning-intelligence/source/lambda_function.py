@@ -195,6 +195,8 @@ def load_all():
         "credit_stress":"data/credit-stress.json",
         # ─── News Velocity (Bloomberg-Gap #10 · GDELT hourly) ─────────
         "news_velocity":"data/news-velocity.json",
+        # ─── Global Markets (Bloomberg-Gap #14 · 3h refresh) ─────────
+        "global_markets":"data/global-markets.json",
         # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────
         "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
@@ -760,6 +762,21 @@ def extract_metrics(data,weights):
                 for x in ((v.get("ranked") or {}).get("top_5_attention") or [])[:5]
             ],
             "news_velocity_generated_at": v.get("generated_at"),
+        })(),
+        # ─── Global Markets (Bloomberg-Gap #14) — region ETF coherence ──
+        **(lambda g=data.get("global_markets", {}): {
+            "global_regime": g.get("composite_regime"),
+            "global_signal": g.get("composite_signal"),
+            "global_spy_20d": (g.get("composite") or {}).get("spy_20d"),
+            "global_intl_avg_20d": (g.get("composite") or {}).get("intl_avg_20d"),
+            "global_us_minus_intl_20d_pp": (g.get("composite") or {}).get("us_minus_intl_20d_pp"),
+            "global_pct_positive_20d": (g.get("composite") or {}).get("pct_positive"),
+            "global_top_3_20d": (g.get("composite") or {}).get("top_3_by_20d"),
+            "global_bottom_3_20d": (g.get("composite") or {}).get("bottom_3_by_20d"),
+            "global_top_3_5d": (g.get("composite") or {}).get("top_3_by_5d"),
+            "global_top_3_ytd": (g.get("composite") or {}).get("top_3_by_ytd"),
+            "global_pairs": (g.get("composite") or {}).get("pairs"),
+            "global_generated_at": g.get("generated_at"),
         })(),
         # ─── Central Bank Stance (Bloomberg-Gap #11) — Fed FOMC NLP ──
         **(lambda cb=data.get("cb_stance", {}): {

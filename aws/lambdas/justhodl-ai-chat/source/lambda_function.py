@@ -515,6 +515,23 @@ def build_context(message):
             if t and t.get('z_score_30d') is not None:
                 lines.append(f"[{tkr} NEWS] z={t.get('z_score_30d'):+.2f}σ · {t.get('velocity_flag')} · cur={t.get('current_volume')} (30d avg {t.get('avg_30d')})")
 
+    # ─── Global Markets (Bloomberg-Gap #14 · 3h refresh) ─────────────
+    gm = get_s3('data/global-markets.json')
+    if gm:
+        comp = gm.get('composite') or {}
+        regime_g = gm.get('composite_regime')
+        sig_g = gm.get('composite_signal', '')
+        if regime_g:
+            lines.append(f"[GLOBAL REGIME] {regime_g} · SPY 20d:{comp.get('spy_20d')}% · Intl avg:{comp.get('intl_avg_20d')}% · US-Intl:{comp.get('us_minus_intl_20d_pp')}pp")
+            lines.append(f"[GLOBAL SIGNAL] {sig_g[:140]}")
+        pairs = comp.get('pairs') or {}
+        if pairs:
+            lines.append(f"[GLOBAL PAIRS 20d] QQQ-SPY:{pairs.get('qqq_minus_spy_20d')}pp · IWM-SPY:{pairs.get('iwm_minus_spy_20d')}pp · EEM-SPY:{pairs.get('eem_minus_spy_20d')}pp · EFA-SPY:{pairs.get('efa_minus_spy_20d')}pp")
+        top3 = comp.get('top_3_by_20d') or []
+        bot3 = comp.get('bottom_3_by_20d') or []
+        if top3 and bot3:
+            lines.append(f"[GLOBAL LEADERS] top3 20d: {' '.join(top3)} · bottom3: {' '.join(bot3)}")
+
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
     rs = get_s3('data/retail-sentiment.json')
     if rs:
