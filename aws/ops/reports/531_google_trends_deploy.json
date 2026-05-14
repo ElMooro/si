@@ -1,0 +1,72 @@
+{
+  "started": "2026-05-14T01:03:51.923166+00:00",
+  "lambda": "created",
+  "schedule": "cron(0 0/4 ? * * *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "n_daily_trending": 0,
+    "n_indices_loaded": 0,
+    "composite_regime": "COMPLACENCY",
+    "market_fear_index": 0.0,
+    "bull_bear_pulse": 0.0,
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 11.0
+  },
+  "log_tail": "START RequestId: e48bf32d-3d2b-498d-b8e1-883846069e11 Version: $LATEST\n=== google-trends v1.0.0 \u00b7 2026-05-14T01:04:00.140013+00:00 ===\nfetching daily trending searches...\ndaily trends err: HTTP Error 404: Not Found\n\u2713 daily trending: 0 items\nfetching index: crypto_fear (3 terms)\nbitcoin crash rate-limited (429)\ncrypto crash rate-limited (429)\ncryptocurrency scam rate-limited (429)\nfetching index: employment_stress (3 terms)\nlayoffs rate-limited (429)\nunemployment rate-limited (429)\nlooking for a job rate-limited (429)\nfetching index: recession_fear (3 terms)\nrecession rate-limited (429)\nfinancial crisis rate-limited (429)\nstock market crash rate-limited (429)\nfetching index: melt_up_attention (3 terms)\nbuy stocks rate-limited (429)\nall time high rate-limited (429)\ntrending stocks rate-limited (429)\nfetching index: fed_attention (3 terms)\nfed rate hike rate-limited (429)\nfomc meeting rate-limited (429)\npowell speech rate-limited (429)\nfetching index: ai_hype (3 terms)\nai stocks rate-limited (429)\nnvidia stock rate-limited (429)\nopenai rate-limited (429)\n\u2713 data/google-trends.json written\nEND RequestId: e48bf32d-3d2b-498d-b8e1-883846069e11\nREPORT RequestId: e48bf32d-3d2b-498d-b8e1-883846069e11\tDuration: 11118.94 ms\tBilled Duration: 11596 ms\tMemory Size: 512 MB\tMax Memory Used: 100 MB\tInit Duration: 476.58 ms\t\n",
+  "sidecar": {
+    "size_kb": 1.0,
+    "modified": "2026-05-14T01:04:12",
+    "version": "1.0.0",
+    "composite_regime": "COMPLACENCY",
+    "composite_signal": "All retail attention indices tranquil \u2014 complacency or pre-event quiet",
+    "market_fear_index": 0.0,
+    "bull_bear_pulse": 0.0,
+    "n_indices_loaded": 0,
+    "n_daily_trending": 0,
+    "indices_summary": {
+      "crypto_fear": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      },
+      "employment_stress": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      },
+      "recession_fear": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      },
+      "melt_up_attention": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      },
+      "fed_attention": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      },
+      "ai_hype": {
+        "current": null,
+        "delta_pp": null,
+        "regime": null,
+        "err": "all terms failed"
+      }
+    },
+    "daily_top_5": []
+  },
+  "finished": "2026-05-14T01:04:11.451984+00:00"
+}
