@@ -1,0 +1,228 @@
+{
+  "started": "2026-05-14T12:22:36.422526+00:00",
+  "insider_schedule": {
+    "rule": "justhodl-insider-cluster-scanner-daily",
+    "schedule": "cron(30 14 ? * MON-FRI *)",
+    "state": "ENABLED"
+  },
+  "modules": [
+    {
+      "label": "BUILD 1+13",
+      "lambda": "justhodl-dealer-gex",
+      "sidecar": "data/dealer-gex.json",
+      "lambda_exists": true,
+      "lambda_mem": 2048,
+      "lambda_timeout": 600,
+      "rules": [
+        "cron(7 13-21 ? * MON-FRI *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 33.0,
+      "sidecar_age_min": 18.4,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BUILD 2",
+      "lambda": "justhodl-finra-short",
+      "sidecar": "data/finra-short.json",
+      "lambda_exists": true,
+      "lambda_mem": 1024,
+      "lambda_timeout": 300,
+      "rules": [],
+      "sidecar_size_kb": 143.9,
+      "sidecar_age_min": 682.6,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BUILD 3",
+      "lambda": "justhodl-13f-positions",
+      "sidecar": "data/13f-positions.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 600,
+      "rules": [
+        "rate(6 hours) (ENABLED)"
+      ],
+      "sidecar_size_kb": 14263.0,
+      "sidecar_age_min": 91.2,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BUILD 4",
+      "lambda": "justhodl-dix",
+      "sidecar": "data/dix-history.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 60,
+      "rules": [
+        "cron(0 22 ? * MON-FRI *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 124.9,
+      "sidecar_age_min": 861.8,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BUILD 5",
+      "lambda": "justhodl-vix-curve",
+      "sidecar": "data/vix-curve.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 120,
+      "rules": [],
+      "sidecar_size_kb": 1.4,
+      "sidecar_age_min": 131.7,
+      "sidecar_fresh": true,
+      "regime": "NORMAL_CONTANGO"
+    },
+    {
+      "label": "BUILD 6",
+      "lambda": "justhodl-crypto-funding",
+      "sidecar": "data/crypto-funding.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 60,
+      "rules": [
+        "cron(15 * ? * * *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 5.4,
+      "sidecar_age_min": 6.8,
+      "sidecar_fresh": true,
+      "regime": "BALANCED"
+    },
+    {
+      "label": "BUILD 7",
+      "lambda": "justhodl-earnings-nlp",
+      "sidecar": "data/earnings-nlp.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 600,
+      "rules": [
+        "cron(0 14 ? * MON-FRI *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 23.6,
+      "sidecar_age_min": 755.6,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BUILD 8",
+      "lambda": "justhodl-credit-stress",
+      "sidecar": "data/credit-stress.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 120,
+      "rules": [
+        "cron(0 20 ? * MON-FRI *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 3.8,
+      "sidecar_age_min": 744.4,
+      "sidecar_fresh": true,
+      "regime": "MELTUP_PRONE"
+    },
+    {
+      "label": "BUILD 9",
+      "lambda": "justhodl-retail-sentiment",
+      "sidecar": "data/retail-sentiment.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 180,
+      "rules": [],
+      "sidecar_size_kb": 23.9,
+      "sidecar_age_min": 21.8,
+      "sidecar_fresh": true,
+      "regime": "NORMAL"
+    },
+    {
+      "label": "BUILD 10",
+      "lambda": "justhodl-news-velocity",
+      "sidecar": "data/news-velocity.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 600,
+      "rules": [],
+      "sidecar_size_kb": 2.0,
+      "sidecar_age_min": 10.7,
+      "sidecar_fresh": true,
+      "regime": "ATTENTION_NORMAL"
+    },
+    {
+      "label": "BUILD 11",
+      "lambda": "justhodl-cb-stance",
+      "sidecar": "data/cb-stance.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 300,
+      "rules": [
+        "cron(0 0/6 ? * * *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 3.4,
+      "sidecar_age_min": 21.8,
+      "sidecar_fresh": true,
+      "regime": "MILD_HAWKISH"
+    },
+    {
+      "label": "BUILD 14",
+      "lambda": "justhodl-global-markets",
+      "sidecar": "data/global-markets.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 120,
+      "rules": [],
+      "sidecar_size_kb": 25.0,
+      "sidecar_age_min": 6.9,
+      "sidecar_fresh": true,
+      "regime": "US_LED_BULL"
+    },
+    {
+      "label": "BUILD 15",
+      "lambda": "justhodl-commodity-curves",
+      "sidecar": "data/commodity-curves.json",
+      "lambda_exists": true,
+      "lambda_mem": 512,
+      "lambda_timeout": 120,
+      "rules": [
+        "cron(0 21 ? * MON-FRI *) (ENABLED)"
+      ],
+      "sidecar_size_kb": 6.2,
+      "sidecar_age_min": 32.2,
+      "sidecar_fresh": true,
+      "regime": "INFLATIONARY_PUSH"
+    },
+    {
+      "label": "BONUS A",
+      "lambda": "justhodl-insider-cluster-scanner",
+      "sidecar": "data/insider-clusters.json",
+      "lambda_exists": true,
+      "lambda_mem": 1536,
+      "lambda_timeout": 900,
+      "rules": [],
+      "sidecar_size_kb": 70.8,
+      "sidecar_age_min": 1301.2,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    },
+    {
+      "label": "BONUS B",
+      "lambda": "justhodl-options-flow-scanner",
+      "sidecar": "data/options-flow.json",
+      "lambda_exists": true,
+      "lambda_mem": 2048,
+      "lambda_timeout": 600,
+      "rules": [],
+      "sidecar_size_kb": 77.1,
+      "sidecar_age_min": 31.8,
+      "sidecar_fresh": true,
+      "regime": "\u2014"
+    }
+  ],
+  "summary": {
+    "n_lambdas_live": 15,
+    "n_sidecars_fresh": 15,
+    "n_with_schedules": 8,
+    "total_modules": 15
+  },
+  "finished": "2026-05-14T12:25:03.474059+00:00"
+}
