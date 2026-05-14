@@ -1,0 +1,276 @@
+{
+  "started": "2026-05-14T14:19:31.362049+00:00",
+  "wait_step_0": {
+    "state": "Active",
+    "last_update": "Successful"
+  },
+  "ready_at": "2026-05-14T14:19:31.601777+00:00",
+  "env_patched": "OK",
+  "eventbridge": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response_body": {
+    "meta_regime": "LATE_CYCLE",
+    "composite_score": 62.9,
+    "regime_changed": null,
+    "n_with_data": 15
+  },
+  "log_tail": "START RequestId: c8f36f42-6d5a-4ca1-a4d4-d9c3b1ad9b7d Version: $LATEST\nEND RequestId: c8f36f42-6d5a-4ca1-a4d4-d9c3b1ad9b7d\nREPORT RequestId: c8f36f42-6d5a-4ca1-a4d4-d9c3b1ad9b7d\tDuration: 2071.74 ms\tBilled Duration: 2708 ms\tMemory Size: 512 MB\tMax Memory Used: 168 MB\tInit Duration: 636.21 ms\t\n",
+  "sidecar": {
+    "size_kb": 6.6,
+    "modified": "2026-05-14T14:19:41",
+    "meta_regime": "LATE_CYCLE",
+    "meta_class": "late-cycle",
+    "meta_narrative": "Risk-on continues (risk=+1.00) BUT policy hawkish (pol=-1.00) + reflation elevated (refl=+1.00). Late-cycle setup: ride remaining upside but begin scaling out; hedge tail with VIX call spreads; favor reflation winners (energy/materials/financials).",
+    "composite_score": 62.9,
+    "n_modules_with_data": 15,
+    "n_modules_missing": 0,
+    "duration_s": 1.98,
+    "dimensions": {
+      "vol": {
+        "score": 1.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "Dealer Gamma",
+            "regime": "MOSTLY_POSITIVE_GAMMA",
+            "polarity": 1
+          },
+          {
+            "label": "VIX Term Structure",
+            "regime": "NORMAL_CONTANGO",
+            "polarity": 1
+          }
+        ]
+      },
+      "risk_on": {
+        "score": 1.0,
+        "n": 3,
+        "members": [
+          {
+            "label": "Credit Stress",
+            "regime": "MELTUP_PRONE",
+            "polarity": 1
+          },
+          {
+            "label": "Crypto Funding",
+            "regime": "BALANCED",
+            "polarity": 1
+          },
+          {
+            "label": "Retail Sentiment",
+            "regime": "NORMAL",
+            "polarity": 1
+          }
+        ]
+      },
+      "liquidity": {
+        "score": 1.0,
+        "n": 1,
+        "members": [
+          {
+            "label": "Options Flow",
+            "regime": "HIGH_FLOW_DENSITY",
+            "polarity": 1
+          }
+        ]
+      },
+      "policy": {
+        "score": -1.0,
+        "n": 1,
+        "members": [
+          {
+            "label": "CB Stance (Fed)",
+            "regime": "MILD_HAWKISH",
+            "polarity": -1
+          }
+        ]
+      },
+      "reflation": {
+        "score": 1.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "Global Markets",
+            "regime": "US_LED_BULL",
+            "polarity": 1
+          },
+          {
+            "label": "Commodity Curves",
+            "regime": "INFLATIONARY_PUSH",
+            "polarity": 1
+          }
+        ]
+      },
+      "smart_money": {
+        "score": 0.67,
+        "n": 3,
+        "members": [
+          {
+            "label": "Insider Clusters",
+            "regime": "INSIDER_CLUSTERS_NORMAL",
+            "polarity": 0
+          },
+          {
+            "label": "13F Smart Money",
+            "regime": "13F_NET_BUYING",
+            "polarity": 1
+          },
+          {
+            "label": "FINRA Short Interest",
+            "regime": "NORMAL",
+            "polarity": 1
+          }
+        ]
+      },
+      "fundamentals": {
+        "score": 0.5,
+        "n": 2,
+        "members": [
+          {
+            "label": "Earnings NLP",
+            "regime": "EARNINGS_STRENGTH",
+            "polarity": 1
+          },
+          {
+            "label": "News Velocity",
+            "regime": "UNKNOWN",
+            "polarity": 0
+          }
+        ]
+      }
+    },
+    "module_summary": [
+      {
+        "label": "Dealer Gamma",
+        "regime": "MOSTLY_POSITIVE_GAMMA",
+        "polarity": 1,
+        "dimension": "vol",
+        "missing": false,
+        "age_minutes": 12.2
+      },
+      {
+        "label": "VIX Term Structure",
+        "regime": "NORMAL_CONTANGO",
+        "polarity": 1,
+        "dimension": "vol",
+        "missing": false,
+        "age_minutes": 8.7
+      },
+      {
+        "label": "Credit Stress",
+        "regime": "MELTUP_PRONE",
+        "polarity": 1,
+        "dimension": "risk_on",
+        "missing": false,
+        "age_minutes": 861.4
+      },
+      {
+        "label": "Crypto Funding",
+        "regime": "BALANCED",
+        "polarity": 1,
+        "dimension": "risk_on",
+        "missing": false,
+        "age_minutes": 3.8
+      },
+      {
+        "label": "Retail Sentiment",
+        "regime": "NORMAL",
+        "polarity": 1,
+        "dimension": "risk_on",
+        "missing": false,
+        "age_minutes": 18.8
+      },
+      {
+        "label": "DIX (Dark-Pool Index)",
+        "regime": null,
+        "polarity": 0,
+        "dimension": "liquidity",
+        "missing": false,
+        "age_minutes": 978.8
+      },
+      {
+        "label": "Options Flow",
+        "regime": "HIGH_FLOW_DENSITY",
+        "polarity": 1,
+        "dimension": "liquidity",
+        "missing": false,
+        "age_minutes": 15.9
+      },
+      {
+        "label": "CB Stance (Fed)",
+        "regime": "MILD_HAWKISH",
+        "polarity": -1,
+        "dimension": "policy",
+        "missing": false,
+        "age_minutes": 138.9
+      },
+      {
+        "label": "Global Markets",
+        "regime": "US_LED_BULL",
+        "polarity": 1,
+        "dimension": "reflation",
+        "missing": false,
+        "age_minutes": 123.9
+      },
+      {
+        "label": "Commodity Curves",
+        "regime": "INFLATIONARY_PUSH",
+        "polarity": 1,
+        "dimension": "reflation",
+        "missing": false,
+        "age_minutes": 149.2
+      },
+      {
+        "label": "Insider Clusters",
+        "regime": "INSIDER_CLUSTERS_NORMAL",
+        "polarity": 0,
+        "dimension": "smart_money",
+        "missing": false,
+        "age_minutes": 1418.3
+      },
+      {
+        "label": "13F Smart Money",
+        "regime": "13F_NET_BUYING",
+        "polarity": 1,
+        "dimension": "smart_money",
+        "missing": false,
+        "age_minutes": 208.3
+      },
+      {
+        "label": "FINRA Short Interest",
+        "regime": "NORMAL",
+        "polarity": 1,
+        "dimension": "smart_money",
+        "missing": false,
+        "age_minutes": 799.6
+      },
+      {
+        "label": "Earnings NLP",
+        "regime": "EARNINGS_STRENGTH",
+        "polarity": 1,
+        "dimension": "fundamentals",
+        "missing": false,
+        "age_minutes": 19.3
+      },
+      {
+        "label": "News Velocity",
+        "regime": "UNKNOWN",
+        "polarity": 0,
+        "dimension": "fundamentals",
+        "missing": false,
+        "age_minutes": 13.9
+      }
+    ]
+  },
+  "page": {
+    "size": 18182,
+    "loads_composite_json": true,
+    "loads_history_json": true,
+    "has_meta_banner": true,
+    "has_dims_grid": true,
+    "has_mods_grid": true,
+    "title_meta_regime": true
+  },
+  "finished": "2026-05-14T14:19:43.459270+00:00"
+}
