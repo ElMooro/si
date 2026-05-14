@@ -200,7 +200,7 @@ def load_all():
         # ─── Commodity Curves (Bloomberg-Gap #15 · daily 21:00 UTC) ──
         "commodity_curves":"data/commodity-curves.json",
         # ─── Insider Transactions (Bloomberg-Gap #12 · SEC Form 4) ────
-        "insider_transactions":"data/insider-transactions.json",
+        "insider_clusters":"data/insider-clusters.json",
         # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────
         "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
@@ -798,25 +798,24 @@ def extract_metrics(data,weights):
             "gold_20d_pct": next((f.get("ret_20d") for f in (c.get("fred_metrics") or []) if f.get("series_id") == "GOLDAMGBD228NLBM"), None),
             "commodity_generated_at": c.get("generated_at"),
         })(),
-        # ─── Insider Transactions (Bloomberg-Gap #12) — SEC Form 4 ────
-        **(lambda ins=data.get("insider_transactions", {}): {
-            "insider_regime": ins.get("composite_regime"),
-            "insider_signal": ins.get("composite_signal"),
-            "insider_n_cluster_buys": ins.get("n_cluster_buys"),
-            "insider_total_buy_30d_usd": ins.get("total_buy_value_30d_usd"),
-            "insider_total_sell_30d_usd": ins.get("total_sell_value_30d_usd"),
-            "insider_n_with_data": ins.get("n_with_data"),
-            "insider_biggest_buys": [
-                {"ticker": x.get("ticker"), "buy_value_usd": x.get("buy_value_usd"),
-                  "n_buys": x.get("n_buys_30d"), "n_distinct_buyers": x.get("n_distinct_buyers"),
-                  "cluster_buy": x.get("cluster_buy")}
-                for x in ((ins.get("ranked") or {}).get("biggest_buy_dollars_30d") or [])[:5]
+        # ─── Insider Cluster Buys (insider_cluster_scanner_v2 · daily) ──
+        **(lambda ins=data.get("insider_clusters", {}): {
+            "insider_method": ins.get("method"),
+            "insider_schema_version": ins.get("schema_version"),
+            "insider_lookback_days": ins.get("lookback_days"),
+            "insider_n_clusters": len(ins.get("clusters") or []),
+            "insider_total_cluster_value_usd": sum((c.get("total_value") or 0) for c in (ins.get("clusters") or [])),
+            "insider_total_insiders": sum((c.get("n_insiders") or 0) for c in (ins.get("clusters") or [])),
+            "insider_top_5_clusters": [
+                {"ticker": c.get("ticker"), "company": c.get("company"),
+                  "n_insiders": c.get("n_insiders"), "n_transactions": c.get("n_transactions"),
+                  "total_value_usd": c.get("total_value"),
+                  "first_buy": c.get("first_buy"), "last_buy": c.get("last_buy"),
+                  "highest_role": c.get("highest_role")}
+                for c in sorted([c for c in (ins.get("clusters") or []) if c.get("total_value")],
+                                  key=lambda x: -(x.get("total_value") or 0))[:5]
             ],
-            "insider_cluster_buys": [
-                {"ticker": x.get("ticker"), "n_distinct_buyers": x.get("n_distinct_buyers"),
-                  "buy_value_usd": x.get("buy_value_usd")}
-                for x in ((ins.get("ranked") or {}).get("cluster_buys") or [])
-            ],
+            "insider_stats": ins.get("stats"),
             "insider_generated_at": ins.get("generated_at"),
         })(),
         # ─── Central Bank Stance (Bloomberg-Gap #11) — Fed FOMC NLP ──

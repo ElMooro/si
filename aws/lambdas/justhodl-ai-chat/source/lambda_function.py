@@ -595,31 +595,35 @@ def build_context(message):
             lines.append(f"[COMMODITY LEADERS] top3 20d: {' '.join(top3_c)} · bottom3: {' '.join(bot3_c)}")
 
     # ─── Insider Transactions (Bloomberg-Gap #12 · SEC Form 4 daily) ─
-    ins = get_s3('data/insider-transactions.json')
+    # ─── Insider Cluster Buys (insider-cluster-scanner v2.0 · daily) ──
+    ins = get_s3('data/insider-clusters.json')
     if ins:
-        regime_i = ins.get('composite_regime')
-        sig_i = ins.get('composite_signal', '')
-        ranked_i = ins.get('ranked') or {}
-        if regime_i:
-            lines.append(f"[INSIDER REGIME] {regime_i} · ${(ins.get('total_buy_value_30d_usd') or 0)/1e6:.1f}M buys vs ${(ins.get('total_sell_value_30d_usd') or 0)/1e6:.1f}M sells 30d · cluster_buys:{ins.get('n_cluster_buys',0)}")
-            lines.append(f"[INSIDER SIGNAL] {sig_i[:140]}")
-        cluster = ranked_i.get('cluster_buys') or []
-        if cluster:
-            cb_str = ', '.join(f"{x['ticker']}({x.get('n_distinct_buyers')}x ${(x.get('buy_value_usd') or 0)/1e6:.1f}M)" for x in cluster[:5])
-            lines.append(f"[INSIDER CLUSTER BUYS] {cb_str}")
-        big_buys = ranked_i.get('biggest_buy_dollars_30d') or []
-        if big_buys:
-            bb_str = ', '.join(f"{x['ticker']}(${(x.get('buy_value_usd') or 0)/1e6:.1f}M)" for x in big_buys[:5])
-            lines.append(f"[INSIDER BIG BUYS] {bb_str}")
-        # Per-ticker drill-down
-        by_t_ins = ins.get('by_ticker') or {}
+        stats = ins.get('stats') or {}
+        clusters = ins.get('clusters') or []
+        n_clusters = len(clusters)
+        # Sum buy values across clusters
+        total_value = sum((c.get('total_value') or 0) for c in clusters)
+        total_insiders = sum((c.get('n_insiders') or 0) for c in clusters)
+        if n_clusters > 0:
+            lines.append(f"[INSIDER CLUSTERS v2] {n_clusters} active · ${total_value/1e6:.1f}M total · {total_insiders} insider participations · lookback {ins.get('lookback_days')}d")
+            # Top 5 by total_value
+            top_clusters = sorted([c for c in clusters if c.get('total_value')], key=lambda x: -(x.get('total_value') or 0))[:5]
+            for c in top_clusters:
+                tkr = c.get('ticker') or 'N/A'
+                co = (c.get('company') or '')[:30]
+                ni = c.get('n_insiders', 0)
+                nt = c.get('n_transactions', 0)
+                tv = (c.get('total_value') or 0) / 1e6
+                role = (c.get('highest_role') or '')[:35]
+                lines.append(f"[CLUSTER {tkr}] {co} · {ni} insiders · {nt} tx · ${tv:.1f}M · role={role}")
+        # Per-ticker drill-down: if a user-queried ticker has a cluster, highlight it
+        by_ticker_clusters = {(c.get('ticker') or '').upper(): c for c in clusters if c.get('ticker')}
         for tkr in (stocks or []):
-            t = by_t_ins.get(tkr)
-            if t and not t.get('err'):
-                n30 = t.get('n_form4_30d', 0)
-                if n30 > 0 or (t.get('buy_value_30d_usd') or 0) > 0 or (t.get('sell_value_30d_usd') or 0) > 0:
-                    cluster_str = " · CLUSTER_BUY" if t.get('cluster_buy_flag') else ""
-                    lines.append(f"[{tkr} INSIDER] {n30} F4 30d · {t.get('n_buys_30d',0)} buys ${(t.get('buy_value_30d_usd') or 0)/1e6:.2f}M · {t.get('n_sells_30d',0)} sells ${(t.get('sell_value_30d_usd') or 0)/1e6:.2f}M{cluster_str}")
+            c = by_ticker_clusters.get(tkr.upper())
+            if c:
+                tv = (c.get('total_value') or 0) / 1e6
+                ni = c.get('n_insiders', 0)
+                lines.append(f"[{tkr} INSIDER CLUSTER] {ni} insiders bought ${tv:.1f}M · {c.get('first_buy')} to {c.get('last_buy')} · {(c.get('highest_role') or '')[:40]}")
 
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
     rs = get_s3('data/retail-sentiment.json')
