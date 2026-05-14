@@ -1,0 +1,172 @@
+{
+  "started": "2026-05-14T17:05:07.874487+00:00",
+  "lambda_state": {
+    "state": "Active",
+    "last_update": "Successful",
+    "last_modified": "2026-05-14T14:27:51.000+0000"
+  },
+  "invoke_status": 200,
+  "fn_error": null,
+  "response_body": {
+    "meta_regime": "LATE_CYCLE",
+    "composite_score": 62.0,
+    "regime_changed": false,
+    "n_with_data": 15
+  },
+  "sidecar": {
+    "size_kb": 6.8,
+    "modified": "2026-05-14T17:05:11",
+    "version": "1.0.1",
+    "meta_regime": "LATE_CYCLE",
+    "composite_score": 62.0,
+    "n_modules_with_data": 15,
+    "n_modules_missing": 0,
+    "duration_s": 1.98,
+    "dimensions": {
+      "vol": {
+        "score": 1.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "Dealer Gamma",
+            "regime": "MOSTLY_POSITIVE_GAMMA",
+            "polarity": 1
+          },
+          {
+            "label": "VIX Term Structure",
+            "regime": "NORMAL_CONTANGO",
+            "polarity": 1
+          }
+        ]
+      },
+      "risk_on": {
+        "score": 1.0,
+        "n": 3,
+        "members": [
+          {
+            "label": "Credit Stress",
+            "regime": "MELTUP_PRONE",
+            "polarity": 1
+          },
+          {
+            "label": "Crypto Funding",
+            "regime": "BALANCED",
+            "polarity": 1
+          },
+          {
+            "label": "Retail Sentiment",
+            "regime": "NORMAL",
+            "polarity": 1
+          }
+        ]
+      },
+      "liquidity": {
+        "score": 0.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "DIX (Dark-Pool Index)",
+            "regime": "DIX_LOW",
+            "polarity": -1
+          },
+          {
+            "label": "Options Flow",
+            "regime": "HIGH_FLOW_DENSITY",
+            "polarity": 1
+          }
+        ]
+      },
+      "policy": {
+        "score": -1.0,
+        "n": 1,
+        "members": [
+          {
+            "label": "CB Stance (Fed)",
+            "regime": "MILD_HAWKISH",
+            "polarity": -1
+          }
+        ]
+      },
+      "reflation": {
+        "score": 1.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "Global Markets",
+            "regime": "US_LED_BULL",
+            "polarity": 1
+          },
+          {
+            "label": "Commodity Curves",
+            "regime": "INFLATIONARY_PUSH",
+            "polarity": 1
+          }
+        ]
+      },
+      "smart_money": {
+        "score": 1.0,
+        "n": 3,
+        "members": [
+          {
+            "label": "Insider Clusters",
+            "regime": "INSIDER_BUYING_PRESENT",
+            "polarity": 1
+          },
+          {
+            "label": "13F Smart Money",
+            "regime": "13F_NET_BUYING",
+            "polarity": 1
+          },
+          {
+            "label": "FINRA Short Interest",
+            "regime": "NORMAL",
+            "polarity": 1
+          }
+        ]
+      },
+      "fundamentals": {
+        "score": 1.0,
+        "n": 2,
+        "members": [
+          {
+            "label": "Earnings NLP",
+            "regime": "EARNINGS_STRENGTH",
+            "polarity": 1
+          },
+          {
+            "label": "News Velocity",
+            "regime": "ATTENTION_NORMAL",
+            "polarity": 1
+          }
+        ]
+      }
+    }
+  },
+  "dix_module": {
+    "label": "DIX (Dark-Pool Index)",
+    "emoji": "\ud83c\udf11",
+    "key": "data/dix-history.json",
+    "dimension": "liquidity",
+    "page": "/dix/",
+    "regime": "DIX_LOW",
+    "signal": "DIX 44.0% \u2014 bottom-quartile dark-pool buying (cautious)",
+    "polarity": -1,
+    "modified": "2026-05-13T22:00:51",
+    "age_minutes": 1144.3,
+    "missing": false
+  },
+  "insider_module": {
+    "label": "Insider Clusters",
+    "emoji": "\ud83d\udcbc",
+    "key": "data/insider-clusters.json",
+    "dimension": "smart_money",
+    "page": "/insider/",
+    "regime": "INSIDER_BUYING_PRESENT",
+    "signal": "1 CEO + 8 strong + 2 dual-C-suite over 43 clusters",
+    "polarity": 1,
+    "modified": "2026-05-14T14:41:10",
+    "age_minutes": 144.0,
+    "missing": false
+  },
+  "finished": "2026-05-14T17:05:13.137306+00:00"
+}
