@@ -1,0 +1,70 @@
+{
+  "started": "2026-05-14T13:26:24.337170+00:00",
+  "rules_to_delete": [
+    {
+      "rule": "justhodl-insider-transactions-daily",
+      "target_id": "1"
+    }
+  ],
+  "lambda_delete": "OK",
+  "google_trends": {
+    "exists": true,
+    "memory": 512,
+    "timeout": 300,
+    "state": "Active",
+    "last_modified": "2026-05-14T01:03:52.289+0000",
+    "rules": [
+      {
+        "name": "justhodl-google-trends-4h",
+        "schedule": "cron(0 0/4 ? * * *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "google_trends_sidecar_sample": {
+    "size_kb": 1.0,
+    "modified": "2026-05-14T12:00:27",
+    "version": "1.0.0",
+    "source": "trends.google.com unofficial API \u00b7 REAL data (no random/fabricated values)",
+    "n_daily_trending": 0,
+    "daily_trending_us_sample": [],
+    "market_fear_index": 0.0,
+    "bull_bear_pulse": 0.0,
+    "indices": {
+      "crypto_fear": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      },
+      "employment_stress": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      },
+      "recession_fear": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      },
+      "melt_up_attention": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      },
+      "fed_attention": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      },
+      "ai_hype": {
+        "err": "all terms failed",
+        "n_terms_loaded": 0
+      }
+    }
+  },
+  "insider_page_check": {
+    "size": 14320,
+    "has_v2_url": false,
+    "has_v1_url": true,
+    "title_contains_clusters": false,
+    "has_filter_bar": false,
+    "has_signal_pills": false,
+    "has_cluster_renderer": false
+  },
+  "finished": "2026-05-14T13:26:26.413433+00:00"
+}
