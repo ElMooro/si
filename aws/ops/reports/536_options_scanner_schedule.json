@@ -1,0 +1,117 @@
+{
+  "started": "2026-05-14T11:57:23.641321+00:00",
+  "schedule": "cron(0 14,18 ? * MON-FRI *)",
+  "rule_state": "ENABLED",
+  "sidecar": {
+    "size_kb": 77.1,
+    "modified": "2026-05-14T11:50:52",
+    "schema_version": 1,
+    "method": "options_flow_scanner_v1",
+    "stats": {
+      "n_universe": 150,
+      "n_evaluated": 145,
+      "n_no_data": 5,
+      "n_tier_a": 51,
+      "n_tier_b": 27,
+      "n_finra_tickers": 12569
+    },
+    "n_tier_a_names": 51,
+    "tier_a_top_15": [
+      "SO",
+      "HCA",
+      "LLY",
+      "PLD",
+      "WM",
+      "META",
+      "XOM",
+      "ADI",
+      "AMGN",
+      "DE",
+      "PANW",
+      "COP",
+      "CRWD",
+      "VRT",
+      "CMCSA"
+    ],
+    "top_5_overall": [
+      {
+        "sym": "SO",
+        "score": 100.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "spot": 93.14,
+        "cpr_change_pct": 2525.9,
+        "call_vol_surge": 6.14,
+        "short_pct_change": -10.8
+      },
+      {
+        "sym": "HCA",
+        "score": 95.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_2X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "spot": 427.54,
+        "cpr_change_pct": 878.6,
+        "call_vol_surge": 19.41,
+        "short_pct_change": -11.35
+      },
+      {
+        "sym": "LLY",
+        "score": 93.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "spot": 1015.93,
+        "cpr_change_pct": 243.6,
+        "call_vol_surge": 11.47,
+        "short_pct_change": -7.2
+      },
+      {
+        "sym": "PLD",
+        "score": 93.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "ABS_CPR_3X",
+          "SHORTS_COVERING"
+        ],
+        "spot": 142.0,
+        "cpr_change_pct": 852.2,
+        "call_vol_surge": 3.18,
+        "short_pct_change": -4.96
+      },
+      {
+        "sym": "WM",
+        "score": 90.0,
+        "tier": "TIER_A_BULLISH_FLOW",
+        "flags": [
+          "CPR_SURGING",
+          "CALL_VOL_3X",
+          "SHORTS_COVERING",
+          "HIGH_SHORT_SQUEEZE_SETUP"
+        ],
+        "spot": 216.44,
+        "cpr_change_pct": 256.3,
+        "call_vol_surge": 3.06,
+        "short_pct_change": -10.67
+      }
+    ]
+  },
+  "finished": "2026-05-14T11:57:25.268693+00:00"
+}
