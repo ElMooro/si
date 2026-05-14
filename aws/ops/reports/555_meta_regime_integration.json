@@ -1,0 +1,20 @@
+{
+  "started": "2026-05-14T17:07:34.164340+00:00",
+  "ai_chat_state": "Active",
+  "ai_chat_last_modified": "2026-05-14T17:07:29.000+0000",
+  "morning_state": "Active",
+  "morning_last_modified": "2026-05-14T01:04:10.000+0000",
+  "ai_chat_invoke_status": 200,
+  "ai_chat_fn_error": null,
+  "ai_chat_response_size": 210,
+  "ai_chat_response_excerpt": "",
+  "ai_chat_mentions_meta_regime": false,
+  "ai_chat_mentions_composite_score": false,
+  "morning_invoke_status": 200,
+  "morning_fn_error": "Unhandled",
+  "morning_response_size": 428,
+  "morning_response_excerpt": "{\"errorMessage\": \"'str' object has no attribute 'get'\", \"errorType\": \"AttributeError\", \"requestId\": \"d2e817ce-fb19-4bad-8189-3d972827a05c\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 1044, in lambda_handler\\n    m=extract_metrics(all_data,weights)\\n\", \"  File \\\"/var/task/lambda_function.py\\\", line 239, in extract_metrics\\n    alerts=[str(a.get(\\\"message\\\",a))[:80] for a in edge.get(\\\"alerts\\\",[])[:3]]\\n\"]}",
+  "morning_has_meta_token": false,
+  "morning_log_tail": "START RequestId: d2e817ce-fb19-4bad-8189-3d972827a05c Version: $LATEST\n[START] morning-intelligence v3 action=morning\n[WEIGHTS] 43 loaded\n[S3] data/google-trends.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1044, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 239, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]\nEND RequestId: d2e817ce-fb19-4bad-8189-3d972827a05c\nREPORT RequestId: d2e817ce-fb19-4bad-8189-3d972827a05c\tDuration: 4395.24 ms\tBilled Duration: 5047 ms\tMemory Size: 512 MB\tMax Memory Used: 188 MB\tInit Duration: 651.70 ms\t\n",
+  "finished": "2026-05-14T17:07:40.829535+00:00"
+}
