@@ -47,7 +47,7 @@ import io, json, os, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/news-velocity.json"
@@ -57,7 +57,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 HTTP_TIMEOUT = 30
-REQUEST_INTERVAL_SEC = 7.0  # GDELT firm rate limit ~1 req / 5 sec — 7s with margin (was 6s, got 429s)
+REQUEST_INTERVAL_SEC = 10.0  # GDELT actual rolling-window limit is stricter than docs (was 7s, 11/15 got 429)
 
 GDELT_BASE = "https://api.gdeltproject.org/api/v2/doc/doc"
 
@@ -135,35 +135,48 @@ def http_get_json(url, timeout=HTTP_TIMEOUT):
 
 
 def fetch_gdelt_volume(ticker, days=30):
-    """Returns list of {date_iso, volume_intensity} dicts."""
+    """Returns list of {date_iso, volume_intensity} dicts.
+    Retries on 429 with exponential backoff (GDELT rate-limit is strict + bursty)."""
     query = QUERY_MAP.get(ticker, ticker)
     enc = urllib.parse.quote(query)
     url = (f"{GDELT_BASE}?query={enc}&mode=TimelineVolInfo"
             f"&timespan={days}d&format=json")
-    try:
-        data = http_get_json(url)
-        timeline = data.get("timeline", [])
-        if not timeline: return []
-        out = []
-        for series in timeline:
-            if series.get("series") != "Volume Intensity":
+    max_retries = 2  # 1 retry max — keeps worst-case run under 600s timeout
+    backoffs = [15]  # 15s before single retry attempt
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            data = http_get_json(url)
+            timeline = data.get("timeline", [])
+            if not timeline: return []
+            out = []
+            for series in timeline:
+                if series.get("series") != "Volume Intensity":
+                    continue
+                for d in series.get("data", []):
+                    date_str = d.get("date", "")
+                    # Format: 20260415T000000Z → 2026-04-15
+                    if len(date_str) >= 8:
+                        iso = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}"
+                        out.append({"date": iso, "value": float(d.get("value", 0))})
+                break
+            out.sort(key=lambda x: x["date"])
+            return out
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429 and attempt < max_retries - 1:
+                wait = backoffs[attempt]
+                print(f"  {ticker} 429 rate-limited — retry in {wait}s (attempt {attempt+1}/{max_retries})")
+                time.sleep(wait)
                 continue
-            for d in series.get("data", []):
-                date_str = d.get("date", "")
-                # Format: 20260415T000000Z → 2026-04-15
-                if len(date_str) >= 8:
-                    iso = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}"
-                    out.append({"date": iso, "value": float(d.get("value", 0))})
-            break
-        out.sort(key=lambda x: x["date"])
-        return out
-    except urllib.error.HTTPError as e:
-        if e.code == 429:
-            print(f"  {ticker} 429 rate-limited")
-        return []
-    except Exception as e:
-        print(f"  {ticker} err: {str(e)[:80]}")
-        return []
+            if e.code == 429:
+                print(f"  {ticker} 429 rate-limited (exhausted retries)")
+            return []
+        except Exception as e:
+            last_err = e
+            print(f"  {ticker} err: {str(e)[:80]}")
+            return []
+    return []
 
 
 def fetch_gdelt_top_articles(ticker, hours=24):
