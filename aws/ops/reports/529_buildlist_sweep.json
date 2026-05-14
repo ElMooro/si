@@ -1,0 +1,209 @@
+{
+  "started": "2026-05-14T00:50:59.111141+00:00",
+  "candidates": {
+    "justhodl-retail-sentiment": {
+      "desc": "BUILD 9 (Reddit/StockTwits)",
+      "lambda": {
+        "name": "justhodl-retail-sentiment",
+        "exists": true,
+        "last_modified": "2026-05-14T00:24:01.000+0000",
+        "memory": 512,
+        "timeout": 180,
+        "env_keys": [
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "state": "Active",
+        "rules": []
+      },
+      "sidecar_key": "data/retail-sentiment.json",
+      "sidecar": {
+        "size_kb": 24.0,
+        "modified": "2026-05-14T00:39:48",
+        "top_keys": [
+          "generated_at",
+          "generated_at_unix",
+          "version",
+          "sources",
+          "elapsed_seconds",
+          "n_all_stocks",
+          "n_wsb",
+          "n_stocks",
+          "n_investing",
+          "n_with_stwt_data",
+          "market_regime",
+          "market_regime_signal",
+          "market_regime_data",
+          "regime_changed_from_prior",
+          "top_30_by_mentions",
+          "ranked",
+          "stocktwits_trending",
+          "subreddit_breakdown"
+        ],
+        "version": "1.0.0",
+        "generated_at": "2026-05-14T00:39:47.143558+00:00",
+        "market_regime": "NORMAL",
+        "market_regime_signal": "Total mentions 6,382 in typical range"
+      }
+    },
+    "google-trends-agent": {
+      "desc": "BUILD 10 (Google Trends)",
+      "lambda": {
+        "name": "google-trends-agent",
+        "exists": true,
+        "last_modified": "2026-04-25T10:25:01.000+0000",
+        "memory": 1024,
+        "timeout": 30,
+        "env_keys": [],
+        "state": "Active",
+        "rules": []
+      },
+      "sidecar_key": "data/google-trends.json",
+      "sidecar": {
+        "exists": false
+      }
+    },
+    "justhodl-cb-stance": {
+      "desc": "BUILD 11 (Central Bank Hawkish/Dovish)",
+      "lambda": {
+        "name": "justhodl-cb-stance",
+        "exists": true,
+        "last_modified": "2026-05-14T00:47:33.000+0000",
+        "memory": 512,
+        "timeout": 300,
+        "env_keys": [
+          "ANTHROPIC_API_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "state": "Active",
+        "rules": [
+          {
+            "name": "justhodl-cb-stance-6h",
+            "schedule": "cron(0 0/6 ? * * *)",
+            "state": "ENABLED"
+          }
+        ]
+      },
+      "sidecar_key": "data/cb-stance.json",
+      "sidecar": {
+        "size_kb": 3.4,
+        "modified": "2026-05-14T00:47:19",
+        "top_keys": [
+          "generated_at",
+          "generated_at_unix",
+          "version",
+          "model",
+          "elapsed_seconds",
+          "n_fomc_statements_scored",
+          "fed",
+          "regime_changed_from_prior",
+          "new_statement_since_last_run"
+        ],
+        "version": "1.0.0",
+        "generated_at": "2026-05-14T00:47:18.522754+00:00"
+      }
+    },
+    "justhodl-fed-speak": {
+      "desc": "BUILD 11 alt (Fed Speak)",
+      "lambda": {
+        "name": "justhodl-fed-speak",
+        "exists": true,
+        "last_modified": "2026-05-07T11:48:28.000+0000",
+        "memory": 256,
+        "timeout": 120,
+        "env_keys": [
+          "ANTHROPIC_KEY",
+          "DAYS_BACK",
+          "MAX_NEW_PER_RUN",
+          "S3_BUCKET",
+          "S3_KEY_OUT",
+          "S3_KEY_STATE"
+        ],
+        "state": "Active",
+        "rules": [
+          {
+            "name": "fed-speak-daily",
+            "schedule": "cron(15 11 * * ? *)",
+            "state": "ENABLED"
+          }
+        ]
+      },
+      "sidecar_key": "data/fed-speak.json",
+      "sidecar": {
+        "size_kb": 7.4,
+        "modified": "2026-05-13T11:15:30",
+        "top_keys": [
+          "schema_version",
+          "method",
+          "as_of",
+          "n_speeches_30d",
+          "n_new_classified_this_run",
+          "aggregate",
+          "by_speaker",
+          "timeline",
+          "latest_hawkish",
+          "latest_dovish",
+          "latest_neutral",
+          "duration_s"
+        ],
+        "version": null,
+        "generated_at": null
+      }
+    },
+    "justhodl-uspto-patents": {
+      "desc": "BUILD 12 (USPTO Patents)",
+      "lambda": {
+        "name": "justhodl-uspto-patents",
+        "exists": false
+      },
+      "sidecar_key": "data/uspto-patents.json",
+      "sidecar": {
+        "exists": false
+      }
+    },
+    "justhodl-0dte-flow": {
+      "desc": "BUILD 13 (0DTE Expansion)",
+      "lambda": {
+        "name": "justhodl-0dte-flow",
+        "exists": false
+      },
+      "sidecar_key": "data/0dte-flow.json",
+      "sidecar": {
+        "exists": false
+      }
+    },
+    "justhodl-international-flows": {
+      "desc": "BUILD 14 (International)",
+      "lambda": {
+        "name": "justhodl-international-flows",
+        "exists": false
+      },
+      "sidecar_key": "data/international.json",
+      "sidecar": {
+        "exists": false
+      }
+    },
+    "justhodl-commodity-curves": {
+      "desc": "BUILD 15 (Commodity)",
+      "lambda": {
+        "name": "justhodl-commodity-curves",
+        "exists": false
+      },
+      "sidecar_key": "data/commodity-curves.json",
+      "sidecar": {
+        "exists": false
+      }
+    }
+  },
+  "homepage_links": {
+    "/retail/": false,
+    "/trends/": false,
+    "/fed/": false,
+    "/uspto/": false,
+    "/0dte/": false,
+    "/intl/": false,
+    "/commodity/": false
+  },
+  "finished": "2026-05-14T00:51:11.047550+00:00"
+}
