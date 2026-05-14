@@ -1,0 +1,224 @@
+{
+  "started": "2026-05-14T11:45:19.046162+00:00",
+  "lambda": {
+    "exists": true,
+    "last_modified": "2026-05-14T11:43:13.000+0000",
+    "memory": 512,
+    "timeout": 120,
+    "env_keys": [
+      "FMP_KEY",
+      "FRED_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "rules": [
+      {
+        "name": "justhodl-commodity-curves-daily",
+        "schedule": "cron(0 21 ? * MON-FRI *)",
+        "state": "ENABLED"
+      }
+    ]
+  },
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "regime": "INFLATIONARY_PUSH",
+    "n_fred_loaded": 3,
+    "n_etf_loaded": 10,
+    "spy_20d": 6.05,
+    "top_3": [
+      "USO",
+      "SLV",
+      "PDBC"
+    ],
+    "regime_changed": false,
+    "alert_sent": false,
+    "elapsed_seconds": 1.4
+  },
+  "log_tail": "START RequestId: 63c2b260-b5bd-45ca-a39f-8395483683d3 Version: $LATEST\n=== commodity-curves v1.0.0 \u00b7 2026-05-14T11:45:22.462085+00:00 ===\nfetching 4 FRED series + 10 ETFs in parallel...\n\u2713 FRED DHHNGSP              Natural Gas        2.82 USD/mmBtu    5d=+5.62% 20d=+1.08% ytd=+0.00%\n\u2713 FRED DCOILBRENTEU         Brent Crude        106.11 USD/bbl      5d=-10.27% 20d=-10.88% ytd=+71.20%\nfred GOLDAMGBD228NLBM err: HTTP Error 400: Bad Request\n\u2717 FRED GOLDAMGBD228NLBM: insufficient data (0)\n\u2713 FRED DCOILWTICO           WTI Crude          101.56 USD/bbl      5d=-7.47% 20d=+0.83% ytd=+77.52%\n\u2713 ETF GLD   Gold (SPDR)                 430.50 1d=-0.56% 5d=-0.11% 20d=-2.26% ytd=+8.09%\n\u2713 ETF GUNR  Global Natural Resources     55.86 1d=+0.27% 5d=+1.55% 20d=+1.38% ytd=+19.92%\n\u2713 ETF CPER  US Copper Index Fund         40.27 1d=-0.42% 5d=+7.27% 20d=+8.08% ytd=+15.12%\n\u2713 ETF XLE   Energy Sector (equity)       57.63 1d=+0.10% 5d=+1.11% 20d=+3.35% ytd=+26.24%\n\u2713 ETF PDBC  Diversified Commodity Bas    18.70 1d=-1.11% 5d=+3.72% 20d=+8.53% ytd=+40.81%\n\u2713 ETF UNG   US Natural Gas Fund          10.98 1d=+0.64% 5d=+5.07% 20d=+3.78% ytd=-8.96%\n\u2713 ETF XME   Metals & Mining             123.34 1d=-0.21% 5d=-0.64% 20d=+6.62% ytd=+14.70%\n\u2713 ETF USO   US Oil Fund (WTI proxy)     142.04 1d=-1.57% 5d=+6.04% 20d=+15.87% ytd=+105.97%\n\u2713 ETF DBA   Agriculture (Invesco DB)     28.73 1d=+0.56% 5d=+2.39% 20d=+5.74% ytd=+12.40%\n\u2713 ETF SLV   Silver (iShares)             79.35 1d=+1.02% 5d=+13.15% 20d=+10.45% ytd=+20.68%\n\u2713 commodity-curves.json written\ntg err: HTTP Error 400: Bad Request\nEND RequestId: 63c2b260-b5bd-45ca-a39f-8395483683d3\nREPORT RequestId: 63c2b260-b5bd-45ca-a39f-8395483683d3\tDuration: 1686.66 ms\tBilled Duration: 2146 ms\tMemory Size: 512 MB\tMax Memory Used: 106 MB\tInit Duration: 459.25 ms\t\n",
+  "sidecar": {
+    "size_kb": 6.2,
+    "modified": "2026-05-14T11:45:24",
+    "version": "1.0.0",
+    "n_with_data": null,
+    "n_with_err": null,
+    "composite_regime": "INFLATIONARY_PUSH",
+    "composite_signal": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuilding",
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "elapsed_seconds",
+      "source",
+      "spy_20d",
+      "fred_metrics",
+      "etf_metrics",
+      "n_fred",
+      "n_etf",
+      "n_fred_with_data",
+      "n_etf_with_data",
+      "composite",
+      "composite_regime",
+      "composite_signal",
+      "regime_changed_from_prior"
+    ],
+    "composite_keys": [
+      "ratios",
+      "ranked_20d",
+      "top_3_by_20d",
+      "bottom_3_by_20d",
+      "composite_regime",
+      "composite_signal"
+    ],
+    "energy_avg_20d": null,
+    "metals_avg_20d": null,
+    "agri_avg_20d": null,
+    "top_3_by_20d": [
+      "USO",
+      "SLV",
+      "PDBC"
+    ],
+    "bottom_3_by_20d": [
+      "XLE",
+      "GUNR",
+      "GLD"
+    ],
+    "ranked_full_first_10": [
+      {
+        "sym": "USO",
+        "name": "US Oil Fund (WTI proxy)",
+        "category": "energy",
+        "current": 142.04,
+        "change_1d_pct": -1.57,
+        "ret_5d": 6.04,
+        "ret_20d": 15.87,
+        "ret_60d": 87.56,
+        "ret_ytd": 105.97,
+        "vol_60d_ann_pct": 69.9,
+        "rs_vs_spy_20d": 9.82
+      },
+      {
+        "sym": "SLV",
+        "name": "Silver (iShares)",
+        "category": "precious",
+        "current": 79.35,
+        "change_1d_pct": 1.02,
+        "ret_5d": 13.15,
+        "ret_20d": 10.45,
+        "ret_60d": 19.56,
+        "ret_ytd": 20.68,
+        "vol_60d_ann_pct": 56.4,
+        "rs_vs_spy_20d": 4.4
+      },
+      {
+        "sym": "PDBC",
+        "name": "Diversified Commodity Basket",
+        "category": "broad",
+        "current": 18.7,
+        "change_1d_pct": -1.11,
+        "ret_5d": 3.72,
+        "ret_20d": 8.53,
+        "ret_60d": 33.29,
+        "ret_ytd": 40.81,
+        "vol_60d_ann_pct": 24.7,
+        "rs_vs_spy_20d": 2.48
+      },
+      {
+        "sym": "CPER",
+        "name": "US Copper Index Fund",
+        "category": "industrial_metals",
+        "current": 40.27,
+        "change_1d_pct": -0.42,
+        "ret_5d": 7.27,
+        "ret_20d": 8.08,
+        "ret_60d": 15.25,
+        "ret_ytd": 15.12,
+        "vol_60d_ann_pct": 27.8,
+        "rs_vs_spy_20d": 2.03
+      },
+      {
+        "sym": "XME",
+        "name": "Metals & Mining",
+        "category": "industrial_metals_equity",
+        "current": 123.34,
+        "change_1d_pct": -0.21,
+        "ret_5d": -0.64,
+        "ret_20d": 6.62,
+        "ret_60d": 7.15,
+        "ret_ytd": 14.7,
+        "vol_60d_ann_pct": 33.6,
+        "rs_vs_spy_20d": 0.57
+      },
+      {
+        "sym": "DBA",
+        "name": "Agriculture (Invesco DB)",
+        "category": "agriculture",
+        "current": 28.73,
+        "change_1d_pct": 0.56,
+        "ret_5d": 2.39,
+        "ret_20d": 5.74,
+        "ret_60d": 11.75,
+        "ret_ytd": 12.4,
+        "vol_60d_ann_pct": 9.2,
+        "rs_vs_spy_20d": -0.31
+      },
+      {
+        "sym": "UNG",
+        "name": "US Natural Gas Fund",
+        "category": "energy",
+        "current": 10.98,
+        "change_1d_pct": 0.64,
+        "ret_5d": 5.07,
+        "ret_20d": 3.78,
+        "ret_60d": -7.73,
+        "ret_ytd": -8.96,
+        "vol_60d_ann_pct": 41.5,
+        "rs_vs_spy_20d": -2.27
+      },
+      {
+        "sym": "XLE",
+        "name": "Energy Sector (equity)",
+        "category": "energy_equity",
+        "current": 57.63,
+        "change_1d_pct": 0.1,
+        "ret_5d": 1.11,
+        "ret_20d": 3.35,
+        "ret_60d": 7.22,
+        "ret_ytd": 26.24,
+        "vol_60d_ann_pct": 23.0,
+        "rs_vs_spy_20d": -2.7
+      },
+      {
+        "sym": "GUNR",
+        "name": "Global Natural Resources",
+        "category": "broad",
+        "current": 55.86,
+        "change_1d_pct": 0.27,
+        "ret_5d": 1.55,
+        "ret_20d": 1.38,
+        "ret_60d": 6.18,
+        "ret_ytd": 19.92,
+        "vol_60d_ann_pct": 16.4,
+        "rs_vs_spy_20d": -4.67
+      },
+      {
+        "sym": "GLD",
+        "name": "Gold (SPDR)",
+        "category": "precious",
+        "current": 430.5,
+        "change_1d_pct": -0.56,
+        "ret_5d": -0.11,
+        "ret_20d": -2.26,
+        "ret_60d": -3.95,
+        "ret_ytd": 8.09,
+        "vol_60d_ann_pct": 28.8,
+        "rs_vs_spy_20d": -8.31
+      }
+    ],
+    "gold_silver_ratio": null,
+    "wti_curve_proxy": null
+  },
+  "finished": "2026-05-14T11:45:24.252982+00:00"
+}
