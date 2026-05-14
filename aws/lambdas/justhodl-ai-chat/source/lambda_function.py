@@ -491,6 +491,30 @@ def build_context(message):
             inv = "INVERTED" if curve < 0 else "POSITIVE"
             lines.append(f"[YIELD CURVE 10y-2y] {curve}% ({inv})")
 
+    # ─── News Velocity (Bloomberg-Gap #10 · GDELT hourly) ─────────────
+    nv = get_s3('data/news-velocity.json')
+    if nv:
+        regime_nv = nv.get('composite_regime')
+        sig_nv = nv.get('composite_signal', '')
+        ranked_nv = nv.get('ranked') or {}
+        if regime_nv:
+            lines.append(f"[NEWS VELOCITY] {regime_nv} · {nv.get('n_surge',0)} surge · {nv.get('n_elevated',0)} elevated · {nv.get('n_subdued',0)} subdued (n={nv.get('n_with_data')})")
+            lines.append(f"[NEWS VELOCITY SIGNAL] {sig_nv[:140]}")
+        top_v = ranked_nv.get('top_5_velocity') or []
+        if top_v:
+            tv_str = ', '.join(f"{x['ticker']}({x['z_score']:+.1f}σ/{x.get('flag','?')})" for x in top_v[:5])
+            lines.append(f"[NEWS TOP VELOCITY] {tv_str}")
+        top_a = ranked_nv.get('top_5_attention') or []
+        if top_a:
+            ta_str = ', '.join(f"{x['ticker']}({x.get('current'):.3f})" for x in top_a[:5])
+            lines.append(f"[NEWS TOP ATTENTION] {ta_str}")
+        # Per-ticker drill-down when user mentions a ticker
+        by_t_nv = nv.get('by_ticker') or {}
+        for tkr in (stocks or []):
+            t = by_t_nv.get(tkr)
+            if t and t.get('z_score_30d') is not None:
+                lines.append(f"[{tkr} NEWS] z={t.get('z_score_30d'):+.2f}σ · {t.get('velocity_flag')} · cur={t.get('current_volume')} (30d avg {t.get('avg_30d')})")
+
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
     rs = get_s3('data/retail-sentiment.json')
     if rs:

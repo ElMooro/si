@@ -193,6 +193,8 @@ def load_all():
         "earnings_nlp":"data/earnings-nlp.json",
         # ─── Credit Stress (Bloomberg-Gap #8 · daily 20:00 UTC) ──────
         "credit_stress":"data/credit-stress.json",
+        # ─── News Velocity (Bloomberg-Gap #10 · GDELT hourly) ─────────
+        "news_velocity":"data/news-velocity.json",
         # ─── Central Bank Stance (Bloomberg-Gap #11 · 6h refresh) ────
         "cb_stance":"data/cb-stance.json",
         # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
@@ -736,6 +738,26 @@ def extract_metrics(data,weights):
             "yield_curve_10y_2y": ((c.get("metrics") or {}).get("T10Y2Y") or {}).get("current"),
             "credit_data_date": c.get("data_date"),
             "credit_generated_at": c.get("generated_at"),
+        })(),
+        # ─── News Velocity (Bloomberg-Gap #10) — GDELT hourly ────────
+        **(lambda v=data.get("news_velocity", {}): {
+            "news_velocity_regime": v.get("composite_regime"),
+            "news_velocity_signal": v.get("composite_signal"),
+            "news_n_surge": v.get("n_surge"),
+            "news_n_elevated": v.get("n_elevated"),
+            "news_n_subdued": v.get("n_subdued"),
+            "news_n_with_data": v.get("n_with_data"),
+            "news_top_5_velocity": [
+                {"ticker": x.get("ticker"), "z_score": x.get("z_score"),
+                  "velocity_pct": x.get("velocity_pct"), "flag": x.get("flag")}
+                for x in ((v.get("ranked") or {}).get("top_5_velocity") or [])[:5]
+            ],
+            "news_top_5_attention": [
+                {"ticker": x.get("ticker"), "current": x.get("current"),
+                  "z_score": x.get("z_score")}
+                for x in ((v.get("ranked") or {}).get("top_5_attention") or [])[:5]
+            ],
+            "news_velocity_generated_at": v.get("generated_at"),
         })(),
         # ─── Central Bank Stance (Bloomberg-Gap #11) — Fed FOMC NLP ──
         **(lambda cb=data.get("cb_stance", {}): {

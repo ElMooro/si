@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>News Velocity — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B0%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.attention_surge{border-left:4px solid var(--neg);background:rgba(255,61,90,.06);}
+.regime-banner.attention_concentrated{border-left:4px solid var(--gold);}
+.regime-banner.attention_broadening{border-left:4px solid var(--info);}
+.regime-banner.attention_normal{border-left:4px solid var(--text-mute);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);} .tile.info .val{color:var(--info);} .tile.gold .val{color:var(--gold);}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+@media (max-width:900px){.row-2col{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+
+.row{padding:10px 14px;border-bottom:1px solid rgba(28,35,48,.5);display:grid;grid-template-columns:60px 1fr auto auto;gap:12px;align-items:center;}
+.row:last-child{border-bottom:0;}
+.row:hover{background:rgba(167,139,250,.04);}
+.r-ticker{font-family:var(--font-mono);font-weight:600;}
+.r-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.r-val{font-family:var(--font-mono);font-weight:600;text-align:right;}
+.r-val.pos{color:var(--pos);} .r-val.neg{color:var(--neg);} .r-val.gold{color:var(--gold);}
+.r-pill{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border-hi);text-transform:uppercase;letter-spacing:.4px;}
+.r-pill.surge{background:rgba(255,61,90,.08);color:var(--neg);border-color:rgba(255,61,90,.4);}
+.r-pill.elevated{background:rgba(251,191,36,.08);color:var(--gold);border-color:rgba(251,191,36,.4);}
+.r-pill.normal{color:var(--text-mute);}
+.r-pill.subdued{background:rgba(91,100,121,.08);color:var(--text-mute);}
+
+.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:18px;}
+.chart-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+#chart{height:480px;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>📰 News Velocity <span class="badge">GDELT 2.0 · 30D ROLLING</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="tiles" class="tiles"></div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🚀 Top 5 Velocity (z-score vs 30d)</div>
+    <div id="top-velocity"><div class="loading">…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📊 Top 5 by Current Attention</div>
+    <div id="top-attention"><div class="loading">…</div></div>
+  </div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">📅 Top 5 by 7-Day Average</div>
+    <div id="top-7d"><div class="loading">…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">😴 Bottom 5 Subdued (z &le; -1σ)</div>
+    <div id="bottom-subdued"><div class="loading">…</div></div>
+  </div>
+</div>
+
+<div class="chart-panel">
+  <div class="chart-title">📈 Universe Z-Score Distribution</div>
+  <div id="chart"></div>
+</div>
+
+<div class="method">
+  <h3>Methodology · GDELT News Velocity</h3>
+  <p>GDELT 2.0 (Global Database of Events, Language & Tone) indexes ~100,000 news sources worldwide and computes per-keyword article volume in near real-time. Unlike Google Trends (which mixes random consumer searches), GDELT is filtered to news media — perfect for catching institutional attention surges.</p>
+  <p><strong>Velocity (z-score):</strong> <code>z = (today_volume − 30d_mean) / 30d_stdev</code>. The textbook attention-shift signal.</p>
+  <p><strong>Velocity Flags:</strong> <code>SURGE</code> (z ≥ +2σ) · <code>ELEVATED</code> (z ≥ +1σ) · <code>NORMAL</code> · <code>SUBDUED</code> (z ≤ -1σ).</p>
+  <p><strong>Composite Regimes:</strong> <code>ATTENTION_SURGE</code> (2+ tickers above 2σ — likely market-wide vol event) · <code>ATTENTION_CONCENTRATED</code> (single name dominating) · <code>ATTENTION_BROADENING</code> (3+ above 1σ — sector or theme moving) · <code>ATTENTION_NORMAL</code>.</p>
+  <p><strong>Source:</strong> <code>api.gdeltproject.org/api/v2/doc/doc?mode=TimelineVolInfo&timespan=30d</code> · refresh hourly.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/news-velocity.json";
+let DATA = null, CHART = null;
+
+function fmtZ(v) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(2); }
+function fmtPct(v) { return v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(0) + '%'; }
+function zCls(v) { return v == null ? '' : (v > 2 ? 'neg' : (v > 1 ? 'gold' : (v < -1 ? 'mute' : 'pos'))); }
+
+async function load() {
+  try {
+    DATA = await (await fetch(SIDECAR_URL)).json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderTiles(); renderRankings(); renderChart();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function renderRegime() {
+  const r = DATA.composite_regime || 'UNKNOWN';
+  const s = DATA.composite_signal || '';
+  const rcls = r.toLowerCase();
+  let tcls = 'mute';
+  if (r === 'ATTENTION_SURGE') tcls = 'neg';
+  else if (r === 'ATTENTION_CONCENTRATED') tcls = 'gold';
+  else if (r === 'ATTENTION_BROADENING') tcls = 'info';
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${tcls}">${r.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${s}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Tickers</span><span class="val">${DATA.n_with_data}/${DATA.n_tickers}</span></div>
+        <div><span class="label">Surges</span><span class="val">${DATA.n_surge}</span></div>
+        <div><span class="label">Elevated</span><span class="val">${DATA.n_elevated}</span></div>
+        <div><span class="label">Subdued</span><span class="val">${DATA.n_subdued}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const r = DATA.ranked || {};
+  const tv = (r.top_5_velocity || [])[0] || {};
+  const ta = (r.top_5_attention || [])[0] || {};
+  const t7 = (r.top_5_7d_avg || [])[0] || {};
+  const tiles = [
+    {lbl:"Top Velocity", val: tv.ticker || '-', sub: `z=${fmtZ(tv.z_score)} · ${fmtPct(tv.velocity_pct)}`, cls: tv.flag === 'SURGE' ? 'neg' : (tv.flag === 'ELEVATED' ? 'gold' : '')},
+    {lbl:"Top Attention", val: ta.ticker || '-', sub: `vol: ${ta.current ? ta.current.toFixed(4) : '-'}`},
+    {lbl:"Top 7d Avg", val: t7.ticker || '-', sub: `7d: ${t7.avg_7d ? t7.avg_7d.toFixed(4) : '-'}`},
+    {lbl:"Total Surges", val: DATA.n_surge || 0, sub: `${DATA.n_elevated} elevated`, cls: DATA.n_surge >= 2 ? 'neg' : (DATA.n_surge >= 1 ? 'gold' : '')},
+    {lbl:"Total Subdued", val: DATA.n_subdued || 0, sub: `< -1σ`},
+    {lbl:"Coverage", val: `${DATA.n_with_data}/${DATA.n_tickers}`, sub: `${DATA.n_with_err || 0} errors`},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function rankRow(r, valKey, valFmt) {
+  const flagCls = (r.flag || 'normal').toLowerCase();
+  const tone = r.z_score == null ? '' : zCls(r.z_score);
+  return `<div class="row">
+    <span class="r-ticker">${r.ticker}</span>
+    <span class="r-sub">${valKey === 'z_score' ? `current: ${r.current ? r.current.toFixed(4) : '-'} · ${fmtPct(r.velocity_pct)}` : (valKey === 'current' ? `30d avg: ${r.avg_30d ? r.avg_30d.toFixed(4) : '-'} · z=${fmtZ(r.z_score)}` : `30d: ${r.avg_30d ? r.avg_30d.toFixed(4) : '-'}`)}</span>
+    <span class="r-val ${tone}">${valFmt(r[valKey])}</span>
+    ${r.flag ? `<span class="r-pill ${flagCls}">${r.flag}</span>` : '<span></span>'}
+  </div>`;
+}
+
+function renderRankings() {
+  const r = DATA.ranked || {};
+  document.getElementById('top-velocity').innerHTML = (r.top_5_velocity || []).map(x =>
+    rankRow(x, 'z_score', v => fmtZ(v))).join('') || '<div class="loading">No surges</div>';
+  document.getElementById('top-attention').innerHTML = (r.top_5_attention || []).map(x =>
+    rankRow(x, 'current', v => v == null ? '-' : v.toFixed(4))).join('') || '<div class="loading">—</div>';
+  document.getElementById('top-7d').innerHTML = (r.top_5_7d_avg || []).map(x =>
+    rankRow(x, 'avg_7d', v => v == null ? '-' : v.toFixed(4))).join('') || '<div class="loading">—</div>';
+  document.getElementById('bottom-subdued').innerHTML = (r.bottom_5_subdued || []).map(x =>
+    rankRow(x, 'z_score', v => fmtZ(v))).join('') || '<div class="loading">—</div>';
+}
+
+function renderChart() {
+  const by = DATA.by_ticker || {};
+  const tickers = Object.keys(by).filter(k => by[k].z_score_30d != null);
+  tickers.sort((a, b) => by[a].z_score_30d - by[b].z_score_30d);
+  const z = tickers.map(t => by[t].z_score_30d);
+  const colors = z.map(v => v >= 2 ? '#ff3d5a' : (v >= 1 ? '#fbbf24' : (v <= -1 ? '#5b6479' : '#22d3ee')));
+
+  if (!CHART) CHART = echarts.init(document.getElementById('chart'), null, {renderer:'canvas'});
+  CHART.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'axis', backgroundColor:'#10151d', borderColor:'#2a3548', textStyle:{color:'#e6ecf3'} },
+    grid: {left:60, right:40, top:40, bottom:60},
+    xAxis: { type:'category', data: tickers, axisLabel:{color:'#8b96a8', fontSize:10, rotate:45}, axisLine:{lineStyle:{color:'#2a3548'}} },
+    yAxis: { type:'value', name:'z-score (30d)', axisLabel:{color:'#8b96a8', fontSize:10}, splitLine:{lineStyle:{color:'rgba(28,35,48,.5)'}} },
+    series: [{
+      type: 'bar', data: z.map((v, i) => ({value: v, itemStyle: {color: colors[i]}})),
+      markLine: { silent:true, symbol:'none', data:[
+        {yAxis:2, lineStyle:{color:'#ff3d5a',type:'dashed',width:1}, label:{formatter:'+2σ SURGE',color:'#ff3d5a',fontSize:10}},
+        {yAxis:1, lineStyle:{color:'#fbbf24',type:'dashed',width:1}, label:{formatter:'+1σ ELEVATED',color:'#fbbf24',fontSize:10}},
+        {yAxis:-1, lineStyle:{color:'#5b6479',type:'dashed',width:1}, label:{formatter:'-1σ SUBDUED',color:'#5b6479',fontSize:10}},
+      ]},
+    }],
+  });
+}
+
+window.addEventListener('resize', () => { if (CHART) CHART.resize(); });
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>
