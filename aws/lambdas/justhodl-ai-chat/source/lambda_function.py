@@ -345,6 +345,41 @@ def build_context(message):
                 lines.append(f"[{tkr} GEX] ${r.get('spot')} GEX=${r.get('total_dealer_gex_billions')}B regime={r.get('regime')} "
                              f"P/C OI:{r.get('pcr_oi')} call_wall:${walls_c.get('strike')}(OI:{walls_c.get('call_oi')}) "
                              f"put_wall:${walls_p.get('strike')}(OI:{walls_p.get('put_oi')})")
+                # 0DTE drill-down
+                z = r.get('zero_dte') or {}
+                if z.get('vol_pct') is not None and z.get('vol', 0) > 0:
+                    cwalls = (z.get('call_walls_oi') or [{}])[0]
+                    pwalls = (z.get('put_walls_oi') or [{}])[0]
+                    lines.append(f"[{tkr} 0DTE] vol_pct:{z.get('vol_pct')}% PCR_vol:{z.get('pcr_vol')} "
+                                 f"0DTE_GEX:{z.get('gex_billions')}B · "
+                                 f"call_wall:${cwalls.get('strike')}(OI:{cwalls.get('oi')}) "
+                                 f"put_wall:${pwalls.get('strike')}(OI:{pwalls.get('oi')}) · "
+                                 f"pin:${z.get('pin_strike')} ({z.get('pct_to_pin')}% to spot)")
+
+        # ─── Aggregate 0DTE across all 10 tracked underlyings (BUILD 13) ──
+        zero_dte_vol_pcts = []
+        zero_dte_total_call_vol = 0
+        zero_dte_total_put_vol = 0
+        zero_dte_total_gex_b = 0
+        zero_dte_extreme_names = []
+        for sym, u in ulying.items():
+            if not u or u.get('error'): continue
+            z = u.get('zero_dte') or {}
+            if z.get('vol_pct') is not None:
+                zero_dte_vol_pcts.append(z['vol_pct'])
+                zero_dte_total_call_vol += z.get('call_vol', 0) or 0
+                zero_dte_total_put_vol += z.get('put_vol', 0) or 0
+                zero_dte_total_gex_b += z.get('gex_billions', 0) or 0
+                if z['vol_pct'] > 50:
+                    zero_dte_extreme_names.append(f"{sym}({z['vol_pct']}%)")
+        if zero_dte_vol_pcts:
+            avg_vp = sum(zero_dte_vol_pcts) / len(zero_dte_vol_pcts)
+            agg_pcr = (zero_dte_total_put_vol / zero_dte_total_call_vol) if zero_dte_total_call_vol > 0 else None
+            pcr_str = f"{agg_pcr:.2f}" if agg_pcr is not None else "n/a"
+            lines.append(f"[0DTE AGGREGATE] avg_vol_pct:{avg_vp:.1f}% · agg_PCR_vol:{pcr_str} · "
+                          f"total_0DTE_GEX:${zero_dte_total_gex_b:.2f}B (n={len(zero_dte_vol_pcts)})")
+            if zero_dte_extreme_names:
+                lines.append(f"[0DTE EXTREME (>50%)] {', '.join(zero_dte_extreme_names[:5])}")
 
     # ─── Earnings Call Sentiment NLP (Bloomberg-Gap #5) ──────────────
     es = get_s3('screener/earnings-sentiment.json')

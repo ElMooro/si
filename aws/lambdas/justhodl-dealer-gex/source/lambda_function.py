@@ -95,7 +95,7 @@ from collections import defaultdict
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/dealer-gex.json"
@@ -509,6 +509,12 @@ def analyze_underlying(symbol):
     total_put_vol = 0
     zero_dte_oi = 0
     zero_dte_vol = 0
+    zero_dte_call_oi = 0
+    zero_dte_put_oi = 0
+    zero_dte_call_vol = 0
+    zero_dte_put_vol = 0
+    zero_dte_gex = 0.0
+    zero_dte_by_strike = defaultdict(lambda: {"call_oi": 0, "put_oi": 0, "call_vol": 0, "put_vol": 0})
 
     for c in contracts_in_horizon:
         gex, _, vanna, charm = calculate_gex_per_contract(c, spot, today)
@@ -535,12 +541,23 @@ def analyze_underlying(symbol):
             total_put_oi += oi
             total_put_vol += vol
         by_expiry[c["expiry"]]["gex"] += gex
-        # 0DTE
+        # 0DTE — track call/put + per-strike for walls
         try:
             exp = date.fromisoformat(c["expiry"])
             if (exp - today).days == 0:
                 zero_dte_oi += oi
                 zero_dte_vol += vol
+                zero_dte_gex += gex
+                if is_call:
+                    zero_dte_call_oi += oi
+                    zero_dte_call_vol += vol
+                    zero_dte_by_strike[K]["call_oi"] += oi
+                    zero_dte_by_strike[K]["call_vol"] += vol
+                else:
+                    zero_dte_put_oi += oi
+                    zero_dte_put_vol += vol
+                    zero_dte_by_strike[K]["put_oi"] += oi
+                    zero_dte_by_strike[K]["put_vol"] += vol
         except Exception: pass
 
     # ─── Zero gamma flip (informational — does NOT gate regime) ───
@@ -583,12 +600,40 @@ def analyze_underlying(symbol):
     # ─── IV skew ───
     skew = calculate_iv_skew(contracts_in_horizon, spot)
 
-    # ─── 0DTE concentration ───
+    # ─── 0DTE concentration — enhanced (BUILD 13) ───
+    zero_dte_call_walls = sorted(
+        ((k, v) for k, v in zero_dte_by_strike.items() if v["call_oi"] > 0),
+        key=lambda kv: -kv[1]["call_oi"]
+    )[:3]
+    zero_dte_put_walls = sorted(
+        ((k, v) for k, v in zero_dte_by_strike.items() if v["put_oi"] > 0),
+        key=lambda kv: -kv[1]["put_oi"]
+    )[:3]
+    zero_dte_pin = None  # largest combined OI strike near spot
+    if zero_dte_by_strike:
+        # Pin = strike with largest call_oi+put_oi within ±2% of spot
+        pin_candidates = [(k, v["call_oi"] + v["put_oi"])
+                           for k, v in zero_dte_by_strike.items()
+                           if spot and abs(k - spot) / spot <= 0.02]
+        if pin_candidates:
+            zero_dte_pin = max(pin_candidates, key=lambda x: x[1])[0]
+
     zero_dte_pct = {
         "oi_pct": round(100 * zero_dte_oi / (total_call_oi + total_put_oi), 1) if (total_call_oi + total_put_oi) > 0 else 0,
         "vol_pct": round(100 * zero_dte_vol / (total_call_vol + total_put_vol), 1) if (total_call_vol + total_put_vol) > 0 else 0,
         "oi": zero_dte_oi,
         "vol": zero_dte_vol,
+        "call_oi": zero_dte_call_oi,
+        "put_oi": zero_dte_put_oi,
+        "call_vol": zero_dte_call_vol,
+        "put_vol": zero_dte_put_vol,
+        "pcr_oi": round(zero_dte_put_oi / zero_dte_call_oi, 3) if zero_dte_call_oi > 0 else None,
+        "pcr_vol": round(zero_dte_put_vol / zero_dte_call_vol, 3) if zero_dte_call_vol > 0 else None,
+        "gex_billions": round(zero_dte_gex / 1e9, 3),
+        "call_walls_oi": [{"strike": k, "oi": v["call_oi"]} for k, v in zero_dte_call_walls],
+        "put_walls_oi": [{"strike": k, "oi": v["put_oi"]} for k, v in zero_dte_put_walls],
+        "pin_strike": zero_dte_pin,
+        "pct_to_pin": round((zero_dte_pin / spot - 1) * 100, 2) if zero_dte_pin and spot else None,
     }
 
     # ─── Put/Call ratios ───
