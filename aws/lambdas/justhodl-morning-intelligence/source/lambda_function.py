@@ -244,7 +244,7 @@ def extract_metrics(data,weights):
     _cal = get_calibration() if _CALIBRATION_AVAILABLE else None
     kw = _cal.weight("khalid_index") if _cal is not None else 1.0
     picks=[s.get("symbol","?")+"(P:"+str(s.get("piotroskiScore","?"))+")" for s in data.get("screener",{}).get("stocks",[])[:5]]
-    alerts=[str(a.get("message",a))[:80] for a in edge.get("alerts",[])[:3]]
+    alerts=[str((a.get("message",a) if isinstance(a, dict) else a))[:80] for a in (edge.get("alerts",[]) or [])[:3]]
     top_w=sorted([(k,v) for k,v in weights.items()],key=lambda x:x[1],reverse=True)[:5]
     return {
         "khalid_raw":ki,
