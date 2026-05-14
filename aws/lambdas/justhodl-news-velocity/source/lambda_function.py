@@ -47,7 +47,7 @@ import io, json, os, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/news-velocity.json"
@@ -57,7 +57,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 HTTP_TIMEOUT = 30
-REQUEST_INTERVAL_SEC = 6.0  # GDELT firm rate limit ~1 req / 5 sec — 6s with safety margin
+REQUEST_INTERVAL_SEC = 7.0  # GDELT firm rate limit ~1 req / 5 sec — 7s with margin (was 6s, got 429s)
 
 GDELT_BASE = "https://api.gdeltproject.org/api/v2/doc/doc"
 
@@ -67,38 +67,40 @@ UNIVERSE = [
     "JPM", "WMT", "LLY", "V", "UNH", "XOM", "MA",
 ]
 
-# Map tickers to query-friendly names (GDELT searches text, not symbols only)
+# Map tickers to query-friendly names (GDELT searches text, not symbols only).
+# CRITICAL: GDELT now requires OR queries to be wrapped in () or it returns
+# "Queries containing OR'd terms must be surrounded by ()." text instead of JSON.
 QUERY_MAP = {
-    "AAPL": "AAPL OR \"Apple Inc\"",
-    "MSFT": "MSFT OR \"Microsoft\"",
-    "GOOGL": "GOOGL OR \"Alphabet\"",
-    "AMZN": "AMZN OR \"Amazon.com\"",
-    "NVDA": "NVDA OR \"Nvidia\"",
-    "META": "META OR \"Meta Platforms\"",
-    "TSLA": "TSLA OR \"Tesla Inc\"",
-    "AVGO": "AVGO OR \"Broadcom\"",
-    "JPM": "JPM OR \"JPMorgan Chase\"",
-    "WMT": "WMT OR \"Walmart\"",
-    "LLY": "LLY OR \"Eli Lilly\"",
+    "AAPL": "(AAPL OR \"Apple Inc\")",
+    "MSFT": "(MSFT OR \"Microsoft\")",
+    "GOOGL": "(GOOGL OR \"Alphabet\")",
+    "AMZN": "(AMZN OR \"Amazon.com\")",
+    "NVDA": "(NVDA OR \"Nvidia\")",
+    "META": "(META OR \"Meta Platforms\")",
+    "TSLA": "(TSLA OR \"Tesla Inc\")",
+    "AVGO": "(AVGO OR \"Broadcom\")",
+    "JPM": "(JPM OR \"JPMorgan Chase\")",
+    "WMT": "(WMT OR \"Walmart\")",
+    "LLY": "(LLY OR \"Eli Lilly\")",
     "V": "\"Visa Inc\"",
-    "UNH": "UNH OR \"UnitedHealth\"",
-    "XOM": "XOM OR \"ExxonMobil\"",
+    "UNH": "(UNH OR \"UnitedHealth\")",
+    "XOM": "(XOM OR \"ExxonMobil\")",
     "MA": "\"Mastercard\"",
     "PG": "\"Procter Gamble\"",
-    "JNJ": "JNJ OR \"Johnson Johnson\"",
+    "JNJ": "(JNJ OR \"Johnson Johnson\")",
     "HD": "\"Home Depot\"",
-    "COST": "COST OR Costco",
-    "ABBV": "ABBV OR AbbVie",
-    "BAC": "BAC OR \"Bank of America\"",
+    "COST": "(COST OR Costco)",
+    "ABBV": "(ABBV OR AbbVie)",
+    "BAC": "(BAC OR \"Bank of America\")",
     "KO": "\"Coca-Cola\"",
-    "CVX": "CVX OR Chevron",
-    "ORCL": "ORCL OR Oracle",
-    "MRK": "MRK OR Merck",
-    "PEP": "PEP OR PepsiCo",
-    "ADBE": "ADBE OR Adobe",
-    "CSCO": "CSCO OR Cisco",
-    "TMO": "TMO OR \"Thermo Fisher\"",
-    "AMD": "AMD OR \"Advanced Micro\"",
+    "CVX": "(CVX OR Chevron)",
+    "ORCL": "(ORCL OR Oracle)",
+    "MRK": "(MRK OR Merck)",
+    "PEP": "(PEP OR PepsiCo)",
+    "ADBE": "(ADBE OR Adobe)",
+    "CSCO": "(CSCO OR Cisco)",
+    "TMO": "(TMO OR \"Thermo Fisher\")",
+    "AMD": "(AMD OR \"Advanced Micro\")",
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
