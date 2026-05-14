@@ -1,47 +1,50 @@
 {
-  "started": "2026-05-14T00:28:24.383550+00:00",
+  "started": "2026-05-14T00:39:34.447104+00:00",
   "lambda": {
     "exists": true,
     "last_modified": "2026-05-14T00:24:01.000+0000",
     "memory": 512,
     "timeout": 180,
-    "state": "Active",
     "env_keys": [
       "TELEGRAM_CHAT_ID",
       "TELEGRAM_TOKEN"
     ],
-    "description": "Retail sentiment via ApeWisdom + StockTwits \u2014 30-min refresh",
+    "state": "Active",
     "rules": [],
     "recent_logs": [
       {
-        "name": "2026/05/14/[$LATEST]4fceac6226df482798ba426e2119fbb2",
-        "last": "2026-05-14T00:23:39"
+        "name": "2026/05/14/[$LATEST]5dd4a1d6a12c4176bd710f1483e5c7",
+        "last_event": "2026-05-14T00:28:29"
+      },
+      {
+        "name": "2026/05/14/[$LATEST]4fceac6226df482798ba426e2119fb",
+        "last_event": "2026-05-14T00:23:39"
       }
-    ],
-    "invoke_status": 200,
+    ]
+  },
+  "invoke": {
+    "status": 200,
     "fn_error": null,
-    "invoke_response": {
+    "response": {
       "success": true,
       "version": "1.0.0",
       "market_regime": "NORMAL",
-      "total_mentions": 6381,
+      "total_mentions": 6382,
       "n_top_with_stwt": 25,
       "n_velocity_surges": 15,
       "n_rank_climbers": 15,
       "n_new_entrants": 1,
       "top_1": "MU",
-      "top_1_mentions": 1197,
+      "top_1_mentions": 1194,
       "regime_changed": false,
       "alert_sent": true,
-      "elapsed_seconds": 1.43
+      "elapsed_seconds": 1.51
     },
-    "log_tail": "START RequestId: cfe2733e-01dc-4ff7-9475-946ad8215416 Version: $LATEST\n=== retail-sentiment v1.0.0 \u00b7 2026-05-14T00:28:28.012930+00:00 ===\nfetching apewisdom + stocktwits trending in parallel...\napewisdom: all=200 wsb=100 stocks=100 investing=100\nstocktwits trending: 30\nfetching stocktwits streams for 25 top tickers...\n\u2713 data/retail-sentiment.json written (26.1 KB)\n\u2713 telegram sent\nEND RequestId: cfe2733e-01dc-4ff7-9475-946ad8215416\nREPORT RequestId: cfe2733e-01dc-4ff7-9475-946ad8215416\tDuration: 1856.14 ms\tBilled Duration: 2396 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\tInit Duration: 539.26 ms\t\n"
+    "log_tail": "START RequestId: 4999de7b-efd1-4300-a730-65d447bd6b3a Version: $LATEST\n=== retail-sentiment v1.0.0 \u00b7 2026-05-14T00:39:45.633449+00:00 ===\nfetching apewisdom + stocktwits trending in parallel...\napewisdom: all=200 wsb=100 stocks=100 investing=100\nstocktwits trending: 30\nfetching stocktwits streams for 25 top tickers...\n\u2713 data/retail-sentiment.json written (26.3 KB)\n\u2713 telegram sent\nEND RequestId: 4999de7b-efd1-4300-a730-65d447bd6b3a\nREPORT RequestId: 4999de7b-efd1-4300-a730-65d447bd6b3a\tDuration: 1955.81 ms\tBilled Duration: 2423 ms\tMemory Size: 512 MB\tMax Memory Used: 114 MB\tInit Duration: 466.42 ms\t\n"
   },
-  "sidecar": {
-    "size_kb": 23.7,
-    "modified": "2026-05-14T00:28:30",
-    "version": "1.0.0",
-    "generated_at": "2026-05-14T00:28:29.440102+00:00",
+  "data/retail-sentiment.json": {
+    "size_kb": 24.0,
+    "modified": "2026-05-14T00:39:48",
     "top_keys": [
       "generated_at",
       "generated_at_unix",
@@ -62,63 +65,120 @@
       "stocktwits_trending",
       "subreddit_breakdown"
     ],
+    "generated_at": "2026-05-14T00:39:47.143558+00:00",
+    "version": "1.0.0",
     "market_regime": "NORMAL",
-    "n_tickers_tracked": 0,
-    "sample_top_5": [],
-    "biggest_velocity_surges_top_3": [],
-    "biggest_rank_climbers_top_3": [],
-    "most_bullish_top_3": [],
-    "most_bearish_top_3": [],
-    "stocktwits_trending_top_5": [
+    "regime_label": null,
+    "signal": null,
+    "n_tickers": null,
+    "top_3": [],
+    "sample_velocity_surges": [],
+    "sample_rank_climbers": [],
+    "most_bullish_tickers": [],
+    "stocktwits_trending": [
       {
         "symbol": "CSCO",
         "title": "Cisco Systems, Inc.",
-        "trending_score": 12.81,
-        "watchlist_count": 60422,
-        "sector": "ElectronicTechnology",
-        "industry": "TelecommunicationsEquipment"
-      },
-      {
-        "symbol": "ONDS",
-        "title": "Ondas Inc",
-        "trending_score": 10.92,
-        "watchlist_count": 27864,
+        "trending_score": 12.72,
+        "watchlist_count": 60435,
         "sector": "ElectronicTechnology",
         "industry": "TelecommunicationsEquipment"
       },
       {
         "symbol": "LUNR",
         "title": "Intuitive Machines Inc",
-        "trending_score": 10.87,
-        "watchlist_count": 35748,
+        "trending_score": 11.45,
+        "watchlist_count": 35749,
         "sector": "ElectronicTechnology",
         "industry": "AerospaceAndDefense"
       },
       {
         "symbol": "NOK",
         "title": "Nokia Corp",
-        "trending_score": 10.57,
-        "watchlist_count": 107909,
+        "trending_score": 11.29,
+        "watchlist_count": 107916,
+        "sector": "ElectronicTechnology",
+        "industry": "TelecommunicationsEquipment"
+      },
+      {
+        "symbol": "ONDS",
+        "title": "Ondas Inc",
+        "trending_score": 10.83,
+        "watchlist_count": 27868,
         "sector": "ElectronicTechnology",
         "industry": "TelecommunicationsEquipment"
       },
       {
         "symbol": "EOSE",
         "title": "Eos Energy Enterprises Inc - Ordinary Shares - Class A",
-        "trending_score": 10.33,
-        "watchlist_count": 16821,
+        "trending_score": 10.37,
+        "watchlist_count": 16826,
         "sector": "ProducerManufacturing",
         "industry": "ElectricalProducts"
       }
     ],
-    "subreddit_breakdown_keys": [
-      "wsb_top_10",
-      "stocks_top_10",
-      "investing_top_10",
-      "consensus_wsb_and_stocks",
-      "wsb_only",
-      "stocks_only"
-    ]
+    "subreddit_breakdown": {
+      "wsb_top_10": [
+        "MU",
+        "SPY",
+        "MSFT",
+        "NVDA",
+        "NBIS",
+        "SNDK",
+        "CSCO",
+        "QQQ",
+        "RKLB",
+        "TSLA"
+      ],
+      "stocks_top_10": [
+        "MU",
+        "NVDA",
+        "AMD",
+        "RKLB",
+        "SNDK",
+        "TSLA",
+        "SPY",
+        "MSFT",
+        "NBIS",
+        "EWY"
+      ],
+      "investing_top_10": [
+        "VOO",
+        "VTI",
+        "VT",
+        "QQQ",
+        "AMD",
+        "MU",
+        "NVDA",
+        "SPY",
+        "SGOV",
+        "EU"
+      ],
+      "consensus_wsb_and_stocks": [
+        "MU",
+        "SPY",
+        "MSFT",
+        "NVDA",
+        "NBIS",
+        "SNDK",
+        "RKLB",
+        "TSLA"
+      ],
+      "wsb_only": [
+        "CSCO",
+        "QQQ"
+      ],
+      "stocks_only": [
+        "AMD",
+        "EWY"
+      ]
+    }
   },
-  "finished": "2026-05-14T00:28:30.072844+00:00"
+  "data/retail-sentiment-history.json": {
+    "exists": false
+  },
+  "page": {
+    "s3_exists": false
+  },
+  "finished": "2026-05-14T00:39:48.187362+00:00"
 }
