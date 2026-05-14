@@ -1,0 +1,95 @@
+{
+  "started": "2026-05-14T00:47:03.869492+00:00",
+  "env_keys": [
+    "ANTHROPIC_API_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "has_anthropic_key": true,
+  "lambda": "created",
+  "schedule": "cron(0 0/6 ? * * *)",
+  "rule_state": "ENABLED",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "success": true,
+    "version": "1.0.0",
+    "latest_fomc_date": "20260429",
+    "hawkish_score": 25,
+    "policy_action": "HOLD",
+    "regime": "MILD_HAWKISH",
+    "delta_vs_prior": 10,
+    "shift_classification": "HAWKISH_DRIFT",
+    "n_scored": 5,
+    "regime_changed": null,
+    "alert_sent": false,
+    "elapsed_seconds": 5.69
+  },
+  "log_tail": "START RequestId: c46b1d99-5587-4310-b53e-75907eccc1c4 Version: $LATEST\n=== cb-stance v1.0.0 \u00b7 2026-05-14T00:47:12.830881+00:00 ===\nRSS: 15 items, 5 FOMC statements\n\u2713 20260128 [new] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20260429 [new] score=25 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20260128 [cache] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20260318 [new] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20251210 [new] score=-35 action=CUT guidance=DATA_DEPENDENT\n\u2713 cb-stance.json written\nEND RequestId: c46b1d99-5587-4310-b53e-75907eccc1c4\nREPORT RequestId: c46b1d99-5587-4310-b53e-75907eccc1c4\tDuration: 5732.92 ms\tBilled Duration: 6292 ms\tMemory Size: 1024 MB\tMax Memory Used: 103 MB\tInit Duration: 558.54 ms\t\n",
+  "sidecar": {
+    "size_kb": 3.4,
+    "modified": "2026-05-14T00:47:19",
+    "version": "1.0.0",
+    "model": "claude-haiku-4-5-20251001",
+    "n_scored": 5,
+    "regime": "MILD_HAWKISH",
+    "regime_signal": "Restrictive but moderating; mixed for risk",
+    "delta_hawkish": 10,
+    "shift_classification": "HAWKISH_DRIFT",
+    "latest_statement_full": {
+      "date": "20260429",
+      "title": "Federal Reserve issues FOMC statement",
+      "hawkish_score": 25,
+      "policy_action": "HOLD",
+      "policy_action_size_bps": 0,
+      "forward_guidance": "DATA_DEPENDENT",
+      "inflation_concern": "HIGH",
+      "growth_concern": "MEDIUM",
+      "labor_concern": "HIGH",
+      "balance_sheet_stance": "NOT_DISCUSSED",
+      "key_themes": [
+        "elevated inflation requiring continued vigilance",
+        "solid economic expansion with weak labor market",
+        "geopolitical uncertainty affecting outlook",
+        "data-dependent approach to future adjustments",
+        "dissent favoring rate cuts or easing bias"
+      ],
+      "notable_phrases": [
+        "Inflation is elevated, in part reflecting the recent increase in global energy prices",
+        "Job gains have remained low, on average",
+        "The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge",
+        "carefully assess incoming data, the evolving outlook, and the balance of risks"
+      ],
+      "summary": "The Fed maintains rates while expressing concern about elevated inflation and weak labor conditions, adopting a cautious data-dependent stance with meaningful dissent for rate cuts or easing bias."
+    },
+    "recent_count": 5,
+    "recent_dates_and_scores": [
+      {
+        "date": "20260429",
+        "hawkish": 25,
+        "action": "HOLD"
+      },
+      {
+        "date": "20260318",
+        "hawkish": 15,
+        "action": "HOLD"
+      },
+      {
+        "date": "20260128",
+        "hawkish": 15,
+        "action": "HOLD"
+      },
+      {
+        "date": "20260128",
+        "hawkish": 15,
+        "action": "HOLD"
+      },
+      {
+        "date": "20251210",
+        "hawkish": -35,
+        "action": "CUT"
+      }
+    ]
+  },
+  "finished": "2026-05-14T00:47:18.726341+00:00"
+}
