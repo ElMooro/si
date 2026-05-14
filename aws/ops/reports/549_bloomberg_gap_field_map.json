@@ -1,0 +1,1511 @@
+{
+  "started": "2026-05-14T14:06:14.144522+00:00",
+  "sidecars": {
+    "data/dealer-gex.json": {
+      "key": "data/dealer-gex.json",
+      "size_kb": 33.0,
+      "modified": "2026-05-14T13:07:24",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "calculation_config",
+        "market_composite",
+        "squeeze_candidates",
+        "underlyings"
+      ],
+      "regime_fields": {
+        "market_composite": {
+          "type": "dict",
+          "keys": [
+            "spy_regime",
+            "spy_gex_billions",
+            "spy_flip_level",
+            "spy_spot",
+            "spy_pct_to_flip",
+            "spy_trading_bias",
+            "qqq_regime",
+            "iwm_regime",
+            "index_gex_signs",
+            "composite_regime"
+          ],
+          "sample": {
+            "spy_regime": "POSITIVE_GAMMA",
+            "spy_gex_billions": "2.266",
+            "spy_flip_level": "None",
+            "spy_spot": "742.31",
+            "spy_pct_to_flip": "None"
+          }
+        },
+        "market_composite.spy_regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "market_composite.qqq_regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "market_composite.iwm_regime": {
+          "type": "str",
+          "value": "NEGATIVE_GAMMA"
+        },
+        "market_composite.composite_regime": {
+          "type": "str",
+          "value": "MOSTLY_POSITIVE_GAMMA"
+        },
+        "market_composite.composite_signal": {
+          "type": "str",
+          "value": "Majority indices in positive gamma \u2014 mean-revert, buy dips at support, fade resistance"
+        },
+        "underlyings.NVDA.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.IWM.regime": {
+          "type": "str",
+          "value": "NEGATIVE_GAMMA"
+        },
+        "underlyings.SPY.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.QQQ.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.TSLA.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.AAPL.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.AMZN.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.MSFT.regime": {
+          "type": "str",
+          "value": "NEAR_FLIP"
+        },
+        "underlyings.GOOGL.regime": {
+          "type": "str",
+          "value": "POSITIVE_GAMMA"
+        },
+        "underlyings.META.regime": {
+          "type": "str",
+          "value": "NEAR_FLIP"
+        }
+      }
+    },
+    "data/vix-curve.json": {
+      "key": "data/vix-curve.json",
+      "size_kb": 1.4,
+      "modified": "2026-05-14T14:00:18",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "data_date",
+        "elapsed_seconds",
+        "current",
+        "spreads",
+        "spread_regimes",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "z_scores_60d",
+        "percentile_ranks",
+        "sustained_signals",
+        "cross_asset_dispersion",
+        "day_over_day",
+        "thresholds",
+        "n_history_days",
+        "history_first_date"
+      ],
+      "regime_fields": {
+        "spread_regimes": {
+          "type": "dict",
+          "keys": [
+            "9d_30d",
+            "30d_3m",
+            "3m_6m",
+            "9d_6m"
+          ],
+          "sample": {
+            "9d_30d": "CONTANGO",
+            "30d_3m": "STEEP_CONTANGO",
+            "3m_6m": "CONTANGO",
+            "9d_6m": "STEEP_CONTANGO"
+          }
+        },
+        "composite_regime": {
+          "type": "str",
+          "value": "NORMAL_CONTANGO"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "Normal contango \u00b7 vol pricing balanced across curve \u00b7 no immediate stress"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        },
+        "sustained_signals": {
+          "type": "dict",
+          "keys": [
+            "n_5d_backwardated_30d_3m",
+            "n_20d_backwardated_30d_3m",
+            "n_5d_front_inverted_9d_30d",
+            "n_20d_front_inverted_9d_30d"
+          ],
+          "sample": {
+            "n_5d_backwardated_30d_3m": "0",
+            "n_20d_backwardated_30d_3m": "0",
+            "n_5d_front_inverted_9d_30d": "0",
+            "n_20d_front_inverted_9d_30d": "0"
+          }
+        }
+      }
+    },
+    "data/crypto-funding.json": {
+      "key": "data/crypto-funding.json",
+      "size_kb": 5.4,
+      "modified": "2026-05-14T13:15:52",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "config",
+        "market_composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "squeeze_candidates",
+        "by_coin"
+      ],
+      "regime_fields": {
+        "composite_regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "Funding balanced across coins \u00b7 no major positioning tilt"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        },
+        "squeeze_candidates[0].regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.ADA.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.BTC.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.AVAX.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.DOGE.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.ETH.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.BNB.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.SOL.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.LINK.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        },
+        "by_coin.XRP.regime": {
+          "type": "str",
+          "value": "BALANCED"
+        }
+      }
+    },
+    "data/credit-stress.json": {
+      "key": "data/credit-stress.json",
+      "size_kb": 3.8,
+      "modified": "2026-05-13T23:58:14",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "data_date",
+        "current_bps",
+        "metrics",
+        "derived_spreads",
+        "regimes",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "thresholds"
+      ],
+      "regime_fields": {
+        "regimes": {
+          "type": "dict",
+          "keys": [
+            "hy_regime",
+            "ig_regime",
+            "composite_regime",
+            "composite_signal"
+          ],
+          "sample": {
+            "hy_regime": "BENIGN_RISK_ON",
+            "ig_regime": "TIGHT",
+            "composite_regime": "MELTUP_PRONE",
+            "composite_signal": "HY OAS 2.82% (very tight) and compressing \u2014 credit complacency, melt-up risk"
+          }
+        },
+        "regimes.hy_regime": {
+          "type": "str",
+          "value": "BENIGN_RISK_ON"
+        },
+        "regimes.ig_regime": {
+          "type": "str",
+          "value": "TIGHT"
+        },
+        "regimes.composite_regime": {
+          "type": "str",
+          "value": "MELTUP_PRONE"
+        },
+        "regimes.composite_signal": {
+          "type": "str",
+          "value": "HY OAS 2.82% (very tight) and compressing \u2014 credit complacency, melt-up risk"
+        },
+        "composite_regime": {
+          "type": "str",
+          "value": "MELTUP_PRONE"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "HY OAS 2.82% (very tight) and compressing \u2014 credit complacency, melt-up risk"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        }
+      }
+    },
+    "data/retail-sentiment.json": {
+      "key": "data/retail-sentiment.json",
+      "size_kb": 23.9,
+      "modified": "2026-05-14T14:00:50",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "sources",
+        "elapsed_seconds",
+        "n_all_stocks",
+        "n_wsb",
+        "n_stocks",
+        "n_investing",
+        "n_with_stwt_data",
+        "market_regime",
+        "market_regime_signal",
+        "market_regime_data",
+        "regime_changed_from_prior",
+        "top_30_by_mentions",
+        "ranked",
+        "stocktwits_trending",
+        "subreddit_breakdown"
+      ],
+      "regime_fields": {
+        "market_regime": {
+          "type": "str",
+          "value": "NORMAL"
+        },
+        "market_regime_signal": {
+          "type": "str",
+          "value": "Total mentions 6,430 in typical range"
+        },
+        "market_regime_data": {
+          "type": "dict",
+          "keys": [
+            "total_mentions",
+            "prior_total",
+            "delta_pct"
+          ],
+          "sample": {
+            "total_mentions": "6430",
+            "prior_total": "6333",
+            "delta_pct": "1.5"
+          }
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        }
+      }
+    },
+    "data/news-velocity.json": {
+      "key": "data/news-velocity.json",
+      "size_kb": 1.5,
+      "modified": "2026-05-14T14:05:48",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "n_surge",
+        "n_elevated",
+        "n_subdued",
+        "by_ticker",
+        "ranked",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior"
+      ],
+      "regime_fields": {
+        "composite_regime": {
+          "type": "str",
+          "value": "UNKNOWN"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "No data"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": true
+        }
+      }
+    },
+    "data/cb-stance.json": {
+      "key": "data/cb-stance.json",
+      "size_kb": 3.4,
+      "modified": "2026-05-14T12:00:47",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "elapsed_seconds",
+        "n_fomc_statements_scored",
+        "fed",
+        "regime_changed_from_prior",
+        "new_statement_since_last_run"
+      ],
+      "regime_fields": {
+        "n_fomc_statements_scored": {
+          "type": "num",
+          "value": 5
+        },
+        "fed.latest_statement.balance_sheet_stance": {
+          "type": "str",
+          "value": "NOT_DISCUSSED"
+        },
+        "fed.latest_statement.summary": {
+          "type": "str",
+          "value": "The Fed maintains rates while expressing concern about elevated inflation and weak labor conditions, adopting a cautious data-dependent stance with meaningful d"
+        },
+        "fed.prior_statement_date": {
+          "type": "str",
+          "value": "20260318"
+        },
+        "fed.shift_classification": {
+          "type": "str",
+          "value": "HAWKISH_DRIFT"
+        },
+        "fed.regime": {
+          "type": "str",
+          "value": "MILD_HAWKISH"
+        },
+        "fed.regime_signal": {
+          "type": "str",
+          "value": "Restrictive but moderating; mixed for risk"
+        },
+        "fed.recent_statements[0].summary": {
+          "type": "str",
+          "value": "The Fed maintains rates while expressing concern about elevated inflation and weak labor conditions, adopting a cautious data-dependent stance with meaningful d"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        },
+        "new_statement_since_last_run": {
+          "type": "num",
+          "value": false
+        }
+      }
+    },
+    "data/global-markets.json": {
+      "key": "data/global-markets.json",
+      "size_kb": 25.0,
+      "modified": "2026-05-14T12:15:44",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "source",
+        "elapsed_seconds",
+        "n_etfs",
+        "n_with_data",
+        "n_with_err",
+        "by_sym",
+        "composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior",
+        "history_60d"
+      ],
+      "regime_fields": {
+        "composite.composite_regime": {
+          "type": "str",
+          "value": "US_LED_BULL"
+        },
+        "composite.composite_signal": {
+          "type": "str",
+          "value": "US leading by +3.5pp \u2014 narrow but firm leadership"
+        },
+        "composite_regime": {
+          "type": "str",
+          "value": "US_LED_BULL"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "US leading by +3.5pp \u2014 narrow but firm leadership"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        }
+      }
+    },
+    "data/commodity-curves.json": {
+      "key": "data/commodity-curves.json",
+      "size_kb": 6.2,
+      "modified": "2026-05-14T11:50:28",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "source",
+        "spy_20d",
+        "fred_metrics",
+        "etf_metrics",
+        "n_fred",
+        "n_etf",
+        "n_fred_with_data",
+        "n_etf_with_data",
+        "composite",
+        "composite_regime",
+        "composite_signal",
+        "regime_changed_from_prior"
+      ],
+      "regime_fields": {
+        "composite": {
+          "type": "dict",
+          "keys": [
+            "ratios",
+            "ranked_20d",
+            "top_3_by_20d",
+            "bottom_3_by_20d",
+            "composite_regime",
+            "composite_signal"
+          ],
+          "sample": {
+            "ratios": "dict",
+            "ranked_20d": "list",
+            "top_3_by_20d": "list",
+            "bottom_3_by_20d": "list",
+            "composite_regime": "INFLATIONARY_PUSH"
+          }
+        },
+        "composite.composite_regime": {
+          "type": "str",
+          "value": "INFLATIONARY_PUSH"
+        },
+        "composite.composite_signal": {
+          "type": "str",
+          "value": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuilding"
+        },
+        "composite_regime": {
+          "type": "str",
+          "value": "INFLATIONARY_PUSH"
+        },
+        "composite_signal": {
+          "type": "str",
+          "value": "PDBC +8.5% & XLE +3.4% 20d \u2014 broad commodity rally; inflation pressures rebuilding"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        }
+      }
+    },
+    "data/insider-clusters.json": {
+      "key": "data/insider-clusters.json",
+      "size_kb": 70.8,
+      "modified": "2026-05-13T14:41:23",
+      "top_level_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "lookback_days",
+        "duration_s",
+        "stats",
+        "thresholds",
+        "clusters"
+      ],
+      "regime_fields": {
+        "stats.n_strong_signals": {
+          "type": "num",
+          "value": 8
+        },
+        "clusters[0].signal_type": {
+          "type": "str",
+          "value": "ceo_conviction"
+        }
+      }
+    },
+    "data/options-flow.json": {
+      "key": "data/options-flow.json",
+      "size_kb": 77.5,
+      "modified": "2026-05-14T14:03:43",
+      "top_level_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "duration_s",
+        "stats",
+        "summary",
+        "all_qualifying"
+      ],
+      "regime_fields": {
+        "summary": {
+          "type": "dict",
+          "keys": [
+            "top_25_overall",
+            "tier_a"
+          ],
+          "sample": {
+            "top_25_overall": "list",
+            "tier_a": "list"
+          }
+        }
+      }
+    },
+    "data/dix-history.json": {
+      "key": "data/dix-history.json",
+      "size_kb": 124.9,
+      "modified": "2026-05-13T22:00:51",
+      "top_level_keys": [
+        "generated_at",
+        "n_days",
+        "first_date",
+        "last_date",
+        "dates",
+        "price",
+        "dix_pct",
+        "gex_billions"
+      ],
+      "regime_fields": {}
+    },
+    "data/finra-short.json": {
+      "key": "data/finra-short.json",
+      "size_kb": 143.9,
+      "modified": "2026-05-14T01:00:03",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "data_date",
+        "elapsed_seconds",
+        "config",
+        "market_composite",
+        "squeeze_candidates",
+        "top_svr",
+        "top_zscore",
+        "sectors",
+        "tickers"
+      ],
+      "regime_fields": {
+        "market_composite": {
+          "type": "dict",
+          "keys": [
+            "regime",
+            "volume_weighted_svr",
+            "volume_weighted_svr_pct",
+            "median_svr_pct",
+            "p10_svr_pct",
+            "p90_svr_pct",
+            "p99_svr_pct",
+            "n_analyzed",
+            "n_universe_in_file",
+            "n_high_svr"
+          ],
+          "sample": {
+            "regime": "NORMAL",
+            "volume_weighted_svr": "0.4787",
+            "volume_weighted_svr_pct": "47.87",
+            "median_svr_pct": "53.85",
+            "p10_svr_pct": "31.54"
+          }
+        },
+        "market_composite.regime": {
+          "type": "str",
+          "value": "NORMAL"
+        },
+        "sectors.Real Estate": {
+          "type": "dict",
+          "keys": [
+            "n_tickers",
+            "median_svr",
+            "mean_svr",
+            "max_svr",
+            "total_volume"
+          ],
+          "sample": {
+            "n_tickers": "31",
+            "median_svr": "54.63",
+            "mean_svr": "54.59",
+            "max_svr": "88.7",
+            "total_volume": "36101756.0"
+          }
+        }
+      }
+    },
+    "data/13f-positions.json": {
+      "key": "data/13f-positions.json",
+      "size_kb": 14263.0,
+      "modified": "2026-05-14T10:51:23",
+      "top_level_keys": [
+        "generated_at",
+        "as_of_quarter",
+        "funds_total",
+        "funds_parsed",
+        "funds_failed",
+        "fund_errors",
+        "by_fund",
+        "aggregate_by_ticker",
+        "most_bought",
+        "most_sold",
+        "consensus_holds",
+        "rare_picks",
+        "fetch_duration_s"
+      ],
+      "regime_fields": {
+        "by_fund.BERKSHIRE.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "4"
+          }
+        },
+        "by_fund.BRIDGEWATER.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "191"
+          }
+        },
+        "by_fund.AQR.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "223"
+          }
+        },
+        "by_fund.RENAISSANCE.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "478"
+          }
+        },
+        "by_fund.TWO_SIGMA.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "611"
+          }
+        },
+        "by_fund.PERSHING.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "1"
+          }
+        },
+        "by_fund.CITADEL.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "1221"
+          }
+        },
+        "by_fund.MILLENNIUM.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "525"
+          }
+        },
+        "by_fund.GREENLIGHT.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "7"
+          }
+        },
+        "by_fund.TIGER_GLOBAL.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "1"
+          }
+        },
+        "by_fund.SOROS.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "127"
+          }
+        },
+        "by_fund.COATUE.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "13"
+          }
+        },
+        "by_fund.DURATION.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "52"
+          }
+        },
+        "by_fund.BAUPOST.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "14"
+          }
+        },
+        "by_fund.SCION.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "7"
+          }
+        },
+        "by_fund.LONE_PINE.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "3"
+          }
+        },
+        "by_fund.POINT72.changes_summary": {
+          "type": "dict",
+          "keys": [
+            "new",
+            "exits",
+            "adds",
+            "trims",
+            "n_new",
+            "n_exits",
+            "n_adds",
+            "n_trims",
+            "n_holds"
+          ],
+          "sample": {
+            "new": "list",
+            "exits": "list",
+            "adds": "list",
+            "trims": "list",
+            "n_new": "1153"
+          }
+        }
+      }
+    },
+    "data/earnings-nlp.json": {
+      "key": "data/earnings-nlp.json",
+      "size_kb": 23.8,
+      "modified": "2026-05-14T14:00:19",
+      "top_level_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "by_ticker",
+        "ranked",
+        "market_summary",
+        "regime_changed_from_prior"
+      ],
+      "regime_fields": {
+        "by_ticker.AAPL.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.AAPL.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.AAPL.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.GOOGL.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.GOOGL.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.GOOGL.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.TSLA.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.TSLA.margin_signal": {
+          "type": "str",
+          "value": "MIXED"
+        },
+        "by_ticker.TSLA.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.AVGO.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.AVGO.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.AVGO.summary": {
+          "type": "str",
+          "value": "Management demonstrates high confidence in accelerating AI XPU business with raised guidance, record profitability, and secured long-term customer commitments a"
+        },
+        "by_ticker.AVGO.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.MSFT.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.MSFT.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.MSFT.summary": {
+          "type": "str",
+          "value": "Microsoft delivered record Cloud and AI results with strong execution on infrastructure and agentic platforms, demonstrating exceptional demand and operational "
+        },
+        "by_ticker.MSFT.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.AMZN.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.AMZN.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.AMZN.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.WMT.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.WMT.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.WMT.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.NVDA.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.NVDA.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.NVDA.summary": {
+          "type": "str",
+          "value": "Management projects accelerating growth beyond $500B Blackwell opportunity with extreme confidence in AI infrastructure buildout driven by agentic systems and t"
+        },
+        "by_ticker.NVDA.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.V.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.V.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.V.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.UNH.demand_signal": {
+          "type": "str",
+          "value": "STEADY"
+        },
+        "by_ticker.UNH.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.UNH.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.META.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.META.margin_signal": {
+          "type": "str",
+          "value": "COMPRESSING"
+        },
+        "by_ticker.META.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.MA.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.MA.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.MA.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.JPM.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.JPM.margin_signal": {
+          "type": "str",
+          "value": "COMPRESSING"
+        },
+        "by_ticker.JPM.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.LLY.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.LLY.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.LLY.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.JNJ.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.JNJ.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.JNJ.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.ORCL.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.ORCL.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.ORCL.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.XOM.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.XOM.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.XOM.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.HD.demand_signal": {
+          "type": "str",
+          "value": "WEAKENING"
+        },
+        "by_ticker.HD.margin_signal": {
+          "type": "str",
+          "value": "COMPRESSING"
+        },
+        "by_ticker.HD.summary": {
+          "type": "str",
+          "value": "Management projects modest 2-4% growth for FY2026 with flat-to-low comp sales amid persistent consumer pressure, though maintaining confidence in market share g"
+        },
+        "by_ticker.HD.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.PG.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.PG.margin_signal": {
+          "type": "str",
+          "value": "COMPRESSING"
+        },
+        "by_ticker.PG.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.ABBV.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.ABBV.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.ABBV.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.COST.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.COST.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.COST.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.BAC.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.BAC.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.BAC.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.CVX.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.CVX.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.CVX.summary": {
+          "type": "str",
+          "value": "Chevron delivered solid Q1 2026 results with maintained guidance, strong cash flow, and expanding margins driven by portfolio integration and operational discip"
+        },
+        "by_ticker.CVX.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.PEP.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.PEP.margin_signal": {
+          "type": "str",
+          "value": "MIXED"
+        },
+        "by_ticker.PEP.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.MRK.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.MRK.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.MRK.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.ADBE.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.ADBE.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.ADBE.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.TMO.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.TMO.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.TMO.summary": {
+          "type": "str",
+          "value": "Management demonstrates confident, optimistic tone with strong Q1 results, disciplined execution of growth strategy, and resilience positioning despite acknowle"
+        },
+        "by_ticker.TMO.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.KO.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.KO.margin_signal": {
+          "type": "str",
+          "value": "EXPANDING"
+        },
+        "by_ticker.KO.shift_classification": {
+          "type": "str",
+          "value": "NO_PRIOR"
+        },
+        "by_ticker.CSCO.demand_signal": {
+          "type": "str",
+          "value": "STRONG"
+        },
+        "by_ticker.CSCO.margin_signal": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "by_ticker.CSCO.shift_classification": {
+          "type": "str",
+          "value": "STABLE"
+        },
+        "ranked.biggest_improvers[0].summary": {
+          "type": "str",
+          "value": "Cisco demonstrated exceptionally bullish momentum with record Q3 revenue, 35% product order growth, and raised AI infrastructure expectation"
+        },
+        "market_summary": {
+          "type": "dict",
+          "keys": [
+            "n_scored",
+            "median_tone",
+            "mean_tone",
+            "tone_distribution",
+            "guidance_breakdown",
+            "confidence_breakdown",
+            "raised_to_lowered_ratio",
+            "regime",
+            "signal"
+          ],
+          "sample": {
+            "n_scored": "29",
+            "median_tone": "72",
+            "mean_tone": "70.9",
+            "tone_distribution": "dict",
+            "guidance_breakdown": "dict"
+          }
+        },
+        "market_summary.regime": {
+          "type": "str",
+          "value": "EARNINGS_STRENGTH"
+        },
+        "market_summary.signal": {
+          "type": "str",
+          "value": "Strong management confidence; raise/lower ratio favorable"
+        },
+        "regime_changed_from_prior": {
+          "type": "num",
+          "value": false
+        }
+      }
+    }
+  },
+  "finished": "2026-05-14T14:06:15.977714+00:00"
+}
