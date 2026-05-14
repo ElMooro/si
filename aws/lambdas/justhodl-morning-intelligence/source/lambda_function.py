@@ -209,6 +209,8 @@ def load_all():
         "google_trends":"data/google-trends.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
         "vol_regime":"data/vol-regime.json",
+        # ─── META-REGIME: 15-module composite engine ──────────────────
+        "regime_composite":"data/regime-composite.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -456,6 +458,23 @@ def extract_metrics(data,weights):
             "vol_regime_score": v.get("composite_score"),
             "vol_regime_n_tickers": v.get("n_with_iv"),
             "vol_regime_most_stressed": (v.get("most_stressed") or [])[:3],
+        })(),
+        # ─── META-REGIME · 15-module Bloomberg-Gap composite engine ──
+        **(lambda mr=data.get("regime_composite", {}): {
+            "meta_regime": mr.get("meta_regime"),
+            "meta_regime_class": mr.get("meta_class"),
+            "meta_composite_score": mr.get("composite_score"),
+            "meta_narrative": mr.get("meta_narrative"),
+            "meta_n_with_data": mr.get("n_modules_with_data"),
+            "meta_dim_vol": ((mr.get("dimensions") or {}).get("vol") or {}).get("score"),
+            "meta_dim_risk_on": ((mr.get("dimensions") or {}).get("risk_on") or {}).get("score"),
+            "meta_dim_liquidity": ((mr.get("dimensions") or {}).get("liquidity") or {}).get("score"),
+            "meta_dim_policy": ((mr.get("dimensions") or {}).get("policy") or {}).get("score"),
+            "meta_dim_reflation": ((mr.get("dimensions") or {}).get("reflation") or {}).get("score"),
+            "meta_dim_smart_money": ((mr.get("dimensions") or {}).get("smart_money") or {}).get("score"),
+            "meta_dim_fundamentals": ((mr.get("dimensions") or {}).get("fundamentals") or {}).get("score"),
+            "meta_regime_changed": mr.get("regime_changed_from_prior"),
+            "meta_prior_regime": mr.get("prior_regime"),
         })(),
         # Auction crisis (Treasury auction stress)
         **(lambda a=data.get("auction_crisis", {}): {

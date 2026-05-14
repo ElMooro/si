@@ -161,6 +161,33 @@ def build_context(message):
         comp_score = intel.get('composite_score', intel.get('score', 'N/A'))
         lines.append(f"[INTELLIGENCE] Phase:{phase}  Score:{comp_score}/100")
 
+    # ─── BLOOMBERG-GAP 15-MODULE META-REGIME (always-on, top of frame) ──
+    # This block frames the entire response — aggregates the 15 module
+    # regime labels into a single META_REGIME (MELT_UP / GOLDILOCKS /
+    # LATE_CYCLE / NORMAL / DEFENSIVE / RISK_OFF / CRISIS) so the AI uses
+    # the composite state as context for all subsequent module data.
+    mr = get_s3('data/regime-composite.json')
+    if mr:
+        meta = mr.get('meta_regime')
+        comp_sc = mr.get('composite_score')
+        narrative = mr.get('meta_narrative') or ''
+        dims = mr.get('dimensions') or {}
+        if meta:
+            lines.append(f"[META-REGIME] {meta} · composite={comp_sc:+.1f}/100 · "
+                          f"{mr.get('n_modules_with_data',0)}/15 modules" if comp_sc is not None
+                          else f"[META-REGIME] {meta} · {mr.get('n_modules_with_data',0)}/15 modules")
+            lines.append(f"[META-REGIME NARRATIVE] {narrative[:280]}")
+            # 7-dim breakdown
+            dim_str = ' · '.join(
+                f"{k}={(v.get('score') or 0):+.1f}" for k, v in dims.items()
+                if v.get('n', 0) > 0
+            )
+            if dim_str:
+                lines.append(f"[META-REGIME DIMENSIONS] {dim_str}")
+            # Regime change alert
+            if mr.get('regime_changed_from_prior'):
+                lines.append(f"[META-REGIME ALERT] Just changed from {mr.get('prior_regime')} → {meta}")
+
     # ─── Tier 1-3 always-on macro context ─────────────────────────
     liq = get_s3('data/liquidity-flow.json')
     if liq:
