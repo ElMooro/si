@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retail Sentiment — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B1%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24; --orange:#fb923c;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.mania{border-left:4px solid var(--neg);background:rgba(255,61,90,.04);}
+.regime-banner.elevated{border-left:4px solid var(--orange);}
+.regime-banner.normal{border-left:4px solid var(--info);}
+.regime-banner.quiet{border-left:4px solid var(--text-mute);}
+.regime-title{font-size:24px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.gold{color:var(--gold);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);} .regime-title.orange{color:var(--orange);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.row-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;}
+@media (max-width:1000px){.row-2col,.row-3col{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;}
+.full-table th{padding:9px 12px;text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table td{padding:10px 12px;border-bottom:1px solid rgba(28,35,48,.5);}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table .t-ticker{font-family:var(--font-mono);font-weight:600;color:var(--text);}
+.full-table .t-num{font-family:var(--font-mono);text-align:right;}
+.full-table .t-vel.pos{color:var(--pos);} .full-table .t-vel.neg{color:var(--neg);}
+.full-table .t-rank{font-family:var(--font-mono);text-align:right;}
+.full-table .t-rank.pos{color:var(--pos);} .full-table .t-rank.neg{color:var(--neg);}
+.full-table .t-sent{font-family:var(--font-mono);text-align:right;}
+.full-table .t-sent.pos{color:var(--pos);} .full-table .t-sent.neg{color:var(--neg);}
+.full-table .t-name{color:var(--text-dim);font-size:11px;}
+
+.row-list{padding:10px 14px;border-bottom:1px solid rgba(28,35,48,.5);display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;}
+.row-list:last-child{border-bottom:0;}
+.row-list:hover{background:rgba(167,139,250,.04);}
+.r-rank{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);width:36px;}
+.r-ticker{font-family:var(--font-mono);font-weight:600;}
+.r-name{font-size:11px;color:var(--text-dim);}
+.r-metric{font-family:var(--font-mono);font-size:12px;}
+.r-metric.pos{color:var(--pos);} .r-metric.neg{color:var(--neg);} .r-metric.gold{color:var(--gold);}
+.r-detail{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+
+.sub-breakdown{padding:14px 16px;}
+.sub-row{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(28,35,48,.4);}
+.sub-row:last-child{border-bottom:0;}
+.sub-label{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.4px;align-self:center;}
+.sub-tickers{display:flex;flex-wrap:wrap;gap:6px;}
+.sub-chip{font-family:var(--font-mono);font-size:11px;padding:3px 8px;background:rgba(28,35,48,.6);border:1px solid var(--border-hi);border-radius:3px;color:var(--text);}
+.sub-chip.consensus{background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.3);color:var(--pos);}
+.sub-chip.wsb-only{background:rgba(255,61,90,.08);border-color:rgba(255,61,90,.3);color:var(--neg);}
+.sub-chip.stocks-only{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3);color:var(--info);}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>📱 Retail Sentiment <span class="badge">APEWISDOM × STOCKTWITS</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div class="row-3col">
+  <div class="panel">
+    <div class="panel-title">🚀 Biggest Velocity Surges</div>
+    <div id="velocity-surges"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📊 Biggest Rank Climbers</div>
+    <div id="rank-climbers"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">✨ New Entrants (Last 24h)</div>
+    <div id="new-entrants"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🟢 Most Bullish · StockTwits Sentiment</div>
+    <div id="most-bullish"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🔴 Most Bearish · StockTwits Sentiment</div>
+    <div id="most-bearish"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-bottom:18px;">
+  <div class="panel-title">🔀 Subreddit Breakdown · WSB vs r/stocks Top 10</div>
+  <div id="sub-breakdown" class="sub-breakdown"><div class="loading">Loading…</div></div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">📊 Top 30 by Mentions (All Subreddits)</div>
+    <div style="overflow-x:auto">
+      <table class="full-table">
+        <thead><tr>
+          <th>#</th><th>Ticker</th><th style="text-align:right">Mentions</th>
+          <th style="text-align:right">Velocity</th><th style="text-align:right">Rank Δ</th>
+          <th style="text-align:right">Bull/Bear</th>
+        </tr></thead>
+        <tbody id="top-table"><tr><td colspan="6" class="loading">Loading universe…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🔥 StockTwits Trending (Top 20)</div>
+    <div id="stwt-trending"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="method">
+  <h3>Methodology · Retail Sentiment</h3>
+  <p><strong>Two complementary data feeds</strong>:</p>
+  <p>• <strong>ApeWisdom</strong>: aggregates mention counts of every ticker mentioned across <code>r/wallstreetbets</code>, <code>r/stocks</code>, <code>r/investing</code>, and other public subreddits. Updates continuously.</p>
+  <p>• <strong>StockTwits</strong>: per-ticker message streams where users self-tag posts <code>Bullish</code> or <code>Bearish</code>. We pull the last 30 messages for each of the top 25 most-mentioned tickers and compute a bull/bear ratio.</p>
+  <p><strong>The alpha isn't absolute mention count</strong> — it's <strong>velocity</strong>. A name jumping from #50 to #5 with 10× mentions vs 24h ago is far more actionable than the persistent #1 (already priced in). We compute both <code>velocity_pct = (mentions_now − mentions_24h_ago) / mentions_24h_ago</code> and <code>rank_climb = rank_24h_ago − rank</code>.</p>
+  <p><strong>Subreddit divergence</strong> matters. A name that's #1 on WSB but absent from r/stocks is likely a pure-meme play. A name that shows up on both is consensus retail interest with more durable momentum.</p>
+  <p><strong>Regime classification:</strong> <code>MANIA</code> (total mentions &gt;15k or +80% vs prior) · <code>ELEVATED</code> (&gt;8k) · <code>NORMAL</code> · <code>QUIET</code> (&lt;3k).</p>
+  <p><strong>Limitations:</strong> StockTwits sentiment is self-tagged so only a fraction of messages have it (typically 25-40%). The bull/bear ratio is most meaningful at extremes.</p>
+  <p><strong>Refresh:</strong> every 30 minutes around the clock — retail is global, doesn't pause at US close.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/retail-sentiment.json";
+let DATA = null;
+
+function fmtNum(v) { return v == null ? '-' : v.toLocaleString(); }
+function fmtVel(v) { if (v == null) return '-'; if (v >= 9000) return 'NEW'; return (v >= 0 ? '+' : '') + v.toFixed(0) + '%'; }
+function fmtRank(v) { return v == null ? '-' : (v >= 0 ? '+' : '') + v; }
+function fmtBB(v) { return v == null ? '-' : v >= 10 ? '10+' : v.toFixed(2); }
+
+async function load() {
+  try {
+    const r = await fetch(SIDECAR_URL);
+    DATA = await r.json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderLists(); renderTopTable(); renderTrending(); renderSubBreakdown();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + ' — Lambda may not have run yet.</div>';
+  }
+}
+
+function renderRegime() {
+  const regime = DATA.market_regime || 'UNKNOWN';
+  const signal = DATA.market_regime_signal || '';
+  const rcls = regime.toLowerCase();
+  let titleCls = 'mute';
+  if (regime === 'MANIA') titleCls = 'neg';
+  else if (regime === 'ELEVATED') titleCls = 'orange';
+  else if (regime === 'NORMAL') titleCls = 'info';
+  const md = DATA.market_regime_data || {};
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${titleCls}">${regime}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Total Mentions</span><span class="val">${fmtNum(md.total_mentions)}</span></div>
+        <div><span class="label">Δ vs Prior</span><span class="val">${md.delta_pct == null ? '-' : (md.delta_pct >= 0 ? '+' : '') + md.delta_pct.toFixed(1) + '%'}</span></div>
+        <div><span class="label">Top Ticker</span><span class="val">${(DATA.top_30_by_mentions || [{}])[0].ticker || '-'}</span></div>
+        <div><span class="label">With ST Data</span><span class="val">${DATA.n_with_stwt_data || 0}/${(DATA.top_30_by_mentions||[]).length}</span></div>
+      </div>
+    </div>`;
+}
+
+function listRow(e, primaryMetric, primaryLabel, secondaryMetric, secondaryLabel) {
+  const cls = primaryMetric > 0 ? 'pos' : (primaryMetric < 0 ? 'neg' : 'gold');
+  const sign = primaryMetric > 0 ? '+' : '';
+  const isVel = primaryLabel.toLowerCase().includes('velocity');
+  let primaryStr;
+  if (isVel) primaryStr = fmtVel(primaryMetric);
+  else primaryStr = sign + primaryMetric;
+  return `<div class="row-list">
+    <span class="r-rank">#${e.rank}</span>
+    <span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">${(e.name||'').slice(0,32)}</span></span>
+    <span class="r-metric ${cls}">${primaryStr}</span>
+    <span class="r-detail">${secondaryLabel}:${secondaryMetric || '-'}</span>
+  </div>`;
+}
+
+function bullRow(e) {
+  const bb = e.stwt_bull_bear_ratio;
+  const cls = bb >= 2 ? 'pos' : (bb < 0.5 ? 'neg' : 'gold');
+  return `<div class="row-list">
+    <span class="r-rank">#${e.rank}</span>
+    <span><span class="r-ticker">${e.ticker}</span><br><span class="r-name">B/B: ${e.stwt_bull_pct?.toFixed(0)}% bull / ${e.stwt_bear_pct?.toFixed(0)}% bear</span></span>
+    <span class="r-metric ${cls}">${fmtBB(bb)}</span>
+    <span class="r-detail">${e.stwt_n_messages}msg · ${fmtNum(e.mentions)}m</span>
+  </div>`;
+}
+
+function renderLists() {
+  const r = DATA.ranked || {};
+  const surges = (r.biggest_velocity_surges || []).slice(0, 10);
+  const climbers = (r.biggest_rank_climbers || []).slice(0, 10);
+  const newE = (r.new_entrants || []).slice(0, 10);
+  const bull = (r.most_bullish_stwt || []).slice(0, 8);
+  const bear = (r.most_bearish_stwt || []).slice(0, 8);
+
+  document.getElementById('velocity-surges').innerHTML = surges.length
+    ? surges.map(e => listRow(e, e.velocity_pct, 'velocity', fmtNum(e.mentions), 'm')).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--text-mute)">No surges</div>';
+
+  document.getElementById('rank-climbers').innerHTML = climbers.length
+    ? climbers.map(e => listRow(e, e.rank_climb, 'rank', `was#${e.rank_24h_ago}`, '')).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--text-mute)">No climbers</div>';
+
+  document.getElementById('new-entrants').innerHTML = newE.length
+    ? newE.map(e => listRow(e, e.mentions, 'mentions', e.mentions_24h_ago, '24h')).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--text-mute)">No new entrants</div>';
+
+  document.getElementById('most-bullish').innerHTML = bull.length
+    ? bull.map(bullRow).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--text-mute)">No data (need ≥10 messages)</div>';
+
+  document.getElementById('most-bearish').innerHTML = bear.length
+    ? bear.map(bullRow).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--text-mute)">No data</div>';
+}
+
+function renderTopTable() {
+  const tbody = document.getElementById('top-table');
+  const rows = (DATA.top_30_by_mentions || []).slice(0, 30);
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No data</td></tr>'; return; }
+  tbody.innerHTML = rows.map(e => {
+    const velCls = e.velocity_pct == null ? '' : (e.velocity_pct > 0 ? 'pos' : 'neg');
+    const rankCls = e.rank_climb == null ? '' : (e.rank_climb > 0 ? 'pos' : (e.rank_climb < 0 ? 'neg' : ''));
+    const bbCls = e.stwt_bull_bear_ratio == null ? '' : (e.stwt_bull_bear_ratio >= 2 ? 'pos' : (e.stwt_bull_bear_ratio < 0.5 ? 'neg' : ''));
+    return `<tr>
+      <td>${e.rank}</td>
+      <td><span class="t-ticker">${e.ticker}</span><br><span class="t-name">${(e.name||'').slice(0,28)}</span></td>
+      <td class="t-num">${fmtNum(e.mentions)}</td>
+      <td class="t-vel ${velCls}">${fmtVel(e.velocity_pct)}</td>
+      <td class="t-rank ${rankCls}">${e.rank_climb == null ? '-' : (e.rank_climb >= 0 ? '+' : '') + e.rank_climb}</td>
+      <td class="t-sent ${bbCls}">${fmtBB(e.stwt_bull_bear_ratio)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTrending() {
+  const tr = DATA.stocktwits_trending || [];
+  if (!tr.length) {
+    document.getElementById('stwt-trending').innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-mute)">No data</div>';
+    return;
+  }
+  document.getElementById('stwt-trending').innerHTML = tr.slice(0, 20).map((t, i) => `
+    <div class="row-list">
+      <span class="r-rank">#${i+1}</span>
+      <span><span class="r-ticker">${t.symbol}</span><br><span class="r-name">${(t.title||'').slice(0,32)}</span></span>
+      <span class="r-metric gold">${t.trending_score}</span>
+      <span class="r-detail">${fmtNum(t.watchlist_count)} wl</span>
+    </div>`).join('');
+}
+
+function renderSubBreakdown() {
+  const sb = DATA.subreddit_breakdown || {};
+  const html = `
+    <div class="sub-row">
+      <span class="sub-label">🤝 Consensus (both)</span>
+      <div class="sub-tickers">${(sb.consensus_wsb_and_stocks||[]).map(t => `<span class="sub-chip consensus">${t}</span>`).join('') || '<span class="r-detail">none</span>'}</div>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">🔥 WSB only</span>
+      <div class="sub-tickers">${(sb.wsb_only||[]).map(t => `<span class="sub-chip wsb-only">${t}</span>`).join('') || '<span class="r-detail">none</span>'}</div>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">📈 r/stocks only</span>
+      <div class="sub-tickers">${(sb.stocks_only||[]).map(t => `<span class="sub-chip stocks-only">${t}</span>`).join('') || '<span class="r-detail">none</span>'}</div>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">💼 r/investing top</span>
+      <div class="sub-tickers">${(sb.investing_top_10||[]).map(t => `<span class="sub-chip">${t}</span>`).join('') || '<span class="r-detail">none</span>'}</div>
+    </div>`;
+  document.getElementById('sub-breakdown').innerHTML = html;
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

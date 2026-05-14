@@ -491,6 +491,48 @@ def build_context(message):
             inv = "INVERTED" if curve < 0 else "POSITIVE"
             lines.append(f"[YIELD CURVE 10y-2y] {curve}% ({inv})")
 
+    # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
+    rs = get_s3('data/retail-sentiment.json')
+    if rs:
+        regime_r = rs.get('market_regime')
+        sig_r = rs.get('market_regime_signal', '')
+        md = rs.get('market_regime_data') or {}
+        if regime_r:
+            lines.append(f"[RETAIL REGIME] {regime_r} · total mentions:{md.get('total_mentions'):,} (Δ:{md.get('delta_pct',0)}%)")
+            lines.append(f"[RETAIL SIGNAL] {sig_r[:140]}")
+        # Top 5 by mentions
+        top_5 = (rs.get('top_30_by_mentions') or [])[:5]
+        if top_5:
+            top_str = ', '.join(f"{t.get('ticker')}({t.get('mentions')}, Δ{t.get('velocity_pct',0):+.0f}%)" for t in top_5)
+            lines.append(f"[RETAIL TOP 5] {top_str}")
+        # Biggest velocity surges
+        surges = (rs.get('ranked') or {}).get('biggest_velocity_surges') or []
+        big_surges = [s for s in surges if (s.get('velocity_pct') or 0) >= 100][:5]
+        if big_surges:
+            surge_str = ', '.join(f"{s.get('ticker')}(+{s.get('velocity_pct',0):.0f}%)" for s in big_surges)
+            lines.append(f"[RETAIL VELOCITY SURGES] {surge_str}")
+        # Biggest rank climbers
+        climbers = (rs.get('ranked') or {}).get('biggest_rank_climbers') or []
+        if climbers[:3]:
+            climb_str = ', '.join(f"{c.get('ticker')}(#{c.get('rank')} from #{c.get('rank_24h_ago')})" for c in climbers[:3])
+            lines.append(f"[RETAIL CLIMBERS] {climb_str}")
+        # Most bullish StockTwits
+        bull = (rs.get('ranked') or {}).get('most_bullish_stwt') or []
+        if bull[:3]:
+            bull_str = ', '.join(f"{b.get('ticker')}(B/B={b.get('stwt_bull_bear_ratio')})" for b in bull[:3])
+            lines.append(f"[RETAIL MOST BULLISH] {bull_str}")
+        # Per-ticker drill-down when user mentions a ticker
+        top_by_tkr = {t.get('ticker'): t for t in (rs.get('top_30_by_mentions') or [])}
+        for tkr in (stocks or []):
+            t = top_by_tkr.get(tkr)
+            if t:
+                v = t.get('velocity_pct')
+                bb = t.get('stwt_bull_bear_ratio')
+                lines.append(f"[{tkr} RETAIL] #{t.get('rank')} mentions:{t.get('mentions')} "
+                              f"(24h ago: {t.get('mentions_24h_ago')}, Δ{v:+.0f}%) · "
+                              f"rank Δ:{t.get('rank_climb',0):+d} · "
+                              f"StockTwits B/B:{bb if bb else 'no data'}")
+
     # ─── DIX / Macro GEX (Squeezemetrics — Bloomberg-Gap #4) ──────────────
     dix_d = get_s3('data/dix.json')
     if dix_d:

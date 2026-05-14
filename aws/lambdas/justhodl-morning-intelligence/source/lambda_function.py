@@ -193,6 +193,8 @@ def load_all():
         "earnings_nlp":"data/earnings-nlp.json",
         # ─── Credit Stress (Bloomberg-Gap #8 · daily 20:00 UTC) ──────
         "credit_stress":"data/credit-stress.json",
+        # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
+        "retail_sentiment":"data/retail-sentiment.json",
         # ─── Vol Regime composite (Bloomberg-Gap #6 companion) ─────────
         "vol_regime":"data/vol-regime.json",
     }
@@ -732,6 +734,44 @@ def extract_metrics(data,weights):
             "yield_curve_10y_2y": ((c.get("metrics") or {}).get("T10Y2Y") or {}).get("current"),
             "credit_data_date": c.get("data_date"),
             "credit_generated_at": c.get("generated_at"),
+        })(),
+        # ─── Retail Sentiment (Bloomberg-Gap #9) — ApeWisdom + StockTwits ──
+        **(lambda rs=data.get("retail_sentiment", {}): {
+            "retail_regime": rs.get("market_regime"),
+            "retail_signal": rs.get("market_regime_signal"),
+            "retail_total_mentions": (rs.get("market_regime_data") or {}).get("total_mentions"),
+            "retail_mentions_delta_pct": (rs.get("market_regime_data") or {}).get("delta_pct"),
+            "retail_top_5_by_mentions": [
+                {"ticker": t.get("ticker"), "mentions": t.get("mentions"),
+                  "velocity_pct": t.get("velocity_pct"),
+                  "rank_climb": t.get("rank_climb"),
+                  "stwt_bb_ratio": t.get("stwt_bull_bear_ratio")}
+                for t in (rs.get("top_30_by_mentions") or [])[:5]
+            ],
+            "retail_biggest_velocity_surges": [
+                {"ticker": t.get("ticker"), "mentions": t.get("mentions"),
+                  "velocity_pct": t.get("velocity_pct"),
+                  "rank": t.get("rank")}
+                for t in ((rs.get("ranked") or {}).get("biggest_velocity_surges") or [])[:5]
+            ],
+            "retail_biggest_rank_climbers": [
+                {"ticker": t.get("ticker"), "rank": t.get("rank"),
+                  "prev_rank": t.get("rank_24h_ago"),
+                  "rank_climb": t.get("rank_climb")}
+                for t in ((rs.get("ranked") or {}).get("biggest_rank_climbers") or [])[:5]
+            ],
+            "retail_most_bullish_stwt": [
+                {"ticker": t.get("ticker"), "bb_ratio": t.get("stwt_bull_bear_ratio"),
+                  "bull_pct": t.get("stwt_bull_pct")}
+                for t in ((rs.get("ranked") or {}).get("most_bullish_stwt") or [])[:5]
+            ],
+            "retail_stocktwits_trending_top_5": [
+                {"symbol": t.get("symbol"), "trending_score": t.get("trending_score")}
+                for t in (rs.get("stocktwits_trending") or [])[:5]
+            ],
+            "retail_wsb_only_top_5": ((rs.get("subreddit_breakdown") or {}).get("wsb_only") or [])[:5],
+            "retail_consensus_wsb_stocks": ((rs.get("subreddit_breakdown") or {}).get("consensus_wsb_and_stocks") or [])[:5],
+            "retail_generated_at": rs.get("generated_at"),
         })(),
     }
 
