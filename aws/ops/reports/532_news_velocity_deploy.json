@@ -1,0 +1,49 @@
+{
+  "started": "2026-05-14T01:07:13.104115+00:00",
+  "env_keys": [
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "lambda": "updated",
+  "schedule": "cron(0 * ? * * *)",
+  "rule_state": "ENABLED",
+  "invoke_err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-news-velocity/invocations\"",
+  "sidecar": {
+    "size_kb": 2.7,
+    "modified": "2026-05-14T01:12:05",
+    "version": "1.0.0",
+    "n_tickers": 30,
+    "n_with_data": 1,
+    "n_with_err": 29,
+    "n_surge": 1,
+    "n_elevated": 0,
+    "n_subdued": 0,
+    "composite_regime": "ATTENTION_CONCENTRATED",
+    "composite_signal": "KO dominating attention (z=2.28)",
+    "top_5_velocity": [
+      {
+        "ticker": "KO",
+        "z_score": 2.28,
+        "velocity_pct": 103.1,
+        "current": 0.106,
+        "flag": "SURGE"
+      }
+    ],
+    "top_5_attention": [
+      {
+        "ticker": "KO",
+        "current": 0.106,
+        "avg_30d": 0.0522,
+        "z_score": 2.28
+      }
+    ],
+    "bottom_5_subdued": [
+      {
+        "ticker": "KO",
+        "z_score": 2.28,
+        "current": 0.106
+      }
+    ]
+  },
+  "finished": "2026-05-14T01:12:32.269708+00:00"
+}
