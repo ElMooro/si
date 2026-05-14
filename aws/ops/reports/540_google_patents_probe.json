@@ -1,0 +1,58 @@
+{
+  "started": "2026-05-14T12:13:13.492443+00:00",
+  "queries": {
+    "simple_apple": {
+      "label": "simple_apple",
+      "err": "'dict' object has no attribute 'status'"
+    },
+    "assignee_apple_corp": {
+      "label": "assignee_apple_corp",
+      "err": "'dict' object has no attribute 'status'"
+    },
+    "assignee_strict": {
+      "label": "assignee_strict",
+      "err": "'dict' object has no attribute 'status'"
+    },
+    "apple_grants_30d": {
+      "label": "apple_grants_30d",
+      "url": "https://patents.google.com/xhr/query?url=assignee%3DApple%2520Inc%26after%3Dpriority%253A20260414%26type%3DPATENT&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    },
+    "nvidia_grants_30d": {
+      "label": "nvidia_grants_30d",
+      "url": "https://patents.google.com/xhr/query?url=assignee%3DNVIDIA%2520Corp%26after%3Dpriority%253A20260414%26type%3DPATENT&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    },
+    "apple_pub_30d": {
+      "label": "apple_pub_30d",
+      "url": "https://patents.google.com/xhr/query?url=assignee%3DApple%2520Inc%26after%3Dpublication%253A20260414&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    },
+    "apple_granted": {
+      "label": "apple_granted",
+      "err": "'dict' object has no attribute 'status'"
+    },
+    "msft_30d": {
+      "label": "msft_30d",
+      "url": "https://patents.google.com/xhr/query?url=assignee%3DMicrosoft%2520Technology%2520Licensing%2520LLC%26after%3Dpublication%253A20260414&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    },
+    "google_30d": {
+      "label": "google_30d",
+      "url": "https://patents.google.com/xhr/query?url=assignee%3DGoogle%2520LLC%26after%3Dpublication%253A20260414&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    },
+    "total_recent_grants": {
+      "label": "total_recent_grants",
+      "url": "https://patents.google.com/xhr/query?url=after%3Dpublication%253A20260507%26type%3DPATENT%26status%3DGRANT&exp=",
+      "status": 500,
+      "err_body": "\n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 500 (Internal Server Error)!!1</title>\n  <style>\n    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#"
+    }
+  },
+  "finished": "2026-05-14T12:13:23.683087+00:00"
+}
