@@ -1,0 +1,172 @@
+{
+  "started": "2026-05-14T00:43:17.435492+00:00",
+  "schedule": "cron(0,30 * ? * * *)",
+  "rule_state": "ENABLED",
+  "sidecar": {
+    "size_kb": 24.0,
+    "modified": "2026-05-14T00:39:48",
+    "version": "1.0.0",
+    "generated_at": "2026-05-14T00:39:47.143558+00:00",
+    "sources": [
+      "apewisdom.io",
+      "api.stocktwits.com"
+    ],
+    "market_regime": "NORMAL",
+    "market_regime_signal": "Total mentions 6,382 in typical range",
+    "subreddit_breakdown": {
+      "wsb_top_10": [
+        "MU",
+        "SPY",
+        "MSFT",
+        "NVDA",
+        "NBIS",
+        "SNDK",
+        "CSCO",
+        "QQQ",
+        "RKLB",
+        "TSLA"
+      ],
+      "stocks_top_10": [
+        "MU",
+        "NVDA",
+        "AMD",
+        "RKLB",
+        "SNDK",
+        "TSLA",
+        "SPY",
+        "MSFT",
+        "NBIS",
+        "EWY"
+      ],
+      "investing_top_10": [
+        "VOO",
+        "VTI",
+        "VT",
+        "QQQ",
+        "AMD",
+        "MU",
+        "NVDA",
+        "SPY",
+        "SGOV",
+        "EU"
+      ],
+      "consensus_wsb_and_stocks": [
+        "MU",
+        "SPY",
+        "MSFT",
+        "NVDA",
+        "NBIS",
+        "SNDK",
+        "RKLB",
+        "TSLA"
+      ],
+      "wsb_only": [
+        "CSCO",
+        "QQQ"
+      ],
+      "stocks_only": [
+        "AMD",
+        "EWY"
+      ]
+    },
+    "n_with_stwt_data": 25,
+    "top_5_by_mentions": [
+      {
+        "ticker": "MU",
+        "mentions": 1194,
+        "rank": 1,
+        "rank_24h_ago": 1,
+        "rank_climb": 0,
+        "stwt_bull_pct": 90.9,
+        "stwt_msg_count": null
+      },
+      {
+        "ticker": "SPY",
+        "mentions": 507,
+        "rank": 2,
+        "rank_24h_ago": 2,
+        "rank_climb": 0,
+        "stwt_bull_pct": 75.0,
+        "stwt_msg_count": null
+      },
+      {
+        "ticker": "MSFT",
+        "mentions": 422,
+        "rank": 3,
+        "rank_24h_ago": 4,
+        "rank_climb": 1,
+        "stwt_bull_pct": 86.7,
+        "stwt_msg_count": null
+      },
+      {
+        "ticker": "NVDA",
+        "mentions": 362,
+        "rank": 4,
+        "rank_24h_ago": 7,
+        "rank_climb": 3,
+        "stwt_bull_pct": 86.7,
+        "stwt_msg_count": null
+      },
+      {
+        "ticker": "NBIS",
+        "mentions": 276,
+        "rank": 5,
+        "rank_24h_ago": 20,
+        "rank_climb": 15,
+        "stwt_bull_pct": 100.0,
+        "stwt_msg_count": null
+      }
+    ],
+    "velocity_surges_top_3": [],
+    "rank_climbers_top_3": [],
+    "new_entrants_top_3": [
+      {
+        "ticker": "LULU",
+        "mentions": 25
+      }
+    ],
+    "stocktwits_trending_top_5": [
+      {
+        "symbol": "CSCO",
+        "title": "Cisco Systems, Inc.",
+        "trending_score": 12.72,
+        "watchlist_count": 60435,
+        "sector": "ElectronicTechnology",
+        "industry": "TelecommunicationsEquipment"
+      },
+      {
+        "symbol": "LUNR",
+        "title": "Intuitive Machines Inc",
+        "trending_score": 11.45,
+        "watchlist_count": 35749,
+        "sector": "ElectronicTechnology",
+        "industry": "AerospaceAndDefense"
+      },
+      {
+        "symbol": "NOK",
+        "title": "Nokia Corp",
+        "trending_score": 11.29,
+        "watchlist_count": 107916,
+        "sector": "ElectronicTechnology",
+        "industry": "TelecommunicationsEquipment"
+      },
+      {
+        "symbol": "ONDS",
+        "title": "Ondas Inc",
+        "trending_score": 10.83,
+        "watchlist_count": 27868,
+        "sector": "ElectronicTechnology",
+        "industry": "TelecommunicationsEquipment"
+      },
+      {
+        "symbol": "EOSE",
+        "title": "Eos Energy Enterprises Inc - Ordinary Shares - Class A",
+        "trending_score": 10.37,
+        "watchlist_count": 16826,
+        "sector": "ProducerManufacturing",
+        "industry": "ElectricalProducts"
+      }
+    ]
+  },
+  "finished": "2026-05-14T00:43:18.345444+00:00"
+}
