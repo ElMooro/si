@@ -60,7 +60,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/regime-composite.json"
@@ -264,24 +264,29 @@ MODULES_CFG = [
 
 def derive_dix(payload):
     """DIX history → recent percentile.
+    Schema: parallel arrays dates[], dix_pct[], price[], gex_billions[].
     Higher DIX = more dark-pool buying = supportive (positive)."""
     try:
-        hist = payload.get("history") or payload.get("data") or []
-        if not hist or not isinstance(hist, list): return None, None, 0
-        # last 60 sessions
-        vals = []
-        for x in hist[-60:]:
-            v = x.get("dix") if isinstance(x, dict) else None
-            if isinstance(v, (int, float)): vals.append(v)
+        # New schema: parallel arrays
+        dix_arr = payload.get("dix_pct")
+        if isinstance(dix_arr, list) and len(dix_arr) >= 10:
+            vals = [v for v in dix_arr[-60:] if isinstance(v, (int, float))]
+        else:
+            # Legacy schema: list of dicts
+            hist = payload.get("history") or payload.get("data") or []
+            if not hist or not isinstance(hist, list): return None, None, 0
+            vals = []
+            for x in hist[-60:]:
+                v = x.get("dix") if isinstance(x, dict) else None
+                if isinstance(v, (int, float)): vals.append(v)
         if len(vals) < 10: return None, None, 0
         latest = vals[-1]
-        # percentile of latest in last 60
         rank = sum(1 for v in vals if v <= latest) / len(vals)
         if rank >= 0.75:
             return "DIX_HIGH", f"DIX {latest:.1f}% — top-quartile dark-pool buying (supportive)", +1
         if rank <= 0.25:
             return "DIX_LOW", f"DIX {latest:.1f}% — bottom-quartile dark-pool buying (cautious)", -1
-        return "DIX_NEUTRAL", f"DIX {latest:.1f}% — mid-range dark-pool buying", 0
+        return "DIX_NEUTRAL", f"DIX {latest:.1f}% — mid-range dark-pool buying (rank {int(rank*100)}%)", 0
     except Exception:
         return None, None, 0
 
@@ -302,17 +307,20 @@ def derive_options_flow(payload):
 
 
 def derive_insider(payload):
-    """Insider clusters → CEO conviction count → smart money buying."""
+    """Insider clusters → CEO conviction count → smart money buying.
+    Thresholds calibrated to real distribution: typical 30d has 1-2 CEO
+    conviction, 5-15 strong signals, 30-50 total clusters."""
     try:
         stats = payload.get("stats") or {}
         n_ceo = stats.get("n_ceo_conviction") or 0
         n_strong = stats.get("n_strong_signals") or 0
         n_clusters = stats.get("n_clusters") or 0
-        if n_ceo >= 5:
-            return "STRONG_INSIDER_BUYING", f"{n_ceo} CEO-conviction clusters, {n_strong} strong signals — broad insider buying", +1
-        if n_ceo >= 2 or n_strong >= 10:
-            return "INSIDER_BUYING_PRESENT", f"{n_ceo} CEO + {n_strong} strong signals over {n_clusters} clusters", +1
-        if n_clusters >= 10:
+        n_smart_dual = stats.get("n_smart_money_dual") or 0
+        if n_ceo >= 3 or n_strong >= 15:
+            return "STRONG_INSIDER_BUYING", f"{n_ceo} CEO + {n_strong} strong + {n_clusters} clusters — broad institutional accumulation", +1
+        if n_ceo >= 1 or n_strong >= 5 or n_smart_dual >= 2:
+            return "INSIDER_BUYING_PRESENT", f"{n_ceo} CEO + {n_strong} strong + {n_smart_dual} dual-C-suite over {n_clusters} clusters", +1
+        if n_clusters >= 20:
             return "INSIDER_CLUSTERS_NORMAL", f"{n_clusters} clusters, {n_strong} strong — normal insider activity", 0
         return "INSIDER_QUIET", f"{n_clusters} clusters detected — quiet", 0
     except Exception:
