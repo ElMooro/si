@@ -1,0 +1,64 @@
+{
+  "started": "2026-05-14T12:18:46.737332+00:00",
+  "rule_actions": [],
+  "lambda_action": "deleted",
+  "sidecar_action": "deleted data/insider-transactions.json",
+  "working_sidecar": {
+    "key": "data/insider-clusters.json",
+    "size_kb": 70.8,
+    "modified": "2026-05-13T14:41:23",
+    "age_hours": 21.6,
+    "n_clusters": 36,
+    "total_value_usd": 183141411.42,
+    "top_5": [
+      {
+        "ticker": "WGS",
+        "company": "GeneDx Holdings Corp.",
+        "n_insiders": 1,
+        "total_value_usd": 46806729.12,
+        "highest_role": "Unknown",
+        "first_buy": "2026-05-07"
+      },
+      {
+        "ticker": "AXIA3",
+        "company": "AXIA Energia S.A.",
+        "n_insiders": 2,
+        "total_value_usd": 43526555.0,
+        "highest_role": "Unknown",
+        "first_buy": "2026-05-08"
+      },
+      {
+        "ticker": "ODTX",
+        "company": "Odyssey Therapeutics, Inc.",
+        "n_insiders": 5,
+        "total_value_usd": 30319986.0,
+        "highest_role": "Director",
+        "first_buy": "2026-05-08"
+      },
+      {
+        "ticker": "NONE",
+        "company": "Audax Private Credit Fund, LLC",
+        "n_insiders": 1,
+        "total_value_usd": 17234875.44,
+        "highest_role": "Unknown",
+        "first_buy": "2026-05-07"
+      },
+      {
+        "ticker": "MOBI",
+        "company": "Mobia Medical, Inc.",
+        "n_insiders": 3,
+        "total_value_usd": 16044990.0,
+        "highest_role": "Unknown",
+        "first_buy": "2026-05-11"
+      }
+    ]
+  },
+  "working_lambda": {
+    "exists": true,
+    "last_modified": "2026-05-05T18:39:33.000+0000",
+    "memory": 1536,
+    "timeout": 900,
+    "rules": []
+  },
+  "finished": "2026-05-14T12:19:07.237007+00:00"
+}
