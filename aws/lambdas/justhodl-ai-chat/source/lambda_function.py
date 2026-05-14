@@ -594,6 +594,33 @@ def build_context(message):
         if top3_c and bot3_c:
             lines.append(f"[COMMODITY LEADERS] top3 20d: {' '.join(top3_c)} · bottom3: {' '.join(bot3_c)}")
 
+    # ─── Insider Transactions (Bloomberg-Gap #12 · SEC Form 4 daily) ─
+    ins = get_s3('data/insider-transactions.json')
+    if ins:
+        regime_i = ins.get('composite_regime')
+        sig_i = ins.get('composite_signal', '')
+        ranked_i = ins.get('ranked') or {}
+        if regime_i:
+            lines.append(f"[INSIDER REGIME] {regime_i} · ${(ins.get('total_buy_value_30d_usd') or 0)/1e6:.1f}M buys vs ${(ins.get('total_sell_value_30d_usd') or 0)/1e6:.1f}M sells 30d · cluster_buys:{ins.get('n_cluster_buys',0)}")
+            lines.append(f"[INSIDER SIGNAL] {sig_i[:140]}")
+        cluster = ranked_i.get('cluster_buys') or []
+        if cluster:
+            cb_str = ', '.join(f"{x['ticker']}({x.get('n_distinct_buyers')}x ${(x.get('buy_value_usd') or 0)/1e6:.1f}M)" for x in cluster[:5])
+            lines.append(f"[INSIDER CLUSTER BUYS] {cb_str}")
+        big_buys = ranked_i.get('biggest_buy_dollars_30d') or []
+        if big_buys:
+            bb_str = ', '.join(f"{x['ticker']}(${(x.get('buy_value_usd') or 0)/1e6:.1f}M)" for x in big_buys[:5])
+            lines.append(f"[INSIDER BIG BUYS] {bb_str}")
+        # Per-ticker drill-down
+        by_t_ins = ins.get('by_ticker') or {}
+        for tkr in (stocks or []):
+            t = by_t_ins.get(tkr)
+            if t and not t.get('err'):
+                n30 = t.get('n_form4_30d', 0)
+                if n30 > 0 or (t.get('buy_value_30d_usd') or 0) > 0 or (t.get('sell_value_30d_usd') or 0) > 0:
+                    cluster_str = " · CLUSTER_BUY" if t.get('cluster_buy_flag') else ""
+                    lines.append(f"[{tkr} INSIDER] {n30} F4 30d · {t.get('n_buys_30d',0)} buys ${(t.get('buy_value_30d_usd') or 0)/1e6:.2f}M · {t.get('n_sells_30d',0)} sells ${(t.get('sell_value_30d_usd') or 0)/1e6:.2f}M{cluster_str}")
+
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
     rs = get_s3('data/retail-sentiment.json')
     if rs:

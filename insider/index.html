@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insider Transactions — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%BC%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;}
+.regime-banner.insider_buying_broad{border-left:4px solid var(--pos);background:rgba(0,230,118,.05);}
+.regime-banner.insider_buying_present{border-left:4px solid var(--pos);}
+.regime-banner.insider_selling_regime{border-left:4px solid var(--neg);}
+.regime-banner.insider_normal{border-left:4px solid var(--text-mute);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.regime-title.pos{color:var(--pos);} .regime-title.neg{color:var(--neg);} .regime-title.info{color:var(--info);} .regime-title.mute{color:var(--text-dim);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.row-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+@media (max-width:900px){.row-2col{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.panel-title{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-dim);font-weight:600;}
+
+.row{padding:11px 14px;border-bottom:1px solid rgba(28,35,48,.5);display:grid;grid-template-columns:60px 1fr auto auto;gap:12px;align-items:center;}
+.row:last-child{border-bottom:0;}
+.row:hover{background:rgba(167,139,250,.04);}
+.r-ticker{font-family:var(--font-mono);font-weight:600;color:var(--text);}
+.r-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+.r-val{font-family:var(--font-mono);font-weight:600;text-align:right;}
+.r-val.pos{color:var(--pos);} .r-val.neg{color:var(--neg);}
+.r-pill{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--border-hi);text-transform:uppercase;letter-spacing:.4px;}
+.r-pill.cluster{background:rgba(0,230,118,.12);color:var(--pos);border-color:rgba(0,230,118,.4);}
+.r-pill.normal{color:var(--text-mute);}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.full-table th{padding:10px 14px;text-align:right;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table th:first-child,.full-table th:nth-child(2){text-align:left;}
+.full-table td{padding:10px 14px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+.full-table td:first-child,.full-table td:nth-child(2){text-align:left;}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table tr:last-child td{border-bottom:0;}
+.t-sym{font-weight:600;color:var(--text);}
+.t-name{color:var(--text-dim);font-size:11px;}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);} .t-mute{color:var(--text-mute);}
+.t-cluster{color:var(--pos);font-weight:600;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>💼 Insider Transactions <span class="badge">SEC FORM 4 · 30D</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">💰 Biggest Insider Buys (30d, $)</div>
+    <div id="big-buys"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">💸 Biggest Insider Sells (30d, $)</div>
+    <div id="big-sells"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div class="row-2col">
+  <div class="panel">
+    <div class="panel-title">🚨 Cluster Buys (3+ insiders, 30d)</div>
+    <div id="cluster-buys"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">📊 Most Active Filers (14d)</div>
+    <div id="most-active"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<div style="margin: 16px 0; font-size: 11px; color: var(--text-mute); font-family: var(--font-mono);">FULL UNIVERSE · 30 TICKERS</div>
+<table class="full-table">
+  <thead><tr>
+    <th>Ticker</th><th>Name</th>
+    <th>F4 7d</th><th>F4 14d</th><th>F4 30d</th>
+    <th>Buys 30d</th><th>Sells 30d</th>
+    <th>$ Buy 30d</th><th>$ Sell 30d</th>
+    <th>Buy:Sell</th><th>Flag</th>
+  </tr></thead>
+  <tbody id="tbody"><tr><td colspan="11" class="loading">Loading universe…</td></tr></tbody>
+</table>
+
+<div class="method">
+  <h3>Methodology · SEC Form 4 Insider Trading</h3>
+  <p><strong>Form 4</strong> is filed by corporate insiders (officers, directors, 10% owners) within 2 business days of any transaction in their company's stock. Academic literature shows insider <em>buys</em> beat the market by ~11%/year; insider <em>sells</em> are noisier (often diversification or pre-scheduled 10b5-1 plans).</p>
+  <p><strong>Transaction codes</strong> we surface: <code>P</code> = open-market purchase (the highest-signal buy) · <code>S</code> = open-market sale (lower-signal) · others (A grants, F tax withholding, M derivative exercise) excluded from buy/sell counts.</p>
+  <p><strong>Cluster buying</strong> — 3+ distinct insiders buying within 30d — is the highest-conviction signal because it's hard to explain by individual financial planning. This is what Lakonishok/Lee and Cohen/Malloy academic studies showed predicts outperformance.</p>
+  <p><strong>Composite regimes:</strong></p>
+  <p><code>INSIDER_BUYING_BROAD</code> — 3+ tickers with cluster buying (rare; market-wide bullish signal).</p>
+  <p><code>INSIDER_BUYING_PRESENT</code> — 1-2 cluster-buy tickers.</p>
+  <p><code>INSIDER_SELLING_REGIME</code> — sells outpace buys by 10×+ and $50M+ total (often diversification at megacaps).</p>
+  <p><code>INSIDER_NORMAL</code> — balanced or low activity.</p>
+  <p><strong>Source:</strong> SEC EDGAR Submissions API + Form 4 XML parser · refresh daily 01:00 UTC.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-transactions.json";
+let DATA = null;
+
+function fmtMoney(v) {
+  if (v == null || v === 0) return '-';
+  if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+  if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(0);
+}
+
+async function load() {
+  try {
+    DATA = await (await fetch(SIDECAR_URL)).json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0, 16).replace('T', ' ') + ' UTC';
+    renderRegime(); renderRankings(); renderTable();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function renderRegime() {
+  const r = DATA.composite_regime || 'UNKNOWN';
+  const s = DATA.composite_signal || '';
+  const rcls = r.toLowerCase();
+  let tcls = 'mute';
+  if (r === 'INSIDER_BUYING_BROAD' || r === 'INSIDER_BUYING_PRESENT') tcls = 'pos';
+  else if (r === 'INSIDER_SELLING_REGIME') tcls = 'neg';
+
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner ${rcls}">
+      <div>
+        <div class="regime-title ${tcls}">${r.replace(/_/g, ' ')}</div>
+        <div class="regime-signal">${s}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">$ Buys 30d</span><span class="val">${fmtMoney(DATA.total_buy_value_30d_usd)}</span></div>
+        <div><span class="label">$ Sells 30d</span><span class="val">${fmtMoney(DATA.total_sell_value_30d_usd)}</span></div>
+        <div><span class="label">Cluster Buys</span><span class="val">${DATA.n_cluster_buys || 0}</span></div>
+        <div><span class="label">Coverage</span><span class="val">${DATA.n_with_data}/${DATA.n_tickers}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderRankings() {
+  const r = DATA.ranked || {};
+  document.getElementById('big-buys').innerHTML = (r.biggest_buy_dollars_30d || []).map(x =>
+    `<div class="row">
+      <span class="r-ticker">${x.ticker}</span>
+      <span class="r-sub">${x.n_buys_30d} txn · ${x.n_distinct_buyers} insider${x.n_distinct_buyers === 1 ? '' : 's'}</span>
+      <span class="r-val pos">${fmtMoney(x.buy_value_usd)}</span>
+      ${x.cluster_buy ? '<span class="r-pill cluster">CLUSTER</span>' : '<span></span>'}
+    </div>`
+  ).join('') || '<div class="loading">No insider buys recorded</div>';
+
+  document.getElementById('big-sells').innerHTML = (r.biggest_sell_dollars_30d || []).map(x =>
+    `<div class="row">
+      <span class="r-ticker">${x.ticker}</span>
+      <span class="r-sub">${x.n_sells_30d} txn · ${x.n_distinct_sellers} insider${x.n_distinct_sellers === 1 ? '' : 's'}</span>
+      <span class="r-val neg">${fmtMoney(x.sell_value_usd)}</span>
+      <span></span>
+    </div>`
+  ).join('') || '<div class="loading">No insider sells recorded</div>';
+
+  document.getElementById('cluster-buys').innerHTML = (r.cluster_buys || []).map(x =>
+    `<div class="row">
+      <span class="r-ticker">${x.ticker}</span>
+      <span class="r-sub">${x.n_distinct_buyers} distinct buyers</span>
+      <span class="r-val pos">${fmtMoney(x.buy_value_usd)}</span>
+      <span class="r-pill cluster">CLUSTER</span>
+    </div>`
+  ).join('') || '<div class="loading">No cluster buying detected (3+ distinct insiders required)</div>';
+
+  document.getElementById('most-active').innerHTML = (r.most_active_14d || []).map(x =>
+    `<div class="row">
+      <span class="r-ticker">${x.ticker}</span>
+      <span class="r-sub">14d filings</span>
+      <span class="r-val">${x.n_form4_14d}</span>
+      <span class="r-sub">7d: ${x.n_form4_7d}</span>
+    </div>`
+  ).join('') || '<div class="loading">—</div>';
+}
+
+function renderTable() {
+  const by = DATA.by_ticker || {};
+  const rows = Object.entries(by);
+  if (!rows.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="11" class="loading">No data</td></tr>';
+    return;
+  }
+  rows.sort((a, b) => (b[1].buy_value_30d_usd || 0) - (a[1].buy_value_30d_usd || 0));
+  document.getElementById('tbody').innerHTML = rows.map(([tkr, v]) => {
+    if (v.err) return `<tr><td><span class="t-sym">${tkr}</span></td><td colspan="10" class="t-mute">${v.err}</td></tr>`;
+    const bs = (v.buy_value_30d_usd || 0) / Math.max(v.sell_value_30d_usd || 1, 1);
+    return `<tr>
+      <td><span class="t-sym">${tkr}</span></td>
+      <td><span class="t-name">${v.name || ''}</span></td>
+      <td>${v.n_form4_7d || 0}</td>
+      <td>${v.n_form4_14d || 0}</td>
+      <td>${v.n_form4_30d || 0}</td>
+      <td class="${(v.n_buys_30d || 0) > 0 ? 't-pos' : 't-mute'}">${v.n_buys_30d || 0}</td>
+      <td class="${(v.n_sells_30d || 0) > 0 ? 't-neg' : 't-mute'}">${v.n_sells_30d || 0}</td>
+      <td class="${(v.buy_value_30d_usd || 0) > 0 ? 't-pos' : 't-mute'}">${fmtMoney(v.buy_value_30d_usd)}</td>
+      <td class="${(v.sell_value_30d_usd || 0) > 0 ? 't-neg' : 't-mute'}">${fmtMoney(v.sell_value_30d_usd)}</td>
+      <td>${bs > 0 ? bs.toFixed(2) : '-'}</td>
+      <td>${v.cluster_buy_flag ? '<span class="t-cluster">CLUSTER</span>' : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 10 * 60 * 1000);
+</script>
+</body>
+</html>
