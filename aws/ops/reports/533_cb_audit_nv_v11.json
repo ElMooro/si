@@ -1,0 +1,158 @@
+{
+  "started": "2026-05-14T01:20:47.253280+00:00",
+  "cb_stance": {
+    "name": "justhodl-cb-stance",
+    "exists": true,
+    "last_modified": "2026-05-14T00:47:33.000+0000",
+    "memory": 512,
+    "timeout": 300,
+    "env_keys": [
+      "ANTHROPIC_API_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "rules": [
+      {
+        "name": "justhodl-cb-stance-6h",
+        "schedule": "cron(0 0/6 ? * * *)",
+        "state": "ENABLED"
+      }
+    ],
+    "invoke_response": {
+      "success": true,
+      "version": "1.0.0",
+      "latest_fomc_date": "20260429",
+      "hawkish_score": 25,
+      "policy_action": "HOLD",
+      "regime": "MILD_HAWKISH",
+      "delta_vs_prior": 10,
+      "shift_classification": "HAWKISH_DRIFT",
+      "n_scored": 5,
+      "regime_changed": false,
+      "alert_sent": false,
+      "elapsed_seconds": 0.55
+    },
+    "invoke_status": 200,
+    "fn_error": null,
+    "log_tail": "START RequestId: a408d100-89fa-4702-8636-3670dcf6d82f Version: $LATEST\n=== cb-stance v1.0.0 \u00b7 2026-05-14T01:20:50.586413+00:00 ===\nRSS: 15 items, 5 FOMC statements\n\u2713 20260429 [cache] score=25 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20260128 [cache] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20260128 [cache] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 20251210 [cache] score=-35 action=CUT guidance=DATA_DEPENDENT\n\u2713 20260318 [cache] score=15 action=HOLD guidance=DATA_DEPENDENT\n\u2713 cb-stance.json written\nEND RequestId: a408d100-89fa-4702-8636-3670dcf6d82f\nREPORT RequestId: a408d100-89fa-4702-8636-3670dcf6d82f\tDuration: 597.57 ms\tBilled Duration: 1128 ms\tMemory Size: 512 MB\tMax Memory Used: 102 MB\tInit Duration: 530.12 ms\t\n"
+  },
+  "cb_sidecar": {
+    "size_kb": 3.4,
+    "modified": "2026-05-14T01:20:52",
+    "top_keys": [
+      "generated_at",
+      "generated_at_unix",
+      "version",
+      "model",
+      "elapsed_seconds",
+      "n_fomc_statements_scored",
+      "fed",
+      "regime_changed_from_prior",
+      "new_statement_since_last_run"
+    ],
+    "version": "1.0.0",
+    "generated_at": "2026-05-14T01:20:51.132667+00:00",
+    "fed_regime": "MILD_HAWKISH",
+    "fed_regime_signal": "Restrictive but moderating; mixed for risk",
+    "fed_delta_hawkish_score": 10,
+    "fed_shift_classification": "HAWKISH_DRIFT",
+    "fed_n_recent_statements": 5,
+    "fed_latest_date": "20260429",
+    "fed_latest_hawkish_score": 25,
+    "fed_latest_policy_action": "HOLD",
+    "fed_latest_forward_guidance": "DATA_DEPENDENT",
+    "fed_latest_inflation_concern": "HIGH",
+    "fed_latest_growth_concern": "MEDIUM",
+    "fed_latest_balance_sheet_stance": "NOT_DISCUSSED",
+    "fed_latest_key_themes": [
+      "elevated inflation requiring continued vigilance",
+      "solid economic expansion with weak labor market",
+      "geopolitical uncertainty affecting outlook",
+      "data-dependent approach to future adjustments",
+      "dissent favoring rate cuts or easing bias"
+    ],
+    "fed_latest_summary": "The Fed maintains rates while expressing concern about elevated inflation and weak labor conditions, adopting a cautious data-dependent stance with meaningful dissent for rate cuts or easing bias.",
+    "fed_latest_notable_phrases": [
+      "Inflation is elevated, in part reflecting the recent increase in global energy prices",
+      "Job gains have remained low, on average",
+      "The Committee would be prepared to adjust the stance of monetary policy as appropriate if risks emerge"
+    ],
+    "fed_prior_date": "20260318",
+    "fed_prior_hawkish_score": 15
+  },
+  "nv_err": "An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-news-velocity",
+  "nv_sidecar": {
+    "size_kb": 4.0,
+    "modified": "2026-05-14T01:15:30",
+    "version": "1.0.0",
+    "n_tickers": 30,
+    "n_with_data": 3,
+    "n_with_err": 27,
+    "n_surge": 1,
+    "n_elevated": 0,
+    "n_subdued": 1,
+    "composite_regime": "ATTENTION_CONCENTRATED",
+    "composite_signal": "KO dominating attention (z=2.28)",
+    "top_5_velocity": [
+      {
+        "ticker": "KO",
+        "z_score": 2.28,
+        "velocity_pct": 103.1,
+        "current": 0.106,
+        "flag": "SURGE"
+      },
+      {
+        "ticker": "HD",
+        "z_score": 0.12,
+        "velocity_pct": 11.3,
+        "current": 0.0353,
+        "flag": "NORMAL"
+      },
+      {
+        "ticker": "V",
+        "z_score": -1.04,
+        "velocity_pct": -100.0,
+        "current": 0.0,
+        "flag": "SUBDUED"
+      }
+    ],
+    "top_5_attention": [
+      {
+        "ticker": "KO",
+        "current": 0.106,
+        "avg_30d": 0.0522,
+        "z_score": 2.28
+      },
+      {
+        "ticker": "HD",
+        "current": 0.0353,
+        "avg_30d": 0.0317,
+        "z_score": 0.12
+      },
+      {
+        "ticker": "V",
+        "current": 0.0,
+        "avg_30d": 0.0012,
+        "z_score": -1.04
+      }
+    ],
+    "bottom_5_subdued": [
+      {
+        "ticker": "V",
+        "z_score": -1.04,
+        "current": 0.0
+      },
+      {
+        "ticker": "HD",
+        "z_score": 0.12,
+        "current": 0.0353
+      },
+      {
+        "ticker": "KO",
+        "z_score": 2.28,
+        "current": 0.106
+      }
+    ]
+  },
+  "finished": "2026-05-14T01:20:51.472200+00:00"
+}
