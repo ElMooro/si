@@ -1,0 +1,149 @@
+{
+  "started": "2026-05-15T11:39:12.838980+00:00",
+  "lambda_last_modified": "2026-05-15T11:25:53.000+0000",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "standard_score": 51.0,
+    "adaptive_score": 58.8,
+    "divergence": 7.8,
+    "adaptive_regime": "NEUTRAL"
+  },
+  "log_tail": "START RequestId: 7713739d-01d6-4918-a055-bf4316216cd5 Version: $LATEST\n[khalid-adaptive] starting\n[khalid-adaptive] standard=51.0(NEUTRAL) adaptive=58.8(NEUTRAL) divergence=+7.8\nEND RequestId: 7713739d-01d6-4918-a055-bf4316216cd5\nREPORT RequestId: 7713739d-01d6-4918-a055-bf4316216cd5\tDuration: 564.92 ms\tBilled Duration: 1122 ms\tMemory Size: 512 MB\tMax Memory Used: 108 MB\tInit Duration: 556.32 ms\t\n",
+  "sidecar": {
+    "schema_version": "1.0",
+    "generated_at": "2026-05-15T11:39:17.258486+00:00",
+    "standard": {
+      "score": 51.0,
+      "regime": "NEUTRAL",
+      "method": "hardcoded_blend_75_15_10",
+      "n_signals": 8
+    },
+    "adaptive": {
+      "score": 58.8,
+      "regime": "NEUTRAL",
+      "method": "calibrator_60d_weighted_v1",
+      "raw_composite": 0.1755,
+      "n_signals_used": 9,
+      "total_effective_weight": 4.539
+    },
+    "divergence": {
+      "score_delta": 7.8,
+      "regime_match": true,
+      "interpretation": "Mild divergence"
+    },
+    "top_contributors": [
+      {
+        "signal_type": "carry_risk",
+        "weight": 1.453,
+        "accuracy_60d": 0.667,
+        "n_60d": 93,
+        "direction": 1,
+        "confidence": 0.76,
+        "contribution": 0.7362,
+        "effective_weight": 0.9687
+      },
+      {
+        "signal_type": "ml_risk",
+        "weight": 0.927,
+        "accuracy_60d": 0.407,
+        "n_60d": 194,
+        "direction": 1,
+        "confidence": 0.16,
+        "contribution": 0.0604,
+        "effective_weight": 0.3773
+      },
+      {
+        "signal_type": "crisis_hy_oas_vs_hyg",
+        "weight": 1.254,
+        "accuracy_60d": 0.771,
+        "n_60d": 118,
+        "direction": 0,
+        "confidence": 0.45,
+        "contribution": 0.0,
+        "effective_weight": 0.9669
+      },
+      {
+        "signal_type": "momentum_spy",
+        "weight": 1.03,
+        "accuracy_60d": 0.583,
+        "n_60d": 72,
+        "direction": 0,
+        "confidence": 0.463,
+        "contribution": 0.0,
+        "effective_weight": 0.601
+      },
+      {
+        "signal_type": "earnings_pead",
+        "weight": 0.84,
+        "accuracy_60d": 0.5,
+        "n_60d": 142,
+        "direction": 0,
+        "confidence": 0.8,
+        "contribution": 0.0,
+        "effective_weight": 0.4201
+      }
+    ],
+    "drag_contributors": [
+      {
+        "signal_type": "earnings_pead",
+        "weight": 0.84,
+        "accuracy_60d": 0.5,
+        "n_60d": 142,
+        "direction": 0,
+        "confidence": 0.8,
+        "contribution": 0.0,
+        "effective_weight": 0.4201
+      },
+      {
+        "signal_type": "crypto_fear_greed",
+        "weight": 0.809,
+        "accuracy_60d": 0.518,
+        "n_60d": 303,
+        "direction": 0,
+        "confidence": 0.6,
+        "contribution": 0.0,
+        "effective_weight": 0.4194
+      },
+      {
+        "signal_type": "plumbing_stress",
+        "weight": 0.753,
+        "accuracy_60d": 0.489,
+        "n_60d": 278,
+        "direction": 0,
+        "confidence": 0.55,
+        "contribution": 0.0,
+        "effective_weight": 0.3685
+      },
+      {
+        "signal_type": "momentum_uso",
+        "weight": 0.503,
+        "accuracy_60d": 0.352,
+        "n_60d": 196,
+        "direction": 0,
+        "confidence": 0.8,
+        "contribution": 0.0,
+        "effective_weight": 0.1772
+      },
+      {
+        "signal_type": "correlation_break",
+        "weight": 0.502,
+        "accuracy_60d": 0.479,
+        "n_60d": 165,
+        "direction": 0,
+        "confidence": 0.509,
+        "contribution": 0.0,
+        "effective_weight": 0.2402
+      }
+    ],
+    "calibration_meta": {
+      "version": "1.1",
+      "generated_at": "2026-05-15T11:11:46.437591+00:00",
+      "weighted_avg_accuracy_60d": 0.352,
+      "n_signal_types_tracked": 63
+    },
+    "duration_s": 0.42
+  },
+  "finished": "2026-05-15T11:39:17.561470+00:00"
+}
