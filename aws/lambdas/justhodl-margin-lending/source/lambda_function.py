@@ -28,7 +28,7 @@ by adding the user-portfolio-relevant leverage and squeeze indicators:
 Outputs:
   data/margin-lending.json
     - margin_debt: {absolute_usd, as_pct_of_sp500_cap, 6mo_growth_pct, status}
-    - repo_collateral_proxy: {sofr_volume, rrp_take, direction}
+    - repo_collateral_proxy: {rrp_award, rrp_direction, sofr_rate, sofr_direction}
     - consumer_credit: {total_outstanding, yoy_pct, momentum}
     - squeeze_risk_score: 0-100
     - interpretation: narrative
@@ -55,17 +55,22 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # FRED series we'll pull
+# 2026-05-15 FRED ID audit: replaced 4 dead/renamed series.
+#   BOGZ1FL663068005Q → dropped (margin_debt already covers it).
+#   SOFRVOLUME → SOFR (rate). The "volume" series was retired; daily rate is
+#     the standard reference.
+#   WILL5000PR → WILL5000IND (Wilshire 5000 index level, used as market cap
+#     proxy by sister Lambda justhodl-repo-lending).
+#   RIFSPBLP → dropped (use repo-lending's H.4.1 reverse-repo data instead).
 FRED_SERIES = {
-    "margin_debt":          "BOGZ1FL663067003Q",   # quarterly, $B
-    "margin_credit":        "BOGZ1FL663068005Q",   # cash credit balances
+    "margin_debt":          "BOGZ1FL663067003Q",   # quarterly, $B (verified working)
     "consumer_credit":      "TOTALSL",             # monthly, $B
     "revolving_credit":     "REVOLSL",
-    "sofr_volume":          "SOFRVOLUME",          # daily, $
+    "sofr_rate":            "SOFR",                # daily, % (replaces dead SOFRVOLUME)
     "rrp_award":            "RRPONTSYD",           # daily, $B
-    "wilshire_5000":        "WILL5000PR",          # market cap proxy
+    "wilshire_5000":        "WILL5000IND",         # market cap proxy (replaces dead WILL5000PR)
     "sp500_close":          "SP500",
     "tga":                  "WTREGEN",             # treasury balance
-    "secfin_loans":         "RIFSPBLP",            # bank securities financing loans
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -194,12 +199,19 @@ def lambda_handler(event, context):
         elif chg_pct < -15: rrp_direction = "DRAINAGE"
         else: rrp_direction = "STABLE"
 
-    sofr_vol = series_data["sofr_volume"]
-    sofr_vol_now = sofr_vol[0]["value"] / 1e9 if sofr_vol else None  # $B
+    # SOFR rate (replaces dead SOFRVOLUME — we now track the funding rate itself)
+    sofr_rate_obs = series_data["sofr_rate"]
+    sofr_rate_now = sofr_rate_obs[0]["value"] if sofr_rate_obs else None
 
-    secfin = series_data["secfin_loans"]
-    secfin_now = secfin[0]["value"] if secfin else None
-    secfin_yoy = compute_growth(secfin, 52) if secfin else None  # weekly
+    # Compute SOFR 5d vs 30d average for funding-stress direction
+    sofr_5d_avg = sum(o["value"] for o in sofr_rate_obs[:5]) / 5 if len(sofr_rate_obs) >= 5 else None
+    sofr_30d_avg = sum(o["value"] for o in sofr_rate_obs[:30]) / 30 if len(sofr_rate_obs) >= 30 else None
+    sofr_direction = None
+    if sofr_5d_avg is not None and sofr_30d_avg is not None:
+        bps_chg = (sofr_5d_avg - sofr_30d_avg) * 100
+        if bps_chg > 5: sofr_direction = "RISING"
+        elif bps_chg < -5: sofr_direction = "FALLING"
+        else: sofr_direction = "STABLE"
 
     # ─── 3. Consumer Credit ──────────────────────────────────────────
     cc = series_data["consumer_credit"]
@@ -243,9 +255,12 @@ def lambda_handler(event, context):
         squeeze_score += 10
         squeeze_reasons.append("RRP drainage — bank reserves under pressure")
 
-    if secfin_yoy is not None and secfin_yoy > 20:
-        squeeze_score += 20
-        squeeze_reasons.append(f"Sec-fin loans up {secfin_yoy:+.1f}% YoY (leverage expansion)")
+    # SOFR rising materially is the funding-stress equivalent of the dead RIFSPBLP series
+    if sofr_direction == "RISING" and sofr_5d_avg is not None and sofr_30d_avg is not None:
+        bps = (sofr_5d_avg - sofr_30d_avg) * 100
+        if bps > 10:
+            squeeze_score += 20
+            squeeze_reasons.append(f"SOFR up {bps:+.1f}bp (5d vs 30d) — funding tightening")
 
     squeeze_score = min(100, squeeze_score)
     if squeeze_score >= 65: squeeze_band = "HIGH"
@@ -289,13 +304,14 @@ def lambda_handler(event, context):
             "rrp_5d_avg_b": round(rrp_5d_avg, 2) if rrp_5d_avg else None,
             "rrp_30d_avg_b": round(rrp_30d_avg, 2) if rrp_30d_avg else None,
             "rrp_direction": rrp_direction,
-            "sofr_volume_b": round(sofr_vol_now, 1) if sofr_vol_now else None,
-            "secfin_loans": secfin_now,
-            "secfin_yoy_pct": secfin_yoy,
+            "sofr_rate_pct": sofr_rate_now,
+            "sofr_5d_avg_pct": round(sofr_5d_avg, 3) if sofr_5d_avg else None,
+            "sofr_30d_avg_pct": round(sofr_30d_avg, 3) if sofr_30d_avg else None,
+            "sofr_direction": sofr_direction,
             "interpretation": (
                 f"RRP {rrp_direction or 'unknown'}. "
-                f"SOFR ${sofr_vol_now:.0f}B daily. "
-                f"Sec-fin loans {secfin_yoy:+.1f}% YoY." if secfin_yoy else ""
+                f"SOFR {sofr_rate_now}% ({sofr_direction or 'unknown'})."
+                if sofr_rate_now else "Repo data partial."
             ),
         },
         "consumer_credit": {
