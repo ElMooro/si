@@ -1,0 +1,21 @@
+{
+  "started": "2026-05-15T11:19:12.505123+00:00",
+  "lambda_last_modified": "2026-05-15T11:19:17.210+0000",
+  "lambda_state": "Active",
+  "env_patched": "OK",
+  "eventbridge_rule": "OK",
+  "invoke_status": 200,
+  "fn_error": "Unhandled",
+  "response": {
+    "errorMessage": "unsupported operand type(s) for *: 'NoneType' and 'float'",
+    "errorType": "TypeError",
+    "requestId": "41a13631-b536-477c-88a7-7200c8bd2798",
+    "stackTrace": [
+      "  File \"/var/task/lambda_function.py\", line 208, in lambda_handler\n    adaptive = compute_adaptive_score(calibration, report)\n",
+      "  File \"/var/task/lambda_function.py\", line 129, in compute_adaptive_score\n    effective_weight = weight * accuracy_60d\n"
+    ]
+  },
+  "log_tail": "START RequestId: 41a13631-b536-477c-88a7-7200c8bd2798 Version: $LATEST\n[khalid-adaptive] starting\n[s3] data/khalid-adaptive.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[ERROR] TypeError: unsupported operand type(s) for *: 'NoneType' and 'float'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 208, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0adaptive = compute_adaptive_score(calibration, report)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 129, in compute_adaptive_score\n\u00a0\u00a0\u00a0\u00a0effective_weight = weight * accuracy_60d\nEND RequestId: 41a13631-b536-477c-88a7-7200c8bd2798\nREPORT RequestId: 41a13631-b536-477c-88a7-7200c8bd2798\tDuration: 405.99 ms\tBilled Duration: 955 ms\tMemory Size: 512 MB\tMax Memory Used: 108 MB\tInit Duration: 548.72 ms\t\n",
+  "sidecar_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "finished": "2026-05-15T11:19:36.557661+00:00"
+}
