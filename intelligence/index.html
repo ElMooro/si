@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intelligence — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa;
+  --gold:#fbbf24; --orange:#fb923c; --pink:#ec4899;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:inherit;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+/* INTRO */
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:18px;}
+.intro h2{margin:0 0 6px 0;font-size:15px;font-weight:600;}
+.intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px;overflow-x:auto;}
+.tab{padding:8px 14px;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-radius:4px;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.tab.active{color:var(--text);background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--border-hi);}
+
+.tab-pane{display:none;}
+.tab-pane.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:13px 15px;position:relative;}
+.kpi.accent{border-left:3px solid var(--accent);}
+.kpi.pos{border-left:3px solid var(--pos);} .kpi.neg{border-left:3px solid var(--neg);}
+.kpi.info{border-left:3px solid var(--info);} .kpi.gold{border-left:3px solid var(--gold);}
+.kpi.warning{border-left:3px solid var(--orange);}
+.kpi .label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);}
+.kpi .val{font-family:var(--font-mono);font-size:22px;font-weight:600;margin-top:6px;line-height:1.1;}
+.kpi .val.pos{color:var(--pos);} .kpi .val.neg{color:var(--neg);} .kpi .val.info{color:var(--info);} .kpi .val.gold{color:var(--gold);} .kpi .val.warning{color:var(--orange);}
+.kpi .sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-top:4px;}
+
+/* SECTION */
+.section-title{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);margin:22px 0 10px 0;font-weight:500;display:flex;justify-content:space-between;align-items:center;}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;}
+.panel h3{margin:0 0 14px 0;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.panel h3 .tag{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.5px;}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:8px 10px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);font-weight:500;border-bottom:1px solid var(--border);}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);} .t-info{color:var(--info);} .t-mute{color:var(--text-mute);}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 7px;border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:.3px;font-weight:500;}
+.pill.pos{background:rgba(0,230,118,.13);color:var(--pos);}
+.pill.neg{background:rgba(255,61,90,.13);color:var(--neg);}
+.pill.info{background:rgba(34,211,238,.13);color:var(--info);}
+.pill.gold{background:rgba(251,191,36,.13);color:var(--gold);}
+.pill.warning{background:rgba(251,146,60,.13);color:var(--orange);}
+.pill.mute{background:rgba(255,255,255,.05);color:var(--text-dim);}
+.pill.accent{background:rgba(167,139,250,.13);color:var(--accent);}
+
+/* INTERP NOTE */
+.interp{background:var(--panel-2);border-left:3px solid var(--accent);padding:11px 15px;font-size:12.5px;color:var(--text-dim);border-radius:0 4px 4px 0;margin:14px 0;line-height:1.55;}
+
+/* LOADING */
+.loading{color:var(--text-mute);font-family:var(--font-mono);font-size:11px;padding:32px;text-align:center;}
+.spin::after{content:" ⟳";animation:rot 1s linear infinite;display:inline-block;}
+@keyframes rot{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+
+/* GRADE */
+.grade{display:inline-block;width:38px;height:38px;border-radius:6px;font-family:var(--font-mono);font-size:18px;font-weight:700;text-align:center;line-height:38px;}
+.grade.a{background:rgba(0,230,118,.18);color:var(--pos);}
+.grade.b{background:rgba(34,211,238,.18);color:var(--info);}
+.grade.c{background:rgba(251,191,36,.18);color:var(--gold);}
+.grade.d{background:rgba(251,146,60,.18);color:var(--orange);}
+.grade.f{background:rgba(255,61,90,.18);color:var(--neg);}
+
+/* BAR */
+.bar-wrap{display:flex;align-items:center;gap:8px;}
+.bar{flex:1;height:6px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{position:absolute;top:0;left:0;bottom:0;border-radius:3px;background:var(--info);}
+.bar-fill.pos{background:var(--pos);} .bar-fill.neg{background:var(--neg);} .bar-fill.gold{background:var(--gold);}
+.bar-fill.warning{background:var(--orange);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧠 INTELLIGENCE <span class="badge">v1</span></h1>
+  <div class="header-meta">
+    <span id="ts" class="t-mute">loading...</span>
+    <a href="/" class="nav-back">← justhodl.ai</a>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <h2>Top-of-stack synthesized signals</h2>
+    <p>Six newest macro-intelligence modules unified on one page. Adaptive Khalid (calibrator-learned weights) · Stress scenarios (5 archetypes) · Political trades (Senate + House) · Reversal radar (top/bottom detector) · Treasury auction grades · Repo &amp; securities lending. Each refreshes on its own cron; sidecars sourced live from S3.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-pane="khalid">📊 Adaptive Khalid</button>
+    <button class="tab" data-pane="stress">💥 Stress Scenarios</button>
+    <button class="tab" data-pane="political">🏛 Political Trades</button>
+    <button class="tab" data-pane="reversal">🎯 Reversal Radar</button>
+    <button class="tab" data-pane="auction">📜 Auction Grades</button>
+    <button class="tab" data-pane="lending">💰 Repo &amp; Lending</button>
+  </div>
+
+  <!-- ADAPTIVE KHALID -->
+  <div class="tab-pane active" id="pane-khalid">
+    <div class="kpi-grid" id="khalid-kpis"><div class="loading spin">loading khalid-adaptive</div></div>
+    <div class="panel">
+      <h3>Top contributors <span class="tag">calibrator-weighted</span></h3>
+      <div id="khalid-table"></div>
+    </div>
+    <div class="interp" id="khalid-interp"></div>
+  </div>
+
+  <!-- STRESS SCENARIOS -->
+  <div class="tab-pane" id="pane-stress">
+    <div class="kpi-grid" id="stress-kpis"><div class="loading spin">loading stress-scenarios</div></div>
+    <div class="panel">
+      <h3>Scenarios <span class="tag">probability-weighted</span></h3>
+      <div id="stress-table"></div>
+    </div>
+    <div class="panel">
+      <h3>Probability-weighted asset impact <span class="tag">top winners + losers</span></h3>
+      <div id="stress-impact"></div>
+    </div>
+  </div>
+
+  <!-- POLITICAL -->
+  <div class="tab-pane" id="pane-political">
+    <div class="kpi-grid" id="political-kpis"><div class="loading spin">loading political-trades</div></div>
+    <div class="panel">
+      <h3>Clusters <span class="tag">3+ members same ticker / 7 days</span></h3>
+      <div id="political-clusters"></div>
+    </div>
+    <div class="panel">
+      <h3>Large trades <span class="tag">≥ $500K</span></h3>
+      <div id="political-large"></div>
+    </div>
+    <div class="panel">
+      <h3>High-watch members <span class="tag">latest trades</span></h3>
+      <div id="political-hw"></div>
+    </div>
+  </div>
+
+  <!-- REVERSAL -->
+  <div class="tab-pane" id="pane-reversal">
+    <div class="kpi-grid" id="reversal-kpis"><div class="loading spin">loading reversal-radar</div></div>
+    <div class="panel">
+      <h3>Top-formation reasons <span class="tag">complacency, breadth, credit, vol</span></h3>
+      <div id="reversal-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Bottom-formation reasons <span class="tag">capitulation, panic, washout</span></h3>
+      <div id="reversal-bottom"></div>
+    </div>
+    <div class="interp" id="reversal-interp"></div>
+  </div>
+
+  <!-- AUCTION -->
+  <div class="tab-pane" id="pane-auction">
+    <div class="kpi-grid" id="auction-kpis"><div class="loading spin">loading auction-grades</div></div>
+    <div class="panel">
+      <h3>Recent auctions <span class="tag">graded A-F</span></h3>
+      <div id="auction-table"></div>
+    </div>
+    <div class="panel">
+      <h3>By tenor bucket <span class="tag">avg score</span></h3>
+      <div id="auction-by-tenor"></div>
+    </div>
+  </div>
+
+  <!-- LENDING -->
+  <div class="tab-pane" id="pane-lending">
+    <div class="kpi-grid" id="lending-kpis"><div class="loading spin">loading repo-lending</div></div>
+    <div class="panel">
+      <h3>Component scores <span class="tag">0-100 each</span></h3>
+      <div id="lending-components"></div>
+    </div>
+    <div class="interp" id="lending-interp"></div>
+  </div>
+</main>
+
+<script>
+const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/';
+const ENDPOINTS = {
+  khalid: 'data/khalid-adaptive.json',
+  stress: 'data/stress-scenarios.json',
+  political: 'data/political-trades.json',
+  reversal: 'data/reversal-radar.json',
+  auction: 'data/auction-grades.json',
+  lending: 'data/repo-lending.json',
+};
+
+const fmtPct = (n, dp=2) => n==null ? '—' : `${n>=0?'+':''}${n.toFixed(dp)}%`;
+const fmtNum = (n, dp=2) => n==null ? '—' : (typeof n==='number'?n.toFixed(dp):n);
+const fmtUSD = (n) => {
+  if (n==null) return '—';
+  if (n>=1e9) return `$${(n/1e9).toFixed(2)}B`;
+  if (n>=1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if (n>=1e3) return `$${(n/1e3).toFixed(1)}K`;
+  return `$${n}`;
+};
+const ago = (iso) => {
+  if (!iso) return '—';
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(ms/60000);
+  if (m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('pane-'+b.dataset.pane).classList.add('active');
+  });
+});
+
+// Fetch all
+async function fetchJson(key) {
+  try {
+    const r = await fetch(S3+key+'?cb='+Math.floor(Date.now()/300000));
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) { console.error(key, e); return null; }
+}
+
+// ─── ADAPTIVE KHALID ──────────────────────────────────────────────
+function renderKhalid(d) {
+  if (!d) return;
+  const std = d.standard||{}, ad = d.adaptive||{}, div = d.divergence||{};
+  const stdScore = std.score, adScore = ad.score, delta = div.score_delta;
+  const stdCls = stdScore>=60?'pos':stdScore>=45?'info':stdScore>=30?'warning':'neg';
+  const adCls = adScore>=60?'pos':adScore>=45?'info':adScore>=30?'warning':'neg';
+  const divCls = Math.abs(delta)>15?'warning':Math.abs(delta)>5?'info':'pos';
+
+  document.getElementById('khalid-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Standard</div><div class="val ${stdCls}">${stdScore}</div><div class="sub">${std.regime} · 75/15/10 blend</div></div>
+    <div class="kpi accent"><div class="label">Adaptive</div><div class="val ${adCls}">${adScore}</div><div class="sub">${ad.regime} · ${ad.n_signals_used} signals · calibrator-weighted</div></div>
+    <div class="kpi ${divCls}"><div class="label">Divergence</div><div class="val ${divCls}">${delta>=0?'+':''}${delta}</div><div class="sub">${div.interpretation}</div></div>
+    <div class="kpi gold"><div class="label">Raw composite</div><div class="val gold">${fmtNum(ad.raw_composite,3)}</div><div class="sub">−1 (bear) → +1 (bull)</div></div>
+  `;
+
+  const rows = (d.top_contributors||[]).map(c => `
+    <tr>
+      <td class="t-info">${c.signal_type}</td>
+      <td>${c.weight}</td>
+      <td>${(c.accuracy_60d*100).toFixed(1)}%</td>
+      <td class="t-mute">${c.n_60d}</td>
+      <td><span class="pill ${c.direction>0?'pos':c.direction<0?'neg':'mute'}">${c.direction>0?'BUY':c.direction<0?'SELL':'—'}</span></td>
+      <td>${c.confidence}</td>
+      <td class="${c.contribution>=0?'t-pos':'t-neg'}">${c.contribution>=0?'+':''}${c.contribution.toFixed(3)}</td>
+    </tr>`).join('');
+  document.getElementById('khalid-table').innerHTML = `
+    <table>
+      <thead><tr><th>Signal</th><th>Weight</th><th>Acc 60d</th><th>n</th><th>Dir</th><th>Conf</th><th>Contribution</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan=7 class=t-mute>no qualifying signals</td></tr>'}</tbody>
+    </table>`;
+
+  document.getElementById('khalid-interp').innerHTML = `<b>Reading:</b> standard ${stdScore} (${std.regime}) vs adaptive ${adScore} (${ad.regime}) → divergence ${delta>=0?'+':''}${delta}pt. ${div.interpretation}. ${Math.abs(delta)>15?'The learned weights are flagging something the hardcoded blend isn\\'t — worth investigating top contributors.':'Hardcoded and learned weights are in agreement.'}`;
+}
+
+// ─── STRESS SCENARIOS ─────────────────────────────────────────────
+function renderStress(d) {
+  if (!d) return;
+  const scenarios = d.scenarios || {};
+  const top = d.top_scenario || {};
+  const impact = d.asset_impact || {};
+
+  // Find #2 scenario
+  const sorted = Object.entries(scenarios).sort((a,b)=>b[1].probability_pct-a[1].probability_pct);
+  const second = sorted[1] || [];
+
+  document.getElementById('stress-kpis').innerHTML = `
+    <div class="kpi pos"><div class="label">Top scenario</div><div class="val">${top.probability_pct}%</div><div class="sub">${top.name}</div></div>
+    <div class="kpi info"><div class="label">Runner-up</div><div class="val info">${second[1]?second[1].probability_pct:0}%</div><div class="sub">${second[1]?second[1].name:'—'}</div></div>
+    <div class="kpi gold"><div class="label">Scenarios tracked</div><div class="val gold">${Object.keys(scenarios).length}</div><div class="sub">probe-weighted against live data</div></div>
+    <div class="kpi accent"><div class="label">Top winner</div><div class="val pos">${(d.top_winners||['—'])[0]||'—'}</div><div class="sub">prob-weighted return</div></div>
+  `;
+
+  const rows = sorted.map(([k,s])=>{
+    const p = s.probability_pct;
+    const cls = p>=30?'pos':p>=15?'info':p>=5?'gold':'mute';
+    return `<tr>
+      <td><b>${s.name||k}</b></td>
+      <td><span class="pill ${cls}">${p}%</span></td>
+      <td class="t-mute">${s.probes_triggered||0}/${s.total_probes||0} probes</td>
+      <td class="t-info">${(s.top_winners||[]).slice(0,3).join(', ')}</td>
+      <td class="t-neg">${(s.top_losers||[]).slice(0,3).join(', ')}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('stress-table').innerHTML = `
+    <table>
+      <thead><tr><th>Scenario</th><th>Probability</th><th>Probes</th><th>Winners</th><th>Losers</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // Impact table — top 8 winners and losers
+  const impacts = Object.entries(impact)
+    .filter(([k,v])=>typeof v==='number')
+    .sort((a,b)=>b[1]-a[1]);
+  const winners = impacts.slice(0,8);
+  const losers = impacts.slice(-8).reverse();
+  const renderImpactRow = ([t,v])=>`<tr><td><b>${t}</b></td><td class="${v>=0?'t-pos':'t-neg'}">${v>=0?'+':''}${v.toFixed(2)}%</td></tr>`;
+  document.getElementById('stress-impact').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div><div class="section-title" style="margin:0 0 8px">Winners</div><table>${winners.map(renderImpactRow).join('')}</table></div>
+      <div><div class="section-title" style="margin:0 0 8px">Losers</div><table>${losers.map(renderImpactRow).join('')}</table></div>
+    </div>`;
+}
+
+// ─── POLITICAL ────────────────────────────────────────────────────
+function renderPolitical(d) {
+  if (!d) return;
+  const stats = d.stats||{};
+  document.getElementById('political-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Senate / House</div><div class="val info">${stats.n_senate||0} / ${stats.n_house||0}</div><div class="sub">total ${stats.n_total||0}</div></div>
+    <div class="kpi accent"><div class="label">Clusters (3+ members)</div><div class="val">${stats.n_clusters||0}</div><div class="sub">7-day window</div></div>
+    <div class="kpi gold"><div class="label">Large trades (≥$500K)</div><div class="val gold">${stats.n_large_trades||0}</div><div class="sub">single-fill</div></div>
+    <div class="kpi warning"><div class="label">High-watch members</div><div class="val warning">${stats.n_high_watch||0}</div><div class="sub">Pelosi / Crenshaw / Cruz / etc</div></div>
+  `;
+
+  const clusters = (d.clusters||[]).map(c => `
+    <tr>
+      <td><b>${c.ticker}</b></td>
+      <td><span class="pill ${c.direction==='BUY'?'pos':c.direction==='SELL'?'neg':'mute'}">${c.direction||'MIXED'}</span></td>
+      <td>${c.n_members}</td>
+      <td class="t-mute">${(c.members||[]).slice(0,3).join(', ')}${c.members&&c.members.length>3?` +${c.members.length-3}`:''}</td>
+      <td>${c.n_trades}b/${c.n_sells||0}s</td>
+      <td>${fmtUSD(c.total_value_max_usd)}</td>
+      <td class="t-mute">${c.first_trade} → ${c.last_trade}</td>
+    </tr>`).join('');
+  document.getElementById('political-clusters').innerHTML = `<table><thead><tr><th>Ticker</th><th>Net</th><th>Members</th><th>Names</th><th>Buys/Sells</th><th>Max value</th><th>Window</th></tr></thead><tbody>${clusters||'<tr><td colspan=7 class=t-mute>no clusters yet</td></tr>'}</tbody></table>`;
+
+  const large = (d.large_trades||[]).map(t => `
+    <tr>
+      <td><span class="pill ${t.chamber==='SENATE'?'accent':'info'}">${t.chamber}</span></td>
+      <td><b>${t.member}</b></td>
+      <td><b>${t.ticker}</b></td>
+      <td><span class="pill ${t.transaction_type==='purchase'?'pos':'neg'}">${t.transaction_type}</span></td>
+      <td>${t.amount_range}</td>
+      <td class="t-mute">${t.transaction_date}</td>
+      <td class="t-mute">+${t.reporting_lag_days}d</td>
+    </tr>`).join('');
+  document.getElementById('political-large').innerHTML = `<table><thead><tr><th>Chamber</th><th>Member</th><th>Ticker</th><th>Action</th><th>Range</th><th>Date</th><th>Lag</th></tr></thead><tbody>${large||'<tr><td colspan=7 class=t-mute>no large trades</td></tr>'}</tbody></table>`;
+
+  // Last 10 high-watch trades
+  const hw = (d.high_watch_trades||[]).slice(0,10).map(t => `
+    <tr>
+      <td><span class="pill ${t.chamber==='SENATE'?'accent':'info'}">${t.chamber}</span></td>
+      <td><b>${t.member}</b></td>
+      <td><b>${t.ticker}</b></td>
+      <td><span class="pill ${t.transaction_type==='purchase'?'pos':'neg'}">${t.transaction_type}</span></td>
+      <td>${t.amount_range}</td>
+      <td class="t-mute">${t.transaction_date}</td>
+    </tr>`).join('');
+  document.getElementById('political-hw').innerHTML = `<table><thead><tr><th>Chamber</th><th>Member</th><th>Ticker</th><th>Action</th><th>Range</th><th>Date</th></tr></thead><tbody>${hw||'<tr><td colspan=6 class=t-mute>none yet</td></tr>'}</tbody></table>`;
+}
+
+// ─── REVERSAL RADAR ───────────────────────────────────────────────
+function renderReversal(d) {
+  if (!d) return;
+  const top = d.top_score||0, bot = d.bottom_score||0, state = d.state||'UNKNOWN';
+  const sCls = state==='TOP_WARNING'?'neg':state==='BOTTOM_FORMING'?'pos':state==='ELEVATED_RISK'?'warning':state==='OVERSOLD'?'gold':'mute';
+  const topCls = top>=65?'neg':top>=40?'warning':top>=15?'gold':'pos';
+  const botCls = bot>=65?'pos':bot>=40?'gold':'mute';
+  document.getElementById('reversal-kpis').innerHTML = `
+    <div class="kpi ${sCls}"><div class="label">State</div><div class="val ${sCls}">${state}</div><div class="sub">${ago(d.generated_at)}</div></div>
+    <div class="kpi ${topCls}"><div class="label">Top score</div><div class="val ${topCls}">${top}</div><div class="sub">market top probability 0-100</div></div>
+    <div class="kpi ${botCls}"><div class="label">Bottom score</div><div class="val ${botCls}">${bot}</div><div class="sub">market bottom probability 0-100</div></div>
+    <div class="kpi info"><div class="label">Differential</div><div class="val info">${(d.differential||0)>=0?'+':''}${d.differential||0}</div><div class="sub">top − bottom</div></div>
+  `;
+
+  const topR = (d.top_reasons||[]).map(r => `<tr><td><span class="pill warning">+</span></td><td>${r}</td></tr>`).join('');
+  document.getElementById('reversal-top').innerHTML = `<table><tbody>${topR||'<tr><td class=t-mute>no top-signal triggers</td></tr>'}</tbody></table>`;
+
+  const botR = (d.bottom_reasons||[]).map(r => `<tr><td><span class="pill pos">+</span></td><td>${r}</td></tr>`).join('');
+  document.getElementById('reversal-bottom').innerHTML = `<table><tbody>${botR||'<tr><td class=t-mute>no bottom-signal triggers</td></tr>'}</tbody></table>`;
+
+  document.getElementById('reversal-interp').innerHTML = `<b>Reading:</b> ${d.interpretation||''}`;
+}
+
+// ─── AUCTION GRADER ───────────────────────────────────────────────
+function gradeCls(letter) {
+  const l = (letter||'').toUpperCase().charAt(0);
+  if (l==='A') return 'a';
+  if (l==='B') return 'b';
+  if (l==='C') return 'c';
+  if (l==='D') return 'd';
+  return 'f';
+}
+function renderAuction(d) {
+  if (!d) return;
+  const s = d.summary||{};
+  document.getElementById('auction-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">Overall GPA</div><div class="val">${s.overall_gpa_letter||'?'}</div><div class="sub">avg ${s.average_score} / 4.0</div></div>
+    <div class="kpi pos"><div class="label">Strong (A/A-)</div><div class="val pos">${s.n_strong||0}</div><div class="sub">of ${d.n_graded||0} graded</div></div>
+    <div class="kpi neg"><div class="label">Failing</div><div class="val neg">${s.n_failing||0}</div><div class="sub">D+ or worse</div></div>
+    <div class="kpi info"><div class="label">Regime context</div><div class="val info">${d.regime_from_crisis_detector||'?'}</div><div class="sub">crisis composite ${d.composite_score_crisis||0}</div></div>
+  `;
+
+  const rows = (d.graded_auctions||[]).map(a => `
+    <tr>
+      <td class="t-mute">${a.auction_date}</td>
+      <td><b>${a.security_term||a.security_type}</b></td>
+      <td>${a.tenor_bucket?.replace(/_/g,' ')||'—'}</td>
+      <td>${fmtNum(a.bid_to_cover,2)}</td>
+      <td>${a.indirect_bidder_pct ? a.indirect_bidder_pct.toFixed(1)+'%' : '—'}</td>
+      <td>${a.tail_bps ? a.tail_bps.toFixed(2)+'bp' : '—'}</td>
+      <td>${fmtUSD(a.accepted_billions*1e9 || a.total_accepted_usd)}</td>
+      <td><span class="grade ${gradeCls(a.grade_letter)}">${a.grade_letter||'?'}</span></td>
+    </tr>`).join('');
+  document.getElementById('auction-table').innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Term</th><th>Bucket</th><th>B/C</th><th>Indirect%</th><th>Tail</th><th>Accepted</th><th>Grade</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan=8 class=t-mute>no graded auctions</td></tr>'}</tbody>
+    </table>`;
+
+  // by-tenor
+  const tenors = d.by_tenor||{};
+  const tenorRows = Object.entries(tenors).map(([k, arr])=>{
+    if (!Array.isArray(arr) || arr.length===0) return '';
+    const avgScore = arr.reduce((s,a)=>s+(a.grade_numeric||0),0)/arr.length;
+    const cls = avgScore>=3?'pos':avgScore>=2?'info':avgScore>=1?'warning':'neg';
+    return `<tr>
+      <td><b>${k.replace(/_/g,' ')}</b></td>
+      <td>${arr.length}</td>
+      <td class="${cls.replace('pos','t-pos').replace('info','t-info').replace('warning','t-info').replace('neg','t-neg')}">${avgScore.toFixed(2)}</td>
+      <td><div class="bar-wrap"><div class="bar"><div class="bar-fill ${cls}" style="width:${Math.min(100,avgScore/4*100)}%"></div></div></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('auction-by-tenor').innerHTML = `<table><thead><tr><th>Bucket</th><th>n</th><th>Avg score</th><th></th></tr></thead><tbody>${tenorRows}</tbody></table>`;
+}
+
+// ─── REPO + LENDING ───────────────────────────────────────────────
+function renderLending(d) {
+  if (!d) return;
+  const reg = d.regime||'?';
+  const comp = d.composite_leverage_stress||0;
+  const compCls = comp>=70?'neg':comp>=50?'warning':comp>=30?'gold':'pos';
+  const regCls = reg.includes('STRESS')?'neg':reg.includes('TIGHT')?'warning':reg.includes('ABUNDANT')?'pos':'info';
+
+  const md = d.margin_debt||{};
+  const repo = d.repo||{};
+  const sl = d.securities_lending||{};
+  document.getElementById('lending-kpis').innerHTML = `
+    <div class="kpi ${regCls}"><div class="label">Regime</div><div class="val ${regCls}">${reg}</div><div class="sub">${ago(d.generated_at)}</div></div>
+    <div class="kpi ${compCls}"><div class="label">Composite stress</div><div class="val ${compCls}">${comp}</div><div class="sub">0 calm → 100 stress</div></div>
+    <div class="kpi accent"><div class="label">Margin debt</div><div class="val">${md.pct_of_market_cap ? md.pct_of_market_cap.toFixed(2) + '%' : '—'}</div><div class="sub">of S&amp;P cap · YoY ${md.yoy_growth_pct ? (md.yoy_growth_pct>=0?'+':'')+md.yoy_growth_pct.toFixed(1)+'%' : '—'}</div></div>
+    <div class="kpi info"><div class="label">Repo score</div><div class="val info">${repo.score||0}</div><div class="sub">funding stress proxy</div></div>
+  `;
+
+  const renderComp = (name, score, components, accentCls) => {
+    const compRows = Object.entries(components||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="t-mute">${typeof v==='number'?v.toFixed(2):v}</td></tr>`).join('');
+    return `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span class="t-info"><b>${name}</b></span><span class="pill ${accentCls}">score ${score}</span></div><table>${compRows}</table></div>`;
+  };
+  document.getElementById('lending-components').innerHTML = `
+    ${renderComp('Margin debt', md.score||0, {
+      level_billions: md.level_billions,
+      level_date: md.level_date,
+      pct_of_market_cap: md.pct_of_market_cap,
+      yoy_growth_pct: md.yoy_growth_pct,
+      market_cap_trillions: md.market_cap_trillions,
+    }, md.score>=50?'warning':'pos')}
+    ${renderComp('Repo / funding stress', repo.score||0, repo.components||{}, repo.score>=50?'warning':'pos')}
+    ${renderComp('Securities lending', sl.score||0, sl.components||{}, sl.score>=50?'warning':'pos')}
+  `;
+
+  document.getElementById('lending-interp').innerHTML = `<b>Reading:</b> ${reg} regime · composite ${comp}/100. Margin debt is ${md.pct_of_market_cap ? md.pct_of_market_cap.toFixed(2)+'% of S&P cap (danger zone >2.5%)' : 'unavailable'}. YoY ${md.yoy_growth_pct ? (md.yoy_growth_pct>=0?'+':'')+md.yoy_growth_pct.toFixed(1)+'%' : '—'} ${md.yoy_growth_pct && md.yoy_growth_pct>25 ? '— leverage expanding fast' : ''}.`;
+}
+
+// Boot
+(async () => {
+  const [k, s, p, r, a, l] = await Promise.all([
+    fetchJson(ENDPOINTS.khalid), fetchJson(ENDPOINTS.stress),
+    fetchJson(ENDPOINTS.political), fetchJson(ENDPOINTS.reversal),
+    fetchJson(ENDPOINTS.auction), fetchJson(ENDPOINTS.lending),
+  ]);
+  if (k) renderKhalid(k);
+  if (s) renderStress(s);
+  if (p) renderPolitical(p);
+  if (r) renderReversal(r);
+  if (a) renderAuction(a);
+  if (l) renderLending(l);
+  // Most recent timestamp from any module
+  const ts = [k,s,p,r,a,l].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
+  if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
+})();
+</script>
+</body>
+</html>
