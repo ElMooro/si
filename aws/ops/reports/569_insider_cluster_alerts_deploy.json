@@ -1,0 +1,24 @@
+{
+  "started": "2026-05-15T10:54:07.810440+00:00",
+  "lambda_last_modified": "2026-05-15T10:54:06.000+0000",
+  "pre_env": {
+    "had_TG_token": false,
+    "had_TG_chat": false,
+    "keys": [
+      "CLUSTER_MIN_INSIDERS",
+      "FMP_KEY",
+      "LOOKBACK_DAYS",
+      "MAX_FILINGS_TO_PARSE",
+      "MIN_BUY_VALUE_USD",
+      "N_BUSINESS_DAYS_INDEX",
+      "N_WORKERS",
+      "S3_BUCKET",
+      "S3_KEY",
+      "SEC_USER_AGENT"
+    ]
+  },
+  "ssm_token_err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+  "env_patched": "OK",
+  "invoke_err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-insider-cluster-scanner/invocations\"",
+  "finished": "2026-05-15T10:59:22.410033+00:00"
+}
