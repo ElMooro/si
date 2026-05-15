@@ -153,13 +153,96 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
 .foot a{color:var(--cyan);text-decoration:none}
 .foot a:hover{text-decoration:underline}
 
+/* Action Spotlight */
+.spotlight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.spot{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.spot::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px}
+.spot.buy::before{background:var(--green)}
+.spot.sell::before{background:var(--red)}
+.spot.rotation::before{background:var(--cyan)}
+.spot-kind{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:1.4px;text-transform:uppercase}
+.spot-tkr{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--t1);line-height:1}
+.spot-tkr .score{font-family:var(--mono);font-size:14px;font-weight:600;padding:3px 9px;border-radius:5px;margin-left:10px;vertical-align:middle}
+.spot-tkr .score.pos{background:var(--green-strong);color:var(--green)}
+.spot-tkr .score.neg{background:var(--red-strong);color:var(--red)}
+.spot-name{color:var(--t2);font-size:13px;}
+.spot-blurb{color:var(--t2);font-size:12.5px;line-height:1.55;margin-top:4px;}
+.spot-stats{display:flex;gap:14px;font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px;flex-wrap:wrap}
+.spot-stats span strong{color:var(--t1);}
+
+/* Famous-Fund grid */
+.famous-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.famous-card{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;}
+.famous-card .ff-name{font-family:var(--display);font-size:17px;font-weight:600;color:var(--t1);letter-spacing:-.01em;margin-bottom:4px}
+.famous-card .ff-meta{font-family:var(--mono);font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px}
+.famous-card .ff-sec{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;margin-top:7px}
+.famous-card .ff-sec-label{width:42px;color:var(--t4);text-transform:uppercase;font-size:9.5px;letter-spacing:.5px}
+.famous-card .ff-sec-label.new{color:var(--green)}
+.famous-card .ff-sec-label.exit{color:var(--red)}
+.famous-card .ff-tickers{flex:1;color:var(--t1);font-weight:500;display:flex;flex-wrap:wrap;gap:5px}
+.famous-card .ff-tkr{padding:1px 7px;border-radius:3px;background:var(--bg3);cursor:pointer;transition:background .15s}
+.famous-card .ff-tkr:hover{background:var(--bg4);color:var(--cyan)}
+.famous-card .ff-sec-label.new + .ff-tickers .ff-tkr{background:var(--green-bg);color:var(--green)}
+.famous-card .ff-sec-label.exit + .ff-tickers .ff-tkr{background:var(--red-bg);color:var(--red)}
+.famous-card .ff-empty{color:var(--t4);font-size:11px;font-style:italic}
+
+/* Net action score badge inside most-bought/sold rows */
+.bs-score{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:.3px;margin-left:8px}
+.bs-score.pos{background:var(--green-strong);color:var(--green)}
+.bs-score.neg{background:var(--red-strong);color:var(--red)}
+.bs-row{cursor:pointer;transition:background .15s}
+.bs-row:hover{background:var(--bg2)}
+.bs-extra{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:3px;display:flex;gap:11px;flex-wrap:wrap}
+.bs-extra .new{color:var(--green)}
+.bs-extra .exit{color:var(--red)}
+.bs-extra .val{color:var(--t2);font-weight:500}
+
+/* Per-ticker drill-down modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(5,8,14,.72);backdrop-filter:blur(4px);z-index:99;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--brd2);border-radius:12px;max-width:920px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-head{padding:18px 24px;border-bottom:1px solid var(--brd);display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.modal-head h3{font-family:var(--display);font-size:28px;font-weight:600;color:var(--t1);letter-spacing:-.01em;margin:0}
+.modal-head .m-meta{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:4px}
+.modal-head .m-score{font-family:var(--mono);font-size:13px;font-weight:600;padding:4px 11px;border-radius:5px}
+.modal-head .m-close{background:transparent;border:1px solid var(--brd);color:var(--t2);font-size:18px;width:32px;height:32px;border-radius:6px;cursor:pointer;line-height:1;padding:0}
+.modal-head .m-close:hover{color:var(--t1);border-color:var(--brd2)}
+.modal-body{padding:0;overflow-y:auto}
+.modal-stats{padding:14px 24px;border-bottom:1px solid var(--brd);display:flex;gap:24px;font-family:var(--mono);font-size:11px;color:var(--t3);flex-wrap:wrap}
+.modal-stats span strong{color:var(--t1);font-size:14px;display:block;margin-bottom:2px}
+.fund-act-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.fund-act-tbl th{text-align:left;padding:11px 24px;background:var(--bg2);font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:500;border-bottom:1px solid var(--brd)}
+.fund-act-tbl td{padding:11px 24px;border-bottom:1px solid rgba(28,36,51,.5);font-family:var(--mono)}
+.fund-act-tbl tr:hover{background:var(--bg2)}
+.fund-act-tbl .fa-fund{color:var(--t1);font-weight:500}
+.fund-act-tbl .fa-val{text-align:right;color:var(--t1)}
+.fund-act-tbl .fa-pct{text-align:right;color:var(--t2)}
+.fund-act-tbl .fa-delta{text-align:right;font-weight:600}
+.fund-act-tbl .fa-delta.pos{color:var(--green)}
+.fund-act-tbl .fa-delta.neg{color:var(--red)}
+.fund-act-tbl .fa-badge{padding:2px 7px;border-radius:4px;font-size:10px;letter-spacing:.3px;font-weight:600}
+.fund-act-tbl .fa-badge.NEW{background:var(--purple-bg);color:var(--purple)}
+.fund-act-tbl .fa-badge.ADD{background:var(--green-bg);color:var(--green)}
+.fund-act-tbl .fa-badge.HOLD{background:var(--bg3);color:var(--t2)}
+.fund-act-tbl .fa-badge.TRIM{background:var(--yellow-bg);color:var(--yellow)}
+.fund-act-tbl .fa-badge.EXIT{background:var(--red-bg);color:var(--red)}
+
 /* Responsive */
+@media(max-width:1100px){
+  .spotlight-grid{grid-template-columns:1fr}
+  .famous-grid{grid-template-columns:1fr 1fr}
+}
 @media(max-width:880px){
   .bs-grid{grid-template-columns:1fr}
   .hero-title{font-size:32px}
   .funds-grid{grid-template-columns:1fr}
   .consensus-row{grid-template-columns:50px 1fr 60px;gap:10px}
   .consensus-name{display:none}
+  .famous-grid{grid-template-columns:1fr}
+  .modal{max-height:94vh;border-radius:8px}
+  .modal-head{padding:14px 16px}
+  .modal-head h3{font-size:22px}
+  .fund-act-tbl th,.fund-act-tbl td{padding:9px 12px}
 }
 </style>
 </head>
@@ -216,6 +299,22 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
     <div class="kpi"><span class="kpi-label">Quarter</span><span class="kpi-val skel">—</span><span class="kpi-sub">most recent reported</span></div>
     <div class="kpi"><span class="kpi-label">Unique tickers</span><span class="kpi-val skel">—</span><span class="kpi-sub">across all funds</span></div>
   </div>
+
+  <!-- ACTION SPOTLIGHT — top conviction signals -->
+  <section class="section">
+    <div class="section-eyebrow">Highest-conviction signals</div>
+    <h2 class="section-title">Action Spotlight</h2>
+    <p class="section-blurb">The three most actionable signals from this quarter's filings. <code>Net action score</code> = (funds adding + new) − (funds trimming + exiting). Signals above ±8 are rare and statistically meaningful.</p>
+    <div class="spotlight-grid" id="spotlight"><div class="bs-empty" style="grid-column:1/-1">Loading…</div></div>
+  </section>
+
+  <!-- FAMOUS-FUND ACTIVITY — small concentrated books, every move matters -->
+  <section class="section">
+    <div class="section-eyebrow">Concentrated portfolios · high-signal moves</div>
+    <h2 class="section-title">Famous-Fund Activity</h2>
+    <p class="section-blurb">Buffett, Burry, Klarman, Einhorn, Ackman, and Lone Pine run highly concentrated books (often &lt;40 positions). Their NEW buys and EXITs are far higher-signal than diversified hedge funds. Below shows the latest quarter's deltas for each.</p>
+    <div class="famous-grid" id="famous-funds"><div class="bs-empty" style="grid-column:1/-1">Loading…</div></div>
+  </section>
 
   <!-- Most Bought / Most Sold side-by-side -->
   <section class="section">
@@ -281,6 +380,29 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
 
 </main>
 
+<!-- Per-ticker drill-down modal -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target.id==='modal-backdrop')closeModal()">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="m-tkr">—</h3>
+        <div class="m-meta" id="m-name">—</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="m-score" id="m-score">—</span>
+        <button class="m-close" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="modal-stats" id="m-stats"></div>
+    <div class="modal-body">
+      <table class="fund-act-tbl">
+        <thead><tr><th>Fund</th><th style="text-align:right">Position $</th><th style="text-align:right">% Portfolio</th><th style="text-align:right">Δ vs prior</th><th>Action</th></tr></thead>
+        <tbody id="m-tbody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--t3)">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
 const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
 let RAW = null;
@@ -332,19 +454,28 @@ function renderMostBought(list){
     el.innerHTML = '<div class="bs-empty">No buys detected this quarter</div>';
     return;
   }
-  // Top 12
   const top = list.slice(0, 12);
   el.innerHTML = top.map((s, i) => {
-    const totalActions = s.n_funds_adding + s.n_funds_new_position;
+    const totalActions = (s.n_funds_adding||0) + (s.n_funds_new_position||0);
     const bars = Array.from({length: 8}, (_, k) =>
       `<div class="bs-bar ${k < totalActions ? 'active' : ''}"></div>`
     ).join('');
+    const score = s.net_action_score;
+    const scoreBadge = (score != null)
+      ? `<span class="bs-score ${score >= 0 ? 'pos' : 'neg'}">${score >= 0 ? '+' : ''}${score}</span>`
+      : '';
+    const extras = [];
+    if(s.n_funds_new_position) extras.push(`<span class="new">+${s.n_funds_new_position} NEW</span>`);
+    if(s.n_funds_exiting) extras.push(`<span class="exit">${s.n_funds_exiting} EXIT</span>`);
+    if(s.total_value) extras.push(`<span class="val">${fmtMoney(s.total_value)}</span>`);
+    const extraLine = extras.length ? `<div class="bs-extra">${extras.join('')}</div>` : '';
     return `
-      <div class="bs-row fade-in">
+      <div class="bs-row fade-in" onclick="openTicker('${escape(s.ticker || s.cusip || '')}')">
         <span class="bs-rank">#${i+1}</span>
         <div class="bs-stock">
-          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}</span>
+          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}${scoreBadge}</span>
           <span class="bs-name">${escape(s.name || '')}</span>
+          ${extraLine}
         </div>
         <div class="bs-meta">
           <span class="bs-funds buys">${totalActions} ↑</span>
@@ -364,26 +495,216 @@ function renderMostSold(list){
   }
   const top = list.slice(0, 12);
   el.innerHTML = top.map((s, i) => {
-    const totalActions = s.n_funds_trimming + s.n_funds_exiting;
+    const totalActions = (s.n_funds_trimming||0) + (s.n_funds_exiting||0);
     const bars = Array.from({length: 8}, (_, k) =>
-      `<div class="bs-bar ${k < totalActions ? 'active sells' : ''}"></div>`
+      `<div class="bs-bar sell ${k < totalActions ? 'active' : ''}"></div>`
     ).join('');
+    const score = s.net_action_score;
+    const scoreBadge = (score != null)
+      ? `<span class="bs-score ${score >= 0 ? 'pos' : 'neg'}">${score >= 0 ? '+' : ''}${score}</span>`
+      : '';
+    const extras = [];
+    if(s.n_funds_exiting) extras.push(`<span class="exit">${s.n_funds_exiting} EXIT</span>`);
+    if(s.n_funds_new_position) extras.push(`<span class="new">+${s.n_funds_new_position} NEW</span>`);
+    if(s.total_value) extras.push(`<span class="val">${fmtMoney(s.total_value)}</span>`);
+    const extraLine = extras.length ? `<div class="bs-extra">${extras.join('')}</div>` : '';
     return `
-      <div class="bs-row fade-in">
+      <div class="bs-row fade-in" onclick="openTicker('${escape(s.ticker || s.cusip || '')}')">
         <span class="bs-rank">#${i+1}</span>
         <div class="bs-stock">
-          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}</span>
+          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}${scoreBadge}</span>
           <span class="bs-name">${escape(s.name || '')}</span>
+          ${extraLine}
         </div>
         <div class="bs-meta">
           <span class="bs-funds sells">${totalActions} ↓</span>
           <span class="bs-funds-label">funds selling</span>
         </div>
-        <div class="bs-bars" title="${totalActions} funds trimmed/exited">${bars}</div>
+        <div class="bs-bars" title="${totalActions} of ${s.n_funds_holding} funds reduced">${bars}</div>
       </div>
     `;
   }).join('');
 }
+
+// ──────────────────────────────────────────────────────────────
+// Action Spotlight: highest-conviction signals
+// ──────────────────────────────────────────────────────────────
+function renderSpotlight(data){
+  const el = document.getElementById('spotlight');
+  if(!el) return;
+  const buys = (data.most_bought || []).slice();
+  const sells = (data.most_sold || []).slice();
+
+  // Top buy by net_action_score
+  const topBuy = buys.sort((a,b) => (b.net_action_score||0) - (a.net_action_score||0))[0];
+  // Top sell by net_action_score (most negative)
+  const topSell = sells.sort((a,b) => (a.net_action_score||0) - (b.net_action_score||0))[0];
+  // Most famous-fund exits in one name (filter exits >= 2)
+  const massExit = sells.find(s => (s.n_funds_exiting||0) >= 2);
+
+  const cards = [];
+  if(topBuy){
+    const score = topBuy.net_action_score;
+    cards.push(`
+      <div class="spot buy" onclick="openTicker('${escape(topBuy.ticker || topBuy.cusip)}')" style="cursor:pointer">
+        <span class="spot-kind">Strongest consensus buy</span>
+        <div class="spot-tkr">${escape(topBuy.ticker || '?')}<span class="score pos">+${score}</span></div>
+        <div class="spot-name">${escape(topBuy.name || '')}</div>
+        <div class="spot-blurb">${topBuy.n_funds_holding} funds hold · ${topBuy.n_funds_adding} adding · ${topBuy.n_funds_new_position} NEW · ${topBuy.n_funds_trimming} trimming · ${topBuy.n_funds_exiting} exiting</div>
+        <div class="spot-stats"><span><strong>${fmtMoney(topBuy.total_value)}</strong> total held</span></div>
+      </div>
+    `);
+  }
+  if(massExit){
+    const exiters = (massExit.fund_actions || [])
+      .filter(a => a.change === 'EXIT')
+      .map(a => a.fund_name)
+      .slice(0, 5);
+    cards.push(`
+      <div class="spot sell" onclick="openTicker('${escape(massExit.ticker || massExit.cusip)}')" style="cursor:pointer">
+        <span class="spot-kind">Famous-fund mass exit</span>
+        <div class="spot-tkr">${escape(massExit.ticker || '?')}<span class="score neg">${massExit.net_action_score}</span></div>
+        <div class="spot-name">${escape(massExit.name || '')}</div>
+        <div class="spot-blurb">${massExit.n_funds_exiting} funds <strong style="color:var(--red)">EXITED</strong>: ${exiters.join(', ')}</div>
+        <div class="spot-stats"><span><strong>${fmtMoney(massExit.total_value)}</strong> remaining held</span><span><strong>${massExit.n_funds_trimming}</strong> also trimming</span></div>
+      </div>
+    `);
+  } else if(topSell){
+    cards.push(`
+      <div class="spot sell" onclick="openTicker('${escape(topSell.ticker || topSell.cusip)}')" style="cursor:pointer">
+        <span class="spot-kind">Strongest consensus sell</span>
+        <div class="spot-tkr">${escape(topSell.ticker || '?')}<span class="score neg">${topSell.net_action_score}</span></div>
+        <div class="spot-name">${escape(topSell.name || '')}</div>
+        <div class="spot-blurb">${topSell.n_funds_holding} funds hold · ${topSell.n_funds_trimming} trimming · ${topSell.n_funds_exiting} exiting</div>
+        <div class="spot-stats"><span><strong>${fmtMoney(topSell.total_value)}</strong> total held</span></div>
+      </div>
+    `);
+  }
+
+  // Rotation signal: highest-score buy where many funds adding LARGE %s (Point72 PEP +988% style)
+  const rotation = buys.find(s => (s.fund_actions || []).some(a => (a.delta_pct||0) > 100));
+  if(rotation){
+    const huge = rotation.fund_actions.filter(a => (a.delta_pct||0) > 100)
+      .sort((a,b) => b.delta_pct - a.delta_pct).slice(0,3);
+    const hugeStr = huge.map(a => `${a.fund_name} +${Math.round(a.delta_pct)}%`).join(', ');
+    cards.push(`
+      <div class="spot rotation" onclick="openTicker('${escape(rotation.ticker || rotation.cusip)}')" style="cursor:pointer">
+        <span class="spot-kind">Aggressive rotation in</span>
+        <div class="spot-tkr">${escape(rotation.ticker || '?')}<span class="score pos">+${rotation.net_action_score}</span></div>
+        <div class="spot-name">${escape(rotation.name || '')}</div>
+        <div class="spot-blurb">Outsized position increases: ${hugeStr}</div>
+        <div class="spot-stats"><span><strong>${rotation.n_funds_adding}</strong> adding</span><span><strong>${rotation.n_funds_new_position}</strong> NEW</span></div>
+      </div>
+    `);
+  }
+
+  el.innerHTML = cards.length ? cards.join('') : '<div class="bs-empty" style="grid-column:1/-1">No spotlight signals this quarter</div>';
+}
+
+// ──────────────────────────────────────────────────────────────
+// Famous-Fund Activity: concentrated portfolios
+// ──────────────────────────────────────────────────────────────
+const FAMOUS_FUNDS = [
+  {key:'BERKSHIRE',   name:'Berkshire Hathaway',  who:'Warren Buffett'},
+  {key:'SCION',       name:'Scion Asset Mgmt',    who:'Michael Burry'},
+  {key:'BAUPOST',     name:'Baupost Group',       who:'Seth Klarman'},
+  {key:'GREENLIGHT',  name:'Greenlight Capital',  who:'David Einhorn'},
+  {key:'PERSHING',    name:'Pershing Square',     who:'Bill Ackman'},
+  {key:'LONE_PINE',   name:'Lone Pine Capital',   who:'Stephen Mandel'},
+];
+
+function renderFamousFunds(byFund){
+  const el = document.getElementById('famous-funds');
+  if(!el) return;
+  if(!byFund){
+    el.innerHTML = '<div class="bs-empty" style="grid-column:1/-1">No fund data</div>';
+    return;
+  }
+  el.innerHTML = FAMOUS_FUNDS.map(ff => {
+    const f = byFund[ff.key];
+    if(!f){
+      return `<div class="famous-card"><div class="ff-name">${escape(ff.name)}</div><div class="ff-meta">${escape(ff.who)} · ${ff.key} not in filings</div></div>`;
+    }
+    const cs = f.changes_summary || {};
+    const newPos = (cs.new || []).slice(0, 6);
+    const exits = (cs.exits || []).slice(0, 6);
+    const renderTickers = (arr, klass) =>
+      arr.length
+        ? arr.map(p => `<span class="ff-tkr" onclick="event.stopPropagation();openTicker('${escape(p.ticker || p.cusip || '')}')">${escape(p.ticker || p.cusip?.slice(0,6) || '?')}</span>`).join('')
+        : '<span class="ff-empty">none</span>';
+    return `
+      <div class="famous-card fade-in">
+        <div class="ff-name">${escape(ff.name)}</div>
+        <div class="ff-meta">${escape(ff.who)} · ${escape(f.period_of_report || '?')} · ${f.n_positions || 0} positions · ${fmtMoney(f.total_value_usd)} AUM</div>
+        <div class="ff-sec"><span class="ff-sec-label new">NEW</span><div class="ff-tickers">${renderTickers(newPos, 'new')}</div></div>
+        <div class="ff-sec"><span class="ff-sec-label exit">EXIT</span><div class="ff-tickers">${renderTickers(exits, 'exit')}</div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ──────────────────────────────────────────────────────────────
+// Per-ticker drill-down modal
+// ──────────────────────────────────────────────────────────────
+function openTicker(tkr){
+  if(!RAW || !tkr) return;
+  // Find ticker in aggregate
+  const agg = (RAW.aggregate_by_ticker || []).find(x => (x.ticker || x.cusip) === tkr) ||
+              (RAW.most_bought || []).find(x => (x.ticker || x.cusip) === tkr) ||
+              (RAW.most_sold || []).find(x => (x.ticker || x.cusip) === tkr) ||
+              (RAW.consensus_holds || []).find(x => (x.ticker || x.cusip) === tkr);
+  if(!agg){
+    console.warn('Ticker not found:', tkr);
+    return;
+  }
+  document.getElementById('m-tkr').textContent = agg.ticker || agg.cusip?.slice(0,9) || '—';
+  document.getElementById('m-name').textContent = agg.name || '—';
+  const score = agg.net_action_score;
+  const sEl = document.getElementById('m-score');
+  if(score != null){
+    sEl.textContent = `Score ${score >= 0 ? '+' : ''}${score}`;
+    sEl.style.background = score >= 0 ? 'var(--green-strong)' : 'var(--red-strong)';
+    sEl.style.color = score >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+  // Stats strip
+  const statsEl = document.getElementById('m-stats');
+  statsEl.innerHTML = `
+    <span><strong>${agg.n_funds_holding || 0}</strong>funds hold</span>
+    <span><strong style="color:var(--green)">${agg.n_funds_adding || 0}</strong>adding</span>
+    <span><strong style="color:var(--purple)">${agg.n_funds_new_position || 0}</strong>NEW</span>
+    <span><strong style="color:var(--yellow)">${agg.n_funds_trimming || 0}</strong>trimming</span>
+    <span><strong style="color:var(--red)">${agg.n_funds_exiting || 0}</strong>EXITING</span>
+    <span><strong>${fmtMoney(agg.total_value)}</strong>total $</span>
+  `;
+  // Fund actions table
+  const actions = (agg.fund_actions || []).slice();
+  actions.sort((a,b) => (b.value || 0) - (a.value || 0));
+  const tbody = document.getElementById('m-tbody');
+  if(!actions.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--t3)">No fund actions recorded</td></tr>';
+  } else {
+    tbody.innerHTML = actions.map(a => {
+      const delta = a.delta_pct;
+      const deltaStr = (delta == null) ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
+      const deltaClass = (delta == null) ? '' : (delta >= 0 ? 'pos' : 'neg');
+      return `<tr>
+        <td class="fa-fund">${escape(a.fund_name || a.fund || '?')}</td>
+        <td class="fa-val">${fmtMoney(a.value)}</td>
+        <td class="fa-pct">${(a.pct_of_portfolio || 0).toFixed(2)}%</td>
+        <td class="fa-delta ${deltaClass}">${deltaStr}</td>
+        <td><span class="fa-badge ${a.change || 'HOLD'}">${escape(a.change || 'HOLD')}</span></td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
 // ──────────────────────────────────────────────────────────────
 // Consensus holdings bar chart
@@ -491,10 +812,14 @@ async function load(){
     document.getElementById('consensus-list').innerHTML = '<div class="bs-empty">—</div>';
     document.getElementById('rare-picks').innerHTML = '<div class="bs-empty" style="grid-column:1/-1">—</div>';
     document.getElementById('funds-grid').innerHTML = '<div class="bs-empty" style="grid-column:1/-1">—</div>';
+    document.getElementById('spotlight').innerHTML = '<div class="bs-empty" style="grid-column:1/-1">—</div>';
+    document.getElementById('famous-funds').innerHTML = '<div class="bs-empty" style="grid-column:1/-1">—</div>';
     return;
   }
   RAW = data;
   renderKpiStrip(data);
+  renderSpotlight(data);
+  renderFamousFunds(data.by_fund);
   renderMostBought(data.most_bought);
   renderMostSold(data.most_sold);
   renderConsensus(data.consensus_holds);
