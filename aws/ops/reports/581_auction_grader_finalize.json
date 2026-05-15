@@ -1,0 +1,9 @@
+{
+  "started": "2026-05-15T11:46:00.047852+00:00",
+  "pre_state": "MISSING",
+  "zip_size_kb": 0.0,
+  "fatal": "An error occurred (InvalidParameterValueException) when calling the CreateFunction operation: Uploaded file must be a non-empty zip",
+  "tb": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/581_auction_grader_finalize.py\", line 62, in main\n    lam.get_function(FunctionName=NAME)\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-auction-grader\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/581_auction_grader_finalize.py\", line 74, in main\n    lam.create_function(\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13",
+  "sidecar_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "finished": "2026-05-15T11:46:01.157940+00:00"
+}
