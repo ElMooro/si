@@ -99,20 +99,31 @@ def compute_adaptive_score(calibration, report):
 
     for sig in signals:
         sig_type = sig.get("signal_type", "")
-        weight = sig.get("weight", 1.0)
-        rolling = sig.get("rolling", {})
+        weight = sig.get("weight")
+        rolling = sig.get("rolling", {}) or {}
         latest = sig.get("latest", {}) or {}
         accuracy_60d = rolling.get("accuracy_60d")
         n_60d = rolling.get("n_60d", 0)
 
         # Skip noisy signals
+        if weight is None:
+            continue
         if accuracy_60d is None or accuracy_60d < MIN_ACCURACY_60D:
             continue
         if (n_60d or 0) < MIN_OBS_60D:
             continue
 
+        try:
+            weight_f = float(weight)
+            accuracy_f = float(accuracy_60d)
+        except (TypeError, ValueError):
+            continue
+
         direction = direction_to_int(latest.get("direction"))
-        confidence = latest.get("confidence", 0.5) or 0.5
+        try:
+            confidence = float(latest.get("confidence", 0.5) or 0.5)
+        except (TypeError, ValueError):
+            confidence = 0.5
 
         # Per-signal contribution: weight × accuracy × direction × confidence
         # If direction is unknown (0), use signal value sign instead
@@ -126,7 +137,7 @@ def compute_adaptive_score(calibration, report):
             except (TypeError, ValueError):
                 pass  # leave direction at 0
 
-        effective_weight = weight * accuracy_60d
+        effective_weight = weight_f * accuracy_f
         contribution = effective_weight * direction * confidence
 
         weighted_sum += contribution
@@ -134,8 +145,8 @@ def compute_adaptive_score(calibration, report):
 
         contributions.append({
             "signal_type": sig_type,
-            "weight": round(weight, 3),
-            "accuracy_60d": round(accuracy_60d, 3),
+            "weight": round(weight_f, 3),
+            "accuracy_60d": round(accuracy_f, 3),
             "n_60d": int(n_60d or 0),
             "direction": direction,
             "confidence": round(confidence, 3),
