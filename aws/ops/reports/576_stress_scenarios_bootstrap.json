@@ -1,0 +1,231 @@
+{
+  "started": "2026-05-15T11:28:29.575135+00:00",
+  "lambda_last_modified": "2026-05-15T11:28:29.429+0000",
+  "env_patched": "OK",
+  "eventbridge_rule": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "top_scenario": {
+      "key": "GOLDILOCKS",
+      "name": "Goldilocks Continuation",
+      "probability_pct": 30.0
+    },
+    "scenarios_count": 5,
+    "top_winners": [
+      "QQQ",
+      "TLT",
+      "IWM"
+    ]
+  },
+  "log_tail": "START RequestId: 8da9ce32-017b-4ecf-b045-946905db8406 Version: $LATEST\n[stress-scenarios] starting\n[s3] data/divergence.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[s3] data/stress-scenarios.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[stress-scenarios] top: GOLDILOCKS @ 30.0%\n[stress-scenarios]   GOLDILOCKS        30.0%  2/5 probes\n[stress-scenarios]   CHINA_SLOWDOWN    15.0%  1/5 probes\n[stress-scenarios]   FED_PIVOT          0.0%  0/5 probes\n[stress-scenarios]   CREDIT_EVENT       0.0%  0/5 probes\n[stress-scenarios]   DOLLAR_CRISIS      0.0%  0/5 probes\nEND RequestId: 8da9ce32-017b-4ecf-b045-946905db8406\nREPORT RequestId: 8da9ce32-017b-4ecf-b045-946905db8406\tDuration: 1076.09 ms\tBilled Duration: 1649 ms\tMemory Size: 512 MB\tMax Memory Used: 123 MB\tInit Duration: 572.37 ms\t\n",
+  "sidecar_size_kb": 16.21,
+  "top_scenario": {
+    "key": "GOLDILOCKS",
+    "name": "Goldilocks Continuation",
+    "probability_pct": 30.0
+  },
+  "scenarios_brief": [
+    {
+      "key": "GOLDILOCKS",
+      "prob_pct": 30.0,
+      "n_matched": 2,
+      "n_total": 5
+    },
+    {
+      "key": "CHINA_SLOWDOWN",
+      "prob_pct": 15.0,
+      "n_matched": 1,
+      "n_total": 5
+    },
+    {
+      "key": "FED_PIVOT",
+      "prob_pct": 0.0,
+      "n_matched": 0,
+      "n_total": 5
+    },
+    {
+      "key": "CREDIT_EVENT",
+      "prob_pct": 0.0,
+      "n_matched": 0,
+      "n_total": 5
+    },
+    {
+      "key": "DOLLAR_CRISIS",
+      "prob_pct": 0.0,
+      "n_matched": 0,
+      "n_total": 5
+    }
+  ],
+  "top_winners_weighted": [
+    {
+      "ticker": "TLT",
+      "expected_return_pct": 2.85,
+      "n_scenarios": 5,
+      "by_scenario": [
+        {
+          "scenario": "GOLDILOCKS",
+          "prob": 0.3,
+          "expected_pct": 4.5
+        },
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": 10.0
+        },
+        {
+          "scenario": "FED_PIVOT",
+          "prob": 0.0,
+          "expected_pct": -4.0
+        },
+        {
+          "scenario": "CREDIT_EVENT",
+          "prob": 0.0,
+          "expected_pct": 12.0
+        },
+        {
+          "scenario": "DOLLAR_CRISIS",
+          "prob": 0.0,
+          "expected_pct": -8.0
+        }
+      ]
+    },
+    {
+      "ticker": "XBI",
+      "expected_return_pct": 2.7,
+      "n_scenarios": 1,
+      "by_scenario": [
+        {
+          "scenario": "GOLDILOCKS",
+          "prob": 0.3,
+          "expected_pct": 9.0
+        }
+      ]
+    },
+    {
+      "ticker": "IWM",
+      "expected_return_pct": 2.4,
+      "n_scenarios": 3,
+      "by_scenario": [
+        {
+          "scenario": "GOLDILOCKS",
+          "prob": 0.3,
+          "expected_pct": 8.0
+        },
+        {
+          "scenario": "FED_PIVOT",
+          "prob": 0.0,
+          "expected_pct": 12.0
+        },
+        {
+          "scenario": "CREDIT_EVENT",
+          "prob": 0.0,
+          "expected_pct": -22.0
+        }
+      ]
+    },
+    {
+      "ticker": "QQQ",
+      "expected_return_pct": 1.95,
+      "n_scenarios": 2,
+      "by_scenario": [
+        {
+          "scenario": "GOLDILOCKS",
+          "prob": 0.3,
+          "expected_pct": 6.5
+        },
+        {
+          "scenario": "DOLLAR_CRISIS",
+          "prob": 0.0,
+          "expected_pct": -6.0
+        }
+      ]
+    },
+    {
+      "ticker": "XLU",
+      "expected_return_pct": 0.75,
+      "n_scenarios": 1,
+      "by_scenario": [
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": 5.0
+        }
+      ]
+    }
+  ],
+  "top_losers_weighted": [
+    {
+      "ticker": "UVXY",
+      "expected_return_pct": -4.5,
+      "n_scenarios": 1,
+      "by_scenario": [
+        {
+          "scenario": "GOLDILOCKS",
+          "prob": 0.3,
+          "expected_pct": -15.0
+        }
+      ]
+    },
+    {
+      "ticker": "XME",
+      "expected_return_pct": -2.7,
+      "n_scenarios": 1,
+      "by_scenario": [
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": -18.0
+        }
+      ]
+    },
+    {
+      "ticker": "DBC",
+      "expected_return_pct": -2.25,
+      "n_scenarios": 2,
+      "by_scenario": [
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": -15.0
+        },
+        {
+          "scenario": "DOLLAR_CRISIS",
+          "prob": 0.0,
+          "expected_pct": 8.0
+        }
+      ]
+    },
+    {
+      "ticker": "FXI",
+      "expected_return_pct": -2.25,
+      "n_scenarios": 1,
+      "by_scenario": [
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": -15.0
+        }
+      ]
+    },
+    {
+      "ticker": "EEM",
+      "expected_return_pct": -1.8,
+      "n_scenarios": 2,
+      "by_scenario": [
+        {
+          "scenario": "CHINA_SLOWDOWN",
+          "prob": 0.15,
+          "expected_pct": -12.0
+        },
+        {
+          "scenario": "DOLLAR_CRISIS",
+          "prob": 0.0,
+          "expected_pct": 12.0
+        }
+      ]
+    }
+  ],
+  "finished": "2026-05-15T11:28:49.343152+00:00"
+}
