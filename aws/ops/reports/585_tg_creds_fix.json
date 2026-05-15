@@ -1,0 +1,70 @@
+{
+  "started": "2026-05-15T12:33:27.617370+00:00",
+  "reference_lambdas": {
+    "justhodl-13f-positions": {
+      "has_TG_TOKEN": false,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": true,
+      "tg_env_keys": [
+        "TELEGRAM_CHAT_ID"
+      ]
+    },
+    "justhodl-ai-chat": {
+      "has_TG_TOKEN": false,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": false,
+      "tg_env_keys": []
+    },
+    "justhodl-morning-intelligence": {
+      "has_TG_TOKEN": false,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": false,
+      "tg_env_keys": []
+    },
+    "justhodl-telegram-bot": {
+      "has_TG_TOKEN": true,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": false,
+      "tg_env_keys": [
+        "TELEGRAM_TOKEN"
+      ]
+    },
+    "justhodl-alert-router": {
+      "has_TG_TOKEN": false,
+      "has_TG_BOT_TOKEN": true,
+      "has_TG_CHAT_ID": false,
+      "tg_env_keys": [
+        "TELEGRAM_BOT_TOKEN"
+      ]
+    },
+    "justhodl-news-velocity": {
+      "has_TG_TOKEN": true,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": true,
+      "tg_env_keys": [
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    },
+    "justhodl-position-monitor": {
+      "has_TG_TOKEN": false,
+      "has_TG_BOT_TOKEN": false,
+      "has_TG_CHAT_ID": false,
+      "tg_env_keys": []
+    }
+  },
+  "ssm_telegram_params": [
+    {
+      "name": "/justhodl/telegram/bot_token",
+      "type": "SecureString"
+    },
+    {
+      "name": "/justhodl/telegram/chat_id",
+      "type": "String"
+    }
+  ],
+  "ref_creds_found": false,
+  "margin_lending_deployed": false,
+  "margin_lending_note": "Not in AWS \u2014 need deploy via push or direct.",
+  "finished": "2026-05-15T12:33:28.912832+00:00"
+}
