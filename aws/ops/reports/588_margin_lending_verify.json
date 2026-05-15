@@ -1,0 +1,64 @@
+{
+  "started": "2026-05-15T17:03:45.242137+00:00",
+  "pre_modified": "2026-05-15T12:41:16.731+0000",
+  "new_modified": "2026-05-15T17:03:53.000+0000",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "margin_debt_pct_of_cap": null,
+    "margin_status": "DATA_MISSING",
+    "squeeze_score": 10,
+    "squeeze_band": "LOW"
+  },
+  "fred_log_lines": [
+    "[margin-lending] starting",
+    "[fred] WILL5000IND: HTTP Error 400: Bad Request",
+    "[margin-lending] md=None% squeeze=10(LOW)"
+  ],
+  "log_tail": "START RequestId: 3a1bb456-f7a0-4505-a310-df4c676a3f39 Version: $LATEST\n[margin-lending] starting\n[fred] WILL5000IND: HTTP Error 400: Bad Request\n[margin-lending] md=None% squeeze=10(LOW)\nEND RequestId: 3a1bb456-f7a0-4505-a310-df4c676a3f39\nREPORT RequestId: 3a1bb456-f7a0-4505-a310-df4c676a3f39\tDuration: 1353.25 ms\tBilled Duration: 1874 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\tInit Duration: 519.94 ms\t\n",
+  "sidecar": {
+    "schema_version": "1.0",
+    "method": "margin_lending_v1",
+    "generated_at": "2026-05-15T17:04:06.765493+00:00",
+    "margin_debt": {
+      "absolute_usd_b": 609675.0,
+      "as_pct_of_market_cap": null,
+      "yoy_pct": 25.57,
+      "growth_6mo_pct": 20.39,
+      "latest_date": "2025-10-01",
+      "status": "DATA_MISSING",
+      "interpretation": "Margin debt at $609675B = None% of est. US market cap. "
+    },
+    "repo_collateral_proxy": {
+      "rrp_award_b": 2.034,
+      "rrp_5d_avg_b": 1.77,
+      "rrp_30d_avg_b": 1.46,
+      "rrp_direction": "INCREASING_TAKE",
+      "sofr_rate_pct": 3.56,
+      "sofr_5d_avg_pct": 3.59,
+      "sofr_30d_avg_pct": 3.629,
+      "sofr_direction": "STABLE",
+      "interpretation": "RRP INCREASING_TAKE. SOFR 3.56% (STABLE)."
+    },
+    "consumer_credit": {
+      "total_outstanding_b": 5140540.72,
+      "yoy_pct": 2.35,
+      "revolving_outstanding_b": 1336987.42,
+      "revolving_yoy_pct": 3.42,
+      "momentum": "NORMAL",
+      "interpretation": "Total $5140541B (YoY +2.4%). Revolving $1336987B (YoY +3.4%). Momentum: NORMAL."
+    },
+    "squeeze_risk": {
+      "score": 10,
+      "band": "LOW",
+      "reasons": [
+        "Margin debt up +20.4% in 6mo"
+      ],
+      "interpretation": "Leverage deeply suppressed. Often follows deleveraging events. Bottoming conditions if other oversold indicators align."
+    },
+    "duration_s": 1.21
+  },
+  "sidecar_size_kb": 1.1,
+  "finished": "2026-05-15T17:04:07.099369+00:00"
+}
