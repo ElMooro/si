@@ -1,0 +1,54 @@
+{
+  "started": "2026-05-15T11:09:58.204234+00:00",
+  "n_lambdas_total": 245,
+  "matches_by_item": {
+    "4_adaptive_khalid": [],
+    "5_stress_test": [],
+    "6_political_trades": [],
+    "7_reversal_radar": [],
+    "8_treasury_grade": [],
+    "9_repo_lending": [],
+    "10_correlation_break": [
+      "justhodl-correlation-breaks"
+    ]
+  },
+  "s3_matches": {
+    "5_stress_test": [
+      {
+        "key": "data/stress-factor-loadings.json",
+        "size_kb": 3.0,
+        "modified": "2026-05-10T14:00:42"
+      }
+    ],
+    "6_political_trades": [],
+    "7_reversal_radar": [],
+    "8_treasury_grade": [],
+    "9_repo_lending": [],
+    "10_correlation_break": [
+      {
+        "key": "data/correlation-breaks.json",
+        "size_kb": 23.4,
+        "modified": "2026-05-14T21:50:45"
+      },
+      {
+        "key": "data/correlation-breaks.json",
+        "size_kb": 23.4,
+        "modified": "2026-05-14T21:50:45"
+      },
+      {
+        "key": "data/correlation-surface.json",
+        "size_kb": 41.3,
+        "modified": "2026-05-14T15:00:56"
+      }
+    ],
+    "4_adaptive_khalid": []
+  },
+  "khalid_index_in_report": {
+    "has_khalid_adaptive": false,
+    "has_calibrated_weights": false,
+    "khalid_keys_found": [
+      "khalid_index"
+    ]
+  },
+  "finished": "2026-05-15T11:10:00.639726+00:00"
+}
