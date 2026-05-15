@@ -1,0 +1,42 @@
+{
+  "started": "2026-05-15T11:43:53.271094+00:00",
+  "zip_size_kb": 4.3,
+  "tg_creds_err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+  "reversal_action": "create",
+  "reversal_eventbridge": "OK",
+  "reversal_invoke_status": 200,
+  "reversal_fn_error": null,
+  "reversal_response": {
+    "ok": true,
+    "state": "NORMAL",
+    "top_score": 10,
+    "bottom_score": 0
+  },
+  "reversal_log_tail": "START RequestId: e3d774e7-05d8-4a0c-b844-f8396319b9f1 Version: $LATEST\n[reversal-radar] starting\n[s3] data/divergence.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[s3] data/reversal-radar.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[reversal-radar] state=NORMAL top=10 bot=0\nTOP+: MELTUP_PRONE \u2014 complacent credit spreads at top\n[s3] data/reversal-radar-history.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\nEND RequestId: e3d774e7-05d8-4a0c-b844-f8396319b9f1\nREPORT RequestId: e3d774e7-05d8-4a0c-b844-f8396319b9f1\tDuration: 1046.16 ms\tBilled Duration: 1445 ms\tMemory Size: 256 MB\tMax Memory Used: 110 MB\tInit Duration: 398.32 ms\t\n",
+  "political_env_already_set": true,
+  "reversal_sidecar": {
+    "schema_version": "1.0",
+    "method": "reversal_radar_v1",
+    "generated_at": "2026-05-15T11:44:04.446703+00:00",
+    "state": "NORMAL",
+    "interpretation": "Markets in normal range. No reversal signature.",
+    "top_score": 10,
+    "top_reasons": [
+      "MELTUP_PRONE \u2014 complacent credit spreads at top"
+    ],
+    "bottom_score": 0,
+    "bottom_reasons": [],
+    "differential": 10,
+    "input_freshness": {
+      "report": "2026-05-15T11:39:56.209841Z",
+      "credit_stress": "2026-05-14T20:01:24.596203+00:00",
+      "regime_composite": "2026-05-15T11:15:37.094771+00:00",
+      "divergence": null,
+      "correlation_breaks": "2026-05-14T21:50:44.043782+00:00",
+      "vix_curve": "2026-05-15T10:10:54.957758+00:00",
+      "eurodollar_stress": null
+    },
+    "duration_s": 0.94
+  },
+  "finished": "2026-05-15T11:44:04.995524+00:00"
+}
