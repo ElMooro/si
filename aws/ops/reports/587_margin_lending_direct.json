@@ -1,0 +1,26 @@
+{
+  "started": "2026-05-15T12:41:16.314959+00:00",
+  "cwd": "/home/runner/work/si/si",
+  "GITHUB_WORKSPACE": "/home/runner/work/si/si",
+  "src_dir_resolved": "/home/runner/work/si/si/aws/lambdas/justhodl-margin-lending/source",
+  "candidates_checked": [
+    "/home/runner/work/si/si/aws/lambdas/justhodl-margin-lending/source",
+    "/home/runner/work/si/si/aws/lambdas/justhodl-margin-lending/source",
+    "aws/lambdas/justhodl-margin-lending/source",
+    "/github/workspace/aws/lambdas/justhodl-margin-lending/source"
+  ],
+  "zip_kb": 5.0,
+  "action": "create",
+  "eb": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "margin_debt_pct_of_cap": null,
+    "margin_status": "DATA_MISSING",
+    "squeeze_score": 10,
+    "squeeze_band": "LOW"
+  },
+  "log_tail": "START RequestId: 5eb238f5-1074-4825-811d-6711ea7df9e0 Version: $LATEST\n[margin-lending] starting\n[fred] BOGZ1FL663068005Q: HTTP Error 400: Bad Request\n[fred] SOFRVOLUME: HTTP Error 400: Bad Request\n[fred] WILL5000PR: HTTP Error 400: Bad Request\n[fred] RIFSPBLP: HTTP Error 400: Bad Request\n[margin-lending] md=None% squeeze=10(LOW)\nEND RequestId: 5eb238f5-1074-4825-811d-6711ea7df9e0\nREPORT RequestId: 5eb238f5-1074-4825-811d-6711ea7df9e0\tDuration: 1544.10 ms\tBilled Duration: 2061 ms\tMemory Size: 256 MB\tMax Memory Used: 97 MB\tInit Duration: 516.04 ms\t\n",
+  "finished": "2026-05-15T12:41:26.028553+00:00"
+}
