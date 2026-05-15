@@ -116,17 +116,27 @@ def put_s3_json(key, body):
                    CacheControl="public, max-age=900")
 
 
-def compute_margin_debt_pct_of_cap(margin_debt_b, wilshire_value):
-    """Wilshire 5000 is ~3.5x S&P 500 in market cap, expressed in price-index pts.
-    We want % of total US equity market cap.
-    Approximation: total US market cap ≈ wilshire_value × $1B/pt (rough)."""
-    if not margin_debt_b or not wilshire_value: return None
-    # Wilshire 5000 in price-return points ≈ market cap in trillions × 100
-    # As of 2024-2025: Wilshire ~45000 = ~$45T total market cap
-    estimated_mkt_cap_t = wilshire_value / 1000  # rough conversion to $T
-    margin_t = margin_debt_b / 1000  # $B → $T
-    if estimated_mkt_cap_t <= 0: return None
-    return round(100 * margin_t / estimated_mkt_cap_t, 3)
+def estimate_market_cap_trillions(series_data):
+    """Estimate US equity market cap in trillions $.
+    Try Wilshire 5000 IND; fall back to SP500 × heuristic.
+    Same approach as sister Lambda justhodl-repo-lending."""
+    wil = series_data.get("wilshire_5000") or []
+    if wil:
+        # WILL5000IND ≈ total US market cap in $B; convert to trillions
+        return round(wil[0]["value"] / 1000, 2)
+    sp = series_data.get("sp500_close") or []
+    if sp:
+        # Heuristic: S&P represents ~80% of US market cap.
+        # At SP500 ~5800 ≈ $50T total US equity cap → multiplier ≈ 0.0095
+        return round(sp[0]["value"] * 0.0095, 2)
+    return None
+
+
+def compute_margin_debt_pct_of_cap(margin_debt_b, market_cap_t):
+    """margin_debt in $B, market_cap in $T → pct."""
+    if not margin_debt_b or not market_cap_t or market_cap_t <= 0:
+        return None
+    return round(100 * (margin_debt_b / 1000) / market_cap_t, 3)
 
 
 def compute_growth(history, periods_back):
@@ -166,15 +176,14 @@ def lambda_handler(event, context):
 
     # ─── 1. Margin Debt ──────────────────────────────────────────────
     md_hist = series_data["margin_debt"]
-    md_now = md_hist[0]["value"] if md_hist else None
+    # FRED reports BOGZ1FL663067003Q in MILLIONS — convert to billions
+    md_now = (md_hist[0]["value"] / 1000) if md_hist else None
     md_date = md_hist[0]["date"] if md_hist else None
     md_yoy = compute_growth(md_hist, 4)  # quarterly, 4 = 1 year
     md_2q = compute_growth(md_hist, 2)   # 6 months
 
-    wilshire = series_data["wilshire_5000"]
-    wilshire_now = wilshire[0]["value"] if wilshire else None
-
-    md_pct_of_cap = compute_margin_debt_pct_of_cap(md_now, wilshire_now)
+    market_cap_t = estimate_market_cap_trillions(series_data)
+    md_pct_of_cap = compute_margin_debt_pct_of_cap(md_now, market_cap_t)
 
     if md_pct_of_cap is None:
         md_status = "DATA_MISSING"
