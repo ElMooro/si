@@ -603,7 +603,133 @@ def lambda_handler(event, context):
     if final_clusters[:5]:
         for c in final_clusters[:5]:
             print(f"[insider-cluster] TOP: {c['ticker']:<8} score={c['score']:>5} {c['signal_type']:<22} ${c['total_value']/1e6:>5.2f}M {c['n_insiders']}-ins")
-    
+
+    # ─── ALERTS ────────────────────────────────────────────────────────
+    # Fire Telegram on NEW high-conviction signals that weren't in last run.
+    # 4 categories: new strong (score>=70), new CEO_CONVICTION, new
+    # SMART_MONEY_DUAL, new MASSIVE buys ($5M+).
+    try:
+        prior_run = {}
+        try:
+            obj = S3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
+            prior_run = json.loads(obj["Body"].read())
+        except Exception: pass
+
+        prior_clusters = prior_run.get("clusters", []) if isinstance(prior_run, dict) else []
+        prior_strong_tickers = {c.get("ticker") for c in prior_clusters
+                                  if isinstance(c, dict) and (c.get("score") or 0) >= 70}
+        prior_ceo_conv = {c.get("ticker") for c in prior_clusters
+                           if isinstance(c, dict) and c.get("signal_type") == "ceo_conviction"}
+        prior_smart_dual = {c.get("ticker") for c in prior_clusters
+                              if isinstance(c, dict) and c.get("signal_type") == "smart_money_dual"}
+        prior_massive = {c.get("ticker") for c in prior_clusters
+                          if isinstance(c, dict) and (c.get("total_value") or 0) >= 5_000_000}
+
+        alerts = []
+
+        # 1. NEW STRONG SIGNALS (score >= 70 that weren't strong last run)
+        new_strong = [c for c in final_clusters
+                       if c["score"] >= 70 and c["ticker"] not in prior_strong_tickers]
+        if new_strong:
+            top = new_strong[:5]
+            lines = []
+            for c in top:
+                val_m = c["total_value"] / 1e6
+                val_str = f"${val_m:.2f}M" if val_m >= 1 else f"${c['total_value']/1000:.0f}k"
+                signal_pretty = c["signal_type"].replace("_", " ").upper()
+                lines.append(
+                    f"• <b>{c['ticker']}</b> score {c['score']} · {signal_pretty} · "
+                    f"{c['n_insiders']} insider{'s' if c['n_insiders']>1 else ''} · {val_str}"
+                )
+            alerts.append(
+                f"🕵️ <b>NEW STRONG INSIDER CLUSTERS (score ≥ 70)</b>\n" +
+                "\n".join(lines) +
+                "\n\n<a href='https://justhodl.ai/insider/'>justhodl.ai/insider/</a>"
+            )
+
+        # 2. NEW CEO_CONVICTION (CEO buying personally — highest single-signal)
+        new_ceo_conv = [c for c in final_clusters
+                         if c["signal_type"] == "ceo_conviction"
+                         and c["ticker"] not in prior_ceo_conv]
+        if new_ceo_conv:
+            top = new_ceo_conv[:4]
+            lines = []
+            for c in top:
+                val_m = c["total_value"] / 1e6
+                val_str = f"${val_m:.2f}M" if val_m >= 1 else f"${c['total_value']/1000:.0f}k"
+                # Try to find the CEO name from insiders
+                ceo_name = ""
+                for ins in c.get("insiders", []):
+                    if "CEO" in (ins.get("role", "") or "").upper() or "CHIEF EXECUTIVE" in (ins.get("role","") or "").upper():
+                        ceo_name = f" — {ins.get('name','')[:40]}"
+                        break
+                lines.append(
+                    f"• <b>{c['ticker']}</b>{ceo_name} · score {c['score']} · {val_str}"
+                )
+            alerts.append(
+                f"🎯 <b>NEW CEO CONVICTION BUYS</b>\n"
+                f"<i>CEO putting personal capital in. Historical alpha 6-15% over 6 months.</i>\n" +
+                "\n".join(lines)
+            )
+
+        # 3. NEW SMART_MONEY_DUAL (CEO + 10%-owner together — institutional tier)
+        new_smart_dual = [c for c in final_clusters
+                           if c["signal_type"] == "smart_money_dual"
+                           and c["ticker"] not in prior_smart_dual]
+        if new_smart_dual:
+            top = new_smart_dual[:4]
+            lines = []
+            for c in top:
+                val_m = c["total_value"] / 1e6
+                val_str = f"${val_m:.2f}M" if val_m >= 1 else f"${c['total_value']/1000:.0f}k"
+                lines.append(
+                    f"• <b>{c['ticker']}</b> score {c['score']} · {c['n_insiders']} insiders · {val_str}"
+                )
+            alerts.append(
+                f"💎 <b>NEW SMART-MONEY DUAL SIGNAL</b>\n"
+                f"<i>CEO + 10%-owner buying together — highest institutional tier.</i>\n" +
+                "\n".join(lines)
+            )
+
+        # 4. NEW MASSIVE BUYS ($5M+ that weren't tracked last run)
+        new_massive = [c for c in final_clusters
+                        if (c.get("total_value") or 0) >= 5_000_000
+                        and c["ticker"] not in prior_massive]
+        if new_massive:
+            top = new_massive[:4]
+            lines = []
+            for c in top:
+                val_m = c["total_value"] / 1e6
+                lines.append(
+                    f"• <b>{c['ticker']}</b> ${val_m:.2f}M · score {c['score']} · "
+                    f"{c['signal_type'].replace('_', ' ')}"
+                )
+            alerts.append(
+                f"💰 <b>MASSIVE INSIDER BUYS ($5M+)</b>\n" + "\n".join(lines)
+            )
+
+        # Send all alerts
+        TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+        TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+        if alerts and TG_TOKEN and TG_CHAT:
+            for msg in alerts:
+                try:
+                    body_tg = json.dumps({
+                        "chat_id": TG_CHAT, "text": msg,
+                        "parse_mode": "HTML", "disable_web_page_preview": True,
+                    }).encode("utf-8")
+                    req = urllib.request.Request(
+                        f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+                        data=body_tg, headers={"Content-Type": "application/json"})
+                    urllib.request.urlopen(req, timeout=10).read()
+                    print(f"[insider-alert] sent: {msg[:80]}")
+                except Exception as e:
+                    print(f"[insider-alert] err: {e}")
+        elif alerts:
+            print(f"[insider-alert] {len(alerts)} alerts but no Telegram creds")
+    except Exception as e:
+        print(f"[insider-alert] exception in alert block: {e}")
+
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},
