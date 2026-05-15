@@ -1,0 +1,346 @@
+{
+  "started": "2026-05-15T11:01:59.888116+00:00",
+  "matching_lambdas": [
+    {
+      "name": "justhodl-wave-signal-logger",
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-04T19:54:22.000+0000"
+    },
+    {
+      "name": "justhodl-calibrator",
+      "memory": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-06T18:15:41.000+0000"
+    },
+    {
+      "name": "justhodl-backtest-engine",
+      "memory": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-06T18:15:33.000+0000"
+    },
+    {
+      "name": "justhodl-master-ranker",
+      "memory": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-07T10:52:13.910+0000"
+    },
+    {
+      "name": "justhodl-system-signal-logger",
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-05T22:05:58.943+0000"
+    },
+    {
+      "name": "justhodl-alpha-calibrator",
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-13T09:00:50.937+0000"
+    },
+    {
+      "name": "MLPredictor",
+      "memory": 1024,
+      "timeout": 30,
+      "last_modified": "2025-05-30T03:51:24.000+0000"
+    },
+    {
+      "name": "justhodl-outcome-checker",
+      "memory": 256,
+      "timeout": 300,
+      "last_modified": "2026-05-06T18:16:27.000+0000"
+    },
+    {
+      "name": "justhodl-ml-predictions",
+      "memory": 512,
+      "timeout": 120,
+      "last_modified": "2026-04-25T10:28:03.000+0000"
+    },
+    {
+      "name": "justhodl-signal-logger",
+      "memory": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-06T18:16:42.000+0000"
+    },
+    {
+      "name": "justhodl-backtest-harness",
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-05-13T23:54:06.000+0000"
+    },
+    {
+      "name": "justhodl-calls-backtest",
+      "memory": 512,
+      "timeout": 180,
+      "last_modified": "2026-05-05T12:53:38.110+0000"
+    }
+  ],
+  "ddb_tables": [
+    "justhodl-backtest",
+    "justhodl-outcomes",
+    "justhodl-signals",
+    "openbb-trading-signals"
+  ],
+  "s3_keys_by_prefix": {
+    "signals/": [
+      {
+        "key": "signals/alert-history.json",
+        "size_kb": 0.2,
+        "modified": "2026-05-15T10:20:48"
+      },
+      {
+        "key": "signals/anomalies.json",
+        "size_kb": 21.6,
+        "modified": "2026-05-15T10:33:09"
+      },
+      {
+        "key": "signals/anomaly-alert-history.json",
+        "size_kb": 0.1,
+        "modified": "2026-05-15T10:33:09"
+      },
+      {
+        "key": "signals/confluence-prev.json",
+        "size_kb": 35.4,
+        "modified": "2026-05-15T10:12:26"
+      },
+      {
+        "key": "signals/confluence.json",
+        "size_kb": 26.3,
+        "modified": "2026-05-15T10:12:25"
+      },
+      {
+        "key": "signals/regime-picks.json",
+        "size_kb": 43.0,
+        "modified": "2026-05-15T10:12:25"
+      }
+    ],
+    "outcomes/": [],
+    "calibration/": [
+      {
+        "key": "calibration/history-index.json",
+        "size_kb": 0.4,
+        "modified": "2026-05-10T12:00:44"
+      },
+      {
+        "key": "calibration/history/2026-03-15.json",
+        "size_kb": 2.0,
+        "modified": "2026-03-15T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-03-22.json",
+        "size_kb": 3.2,
+        "modified": "2026-03-22T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-03-29.json",
+        "size_kb": 3.8,
+        "modified": "2026-03-29T09:00:48"
+      },
+      {
+        "key": "calibration/history/2026-04-05.json",
+        "size_kb": 3.8,
+        "modified": "2026-04-05T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-12.json",
+        "size_kb": 3.8,
+        "modified": "2026-04-12T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-19.json",
+        "size_kb": 3.8,
+        "modified": "2026-04-19T09:00:49"
+      },
+      {
+        "key": "calibration/history/2026-04-25.json",
+        "size_kb": 1.0,
+        "modified": "2026-04-25T20:54:00"
+      },
+      {
+        "key": "calibration/history/2026-04-26.json",
+        "size_kb": 5.3,
+        "modified": "2026-04-26T13:05:15"
+      },
+      {
+        "key": "calibration/history/2026-05-04.json",
+        "size_kb": 26.2,
+        "modified": "2026-05-04T22:13:46"
+      },
+      {
+        "key": "calibration/history/2026-05-05.json",
+        "size_kb": 36.6,
+        "modified": "2026-05-05T12:03:56"
+      },
+      {
+        "key": "calibration/history/2026-05-10.json",
+        "size_kb": 43.0,
+        "modified": "2026-05-10T09:00:52"
+      },
+      {
+        "key": "calibration/history/2026-W19.json",
+        "size_kb": 5.4,
+        "modified": "2026-05-10T12:00:44"
+      },
+      {
+        "key": "calibration/latest.json",
+        "size_kb": 5.4,
+        "modified": "2026-05-10T12:00:44"
+      }
+    ],
+    "predictions/": [],
+    "backtest/": [
+      {
+        "key": "backtest/calls-results.json",
+        "size_kb": 19.0,
+        "modified": "2026-05-14T14:15:42"
+      },
+      {
+        "key": "backtest/results.json",
+        "size_kb": 40.6,
+        "modified": "2026-05-15T05:07:27"
+      },
+      {
+        "key": "backtest/summary.json",
+        "size_kb": 5.9,
+        "modified": "2026-05-15T05:07:27"
+      }
+    ],
+    "learning/": [
+      {
+        "key": "learning/improvement_log.json",
+        "size_kb": 0.6,
+        "modified": "2026-05-10T10:01:06"
+      },
+      {
+        "key": "learning/last_log_run.json",
+        "size_kb": 0.1,
+        "modified": "2026-05-15T09:10:24"
+      },
+      {
+        "key": "learning/morning_run_log.json",
+        "size_kb": 0.6,
+        "modified": "2026-05-14T17:16:49"
+      },
+      {
+        "key": "learning/prompt_templates.json",
+        "size_kb": 0.9,
+        "modified": "2026-04-25T14:59:21"
+      }
+    ],
+    "archive/": [
+      {
+        "key": "archive/2026-02-17.html",
+        "size_kb": 26.0,
+        "modified": "2026-02-18T04:25:10"
+      },
+      {
+        "key": "archive/2026-02-17.json",
+        "size_kb": 29.1,
+        "modified": "2026-02-18T04:56:15"
+      },
+      {
+        "key": "archive/2026-02-18.json",
+        "size_kb": 59.2,
+        "modified": "2026-02-18T13:00:53"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/0815.json",
+        "size_kb": 9.9,
+        "modified": "2026-02-23T08:15:01"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1205.json",
+        "size_kb": 9.8,
+        "modified": "2026-02-23T12:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1210.json",
+        "size_kb": 9.8,
+        "modified": "2026-02-23T12:10:48"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1305.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T13:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1405.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T14:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1505.json",
+        "size_kb": 9.8,
+        "modified": "2026-02-23T15:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1605.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T16:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1705.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T17:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1805.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T18:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/1905.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T19:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/2005.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T20:05:43"
+      },
+      {
+        "key": "archive/intelligence/2026/02/23/2105.json",
+        "size_kb": 9.7,
+        "modified": "2026-02-23T21:05:43"
+      }
+    ],
+    "data/calibr": [
+      {
+        "key": "data/calibration-history.json",
+        "size_kb": 0.7,
+        "modified": "2026-05-13T09:00:58"
+      },
+      {
+        "key": "data/calibration-latest.json",
+        "size_kb": 2.5,
+        "modified": "2026-05-13T09:00:58"
+      },
+      {
+        "key": "data/calibration-snapshot.json",
+        "size_kb": 45.3,
+        "modified": "2026-05-15T10:41:47"
+      }
+    ]
+  },
+  "sidecar_check": {
+    "data/fred-cache.json": {
+      "size_kb": 1000.6,
+      "modified": "2026-05-15T10:59:02"
+    },
+    "data/fred-cache-secretary.json": {
+      "size_kb": 9.2,
+      "modified": "2026-05-15T09:25:59"
+    },
+    "data/report.json": {
+      "size_kb": 1769.9,
+      "modified": "2026-05-15T11:00:09"
+    },
+    "data/historical-bars.json": "missing",
+    "data/signals.json": "missing",
+    "learning/calibration_weights.json": "missing",
+    "learning/prompt_templates.json": {
+      "size_kb": 0.9,
+      "modified": "2026-04-25T14:59:21"
+    }
+  },
+  "finished": "2026-05-15T11:02:04.318386+00:00"
+}
