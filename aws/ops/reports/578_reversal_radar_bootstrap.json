@@ -1,0 +1,204 @@
+{
+  "started": "2026-05-15T11:39:06.398698+00:00",
+  "reversal_env_err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-reversal-radar",
+  "reversal_eventbridge_err": "An error occurred (ResourceNotFoundException) when calling the AddPermission operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-reversal-radar",
+  "reversal_invoke_err": "An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-reversal-radar:$LATEST",
+  "reversal_sidecar_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "political_lambda_last_modified": "2026-05-15T11:39:12.000+0000",
+  "political_invoke_status": 200,
+  "political_fn_error": null,
+  "political_response": {
+    "ok": true,
+    "n_senate": 200,
+    "n_house": 200,
+    "n_clusters": 1,
+    "n_large_trades": 3,
+    "top_5_recent": [
+      {
+        "ticker": "CARR",
+        "member": "Maria Elvira Salazar",
+        "date": "2026-05-01"
+      },
+      {
+        "ticker": "FLEX",
+        "member": "Gilbert Cisneros",
+        "date": "2026-05-01"
+      },
+      {
+        "ticker": "AER",
+        "member": "Michael McCaul",
+        "date": "2026-04-30"
+      },
+      {
+        "ticker": "AESI",
+        "member": "Chip Roy",
+        "date": "2026-04-30"
+      },
+      {
+        "ticker": "BBIO",
+        "member": "Gilbert Cisneros",
+        "date": "2026-04-29"
+      }
+    ]
+  },
+  "political_log_tail": "START RequestId: 28d64989-ae19-4cda-a595-03f883cfa4a5 Version: $LATEST\n[political-trades] starting\n[senate] OK https://financialmodelingprep.com/stable/senate-latest n=200\n[house] OK https://financialmodelingprep.com/stable/house-latest n=200\n[political-trades] senate=200 house=200 clusters=1 large=3 hw=151\n[tg] no creds: \ud83c\udfdb <b>NEW LARGE POLITICAL TRADES (\u2265 $500K)</b>\n\u2022 <b>GS</b> \u00b7 Dave McCormick \u00b7 SAL\n[tg] no creds: \ud83d\udc40 <b>HIGH-WATCH MEMBER TRADES</b>\n<i>Pelosi/Crenshaw/Tuberville et al.</i>\n\u2022 <b>\n[tg] no creds: \u2b50 <b>NEW POLITICAL CLUSTERS (3+ members same ticker)</b>\n\u2022 <b>MSFT</b> \u00b7 3 membe\nEND RequestId: 28d64989-ae19-4cda-a595-03f883cfa4a5\nREPORT RequestId: 28d64989-ae19-4cda-a595-03f883cfa4a5\tDuration: 300.85 ms\tBilled Duration: 897 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\tInit Duration: 595.67 ms\t\n",
+  "political_sidecar": {
+    "size_kb": 29.94,
+    "endpoints_used": {
+      "senate": "https://financialmodelingprep.com/stable/senate-latest",
+      "house": "https://financialmodelingprep.com/stable/house-latest"
+    },
+    "stats": {
+      "n_senate": 200,
+      "n_house": 200,
+      "n_total": 385,
+      "n_clusters": 1,
+      "n_large_trades": 3,
+      "n_high_watch": 151,
+      "n_recent_30d": 270
+    },
+    "sample_trades": [
+      {
+        "chamber": "HOUSE",
+        "member": "Maria Elvira Salazar",
+        "office": "Maria Elvira Salazar",
+        "ticker": "CARR",
+        "asset_description": "Carrier Global Corp",
+        "asset_type": "Purchase",
+        "transaction_type": "purchase",
+        "amount_range": "$1,001 - $15,000",
+        "amount_max_usd": 15000,
+        "transaction_date": "2026-05-01",
+        "disclosure_date": "2026-05-11",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034479.pdf",
+        "reporting_lag_days": 10
+      },
+      {
+        "chamber": "HOUSE",
+        "member": "Gilbert Cisneros",
+        "office": "Gilbert Cisneros",
+        "ticker": "FLEX",
+        "asset_description": "Flex Ltd",
+        "asset_type": "Sale",
+        "transaction_type": "sale",
+        "amount_range": "$1,001 - $15,000",
+        "amount_max_usd": 15000,
+        "transaction_date": "2026-05-01",
+        "disclosure_date": "2026-05-11",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034500.pdf",
+        "reporting_lag_days": 10
+      },
+      {
+        "chamber": "HOUSE",
+        "member": "Michael McCaul",
+        "office": "Michael McCaul",
+        "ticker": "AER",
+        "asset_description": "AerCap Holdings NV",
+        "asset_type": "Sale",
+        "transaction_type": "sale",
+        "amount_range": "$1,001 - $15,000",
+        "amount_max_usd": 15000,
+        "transaction_date": "2026-04-30",
+        "disclosure_date": "2026-05-11",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9115820.pdf",
+        "reporting_lag_days": 11
+      },
+      {
+        "chamber": "HOUSE",
+        "member": "Chip Roy",
+        "office": "Chip Roy",
+        "ticker": "AESI",
+        "asset_description": "ATLAS ENERGY SOLUTIONS INC",
+        "asset_type": "Purchase",
+        "transaction_type": "purchase",
+        "amount_range": "$10,000,001 - $25,000,000",
+        "amount_max_usd": 0,
+        "transaction_date": "2026-04-30",
+        "disclosure_date": "2026-05-11",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034375.pdf",
+        "reporting_lag_days": 11
+      },
+      {
+        "chamber": "HOUSE",
+        "member": "Gilbert Cisneros",
+        "office": "Gilbert Cisneros",
+        "ticker": "BBIO",
+        "asset_description": "BRIDGEBIO PHARMA INC",
+        "asset_type": "Purchase",
+        "transaction_type": "purchase",
+        "amount_range": "$1,001 - $15,000",
+        "amount_max_usd": 15000,
+        "transaction_date": "2026-04-29",
+        "disclosure_date": "2026-05-11",
+        "link": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20034500.pdf",
+        "reporting_lag_days": 12
+      }
+    ],
+    "clusters": [
+      {
+        "ticker": "MSFT",
+        "n_members": 3,
+        "members": [
+          "John McGuire",
+          "Maria Elvira Salazar",
+          "Mark Warner"
+        ],
+        "n_trades": 3,
+        "n_buys": 3,
+        "n_sells": 0,
+        "first_trade": "2026-04-13",
+        "last_trade": "2026-04-17",
+        "total_value_max_usd": 80000,
+        "direction": "BUY"
+      }
+    ],
+    "large_trades": [
+      {
+        "chamber": "SENATE",
+        "member": "Dave McCormick",
+        "office": "Dave McCormick",
+        "ticker": "GS",
+        "asset_description": "The Goldman Sachs Group Inc",
+        "asset_type": "Sale",
+        "transaction_type": "sale",
+        "amount_range": "$1,000,001 - $5,000,000",
+        "amount_max_usd": 5000000,
+        "transaction_date": "2026-01-23",
+        "disclosure_date": "2026-02-22",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/f977c281-48c1-4de0-af95-6765127f4720/",
+        "reporting_lag_days": 30
+      },
+      {
+        "chamber": "SENATE",
+        "member": "Dave McCormick",
+        "office": "Dave McCormick",
+        "ticker": "GS",
+        "asset_description": "Goldman Sachs Group",
+        "asset_type": "Sale (Full)",
+        "transaction_type": "sale (full)",
+        "amount_range": "$1,000,001 - $5,000,000",
+        "amount_max_usd": 5000000,
+        "transaction_date": "2026-01-23",
+        "disclosure_date": "2026-02-21",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/f977c281-48c1-4de0-af95-6765127f4720/",
+        "reporting_lag_days": 29
+      },
+      {
+        "chamber": "SENATE",
+        "member": "John W. Hickenlooper",
+        "office": "John W. Hickenlooper",
+        "ticker": "LBRDA",
+        "asset_description": "Liberty Broadband Corp",
+        "asset_type": "Sale",
+        "transaction_type": "sale",
+        "amount_range": "$500,001 - $1,000,000",
+        "amount_max_usd": 1000000,
+        "transaction_date": "2025-05-19",
+        "disclosure_date": "2026-05-05",
+        "link": "https://efdsearch.senate.gov/search/view/ptr/8036348f-2470-41f7-be97-d822d0b17e7c/",
+        "reporting_lag_days": 351
+      }
+    ]
+  },
+  "finished": "2026-05-15T11:41:16.990884+00:00"
+}
