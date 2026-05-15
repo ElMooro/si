@@ -1,0 +1,1108 @@
+{
+  "started": "2026-05-15T10:11:22.057019+00:00",
+  "lambda_candidates": [
+    {
+      "name": "justhodl-smart-money-holdings",
+      "memory": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-12T10:46:05.000+0000",
+      "state": null
+    },
+    {
+      "name": "justhodl-smart-money-tracker",
+      "memory": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-11T19:37:40.000+0000",
+      "state": null
+    },
+    {
+      "name": "justhodl-sec-13f",
+      "memory": 768,
+      "timeout": 300,
+      "last_modified": "2026-05-03T17:17:52.000+0000",
+      "state": null
+    },
+    {
+      "name": "justhodl-13f-positions",
+      "memory": 512,
+      "timeout": 600,
+      "last_modified": "2026-05-13T23:53:50.000+0000",
+      "state": null
+    },
+    {
+      "name": "justhodl-smart-money-cluster",
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-05T19:29:08.526+0000",
+      "state": null
+    }
+  ],
+  "eventbridge_rules": [
+    {
+      "name": "justhodl-13f-positions-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "targets": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-13f-positions"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-cluster-daily",
+      "schedule": "cron(0 16 * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-smart-money-cluster"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-holdings-daily",
+      "schedule": "cron(30 14 * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-smart-money-holdings"
+      ]
+    },
+    {
+      "name": "justhodl-smart-money-tracker-daily",
+      "schedule": "cron(0 14 * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "arn:aws:lambda:us-east-1:857687956942:function:justhodl-smart-money-tracker"
+      ]
+    }
+  ],
+  "sidecar": {
+    "size_kb": 14264.4,
+    "modified": "2026-05-15T04:51:22",
+    "top_level_keys": [
+      "generated_at",
+      "as_of_quarter",
+      "funds_total",
+      "funds_parsed",
+      "funds_failed",
+      "fund_errors",
+      "by_fund",
+      "aggregate_by_ticker",
+      "most_bought",
+      "most_sold",
+      "consensus_holds",
+      "rare_picks",
+      "fetch_duration_s"
+    ],
+    "funds_count": 17,
+    "funds_summary": {
+      "BERKSHIRE": {
+        "n_new": 4,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 3,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "BRIDGEWATER": {
+        "n_new": 191,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "RENAISSANCE": {
+        "n_new": 478,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "AQR": {
+        "n_new": 223,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "TWO_SIGMA": {
+        "n_new": 611,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "MILLENNIUM": {
+        "n_new": 525,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "PERSHING": {
+        "n_new": 1,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 1,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "CITADEL": {
+        "n_new": 1221,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "GREENLIGHT": {
+        "n_new": 7,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 6,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "SOROS": {
+        "n_new": 127,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "COATUE": {
+        "n_new": 13,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "TIGER_GLOBAL": {
+        "n_new": 1,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 3,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "BAUPOST": {
+        "n_new": 14,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 7,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "SCION": {
+        "n_new": 7,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 10,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "DURATION": {
+        "n_new": 52,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "LONE_PINE": {
+        "n_new": 3,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 3,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      },
+      "POINT72": {
+        "n_new": 1153,
+        "n_added": null,
+        "n_trimmed": null,
+        "n_exits": 15,
+        "n_holdings": 0,
+        "report_date": null,
+        "filed_date": null,
+        "manager": null
+      }
+    },
+    "most_bought_len": 25,
+    "most_bought_first_3": [
+      {
+        "ticker": "AAPL",
+        "cusip": "037833100",
+        "name": "Apple Inc",
+        "n_funds_holding": 16,
+        "total_value": 98454828131,
+        "n_funds_adding": 10,
+        "n_funds_trimming": 3,
+        "n_funds_new_position": 0,
+        "n_funds_exiting": 0,
+        "fund_actions": [
+          {
+            "fund": "BERKSHIRE",
+            "fund_name": "Berkshire Hathaway",
+            "value": 61961735283,
+            "shares": 227917808,
+            "change": "HOLD",
+            "pct_of_portfolio": 22.6,
+            "delta_pct": 2.15
+          },
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 78695586,
+            "shares": 289471,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.29,
+            "delta_pct": -10.35
+          },
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 5750535,
+            "shares": 119380,
+            "change": "ADD",
+            "pct_of_portfolio": 0.02,
+            "delta_pct": 10.4
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 14956496,
+            "shares": 310494,
+            "change": "ADD",
+            "pct_of_portfolio": 0.02,
+            "delta_pct": 48.65
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 3398663807,
+            "shares": 12501523,
+            "change": "ADD",
+            "pct_of_portfolio": 1.78,
+            "delta_pct": 23.36
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 44441354,
+            "shares": 922594,
+            "change": "ADD",
+            "pct_of_portfolio": 0.02,
+            "delta_pct": 40.49
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 376211558,
+            "shares": 1383843,
+            "change": "ADD",
+            "pct_of_portfolio": 0.49,
+            "delta_pct": 57.28
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 10644221,
+            "shares": 220972,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 282.49
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 5050056951,
+            "shares": 18575947,
+            "change": "TRIM",
+            "pct_of_portfolio": 2.02,
+            "delta_pct": -6.61
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 19739151,
+            "shares": 409781,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 7.07
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 16335955937,
+            "shares": 60089590,
+            "change": "HOLD",
+            "pct_of_portfolio": 2.43,
+            "delta_pct": 3.03
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 10917345,
+            "shares": 226642,
+            "change": "ADD",
+            "pct_of_portfolio": 0.0,
+            "delta_pct": 117.03
+          },
+          {
+            "fund": "SOROS",
+            "fund_name": "Soros Fund",
+            "value": 113158735,
+            "shares": 416239,
+            "change": "ADD",
+            "pct_of_portfolio": 1.31,
+            "delta_pct": 27.07
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 10947223529,
+            "shares": 43134968,
+            "change": "HOLD",
+            "pct_of_portfolio": 6.3,
+            "delta_pct": -0.98
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 3270995,
+            "shares": 84500,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.0,
+            "delta_pct": -21.41
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 83406648,
+            "shares": 306800,
+            "change": "ADD",
+            "pct_of_portfolio": 0.09,
+            "delta_pct": 84.54
+          }
+        ],
+        "net_action_score": 7
+      },
+      {
+        "ticker": "AMZN",
+        "cusip": "023135106",
+        "name": "Amazon.com Inc",
+        "n_funds_holding": 15,
+        "total_value": 36233752800,
+        "n_funds_adding": 8,
+        "n_funds_trimming": 3,
+        "n_funds_new_position": 2,
+        "n_funds_exiting": 0,
+        "fund_actions": [
+          {
+            "fund": "BERKSHIRE",
+            "fund_name": "Berkshire Hathaway",
+            "value": 525346320,
+            "shares": 2276000,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.19,
+            "delta_pct": -76.07
+          },
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 449695988,
+            "shares": 1948254,
+            "change": "ADD",
+            "pct_of_portfolio": 1.64,
+            "delta_pct": 82.05
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 205645092,
+            "shares": 890926,
+            "change": "NEW",
+            "pct_of_portfolio": 0.28,
+            "delta_pct": null
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 2059566188,
+            "shares": 8922824,
+            "change": "ADD",
+            "pct_of_portfolio": 1.08,
+            "delta_pct": 34.63
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 314477708,
+            "shares": 1362437,
+            "change": "ADD",
+            "pct_of_portfolio": 0.41,
+            "delta_pct": 17.1
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 3752446741,
+            "shares": 16257026,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.5,
+            "delta_pct": -9.23
+          },
+          {
+            "fund": "PERSHING",
+            "fund_name": "Pershing Square (Ackman)",
+            "value": 2217677936,
+            "shares": 9607824,
+            "change": "ADD",
+            "pct_of_portfolio": 14.28,
+            "delta_pct": 73.44
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 13202851142,
+            "shares": 57199771,
+            "change": "ADD",
+            "pct_of_portfolio": 1.97,
+            "delta_pct": 31.01
+          },
+          {
+            "fund": "SOROS",
+            "fund_name": "Soros Fund",
+            "value": 613882409,
+            "shares": 2659572,
+            "change": "ADD",
+            "pct_of_portfolio": 7.11,
+            "delta_pct": 17.66
+          },
+          {
+            "fund": "COATUE",
+            "fund_name": "Coatue",
+            "value": 2292565408,
+            "shares": 9932265,
+            "change": "ADD",
+            "pct_of_portfolio": 5.74,
+            "delta_pct": 19.42
+          },
+          {
+            "fund": "TIGER_GLOBAL",
+            "fund_name": "Tiger Global",
+            "value": 2310826501,
+            "shares": 10011379,
+            "change": "HOLD",
+            "pct_of_portfolio": 7.78,
+            "delta_pct": -4.7
+          },
+          {
+            "fund": "BAUPOST",
+            "fund_name": "Baupost (Klarman)",
+            "value": 557319506,
+            "shares": 2414520,
+            "change": "TRIM",
+            "pct_of_portfolio": 4.09,
+            "delta_pct": -9.73
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 5880711720,
+            "shares": 28236000,
+            "change": "HOLD",
+            "pct_of_portfolio": 3.38,
+            "delta_pct": -3.14
+          },
+          {
+            "fund": "LONE_PINE",
+            "fund_name": "Lone Pine",
+            "value": 489659000,
+            "shares": 2121391,
+            "change": "NEW",
+            "pct_of_portfolio": 9.28,
+            "delta_pct": null
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 1361081141,
+            "shares": 5896721,
+            "change": "ADD",
+            "pct_of_portfolio": 1.5,
+            "delta_pct": 86.04
+          }
+        ],
+        "net_action_score": 9
+      },
+      {
+        "ticker": "PEP",
+        "cusip": "713448108",
+        "name": "PepsiCo",
+        "n_funds_holding": 14,
+        "total_value": 3702415623,
+        "n_funds_adding": 10,
+        "n_funds_trimming": 3,
+        "n_funds_new_position": 0,
+        "n_funds_exiting": 0,
+        "fund_actions": [
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 12051948,
+            "shares": 83974,
+            "change": "HOLD",
+            "pct_of_portfolio": 0.04,
+            "delta_pct": 3.17
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 19551133,
+            "shares": 136225,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.03,
+            "delta_pct": -42.13
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 945119713,
+            "shares": 6585282,
+            "change": "ADD",
+            "pct_of_portfolio": 0.5,
+            "delta_pct": 13.75
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 133369099,
+            "shares": 1217872,
+            "change": "ADD",
+            "pct_of_portfolio": 0.07,
+            "delta_pct": 11.45
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 6458113,
+            "shares": 44998,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 110.98
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 6258606,
+            "shares": 57151,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 37.07
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 394500026,
+            "shares": 2748746,
+            "change": "ADD",
+            "pct_of_portfolio": 0.16,
+            "delta_pct": 14.78
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 35126756,
+            "shares": 320763,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": -34.55
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 924500585,
+            "shares": 6441615,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.14,
+            "delta_pct": -5.41
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 56644485,
+            "shares": 517254,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 28.46
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 623147712,
+            "shares": 4012800,
+            "change": "ADD",
+            "pct_of_portfolio": 0.36,
+            "delta_pct": 15.88
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 178023038,
+            "shares": 1541325,
+            "change": "ADD",
+            "pct_of_portfolio": 0.1,
+            "delta_pct": 12.98
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 359232139,
+            "shares": 2503011,
+            "change": "ADD",
+            "pct_of_portfolio": 0.4,
+            "delta_pct": 988.0
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 8432270,
+            "shares": 77000,
+            "change": "ADD",
+            "pct_of_portfolio": 0.01,
+            "delta_pct": 3983.98
+          }
+        ],
+        "net_action_score": 7
+      }
+    ],
+    "most_sold_len": 25,
+    "most_sold_first_3": [
+      {
+        "ticker": "META",
+        "cusip": "30303M102",
+        "name": "Meta Platforms",
+        "n_funds_holding": 10,
+        "total_value": 31148629978,
+        "n_funds_adding": 1,
+        "n_funds_trimming": 6,
+        "n_funds_new_position": 1,
+        "n_funds_exiting": 3,
+        "fund_actions": [
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 147662793,
+            "shares": 223701,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.54,
+            "delta_pct": -51.77
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 0,
+            "shares": 0,
+            "change": "EXIT",
+            "delta_pct": -100
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 1379634435,
+            "shares": 2090071,
+            "change": "ADD",
+            "pct_of_portfolio": 0.72,
+            "delta_pct": 9.15
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 158289582,
+            "shares": 239800,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.2,
+            "delta_pct": -38.12
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 3723918858,
+            "shares": 5641532,
+            "change": "HOLD",
+            "pct_of_portfolio": 1.49,
+            "delta_pct": -2.08
+          },
+          {
+            "fund": "PERSHING",
+            "fund_name": "Pershing Square (Ackman)",
+            "value": 1764796161,
+            "shares": 2673569,
+            "change": "NEW",
+            "pct_of_portfolio": 11.37,
+            "delta_pct": null
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 15800360461,
+            "shares": 23936676,
+            "change": "HOLD",
+            "pct_of_portfolio": 2.35,
+            "delta_pct": -0.08
+          },
+          {
+            "fund": "COATUE",
+            "fund_name": "Coatue",
+            "value": 2496426714,
+            "shares": 3781949,
+            "change": "TRIM",
+            "pct_of_portfolio": 6.25,
+            "delta_pct": -15.77
+          },
+          {
+            "fund": "TIGER_GLOBAL",
+            "fund_name": "Tiger Global",
+            "value": 1815653455,
+            "shares": 2750615,
+            "change": "TRIM",
+            "pct_of_portfolio": 6.11,
+            "delta_pct": -12.3
+          },
+          {
+            "fund": "BAUPOST",
+            "fund_name": "Baupost (Klarman)",
+            "value": 0,
+            "shares": 0,
+            "change": "EXIT",
+            "delta_pct": -100
+          },
+          {
+            "fund": "SCION",
+            "fund_name": "Scion (Burry)",
+            "value": 0,
+            "shares": 0,
+            "change": "EXIT",
+            "delta_pct": -100
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 3657398238,
+            "shares": 6392600,
+            "change": "TRIM",
+            "pct_of_portfolio": 2.1,
+            "delta_pct": -6.81
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 204489281,
+            "shares": 309790,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.23,
+            "delta_pct": -69.91
+          }
+        ],
+        "net_action_score": -9
+      },
+      {
+        "ticker": null,
+        "cusip": "03831W108",
+        "name": "APPLOVIN CORP",
+        "n_funds_holding": 11,
+        "total_value": 6765170874,
+        "n_funds_adding": 1,
+        "n_funds_trimming": 9,
+        "n_funds_new_position": 1,
+        "n_funds_exiting": 0,
+        "fund_actions": [
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 6648582,
+            "shares": 9867,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.02,
+            "delta_pct": -62.16
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 214828248,
+            "shares": 318821,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.3,
+            "delta_pct": -70.14
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 96594373,
+            "shares": 143354,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.05,
+            "delta_pct": -25.2
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 17989646,
+            "shares": 26698,
+            "change": "NEW",
+            "pct_of_portfolio": 0.02,
+            "delta_pct": null
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 258669391,
+            "shares": 383885,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.1,
+            "delta_pct": -21.81
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 2969487680,
+            "shares": 4406945,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.44,
+            "delta_pct": -25.08
+          },
+          {
+            "fund": "COATUE",
+            "fund_name": "Coatue",
+            "value": 1472800044,
+            "shares": 2185747,
+            "change": "TRIM",
+            "pct_of_portfolio": 3.69,
+            "delta_pct": -9.62
+          },
+          {
+            "fund": "TIGER_GLOBAL",
+            "fund_name": "Tiger Global",
+            "value": 871238479,
+            "shares": 1292984,
+            "change": "TRIM",
+            "pct_of_portfolio": 2.93,
+            "delta_pct": -39.46
+          },
+          {
+            "fund": "BAUPOST",
+            "fund_name": "Baupost (Klarman)",
+            "value": 525936725,
+            "shares": 780530,
+            "change": "TRIM",
+            "pct_of_portfolio": 3.86,
+            "delta_pct": -34.01
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 269457940,
+            "shares": 677030,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.16,
+            "delta_pct": -36.76
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 61519766,
+            "shares": 91300,
+            "change": "ADD",
+            "pct_of_portfolio": 0.07,
+            "delta_pct": 105.32
+          }
+        ],
+        "net_action_score": -6
+      },
+      {
+        "ticker": "MSFT",
+        "cusip": "594918104",
+        "name": "Microsoft",
+        "n_funds_holding": 12,
+        "total_value": 33823357318,
+        "n_funds_adding": 1,
+        "n_funds_trimming": 8,
+        "n_funds_new_position": 0,
+        "n_funds_exiting": 0,
+        "fund_actions": [
+          {
+            "fund": "BRIDGEWATER",
+            "fund_name": "Bridgewater Associates",
+            "value": 475926089,
+            "shares": 984091,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.74,
+            "delta_pct": -16.25
+          },
+          {
+            "fund": "RENAISSANCE",
+            "fund_name": "Renaissance Technologies",
+            "value": 332789699,
+            "shares": 688118,
+            "change": "TRIM",
+            "pct_of_portfolio": 0.46,
+            "delta_pct": -51.28
+          },
+          {
+            "fund": "AQR",
+            "fund_name": "AQR Capital",
+            "value": 3030169489,
+            "shares": 6265601,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.59,
+            "delta_pct": -5.26
+          },
+          {
+            "fund": "TWO_SIGMA",
+            "fund_name": "Two Sigma",
+            "value": 275776567,
+            "shares": 570234,
+            "change": "HOLD",
+            "pct_of_portfolio": 0.36,
+            "delta_pct": 0.71
+          },
+          {
+            "fund": "MILLENNIUM",
+            "fund_name": "Millennium Mgmt",
+            "value": 3927254588,
+            "shares": 8120538,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.57,
+            "delta_pct": -39.14
+          },
+          {
+            "fund": "CITADEL",
+            "fund_name": "Citadel Advisors",
+            "value": 11164323690,
+            "shares": 23084909,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.66,
+            "delta_pct": -13.66
+          },
+          {
+            "fund": "SOROS",
+            "fund_name": "Soros Fund",
+            "value": 127211888,
+            "shares": 263041,
+            "change": "ADD",
+            "pct_of_portfolio": 1.47,
+            "delta_pct": 141.4
+          },
+          {
+            "fund": "COATUE",
+            "fund_name": "Coatue",
+            "value": 2501271034,
+            "shares": 5171976,
+            "change": "HOLD",
+            "pct_of_portfolio": 6.26,
+            "delta_pct": 4.01
+          },
+          {
+            "fund": "TIGER_GLOBAL",
+            "fund_name": "Tiger Global",
+            "value": 2649148004,
+            "shares": 5477747,
+            "change": "TRIM",
+            "pct_of_portfolio": 8.92,
+            "delta_pct": -21.93
+          },
+          {
+            "fund": "BAUPOST",
+            "fund_name": "Baupost (Klarman)",
+            "value": 596847533,
+            "shares": 1234125,
+            "change": "HOLD",
+            "pct_of_portfolio": 4.38,
+            "delta_pct": -4.66
+          },
+          {
+            "fund": "DURATION",
+            "fund_name": "Duration Capital",
+            "value": 7670547987,
+            "shares": 20721690,
+            "change": "TRIM",
+            "pct_of_portfolio": 4.41,
+            "delta_pct": -18.04
+          },
+          {
+            "fund": "POINT72",
+            "fund_name": "Point72 (Cohen)",
+            "value": 1072090750,
+            "shares": 2216804,
+            "change": "TRIM",
+            "pct_of_portfolio": 1.18,
+            "delta_pct": -29.24
+          }
+        ],
+        "net_action_score": -7
+      }
+    ],
+    "generated_at": "2026-05-15T04:51:20+00:00"
+  },
+  "invocations_48h": [
+    {
+      "ts": "2026-05-13T14:11:00",
+      "n": 1
+    },
+    {
+      "ts": "2026-05-14T14:11:00",
+      "n": 1
+    }
+  ],
+  "errors_48h": [],
+  "duration_48h": [
+    {
+      "ts": "2026-05-13T14:11:00",
+      "avg_ms": 3263,
+      "max_ms": 3263
+    },
+    {
+      "ts": "2026-05-14T14:11:00",
+      "avg_ms": 4266,
+      "max_ms": 4266
+    }
+  ],
+  "recent_error_log_lines": [],
+  "finished": "2026-05-15T10:11:26.029144+00:00"
+}
