@@ -118,17 +118,16 @@ def normalize_member(raw):
 
 
 def fetch_disclosures():
-    """Try FMP senate + house RSS feeds. Multiple endpoint variants attempted."""
+    """Try FMP senate + house endpoints (current /stable/ paths)."""
     candidates_senate = [
-        f"{FMP_BASE}/senate-trading-rss-feed?apikey={FMP_KEY}",
-        f"{FMP_BASE}/senate-trading?apikey={FMP_KEY}",
-        f"{FMP_BASE}/senate-trades-rss?apikey={FMP_KEY}",
+        f"{FMP_BASE}/senate-latest?page=0&limit=200&apikey={FMP_KEY}",
+        f"{FMP_BASE}/senate-trading?page=0&limit=200&apikey={FMP_KEY}",
+        f"{FMP_BASE}/senate-trades?page=0&limit=200&apikey={FMP_KEY}",
     ]
     candidates_house = [
-        f"{FMP_BASE}/house-disclosure-rss-feed?apikey={FMP_KEY}",
-        f"{FMP_BASE}/senate-disclosure-rss-feed?apikey={FMP_KEY}",
-        f"{FMP_BASE}/house-trading?apikey={FMP_KEY}",
-        f"{FMP_BASE}/house-disclosure?apikey={FMP_KEY}",
+        f"{FMP_BASE}/house-latest?page=0&limit=200&apikey={FMP_KEY}",
+        f"{FMP_BASE}/house-trading?page=0&limit=200&apikey={FMP_KEY}",
+        f"{FMP_BASE}/house-trades?page=0&limit=200&apikey={FMP_KEY}",
     ]
 
     senate_data, house_data = [], []
