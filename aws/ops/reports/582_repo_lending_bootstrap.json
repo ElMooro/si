@@ -1,0 +1,51 @@
+{
+  "started": "2026-05-15T11:48:40.194716+00:00",
+  "zip_size_kb": 5.0,
+  "tg_err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+  "action": "update",
+  "eventbridge": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "composite": 25.4,
+    "regime": "ABUNDANT_LIQUIDITY",
+    "margin_pct_of_cap": 0.862
+  },
+  "log_tail": "START RequestId: d4964916-a736-4afa-a65d-9404e6cdda26 Version: $LATEST\n[repo-lending] starting\n[s3] data/repo-lending.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[fred-err] WILL5000IND: HTTP Error 400: Bad Request\n[repo-lending] composite=25.4 regime=ABUNDANT_LIQUIDITY margin_pct=0.862% repo=61.2 util=10\nEND RequestId: d4964916-a736-4afa-a65d-9404e6cdda26\nREPORT RequestId: d4964916-a736-4afa-a65d-9404e6cdda26\tDuration: 1417.85 ms\tBilled Duration: 1944 ms\tMemory Size: 256 MB\tMax Memory Used: 95 MB\tInit Duration: 525.36 ms\t\n",
+  "sidecar": {
+    "schema_version": "1.0",
+    "method": "repo_lending_intelligence_v1",
+    "generated_at": "2026-05-15T11:48:58.107227+00:00",
+    "composite_leverage_stress": 25.4,
+    "regime": "ABUNDANT_LIQUIDITY",
+    "margin_debt": {
+      "score": 10,
+      "level_billions": 609.675,
+      "level_date": "2025-10-01",
+      "market_cap_trillions": 70.72,
+      "pct_of_market_cap": 0.862,
+      "yoy_growth_pct": 25.57,
+      "danger_zone": false,
+      "interpretation": "Below average leverage"
+    },
+    "repo": {
+      "score": 61.2,
+      "components": {
+        "rrp_score": 95,
+        "rrp_billions": 0.002034,
+        "sofr_iorb_score": 5,
+        "sofr_iorb_spread_bps": -6.0
+      }
+    },
+    "securities_lending": {
+      "score": 10,
+      "components": {
+        "n_high_utilization": 0,
+        "top_high_util": []
+      }
+    },
+    "duration_s": 1.36
+  },
+  "finished": "2026-05-15T11:48:58.519014+00:00"
+}
