@@ -1,0 +1,701 @@
+{
+  "started": "2026-05-15T11:53:34.044432+00:00",
+  "lambdas": [
+    {
+      "name": "justhodl-reversal-radar",
+      "last_modified": "2026-05-15T11:47:52.000+0000",
+      "eb_rule": "OK",
+      "invoke_status": 200,
+      "fn_error": null,
+      "response": {
+        "ok": true,
+        "state": "NORMAL",
+        "top_score": 10,
+        "bottom_score": 0
+      },
+      "log_tail": "START RequestId: 37c5026c-3adb-4535-b811-e9e4d772d84e Version: $LATEST\n[reversal-radar] starting\n[s3] data/divergence.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[reversal-radar] state=NORMAL top=10 bot=0\nTOP+: MELTUP_PRONE \u2014 complacent credit spreads at top\nEND RequestId: 37c5026c-3adb-4535-b811-e9e4d772d84e\nREPORT RequestId: 37c5026c-3adb-4535-b811-e9e4d772d84e\tDuration: 917.74 ms\tBilled Duration: 918 ms\tMemory Size: 256 MB\tMax Memory Used: 113 MB\t\n",
+      "sidecar_size_kb": 0.68,
+      "sidecar": {
+        "schema_version": "1.0",
+        "method": "reversal_radar_v1",
+        "generated_at": "2026-05-15T11:53:37.504974+00:00",
+        "state": "NORMAL",
+        "interpretation": "Markets in normal range. No reversal signature.",
+        "top_score": 10,
+        "top_reasons": [
+          "MELTUP_PRONE \u2014 complacent credit spreads at top"
+        ],
+        "bottom_score": 0,
+        "bottom_reasons": [],
+        "differential": 10,
+        "input_freshness": {
+          "report": "2026-05-15T11:49:55.424985Z",
+          "credit_stress": "2026-05-14T20:01:24.596203+00:00",
+          "regime_composite": "2026-05-15T11:15:37.094771+00:00",
+          "divergence": null,
+          "correlation_breaks": "2026-05-14T21:50:44.043782+00:00",
+          "vix_curve": "2026-05-15T10:10:54.957758+00:00",
+          "eurodollar_stress": null
+        },
+        "duration_s": 0.75
+      }
+    },
+    {
+      "name": "justhodl-auction-grader",
+      "last_modified": "2026-05-15T11:48:04.000+0000",
+      "eb_rule": "OK",
+      "invoke_status": 200,
+      "fn_error": null,
+      "response": {
+        "ok": true,
+        "n_graded": 10,
+        "overall_gpa": "B-",
+        "average_score": 2.8,
+        "n_failing": 0,
+        "n_strong": 1
+      },
+      "log_tail": "START RequestId: 8fa25d7c-e442-4b25-ad9f-0398f5e4909f Version: $LATEST\n[auction-grader] starting\n[auction-grader] graded=10 gpa=B- avg=2.80\n8-Week       912797UP0     C+ BTC=2.72 Ind=54.388541375498576%\n4-Week       912797UA3     B- BTC=2.66 Ind=57.06049207020724%\n30-Year      912810UU0      B BTC=2.3 Ind=66.60491486907107%\n17-Week      912797VC8      B BTC=3.2 Ind=59.934187129671166%\n10-Year      91282CQQ7      B BTC=2.4 Ind=63.95067111437866%\nEND RequestId: 8fa25d7c-e442-4b25-ad9f-0398f5e4909f\nREPORT RequestId: 8fa25d7c-e442-4b25-ad9f-0398f5e4909f\tDuration: 197.41 ms\tBilled Duration: 198 ms\tMemory Size: 512 MB\tMax Memory Used: 94 MB\t\n",
+      "sidecar_size_kb": 17.11,
+      "sidecar": {
+        "schema_version": "1.0",
+        "method": "auction_grader_v1",
+        "generated_at": "2026-05-15T11:53:42.431664+00:00",
+        "input_auction_data_modified": "2026-05-15T08:58:56.148559+00:00",
+        "n_graded": 10,
+        "summary": {
+          "average_score": 2.8,
+          "overall_gpa_letter": "B-",
+          "grade_distribution": {
+            "C+": 1,
+            "B-": 1,
+            "B": 4,
+            "A-": 1,
+            "B+": 1,
+            "C": 2
+          },
+          "n_failing": 0,
+          "n_strong": 1
+        },
+        "graded_auctions": [
+          {
+            "cusip": "912797UP0",
+            "auction_date": "2026-05-14",
+            "issue_date": "2026-05-19",
+            "security_type": "Bill",
+            "security_term": "8-Week",
+            "tenor_bucket": "bills_lt_90d",
+            "accepted_billions": 98.9869227,
+            "high_rate": 3.61,
+            "overall_grade": "C+",
+            "composite_score": 2.35,
+            "dimensions": {
+              "bid_to_cover": {
+                "grade": "C",
+                "value": 2.72,
+                "note": "BTC 2.72 vs peers 2.73 (-0.01)",
+                "weight": 0.4,
+                "peer_avg": 2.73
+              },
+              "indirect_pct": {
+                "grade": "B",
+                "value": 54.388541375498576,
+                "note": "Indirect 54.4% \u2014 adequate foreign demand",
+                "weight": 0.25
+              },
+              "tail_bp": {
+                "grade": "B",
+                "value": null,
+                "note": "Tail bps missing (bills don't tail)",
+                "weight": 0.2
+              },
+              "primary_dealer_pct": {
+                "grade": "D+",
+                "value": 40.170534032970814,
+                "note": "PD 40.2% \u2014 weak (dealers stuck)",
+                "weight": 0.15
+              }
+            },
+            "narrative": "Soft auction. Issues: dealer absorption."
+          },
+          {
+            "cusip": "912797UA3",
+            "auction_date": "2026-05-14",
+            "issue_date": "2026-05-19",
+            "security_type": "Bill",
+            "security_term": "4-Week",
+            "tenor_bucket": "bills_lt_90d",
+            "accepted_billions": 104.1960102,
+            "high_rate": 3.605,
+            "overall_grade": "B-",
+            "composite_score": 2.52,
+            "dimensions": {
+              "bid_to_cover": {
+                "grade": "C",
+                "value": 2.66,
+                "note": "BTC 2.66 vs peers 2.76 (-0.10)",
+                "weight": 0.4,
+                "peer_avg": 2.76
+              },
+              "indirect_pct": {
+                "grade": "B+",
+                "value": 57.06049207020724,
+                "note": "Indirect 57.1% \u2014 healthy foreign demand",
+                "weight": 0.25
+              },
+              "tail_bp": {
+                "grade": "B",
+                "value": null,
+                "note": "Tail bps missing (bills don't tail)",
+                "weight": 0.2
+              },
+              "primary_dealer_pct": {
+                "grade": "C",
+                "value": 36.81743227520324,
+                "note": "PD 36.8% \u2014 soft (dealers absorbing)",
+                "weight": 0.15
+              }
+            },
+            "narrative": "Normal-range auction. No standout features either direction."
+          },
+          {
+            "cusip": "912810UU0",
+            "auction_date": "2026-05-13",
+            "issue_date": "2026-05-15",
+            "security_type": "Bond",
+            "security_term": "30-Year",
+            "tenor_bucket": "coupons_gt_3y",
+            "accepted_billions": 30.9361655,
+            "high_rate": 5.046,
+            "overall_grade": "B",
+            "composite_score": 3.05,
+            "dimensions": {
+              "bid_to_cover": {
+                "grade": "C",
+                "value": 2.3,
+                "note": "BTC 2.30 vs peers 2.47 (-0.17)",
+                "weight": 0.4,
+                "peer_avg": 2.4699999999999998
+              },
+              "indirect_pct": {
+                "grade": "A",
+                "value": 66.60491486907107,
+                "note": "Indirect 66.6% \u2014 strong foreign demand",
+                "weight": 0.25
+              },
+              "tail_bp": {
+                "grade": "B",
+                "value": null,
+                "note": "Tail bps missing (bills don't tail)",
+                "weight": 0.2
+              },
+              "primary_dealer_pct": {
+                "grade": "A+",
+                "value": 11.657298567802709,
+                "note": "PD 11.7% \u2014 minimal dealer absorption",
+                "weight": 0.15
+              }
+            },
+            "narrative": "Normal-range auction. No standout features either direction."
+          },
+          {
+            "cusip": "912797VC8",
+            "auction_date": "2026-05-13",
+            "issue_date": "2026-05-19",
+            "security_type": "Bill",
+            "security_term": "17-Week",
+            "tenor_bucket": "bills_gte_90d",
+            "accepted_billions": 71.8953134,
+            "high_rate": 3.615,
+            "overall_grade": "B",
+            "composite_score": 2.93,
+            "dimensions": {
+              "bid_to_cover": {
+                "grade": "B",
+                "value": 3.2,
+                "note": "BTC 3.20 vs peers 3.06 (+0.14)",
+                "weight": 0.4,
+                "peer_avg": 3.06
+              },
+              "indirect_pct": {
+                "grade": "B+",
+                "value": 59.934187129671166,
+                "note": "Indirect 59.9% \u2014 healthy foreign demand",
+                "weight": 0.25
+              },
+              "tail_bp": {
+                "grade": "B",
+                "value": null,
+                "note": "Tail bps missing (bills don't tail)",
+                "weight": 0.2
+              },
+              "primary_dealer_pct": {
+                "grade": "C",
+                "value": 34.07406265668374,
+                "note": "PD 34.1% \u2014 soft (dealers absorbing)",
+                "weight": 0.15
+              }
+            },
+            "narrative": "Normal-range auction. No standout features either direction."
+          },
+          {
+            "cusip": "91282CQQ7",
+            "auction_date": "2026-05-12",
+            "issue_date": "2026-05-15",
+            "security_type": "Note",
+            "security_term": "10-Year",
+            "tenor_bucket": "coupons_gt_3y",
+            "accepted_billions": 51.9727911,
+            "high_rate": 4.468,
+            "overall_grade": "B",
+            "composite_score": 2.97,
+            "dimensions": {
+              "bid_to_cover": {
+                "grade": "C",
+                "value": 2.4,
+                "note": "BTC 2.40 vs peers 2.42 (-0.02)",
+                "weight": 0.4,
+                "peer_avg": 2.42
+              },
+              "indirect_pct": {
+                "grade": "A-",
+                "value": 63.95067111437866,
+                "note": "Indirect 64.0% \u2014 robust foreign demand",
+                "weight": 0.25
+              },
+              "tail_bp": {
+                "grade": "B",
+                "value": null,
+                "note": "Tail bps missing (bills don't tail)",
+                "weight": 0.2
+              },
+              "primary_dealer_pct": {
+                "grade": "A+",
+                "value": 11.97783048076265,
+                "note": "PD 12.0% \u2014 minimal dealer absorption",
+                "weight": 0.15
+              }
+            },
+            "narrative": "Normal-range auction. No standout features either direction."
+          },
+          "...truncated 5 more"
+        ],
+        "by_tenor": {
+          "bills_lt_90d": [
+            {
+              "cusip": "912797UP0",
+              "auction_date": "2026-05-14",
+              "issue_date": "2026-05-19",
+              "security_type": "Bill",
+              "security_term": "8-Week",
+              "tenor_bucket": "bills_lt_90d",
+              "accepted_billions": 98.9869227,
+              "high_rate": 3.61,
+              "overall_grade": "C+",
+              "composite_score": 2.35,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "C",
+                  "value": 2.72,
+                  "note": "BTC 2.72 vs peers 2.73 (-0.01)",
+                  "weight": 0.4,
+                  "peer_avg": 2.73
+                },
+                "indirect_pct": {
+                  "grade": "B",
+                  "value": 54.388541375498576,
+                  "note": "Indirect 54.4% \u2014 adequate foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "D+",
+                  "value": 40.170534032970814,
+                  "note": "PD 40.2% \u2014 weak (dealers stuck)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Soft auction. Issues: dealer absorption."
+            },
+            {
+              "cusip": "912797UA3",
+              "auction_date": "2026-05-14",
+              "issue_date": "2026-05-19",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "tenor_bucket": "bills_lt_90d",
+              "accepted_billions": 104.1960102,
+              "high_rate": 3.605,
+              "overall_grade": "B-",
+              "composite_score": 2.52,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "C",
+                  "value": 2.66,
+                  "note": "BTC 2.66 vs peers 2.76 (-0.10)",
+                  "weight": 0.4,
+                  "peer_avg": 2.76
+                },
+                "indirect_pct": {
+                  "grade": "B+",
+                  "value": 57.06049207020724,
+                  "note": "Indirect 57.1% \u2014 healthy foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "C",
+                  "value": 36.81743227520324,
+                  "note": "PD 36.8% \u2014 soft (dealers absorbing)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            },
+            {
+              "cusip": "912797TE7",
+              "auction_date": "2026-05-12",
+              "issue_date": "2026-05-14",
+              "security_type": "Bill",
+              "security_term": "6-Week",
+              "tenor_bucket": "bills_lt_90d",
+              "accepted_billions": 85.0206081,
+              "high_rate": 3.615,
+              "overall_grade": "B",
+              "composite_score": 2.93,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "B",
+                  "value": 2.8,
+                  "note": "BTC 2.80 vs peers 2.69 (+0.11)",
+                  "weight": 0.4,
+                  "peer_avg": 2.6900000000000004
+                },
+                "indirect_pct": {
+                  "grade": "B+",
+                  "value": 57.044383846831046,
+                  "note": "Indirect 57.0% \u2014 healthy foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "C",
+                  "value": 37.11577294231853,
+                  "note": "PD 37.1% \u2014 soft (dealers absorbing)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            }
+          ],
+          "coupons_gt_3y": [
+            {
+              "cusip": "912810UU0",
+              "auction_date": "2026-05-13",
+              "issue_date": "2026-05-15",
+              "security_type": "Bond",
+              "security_term": "30-Year",
+              "tenor_bucket": "coupons_gt_3y",
+              "accepted_billions": 30.9361655,
+              "high_rate": 5.046,
+              "overall_grade": "B",
+              "composite_score": 3.05,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "C",
+                  "value": 2.3,
+                  "note": "BTC 2.30 vs peers 2.47 (-0.17)",
+                  "weight": 0.4,
+                  "peer_avg": 2.4699999999999998
+                },
+                "indirect_pct": {
+                  "grade": "A",
+                  "value": 66.60491486907107,
+                  "note": "Indirect 66.6% \u2014 strong foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "A+",
+                  "value": 11.657298567802709,
+                  "note": "PD 11.7% \u2014 minimal dealer absorption",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            },
+            {
+              "cusip": "91282CQQ7",
+              "auction_date": "2026-05-12",
+              "issue_date": "2026-05-15",
+              "security_type": "Note",
+              "security_term": "10-Year",
+              "tenor_bucket": "coupons_gt_3y",
+              "accepted_billions": 51.9727911,
+              "high_rate": 4.468,
+              "overall_grade": "B",
+              "composite_score": 2.97,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "C",
+                  "value": 2.4,
+                  "note": "BTC 2.40 vs peers 2.42 (-0.02)",
+                  "weight": 0.4,
+                  "peer_avg": 2.42
+                },
+                "indirect_pct": {
+                  "grade": "A-",
+                  "value": 63.95067111437866,
+                  "note": "Indirect 64.0% \u2014 robust foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "A+",
+                  "value": 11.97783048076265,
+                  "note": "PD 12.0% \u2014 minimal dealer absorption",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            },
+            {
+              "cusip": "91282CQR5",
+              "auction_date": "2026-05-11",
+              "issue_date": "2026-05-15",
+              "security_type": "Note",
+              "security_term": "3-Year",
+              "tenor_bucket": "coupons_gt_3y",
+              "accepted_billions": 71.7718914,
+              "high_rate": 3.965,
+              "overall_grade": "B+",
+              "composite_score": 3.33,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "B",
+                  "value": 2.54,
+                  "note": "BTC 2.54 vs peers 2.35 (+0.19)",
+                  "weight": 0.4,
+                  "peer_avg": 2.3499999999999996
+                },
+                "indirect_pct": {
+                  "grade": "A-",
+                  "value": 62.95542517284185,
+                  "note": "Indirect 63.0% \u2014 robust foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "A",
+                  "value": 16.90468865871695,
+                  "note": "PD 16.9% \u2014 strong end-demand",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            }
+          ],
+          "bills_gte_90d": [
+            {
+              "cusip": "912797VC8",
+              "auction_date": "2026-05-13",
+              "issue_date": "2026-05-19",
+              "security_type": "Bill",
+              "security_term": "17-Week",
+              "tenor_bucket": "bills_gte_90d",
+              "accepted_billions": 71.8953134,
+              "high_rate": 3.615,
+              "overall_grade": "B",
+              "composite_score": 2.93,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "B",
+                  "value": 3.2,
+                  "note": "BTC 3.20 vs peers 3.06 (+0.14)",
+                  "weight": 0.4,
+                  "peer_avg": 3.06
+                },
+                "indirect_pct": {
+                  "grade": "B+",
+                  "value": 59.934187129671166,
+                  "note": "Indirect 59.9% \u2014 healthy foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "C",
+                  "value": 34.07406265668374,
+                  "note": "PD 34.1% \u2014 soft (dealers absorbing)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Normal-range auction. No standout features either direction."
+            },
+            {
+              "cusip": "912797UX3",
+              "auction_date": "2026-05-12",
+              "issue_date": "2026-05-14",
+              "security_type": "Bill",
+              "security_term": "52-Week",
+              "tenor_bucket": "bills_gte_90d",
+              "accepted_billions": 53.1376056,
+              "high_rate": 3.65,
+              "overall_grade": "A-",
+              "composite_score": 3.7,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "A",
+                  "value": 3.41,
+                  "note": "BTC 3.41 vs peers 2.99 (+0.42)",
+                  "weight": 0.4,
+                  "peer_avg": 2.99
+                },
+                "indirect_pct": {
+                  "grade": "A",
+                  "value": 69.05604528641001,
+                  "note": "Indirect 69.1% \u2014 strong foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "B+",
+                  "value": 27.45318709680954,
+                  "note": "PD 27.5% \u2014 normal",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Strong auction. Strong demand, foreign bid."
+            },
+            {
+              "cusip": "912797UY1",
+              "auction_date": "2026-05-11",
+              "issue_date": "2026-05-14",
+              "security_type": "Bill",
+              "security_term": "26-Week",
+              "tenor_bucket": "bills_gte_90d",
+              "accepted_billions": 81.8318218,
+              "high_rate": 3.615,
+              "overall_grade": "C",
+              "composite_score": 2.12,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "D",
+                  "value": 2.91,
+                  "note": "BTC 2.91 vs peers 3.16 (-0.25)",
+                  "weight": 0.4,
+                  "peer_avg": 3.1566666666666667
+                },
+                "indirect_pct": {
+                  "grade": "B+",
+                  "value": 55.95892319067111,
+                  "note": "Indirect 56.0% \u2014 healthy foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "C",
+                  "value": 35.26398547589829,
+                  "note": "PD 35.3% \u2014 soft (dealers absorbing)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Soft auction. Issues: weak demand."
+            },
+            {
+              "cusip": "912797TW7",
+              "auction_date": "2026-05-11",
+              "issue_date": "2026-05-14",
+              "security_type": "Bill",
+              "security_term": "13-Week",
+              "tenor_bucket": "bills_gte_90d",
+              "accepted_billions": 94.5856111,
+              "high_rate": 3.61,
+              "overall_grade": "C",
+              "composite_score": 2.12,
+              "dimensions": {
+                "bid_to_cover": {
+                  "grade": "D",
+                  "value": 2.86,
+                  "note": "BTC 2.86 vs peers 3.17 (-0.31)",
+                  "weight": 0.4,
+                  "peer_avg": 3.1733333333333333
+                },
+                "indirect_pct": {
+                  "grade": "B+",
+                  "value": 58.846048803522535,
+                  "note": "Indirect 58.8% \u2014 healthy foreign demand",
+                  "weight": 0.25
+                },
+                "tail_bp": {
+                  "grade": "B",
+                  "value": null,
+                  "note": "Tail bps missing (bills don't tail)",
+                  "weight": 0.2
+                },
+                "primary_dealer_pct": {
+                  "grade": "C",
+                  "value": 34.19644192827632,
+                  "note": "PD 34.2% \u2014 soft (dealers absorbing)",
+                  "weight": 0.15
+                }
+              },
+              "narrative": "Soft auction. Issues: weak demand."
+            }
+          ]
+        },
+        "regime_from_crisis_detector": "CALM",
+        "composite_score_crisis": 16.9,
+        "duration_s": 0.11
+      }
+    },
+    {
+      "name": "justhodl-margin-lending",
+      "error": "lambda not deployed within 5min"
+    }
+  ],
+  "finished": "2026-05-15T11:58:47.290167+00:00"
+}
