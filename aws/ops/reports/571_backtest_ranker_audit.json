@@ -1,0 +1,525 @@
+{
+  "started": "2026-05-15T11:05:52.536767+00:00",
+  "eventbridge_rules": {
+    "justhodl-backtest-engine-6h": {
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-backtest-engine"
+      ]
+    },
+    "justhodl-backtest-harness-daily": {
+      "schedule": "rate(1 day)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-backtest-harness"
+      ]
+    },
+    "justhodl-alpha-alerts-hourly": {
+      "schedule": "cron(20 * * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-alpha-alerts"
+      ]
+    },
+    "justhodl-alpha-calibrator-weekly": {
+      "schedule": "cron(0 9 ? * SUN *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-alpha-calibrator"
+      ]
+    },
+    "justhodl-alpha-confluence-hourly": {
+      "schedule": "cron(12 * * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-alpha-confluence"
+      ]
+    },
+    "justhodl-alpha-daily-brief": {
+      "schedule": "cron(30 11 * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-alpha-daily-brief"
+      ]
+    },
+    "justhodl-alpha-score-hourly": {
+      "schedule": "cron(7 * * * ? *)",
+      "state": "ENABLED",
+      "targets": [
+        "justhodl-alpha-score"
+      ]
+    }
+  },
+  "sidecars": {
+    "backtest/results.json": {
+      "size_kb": 40.6,
+      "modified": "2026-05-15T05:07:27",
+      "top_keys": [
+        "v",
+        "generated_at",
+        "method",
+        "method_description",
+        "constants",
+        "summary",
+        "realistic_summary",
+        "honest_summary",
+        "walkforward_summary",
+        "by_signal",
+        "daily",
+        "nav_curve",
+        "realistic_daily",
+        "realistic_nav_curve",
+        "honest_daily_curve",
+        "walkforward_daily_curve",
+        "duration_s"
+      ],
+      "sample": {
+        "v": "2.1",
+        "generated_at": "2026-05-15T05:07:23.586056+00:00",
+        "method": "v2_1_walkforward_calibration_with_v2_0_1_honest_baseline",
+        "method_description": "v2.1 (NEW HEADLINE when coverage>=50%): walk-forward calibration. Each trade's weight is resolved from the calibration snapshot in effect at the trade's logged_at date \u2014 eliminates in-sample look-ahea",
+        "constants": "dict(7)",
+        "summary": "dict(21)",
+        "realistic_summary": "dict(12)",
+        "honest_summary": "dict(30)"
+      }
+    },
+    "backtest/summary.json": {
+      "size_kb": 5.9,
+      "modified": "2026-05-15T05:07:27",
+      "top_keys": [
+        "v",
+        "generated_at",
+        "summary",
+        "realistic_summary",
+        "honest_summary",
+        "walkforward_summary",
+        "constants",
+        "top_5_contributors",
+        "bottom_5_contributors",
+        "duration_s"
+      ],
+      "sample": {
+        "v": "2.1",
+        "generated_at": "2026-05-15T05:07:23.586056+00:00",
+        "summary": "dict(21)",
+        "realistic_summary": "dict(12)",
+        "honest_summary": "dict(30)",
+        "walkforward_summary": "dict(27)",
+        "constants": "dict(7)",
+        "top_5_contributors": "list(5)"
+      }
+    },
+    "backtest/calls-results.json": {
+      "size_kb": 19.0,
+      "modified": "2026-05-14T14:15:42",
+      "top_keys": [
+        "v",
+        "generated_at",
+        "method",
+        "method_description",
+        "exposure_map",
+        "summary",
+        "calls",
+        "nav_curve"
+      ],
+      "sample": {
+        "v": "1.0",
+        "generated_at": "2026-05-14T14:15:41.120220+00:00",
+        "method": "decisive_call_replay_v1",
+        "method_description": "Maps each decisive call (EXIT_ALL_RISK..LEVER) to a SPY-only exposure level (0% to 200%), holds until next call, computes daily NAV vs 100% SPY buy-and-hold benchmark. Cash earns 0% (approximation; re",
+        "exposure_map": "dict(10)",
+        "summary": "dict(14)",
+        "calls": "list(63)",
+        "nav_curve": "list(9)"
+      }
+    },
+    "data/master-ranker.json": {
+      "size_kb": 52.7,
+      "modified": "2026-05-15T11:05:11",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "regime_context",
+        "n_tickers_total",
+        "n_macro_signals",
+        "alerts",
+        "top_tickers",
+        "top_macro",
+        "feed_health",
+        "calibration_weights",
+        "duration_s"
+      ],
+      "sample": {
+        "schema_version": "1.0",
+        "method": "master_signal_ranker_v1",
+        "as_of": "2026-05-15T11:05:10+00:00",
+        "regime_context": "dict(6)",
+        "n_tickers_total": "502",
+        "n_macro_signals": "10",
+        "alerts": "dict(4)",
+        "top_tickers": "list(25)"
+      }
+    },
+    "data/daily-ranker.json": "err: An error occurred (NoSuchKey) when calling the GetObject ope",
+    "ranker/today.json": "err: An error occurred (NoSuchKey) when calling the GetObject ope"
+  },
+  "invocations_48h": {
+    "justhodl-backtest-harness": {
+      "total": 2,
+      "active_hours": [
+        [
+          "2026-05-13T21",
+          1
+        ],
+        [
+          "2026-05-14T21",
+          1
+        ]
+      ]
+    },
+    "justhodl-backtest-engine": {
+      "total": 8,
+      "active_hours": [
+        [
+          "2026-05-13T11",
+          1
+        ],
+        [
+          "2026-05-13T17",
+          1
+        ],
+        [
+          "2026-05-13T23",
+          1
+        ],
+        [
+          "2026-05-14T05",
+          1
+        ],
+        [
+          "2026-05-14T11",
+          1
+        ],
+        [
+          "2026-05-14T17",
+          1
+        ],
+        [
+          "2026-05-14T23",
+          1
+        ],
+        [
+          "2026-05-15T05",
+          1
+        ]
+      ]
+    },
+    "justhodl-master-ranker": {
+      "total": 48,
+      "active_hours": [
+        [
+          "2026-05-13T11",
+          1
+        ],
+        [
+          "2026-05-13T12",
+          1
+        ],
+        [
+          "2026-05-13T13",
+          1
+        ],
+        [
+          "2026-05-13T14",
+          1
+        ],
+        [
+          "2026-05-13T15",
+          1
+        ],
+        [
+          "2026-05-13T16",
+          1
+        ],
+        [
+          "2026-05-13T17",
+          1
+        ],
+        [
+          "2026-05-13T18",
+          1
+        ]
+      ]
+    },
+    "justhodl-alpha-calibrator": {
+      "total": 0,
+      "active_hours": []
+    }
+  },
+  "backtest_summary_full": {
+    "v": "2.1",
+    "generated_at": "2026-05-15T05:07:23.586056+00:00",
+    "summary": {
+      "n_outcomes": 3643,
+      "n_correct": 1793,
+      "win_rate": 0.4922,
+      "n_signals": 31,
+      "first_date": "2026-03-11",
+      "last_date": "2026-05-13",
+      "n_days": 64,
+      "total_contribution_pct": 117.5141,
+      "initial_nav": 100000.0,
+      "final_nav": 314007.28,
+      "total_return_pct": 214.0073,
+      "max_drawdown_pct": 1.7466,
+      "sharpe_proxy": 12.9102,
+      "spy_final_nav": 108345.86,
+      "spy_return_pct": 8.3459,
+      "alpha_vs_spy_pct": 205.6614,
+      "skipped_no_weight": 166,
+      "skipped_no_return": 0,
+      "n_horizon_weighted": 3175,
+      "n_flat_weighted": 468,
+      "horizon_breakdown": {
+        "day_14": 431,
+        "day_30": 1374,
+        "day_7": 508,
+        "day_3": 738,
+        "day_5": 36,
+        "day_1": 88
+      }
+    },
+    "realistic_summary": {
+      "n_trades": 3643,
+      "initial_nav": 100000.0,
+      "final_nav": 301440.56,
+      "total_return_pct": 201.4406,
+      "max_drawdown_pct": 1.9933,
+      "sharpe_proxy": 12.9325,
+      "alpha_vs_spy_pct": 193.0947,
+      "total_slippage_cost_pct": 1.6845,
+      "n_concentration_capped_days": 1,
+      "n_gross_capped_days": 0,
+      "n_total_days": 54,
+      "friction_drag_pct": 12.5667
+    },
+    "honest_summary": {
+      "method": "lump_sum_on_firing_day_full_calendar_arithmetic_ann_with_rf_and_bootstrap",
+      "rf_annual": 0.05,
+      "n_business_days": 46,
+      "n_years": 0.183,
+      "n_trades_distributed": 3643,
+      "n_trades_skipped": 0,
+      "data_sufficient": false,
+      "data_sufficiency_min_years": 0.5,
+      "data_sufficiency_note": "Insufficient data: 46 business days (0.183y). Annualized Sharpe is unreliable for windows under 0.5y. Use the unannualized period stats below. The window is constrained because the calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 window will widen as new outcomes accumulate.",
+      "initial_nav": 100000.0,
+      "final_nav": 295704.92,
+      "period_total_return_pct": 195.7049,
+      "period_max_drawdown_pct": 1.9962,
+      "period_n_business_days": 46,
+      "period_alpha_vs_spy_pct": 187.359,
+      "total_return_pct": 195.7049,
+      "annualized_return_pct": 620.1693,
+      "annualized_vol_pct": 64.165,
+      "max_drawdown_pct": 1.9962,
+      "sharpe_point": 9.5873,
+      "sharpe_p5": 5.3166,
+      "sharpe_median": 9.0676,
+      "sharpe_p95": 13.4273,
+      "n_bootstrap_samples": 1000,
+      "n_pos_days": 29,
+      "n_neg_days": 10,
+      "n_flat_days": 7,
+      "daily_hit_rate": 0.6304,
+      "alpha_vs_spy_pct": 187.359,
+      "known_limitations": [
+        "Window currently <0.5y because calibrator filters pre-2026-04-24 legacy outcomes via 30d TTL \u2014 annualized Sharpe gated by data_sufficient",
+        "In-sample calibration weights (look-ahead bias) \u2014 fixed in v2.1 with walk-forward",
+        "No daily mark-to-market \u2014 trades are lumped on firing day, real positions accrue P&L over holding period",
+        "Survivorship bias \u2014 outcomes only include scored trades (delisted positions excluded)"
+      ]
+    },
+    "walkforward_summary": {
+      "method": "walk_forward_calibration",
+      "available": true,
+      "n_snapshots": 1,
+      "snapshots_earliest": "2026-05-04",
+      "snapshots_latest": "2026-05-10",
+      "n_trades_total": 3809,
+      "n_trades_walkforward_resolved": 1066,
+      "n_trades_predates_snapshots": 2681,
+      "n_trades_signal_missing_in_snapshot": 62,
+      "coverage_pct": 27.99,
+      "data_sufficient": false,
+      "data_sufficiency_note": "walk-forward coverage 28.0%, window 46 biz days (0.183y). NOT YET PUBLISHABLE \u2014 wait for more snapshots and/or longer window.",
+      "n_business_days": 46,
+      "n_years": 0.183,
+      "initial_nav": 100000.0,
+      "final_nav": 100117.79,
+      "period_total_return_pct": 0.1178,
+      "period_max_drawdown_pct": 0.3011,
+      "period_alpha_vs_spy_pct": -8.2281,
+      "n_pos_days": 4,
+      "n_neg_days": 4,
+      "daily_hit_rate": 0.087,
+      "annualized_return_pct": 0.6486,
+      "annualized_vol_pct": 0.8622,
+      "sharpe_point": -5.0468,
+      "rf_annual": 0.05,
+      "fetch_errors": []
+    },
+    "constants": {
+      "POSITION_SIZE": 0.005,
+      "SLIPPAGE_BPS_PER_LEG": 5,
+      "CONCENTRATION_CAP": 0.4,
+      "GROSS_EXPOSURE_CAP": 1.0,
+      "RF_ANNUAL": 0.05,
+      "N_BOOTSTRAP": 1000,
+      "BOOTSTRAP_BLOCK_LEN": 5
+    },
+    "top_5_contributors": [
+      {
+        "signal_type": "screener_top_pick",
+        "weight": 1.3219,
+        "n_outcomes": 1465,
+        "win_rate": 0.772,
+        "avg_return_pct": 11.6083,
+        "total_contribution": 112.4019,
+        "avg_contribution": 0.0767,
+        "windows_used": {
+          "day_30": 1155,
+          "flat": 310
+        }
+      },
+      {
+        "signal_type": "carry_risk",
+        "weight": 1.453,
+        "n_outcomes": 62,
+        "win_rate": 1.0,
+        "avg_return_pct": 7.4515,
+        "total_contribution": 3.3564,
+        "avg_contribution": 0.0541,
+        "windows_used": {
+          "day_30": 30,
+          "day_14": 32
+        }
+      },
+      {
+        "signal_type": "ml_risk",
+        "weight": 1.1136,
+        "n_outcomes": 115,
+        "win_rate": 0.513,
+        "avg_return_pct": 5.7063,
+        "total_contribution": 2.7128,
+        "avg_contribution": 0.0236,
+        "windows_used": {
+          "day_30": 43,
+          "day_14": 44,
+          "day_7": 28
+        }
+      },
+      {
+        "signal_type": "earnings_pead",
+        "weight": 0.8402,
+        "n_outcomes": 142,
+        "win_rate": 0.5,
+        "avg_return_pct": 3.6327,
+        "total_contribution": 2.167,
+        "avg_contribution": 0.0153,
+        "windows_used": {
+          "day_3": 142
+        }
+      },
+      {
+        "signal_type": "crypto_fear_greed",
+        "weight": 1.1755,
+        "n_outcomes": 124,
+        "win_rate": 0.6532,
+        "avg_return_pct": 2.9952,
+        "total_contribution": 1.6284,
+        "avg_contribution": 0.0131,
+        "windows_used": {
+          "day_14": 73,
+          "day_7": 27,
+          "day_3": 16,
+          "day_1": 8
+        }
+      }
+    ],
+    "bottom_5_contributors": [
+      {
+        "signal_type": "crypto_risk_score",
+        "weight": 0.328,
+        "n_outcomes": 125,
+        "win_rate": 0.104,
+        "avg_return_pct": 2.9975,
+        "total_contribution": -0.6771,
+        "avg_contribution": -0.0054,
+        "windows_used": {
+          "day_14": 73,
+          "day_7": 28,
+          "day_3": 16,
+          "day_1": 8
+        }
+      },
+      {
+        "signal_type": "market_phase",
+        "weight": 0.3098,
+        "n_outcomes": 62,
+        "win_rate": 0.0,
+        "avg_return_pct": 7.4515,
+        "total_contribution": -0.7156,
+        "avg_contribution": -0.0115,
+        "windows_used": {
+          "day_30": 30,
+          "day_14": 32
+        }
+      },
+      {
+        "signal_type": "edge_regime",
+        "weight": 0.3098,
+        "n_outcomes": 62,
+        "win_rate": 0.0,
+        "avg_return_pct": 7.4515,
+        "total_contribution": -0.7156,
+        "avg_contribution": -0.0115,
+        "windows_used": {
+          "day_30": 30,
+          "day_14": 32
+        }
+      },
+      {
+        "signal_type": "squeeze_risk",
+        "weight": 0.3302,
+        "n_outcomes": 90,
+        "win_rate": 0.0667,
+        "avg_return_pct": -6.4107,
+        "total_contribution": -0.9526,
+        "avg_contribution": -0.0106,
+        "windows_used": {
+          "day_3": 90
+        }
+      },
+      {
+        "signal_type": "khalid_index",
+        "weight": 0.3117,
+        "n_outcomes": 115,
+        "win_rate": 0.0,
+        "avg_return_pct": 5.7063,
+        "total_contribution": -1.019,
+        "avg_contribution": -0.0089,
+        "windows_used": {
+          "day_30": 43,
+          "day_14": 44,
+          "day_7": 28
+        }
+      }
+    ],
+    "duration_s": 3.12
+  },
+  "finished": "2026-05-15T11:05:55.481434+00:00"
+}
