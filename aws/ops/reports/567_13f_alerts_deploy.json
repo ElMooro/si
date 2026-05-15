@@ -1,0 +1,33 @@
+{
+  "started": "2026-05-15T10:21:47.598834+00:00",
+  "lambda_last_modified": "2026-05-13T23:53:50.000+0000",
+  "pre_env": {
+    "had_TG_token": false,
+    "had_TG_chat": false,
+    "keys": [
+      "FMP_KEY",
+      "MAX_PARALLEL",
+      "S3_BUCKET",
+      "S3_CACHE_PREFIX",
+      "S3_FILINGS_KEY",
+      "S3_KEY",
+      "USER_AGENT"
+    ]
+  },
+  "ssm_token_err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+  "env_patched": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "funds_parsed": 17,
+    "funds_failed": 0,
+    "tickers_aggregated": 7949
+  },
+  "log_size": 1164,
+  "log_relevant": [
+    "13F positions: 17 funds parsed | 7949 unique tickers | top buy: AAPL"
+  ],
+  "log_tail_raw": "START RequestId: 7e7c48ce-066d-4f37-83f5-76e7e65dac7c Version: $LATEST\nELLIOTT: no latest filing in index\nParsing 17 funds in parallel (max 3)\u2026\nBERKSHIRE: using cached positions (42)\nBRIDGEWATER: using cached positions (1040)\nRENAISSANCE: using cached positions (3185)\nAQR: using cached positions (3562)\nTWO_SIGMA: using cached positions (3534)\nCITADEL: using cached positions (6510)\nMILLENNIUM: using cached positions (4328)\nPERSHING: using cached positions (11)\nGREENLIGHT: using cached positions (40)\nSOROS: using cached positions (237)\nTIGER_GLOBAL: using cached positions (54)\nCOATUE: using cached positions (52)\nSCION: using cached positions (8)\nBAUPOST: using cached positions (32)\nDURATION: using cached positions (2301)  LONE_PINE: using cached positions (22)\nPOINT72: using cached positions (2549)\nResolving 200 unique top CUSIPs via FMP\u2026\nresolved 0/200 via FMP\n13F positions: 17 funds parsed | 7949 unique tickers | top buy: AAPL\nEND RequestId: 7e7c48ce-066d-4f37-83f5-76e7e65dac7c\nREPORT RequestId: 7e7c48ce-066d-4f37-83f5-76e7e65dac7c\tDuration: 8351.26 ms\tBilled Duration: 8930 ms\tMemory Size: 512 MB\tMax Memory Used: 220 MB\tInit Duration: 577.78 ms\t\n",
+  "finished": "2026-05-15T10:22:04.954811+00:00"
+}
