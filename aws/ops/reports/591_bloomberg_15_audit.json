@@ -1,0 +1,143 @@
+{
+  "started": "2026-05-15T23:13:41.103305+00:00",
+  "lambda_matches": {
+    "1_consensus": [
+      "justhodl-eps-revision-velocity"
+    ],
+    "2_pead": [
+      "justhodl-earnings-pead",
+      "justhodl-pead-detector"
+    ],
+    "3_vol_surface": [],
+    "4_macro_surprise": [
+      "justhodl-macro-surprise"
+    ],
+    "5_cds": [],
+    "6_etf_flows": [
+      "justhodl-etf-flows"
+    ],
+    "7_market_internals": [],
+    "8_tic_flows": [],
+    "9_bond_trace": [],
+    "10_esi": [],
+    "11_yield_curve_3d": [
+      "justhodl-yield-curve"
+    ],
+    "12_sector_heatmap": [],
+    "13_seasonality": [],
+    "14_sell_side": [],
+    "15_liquidity_profile": []
+  },
+  "lambda_detail": {
+    "1_consensus": {
+      "justhodl-eps-revision-velocity": {
+        "memory": 1024,
+        "timeout": 300,
+        "last_modified": "2026-05-05T22:41:56.000+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-eps-revision-velocity-daily=cron(30 9 * * ? *)(ENABLED)"
+        ]
+      }
+    },
+    "2_pead": {
+      "justhodl-earnings-pead": {
+        "memory": 1024,
+        "timeout": 600,
+        "last_modified": "2026-05-06T13:57:55.000+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-earnings-pead-daily=cron(0 8 * * ? *)(ENABLED)"
+        ]
+      },
+      "justhodl-pead-detector": {
+        "memory": 2048,
+        "timeout": 600,
+        "last_modified": "2026-05-06T13:53:53.000+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-pead-detector-daily=cron(0 8 * * ? *)(ENABLED)"
+        ]
+      }
+    },
+    "4_macro_surprise": {
+      "justhodl-macro-surprise": {
+        "memory": 512,
+        "timeout": 600,
+        "last_modified": "2026-05-04T12:15:19.471+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-macro-surprise-6h=rate(6 hours)(ENABLED)"
+        ]
+      }
+    },
+    "6_etf_flows": {
+      "justhodl-etf-flows": {
+        "memory": 512,
+        "timeout": 600,
+        "last_modified": "2026-05-04T00:18:41.610+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-etf-flows-6h=rate(6 hours)(ENABLED)"
+        ]
+      }
+    },
+    "11_yield_curve_3d": {
+      "justhodl-yield-curve": {
+        "memory": 512,
+        "timeout": 600,
+        "last_modified": "2026-05-04T12:19:04.789+0000",
+        "state": "Active",
+        "eb": [
+          "justhodl-yield-curve-6h=rate(6 hours)(ENABLED)"
+        ]
+      }
+    }
+  },
+  "sidecars": {
+    "1_consensus": [],
+    "2_pead": [
+      {
+        "key": "data/earnings-pead.json",
+        "size_kb": 560.4,
+        "modified": "2026-05-15T08:00:28",
+        "age_h": 15.2
+      }
+    ],
+    "3_vol_surface": [],
+    "4_macro_surprise": [
+      {
+        "key": "data/macro-surprise.json",
+        "size_kb": 11.0,
+        "modified": "2026-05-15T18:16:07",
+        "age_h": 5.0
+      }
+    ],
+    "5_cds": [],
+    "6_etf_flows": [
+      {
+        "key": "data/etf-flows.json",
+        "size_kb": 26.4,
+        "modified": "2026-05-15T18:19:09",
+        "age_h": 4.9
+      }
+    ],
+    "7_market_internals": [],
+    "8_tic_flows": [],
+    "9_bond_trace": [],
+    "10_esi": [],
+    "11_yield_curve_3d": [
+      {
+        "key": "data/yield-curve.json",
+        "size_kb": 5.6,
+        "modified": "2026-05-15T18:19:50",
+        "age_h": 4.9
+      }
+    ],
+    "12_sector_heatmap": [],
+    "13_seasonality": [],
+    "14_sell_side": [],
+    "15_liquidity_profile": []
+  },
+  "finished": "2026-05-15T23:13:49.455902+00:00"
+}
