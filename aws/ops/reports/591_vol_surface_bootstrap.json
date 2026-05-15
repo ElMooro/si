@@ -1,0 +1,53 @@
+{
+  "started": "2026-05-15T23:52:20.694608+00:00",
+  "ssm": {
+    "tg_token": true,
+    "tg_chat": true,
+    "fred": true
+  },
+  "pre_modified": "2026-05-15T23:52:21.117+0000",
+  "env_patch": "OK",
+  "env_keys": [
+    "FRED_API_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "regime": "MIXED",
+    "n_underlyings": 0,
+    "alerts": 0
+  },
+  "log_lines": [
+    "[vol-surface] starting 2026-05-15T23:57:56.403573+00:00",
+    "[vol-surface] r_rate=0.0363",
+    "[SPY] EXC: HTTP Error 429: Too Many Requests",
+    "[QQQ] EXC: HTTP Error 429: Too Many Requests",
+    "[IWM] EXC: HTTP Error 429: Too Many Requests",
+    "[GLD] EXC: HTTP Error 429: Too Many Requests",
+    "[TLT] EXC: HTTP Error 429: Too Many Requests",
+    "[HYG] EXC: HTTP Error 429: Too Many Requests",
+    "[vol-surface] done 26.12s regime=MIXED alerts=0"
+  ],
+  "sidecar_size_kb": 0.3,
+  "sidecar_summary": {
+    "generated_at": "2026-05-15T23:58:22.519905+00:00",
+    "elapsed_s": 26.12,
+    "r_rate_used": 0.0363,
+    "global": {
+      "regime": "MIXED",
+      "n_underlyings": 0,
+      "n_term_inverted": 0,
+      "n_put_skew": 0,
+      "n_call_skew": 0,
+      "n_flat_smile": 0,
+      "avg_rr25_pctile": null
+    },
+    "alerts": [],
+    "underlyings_summary": {},
+    "sample_expiration_SPY": null
+  },
+  "finished": "2026-05-15T23:58:22.978426+00:00"
+}
