@@ -1,0 +1,76 @@
+{
+  "started": "2026-05-15T17:12:23.009032+00:00",
+  "margin_new_modified": "2026-05-15T17:12:25.000+0000",
+  "margin_invoke_status": 200,
+  "margin_fn_error": null,
+  "margin_response": {
+    "ok": true,
+    "margin_debt_pct_of_cap": 0.862,
+    "margin_status": "LOW",
+    "squeeze_score": 10,
+    "squeeze_band": "LOW"
+  },
+  "margin_log_tail": "START RequestId: 1646b3ba-5217-4572-9bde-358dc0016480 Version: $LATEST\n[margin-lending] starting\n[fred] WILL5000IND: HTTP Error 400: Bad Request\n[margin-lending] md=0.862% squeeze=10(LOW)\nEND RequestId: 1646b3ba-5217-4572-9bde-358dc0016480\nREPORT RequestId: 1646b3ba-5217-4572-9bde-358dc0016480\tDuration: 1196.32 ms\tBilled Duration: 1693 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\tInit Duration: 495.87 ms\t\n",
+  "margin_sidecar": {
+    "schema_version": "1.0",
+    "method": "margin_lending_v1",
+    "generated_at": "2026-05-15T17:12:36.255193+00:00",
+    "margin_debt": {
+      "absolute_usd_b": 609.675,
+      "as_pct_of_market_cap": 0.862,
+      "yoy_pct": 25.57,
+      "growth_6mo_pct": 20.39,
+      "latest_date": "2025-10-01",
+      "status": "LOW",
+      "interpretation": "Margin debt at $610B = 0.862% of est. US market cap. Normal range."
+    },
+    "repo_collateral_proxy": {
+      "rrp_award_b": 2.034,
+      "rrp_5d_avg_b": 1.77,
+      "rrp_30d_avg_b": 1.46,
+      "rrp_direction": "INCREASING_TAKE",
+      "sofr_rate_pct": 3.56,
+      "sofr_5d_avg_pct": 3.59,
+      "sofr_30d_avg_pct": 3.629,
+      "sofr_direction": "STABLE",
+      "interpretation": "RRP INCREASING_TAKE. SOFR 3.56% (STABLE)."
+    },
+    "consumer_credit": {
+      "total_outstanding_b": 5140540.72,
+      "yoy_pct": 2.35,
+      "revolving_outstanding_b": 1336987.42,
+      "revolving_yoy_pct": 3.42,
+      "momentum": "NORMAL",
+      "interpretation": "Total $5140541B (YoY +2.4%). Revolving $1336987B (YoY +3.4%). Momentum: NORMAL."
+    },
+    "squeeze_risk": {
+      "score": 10,
+      "band": "LOW",
+      "reasons": [
+        "Margin debt up +20.4% in 6mo"
+      ],
+      "interpretation": "Leverage deeply suppressed. Often follows deleveraging events. Bottoming conditions if other oversold indicators align."
+    },
+    "duration_s": 1.04
+  },
+  "intel_page_status": 200,
+  "intel_page_size_kb": 28.7,
+  "intel_markers_found": {
+    "\ud83e\udde0 INTELLIGENCE": true,
+    "Adaptive Khalid": true,
+    "Stress Scenarios": true,
+    "Political Trades": true,
+    "Reversal Radar": true,
+    "Auction Grades": true,
+    "Repo &amp; Lending": true,
+    "data/khalid-adaptive.json": true,
+    "data/stress-scenarios.json": true,
+    "data/political-trades.json": true,
+    "data/reversal-radar.json": true,
+    "data/auction-grades.json": true,
+    "data/repo-lending.json": true
+  },
+  "intel_all_pass": true,
+  "home_has_intel_link": true,
+  "finished": "2026-05-15T17:12:36.805975+00:00"
+}
