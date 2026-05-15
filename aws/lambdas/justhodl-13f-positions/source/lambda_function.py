@@ -910,6 +910,131 @@ def lambda_handler(event, context):
           f"{len(by_ticker)} unique tickers | "
           f"top buy: {most_bought[0]['ticker'] if most_bought else '?'}")
 
+    # ─── ALERTS ────────────────────────────────────────────────────────
+    # Compare new output vs prior_run, fire Telegram on meaningful changes.
+    try:
+        prior_quarter = (prior_run or {}).get("as_of_quarter")
+        new_quarter = output.get("as_of_quarter")
+        alerts = []
+
+        # 1. QUARTER ADVANCE — biggest signal (only fires once per quarter)
+        if prior_quarter and new_quarter and prior_quarter != new_quarter:
+            top_buys_str = ", ".join(
+                f"{x['ticker']}(score{x['net_action_score']:+d})"
+                for x in most_bought[:5] if x.get("ticker")
+            )
+            top_sells_str = ", ".join(
+                f"{x['ticker']}(score{x['net_action_score']:+d})"
+                for x in most_sold[:5] if x.get("ticker")
+            )
+            alerts.append(
+                f"🐋 <b>13F QUARTER ADVANCE</b>\n"
+                f"<b>{prior_quarter} → {new_quarter}</b>\n"
+                f"{len(successful)} of {len(WATCHLIST)} funds filed.\n\n"
+                f"<b>TOP NEW CONSENSUS BUYS:</b>\n{top_buys_str}\n\n"
+                f"<b>TOP CONSENSUS SELLS:</b>\n{top_sells_str}\n\n"
+                f"<a href='https://justhodl.ai/smart-money/'>justhodl.ai/smart-money/</a>"
+            )
+
+        # 2. NEW STRONG-CONSENSUS BUYS — score >= +8 that wasn't strong-consensus last run
+        prior_strong_buys = set()
+        for x in (prior_run or {}).get("most_bought", []):
+            if (x.get("net_action_score") or 0) >= 8 and x.get("ticker"):
+                prior_strong_buys.add(x["ticker"])
+        new_strong_buys = []
+        for x in most_bought:
+            if (x.get("net_action_score") or 0) >= 8 and x.get("ticker") and x["ticker"] not in prior_strong_buys:
+                new_strong_buys.append(x)
+        if new_strong_buys:
+            buys_detail = "\n".join(
+                f"• <b>{x['ticker']}</b> score {x['net_action_score']:+d} · "
+                f"{x['n_funds_holding']} hold · +{x['n_funds_adding']} add · "
+                f"{x['n_funds_new_position']} NEW · −{x['n_funds_trimming']} trim"
+                for x in new_strong_buys[:4]
+            )
+            alerts.append(
+                f"🐋 <b>NEW STRONG-CONSENSUS BUYS (score ≥ +8)</b>\n{buys_detail}\n\n"
+                f"<a href='https://justhodl.ai/smart-money/'>justhodl.ai/smart-money/</a>"
+            )
+
+        # 3. NEW STRONG-CONSENSUS SELLS — score <= -8 that wasn't last run
+        prior_strong_sells = set()
+        for x in (prior_run or {}).get("most_sold", []):
+            if (x.get("net_action_score") or 0) <= -8 and x.get("ticker"):
+                prior_strong_sells.add(x["ticker"])
+        new_strong_sells = []
+        for x in most_sold:
+            if (x.get("net_action_score") or 0) <= -8 and x.get("ticker") and x["ticker"] not in prior_strong_sells:
+                new_strong_sells.append(x)
+        if new_strong_sells:
+            sells_detail = "\n".join(
+                f"• <b>{x['ticker']}</b> score {x['net_action_score']:+d} · "
+                f"{x['n_funds_holding']} hold · −{x['n_funds_trimming']} trim · "
+                f"{x['n_funds_exiting']} EXIT"
+                for x in new_strong_sells[:4]
+            )
+            alerts.append(
+                f"🐋 <b>NEW STRONG-CONSENSUS SELLS (score ≤ −8)</b>\n{sells_detail}"
+            )
+
+        # 4. FAMOUS-FUND MOVES — Berkshire, Burry (Scion), Klarman (Baupost),
+        #    Einhorn (Greenlight), Ackman (Pershing) — small fund books, every move matters
+        FAMOUS = {"BERKSHIRE", "SCION", "BAUPOST", "GREENLIGHT", "PERSHING", "LONE_PINE"}
+        prior_famous_actions = {}
+        for fname, fdata in (prior_run or {}).get("by_fund", {}).items():
+            if fname in FAMOUS and isinstance(fdata, dict):
+                cs = fdata.get("changes_summary") or {}
+                prior_famous_actions[fname] = {
+                    "new": {p.get("ticker") for p in (cs.get("new") or []) if p.get("ticker")},
+                    "exits": {p.get("ticker") for p in (cs.get("exits") or []) if p.get("ticker")},
+                }
+        famous_changes = []
+        for fname, fdata in (output.get("by_fund") or {}).items():
+            if fname not in FAMOUS or not isinstance(fdata, dict): continue
+            cs = fdata.get("changes_summary") or {}
+            cur_new = {p.get("ticker") for p in (cs.get("new") or []) if p.get("ticker")}
+            cur_exits = {p.get("ticker") for p in (cs.get("exits") or []) if p.get("ticker")}
+            prior = prior_famous_actions.get(fname, {"new": set(), "exits": set()})
+            delta_new = cur_new - prior["new"]
+            delta_exits = cur_exits - prior["exits"]
+            if delta_new or delta_exits:
+                fname_pretty = fdata.get("fund_name", fname)
+                if delta_new:
+                    famous_changes.append(
+                        f"• <b>{fname_pretty}</b> NEW: {', '.join(sorted(delta_new))[:200]}"
+                    )
+                if delta_exits:
+                    famous_changes.append(
+                        f"• <b>{fname_pretty}</b> EXIT: {', '.join(sorted(delta_exits))[:200]}"
+                    )
+        if famous_changes:
+            alerts.append(
+                "🐋 <b>FAMOUS-FUND MOVES</b>\n" + "\n".join(famous_changes[:8])
+            )
+
+        # Send all alerts
+        TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+        TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+        if alerts and TG_TOKEN and TG_CHAT:
+            import urllib.request as _ur
+            for msg in alerts:
+                try:
+                    body = json.dumps({
+                        "chat_id": TG_CHAT, "text": msg,
+                        "parse_mode": "HTML", "disable_web_page_preview": True,
+                    }).encode("utf-8")
+                    req = _ur.Request(
+                        f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+                        data=body, headers={"Content-Type": "application/json"})
+                    _ur.urlopen(req, timeout=10).read()
+                    print(f"[13f-alert] sent: {msg[:80]}")
+                except Exception as e:
+                    print(f"[13f-alert] err: {e}")
+        elif alerts:
+            print(f"[13f-alert] {len(alerts)} alerts but no Telegram creds — would have fired")
+    except Exception as e:
+        print(f"[13f-alert] exception in alert block: {e}")
+
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
