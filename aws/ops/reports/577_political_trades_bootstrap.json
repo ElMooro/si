@@ -1,0 +1,35 @@
+{
+  "started": "2026-05-15T11:34:24.853437+00:00",
+  "lambda_last_modified": "2026-05-15T11:34:26.761+0000",
+  "env_patched": "OK",
+  "eventbridge_rule": "OK",
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "n_senate": 0,
+    "n_house": 0,
+    "n_clusters": 0,
+    "n_large_trades": 0,
+    "top_5_recent": []
+  },
+  "log_tail": "START RequestId: 2563312a-f574-44ea-b589-b2fe9e19a59a Version: $LATEST\n[political-trades] starting\n[senate] HTTP 404 on https://financialmodelingprep.com/stable/senate-trading-rss-feed\n[senate] HTTP 404 on https://financialmodelingprep.com/stable/senate-trading\n[senate] HTTP 404 on https://financialmodelingprep.com/stable/senate-trades-rss\n[house] HTTP 404 on https://financialmodelingprep.com/stable/house-disclosure-rss-feed\n[house] HTTP 404 on https://financialmodelingprep.com/stable/senate-disclosure-rss-feed\n[house] HTTP 404 on https://financialmodelingprep.com/stable/house-trading\n[house] HTTP 404 on https://financialmodelingprep.com/stable/house-disclosure\n[political-trades] senate=0 house=0 clusters=0 large=0 hw=0\nEND RequestId: 2563312a-f574-44ea-b589-b2fe9e19a59a\nREPORT RequestId: 2563312a-f574-44ea-b589-b2fe9e19a59a\tDuration: 379.43 ms\tBilled Duration: 904 ms\tMemory Size: 512 MB\tMax Memory Used: 95 MB\tInit Duration: 524.38 ms\t\n",
+  "sidecar_size_kb": 0.4,
+  "sidecar_stats": {
+    "n_senate": 0,
+    "n_house": 0,
+    "n_total": 0,
+    "n_clusters": 0,
+    "n_large_trades": 0,
+    "n_high_watch": 0,
+    "n_recent_30d": 0
+  },
+  "endpoints_used": {
+    "senate": null,
+    "house": null
+  },
+  "sample_trades": [],
+  "clusters": [],
+  "large_trades": [],
+  "finished": "2026-05-15T11:34:44.419442+00:00"
+}
