@@ -5,7 +5,7 @@ import io, json, os, time as _time, base64
 from datetime import datetime, timezone
 import boto3
 
-REPORT = "aws/ops/reports/580_triple_bootstrap.json"
+REPORT = "aws/ops/reports/581_triple_bootstrap.json"
 ACCOUNT = "857687956942"
 REGION = "us-east-1"
 
