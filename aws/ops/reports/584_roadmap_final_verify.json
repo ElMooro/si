@@ -1,0 +1,124 @@
+{
+  "started": "2026-05-15T12:29:36.023130+00:00",
+  "lambdas": {
+    "justhodl-insider-cluster-scanner": {
+      "exists": true,
+      "last_modified": "2026-05-15T10:54:08.000+0000",
+      "state": "Active",
+      "mem": 1536,
+      "timeout": 900,
+      "had_TG_token": false,
+      "had_TG_chat": true,
+      "eb_rules": [
+        "justhodl-insider-cluster-scanner-daily"
+      ],
+      "eb_schedule": "cron(30 14 ? * MON-FRI *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 86.5,
+      "sidecar_modified": "2026-05-15T11:08:55"
+    },
+    "justhodl-khalid-adaptive": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:25:53.000+0000",
+      "state": "Active",
+      "mem": 512,
+      "timeout": 60,
+      "had_TG_token": false,
+      "had_TG_chat": true,
+      "eb_rules": [
+        "justhodl-khalid-adaptive-hourly"
+      ],
+      "eb_schedule": "cron(20 * ? * * *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 2.3,
+      "sidecar_modified": "2026-05-15T12:20:51"
+    },
+    "justhodl-stress-scenarios": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:28:36.000+0000",
+      "state": "Active",
+      "mem": 512,
+      "timeout": 60,
+      "had_TG_token": false,
+      "had_TG_chat": true,
+      "eb_rules": [
+        "justhodl-stress-scenarios-hourly"
+      ],
+      "eb_schedule": "cron(25 * ? * * *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 16.2,
+      "sidecar_modified": "2026-05-15T12:25:21"
+    },
+    "justhodl-political-trades": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:39:12.000+0000",
+      "state": "Active",
+      "mem": 512,
+      "timeout": 120,
+      "had_TG_token": false,
+      "had_TG_chat": true,
+      "eb_rules": [
+        "justhodl-political-trades-daily"
+      ],
+      "eb_schedule": "cron(45 13 ? * MON-FRI *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 29.9,
+      "sidecar_modified": "2026-05-15T11:41:15"
+    },
+    "justhodl-reversal-radar": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:47:52.000+0000",
+      "state": "Active",
+      "mem": 256,
+      "timeout": 60,
+      "had_TG_token": false,
+      "had_TG_chat": true,
+      "eb_rules": [
+        "justhodl-reversal-radar-hourly"
+      ],
+      "eb_schedule": "cron(30 * ? * * *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 0.7,
+      "sidecar_modified": "2026-05-15T11:53:38"
+    },
+    "justhodl-auction-grader": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:53:52.000+0000",
+      "state": "Active",
+      "mem": 256,
+      "timeout": 60,
+      "had_TG_token": false,
+      "had_TG_chat": false,
+      "eb_rules": [
+        "justhodl-auction-grader-daily",
+        "justhodl-auction-grader-hourly"
+      ],
+      "eb_schedule": "cron(0 16 ? * MON-FRI *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 17.1,
+      "sidecar_modified": "2026-05-15T11:54:03"
+    },
+    "justhodl-repo-lending": {
+      "exists": true,
+      "last_modified": "2026-05-15T11:48:46.000+0000",
+      "state": "Active",
+      "mem": 256,
+      "timeout": 90,
+      "had_TG_token": false,
+      "had_TG_chat": false,
+      "eb_rules": [
+        "justhodl-repo-lending-daily"
+      ],
+      "eb_schedule": "cron(0 16 ? * MON-FRI *)",
+      "eb_state": "ENABLED",
+      "sidecar_size_kb": 0.7,
+      "sidecar_modified": "2026-05-15T11:48:59"
+    },
+    "justhodl-margin-lending": {
+      "err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687",
+      "exists": false
+    }
+  },
+  "ssm_creds_err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: ",
+  "finished": "2026-05-15T12:29:37.910589+00:00"
+}
