@@ -1,0 +1,81 @@
+{
+  "started": "2026-05-16T17:35:45.884455+00:00",
+  "global_liquidity": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"CONTRACTING\\\", \\\"impulse_13w_pct\\\": -1.53, \\\"gli_trillions\\\": 18.24, \\\"fred_failed\\\": []}\"}",
+      "log_tail": "START RequestId: e6a0ff4a-9f43-46e2-ab36-5bd8629ee226 Version: $LATEST\n[global-liquidity] starting 2026-05-16T17:35:46.837549+00:00\n[fred] ECBASSETSW: 400 obs\n[fred] RRPONTSYD: 381 obs\n[fred] WALCL: 400 obs\n[fred] M2SL: 400 obs\n[fred] DEXUSEU: 383 obs\n[fred] WTREGEN: 400 obs\n[fred] JPNASSETS: 337 obs\n[fred] DEXJPUS: 383 obs\n[global-liquidity] done 4.5s regime=CONTRACTING impulse=-1.5% gli=$18.24T failed=[]\nEND RequestId: e6a0ff4a-9f43-46e2-ab36-5bd8629ee226\nREPORT RequestId: e6a0ff4a-9f43-46e2-ab36-5bd8629ee226\tDuration: 4998.15 ms\tBilled Duration: 5510 ms\tMemory Size: 256 MB\tMax Memory Used: 96 MB\tInit Duration: 511.49 ms\t\n"
+    },
+    "regime": "CONTRACTING",
+    "fred_failed": [],
+    "components_usd_bn": {
+      "Fed": 6728.5,
+      "ECB": 7281.9,
+      "BOJ": 4234.3
+    },
+    "gli_total_usd_bn": 18244.6,
+    "gli_trillions": 18.24,
+    "fed_net_liquidity_bn": 5886.2,
+    "fed_net_liquidity_trillions": 5.89,
+    "m2_yoy": 4.57,
+    "checks": {
+      "boj_sane": true,
+      "gli_sane": true,
+      "netliq_sane": true
+    }
+  },
+  "baggers_page": {
+    "http_status": 200,
+    "size_bytes": 24097,
+    "markers_found": {
+      "100x Bagger Engine": true,
+      "bagger-engine.json": true,
+      "hiring-velocity.json": true,
+      "global-liquidity.json": true,
+      "insider-aggregate.json": true,
+      "coffee-can.json": true,
+      "Multibagger Candidates": true,
+      "Coffee-Can Portfolio": true
+    },
+    "all_markers_ok": true
+  },
+  "sidecar_freshness": {
+    "bagger-engine.json": {
+      "status": "OK",
+      "generated_at": "2026-05-16T16:51:08.889781+00:00",
+      "age_hours": 0.7,
+      "size_kb": 376.7
+    },
+    "coffee-can.json": {
+      "status": "OK",
+      "generated_at": "2026-05-16T16:55:15.529750+00:00",
+      "age_hours": 0.7,
+      "size_kb": 0.6
+    },
+    "hiring-velocity.json": {
+      "status": "OK",
+      "generated_at": "2026-05-16T16:55:23.538162+00:00",
+      "age_hours": 0.7,
+      "size_kb": 51.3
+    },
+    "global-liquidity.json": {
+      "status": "OK",
+      "generated_at": "2026-05-16T17:35:51.373044+00:00",
+      "age_hours": 0.0,
+      "size_kb": 10.8
+    },
+    "insider-aggregate.json": {
+      "status": "OK",
+      "generated_at": "2026-05-16T16:55:28.680163+00:00",
+      "age_hours": 0.7,
+      "size_kb": 2.0
+    }
+  },
+  "summary": {
+    "global_liquidity_units_fixed": true,
+    "baggers_page_live": true,
+    "all_sidecars_present": true
+  },
+  "finished": "2026-05-16T17:35:53.488940+00:00"
+}
