@@ -1,0 +1,124 @@
+{
+  "ops": 732,
+  "ts": "2026-05-16T23:19:16.307750+00:00",
+  "subject": "deploy-workers CI log diagnosis",
+  "workflow": {
+    "id": 264783744,
+    "state": "active",
+    "path": ".github/workflows/deploy-workers.yml"
+  },
+  "recent_runs": [
+    {
+      "id": 25975498900,
+      "created": "2026-05-16T23:13:29Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "fix(ci): deploy-workers \u2014 diff full push range, not just tip"
+    },
+    {
+      "id": 25975275969,
+      "created": "2026-05-16T23:01:28Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "ci: force CF Worker redeploy \u2014 publish /portfolio-admin rout"
+    },
+    {
+      "id": 25974951708,
+      "created": "2026-05-16T22:44:31Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "feat(worker): route portfolio-admin writes through justhodl-"
+    },
+    {
+      "id": 25792713880,
+      "created": "2026-05-13T10:13:28Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "fix(yahoo-proxy): drop custom_domain route \u2014 workers.dev onl"
+    },
+    {
+      "id": 25791998071,
+      "created": "2026-05-13T09:58:34Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "fix(gex): bind yahoo-proxy to custom domain yahoo-proxy.just"
+    },
+    {
+      "id": 25791778446,
+      "created": "2026-05-13T09:54:06Z",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "failure",
+      "head": "fix(gex): route Yahoo calls through Cloudflare Worker proxy\n"
+    }
+  ],
+  "latest_run_jobs": [
+    {
+      "job": "Deploy changed Workers",
+      "conclusion": "failure",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configure AWS credentials",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Node",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install wrangler",
+          "conclusion": "success"
+        },
+        {
+          "name": "Detect changed Workers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Fetch AI_CHAT_TOKEN from SSM",
+          "conclusion": "success"
+        },
+        {
+          "name": "Deploy each changed Worker",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Summary",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Node",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Configure AWS credentials",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "log_fetch_error": {
+    "error": "\ufeff<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>InvalidAuthenticationInfo</Code><Message>Server failed to authenticate the request. Please refer to the information in the www-authenticate header.\nRequestId:78f3a881-701e-0023-668a-e598c9000000\nTime:2026-05-16T23:19:17.0999764Z</Message><Authentic"
+  },
+  "verdict": "inspect latest_run_jobs + failing_log_excerpt"
+}
