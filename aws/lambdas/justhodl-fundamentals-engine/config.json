@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-fundamentals-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FMP Fundamentals X-Ray — DCF intrinsic value, revenue segmentation (product + geographic), Altman-Z / Piotroski health scores. Output data/fundamentals.json.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-analyst-consensus", "keys": ["FMP_KEY"]}
+  ],
+  "schedule": {
+    "rule_name": "fundamentals-engine-daily",
+    "cron": "cron(0 13 ? * MON-FRI *)",
+    "description": "FMP Fundamentals X-Ray — daily 13:00 UTC, before master-ranker / pm-decision refresh"
+  }
+}
