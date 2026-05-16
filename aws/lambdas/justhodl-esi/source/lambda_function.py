@@ -136,7 +136,8 @@ def lambda_handler(event, context):
     for e in events:
         if not isinstance(e, dict): continue
         dt = (e.get("release_date") or e.get("date") or e.get("ts")
-              or e.get("latest_release_date") or e.get("last_release"))
+              or e.get("latest_release_date") or e.get("last_release")
+              or e.get("latest_date"))
         d_ago = days_ago(dt, now)
         if d_ago is None or d_ago > 60 or d_ago < 0: continue
         # Get z-score (or compute from beat/miss if available)
@@ -149,12 +150,24 @@ def lambda_handler(event, context):
                 rel = (actual - cons) / abs(cons)
                 z = max(-3, min(3, rel * 5))
         if z is None: continue
+        # Use the pre-categorized field if present (macro-surprise pre-categorizes),
+        # otherwise fall back to keyword categorization
+        cat_raw = e.get("category")
+        if cat_raw:
+            cat_norm = {"INFLATION": "inflation", "GROWTH": "growth",
+                         "CONSUMER": "growth", "LEADING": "growth",
+                         "EMPLOYMENT": "labor", "HOUSING": "housing",
+                         "EXTERNAL": "other"}.get(str(cat_raw).upper(),
+                                                    str(cat_raw).lower())
+            category = cat_norm
+        else:
+            category = categorize(e.get("name") or e.get("indicator"))
         recent.append({
             "name": e.get("name") or e.get("indicator") or "?",
             "date": dt[:10] if isinstance(dt, str) else str(dt),
             "z_score": float(z),
             "days_ago": d_ago,
-            "category": categorize(e.get("name") or e.get("indicator")),
+            "category": category,
         })
 
     if not recent:

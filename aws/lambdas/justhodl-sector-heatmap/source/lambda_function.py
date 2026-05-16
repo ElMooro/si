@@ -88,37 +88,49 @@ def _fetch_json(url, timeout=15, retries=3):
     raise RuntimeError("http")
 
 
-def fmp_quote_batch(tickers, batch_size=100):
-    """FMP /stable/quote returns full quotes for multiple symbols in one call.
-    The /stable/quote/AAPL,MSFT,... pattern is the documented batch endpoint."""
+def fmp_quote_batch(tickers, max_workers=10):
+    """FMP /stable/quote works only with single-symbol queries.
+    Path /stable/quote/AAPL returns 404; ?symbol=AAPL,MSFT returns []
+    (treats comma string as one symbol). So we parallelize single-symbol
+    fetches with a small thread pool to stay within rate limits.
+    Confirmed via ops/600 probe."""
     if not FMP_KEY: return {}
-    out = {}
-    for i in range(0, len(tickers), batch_size):
-        batch = tickers[i:i+batch_size]
-        sym_str = ",".join(batch)
-        url = f"https://financialmodelingprep.com/stable/quote?symbol={sym_str}&apikey={FMP_KEY}"
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def _fetch_one(sym):
+        url = f"https://financialmodelingprep.com/stable/quote?symbol={sym}&apikey={FMP_KEY}"
         try:
-            data = _fetch_json(url, timeout=20)
-            if not isinstance(data, list):
-                print(f"[fmp_quote] unexpected response shape: {str(data)[:200]}")
-                continue
-            for q in data:
-                sym = q.get("symbol")
-                if not sym: continue
-                # FMP fields: change, changePercentage, price, dayLow, dayHigh, volume
-                out[sym] = {
-                    "price": q.get("price"),
-                    "change_1d": q.get("change"),
-                    "change_1d_pct": q.get("changePercentage"),
-                    "day_low": q.get("dayLow"),
-                    "day_high": q.get("dayHigh"),
-                    "volume": q.get("volume"),
-                    "avg_volume": q.get("avgVolume"),
-                }
-            print(f"[fmp_quote] batch {i//batch_size+1}: got {len(data)}/{len(batch)} quotes")
-        except Exception as e:
-            print(f"[fmp_quote] batch {i//batch_size+1} err: {e}")
-        time.sleep(0.4)  # gentle pacing
+            data = _fetch_json(url, timeout=10, retries=2)
+            if not isinstance(data, list) or not data:
+                return sym, None
+            q = data[0]
+            return sym, {
+                "price": q.get("price"),
+                "change_1d": q.get("change"),
+                "change_1d_pct": q.get("changePercentage"),
+                "day_low": q.get("dayLow"),
+                "day_high": q.get("dayHigh"),
+                "volume": q.get("volume"),
+                "avg_volume": q.get("avgVolume"),
+            }
+        except Exception:
+            return sym, None
+
+    out = {}
+    fetched = 0
+    failed = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_fetch_one, s): s for s in tickers}
+        for f in as_completed(futures):
+            sym, q = f.result()
+            if q is not None:
+                out[sym] = q
+                fetched += 1
+            else:
+                failed += 1
+            if (fetched + failed) % 100 == 0:
+                print(f"[fmp_quote] progress {fetched + failed}/{len(tickers)} (fetched={fetched} failed={failed})")
+    print(f"[fmp_quote] DONE: fetched={fetched} failed={failed} of {len(tickers)}")
     return out
 
 
@@ -215,7 +227,7 @@ def lambda_handler(event, context):
 
     # Fetch FMP intraday quotes for all valid tickers
     tickers = [s["symbol"] for s in valid if s.get("symbol")]
-    quotes = fmp_quote_batch(tickers, batch_size=100)
+    quotes = fmp_quote_batch(tickers, max_workers=12)
     print(f"[sector-heatmap] got {len(quotes)} intraday quotes from FMP")
 
     # Enrich and group by sector
