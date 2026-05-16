@@ -1,0 +1,115 @@
+{
+  "started": "2026-05-16T20:39:35.510182+00:00",
+  "actions": [
+    {
+      "function": "fedliquidityapi-test",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "testEnhancedScraper",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "global-liquidity-agent-TEST",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [
+        "liquidity-realtime-TEST-err:Parameter validation failed:\nMissing required para"
+      ],
+      "result": "DELETED"
+    },
+    {
+      "function": "OpenBBS3DataProxy",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "FinancialIntelligence-Backend",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "macro-financial-report-viewer",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "createEnhancedIndex",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "justhodl-bond-vol",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "justhodl-ultimate-trading",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "justhodl-0dte-pinning",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "createUniversalIndex",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "justhodl-cache-layer",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "justhodl-advanced-charts",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    },
+    {
+      "function": "universal-agent-gateway",
+      "invocations_30d_recheck": 0,
+      "rules_removed": [],
+      "result": "DELETED"
+    }
+  ],
+  "lambda_count_after": 262,
+  "summary": {
+    "deleted": [
+      "fedliquidityapi-test",
+      "testEnhancedScraper",
+      "global-liquidity-agent-TEST",
+      "OpenBBS3DataProxy",
+      "FinancialIntelligence-Backend",
+      "macro-financial-report-viewer",
+      "createEnhancedIndex",
+      "justhodl-bond-vol",
+      "justhodl-ultimate-trading",
+      "justhodl-0dte-pinning",
+      "createUniversalIndex",
+      "justhodl-cache-layer",
+      "justhodl-advanced-charts",
+      "universal-agent-gateway"
+    ],
+    "n_deleted": 14,
+    "skipped": [],
+    "n_skipped": 0,
+    "lambda_count_after": 262
+  },
+  "finished": "2026-05-16T20:39:48.599475+00:00"
+}
