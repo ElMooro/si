@@ -1,0 +1,135 @@
+{
+  "started": "2026-05-16T19:41:01.352100+00:00",
+  "leading_markets": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"turning_point_signal\\\": \\\"EXPANSION_CONFIRMED\\\", \\\"leading_score\\\": 74.5, \\\"risk_score\\\": 25.5, \\\"expansion_breadth_pct\\\": 70.0, \\\"fmp_failed\\\": []}\"}"
+    },
+    "sidecar": {
+      "generated_at": "2026-05-16T19:41:03.688063+00:00",
+      "turning_point_signal": "EXPANSION_CONFIRMED",
+      "leading_score": 74.5,
+      "risk_score": 25.5,
+      "expansion_breadth_pct": 70.0,
+      "regime_counts": {
+        "EXPANSION": 7,
+        "SLOWING": 1,
+        "RECOVERY": 0,
+        "CONTRACTION": 2
+      },
+      "risk_appetite": "NEUTRAL",
+      "n_markets": 10,
+      "fmp_failed": [],
+      "markets": [
+        {
+          "etf": "FM",
+          "mkt": "Frontier Mkts",
+          "regime": "CONTRACTION",
+          "r3m": -1.2
+        },
+        {
+          "etf": "EWQ",
+          "mkt": "France",
+          "regime": "CONTRACTION",
+          "r3m": -5.44
+        },
+        {
+          "etf": "VGK",
+          "mkt": "Europe",
+          "regime": "SLOWING",
+          "r3m": -3.28
+        },
+        {
+          "etf": "EWT",
+          "mkt": "Taiwan",
+          "regime": "EXPANSION",
+          "r3m": 24.96
+        },
+        {
+          "etf": "EWH",
+          "mkt": "Hong Kong",
+          "regime": "EXPANSION",
+          "r3m": 3.93
+        },
+        {
+          "etf": "EEM",
+          "mkt": "Emerging Mkts",
+          "regime": "EXPANSION",
+          "r3m": 6.46
+        },
+        {
+          "etf": "EWI",
+          "mkt": "Italy",
+          "regime": "EXPANSION",
+          "r3m": 3.82
+        },
+        {
+          "etf": "EWP",
+          "mkt": "Spain",
+          "regime": "EXPANSION",
+          "r3m": 0.04
+        },
+        {
+          "etf": "EWN",
+          "mkt": "Netherlands",
+          "regime": "EXPANSION",
+          "r3m": 4.54
+        },
+        {
+          "etf": "EFNL",
+          "mkt": "Finland",
+          "regime": "EXPANSION",
+          "r3m": 8.09
+        }
+      ]
+    }
+  },
+  "crisis_composite": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"master_crisis_score\\\": 35.5, \\\"defcon_level\\\": 4, \\\"defcon_name\\\": \\\"NORMAL\\\", \\\"trend\\\": \\\"stable\\\"}\"}"
+    },
+    "check": {
+      "n_components": 8,
+      "master_crisis_score": 35.5,
+      "defcon_level": 4,
+      "leading_markets_component": {
+        "source": "leading-markets",
+        "label": "Global leading markets",
+        "weight": 0.12,
+        "crisis_contribution": 25.5,
+        "age_hours": 0.0,
+        "available": true
+      },
+      "leading_wired": true
+    }
+  },
+  "khalid_index": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Access-Control-Allow-Headers\": \"Content-Type\"}, \"body\": \"{\\\"timestamp\\\": \\\"2026-05-16 14:41:05 ET\\\", \\\"utc\\\": \\\"2026-05-16T19:41:05.562191+00:00\\\", \\\"elapsed_sec\\\": 3.7, \\\"fred\\\": {\\\"DGS3MO\\\": {\\\"value\\\": 3.69, \\\"date\\\": \\\"2026-05-14\\\", \\\"name\\\": \\\"Treasury 3M\\\", \\\"chg_1w\\\": 0.0, \\\"chg_1m\\\": -0.54, \\\"chg_3m\\\": -0.27, \\\"chg_1y\\\": 0, \\\"history\\\": [{\\\"date\\\": \\\"2026-05-14\\\", \\\"value\\\": 3.69}, {\\"
+    },
+    "check": {
+      "score": 51,
+      "regime": "NEUTRAL",
+      "n_components": 0,
+      "leading_markets_component": null,
+      "leading_wired": false
+    }
+  },
+  "defcon_page": {
+    "http_status": 200,
+    "radar_live": true,
+    "missing": []
+  },
+  "summary": {
+    "leading_markets_ok": true,
+    "crisis_composite_wired": true,
+    "khalid_index_wired": false,
+    "defcon_radar_live": true
+  },
+  "finished": "2026-05-16T19:41:13.750674+00:00"
+}
