@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cross-Asset RV · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⚖️</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1500px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1040px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:18px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .state{font-family:var(--mono);font-size:28px;font-weight:700;margin:4px 0 2px;letter-spacing:.5px}
+.hero .read{color:var(--mute);font-size:13px;line-height:1.6;margin-top:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:16px}
+.card h3{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.big{font-family:var(--mono);font-size:30px;font-weight:700;margin:2px 0}
+.sub{font-size:11px;color:var(--dim);margin-top:4px}
+.dis{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:7px;padding:13px 16px;margin-bottom:10px}
+.dis .lbl{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--txt)}
+.dis .z{font-family:var(--mono);font-size:13px;font-weight:700;float:right}
+.dis .rd{font-size:12px;color:var(--mute);line-height:1.6;margin-top:5px}
+.dis .tr{font-size:11.5px;color:var(--cyan);margin-top:6px;font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:10px 8px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:top}
+tr:hover td{background:var(--panel2)}
+.num{text-align:right}
+.st{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:3px}
+.sDISLOCATED{background:#ff557722;color:var(--red)}
+.sSTRETCHED{background:#ff7a1822;color:var(--orange)}
+.sNEUTRAL{background:#1c2433;color:var(--dim)}
+.sNO_DATA{background:#1c2433;color:var(--dim)}
+.zbar{position:relative;height:9px;width:140px;background:var(--panel2);border-radius:5px;border:1px solid var(--line)}
+.zbar .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--dim)}
+.zbar .fill{position:absolute;top:0;bottom:0;border-radius:4px}
+.rd{font-size:11px;color:var(--mute);line-height:1.5}
+.tr{font-size:10.5px;color:var(--cyan);margin-top:3px}
+.loading{text-align:center;padding:50px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1040px}
+.empty{padding:16px;color:var(--dim);font-family:var(--mono);font-size:11px;text-align:center}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.zbar{width:90px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚖️ Cross-Asset Relative Value</h1>
+    <p class="subtitle">Where one asset class is mispricing macro risk against another. Each relationship regresses asset A on its structural driver B over ~2 years; the residual <b>z-score</b> measures how rich (z&gt;0) or cheap (z&lt;0) A trades versus what B implies. |z|≥2 is a dislocation — a mean-reversion edge and a tell that some market is out of line; |z|≥1.3 is stretched. This is where macro funds find asymmetric, low-beta money.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/pm-decision.html">pm decision</a>
+      <a href="/defcon.html">defcon</a>
+      <a href="/signal-scorecard.html">scorecard</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING RV ENGINE…</div></div>
+  <div class="grid4" id="kpis"></div>
+
+  <h2>Dislocations — actionable RV edge</h2>
+  <div id="dislocations"><div class="loading">…</div></div>
+
+  <h2>All Relationships</h2>
+  <div class="card" style="padding:6px 10px"><div id="board"><div class="loading">…</div></div></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function stateColor(s){return({DISLOCATED:"var(--red)",STRETCHED:"var(--orange)",NEUTRAL:"var(--dim)",NO_DATA:"var(--dim)"})[s]||"var(--dim)";}
+function rvHeroColor(s){
+  if(s==="DISLOCATION_PRESENT")return"var(--red)";
+  if(s==="STRETCHED")return"var(--orange)";
+  return"var(--green)";
+}
+function zbar(z){
+  if(z==null)return`<div class="zbar"><div class="mid"></div></div>`;
+  const cl=Math.max(-3,Math.min(3,z)), pct=Math.abs(cl)/3*50;
+  const col=Math.abs(z)>=2?"var(--red)":Math.abs(z)>=1.3?"var(--orange)":"var(--cyan)";
+  const side=cl>=0?`left:50%;width:${pct}%`:`right:50%;width:${pct}%`;
+  return`<div class="zbar"><div class="mid"></div><div class="fill" style="${side};background:${col}"></div></div>`;
+}
+function dirLabel(d,lbl){
+  // label is "A vs B" — derive the A name for a human read
+  const a=(lbl||"").split(" vs ")[0]||"asset A";
+  return d==="A_RICH"?`${a} rich`:d==="A_CHEAP"?`${a} cheap`:"—";
+}
+
+function renderHero(d){
+  const col=rvHeroColor(d.rv_state);
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Cross-Asset RV State</div>
+      <div class="state" style="color:${col}">${esc((d.rv_state||"").replace(/_/g," "))}</div>
+      <div class="read">${esc(d.rv_read||"")}</div>
+    </div>`;
+}
+function renderKpis(d){
+  const rels=(d.relationships||[]);
+  const scored=rels.filter(r=>r.state!=="NO_DATA").length;
+  const cards=[
+    ["Dislocated",d.n_dislocated!=null?d.n_dislocated:"—","|z| ≥ 2 — RV edge"],
+    ["Stretched",d.n_stretched!=null?d.n_stretched:"—","|z| ≥ 1.3 — watch"],
+    ["Relationships",scored+" / "+rels.length,"pairs with live fit"],
+    ["Fit Window",(d.window_days||"—")+"d","≈ "+Math.round((d.window_days||0)/252*10)/10+"y regression"],
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`
+    <div class="card"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("");
+}
+function renderDislocations(d){
+  const ds=d.dislocations||[];
+  if(!ds.length){document.getElementById("dislocations").innerHTML=`<div class="card"><div class="empty">No outright dislocations right now — cross-asset relationships are within tolerance.</div></div>`;return;}
+  document.getElementById("dislocations").innerHTML=ds.map(r=>`
+    <div class="dis">
+      <span class="z" style="color:${stateColor(r.state)}">z = ${r.residual_z}</span>
+      <div class="lbl">${esc(r.label)}</div>
+      <div class="rd">${esc(r.read)} <span style="color:var(--dim)">— ${dirLabel(r.direction,r.label)}, fit r²=${r.fit_r2}.</span></div>
+      ${r.trade?`<div class="tr">▸ ${esc(r.trade)}</div>`:""}
+    </div>`).join("");
+}
+function renderBoard(d){
+  const rels=(d.relationships||[]).slice().sort((a,b)=>(b.abs_z||0)-(a.abs_z||0));
+  if(!rels.length){document.getElementById("board").innerHTML=`<div class="empty">no relationships</div>`;return;}
+  let h=`<table><thead><tr>
+    <th>Relationship</th><th>Residual Z</th><th style="width:150px">Rich ◄ ► Cheap</th>
+    <th class="num">Fit r²</th><th class="num">Beta</th><th>Read / Trade</th></tr></thead><tbody>`;
+  for(const r of rels){
+    if(r.state==="NO_DATA"){
+      h+=`<tr><td>${esc(r.label)}</td><td colspan="5" style="color:var(--dim)">no data${r.error?" — "+esc(r.error):""}</td></tr>`;
+      continue;
+    }
+    h+=`<tr>
+      <td><b style="color:var(--txt)">${esc(r.label)}</b><br><span class="st s${esc(r.state)}">${esc(r.state)}</span></td>
+      <td class="num" style="color:${stateColor(r.state)};font-weight:700">${r.residual_z}</td>
+      <td>${zbar(r.residual_z)}</td>
+      <td class="num">${r.fit_r2}</td>
+      <td class="num">${r.fit_beta}</td>
+      <td><div class="rd">${esc(r.read)}</div>${r.trade?`<div class="tr">▸ ${esc(r.trade)}</div>`:""}</td>
+    </tr>`;
+  }
+  document.getElementById("board").innerHTML=h+`</tbody></table>`;
+}
+
+(async()=>{
+  const d=await J("cross-asset-rv.json");
+  if(!d){
+    document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="state" style="color:var(--orange);font-size:20px">AWAITING FIRST RUN</div><div class="read">The Cross-Asset RV engine runs each weekday after the US close. No snapshot is in S3 yet.</div></div>`;
+    return;
+  }
+  renderHero(d); renderKpis(d); renderDislocations(d); renderBoard(d);
+  document.getElementById("note").textContent=(d.interpretation||"")+(d.data_failed&&d.data_failed.length?" · Data unavailable: "+d.data_failed.join(", "):"");
+  document.getElementById("ts").textContent=
+    "engine: "+(d.method||"cross_asset_rv")+" · generated "+(d.generated_at||"?")+" · "+(d.elapsed_s!=null?d.elapsed_s+"s":"");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PM Decision Layer · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🧭</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1500px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1040px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:18px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .posture{font-family:var(--mono);font-size:30px;font-weight:700;margin:4px 0 2px;letter-spacing:.5px}
+.hero .headline{color:var(--mute);font-size:13px;line-height:1.6;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.4px;padding:5px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line)}
+.chip b{color:var(--txt);font-weight:600}
+.chip .k{color:var(--dim);text-transform:uppercase;margin-right:5px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:16px}
+.card h3{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.big{font-family:var(--mono);font-size:26px;font-weight:700;margin:2px 0}
+.sub{font-size:11px;color:var(--dim);margin-top:4px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.actcard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:0;overflow:hidden}
+.actcard .hd{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:11px 14px;border-bottom:1px solid var(--line)}
+.actcard.trim .hd{color:var(--red);background:#ff55770d}
+.actcard.add .hd{color:var(--green);background:#26ffaf0d}
+.actcard.hedge .hd{color:var(--yellow);background:#ffd2660d}
+.actcard .hd .n{float:right;color:var(--dim);font-weight:600}
+.item{padding:11px 14px;border-bottom:1px solid rgba(28,36,51,.55)}
+.item:last-child{border-bottom:none}
+.item .tgt{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--txt)}
+.item .rsn{font-size:11.5px;color:var(--mute);line-height:1.55;margin-top:3px}
+.tag{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.t-high{background:#ff557722;color:var(--red)}.t-medium{background:#ffd26622;color:var(--yellow)}
+.t-low{background:#1c2433;color:var(--dim)}
+.empty{padding:18px 14px;color:var(--dim);font-family:var(--mono);font-size:11px;text-align:center}
+.trig{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 4px}
+.trig .row{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(28,36,51,.55);font-size:12.5px;color:var(--mute)}
+.trig .row:last-child{border-bottom:none}
+.trig .row .ar{color:var(--purple);font-family:var(--mono);font-weight:700}
+.inputs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.5px;padding:4px 9px;border-radius:4px;border:1px solid var(--line)}
+.pill.on{color:var(--green);background:#26ffaf12}.pill.off{color:var(--dim)}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1040px}
+.loading{text-align:center;padding:50px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:6px}
+.spark i{flex:1;border-radius:2px 2px 0 0;min-height:3px;display:block}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧭 PM Decision Layer</h1>
+    <p class="subtitle">The desk's single cockpit. It fuses the macro regime and master crisis posture, the master-ranker conviction list, the allocator's asset-class matrix and live portfolio-risk into one structured decision — a posture, a trim list, an add list, hedges and the explicit triggers that would flip the call. One view instead of twelve tabs. Deterministic decision support, refreshed every weekday after the upstream engines.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/defcon.html">defcon</a>
+      <a href="/cross-asset-rv.html">cross-asset rv</a>
+      <a href="/signal-scorecard.html">scorecard</a>
+      <a href="/brief.html">brief</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING DECISION LAYER…</div></div>
+  <div class="grid4" id="kpis"></div>
+
+  <h2>Action Plan — trim · add · hedge</h2>
+  <div class="cols3" id="actions"></div>
+
+  <h2>Triggers — what flips the call</h2>
+  <div class="trig" id="triggers"></div>
+
+  <h2>Posture History</h2>
+  <div class="card" id="histwrap"><div class="loading">…</div></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function postureColor(w){
+  w=(w||"").toUpperCase();
+  if(w==="AGGRESSIVE"||w==="CONSTRUCTIVE")return"var(--green)";
+  if(w==="CAUTIOUS")return"var(--orange)";
+  if(w==="DEFENSIVE")return"var(--red)";
+  return"var(--cyan)";
+}
+function defconColor(d){return({5:"var(--green)",4:"var(--cyan)",3:"var(--yellow)",2:"var(--orange)",1:"var(--red)"})[d]||"var(--dim)";}
+function num(v,suf){return(v==null||v==="")?"—":(v+(suf||""));}
+
+function renderHero(d){
+  const w=d.posture_word||"NEUTRAL", col=postureColor(w);
+  const mf=d.macro_frame||{};
+  const chip=(k,v,c)=>v==null?"":`<span class="chip"><span class="k">${k}</span><b style="color:${c||"var(--txt)"}">${esc(v)}</b></span>`;
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Desk Posture</div>
+      <div class="posture" style="color:${col}">${esc(d.posture||w)}</div>
+      <div class="headline">${esc(d.headline||"")}</div>
+      <div class="chips">
+        ${chip("regime",mf.regime)}
+        ${chip("defcon",mf.defcon_level!=null?(mf.defcon_level+(mf.defcon_name?" · "+mf.defcon_name:"")):null,defconColor(mf.defcon_level))}
+        ${chip("leading mkts",mf.leading_markets_signal,mf.leading_markets_signal==="TOP_WARNING"?"var(--red)":null)}
+        ${chip("capitulation",mf.capitulation_signal)}
+        ${chip("spy fwd 6m",mf.spy_fwd_6m!=null?(mf.spy_fwd_6m+"%"):null)}
+      </div>
+    </div>`;
+}
+
+function renderKpis(d){
+  const p=d.portfolio||{};
+  const ws=p.worst_scenario||{};
+  const cards=[
+    ["Positions",num(p.n_positions),p.data_available?"book loaded":"awaiting portfolio feed"],
+    ["Portfolio Beta",num(p.beta_spy),"vs SPY"],
+    ["1-Day VAR 99%",p.var_1d_99_pct!=null?p.var_1d_99_pct+"%":"—",p.var_1d_99_dollars!=null?("$"+Number(p.var_1d_99_dollars).toLocaleString()):"loss at 99% conf."],
+    ["Worst Scenario",ws.portfolio_return_pct!=null?ws.portfolio_return_pct+"%":"—",ws.name?esc(ws.name):"historical replay"],
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`
+    <div class="card"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("");
+}
+
+function renderActions(d){
+  const a=d.actions||{};
+  const block=(cls,title,items,render)=>{
+    const body=(items&&items.length)?items.map(render).join(""):`<div class="empty">no ${title.toLowerCase()} actions flagged</div>`;
+    return `<div class="actcard ${cls}"><div class="hd">${title}<span class="n">${(items||[]).length}</span></div>${body}</div>`;
+  };
+  const trim=block("trim","Trim",a.trim,it=>`
+    <div class="item"><div class="tgt">${esc(it.target)}<span class="tag t-${esc(it.urgency||"low")}">${esc((it.urgency||"low").toUpperCase())}</span></div>
+    <div class="rsn">${esc(it.reason)}</div></div>`);
+  const add=block("add","Add",a.add,it=>`
+    <div class="item"><div class="tgt">${esc(it.target)}<span class="tag t-${it.conviction==="high"?"medium":"low"}">${esc((it.conviction||"").toUpperCase())}</span></div>
+    <div class="rsn">${esc(it.reason)}</div></div>`);
+  const hedge=block("hedge","Hedge",a.hedge,it=>`
+    <div class="item"><div class="tgt">${esc(it.instrument)}</div>
+    <div class="rsn">${esc(it.reason)}${it.size_hint?` · <i style="color:var(--dim)">${esc(it.size_hint)}</i>`:""}</div></div>`);
+  document.getElementById("actions").innerHTML=trim+add+hedge;
+}
+
+function renderTriggers(d){
+  const t=d.triggers||[];
+  document.getElementById("triggers").innerHTML=t.length
+    ? t.map(x=>`<div class="row"><span class="ar">▸</span><span>${esc(x)}</span></div>`).join("")
+    : `<div class="empty">no active trigger conditions</div>`;
+}
+
+function renderHistory(d,hist){
+  const snaps=(hist&&hist.snapshots)||[];
+  let inputs="";
+  const iu=d.inputs_used||{};
+  inputs=`<div class="inputs">`+Object.keys(iu).map(k=>
+    `<span class="pill ${iu[k]?"on":"off"}">${iu[k]?"✓":"✗"} ${k.replace(/_/g," ")}</span>`).join("")+`</div>`;
+  if(!snaps.length){document.getElementById("histwrap").innerHTML=`<div class="empty">posture history will populate after subsequent runs</div>`+inputs;return;}
+  const bars=snaps.slice(-30).map(s=>{
+    const c=postureColor(s.posture_word);
+    const h=({DEFENSIVE:14,CAUTIOUS:24,NEUTRAL:18,CONSTRUCTIVE:30,AGGRESSIVE:34})[(s.posture_word||"").toUpperCase()]||18;
+    return `<i style="background:${c};height:${h}px" title="${esc(s.ts||"")} · ${esc(s.posture_word||"")}"></i>`;
+  }).join("");
+  document.getElementById("histwrap").innerHTML=
+    `<h3 style="font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 4px">Posture, last ${Math.min(snaps.length,30)} runs</h3>
+     <div class="spark">${bars}</div>${inputs}`;
+}
+
+(async()=>{
+  const d=await J("pm-decision.json");
+  if(!d){
+    document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="posture" style="color:var(--orange);font-size:20px">AWAITING FIRST RUN</div><div class="headline">The PM Decision engine runs each weekday at 14:00 UTC. No snapshot is in S3 yet.</div></div>`;
+    return;
+  }
+  renderHero(d); renderKpis(d); renderActions(d); renderTriggers(d);
+  const hist=await J("pm-decision-history.json");
+  renderHistory(d,hist);
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent=
+    "engine: "+(d.method||"pm_decision")+" · generated "+(d.generated_at||"?")+" · "+num(d.elapsed_s,"s");
+})();
+</script>
+</body>
+</html>
