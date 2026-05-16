@@ -51,7 +51,7 @@ tr:hover td{background:var(--panel2)}
 <div class="container">
   <header>
     <h1>🎯 Signal Scorecard</h1>
-    <p class="subtitle">Every signal the platform tracks, graded on its realised edge. Hit rates are scored on a Wilson 95% lower bound over <b>directional calls only</b> — NEUTRAL-predicted outcomes are counted but never scored as misses, so signals aren't punished for a logging default. A small sample earns no credit until it proves itself. Signals that prove (n≥25) they cannot beat a coin flip are DEPRECATED and their weight is set to zero. Quality over quantity, enforced on evidence.</p>
+    <p class="subtitle">Every signal the platform tracks, graded on its realised edge. A signal is scored only on outcomes with a <b>directional prediction and a resolved realised move</b> — neutral predictions, pre-baseline legacy records and unpriceable outcomes are reported separately, never counted as misses. Hit rates use a Wilson 95% lower bound, so a small sample earns no credit until it proves itself. Signals that prove (n≥25) they cannot beat a coin flip are DEPRECATED and their weight is set to zero. Quality over quantity, enforced on evidence.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/intelligence/">intelligence</a>
@@ -62,6 +62,8 @@ tr:hover td{background:var(--panel2)}
   </header>
 
   <div class="grid4" id="kpis"><div class="loading">LOADING SCORECARD…</div></div>
+
+  <div id="dqwrap"></div>
 
   <h2>All Signals — ranked by confidence-adjusted edge</h2>
   <div class="card" style="padding:6px 10px"><div id="board"><div class="loading">…</div></div></div>
@@ -88,7 +90,26 @@ function kpi(label,val,sub,color){
     kpi("Signals tracked",d.n_signals_tracked,`${d.n_signals_graded} graded · ${d.n_insufficient} insufficient`)+
     kpi("Promoted",d.n_promoted,"proven edge · 1.25× weight","var(--green)")+
     kpi("Deprecated",d.n_deprecated,"no proven edge · 0× weight","var(--red)")+
-    kpi("Avg graded edge",lb==null?"—":(lb*100).toFixed(1)+"%",lb==null?"":`${d.n_outcomes_directional} directional outcomes`,lbc);
+    kpi("Avg graded edge",lb==null?"—":(lb*100).toFixed(1)+"%",lb==null?"":`${d.n_outcomes_scored} scored outcomes`,lbc);
+
+  const dq=d.data_quality_flags||[];
+  if(dq.length){
+    const drows=dq.map(f=>`<tr>
+      <td>${esc(f.signal_type)}</td>
+      <td class="num">${f.n_total}</td>
+      <td class="num" style="color:var(--green)">${f.n_scored}</td>
+      <td class="num" style="color:var(--orange)">${f.n_legacy}</td>
+      <td class="num" style="color:var(--orange)">${f.n_unresolved}</td>
+      <td style="color:var(--mute)">${esc(f.note)}</td>
+    </tr>`).join("");
+    document.getElementById("dqwrap").innerHTML=
+      `<h2 style="color:var(--orange)">⚠ Data Quality — signals not gradeable on current outcomes</h2>
+       <div class="card" style="padding:6px 10px"><table><thead><tr>
+         <th>Signal type</th><th class="num">Total outcomes</th><th class="num">Scored</th>
+         <th class="num">Legacy</th><th class="num">Unresolved</th><th>Diagnosis</th>
+       </tr></thead><tbody>${drows}</tbody></table></div>
+       <p class="read" style="margin:8px 0 0">These signals lose ≥50% of their outcomes to pre-baseline legacy records or to outcomes the checker could not resolve (e.g. an unpriceable instrument). They are reported here rather than mis-graded as failures — an upstream outcome-checker fix will bring them back into grading.</p>`;
+  }
 
   const rows=(d.scorecard||[]).map(r=>{
     const edge=r.edge_vs_coinflip_pct;
@@ -101,8 +122,8 @@ function kpi(label,val,sub,color){
       <td>${esc(r.signal_type)}</td>
       <td><span class="grade ${gcls(r.grade)}">${esc(r.grade)}</span></td>
       <td><span class="st s${esc(r.status)}">${esc(r.status)}</span></td>
-      <td class="num">${r.n_directional}${r.n_neutral?` <span style="color:var(--dim)" title="neutral-predicted, not scored">+${r.n_neutral}n</span>`:''}</td>
-      <td class="num">${r.n_directional?(r.hit_rate*100).toFixed(1)+'%':'—'}</td>
+      <td class="num">${r.n_scored}${(r.n_neutral+r.n_legacy+r.n_unresolved)?` <span style="color:var(--dim)" title="${r.n_neutral} neutral · ${r.n_legacy} legacy · ${r.n_unresolved} unresolved — excluded from grading">−${r.n_neutral+r.n_legacy+r.n_unresolved}</span>`:''}</td>
+      <td class="num">${r.n_scored?(r.hit_rate*100).toFixed(1)+'%':'—'}</td>
       <td><span class="bar"><span style="width:${bw}%;background:${bc}"></span></span> ${lbpct}%</td>
       <td class="num" style="color:${ec}">${edge>0?'+':''}${edge}%</td>
       <td class="num" style="color:${ret==null?'var(--dim)':ret>=0?'var(--green)':'var(--red)'}">${ret==null?'—':(ret>0?'+':'')+ret+'%'}</td>
@@ -111,15 +132,15 @@ function kpi(label,val,sub,color){
   }).join("");
   document.getElementById("board").innerHTML=
     `<table><thead><tr>
-      <th>Signal type</th><th>Grade</th><th>Status</th><th class="num">Directional n</th>
+      <th>Signal type</th><th>Grade</th><th>Status</th><th class="num">Scored n</th>
       <th class="num">Hit rate</th><th>Confidence-adj. edge (Wilson LB)</th>
       <th class="num">Edge vs 50/50</th><th class="num">Avg return</th><th class="num">Weight</th>
     </tr></thead><tbody>${rows}</tbody></table>`;
 
   document.getElementById("legend").textContent=
-    `Grading: A ≥60% · B ≥53% · C ≥47% · D ≥40% · F <40% Wilson lower bound, scored on directional calls only (n≥${d.thresholds.min_sample}). `+
-    `PROMOTED ≥${d.thresholds.promote_lb*100}% LB · DEPRECATED <${d.thresholds.deprecate_lb*100}% LB with n≥${d.thresholds.deprecate_n} · INSUFFICIENT = too few directional calls to grade (1.0× weight). `+
-    `"+Nn" = neutral-predicted outcomes, counted but never scored as misses. The weight column is the performance_multiplier consumers apply — deprecation is enforced, not cosmetic.`;
+    `Grading: A ≥60% · B ≥53% · C ≥47% · D ≥40% · F <40% Wilson lower bound, scored only on outcomes with a directional prediction AND a resolved realised move (n≥${d.thresholds.min_sample}). `+
+    `PROMOTED ≥${d.thresholds.promote_lb*100}% LB · DEPRECATED <${d.thresholds.deprecate_lb*100}% LB with n≥${d.thresholds.deprecate_n} · INSUFFICIENT = too few scored outcomes to grade (1.0× weight). `+
+    `The "−N" beside the sample is outcomes excluded from grading — neutral predictions, pre-baseline legacy records, and unresolved outcomes. Correctness is recomputed from ground truth, not the stored flag. The weight column is enforced, not cosmetic.`;
   document.getElementById("ts").textContent="updated "+(d.generated_at||"").slice(0,16).replace("T"," ")+" UTC";
 })();
 </script>
