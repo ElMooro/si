@@ -1,0 +1,174 @@
+{
+  "started": "2026-05-16T20:44:26.516945+00:00",
+  "item1_master_ranker": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_tickers\\\": 25, \\\"n_macro\\\": 10, \\\"n_tier_3_plus\\\": 40, \\\"n_tier_5_plus\\\": 1, \\\"regime\\\": \\\"SLOWING\\\", \\\"duration_s\\\": 1.95}\"}"
+    },
+    "risk_pack_in_regime_context": {
+      "defcon_level": 4,
+      "leading_markets_signal": "MIXED",
+      "capitulation_signal": "NO_SIGNAL",
+      "risk_posture": "NEUTRAL \u2014 standard positioning",
+      "WIRED": true
+    },
+    "risk_pack_macro_signals": []
+  },
+  "item1_allocator": {
+    "new_rules_present": {
+      "crisis_composite": true,
+      "capitulation": true,
+      "leading_markets": true,
+      "global_liquidity": true
+    },
+    "n_rules_total": 17,
+    "WIRED": true
+  },
+  "item2_pm_decision": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"posture_word\\\": \\\"NEUTRAL\\\", \\\"headline\\\": \\\"NEUTRAL: 0 trim \\\\u00b7 2 add \\\\u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.\\\", \\\"n_trim\\\": 0, \\\"n_add\\\": 2, \\\"n_hedge\\\": 0}\"}"
+    },
+    "check": {
+      "posture_word": "NEUTRAL",
+      "headline": "NEUTRAL: 0 trim \u00b7 2 add \u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.",
+      "n_trim": 0,
+      "n_add": 2,
+      "n_hedge": 0,
+      "n_triggers": 3,
+      "macro_frame": {
+        "regime": "SLOWING",
+        "defcon_level": 4,
+        "defcon_name": "NORMAL",
+        "leading_markets_signal": "MIXED",
+        "flashing_buckets": [
+          "commodity_cycle",
+          "europe_core"
+        ],
+        "capitulation_signal": "NO_SIGNAL",
+        "spy_fwd_6m": "+8.8%"
+      },
+      "inputs_used": {
+        "master_ranker": true,
+        "allocator": true,
+        "portfolio_risk": true,
+        "crisis_composite": true,
+        "capitulation": true
+      }
+    }
+  },
+  "item3_cross_asset_rv": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"rv_state\\\": \\\"STRETCHED\\\", \\\"n_dislocated\\\": 0, \\\"n_stretched\\\": 4, \\\"data_failed\\\": []}\"}"
+    },
+    "check": {
+      "rv_state": "STRETCHED",
+      "n_dislocated": 0,
+      "n_stretched": 4,
+      "data_failed": [],
+      "relationships": [
+        {
+          "key": "gold_vs_real_yields",
+          "z": 1.59,
+          "state": "STRETCHED",
+          "r2": 0.09
+        },
+        {
+          "key": "hy_credit_vs_equity_vol",
+          "z": -0.96,
+          "state": "NEUTRAL",
+          "r2": 0.435
+        },
+        {
+          "key": "curve_vs_growth",
+          "z": 1.73,
+          "state": "STRETCHED",
+          "r2": 0.355
+        },
+        {
+          "key": "copper_gold_vs_10y",
+          "z": 1.54,
+          "state": "STRETCHED",
+          "r2": 0.005
+        },
+        {
+          "key": "breakevens_vs_oil",
+          "z": 0.64,
+          "state": "NEUTRAL",
+          "r2": 0.161
+        },
+        {
+          "key": "equities_vs_credit",
+          "z": 1.99,
+          "state": "STRETCHED",
+          "r2": 0.299
+        }
+      ]
+    }
+  },
+  "item4_signal_scorecard": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_signals_tracked\\\": 43, \\\"n_promoted\\\": 3, \\\"n_deprecated\\\": 27, \\\"n_probation\\\": 3, \\\"avg_graded_wilson_lb\\\": 0.128}\"}"
+    },
+    "check": {
+      "n_signals_tracked": 43,
+      "n_outcomes_scanned": 10103,
+      "n_promoted": 3,
+      "n_deprecated": 27,
+      "n_probation": 3,
+      "avg_graded_wilson_lb": 0.128,
+      "top5": [
+        {
+          "signal": "macro_composite_z",
+          "grade": "A",
+          "status": "PROMOTED",
+          "n": 26,
+          "wilson_lb": 0.871
+        },
+        {
+          "signal": "screener_top_pick",
+          "grade": "A",
+          "status": "PROMOTED",
+          "n": 2540,
+          "wilson_lb": 0.736
+        },
+        {
+          "signal": "crisis_hy_oas_vs_hyg",
+          "grade": "A",
+          "status": "PROMOTED",
+          "n": 130,
+          "wilson_lb": 0.624
+        },
+        {
+          "signal": "divergence_extreme",
+          "grade": "F",
+          "status": "ACTIVE",
+          "n": 15,
+          "wilson_lb": 0.109
+        },
+        {
+          "signal": "crisis_dfii10_vs_gld",
+          "grade": "F",
+          "status": "ACTIVE",
+          "n": 19,
+          "wilson_lb": 0.085
+        }
+      ]
+    },
+    "page_live": true
+  },
+  "summary": {
+    "item1_risk_pack_wired": true,
+    "item2_pm_decision_ok": true,
+    "item3_cross_asset_rv_ok": true,
+    "item4_signal_scorecard_ok": true,
+    "item5_consolidation": "see 717 \u2014 14 deleted, 262 Lambdas"
+  },
+  "finished": "2026-05-16T20:44:51.934005+00:00"
+}
