@@ -35,6 +35,35 @@ TABLE_NAME = "justhodl-portfolio"
 ddb = boto3.resource("dynamodb", region_name="us-east-1")
 table = ddb.Table(TABLE_NAME)
 
+# ── auth + pipeline plumbing (Function URL path) ──
+import base64
+TOKEN_SSM_NAME = "/justhodl/portfolio-admin/token"
+ALLOWED_ORIGINS = {"https://justhodl.ai", "https://www.justhodl.ai"}
+SNAPSHOT_FN = "justhodl-portfolio-snapshot"
+# mutations to the book that should refresh the downstream snapshot
+_MUTATING = {"add_position", "remove_position", "update_position",
+             "set_stop_loss"}
+_ssm = boto3.client("ssm", region_name="us-east-1")
+_lam = boto3.client("lambda", region_name="us-east-1")
+_token_cache = {"v": None}
+
+
+def _admin_token():
+    """SSM SecureString token, cached for the warm container lifetime."""
+    if _token_cache["v"] is None:
+        _token_cache["v"] = _ssm.get_parameter(
+            Name=TOKEN_SSM_NAME, WithDecryption=True)["Parameter"]["Value"]
+    return _token_cache["v"]
+
+
+def _trigger_snapshot():
+    """Fire-and-forget refresh of the portfolio snapshot after a book edit."""
+    try:
+        _lam.invoke(FunctionName=SNAPSHOT_FN, InvocationType="Event",
+                    Payload=b"{}")
+    except Exception as e:  # never let a refresh failure break the write
+        print(f"[portfolio-admin] snapshot trigger failed: {e}")
+
 
 def _dec(v):
     """Safely convert any numeric to Decimal (DDB requirement)."""
@@ -224,26 +253,82 @@ ACTIONS = {
 }
 
 
-def lambda_handler(event, context):
-    action = (event or {}).get("action")
-    if not action:
-        return {"statusCode": 400, "body": json.dumps({
-            "ok": False, "err": "missing action",
-            "available_actions": list(ACTIONS.keys())})}
+def _dispatch(payload):
+    """Run one action. `payload` is a dict with `action` + parameters.
 
+    Returns (status_code, result_dict). Used by both the direct-invoke
+    path (ops scripts / CLI) and the authenticated Function URL path.
+    """
+    action = (payload or {}).get("action")
+    if not action:
+        return 400, {"ok": False, "err": "missing action",
+                     "available_actions": list(ACTIONS.keys())}
     handler = ACTIONS.get(action)
     if not handler:
-        return {"statusCode": 400, "body": json.dumps({
-            "ok": False, "err": f"unknown action: {action}",
-            "available_actions": list(ACTIONS.keys())})}
+        return 400, {"ok": False, "err": f"unknown action: {action}",
+                     "available_actions": list(ACTIONS.keys())}
+    try:
+        result = handler(payload)
+    except KeyError as e:
+        return 400, {"ok": False, "err": f"missing parameter: {e}"}
+    except Exception as e:
+        return 500, {"ok": False,
+                     "err": f"{type(e).__name__}: {str(e)[:300]}"}
+
+    if action in _MUTATING and result.get("ok"):
+        _trigger_snapshot()
+        result["snapshot_refresh"] = "queued"
+    return 200, result
+
+
+def lambda_handler(event, context):
+    """Dual-mode entrypoint.
+
+    • Direct invoke (ops scripts / CLI, no HTTP context): the event IS the
+      payload — runs un-gated, the caller is already inside AWS.
+    • Function URL invoke (browser): requires the x-justhodl-token header to
+      match SSM /justhodl/portfolio-admin/token and an allow-listed Origin.
+      This endpoint mutates the book, so every call is gated.
+    """
+    rc = (event or {}).get("requestContext") or {}
+    http = rc.get("http") or {}
+
+    # ── direct invoke — unchanged legacy behaviour ──
+    if not http:
+        status, result = _dispatch(event or {})
+        return {"statusCode": status,
+                "body": json.dumps(result, default=str)}
+
+    # ── Function URL invoke ──
+    method = (http.get("method") or "").upper()
+    if method == "OPTIONS":                       # CORS preflight
+        return {"statusCode": 200, "body": ""}
+
+    headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
 
     try:
-        result = handler(event)
-    except KeyError as e:
-        return {"statusCode": 400, "body": json.dumps({
-            "ok": False, "err": f"missing parameter: {e}"})}
+        expected = _admin_token()
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({
-            "ok": False, "err": f"{type(e).__name__}: {str(e)[:300]}"})}
+        return {"statusCode": 500, "body": json.dumps(
+            {"ok": False, "err": f"auth config error: {str(e)[:160]}"})}
 
-    return {"statusCode": 200, "body": json.dumps(result, default=str)}
+    if headers.get("x-justhodl-token") != expected:
+        return {"statusCode": 403,
+                "body": json.dumps({"ok": False, "err": "forbidden"})}
+
+    origin = headers.get("origin")
+    if origin and origin not in ALLOWED_ORIGINS:
+        return {"statusCode": 403,
+                "body": json.dumps({"ok": False, "err": "origin not allowed"})}
+
+    raw = event.get("body") or "{}"
+    if event.get("isBase64Encoded"):
+        raw = base64.b64decode(raw).decode("utf-8", "replace")
+    try:
+        payload = json.loads(raw) if raw.strip() else {}
+    except Exception:
+        return {"statusCode": 400,
+                "body": json.dumps({"ok": False, "err": "invalid JSON body"})}
+
+    status, result = _dispatch(payload)
+    return {"statusCode": status, "body": json.dumps(result, default=str)}

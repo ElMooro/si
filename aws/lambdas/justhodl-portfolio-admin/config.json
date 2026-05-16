@@ -7,6 +7,16 @@
   "timeout": 30,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Portfolio CRUD (#9). Invoked manually with action+payload to manage POSITION/WATCHLIST/STOPLOSS items in justhodl-portfolio DDB.",
-  "environment": {}
+  "description": "Portfolio CRUD (#9). Dual-mode: direct invoke (ops) un-gated; Function URL gated by x-justhodl-token (SSM /justhodl/portfolio-admin/token) + Origin allowlist. Mutations auto-trigger portfolio-snapshot.",
+  "environment": {},
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowCredentials": false,
+      "AllowHeaders": ["content-type", "x-justhodl-token"],
+      "AllowMethods": ["POST", "OPTIONS"],
+      "AllowOrigins": ["https://justhodl.ai", "https://www.justhodl.ai"],
+      "MaxAge": 300
+    }
+  }
 }
