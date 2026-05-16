@@ -1,0 +1,100 @@
+{
+  "ops": 736,
+  "ts": "2026-05-16T23:54:22.290857+00:00",
+  "subject": "fundamentals-engine end-to-end verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_covered\\\": 25, \\\"n_failed\\\": 0, \\\"summary\\\": {\\\"n_undervalued\\\": 4, \\\"n_overvalued\\\": 19, \\\"n_distress_risk\\\": 0, \\\"n_strong_quality\\\": 12, \\\"avg_dcf_gap_pct\\\": -52.4}}\"}"
+  },
+  "last_modified": "2026-05-16T23:54:24+00:00",
+  "summary": {
+    "schema_version": "1.0",
+    "universe_source": "master-ranker top tickers",
+    "n_covered": 25,
+    "n_failed": 0,
+    "n_with_dcf_gap": 25,
+    "n_with_geo_mix": 22,
+    "n_with_product_mix": 23,
+    "n_with_altman_z": 25,
+    "engine_summary": {
+      "n_undervalued": 4,
+      "n_overvalued": 19,
+      "n_distress_risk": 0,
+      "n_strong_quality": 12,
+      "avg_dcf_gap_pct": -52.4
+    }
+  },
+  "sample": [
+    {
+      "ticker": "HUM",
+      "price": 305.12,
+      "dcf": 808.31,
+      "dcf_gap_pct": 164.9,
+      "valuation_label": "UNDERVALUED",
+      "altman_z": 4.08,
+      "piotroski": 8,
+      "top_region": null,
+      "top_product": "Insurance Segment"
+    },
+    {
+      "ticker": "CRM",
+      "price": 173.51,
+      "dcf": 266.41,
+      "dcf_gap_pct": 53.5,
+      "valuation_label": "UNDERVALUED",
+      "altman_z": 2.62,
+      "piotroski": 6,
+      "top_region": "Americas",
+      "top_product": "Service Cloud"
+    },
+    {
+      "ticker": "VLO",
+      "price": 250.74,
+      "dcf": 358.54,
+      "dcf_gap_pct": 43.0,
+      "valuation_label": "UNDERVALUED",
+      "altman_z": 4.91,
+      "piotroski": 8,
+      "top_region": "UNITED STATES",
+      "top_product": "Refining"
+    },
+    {
+      "ticker": "PSX",
+      "price": 176.2,
+      "dcf": 222.98,
+      "dcf_gap_pct": 26.6,
+      "valuation_label": "UNDERVALUED",
+      "altman_z": 3.3,
+      "piotroski": 5,
+      "top_region": "UNITED STATES",
+      "top_product": "Consolidation, Eliminations"
+    },
+    {
+      "ticker": "NKE",
+      "price": 41.88,
+      "dcf": 47.97,
+      "dcf_gap_pct": 14.5,
+      "valuation_label": "FAIR",
+      "altman_z": 3.49,
+      "piotroski": 4,
+      "top_region": "North America",
+      "top_product": "Footwear"
+    }
+  ],
+  "frontend": {
+    "status": 200,
+    "marker": true
+  },
+  "checks": {
+    "invoke_ok": true,
+    "sidecar_valid": true,
+    "covers_companies": true,
+    "dcf_populated": true,
+    "segmentation_populated": true,
+    "health_populated": true,
+    "frontend_live": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 Fundamentals X-Ray live: DCF, segmentation and health scores populated; frontend rendering"
+}
