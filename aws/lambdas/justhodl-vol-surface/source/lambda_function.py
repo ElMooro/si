@@ -43,18 +43,18 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 VOL_INDICES = {
     "VIX_30D":   {"fred": "VIXCLS",     "for": "SPX",  "tenor_d": 30},
-    "VIX_9D":    {"fred": "VXST",       "for": "SPX",  "tenor_d": 9},
     "VIX_3M":    {"fred": "VXVCLS",     "for": "SPX",  "tenor_d": 90},
     "NDX_VOL":   {"fred": "VXNCLS",     "for": "NDX",  "tenor_d": 30},
     "RUT_VOL":   {"fred": "RVXCLS",     "for": "RUT",  "tenor_d": 30},
     "EEM_VOL":   {"fred": "VXEEMCLS",   "for": "EEM",  "tenor_d": 30},
     "OIL_VOL":   {"fred": "OVXCLS",     "for": "USO",  "tenor_d": 30},
     "GOLD_VOL":  {"fred": "GVZCLS",     "for": "GLD",  "tenor_d": 30},
-    "TY_VOL":    {"fred": "TYVIXCLS",   "for": "TLT",  "tenor_d": 30},
     "EUR_VOL":   {"fred": "EVZCLS",     "for": "FXE",  "tenor_d": 30},
-    "VVIX":      {"fred": "VVIXCLS",    "for": "VIX",  "tenor_d": 30},
+    "VVIX":      {"fred": "VVIX",       "for": "VIX",  "tenor_d": 30},
 }
-SKEW_FRED_ID = "SKEWCLS"
+# Note: VXST (9-day VIX) and TYVIX (10Y treasury vol) were discontinued by CBOE
+# in 2023-2024. Front-end term structure now derived from VIX_30D vs VIX_3M only.
+SKEW_FRED_ID = "SKEW"  # CBOE SKEW Index. Was incorrectly SKEWCLS
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -121,17 +121,14 @@ def get_history():
         return {"snapshots": []}
 
 
-def compute_term_structure(vix_30d, vix_9d, vix_3m):
-    out = {"front": vix_9d, "spot": vix_30d, "back": vix_3m}
-    if vix_9d and vix_30d and vix_30d > 0:
-        out["ratio_9d_30d"] = round(vix_9d / vix_30d, 3)
+def compute_term_structure(vix_30d, vix_3m):
+    out = {"spot": vix_30d, "back": vix_3m}
     if vix_30d and vix_3m and vix_3m > 0:
         out["ratio_30d_3m"] = round(vix_30d / vix_3m, 3)
     if vix_30d and vix_3m and vix_30d > 0:
         out["slope_30d_3m_yearized"] = round((vix_3m - vix_30d) / (90 - 30) * 365 / 100, 4)
-    inverted = False
-    if vix_9d and vix_30d and vix_9d > vix_30d * 1.05: inverted = True
-    if vix_30d and vix_3m and vix_30d > vix_3m * 1.05: inverted = True
+    # 30d > 3m by 5% = inversion = panic signal
+    inverted = bool(vix_30d and vix_3m and vix_30d > vix_3m * 1.05)
     out["inverted"] = inverted
     out["regime"] = "BACKWARDATED_PANIC" if inverted else (
         "STEEP_CONTANGO" if (vix_30d and vix_3m and vix_3m / max(vix_30d, 0.01) > 1.15) else "NORMAL_CONTANGO"
@@ -227,7 +224,7 @@ def lambda_handler(event, context):
     skew_now = skew_obs[0]["value"] if skew_obs else None
     skew_date = skew_obs[0]["date"] if skew_obs else None
 
-    term = compute_term_structure(spot.get("VIX_30D"), spot.get("VIX_9D"), spot.get("VIX_3M"))
+    term = compute_term_structure(spot.get("VIX_30D"), spot.get("VIX_3M"))
     cross = compute_cross_asset(spot)
     skew_data = compute_skew_metrics(skew_now, skew_history)
     vvix_data = compute_vvix_metrics(spot.get("VVIX"), history_arrays.get("VVIX", []))
@@ -250,7 +247,7 @@ def lambda_handler(event, context):
     if prior_regime and prior_regime != regime:
         alerts.append(f"Regime flip: {prior_regime} → {regime}")
     if term.get("inverted"):
-        alerts.append(f"VIX term-structure INVERTED (9d {spot.get('VIX_9D')} > 30d {spot.get('VIX_30D')} > 3m {spot.get('VIX_3M')})")
+        alerts.append(f"VIX term-structure INVERTED (30d {spot.get('VIX_30D')} > 3m {spot.get('VIX_3M')})")
     if skew_data.get("pctile_252d") is not None and skew_data["pctile_252d"] >= 90:
         alerts.append(f"SKEW {skew_data['value']} = {skew_data['pctile_252d']}th pctile (extreme tail hedging)")
     if vvix_data.get("value") and vvix_data["value"] >= 110:
