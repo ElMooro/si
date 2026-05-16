@@ -6,6 +6,8 @@
  *   POST /chat        → justhodl-ai-chat   (alias)
  *   GET  /research?…  → justhodl-stock-ai-research  (no auth)
  *   POST /investor    → justhodl-investor-agents    (no auth, body {ticker})
+ *   POST /portfolio-admin → justhodl-portfolio-admin (manager PIN x-mgr-pass;
+ *                            Worker injects the Lambda infra token)
  *   GET  /agent/<n>   → AGENT_LAMBDAS[n]            (no auth, generic data agents)
  *
  * Why a Worker instead of direct Lambda URLs:
@@ -28,6 +30,7 @@
 const LAMBDA_AI_CHAT     = 'https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/';
 const LAMBDA_AI_RESEARCH = 'https://obcsgkzlvicwc6htdmj5wg6yae0tfmya.lambda-url.us-east-1.on.aws/';
 const LAMBDA_INVESTOR_AGENTS = 'https://7qufoauxzhqwnrsmdjjwt46wy40zzdyp.lambda-url.us-east-1.on.aws/';
+const LAMBDA_PORTFOLIO_ADMIN = 'https://e726eujwijpeg2slgssddw2yee0stboa.lambda-url.us-east-1.on.aws/';
 
 // Whitelist of generic data agents reachable via /agent/<key>
 // All return JSON via Function URL with permissive CORS.
@@ -57,7 +60,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, x-mgr-pass',
     'Access-Control-Max-Age': '300',
     'Vary': 'Origin',
   };
@@ -177,6 +180,52 @@ async function handleInvestorAgents(request, env, origin) {
   });
 }
 
+async function handlePortfolioAdmin(request, env, origin) {
+  // POST /portfolio-admin → justhodl-portfolio-admin Function URL.
+  // Two-layer auth: the caller must present the manager PIN (x-mgr-pass);
+  // the Worker then injects the real Lambda infra token so that powerful
+  // credential never has to live in the browser.
+  if (request.method !== 'POST') {
+    return json(405, { error: 'Method not allowed (use POST)' }, origin);
+  }
+  if (!env.PORTFOLIO_ADMIN_TOKEN || !env.PORTFOLIO_MGR_PASS) {
+    return json(500, { error: 'Worker misconfigured (portfolio secrets missing)' }, origin);
+  }
+  if (request.headers.get('x-mgr-pass') !== env.PORTFOLIO_MGR_PASS) {
+    return json(403, { ok: false, err: 'forbidden' }, origin);
+  }
+  const cl = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (cl > MAX_BODY_BYTES) {
+    return json(413, { error: 'Request body too large' }, origin);
+  }
+  const body = await request.text();
+  if (body.length > MAX_BODY_BYTES) {
+    return json(413, { error: 'Request body too large' }, origin);
+  }
+  let upstream;
+  try {
+    upstream = await fetch(LAMBDA_PORTFOLIO_ADMIN, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://justhodl.ai',
+        'x-justhodl-token': env.PORTFOLIO_ADMIN_TOKEN,
+      },
+      body,
+    });
+  } catch (e) {
+    return json(502, { error: 'Upstream unreachable', detail: String(e) }, origin);
+  }
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: {
+      ...corsHeaders(origin),
+      'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
+    },
+  });
+}
+
 async function handleAgent(request, env, origin, agentKey, subPath) {
   // Generic data-agent proxy. Looks up agentKey in AGENT_LAMBDAS,
   // forwards GET request (preserving query string + sub-path).
@@ -246,6 +295,9 @@ export default {
     }
     if (path === '/investor') {
       return handleInvestorAgents(request, env, origin);
+    }
+    if (path === '/portfolio-admin') {
+      return handlePortfolioAdmin(request, env, origin);
     }
     if (path === '/' || path === '/chat') {
       return handleAiChat(request, env, origin);

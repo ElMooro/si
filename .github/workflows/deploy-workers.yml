@@ -69,6 +69,20 @@ jobs:
             --query 'Parameter.Value' --output text)
           echo "::add-mask::$TOKEN"
           echo "AI_CHAT_TOKEN=$TOKEN" >> $GITHUB_ENV
+          PA_TOKEN=$(aws ssm get-parameter \
+            --name /justhodl/portfolio-admin/token \
+            --with-decryption \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'Parameter.Value' --output text)
+          echo "::add-mask::$PA_TOKEN"
+          echo "PORTFOLIO_ADMIN_TOKEN=$PA_TOKEN" >> $GITHUB_ENV
+          PA_PASS=$(aws ssm get-parameter \
+            --name /justhodl/portfolio-admin/manager-pass \
+            --with-decryption \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'Parameter.Value' --output text)
+          echo "::add-mask::$PA_PASS"
+          echo "PORTFOLIO_MGR_PASS=$PA_PASS" >> $GITHUB_ENV
 
       - name: Deploy each changed Worker
         if: steps.detect.outputs.targets != ''
@@ -92,6 +106,8 @@ jobs:
             # Attach the Lambda auth token as an encrypted Worker Secret
             if [ "$w" = "justhodl-ai-proxy" ]; then
               echo "$AI_CHAT_TOKEN" | wrangler secret put AI_CHAT_TOKEN
+              echo "$PORTFOLIO_ADMIN_TOKEN" | wrangler secret put PORTFOLIO_ADMIN_TOKEN
+              echo "$PORTFOLIO_MGR_PASS" | wrangler secret put PORTFOLIO_MGR_PASS
             fi
             # Yahoo proxy uses the same shared token for simplicity
             if [ "$w" = "justhodl-yahoo-proxy" ]; then
