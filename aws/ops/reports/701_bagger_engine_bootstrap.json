@@ -1,0 +1,197 @@
+{
+  "started": "2026-05-16T12:26:48.702856+00:00",
+  "deploy": {
+    "last_modified": "2026-05-16T12:21:54.763+0000",
+    "memory": 1024,
+    "timeout": 720,
+    "state": "Active"
+  },
+  "env_patch": {
+    "keys": [
+      "FMP_KEY",
+      "MAX_WORKERS",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "status": "ok"
+  },
+  "schedule": {
+    "rule": "bagger-engine-weekly",
+    "ok": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "elapsed_s": 82.6,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_scored\\\": 1266, \\\"tier_counts\\\": {\\\"potential_100x\\\": 0, \\\"potential_25x\\\": 30, \\\"potential_10x\\\": 30, \\\"steady_compounders\\\": 30}, \\\"top_5\\\": [\\\"PPIH\\\", \\\"ISSC\\\", \\\"ADMA\\\", \\\"KINS\\\", \\\"SKWD\\\"]}\"}",
+    "log_tail": "START RequestId: 4344ffcd-80fb-49a6-825e-67574069f5e7 Version: $LATEST\n[bagger-engine] starting 2026-05-16T12:26:53.624432+00:00\n[bagger-engine] universe 1808 -> 1348 in cap range\n[bagger-engine] progress 200/1348 scored=197 errs=0 t=6s\n[bagger-engine] progress 400/1348 scored=394 errs=0 t=12s\n[bagger-engine] progress 600/1348 scored=592 errs=0 t=17s\n[bagger-engine] progress 800/1348 scored=785 errs=0 t=23s\n[bagger-engine] progress 1000/1348 scored=942 errs=0 t=72s\n[bagger-engine] progress 1200/1348 scored=1129 errs=0 t=78s\n[bagger-engine] done 81.7s scored=1266 100x=0 25x=30 10x=30\nEND RequestId: 4344ffcd-80fb-49a6-825e-67574069f5e7\nREPORT RequestId: 4344ffcd-80fb-49a6-825e-67574069f5e7\tDuration: 81867.98 ms\tBilled Duration: 82362 ms\tMemory Size: 1024 MB\tMax Memory Used: 115 MB\tInit Duration: 493.92 ms\t\n"
+  },
+  "sidecar": {
+    "size_kb": 290.7,
+    "generated_at": "2026-05-16T12:28:15.369775+00:00",
+    "elapsed_s": 81.7,
+    "candidates_in_range": 1348,
+    "n_scored": 1266,
+    "n_errors": 0,
+    "tier_counts": {
+      "potential_100x": 0,
+      "potential_25x": 30,
+      "potential_10x": 30,
+      "steady_compounders": 30
+    },
+    "top_15": [
+      {
+        "rank": 1,
+        "symbol": "PPIH",
+        "name": "Perma-Pipe International Hol",
+        "score": 89.7,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 20.0,
+        "roic": 13.8
+      },
+      {
+        "rank": 2,
+        "symbol": "ISSC",
+        "name": "Innovative Aerosystems, Inc.",
+        "score": 85.2,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 31.3,
+        "roic": 17.6
+      },
+      {
+        "rank": 3,
+        "symbol": "ADMA",
+        "name": "ADMA Biologics, Inc.",
+        "score": 83.4,
+        "cap_bucket": "small",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 64.6,
+        "roic": 27.6
+      },
+      {
+        "rank": 4,
+        "symbol": "KINS",
+        "name": "Kingstone Companies, Inc.",
+        "score": 82.6,
+        "cap_bucket": "micro",
+        "classification": "STEADY_COMPOUNDER",
+        "rev_cagr": 8.7,
+        "roic": 29.5
+      },
+      {
+        "rank": 5,
+        "symbol": "SKWD",
+        "name": "Skyward Specialty Insurance ",
+        "score": 82.5,
+        "cap_bucket": "small",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 25.8,
+        "roic": 15.1
+      },
+      {
+        "rank": 6,
+        "symbol": "NAGE",
+        "name": "Niagen Bioscience Inc",
+        "score": 82.3,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 16.9,
+        "roic": 15.6
+      },
+      {
+        "rank": 7,
+        "symbol": "ACFN",
+        "name": "Acorn Energy, Inc.",
+        "score": 82.3,
+        "cap_bucket": "nano",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 14.2,
+        "roic": 20.5
+      },
+      {
+        "rank": 8,
+        "symbol": "LC",
+        "name": "LendingClub Corporation",
+        "score": 81.5,
+        "cap_bucket": "small",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 24.0,
+        "roic": 15.7
+      },
+      {
+        "rank": 9,
+        "symbol": "ELMD",
+        "name": "Electromed, Inc.",
+        "score": 81.4,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 14.5,
+        "roic": 16.7
+      },
+      {
+        "rank": 10,
+        "symbol": "OVBC",
+        "name": "Ohio Valley Banc Corp.",
+        "score": 81.3,
+        "cap_bucket": "micro",
+        "classification": "STEADY_COMPOUNDER",
+        "rev_cagr": 11.1,
+        "roic": 30.1
+      },
+      {
+        "rank": 11,
+        "symbol": "MFIN",
+        "name": "Medallion Financial Corp.",
+        "score": 81.1,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 18.5,
+        "roic": 4.3
+      },
+      {
+        "rank": 12,
+        "symbol": "HALO",
+        "name": "Halozyme Therapeutics, Inc.",
+        "score": 80.7,
+        "cap_bucket": "mid",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 39.2,
+        "roic": 23.6
+      },
+      {
+        "rank": 13,
+        "symbol": "VRRM",
+        "name": "Verra Mobility Corporation",
+        "score": 80.6,
+        "cap_bucket": "small",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 20.0,
+        "roic": 11.6
+      },
+      {
+        "rank": 14,
+        "symbol": "FDBC",
+        "name": "Fidelity D & D Bancorp, Inc.",
+        "score": 80.6,
+        "cap_bucket": "micro",
+        "classification": "POTENTIAL_10X",
+        "rev_cagr": 18.3,
+        "roic": 10.0
+      },
+      {
+        "rank": 15,
+        "symbol": "INSP",
+        "name": "Inspire Medical Systems, Inc",
+        "score": 80.5,
+        "cap_bucket": "small",
+        "classification": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 51.2,
+        "roic": 6.3
+      }
+    ],
+    "potential_100x_names": []
+  },
+  "finished": "2026-05-16T12:28:15.606786+00:00"
+}
