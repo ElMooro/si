@@ -50,10 +50,14 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 # series_id -> (label, unit_to_usd_billions_multiplier OR "fx")
 # Balance sheets normalised to USD billions.
+#   WALCL      millions USD            -> *1e-3
+#   ECBASSETSW millions EUR            -> *1e-3 then *DEXUSEU (USD per EUR)
+#   JPNASSETS  100 million JPY         -> *0.1 (=>JPY bn-scale) then /DEXJPUS (JPY per USD)
+#              i.e. value*1e8 JPY /fx /1e9 = value*0.1/fx  USD bn
 CB_SERIES = {
     "WALCL":      {"cb": "Fed", "native_unit": "millions USD",       "to_usd_bn": 1e-3},
     "ECBASSETSW": {"cb": "ECB", "native_unit": "millions EUR",       "to_usd_bn": 1e-3, "fx": "DEXUSEU"},
-    "JPNASSETS":  {"cb": "BOJ", "native_unit": "100 million JPY",    "to_usd_bn": 1e-4, "fx": "DEXJPUS"},
+    "JPNASSETS":  {"cb": "BOJ", "native_unit": "100 million JPY",    "to_usd_bn": 0.1,  "fx": "DEXJPUS"},
 }
 NET_LIQ_SERIES = ["WALCL", "WTREGEN", "RRPONTSYD"]
 FX_SERIES = ["DEXUSEU", "DEXJPUS"]
@@ -201,16 +205,24 @@ def lambda_handler(event, context):
     gli_52w = pct_change_n_weeks(gli_points, 52)
 
     # ── 2. Fed Net Liquidity = WALCL − WTREGEN − RRPONTSYD (USD billions) ──
+    # All three are normalised to billions. FRED's H.4.1 series report in
+    # millions; a value above 50,000 is treated as millions and scaled down,
+    # which is robust to FRED's occasional unit inconsistency across series.
+    def to_billions(v):
+        if v is None:
+            return None
+        return v / 1e3 if abs(v) >= 50000 else v
+
     walcl = raw.get("WALCL", [])
     tga = raw.get("WTREGEN", [])
     rrp = raw.get("RRPONTSYD", [])
     net_liq_points = []
     for o in walcl[:HISTORY_MAX]:
         d = o["date"]
-        bs = o["value"] / 1e3  # millions -> billions
-        t = value_on_or_before(tga, d)   # already billions
-        r = value_on_or_before(rrp, d)   # already billions
-        if t is None or r is None:
+        bs = to_billions(o["value"])
+        t = to_billions(value_on_or_before(tga, d))
+        r = to_billions(value_on_or_before(rrp, d))
+        if bs is None or t is None or r is None:
             continue
         net_liq_points.append((d, bs - t - r))
     net_liq_points.sort(key=lambda x: x[0], reverse=True)
