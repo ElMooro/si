@@ -3,13 +3,23 @@
   "memory": 1024,
   "timeout": 720,
   "runtime": "python3.12",
-  "description": "100x Bagger Engine — scores nano/micro/small/mid universe on 7-pillar multibagger DNA",
+  "description": "100x Bagger Engine \u2014 scores nano/micro/small/mid universe on 7-pillar multibagger DNA",
   "environment": {
     "MAX_WORKERS": "8"
   },
   "schedule": {
     "rule_name": "bagger-engine-weekly",
     "cron": "cron(0 12 ? * SUN *)",
-    "description": "100x Bagger Engine full universe rescore — weekly Sunday noon UTC"
-  }
+    "description": "100x Bagger Engine full universe rescore \u2014 weekly Sunday noon UTC"
+  },
+  "inherit_env": [
+    {
+      "from_function": "justhodl-sector-heatmap",
+      "keys": [
+        "FMP_KEY",
+        "TELEGRAM_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
+  ]
 }

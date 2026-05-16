@@ -152,8 +152,14 @@ jobs:
                   fi
                 fi
               fi
+              # Convert config-derived env ("K=V,K=V" string) into a JSON object.
+              # Using JSON + file:// avoids the Variables={k=v} shorthand breaking
+              # on values that contain commas or special characters.
+              cfg_env_json="{}"
               if [ -n "$env_kv" ]; then
-                fn_env_args="--environment Variables={$env_kv}"
+                cfg_env_json=$(echo "$env_kv" | tr ',' '\n' \
+                  | jq -R 'select(length>0) | split("=") | {(.[0]): (.[1:] | join("="))}' \
+                  | jq -s 'add // {}')
               fi
             fi
 
@@ -177,12 +183,24 @@ jobs:
 
               # Apply config overrides if present (env vars, timeout, memory may have changed)
               if [ -f "$dir/config.json" ]; then
+                # MERGE env: the function's CURRENT env is the base, config.json
+                # env overrides on top. This preserves ops-patched secrets
+                # (FMP_KEY, TELEGRAM_*, etc.) across redeploys — config.json need
+                # only declare non-secret vars like MAX_WORKERS.
+                existing_env=$(aws lambda get-function-configuration \
+                  --function-name "$fn" --region "${{ secrets.AWS_REGION }}" \
+                  --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                if [ -z "$existing_env" ] || [ "$existing_env" = "null" ]; then
+                  existing_env="{}"
+                fi
+                merged_env=$(jq -n --argjson a "$existing_env" --argjson b "$cfg_env_json" '$a * $b')
+                echo "{\"Variables\": $merged_env}" > "$tmp/env.json"
                 aws lambda update-function-configuration \
                   --function-name "$fn" \
                   --timeout "$fn_timeout" \
                   --memory-size "$fn_memory" \
                   --region "${{ secrets.AWS_REGION }}" \
-                  $fn_env_args \
+                  --environment "file://$tmp/env.json" \
                   --output text > /dev/null
                 aws lambda wait function-updated \
                   --function-name "$fn" \
@@ -190,6 +208,7 @@ jobs:
               fi
             else
               echo "Lambda $fn does not exist — creating"
+              echo "{\"Variables\": $cfg_env_json}" > "$tmp/env.json"
               aws lambda create-function \
                 --function-name "$fn" \
                 --runtime "$fn_runtime" \
@@ -200,7 +219,7 @@ jobs:
                 --memory-size "$fn_memory" \
                 --description "$fn_desc" \
                 --region "${{ secrets.AWS_REGION }}" \
-                $fn_env_args \
+                --environment "file://$tmp/env.json" \
                 --output text > /dev/null
 
               aws lambda wait function-active-v2 \
