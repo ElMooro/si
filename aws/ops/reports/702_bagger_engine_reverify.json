@@ -1,0 +1,165 @@
+{
+  "started": "2026-05-16T12:41:37.590597+00:00",
+  "deploy_modified": "2026-05-16T12:36:42.000+0000",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "elapsed_s": 0.7,
+    "response": "{\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"FMP_KEY not set\\\"}\"}",
+    "log_tail": "START RequestId: c0b17325-5eba-4be9-9027-9105a0443538 Version: $LATEST\n[bagger-engine] starting 2026-05-16T12:41:38.503894+00:00\nEND RequestId: c0b17325-5eba-4be9-9027-9105a0443538\nREPORT RequestId: c0b17325-5eba-4be9-9027-9105a0443538\tDuration: 1.97 ms\tBilled Duration: 527 ms\tMemory Size: 1024 MB\tMax Memory Used: 92 MB\tInit Duration: 524.98 ms\t\n"
+  },
+  "sidecar": {
+    "size_kb": 290.7,
+    "n_scored": 1266,
+    "tier_counts": {
+      "potential_100x": 0,
+      "potential_25x": 30,
+      "potential_10x": 30,
+      "steady_compounders": 30
+    },
+    "potential_100x": [],
+    "top_20": [
+      {
+        "rank": 1,
+        "symbol": "PPIH",
+        "score": 89.7,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 20.0
+      },
+      {
+        "rank": 2,
+        "symbol": "ISSC",
+        "score": 85.2,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 31.3
+      },
+      {
+        "rank": 3,
+        "symbol": "ADMA",
+        "score": 83.4,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 64.6
+      },
+      {
+        "rank": 4,
+        "symbol": "KINS",
+        "score": 82.6,
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 8.7
+      },
+      {
+        "rank": 5,
+        "symbol": "SKWD",
+        "score": 82.5,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 25.8
+      },
+      {
+        "rank": 6,
+        "symbol": "NAGE",
+        "score": 82.3,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 16.9
+      },
+      {
+        "rank": 7,
+        "symbol": "ACFN",
+        "score": 82.3,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 14.2
+      },
+      {
+        "rank": 8,
+        "symbol": "LC",
+        "score": 81.5,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 24.0
+      },
+      {
+        "rank": 9,
+        "symbol": "ELMD",
+        "score": 81.4,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 14.5
+      },
+      {
+        "rank": 10,
+        "symbol": "OVBC",
+        "score": 81.3,
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 11.1
+      },
+      {
+        "rank": 11,
+        "symbol": "MFIN",
+        "score": 81.1,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 18.5
+      },
+      {
+        "rank": 12,
+        "symbol": "HALO",
+        "score": 80.7,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 39.2
+      },
+      {
+        "rank": 13,
+        "symbol": "VRRM",
+        "score": 80.6,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 20.0
+      },
+      {
+        "rank": 14,
+        "symbol": "FDBC",
+        "score": 80.6,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 18.3
+      },
+      {
+        "rank": 15,
+        "symbol": "INSP",
+        "score": 80.5,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 51.2
+      },
+      {
+        "rank": 16,
+        "symbol": "YELP",
+        "score": 80.4,
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 10.9
+      },
+      {
+        "rank": 17,
+        "symbol": "OVLY",
+        "score": 80.0,
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 9.9
+      },
+      {
+        "rank": 18,
+        "symbol": "QCRH",
+        "score": 79.7,
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 14.2
+      },
+      {
+        "rank": 19,
+        "symbol": "AIRO",
+        "score": 79.4,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 66.7
+      },
+      {
+        "rank": 20,
+        "symbol": "BCRX",
+        "score": 79.3,
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 117.9
+      }
+    ]
+  },
+  "finished": "2026-05-16T12:41:38.781292+00:00"
+}
