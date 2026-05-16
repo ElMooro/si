@@ -1,0 +1,192 @@
+{
+  "started": "2026-05-16T20:44:30.926669+00:00",
+  "item1_master_ranker": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_tickers\\\": 25, \\\"n_macro\\\": 10, \\\"n_tier_3_plus\\\": 40, \\\"n_tier_5_plus\\\": 1, \\\"regime\\\": \\\"SLOWING\\\", \\\"duration_s\\\": 1.11}\"}"
+    },
+    "check": {
+      "s3_age_min": 0.1,
+      "regime_context_keys": [
+        "capitulation_signal",
+        "composite_z",
+        "coverage_pct",
+        "crisis_trend",
+        "defcon_level",
+        "defcon_name",
+        "flashing_buckets",
+        "leading_markets_signal",
+        "regime",
+        "regime_color",
+        "risk_posture",
+        "spy_fwd_12m",
+        "spy_fwd_6m"
+      ],
+      "risk_posture": "NEUTRAL \u2014 standard positioning",
+      "defcon_level": 4,
+      "leading_markets_signal": "MIXED",
+      "capitulation_signal": "NO_SIGNAL",
+      "n_top_macro": 10,
+      "risk_pack_wired": true
+    }
+  },
+  "item1_allocator": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"BALANCED_NEUTRAL\\\", \\\"n_overweights\\\": 0, \\\"n_underweights\\\": 0, \\\"cash_pct\\\": 12.0, \\\"duration_s\\\": 0.51}\"}"
+    },
+    "check": {
+      "s3_age_min": 0.1,
+      "n_assets_scored": 0,
+      "crisis_rule_fired": true,
+      "capitulation_rule_fired": true,
+      "leading_rule_fired": true,
+      "liquidity_rule_fired": true
+    }
+  },
+  "item2_pm_decision": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"posture_word\\\": \\\"NEUTRAL\\\", \\\"headline\\\": \\\"NEUTRAL: 0 trim \\\\u00b7 2 add \\\\u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.\\\", \\\"n_trim\\\": 0, \\\"n_add\\\": 2, \\\"n_hedge\\\": 0}\"}"
+    },
+    "schedule": [
+      "pm-decision-daily"
+    ],
+    "check": {
+      "top_keys": [
+        "actions",
+        "elapsed_s",
+        "generated_at",
+        "headline",
+        "inputs_used",
+        "macro_frame",
+        "method",
+        "note",
+        "portfolio",
+        "posture",
+        "posture_word",
+        "schema_version",
+        "triggers"
+      ],
+      "posture": "NEUTRAL \u2014 standard positioning",
+      "headline": "NEUTRAL: 0 trim \u00b7 2 add \u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.",
+      "n_trim": 0,
+      "n_add": 2,
+      "n_hedge": 0,
+      "has_triggers": true
+    }
+  },
+  "item3_cross_asset_rv": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"rv_state\\\": \\\"STRETCHED\\\", \\\"n_dislocated\\\": 0, \\\"n_stretched\\\": 4, \\\"data_failed\\\": []}\"}"
+    },
+    "schedule": [
+      "cross-asset-rv-daily"
+    ],
+    "check": {
+      "top_keys": [
+        "data_failed",
+        "dislocations",
+        "elapsed_s",
+        "generated_at",
+        "interpretation",
+        "method",
+        "n_dislocated",
+        "n_stretched",
+        "relationships",
+        "rv_read",
+        "rv_state",
+        "schema_version",
+        "window_days"
+      ],
+      "n_pairs": 6,
+      "sample_pairs": [
+        {
+          "k": "gold_vs_real_yields",
+          "verdict": "STRETCHED",
+          "z": null
+        },
+        {
+          "k": "hy_credit_vs_equity_vol",
+          "verdict": "NEUTRAL",
+          "z": null
+        },
+        {
+          "k": "curve_vs_growth",
+          "verdict": "STRETCHED",
+          "z": null
+        },
+        {
+          "k": "copper_gold_vs_10y",
+          "verdict": "STRETCHED",
+          "z": null
+        },
+        {
+          "k": "breakevens_vs_oil",
+          "verdict": "NEUTRAL",
+          "z": null
+        },
+        {
+          "k": "equities_vs_credit",
+          "verdict": "STRETCHED",
+          "z": null
+        }
+      ]
+    }
+  },
+  "item4_signal_scorecard": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_signals_tracked\\\": 43, \\\"n_promoted\\\": 3, \\\"n_deprecated\\\": 27, \\\"n_probation\\\": 3, \\\"avg_graded_wilson_lb\\\": 0.128}\"}"
+    },
+    "schedule": [
+      "signal-scorecard-daily"
+    ],
+    "check": {
+      "top_keys": [
+        "avg_graded_wilson_lb",
+        "deprecated_signals",
+        "elapsed_s",
+        "generated_at",
+        "interpretation",
+        "method",
+        "n_deprecated",
+        "n_outcomes_scanned",
+        "n_probation",
+        "n_promoted",
+        "n_signals_tracked",
+        "promoted_signals",
+        "schema_version",
+        "scorecard",
+        "thresholds"
+      ],
+      "n_signals_tracked": 43,
+      "n_outcomes_scanned": 10103,
+      "n_promoted": 3,
+      "n_deprecated": 27,
+      "n_probation": 3,
+      "avg_graded_wilson_lb": 0.128
+    }
+  },
+  "item5_consolidation": {
+    "n_deleted": null,
+    "lambda_count_after": 262,
+    "status": "done in ops/717"
+  },
+  "summary": {
+    "item1_master_ranker_ok": true,
+    "item1_allocator_ok": true,
+    "item2_pm_decision_ok": true,
+    "item3_cross_asset_rv_ok": true,
+    "item4_signal_scorecard_ok": true,
+    "item5_consolidation_ok": false
+  },
+  "all_five_verified": false,
+  "finished": "2026-05-16T20:44:55.140994+00:00"
+}
