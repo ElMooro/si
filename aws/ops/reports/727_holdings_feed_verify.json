@@ -1,0 +1,39 @@
+{
+  "ops": 727,
+  "ts": "2026-05-16T22:12:36.768429+00:00",
+  "subject": "portfolio-admin endpoint + Portfolio Manager E2E",
+  "preflight": {
+    "status": 200,
+    "allow_origin": "https://justhodl.ai"
+  },
+  "no_token": {
+    "status": 403,
+    "body": "{\"ok\": false, \"err\": \"forbidden\"}"
+  },
+  "bad_token": {
+    "status": 403,
+    "body": "{\"ok\": false, \"err\": \"forbidden\"}"
+  },
+  "good_token": {
+    "status": 200,
+    "ok": true,
+    "n_positions": 0,
+    "body": "{\"positions\": [], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 0, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true}"
+  },
+  "manager_page": {
+    "status": 200,
+    "marker_found": true,
+    "url_baked": true
+  },
+  "index_links_manager": true,
+  "checks": {
+    "preflight_ok": true,
+    "no_token_403": true,
+    "bad_token_403": true,
+    "good_token_200": true,
+    "manager_page_live": true,
+    "index_links_manager": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 holdings feed is live: secured endpoint gates correctly, Manager page can read/write the book, pipeline flows to the PM cockpit"
+}
