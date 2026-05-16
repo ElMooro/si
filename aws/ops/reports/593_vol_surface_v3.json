@@ -1,0 +1,143 @@
+{
+  "started": "2026-05-16T00:03:57.904920+00:00",
+  "pre_modified": "2026-05-15T23:57:50.000+0000",
+  "new_modified": "2026-05-16T00:04:00.000+0000",
+  "env_keys_present": [
+    "FRED_API_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "invoke_status": 200,
+  "fn_error": null,
+  "response": {
+    "ok": true,
+    "regime": "COMPLACENCY",
+    "score": 8.0,
+    "alerts": 1
+  },
+  "log_tail": "START RequestId: 955cfe7b-dcb9-4d4d-94f4-ef7584b1efe5 Version: $LATEST\n[vol-surface v3 FRED] starting 2026-05-16T00:04:10.205991+00:00\n[fred] VXST: HTTP Error 400: Bad Request\n[fred] TYVIXCLS: HTTP Error 400: Bad Request\n[fred] VVIXCLS: HTTP Error 400: Bad Request\n[fred] SKEWCLS: HTTP Error 400: Bad Request\n[vol-surface v3] done 14.52s regime=COMPLACENCY score=8.0 alerts=1\nEND RequestId: 955cfe7b-dcb9-4d4d-94f4-ef7584b1efe5\nREPORT RequestId: 955cfe7b-dcb9-4d4d-94f4-ef7584b1efe5\tDuration: 14994.90 ms\tBilled Duration: 15538 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\tInit Duration: 542.14 ms\t\n",
+  "sidecar_size_kb": 2.1,
+  "sidecar_summary": {
+    "data_source": "FRED VIX-family + CBOE SKEW (replaces broken Polygon/Yahoo options paths)",
+    "generated_at": "2026-05-16T00:04:24.726882+00:00",
+    "regime": "COMPLACENCY",
+    "composite_stress_score": 8.0,
+    "stress_components": {
+      "oil_dominant": 8
+    },
+    "skew": {
+      "value": null,
+      "pctile_252d": null,
+      "regime": "UNKNOWN"
+    },
+    "vvix": {
+      "value": null,
+      "pctile_252d": null,
+      "regime": "UNKNOWN"
+    },
+    "term_structure": {
+      "front": null,
+      "spot": 17.26,
+      "back": 20.85,
+      "ratio_30d_3m": 0.828,
+      "slope_30d_3m_yearized": 0.2184,
+      "inverted": false,
+      "regime": "STEEP_CONTANGO"
+    },
+    "cross_asset": {
+      "ndx_vix_ratio": 1.395,
+      "rut_vix_ratio": 1.35,
+      "smallcap_stress": false,
+      "eem_vix_ratio": 1.817,
+      "oil_vix_ratio": 3.993,
+      "oil_dominant": true
+    },
+    "alerts": [
+      "Oil-dominant vol regime: OVX/VIX = 3.993"
+    ],
+    "data_freshness": {
+      "latest_date": "2026-05-14"
+    },
+    "underlyings": {
+      "VIX_30D": {
+        "for": "SPX",
+        "tenor_d": 30,
+        "value": 17.26,
+        "date": "2026-05-14",
+        "pctile_252d": 50.0
+      },
+      "VIX_9D": {
+        "for": "SPX",
+        "tenor_d": 9,
+        "value": null,
+        "date": null,
+        "pctile_252d": null
+      },
+      "VIX_3M": {
+        "for": "SPX",
+        "tenor_d": 90,
+        "value": 20.85,
+        "date": "2026-05-14",
+        "pctile_252d": 64.3
+      },
+      "NDX_VOL": {
+        "for": "NDX",
+        "tenor_d": 30,
+        "value": 24.08,
+        "date": "2026-05-14",
+        "pctile_252d": 70.2
+      },
+      "RUT_VOL": {
+        "for": "RUT",
+        "tenor_d": 30,
+        "value": 23.3,
+        "date": "2026-05-14",
+        "pctile_252d": 49.2
+      },
+      "EEM_VOL": {
+        "for": "EEM",
+        "tenor_d": 30,
+        "value": 31.36,
+        "date": "2026-05-14",
+        "pctile_252d": 94.8
+      },
+      "OIL_VOL": {
+        "for": "USO",
+        "tenor_d": 30,
+        "value": 68.92,
+        "date": "2026-05-14",
+        "pctile_252d": 93.7
+      },
+      "GOLD_VOL": {
+        "for": "GLD",
+        "tenor_d": 30,
+        "value": 25.79,
+        "date": "2026-05-14",
+        "pctile_252d": 77.4
+      },
+      "TY_VOL": {
+        "for": "TLT",
+        "tenor_d": 30,
+        "value": null,
+        "date": null,
+        "pctile_252d": null
+      },
+      "EUR_VOL": {
+        "for": "FXE",
+        "tenor_d": 30,
+        "value": 10.68,
+        "date": "2025-03-11",
+        "pctile_252d": 95.2
+      },
+      "VVIX": {
+        "for": "VIX",
+        "tenor_d": 30,
+        "value": null,
+        "date": null,
+        "pctile_252d": null
+      }
+    }
+  },
+  "592_not_yet_run": true,
+  "finished": "2026-05-16T00:04:25.371028+00:00"
+}
