@@ -1,0 +1,41 @@
+{
+  "started": "2026-05-16T18:11:30.436269+00:00",
+  "bank_stress_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"bank_stress_score\\\": 26.1, \\\"regime\\\": \\\"TIGHTENING\\\", \\\"emergency_draw\\\": false, \\\"fred_failed\\\": []}\"}"
+  },
+  "bank_stress": {
+    "bank_stress_score": 26.1,
+    "regime": "TIGHTENING",
+    "emergency_draw": false,
+    "discount_window_bn": 6.0,
+    "btfp_bn": 0.0,
+    "swap_lines_bn": 0.0,
+    "reserves_bn": 3102.8,
+    "reserves_to_gdp_pct": 9.74,
+    "checks": {
+      "discount_window_sane": true,
+      "score_sane": true
+    }
+  },
+  "defcon_page": {
+    "http_status": null,
+    "size_bytes": 25,
+    "all_markers_ok": false,
+    "missing": [
+      "Risk &amp; Opportunity Command Center",
+      "crisis-composite.json",
+      "capitulation.json",
+      "china-liquidity.json",
+      "bank-stress.json",
+      "Master Crisis Score",
+      "Capitulation"
+    ]
+  },
+  "summary": {
+    "bank_stress_units_fixed": true,
+    "defcon_page_live": false
+  },
+  "finished": "2026-05-16T18:11:33.211127+00:00"
+}
