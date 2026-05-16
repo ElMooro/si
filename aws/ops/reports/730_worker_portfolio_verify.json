@@ -1,0 +1,31 @@
+{
+  "ops": 730,
+  "ts": "2026-05-16T22:51:59.817482+00:00",
+  "subject": "Worker portfolio-admin route \u2014 workers.dev verify",
+  "preflight": {
+    "status": 204,
+    "allow_headers": "Content-Type"
+  },
+  "no_pin": {
+    "status": 404,
+    "body": "{\"error\":\"Not found\",\"path\":\"/portfolio-admin\"}"
+  },
+  "bad_pin": {
+    "status": 404,
+    "body": "{\"error\":\"Not found\",\"path\":\"/portfolio-admin\"}"
+  },
+  "good_pin": {
+    "status": 404,
+    "ok": null,
+    "n_positions": null,
+    "body": "{\"error\":\"Not found\",\"path\":\"/portfolio-admin\"}"
+  },
+  "checks": {
+    "preflight_allows_mgr_pass": false,
+    "no_pin_403": false,
+    "bad_pin_403": false,
+    "good_pin_200": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see fields; may indicate a Worker secret/deploy issue"
+}
