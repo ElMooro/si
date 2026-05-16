@@ -1,0 +1,390 @@
+{
+  "started": "2026-05-16T20:33:46.614162+00:00",
+  "candidates": [
+    {
+      "function": "justhodl-position-sizer-v2",
+      "exists": true,
+      "last_modified": "2026-05-05T12:17:12.000+0000",
+      "days_since_modified": 11,
+      "schedule_rules": [
+        "justhodl-position-sizer-v2-daily"
+      ],
+      "invocations_14d": 14,
+      "invocations_30d": 14,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-risk-sizer",
+      "exists": true,
+      "last_modified": "2026-05-04T20:14:56.000+0000",
+      "days_since_modified": 12,
+      "schedule_rules": [
+        "justhodl-risk-sizer-daily"
+      ],
+      "invocations_14d": 17,
+      "invocations_30d": 26,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-portfolio-sizer",
+      "exists": true,
+      "last_modified": "2026-05-12T23:15:34.910+0000",
+      "days_since_modified": 3,
+      "schedule_rules": [
+        "justhodl-portfolio-sizer-hourly"
+      ],
+      "invocations_14d": 98,
+      "invocations_30d": 98,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-backtest-harness",
+      "exists": true,
+      "last_modified": "2026-05-13T23:54:06.000+0000",
+      "days_since_modified": 2,
+      "schedule_rules": [
+        "justhodl-backtest-harness-daily"
+      ],
+      "invocations_14d": 14,
+      "invocations_30d": 20,
+      "name_looks_test": true,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-calls-backtest",
+      "exists": true,
+      "last_modified": "2026-05-05T12:53:38.110+0000",
+      "days_since_modified": 11,
+      "schedule_rules": [
+        "justhodl-calls-backtest-daily"
+      ],
+      "invocations_14d": 13,
+      "invocations_30d": 13,
+      "name_looks_test": true,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-backtest-engine",
+      "exists": true,
+      "last_modified": "2026-05-06T18:15:33.000+0000",
+      "days_since_modified": 10,
+      "schedule_rules": [
+        "justhodl-backtest-engine-6h"
+      ],
+      "invocations_14d": 62,
+      "invocations_30d": 62,
+      "name_looks_test": true,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "global-liquidity-agent-v2",
+      "exists": true,
+      "last_modified": "2026-04-25T10:26:39.000+0000",
+      "days_since_modified": 21,
+      "schedule_rules": [
+        "DailyLiquidityReportRule",
+        "khalid-daily-report"
+      ],
+      "invocations_14d": 131,
+      "invocations_30d": 797,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "global-liquidity-agent-TEST",
+      "exists": true,
+      "last_modified": "2026-04-25T10:28:46.000+0000",
+      "days_since_modified": 21,
+      "schedule_rules": [
+        "liquidity-realtime-TEST"
+      ],
+      "invocations_14d": 0,
+      "invocations_30d": 0,
+      "name_looks_test": true,
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-global-liquidity",
+      "exists": true,
+      "last_modified": "2026-05-16T17:01:00.000+0000",
+      "days_since_modified": 0,
+      "schedule_rules": [
+        "global-liquidity-daily"
+      ],
+      "invocations_14d": 2,
+      "invocations_30d": 2,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "fedliquidityapi-test",
+      "exists": true,
+      "last_modified": "2026-04-25T10:24:44.000+0000",
+      "days_since_modified": 21,
+      "schedule_rules": [],
+      "invocations_14d": 0,
+      "invocations_30d": 0,
+      "name_looks_test": true,
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "fedliquidityapi",
+      "exists": true,
+      "last_modified": "2026-04-25T10:28:25.000+0000",
+      "days_since_modified": 21,
+      "schedule_rules": [
+        "fedliquidityapi-auto-update"
+      ],
+      "invocations_14d": 233,
+      "invocations_30d": 965,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-bloomberg-v8",
+      "exists": true,
+      "last_modified": "2026-05-16T19:34:47.000+0000",
+      "days_since_modified": 0,
+      "schedule_rules": [
+        "bloomberg-terminal-refresh"
+      ],
+      "invocations_14d": 4034,
+      "invocations_30d": 8645,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-ab-test",
+      "exists": true,
+      "last_modified": "2026-05-04T12:42:18.724+0000",
+      "days_since_modified": 12,
+      "schedule_rules": [
+        "justhodl-ab-test-daily"
+      ],
+      "invocations_14d": 14,
+      "invocations_30d": 14,
+      "name_looks_test": true,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "testEnhancedScraper",
+      "exists": true,
+      "last_modified": "2026-04-25T10:27:55.000+0000",
+      "days_since_modified": 21,
+      "schedule_rules": [],
+      "invocations_14d": 0,
+      "invocations_30d": 0,
+      "name_looks_test": true,
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "bls-employment-api-v2",
+      "exists": true,
+      "last_modified": "2025-08-18T00:46:45.000+0000",
+      "days_since_modified": 271,
+      "schedule_rules": [
+        "bls-friday-update",
+        "bls-tuesday-update"
+      ],
+      "invocations_14d": 4,
+      "invocations_30d": 14,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-divergence-engine-v2",
+      "exists": true,
+      "last_modified": "2026-05-07T10:13:16.000+0000",
+      "days_since_modified": 9,
+      "schedule_rules": [
+        "divergence-v2-2hourly"
+      ],
+      "invocations_14d": 117,
+      "invocations_30d": 117,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    },
+    {
+      "function": "justhodl-email-reports-v2",
+      "exists": true,
+      "last_modified": "2026-04-26T12:18:10.000+0000",
+      "days_since_modified": 20,
+      "schedule_rules": [
+        "DailyEmailReportsV2"
+      ],
+      "invocations_14d": 42,
+      "invocations_30d": 63,
+      "name_looks_test": false,
+      "verdict": "KEEP (active)"
+    }
+  ],
+  "total_lambdas": 276,
+  "other_zero_invocation": [
+    {
+      "function": "FinancialIntelligence-Backend",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "OpenBBS3DataProxy",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "autonomous-ai-processor",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "autonomous-ai-schedule"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "createEnhancedIndex",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "createUniversalIndex",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "justhodl-0dte-pinning",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "justhodl-advanced-charts",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "justhodl-bond-vol",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "justhodl-cache-layer",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "justhodl-cross-asset-rv",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "cross-asset-rv-daily"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-daily-macro-report",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "DailyMacroReportRule"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-email-reports",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "justhodl-8am"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-pm-decision",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "pm-decision-daily"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-signal-scorecard",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "signal-scorecard-daily"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "justhodl-ultimate-trading",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "macro-financial-report-viewer",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    },
+    {
+      "function": "macro-report-api",
+      "invocations_30d": 0,
+      "schedule_rules": [
+        "macro-api-daily-update"
+      ],
+      "verdict": "REVIEW (scheduled but idle)"
+    },
+    {
+      "function": "universal-agent-gateway",
+      "invocations_30d": 0,
+      "schedule_rules": [],
+      "verdict": "SAFE_TO_DELETE"
+    }
+  ],
+  "summary": {
+    "total_lambdas": 276,
+    "candidates_safe_to_delete": [
+      "fedliquidityapi-test",
+      "testEnhancedScraper"
+    ],
+    "candidates_review": [
+      "global-liquidity-agent-TEST"
+    ],
+    "candidates_keep": [
+      "justhodl-position-sizer-v2",
+      "justhodl-risk-sizer",
+      "justhodl-portfolio-sizer",
+      "justhodl-backtest-harness",
+      "justhodl-calls-backtest",
+      "justhodl-backtest-engine",
+      "global-liquidity-agent-v2",
+      "justhodl-global-liquidity",
+      "fedliquidityapi",
+      "justhodl-bloomberg-v8",
+      "justhodl-ab-test",
+      "bls-employment-api-v2",
+      "justhodl-divergence-engine-v2",
+      "justhodl-email-reports-v2"
+    ],
+    "other_zero_inv_count": 18,
+    "other_safe_to_delete": [
+      "OpenBBS3DataProxy",
+      "FinancialIntelligence-Backend",
+      "macro-financial-report-viewer",
+      "createEnhancedIndex",
+      "justhodl-bond-vol",
+      "justhodl-ultimate-trading",
+      "justhodl-0dte-pinning",
+      "createUniversalIndex",
+      "justhodl-cache-layer",
+      "justhodl-advanced-charts",
+      "universal-agent-gateway"
+    ]
+  },
+  "finished": "2026-05-16T20:36:19.981685+00:00"
+}
