@@ -1,0 +1,227 @@
+{
+  "ops": 720,
+  "ts": "2026-05-16T21:11:37.633326+00:00",
+  "subject": "signal-scorecard directional-only grading fix \u2014 repo-visible verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_signals_tracked\\\": 43, \\\"n_signals_graded\\\": 28, \\\"n_promoted\\\": 2, \\\"n_deprecated\\\": 21, \\\"n_insufficient\\\": 15, \\\"avg_graded_wilson_lb\\\": 0.142}\"}"
+  },
+  "sidecar": {
+    "last_modified": "2026-05-16T21:11:48+00:00",
+    "schema_version": "2.0",
+    "method": "signal_scorecard_wilson_lb_directional_only",
+    "n_outcomes_scanned": 10103,
+    "n_outcomes_directional": 7183,
+    "n_outcomes_neutral": 2920,
+    "n_signals_tracked": 43,
+    "n_signals_graded": 28,
+    "n_promoted": 2,
+    "n_deprecated": 21,
+    "n_insufficient": 15,
+    "avg_graded_wilson_lb": 0.142
+  },
+  "top_graded": [
+    {
+      "signal": "macro_composite_z",
+      "grade": "A",
+      "status": "PROMOTED",
+      "n_dir": 26,
+      "n_neutral": 0,
+      "hit_rate": 1.0,
+      "wilson_lb": 0.871,
+      "mult": 1.25
+    },
+    {
+      "signal": "screener_top_pick",
+      "grade": "A",
+      "status": "PROMOTED",
+      "n_dir": 2540,
+      "n_neutral": 0,
+      "hit_rate": 0.753,
+      "wilson_lb": 0.736,
+      "mult": 1.25
+    },
+    {
+      "signal": "divergence_extreme",
+      "grade": "F",
+      "status": "ACTIVE",
+      "n_dir": 15,
+      "n_neutral": 0,
+      "hit_rate": 0.267,
+      "wilson_lb": 0.109,
+      "mult": 1.0
+    },
+    {
+      "signal": "crisis_dfii10_vs_gld",
+      "grade": "F",
+      "status": "ACTIVE",
+      "n_dir": 19,
+      "n_neutral": 0,
+      "hit_rate": 0.211,
+      "wilson_lb": 0.085,
+      "mult": 1.0
+    },
+    {
+      "signal": "momentum_uup",
+      "grade": "F",
+      "status": "ACTIVE",
+      "n_dir": 15,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 1.0
+    },
+    {
+      "signal": "cot_extreme",
+      "grade": "F",
+      "status": "ACTIVE",
+      "n_dir": 20,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 1.0
+    },
+    {
+      "signal": "crisis_dfii10_vs_spy",
+      "grade": "F",
+      "status": "ACTIVE",
+      "n_dir": 19,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 1.0
+    },
+    {
+      "signal": "earnings_pead",
+      "grade": "D",
+      "status": "DEPRECATED",
+      "n_dir": 150,
+      "n_neutral": 0,
+      "hit_rate": 0.5,
+      "wilson_lb": 0.421,
+      "mult": 0.0
+    }
+  ],
+  "bottom_graded": [
+    {
+      "signal": "edge_regime",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 26,
+      "n_neutral": 254,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "momentum_tlt",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 84,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "crisis_rate_diff_eur_3m",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 62,
+      "n_neutral": 3,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "crisis_sofr_iorb",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 34,
+      "n_neutral": 94,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "market_phase",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 302,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "corr_break_top_pair",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 72,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "crisis_rate_diff_jpy_3m",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 64,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    },
+    {
+      "signal": "crisis_broad_dollar_vs_spy",
+      "grade": "F",
+      "status": "DEPRECATED",
+      "n_dir": 66,
+      "n_neutral": 0,
+      "hit_rate": 0.0,
+      "wilson_lb": 0.0,
+      "mult": 0.0
+    }
+  ],
+  "deprecated_list": [
+    "earnings_pead",
+    "correlation_break",
+    "etf_rotation",
+    "plumbing_stress",
+    "carry_risk",
+    "crypto_fear_greed",
+    "momentum_spy",
+    "ml_risk",
+    "momentum_uso",
+    "squeeze_risk",
+    "momentum_gld",
+    "crypto_risk_score",
+    "crisis_broad_dollar_vs_eem",
+    "edge_regime",
+    "momentum_tlt",
+    "crisis_rate_diff_eur_3m",
+    "crisis_sofr_iorb",
+    "market_phase",
+    "corr_break_top_pair",
+    "crisis_rate_diff_jpy_3m",
+    "crisis_broad_dollar_vs_spy"
+  ],
+  "promoted_list": [
+    "macro_composite_z",
+    "screener_top_pick"
+  ],
+  "checks": {
+    "schema_is_v2": true,
+    "method_is_directional": true,
+    "avg_lb_no_longer_artifact": false,
+    "deprecation_sensible": false,
+    "neutral_bucketed_separately": true,
+    "directional_outcomes_present": true,
+    "graded_set_nonempty": true,
+    "invoke_ok": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 one or more checks failed"
+}
