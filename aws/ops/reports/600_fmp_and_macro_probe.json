@@ -1,0 +1,235 @@
+{
+  "started": "2026-05-16T01:46:23.476724+00:00",
+  "A_fmp_quote": {
+    "https://financialmodelingprep.com/stable/quote/AAPL?": {
+      "type": "dict",
+      "data": {
+        "_err": "HTTPError: HTTP Error 404: Not Found"
+      }
+    },
+    "https://financialmodelingprep.com/stable/quote?symbol=AAPL&": {
+      "type": "list",
+      "n": 1,
+      "field_names": [
+        "change",
+        "changePercentage",
+        "dayHigh",
+        "dayLow",
+        "exchange",
+        "marketCap",
+        "name",
+        "open",
+        "previousClose",
+        "price",
+        "priceAvg200",
+        "priceAvg50",
+        "symbol",
+        "timestamp",
+        "volume",
+        "yearHigh",
+        "yearLow"
+      ],
+      "sample_entry": {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "price": 300.23,
+        "changePercentage": 0.67738,
+        "change": 2.02,
+        "volume": 54675423,
+        "dayLow": 296.52,
+        "dayHigh": 303.2,
+        "yearHigh": 303.2,
+        "yearLow": 193.46,
+        "marketCap": 4409584891880,
+        "priceAvg50": 265.3904,
+        "priceAvg200": 258.67654,
+        "exchange": "NASDAQ",
+        "open": 297.755,
+        "previousClose": 298.21,
+        "timestamp": 1778875201
+      }
+    },
+    "https://financialmodelingprep.com/stable/quote?symbol=AAPL,MSFT&": {
+      "type": "<class 'list'>",
+      "raw": "[]"
+    },
+    "https://financialmodelingprep.com/stable/quote-short?symbol=AAPL&": {
+      "type": "list",
+      "n": 1,
+      "field_names": [
+        "change",
+        "price",
+        "symbol",
+        "volume"
+      ],
+      "sample_entry": {
+        "symbol": "AAPL",
+        "price": 300.23,
+        "change": 2.02,
+        "volume": 54675423
+      }
+    }
+  },
+  "B_macro_surprise": {
+    "top_keys": [
+      "version",
+      "generated_at",
+      "n_indicators_tracked",
+      "n_indicators_computed",
+      "composite_z",
+      "growth_z",
+      "inflation_z",
+      "regime",
+      "regime_description",
+      "by_indicator",
+      "by_category",
+      "top_beats",
+      "top_misses",
+      "duration_s",
+      "data_sources",
+      "methodology",
+      "regime_definitions"
+    ],
+    "by_indicator_keys_first_10": [
+      "CPIAUCSL",
+      "RSAFS",
+      "PAYEMS",
+      "INDPRO",
+      "CPILFESL",
+      "GDPC1",
+      "PCEPI",
+      "PCEPILFE",
+      "PPIACO",
+      "ICSA"
+    ],
+    "by_indicator_n": 23,
+    "sample_entry_first_key": {
+      "series_id": "CPIAUCSL",
+      "name": "CPI (All Items)",
+      "category": "INFLATION",
+      "higher_is_better": false,
+      "latest_date": "2026-04-01",
+      "actual": 332.407,
+      "expected_6m_avg": 326.6133,
+      "surprise_pct": -1.77,
+      "z_score": -3.73,
+      "direction": "MISS",
+      "score": 0,
+      "n_observations": 23
+    },
+    "sample_entry_field_names": [
+      "actual",
+      "category",
+      "direction",
+      "expected_6m_avg",
+      "higher_is_better",
+      "latest_date",
+      "n_observations",
+      "name",
+      "score",
+      "series_id",
+      "surprise_pct",
+      "z_score"
+    ],
+    "by_category_keys": [
+      "INFLATION",
+      "CONSUMER",
+      "LEADING",
+      "HOUSING",
+      "EMPLOYMENT",
+      "EXTERNAL",
+      "GROWTH"
+    ],
+    "top_beats_first_3": [
+      {
+        "series_id": "PCE",
+        "name": "Personal Consumption Expenditures",
+        "category": "CONSUMER",
+        "higher_is_better": true,
+        "latest_date": "2026-03-01",
+        "actual": 21860.5,
+        "expected_6m_avg": 21413.8333,
+        "surprise_pct": 2.09,
+        "z_score": 2.26,
+        "direction": "BEAT",
+        "score": 95.2,
+        "n_observations": 24
+      },
+      {
+        "series_id": "RSAFS",
+        "name": "Retail Sales",
+        "category": "GROWTH",
+        "higher_is_better": true,
+        "latest_date": "2026-04-01",
+        "actual": 757085.0,
+        "expected_6m_avg": 738272.8333,
+        "surprise_pct": 2.55,
+        "z_score": 2.16,
+        "direction": "BEAT",
+        "score": 93.2,
+        "n_observations": 24
+      },
+      {
+        "series_id": "HOUST",
+        "name": "Housing Starts",
+        "category": "HOUSING",
+        "higher_is_better": true,
+        "latest_date": "2026-03-01",
+        "actual": 1502.0,
+        "expected_6m_avg": 1341.8333,
+        "surprise_pct": 11.94,
+        "z_score": 2.08,
+        "direction": "BEAT",
+        "score": 91.6,
+        "n_observations": 24
+      }
+    ],
+    "top_misses_first_3": [
+      {
+        "series_id": "PCEPI",
+        "name": "PCE Price Index",
+        "category": "INFLATION",
+        "higher_is_better": false,
+        "latest_date": "2026-03-01",
+        "actual": 130.344,
+        "expected_6m_avg": 128.4513,
+        "surprise_pct": -1.47,
+        "z_score": -4.91,
+        "direction": "MISS",
+        "score": 0,
+        "n_observations": 24
+      },
+      {
+        "series_id": "PPIACO",
+        "name": "Producer Price Index",
+        "category": "INFLATION",
+        "higher_is_better": false,
+        "latest_date": "2026-04-01",
+        "actual": 283.764,
+        "expected_6m_avg": 265.6173,
+        "surprise_pct": -6.83,
+        "z_score": -4.25,
+        "direction": "MISS",
+        "score": 0,
+        "n_observations": 24
+      },
+      {
+        "series_id": "CPIAUCSL",
+        "name": "CPI (All Items)",
+        "category": "INFLATION",
+        "higher_is_better": false,
+        "latest_date": "2026-04-01",
+        "actual": 332.407,
+        "expected_6m_avg": 326.6133,
+        "surprise_pct": -1.77,
+        "z_score": -3.73,
+        "direction": "MISS",
+        "score": 0,
+        "n_observations": 23
+      }
+    ],
+    "composite_z": 1.27,
+    "regime": "GROWTH_SURPRISE_POSITIVE"
+  },
+  "finished": "2026-05-16T01:46:25.078863+00:00"
+}
