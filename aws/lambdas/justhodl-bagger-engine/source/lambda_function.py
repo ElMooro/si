@@ -385,15 +385,17 @@ def survival_check(km_series, ratio_series):
 
 
 def twin_engine(rev_cagr, roic, market_cap, net_margin_latest):
-    """Project the bagger math. Returns a dict with 10/15-yr scenarios."""
+    """Project the bagger math. Real 100-baggers take 20-25 years (Chris Mayer's
+    study found a median holding of ~26 years). We project 10/15/20/25-yr
+    horizons so the POTENTIAL_100X tier reflects an honest long-hold thesis,
+    not a 15-year fantasy."""
     if rev_cagr is None:
         return {"available": False}
     # cap growth assumption — even great companies decelerate
     g = max(min(rev_cagr, 0.25), 0.0)
     out = {"available": True, "assumed_growth_capped": round(g * 100, 1)}
-    for yrs in (10, 15):
+    for yrs in (10, 15, 20, 25):
         earnings_mult = (1 + g) ** yrs  # earnings engine if margin holds
-        # multiple change scenarios
         flat = earnings_mult
         rerated = earnings_mult * 1.8   # modest 1.8x multiple expansion
         out[f"yr{yrs}"] = {
@@ -401,17 +403,27 @@ def twin_engine(rev_cagr, roic, market_cap, net_margin_latest):
             "flat_multiple_x": round(flat, 1),
             "with_rerating_x": round(rerated, 1),
         }
-    peak = out["yr15"]["with_rerating_x"]
-    if peak >= 100:
+    # classification keyed off the long-hold horizon — that is how 100x happens
+    peak_long = out["yr20"]["with_rerating_x"]
+    peak_mid = out["yr15"]["with_rerating_x"]
+    if peak_long >= 100:
         out["classification"] = "POTENTIAL_100X"
-    elif peak >= 40:
+    elif peak_mid >= 40 or peak_long >= 40:
         out["classification"] = "POTENTIAL_25X_PLUS"
-    elif peak >= 12:
+    elif peak_mid >= 12:
         out["classification"] = "POTENTIAL_10X"
-    elif peak >= 4:
+    elif peak_mid >= 4:
         out["classification"] = "STEADY_COMPOUNDER"
     else:
         out["classification"] = "MODEST"
+    out["years_to_100x"] = None
+    if g > 0:
+        # solve (1+g)^n * 1.8 >= 100  ->  n = (ln(100/1.8)) / ln(1+g)
+        try:
+            n = math.log(100 / 1.8) / math.log(1 + g)
+            out["years_to_100x"] = round(n, 1)
+        except Exception:
+            pass
     return out
 
 
