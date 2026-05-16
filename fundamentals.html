@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fundamentals X-Ray · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🔬</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1500px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1040px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:16px}
+.card h3{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
+.big{font-family:var(--mono);font-size:30px;font-weight:700;margin:2px 0}
+.sub{font-size:11px;color:var(--dim);margin-top:4px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
+tr.main{cursor:pointer}
+tr.main:hover td{background:var(--panel2)}
+.num{text-align:right}
+.tk{font-weight:700;color:var(--txt)}
+.lab{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:3px}
+.lUNDERVALUED{background:#26ffaf22;color:var(--green)}
+.lOVERVALUED{background:#ff557722;color:var(--red)}
+.lFAIR{background:#1c2433;color:var(--dim)}
+.lSTRONG{background:#26ffaf22;color:var(--green)}
+.lOK{background:#00d4ff18;color:var(--cyan)}
+.lDISTRESS{background:#ff557722;color:var(--red)}
+.detail{background:var(--panel2)}
+.detail td{padding:14px 16px}
+.mixwrap{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.mixwrap h4{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.mixrow{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px}
+.mixrow .nm{width:130px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mixrow .track{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.mixrow .track span{display:block;height:100%;background:var(--cyan)}
+.mixrow .pct{width:44px;text-align:right;font-family:var(--mono);color:var(--txt)}
+.loading{text-align:center;padding:50px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1040px}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.mixwrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🔬 Fundamentals X-Ray</h1>
+    <p class="subtitle">Three institutional reads the platform was leaving on the table — now pulled from FMP. <b>DCF intrinsic value</b> against price (the over/under-valuation gap), <b>revenue segmentation</b> by product line and by geography (where the money actually comes from), and <b>financial-health scores</b> — Altman-Z for distress risk, Piotroski for quality. Run daily over the master-ranker universe. Tap a row for the full segment mix.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/valuations.html">valuations</a>
+      <a href="/baggers.html">baggers</a>
+      <a href="/master-ranker.html">master ranker</a>
+    </nav>
+  </header>
+
+  <div class="grid4" id="kpis"><div class="loading">LOADING FUNDAMENTALS…</div></div>
+
+  <h2>Coverage — ranked by DCF valuation gap</h2>
+  <div class="card" style="padding:6px 10px"><div id="board"><div class="loading">…</div></div></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+let DATA=null;
+
+function gapColor(g){return g==null?"var(--dim)":g>=20?"var(--green)":g<=-20?"var(--red)":"var(--mute)";}
+function azColor(z){return z==null?"var(--dim)":z>=3?"var(--green)":z<1.8?"var(--red)":"var(--yellow)";}
+function pioColor(p){return p==null?"var(--dim)":p>=7?"var(--green)":p<=3?"var(--red)":"var(--yellow)";}
+function fmt(v,d){return v==null?"—":Number(v).toFixed(d==null?2:d);}
+function lc(label){return label?label.replace(" ","").replace("RISK",""):"";}
+
+function renderKpis(d){
+  const s=d.summary||{};
+  const cards=[
+    ["Covered",d.n_covered,(d.universe_source||"")+(d.n_failed?` · ${d.n_failed} failed`:"")],
+    ["Undervalued (DCF)",s.n_undervalued!=null?s.n_undervalued:"—","intrinsic ≥ 20% over price"],
+    ["Distress Risk",s.n_distress_risk!=null?s.n_distress_risk:"—","Altman-Z below 1.8"],
+    ["Avg DCF Gap",s.avg_dcf_gap_pct!=null?(s.avg_dcf_gap_pct>0?"+":"")+s.avg_dcf_gap_pct+"%":"—","mean intrinsic vs price"],
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`
+    <div class="card"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div class="sub">${esc(c[2])}</div></div>`).join("");
+}
+
+function mixBars(mix){
+  const ent=Object.entries(mix||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!ent.length)return `<div style="color:var(--dim);font-size:11px">no segment data reported</div>`;
+  return ent.map(([k,v])=>`
+    <div class="mixrow"><span class="nm" title="${esc(k)}">${esc(k)}</span>
+      <span class="track"><span style="width:${Math.min(100,v)}%"></span></span>
+      <span class="pct">${v}%</span></div>`).join("");
+}
+
+function renderBoard(d){
+  const cs=d.companies||[];
+  if(!cs.length){document.getElementById("board").innerHTML=`<div class="loading">no companies covered</div>`;return;}
+  let h=`<table><thead><tr>
+    <th>Ticker</th><th class="num">Price</th><th class="num">DCF Value</th>
+    <th class="num">DCF Gap</th><th>Valuation</th><th class="num">Altman-Z</th>
+    <th class="num">Piotroski</th><th>Health</th><th>Top Region</th><th>Top Product</th>
+    </tr></thead><tbody>`;
+  cs.forEach((c,i)=>{
+    h+=`<tr class="main" onclick="toggle(${i})">
+      <td class="tk">${esc(c.ticker)}</td>
+      <td class="num">${c.price!=null?"$"+fmt(c.price):"—"}</td>
+      <td class="num">${c.dcf!=null?"$"+fmt(c.dcf):"—"}</td>
+      <td class="num" style="color:${gapColor(c.dcf_gap_pct)};font-weight:700">${c.dcf_gap_pct!=null?(c.dcf_gap_pct>0?"+":"")+c.dcf_gap_pct+"%":"—"}</td>
+      <td>${c.valuation_label?`<span class="lab l${esc(c.valuation_label)}">${esc(c.valuation_label)}</span>`:"—"}</td>
+      <td class="num" style="color:${azColor(c.altman_z)}">${fmt(c.altman_z)}</td>
+      <td class="num" style="color:${pioColor(c.piotroski)}">${c.piotroski!=null?c.piotroski:"—"}</td>
+      <td>${c.quality_label?`<span class="lab l${esc(lc(c.quality_label))}">${esc(c.quality_label)}</span>`:"—"}</td>
+      <td>${c.top_region?esc(c.top_region)+` <span style="color:var(--dim)">${c.top_region_pct}%</span>`:"—"}</td>
+      <td>${c.top_product?esc(c.top_product)+` <span style="color:var(--dim)">${c.top_product_pct}%</span>`:"—"}</td>
+    </tr>
+    <tr class="detail" id="d${i}" style="display:none"><td colspan="10">
+      <div class="mixwrap">
+        <div><h4>Revenue by Geography ${c.fiscal_year?`· FY ${esc(String(c.fiscal_year))}`:""}</h4>${mixBars(c.geo_mix)}</div>
+        <div><h4>Revenue by Product / Segment</h4>${mixBars(c.product_mix)}</div>
+      </div></td></tr>`;
+  });
+  document.getElementById("board").innerHTML=h+`</tbody></table>`;
+}
+function toggle(i){
+  const r=document.getElementById("d"+i);
+  if(r)r.style.display=r.style.display==="none"?"":"none";
+}
+
+(async()=>{
+  DATA=await J("fundamentals.json");
+  if(!DATA){
+    document.getElementById("kpis").innerHTML=`<div class="card" style="grid-column:1/-1"><div class="loading">AWAITING FIRST RUN — the engine runs weekdays at 13:00 UTC.</div></div>`;
+    document.getElementById("board").innerHTML="";
+    return;
+  }
+  renderKpis(DATA); renderBoard(DATA);
+  document.getElementById("note").textContent=DATA.note||"";
+  document.getElementById("ts").textContent=
+    "engine: "+(DATA.method||"fmp_fundamentals_xray")+" · generated "+(DATA.generated_at||"?")
+    +" · "+(DATA.elapsed_s!=null?DATA.elapsed_s+"s":"");
+})();
+</script>
+</body>
+</html>
