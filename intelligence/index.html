@@ -120,7 +120,8 @@ tr:hover td{background:rgba(255,255,255,.015);}
 
   <div class="tabs">
     <!-- MACRO -->
-    <button class="tab active" data-pane="khalid">📊 Adaptive Khalid</button>
+    <button class="tab active" data-pane="defcon">🛡 DEFCON</button>
+    <button class="tab" data-pane="khalid">📊 Adaptive Khalid</button>
     <button class="tab" data-pane="stress">💥 Stress Scenarios</button>
     <button class="tab" data-pane="esi">📈 ESI</button>
     <!-- VOL & FLOW -->
@@ -144,7 +145,16 @@ tr:hover td{background:rgba(255,255,255,.015);}
   </div>
 
   <!-- ADAPTIVE KHALID -->
-  <div class="tab-pane active" id="pane-khalid">
+  <div class="tab-pane active" id="pane-defcon">
+    <div class="kpi-grid" id="defcon-kpis"><div class="loading spin">loading crisis-composite</div></div>
+    <div class="panel">
+      <h3>Crisis composite components <span class="tag">7 risk engines fused into one DEFCON</span></h3>
+      <div id="defcon-table"></div>
+    </div>
+    <div class="interp" id="defcon-interp"></div>
+  </div>
+
+  <div class="tab-pane" id="pane-khalid">
     <div class="kpi-grid" id="khalid-kpis"><div class="loading spin">loading khalid-adaptive</div></div>
     <div class="panel">
       <h3>Top contributors <span class="tag">calibrator-weighted</span></h3>
@@ -350,6 +360,10 @@ tr:hover td{background:rgba(255,255,255,.015);}
 <script>
 const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/';
 const ENDPOINTS = {
+  defcon: 'data/crisis-composite.json',
+  capitulation: 'data/capitulation.json',
+  chinaLiq: 'data/china-liquidity.json',
+  bankStress: 'data/bank-stress.json',
   khalid: 'data/khalid-adaptive.json',
   stress: 'data/stress-scenarios.json',
   political: 'data/political-trades.json',
@@ -409,6 +423,36 @@ async function fetchJson(key) {
 }
 
 // ─── ADAPTIVE KHALID ──────────────────────────────────────────────
+function renderDefcon(cc, cap, ch, bs) {
+  if (!cc) return;
+  const lvl = cc.defcon_level, score = cc.master_crisis_score;
+  const dcls = lvl>=5?'pos':lvl===4?'info':lvl===3?'gold':lvl===2?'warning':'neg';
+  const scls = score>=80?'neg':score>=60?'warning':score>=40?'gold':score>=20?'info':'pos';
+  const capSig = cap?cap.signal:null;
+  const capCls = (capSig==='GENERATIONAL_BUY'||capSig==='STRONG_BUY')?'pos':capSig==='CAPITULATION_WAIT'?'warning':capSig==='ACCUMULATE'?'gold':'info';
+  const regCls = (r)=>(r==='EASING'||r==='ABUNDANT')?'pos':(r==='TIGHTENING'||r==='SCARCE'||r==='CONTRACTING')?'warning':'info';
+  const chReg = ch?ch.regime:null, bsReg = bs?bs.regime:null;
+  const ci = (ch&&ch.credit_impulse)?ch.credit_impulse.value_pp:null;
+  const rg = (bs&&bs.reserve_adequacy)?bs.reserve_adequacy.reserves_to_gdp_pct:null;
+  document.getElementById('defcon-kpis').innerHTML = `
+    <div class="kpi ${dcls}"><div class="label">DEFCON Level</div><div class="val ${dcls}">${lvl==null?'\u2014':lvl}</div><div class="sub">${cc.defcon_name||''}</div></div>
+    <div class="kpi ${scls}"><div class="label">Master Crisis Score</div><div class="val ${scls}">${fmtNum(score,1)}</div><div class="sub">trend ${cc.trend||'n/a'}</div></div>
+    <div class="kpi ${capCls}"><div class="label">Capitulation</div><div class="val ${capCls}" style="font-size:15px">${(capSig||'\u2014').replace(/_/g,' ')}</div><div class="sub">score ${cap?fmtNum(cap.capitulation_score,0):'\u2014'}</div></div>
+    <div class="kpi ${chReg?regCls(chReg):'info'}"><div class="label">China Liquidity</div><div class="val" style="font-size:16px">${chReg||'\u2014'}</div><div class="sub">credit impulse ${ci==null?'\u2014':fmtNum(ci,1)+'pp'}</div></div>
+    <div class="kpi ${bsReg?regCls(bsReg):'info'}"><div class="label">Bank Funding</div><div class="val" style="font-size:16px">${bsReg||'\u2014'}</div><div class="sub">reserves/GDP ${rg==null?'\u2014':fmtNum(rg,1)+'%'}</div></div>
+  `;
+  const comps = cc.components||[];
+  document.getElementById('defcon-table').innerHTML = `<table>
+    <thead><tr><th>Risk Engine</th><th>Crisis Contribution</th><th>Weight</th><th>Status</th></tr></thead>
+    <tbody>${comps.map(c=>{
+      const v=c.crisis_contribution;
+      const vc=v==null?'t-mute':v>=60?'t-neg':v>=40?'t-info':'t-pos';
+      return `<tr><td class="t-info">${c.label||c.source}</td><td class="${vc}">${v==null?'n/a':fmtNum(v,0)}</td><td class="t-mute">${Math.round((c.weight||0)*100)}%</td><td class="t-mute">${c.available?(c.age_hours!=null?c.age_hours+'h old':'live'):'unavailable'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  const drivers = (cc.primary_drivers||[]).join(' \u00b7 ');
+  document.getElementById('defcon-interp').innerHTML = `<b>Reading:</b> DEFCON ${lvl} (${cc.defcon_name}) \u00b7 master crisis score ${fmtNum(score,1)}/100. Primary drivers: ${drivers}. ${cc.playbook||''}`;
+}
+
 function renderKhalid(d) {
   if (!d) return;
   const std = d.standard||{}, ad = d.adaptive||{}, div = d.divergence||{};
@@ -440,7 +484,7 @@ function renderKhalid(d) {
       <tbody>${rows||'<tr><td colspan=7 class=t-mute>no qualifying signals</td></tr>'}</tbody>
     </table>`;
 
-  document.getElementById('khalid-interp').innerHTML = `<b>Reading:</b> standard ${stdScore} (${std.regime}) vs adaptive ${adScore} (${ad.regime}) → divergence ${delta>=0?'+':''}${delta}pt. ${div.interpretation}. ${Math.abs(delta)>15?'The learned weights are flagging something the hardcoded blend isn\\'t — worth investigating top contributors.':'Hardcoded and learned weights are in agreement.'}`;
+  document.getElementById('khalid-interp').innerHTML = `<b>Reading:</b> standard ${stdScore} (${std.regime}) vs adaptive ${adScore} (${ad.regime}) → divergence ${delta>=0?'+':''}${delta}pt. ${div.interpretation}. ${Math.abs(delta)>15?'The learned weights are flagging something the hardcoded blend isn\'t — worth investigating top contributors.':'Hardcoded and learned weights are in agreement.'}`;
 }
 
 // ─── STRESS SCENARIOS ─────────────────────────────────────────────
@@ -955,7 +999,7 @@ function renderLiquidity(d) {
 
 // Boot
 (async () => {
-  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp] = await Promise.all([
+  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp, dc, cp, cl, bk] = await Promise.all([
     fetchJson(ENDPOINTS.khalid), fetchJson(ENDPOINTS.stress),
     fetchJson(ENDPOINTS.political), fetchJson(ENDPOINTS.reversal),
     fetchJson(ENDPOINTS.auction), fetchJson(ENDPOINTS.lending),
@@ -965,6 +1009,8 @@ function renderLiquidity(d) {
     fetchJson(ENDPOINTS.tic), fetchJson(ENDPOINTS.consensus),
     fetchJson(ENDPOINTS.sellside), fetchJson(ENDPOINTS.seasonality),
     fetchJson(ENDPOINTS.liquidity),
+    fetchJson(ENDPOINTS.defcon), fetchJson(ENDPOINTS.capitulation),
+    fetchJson(ENDPOINTS.chinaLiq), fetchJson(ENDPOINTS.bankStress),
   ]);
   if (k) renderKhalid(k);
   if (s) renderStress(s);
@@ -983,7 +1029,8 @@ function renderLiquidity(d) {
   if (ss) renderSellside(ss);
   if (sn) renderSeasonality(sn);
   if (lp) renderLiquidity(lp);
-  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
+  if (dc) renderDefcon(dc, cp, cl, bk);
+  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp,dc,cp,cl,bk].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
   if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
 })();
 </script>
