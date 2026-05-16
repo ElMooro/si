@@ -76,8 +76,8 @@ tr:hover td{background:var(--panel2)}
     <div class="gate card">
       <div class="lk">🔒</div>
       <h3>Manager Locked</h3>
-      <p>Enter the admin token. It was sent to your Telegram (<i>@Justhodl_bot</i>) when the secured endpoint was provisioned.</p>
-      <input id="tok" type="password" placeholder="admin token" autocomplete="off">
+      <p>Enter the Manager PIN. It was sent to your Telegram (<i>@Justhodl_bot</i>). Writes route through the Cloudflare Worker — the AWS infra token never touches this browser.</p>
+      <input id="tok" type="password" placeholder="manager PIN" autocomplete="off">
       <div style="margin-top:12px"><button class="primary" style="width:100%" onclick="connect()">Connect</button></div>
       <div class="msg err" id="gateMsg"></div>
     </div>
@@ -111,8 +111,8 @@ tr:hover td{background:var(--panel2)}
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const ADMIN_URL="https://e726eujwijpeg2slgssddw2yee0stboa.lambda-url.us-east-1.on.aws/";
-let TOKEN=sessionStorage.getItem("pa_tok")||"";
+const ADMIN_URL="https://api.justhodl.ai/portfolio-admin";
+let TOKEN=sessionStorage.getItem("pa_pin")||"";
 let POSITIONS=[];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -126,7 +126,7 @@ function toast(msg,err){
 async function api(action,params){
   const r=await fetch(ADMIN_URL,{
     method:"POST",
-    headers:{"content-type":"application/json","x-justhodl-token":TOKEN},
+    headers:{"content-type":"application/json","x-mgr-pass":TOKEN},
     body:JSON.stringify(Object.assign({action},params||{}))
   });
   let j={}; try{j=await r.json();}catch(e){j={ok:false,err:"bad response"};}
@@ -135,13 +135,13 @@ async function api(action,params){
 
 async function connect(){
   TOKEN=$("tok").value.trim();
-  if(!TOKEN){$("gateMsg").textContent="Token required.";return;}
+  if(!TOKEN){$("gateMsg").textContent="PIN required.";return;}
   $("gateMsg").textContent="checking…";
   try{
     const {status,body}=await api("list",{filter:"POSITION"});
-    if(status===403){$("gateMsg").textContent="Token rejected.";return;}
+    if(status===403){$("gateMsg").textContent="PIN rejected.";return;}
     if(!body.ok){$("gateMsg").textContent=body.err||"unexpected error";return;}
-    sessionStorage.setItem("pa_tok",TOKEN);
+    sessionStorage.setItem("pa_pin",TOKEN);
     $("gate").style.display="none"; $("app").style.display="block";
     POSITIONS=body.positions||[];
     render();
@@ -241,10 +241,11 @@ async function removePos(sym){
   toast(sym+" removed"); refresh();
 }
 
-$("note").textContent="Writes are gated by your admin token and an Origin allowlist. "
-  +"Position changes fire a portfolio-snapshot refresh automatically — live prices, "
-  +"P&L, beta, VAR and the PM Decision posture catch up within minutes. "
-  +"The token lives only in this browser tab for the session.";
+$("note").textContent="Writes route through the Cloudflare Worker, which vaults the AWS "
+  +"infra token as an encrypted secret — it never reaches this browser. Access is gated "
+  +"by your Manager PIN and an Origin allowlist. Position changes fire a portfolio-snapshot "
+  +"refresh automatically — live prices, P&L, beta, VAR and the PM Decision posture catch "
+  +"up within minutes. The PIN lives only in this browser tab for the session.";
 
 // auto-connect if a token is already cached for this tab
 if(TOKEN){ $("tok").value=TOKEN; connect(); }
