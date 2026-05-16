@@ -1,0 +1,16 @@
+{
+  "memory_size": 256,
+  "memory": 256,
+  "timeout": 60,
+  "runtime": "python3.12",
+  "description": "Capitulation / Generational-Buy engine — detects washout extremes for best entries",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "capitulation-3h",
+    "cron": "cron(45 */3 * * ? *)",
+    "description": "Capitulation engine — every 3 hours"
+  }
+}
