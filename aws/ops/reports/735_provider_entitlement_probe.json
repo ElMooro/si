@@ -1,0 +1,242 @@
+{
+  "ops": 735,
+  "ts": "2026-05-16T23:43:56.953599+00:00",
+  "subject": "data-provider entitlement probe",
+  "probes": [
+    {
+      "provider": "polygon",
+      "feature": "options snapshot + Greeks/IV (#1 build)",
+      "verdict": "NO",
+      "status": 403,
+      "url": "https://api.polygon.io/v3/snapshot/options/SPY?limit=5&apiKey=***",
+      "body_snippet": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"d2c7d0f7a86887e5b0f28bec39998dad\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    {
+      "provider": "polygon",
+      "feature": "daily short volume",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://api.polygon.io/stocks/v1/short-volume?ticker=AAPL&limit=1&apiKey=***",
+      "body_snippet": "{\"status\":\"OK\",\"request_id\":\"c327833215964eefa00863ea5425de70\",\"results\":[{\"ticker\":\"AAPL\",\"date\":\"2024-02-06\",\"total_volume\":16264662.000000,\"short_volume\":5683713.000000,\"exempt_volume\":67840.000000,\"non_exempt_volume\""
+    },
+    {
+      "provider": "polygon",
+      "feature": "indices snapshot",
+      "verdict": "NO",
+      "status": 403,
+      "url": "https://api.polygon.io/v3/snapshot/indices?ticker=I:SPX&apiKey=***",
+      "body_snippet": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"d9e704cb47f2b369f3968e20288fdc1a\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    {
+      "provider": "polygon",
+      "feature": "treasury yields",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://api.polygon.io/fed/v1/treasury-yields?limit=1&apiKey=***",
+      "body_snippet": "{\"status\":\"OK\",\"request_id\":\"c43625da76d24f85936eda475d79a6b6\",\"results\":[{\"date\":\"1962-01-02\",\"yield_1_year\":3.22,\"yield_5_year\":3.88,\"yield_10_year\":4.06}],\"next_url\":\"https://api.polygon.io/fed/v1/treasury-yields?curs"
+    },
+    {
+      "provider": "polygon",
+      "feature": "dividends (corporate actions)",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://api.polygon.io/v3/reference/dividends?ticker=AAPL&limit=1&apiKey=***",
+      "body_snippet": "{\"results\":[{\"cash_amount\":0.27,\"currency\":\"USD\",\"declaration_date\":\"2026-04-30\",\"dividend_type\":\"CD\",\"ex_dividend_date\":\"2026-05-11\",\"frequency\":4,\"id\":\"E9fd05fa01d55de07885332c97a263e93ac4bf03c742faef9b4f18544b34e928f\""
+    },
+    {
+      "provider": "polygon",
+      "feature": "options trades (flow)",
+      "verdict": "NO",
+      "status": 403,
+      "url": "https://api.polygon.io/v3/trades/O:SPY251219C00600000?limit=1&apiKey=***",
+      "body_snippet": "{\"status\":\"NOT_AUTHORIZED\",\"request_id\":\"7551aec29dfb58354bb11600ee45f080\",\"message\":\"You are not entitled to this data. Please upgrade your plan at https://massive.com/pricing\"}"
+    },
+    {
+      "provider": "fmp",
+      "feature": "revenue product segmentation (#3)",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/revenue-product-segmentation?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"fiscalYear\": 2025,     \"period\": \"FY\",     \"reportedCurrency\": null,     \"date\": \"2025-09-27\",     \"data\": {       \"Mac\": 33708000000,       \"Service\": 109158000000,       \"Wearables, Hom"
+    },
+    {
+      "provider": "fmp",
+      "feature": "revenue geographic segmentation (#3)",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/revenue-geographic-segmentation?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"fiscalYear\": 2025,     \"period\": \"FY\",     \"reportedCurrency\": null,     \"date\": \"2025-09-27\",     \"data\": {       \"Americas Segment\": 178353000000,       \"Europe Segment\": 111032000000, "
+    },
+    {
+      "provider": "fmp",
+      "feature": "price target consensus",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/price-target-consensus?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"targetHigh\": 400,     \"targetLow\": 253,     \"targetConsensus\": 324.21,     \"targetMedian\": 325   } ]"
+    },
+    {
+      "provider": "fmp",
+      "feature": "discounted cash flow",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/discounted-cash-flow?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"date\": \"2026-05-16\",     \"dcf\": 155.22613425172943,     \"Stock Price\": 300.23   } ]"
+    },
+    {
+      "provider": "fmp",
+      "feature": "financial scores (Altman/Piotroski)",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/financial-scores?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"reportedCurrency\": \"USD\",     \"altmanZScore\": 12.606894744696817,     \"piotroskiScore\": 9,     \"workingCapital\": 9473000000,     \"totalAssets\": 371082000000,     \"retainedEarnings\": 12359"
+    },
+    {
+      "provider": "fmp",
+      "feature": "ratios",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/ratios?symbol=AAPL&limit=1&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"date\": \"2025-09-27\",     \"fiscalYear\": \"2025\",     \"period\": \"FY\",     \"reportedCurrency\": \"USD\",     \"grossProfitMargin\": 0.4690516410716045,     \"ebitMargin\": 0.3189366615324358,     \"e"
+    },
+    {
+      "provider": "fmp",
+      "feature": "insider trading search",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/insider-trading/search?symbol=AAPL&page=0&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"filingDate\": \"2026-05-12\",     \"transactionDate\": \"2026-05-08\",     \"reportingCik\": \"0002100523\",     \"companyCik\": \"0000320193\",     \"transactionType\": \"S-Sale\",     \"securitiesOwned\": 3"
+    },
+    {
+      "provider": "fmp",
+      "feature": "senate trades",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/senate-trades?symbol=AAPL&apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"AAPL\",     \"disclosureDate\": \"2026-05-07\",     \"transactionDate\": \"2026-04-17\",     \"firstName\": \"Shelley\",     \"lastName\": \"Moore Capito\",     \"office\": \"Shelley Moore Capito\",     \"district\": \"WV\","
+    },
+    {
+      "provider": "fmp",
+      "feature": "earnings calendar",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/earnings-calendar?apikey=***",
+      "body_snippet": "[   {     \"symbol\": \"DELHIVERY.NS\",     \"date\": \"2026-05-16\",     \"epsActual\": null,     \"epsEstimated\": 1.42,     \"revenueActual\": null,     \"revenueEstimated\": 27234000000,     \"lastUpdated\": \"2026-05-16\"   },   {     "
+    },
+    {
+      "provider": "fmp",
+      "feature": "economic calendar",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://financialmodelingprep.com/stable/economic-calendar?apikey=***",
+      "body_snippet": "[   {     \"date\": \"2026-05-15 20:30:00\",     \"country\": \"AE\",     \"event\": \"M3 Money Supply YoY (Mar)\",     \"currency\": \"AED\",     \"previous\": 19.3,     \"estimate\": null,     \"actual\": null,     \"change\": null,     \"impa"
+    },
+    {
+      "provider": "fmp",
+      "feature": "ETF sector weightings",
+      "verdict": "CHECK",
+      "status": 404,
+      "url": "https://financialmodelingprep.com/stable/etf-sector-weightings?symbol=SPY&apikey=***",
+      "body_snippet": "[]"
+    },
+    {
+      "provider": "alphavantage",
+      "feature": "intraday equity bars",
+      "verdict": "NO",
+      "status": 200,
+      "url": "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=***",
+      "body_snippet": "{     \"Information\": \"Thank you for using Alpha Vantage! This is a premium endpoint. You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to instantly unlock all premium endpoints\" }"
+    },
+    {
+      "provider": "alphavantage",
+      "feature": "analytics sliding window",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://www.alphavantage.co/query?function=ANALYTICS_SLIDING_WINDOW&SYMBOLS=AAPL,MSFT&RANGE=2month&INTERVAL=DAILY&OHLC=close&WINDOW_SIZE=20&CALCULATIONS=CORRELATION&apikey=***",
+      "body_snippet": "{     \"meta_data\": {         \"symbols\": \"MSFT,AAPL\",         \"window_size\": 20,         \"min_dt\": \"2026-03-16\",         \"max_dt\": \"2026-05-15\",         \"ohlc\": \"Close\",         \"interval\": \"DAILY\"     },     \"payload\": {"
+    },
+    {
+      "provider": "alphavantage",
+      "feature": "WTI crude commodity",
+      "verdict": "NO",
+      "status": 200,
+      "url": "https://www.alphavantage.co/query?function=WTI&interval=monthly&apikey=***",
+      "body_snippet": "{     \"Information\": \"Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavanta"
+    },
+    {
+      "provider": "cmc",
+      "feature": "crypto categories (narratives)",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/categories",
+      "body_snippet": "{\"data\":[{\"id\":\"6051a82066fc1b42617d6dc0\",\"name\":\"Filesharing\",\"title\":\"Filesharing\",\"description\":\"The File-sharing category includes decentralized protocols enabling peer-to-peer file sharing and distribution over bloc"
+    },
+    {
+      "provider": "cmc",
+      "feature": "fear & greed latest",
+      "verdict": "YES",
+      "status": 200,
+      "url": "https://pro-api.coinmarketcap.com/v3/fear-and-greed/latest",
+      "body_snippet": "{\"data\":{\"value\":43,\"update_time\":\"2026-05-16T23:38:10.084Z\",\"value_classification\":\"Neutral\"},\"status\":{\"timestamp\":\"2026-05-16T23:43:59.149Z\",\"error_code\":\"0\",\"error_message\":\"\",\"elapsed\":1,\"credit_count\":1}}"
+    },
+    {
+      "provider": "cmc",
+      "feature": "OHLCV historical",
+      "verdict": "NO",
+      "status": 403,
+      "url": "https://pro-api.coinmarketcap.com/v2/cryptocurrency/ohlcv/historical?symbol=BTC&count=2",
+      "body_snippet": "{\"status\":{\"timestamp\":\"2026-05-16T23:43:59.179Z\",\"error_code\":1006,\"error_message\":\"Your API Key subscription plan doesn't support this endpoint.\",\"elapsed\":1,\"credit_count\":0,\"notice\":null}}"
+    }
+  ],
+  "summary_by_provider": {
+    "polygon": {
+      "YES": 3,
+      "NO": 3,
+      "CHECK": 0
+    },
+    "fmp": {
+      "YES": 10,
+      "NO": 0,
+      "CHECK": 1
+    },
+    "alphavantage": {
+      "YES": 1,
+      "NO": 2,
+      "CHECK": 0
+    },
+    "cmc": {
+      "YES": 2,
+      "NO": 1,
+      "CHECK": 0
+    }
+  },
+  "entitled": [
+    "daily short volume",
+    "treasury yields",
+    "dividends (corporate actions)",
+    "revenue product segmentation (#3)",
+    "revenue geographic segmentation (#3)",
+    "price target consensus",
+    "discounted cash flow",
+    "financial scores (Altman/Piotroski)",
+    "ratios",
+    "insider trading search",
+    "senate trades",
+    "earnings calendar",
+    "economic calendar",
+    "analytics sliding window",
+    "crypto categories (narratives)",
+    "fear & greed latest"
+  ],
+  "not_entitled": [
+    "options snapshot + Greeks/IV (#1 build)",
+    "indices snapshot",
+    "options trades (flow)",
+    "intraday equity bars",
+    "WTI crude commodity",
+    "OHLCV historical"
+  ],
+  "needs_review": [
+    "ETF sector weightings"
+  ]
+}
