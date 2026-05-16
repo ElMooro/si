@@ -1,0 +1,205 @@
+{
+  "started": "2026-05-16T16:55:14.255766+00:00",
+  "lambdas": {
+    "coffee-can": {
+      "config": {
+        "state": "Active",
+        "last_modified": "2026-05-16T16:43:52.332+0000",
+        "timeout": 300,
+        "env_keys": [
+          "FMP_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ]
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"action\\\": \\\"refresh\\\", \\\"msg\\\": null, \\\"n_holdings\\\": 0, \\\"n_thesis_broken\\\": 0}\"}",
+        "log_tail": "START RequestId: 6a8454c7-01f1-4e01-bbb7-9b249d6b529b Version: $LATEST\n[coffee-can] starting action=refresh\n[coffee-can] done 0.2s n=0 broken=0 weakening=0 avg_ret=0%\nEND RequestId: 6a8454c7-01f1-4e01-bbb7-9b249d6b529b\nREPORT RequestId: 6a8454c7-01f1-4e01-bbb7-9b249d6b529b\tDuration: 194.37 ms\tBilled Duration: 722 ms\tMemory Size: 512 MB\tMax Memory Used: 93 MB\tInit Duration: 526.80 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T16:55:15.529750+00:00",
+        "n_holdings": 0,
+        "portfolio": {
+          "n_winners": 0,
+          "n_multibaggers_2x_plus": 0,
+          "n_thesis_broken": 0,
+          "n_thesis_weakening": 0,
+          "avg_return_pct": 0,
+          "best_performer": null,
+          "best_return_pct": null
+        },
+        "last_action": null
+      }
+    },
+    "hiring-velocity": {
+      "config": {
+        "state": "Active",
+        "last_modified": "2026-05-16T16:45:36.391+0000",
+        "timeout": 600,
+        "env_keys": [
+          "FMP_KEY",
+          "MAX_WORKERS",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ]
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_scored\\\": 106, \\\"counts\\\": {\\\"expansion_inflection\\\": 9, \\\"aggressive_expansion\\\": 9, \\\"double_confirmed_with_bagger\\\": 2}, \\\"top_5\\\": [\\\"UMBF\\\", \\\"LLYVK\\\", \\\"SSB\\\", \\\"HALO\\\", \\\"CIFR\\\"]}\"}",
+        "log_tail": "START RequestId: 7a36a28e-4acb-4db9-a892-507b8cee69a8 Version: $LATEST\n[hiring-velocity] starting 2026-05-16T16:55:16.756740+00:00\n[hiring-velocity] scanning 120 stocks\n[hiring-velocity] done 6.8s scored=106 inflections=9 double_confirmed=2\nEND RequestId: 7a36a28e-4acb-4db9-a892-507b8cee69a8\nREPORT RequestId: 7a36a28e-4acb-4db9-a892-507b8cee69a8\tDuration: 7255.91 ms\tBilled Duration: 7709 ms\tMemory Size: 1024 MB\tMax Memory Used: 107 MB\tInit Duration: 452.66 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T16:55:23.538162+00:00",
+        "n_scanned": 120,
+        "n_scored": 106,
+        "n_errors": 0,
+        "counts": {
+          "expansion_inflection": 9,
+          "aggressive_expansion": 9,
+          "double_confirmed_with_bagger": 2
+        },
+        "top_5": [
+          {
+            "symbol": "UMBF",
+            "score": 100.0,
+            "state": "EXPANSION_INFLECTION",
+            "hc_yoy": 41.2
+          },
+          {
+            "symbol": "LLYVK",
+            "score": 100.0,
+            "state": "EXPANSION_INFLECTION",
+            "hc_yoy": 45.5
+          },
+          {
+            "symbol": "SSB",
+            "score": 100.0,
+            "state": "EXPANSION_INFLECTION",
+            "hc_yoy": 24.1
+          },
+          {
+            "symbol": "HALO",
+            "score": 100.0,
+            "state": "EXPANSION_INFLECTION",
+            "hc_yoy": 20.9
+          },
+          {
+            "symbol": "CIFR",
+            "score": 98.0,
+            "state": "AGGRESSIVE_EXPANSION",
+            "hc_yoy": 53.5
+          }
+        ]
+      }
+    },
+    "global-liquidity": {
+      "config": {
+        "state": "Active",
+        "last_modified": "2026-05-16T16:47:56.065+0000",
+        "timeout": 120,
+        "env_keys": [
+          "FRED_API_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ]
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"NEUTRAL\\\", \\\"impulse_13w_pct\\\": -0.33, \\\"gli_trillions\\\": 14.01, \\\"fred_failed\\\": []}\"}",
+        "log_tail": "START RequestId: 799a7f87-864f-49d9-932d-fe886c546798 Version: $LATEST\n[global-liquidity] starting 2026-05-16T16:55:25.363036+00:00\n[fred] WALCL: 400 obs\n[fred] DEXUSEU: 383 obs\n[fred] M2SL: 400 obs\n[fred] ECBASSETSW: 400 obs\n[fred] RRPONTSYD: 381 obs\n[fred] JPNASSETS: 337 obs\n[fred] DEXJPUS: 383 obs\n[fred] WTREGEN: 400 obs\n[global-liquidity] done 1.4s regime=NEUTRAL impulse=-0.3% gli=$14.01T failed=[]\nEND RequestId: 799a7f87-864f-49d9-932d-fe886c546798\nREPORT RequestId: 799a7f87-864f-49d9-932d-fe886c546798\tDuration: 1524.98 ms\tBilled Duration: 2055 ms\tMemory Size: 256 MB\tMax Memory Used: 96 MB\tInit Duration: 529.62 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T16:55:26.784222+00:00",
+        "fred_failed": [],
+        "regime": "NEUTRAL",
+        "global_impulse_13w_pct": -0.33,
+        "gli": {
+          "total_usd_bn": 14014.6,
+          "total_usd_trillions": 14.01,
+          "components_usd_bn": {
+            "Fed": 6728.5,
+            "ECB": 7281.9,
+            "BOJ": 4.2
+          },
+          "change_13w_pct": -0.33,
+          "change_52w_pct": 1.71,
+          "as_of": "2026-05-13"
+        },
+        "fed_net_liquidity": {
+          "value_usd_bn": -831859.2,
+          "value_usd_trillions": -831.86,
+          "change_13w_pct": 8.45,
+          "formula": "Fed balance sheet - TGA - Overnight Reverse Repo",
+          "as_of": "2026-05-13"
+        },
+        "broad_money": {
+          "us_m2_yoy_pct": 4.57,
+          "as_of": "2026-03-01",
+          "read": "M2 growth accelerating \u2014 supportive of risk assets"
+        }
+      }
+    },
+    "insider-aggregate": {
+      "config": {
+        "state": "Active",
+        "last_modified": "2026-05-16T16:49:19.347+0000",
+        "timeout": 300,
+        "env_keys": [
+          "FMP_KEY",
+          "MAX_PAGES",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ]
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"INSIDERS_DISTRIBUTING\\\", \\\"ratio_30d_dollar\\\": 0.047, \\\"n_transactions\\\": 400}\"}",
+        "log_tail": "START RequestId: 51b80f15-64f7-41f1-82a8-9ec3b61b1ec9 Version: $LATEST\n[insider-aggregate] starting 2026-05-16T16:55:27.930958+00:00\n[insider-aggregate] pulled 400 insider transactions\n[insider-aggregate] done 0.7s regime=INSIDERS_DISTRIBUTING ratio30d=0.047 txns=400\nEND RequestId: 51b80f15-64f7-41f1-82a8-9ec3b61b1ec9\nREPORT RequestId: 51b80f15-64f7-41f1-82a8-9ec3b61b1ec9\tDuration: 829.07 ms\tBilled Duration: 1355 ms\tMemory Size: 512 MB\tMax Memory Used: 95 MB\tInit Duration: 525.26 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T16:55:28.680163+00:00",
+        "n_transactions": 400,
+        "regime": "INSIDERS_DISTRIBUTING",
+        "headline_ratio_30d_dollar": 0.047,
+        "w30_buy_count": 35,
+        "w30_sell_count": 143,
+        "w30_buy_usd": 31997904,
+        "w30_sell_usd": 677549045,
+        "n_cluster_buys": 3,
+        "top_clusters": [
+          {
+            "symbol": "KBR",
+            "name": "KBR",
+            "n_buyers": 2,
+            "total_usd": 348585
+          },
+          {
+            "symbol": "GPGI",
+            "name": "GPGI",
+            "n_buyers": 2,
+            "total_usd": 150351
+          },
+          {
+            "symbol": "RHLD",
+            "name": "RHLD",
+            "n_buyers": 2,
+            "total_usd": 148743
+          }
+        ],
+        "err": null
+      }
+    }
+  },
+  "summary": {
+    "coffee-can": "OK",
+    "hiring-velocity": "OK",
+    "global-liquidity": "OK",
+    "insider-aggregate": "OK"
+  },
+  "finished": "2026-05-16T16:55:28.893902+00:00"
+}
