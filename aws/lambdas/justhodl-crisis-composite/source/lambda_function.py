@@ -160,6 +160,11 @@ def comp_liquidity(d):
     return label_to_crisis(dig(d, "regime"), LIQ_MAP)
 
 
+def comp_leading(d):
+    # leading-markets emits risk_score 0-100 (high = canary markets contracting)
+    return clamp(dig(d, "risk_score"))
+
+
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
     ("data/eurodollar-stress.json", 0.20, comp_eurodollar, "USD funding stress"),
@@ -169,6 +174,7 @@ COMPONENTS = [
     ("data/vol-surface.json",       0.10, comp_vol,        "Volatility surface"),
     ("data/market-internals.json",  0.10, comp_internals,  "Market breadth"),
     ("data/global-liquidity.json",  0.10, comp_liquidity,  "Global liquidity tide"),
+    ("data/leading-markets.json",   0.12, comp_leading,    "Global leading markets"),
 ]
 
 DEFCON = [

@@ -295,7 +295,7 @@ def fetch_news():
         return []
 
 
-def calculate_khalid_index(fred, stocks):
+def calculate_khalid_index(fred, stocks, leading=None):
     """Calculate proprietary Khalid Index (0-100)"""
     score = 50
     components = {}
@@ -376,6 +376,27 @@ def calculate_khalid_index(fred, stocks):
     elif dxy < 2: dx_score = -3
     else: dx_score = -5
     components['dollar'] = {'value': dxy, 'score': dx_score, 'label': 'USD Trend'}
+
+    # 10. Global Leading Markets (canary markets that lead macro tops/bottoms)
+    if leading:
+        lead_breadth = leading.get('expansion_breadth_pct')
+        lead_signal = leading.get('turning_point_signal')
+        if lead_breadth is not None:
+            if lead_signal in ('TOP_WARNING', 'BROAD_CONTRACTION'):
+                lm_score = -10
+            elif lead_signal == 'BOTTOM_SIGNAL':
+                lm_score = 5
+            elif lead_breadth > 65:
+                lm_score = 10
+            elif lead_breadth > 50:
+                lm_score = 5
+            elif lead_breadth > 35:
+                lm_score = -5
+            else:
+                lm_score = -10
+            components['leading_markets'] = {
+                'value': lead_breadth, 'score': lm_score,
+                'label': 'Leading Markets', 'signal': lead_signal}
 
     total_score = 50 + sum(c['score'] for c in components.values())
     total_score = max(0, min(100, total_score))
@@ -539,7 +560,14 @@ def lambda_handler(event, context):
         news = news_future.result()
 
     # Analytics
-    khalid = calculate_khalid_index(fred, stocks)
+    leading_mkts = None
+    try:
+        leading_mkts = json.loads(s3.get_object(
+            Bucket='justhodl-dashboard-live',
+            Key='data/leading-markets.json')['Body'].read())
+    except Exception as e:
+        print(f"leading-markets fetch failed: {e}")
+    khalid = calculate_khalid_index(fred, stocks, leading_mkts)
     signals = generate_signals(fred, stocks)
     sectors = sector_analysis(stocks)
     liquidity = calculate_net_liquidity(fred)
