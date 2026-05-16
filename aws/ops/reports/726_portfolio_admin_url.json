@@ -1,0 +1,26 @@
+{
+  "ops": 726,
+  "ts": "2026-05-16T22:07:43.183901+00:00",
+  "subject": "portfolio-admin Function URL \u2014 corrected CORS",
+  "url_action": "created",
+  "function_url": "https://e726eujwijpeg2slgssddw2yee0stboa.lambda-url.us-east-1.on.aws/",
+  "permission": "already_present",
+  "confirmed_url": "https://e726eujwijpeg2slgssddw2yee0stboa.lambda-url.us-east-1.on.aws/",
+  "confirmed_cors": {
+    "AllowCredentials": false,
+    "AllowHeaders": [
+      "content-type",
+      "x-justhodl-token"
+    ],
+    "AllowMethods": [
+      "POST"
+    ],
+    "AllowOrigins": [
+      "https://justhodl.ai",
+      "https://www.justhodl.ai"
+    ],
+    "MaxAge": 300
+  },
+  "all_pass": true,
+  "verdict": "URL LIVE \u2014 portfolio-admin reachable for POST"
+}
