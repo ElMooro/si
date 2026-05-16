@@ -1,0 +1,16 @@
+{
+  "memory_size": 256,
+  "memory": 256,
+  "timeout": 120,
+  "runtime": "python3.12",
+  "description": "Acute bank & funding-system stress — emergency liquidity draws + reserve adequacy",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-vol-surface", "keys": ["FRED_API_KEY", "TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "bank-stress-daily",
+    "cron": "cron(0 15 ? * MON-FRI *)",
+    "description": "Bank funding stress daily refresh"
+  }
+}
