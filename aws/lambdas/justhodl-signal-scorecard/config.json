@@ -1,0 +1,16 @@
+{
+  "memory_size": 256,
+  "memory": 256,
+  "timeout": 120,
+  "runtime": "python3.12",
+  "description": "Signal Scorecard — Wilson-bound grading of every signal's realised edge + active deprecation of dead signals",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "signal-scorecard-daily",
+    "cron": "cron(30 10 * * ? *)",
+    "description": "Signal Scorecard — daily grading + deprecation enforcement"
+  }
+}
