@@ -107,11 +107,13 @@ def maybe_telegram(msg):
         print(f"[tg] err: {e}")
 
 
-def to_billions(v):
-    """FRED H.4.1 series report in millions; >50000 => millions, scale down."""
+def m_to_bn(v):
+    """FRED H.4.1 series (WLCFLPCL, BTFP, SWPT, WRESBAL) all report in
+    millions of dollars -> convert to billions. GDP is already in billions
+    and is NOT passed through here."""
     if v is None:
         return None
-    return v / 1e3 if abs(v) >= 50000 else v
+    return v / 1e3
 
 
 def clamp(x, lo=0.0, hi=100.0):
@@ -134,19 +136,19 @@ def lambda_handler(event, context):
 
     # ── emergency liquidity draws (USD billions) ──
     dw = raw.get("discount_window", [])
-    dw_now = to_billions(dw[0]["value"]) if dw else None
-    dw_4w_ago = to_billions(dw[4]["value"]) if len(dw) > 4 else None
+    dw_now = m_to_bn(dw[0]["value"]) if dw else None
+    dw_4w_ago = m_to_bn(dw[4]["value"]) if len(dw) > 4 else None
 
     btfp = raw.get("btfp", [])
-    btfp_now = to_billions(btfp[0]["value"]) if btfp else None
+    btfp_now = m_to_bn(btfp[0]["value"]) if btfp else None
 
     swaps = raw.get("swap_lines", [])
-    swaps_now = to_billions(swaps[0]["value"]) if swaps else None
+    swaps_now = m_to_bn(swaps[0]["value"]) if swaps else None
 
     # ── reserve adequacy ──
     res = raw.get("reserves", [])
     gdp = raw.get("gdp", [])
-    reserves_now = to_billions(res[0]["value"]) if res else None
+    reserves_now = m_to_bn(res[0]["value"]) if res else None
     gdp_now = gdp[0]["value"] if gdp else None  # GDP already in $bn
     reserves_to_gdp = None
     if reserves_now and gdp_now and gdp_now > 0:
@@ -201,6 +203,16 @@ def lambda_handler(event, context):
         regime = "ABUNDANT"
         regime_read = ("Bank funding is abundant — ample reserves, no emergency draws. "
                        "The banking system has plenty of liquidity cushion.")
+
+    # Reserves in the genuine scarcity zone are the pre-condition for funding
+    # stress even before any facility draw — floor the regime at TIGHTENING.
+    if (reserves_to_gdp is not None and reserves_to_gdp < 10.5
+            and regime in ("ABUNDANT", "ADEQUATE")):
+        regime = "TIGHTENING"
+        regime_read = ("Reserves are in the scarcity zone (below 10.5% of GDP) — the "
+                       "pre-condition for repo/funding stress, even though emergency "
+                       "facilities are currently quiet. This is exactly the setup that "
+                       "preceded the Sept-2019 repo blow-up. Watch SOFR-IORB closely.")
 
     # meaningful emergency draw flag
     emergency_draw = False
