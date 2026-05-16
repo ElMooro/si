@@ -1,0 +1,207 @@
+{
+  "started": "2026-05-16T18:03:17.607390+00:00",
+  "engines": {
+    "crisis-composite": {
+      "config": {
+        "state": "Active",
+        "env_keys": [
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "timeout": 60
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"master_crisis_score\\\": 36.7, \\\"defcon_level\\\": 4, \\\"defcon_name\\\": \\\"NORMAL\\\", \\\"trend\\\": null}\"}",
+        "log_tail": "START RequestId: f23f1c1a-bf1c-4930-be51-e09c6db3b5ef Version: $LATEST\n[crisis-composite] starting 2026-05-16T18:03:18.709332+00:00\n[crisis-composite] missing data/crisis-composite-history.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[crisis-composite] done 0.5s score=36.7 DEFCON 4 (NORMAL) avail=1.00\nEND RequestId: f23f1c1a-bf1c-4930-be51-e09c6db3b5ef\nREPORT RequestId: f23f1c1a-bf1c-4930-be51-e09c6db3b5ef\tDuration: 577.46 ms\tBilled Duration: 1123 ms\tMemory Size: 256 MB\tMax Memory Used: 93 MB\tInit Duration: 545.08 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T18:03:19.204665+00:00",
+        "master_crisis_score": 36.7,
+        "defcon_level": 4,
+        "defcon_name": "NORMAL",
+        "trend": null,
+        "components_available": 7,
+        "primary_drivers": [
+          "Global liquidity tide (70)",
+          "Market breadth (55)"
+        ],
+        "components": [
+          {
+            "src": "eurodollar-stress",
+            "contrib": 23.7,
+            "avail": true
+          },
+          {
+            "src": "crisis-plumbing",
+            "contrib": 29.9,
+            "avail": true
+          },
+          {
+            "src": "credit-stress",
+            "contrib": 50.0,
+            "avail": true
+          },
+          {
+            "src": "regime-composite",
+            "contrib": 26.9,
+            "avail": true
+          },
+          {
+            "src": "vol-surface",
+            "contrib": 19.8,
+            "avail": true
+          },
+          {
+            "src": "market-internals",
+            "contrib": 55.0,
+            "avail": true
+          },
+          {
+            "src": "global-liquidity",
+            "contrib": 70,
+            "avail": true
+          }
+        ]
+      }
+    },
+    "capitulation": {
+      "config": {
+        "state": "Active",
+        "env_keys": [
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "timeout": 60
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"capitulation_score\\\": 36.1, \\\"signal\\\": \\\"NO_SIGNAL\\\", \\\"stabilising\\\": false}\"}",
+        "log_tail": "START RequestId: 17aea1a3-0f5e-42b5-9e61-949fbfb367d1 Version: $LATEST\n[capitulation] starting 2026-05-16T18:03:20.750947+00:00\n[capitulation] missing data/capitulation-history.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[capitulation] done 0.4s score=36.1 signal=NO_SIGNAL stabilising=False smc=False\nEND RequestId: 17aea1a3-0f5e-42b5-9e61-949fbfb367d1\nREPORT RequestId: 17aea1a3-0f5e-42b5-9e61-949fbfb367d1\tDuration: 501.18 ms\tBilled Duration: 1035 ms\tMemory Size: 256 MB\tMax Memory Used: 93 MB\tInit Duration: 533.19 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T18:03:21.181356+00:00",
+        "capitulation_score": 36.1,
+        "signal": "NO_SIGNAL",
+        "stabilising": false,
+        "smart_money_confirm": false,
+        "washout_components": [
+          {
+            "l": "Crisis severity",
+            "i": 36.7
+          },
+          {
+            "l": "Breadth washout",
+            "i": 55.0
+          },
+          {
+            "l": "Volatility spike",
+            "i": 19.8
+          },
+          {
+            "l": "Funding panic",
+            "i": 23.7
+          }
+        ],
+        "shopping_list_n": 1
+      }
+    },
+    "china-liquidity": {
+      "config": {
+        "state": "Active",
+        "env_keys": [
+          "FRED_API_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "timeout": 120
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"NEUTRAL\\\", \\\"credit_impulse_pp\\\": -5.52, \\\"m2_yoy\\\": 8.21, \\\"fred_failed\\\": []}\"}",
+        "log_tail": "START RequestId: 9a6b5f41-c804-4dab-b661-fff3fa7bd193 Version: $LATEST\n[china-liquidity] starting 2026-05-16T18:03:22.261447+00:00\n[china] m1: MANMM101CNM189S (240 obs)\n[china] m2: MYAGM2CNM189N (249 obs)\n[china] interbank: IR3TIB01CNM156N (345 obs)\n[china] usdcny: DEXCHUS (383 obs)\n[china] copper: PCOPPUSDM (400 obs)\n[china] gold: IQ12260 (392 obs)\n[china-liquidity] done 1.3s regime=NEUTRAL impulse=-5.518596957492201 failed=[]\nEND RequestId: 9a6b5f41-c804-4dab-b661-fff3fa7bd193\nREPORT RequestId: 9a6b5f41-c804-4dab-b661-fff3fa7bd193\tDuration: 1488.54 ms\tBilled Duration: 2010 ms\tMemory Size: 256 MB\tMax Memory Used: 96 MB\tInit Duration: 521.02 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T18:03:23.593358+00:00",
+        "fred_failed": [],
+        "series_resolved": {
+          "m1": "MANMM101CNM189S",
+          "m2": "MYAGM2CNM189N",
+          "interbank": "IR3TIB01CNM156N",
+          "usdcny": "DEXCHUS",
+          "copper": "PCOPPUSDM",
+          "gold": "IQ12260"
+        },
+        "regime": "NEUTRAL",
+        "money": {
+          "m1_yoy_pct": 1.5,
+          "m2_yoy_pct": 8.21
+        },
+        "credit_impulse": {
+          "value_pp": -5.52,
+          "is_proxy": true,
+          "definition": "acceleration of money-supply YoY growth (pp change). A free proxy for the Total Social Financing credit impulse \u2014 moves with the same signal, leads ~6-12mo.",
+          "signal": "credit decelerating \u2014 forward headwind"
+        },
+        "dr_copper": {
+          "copper_yoy_pct": 28.7,
+          "copper_gold_ratio": 72.08694,
+          "read": "copper strong \u2014 real China/global demand firming"
+        }
+      }
+    },
+    "bank-stress": {
+      "config": {
+        "state": "Active",
+        "env_keys": [
+          "FRED_API_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ],
+        "timeout": 120
+      },
+      "invoke": {
+        "status": 200,
+        "fn_error": null,
+        "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"bank_stress_score\\\": 59.0, \\\"regime\\\": \\\"TIGHTENING\\\", \\\"emergency_draw\\\": true, \\\"fred_failed\\\": []}\"}",
+        "log_tail": "START RequestId: 7aa02ef4-6c8a-4648-801e-c7c05a60a3a4 Version: $LATEST\n[bank-stress] starting 2026-05-16T18:03:24.931393+00:00\n[bank-stress] discount_window: WLCFLPCL (300 obs)\n[bank-stress] btfp: H41RESPPALDKNWW (300 obs)\n[bank-stress] swap_lines: SWPT (300 obs)\n[bank-stress] reserves: WRESBAL (300 obs)\n[bank-stress] gdp: GDP (300 obs)\n[bank-stress] done 1.4s score=59.0 regime=TIGHTENING emergency=True failed=[]\nEND RequestId: 7aa02ef4-6c8a-4648-801e-c7c05a60a3a4\nREPORT RequestId: 7aa02ef4-6c8a-4648-801e-c7c05a60a3a4\tDuration: 1863.65 ms\tBilled Duration: 2455 ms\tMemory Size: 256 MB\tMax Memory Used: 95 MB\tInit Duration: 590.99 ms\t\n"
+      },
+      "sidecar": {
+        "generated_at": "2026-05-16T18:03:26.291836+00:00",
+        "fred_failed": [],
+        "series_resolved": {
+          "discount_window": "WLCFLPCL",
+          "btfp": "H41RESPPALDKNWW",
+          "swap_lines": "SWPT",
+          "reserves": "WRESBAL",
+          "gdp": "GDP"
+        },
+        "bank_stress_score": 59.0,
+        "regime": "TIGHTENING",
+        "emergency_draw": true,
+        "emergency_liquidity": {
+          "discount_window_bn": 6002.0,
+          "discount_window_4w_change_bn": 696.0,
+          "btfp_outstanding_bn": 0.0,
+          "swap_lines_bn": 42.0
+        },
+        "reserve_adequacy": {
+          "reserves_bn": 3102.8,
+          "reserves_to_gdp_pct": 9.74,
+          "scarcity_threshold_pct": 11.0,
+          "read": "reserves in the scarcity zone \u2014 repo stress risk elevated"
+        }
+      }
+    }
+  },
+  "summary": {
+    "crisis-composite": "OK",
+    "capitulation": "OK",
+    "china-liquidity": "OK",
+    "bank-stress": "OK"
+  },
+  "finished": "2026-05-16T18:03:26.953877+00:00"
+}
