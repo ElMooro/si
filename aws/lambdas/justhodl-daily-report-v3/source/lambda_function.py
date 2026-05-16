@@ -1256,6 +1256,39 @@ def lce_risk_adjustments(lce, base_risk):
     return base_risk
 
 
+def load_leading_markets():
+    """Load leading-markets.json (canary markets that lead macro turning
+       points — Taiwan, EM, Frontier, European periphery). Non-fatal."""
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key='data/leading-markets.json')
+        return json.loads(obj['Body'].read())
+    except Exception as e:
+        print(f"[LEADING] load failed: {e}")
+        return {}
+
+
+def leading_markets_ki_adjustment(lm):
+    """Translate the leading-markets turning-point signal into a KI delta.
+       Canary markets lead macro tops and bottoms — a TOP_WARNING docks the
+       index early, before the broad tape confirms."""
+    if not lm:
+        return 0, None
+    sig = lm.get('turning_point_signal')
+    breadth = lm.get('expansion_breadth_pct')
+    delta = 0
+    if sig == 'EXPANSION_CONFIRMED':
+        delta = +6
+    elif sig == 'BOTTOM_SIGNAL':
+        delta = +4
+    elif sig == 'TOP_WARNING':
+        delta = -8
+    elif sig == 'BROAD_CONTRACTION':
+        delta = -12
+    if delta:
+        return delta, ('Leading Markets', delta, f'{sig} (breadth {breadth}%)')
+    return 0, None
+
+
 def compute_ki(fd, sd):
     score = 50; signals = []
     def gv(cat, sid):
@@ -1350,6 +1383,15 @@ def compute_ki(fd, sd):
         score += delta_gbc
         signals.append(sig_gbc)
 
+    # ── LEADING MARKETS OVERLAY (canary markets that lead macro turns) ──
+    # Taiwan/EM/Frontier/European periphery turn before the broad tape;
+    # TOP_WARNING docks KI early, EXPANSION_CONFIRMED lifts it.
+    lm = load_leading_markets()
+    delta_lm, sig_lm = leading_markets_ki_adjustment(lm)
+    if delta_lm:
+        score += delta_lm
+        signals.append(sig_lm)
+
     score = max(0, min(100, score))
     regime = 'STRONG_BULL' if score>=75 else 'BULL' if score>=60 else 'NEUTRAL' if score>=45 else 'BEAR' if score>=30 else 'CRISIS'
     return {'score':score,'regime':regime,'signals':signals,'ts':datetime.utcnow().isoformat(),
@@ -1357,7 +1399,8 @@ def compute_ki(fd, sd):
             'lce_composite': ((lce.get('composite') or {}).get('score') if lce else None),
             'tenor_state': ('FIRING' if tenor.get('any_firing') else 'WATCH' if tenor.get('any_watch') else 'CALM') if tenor else None,
             'gbc_global_phase': ((gbc.get('aggregate') or {}).get('global_phase') if gbc else None),
-            'gbc_avg_cli': ((gbc.get('aggregate') or {}).get('global_avg_cli') if gbc else None)}
+            'gbc_avg_cli': ((gbc.get('aggregate') or {}).get('global_avg_cli') if gbc else None),
+            'leading_markets_signal': (lm.get('turning_point_signal') if lm else None)}
 
 def compute_risk(fd):
     r = {}
