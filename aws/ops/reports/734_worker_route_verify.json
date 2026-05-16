@@ -1,0 +1,50 @@
+{
+  "ops": 734,
+  "ts": "2026-05-16T23:30:33.967559+00:00",
+  "subject": "deploy-workers Node fix + Worker route verify",
+  "recent_deploy_runs": [
+    {
+      "created": "2026-05-16T23:26:29Z",
+      "conclusion": "success",
+      "head": "ci: trigger CF Worker redeploy \u2014 picks up Node 22 fix (e8552"
+    },
+    {
+      "created": "2026-05-16T23:24:49Z",
+      "conclusion": "success",
+      "head": "fix(ci): deploy-workers Node 20\u219222 \u2014 wrangler 4.92 requires "
+    },
+    {
+      "created": "2026-05-16T23:13:29Z",
+      "conclusion": "failure",
+      "head": "fix(ci): deploy-workers \u2014 diff full push range, not just tip"
+    }
+  ],
+  "latest_deploy_conclusion": "success",
+  "preflight": {
+    "status": 204,
+    "allow_headers": "Content-Type, x-mgr-pass"
+  },
+  "no_pin": {
+    "status": 403,
+    "body": "{\"ok\":false,\"err\":\"forbidden\"}"
+  },
+  "bad_pin": {
+    "status": 403,
+    "body": "{\"ok\":false,\"err\":\"forbidden\"}"
+  },
+  "good_pin": {
+    "status": 200,
+    "ok": true,
+    "n_positions": 0,
+    "body": "{\"positions\": [], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 0, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true}"
+  },
+  "checks": {
+    "deploy_workers_success": true,
+    "preflight_allows_mgr_pass": true,
+    "no_pin_403": true,
+    "bad_pin_403": true,
+    "good_pin_200": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 deploy-workers green, Worker /portfolio-admin route live: PIN gate enforces, infra token injected, book reachable through the Worker"
+}
