@@ -1,6 +1,6 @@
 {
-  "memory_size": 1024,
-  "timeout": 600,
-  "schedule": "cron(20 14-20 ? * MON-FRI *)",
-  "description": "Vol Surface — Yahoo Finance IV chains + BS delta. Term + RR25 + BF25 + risk-neutral PDF for SPY/QQQ/IWM/GLD/TLT/HYG, hourly during US market hours."
+  "memory_size": 256,
+  "timeout": 120,
+  "schedule": "cron(20 13-21 ? * MON-FRI *)",
+  "description": "Vol Surface v3 — FRED VIX-family + CBOE SKEW. Cross-asset vol (8 markets) + term structure + tail premium + composite stress score. Replaces broken Polygon/Yahoo paths."
 }
