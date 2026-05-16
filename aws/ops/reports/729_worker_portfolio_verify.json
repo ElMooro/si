@@ -1,0 +1,42 @@
+{
+  "ops": 729,
+  "ts": "2026-05-16T22:48:13.175974+00:00",
+  "subject": "Worker-routed portfolio-admin E2E",
+  "preflight": {
+    "status": 403,
+    "allow_headers": ""
+  },
+  "no_pin": {
+    "status": 403,
+    "body": "error code: 1010"
+  },
+  "bad_pin": {
+    "status": 403,
+    "body": "error code: 1010"
+  },
+  "good_pin": {
+    "status": 403,
+    "ok": null,
+    "n_positions": null,
+    "body": "error code: 1010"
+  },
+  "lambda_direct_no_token": {
+    "status": 403,
+    "body": "{\"ok\": false, \"err\": \"forbidden\"}"
+  },
+  "manager_page": {
+    "status": 200,
+    "routes_through_worker": true,
+    "no_raw_lambda_url": true
+  },
+  "checks": {
+    "preflight_allows_mgr_pass": false,
+    "no_pin_403": true,
+    "bad_pin_403": true,
+    "good_pin_200": false,
+    "lambda_still_gated": true,
+    "page_worker_routed": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see failed checks (Worker deploy / GH Pages can lag)"
+}
