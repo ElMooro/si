@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Manager · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📓</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:980px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px}
+.gate{max-width:440px;margin:60px auto;text-align:center}
+.gate .lk{font-size:34px;margin-bottom:6px}
+.gate h3{font-family:var(--mono);font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--txt);margin:0 0 6px}
+.gate p{color:var(--mute);font-size:12px;margin:0 0 16px}
+input,select,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--txt);font-family:var(--mono);font-size:12.5px;padding:8px 10px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan)}
+button{font-family:var(--mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--txt);padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--cyan);color:var(--cyan)}
+button.primary{background:#26ffaf14;border-color:#26ffaf55;color:var(--green)}
+button.primary:hover{background:#26ffaf22}
+button.danger{color:var(--red)}button.danger:hover{border-color:var(--red);color:var(--red)}
+button.sm{padding:5px 9px;font-size:10px}
+.formgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:end}
+.fld label{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.req label::after{content:" *";color:var(--red)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:middle}
+tr:hover td{background:var(--panel2)}
+.num{text-align:right}
+.pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px}
+.pLONG{background:#26ffaf22;color:var(--green)}.pSHORT{background:#ff557722;color:var(--red)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.kc h3{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.kc .big{font-family:var(--mono);font-size:22px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px;padding:11px 18px;font-family:var(--mono);font-size:11.5px;color:var(--txt);box-shadow:0 8px 28px rgba(0,0,0,.5);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+.toast.err{border-left-color:var(--red)}
+.msg{font-family:var(--mono);font-size:11px;margin-top:8px;min-height:14px}
+.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+.loading{text-align:center;padding:36px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:980px}
+.editrow input{padding:5px 7px;font-size:11px}
+@media(max-width:880px){.formgrid{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📓 Portfolio Manager</h1>
+    <p class="subtitle">Your book — the single source of truth. Positions entered here flow straight into <a href="/portfolio.html" style="color:var(--cyan)">portfolio-risk</a> (beta, VAR, correlation clusters, scenario P&amp;L) and on into the <a href="/pm-decision.html" style="color:var(--cyan)">PM Decision cockpit</a>. Every save triggers a snapshot refresh, so the risk pipeline updates within minutes.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/portfolio.html">portfolio dashboard</a>
+      <a href="/pm-decision.html">pm decision</a>
+      <a href="/intelligence/">intelligence</a>
+    </nav>
+  </header>
+
+  <div id="gate">
+    <div class="gate card">
+      <div class="lk">🔒</div>
+      <h3>Manager Locked</h3>
+      <p>Enter the admin token. It was sent to your Telegram (<i>@Justhodl_bot</i>) when the secured endpoint was provisioned.</p>
+      <input id="tok" type="password" placeholder="admin token" autocomplete="off">
+      <div style="margin-top:12px"><button class="primary" style="width:100%" onclick="connect()">Connect</button></div>
+      <div class="msg err" id="gateMsg"></div>
+    </div>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="grid3" id="kpis"></div>
+
+    <h2>Add Position</h2>
+    <div class="card">
+      <div class="formgrid">
+        <div class="fld req"><label>Symbol</label><input id="f_sym" placeholder="LLY"></div>
+        <div class="fld req"><label>Quantity</label><input id="f_qty" type="number" step="any" placeholder="50"></div>
+        <div class="fld req"><label>Cost / Share</label><input id="f_cost" type="number" step="any" placeholder="925.00"></div>
+        <div class="fld"><label>Stop Loss</label><input id="f_stop" type="number" step="any" placeholder="optional"></div>
+        <div class="fld"><label>Target Wt %</label><input id="f_tw" type="number" step="any" placeholder="optional"></div>
+        <div class="fld"><label>Sector</label><input id="f_sec" placeholder="optional"></div>
+      </div>
+      <div class="formgrid" style="margin-top:10px;grid-template-columns:5fr 1fr">
+        <div class="fld"><label>Notes / Thesis</label><input id="f_notes" placeholder="optional — why you own it"></div>
+        <div class="fld"><button class="primary" style="width:100%" onclick="addPos()">Add</button></div>
+      </div>
+      <div class="msg" id="addMsg"></div>
+    </div>
+
+    <h2>Current Book</h2>
+    <div class="card" style="padding:6px 10px"><div id="book"><div class="loading">…</div></div></div>
+
+    <p class="note" id="note"></p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const ADMIN_URL="https://e726eujwijpeg2slgssddw2yee0stboa.lambda-url.us-east-1.on.aws/";
+let TOKEN=sessionStorage.getItem("pa_tok")||"";
+let POSITIONS=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=n=>n==null?"—":"$"+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+
+function toast(msg,err){
+  const t=$("toast"); t.textContent=msg; t.className="toast show"+(err?" err":"");
+  setTimeout(()=>t.className="toast",2600);
+}
+
+async function api(action,params){
+  const r=await fetch(ADMIN_URL,{
+    method:"POST",
+    headers:{"content-type":"application/json","x-justhodl-token":TOKEN},
+    body:JSON.stringify(Object.assign({action},params||{}))
+  });
+  let j={}; try{j=await r.json();}catch(e){j={ok:false,err:"bad response"};}
+  return {status:r.status,body:j};
+}
+
+async function connect(){
+  TOKEN=$("tok").value.trim();
+  if(!TOKEN){$("gateMsg").textContent="Token required.";return;}
+  $("gateMsg").textContent="checking…";
+  try{
+    const {status,body}=await api("list",{filter:"POSITION"});
+    if(status===403){$("gateMsg").textContent="Token rejected.";return;}
+    if(!body.ok){$("gateMsg").textContent=body.err||"unexpected error";return;}
+    sessionStorage.setItem("pa_tok",TOKEN);
+    $("gate").style.display="none"; $("app").style.display="block";
+    POSITIONS=body.positions||[];
+    render();
+  }catch(e){$("gateMsg").textContent="Network error — "+e.message;}
+}
+
+async function refresh(){
+  const {body}=await api("list",{filter:"POSITION"});
+  POSITIONS=(body&&body.positions)||[];
+  render();
+}
+
+function render(){
+  // KPIs
+  const n=POSITIONS.length;
+  const totCost=POSITIONS.reduce((s,p)=>s+(Number(p.cost_basis_total)||0),0);
+  const tw=POSITIONS.reduce((s,p)=>s+(Number(p.target_weight_pct)||0),0);
+  $("kpis").innerHTML=[
+    ["Positions",n,"in the book"],
+    ["Total Cost Basis",money(totCost),"sum of entries"],
+    ["Target Weight Set",tw?tw.toFixed(1)+"%":"—",tw>100?"over 100% — review":"of intended allocation"],
+  ].map(c=>`<div class="card kc"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div style="font-size:10.5px;color:var(--dim);margin-top:3px">${c[2]}</div></div>`).join("");
+  // book
+  if(!n){$("book").innerHTML=`<div class="loading">No positions yet — add your first above.</div>`;return;}
+  let h=`<table><thead><tr><th>Symbol</th><th>Type</th><th class="num">Qty</th><th class="num">Cost/Sh</th><th class="num">Cost Basis</th><th class="num">Stop</th><th class="num">Tgt %</th><th>Sector</th><th>Notes</th><th></th></tr></thead><tbody>`;
+  for(const p of POSITIONS.slice().sort((a,b)=>String(a.symbol).localeCompare(b.symbol))){
+    const t=(p.position_type||"LONG");
+    h+=`<tr id="row_${esc(p.symbol)}">
+      <td><b style="color:var(--txt)">${esc(p.symbol)}</b></td>
+      <td><span class="pill p${esc(t)}">${esc(t)}</span></td>
+      <td class="num">${p.qty}</td>
+      <td class="num">${p.cost_basis_per_share}</td>
+      <td class="num">${money(p.cost_basis_total)}</td>
+      <td class="num">${p.stop_loss!=null?p.stop_loss:"—"}</td>
+      <td class="num">${p.target_weight_pct!=null?p.target_weight_pct:"—"}</td>
+      <td>${esc(p.sector||"—")}</td>
+      <td style="max-width:220px;color:var(--mute)">${esc(p.notes||p.entry_thesis||"")}</td>
+      <td style="white-space:nowrap"><button class="sm" onclick="editRow('${esc(p.symbol)}')">Edit</button>
+        <button class="sm danger" onclick="removePos('${esc(p.symbol)}')">✕</button></td>
+    </tr>`;
+  }
+  $("book").innerHTML=h+`</tbody></table>`;
+}
+
+async function addPos(){
+  const sym=$("f_sym").value.trim().toUpperCase();
+  const qty=$("f_qty").value, cost=$("f_cost").value;
+  if(!sym||qty===""||cost===""){$("addMsg").className="msg err";$("addMsg").textContent="Symbol, quantity and cost/share are required.";return;}
+  const p={symbol:sym,qty:Number(qty),cost_basis_per_share:Number(cost)};
+  if($("f_stop").value!=="")p.stop_loss=Number($("f_stop").value);
+  if($("f_tw").value!=="")p.target_weight_pct=Number($("f_tw").value);
+  if($("f_sec").value.trim())p.sector=$("f_sec").value.trim();
+  if($("f_notes").value.trim())p.notes=$("f_notes").value.trim();
+  $("addMsg").className="msg";$("addMsg").textContent="saving…";
+  const {body}=await api("add_position",p);
+  if(!body.ok){$("addMsg").className="msg err";$("addMsg").textContent=body.err||"failed";return;}
+  ["f_sym","f_qty","f_cost","f_stop","f_tw","f_sec","f_notes"].forEach(i=>$(i).value="");
+  $("addMsg").className="msg ok";$("addMsg").textContent=sym+" added · snapshot refresh queued";
+  toast(sym+" added to book");
+  refresh();
+}
+
+function editRow(sym){
+  const p=POSITIONS.find(x=>x.symbol===sym); if(!p)return;
+  const row=$("row_"+sym); if(!row)return;
+  row.classList.add("editrow");
+  row.innerHTML=`
+    <td><b>${esc(sym)}</b></td><td>—</td>
+    <td><input id="e_qty" type="number" step="any" value="${p.qty}"></td>
+    <td><input id="e_cost" type="number" step="any" value="${p.cost_basis_per_share}"></td>
+    <td class="num" style="color:var(--dim)">recalc</td>
+    <td><input id="e_stop" type="number" step="any" value="${p.stop_loss!=null?p.stop_loss:''}"></td>
+    <td><input id="e_tw" type="number" step="any" value="${p.target_weight_pct!=null?p.target_weight_pct:''}"></td>
+    <td>—</td>
+    <td><input id="e_notes" value="${esc(p.notes||p.entry_thesis||'')}"></td>
+    <td style="white-space:nowrap"><button class="sm primary" onclick="saveRow('${esc(sym)}')">Save</button>
+      <button class="sm" onclick="render()">Cancel</button></td>`;
+}
+
+async function saveRow(sym){
+  const u={symbol:sym};
+  const q=$("e_qty").value, c=$("e_cost").value;
+  if(q!=="")u.new_qty=Number(q);
+  if(c!=="")u.new_cost_basis_per_share=Number(c);
+  if($("e_stop").value!=="")u.new_stop_loss=Number($("e_stop").value);
+  if($("e_tw").value!=="")u.new_target_weight=Number($("e_tw").value);
+  u.new_notes=$("e_notes").value.trim();
+  const {body}=await api("update_position",u);
+  if(!body.ok){toast(body.err||"update failed",true);return;}
+  toast(sym+" updated"); refresh();
+}
+
+async function removePos(sym){
+  if(!confirm("Remove "+sym+" from the book?"))return;
+  const {body}=await api("remove_position",{symbol:sym});
+  if(!body.ok){toast(body.err||"remove failed",true);return;}
+  toast(sym+" removed"); refresh();
+}
+
+$("note").textContent="Writes are gated by your admin token and an Origin allowlist. "
+  +"Position changes fire a portfolio-snapshot refresh automatically — live prices, "
+  +"P&L, beta, VAR and the PM Decision posture catch up within minutes. "
+  +"The token lives only in this browser tab for the session.";
+
+// auto-connect if a token is already cached for this tab
+if(TOKEN){ $("tok").value=TOKEN; connect(); }
+</script>
+</body>
+</html>
