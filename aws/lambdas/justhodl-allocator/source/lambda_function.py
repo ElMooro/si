@@ -596,6 +596,94 @@ def rule_global_business_cycle(scores, evidence):
 # ─────────────────────────────────────────────────────────────────
 
 
+def rule_crisis_composite(scores, evidence):
+    """Master Crisis Composite (DEFCON) — the platform's headline risk read.
+    High DEFCON tilts hard to defensives; all-clear tilts to risk."""
+    d = fs3("data/crisis-composite.json")
+    lvl = d.get("defcon_level")
+    if lvl is None:
+        return
+    desc = f"DEFCON {lvl} ({d.get('defcon_name','')})"
+    if lvl <= 2:            # crisis / high stress
+        for a in ("SPY", "QQQ", "IWM", "EEM", "HYG", "BTC"):
+            add(scores, evidence, a, -HARD, desc)
+        for a in ("TLT", "IEF", "GLD", "UUP", "VXX"):
+            add(scores, evidence, a, STRONG, desc)
+    elif lvl == 3:          # elevated
+        for a in ("SPY", "QQQ", "IWM", "EEM", "HYG"):
+            add(scores, evidence, a, -MEDIUM, desc)
+        for a in ("TLT", "IEF", "GLD"):
+            add(scores, evidence, a, MEDIUM, desc)
+    elif lvl == 5:          # all-clear / risk-on
+        for a in ("SPY", "QQQ", "IWM", "EEM", "HYG"):
+            add(scores, evidence, a, MEDIUM, desc)
+        add(scores, evidence, "VXX", -STRONG, desc)
+
+
+def rule_capitulation(scores, evidence):
+    """Capitulation engine — a GENERATIONAL/STRONG buy is the rare washout
+    entry; tilt aggressively to risk when it fires with stabilisation."""
+    d = fs3("data/capitulation.json")
+    sig = d.get("signal")
+    if sig not in ("GENERATIONAL_BUY", "STRONG_BUY"):
+        return
+    desc = f"capitulation {sig}"
+    mag = HARD if sig == "GENERATIONAL_BUY" else STRONG
+    for a in ("SPY", "QQQ", "IWM", "EEM", "HYG"):
+        add(scores, evidence, a, mag, desc)
+    add(scores, evidence, "VXX", -STRONG, desc)
+    add(scores, evidence, "GLD", MEDIUM, desc)  # quality hedge still warranted
+
+
+def rule_leading_markets(scores, evidence):
+    """Leading/canary markets — the turning-point signal and which bucket is
+    flashing reshape the cyclical vs defensive tilt."""
+    d = fs3("data/leading-markets.json")
+    sig = d.get("turning_point_signal")
+    if not sig:
+        return
+    desc = f"canary {sig}"
+    if sig == "TOP_WARNING":
+        for a in ("SPY", "QQQ", "IWM", "EEM"):
+            add(scores, evidence, a, -MEDIUM, desc)
+    elif sig == "BROAD_CONTRACTION":
+        for a in ("SPY", "QQQ", "IWM", "EEM", "HYG"):
+            add(scores, evidence, a, -STRONG, desc)
+        add(scores, evidence, "TLT", MEDIUM, desc)
+    elif sig in ("EXPANSION_CONFIRMED", "BOTTOM_SIGNAL"):
+        for a in ("SPY", "IWM", "EEM"):
+            add(scores, evidence, a, MEDIUM, desc)
+    # bucket-specific: commodity-cycle flashing -> fade DBC/EEM
+    flashing = d.get("flashing_buckets") or []
+    if "commodity_cycle" in flashing:
+        add(scores, evidence, "DBC", -STRONG, "commodity-cycle canaries flashing")
+        add(scores, evidence, "EEM", -MEDIUM, "commodity-cycle canaries flashing")
+    if "credit_stress" in flashing:
+        add(scores, evidence, "HYG", -STRONG, "credit-stress canaries flashing")
+
+
+def rule_global_liquidity(scores, evidence):
+    """Global central-bank liquidity tide — expanding lifts risk, contracting
+    fades it. China credit impulse reinforces the commodity complex."""
+    d = fs3("data/global-liquidity.json")
+    reg = d.get("regime")
+    if reg:
+        desc = f"global liquidity {reg}"
+        if reg in ("EXPANDING", "EASING"):
+            for a in ("SPY", "QQQ", "EEM", "GLD", "BTC"):
+                add(scores, evidence, a, MEDIUM, desc)
+        elif reg in ("CONTRACTING", "TIGHTENING"):
+            for a in ("SPY", "QQQ", "EEM", "HYG", "BTC"):
+                add(scores, evidence, a, -MEDIUM, desc)
+    ch = fs3("data/china-liquidity.json")
+    creg = ch.get("regime")
+    if creg == "EASING":
+        add(scores, evidence, "DBC", STRONG, "China liquidity easing")
+        add(scores, evidence, "EEM", MEDIUM, "China liquidity easing")
+    elif creg == "TIGHTENING":
+        add(scores, evidence, "DBC", -MEDIUM, "China liquidity tightening")
+
+
 RULES = [
     ("macro_surprise", rule_macro_surprise),
     ("yield_curve", rule_yield_curve),
@@ -606,6 +694,10 @@ RULES = [
     ("liquidity_credit_engine", rule_liquidity_credit_engine),
     ("tenor_signals", rule_tenor_signals),
     ("global_business_cycle", rule_global_business_cycle),
+    ("crisis_composite", rule_crisis_composite),
+    ("capitulation", rule_capitulation),
+    ("leading_markets", rule_leading_markets),
+    ("global_liquidity", rule_global_liquidity),
     ("historical_analogs", rule_historical_analogs),
     ("event_study", rule_event_study),
     ("btc_signals", rule_btc_signals),

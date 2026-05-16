@@ -481,6 +481,44 @@ def collect_macro_signals():
                 "action_hint": "Reduce risk — regime appears unstable",
             })
 
+    # Master Crisis Composite — surface when stress is elevated (DEFCON <= 3)
+    crisis = fetch_json("data/crisis-composite.json")
+    if crisis and (crisis.get("defcon_level") or 5) <= 3:
+        lvl = crisis.get("defcon_level")
+        out.append({
+            "type": "crisis_composite",
+            "name": f"Crisis DEFCON {lvl} — {crisis.get('defcon_name','')}",
+            "regime": crisis.get("defcon_name"),
+            "score": min(100, (crisis.get("master_crisis_score") or 0) + 20),
+            "rationale": (crisis.get("playbook") or "")[:160],
+            "action_hint": f"DEFCON {lvl} — {(crisis.get('playbook') or '')[:80]}",
+        })
+
+    # Capitulation engine — surface when a buy signal fires
+    capit = fetch_json("data/capitulation.json")
+    if capit and capit.get("signal") in ("GENERATIONAL_BUY", "STRONG_BUY", "CAPITULATION_WAIT"):
+        out.append({
+            "type": "capitulation",
+            "name": f"Capitulation: {capit.get('signal','').replace('_',' ')}",
+            "score": min(100, (capit.get("capitulation_score") or 0) + 25),
+            "rationale": (capit.get("action") or "")[:160],
+            "action_hint": (capit.get("action") or "")[:90],
+        })
+
+    # Leading markets — surface canary turning-point warnings/signals
+    leading = fetch_json("data/leading-markets.json")
+    if leading and leading.get("turning_point_signal") in (
+            "TOP_WARNING", "BOTTOM_SIGNAL", "BROAD_CONTRACTION"):
+        sig = leading.get("turning_point_signal")
+        out.append({
+            "type": "leading_markets",
+            "name": f"Canary markets: {sig.replace('_',' ')}",
+            "regime": sig,
+            "score": 75,
+            "rationale": (leading.get("signal_read") or "")[:170],
+            "action_hint": f"Flashing: {', '.join(leading.get('flashing_buckets') or []) or 'broad'}",
+        })
+
     # Sort by score descending
     out.sort(key=lambda x: x.get("score", 0), reverse=True)
     return out[:10]
@@ -502,6 +540,28 @@ def get_regime_context():
     nowcast = fetch_json("data/macro-nowcast.json") or {}
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
+
+    # ── Risk Pack overlay — master crisis read + canary turning point ──
+    crisis = fetch_json("data/crisis-composite.json") or {}
+    leading = fetch_json("data/leading-markets.json") or {}
+    capit = fetch_json("data/capitulation.json") or {}
+    defcon = crisis.get("defcon_level")
+    tp_signal = leading.get("turning_point_signal")
+    cap_signal = capit.get("signal")
+
+    # one-line decisive posture the whole platform can act on
+    if cap_signal in ("GENERATIONAL_BUY", "STRONG_BUY"):
+        posture = "AGGRESSIVE BUY — washout + stabilising; deploy into quality"
+    elif defcon is not None and defcon <= 2:
+        posture = "DEFENSIVE — cut beta, raise quality/cash, hedges on"
+    elif tp_signal == "TOP_WARNING" or defcon == 3:
+        posture = "CAUTIOUS — trim leverage; quality over speculative names"
+    elif (defcon is not None and defcon >= 4
+          and tp_signal in ("EXPANSION_CONFIRMED", "BOTTOM_SIGNAL")):
+        posture = "CONSTRUCTIVE — risk-on; beta and cyclicals favoured"
+    else:
+        posture = "NEUTRAL — standard positioning"
+
     return {
         "regime": regime,
         "regime_color": nowcast.get("regime_color"),
@@ -509,6 +569,13 @@ def get_regime_context():
         "coverage_pct": nowcast.get("coverage_pct"),
         "spy_fwd_6m": fwds.get("6m"),
         "spy_fwd_12m": fwds.get("12m"),
+        "defcon_level": defcon,
+        "defcon_name": crisis.get("defcon_name"),
+        "crisis_trend": crisis.get("trend"),
+        "leading_markets_signal": tp_signal,
+        "flashing_buckets": leading.get("flashing_buckets"),
+        "capitulation_signal": cap_signal,
+        "risk_posture": posture,
     }
 
 
