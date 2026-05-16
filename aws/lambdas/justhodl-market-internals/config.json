@@ -1,6 +1,11 @@
 {
   "memory_size": 1024,
   "timeout": 900,
-  "schedule": "cron(15 21 ? * MON-FRI *)",
-  "description": "Market Internals — A/D line + McClellan + % above MAs + 52w H/L"
+  "schedule": {
+    "rule_name": "market-internals-hourly",
+    "cron": "cron(15 21 ? * MON-FRI *)",
+    "description": "Market Internals breadth dashboard refresh"
+  },
+  "description": "Market Internals \u2014 A/D line + McClellan + % above MAs + 52w H/L",
+  "memory": 1024
 }

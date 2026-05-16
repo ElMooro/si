@@ -1,6 +1,11 @@
 {
   "memory_size": 256,
   "timeout": 120,
-  "schedule": "cron(0 22 ? * THU *)",
-  "description": "TIC Flows — foreign Treasury holdings + de-dollarization tracker"
+  "schedule": {
+    "rule_name": "tic-flows-thu",
+    "cron": "cron(0 22 ? * THU *)",
+    "description": "TIC Flows refresh"
+  },
+  "description": "TIC Flows \u2014 foreign Treasury holdings + de-dollarization tracker",
+  "memory": 256
 }

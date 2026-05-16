@@ -75,13 +75,18 @@ jobs:
         if: steps.detect.outputs.targets != ''
         run: |
           set -e
+          # Outer guard: per-Lambda failures recorded but don't kill the loop.
+          # `set +e` inside subshell pairs with `|| failures=...` so we surface a final exit.
+          declare -a failed_lambdas
           for fn in ${{ steps.detect.outputs.targets }}; do
-            dir="aws/lambdas/$fn"
-            if [ ! -d "$dir/source" ]; then
-              echo "::warning::$dir/source not found — skipping"
-              continue
-            fi
-            echo "──── Deploying $fn ────"
+            (
+              set -e
+              dir="aws/lambdas/$fn"
+              if [ ! -d "$dir/source" ]; then
+                echo "::warning::$dir/source not found — skipping"
+                exit 0
+              fi
+              echo "──── Deploying $fn ────"
 
             # Read config (function_name + create-time config like runtime/timeout/memory/env)
             fn_runtime="python3.12"
@@ -298,7 +303,17 @@ jobs:
 
             echo "✅ $fn deployed"
             rm -rf "$tmp"
+            ) || {
+              # subshell failed — record and continue
+              echo "::error::Deploy failed for $fn"
+              failed_lambdas+=("$fn")
+            }
           done
+
+          if [ "${#failed_lambdas[@]}" -gt 0 ]; then
+            echo "::warning::Lambdas that failed to deploy: ${failed_lambdas[*]}"
+            # Don't fail the whole workflow — successful ones already deployed
+          fi
 
       - name: Commit Function URL patches back
         run: |

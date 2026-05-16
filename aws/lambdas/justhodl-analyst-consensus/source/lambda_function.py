@@ -422,7 +422,7 @@ def lambda_handler(event, context):
     }
 
     put_s3_json(S3_KEY, output)
-    print(f"[consensus] wrote sidecar, top: {[t['ticker'] for t in top_consensus[:5]]}")
+    print(f"[consensus] wrote sidecar, top: {[t['symbol'] for t in top_consensus[:5]]}")
 
     # ─── ALERTS ───────────────────────────────────────────────────────
     try:
@@ -487,7 +487,7 @@ def lambda_handler(event, context):
             "ok": True,
             "n_universe": len(UNIVERSE_TICKERS),
             "n_with_data": len(ranked),
-            "top_5": [t["ticker"] for t in top_consensus[:5]],
+            "top_5": [t["symbol"] for t in top_consensus[:5]],
             "duration_s": round(time.time()-t0, 1),
         }),
     }

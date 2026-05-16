@@ -1,6 +1,11 @@
 {
   "memory_size": 1024,
   "timeout": 600,
-  "schedule": "cron(45 11 ? * MON-FRI *)",
-  "description": "Analyst Consensus engine — price targets, recs, beats, upgrade pulse"
+  "schedule": {
+    "rule_name": "analyst-consensus-daily",
+    "cron": "cron(45 11 ? * MON-FRI *)",
+    "description": "Analyst Consensus engine refresh"
+  },
+  "description": "Analyst Consensus engine \u2014 price targets, recs, beats, upgrade pulse",
+  "memory": 1024
 }

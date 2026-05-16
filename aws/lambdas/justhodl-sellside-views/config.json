@@ -1,6 +1,11 @@
 {
   "memory_size": 256,
   "timeout": 60,
-  "schedule": "cron(0 14 ? * MON,WED,FRI *)",
-  "description": "Sell-side strategist views — SPX target consensus + macro forecasts"
+  "schedule": {
+    "rule_name": "sellside-views-mwf",
+    "cron": "cron(0 14 ? * MON,WED,FRI *)",
+    "description": "Sell-side strategist views refresh"
+  },
+  "description": "Sell-side strategist views \u2014 SPX target consensus + macro forecasts",
+  "memory": 256
 }

@@ -1,6 +1,11 @@
 {
   "memory_size": 256,
   "timeout": 120,
-  "schedule": "cron(0 13,17,21 ? * MON-FRI *)",
-  "description": "CDS Proxy — sovereign + corp credit risk from FRED spreads"
+  "schedule": {
+    "rule_name": "cds-proxy-tri-daily",
+    "cron": "cron(0 13,17,21 ? * MON-FRI *)",
+    "description": "CDS Proxy refresh"
+  },
+  "description": "CDS Proxy \u2014 sovereign + corp credit risk from FRED spreads",
+  "memory": 256
 }

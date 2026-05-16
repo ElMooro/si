@@ -1,6 +1,11 @@
 {
   "memory_size": 1024,
   "timeout": 600,
-  "schedule": "cron(0 22 ? * FRI *)",
-  "description": "Per-security liquidity scoring (ADV, spread proxy, consistency)"
+  "schedule": {
+    "rule_name": "liquidity-profile-fri",
+    "cron": "cron(0 22 ? * FRI *)",
+    "description": "Per-security liquidity profile refresh"
+  },
+  "description": "Per-security liquidity scoring (ADV, spread proxy, consistency)",
+  "memory": 1024
 }

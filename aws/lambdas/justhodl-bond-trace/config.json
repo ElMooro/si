@@ -1,6 +1,11 @@
 {
   "memory_size": 256,
   "timeout": 120,
-  "schedule": "cron(0 21 ? * MON-FRI *)",
-  "description": "Bond TRACE proxy — HY/IG ETF stress + HY OAS velocity"
+  "schedule": {
+    "rule_name": "bond-trace-daily",
+    "cron": "cron(0 21 ? * MON-FRI *)",
+    "description": "Bond TRACE proxy refresh"
+  },
+  "description": "Bond TRACE proxy \u2014 HY/IG ETF stress + HY OAS velocity",
+  "memory": 256
 }
