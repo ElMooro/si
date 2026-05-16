@@ -59,14 +59,24 @@ def _get_json(url, timeout=15, retries=3):
 
 
 def fetch_insider_page(page):
-    """Try the documented /stable endpoint names for market-wide latest insider trades."""
+    """Try the documented /stable endpoint names for market-wide latest insider
+    trades. limit=1000 pulls far more per call so the 90-day window has depth;
+    if the param is unsupported FMP simply ignores it."""
     for path in ("insider-trading/latest", "insider-trading"):
         url = (f"https://financialmodelingprep.com/stable/{path}"
-               f"?page={page}&apikey={FMP_KEY}")
+               f"?page={page}&limit=1000&apikey={FMP_KEY}")
         d = _get_json(url)
         if isinstance(d, list):
             return d
     return None
+
+
+def txn_sig(t):
+    """Stable signature to dedupe transactions across overlapping pages."""
+    return (t.get("symbol"), t.get("reportingName") or t.get("typeOfOwner"),
+            t.get("transactionDate") or t.get("date"),
+            t.get("transactionType"), t.get("securitiesTransacted"),
+            t.get("price"))
 
 
 def maybe_telegram(msg):
@@ -128,19 +138,30 @@ def lambda_handler(event, context):
     win_30 = today - timedelta(days=30)
     win_90 = today - timedelta(days=90)
 
-    # ── paginate market-wide insider trades ──
+    # ── paginate market-wide insider trades (deduped) ──
     txns = []
+    seen = set()
     for page in range(MAX_PAGES):
         rows = fetch_insider_page(page)
         if not rows:
             break
-        txns.extend(rows)
+        new_rows = 0
+        for r in rows:
+            sig = txn_sig(r)
+            if sig in seen:
+                continue
+            seen.add(sig)
+            txns.append(r)
+            new_rows += 1
+        # stop if the page added nothing new (pagination exhausted / repeating)
+        if new_rows == 0:
+            break
         # stop once we've clearly gone past 90 days
         oldest = min((parse_date(r) for r in rows if parse_date(r)), default=None)
         if oldest and oldest < win_90:
             break
         time.sleep(0.15)
-    print(f"[insider-aggregate] pulled {len(txns)} insider transactions")
+    print(f"[insider-aggregate] pulled {len(txns)} unique insider transactions")
 
     if not txns:
         out = {"schema_version": "1.0", "method": "insider_aggregate_v1",
@@ -217,12 +238,19 @@ def lambda_handler(event, context):
         pass
     prior_regime = hist["snapshots"][-1]["regime"] if hist.get("snapshots") else None
 
+    # actual date span of the data pulled — keeps the windows honest
+    all_dates = [parse_date(t) for t in txns if parse_date(t)]
+    coverage_days = None
+    if all_dates:
+        coverage_days = (max(all_dates) - min(all_dates)).days
+
     out = {
         "schema_version": "1.0",
         "method": "insider_aggregate_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "n_transactions": len(txns),
+        "data_coverage_days": coverage_days,
         "windows": {"last_7d": w7, "last_30d": w30, "last_90d": w90},
         "regime": regime,
         "regime_read": regime_read,
