@@ -1,0 +1,375 @@
+{
+  "started": "2026-05-16T16:41:52.082777+00:00",
+  "config": {
+    "last_modified": "2026-05-16T16:37:32.000+0000",
+    "memory": 1024,
+    "timeout": 720,
+    "state": "Active",
+    "env_keys": [
+      "FMP_KEY",
+      "MAX_WORKERS",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "has_fmp_key": true,
+    "has_telegram": true
+  },
+  "invoke": {
+    "status": "error",
+    "err": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-bagger-engine/invocations\""
+  },
+  "sidecar": {
+    "size_kb": 377.2,
+    "generated_at": "2026-05-16T16:44:08.120823+00:00",
+    "elapsed_s": 135.0,
+    "universe_size": 1805,
+    "candidates_in_range": 1345,
+    "n_scored": 1237,
+    "n_errors": 0,
+    "tier_counts": {
+      "potential_100x": 30,
+      "potential_25x": 30,
+      "potential_10x": 30,
+      "steady_compounders": 30
+    },
+    "top_15": [
+      {
+        "rank": 1,
+        "symbol": "PPIH",
+        "name": "Perma-Pipe International H",
+        "score": 89.7,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 20.0,
+        "roic": 13.8,
+        "intrinsic": 15.8
+      },
+      {
+        "rank": 2,
+        "symbol": "ISSC",
+        "name": "Innovative Aerosystems, In",
+        "score": 85.2,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 31.3,
+        "roic": 17.6,
+        "intrinsic": 8.6
+      },
+      {
+        "rank": 3,
+        "symbol": "ADMA",
+        "name": "ADMA Biologics, Inc.",
+        "score": 83.4,
+        "cap_bucket": "small",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 64.6,
+        "roic": 27.6,
+        "intrinsic": 12.9
+      },
+      {
+        "rank": 4,
+        "symbol": "KINS",
+        "name": "Kingstone Companies, Inc.",
+        "score": 82.6,
+        "cap_bucket": "micro",
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 8.7,
+        "roic": 29.5,
+        "intrinsic": 1.1
+      },
+      {
+        "rank": 5,
+        "symbol": "SKWD",
+        "name": "Skyward Specialty Insuranc",
+        "score": 82.5,
+        "cap_bucket": "small",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 25.8,
+        "roic": 15.1,
+        "intrinsic": 0.2
+      },
+      {
+        "rank": 6,
+        "symbol": "NAGE",
+        "name": "Niagen Bioscience Inc",
+        "score": 82.3,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 16.9,
+        "roic": 15.6,
+        "intrinsic": 0.3
+      },
+      {
+        "rank": 7,
+        "symbol": "ACFN",
+        "name": "Acorn Energy, Inc.",
+        "score": 82.3,
+        "cap_bucket": "nano",
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 14.2,
+        "roic": 20.5,
+        "intrinsic": 0.3
+      },
+      {
+        "rank": 8,
+        "symbol": "LC",
+        "name": "LendingClub Corporation",
+        "score": 81.5,
+        "cap_bucket": "small",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 24.0,
+        "roic": 15.7,
+        "intrinsic": null
+      },
+      {
+        "rank": 9,
+        "symbol": "ELMD",
+        "name": "Electromed, Inc.",
+        "score": 81.4,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_10X",
+        "rev_cagr": 14.5,
+        "roic": 16.7,
+        "intrinsic": 0.4
+      },
+      {
+        "rank": 10,
+        "symbol": "OVBC",
+        "name": "Ohio Valley Banc Corp.",
+        "score": 81.3,
+        "cap_bucket": "micro",
+        "cls": "STEADY_COMPOUNDER",
+        "rev_cagr": 11.1,
+        "roic": 30.1,
+        "intrinsic": 1.7
+      },
+      {
+        "rank": 11,
+        "symbol": "MFIN",
+        "name": "Medallion Financial Corp.",
+        "score": 81.1,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 18.5,
+        "roic": 4.3,
+        "intrinsic": 0.0
+      },
+      {
+        "rank": 12,
+        "symbol": "HALO",
+        "name": "Halozyme Therapeutics, Inc",
+        "score": 80.7,
+        "cap_bucket": "mid",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 39.2,
+        "roic": 23.6,
+        "intrinsic": 26.5
+      },
+      {
+        "rank": 13,
+        "symbol": "VRRM",
+        "name": "Verra Mobility Corporation",
+        "score": 80.6,
+        "cap_bucket": "small",
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 20.0,
+        "roic": 11.6,
+        "intrinsic": 5.4
+      },
+      {
+        "rank": 14,
+        "symbol": "FDBC",
+        "name": "Fidelity D & D Bancorp, In",
+        "score": 80.6,
+        "cap_bucket": "micro",
+        "cls": "POTENTIAL_25X_PLUS",
+        "rev_cagr": 18.3,
+        "roic": 10.0,
+        "intrinsic": 4.2
+      },
+      {
+        "rank": 15,
+        "symbol": "INSP",
+        "name": "Inspire Medical Systems, I",
+        "score": 80.5,
+        "cap_bucket": "small",
+        "cls": "POTENTIAL_100X",
+        "rev_cagr": 51.2,
+        "roic": 6.3,
+        "intrinsic": 2.1
+      }
+    ],
+    "potential_100x": [
+      {
+        "symbol": "ISSC",
+        "name": "Innovative Aerosystems, In",
+        "score": 85.2,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "ADMA",
+        "name": "ADMA Biologics, Inc.",
+        "score": 83.4,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "SKWD",
+        "name": "Skyward Specialty Insuranc",
+        "score": 82.5,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "LC",
+        "name": "LendingClub Corporation",
+        "score": 81.5,
+        "yr20_rerated": 133.0,
+        "years_to_100x": 18.7
+      },
+      {
+        "symbol": "HALO",
+        "name": "Halozyme Therapeutics, Inc",
+        "score": 80.7,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "INSP",
+        "name": "Inspire Medical Systems, I",
+        "score": 80.5,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "AIRO",
+        "name": "AIRO Group Holdings, Inc. ",
+        "score": 79.4,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "BCRX",
+        "name": "BioCryst Pharmaceuticals, ",
+        "score": 79.3,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "KRP",
+        "name": "Kimbell Royalty Partners, ",
+        "score": 78.8,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      },
+      {
+        "symbol": "HCI",
+        "name": "HCI Group, Inc.",
+        "score": 77.8,
+        "yr20_rerated": 156.1,
+        "years_to_100x": 18.0
+      }
+    ],
+    "potential_25x_sample": [
+      {
+        "symbol": "PPIH",
+        "score": 89.7,
+        "rev_cagr": 20.0
+      },
+      {
+        "symbol": "NAGE",
+        "score": 82.3,
+        "rev_cagr": 16.9
+      },
+      {
+        "symbol": "MFIN",
+        "score": 81.1,
+        "rev_cagr": 18.5
+      },
+      {
+        "symbol": "VRRM",
+        "score": 80.6,
+        "rev_cagr": 20.0
+      },
+      {
+        "symbol": "FDBC",
+        "score": 80.6,
+        "rev_cagr": 18.3
+      },
+      {
+        "symbol": "IRMD",
+        "score": 79.3,
+        "rev_cagr": 21.5
+      },
+      {
+        "symbol": "BRBR",
+        "score": 77.6,
+        "rev_cagr": 18.6
+      },
+      {
+        "symbol": "CXM",
+        "score": 75.4,
+        "rev_cagr": 17.2
+      }
+    ],
+    "rank1_pillars": {
+      "small_base": {
+        "score": 100.0,
+        "note": "$260M \u2014 sweet spot for multibagger runway"
+      },
+      "revenue_durability": {
+        "score": 84.4,
+        "note": "5yr revenue CAGR 20%, consistency cv=1.07"
+      },
+      "roic_quality": {
+        "score": 94.2,
+        "note": "ROIC 14%, trend +3pp \u2014 ROIC INFLECTION (turned positive & rising)"
+      },
+      "reinvestment_runway": {
+        "score": 85.8,
+        "note": "reinvest rate 114% \u00d7 ROIC \u2192 intrinsic compounding ~16%/yr"
+      },
+      "margin_moat": {
+        "score": 81.8,
+        "note": "gross margin 33% (expanding), operating leverage rising"
+      },
+      "owner_alignment": {
+        "score": 92.0,
+        "note": "insiders NET BUYERS (ratio 1.15); minimal dilution (disciplined share count)"
+      },
+      "entry_valuation": {
+        "score": 87.0,
+        "note": "EV/Sales 1.2x cheap vs 20% growth; P/E 14"
+      }
+    },
+    "rank1_twin_engine": {
+      "available": true,
+      "assumed_growth_capped": 20.0,
+      "yr10": {
+        "earnings_engine_x": 6.2,
+        "flat_multiple_x": 6.2,
+        "with_rerating_x": 11.2
+      },
+      "yr15": {
+        "earnings_engine_x": 15.4,
+        "flat_multiple_x": 15.4,
+        "with_rerating_x": 27.8
+      },
+      "yr20": {
+        "earnings_engine_x": 38.5,
+        "flat_multiple_x": 38.5,
+        "with_rerating_x": 69.2
+      },
+      "yr25": {
+        "earnings_engine_x": 95.8,
+        "flat_multiple_x": 95.8,
+        "with_rerating_x": 172.4
+      },
+      "classification": "POTENTIAL_25X_PLUS",
+      "years_to_100x": 22.0
+    },
+    "rank1_thesis": "Industrials micro-cap: 5yr revenue CAGR 20%, consistency cv=1.07; ROIC 14%, trend +3pp \u2014 ROIC INFLECTION (turned positive & rising); gross margin 33% (expanding), operating leverage rising. Potential 25X Plus."
+  },
+  "finished": "2026-05-16T16:46:58.978627+00:00"
+}
