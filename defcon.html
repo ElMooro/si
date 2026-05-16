@@ -80,11 +80,15 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <h2>Liquidity Blind Spots</h2>
   <div class="grid2" id="liquidity"><div class="loading">LOADING…</div></div>
+
+  <h2>Macro Turning-Point Radar — Leading Markets</h2>
+  <div id="leading"><div class="loading">LOADING CANARY MARKETS…</div></div>
 </div>
 
 <script>
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const fmt=(n)=>n==null?"\u2014":(typeof n==="number"?n.toFixed(1):n);
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const DEFCOLOR={1:"var(--red)",2:"var(--orange)",3:"var(--yellow)",4:"var(--cyan)",5:"var(--green)"};
 const REGCOLOR={EXPANDING:"var(--green)",EASING:"var(--green)",ABUNDANT:"var(--green)",
@@ -96,8 +100,8 @@ const SIGCOLOR={GENERATIONAL_BUY:"var(--green)",STRONG_BUY:"var(--green)",CAPITU
 function gaugeColor(score){return score>=80?"var(--red)":score>=60?"var(--orange)":score>=40?"var(--yellow)":score>=20?"var(--cyan)":"var(--green)";}
 
 (async function(){
-  const [cc,cap,ch,bs]=await Promise.all([
-    J("crisis-composite.json"),J("capitulation.json"),J("china-liquidity.json"),J("bank-stress.json")]);
+  const [cc,cap,ch,bs,lm]=await Promise.all([
+    J("crisis-composite.json"),J("capitulation.json"),J("china-liquidity.json"),J("bank-stress.json"),J("leading-markets.json")]);
 
   // ── HERO ──
   if(cc){
@@ -189,6 +193,38 @@ function gaugeColor(score){return score>=80?"var(--red)":score>=60?"var(--orange
     </div>`;
   }else{lq+='<div class="card"><div class="loading">BANK STRESS NOT YET AVAILABLE</div></div>';}
   document.getElementById("liquidity").innerHTML=lq;
+
+  // ── LEADING MARKETS / TURNING-POINT RADAR ──
+  if(lm){
+    const SIGC={EXPANSION_CONFIRMED:"var(--green)",BOTTOM_SIGNAL:"var(--green)",MIXED:"var(--cyan)",TOP_WARNING:"var(--orange)",BROAD_CONTRACTION:"var(--red)"};
+    const RC={EXPANSION:"var(--green)",RECOVERY:"var(--cyan)",SLOWING:"var(--orange)",CONTRACTION:"var(--red)"};
+    const sc=SIGC[lm.turning_point_signal]||"var(--cyan)";
+    let rows="";
+    (lm.markets||[]).forEach(m=>{
+      const rc=RC[m.regime]||"var(--dim)";
+      rows+=`<div class="comp-row"><span class="cl">${esc(m.market)} <span style="color:var(--dim)">${esc(m.etf)}</span></span>`+
+        `<span class="regtag" style="background:${rc}22;color:${rc};width:120px;text-align:center">${esc(m.regime)}</span>`+
+        `<span style="flex:1;text-align:right;font-family:var(--mono);font-size:11px;color:${(m.ret_3m_pct||0)>=0?'var(--green)':'var(--red)'}">3m ${m.ret_3m_pct==null?"\u2014":(m.ret_3m_pct>0?"+":"")+m.ret_3m_pct+"%"}</span>`+
+        `<span style="width:90px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--dim)">${m.from_52w_high_pct==null?"":m.from_52w_high_pct+"% vs hi"}</span></div>`;
+    });
+    const rcounts=lm.regime_counts||{};
+    document.getElementById("leading").innerHTML=`<div class="grid2">
+      <div class="card">
+        <h3>Turning-Point Signal</h3>
+        <span class="regtag" style="background:${sc}22;color:${sc};font-size:13px">${esc((lm.turning_point_signal||"").replace(/_/g," "))}</span>
+        <div class="metric-row" style="margin-top:12px"><span class="lbl">Leading score</span><span style="color:${gaugeColor(100-(lm.risk_score||0))}">${fmt(lm.leading_score)} / 100</span></div>
+        <div class="metric-row"><span class="lbl">Expansion breadth</span><span>${fmt(lm.expansion_breadth_pct)}%</span></div>
+        <div class="metric-row"><span class="lbl">Improving / Deteriorating</span><span>${fmt(lm.improving_pct)}% / ${fmt(lm.deteriorating_pct)}%</span></div>
+        <div class="metric-row"><span class="lbl">Risk appetite (EM+Frontier vs core)</span><span>${esc(lm.risk_appetite||"\u2014")}</span></div>
+        <div class="metric-row"><span class="lbl">Regime mix</span><span style="font-size:11px">${rcounts.EXPANSION||0}E · ${rcounts.RECOVERY||0}R · ${rcounts.SLOWING||0}S · ${rcounts.CONTRACTION||0}C</span></div>
+        <div class="read">${esc(lm.signal_read||"")}</div>
+      </div>
+      <div class="card">
+        <h3>Canary Markets</h3>${rows}
+        <p class="read" style="font-size:11px">Each market lead-classified from price trend + momentum. These markets historically turn before the broad macro tape.</p>
+      </div></div>
+      <p class="timestamp">updated ${(lm.generated_at||"").slice(0,16).replace("T"," ")} UTC</p>`;
+  }else{document.getElementById("leading").innerHTML='<div class="card"><div class="loading">LEADING MARKETS NOT YET AVAILABLE</div></div>';}
 })();
 </script>
 </body>
