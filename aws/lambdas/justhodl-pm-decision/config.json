@@ -1,0 +1,16 @@
+{
+  "memory_size": 256,
+  "memory": 256,
+  "timeout": 60,
+  "runtime": "python3.12",
+  "description": "PM Decision Layer — fuses macro posture, allocator matrix, portfolio risk and top opportunities into one structured trim/add/hedge decision",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "schedule": {
+    "rule_name": "pm-decision-daily",
+    "cron": "cron(0 14 ? * MON-FRI *)",
+    "description": "PM Decision Layer — daily 14:00 UTC after master-ranker, allocator and portfolio-risk refresh"
+  }
+}
