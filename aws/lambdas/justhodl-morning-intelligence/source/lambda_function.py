@@ -211,6 +211,9 @@ def load_all():
         "vol_regime":"data/vol-regime.json",
         # ─── META-REGIME: 15-module composite engine ──────────────────
         "regime_composite":"data/regime-composite.json",
+        # ─── MASTER CRISIS COMPOSITE + CAPITULATION (Risk Pack) ───────
+        "crisis_composite":"data/crisis-composite.json",
+        "capitulation":"data/capitulation.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -562,6 +565,23 @@ def extract_metrics(data,weights):
         **(lambda p=data.get("crisis_plumbing", {}): {
             "plumbing_status": p.get("status") or p.get("regime"),
             "plumbing_phase": p.get("phase"),
+        })(),
+        # ─── MASTER CRISIS COMPOSITE — single DEFCON read ─────────────
+        **(lambda c=data.get("crisis_composite", {}): {
+            "crisis_defcon": c.get("defcon_level"),
+            "crisis_defcon_name": c.get("defcon_name"),
+            "crisis_score": c.get("master_crisis_score"),
+            "crisis_trend": c.get("trend"),
+            "crisis_drivers": c.get("primary_drivers"),
+            "crisis_playbook": c.get("playbook"),
+        })(),
+        # ─── CAPITULATION / generational-buy engine ───────────────────
+        **(lambda c=data.get("capitulation", {}): {
+            "capit_signal": c.get("signal"),
+            "capit_score": c.get("capitulation_score"),
+            "capit_stabilising": c.get("stabilising"),
+            "capit_smart_money": c.get("smart_money_confirm"),
+            "capit_action": c.get("action"),
         })(),
         # Earnings tracker (#3)
         **(lambda e=data.get("earnings", {}): {
@@ -1057,6 +1077,9 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "GLOBAL_KEY_COUNTRIES: USA="+str(m.get("gbc_usa_phase") or "?")+"(CLI "+str(m.get("gbc_usa_cli") or "?")+") · CHN="+str(m.get("gbc_chn_phase") or "?")+"(CLI "+str(m.get("gbc_chn_cli") or "?")+") · DEU="+str(m.get("gbc_deu_phase") or "?")+"(CLI "+str(m.get("gbc_deu_cli") or "?")+") · JPN="+str(m.get("gbc_jpn_phase") or "?")+" · IND="+str(m.get("gbc_ind_phase") or "?"),
         "GLOBAL_CYCLE_CALL: "+str(m.get("gbc_decisive") or "?")[:250],
         "CORR_BREAKS: "+str(m.get("n_corr_breaks") or 0)+" pairs. Top:"+str(m.get("top_corr_break") or "none"),
+        "CRISIS_DEFCON: Level "+str(m.get("crisis_defcon") or "?")+" ("+str(m.get("crisis_defcon_name") or "?")+") master_score:"+str(m.get("crisis_score") or "?")+"/100 trend:"+str(m.get("crisis_trend") or "?")+" | drivers: "+(" · ".join(str(d) for d in (m.get("crisis_drivers") or [])) or "?"),
+        "CRISIS_PLAYBOOK: "+str(m.get("crisis_playbook") or "?")[:280],
+        "CAPITULATION: "+str(m.get("capit_signal") or "?")+" score:"+str(m.get("capit_score") or "?")+"/100 stabilising:"+str(m.get("capit_stabilising"))+" insiders_confirm:"+str(m.get("capit_smart_money"))+" | action: "+str(m.get("capit_action") or "?")[:200],
         "PLUMBING_PHASE: "+str(m.get("plumbing_status") or "?")+" "+str(m.get("plumbing_phase") or ""),
         "RISK_RECS: "+str(m.get("n_risk_recs") or 0)+" sized. Top:"+str(m.get("top_risk_rec") or "none"),
         # ═══ Earnings (#3) ════════════════════════════════════════════

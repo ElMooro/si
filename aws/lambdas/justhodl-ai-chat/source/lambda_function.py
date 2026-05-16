@@ -188,6 +188,35 @@ def build_context(message):
             if mr.get('regime_changed_from_prior'):
                 lines.append(f"[META-REGIME ALERT] Just changed from {mr.get('prior_regime')} → {meta}")
 
+    # ─── MASTER CRISIS COMPOSITE — the platform's single risk read ──
+    # crisis-composite fuses every dedicated risk engine into one DEFCON
+    # level (5 all-clear → 1 crisis). This is THE headline risk number;
+    # the AI should weight it heavily when framing any risk discussion.
+    cc = get_s3('data/crisis-composite.json')
+    if cc:
+        defcon = cc.get('defcon_level')
+        cscore = cc.get('master_crisis_score')
+        if defcon is not None:
+            lines.append(f"[CRISIS DEFCON] Level {defcon} ({cc.get('defcon_name','')}) · "
+                          f"master crisis score {cscore}/100 · trend {cc.get('trend') or 'n/a'}")
+            drivers = cc.get('primary_drivers') or []
+            if drivers:
+                lines.append(f"[CRISIS DRIVERS] {' · '.join(str(d) for d in drivers)}")
+            play = cc.get('playbook') or ''
+            if play:
+                lines.append(f"[CRISIS PLAYBOOK] {play[:280]}")
+
+    # ─── CAPITULATION / OPPORTUNITY — the buy-side counterpart ──────
+    cap = get_s3('data/capitulation.json')
+    if cap:
+        sig = cap.get('signal')
+        if sig:
+            lines.append(f"[CAPITULATION] {sig} · score {cap.get('capitulation_score')}/100 · "
+                          f"stabilising={cap.get('stabilising')} · "
+                          f"insiders_confirm={cap.get('smart_money_confirm')}")
+            if sig in ('GENERATIONAL_BUY', 'STRONG_BUY', 'CAPITULATION_WAIT'):
+                lines.append(f"[CAPITULATION ACTION] {(cap.get('action') or '')[:240]}")
+
     # ─── Tier 1-3 always-on macro context ─────────────────────────
     liq = get_s3('data/liquidity-flow.json')
     if liq:
