@@ -1,0 +1,83 @@
+{
+  "ops": 723,
+  "ts": "2026-05-16T21:47:12.276319+00:00",
+  "subject": "pm-decision + cross-asset-rv frontend pages",
+  "invoke_pm": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"posture_word\\\": \\\"NEUTRAL\\\", \\\"headline\\\": \\\"NEUTRAL: 0 trim \\\\u00b7 2 add \\\\u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.\\\", \\\"n_trim\\\": 0, \\\"n_add\\\": 2, \\\"n_hedge\\\": 0}\"}"
+  },
+  "invoke_rv": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"rv_state\\\": \\\"STRETCHED\\\", \\\"n_dislocated\\\": 0, \\\"n_stretched\\\": 4, \\\"data_failed\\\": []}\"}"
+  },
+  "pm_last_modified": "2026-05-16T21:47:14+00:00",
+  "rv_last_modified": "2026-05-16T21:47:16+00:00",
+  "pm_summary": {
+    "posture_word": "NEUTRAL",
+    "headline": "NEUTRAL: 0 trim \u00b7 2 add \u00b7 0 hedge action(s). Book: 0 positions, beta None, portfolio data pending.",
+    "n_trim": 0,
+    "n_add": 2,
+    "n_hedge": 0,
+    "n_triggers": 3,
+    "defcon_level": 4
+  },
+  "rv_summary": {
+    "rv_state": "STRETCHED",
+    "n_relationships": 6,
+    "n_scored": 6,
+    "n_dislocated": 0,
+    "n_stretched": 4,
+    "top_abs_z": 1.99
+  },
+  "pages": {
+    "pm-decision.html": {
+      "http": 200,
+      "marker_found": true,
+      "fetches_s3": true,
+      "bytes": 12315
+    },
+    "cross-asset-rv.html": {
+      "http": 200,
+      "marker_found": true,
+      "fetches_s3": true,
+      "bytes": 10732
+    },
+    "index_links": {
+      "http": 200,
+      "links_pm": true,
+      "links_rv": true
+    }
+  },
+  "pm_checks": {
+    "has_posture": true,
+    "has_posture_word": true,
+    "has_headline": true,
+    "macro_frame_ok": true,
+    "actions_keys_ok": true,
+    "has_portfolio": true,
+    "has_triggers": true,
+    "has_inputs_used": true
+  },
+  "rv_checks": {
+    "has_rv_state": true,
+    "has_rv_read": true,
+    "has_relationships": true,
+    "rel_fields_ok": true,
+    "n_dislocated_present": true,
+    "n_stretched_present": true,
+    "has_interpretation": true
+  },
+  "checks": {
+    "pm_invoke_ok": true,
+    "rv_invoke_ok": true,
+    "pm_sidecar_valid": true,
+    "rv_sidecar_valid": true,
+    "pm_page_live": true,
+    "rv_page_live": true,
+    "index_links_both": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 both engines produce valid output, both pages render it live"
+}
