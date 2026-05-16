@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>100x Bagger Engine · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚀</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.tk small{display:block;color:var(--dim);font-size:9.5px;font-weight:400;letter-spacing:.3px}
+.score-bar{display:inline-block;height:5px;border-radius:3px;background:var(--line);width:74px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.score-fill{display:block;height:100%;background:var(--green)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase;white-space:nowrap}
+.t100{color:var(--green);background:rgba(38,255,175,.12)}
+.t25{color:var(--cyan);background:rgba(0,212,255,.12)}
+.t10{color:var(--yellow);background:rgba(255,210,102,.12)}
+.tsteady{color:var(--purple);background:rgba(167,139,250,.12)}
+.tmodest{color:var(--dim)}
+.pos{color:var(--green)}.neg{color:var(--red)}.warnc{color:var(--orange)}
+.pillars{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.pill{background:rgba(0,0,0,.3);border-radius:3px;padding:5px 4px;text-align:center}
+.pill .pl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;display:block}
+.pill .pv{font-size:12px;font-weight:700;font-family:var(--mono)}
+.expand{cursor:pointer}
+.det{display:none;background:var(--panel2)}
+.det td{padding:12px 14px}
+.note{font-size:11px;color:var(--mute);margin:2px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:12px}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px}
+.metric .big{font-family:var(--mono);font-size:30px;font-weight:700;margin:6px 0}
+.metric .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.2px}
+.metric .sub{font-size:11px;color:var(--mute);margin-top:6px}
+.regime-tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:4px}
+.empty{text-align:center;padding:48px 20px;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1px;line-height:2}
+.loading{text-align:center;padding:60px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right;margin-top:6px}
+.filter-row{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.fbtn{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 11px;border:1px solid var(--line);background:var(--panel);color:var(--dim);border-radius:4px;cursor:pointer}
+.fbtn.active{color:var(--green);border-color:var(--green)}
+.bars{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);margin-top:8px}
+.bars span{display:block;height:100%}
+@media(max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}.macro-grid{grid-template-columns:1fr}.pillars{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚀 100x Bagger Engine — Multibagger Command Center</h1>
+    <p class="subtitle">Finds the quiet, small, boring businesses that compound into 100-baggers — and the discipline to hold them. 7-pillar multibagger DNA scoring across the full nano/micro/small/mid universe, headcount-inflection leading growth, the global liquidity tide, market-wide insider behaviour, and a coffee-can holding tracker. Real data, auto-updated.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/nobrainers.html">nobrainers</a>
+      <a href="/deep-value.html">deep-value</a>
+      <a href="/smart-money.html">smart-money</a>
+      <a href="/eps-velocity.html">eps-velocity</a>
+      <a href="/brief.html">brief</a>
+    </nav>
+  </header>
+
+  <section class="kpis" id="kpis">
+    <div class="kpi"><h3>Potential 100x</h3><div class="v t100" id="k_100">—</div><div class="vsub">long-hold tier</div></div>
+    <div class="kpi"><h3>Potential 25x+</h3><div class="v t25" id="k_25">—</div><div class="vsub">strong compounders</div></div>
+    <div class="kpi"><h3>Hiring inflections</h3><div class="v" id="k_hire" style="color:var(--cyan)">—</div><div class="vsub">scaling pre-revenue</div></div>
+    <div class="kpi"><h3>Global liquidity</h3><div class="v mono" id="k_liq" style="font-size:15px">—</div><div class="vsub" id="k_liq_sub">tide for risk</div></div>
+    <div class="kpi"><h3>Insider regime</h3><div class="v mono" id="k_ins" style="font-size:15px">—</div><div class="vsub" id="k_ins_sub">market-wide</div></div>
+    <div class="kpi"><h3>Coffee-can</h3><div class="v mono" id="k_cc">—</div><div class="vsub">holdings tracked</div></div>
+  </section>
+
+  <div class="callout" id="topcall"><strong>Top multibagger candidate</strong><span id="topcall_txt">loading…</span></div>
+
+  <div class="tabs">
+    <div class="tab active" data-t="cand">Multibagger Candidates</div>
+    <div class="tab" data-t="hire">Hiring Inflections</div>
+    <div class="tab" data-t="macro">Macro Tide</div>
+    <div class="tab" data-t="cc">Coffee-Can Portfolio</div>
+  </div>
+
+  <!-- ── CANDIDATES ── -->
+  <div class="tab-pane active" id="pane-cand">
+    <div class="filter-row" id="tierfilter">
+      <div class="fbtn active" data-f="ALL">All</div>
+      <div class="fbtn" data-f="POTENTIAL_100X">100x</div>
+      <div class="fbtn" data-f="POTENTIAL_25X_PLUS">25x+</div>
+      <div class="fbtn" data-f="POTENTIAL_10X">10x</div>
+      <div class="fbtn" data-f="STEADY_COMPOUNDER">Steady</div>
+    </div>
+    <div id="cand_body"><div class="loading">LOADING BAGGER ENGINE…</div></div>
+    <p class="timestamp" id="cand_ts"></p>
+  </div>
+
+  <!-- ── HIRING ── -->
+  <div class="tab-pane" id="pane-hire">
+    <div id="hire_body"><div class="loading">LOADING HIRING VELOCITY…</div></div>
+    <p class="timestamp" id="hire_ts"></p>
+  </div>
+
+  <!-- ── MACRO ── -->
+  <div class="tab-pane" id="pane-macro">
+    <div id="macro_body"><div class="loading">LOADING MACRO TIDE…</div></div>
+  </div>
+
+  <!-- ── COFFEE-CAN ── -->
+  <div class="tab-pane" id="pane-cc">
+    <div id="cc_body"><div class="loading">LOADING COFFEE-CAN…</div></div>
+    <p class="timestamp" id="cc_ts"></p>
+  </div>
+</div>
+
+<script>
+const S3_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const J=(k)=>fetch(`${S3_BASE}/data/${k}?_=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
+const fmtB=(v)=>v==null?"—":(Math.abs(v)>=1000?(v/1000).toFixed(2)+"T":v.toFixed(0)+"B");
+const pct=(v,d=1)=>v==null?"—":(v>0?"+":"")+v.toFixed(d)+"%";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const TIERCLS={POTENTIAL_100X:"t100",POTENTIAL_25X_PLUS:"t25",POTENTIAL_10X:"t10",STEADY_COMPOUNDER:"tsteady",MODEST:"tmodest"};
+const TIERLBL={POTENTIAL_100X:"100X",POTENTIAL_25X_PLUS:"25X+",POTENTIAL_10X:"10X",STEADY_COMPOUNDER:"STEADY",MODEST:"MODEST"};
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  document.getElementById("pane-"+t.dataset.t).classList.add("active");
+});
+
+let BAGGER=null;
+function renderCand(filter="ALL"){
+  if(!BAGGER){return;}
+  const rows=(BAGGER.top_100||[]).filter(r=>{
+    if(filter==="ALL")return true;
+    return (r.twin_engine||{}).classification===filter;
+  });
+  if(!rows.length){document.getElementById("cand_body").innerHTML='<div class="empty">NO CANDIDATES IN THIS TIER</div>';return;}
+  let h='<table><thead><tr><th>#</th><th>Ticker</th><th>Tier</th><th>Bagger Score</th><th>Rev CAGR</th><th>ROIC</th><th>Intrinsic</th><th>Cap</th><th></th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    const te=r.twin_engine||{},ks=r.key_stats||{},cls=te.classification||"MODEST";
+    const surv=r.survives===false?' <span class="flag" style="color:var(--red)">FRAGILE BS</span>':'';
+    h+=`<tr class="expand" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='table-row'?'none':'table-row'">
+      <td class="dim">${r.rank||i+1}</td>
+      <td><span class="tk">${esc(r.symbol)}<small>${esc((r.name||"").slice(0,22))}</small></span></td>
+      <td><span class="flag ${TIERCLS[cls]}">${TIERLBL[cls]}</span>${surv}</td>
+      <td><b>${r.bagger_score}</b><span class="score-bar"><span class="score-fill" style="width:${r.bagger_score}%"></span></span></td>
+      <td>${ks.revenue_cagr_pct==null?"—":ks.revenue_cagr_pct+"%"}</td>
+      <td>${ks.roic_pct==null?"—":ks.roic_pct+"%"}</td>
+      <td>${ks.intrinsic_compounding_pct==null?"—":ks.intrinsic_compounding_pct+"%/yr"}</td>
+      <td class="dim">${fmtB((r.market_cap||0)/1e9)}</td>
+      <td class="dim">▾</td></tr>`;
+    const p=r.pillars||{};
+    const pl=(k,lbl)=>`<div class="pill"><span class="pl">${lbl}</span><span class="pv">${(p[k]||{}).score??"—"}</span></div>`;
+    h+=`<tr class="det"><td colspan="9">
+      <div class="pillars">
+        ${pl("small_base","Base")}${pl("revenue_durability","Revenue")}${pl("roic_quality","ROIC")}
+        ${pl("reinvestment_runway","Reinvest")}${pl("margin_moat","Moat")}${pl("owner_alignment","Owner")}${pl("entry_valuation","Value")}
+      </div>
+      <p class="note" style="margin-top:8px">${esc(r.thesis||"")}</p>
+      <p class="note dim">Twin-engine: at a capped ${te.assumed_growth_capped||"—"}% growth → 15yr ${(te.yr15||{}).with_rerating_x||"—"}x · 20yr ${(te.yr20||{}).with_rerating_x||"—"}x with modest re-rating. Years to 100x ≈ ${te.years_to_100x||"—"}.</p>
+      <p class="note dim">${esc(r.survival_note||"")}</p>
+    </td></tr>`;
+  });
+  h+='</tbody></table>';
+  document.getElementById("cand_body").innerHTML=h;
+}
+document.querySelectorAll("#tierfilter .fbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#tierfilter .fbtn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");renderCand(b.dataset.f);
+});
+
+function renderHire(d){
+  if(!d){document.getElementById("hire_body").innerHTML='<div class="empty">HIRING VELOCITY DATA NOT YET AVAILABLE</div>';return;}
+  const dc=d.double_confirmed||[],inf=d.expansion_inflections||[],top=d.top_50||[];
+  let h="";
+  if(dc.length){
+    h+='<h2>★ Double-Confirmed — hiring expansion + high multibagger DNA</h2><table><thead><tr><th>Ticker</th><th>Exp Score</th><th>Bagger</th><th>Headcount YoY</th><th>Accel</th><th>Rev/Emp Trend</th><th>State</th></tr></thead><tbody>';
+    dc.forEach(r=>{h+=`<tr><td><span class="tk">${esc(r.symbol)}<small>${esc((r.name||"").slice(0,20))}</small></span></td>
+      <td><b class="pos">${r.expansion_score}</b></td><td>${r.bagger_score??"—"}</td>
+      <td>${pct(r.headcount_yoy_pct)}</td><td>${r.headcount_accel_pp==null?"—":(r.headcount_accel_pp>0?"+":"")+r.headcount_accel_pp+"pp"}</td>
+      <td>${pct(r.revenue_per_employee_trend_pct)}</td><td><span class="flag t25">${esc(r.state)}</span></td></tr>`;});
+    h+='</tbody></table>';
+  }
+  h+='<h2>Top expansion candidates</h2><table><thead><tr><th>Ticker</th><th>Exp Score</th><th>Headcount</th><th>YoY</th><th>Accel</th><th>State</th><th>Notes</th></tr></thead><tbody>';
+  top.slice(0,40).forEach(r=>{
+    h+=`<tr><td><span class="tk">${esc(r.symbol)}<small>${esc((r.name||"").slice(0,20))}</small></span></td>
+      <td><b>${r.expansion_score}</b><span class="score-bar"><span class="score-fill" style="width:${r.expansion_score}%"></span></span></td>
+      <td class="dim">${r.headcount_latest||"—"}</td><td>${pct(r.headcount_yoy_pct)}</td>
+      <td>${r.headcount_accel_pp==null?"—":(r.headcount_accel_pp>0?"+":"")+r.headcount_accel_pp+"pp"}</td>
+      <td><span class="flag ${r.state==='EXPANSION_INFLECTION'?'t100':r.state==='AGGRESSIVE_EXPANSION'?'t25':'tmodest'}">${esc(r.state)}</span></td>
+      <td class="note">${esc((r.notes||[]).slice(0,2).join(" · "))}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  document.getElementById("hire_body").innerHTML=h;
+  document.getElementById("hire_ts").textContent="updated "+(d.generated_at||"").slice(0,16).replace("T"," ")+" UTC · "+(d.n_scored||0)+" scored";
+}
+
+function renderMacro(gl,ia){
+  let h='<h2>Global Liquidity — the tide for risk assets</h2>';
+  if(gl){
+    const g=gl.global_liquidity_index||{},nl=gl.fed_net_liquidity||{},bm=gl.broad_money||{};
+    const rc=gl.regime==="EXPANDING"?"pos":gl.regime==="CONTRACTING"?"neg":"warnc";
+    const rbg=gl.regime==="EXPANDING"?"rgba(38,255,175,.12)":gl.regime==="CONTRACTING"?"rgba(255,85,119,.12)":"rgba(255,122,24,.12)";
+    h+=`<div class="macro-grid">
+      <div class="metric"><div class="lbl">Global Liquidity Index</div><div class="big">$${(g.total_usd_trillions||0).toFixed(1)}T</div>
+        <div class="sub">13w impulse <b class="${(g.change_13w_pct||0)>=0?'pos':'neg'}">${pct(g.change_13w_pct,2)}</b> · 52w ${pct(g.change_52w_pct,2)}</div>
+        <div class="sub dim">Fed ${fmtB(g.components_usd_bn?.Fed)} · ECB ${fmtB(g.components_usd_bn?.ECB)} · BOJ ${fmtB(g.components_usd_bn?.BOJ)}</div></div>
+      <div class="metric"><div class="lbl">Fed Net Liquidity</div><div class="big">$${(nl.value_usd_trillions||0).toFixed(2)}T</div>
+        <div class="sub">13w ${pct(nl.change_13w_pct,2)}</div><div class="sub dim">Balance sheet − TGA − Reverse Repo</div></div>
+      <div class="metric"><div class="lbl">US M2 Broad Money</div><div class="big">${pct(bm.us_m2_yoy_pct,1)}</div>
+        <div class="sub">year-over-year</div><div class="sub dim">${esc(bm.read||"")}</div></div>
+    </div>
+    <div class="callout" style="border-left-color:${rc==='pos'?'var(--green)':rc==='neg'?'var(--red)':'var(--orange)'};margin-top:12px">
+      <strong>Liquidity regime — <span class="${rc}">${esc(gl.regime)}</span></strong>${esc(gl.regime_read||"")}</div>`;
+  }else{h+='<div class="empty">GLOBAL LIQUIDITY DATA NOT YET AVAILABLE</div>';}
+
+  h+='<h2>Market-Wide Insider Behaviour</h2>';
+  if(ia&&!ia.err){
+    const w=ia.windows||{},w30=w.last_30d||{},w7=w.last_7d||{};
+    const irc=ia.regime==="INSIDERS_ACCUMULATING"?"pos":ia.regime==="INSIDERS_DISTRIBUTING"?"neg":"warnc";
+    const bd=w30.buy_usd||0,sd=w30.sell_usd||0,tot=bd+sd||1;
+    h+=`<div class="macro-grid">
+      <div class="metric"><div class="lbl">30d Buy/Sell ($)</div><div class="big ${irc}">${(ia.headline_ratio_30d_dollar||0).toFixed(3)}</div>
+        <div class="sub">buys ${w30.buy_count||0} · sells ${w30.sell_count||0}</div>
+        <div class="bars"><span class="pos" style="width:${bd/tot*100}%;background:var(--green)"></span><span style="width:${sd/tot*100}%;background:var(--red)"></span></div>
+        <div class="sub dim">$${fmtB(bd/1e9)} bought vs $${fmtB(sd/1e9)} sold</div></div>
+      <div class="metric"><div class="lbl">7d Buy/Sell ($)</div><div class="big">${(w7.buy_sell_ratio_dollar||0).toFixed(3)}</div>
+        <div class="sub">most recent week</div></div>
+      <div class="metric"><div class="lbl">Cluster Buys</div><div class="big" style="color:var(--cyan)">${(ia.notable_cluster_buys||[]).length}</div>
+        <div class="sub">2+ insiders, same company, 30d</div></div>
+    </div>
+    <div class="callout" style="border-left-color:${irc==='pos'?'var(--green)':irc==='neg'?'var(--red)':'var(--orange)'};margin-top:12px">
+      <strong>Insider regime — <span class="${irc}">${esc(ia.regime)}</span></strong>${esc(ia.regime_read||"")}</div>`;
+    const cb=ia.notable_cluster_buys||[];
+    if(cb.length){
+      h+='<table><thead><tr><th>Ticker</th><th>Insiders Buying</th><th>Total $</th></tr></thead><tbody>';
+      cb.forEach(c=>{h+=`<tr><td><span class="tk">${esc(c.symbol)}<small>${esc((c.name||"").slice(0,24))}</small></span></td><td>${c.n_buyers}</td><td>$${(c.total_usd||0).toLocaleString()}</td></tr>`;});
+      h+='</tbody></table>';
+    }
+  }else{h+='<div class="empty">INSIDER AGGREGATE DATA NOT YET AVAILABLE</div>';}
+  document.getElementById("macro_body").innerHTML=h;
+}
+
+function renderCC(d){
+  const el=document.getElementById("cc_body");
+  if(!d||!(d.holdings||[]).length){
+    el.innerHTML=`<div class="empty">
+      NO COFFEE-CAN HOLDINGS YET<br><br>
+      The coffee-can is where committed multibagger positions go to be HELD —<br>
+      not touched for a decade, through every drawdown, until the thesis breaks.<br><br>
+      Ask Claude to add a holding once you commit to a name from the candidates list.</div>`;
+    return;
+  }
+  const p=d.portfolio||{};
+  let h=`<div class="callout"><strong>Holding discipline</strong>${esc(d.discipline_reminder||"")}</div>
+    <div class="macro-grid" style="margin-bottom:14px">
+      <div class="metric"><div class="lbl">Avg Return</div><div class="big ${(p.avg_return_pct||0)>=0?'pos':'neg'}">${pct(p.avg_return_pct)}</div><div class="sub">${p.n_winners||0} of ${d.n_holdings} winning</div></div>
+      <div class="metric"><div class="lbl">Multibaggers (2x+)</div><div class="big" style="color:var(--green)">${p.n_multibaggers_2x_plus||0}</div><div class="sub">best: ${esc(p.best_performer||"—")} ${pct(p.best_return_pct)}</div></div>
+      <div class="metric"><div class="lbl">Thesis Status</div><div class="big">${p.n_thesis_broken?'<span class="neg">'+p.n_thesis_broken+' broken</span>':'<span class="pos">all intact</span>'}</div><div class="sub">${p.n_thesis_weakening||0} weakening</div></div>
+    </div><div class="cardgrid">`;
+  (d.holdings||[]).forEach(x=>{
+    const hc=x.thesis_health==="THESIS_BROKEN"?"neg":x.thesis_health==="THESIS_WEAKENING"?"warnc":"pos";
+    h+=`<div class="card" style="border-left:3px solid ${hc==='pos'?'var(--green)':hc==='warnc'?'var(--orange)':'var(--red)'}">
+      <div style="display:flex;justify-content:space-between">
+        <span class="tk" style="font-size:18px">${esc(x.symbol)}<small>${esc((x.name||"").slice(0,26))}</small></span>
+        <span style="text-align:right"><b class="${(x.return_pct||0)>=0?'pos':'neg'}" style="font-size:18px;font-family:var(--mono)">${pct(x.return_pct)}</b>
+        <small class="dim" style="display:block">${x.current_multiple||"—"}x · ${x.days_held||0}d held</small></span></div>
+      <div class="bars" style="margin:10px 0"><span style="background:var(--cyan);width:${Math.min(100,x.progress_to_target_pct||0)}%"></span></div>
+      <p class="note dim">progress to ${x.target_multiple}x target: ${(x.progress_to_target_pct||0).toFixed(1)}%</p>
+      <p class="note">drawdown from peak: <b class="${(x.drawdown_from_peak_pct||0)>35?'warnc':''}">${(x.drawdown_from_peak_pct||0).toFixed(0)}%</b></p>
+      <p class="note dim">${esc(x.drawdown_context||"")}</p>
+      <p class="note">thesis: <span class="${hc}">${esc((x.thesis_health||"").replace("THESIS_",""))}</span></p>
+      <p class="note" style="color:var(--mute)">${esc(x.verdict||"")}</p></div>`;
+  });
+  h+='</div>';
+  el.innerHTML=h;
+  document.getElementById("cc_ts").textContent="updated "+(d.generated_at||"").slice(0,16).replace("T"," ")+" UTC";
+}
+
+(async function(){
+  const [bg,hv,gl,ia,cc]=await Promise.all([
+    J("bagger-engine.json"),J("hiring-velocity.json"),J("global-liquidity.json"),
+    J("insider-aggregate.json"),J("coffee-can.json")]);
+  BAGGER=bg;
+  // KPIs
+  if(bg){
+    const tc=bg.tier_counts||{};
+    document.getElementById("k_100").textContent=tc.potential_100x??0;
+    document.getElementById("k_25").textContent=tc.potential_25x??0;
+    const t=(bg.top_100||[])[0];
+    if(t){const ks=t.key_stats||{};
+      document.getElementById("topcall_txt").innerHTML=
+        `<b>${esc(t.symbol)}</b> — ${esc(t.name||"")} · bagger score <b>${t.bagger_score}</b> · `+
+        `${ks.revenue_cagr_pct}% revenue CAGR · ${ks.roic_pct}% ROIC · ${esc((t.thesis||""))}`;
+    }
+    renderCand("ALL");
+    document.getElementById("cand_ts").textContent="updated "+(bg.generated_at||"").slice(0,16).replace("T"," ")+" UTC · "+(bg.n_scored||0)+" stocks scored";
+  }else{document.getElementById("cand_body").innerHTML='<div class="empty">BAGGER ENGINE DATA NOT YET AVAILABLE</div>';}
+  if(hv){document.getElementById("k_hire").textContent=(hv.counts||{}).expansion_inflection??0;}
+  if(gl){const g=gl.global_liquidity_index||{};
+    document.getElementById("k_liq").textContent="$"+(g.total_usd_trillions||0).toFixed(1)+"T";
+    document.getElementById("k_liq_sub").textContent=esc(gl.regime||"");}
+  if(ia&&!ia.err){document.getElementById("k_ins").textContent=(ia.headline_ratio_30d_dollar||0).toFixed(2);
+    document.getElementById("k_ins_sub").textContent=(ia.regime||"").replace("INSIDERS_","").toLowerCase();}
+  document.getElementById("k_cc").textContent=cc?(cc.n_holdings??0):0;
+  renderHire(hv);renderMacro(gl,ia);renderCC(cc);
+})();
+</script>
+</body>
+</html>
