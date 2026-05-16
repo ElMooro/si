@@ -110,10 +110,21 @@ def lambda_handler(event, context):
     prior = get_s3_json(S3_KEY, {}) or {}
     macro = get_s3_json(MACRO_SURPRISE_KEY) or {}
 
-    # macro-surprise sidecar structure: assume events list with {date, name, actual,
-    # consensus, z_score, ...}. Fall back to whatever keys exist.
-    events = (macro.get("events") or macro.get("releases")
-                or macro.get("history") or [])
+    # macro-surprise sidecar (current) has structure:
+    #   by_indicator: {"CPI": {"z_score": 0.5, "release_date": "2026-05-12", ...}, ...}
+    #   by_category:  {"inflation": {"composite_z": ..., "indicators": [...]}, ...}
+    #   composite_z, regime, top_beats, top_misses
+    # OR legacy: events: [...]
+    events = []
+    if isinstance(macro.get("by_indicator"), dict):
+        for name, ind in macro["by_indicator"].items():
+            if not isinstance(ind, dict): continue
+            ev = dict(ind)
+            ev["name"] = ev.get("name") or name
+            events.append(ev)
+    if not events:
+        events = (macro.get("events") or macro.get("releases")
+                    or macro.get("history") or [])
     if not events and isinstance(macro.get("recent_releases"), list):
         events = macro["recent_releases"]
 
@@ -124,18 +135,18 @@ def lambda_handler(event, context):
     recent = []
     for e in events:
         if not isinstance(e, dict): continue
-        dt = e.get("release_date") or e.get("date") or e.get("ts")
+        dt = (e.get("release_date") or e.get("date") or e.get("ts")
+              or e.get("latest_release_date") or e.get("last_release"))
         d_ago = days_ago(dt, now)
         if d_ago is None or d_ago > 60 or d_ago < 0: continue
         # Get z-score (or compute from beat/miss if available)
-        z = e.get("z_score") or e.get("z") or e.get("surprise_z")
+        z = (e.get("z_score") or e.get("z") or e.get("surprise_z")
+             or e.get("latest_z") or e.get("z_latest"))
         if z is None:
-            # Try (actual - consensus) / std_dev_proxy
-            actual = e.get("actual") or e.get("actual_value")
-            cons = e.get("consensus") or e.get("forecast")
+            actual = e.get("actual") or e.get("actual_value") or e.get("latest_value")
+            cons = e.get("consensus") or e.get("forecast") or e.get("expected")
             if actual is not None and cons is not None and cons != 0:
                 rel = (actual - cons) / abs(cons)
-                # Heuristic: cap at +/-3
                 z = max(-3, min(3, rel * 5))
         if z is None: continue
         recent.append({

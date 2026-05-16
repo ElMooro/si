@@ -1,0 +1,12 @@
+{
+  "memory_size": 512,
+  "memory": 512,
+  "timeout": 180,
+  "runtime": "python3.12",
+  "description": "Sector Heatmap — Finviz-style S&P 500 treemap with intraday change + breadth",
+  "schedule": {
+    "rule_name": "sector-heatmap-30m",
+    "cron": "cron(*/30 13-21 ? * MON-FRI *)",
+    "description": "Sector Heatmap refresh every 30 min during US market hours"
+  }
+}

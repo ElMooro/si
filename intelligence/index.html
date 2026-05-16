@@ -32,7 +32,7 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
 
 /* TABS */
-.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px;overflow-x:auto;}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px;}
 .tab{padding:8px 14px;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-radius:4px;white-space:nowrap;transition:all .15s;}
 .tab:hover{color:var(--text);background:rgba(255,255,255,.03);}
 .tab.active{color:var(--text);background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--border-hi);}
@@ -114,17 +114,33 @@ tr:hover td{background:rgba(255,255,255,.015);}
 
 <main>
   <div class="intro">
-    <h2>Top-of-stack synthesized signals</h2>
-    <p>Six newest macro-intelligence modules unified on one page. Adaptive Khalid (calibrator-learned weights) · Stress scenarios (5 archetypes) · Political trades (Senate + House) · Reversal radar (top/bottom detector) · Treasury auction grades · Repo &amp; securities lending. Each refreshes on its own cron; sidecars sourced live from S3.</p>
+    <h2>Bloomberg/Refinitiv-class unified intelligence</h2>
+    <p>16 institutional modules on one page, grouped by domain. <b>Macro</b>: Khalid Adaptive, Stress, ESI · <b>Vol &amp; Flow</b>: Vol Surface, Market Internals, Sector Heatmap · <b>Credit &amp; Rates</b>: CDS, Bond TRACE, TIC Flows, Auction Grades, Repo &amp; Lending · <b>Fundamentals</b>: Analyst Consensus, Sell-side, Seasonality, Liquidity Profile · <b>Behavioral</b>: Political Trades, Reversal Radar. Each refreshes on its own cron; sidecars sourced live from S3.</p>
   </div>
 
   <div class="tabs">
+    <!-- MACRO -->
     <button class="tab active" data-pane="khalid">📊 Adaptive Khalid</button>
     <button class="tab" data-pane="stress">💥 Stress Scenarios</button>
-    <button class="tab" data-pane="political">🏛 Political Trades</button>
-    <button class="tab" data-pane="reversal">🎯 Reversal Radar</button>
+    <button class="tab" data-pane="esi">📈 ESI</button>
+    <!-- VOL & FLOW -->
+    <button class="tab" data-pane="volsurface">🌊 Vol Surface</button>
+    <button class="tab" data-pane="internals">🫁 Market Internals</button>
+    <button class="tab" data-pane="heatmap">🔥 Sector Heatmap</button>
+    <!-- CREDIT & RATES -->
+    <button class="tab" data-pane="cds">🩸 CDS Proxy</button>
+    <button class="tab" data-pane="bondtrace">📉 Bond TRACE</button>
+    <button class="tab" data-pane="tic">🌍 TIC Flows</button>
     <button class="tab" data-pane="auction">📜 Auction Grades</button>
     <button class="tab" data-pane="lending">💰 Repo &amp; Lending</button>
+    <!-- FUNDAMENTALS -->
+    <button class="tab" data-pane="consensus">🎯 Analyst Consensus</button>
+    <button class="tab" data-pane="sellside">📑 Sell-side Views</button>
+    <button class="tab" data-pane="seasonality">📅 Seasonality</button>
+    <button class="tab" data-pane="liquidity">💧 Liquidity Profile</button>
+    <!-- BEHAVIORAL -->
+    <button class="tab" data-pane="political">🏛 Political Trades</button>
+    <button class="tab" data-pane="reversal">🎯 Reversal Radar</button>
   </div>
 
   <!-- ADAPTIVE KHALID -->
@@ -203,6 +219,132 @@ tr:hover td{background:rgba(255,255,255,.015);}
     </div>
     <div class="interp" id="lending-interp"></div>
   </div>
+
+  <!-- ESI (Economic Surprise Index) -->
+  <div class="tab-pane" id="pane-esi">
+    <div class="kpi-grid" id="esi-kpis"><div class="loading spin">loading ESI</div></div>
+    <div class="panel">
+      <h3>By category <span class="tag">7d / 30d / 60d composites</span></h3>
+      <div id="esi-categories"></div>
+    </div>
+    <div class="interp" id="esi-interp"></div>
+  </div>
+
+  <!-- VOL SURFACE -->
+  <div class="tab-pane" id="pane-volsurface">
+    <div class="kpi-grid" id="volsurface-kpis"><div class="loading spin">loading vol-surface</div></div>
+    <div class="panel">
+      <h3>Underlyings <span class="tag">14 FRED vol indexes</span></h3>
+      <div id="volsurface-table"></div>
+    </div>
+    <div class="panel">
+      <h3>Single-name equity VIX <span class="tag">Bloomberg OPV cross-section</span></h3>
+      <div id="volsurface-equity"></div>
+    </div>
+    <div class="interp" id="volsurface-interp"></div>
+  </div>
+
+  <!-- MARKET INTERNALS -->
+  <div class="tab-pane" id="pane-internals">
+    <div class="kpi-grid" id="internals-kpis"><div class="loading spin">loading market-internals</div></div>
+    <div class="panel">
+      <h3>Breadth components <span class="tag">A/D · McClellan · % above MAs · 52w H/L</span></h3>
+      <div id="internals-table"></div>
+    </div>
+    <div class="interp" id="internals-interp"></div>
+  </div>
+
+  <!-- SECTOR HEATMAP -->
+  <div class="tab-pane" id="pane-heatmap">
+    <div class="kpi-grid" id="heatmap-kpis"><div class="loading spin">loading sector-heatmap</div></div>
+    <div class="panel">
+      <h3>Sector rank <span class="tag">1d cap-weighted return</span></h3>
+      <div id="heatmap-rank"></div>
+    </div>
+    <div class="panel">
+      <h3>Leaders &amp; Laggers <span class="tag">today's intraday</span></h3>
+      <div id="heatmap-leaders"></div>
+    </div>
+    <div class="interp" id="heatmap-interp"></div>
+  </div>
+
+  <!-- CDS PROXY -->
+  <div class="tab-pane" id="pane-cds">
+    <div class="kpi-grid" id="cds-kpis"><div class="loading spin">loading cds-proxy</div></div>
+    <div class="panel">
+      <h3>Top reasons <span class="tag">credit-stress contributors</span></h3>
+      <div id="cds-reasons"></div>
+    </div>
+    <div class="interp" id="cds-interp"></div>
+  </div>
+
+  <!-- BOND TRACE -->
+  <div class="tab-pane" id="pane-bondtrace">
+    <div class="kpi-grid" id="bondtrace-kpis"><div class="loading spin">loading bond-trace</div></div>
+    <div class="panel">
+      <h3>ETF performance <span class="tag">HYG vs LQD</span></h3>
+      <div id="bondtrace-etfs"></div>
+    </div>
+    <div class="interp" id="bondtrace-interp"></div>
+  </div>
+
+  <!-- TIC FLOWS -->
+  <div class="tab-pane" id="pane-tic">
+    <div class="kpi-grid" id="tic-kpis"><div class="loading spin">loading tic-flows</div></div>
+    <div class="panel">
+      <h3>Top reasons <span class="tag">TIC stress drivers</span></h3>
+      <div id="tic-reasons"></div>
+    </div>
+    <div class="interp" id="tic-interp"></div>
+  </div>
+
+  <!-- ANALYST CONSENSUS -->
+  <div class="tab-pane" id="pane-consensus">
+    <div class="kpi-grid" id="consensus-kpis"><div class="loading spin">loading analyst-consensus</div></div>
+    <div class="panel">
+      <h3>Top consensus 25 <span class="tag">composite score</span></h3>
+      <div id="consensus-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Strongest upgrades 30d <span class="tag">net positive grade changes</span></h3>
+      <div id="consensus-upgrades"></div>
+    </div>
+    <div class="interp" id="consensus-interp"></div>
+  </div>
+
+  <!-- SELL-SIDE VIEWS -->
+  <div class="tab-pane" id="pane-sellside">
+    <div class="kpi-grid" id="sellside-kpis"><div class="loading spin">loading sellside-views</div></div>
+    <div class="panel">
+      <h3>SPX year-end targets <span class="tag">consensus distribution</span></h3>
+      <div id="sellside-targets"></div>
+    </div>
+    <div class="interp" id="sellside-interp"></div>
+  </div>
+
+  <!-- SEASONALITY -->
+  <div class="tab-pane" id="pane-seasonality">
+    <div class="kpi-grid" id="seasonality-kpis"><div class="loading spin">loading seasonality</div></div>
+    <div class="panel">
+      <h3>Active patterns <span class="tag">month · presidential cycle · DOW</span></h3>
+      <div id="seasonality-patterns"></div>
+    </div>
+    <div class="interp" id="seasonality-interp"></div>
+  </div>
+
+  <!-- LIQUIDITY PROFILE -->
+  <div class="tab-pane" id="pane-liquidity">
+    <div class="kpi-grid" id="liquidity-kpis"><div class="loading spin">loading liquidity-profile</div></div>
+    <div class="panel">
+      <h3>Most liquid <span class="tag">top-scored by ADV + spread + consistency</span></h3>
+      <div id="liquidity-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Least liquid <span class="tag">caution zone</span></h3>
+      <div id="liquidity-bottom"></div>
+    </div>
+    <div class="interp" id="liquidity-interp"></div>
+  </div>
 </main>
 
 <script>
@@ -214,6 +356,18 @@ const ENDPOINTS = {
   reversal: 'data/reversal-radar.json',
   auction: 'data/auction-grades.json',
   lending: 'data/repo-lending.json',
+  // New Bloomberg modules
+  esi: 'data/esi.json',
+  volsurface: 'data/vol-surface.json',
+  internals: 'data/market-internals.json',
+  heatmap: 'data/sector-heatmap.json',
+  cds: 'data/cds-proxy.json',
+  bondtrace: 'data/bond-trace.json',
+  tic: 'data/tic-flows.json',
+  consensus: 'data/analyst-consensus.json',
+  sellside: 'data/sellside-views.json',
+  seasonality: 'data/seasonality.json',
+  liquidity: 'data/liquidity-profile.json',
 };
 
 const fmtPct = (n, dp=2) => n==null ? '—' : `${n>=0?'+':''}${n.toFixed(dp)}%`;
@@ -498,12 +652,319 @@ function renderLending(d) {
   document.getElementById('lending-interp').innerHTML = `<b>Reading:</b> ${reg} regime · composite ${comp}/100. Margin debt is ${md.pct_of_market_cap ? md.pct_of_market_cap.toFixed(2)+'% of S&P cap (danger zone >2.5%)' : 'unavailable'}. YoY ${md.yoy_growth_pct ? (md.yoy_growth_pct>=0?'+':'')+md.yoy_growth_pct.toFixed(1)+'%' : '—'} ${md.yoy_growth_pct && md.yoy_growth_pct>25 ? '— leverage expanding fast' : ''}.`;
 }
 
+// ─── ESI ──────────────────────────────────────────────────────────
+function renderESI(d) {
+  if (!d) return;
+  const c60 = d.composite_60d, c30 = d.composite_30d, c7 = d.composite_7d;
+  const regime = d.regime || '—';
+  const reCls = regime.includes('STRONG_BEAT')?'pos':regime.includes('WEAK_MISS')?'neg':'info';
+  document.getElementById('esi-kpis').innerHTML = `
+    <div class="kpi ${reCls}"><div class="label">Regime</div><div class="val ${reCls}">${regime}</div><div class="sub">${d.n_events_60d||0} events / 60d</div></div>
+    <div class="kpi accent"><div class="label">60d Composite</div><div class="val">${fmtNum(c60,2)}</div><div class="sub">Z-score, time-decayed</div></div>
+    <div class="kpi info"><div class="label">30d Composite</div><div class="val">${fmtNum(c30,2)}</div><div class="sub">${d.n_events_30d||0} events</div></div>
+    <div class="kpi gold"><div class="label">7d Composite</div><div class="val">${fmtNum(c7,2)}</div><div class="sub">${d.n_events_7d||0} events</div></div>
+  `;
+  const cats = d.by_category || {};
+  const rows = Object.entries(cats).map(([k,v]) => `
+    <tr><td class="t-info">${k}</td><td>${fmtNum(v.composite,2)}</td><td class="t-mute">${v.n||0}</td>
+        <td>${v.latest?(v.latest.name||'—'):'—'}</td></tr>`).join('');
+  document.getElementById('esi-categories').innerHTML = `<table>
+    <thead><tr><th>Category</th><th>Avg Z</th><th>n</th><th>Latest event</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=4 class=t-mute>no category data</td></tr>'}</tbody></table>`;
+  document.getElementById('esi-interp').innerHTML = `<b>Reading:</b> ESI regime is <b>${regime}</b>. 30d composite ${fmtNum(c30,2)}σ vs 60d ${fmtNum(c60,2)}σ — ${(c30>c60)?'macro surprises accelerating positively':'momentum slowing'}. CESI typically leads SPY by 1-3mo.`;
+}
+
+// ─── VOL SURFACE ──────────────────────────────────────────────────
+function renderVolSurface(d) {
+  if (!d) return;
+  const reg = d.regime, sc = d.composite_stress_score;
+  const skew = d.skew || {}, vvix = d.vvix || {}, term = d.term_structure || {};
+  const cross = d.cross_asset || {}, disp = d.equity_dispersion || {};
+  const reCls = sc>=70?'neg':sc>=50?'warning':sc>=35?'gold':'pos';
+  document.getElementById('volsurface-kpis').innerHTML = `
+    <div class="kpi ${reCls}"><div class="label">Regime</div><div class="val ${reCls}">${reg}</div><div class="sub">composite ${sc}/100</div></div>
+    <div class="kpi info"><div class="label">VIX 30d → 3M</div><div class="val">${fmtNum(term.spot,2)} → ${fmtNum(term.back,2)}</div><div class="sub">${term.regime} (slope ${fmtNum(term.slope_30d_3m_yearized,3)})</div></div>
+    <div class="kpi gold"><div class="label">SKEW</div><div class="val">${fmtNum(skew.value,1)}</div><div class="sub">${skew.regime} · pctile ${fmtNum(skew.pctile_252d,0)} · tail-mult ${fmtNum(skew.tail_mult,2)}</div></div>
+    <div class="kpi accent"><div class="label">VVIX</div><div class="val">${fmtNum(vvix.value,1)}</div><div class="sub">${vvix.regime} · pctile ${fmtNum(vvix.pctile_252d,0)}</div></div>
+    <div class="kpi info"><div class="label">Equity dispersion</div><div class="val">${disp.regime||'—'}</div><div class="sub">cv ${fmtNum(disp.coef_var,3)}</div></div>
+  `;
+  const u = d.underlyings || {};
+  const order = ['VIX_30D','VIX_3M','NDX_VOL','RUT_VOL','DJIA_VOL','EEM_VOL','EWZ_VOL','OIL_VOL','GOLD_VOL'];
+  const rows = order.filter(k=>u[k]).map(k => {
+    const v = u[k];
+    const p = v.pctile_252d;
+    const pCls = p>=80?'t-neg':p>=60?'t-warn':p>=40?'t-info':'t-pos';
+    return `<tr><td>${k}</td><td class="t-mute">${v.for}</td><td>${fmtNum(v.value,2)}</td>
+      <td class="${pCls}">${fmtNum(p,0)}</td><td class="t-mute">${v.date||'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('volsurface-table').innerHTML = `<table>
+    <thead><tr><th>Index</th><th>Underlying</th><th>Spot</th><th>Pctile 252d</th><th>As of</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=5 class=t-mute>no underlying data</td></tr>'}</tbody></table>`;
+  const eqNames = ['AAPL_VOL','GOOG_VOL','AMZN_VOL','GS_VOL','IBM_VOL'];
+  const eqRows = eqNames.filter(k=>u[k]).map(k=>{
+    const v = u[k];
+    const p = v.pctile_252d;
+    const pCls = p>=80?'t-neg':p>=60?'t-warn':p>=40?'t-info':'t-pos';
+    return `<tr><td class="t-info">${v.for}</td><td>${fmtNum(v.value,2)}</td><td class="${pCls}">${fmtNum(p,0)}</td></tr>`;
+  }).join('');
+  document.getElementById('volsurface-equity').innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Implied Vol</th><th>Pctile 252d</th></tr></thead>
+    <tbody>${eqRows||'<tr><td colspan=3 class=t-mute>no equity-VIX data</td></tr>'}</tbody></table>`;
+  const alerts = (d.alerts||[]).map(a=>`<li>${a}</li>`).join('');
+  document.getElementById('volsurface-interp').innerHTML = `<b>Reading:</b> regime <b>${reg}</b> at ${sc}/100. Term ${term.regime}. SKEW ${fmtNum(skew.value,1)} = ${skew.regime}. Cross-asset: OIL/VIX ${fmtNum(cross.oil_vix_ratio,2)}${cross.oil_dominant?' (oil-dominant)':''}, RUT/VIX ${fmtNum(cross.rut_vix_ratio,2)}${cross.smallcap_stress?' (smallcap stress)':''}. ${alerts?'<br><b>Alerts:</b><ul>'+alerts+'</ul>':''}`;
+}
+
+// ─── MARKET INTERNALS ─────────────────────────────────────────────
+function renderInternals(d) {
+  if (!d) return;
+  const bs = d.breadth_score, state = d.state;
+  const cls = bs>=70?'pos':bs>=50?'info':bs>=30?'warning':'neg';
+  const ad = d.ad_line||{}, mc = d.mcclellan||{};
+  const above50 = d.pct_above_50d, above200 = d.pct_above_200d;
+  const hl = d.new_52w_highs_lows || {};
+  document.getElementById('internals-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Breadth Score</div><div class="val ${cls}">${fmtNum(bs,0)}</div><div class="sub">${state}</div></div>
+    <div class="kpi info"><div class="label">A/D Line</div><div class="val">${fmtNum(ad.ad_diff_today,0)}</div><div class="sub">${ad.advances}↑ ${ad.declines}↓ · ratio ${fmtNum(ad.ad_ratio,2)}</div></div>
+    <div class="kpi accent"><div class="label">McClellan</div><div class="val">${fmtNum(mc.oscillator,1)}</div><div class="sub">${mc.interpretation||'—'}</div></div>
+    <div class="kpi gold"><div class="label">% above 50d</div><div class="val">${fmtNum(above50,1)}%</div><div class="sub">200d: ${fmtNum(above200,1)}%</div></div>
+    <div class="kpi info"><div class="label">52w H/L</div><div class="val">${hl.new_highs||0} / ${hl.new_lows||0}</div><div class="sub">net ${(hl.new_highs||0)-(hl.new_lows||0)}</div></div>
+  `;
+  document.getElementById('internals-table').innerHTML = `<table>
+    <thead><tr><th>Component</th><th>Value</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td class="t-info">Advance/Decline</td><td>${ad.advances}/${ad.declines}/${ad.unchanged||0}</td><td class="t-mute">${(ad.ad_ratio||0)>2?'broad rally':(ad.ad_ratio||0)<0.5?'broad selloff':'mixed tape'}</td></tr>
+      <tr><td class="t-info">McClellan Oscillator</td><td>${fmtNum(mc.oscillator,1)}</td><td class="t-mute">${mc.interpretation||'—'}</td></tr>
+      <tr><td class="t-info">Summation Index</td><td>${fmtNum(mc.summation_index,0)}</td><td class="t-mute">${(mc.summation_index||0)>0?'long-term breadth positive':'long-term breadth negative'}</td></tr>
+      <tr><td class="t-info">% above 50d MA</td><td>${fmtNum(above50,1)}%</td><td class="t-mute">${above50>70?'overbought':above50<30?'oversold':'neutral'}</td></tr>
+      <tr><td class="t-info">% above 200d MA</td><td>${fmtNum(above200,1)}%</td><td class="t-mute">${above200>70?'broad uptrend':above200<40?'broad downtrend':'mixed trend'}</td></tr>
+    </tbody></table>`;
+  document.getElementById('internals-interp').innerHTML = `<b>Reading:</b> breadth score ${fmtNum(bs,0)} = ${state}. ${ad.advances}↑ vs ${ad.declines}↓ A/D ratio ${fmtNum(ad.ad_ratio,2)}. ${(above50||0)>70 && (above200||0)>70?'Broad participation — risk-on confirmed.':(above50||0)<30?'Narrow breadth — risk concentrated in mega-caps only.':'Mixed breadth.'}`;
+}
+
+// ─── SECTOR HEATMAP ────────────────────────────────────────────────
+function renderHeatmap(d) {
+  if (!d) return;
+  const mr = d.market_regime || {};
+  const wcls = (mr.weighted_return_1d_pct||0)>=0.2?'pos':(mr.weighted_return_1d_pct||0)<=-0.2?'neg':'info';
+  const bcls = (mr.breadth_pct||0)>=60?'pos':(mr.breadth_pct||0)<=40?'neg':'info';
+  document.getElementById('heatmap-kpis').innerHTML = `
+    <div class="kpi ${wcls}"><div class="label">SPX 1d (cap-weighted)</div><div class="val ${wcls}">${fmtPct(mr.weighted_return_1d_pct)}</div><div class="sub">${mr.regime}</div></div>
+    <div class="kpi ${bcls}"><div class="label">Breadth</div><div class="val ${bcls}">${fmtNum(mr.breadth_pct,1)}%</div><div class="sub">${mr.advancers}↑ ${mr.decliners}↓</div></div>
+    <div class="kpi accent"><div class="label">Universe</div><div class="val">${d.n_tickers_total}</div><div class="sub">${d.n_tickers_with_1d} have 1d data</div></div>
+    <div class="kpi gold"><div class="label">Market cap</div><div class="val">${fmtUSD(d.total_market_cap_usd)}</div><div class="sub">S&amp;P 500 universe</div></div>
+  `;
+  const sr = d.sector_rank_1d || [];
+  const rows = sr.map(r => {
+    const cls = r.weighted_return_1d_pct>=0.5?'t-pos':r.weighted_return_1d_pct<=-0.5?'t-neg':'t-info';
+    return `<tr><td>${r.sector}</td><td class="${cls}">${fmtPct(r.weighted_return_1d_pct)}</td></tr>`;
+  }).join('');
+  document.getElementById('heatmap-rank').innerHTML = `<table>
+    <thead><tr><th>Sector</th><th>1d cap-weighted</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=2 class=t-mute>no sector data</td></tr>'}</tbody></table>`;
+  const ldr = (mr.leaders||[]).map(t=>`<tr><td class="t-info">${t.symbol}</td><td class="t-mute">${t.name||''}</td><td class="t-pos">${fmtPct(t.change_pct)}</td></tr>`).join('');
+  const lag = (mr.laggers||[]).map(t=>`<tr><td class="t-info">${t.symbol}</td><td class="t-mute">${t.name||''}</td><td class="t-neg">${fmtPct(t.change_pct)}</td></tr>`).join('');
+  document.getElementById('heatmap-leaders').innerHTML = `<table>
+    <thead><tr><th>Symbol</th><th>Name</th><th>1d %</th></tr></thead>
+    <tbody>${ldr}<tr><td colspan=3 class="t-mute" style="text-align:center;">— LAGGERS —</td></tr>${lag}</tbody></table>`;
+  document.getElementById('heatmap-interp').innerHTML = `<b>Reading:</b> ${mr.regime} regime · ${fmtNum(mr.breadth_pct,1)}% of caps advancing · cap-weighted market ${fmtPct(mr.weighted_return_1d_pct)}. ${sr[0]?'Top sector: '+sr[0].sector+' '+fmtPct(sr[0].weighted_return_1d_pct):''} · ${sr.length>0?'Bottom sector: '+sr[sr.length-1].sector+' '+fmtPct(sr[sr.length-1].weighted_return_1d_pct):''}.`;
+}
+
+// ─── CDS PROXY ─────────────────────────────────────────────────────
+function renderCDS(d) {
+  if (!d) return;
+  const reg = d.regime, cr = d.composite_credit_risk;
+  const cls = cr>=70?'neg':cr>=50?'warning':cr>=30?'gold':'pos';
+  document.getElementById('cds-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">composite ${cr}/100</div></div>
+    <div class="kpi info"><div class="label">HY OAS</div><div class="val">${fmtNum(d.hy_oas,2)}%</div><div class="sub">vs IG ${fmtNum(d.ig_oas,2)}%</div></div>
+    <div class="kpi accent"><div class="label">Spread Ratio</div><div class="val">${fmtNum(d.hy_ig_ratio,2)}</div><div class="sub">HY/IG = stress signal</div></div>
+  `;
+  const reasons = (d.top_reasons||[]).map(r=>`<li>${r}</li>`).join('');
+  document.getElementById('cds-reasons').innerHTML = `<ul>${reasons||'<li class="t-mute">no stress contributors</li>'}</ul>`;
+  document.getElementById('cds-interp').innerHTML = `<b>Reading:</b> credit ${reg} at ${cr}/100. HY OAS ${fmtNum(d.hy_oas,2)}% vs IG ${fmtNum(d.ig_oas,2)}% (ratio ${fmtNum(d.hy_ig_ratio,2)}). ${cr>=50?'Credit stress is meaningful — watch for further widening.':cr>=30?'Modest credit pressure but not panic.':'Credit markets calm.'}`;
+}
+
+// ─── BOND TRACE ────────────────────────────────────────────────────
+function renderBondTrace(d) {
+  if (!d) return;
+  const reg = d.regime, hyg = d.hyg||{}, lqd = d.lqd||{};
+  const ratio = d.hyg_lqd_ratio;
+  const cls = reg==='STRESS'?'neg':reg==='ELEVATED'?'warning':'pos';
+  document.getElementById('bondtrace-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">HY vs IG proxy</div></div>
+    <div class="kpi info"><div class="label">HYG</div><div class="val">${fmtNum(hyg.price,2)}</div><div class="sub">5d ${fmtPct(hyg.perf_5d_pct)} · 30d ${fmtPct(hyg.perf_30d_pct)}</div></div>
+    <div class="kpi accent"><div class="label">LQD</div><div class="val">${fmtNum(lqd.price,2)}</div><div class="sub">5d ${fmtPct(lqd.perf_5d_pct)} · 30d ${fmtPct(lqd.perf_30d_pct)}</div></div>
+    <div class="kpi gold"><div class="label">HYG/LQD</div><div class="val">${fmtNum(ratio,3)}</div><div class="sub">${ratio>1?'risk-on':'risk-off'}</div></div>
+  `;
+  document.getElementById('bondtrace-etfs').innerHTML = `<table>
+    <thead><tr><th>ETF</th><th>Price</th><th>5d</th><th>30d</th><th>90d</th></tr></thead>
+    <tbody>
+      <tr><td class="t-info">HYG (HY)</td><td>${fmtNum(hyg.price,2)}</td><td class="${hyg.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_5d_pct)}</td><td class="${hyg.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_30d_pct)}</td><td class="${hyg.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_90d_pct)}</td></tr>
+      <tr><td class="t-info">LQD (IG)</td><td>${fmtNum(lqd.price,2)}</td><td class="${lqd.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_5d_pct)}</td><td class="${lqd.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_30d_pct)}</td><td class="${lqd.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_90d_pct)}</td></tr>
+    </tbody></table>`;
+  document.getElementById('bondtrace-interp').innerHTML = `<b>Reading:</b> ${reg}. HYG/LQD ratio ${fmtNum(ratio,3)} ${ratio>1?'(HY outperforming IG = risk-on)':'(IG outperforming HY = defensive bid)'}. ${hyg.perf_5d_pct<-1?'Recent HY weakness — credit stress brewing.':'Credit ETFs stable.'}`;
+}
+
+// ─── TIC FLOWS ─────────────────────────────────────────────────────
+function renderTIC(d) {
+  if (!d) return;
+  const reg = d.regime, ts = d.composite_tic_stress;
+  const cls = ts>=70?'neg':ts>=50?'warning':'pos';
+  document.getElementById('tic-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">stress ${fmtNum(ts,0)}/100</div></div>
+    <div class="kpi info"><div class="label">Foreign holdings</div><div class="val">${fmtUSD(d.foreign_total_holdings_usd)||'—'}</div><div class="sub">USD vs prior</div></div>
+    <div class="kpi accent"><div class="label">Top holder</div><div class="val">${d.largest_holder||'—'}</div><div class="sub">${fmtUSD(d.largest_holder_amount_usd)}</div></div>
+  `;
+  const reasons = (d.top_reasons||[]).map(r=>`<li>${r}</li>`).join('');
+  document.getElementById('tic-reasons').innerHTML = `<ul>${reasons||'<li class="t-mute">no stress drivers</li>'}</ul>`;
+  document.getElementById('tic-interp').innerHTML = `<b>Reading:</b> ${reg} regime at ${fmtNum(ts,0)}/100. ${ts>=50?'Foreign demand softening — de-dollarization signal worth watching.':'Foreign Treasury demand intact.'}`;
+}
+
+// ─── ANALYST CONSENSUS ─────────────────────────────────────────────
+function renderConsensus(d) {
+  if (!d) return;
+  const top = d.top_consensus_25 || [];
+  const ups = d.strongest_upgrades_30d || [];
+  document.getElementById('consensus-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Universe</div><div class="val">${d.universe_size||0}</div><div class="sub">${d.n_with_data||0} with consensus data</div></div>
+    <div class="kpi accent"><div class="label">Top composite</div><div class="val">${top[0]?fmtNum(top[0].composite_score,0):'—'}</div><div class="sub">${top[0]?top[0].ticker:'—'}</div></div>
+    <div class="kpi gold"><div class="label">Strong upgrades</div><div class="val">${ups.length}</div><div class="sub">last 30 days</div></div>
+  `;
+  const tRows = top.slice(0,15).map(t => `<tr>
+    <td class="t-info">${t.ticker}</td>
+    <td>${fmtNum(t.composite_score,0)}</td>
+    <td class="${(t.upside_pct||0)>=0?'t-pos':'t-neg'}">${fmtPct(t.upside_pct,1)}</td>
+    <td class="t-mute">${t.rec||'—'}</td>
+    <td>${t.total_analysts||0}</td>
+    <td>${fmtNum(t.beat_pct_8q,0)}%</td>
+  </tr>`).join('');
+  document.getElementById('consensus-top').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>Upside</th><th>Rec</th><th>n analysts</th><th>Beat 8q</th></tr></thead>
+    <tbody>${tRows||'<tr><td colspan=6 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  const uRows = ups.slice(0,10).map(u => `<tr>
+    <td class="t-info">${u.ticker}</td>
+    <td class="t-pos">+${u.net_upgrades}</td>
+    <td>${u.upgrades}↑ / ${u.downgrades}↓</td>
+    <td>${fmtNum(u.composite_score,0)}</td>
+  </tr>`).join('');
+  document.getElementById('consensus-upgrades').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Net</th><th>Up/Down 30d</th><th>Composite</th></tr></thead>
+    <tbody>${uRows||'<tr><td colspan=4 class=t-mute>no upgrades</td></tr>'}</tbody></table>`;
+  document.getElementById('consensus-interp').innerHTML = `<b>Reading:</b> ${d.n_with_data||0}/${d.universe_size||0} S&amp;P names have analyst consensus data. ${top[0]?'Top score: <b>'+top[0].ticker+'</b> at '+fmtNum(top[0].composite_score,0)+'/100 with '+fmtPct(top[0].upside_pct,1)+' upside.':'No top names.'} Revision momentum is one of the strongest documented equity alpha factors (Sharpe ~1.5).`;
+}
+
+// ─── SELL-SIDE VIEWS ──────────────────────────────────────────────
+function renderSellside(d) {
+  if (!d) return;
+  const sc = d.spx_consensus || {};
+  const sb = d.strategist_breakdown || sc.distribution || [];
+  document.getElementById('sellside-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">SPX target (median)</div><div class="val">${fmtNum(sc.median_target,0)}</div><div class="sub">${d.target_year||'EOY'} consensus</div></div>
+    <div class="kpi info"><div class="label">Mean target</div><div class="val">${fmtNum(sc.mean_target,0)}</div><div class="sub">${d.n_firms||0} sell-side firms</div></div>
+    <div class="kpi gold"><div class="label">Range</div><div class="val">${fmtNum(sc.range_low,0)}–${fmtNum(sc.range_high,0)}</div><div class="sub">low / high</div></div>
+  `;
+  const rows = (Array.isArray(sb)?sb:Object.entries(sb||{})).slice(0,15).map(row => {
+    if (Array.isArray(row)) {
+      return `<tr><td>${row[0]||'—'}</td><td>${row[1]?fmtNum(row[1],0):'—'}</td></tr>`;
+    }
+    if (typeof row === 'object') {
+      return `<tr><td class="t-info">${row.firm||row.name||'—'}</td><td>${fmtNum(row.target||row.spx_target,0)}</td><td class="t-mute">${row.published_date||row.as_of||''}</td></tr>`;
+    }
+    return '';
+  }).join('');
+  document.getElementById('sellside-targets').innerHTML = `<table>
+    <thead><tr><th>Firm</th><th>SPX target</th><th>As of</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=3 class=t-mute>no firm-level data</td></tr>'}</tbody></table>`;
+  document.getElementById('sellside-interp').innerHTML = `<b>Reading:</b> sell-side ${d.target_year||'EOY'} SPX median <b>${fmtNum(sc.median_target,0)}</b> · mean ${fmtNum(sc.mean_target,0)} · range ${fmtNum(sc.range_low,0)}–${fmtNum(sc.range_high,0)} across ${d.n_firms||0} firms.`;
+}
+
+// ─── SEASONALITY ──────────────────────────────────────────────────
+function renderSeasonality(d) {
+  if (!d) return;
+  // Actual sidecar uses current_period {month, presidential_year, day_of_week} +
+  // per_symbol {SYMBOL: {month_avg_pct, win_rate, ...}} + highest_favor_today []
+  const cp = d.current_period || {};
+  const ps = d.per_symbol || {};
+  const hf = d.highest_favor_today || d.active_patterns || d.patterns || [];
+  const symbols = Object.entries(ps);
+  // Cap-weight avg if we have it, else simple mean
+  let posCount = 0, totalMonthly = 0;
+  symbols.forEach(([s, v]) => {
+    if (typeof v.month_avg_pct === 'number') {
+      totalMonthly += v.month_avg_pct;
+      if (v.month_avg_pct > 0) posCount++;
+    }
+  });
+  const avgMonthly = symbols.length ? totalMonthly / symbols.length : null;
+  const bias = avgMonthly > 0.5 ? 'BULLISH' : avgMonthly < -0.5 ? 'BEARISH' : 'NEUTRAL';
+
+  document.getElementById('seasonality-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">Current bias</div><div class="val">${bias}</div><div class="sub">avg monthly ${fmtPct(avgMonthly)}</div></div>
+    <div class="kpi info"><div class="label">Month</div><div class="val">${cp.month||'—'}</div><div class="sub">Pres yr ${cp.presidential_year||'—'} · ${cp.day_of_week||''}</div></div>
+    <div class="kpi gold"><div class="label">${hf.length} favored</div><div class="val">${posCount}/${symbols.length}</div><div class="sub">positive seasonals</div></div>
+  `;
+  const rows = (Array.isArray(hf) ? hf.slice(0,15) : []).map(p => `<tr>
+    <td class="t-info">${p.symbol||p.pattern_name||p.name||'—'}</td>
+    <td class="${(p.month_avg_pct||p.expected_return||p.avg_return||0)>=0?'t-pos':'t-neg'}">${fmtPct(p.month_avg_pct||p.expected_return||p.avg_return)}</td>
+    <td>${p.win_rate?(p.win_rate<=1?fmtNum(p.win_rate*100,0)+'%':fmtNum(p.win_rate,0)+'%'):'—'}</td>
+    <td class="t-mute">${p.note||p.description||p.month||''}</td>
+  </tr>`).join('');
+  document.getElementById('seasonality-patterns').innerHTML = `<table>
+    <thead><tr><th>Symbol</th><th>Month avg</th><th>Win rate</th><th>Note</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=4 class=t-mute>no patterns favored today</td></tr>'}</tbody></table>`;
+  document.getElementById('seasonality-interp').innerHTML = `<b>Reading:</b> seasonal bias <b>${bias}</b> for ${cp.month||'this month'} (presidential year ${cp.presidential_year||'?'}). ${posCount}/${symbols.length} symbols show positive historical monthly returns. ${hf.length||0} are most favored today.`;
+}
+
+// ─── LIQUIDITY PROFILE ────────────────────────────────────────────
+function renderLiquidity(d) {
+  if (!d) return;
+  // Actual sidecar uses top_100_liquid / bottom_50_illiquid arrays
+  const top = d.top_100_liquid || d.most_liquid || d.top_liquid || [];
+  const bot = d.bottom_50_illiquid || d.least_liquid || d.bottom_liquid || [];
+  const n = d.n_analyzed || d.n_scored || d.universe_size || 0;
+  // Median ADV computed across both lists if needed
+  let medADV = d.median_adv_usd;
+  let medScore = d.median_score;
+  if (!medADV && top.length) {
+    const advs = top.concat(bot).map(t => t.adv_usd||t.adv||t.dollar_volume).filter(x=>x!=null).sort((a,b)=>a-b);
+    if (advs.length) medADV = advs[Math.floor(advs.length/2)];
+  }
+  if (!medScore && top.length) {
+    const scores = top.concat(bot).map(t => t.liquidity_score||t.score).filter(x=>x!=null).sort((a,b)=>a-b);
+    if (scores.length) medScore = scores[Math.floor(scores.length/2)];
+  }
+  document.getElementById('liquidity-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Universe</div><div class="val">${n}</div><div class="sub">tickers scored</div></div>
+    <div class="kpi accent"><div class="label">Median ADV</div><div class="val">${fmtUSD(medADV)}</div><div class="sub">$ / day</div></div>
+    <div class="kpi gold"><div class="label">Median score</div><div class="val">${medScore?fmtNum(medScore,0):'—'}</div><div class="sub">0-100</div></div>
+  `;
+  const fmtRow = t => `<tr>
+    <td class="t-info">${t.symbol}</td>
+    <td>${fmtNum(t.liquidity_score||t.score,0)}</td>
+    <td>${fmtUSD(t.adv_usd||t.adv||t.dollar_volume)}</td>
+    <td>${fmtNum(t.spread_bps||t.bid_ask_bps||t.spread_proxy_bps,1)}</td>
+  </tr>`;
+  document.getElementById('liquidity-top').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>ADV</th><th>Spread bps</th></tr></thead>
+    <tbody>${top.slice(0,15).map(fmtRow).join('')||'<tr><td colspan=4 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  document.getElementById('liquidity-bottom').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>ADV</th><th>Spread bps</th></tr></thead>
+    <tbody>${bot.slice(0,15).map(fmtRow).join('')||'<tr><td colspan=4 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  document.getElementById('liquidity-interp').innerHTML = `<b>Reading:</b> median ADV ${fmtUSD(medADV)} · median score ${medScore?fmtNum(medScore,0):'—'}/100 across ${n} tickers. Lower scores = tighter execution risk (wider spread, lower volume).`;
+}
+
 // Boot
 (async () => {
-  const [k, s, p, r, a, l] = await Promise.all([
+  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp] = await Promise.all([
     fetchJson(ENDPOINTS.khalid), fetchJson(ENDPOINTS.stress),
     fetchJson(ENDPOINTS.political), fetchJson(ENDPOINTS.reversal),
     fetchJson(ENDPOINTS.auction), fetchJson(ENDPOINTS.lending),
+    fetchJson(ENDPOINTS.esi), fetchJson(ENDPOINTS.volsurface),
+    fetchJson(ENDPOINTS.internals), fetchJson(ENDPOINTS.heatmap),
+    fetchJson(ENDPOINTS.cds), fetchJson(ENDPOINTS.bondtrace),
+    fetchJson(ENDPOINTS.tic), fetchJson(ENDPOINTS.consensus),
+    fetchJson(ENDPOINTS.sellside), fetchJson(ENDPOINTS.seasonality),
+    fetchJson(ENDPOINTS.liquidity),
   ]);
   if (k) renderKhalid(k);
   if (s) renderStress(s);
@@ -511,8 +972,18 @@ function renderLending(d) {
   if (r) renderReversal(r);
   if (a) renderAuction(a);
   if (l) renderLending(l);
-  // Most recent timestamp from any module
-  const ts = [k,s,p,r,a,l].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
+  if (esi) renderESI(esi);
+  if (vs) renderVolSurface(vs);
+  if (mi) renderInternals(mi);
+  if (hm) renderHeatmap(hm);
+  if (cds) renderCDS(cds);
+  if (bt) renderBondTrace(bt);
+  if (tic) renderTIC(tic);
+  if (ac) renderConsensus(ac);
+  if (ss) renderSellside(ss);
+  if (sn) renderSeasonality(sn);
+  if (lp) renderLiquidity(lp);
+  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
   if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
 })();
 </script>
