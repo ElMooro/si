@@ -1,0 +1,266 @@
+{
+  "started": "2026-05-16T20:09:21.344225+00:00",
+  "leading_markets": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"turning_point_signal\\\": \\\"MIXED\\\", \\\"leading_score\\\": 64.5, \\\"risk_score\\\": 35.5, \\\"expansion_breadth_pct\\\": 52.6, \\\"flashing_buckets\\\": [\\\"commodity_cycle\\\", \\\"europe_core\\\"], \\\"n_markets\\\": 19, \\\"fmp_failed\\\": []}\"}"
+    },
+    "sidecar": {
+      "schema_version": "2.0",
+      "n_markets": 19,
+      "turning_point_signal": "MIXED",
+      "flashing_buckets": [
+        "commodity_cycle",
+        "europe_core"
+      ],
+      "leading_score": 64.5,
+      "risk_score": 35.5,
+      "expansion_breadth_pct": 52.6,
+      "benchmark": {
+        "etf": "ACWI",
+        "ret_3m_pct": 5.58,
+        "ret_1m_pct": 3.48
+      },
+      "fmp_failed": [],
+      "buckets": {
+        "risk_appetite": {
+          "health": 68.3,
+          "dominant": "EXPANSION",
+          "flashing": false,
+          "n_lagging": 1
+        },
+        "trade_cycle": {
+          "health": 84.2,
+          "dominant": "EXPANSION",
+          "flashing": false,
+          "n_lagging": 3
+        },
+        "commodity_cycle": {
+          "health": 35.0,
+          "dominant": "SLOWING",
+          "flashing": true,
+          "n_lagging": 4
+        },
+        "credit_stress": {
+          "health": 100.0,
+          "dominant": "EXPANSION",
+          "flashing": false,
+          "n_lagging": 1
+        },
+        "europe_core": {
+          "health": 43.8,
+          "dominant": "SLOWING",
+          "flashing": true,
+          "n_lagging": 3
+        }
+      },
+      "markets": [
+        {
+          "etf": "FM",
+          "mkt": "Frontier Mkts",
+          "bucket": "risk_appetite",
+          "regime": "CONTRACTION",
+          "r3m": -1.2,
+          "rs": -6.78,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EWG",
+          "mkt": "Germany",
+          "bucket": "trade_cycle",
+          "regime": "CONTRACTION",
+          "r3m": -5.91,
+          "rs": -11.49,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EWQ",
+          "mkt": "France",
+          "bucket": "europe_core",
+          "regime": "CONTRACTION",
+          "r3m": -5.44,
+          "rs": -11.02,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "ECH",
+          "mkt": "Chile",
+          "bucket": "commodity_cycle",
+          "regime": "SLOWING",
+          "r3m": -10.43,
+          "rs": -16.01,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EPU",
+          "mkt": "Peru",
+          "bucket": "commodity_cycle",
+          "regime": "SLOWING",
+          "r3m": -7.68,
+          "rs": -13.26,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EWA",
+          "mkt": "Australia",
+          "bucket": "commodity_cycle",
+          "regime": "SLOWING",
+          "r3m": -1.51,
+          "rs": -7.09,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "COPX",
+          "mkt": "Copper Miners",
+          "bucket": "commodity_cycle",
+          "regime": "SLOWING",
+          "r3m": -5.56,
+          "rs": -11.14,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EWD",
+          "mkt": "Sweden",
+          "bucket": "europe_core",
+          "regime": "SLOWING",
+          "r3m": -7.29,
+          "rs": -12.87,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "VGK",
+          "mkt": "Europe",
+          "bucket": "europe_core",
+          "regime": "SLOWING",
+          "r3m": -3.28,
+          "rs": -8.86,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EEM",
+          "mkt": "Emerging Mkts",
+          "bucket": "risk_appetite",
+          "regime": "EXPANSION",
+          "r3m": 6.46,
+          "rs": 0.88,
+          "rs_state": "inline"
+        },
+        {
+          "etf": "EWH",
+          "mkt": "Hong Kong",
+          "bucket": "risk_appetite",
+          "regime": "EXPANSION",
+          "r3m": 3.93,
+          "rs": -1.65,
+          "rs_state": "inline"
+        },
+        {
+          "etf": "EWT",
+          "mkt": "Taiwan",
+          "bucket": "trade_cycle",
+          "regime": "EXPANSION",
+          "r3m": 24.96,
+          "rs": 19.38,
+          "rs_state": "outperforming"
+        },
+        {
+          "etf": "EWY",
+          "mkt": "South Korea",
+          "bucket": "trade_cycle",
+          "regime": "EXPANSION",
+          "r3m": 33.51,
+          "rs": 27.93,
+          "rs_state": "outperforming"
+        },
+        {
+          "etf": "EWN",
+          "mkt": "Netherlands",
+          "bucket": "trade_cycle",
+          "regime": "EXPANSION",
+          "r3m": 4.54,
+          "rs": -1.04,
+          "rs_state": "inline"
+        },
+        {
+          "etf": "EWS",
+          "mkt": "Singapore",
+          "bucket": "trade_cycle",
+          "regime": "EXPANSION",
+          "r3m": 1.69,
+          "rs": -3.89,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "VNM",
+          "mkt": "Vietnam",
+          "bucket": "trade_cycle",
+          "regime": "EXPANSION",
+          "r3m": 1.59,
+          "rs": -3.99,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EWI",
+          "mkt": "Italy",
+          "bucket": "credit_stress",
+          "regime": "EXPANSION",
+          "r3m": 3.82,
+          "rs": -1.76,
+          "rs_state": "inline"
+        },
+        {
+          "etf": "EWP",
+          "mkt": "Spain",
+          "bucket": "credit_stress",
+          "regime": "EXPANSION",
+          "r3m": 0.04,
+          "rs": -5.54,
+          "rs_state": "lagging"
+        },
+        {
+          "etf": "EFNL",
+          "mkt": "Finland",
+          "bucket": "europe_core",
+          "regime": "EXPANSION",
+          "r3m": 8.09,
+          "rs": 2.51,
+          "rs_state": "inline"
+        }
+      ]
+    }
+  },
+  "crisis_composite": {
+    "invoke": {
+      "status": 200,
+      "fn_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"master_crisis_score\\\": 36.6, \\\"defcon_level\\\": 4, \\\"defcon_name\\\": \\\"NORMAL\\\", \\\"trend\\\": \\\"stable\\\"}\"}"
+    },
+    "check": {
+      "n_components": 8,
+      "leading_component": {
+        "source": "leading-markets",
+        "label": "Global leading markets",
+        "weight": 0.12,
+        "crisis_contribution": 35.5,
+        "age_hours": 0.0,
+        "available": true
+      },
+      "master_crisis_score": 36.6,
+      "defcon_level": 4
+    }
+  },
+  "defcon_page": {
+    "http_status": 200,
+    "bucket_view_live": true
+  },
+  "summary": {
+    "leading_markets_v2_ok": true,
+    "n_markets": 19,
+    "n_buckets": 5,
+    "fmp_failed": [],
+    "crisis_composite_ok": true,
+    "defcon_bucket_view": true
+  },
+  "finished": "2026-05-16T20:09:28.338389+00:00"
+}
