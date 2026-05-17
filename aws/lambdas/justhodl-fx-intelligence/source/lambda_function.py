@@ -216,7 +216,8 @@ def rate_differentials():
 
 # ───────────────────── CFTC positioning ─────────────────────────
 def cftc_positioning():
-    """Best-effort: read the platform's own CFTC engine for FX contracts."""
+    """Best-effort: read the platform's own CFTC engine for FX contracts.
+    Fully defensive — any failure degrades to 'unavailable', never raises."""
     fx_keys = ("EURO", "JAPANESE YEN", "BRITISH POUND", "SWISS FRANC",
                "CANADIAN DOLLAR", "AUSTRALIAN DOLLAR", "MEXICAN PESO",
                "NEW ZEALAND", "U.S. DOLLAR INDEX")
@@ -226,26 +227,34 @@ def cftc_positioning():
             headers={"User-Agent": "justhodl-fx/1.0"})
         with urllib.request.urlopen(req, timeout=12) as r:
             data = json.loads(r.read())
+        if isinstance(data, list):
+            rows = data
+        elif isinstance(data, dict):
+            rows = (data.get("contracts") or data.get("data")
+                    or data.get("cot") or data.get("results") or [])
+        else:
+            rows = []
+        if not isinstance(rows, list):
+            rows = []
+        out = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            nm = str(row.get("contract") or row.get("name") or
+                     row.get("market") or "").upper()
+            if not any(k in nm for k in fx_keys):
+                continue
+            out.append({
+                "contract": nm.title(),
+                "net_position": row.get("net_position") or row.get("net"),
+                "net_pctile": row.get("percentile") or row.get("net_pctile"),
+                "signal": row.get("signal") or row.get("bias")})
+        if out:
+            return {"available": True, "contracts": out[:12]}
+        return {"available": False, "reason": "no FX contracts in CFTC feed"}
     except Exception as e:  # noqa: BLE001
         print(f"[fx] CFTC positioning unavailable: {e}")
         return {"available": False, "reason": "CFTC engine not reachable"}
-    rows = data if isinstance(data, list) else (
-        data.get("contracts") or data.get("data") or [])
-    out = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        nm = str(row.get("contract") or row.get("name") or
-                 row.get("market") or "").upper()
-        if not any(k in nm for k in fx_keys):
-            continue
-        out.append({
-            "contract": nm.title(),
-            "net_position": row.get("net_position") or row.get("net"),
-            "net_pctile": row.get("percentile") or row.get("net_pctile"),
-            "signal": row.get("signal") or row.get("bias")})
-    return {"available": bool(out), "contracts": out[:12]} if out else {
-        "available": False, "reason": "no FX contracts in CFTC feed"}
 
 
 # ───────────────────── USD regime / barometer ───────────────────
@@ -309,12 +318,32 @@ def usd_regime(usd_obs, currencies):
 
 # ───────────────────────── handler ──────────────────────────────
 def lambda_handler(event, context):
-    currencies = [analyse_currency(*c) for c in CURRENCIES]
+    errors = []
+    currencies = []
+    for c in CURRENCIES:
+        try:
+            currencies.append(analyse_currency(*c))
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"{c[0]}: {e}")
+            currencies.append({"code": c[0], "name": c[1], "bucket": c[4],
+                               "available": False, "reason": f"error: {e}"})
     avail = [c for c in currencies if c.get("available")]
-    usd_obs = fred(USD_BROAD)
-    regime = usd_regime(usd_obs, currencies)
-    rates = rate_differentials()
-    positioning = cftc_positioning()
+
+    try:
+        regime = usd_regime(fred(USD_BROAD), currencies)
+    except Exception as e:  # noqa: BLE001
+        errors.append(f"usd_regime: {e}")
+        regime = {"available": False}
+    try:
+        rates = rate_differentials()
+    except Exception as e:  # noqa: BLE001
+        errors.append(f"rate_differentials: {e}")
+        rates = {"pairs": []}
+    try:
+        positioning = cftc_positioning()
+    except Exception as e:  # noqa: BLE001
+        errors.append(f"positioning: {e}")
+        positioning = {"available": False}
 
     strongest = sorted(
         [c for c in avail if c.get("vs_usd_chg_3m") is not None],
@@ -323,9 +352,9 @@ def lambda_handler(event, context):
     if regime.get("available"):
         top = strongest[0]["code"] if strongest else "n/a"
         bot = strongest[-1]["code"] if strongest else "n/a"
-        headline = (f"{regime['regime']} (dollar pressure "
-                    f"{regime['dollar_pressure_0_100']}/100, "
-                    f"{regime['risk_state']}). Strongest vs USD: {top}; "
+        headline = (f"{regime.get('regime')} (dollar pressure "
+                    f"{regime.get('dollar_pressure_0_100')}/100, "
+                    f"{regime.get('risk_state')}). Strongest vs USD: {top}; "
                     f"weakest: {bot}.")
 
     oldest = max([c.get("age_days") or 0 for c in avail] or [0])
@@ -342,12 +371,13 @@ def lambda_handler(event, context):
         "freshness": {"n_currencies": len(avail),
                       "oldest_fx_obs_days": oldest,
                       "fx_data_stale": oldest > 10},
+        "errors": errors,
     }
     body = json.dumps(out, default=str).encode()
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=body,
                   ContentType="application/json",
                   CacheControl="max-age=300")
-    print(f"[fx] {headline}  ({len(body)} bytes)")
+    print(f"[fx] {headline}  ({len(body)} bytes, {len(errors)} errors)")
     return {"statusCode": 200, "body": headline}
 
 
