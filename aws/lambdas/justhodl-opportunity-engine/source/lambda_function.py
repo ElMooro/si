@@ -299,7 +299,13 @@ def score_stock(s, mr, fund, short_state, bench):
     piotroski = num((fund or {}).get("piotroski")) or num(s.get("piotroski"))
 
     # ── sub-scores (0-100) ──
-    value_score = clamp(42 + (under if under is not None else 0) * 1.05)
+    # value is CONFIDENCE-DISCOUNTED: a trustworthy +25% (three methods
+    # agreeing) outranks an uncertain capped +50%, so the cleanest
+    # opportunities surface at the top of the list, not the most extreme.
+    CONF_MULT = {"high": 1.0, "moderate": 0.85, "single-source": 0.6,
+                 "low": 0.58, "capped": 0.5, "n/a": 0.0}
+    cmult = CONF_MULT.get(conf, 0.7)
+    value_score = clamp(42 + (under if under is not None else 0) * 1.05 * cmult)
 
     q = 50
     if altman is not None:
