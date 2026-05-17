@@ -1,0 +1,57 @@
+{
+  "ops": 787,
+  "ts": "2026-05-17T23:07:20.787752+00:00",
+  "subject": "Redeploy refined yen-carry + verify positioning leg",
+  "deploy": "ERROR ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-ea",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": {
+      "ok": true,
+      "carry_regime": "NEUTRAL",
+      "unwind_risk": 45.3,
+      "errors": 0
+    }
+  },
+  "output": {
+    "ok": true,
+    "headline": "YEN CARRY: NEUTRAL. Unwind risk 45/100 (MODERATE); USD/JPY 157, vol 10% (calm); BOJ draining.",
+    "carry_regime": "NEUTRAL",
+    "unwind_risk_score": 45.3,
+    "unwind_risk_label": "MODERATE",
+    "unwind_risk_components": {
+      "fx_vol": 3.6,
+      "yen_momentum": 3.5,
+      "crowded_positioning": 13.2,
+      "boj_hawkish": 15,
+      "jgb_stress": 10
+    },
+    "positioning": {
+      "net_speculator": -82432,
+      "net_managed_money": -62440,
+      "report_date": "2026-05-12",
+      "open_interest": 362042,
+      "net_zscore_vs_history": 0.65,
+      "crowded_short": true,
+      "extreme": false,
+      "reversal_risk": false,
+      "history_weeks": 8,
+      "source": "cftc-all-cache (6J / Japanese Yen)",
+      "read": "Speculators are net short 82,432 JPY contracts (as of 2026-05-12), +0.6sd vs the last 8w \u2014 a net short yen IS the carry trade; the more extreme the short, the more fuel for a squeeze."
+    },
+    "fx_vol_regime": "CALM",
+    "fx_realized_vol_20d": 9.7,
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": false,
+    "invoke_ok": true,
+    "output_ok": true,
+    "positioning_resolved": true,
+    "positioning_zscore_present": true,
+    "crowded_component_in_score": true,
+    "all_five_legs": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 positioning leg did not fully resolve; see output.positioning"
+}
