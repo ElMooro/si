@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Signal Board · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎛️</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:18px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .pos{font-family:var(--mono);font-size:32px;font-weight:700;margin:5px 0 2px}
+.hero .meta{color:var(--mute);font-size:12px;margin-top:6px}
+.gauge{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-4px;width:3px;height:18px;background:var(--txt);border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.8)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.cat{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px}
+.cat h3{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.cat .v{font-family:var(--mono);font-size:20px;font-weight:700}
+.cat .n{font-size:10px;color:var(--dim);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:11px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
+tr:hover td{background:var(--panel2)}
+.sig{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:3px;white-space:nowrap}
+.s2{background:#26ffaf26;color:var(--green)}.s1{background:#26ffaf14;color:var(--green)}
+.s0{background:#1c2433;color:var(--mute)}
+.sm1{background:#ff7a1818;color:var(--orange)}.sm2{background:#ff557726;color:var(--red)}
+.snull{background:#1c2433;color:var(--dim)}
+.stale{font-size:9px;color:var(--orange);font-family:var(--mono);margin-left:6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎛️ Signal Board</h1>
+    <p class="subtitle">The signal store — every engine's current read in one place. Each model's headline is normalised to a 5-state signal and aggregated into a single <b>cross-asset posture</b>, with per-category sub-postures. Feeds that have gone stale are flagged and dropped from the composite, so the board never reads off dead data.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/pm-decision.html">pm decision</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/defcon.html">defcon</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING SIGNAL BOARD…</div></div>
+
+  <h2>By Category</h2>
+  <div class="cats" id="cats"><div class="loading">…</div></div>
+
+  <h2>Every Engine</h2>
+  <div class="card"><div id="board"><div class="loading">…</div></div></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function sigClass(s){return s==null?"snull":s>=2?"s2":s>=1?"s1":s<=-2?"sm2":s<=-1?"sm1":"s0";}
+function postureColor(p){
+  if(/^RISK-ON/.test(p))return"var(--green)";
+  if(/MILDLY RISK-ON/.test(p))return"var(--cyan)";
+  if(/^RISK-OFF/.test(p))return"var(--red)";
+  if(/MILDLY RISK-OFF/.test(p))return"var(--orange)";
+  return"var(--yellow)";
+}
+function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75?"var(--red)":v<=-0.2?"var(--orange)":"var(--yellow)";}
+
+(async()=>{
+  const d=await J("signal-board.json");
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="pos" style="color:var(--orange);font-size:18px">AWAITING FIRST RUN</div><div class="meta">The board aggregates every 3 hours.</div></div>`;document.getElementById("cats").innerHTML="";document.getElementById("board").innerHTML="";return;}
+  const col=postureColor(d.composite_posture||"");
+  const cs=d.composite_signal;
+  const mkPct=cs==null?50:((cs+2)/4*100);
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Composite Cross-Asset Posture</div>
+      <div class="pos" style="color:${col}">${esc(d.composite_posture||"—")}</div>
+      <div class="meta">composite signal ${cs==null?"—":(cs>0?"+":"")+cs} · ${d.n_live}/${d.n_engines} engines live${d.n_stale?` · <span style="color:var(--orange)">${d.n_stale} stale</span>`:""}</div>
+      <div class="gauge"><div class="mk" style="left:calc(${mkPct}% - 1.5px)"></div></div>
+      <div class="gscale"><span>strong risk-off</span><span>neutral</span><span>strong risk-on</span></div>
+    </div>`;
+  const cats=d.categories||{};
+  document.getElementById("cats").innerHTML=Object.keys(cats).length
+    ? Object.entries(cats).map(([c,v])=>`<div class="cat"><h3>${esc(c)}</h3><div class="v" style="color:${catColor(v.signal)}">${v.signal>0?"+":""}${v.signal}</div><div class="n">${v.n} engine${v.n>1?"s":""}</div></div>`).join("")
+    : `<div class="loading">no category data</div>`;
+  const eng=d.engines||[];
+  let h=`<table><thead><tr><th>Engine</th><th>Category</th><th>Signal</th><th>Read</th><th>As Of</th></tr></thead><tbody>`;
+  for(const e of eng){
+    h+=`<tr>
+      <td><b style="color:var(--txt)">${esc(e.engine)}</b>${e.stale?'<span class="stale">⚠ STALE</span>':''}</td>
+      <td style="color:var(--dim)">${esc(e.category)}</td>
+      <td><span class="sig ${sigClass(e.signal)}">${esc(e.signal_label)}</span></td>
+      <td style="color:var(--mute)">${esc(e.read)}</td>
+      <td style="color:var(--dim);font-size:10.5px">${e.as_of?esc(String(e.as_of).slice(0,16).replace("T"," ")):"—"}</td>
+    </tr>`;
+  }
+  document.getElementById("board").innerHTML=h+`</tbody></table>`;
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent="engine: "+(d.method||"")+" · generated "+(d.generated_at||"?")+" · "+(d.elapsed_s!=null?d.elapsed_s+"s":"");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-signal-board",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Unified Cross-Asset Signal Board — aggregates every engine's headline read into one composite posture + per-category sub-postures, flags stale feeds. Output data/signal-board.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "signal-board-3h",
+    "cron": "cron(15 */3 * * ? *)",
+    "description": "Unified Signal Board — every 3 hours"
+  }
+}
