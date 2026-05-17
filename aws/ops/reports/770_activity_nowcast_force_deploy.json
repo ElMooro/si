@@ -1,0 +1,45 @@
+{
+  "ops": 770,
+  "ts": "2026-05-17T17:32:20.195166+00:00",
+  "subject": "Force-deploy activity-nowcast via boto3 (roadmap #3)",
+  "zip_bytes": 4190,
+  "deploy_action": "created new function",
+  "create_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-activity-nowcast",
+  "function_state": "Active",
+  "schedule_wired": true,
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": false}"
+  },
+  "output": {
+    "ok": false,
+    "activity_index": null,
+    "regime": "UNKNOWN",
+    "momentum": null,
+    "headline": null,
+    "n_ok": 0,
+    "errors": [
+      "WEI: <urlopen error [Errno 16] Device or resource busy>",
+      "ICSA: <urlopen error [Errno 16] Device or resource busy>",
+      "CCSA: <urlopen error [Errno 16] Device or resource busy>",
+      "NFCI: <urlopen error [Errno 16] Device or resource busy>",
+      "STLFSI4: <urlopen error [Errno 16] Device or resource busy>",
+      "BAA10Y: <urlopen error [Errno 16] Device or resource busy>"
+    ]
+  },
+  "divergence": null,
+  "components": [],
+  "checks": {
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": false,
+    "index_in_range": false,
+    "has_regime": false,
+    "real_fred_data": false,
+    "divergence_present": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 function up, output checks failed"
+}
