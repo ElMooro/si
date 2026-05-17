@@ -1,0 +1,93 @@
+{
+  "ops": 762,
+  "ts": "2026-05-17T15:31:45.344267+00:00",
+  "subject": "Canary Grid chf fix + Phase 2 wiring verify",
+  "invoke_canary": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"early_warning_level\\\": 36.6, \\\"band\\\": \\\"WATCH\\\", \\\"n_available\\\": 9, \\\"n_total\\\": 9}\"}"
+  },
+  "invoke_crisis": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"master_crisis_score\\\": 36.6, \\\"defcon_level\\\": 4, \\\"defcon_name\\\": \\\"NORMAL\\\", \\\"trend\\\": \\\"stable\\\"}\"}"
+  },
+  "invoke_signalboard": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.0, \\\"n_live\\\": 8, \\\"n_stale\\\": 0}\"}"
+  },
+  "canary_grid": {
+    "early_warning_level": 36.6,
+    "band": "WATCH",
+    "n_available": 9,
+    "n_total": 9,
+    "chf_haven": {
+      "available": true,
+      "stress": 38.7,
+      "zscore": 0.52,
+      "value": 1.22
+    }
+  },
+  "crisis_composite": {
+    "n_components": 9,
+    "canary_wired": true,
+    "canary_component": {
+      "source": "canary-grid",
+      "label": "Global early-warning canaries",
+      "weight": 0.15,
+      "crisis_contribution": 36.6,
+      "age_hours": 0.0,
+      "available": true
+    },
+    "defcon": 4
+  },
+  "signal_board": {
+    "n_engines": 8,
+    "canary_wired": true,
+    "canary_feed": {
+      "engine": "Canary Grid",
+      "category": "macro",
+      "signal": 0,
+      "signal_label": "NEUTRAL",
+      "read": "Global early-warning WATCH (36.6/100)",
+      "as_of": "2026-05-17T15:31:49.300892+00:00",
+      "stale": false
+    }
+  },
+  "korea_series_diagnostic": {
+    "XTEXVA01KRM664S": {
+      "latest": [
+        "2026-03-01",
+        125410600000000.0
+      ],
+      "yoy_pct": 51.0,
+      "12m_ago": [
+        "2025-03-01",
+        83044550000000.0
+      ]
+    },
+    "XTEXVA01KRM659S": {
+      "latest": [
+        "2026-03-01",
+        47.86753
+      ],
+      "yoy_pct": 1025.7,
+      "12m_ago": [
+        "2025-03-01",
+        4.252434
+      ]
+    }
+  },
+  "checks": {
+    "canary_grid_runs": true,
+    "canary_grid_healthy": true,
+    "chf_fix_ok": true,
+    "crisis_composite_runs": true,
+    "wired_into_crisis_composite": true,
+    "signal_board_runs": true,
+    "wired_into_signal_board": true
+  },
+  "all_pass": true,
+  "verdict": "CANARY GRID PHASE 2 LIVE \u2014 chf baseline fix verified, grid healthy, and the early-warning level is now a leading input to both crisis-composite (DEFCON) and the signal-board. See korea_series_diagnostic for the +51% YoY question."
+}
