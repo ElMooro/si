@@ -1,0 +1,55 @@
+{
+  "ops": 759,
+  "ts": "2026-05-17T14:27:50.485251+00:00",
+  "subject": "deploy + verify opportunity-calibrator (learning loop)",
+  "zip_bytes": 11162,
+  "deploy": {
+    "action": "updated"
+  },
+  "schedule": {
+    "rule": "opportunity-calibrator-weekly",
+    "cron": "cron(30 15 ? * SUN *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"status\\\": \\\"insufficient_data\\\", \\\"n_matured_windows\\\": 0, \\\"factor_weights\\\": {\\\"value\\\": 0.4, \\\"quality\\\": 0.3, \\\"growth\\\": 0.2, \\\"momentum\\\": 0.1}, \\\"ssm\\\": true}\"}"
+  },
+  "calibration": {
+    "status": "insufficient_data",
+    "headline": "Learning loop armed \u2014 running on the baseline prior. Calibration activates after ~33 days of snapshots (0d logged, 0/5 windows ready).",
+    "n_snapshots": 1,
+    "oldest_snapshot_age_days": 0,
+    "n_matured_windows": 0,
+    "factor_weights": {
+      "value": 0.4,
+      "quality": 0.3,
+      "growth": 0.2,
+      "momentum": 0.1
+    },
+    "avg_information_coefficient": {
+      "value": null,
+      "quality": null,
+      "growth": null,
+      "momentum": null
+    },
+    "weights_written_to_ssm": true
+  },
+  "ssm_weights": {
+    "value": 0.4,
+    "quality": 0.3,
+    "growth": 0.2,
+    "momentum": 0.1
+  },
+  "checks": {
+    "calibrator_deployed": true,
+    "schedule_rule_wired": true,
+    "calibrator_runs_ok": true,
+    "calibration_report_written": true,
+    "dormant_or_calibrated_safely": true,
+    "ssm_weights_valid": true
+  },
+  "all_pass": true,
+  "verdict": "LEARNING LOOP LIVE \u2014 opportunity-calibrator deployed, weekly schedule wired, running safely on the baseline prior (DORMANT until ~33 days of snapshots mature, then it calibrates factor weights from realised Information Coefficients). The loop is fully armed."
+}
