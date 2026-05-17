@@ -37,6 +37,7 @@ from datetime import datetime, timezone, date, timedelta
 
 import boto3
 
+# build 2026-05-17 — solo deploy commit (deploy-lambdas: one lambda per commit)
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SNAP_PREFIX = "data/track-record/snapshots/"
 OUT_KEY = "data/opportunity-calibration.json"
