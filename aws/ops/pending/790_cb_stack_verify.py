@@ -1,3 +1,4 @@
+# re-trigger run-ops
 """ops/790 — ensure justhodl-snb-detail is live, then verify the full
 central-bank coverage stack for the eurodollar / carry system.
 
