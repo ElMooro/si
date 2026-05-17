@@ -102,12 +102,17 @@ def sweep_data_outputs():
         return {"available": False, "error": str(e)[:200]}
 
     t = now()
-    red, yellow, degraded = [], [], []
+    red, yellow, degraded, static = [], [], [], []
     green = 0
     for key, lm, size in keys:
         age_h = (t - lm).total_seconds() / 3600.0
         name = key[len("data/"):-len(".json")]
         item = {"output": name, "age_hours": round(age_h, 1), "size": size}
+        # config / static files are not engine outputs — they change only
+        # when edited, so their age says nothing about system health
+        if "config" in name.lower():
+            static.append({"output": name, "age_hours": round(age_h, 1)})
+            continue
         if size < MIN_SIZE:
             item["issue"] = "empty / truncated output"
             red.append(item)
@@ -142,8 +147,9 @@ def sweep_data_outputs():
     yellow.sort(key=lambda x: -x["age_hours"])
     return {"available": True, "total": len(keys), "green": green,
             "n_yellow": len(yellow), "n_red": len(red),
-            "n_degraded": len(degraded),
-            "red": red[:40], "degraded": degraded[:40], "yellow": yellow[:25]}
+            "n_degraded": len(degraded), "n_static": len(static),
+            "red": red[:40], "degraded": degraded[:40],
+            "yellow": yellow[:25], "static": static[:30]}
 
 
 # ─────────────────────── 2. COMPUTE INVENTORY ───────────────────────
@@ -282,6 +288,7 @@ def lambda_handler(event, context):
             "data_outputs_fresh": data.get("green"),
             "data_outputs_aging": data_yellow,
             "data_outputs_stale_or_degraded": data_red,
+            "data_outputs_static": data.get("n_static"),
             "lambda_count": compute.get("n_functions"),
             "dependencies_down": len(dep_red),
             "dependencies_degraded": len(dep_yellow),
