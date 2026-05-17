@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Internals · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📊</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:22px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:16px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .st{font-family:var(--mono);font-size:26px;font-weight:700;margin:5px 0 2px}
+.hero .sc{font-family:var(--mono);font-size:13px;color:var(--mute);margin-top:4px}
+.reasons{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.reasons span{font-family:var(--mono);font-size:10.5px;padding:4px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.kv{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px 15px}
+.kv .k{font-family:var(--mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.kv .v{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:4px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📊 Market Internals</h1>
+    <p class="subtitle">What the index price hides — market breadth. Advance/decline line, net advancers, new highs vs lows, the McClellan oscillator and the share of names above key moving averages, fused into a single breadth score and state. Breadth divergences lead index turns.</p>
+    <nav class="crumbs"><a href="/index.html">desk</a><a href="/signal-board.html">signal board</a><a href="/intelligence/">intelligence</a></nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING BREADTH…</div></div>
+  <h2>Breadth Detail</h2>
+  <div class="grid" id="metrics"><div class="loading">…</div></div>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/market-internals.json";
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const fmt=v=>typeof v==="number"?(Number.isInteger(v)?v:v.toFixed(2)):esc(v);
+function cards(obj){
+  if(!obj||typeof obj!=="object")return"";
+  return Object.entries(obj).filter(([k,v])=>typeof v==="number"||typeof v==="string").map(([k,v])=>
+    `<div class="kv"><div class="k">${esc(k.replace(/_/g,' '))}</div><div class="v">${fmt(v)}</div></div>`).join("");
+}
+function stColor(s){s=(s||"").toUpperCase();return /STRONG|HEALTHY|EXPAN|RISK.?ON|BULL/.test(s)?"var(--green)":/WEAK|DETERIOR|RISK.?OFF|BEAR|CONTRACT/.test(s)?"var(--red)":/CAUTION|MIXED|NEUTRAL/.test(s)?"var(--yellow)":"var(--cyan)";}
+(async()=>{
+  let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="st" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;document.getElementById("metrics").innerHTML="";return;}
+  const col=stColor(d.state);
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Breadth State</div>
+      <div class="st" style="color:${col}">${esc(d.state||"—")}</div>
+      ${d.breadth_score!=null?`<div class="sc">breadth score ${fmt(d.breadth_score)}</div>`:""}
+      <div class="reasons">${(d.reasons||[]).map(r=>`<span>${esc(typeof r==="object"?JSON.stringify(r):r)}</span>`).join("")}</div>
+    </div>`;
+  let m=cards(d.highs_lows)+cards(d.moving_averages)+cards(d.mcclellan)+
+        (d.advances!=null?cards({advances:d.advances,ad_diff:d.ad_diff,ad_line:d.ad_line}):"");
+  document.getElementById("metrics").innerHTML=m||`<div class="loading">no breadth detail</div>`;
+  document.getElementById("ts").textContent="engine: justhodl-market-internals · generated "+(d.generated_at||d.updated_at||"?");
+})();
+</script>
+</body>
+</html>
