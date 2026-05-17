@@ -1,0 +1,68 @@
+{
+  "ops": 777,
+  "ts": "2026-05-17T19:01:56.969434+00:00",
+  "subject": "Archive orphaned legacy outputs + re-verify fleet-monitor",
+  "archived": [
+    "dex-scanner-data",
+    "skew",
+    "institutional-convergence",
+    "pre-pump-calibration"
+  ],
+  "archive_errors": [],
+  "redeploy": "ok",
+  "exemption_in_code": true,
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"system_status\": \"yellow\", \"data_bad\": 0, \"deps_down\": 0, \"alert_sent\": false}"
+  },
+  "system_status": "yellow",
+  "summary": {
+    "data_outputs_total": 197,
+    "data_outputs_fresh": 153,
+    "data_outputs_aging": 37,
+    "data_outputs_stale_or_degraded": 0,
+    "data_outputs_static": 7,
+    "lambda_count": 277,
+    "dependencies_down": 0,
+    "dependencies_degraded": 0
+  },
+  "remaining_red": [],
+  "n_static_exempted": 7,
+  "dependencies": [
+    {
+      "name": "Anthropic API",
+      "status": "green"
+    },
+    {
+      "name": "FRED",
+      "status": "green"
+    },
+    {
+      "name": "FMP",
+      "status": "green"
+    },
+    {
+      "name": "Polygon",
+      "status": "green"
+    },
+    {
+      "name": "AlphaVantage",
+      "status": "green"
+    },
+    {
+      "name": "CoinMarketCap",
+      "status": "green"
+    }
+  ],
+  "checks": {
+    "orphans_archived": true,
+    "redeploy_ok": true,
+    "exemption_live": true,
+    "invoke_ok": true,
+    "red_cleared": true,
+    "deps_all_green": true
+  },
+  "all_pass": true,
+  "verdict": "CLEANUP COMPLETE \u2014 4 orphaned legacy outputs archived to data/_archive/, fleet-monitor tuned (user/static outputs exempt). System status now yellow; RED reflects only genuine scheduled-engine decay. No broken engines existed \u2014 the platform's compute and dependency layers are fully healthy."
+}
