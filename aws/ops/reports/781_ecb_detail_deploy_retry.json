@@ -1,0 +1,47 @@
+{
+  "ops": 781,
+  "ts": "2026-05-17T22:27:26.175716+00:00",
+  "subject": "Retry deploy + verify justhodl-ecb-detail",
+  "deploy": "ERROR ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-detail is currently in the",
+  "schedule": {
+    "rule": "ecb-detail-daily",
+    "cron": "cron(0 11 * * ? *)",
+    "state": "ENABLED"
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"stance\": \"DRAINING\", \"excess_liquidity_bn\": 2258.5, \"errors\": 0}"
+  },
+  "output": {
+    "ok": true,
+    "headline": "ECB: DRAINING. Excess liquidity EUR 2,258bn (abundant \u2014 draining); balance sheet +0.5%/6m (flat); deposit rate 2.0% \u2014 policy on hold.",
+    "stance_label": "DRAINING",
+    "excess_liquidity_eur_bn": 2258.5,
+    "liquidity_regime": "ABUNDANT \u2014 DRAINING",
+    "drain_pace_bn_per_month": -57.3,
+    "deposit_facility_recourse": 2236.2,
+    "current_accounts": 195.9,
+    "net_liquidity_effect": -2406.2,
+    "balance_sheet_eur_bn": 6185.2,
+    "qt_pace": "FLAT",
+    "deposit_rate": 2.0,
+    "main_refi_rate": 2.15,
+    "marginal_rate": 2.4,
+    "corridor_bp": 40,
+    "eurodollar_read": "ECB in passive QT \u2014 euro liquidity still abundant but trending down; a slow, persistent tightening of the eurodollar system rather than an acute squeeze.",
+    "errors": []
+  },
+  "checks": {
+    "function_live": false,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "ecb_excess_liquidity_resolved": true,
+    "ecb_ilm_detail_resolved": true,
+    "balance_sheet_resolved": true,
+    "deposit_rate_resolved": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/output.errors"
+}
