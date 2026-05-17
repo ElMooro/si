@@ -1,0 +1,284 @@
+{
+  "ops": 784,
+  "ts": "2026-05-17T22:40:54.995757+00:00",
+  "subject": "Live central-bank liquidity stack status",
+  "ecb_detail": {
+    "age_hours": 0.1,
+    "data": {
+      "schema_version": "1.0",
+      "method": "ecb_eurosystem_liquidity_detail",
+      "generated_at": "2026-05-17T22:32:48.093184+00:00",
+      "elapsed_s": 3.8,
+      "ok": true,
+      "headline": "ECB: DRAINING. Excess liquidity EUR 2,258bn (abundant \u2014 draining); balance sheet +0.5%/6m (flat); deposit rate 2.0% \u2014 policy on hold.",
+      "ecb_injection_score": -1,
+      "stance_label": "DRAINING",
+      "liquidity": {
+        "excess_liquidity_eur_bn": 2258.5,
+        "change_1m_bn": -71.7,
+        "change_3m_bn": -171.9,
+        "change_6m_bn": -249.5,
+        "drain_pace_bn_per_month": -57.3,
+        "deposit_facility_recourse_eur_bn": 2236.2,
+        "current_accounts_eur_bn": 195.9,
+        "net_liquidity_effect_eur_bn": -2406.2,
+        "level": "ABUNDANT",
+        "trend": "DRAINING",
+        "regime": "ABUNDANT \u2014 DRAINING",
+        "runway_to_floor_months": 13,
+        "read": "Excess liquidity EUR 2,258bn (-172bn over 3m, ~-57bn/month) \u2014 abundant \u2014 draining. At this pace ~13 months to the EUR 1,500bn ample-reserves zone where money-market rates turn sensitive."
+      },
+      "balance_sheet": {
+        "total_assets_eur_bn": 6185.2,
+        "change_6m_pct": 0.46,
+        "change_12m_pct": -1.84,
+        "qt_pace": "FLAT",
+        "read": "Eurosystem balance sheet EUR 6,185bn, +0.5% over 6m (-1.8% / 12m) \u2014 flat; the APP and PEPP portfolios are rolling off without reinvestment."
+      },
+      "policy_rates": {
+        "deposit_facility_pct": 2.0,
+        "main_refinancing_pct": 2.15,
+        "marginal_lending_pct": 2.4,
+        "corridor_width_bp": 40,
+        "deposit_rate_change_6m_pp": 0.0,
+        "deposit_rate_change_12m_pp": -0.25,
+        "stance": "ON HOLD",
+        "read": "Deposit facility rate 2.0% (the floor that prices euro liquidity), main refinancing 2.15%, marginal lending 2.4% \u2014 corridor 40bp; policy on hold (+0.00pp over 6m)."
+      },
+      "eurodollar_read": "ECB in passive QT \u2014 euro liquidity still abundant but trending down; a slow, persistent tightening of the eurodollar system rather than an acute squeeze.",
+      "cross_reference": {
+        "cb_injection_global_impulse": "NEUTRAL",
+        "eurodollar_stress_score": null
+      },
+      "sources": [
+        "ECB Data Portal \u2014 Internal Liquidity Management (ILM)",
+        "FRED \u2014 Eurosystem balance sheet & ECB key rates"
+      ],
+      "errors": []
+    }
+  },
+  "cb_injection": {
+    "age_hours": 0.0,
+    "data": {
+      "schema_version": "1.0",
+      "method": "cb_capital_injection_and_carry_synthesis",
+      "generated_at": "2026-05-17T22:38:11.284957+00:00",
+      "elapsed_s": 1.45,
+      "ok": true,
+      "headline": "Global CB impulse: NEUTRAL. Carry funding neutral, unwind risk MODERATE (20/100). ['Fed'] injecting; ['ECB', 'BOJ'] draining.",
+      "global_injection_impulse": {
+        "score": -0.14,
+        "label": "NEUTRAL",
+        "read": "Weighted central-bank stance is neutral (impulse -0.14)."
+      },
+      "central_banks": [
+        {
+          "cb": "ECB",
+          "currency": "EUR",
+          "balance_sheet_eur_mn": 6185235.0,
+          "bs_change_6m_pct": 0.46,
+          "bs_change_12m_pct": -1.84,
+          "excess_liquidity_eur_bn": 2258.5,
+          "policy_rate_pct": 2.0,
+          "rate_change_6m_pp": 0.0,
+          "injection_stance": -1,
+          "stance_label": "DRAINING",
+          "read": "ECB balance sheet +0.5% over 6m, deposit facility rate 2.0% \u2014 draining. Excess liquidity EUR 2,258bn (draining)."
+        },
+        {
+          "cb": "BOJ",
+          "currency": "JPY",
+          "balance_sheet_index": 6632533.0,
+          "bs_change_6m_pct": -4.75,
+          "bs_change_12m_pct": -9.29,
+          "policy_rate_pct": 1.26882,
+          "rate_change_6m_pp": 0.451,
+          "injection_stance": -2,
+          "stance_label": "STRONG DRAIN",
+          "read": "BOJ balance sheet -4.8% over 6m, short rate 1.26882% (+0.45pp/6m) \u2014 strong drain; the carry funding leg."
+        },
+        {
+          "cb": "Fed",
+          "currency": "USD",
+          "balance_sheet_usd_mn": 6728502.0,
+          "bs_change_6m_pct": 2.25,
+          "bs_change_12m_pct": 0.23,
+          "policy_rate_pct": 3.75,
+          "rate_change_6m_pp": -0.25,
+          "injection_stance": 2,
+          "stance_label": "STRONG INJECTION",
+          "read": "Fed balance sheet +2.2% over 6m (QT pace), funds rate 3.75% \u2014 strong injection."
+        },
+        {
+          "cb": "SNB",
+          "currency": "CHF",
+          "policy_rate_pct": -0.04,
+          "rate_change_6m_pp": 0.024,
+          "injection_stance": 0,
+          "stance_label": "NEUTRAL",
+          "read": "SNB short rate -0.04% (+0.02pp/6m) \u2014 the franc is the second carry funding currency."
+        }
+      ],
+      "carry_trade": {
+        "funding_currencies": [
+          {
+            "ccy": "JPY",
+            "fx_per_usd": 156.64,
+            "change_1m_pct": -1.1,
+            "change_3m_pct": -0.29,
+            "funding_cb": "BOJ",
+            "cb_stance": -2
+          },
+          {
+            "ccy": "CHF",
+            "fx_per_usd": 0.7773,
+            "change_3m_pct": 0.19,
+            "funding_cb": "SNB",
+            "cb_stance": 0
+          }
+        ],
+        "carry_conditions": "NEUTRAL",
+        "unwind_risk_score": 20,
+        "unwind_risk_label": "MODERATE",
+        "read": "Carry funding conditions neutral; unwind risk moderate. A sharp move higher in the yen or franc, or a hawkish BOJ, is what forces a leveraged carry unwind."
+      },
+      "eurodollar_read": "Mixed \u2014 no decisive central-bank liquidity impulse; watch the carry funding currencies for the next signal.",
+      "cross_reference": {
+        "global_liquidity_regime": "CONTRACTING",
+        "china_liquidity_regime": "NEUTRAL"
+      },
+      "errors": [],
+      "note": "Per-central-bank capital-injection stance (balance-sheet trajectory + policy-rate direction) for the ECB, BOJ, Fed and SNB, plus net global liquidity impulse and carry-trade funding / unwind-risk synthesis. Complements global-liquidity (which tracks the level) by tracking the flow. Built on real FRED data \u2014 not investment advice."
+    }
+  },
+  "eurodollar_stress": {
+    "age_hours": 0.9,
+    "data": {
+      "as_of": "2026-05-17T21:48:37.234558+00:00",
+      "v": "1.0",
+      "composite_score": 23.74,
+      "severity": "ABUNDANT",
+      "regime": "ABUNDANT_LIQUIDITY",
+      "n_signals_used": 8,
+      "n_signals_total": 8,
+      "n_failures": 0,
+      "signals": [
+        {
+          "id": "ofr_fsi",
+          "label": "St Louis Fed FSI",
+          "fred_series": "STLFSI4",
+          "value": -0.7621,
+          "score_0_100": 16.1,
+          "polarity": 1,
+          "as_of": "2026-05-08",
+          "description": "St. Louis Fed Financial Stress Index v4 \u2014 composite of 18 weekly stress indicators"
+        },
+        {
+          "id": "hy_oas",
+          "label": "HY Credit OAS",
+          "fred_series": "BAMLH0A0HYM2",
+          "value": 2.76,
+          "score_0_100": 10.8,
+          "polarity": 1,
+          "as_of": "2026-05-14",
+          "description": "ICE BofA US High Yield option-adjusted spread (bps over Treasuries)"
+        },
+        {
+          "id": "ig_oas",
+          "label": "IG Credit OAS",
+          "fred_series": "BAMLC0A0CM",
+          "value": 0.76,
+          "score_0_100": 4.8,
+          "polarity": 1,
+          "as_of": "2026-05-14",
+          "description": "ICE BofA US Corporate (IG) option-adjusted spread (bps)"
+        },
+        {
+          "id": "vix",
+          "label": "VIX (Equity Vol)",
+          "fred_series": "VIXCLS",
+          "value": 17.26,
+          "score_0_100": 37.8,
+          "polarity": 1,
+          "as_of": "2026-05-14",
+          "description": "CBOE 30-day implied volatility \u2014 risk-off proxy"
+        },
+        {
+          "id": "broad_dollar",
+          "label": "Broad Dollar Index",
+          "fred_series": "DTWEXBGS",
+          "value": 118.0392,
+          "score_0_100": 31.3,
+          "polarity": 1,
+          "as_of": "2026-05-08",
+          "description": "Trade-weighted broad USD index \u2014 strong dollar = offshore funding strain"
+        },
+        {
+          "id": "t_bill_3m",
+          "label": "3M T-Bill Yield (Inv)",
+          "fred_series": "DTB3",
+          "value": 3.6,
+          "score_0_100": 56.3,
+          "polarity": -1,
+          "as_of": "2026-05-14",
+          "description": "Falling T-bill yield = flight to safety (inverted: low yield = high stress)"
+        },
+        {
+          "id": "rate_vol_10y",
+          "label": "10Y Yield Realized Vol",
+          "fred_series": "DGS10",
+          "value": 0.6983,
+          "score_0_100": 30.7,
+          "polarity": 1,
+          "as_of": "2026-05-14",
+          "description": "60d realized vol of 10Y yield \u2014 bond market stress"
+        },
+        {
+          "id": "repo_spread",
+          "label": "SOFR \u2013 Fed Funds Spread",
+          "fred_series": "SOFR_minus_DFF",
+          "value": -0.07,
+          "score_0_100": 2.1,
+          "polarity": 1,
+          "as_of": "2026-05-14",
+          "description": "Overnight repo (SOFR) vs effective Fed funds \u2014 repo dysfunction"
+        }
+      ],
+      "hot_signals": [],
+      "cold_signals": [
+        {
+          "id": "repo_spread",
+          "label": "SOFR \u2013 Fed Funds Spread",
+          "score": 2.1,
+          "value": -0.07
+        },
+        {
+          "id": "ig_oas",
+          "label": "IG Credit OAS",
+          "score": 4.8,
+          "value": 0.76
+        },
+        {
+          "id": "hy_oas",
+          "label": "HY Credit OAS",
+          "score": 10.8,
+          "value": 2.76
+        },
+        {
+          "id": "ofr_fsi",
+          "label": "St Louis Fed FSI",
+          "score": 16.1,
+          "value": -0.7621
+        }
+      ],
+      "failures": [],
+      "thresholds": {
+        "calm_max": 30,
+        "moderate_min": 50,
+        "elevated_min": 70,
+        "critical_min": 85
+      },
+      "duration_s": 1.52
+    }
+  }
+}
