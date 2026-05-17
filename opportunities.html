@@ -102,6 +102,9 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <div class="banner" id="banner" style="display:none"></div>
   <div class="kpi" id="kpi"></div>
 
+  <h2>📊 Track Record — have these verdicts actually worked?</h2>
+  <div id="trackrecord"><div class="loading">LOADING TRACK RECORD…</div></div>
+
   <h2>⭐ My Watchlist</h2>
   <div class="cards" id="watchlist"><div class="empty">Tap the ☆ on any stock to add it here — it stays saved on this device.</div></div>
 
@@ -136,6 +139,43 @@ const setWL=a=>{try{localStorage.setItem("jh_watchlist",JSON.stringify([...new S
 function toggleWL(t){const a=WL();setWL(a.includes(t)?a.filter(x=>x!==t):[...a,t]);renderWatchlist();paintStars();}
 function paintStars(){const w=WL();document.querySelectorAll(".star").forEach(b=>{
   const on=w.includes(b.dataset.t);b.classList.toggle("on",on);b.textContent=on?"★":"☆";});}
+
+/* ── track record ── */
+const TR_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/track-record.json";
+function renderTrackRecord(tr){
+  const box=document.getElementById("trackrecord");
+  if(!tr){box.innerHTML=`<div class="empty">Track record starts logging today — the engine records every verdict daily, and the first 30-day results appear after a month.</div>`;return;}
+  const TC={"STRONG OPPORTUNITY":"green","OPPORTUNITY":"cyan","FAIR VALUE":"yellow","EXPENSIVE":"orange","HIGH RISK":"red","HOLD / NEUTRAL":"dim"};
+  let h=`<div class="banner" style="border-left-color:var(--purple)"><h3 style="color:var(--purple)">📊 ${esc(tr.headline||"")}</h3>`+
+    `<div style="font-size:11px;color:var(--dim)">${tr.n_snapshots||0} daily snapshot${(tr.n_snapshots===1)?"":"s"} logged${tr.inception_date?" · since "+esc(tr.inception_date):""}</div></div>`;
+  const order=["30d","60d","90d","inception"],
+    labels={"30d":"30-day","60d":"60-day","90d":"90-day","inception":"Since inception"};
+  const ready=order.filter(k=>(tr.horizons||{})[k]&&tr.horizons[k].ready);
+  if(!ready.length){
+    box.innerHTML=h+`<div class="empty">No window has matured yet — this table fills in once the daily snapshots reach 30 days old. It tracks every verdict tier, so it shows whether the AVOID calls worked too. Check back as it builds.</div>`;
+    return;
+  }
+  ready.forEach(k=>{
+    const H=tr.horizons[k];
+    const rows=Object.keys(H.tiers||{}).map(t=>{
+      const x=H.tiers[t],col=TC[t]||"dim",al=x.avg_alpha_pct;
+      return `<tr>
+        <td><span class="badge ${BC[col]}" style="margin:0;font-size:9.5px">${esc(t)}</span></td>
+        <td class="v">${x.n}</td>
+        <td class="v" style="color:${x.avg_return_pct>=0?'var(--green)':'var(--red)'}">${x.avg_return_pct>=0?'+':''}${x.avg_return_pct}%</td>
+        <td class="v">${x.hit_rate_pct}%</td>
+        <td class="v ${al>=0?'t-good':'t-bad'}">${al>=0?'+':''}${al}%</td></tr>`;
+    }).join("");
+    h+=`<div style="margin-top:13px">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:4px">
+        ${labels[k]} window · ${H.days_elapsed}d elapsed · benchmark (average stock) ${H.universe_return_pct>=0?'+':''}${H.universe_return_pct}%</div>
+      <table class="sctable">
+        <tr style="color:var(--dim)"><td>Verdict</td><td class="v">Picks</td><td class="v">Avg return</td><td class="v">Hit rate</td><td class="v">vs&nbsp;market</td></tr>
+        ${rows}</table></div>`;
+  });
+  h+=`<p class="disc" style="margin-top:10px">${esc(tr.methodology||"")} ${esc(tr.disclaimer||"")}</p>`;
+  box.innerHTML=h;
+}
 
 const GLOSS=[
  ["Fair value","What the company is realistically worth per share. We estimate it three ways and show the range — not a single false-precise number."],
@@ -247,6 +287,7 @@ function buildFilters(){
 
 (async()=>{
   document.getElementById("glossary").innerHTML=GLOSS.map(([t,d])=>`<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("");
+  try{const tr=await fetch(TR_URL+"?t="+Date.now());renderTrackRecord(tr.ok?await tr.json():null);}catch{renderTrackRecord(null);}
   try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
   if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
   (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});

@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-track-record",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Opportunity Engine Track Record — computes forward returns and benchmark-relative alpha by verdict tier from the daily opportunity snapshots. Output data/track-record.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "track-record-daily",
+    "cron": "cron(0 15 * * ? *)",
+    "description": "Track Record engine — daily 15:00 UTC, one hour after the opportunity engine logs its snapshot"
+  }
+}

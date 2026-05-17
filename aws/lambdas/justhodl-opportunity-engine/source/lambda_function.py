@@ -563,6 +563,26 @@ def lambda_handler(event, context):
                   Body=json.dumps(out, default=str).encode("utf-8"),
                   ContentType="application/json",
                   CacheControl="public, max-age=3600")
+
+    # ── append-only daily snapshot — the track-record ledger ──
+    # Records what we said, when, at what price. justhodl-track-record
+    # later computes forward returns / alpha by verdict tier from these.
+    try:
+        day = datetime.now(timezone.utc).date().isoformat()
+        snap = {"date": day, "generated_at": out["generated_at"],
+                "schema": "1.0", "n": len(rows),
+                "picks": {r["ticker"]: {"v": r["verdict"], "p": r["price"],
+                                        "fv": r["fair_value_mid"],
+                                        "s": r["opportunity_score"],
+                                        "c": r["confidence"]} for r in rows}}
+        s3.put_object(Bucket=S3_BUCKET,
+                      Key=f"data/track-record/snapshots/{day}.json",
+                      Body=json.dumps(snap, default=str).encode("utf-8"),
+                      ContentType="application/json")
+        print(f"[opp] snapshot logged: {day} ({len(rows)} picks)")
+    except Exception as e:
+        print(f"[opp] WARN snapshot write failed: {e}")
+
     print(f"[opp] v2 · {len(rows)} covered · {len(top)} opportunities · "
           f"{len(avoid)} high-risk · {len(changes.get('newly_opportunity', []))} "
           f"new · {out['elapsed_s']}s")
