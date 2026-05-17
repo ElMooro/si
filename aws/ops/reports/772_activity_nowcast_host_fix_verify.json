@@ -1,0 +1,107 @@
+{
+  "ops": 772,
+  "ts": "2026-05-17T17:44:27.482461+00:00",
+  "subject": "Activity Nowcast redeploy (FRED host fix) + final verify",
+  "host_in_code": false,
+  "update": "ok",
+  "timeout_set": 90,
+  "invoke_1": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"activity_index\": 61, \"regime\": \"EXPANDING\", \"momentum\": \"RISING\", \"divergence_flag\": \"HIGH-FREQ LEADING HIGHER\"}"
+  },
+  "output": {
+    "ok": true,
+    "activity_index": 61,
+    "activity_z": 0.66,
+    "regime": "EXPANDING",
+    "momentum": "RISING",
+    "headline": "Activity Nowcast 61/100 \u2014 EXPANDING, momentum RISING. Lead driver: Financial Conditions (Chicago Fed) (tailwind).",
+    "n_ok": 6,
+    "errors": []
+  },
+  "divergence": {
+    "available": true,
+    "monthly_score": -0.4,
+    "monthly_regime": "SLOWING",
+    "highfreq_index": 61,
+    "gap": 61.4,
+    "flag": "HIGH-FREQ LEADING HIGHER",
+    "read": "High-frequency data is running hotter than the monthly composite \u2014 a recovery may be arriving ahead of the official prints."
+  },
+  "components": [
+    {
+      "series": "WEI",
+      "name": "Weekly Economic Index",
+      "latest": 2.71,
+      "latest_date": "2026-05-09",
+      "level_z": 1.36,
+      "momentum_z": -0.05,
+      "contribution": 0.726,
+      "signal_label": "TAILWIND"
+    },
+    {
+      "series": "ICSA",
+      "name": "Initial Jobless Claims",
+      "latest": 211000.0,
+      "latest_date": "2026-05-09",
+      "level_z": 0.92,
+      "momentum_z": -0.23,
+      "contribution": 0.402,
+      "signal_label": "TAILWIND"
+    },
+    {
+      "series": "CCSA",
+      "name": "Continuing Jobless Claims",
+      "latest": 1782000.0,
+      "latest_date": "2026-05-02",
+      "level_z": 1.1,
+      "momentum_z": 0.46,
+      "contribution": 0.813,
+      "signal_label": "TAILWIND"
+    },
+    {
+      "series": "NFCI",
+      "name": "Financial Conditions (Chicago Fed)",
+      "latest": -0.524,
+      "latest_date": "2026-05-08",
+      "level_z": 1.12,
+      "momentum_z": 0.69,
+      "contribution": 0.924,
+      "signal_label": "TAILWIND"
+    },
+    {
+      "series": "STLFSI4",
+      "name": "Financial Stress (St Louis Fed)",
+      "latest": -0.7621,
+      "latest_date": "2026-05-08",
+      "level_z": 0.76,
+      "momentum_z": 0.53,
+      "contribution": 0.655,
+      "signal_label": "TAILWIND"
+    },
+    {
+      "series": "BAA10Y",
+      "name": "Baa Corporate Credit Spread",
+      "latest": 1.62,
+      "latest_date": "2026-05-14",
+      "level_z": 0.25,
+      "momentum_z": 0.65,
+      "contribution": 0.431,
+      "signal_label": "TAILWIND"
+    }
+  ],
+  "checks": {
+    "host_corrected": false,
+    "update_ok": true,
+    "no_fn_error": true,
+    "output_ok": true,
+    "index_in_range": true,
+    "has_regime": true,
+    "all_series_ok": true,
+    "real_fred_data": true,
+    "divergence_works": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/output/components"
+}
