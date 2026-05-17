@@ -1,0 +1,145 @@
+{
+  "ops": 773,
+  "ts": "2026-05-17T18:12:57.394482+00:00",
+  "subject": "Force-deploy + verify consumer-pulse (roadmap #4)",
+  "zip_bytes": 4881,
+  "deploy_action": "created new",
+  "function_state": "Active",
+  "schedule_wired": true,
+  "invoke_1": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"pulse_index\": 52, \"regime\": \"STEADY\", \"momentum\": \"FLAT\", \"divergence_flag\": \"ALIGNED\"}"
+  },
+  "output": {
+    "ok": true,
+    "pulse_index": 52,
+    "pulse_z": 0.11,
+    "regime": "STEADY",
+    "momentum": "FLAT",
+    "headline": "Consumer & Labour Pulse 52/100 \u2014 STEADY, momentum FLAT. Lead driver: Retail Sales (Advance) (firm).",
+    "n_ok": 8,
+    "errors": []
+  },
+  "sub_indices": {
+    "Consumer Health": {
+      "score": 55,
+      "z": 0.289,
+      "momentum_z": 0.126,
+      "n": 5
+    },
+    "Labour Demand": {
+      "score": 47,
+      "z": -0.167,
+      "momentum_z": -0.227,
+      "n": 3
+    }
+  },
+  "divergence": {
+    "consumer_health": 55,
+    "labour_demand": 47,
+    "gap": -8,
+    "flag": "ALIGNED",
+    "read": "Labour demand and consumer health are broadly aligned \u2014 no leading divergence."
+  },
+  "lead_signal": {
+    "series": "IHLIDXUS",
+    "name": "Indeed Job Postings Index",
+    "latest": 102.53,
+    "latest_date": "2026-05-01",
+    "momentum_z": -0.35,
+    "signal_label": "SOFT",
+    "read": "Indeed job postings falling, soft \u2014 the high-frequency alt-data labour lead."
+  },
+  "official_cross_ref": {
+    "available": true,
+    "official_read": "Openings per unemployed = 0.93 (loosening)."
+  },
+  "components": [
+    {
+      "series": "UMCSENT",
+      "name": "Consumer Sentiment (U-Mich)",
+      "group": "Consumer Health",
+      "latest": 53.3,
+      "latest_date": "2026-03-01",
+      "contribution": -0.714,
+      "signal_label": "SOFT"
+    },
+    {
+      "series": "RSAFS",
+      "name": "Retail Sales (Advance)",
+      "group": "Consumer Health",
+      "latest": 757085.0,
+      "latest_date": "2026-04-01",
+      "contribution": 0.914,
+      "signal_label": "FIRM"
+    },
+    {
+      "series": "PCEC96",
+      "name": "Real Consumer Spending (PCE)",
+      "group": "Consumer Health",
+      "latest": 16772.7,
+      "latest_date": "2026-03-01",
+      "contribution": 0.848,
+      "signal_label": "FIRM"
+    },
+    {
+      "series": "DSPIC96",
+      "name": "Real Disposable Personal Income",
+      "group": "Consumer Health",
+      "latest": 18108.7,
+      "latest_date": "2026-03-01",
+      "contribution": 0.658,
+      "signal_label": "FIRM"
+    },
+    {
+      "series": "DRCCLACBS",
+      "name": "Credit-Card Delinquency Rate",
+      "group": "Consumer Health",
+      "latest": 2.94,
+      "latest_date": "2025-10-01",
+      "contribution": -0.407,
+      "signal_label": "SOFT"
+    },
+    {
+      "series": "IHLIDXUS",
+      "name": "Indeed Job Postings Index",
+      "group": "Labour Demand",
+      "latest": 102.53,
+      "latest_date": "2026-05-01",
+      "contribution": -0.309,
+      "signal_label": "SOFT"
+    },
+    {
+      "series": "TEMPHELPS",
+      "name": "Temporary-Help Employment",
+      "group": "Labour Demand",
+      "latest": 2485.1,
+      "latest_date": "2026-04-01",
+      "contribution": -0.544,
+      "signal_label": "SOFT"
+    },
+    {
+      "series": "BABATOTALSAUS",
+      "name": "Business Applications (Census BFS)",
+      "group": "Labour Demand",
+      "latest": 503171.0,
+      "latest_date": "2026-04-01",
+      "contribution": 0.488,
+      "signal_label": "FIRM"
+    }
+  ],
+  "checks": {
+    "function_active": true,
+    "schedule_wired": true,
+    "no_fn_error": true,
+    "output_ok": true,
+    "index_in_range": true,
+    "has_regime": true,
+    "two_sub_indices": true,
+    "real_fred_data": true,
+    "divergence_present": true
+  },
+  "all_pass": true,
+  "verdict": "CONSUMER & LABOUR PULSE LIVE & VERIFIED \u2014 deployed, scheduled daily, consumer-health + alt-data job-postings composites computing on real FRED data, divergence + official cross-ref working. Roadmap #4 COMPLETE \u2014 all four enhancement engines now live."
+}
