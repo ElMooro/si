@@ -1,0 +1,41 @@
+{
+  "ops": 782,
+  "ts": "2026-05-17T22:32:47.731945+00:00",
+  "subject": "Confirm justhodl-ecb-detail cleanly live",
+  "function": {
+    "state": "Active",
+    "last_update_status": "Successful",
+    "runtime": "python3.12",
+    "memory": 256,
+    "timeout": 90,
+    "code_size": 5443,
+    "last_modified": "2026-05-17T22:27:29.000+0000",
+    "has_fred_key": true
+  },
+  "schedule": {
+    "state": "ENABLED",
+    "cron": "cron(0 11 * * ? *)",
+    "targets": [
+      "justhodl-ecb-detail",
+      "justhodl-ecb-detail"
+    ]
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"stance\": \"DRAINING\", \"excess_liquidity_bn\": 2258.5, \"errors\": 0}"
+  },
+  "output_headline": "ECB: DRAINING. Excess liquidity EUR 2,258bn (abundant \u2014 draining); balance sheet +0.5%/6m (flat); deposit rate 2.0% \u2014 policy on hold.",
+  "output_ok": true,
+  "checks": {
+    "function_active": true,
+    "update_successful": true,
+    "fred_key_set": true,
+    "schedule_enabled": true,
+    "schedule_targets_fn": true,
+    "invoke_ok": true,
+    "output_ok": true
+  },
+  "all_pass": true,
+  "verdict": "CONFIRMED \u2014 justhodl-ecb-detail is cleanly live: Active, daily 11:00 UTC schedule targeting the function, FRED key set, invoke returns ok=true. The ECB liquidity engine is fully operational."
+}
