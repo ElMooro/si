@@ -1,0 +1,69 @@
+{
+  "ops": 785,
+  "ts": "2026-05-17T22:51:32.311945+00:00",
+  "subject": "Deploy + verify justhodl-yen-carry",
+  "deploy": "updated existing function",
+  "schedule": {
+    "rule": "yen-carry-daily",
+    "cron": "cron(0 12 * * ? *)",
+    "state": "ENABLED"
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": {
+      "ok": true,
+      "carry_regime": "NEUTRAL",
+      "unwind_risk": 40.1,
+      "errors": 0
+    }
+  },
+  "output": {
+    "ok": true,
+    "headline": "YEN CARRY: NEUTRAL. Unwind risk 40/100 (MODERATE); USD/JPY 157, vol 10% (elevated); BOJ draining.",
+    "carry_regime": "NEUTRAL",
+    "boj_injection_score": -2,
+    "boj_stance_label": "DRAINING",
+    "unwind_risk_score": 40.1,
+    "unwind_risk_label": "MODERATE",
+    "unwind_risk_components": {
+      "fx_vol": 3.6,
+      "yen_momentum": 3.5,
+      "boj_hawkish": 15,
+      "jgb_stress": 10
+    },
+    "carry_attractiveness": "MODERATE",
+    "boj_bs_chg_6m_pct": -4.75,
+    "jp_short_rate_pct": 1.27,
+    "policy_direction": "HIKING",
+    "front_end_carry_pp": 2.36,
+    "duration_carry_pp": 1.95,
+    "usdjpy": 156.64,
+    "usdjpy_chg_1m_pct": -1.1,
+    "realized_vol_20d_pct": 9.7,
+    "vol_regime": "ELEVATED",
+    "jgb_10y_pct": 2.52,
+    "positioning": {
+      "note": "CFTC JPY positioning unavailable \u2014 unwind score scaled across available factors"
+    },
+    "decisive_call": "DECISIVE: no clean carry signal. The differential still pays, but watch the BOJ path and USD/JPY realised vol for the turn.",
+    "sources": [
+      "FRED \u2014 BOJ / JGB / FX / US rates"
+    ],
+    "errors": []
+  },
+  "checks": {
+    "function_live": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "boj_funding_resolved": true,
+    "carry_width_resolved": true,
+    "fx_detonator_resolved": true,
+    "jgb_resolved": true,
+    "unwind_risk_resolved": true,
+    "regime_classified": true
+  },
+  "all_pass": true,
+  "verdict": "YEN-CARRY LIVE \u2014 Yen Carry & BOJ engine deployed and verified. Regime NEUTRAL; unwind risk 40.1/100 (MODERATE); USD/JPY 156.64, 20d vol 9.7%; front-end carry 2.36pp; BOJ DRAINING. All five data legs resolve."
+}
