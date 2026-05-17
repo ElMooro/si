@@ -157,13 +157,13 @@ def n_opportunity(d):
 
 # (engine, subject, family, s3_key, normaliser)
 FEEDS = [
-    ("PM Decision",        "Broad risk / equity beta", "macro-posture",
+    ("PM Decision",        "Broad risk / equity beta", "desk-posture",
      "data/pm-decision.json",          n_pm_decision),
-    ("Crisis Composite",   "Broad risk / equity beta", "macro-posture",
+    ("Crisis Composite",   "Broad risk / equity beta", "crisis-monitor",
      "data/crisis-composite.json",     n_crisis_composite),
-    ("Canary Grid",        "Broad risk / equity beta", "macro-posture",
+    ("Canary Grid",        "Broad risk / equity beta", "crisis-monitor",
      "data/canary-grid.json",          n_canary_grid),
-    ("Leading Markets",    "Broad risk / equity beta", "macro-posture",
+    ("Leading Markets",    "Broad risk / equity beta", "market-regime",
      "data/leading-markets.json",      n_leading_markets),
     ("Housing Cycle",      "US macro / housing cycle", "macro-fundamental",
      "data/construction-housing.json", n_construction_housing),
@@ -262,13 +262,24 @@ def build_setup(subject, members):
     dirs = [sign(m["signal"]) for m in members if m["signal"] != 0]
     n_pos = sum(1 for x in dirs if x > 0)
     n_neg = sum(1 for x in dirs if x < 0)
-    agree = (max(n_pos, n_neg) / len(dirs)) if dirs else 0.0
+    agree = (max(n_pos, n_neg) / len(dirs)) if len(dirs) > 1 else 0.5
     n_fam = len(fams)
+    n_eng = len(members)
 
     strength = min(1.0, abs(net) / 2.0)
-    breadth = min(1.0, n_fam / 4.0)
+    breadth = min(1.0, n_fam / 3.0)
     quality = 0.5 + 0.3 * agree + 0.2 * breadth
-    conviction = round(100 * strength * quality)
+    raw = 100 * strength * quality
+    # corroboration gate — conviction REQUIRES cross-confirmation; a lone
+    # engine, however strong, is a watch-item, not a high-conviction call.
+    if n_fam >= 3:
+        cap = 100
+    elif n_fam == 2:
+        cap = 70
+    else:
+        cap = 45 if n_eng >= 3 else 40 if n_eng == 2 else 35
+    conviction = round(min(raw, cap))
+    capped = raw > cap + 0.5
     band = ("HIGH" if conviction >= 70 else "MODERATE" if conviction >= 45
             else "LOW" if conviction >= 20 else "MARGINAL")
     direction = ("RISK-ON / LONG" if net > 0.15 else
@@ -277,15 +288,19 @@ def build_setup(subject, members):
     ranked = sorted(members, key=lambda x: abs(x["signal"]) * x["skill"],
                     reverse=True)
     tells = "; ".join(m["read"] for m in ranked[:3])
-    thesis = (f"{len(members)} engines across {n_fam} independent "
-              f"families, {agree:.0%} directional agreement -> "
+    thesis = (f"{n_eng} engine(s) across {n_fam} independent "
+              f"famil{'y' if n_fam == 1 else 'ies'} -> "
               f"{direction.split(' / ')[0].lower()}. {tells}.")
+    if capped:
+        thesis += (" Conviction capped — limited cross-confirmation; needs "
+                   "agreement from independent engine families to rate higher.")
     inv = (f"Flips if net signal crosses neutral — specifically if "
            f"{INVALIDATION.get(subject, 'the contributing engines reverse')}.")
     return {
         "subject": subject, "direction": direction,
         "conviction": conviction, "confidence": band,
-        "net_signal": round(net, 2), "n_engines": len(members),
+        "net_signal": round(net, 2), "n_engines": n_eng,
+        "corroboration_capped": capped,
         "n_agree": max(n_pos, n_neg), "n_disagree": min(n_pos, n_neg),
         "agreement_pct": round(agree * 100), "n_families": n_fam,
         "thesis": thesis, "invalidation": inv,
@@ -363,7 +378,8 @@ def lambda_handler(event, context):
 
     # book posture = breadth-weighted blend of the macro-posture subjects
     macro = [e for e in live if e["family"] in
-             ("macro-posture", "macro-fundamental")]
+             ("desk-posture", "crisis-monitor", "market-regime",
+              "macro-fundamental")]
     if macro:
         mnet = sum(e["signal"] * e["skill"] for e in macro) / \
                sum(e["skill"] for e in macro)
