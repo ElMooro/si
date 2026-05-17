@@ -1,0 +1,129 @@
+{
+  "ops": 765,
+  "ts": "2026-05-17T16:06:42.454467+00:00",
+  "subject": "Canary Grid Phase 3 multi-source verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": "Unhandled"
+  },
+  "early_warning_level": 34.8,
+  "band": "WATCH",
+  "n_available": 8,
+  "freshness": {
+    "stale_hard_days": 95,
+    "stale_warn_days": 65,
+    "n_fresh": 5,
+    "n_stale_warning": 3,
+    "n_excluded_stale": 1,
+    "excluded_for_staleness": [
+      "swiss_unemp"
+    ],
+    "oldest_signal": {
+      "key": "swiss_unemp",
+      "age_days": 898
+    }
+  },
+  "signals": {
+    "korea_exports": {
+      "source": "XTEXVA01KRM664S",
+      "available": true,
+      "age_days": 77,
+      "as_of": "2026-03-01",
+      "value": 51.02,
+      "stress": 0.0,
+      "stale_warning": true,
+      "reason": null
+    },
+    "china_exports": {
+      "source": "XTEXVA01CNM664S",
+      "available": true,
+      "age_days": 77,
+      "as_of": "2026-03-01",
+      "value": -3.73,
+      "stress": 65.6,
+      "stale_warning": true,
+      "reason": null
+    },
+    "swiss_unemp": {
+      "source": "LMUNRRTTCHM156S",
+      "available": false,
+      "age_days": 898,
+      "as_of": "2023-12-01",
+      "value": null,
+      "stress": null,
+      "stale_warning": null,
+      "reason": "stale \u2014 latest reading is 898d old (>95d); excluded to keep the grid forward-looking"
+    },
+    "copper": {
+      "source": "PCOPPUSDM",
+      "available": true,
+      "age_days": 77,
+      "as_of": "2026-03-01",
+      "value": 28.69,
+      "stress": 26.9,
+      "stale_warning": true,
+      "reason": null
+    },
+    "lumber": {
+      "source": "WPU081",
+      "available": true,
+      "age_days": 46,
+      "as_of": "2026-04-01",
+      "value": 2.04,
+      "stress": 52.3,
+      "stale_warning": false,
+      "reason": null
+    },
+    "mfg_hours": {
+      "source": "AWHMAN",
+      "available": true,
+      "age_days": 46,
+      "as_of": "2026-04-01",
+      "value": 1.71,
+      "stress": 23.1,
+      "stale_warning": false,
+      "reason": null
+    },
+    "temp_help": {
+      "source": "TEMPHELPS",
+      "available": true,
+      "age_days": 46,
+      "as_of": "2026-04-01",
+      "value": -1.68,
+      "stress": 53.9,
+      "stale_warning": false,
+      "reason": null
+    },
+    "chf_haven": {
+      "source": "DEXSZUS",
+      "available": true,
+      "age_days": 9,
+      "as_of": "2026-05-08",
+      "value": 1.22,
+      "stress": 38.7,
+      "stale_warning": false,
+      "reason": null
+    },
+    "eurodollar_stress": {
+      "source": null,
+      "available": true,
+      "age_days": 0,
+      "as_of": "2026-05-17T14:48:36.982300+00:00",
+      "value": 23.7,
+      "stress": 23.7,
+      "stale_warning": false,
+      "reason": null
+    }
+  },
+  "checks": {
+    "engine_runs": false,
+    "grid_healthy": true,
+    "korea_on_dbnomics": false,
+    "korea_fresh": true,
+    "china_on_dbnomics": false,
+    "swiss_no_longer_dead": false
+  },
+  "core_pass": false,
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]"
+}
