@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-ecb-detail",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ECB / Eurosystem Liquidity Detail Engine — granular ECB capital-injection data straight from the ECB Data Portal (excess liquidity, deposit-facility recourse, current accounts, net liquidity effect) plus the Eurosystem balance sheet and the three key rates. Produces an ECB liquidity regime, QT pace, rate corridor and a -2..+2 injection score. Output data/ecb-detail.json.",
+  "environment": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "ecb-detail-daily",
+    "cron": "cron(0 11 * * ? *)",
+    "description": "ECB Liquidity Detail Engine — daily 11:00 UTC"
+  }
+}
