@@ -1,0 +1,35 @@
+{
+  "ops": 745,
+  "ts": "2026-05-17T10:33:15.138284+00:00",
+  "subject": "verify 4 repaired Lambdas",
+  "results": {
+    "justhodl-morning-intelligence": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"khalid\\\": {\\\"score\\\": 51, \\\"regime\\\": \\\"NEUTRAL\\\", \\\"signals\\\": [[\\\"DXY\\\", -12, \\\"118.0\\\"], [\\\"HY Spread\\\", 5, \\\"2.76%\\\"], [\\\"NFCI\\\", 5, \\\"-0.52\\\"], [\\\"Unemployment\\\", -8, \\\"4.3%\\\"], [\\\"Net Liq\\\", 3, \\\"$5.89T\\\"], [\\\"SPY Trend\\\", 5, \\\"$739\\\"], [\\\"LCE Regime\\\", -3, \\\"WATCH (18.1/100)\\\"], [\\\"Global Cycle\\\", 6, \\\"GLOBAL_EXPANSION (avg CLI 105.42)\\\"]],",
+      "pass": true
+    },
+    "news-sentiment-agent": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"service\\\": \\\"news-sentiment-agent\\\", \\\"status\\\": \\\"stub\\\", \\\"sentiment\\\": \\\"neutral\\\", \\\"newsapi_key_present\\\": true, \\\"invoked_at\\\": \\\"2026-05-17T10:33:26+00:00\\\", \\\"request_id\\\": \\\"e48c8834-f0f7-40f5-b9d7-c909924d9a02\\\"}\"}",
+      "pass": true
+    },
+    "justhodl-email-reports-v2": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"email_sent\\\": true}\"}",
+      "pass": true
+    },
+    "justhodl-nobrainer-rationale": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"n_theses\\\": 12, \\\"n_claude_ok\\\": 0, \\\"n_claude_fail\\\": 12, \\\"duration_s\\\": 2.7}\"}",
+      "pass": true
+    }
+  },
+  "n_pass": 4,
+  "n_total": 4,
+  "all_pass": true,
+  "verdict": "FIXED \u2014 all 4 Lambdas now run clean (no FunctionError)"
+}
