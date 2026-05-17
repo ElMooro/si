@@ -1,4 +1,4 @@
-"""ops/787 — probe SNB / Switzerland data sources before building the
+"""ops/788 — probe SNB / Switzerland data sources before building the
 justhodl-snb-detail engine. Read-only. Confirms which FRED series and which
 data.snb.ch cubes actually return real, recent data, so the engine is built
 on verified identifiers rather than guesses.
@@ -8,7 +8,7 @@ import json, os, time, urllib.request, csv, io
 from datetime import datetime, timezone
 
 FRED_KEY = "2f057499936072679d8843d7fce99989"
-report = {"ops": 787, "ts": datetime.now(timezone.utc).isoformat(),
+report = {"ops": 788, "ts": datetime.now(timezone.utc).isoformat(),
           "subject": "Probe SNB data sources (FRED + SNB data portal API)"}
 
 
@@ -96,6 +96,6 @@ report["verdict"] = ("Probe complete — inspect fred_direct[].ok, "
 
 print(json.dumps(report, indent=2, default=str))
 os.makedirs("aws/ops/reports", exist_ok=True)
-with open("aws/ops/reports/787_snb_source_probe.json", "w") as f:
+with open("aws/ops/reports/788_snb_source_probe.json", "w") as f:
     json.dump(report, f, indent=2, default=str)
-print("[ok] wrote aws/ops/reports/787_snb_source_probe.json")
+print("[ok] wrote aws/ops/reports/788_snb_source_probe.json")
