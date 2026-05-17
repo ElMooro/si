@@ -1,0 +1,117 @@
+{
+  "ops": 775,
+  "ts": "2026-05-17T18:36:01.367345+00:00",
+  "subject": "Fleet Monitor redeploy (static exemption) + final verify",
+  "update": "ok",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"system_status\": \"red\", \"data_bad\": 9, \"deps_down\": 0, \"alert_sent\": true}"
+  },
+  "system_status": "red",
+  "summary": {
+    "data_outputs_total": 201,
+    "data_outputs_fresh": 153,
+    "data_outputs_aging": 37,
+    "data_outputs_stale_or_degraded": 9,
+    "data_outputs_static": 2,
+    "lambda_count": 277,
+    "dependencies_down": 0,
+    "dependencies_degraded": 0
+  },
+  "data_sweep": {
+    "total": 201,
+    "green": 153,
+    "n_yellow": 37,
+    "n_red": 9,
+    "n_degraded": 0,
+    "n_static": 2
+  },
+  "genuinely_stale_engines": [
+    {
+      "output": "dex-scanner-data",
+      "age_hours": 1693.1,
+      "issue": "stale 70.5d \u2014 engine likely dead"
+    },
+    {
+      "output": "feedback-summary",
+      "age_hours": 317.8,
+      "issue": "stale 13.2d \u2014 engine likely dead"
+    },
+    {
+      "output": "skew",
+      "age_hours": 313.4,
+      "issue": "stale 13.1d \u2014 engine likely dead"
+    },
+    {
+      "output": "pre-pump-calibration",
+      "age_hours": 282.4,
+      "issue": "stale 11.8d \u2014 engine likely dead"
+    },
+    {
+      "output": "institutional-convergence",
+      "age_hours": 274.3,
+      "issue": "stale 11.4d \u2014 engine likely dead"
+    },
+    {
+      "output": "history-api-url",
+      "age_hours": 264.6,
+      "issue": "stale 11.0d \u2014 engine likely dead"
+    },
+    {
+      "output": "user-trades-stats",
+      "age_hours": 243.2,
+      "issue": "stale 10.1d \u2014 engine likely dead"
+    },
+    {
+      "output": "user-trades",
+      "age_hours": 243.2,
+      "issue": "stale 10.1d \u2014 engine likely dead"
+    },
+    {
+      "output": "user-watchlist",
+      "age_hours": 243.2,
+      "issue": "stale 10.1d \u2014 engine likely dead"
+    }
+  ],
+  "static_files_exempted": [
+    "ka-config",
+    "khalid-config"
+  ],
+  "dependencies": [
+    {
+      "name": "Anthropic API",
+      "status": "green"
+    },
+    {
+      "name": "FRED",
+      "status": "green"
+    },
+    {
+      "name": "FMP",
+      "status": "green"
+    },
+    {
+      "name": "Polygon",
+      "status": "green"
+    },
+    {
+      "name": "AlphaVantage",
+      "status": "green"
+    },
+    {
+      "name": "CoinMarketCap",
+      "status": "green"
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "data_sweep_ran": true,
+    "static_exemption_works": true,
+    "all_deps_probed": true,
+    "system_status_set": true,
+    "auto_discovers_fleet": true
+  },
+  "all_pass": true,
+  "verdict": "FLEET MONITOR COMPLETE & VERIFIED \u2014 full-fleet auto-discovering observability live. Config/static files now exempt, so RED flags only genuine engine decay. Sweeps every data output, inventories 277 Lambdas, probes Anthropic + all 5 data keys, alerts via Telegram. Currently flagging 9 genuinely-stale engine output(s) for triage."
+}
