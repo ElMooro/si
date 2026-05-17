@@ -1,0 +1,64 @@
+{
+  "ops": 753,
+  "ts": "2026-05-17T12:56:08.029182+00:00",
+  "subject": "peer-comparison read fix verify",
+  "invoke_status": 200,
+  "fn_error": null,
+  "pe_rows_checked": 362,
+  "pe_wrong": [],
+  "operating_margin_rows_checked": 400,
+  "operating_margin_wrong": [],
+  "sample": {
+    "ticker": "HUM",
+    "bottom_line": "It screens as deeply mispriced, though the exact gap is too wide to quote as a reliable number. It has a strong balance sheet. Worth a closer look.",
+    "peer_comparison": [
+      {
+        "metric": "P/E",
+        "key": "pe",
+        "value": 32.49,
+        "industry_median": 29.76,
+        "delta_pct": 9.2,
+        "read": "richer than peers"
+      },
+      {
+        "metric": "Forward P/E",
+        "key": "forward_pe",
+        "value": 11.6,
+        "industry_median": 10.74,
+        "delta_pct": 8.0,
+        "read": "richer than peers"
+      },
+      {
+        "metric": "Revenue growth",
+        "key": "revenue_growth",
+        "value": 10.06,
+        "industry_median": 11.54,
+        "delta_pct": -12.8,
+        "read": "weaker than peers"
+      },
+      {
+        "metric": "Operating margin",
+        "key": "operating_margin",
+        "value": 1.01,
+        "industry_median": 2.44,
+        "delta_pct": -58.6,
+        "read": "weaker than peers"
+      },
+      {
+        "metric": "Net margin",
+        "key": "net_margin",
+        "value": 0.82,
+        "industry_median": 1.54,
+        "delta_pct": -46.8,
+        "read": "weaker than peers"
+      }
+    ]
+  },
+  "checks": {
+    "invoke_ok": true,
+    "pe_reads_all_correct": true,
+    "margin_reads_all_correct": true
+  },
+  "all_pass": true,
+  "verdict": "PEER-COMPARISON READS CORRECT \u2014 cheaper/richer/better/weaker wording now matches the numbers"
+}
