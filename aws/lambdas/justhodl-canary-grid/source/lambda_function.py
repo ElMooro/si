@@ -47,6 +47,13 @@ FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 OUT_KEY = "data/canary-grid.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
+# data-freshness guard — an early-warning engine must be FORWARD-looking, so a
+# signal whose latest reading is older than ~3 months is dropped from the
+# composite entirely (it would only describe the past). A signal past the
+# warn line is still used but flagged so the staleness is always visible.
+STALE_WARN_DAYS = 65    # ~2 months — getting old, flag it
+STALE_HARD_DAYS = 95    # ~3 months — exclude from the grid entirely
+
 # ── signal definitions ──────────────────────────────────────────────
 # kind: yoy=12-period %chg · mom=window %chg · diff=window abs change · level
 # dir : "fall" = falling is stress · "rise" = rising is stress
@@ -181,6 +188,15 @@ def band(score):
     return "CALM"
 
 
+def age_days(date_str):
+    """Days between today and an ISO date string; None if unparseable."""
+    try:
+        d = datetime.fromisoformat(str(date_str)[:10]).date()
+        return (datetime.now(timezone.utc).date() - d).days
+    except Exception:
+        return None
+
+
 # ── per-signal evaluation ────────────────────────────────────────────
 def eval_signal(sig):
     base = {"key": sig["key"], "name": sig["name"], "sub_grid": sig["grid"],
@@ -208,7 +224,16 @@ def eval_signal(sig):
     read = (sig["hot"] if stress >= 60 else
             sig["cool"] if stress <= 40 else
             f"{sig['name']} is near its historical norm — neutral signal.")
+    age = age_days(latest_date)
+    if age is not None and age > STALE_HARD_DAYS:
+        return {**base, "available": False, "as_of": latest_date,
+                "age_days": age, "fred_series": used,
+                "reason": (f"stale — latest reading is {age}d old "
+                           f"(>{STALE_HARD_DAYS}d); excluded to keep the grid "
+                           f"forward-looking")}
     return {**base, "available": True, "value": disp, "as_of": latest_date,
+            "age_days": age,
+            "stale_warning": bool(age is not None and age > STALE_WARN_DAYS),
             "fred_series": used, "transform": sig["kind"],
             "zscore": round(z, 2), "stress": stress, "read": read}
 
@@ -229,9 +254,17 @@ def ingest_eurodollar():
                 "repo signals are tightening." if score >= 60 else
                 "USD funding plumbing looks orderly." if score <= 40 else
                 "USD funding plumbing is mildly firm — worth watching.")
+        as_of = d.get("as_of") or d.get("generated_at")
+        age = age_days(as_of)
+        if age is not None and age > STALE_HARD_DAYS:
+            return {**base, "available": False, "as_of": as_of,
+                    "age_days": age,
+                    "reason": f"stale — eurodollar feed is {age}d old"}
         return {**base, "available": True, "value": round(score, 1),
-                "as_of": d.get("as_of"), "transform": "ingest",
-                "zscore": None, "stress": round(score, 1), "read": read}
+                "as_of": as_of, "age_days": age,
+                "stale_warning": bool(age is not None and age > STALE_WARN_DAYS),
+                "transform": "ingest", "zscore": None,
+                "stress": round(score, 1), "read": read}
     except Exception as e:
         return {**base, "available": False, "reason": f"feed unavailable: {e}"}
 
@@ -241,6 +274,23 @@ def lambda_handler(event, context):
     t0 = time.time()
     signals = [eval_signal(s) for s in SIGNALS]
     signals.append(ingest_eurodollar())
+
+    # data-freshness audit — keep the grid forward-looking, never stale
+    ages = [(s["key"], s["age_days"]) for s in signals
+            if s.get("age_days") is not None]
+    excluded_stale = [s["key"] for s in signals if not s.get("available")
+                      and "stale" in str(s.get("reason", ""))]
+    oldest = max(ages, key=lambda x: x[1]) if ages else None
+    freshness = {
+        "stale_hard_days": STALE_HARD_DAYS, "stale_warn_days": STALE_WARN_DAYS,
+        "n_fresh": sum(1 for s in signals if s.get("available")
+                       and not s.get("stale_warning")),
+        "n_stale_warning": sum(1 for s in signals if s.get("stale_warning")),
+        "n_excluded_stale": len(excluded_stale),
+        "excluded_for_staleness": excluded_stale,
+        "oldest_signal": ({"key": oldest[0], "age_days": oldest[1]}
+                          if oldest else None),
+    }
 
     # sub-grid scores
     sub_grids = {}
@@ -288,6 +338,7 @@ def lambda_handler(event, context):
         "band": lvl_band,
         "headline": headlines.get(lvl_band, ""),
         "sub_grids": sub_grids,
+        "freshness": freshness,
         "signals": signals,
         "top_deteriorating": [{"key": s["key"], "name": s["name"],
                                "stress": s["stress"], "read": s["read"]}

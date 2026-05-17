@@ -13,7 +13,7 @@
   },
   "schedule": {
     "rule_name": "canary-grid-daily",
-    "cron": "cron(30 12 * * ? *)",
-    "description": "Global Early-Warning Grid — daily 12:30 UTC"
+    "cron": "cron(30 */6 * * ? *)",
+    "description": "Global Early-Warning Grid — every 6 hours (keeps fast funding/FX signals current)"
   }
 }
