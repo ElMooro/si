@@ -7,7 +7,7 @@
   "timeout": 240,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Opportunity Engine Calibrator — measures each scoring factor's Information Coefficient (predictive power) from matured snapshots, derives shrinkage-blended factor weights, writes them to SSM /justhodl/opportunity/weights. Output data/opportunity-calibration.json.",
+  "description": "Opportunity Engine Calibrator - measures each scoring factor's Information Coefficient from matured snapshots and writes shrinkage-blended weights to SSM. Output data/opportunity-calibration.json.",
   "environment": {},
   "schedule": {
     "rule_name": "opportunity-calibrator-weekly",
