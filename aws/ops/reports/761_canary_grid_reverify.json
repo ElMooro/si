@@ -1,0 +1,117 @@
+{
+  "ops": 761,
+  "ts": "2026-05-17T15:14:05.410971+00:00",
+  "subject": "redeploy + reverify Canary Grid (swiss_unemp + dbnomics fixes)",
+  "deploy": {
+    "action": "updated"
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"early_warning_level\\\": 35.6, \\\"band\\\": \\\"WATCH\\\", \\\"n_available\\\": 9, \\\"n_total\\\": 9}\"}"
+  },
+  "output": {
+    "early_warning_level": 35.6,
+    "band": "WATCH",
+    "headline": "Most canaries are calm with a few soft spots \u2014 low but non-zero early-warning risk.",
+    "n_available": 9,
+    "n_total": 9,
+    "sub_grids": {
+      "trade_shipping": 32.8,
+      "commodity_cycle": 39.6,
+      "funding_plumbing": 28.0,
+      "labor_industrial": 47.2
+    }
+  },
+  "signal_breakdown": [
+    {
+      "key": "korea_exports",
+      "ok": true,
+      "fred": "XTEXVA01KRM664S",
+      "stress": 0.0,
+      "value": 51.02,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "china_exports",
+      "ok": true,
+      "fred": "XTEXVA01CNM664S",
+      "stress": 65.6,
+      "value": -3.73,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "copper",
+      "ok": true,
+      "fred": "PCOPPUSDM",
+      "stress": 26.9,
+      "value": 28.69,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "lumber",
+      "ok": true,
+      "fred": "WPU081",
+      "stress": 52.3,
+      "value": 2.04,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "chf_haven",
+      "ok": true,
+      "fred": "DEXSZUS",
+      "stress": 32.2,
+      "value": 1.22,
+      "as_of": "2026-05-08"
+    },
+    {
+      "key": "mfg_hours",
+      "ok": true,
+      "fred": "AWHMAN",
+      "stress": 23.1,
+      "value": 1.71,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "temp_help",
+      "ok": true,
+      "fred": "TEMPHELPS",
+      "stress": 53.9,
+      "value": -1.68,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "swiss_unemp",
+      "ok": true,
+      "fred": "LMUNRRTTCHM156S",
+      "stress": 64.5,
+      "value": 0.15,
+      "as_of": "2023-12-01"
+    },
+    {
+      "key": "eurodollar_stress",
+      "ok": true,
+      "fred": null,
+      "stress": 23.7,
+      "value": 23.7,
+      "as_of": "2026-05-17T14:48:36.982300+00:00"
+    }
+  ],
+  "dbnomics": {
+    "fetch_series_points": 0,
+    "sample": null,
+    "providers_probe": {
+      "err": "The read operation timed out"
+    }
+  },
+  "checks": {
+    "redeploy_ok": true,
+    "engine_runs_ok": true,
+    "all_9_signals_live": true,
+    "swiss_unemp_resolved": true,
+    "composite_in_range": true,
+    "dbnomics_fetcher_works": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[] / signal_breakdown / dbnomics"
+}
