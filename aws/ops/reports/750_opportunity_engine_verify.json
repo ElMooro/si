@@ -1,0 +1,132 @@
+{
+  "ops": 750,
+  "ts": "2026-05-17T12:18:20.394079+00:00",
+  "subject": "Opportunity Engine verification",
+  "invoke_status": 200,
+  "function_error": null,
+  "invoke_body": {
+    "ok": true,
+    "n_covered": 501,
+    "n_opportunities": 25,
+    "verdict_counts": {
+      "STRONG OPPORTUNITY": 98,
+      "HIGH RISK": 18,
+      "OPPORTUNITY": 93,
+      "FAIR VALUE": 83,
+      "HOLD / NEUTRAL": 58,
+      "EXPENSIVE": 151
+    }
+  },
+  "value_trap_guard": {
+    "leaked": []
+  },
+  "verdict_counts": {
+    "STRONG OPPORTUNITY": 98,
+    "HIGH RISK": 18,
+    "OPPORTUNITY": 93,
+    "FAIR VALUE": 83,
+    "HOLD / NEUTRAL": 58,
+    "EXPENSIVE": 151
+  },
+  "sample_top": [
+    {
+      "ticker": "HUM",
+      "verdict": "STRONG OPPORTUNITY",
+      "undervalued_pct": 67.7,
+      "fair_value": [
+        215.33,
+        808.31
+      ],
+      "price": 305.12,
+      "opp_score": 87.7,
+      "why": "Trading ~68% below estimated fair value"
+    },
+    {
+      "ticker": "NEM",
+      "verdict": "STRONG OPPORTUNITY",
+      "undervalued_pct": 64.1,
+      "fair_value": [
+        127.1,
+        230.87
+      ],
+      "price": 109.06,
+      "opp_score": 85.0,
+      "why": "Trading ~64% below estimated fair value"
+    },
+    {
+      "ticker": "EQT",
+      "verdict": "STRONG OPPORTUNITY",
+      "undervalued_pct": 137.3,
+      "fair_value": [
+        45.48,
+        221.37
+      ],
+      "price": 56.22,
+      "opp_score": 84.3,
+      "why": "Trading ~137% below estimated fair value"
+    },
+    {
+      "ticker": "ACGL",
+      "verdict": "STRONG OPPORTUNITY",
+      "undervalued_pct": 172.7,
+      "fair_value": [
+        109.14,
+        403.44
+      ],
+      "price": 93.98,
+      "opp_score": 83.2,
+      "why": "Trading ~173% below estimated fair value"
+    },
+    {
+      "ticker": "PTC",
+      "verdict": "STRONG OPPORTUNITY",
+      "undervalued_pct": 89.2,
+      "fair_value": [
+        155.65,
+        381.38
+      ],
+      "price": 141.91,
+      "opp_score": 83.2,
+      "why": "Trading ~89% below estimated fair value"
+    }
+  ],
+  "sample_avoid": [
+    {
+      "ticker": "MPC",
+      "verdict": "HIGH RISK",
+      "risk": "Revenue is shrinking (-4% YoY)"
+    },
+    {
+      "ticker": "KHC",
+      "verdict": "HIGH RISK",
+      "risk": "Revenue is shrinking (-4% YoY)"
+    },
+    {
+      "ticker": "LEN",
+      "verdict": "HIGH RISK",
+      "risk": "Revenue is shrinking (-4% YoY)"
+    },
+    {
+      "ticker": "PRU",
+      "verdict": "HIGH RISK",
+      "risk": "In a downtrend \u2014 death cross 45d ago"
+    },
+    {
+      "ticker": "DOW",
+      "verdict": "HIGH RISK",
+      "risk": "Revenue is shrinking (-7% YoY)"
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "covered_universe": true,
+    "schema_ok": true,
+    "has_all_rows": true,
+    "has_disclaimer": true,
+    "top_rows_wellformed": true,
+    "no_risk_leak_into_opportunities": true,
+    "page_live": true
+  },
+  "all_pass": true,
+  "verdict": "OPPORTUNITY ENGINE LIVE \u2014 verdicts generated, value-trap guard holding, retail page serving"
+}
