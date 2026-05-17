@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Narratives · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🧬</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:18px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .st{font-family:var(--mono);font-size:26px;font-weight:700;margin:4px 0 2px}
+.hero .read{color:var(--mute);font-size:13px;line-height:1.6;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.chip{font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line)}
+.chip .k{color:var(--dim);text-transform:uppercase;margin-right:5px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.card .hd{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:11px 14px;border-bottom:1px solid var(--line)}
+.card.hot .hd{color:var(--green);background:#26ffaf0d}
+.card.cold .hd{color:var(--red);background:#ff55770d}
+.row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(28,36,51,.55)}
+.row:last-child{border-bottom:none}
+.row .nm{flex:1;font-family:var(--mono);font-size:12px;color:var(--txt);font-weight:600}
+.row .meta{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.row .chg{font-family:var(--mono);font-size:13px;font-weight:700;width:74px;text-align:right}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+@media(max-width:820px){.cols2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧬 Crypto Narratives</h1>
+    <p class="subtitle">Crypto trades by <b>narrative</b> — AI, RWA, DePIN, L2s, restaking, memecoins — not by individual coin. This ranks every CoinMarketCap sector by 24h aggregate momentum, so you see what's rotating in and out. <b>Breadth</b> — the share of narratives in the green — tells you whether it's a broad bid or a selective, rotational tape.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/dex.html">crypto</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING NARRATIVES…</div></div>
+
+  <div class="cols2">
+    <div class="card hot"><div class="hd">🔥 Hot — leading narratives</div><div id="hot"><div class="loading">…</div></div></div>
+    <div class="card cold"><div class="hd">🧊 Cold — lagging narratives</div><div id="cold"><div class="loading">…</div></div></div>
+  </div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function mc(n){if(n==null)return"—";if(n>=1e9)return"$"+(n/1e9).toFixed(1)+"B";if(n>=1e6)return"$"+(n/1e6).toFixed(0)+"M";return"$"+n;}
+
+function stColor(s){return s==="RISK-ON ROTATION"?"var(--green)":s==="RISK-OFF"?"var(--red)":s==="SELECTIVE"?"var(--yellow)":"var(--dim)";}
+
+function rows(list){
+  if(!list||!list.length)return `<div class="loading">no data</div>`;
+  return list.map(c=>{
+    const v=c.avg_price_change_24h, col=v>0?"var(--green)":v<0?"var(--red)":"var(--mute)";
+    return `<div class="row">
+      <div>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="meta">${c.num_tokens} tokens · ${mc(c.market_cap)} · vol ${c.volume_change_24h>0?"+":""}${c.volume_change_24h}%</div>
+      </div>
+      <div class="chg" style="color:${col}">${v>0?"+":""}${v}%</div>
+    </div>`;
+  }).join("");
+}
+
+(async()=>{
+  const d=await J("crypto-narratives.json");
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="st" style="color:var(--orange);font-size:18px">AWAITING FIRST RUN</div><div class="read">The engine runs every 6 hours.</div></div>`;document.getElementById("hot").innerHTML="";document.getElementById("cold").innerHTML="";return;}
+  const col=stColor(d.stance);
+  const fg=d.fear_greed||{};
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Narrative Rotation</div>
+      <div class="st" style="color:${col}">${esc(d.stance)}</div>
+      <div class="read">${esc(d.read||"")}</div>
+      <div class="chips">
+        <span class="chip"><span class="k">breadth</span><b style="color:${col}">${d.narrative_breadth_pct}% green</b></span>
+        <span class="chip"><span class="k">categories</span><b>${d.n_categories}</b></span>
+        ${fg.value!=null?`<span class="chip"><span class="k">fear & greed</span><b>${fg.value} · ${esc(fg.classification||"")}</b></span>`:""}
+      </div>
+    </div>`;
+  document.getElementById("hot").innerHTML=rows(d.hot);
+  document.getElementById("cold").innerHTML=rows(d.cold);
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent="engine: "+(d.method||"")+" · generated "+(d.generated_at||"?");
+})();
+</script>
+</body>
+</html>

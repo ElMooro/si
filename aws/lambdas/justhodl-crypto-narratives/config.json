@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-crypto-narratives",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto Narrative / Sector Rotation — CMC categories ranked by 24h momentum + narrative breadth + Fear & Greed. Output data/crypto-narratives.json.",
+  "environment": {"CMC_KEY": "17ba8e87-53f0-46f4-abe5-014d9cd99597"},
+  "schedule": {
+    "rule_name": "crypto-narratives-6h",
+    "cron": "cron(0 */6 * * ? *)",
+    "description": "Crypto narrative rotation — every 6 hours"
+  }
+}
