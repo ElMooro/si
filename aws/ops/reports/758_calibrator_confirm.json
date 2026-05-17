@@ -1,0 +1,25 @@
+{
+  "ops": 758,
+  "ts": "2026-05-17T14:15:53.383007+00:00",
+  "subject": "calibrator deploy confirm",
+  "calibrator_invoke": {
+    "err": "still not found"
+  },
+  "calibration": {
+    "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "ssm_weights": {
+    "value": 0.4,
+    "quality": 0.3,
+    "growth": 0.2,
+    "momentum": 0.1
+  },
+  "checks": {
+    "calibrator_runs_ok": false,
+    "calibration_report_ok": false,
+    "ssm_weights_present": true,
+    "calibrator_wrote_ssm": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]"
+}
