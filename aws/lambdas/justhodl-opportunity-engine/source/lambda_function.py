@@ -45,6 +45,26 @@ import boto3
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/opportunities.json"
 s3 = boto3.client("s3", region_name="us-east-1")
+ssm = boto3.client("ssm", region_name="us-east-1")
+
+# baseline factor weights — the prior. The opportunity-calibrator may
+# replace these in SSM once enough forward-return data has matured;
+# until then (or on any error) the engine falls back to this prior.
+BASE_WEIGHTS = {"value": 0.40, "quality": 0.30, "growth": 0.20,
+                "momentum": 0.10}
+WEIGHTS_PARAM = "/justhodl/opportunity/weights"
+
+
+def get_weights():
+    try:
+        raw = ssm.get_parameter(Name=WEIGHTS_PARAM)["Parameter"]["Value"]
+        w = json.loads(raw)
+        tot = sum(float(w.get(k, 0)) for k in BASE_WEIGHTS)
+        if tot > 0 and all(k in w for k in BASE_WEIGHTS):
+            return {k: round(float(w[k]) / tot, 4) for k in BASE_WEIGHTS}
+    except Exception as e:
+        print(f"[opp] weights: using baseline prior ({e})")
+    return dict(BASE_WEIGHTS)
 
 # sector cyclicality — drives the cycle-aware valuation logic
 CYCLICAL = {"Energy", "Basic Materials", "Materials", "Industrials",
@@ -262,7 +282,7 @@ def guru_metrics(s):
 
 
 # ─────────────────────────── score a stock ──────────────────────────
-def score_stock(s, mr, fund, short_state, bench):
+def score_stock(s, mr, fund, short_state, bench, weights):
     sym = s.get("symbol") or s.get("ticker")
     price = num(s.get("price"))
     if not sym or not price:
@@ -340,8 +360,10 @@ def score_stock(s, mr, fund, short_state, bench):
         m -= 15
     momentum_score = clamp(m)
 
-    opp = round(0.40 * value_score + 0.30 * quality_score
-                + 0.20 * growth_score + 0.10 * momentum_score, 1)
+    opp = round(weights["value"] * value_score
+                + weights["quality"] * quality_score
+                + weights["growth"] * growth_score
+                + weights["momentum"] * momentum_score, 1)
 
     guru = guru_metrics(s)
     scard = vs_industry(s, sec_med)
@@ -514,11 +536,14 @@ def lambda_handler(event, context):
 
     universe = screener.get("stocks", [])
     bench = build_benchmarks(universe)
+    weights = get_weights()
+    print(f"[opp] factor weights: {weights}")
 
     rows = []
     for s in universe:
         sym = s.get("symbol") or s.get("ticker")
-        r = score_stock(s, mr.get(sym), fund.get(sym), shorts.get(sym), bench)
+        r = score_stock(s, mr.get(sym), fund.get(sym), shorts.get(sym),
+                         bench, weights)
         if r:
             rows.append(r)
 
@@ -542,6 +567,7 @@ def lambda_handler(event, context):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
         "n_covered": len(rows),
+        "factor_weights": weights,
         "verdict_counts": by_verdict,
         "changes": changes,
         "top_opportunities": top,
@@ -574,7 +600,12 @@ def lambda_handler(event, context):
                 "picks": {r["ticker"]: {"v": r["verdict"], "p": r["price"],
                                         "fv": r["fair_value_mid"],
                                         "s": r["opportunity_score"],
-                                        "c": r["confidence"]} for r in rows}}
+                                        "c": r["confidence"],
+                                        "ss": [r["scores"]["value"],
+                                               r["scores"]["quality"],
+                                               r["scores"]["growth"],
+                                               r["scores"]["momentum"]]}
+                          for r in rows}}
         s3.put_object(Bucket=S3_BUCKET,
                       Key=f"data/track-record/snapshots/{day}.json",
                       Body=json.dumps(snap, default=str).encode("utf-8"),

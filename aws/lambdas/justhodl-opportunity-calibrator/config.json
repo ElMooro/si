@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-opportunity-calibrator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 240,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Opportunity Engine Calibrator — measures each scoring factor's Information Coefficient (predictive power) from matured snapshots, derives shrinkage-blended factor weights, writes them to SSM /justhodl/opportunity/weights. Output data/opportunity-calibration.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "opportunity-calibrator-weekly",
+    "cron": "cron(30 15 ? * SUN *)",
+    "description": "Opportunity calibrator — weekly Sunday 15:30 UTC, after the track-record engine"
+  }
+}

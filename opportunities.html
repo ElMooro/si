@@ -104,6 +104,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <h2>📊 Track Record — have these verdicts actually worked?</h2>
   <div id="trackrecord"><div class="loading">LOADING TRACK RECORD…</div></div>
+  <div id="calib"></div>
 
   <h2>⭐ My Watchlist</h2>
   <div class="cards" id="watchlist"><div class="empty">Tap the ☆ on any stock to add it here — it stays saved on this device.</div></div>
@@ -175,6 +176,26 @@ function renderTrackRecord(tr){
   });
   h+=`<p class="disc" style="margin-top:10px">${esc(tr.methodology||"")} ${esc(tr.disclaimer||"")}</p>`;
   box.innerHTML=h;
+}
+
+/* ── self-calibration (the learning loop) ── */
+const CALIB_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opportunity-calibration.json";
+function renderCalibration(c){
+  const box=document.getElementById("calib");
+  if(!c){box.innerHTML="";return;}
+  const w=c.factor_weights||{},ic=c.avg_information_coefficient||{};
+  const on=c.status==="calibrated";
+  const chips=["value","quality","growth","momentum"].map(f=>{
+    const iv=ic[f];
+    return `<span class="chip" style="cursor:default">${f} <b style="color:var(--cyan)">${w[f]!=null?(w[f]*100).toFixed(0)+"%":"—"}</b>`+
+      (iv!=null?` <span style="color:${iv>=0?'var(--green)':'var(--red)'}">IC ${iv>=0?'+':''}${iv.toFixed(2)}</span>`:"")+`</span>`;
+  }).join("");
+  box.innerHTML=`<div class="banner" style="border-left-color:${on?'var(--green)':'var(--dim)'};margin-top:8px">
+    <h3 style="color:${on?'var(--green)':'var(--mute)'}">🧠 Self-calibration ${on?'— ACTIVE':'— learning'}</h3>
+    <div style="font-size:12px;color:var(--mute);margin-bottom:8px">${esc(c.headline||"")}</div>
+    <div class="chips">${chips}</div>
+    <p class="disc" style="margin-top:8px">${esc(c.methodology||"")}</p>
+  </div>`;
 }
 
 const GLOSS=[
@@ -288,6 +309,7 @@ function buildFilters(){
 (async()=>{
   document.getElementById("glossary").innerHTML=GLOSS.map(([t,d])=>`<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("");
   try{const tr=await fetch(TR_URL+"?t="+Date.now());renderTrackRecord(tr.ok?await tr.json():null);}catch{renderTrackRecord(null);}
+  try{const cc=await fetch(CALIB_URL+"?t="+Date.now());renderCalibration(cc.ok?await cc.json():null);}catch{renderCalibration(null);}
   try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
   if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
   (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});
