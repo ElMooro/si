@@ -1,0 +1,43 @@
+{
+  "ops": 757,
+  "ts": "2026-05-17T14:06:57.534785+00:00",
+  "subject": "learning loop re-verify + SSM read-path proof",
+  "calibrator_invoke": {
+    "err": "Lambda not found"
+  },
+  "calibration": {
+    "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "ssm_after_calibrator": {
+    "err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: "
+  },
+  "engine_invoke_sentinel": {
+    "status": 200,
+    "fn_error": null
+  },
+  "engine_weights_with_sentinel": {
+    "value": 0.25,
+    "quality": 0.25,
+    "growth": 0.25,
+    "momentum": 0.25
+  },
+  "engine_invoke_restore": {
+    "status": 200,
+    "fn_error": null
+  },
+  "engine_weights_restored": {
+    "value": 0.4,
+    "quality": 0.3,
+    "growth": 0.2,
+    "momentum": 0.1
+  },
+  "checks": {
+    "calibrator_runs_ok": false,
+    "calibration_report_ok": false,
+    "ssm_weights_present": false,
+    "engine_reads_ssm_proven": true,
+    "real_weights_restored": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]"
+}
