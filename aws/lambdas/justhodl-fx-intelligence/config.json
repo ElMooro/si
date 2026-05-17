@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-fx-intelligence",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Institutional FX Regime & Carry Engine — per-currency trend/momentum/vol scorecard, broad USD regime, FX risk barometer (high-beta vs haven), rate differentials, CFTC FX positioning. Output data/fx-intelligence.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "fx-intelligence-daily",
+    "cron": "cron(30 13 * * ? *)",
+    "description": "FX Intelligence Engine — daily 13:30 UTC after FRED FX update"
+  }
+}
