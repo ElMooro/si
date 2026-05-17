@@ -18,33 +18,37 @@ import urllib.request
 API = "https://api.db.nomics.world/v22"
 
 
-def fetch_series(series_id, timeout=25):
+def fetch_series(series_id, timeout=30, retries=2):
     """series_id = 'PROVIDER/DATASET/SERIES'.
-    Returns [(period, value|None), ...] oldest-first, or [] on any failure."""
-    try:
-        url = f"{API}/series/{urllib.parse.quote(series_id)}?observations=1"
-        req = urllib.request.Request(
-            url, headers={"User-Agent": "justhodl-canary-grid/1.0",
-                          "Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.loads(r.read())
-        docs = ((data.get("series") or {}).get("docs")) or []
-        if not docs:
-            return []
-        doc = docs[0]
-        periods = doc.get("period") or []
-        values = doc.get("value") or []
-        out = []
-        for p, v in zip(periods, values):
-            try:
-                fv = float(v)
-            except (TypeError, ValueError):
-                fv = None
-            out.append((p, fv))
-        return out
-    except Exception as e:  # noqa: BLE001
-        print(f"[dbnomics] {series_id}: {e}")
-        return []
+    Returns [(period, value|None), ...] oldest-first, or [] on any failure.
+    Retries once — the DBnomics API can be slow under load."""
+    url = f"{API}/series/{urllib.parse.quote(series_id)}?observations=1"
+    last = None
+    for _ in range(max(1, retries)):
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "justhodl-canary-grid/1.0",
+                              "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = json.loads(r.read())
+            docs = ((data.get("series") or {}).get("docs")) or []
+            if not docs:
+                return []
+            doc = docs[0]
+            periods = doc.get("period") or []
+            values = doc.get("value") or []
+            out = []
+            for p, v in zip(periods, values):
+                try:
+                    fv = float(v)
+                except (TypeError, ValueError):
+                    fv = None
+                out.append((p, fv))
+            return out
+        except Exception as e:  # noqa: BLE001
+            last = e
+    print(f"[dbnomics] {series_id}: {last}")
+    return []
 
 
 def latest(series_id):
