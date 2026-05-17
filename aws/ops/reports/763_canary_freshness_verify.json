@@ -1,0 +1,103 @@
+{
+  "ops": 763,
+  "ts": "2026-05-17T15:46:02.605059+00:00",
+  "subject": "Canary Grid freshness guard verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "early_warning_level": 34.8,
+  "band": "WATCH",
+  "n_available": 8,
+  "freshness": {
+    "stale_hard_days": 95,
+    "stale_warn_days": 65,
+    "n_fresh": 5,
+    "n_stale_warning": 3,
+    "n_excluded_stale": 1,
+    "excluded_for_staleness": [
+      "swiss_unemp"
+    ],
+    "oldest_signal": {
+      "key": "swiss_unemp",
+      "age_days": 898
+    }
+  },
+  "signal_ages": [
+    {
+      "key": "swiss_unemp",
+      "age_days": 898,
+      "available": false,
+      "stale_warning": null,
+      "as_of": "2023-12-01"
+    },
+    {
+      "key": "korea_exports",
+      "age_days": 77,
+      "available": true,
+      "stale_warning": true,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "china_exports",
+      "age_days": 77,
+      "available": true,
+      "stale_warning": true,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "copper",
+      "age_days": 77,
+      "available": true,
+      "stale_warning": true,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "lumber",
+      "age_days": 46,
+      "available": true,
+      "stale_warning": false,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "mfg_hours",
+      "age_days": 46,
+      "available": true,
+      "stale_warning": false,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "temp_help",
+      "age_days": 46,
+      "available": true,
+      "stale_warning": false,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "chf_haven",
+      "age_days": 9,
+      "available": true,
+      "stale_warning": false,
+      "as_of": "2026-05-08"
+    },
+    {
+      "key": "eurodollar_stress",
+      "age_days": 0,
+      "available": true,
+      "stale_warning": false,
+      "as_of": "2026-05-17T14:48:36.982300+00:00"
+    }
+  ],
+  "schedule": "cron(30 */6 * * ? *)",
+  "checks": {
+    "engine_runs": true,
+    "freshness_block_present": true,
+    "signals_carry_age": true,
+    "guard_thresholds_correct": true,
+    "grid_still_healthy": true,
+    "no_stale_data_used": true,
+    "cadence_is_6h": true
+  },
+  "all_pass": true,
+  "verdict": "FRESHNESS GUARD LIVE \u2014 every signal carries its data age, anything past ~3 months is excluded so the grid stays forward-looking, the freshness audit is published, and the engine refreshes every 6h. See signal_ages for the current data lag on each canary."
+}
