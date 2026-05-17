@@ -1,0 +1,115 @@
+{
+  "ops": 740,
+  "ts": "2026-05-17T08:22:31.092025+00:00",
+  "subject": "mean-reversion engine + screener integration",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_priced\\\": 422, \\\"n_cheap_vs_history\\\": 138, \\\"n_rich_vs_history\\\": 139}\"}"
+  },
+  "summary": {
+    "schema": "1.0",
+    "count": 503,
+    "n_priced": 422,
+    "n_cheap": 138,
+    "n_rich": 139
+  },
+  "cheapest_vs_history": [
+    {
+      "symbol": "LULU",
+      "mr_price": 522.76,
+      "mr_upside_pct": 338.8,
+      "current_pe": 9.0,
+      "median_pe": 39.4,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "MKC",
+      "mr_price": 174.49,
+      "mr_upside_pct": 276.5,
+      "current_pe": 7.6,
+      "median_pe": 28.5,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "CHTR",
+      "mr_price": 463.05,
+      "mr_upside_pct": 230.0,
+      "current_pe": 3.6,
+      "median_pe": 11.8,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "EIX",
+      "mr_price": 225.26,
+      "mr_upside_pct": 225.7,
+      "current_pe": 7.2,
+      "median_pe": 23.4,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "ZTS",
+      "mr_price": 223.4,
+      "mr_upside_pct": 201.0,
+      "current_pe": 11.8,
+      "median_pe": 35.7,
+      "label": "CHEAP vs own history"
+    }
+  ],
+  "richest_vs_history": [
+    {
+      "symbol": "SW",
+      "mr_price": 9.81,
+      "mr_upside_pct": -73.8,
+      "current_pe": 54.4,
+      "median_pe": 14.2,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "BG",
+      "mr_price": 30.58,
+      "mr_upside_pct": -75.0,
+      "current_pe": 34.6,
+      "median_pe": 8.6,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "ON",
+      "mr_price": 24.94,
+      "mr_upside_pct": -77.9,
+      "current_pe": 77.7,
+      "median_pe": 17.1,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "TSN",
+      "mr_price": 13.4,
+      "mr_upside_pct": -79.6,
+      "current_pe": 51.3,
+      "median_pe": 10.4,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "STX",
+      "mr_price": 152.69,
+      "mr_upside_pct": -80.8,
+      "current_pe": 73.9,
+      "median_pe": 14.2,
+      "label": "RICH vs own history"
+    }
+  ],
+  "screener_page": {
+    "status": 200,
+    "has_mr_url": true,
+    "has_loader": true,
+    "has_columns": true
+  },
+  "checks": {
+    "invoke_ok": true,
+    "sidecar_valid": true,
+    "prices_populated": true,
+    "page_has_integration": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 mean-reversion engine live; screener page carries the Mean Rev $ / Mean Rev % columns and loader"
+}
