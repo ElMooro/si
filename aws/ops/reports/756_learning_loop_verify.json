@@ -1,0 +1,56 @@
+{
+  "ops": 756,
+  "ts": "2026-05-17T14:02:06.102787+00:00",
+  "subject": "opportunity learning loop verify",
+  "calibrator_invoke": {
+    "err": "Lambda not found \u2014 deploy not yet landed"
+  },
+  "calibration": {
+    "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "ssm_weights": {
+    "err": "An error occurred (ParameterNotFound) when calling the GetParameter operation: "
+  },
+  "engine_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"schema\\\": \\\"2.0\\\", \\\"n_covered\\\": 501, \\\"n_opportunities\\\": 30, \\\"verdict_counts\\\": {\\\"STRONG OPPORTUNITY\\\": 22, \\\"OPPORTUNITY\\\": 142, \\\"HIGH RISK\\\": 165, \\\"FAIR VALUE\\\": 77, \\\"EXPENSIVE\\\": 85, \\\"HOLD / NEUTRAL\\\": 10}, \\\"n_new_opportunities\\\": 0}\"}"
+  },
+  "engine_factor_weights": {
+    "value": 0.4,
+    "quality": 0.3,
+    "growth": 0.2,
+    "momentum": 0.1
+  },
+  "snapshot_sample": {
+    "FICO": {
+      "v": "STRONG OPPORTUNITY",
+      "p": 1098.59,
+      "fv": 1609.24,
+      "s": 85.9,
+      "c": "high",
+      "ss": [
+        91,
+        100,
+        82,
+        32
+      ]
+    }
+  },
+  "schedule": {
+    "state": "ENABLED",
+    "cron": "cron(30 15 ? * SUN *)"
+  },
+  "checks": {
+    "calibrator_deployed_ok": false,
+    "calibration_report_written": false,
+    "ssm_weights_written": false,
+    "engine_invoke_ok": true,
+    "engine_reads_weights": true,
+    "snapshot_has_subscores": true,
+    "calibrator_schedule_exists": true,
+    "page_calibration_panel_live": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[] (new Lambda creation can lag one deploy cycle)"
+}
