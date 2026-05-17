@@ -1,0 +1,35 @@
+{
+  "ops": 747,
+  "ts": "2026-05-17T11:22:12.246815+00:00",
+  "subject": "AI Lambdas re-test post credit top-up",
+  "results": {
+    "justhodl-nobrainer-rationale": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"n_theses\\\": 12, \\\"n_claude_ok\\\": 12, \\\"n_claude_fail\\\": 0, \\\"duration_s\\\": 147.0}\"}",
+      "n_claude_ok": 12,
+      "n_claude_fail": 0,
+      "credits_ok": true
+    },
+    "justhodl-investor-agents": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 401, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Access-Control-Allow-Headers\": \"Content-Type, Authorization, x-api-key\", \"Access-Control-Allow-Methods\": \"GET, POST, OPTIONS\"}, \"body\": \"{\\\"error\\\": \\\"unauthorized\\\", \\\"message\\\": \\\"Missing API k",
+      "credit_error_present": false
+    },
+    "justhodl-morning-intelligence": {
+      "status_code": 200,
+      "function_error": null,
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"khalid\\\": {\\\"score\\\": 51, \\\"regime\\\": \\\"NEUTRAL\\\", \\\"signals\\\": [[\\\"DXY\\\", -12, \\\"118.0\\\"], [\\\"HY Spread\\\", 5, \\\"2.76%\\\"], [\\\"NFCI\\\", 5, \\\"-0.52\\\"], [\\\"Unemployment\\\", -8, \\\"4.3%\\\"], [\\\"Net Liq\\\", 3, \\\"$5.89T\\\"], [\\\"SPY Trend\\\", 5, \\\"$739\\\"], [\\\"LCE",
+      "credit_error_present": false
+    }
+  },
+  "checks": {
+    "nobrainer_claude_working": true,
+    "nobrainer_no_fails": true,
+    "investor_agents_ok": true,
+    "morning_intel_ok": true
+  },
+  "all_pass": true,
+  "verdict": "AI RESTORED \u2014 credits live; nobrainer-rationale generating theses, no credit errors across AI Lambdas"
+}
