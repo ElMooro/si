@@ -98,6 +98,13 @@ def n_mean_reversion(d):
     return sig, f"{ch} cheap vs {ri} rich on own multiple history"
 
 
+def n_canary_grid(d):
+    band = (d.get("band") or "").upper()
+    m = {"CALM": 1, "WATCH": 0, "ELEVATED": -1, "WARNING": -2, "CRITICAL": -2}
+    lvl = d.get("early_warning_level")
+    return m.get(band, 0), f"Global early-warning {band or 'n/a'} ({lvl}/100)"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -107,6 +114,7 @@ FEEDS = [
     ("Crypto Narratives",  "crypto",           "data/crypto-narratives.json",  n_crypto_narratives),
     ("Short Pressure",     "positioning",      "data/short-pressure.json",     n_short_pressure),
     ("Mean Reversion",     "equity valuation", "screener/mean-reversion.json", n_mean_reversion),
+    ("Canary Grid",        "macro",            "data/canary-grid.json",        n_canary_grid),
 ]
 
 

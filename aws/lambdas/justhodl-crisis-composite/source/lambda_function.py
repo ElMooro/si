@@ -165,6 +165,11 @@ def comp_leading(d):
     return clamp(dig(d, "risk_score"))
 
 
+def comp_canary(d):
+    # canary-grid emits early_warning_level 0-100 (high = leading global stress)
+    return clamp(dig(d, "early_warning_level", "level", "score"))
+
+
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
     ("data/eurodollar-stress.json", 0.20, comp_eurodollar, "USD funding stress"),
@@ -175,6 +180,7 @@ COMPONENTS = [
     ("data/market-internals.json",  0.10, comp_internals,  "Market breadth"),
     ("data/global-liquidity.json",  0.10, comp_liquidity,  "Global liquidity tide"),
     ("data/leading-markets.json",   0.12, comp_leading,    "Global leading markets"),
+    ("data/canary-grid.json",       0.15, comp_canary,     "Global early-warning canaries"),
 ]
 
 DEFCON = [
