@@ -1,0 +1,63 @@
+{
+  "ops": 755,
+  "ts": "2026-05-17T13:35:57.246292+00:00",
+  "subject": "track-record system verify",
+  "engine_invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "snapshot": {
+    "date": "2026-05-17",
+    "n_picks": 501,
+    "sample": {
+      "FICO": {
+        "v": "STRONG OPPORTUNITY",
+        "p": 1098.59,
+        "fv": 1609.24,
+        "s": 85.9,
+        "c": "high"
+      },
+      "BX": {
+        "v": "STRONG OPPORTUNITY",
+        "p": 117.92,
+        "fv": 155.85,
+        "s": 83.7,
+        "c": "high"
+      }
+    }
+  },
+  "track_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_snapshots\\\": 1, \\\"ready_horizons\\\": [], \\\"headline\\\": \\\"Track record accruing \\\\u2014 1 day logged. First 30-day results unlock once a snapshot is 30 days old.\\\"}\"}"
+  },
+  "track_output": {
+    "schema_version": "1.0",
+    "n_snapshots": 1,
+    "inception_date": "2026-05-17",
+    "days_logged": 0,
+    "headline": "Track record accruing \u2014 1 day logged. First 30-day results unlock once a snapshot is 30 days old.",
+    "horizon_keys": [
+      "30d",
+      "60d",
+      "90d",
+      "inception"
+    ],
+    "has_methodology": true,
+    "has_disclaimer": true
+  },
+  "schedule": {
+    "state": "ENABLED",
+    "cron": "cron(0 15 * * ? *)"
+  },
+  "checks": {
+    "engine_invoke_ok": true,
+    "snapshot_written_today": true,
+    "track_record_lambda_deployed": true,
+    "track_record_output_ok": true,
+    "schedule_rule_exists": true,
+    "page_track_panel_live": true
+  },
+  "all_pass": true,
+  "verdict": "TRACK-RECORD SYSTEM LIVE \u2014 daily snapshot ledger writing, track-record engine computing tier returns/alpha, schedule + page panel verified. Performance fills in as snapshots mature (first 30-day results in ~30 days)."
+}
