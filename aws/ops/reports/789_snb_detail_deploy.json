@@ -1,0 +1,47 @@
+{
+  "ops": 789,
+  "ts": "2026-05-17T23:30:26.740886+00:00",
+  "subject": "Deploy + verify justhodl-snb-detail (Swiss franc engine)",
+  "deploy": "updated (already existed)",
+  "schedule": {
+    "rule": "snb-detail-daily",
+    "cron": "cron(40 11 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"stance\": \"NEUTRAL\", \"franc_pressure\": 35.8, \"regime\": \"FRANC FIRM \\u2014 funding currency, appreciation risk\", \"errors\": 0}"
+  },
+  "snb_detail": {
+    "ok": true,
+    "headline": "SNB: NEUTRAL. Franc safe-haven pressure 36/100 (FRANC FIRM \u2014 funding currency, appreciation risk). Monetary base -2.2%/6m (contracting); short rate -0.04% (near zero); EUR/CHF 0.9151.",
+    "stance": "NEUTRAL",
+    "franc_pressure": 35.8,
+    "franc_regime": "FRANC FIRM \u2014 funding currency, appreciation risk",
+    "components": {
+      "franc_strength_level": 20.5,
+      "appreciation_momentum": 1.1,
+      "yield_compression": 7.7,
+      "snb_rate_defense": 6.5
+    },
+    "monetary_base_chf_bn": 502.5,
+    "fx_reserves_chf_bn": 876.4,
+    "policy_rate_pct": -0.04,
+    "yield_10y_pct": 0.45,
+    "eur_chf": 0.9151,
+    "usd_chf": 0.7773,
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "franc_score_computed": true,
+    "real_fred_data": true
+  },
+  "all_pass": true,
+  "verdict": "SNB-DETAIL LIVE \u2014 franc safe-haven pressure 35.8/100 (FRANC FIRM \u2014 funding currency, appreciation risk); SNB NEUTRAL; EUR/CHF 0.9151. Deployed, scheduled daily 11:40 UTC, real FRED data. Central-bank coverage for the eurodollar / carry system is now complete: ecb-detail + boj-detail + snb-detail, all feeding cb-injection's ECB/BOJ/Fed/SNB synthesis."
+}
