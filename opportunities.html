@@ -14,10 +14,10 @@
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.55}
-.container{max-width:1200px;margin:0 auto;padding:22px}
-header{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px}
+.container{max-width:1180px;margin:0 auto;padding:22px}
+header{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
 h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 11px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .subtitle{color:var(--mute);font-size:13px;margin:0;max-width:940px}
 .disc{color:var(--dim);font-size:11.5px;margin:8px 0 0;max-width:940px;font-style:italic}
 nav.crumbs{margin-top:10px}
@@ -27,68 +27,56 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .searchbar input{width:100%;max-width:360px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:14px;padding:11px 14px;outline:none}
 .searchbar input:focus{border-color:var(--cyan)}
 .hint{color:var(--dim);font-size:11px;margin:4px 0 0}
-.kpi{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 4px}
-.kpi span{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;color:var(--mute)}
-/* hero top pick */
-.hero{background:linear-gradient(135deg,#101a2a,#0d1320);border:1px solid #21406f;border-radius:13px;padding:18px 20px;margin-bottom:6px;position:relative}
-.hero .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase}
-.hero .tk{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:5px}
-.hero .co{color:var(--dim);font-size:12px}
-.hero .bl{font-size:14px;color:var(--txt);margin:10px 0 4px;max-width:780px}
-/* cards */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(335px,1fr));gap:13px}
 .card{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:15px 16px;position:relative}
-.card .tk{font-family:var(--mono);font-size:16px;font-weight:700}
-.card .co{color:var(--dim);font-size:11px;margin-bottom:8px}
-.badge{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.6px;padding:5px 10px;border-radius:6px;margin-bottom:9px}
-.b-green{background:#26ffaf22;color:var(--green)}
-.b-cyan{background:#00d4ff1c;color:var(--cyan)}
-.b-yellow{background:#ffd2661c;color:var(--yellow)}
-.b-orange{background:#ff7a181c;color:var(--orange)}
-.b-red{background:#ff557722;color:var(--red)}
-.b-dim{background:#1c2433;color:var(--dim)}
-.bl{font-size:12.5px;color:var(--mute);margin:0 0 9px}
-.value{background:var(--panel2);border-radius:7px;padding:8px 11px;margin-bottom:9px;font-size:12.5px}
+.card .tk{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--txt)}
+.card .co{color:var(--dim);font-size:11.5px;margin-bottom:8px}
+.star{position:absolute;top:13px;right:13px;cursor:pointer;font-size:16px;color:var(--dim);user-select:none;background:none;border:none;padding:2px 4px}
+.star.on{color:var(--yellow)}
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;padding:5px 10px;border-radius:6px;margin:0 6px 9px 0}
+.b-green{background:#26ffaf22;color:var(--green)}.b-cyan{background:#00d4ff1c;color:var(--cyan)}
+.b-yellow{background:#ffd2661c;color:var(--yellow)}.b-orange{background:#ff7a181c;color:var(--orange)}
+.b-red{background:#ff557722;color:var(--red)}.b-dim{background:#1c2433;color:var(--dim)}
+.cyc{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.5px;padding:3px 7px;border-radius:5px;vertical-align:middle}
+.cyc-early{background:#26ffaf18;color:var(--green)}.cyc-late{background:#ff7a1818;color:var(--orange)}.cyc-mid{background:#1c2433;color:var(--dim)}
+.bottom{font-size:12.5px;color:var(--txt);background:var(--panel2);border-radius:7px;padding:9px 11px;margin-bottom:10px;line-height:1.5}
+.value{background:var(--panel2);border-radius:7px;padding:8px 11px;margin-bottom:10px;font-size:12.5px}
 .value .big{font-family:var(--mono);font-size:14px;font-weight:700}
-.value .conf{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:2px}
-.cyc{font-size:11.5px;border-radius:6px;padding:7px 10px;margin-bottom:9px;border:1px solid var(--line)}
-.cyc b{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px}
+.value .conf{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:3px}
+.methods{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:3px}
 .pts{margin:0;padding:0;list-style:none}
-.pts li{font-size:11.5px;margin-bottom:4px;display:flex;gap:7px;align-items:flex-start}
-.pts li .ic{flex-shrink:0;font-size:10px;margin-top:2px}
-.pos .ic{color:var(--green)}
-.neg .ic{color:var(--orange)}
+.pts li{font-size:12px;margin-bottom:4px;display:flex;gap:7px;align-items:flex-start}
+.pts li .ic{flex-shrink:0;font-size:11px;margin-top:1px}
+.pos .ic{color:var(--green)}.neg .ic{color:var(--orange)}
 .scores{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
 .scores span{font-family:var(--mono);font-size:9.5px;color:var(--dim);background:var(--panel2);padding:3px 7px;border-radius:4px}
 .scores b{color:var(--mute)}
-.star{position:absolute;top:12px;right:13px;cursor:pointer;font-size:16px;color:var(--dim);user-select:none}
-.star.on{color:var(--yellow)}
-/* peer table */
-table.peer{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:11.5px}
-table.peer th{text-align:right;color:var(--dim);font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;padding:4px 6px;border-bottom:1px solid var(--line)}
-table.peer th:first-child{text-align:left}
-table.peer td{text-align:right;padding:4px 6px;border-bottom:1px solid #141b27;font-family:var(--mono)}
-table.peer td:first-child{text-align:left;font-family:'Inter',sans-serif;color:var(--mute)}
-.r-good{color:var(--green)}.r-bad{color:var(--red)}.r-mid{color:var(--dim)}
-/* scorecard bars */
-.sc{margin:8px 0 4px}
-.sc .row{display:flex;align-items:center;gap:9px;margin-bottom:6px}
-.sc .nm{font-size:11px;color:var(--mute);width:108px;flex-shrink:0}
-.sc .track{flex:1;height:9px;background:var(--panel2);border-radius:5px;overflow:hidden}
-.sc .fill{height:100%;border-radius:5px}
-.sc .rd{font-size:10px;color:var(--dim);width:140px;flex-shrink:0;text-align:right}
-.avoid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:9px}
+.sctable{width:100%;border-collapse:collapse;margin:8px 0 2px;font-size:11.5px}
+.sctable td{padding:4px 6px;border-bottom:1px solid var(--line)}
+.sctable .m{color:var(--mute)}.sctable .v{font-family:var(--mono);text-align:right}
+.t-good{color:var(--green)}.t-bad{color:var(--orange)}.t-mid{color:var(--dim)}
+.avoid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:9px}
 .arow{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:7px;padding:10px 12px}
 .arow .at{font-family:var(--mono);font-weight:700;font-size:13px}
 .arow .ar{font-size:11px;color:var(--mute);margin-top:3px}
 .loading{text-align:center;padding:42px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
-.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:14px}
-.detail{background:var(--panel);border:1px solid var(--cyan);border-radius:11px;padding:17px 18px;margin-bottom:8px}
-details.gloss{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:10px 14px}
-details.gloss summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
-details.gloss dl{font-size:12px;margin:10px 0 2px}
-details.gloss dt{color:var(--cyan);font-family:var(--mono);font-size:11px;margin-top:8px}
-details.gloss dd{margin:2px 0 0;color:var(--mute)}
+.kpi{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+.kpi span{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;color:var(--mute)}
+.banner{background:linear-gradient(180deg,#11161f,#0f131a);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:10px;padding:13px 16px;margin:14px 0 2px}
+.banner h3{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin:0 0 7px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute);cursor:pointer}
+.chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.chip.up{color:var(--green)}.chip.down{color:var(--red)}
+.filterbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+.filterbar select,.fbtn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--mute);font-family:var(--mono);font-size:11px;padding:6px 10px;cursor:pointer}
+.fbtn.active{border-color:var(--cyan);color:var(--cyan);background:#00d4ff12}
+.glossary{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px 16px;margin-top:6px}
+.glossary summary{cursor:pointer;font-family:var(--mono);font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--cyan);padding:11px 0;outline:none}
+.glossary dl{margin:4px 0 14px;font-size:12.5px}
+.glossary dt{font-weight:700;color:var(--txt);margin-top:9px}
+.glossary dd{margin:2px 0 0;color:var(--mute)}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
 .empty{color:var(--dim);font-size:12px;padding:8px 2px}
 </style>
 </head>
@@ -96,7 +84,7 @@ details.gloss dd{margin:2px 0 0;color:var(--mute)}
 <div class="container">
   <header>
     <h1>🎯 Stock Opportunities</h1>
-    <p class="subtitle">Every S&amp;P 500 stock, scored into one plain verdict. We estimate what each company is genuinely <b>worth</b>, benchmark it against its <b>industry peers</b>, read where it sits in its <b>boom-bust cycle</b>, then tell you in plain English: opportunity, fairly priced, expensive, or too risky — and by how much.</p>
+    <p class="subtitle">Every S&amp;P 500 stock, scored into one plain verdict. We estimate what each company is genuinely <b>worth</b> three independent ways, check whether it's <b>safe</b>, <b>growing</b>, and <b>where it sits in its cycle</b>, compare it to its industry peers — then tell you in plain English: opportunity, fair, expensive, or too risky, and by how much.</p>
     <p class="disc">⚠ Research and education only — not financial advice. Every stock can lose money. Fair value is a model estimate that can be wrong. Always do your own diligence.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
@@ -106,182 +94,194 @@ details.gloss dd{margin:2px 0 0;color:var(--mute)}
     </nav>
     <div class="searchbar">
       <input id="search" type="text" placeholder="Look up any ticker — e.g. AAPL" autocomplete="off">
-      <p class="hint">Type a ticker for its full verdict — fair value, peer comparison, cycle read and risks.</p>
+      <p class="hint">Type a ticker for its full report — fair value, cycle, peer comparison, the works.</p>
     </div>
   </header>
 
   <div id="lookup"></div>
+  <div class="banner" id="banner" style="display:none"></div>
   <div class="kpi" id="kpi"></div>
 
-  <h2>★ Today's Top Pick</h2>
-  <div id="hero"><div class="loading">LOADING…</div></div>
-
-  <h2>★ My Watchlist</h2>
-  <div class="cards" id="watch"><div class="empty">Tap the ☆ on any stock to add it here. Your watchlist is saved on this device.</div></div>
+  <h2>⭐ My Watchlist</h2>
+  <div class="cards" id="watchlist"><div class="empty">Tap the ☆ on any stock to add it here — it stays saved on this device.</div></div>
 
   <h2>Top Opportunities — undervalued, and not a value trap</h2>
   <div class="cards" id="top"><div class="loading">LOADING OPPORTUNITIES…</div></div>
 
-  <h2>🔄 Early-Cycle Value — cheap before the cycle turns</h2>
-  <div class="cards" id="early"><div class="loading">…</div></div>
-
   <h2>⚠ Watch Out — flagged High Risk</h2>
   <div class="avoid" id="avoid"><div class="loading">…</div></div>
 
-  <details class="gloss" id="glossbox">
-    <summary>📖 What do these terms mean? (plain English)</summary>
-    <dl id="glossdl"></dl>
+  <h2>Browse every stock</h2>
+  <div class="filterbar" id="filterbar"></div>
+  <div class="cards" id="browse"></div>
+
+  <h2>How to read this — in plain English</h2>
+  <details class="glossary">
+    <summary>Tap to open the normie glossary</summary>
+    <dl id="glossary"></dl>
   </details>
 
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
 const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opportunities.json";
-const WL_KEY="jh_opp_watch";
-const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:"b-red",dim:"b-dim"};
 const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
-let DATA=null, BYSYM={}, GLOSSARY={};
+let DATA=null, BYSYM={}, FILTER={sector:"",verdict:""};
 
-const getWL=()=>{try{return JSON.parse(localStorage.getItem(WL_KEY))||[]}catch{return[]}};
-const setWL=a=>{try{localStorage.setItem(WL_KEY,JSON.stringify(a))}catch{}};
-function toggleWL(t){let w=getWL();w=w.includes(t)?w.filter(x=>x!==t):[...w,t];setWL(w);renderWatch();paintStars();}
-function paintStars(){const w=getWL();document.querySelectorAll(".star").forEach(el=>{el.classList.toggle("on",w.includes(el.dataset.t));el.textContent=w.includes(el.dataset.t)?"★":"☆";});}
+/* ── watchlist (saved on this device) ── */
+const WL=()=>{try{return JSON.parse(localStorage.getItem("jh_watchlist")||"[]")}catch{return[]}};
+const setWL=a=>{try{localStorage.setItem("jh_watchlist",JSON.stringify([...new Set(a)]))}catch{}};
+function toggleWL(t){const a=WL();setWL(a.includes(t)?a.filter(x=>x!==t):[...a,t]);renderWatchlist();paintStars();}
+function paintStars(){const w=WL();document.querySelectorAll(".star").forEach(b=>{
+  const on=w.includes(b.dataset.t);b.classList.toggle("on",on);b.textContent=on?"★":"☆";});}
 
-function fairLine(r){
+const GLOSS=[
+ ["Fair value","What the company is realistically worth per share. We estimate it three ways and show the range — not a single false-precise number."],
+ ["Undervalued / overvalued %","How far today's price sits below (cheap) or above (expensive) that fair value."],
+ ["Confidence","HIGH means all three valuation methods agree. LOW means they disagree — treat the number with caution."],
+ ["Cycle stage","Cyclical industries (energy, materials, industrials) boom and bust. EARLY CYCLE = earnings depressed but turning up. LATE CYCLE = earnings near a peak, so a low P/E can be a trap."],
+ ["Value trap","A stock that looks cheap but is cheap for a reason — shrinking sales or a shaky balance sheet. We flag these as HIGH RISK, never as opportunities."],
+ ["P/E ratio","Price ÷ earnings. Lower can mean cheaper — but only versus similar companies, and not for cyclicals at a peak."],
+ ["Forward P/E","Same idea, using next year's expected earnings. If it's much higher than today's P/E, the market expects profits to fall."],
+ ["PEG ratio","P/E divided by growth. Below 1 = you're paying a fair price for the growth you're getting."],
+ ["FCF yield","Free cash flow per dollar of share price. Higher = the business throws off more real cash."],
+ ["Moat","A durable competitive advantage that protects profits. Wide-moat businesses are harder for rivals to attack."],
+ ["vs peers","Every metric is compared to the median of the stock's own industry, so you see if it's genuinely cheap or just average."],
+ ["Opportunity score","A 0–100 blend of value, quality, growth and momentum. Higher = better overall risk/reward."],
+];
+
+function valueLine(r){
   if(r.fair_value_mid==null||r.price==null)
     return `<div class="value"><div class="big">Fair value: not enough data</div></div>`;
   const u=r.undervalued_pct;
-  if(r.valuation_capped)
-    return `<div class="value"><div class="big" style="color:var(--purple)">Screens as deeply mispriced</div>
-      <div class="conf">gap too wide to quote precisely — treat as a rough flag · now $${r.price}</div></div>`;
   const word=u==null?"":(u>=8?`about ${Math.round(u)}% undervalued`:u<=-8?`about ${Math.round(-u)}% overvalued`:"close to fair value");
   const col=u==null?"var(--mute)":(u>=8?"var(--green)":u<=-8?"var(--red)":"var(--yellow)");
+  const m=r.valuation_methods||{};
+  const mtxt=Object.keys(m).length?("methods — "+Object.entries(m).map(([k,v])=>`${k} $${v}`).join(" · ")):"";
   return `<div class="value">
     <div class="big">Worth ~$${r.fair_value_low}–$${r.fair_value_high}
       <span style="color:var(--dim);font-weight:400">· now $${r.price}</span></div>
     <div class="big" style="color:${col};font-size:13px">${word}</div>
     <div class="conf">valuation confidence: ${esc(r.confidence)}</div>
+    ${mtxt?`<div class="methods">${esc(mtxt)}</div>`:""}
   </div>`;
 }
 function cycBadge(r){
-  const c=r.cycle||{}; if(!c.label) return "";
-  return `<div class="cyc" style="border-color:${BORDER[c.color]||'#1c2433'}33">
-    <b style="color:${BORDER[c.color]||'#6f7b91'}">${esc(c.label)}</b><br>
-    <span style="color:var(--mute)">${esc(c.text||"")}</span></div>`;
+  const t=(r.cycle||{}).tag;
+  if(!t||t==="—"||t==="MID CYCLE")return t==="MID CYCLE"?`<span class="cyc cyc-mid">MID CYCLE</span>`:"";
+  const cls=t==="EARLY CYCLE"?"cyc-early":"cyc-late";
+  return `<span class="cyc ${cls}">${esc(t)}</span>`;
 }
-function peerTable(r){
-  const rows=(r.peer_comparison||[]);
-  if(!rows.length) return "";
-  const tr=rows.map(p=>{
-    const cls=/better|cheaper/.test(p.read)?"r-good":/richer|weaker/.test(p.read)?"r-bad":"r-mid";
-    const sign=p.delta_pct>0?"+":"";
-    return `<tr><td>${esc(p.metric)}</td><td>${p.value}</td><td style="color:var(--dim)">${p.industry_median}</td>
-      <td class="${cls}">${sign}${p.delta_pct}%</td><td class="${cls}" style="font-family:Inter">${esc(p.read)}</td></tr>`;
-  }).join("");
-  return `<table class="peer"><thead><tr><th>Metric</th><th>This stock</th><th>Industry</th><th>Gap</th><th>Read</th></tr></thead><tbody>${tr}</tbody></table>`;
-}
-function scorecard(r){
-  const sc=r.statement_scorecard; if(!sc) return "";
-  const bar=(nm,o)=>{
-    const col=o.score>=62?"var(--green)":o.score<=40?"var(--red)":"var(--yellow)";
-    return `<div class="row"><div class="nm">${nm}</div>
-      <div class="track"><div class="fill" style="width:${o.score}%;background:${col}"></div></div>
-      <div class="rd">${esc(o.read)}</div></div>`;
-  };
-  return `<div class="sc">${bar("Income statement",sc.income_statement)}${bar("Balance sheet",sc.balance_sheet)}${bar("Cash flow",sc.cash_flow)}</div>`;
-}
-function compact(r){
-  const bc=BC[r.verdict_color]||"b-dim";
-  return `<div class="card" style="border-left-color:${BORDER[r.verdict_color]||'#1c2433'}">
-    <span class="star" data-t="${esc(r.ticker)}" onclick="toggleWL('${esc(r.ticker)}')">☆</span>
-    <div class="tk">${esc(r.ticker)}</div>
-    <div class="co">${esc(r.company)}${r.sector?" · "+esc(r.sector):""}</div>
-    <span class="badge ${bc}">${esc(r.verdict)}</span>
-    <p class="bl">${esc(r.bottom_line||"")}</p>
-    ${fairLine(r)}
-    <div class="scores"><span>opportunity <b>${r.opportunity_score}</b>/100</span>
-      <span onclick="showDetail('${esc(r.ticker)}')" style="cursor:pointer;color:var(--cyan)">full detail →</span></div>
-  </div>`;
-}
-function detail(r){
+function card(r,full){
   const bc=BC[r.verdict_color]||"b-dim";
   const ops=(r.opportunities||[]).map(o=>`<li class="pos"><span class="ic">▲</span><span>${esc(o)}</span></li>`).join("");
   const risks=(r.risks||[]).map(o=>`<li class="neg"><span class="ic">⚠</span><span>${esc(o)}</span></li>`).join("");
-  const sc=r.scores||{};
-  return `<div class="detail">
-    <span class="star" data-t="${esc(r.ticker)}" onclick="toggleWL('${esc(r.ticker)}')">☆</span>
-    <div class="tk" style="font-family:var(--mono);font-size:19px;font-weight:700">${esc(r.ticker)}</div>
-    <div class="co" style="color:var(--dim);font-size:12px">${esc(r.company)}${r.industry?" · "+esc(r.industry):""}</div>
-    <span class="badge ${bc}" style="margin-top:9px">${esc(r.verdict)}</span>
-    <p class="bl" style="font-size:13.5px;color:var(--txt)">${esc(r.bottom_line||"")}</p>
-    ${fairLine(r)}
-    ${cycBadge(r)}
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin:12px 0 2px">Vs ${esc(r.peer_group||"peers")}</div>
-    ${peerTable(r)}
-    <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin:12px 0 2px">Financial health vs industry</div>
-    ${scorecard(r)}
-    <ul class="pts" style="margin-top:10px">${ops}${risks}</ul>
+  const sc=r.scores||{},g=r.guru||{};
+  let extra="";
+  if(full){
+    const rows=(r.vs_industry||[]).map(x=>{
+      const cls=x.good===true?"t-good":x.good===false?"t-bad":"t-mid";
+      return `<tr><td class="m">${esc(x.metric)}</td><td class="v">${x.value}</td>
+        <td class="v" style="color:var(--dim)">peers ${x.sector_median}</td>
+        <td class="${cls}">${esc(x.tag)}</td></tr>`;}).join("");
+    const cn=(r.cycle||{}).note;
+    extra=`
+      ${cn?`<div class="bottom" style="border-left:3px solid var(--orange)">${esc(cn)}</div>`:""}
+      <div class="scores" style="border:0;padding-top:4px">
+        ${g.peg!=null?`<span>PEG <b>${g.peg}</b></span>`:""}
+        ${g.fcf_yield!=null?`<span>FCF yield <b>${Math.round(g.fcf_yield)}%</b></span>`:""}
+        ${g.moat?`<span>${esc(g.moat)}</span>`:""}
+        ${g.trailing_pe!=null?`<span>P/E <b>${Math.round(g.trailing_pe)}</b></span>`:""}
+        ${g.fwd_pe!=null?`<span>fwd P/E <b>${Math.round(g.fwd_pe)}</b></span>`:""}
+        ${g.analyst_consensus?`<span>analysts: ${esc(g.analyst_consensus)}</span>`:""}
+        ${r.entry_zone_below!=null?`<span style="color:var(--green)">attractive under $${r.entry_zone_below}</span>`:""}
+      </div>
+      ${rows?`<table class="sctable">${rows}</table>`:""}`;
+  }
+  return `<div class="card" style="border-left-color:${BORDER[r.verdict_color]||'#1c2433'}">
+    <button class="star" data-t="${esc(r.ticker)}" onclick="toggleWL('${esc(r.ticker)}')">☆</button>
+    <div class="tk">${esc(r.ticker)} ${cycBadge(r)}</div>
+    <div class="co">${esc(r.company)}${r.sector?" · "+esc(r.sector):""}</div>
+    <span class="badge ${bc}">${esc(r.verdict)}</span>
+    <div class="bottom">${esc(r.bottom_line||"")}</div>
+    ${valueLine(r)}
+    <ul class="pts">${ops||'<li style="color:var(--dim);font-size:11px">No standout positives</li>'}${risks}</ul>
     <div class="scores">
       <span>opportunity <b>${r.opportunity_score}</b>/100</span>
       <span>value <b>${sc.value}</b></span><span>quality <b>${sc.quality}</b></span>
       <span>growth <b>${sc.growth}</b></span><span>momentum <b>${sc.momentum}</b></span>
     </div>
+    ${extra}
   </div>`;
 }
-function showDetail(t){
-  const r=BYSYM[t]; if(!r) return;
-  document.getElementById("lookup").innerHTML=detail(r);
-  document.getElementById("search").value=t;
-  paintStars();
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function renderWatch(){
-  const w=getWL(), box=document.getElementById("watch");
+
+function renderWatchlist(){
+  const w=WL(),box=document.getElementById("watchlist");
+  if(!w.length){box.innerHTML=`<div class="empty">Tap the ☆ on any stock to add it here — it stays saved on this device.</div>`;return;}
   const have=w.map(t=>BYSYM[t]).filter(Boolean);
-  box.innerHTML=have.length?have.map(compact).join("")
-    :`<div class="empty">Tap the ☆ on any stock to add it here. Your watchlist is saved on this device.</div>`;
+  box.innerHTML=have.length?have.map(r=>card(r,true)).join(""):`<div class="empty">Saved: ${w.map(esc).join(", ")} — verdicts load when the data refreshes.</div>`;
   paintStars();
+}
+function renderBrowse(){
+  const box=document.getElementById("browse");
+  let rows=(DATA.all||[]);
+  if(FILTER.sector)rows=rows.filter(r=>r.sector===FILTER.sector);
+  if(FILTER.verdict)rows=rows.filter(r=>r.verdict===FILTER.verdict);
+  const shown=rows.slice(0,60);
+  box.innerHTML=shown.length?shown.map(r=>card(r,false)).join("")
+    :`<div class="empty">No stocks match this filter.</div>`;
+  if(rows.length>60)box.innerHTML+=`<div class="empty">Showing first 60 of ${rows.length}. Use filters or search to narrow down.</div>`;
+  paintStars();
+}
+function buildFilters(){
+  const bar=document.getElementById("filterbar");
+  const secs=[...new Set((DATA.all||[]).map(r=>r.sector).filter(Boolean))].sort();
+  const verdicts=["","STRONG OPPORTUNITY","OPPORTUNITY","FAIR VALUE","EXPENSIVE","HIGH RISK"];
+  bar.innerHTML=`<select id="fsec"><option value="">All sectors</option>${secs.map(s=>`<option>${esc(s)}</option>`).join("")}</select>`+
+    verdicts.map(v=>`<button class="fbtn${v===FILTER.verdict?' active':''}" data-v="${esc(v)}">${v||"All verdicts"}</button>`).join("");
+  document.getElementById("fsec").onchange=e=>{FILTER.sector=e.target.value;renderBrowse();};
+  bar.querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>{FILTER.verdict=b.dataset.v;buildFilters();renderBrowse();});
 }
 
 (async()=>{
+  document.getElementById("glossary").innerHTML=GLOSS.map(([t,d])=>`<dt>${esc(t)}</dt><dd>${esc(d)}</dd>`).join("");
   try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
-  if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;
-    ["hero","early","avoid","watch"].forEach(i=>document.getElementById(i).innerHTML="");return;}
+  if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
   (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});
-  GLOSSARY=DATA.glossary||{};
+
   const vc=DATA.verdict_counts||{};
   document.getElementById("kpi").innerHTML=
     `<span>${DATA.n_covered} stocks scored</span>`+
     `<span style="color:var(--green)">${(vc['STRONG OPPORTUNITY']||0)} strong</span>`+
     `<span style="color:var(--cyan)">${(vc['OPPORTUNITY']||0)} opportunities</span>`+
-    `<span style="color:var(--green)">${(DATA.early_cycle||[]).length} early-cycle</span>`+
+    `<span style="color:var(--yellow)">${(vc['FAIR VALUE']||0)} fair</span>`+
+    `<span style="color:var(--orange)">${(vc['EXPENSIVE']||0)} expensive</span>`+
     `<span style="color:var(--red)">${(vc['HIGH RISK']||0)} high-risk</span>`;
-  // hero
-  const tp=DATA.top_pick;
-  document.getElementById("hero").innerHTML=tp?
-    `<div class="hero">
-      <span class="star" data-t="${esc(tp.ticker)}" onclick="toggleWL('${esc(tp.ticker)}')">☆</span>
-      <div class="lab">★ Today's Top Pick</div>
-      <div class="tk">${esc(tp.ticker)} <span style="font-size:13px;color:${BORDER[tp.verdict_color]}">${esc(tp.verdict)}</span></div>
-      <div class="co">${esc(tp.company)}${tp.industry?" · "+esc(tp.industry):""}</div>
-      <p class="bl">${esc(tp.bottom_line||"")}</p>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);cursor:pointer" onclick="showDetail('${esc(tp.ticker)}')">see the full breakdown →</div>
-    </div>`
-    :`<div class="empty">No standout pick today — the market looks fairly-to-richly valued.</div>`;
+
+  const ch=DATA.changes||{};
+  const bn=document.getElementById("banner");
+  if(!ch.baseline&&((ch.newly_opportunity||[]).length||(ch.newly_high_risk||[]).length)){
+    bn.style.display="block";
+    const no=(ch.newly_opportunity||[]).map(x=>`<span class="chip up" onclick="document.getElementById('search').value='${esc(x.ticker)}';document.getElementById('search').dispatchEvent(new Event('input'))">▲ ${esc(x.ticker)}</span>`).join("");
+    const nr=(ch.newly_high_risk||[]).map(x=>`<span class="chip down" onclick="document.getElementById('search').value='${esc(x.ticker)}';document.getElementById('search').dispatchEvent(new Event('input'))">⚠ ${esc(x.ticker)}</span>`).join("");
+    bn.innerHTML=`<h3>📣 What changed today</h3>`+
+      (no?`<div style="margin-bottom:6px"><span style="color:var(--mute);font-size:11.5px">Newly an opportunity:</span><div class="chips" style="margin-top:5px">${no}</div></div>`:"")+
+      (nr?`<div><span style="color:var(--mute);font-size:11.5px">Newly flagged high-risk:</span><div class="chips" style="margin-top:5px">${nr}</div></div>`:"")+
+      (!no&&!nr?`<span class="empty">No verdict changes since the last run.</span>`:"");
+  }
+
   document.getElementById("top").innerHTML=
-    (DATA.top_opportunities||[]).length?DATA.top_opportunities.map(compact).join("")
-    :`<div class="loading">No clear opportunities right now — the market looks fairly-to-richly valued.</div>`;
-  document.getElementById("early").innerHTML=
-    (DATA.early_cycle||[]).length?DATA.early_cycle.map(compact).join("")
-    :`<div class="empty">No early-cycle setups flagged right now.</div>`;
+    (DATA.top_opportunities||[]).length
+      ? DATA.top_opportunities.map(r=>card(r,false)).join("")
+      : `<div class="loading">No clear opportunities right now — the market looks fairly-to-richly valued.</div>`;
   document.getElementById("avoid").innerHTML=
     (DATA.avoid_list||[]).map(r=>`<div class="arow"><div class="at">${esc(r.ticker)} <span style="color:var(--dim);font-weight:400;font-size:11px">${esc(r.company)}</span></div><div class="ar">${esc((r.risks||["flagged high risk"])[0])}</div></div>`).join("")
-      ||`<div class="empty">none flagged</div>`;
-  document.getElementById("glossdl").innerHTML=Object.entries(GLOSSARY)
-    .map(([k,v])=>`<dt>${esc(k.replace(/_/g," "))}</dt><dd>${esc(v)}</dd>`).join("");
-  document.getElementById("ts").textContent="engine: justhodl-opportunity-engine v"+(DATA.schema_version||"?")+" · generated "+(DATA.generated_at||"?");
-  renderWatch();
+      || `<div class="loading">none flagged</div>`;
+
+  buildFilters();renderBrowse();renderWatchlist();
+  document.getElementById("ts").textContent="engine: justhodl-opportunity-engine v2 · generated "+(DATA.generated_at||"?");
 })();
 
 document.getElementById("search").addEventListener("input",function(){
@@ -289,7 +289,9 @@ document.getElementById("search").addEventListener("input",function(){
   const box=document.getElementById("lookup");
   if(!q){box.innerHTML="";return;}
   const r=BYSYM[q];
-  box.innerHTML=r?detail(r):`<p class="hint">No verdict for "${esc(q)}" — only S&P 500 names are covered.</p>`;
+  box.innerHTML=r
+    ? `<div class="cards" style="margin:10px 0 4px">${card(r,true)}</div>`
+    : `<p class="hint">No verdict for "${esc(q)}" — only S&P 500 names are covered.</p>`;
   paintStars();
 });
 </script>
