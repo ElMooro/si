@@ -1,0 +1,61 @@
+{
+  "ops": 742,
+  "ts": "2026-05-17T10:09:25.383510+00:00",
+  "subject": "health dashboard + 4 invisible-engine pages verify",
+  "results": [
+    {
+      "page": "health.html",
+      "s3_key": "_health/dashboard.json",
+      "page_status": 200,
+      "page_marker": true,
+      "sidecar_ok": true,
+      "headline": "red",
+      "generated_at": "2026-05-17T10:00:08.205528+00:00",
+      "pass": true
+    },
+    {
+      "page": "yield-curve.html",
+      "s3_key": "data/yield-curve.json",
+      "page_status": 200,
+      "page_marker": true,
+      "sidecar_ok": true,
+      "headline": "BEAR_FLATTENER",
+      "generated_at": "2026-05-17T06:19:49.283079+00:00",
+      "pass": true
+    },
+    {
+      "page": "market-internals.html",
+      "s3_key": "data/market-internals.json",
+      "page_status": 200,
+      "page_marker": true,
+      "sidecar_ok": true,
+      "headline": "NEUTRAL",
+      "generated_at": "2026-05-16T01:12:19.380775+00:00",
+      "pass": true
+    },
+    {
+      "page": "vix-curve.html",
+      "s3_key": "data/vix-curve.json",
+      "page_status": 200,
+      "page_marker": true,
+      "sidecar_ok": true,
+      "headline": "NORMAL_CONTANGO",
+      "generated_at": "2026-05-17T06:10:54.501827+00:00",
+      "pass": true
+    },
+    {
+      "page": "position-sizer.html",
+      "s3_key": "portfolio/sizer-v2.json",
+      "page_status": 200,
+      "page_marker": true,
+      "sidecar_ok": true,
+      "headline": "UNKNOWN",
+      "generated_at": "2026-05-16T14:00:08.066258+00:00",
+      "pass": true
+    }
+  ],
+  "n_pass": 5,
+  "n_total": 5,
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 all 5 surfacing pages live with data"
+}

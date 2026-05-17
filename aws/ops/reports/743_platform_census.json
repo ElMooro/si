@@ -1,0 +1,154 @@
+{
+  "ops": 743,
+  "ts": "2026-05-17T10:09:26.684423+00:00",
+  "subject": "platform census \u2014 dormant + erroring Lambdas",
+  "fleet_size": 268,
+  "counts": {
+    "dormant_0_invocations_7d": 26,
+    "any_errors_7d": 15,
+    "error_heavy_25pct_plus": 7
+  },
+  "dormant": [
+    "autonomous-ai-processor",
+    "benzinga-news-agent",
+    "economyapi",
+    "eia-energy-agent",
+    "fmp-fundamentals-agent",
+    "justhodl-api-keys-admin",
+    "justhodl-cdn-diag-temp",
+    "justhodl-chart-data",
+    "justhodl-charts-agent",
+    "justhodl-daily-macro-report",
+    "justhodl-ecb-proxy",
+    "justhodl-email-reports",
+    "justhodl-feedback",
+    "justhodl-fred-proxy",
+    "justhodl-history-api",
+    "justhodl-investor-agents",
+    "justhodl-public-api-demo",
+    "justhodl-push-api",
+    "justhodl-trade-journal",
+    "justhodl-treasury-proxy",
+    "justhodl-valuations-agent",
+    "justhodl-watchlist",
+    "macro-report-api",
+    "multi-agent-orchestrator",
+    "nasdaq-datalink-agent",
+    "ultimate-multi-agent"
+  ],
+  "error_heavy": [
+    {
+      "name": "news-sentiment-agent",
+      "invocations_7d": 35,
+      "errors_7d": 35
+    },
+    {
+      "name": "justhodl-email-reports-v2",
+      "invocations_7d": 21,
+      "errors_7d": 21
+    },
+    {
+      "name": "justhodl-nobrainer-rationale",
+      "invocations_7d": 21,
+      "errors_7d": 21
+    },
+    {
+      "name": "justhodl-morning-intelligence",
+      "invocations_7d": 22,
+      "errors_7d": 20
+    },
+    {
+      "name": "justhodl-tmp-458",
+      "invocations_7d": 5,
+      "errors_7d": 5
+    },
+    {
+      "name": "justhodl-credit-stress",
+      "invocations_7d": 5,
+      "errors_7d": 2
+    },
+    {
+      "name": "justhodl-analyst-consensus",
+      "invocations_7d": 3,
+      "errors_7d": 1
+    }
+  ],
+  "all_erroring": [
+    {
+      "name": "news-sentiment-agent",
+      "invocations_7d": 35,
+      "errors_7d": 35
+    },
+    {
+      "name": "justhodl-email-reports-v2",
+      "invocations_7d": 21,
+      "errors_7d": 21
+    },
+    {
+      "name": "justhodl-nobrainer-rationale",
+      "invocations_7d": 21,
+      "errors_7d": 21
+    },
+    {
+      "name": "justhodl-morning-intelligence",
+      "invocations_7d": 22,
+      "errors_7d": 20
+    },
+    {
+      "name": "fedliquidityapi",
+      "invocations_7d": 86,
+      "errors_7d": 11
+    },
+    {
+      "name": "justhodl-stock-screener",
+      "invocations_7d": 87,
+      "errors_7d": 9
+    },
+    {
+      "name": "cftc-futures-positioning-agent",
+      "invocations_7d": 2102,
+      "errors_7d": 7
+    },
+    {
+      "name": "justhodl-tmp-458",
+      "invocations_7d": 5,
+      "errors_7d": 5
+    },
+    {
+      "name": "justhodl-khalid-adaptive",
+      "invocations_7d": 52,
+      "errors_7d": 4
+    },
+    {
+      "name": "manufacturing-global-agent",
+      "invocations_7d": 44,
+      "errors_7d": 3
+    },
+    {
+      "name": "justhodl-portfolio-catalysts",
+      "invocations_7d": 19,
+      "errors_7d": 3
+    },
+    {
+      "name": "justhodl-credit-stress",
+      "invocations_7d": 5,
+      "errors_7d": 2
+    },
+    {
+      "name": "dollar-strength-agent",
+      "invocations_7d": 35,
+      "errors_7d": 1
+    },
+    {
+      "name": "securities-banking-agent",
+      "invocations_7d": 44,
+      "errors_7d": 1
+    },
+    {
+      "name": "justhodl-analyst-consensus",
+      "invocations_7d": 3,
+      "errors_7d": 1
+    }
+  ],
+  "verdict": "CENSUS COMPLETE \u2014 268 Lambdas: 26 dormant (0 invocations/7d, candidates for prune or broken schedule), 15 with errors, 7 error-heavy"
+}
