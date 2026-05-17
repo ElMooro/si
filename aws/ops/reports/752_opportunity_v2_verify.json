@@ -1,0 +1,127 @@
+{
+  "ops": 752,
+  "ts": "2026-05-17T12:48:52.382713+00:00",
+  "subject": "Opportunity Engine v2.0 verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"schema\\\": \\\"2.0\\\", \\\"n_covered\\\": 501, \\\"n_opportunities\\\": 30, \\\"n_early_cycle\\\": 12, \\\"top_pick\\\": \\\"INCY\\\", \\\"verdict_counts\\\": {\\\"OPPORTUNITY\\\": 175, \\\"HIGH RISK\\\": 36, \\\"STRONG OPPORTUNITY\\\": 2, \\\"FAIR VALUE\\\": 112, \\\"EXPENSIVE\\\": 129, \\\"HOLD / NEUTRAL\\\": 47}}\"}"
+  },
+  "output": {
+    "schema_version": "2.0",
+    "generated_at": "2026-05-17T12:48:54.154280+00:00",
+    "n_covered": 501,
+    "verdict_counts": {
+      "OPPORTUNITY": 175,
+      "HIGH RISK": 36,
+      "STRONG OPPORTUNITY": 2,
+      "FAIR VALUE": 112,
+      "EXPENSIVE": 129,
+      "HOLD / NEUTRAL": 47
+    },
+    "with_peer_comparison": 501,
+    "with_cycle": 501,
+    "with_bottom_line": 501,
+    "n_cyclical": 217,
+    "n_early_cycle": 12,
+    "glossary_terms": 13
+  },
+  "top_pick": {
+    "ticker": "INCY",
+    "verdict": "STRONG OPPORTUNITY",
+    "bottom_line": "Looks roughly 40% undervalued. Our models rate it a strong opportunity."
+  },
+  "sample_stock": {
+    "ticker": "HUM",
+    "verdict": "OPPORTUNITY",
+    "bottom_line": "Screens as deeply mispriced, but the gap is too wide to trust as a precise number with a strong balance sheet and it is cheaper than its industry. Worth a closer look.",
+    "cycle": {
+      "cyclical": false,
+      "label": "NOT CYCLICAL",
+      "color": "dim",
+      "text": "Not a cyclical business - its P/E is a reliable gauge."
+    },
+    "peer_rows": 9,
+    "peer_first3": [
+      {
+        "metric": "P/E",
+        "key": "pe",
+        "value": 32.49,
+        "industry_median": 29.76,
+        "delta_pct": 9.2,
+        "read": "cheaper than peers"
+      },
+      {
+        "metric": "Forward P/E",
+        "key": "forward_pe",
+        "value": 11.6,
+        "industry_median": 10.74,
+        "delta_pct": 8.0,
+        "read": "cheaper than peers"
+      },
+      {
+        "metric": "Revenue growth",
+        "key": "revenue_growth",
+        "value": 10.06,
+        "industry_median": 11.54,
+        "delta_pct": -12.8,
+        "read": "weaker than peers"
+      }
+    ],
+    "scorecard": {
+      "income_statement": {
+        "score": 48,
+        "read": "in line with its industry"
+      },
+      "balance_sheet": {
+        "score": 68,
+        "read": "stronger than its industry"
+      },
+      "cash_flow": {
+        "score": 44,
+        "read": "in line with its industry"
+      }
+    }
+  },
+  "early_cycle_sample": [
+    {
+      "t": "COP",
+      "verdict": "OPPORTUNITY",
+      "cycle": "EARLY CYCLE - RECOVERY UPSIDE"
+    },
+    {
+      "t": "OKE",
+      "verdict": "OPPORTUNITY",
+      "cycle": "EARLY CYCLE - RECOVERY UPSIDE"
+    },
+    {
+      "t": "VTR",
+      "verdict": "OPPORTUNITY",
+      "cycle": "EARLY CYCLE - RECOVERY UPSIDE"
+    },
+    {
+      "t": "HII",
+      "verdict": "OPPORTUNITY",
+      "cycle": "EARLY CYCLE - RECOVERY UPSIDE"
+    },
+    {
+      "t": "VLO",
+      "verdict": "OPPORTUNITY",
+      "cycle": "EARLY CYCLE - RECOVERY UPSIDE"
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "schema_is_v2": true,
+    "universe_covered": true,
+    "peer_comparison_populated": true,
+    "cycle_populated": true,
+    "bottom_line_populated": true,
+    "top_pick_present": true,
+    "glossary_present": true,
+    "page_live": true,
+    "page_has_v2_sections": true
+  },
+  "all_pass": true,
+  "verdict": "OPPORTUNITY ENGINE v2.0 LIVE \u2014 peer benchmarking, cycle radar, scorecard, top pick and page all verified"
+}
