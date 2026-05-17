@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-opportunity-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Retail Opportunity & Risk Verdict — fuses DCF + mean-reversion fair value with quality/growth/momentum into one plain verdict per stock. Output data/opportunities.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "opportunity-engine-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Retail Opportunity engine — daily 14:00 UTC, after screener/fundamentals/mean-reversion refresh"
+  }
+}

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock Opportunities · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.55}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:13px;margin:0;max-width:920px}
+.disc{color:var(--dim);font-size:11.5px;margin:8px 0 0;max-width:920px;font-style:italic}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.searchbar{margin:16px 0 6px}
+.searchbar input{width:100%;max-width:340px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:14px;padding:11px 14px;outline:none}
+.searchbar input:focus{border-color:var(--cyan)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:16px 17px}
+.card .tk{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--txt)}
+.card .co{color:var(--dim);font-size:11.5px;margin-bottom:9px}
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.6px;padding:5px 11px;border-radius:6px;margin-bottom:11px}
+.b-green{background:#26ffaf22;color:var(--green)}
+.b-cyan{background:#00d4ff1c;color:var(--cyan)}
+.b-yellow{background:#ffd2661c;color:var(--yellow)}
+.b-orange{background:#ff7a181c;color:var(--orange)}
+.b-red{background:#ff557722;color:var(--red)}
+.b-dim{background:#1c2433;color:var(--dim)}
+.value{background:var(--panel2);border-radius:7px;padding:9px 11px;margin-bottom:11px;font-size:12.5px}
+.value .big{font-family:var(--mono);font-size:15px;font-weight:700}
+.value .conf{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+.pts{margin:0;padding:0;list-style:none}
+.pts li{font-size:12px;margin-bottom:4px;display:flex;gap:7px;align-items:flex-start}
+.pts li .ic{flex-shrink:0;font-size:11px;margin-top:1px}
+.pos .ic{color:var(--green)}
+.neg .ic{color:var(--orange)}
+.scores{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.scores span{font-family:var(--mono);font-size:9.5px;color:var(--dim);background:var(--panel2);padding:3px 7px;border-radius:4px}
+.scores b{color:var(--mute)}
+.avoid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
+.arow{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:7px;padding:10px 12px}
+.arow .at{font-family:var(--mono);font-weight:700;font-size:13px}
+.arow .ar{font-size:11px;color:var(--mute);margin-top:3px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.kpi{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.kpi span{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 11px;color:var(--mute)}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
+.hint{color:var(--dim);font-size:11px;margin:4px 0 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎯 Stock Opportunities</h1>
+    <p class="subtitle">Every S&amp;P 500 stock, scored into one plain verdict. We estimate what each company is genuinely <b>worth</b> using two independent methods, check whether it's <b>safe</b> and <b>growing</b>, then tell you in plain English: is this an opportunity, fairly priced, expensive, or too risky — and by how much.</p>
+    <p class="disc">⚠ Research and education only — not financial advice. Every stock can lose money. Fair value is a model estimate that can be wrong. Always do your own diligence.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/screener/">screener</a>
+      <a href="/fundamentals.html">fundamentals</a>
+      <a href="/signal-board.html">signal board</a>
+    </nav>
+    <div class="searchbar">
+      <input id="search" type="text" placeholder="Look up any ticker — e.g. AAPL" autocomplete="off">
+      <p class="hint">Type a ticker to see its full verdict.</p>
+    </div>
+  </header>
+
+  <div class="kpi" id="kpi"></div>
+  <div id="lookup"></div>
+
+  <h2>Top Opportunities — undervalued, and not a value trap</h2>
+  <div class="cards" id="top"><div class="loading">LOADING OPPORTUNITIES…</div></div>
+
+  <h2>⚠ Watch Out — flagged High Risk</h2>
+  <div class="avoid" id="avoid"><div class="loading">…</div></div>
+
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opportunities.json";
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:"b-red",dim:"b-dim"};
+const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
+let DATA=null, BYSYM={};
+
+function valueLine(r){
+  if(r.fair_value_mid==null||r.price==null)
+    return `<div class="value"><div class="big">Fair value: not enough data</div></div>`;
+  const u=r.undervalued_pct;
+  const word=u==null?"":(u>=8?`about ${Math.round(u)}% undervalued`:u<=-8?`about ${Math.round(-u)}% overvalued`:"close to fair value");
+  const col=u==null?"var(--mute)":(u>=8?"var(--green)":u<=-8?"var(--red)":"var(--yellow)");
+  return `<div class="value">
+    <div class="big">Worth ~$${r.fair_value_low}–$${r.fair_value_high}
+      <span style="color:var(--dim);font-weight:400">· now $${r.price}</span></div>
+    <div class="big" style="color:${col};font-size:13px">${word}</div>
+    <div class="conf">valuation confidence: ${esc(r.confidence)}</div>
+  </div>`;
+}
+function card(r){
+  const bc=BC[r.verdict_color]||"b-dim";
+  const ops=(r.opportunities||[]).map(o=>`<li class="pos"><span class="ic">▲</span><span>${esc(o)}</span></li>`).join("");
+  const risks=(r.risks||[]).map(o=>`<li class="neg"><span class="ic">⚠</span><span>${esc(o)}</span></li>`).join("");
+  const sc=r.scores||{};
+  return `<div class="card" style="border-left-color:${BORDER[r.verdict_color]||'#1c2433'}">
+    <div class="tk">${esc(r.ticker)}</div>
+    <div class="co">${esc(r.company)}${r.sector?" · "+esc(r.sector):""}</div>
+    <span class="badge ${bc}">${esc(r.verdict)}</span>
+    ${valueLine(r)}
+    <ul class="pts">${ops||'<li style="color:var(--dim);font-size:11px">No standout positives</li>'}${risks}</ul>
+    <div class="scores">
+      <span>opportunity <b>${r.opportunity_score}</b>/100</span>
+      <span>value <b>${sc.value}</b></span>
+      <span>quality <b>${sc.quality}</b></span>
+      <span>growth <b>${sc.growth}</b></span>
+      <span>momentum <b>${sc.momentum}</b></span>
+    </div>
+  </div>`;
+}
+
+(async()=>{
+  try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
+  if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
+  (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});
+  const vc=DATA.verdict_counts||{};
+  document.getElementById("kpi").innerHTML=
+    `<span>${DATA.n_covered} stocks scored</span>`+
+    `<span style="color:var(--green)">${(vc['STRONG OPPORTUNITY']||0)} strong opportunities</span>`+
+    `<span style="color:var(--cyan)">${(vc['OPPORTUNITY']||0)} opportunities</span>`+
+    `<span style="color:var(--red)">${(vc['HIGH RISK']||0)} high-risk</span>`;
+  document.getElementById("top").innerHTML=
+    (DATA.top_opportunities||[]).length
+      ? DATA.top_opportunities.map(card).join("")
+      : `<div class="loading">No clear opportunities right now — the market looks fairly-to-richly valued.</div>`;
+  document.getElementById("avoid").innerHTML=
+    (DATA.avoid_list||[]).map(r=>`<div class="arow"><div class="at">${esc(r.ticker)} <span style="color:var(--dim);font-weight:400;font-size:11px">${esc(r.company)}</span></div><div class="ar">${esc((r.risks||["flagged high risk"])[0])}</div></div>`).join("")
+      || `<div class="loading">none flagged</div>`;
+  document.getElementById("ts").textContent="engine: justhodl-opportunity-engine · generated "+(DATA.generated_at||"?");
+})();
+
+document.getElementById("search").addEventListener("input",function(){
+  const q=this.value.trim().toUpperCase();
+  const box=document.getElementById("lookup");
+  if(!q){box.innerHTML="";return;}
+  const r=BYSYM[q];
+  box.innerHTML=r
+    ? `<div class="cards" style="margin-bottom:6px">${card(r)}</div>`
+    : `<p class="hint">No verdict for "${esc(q)}" — only S&P 500 names are covered.</p>`;
+});
+</script>
+</body>
+</html>
