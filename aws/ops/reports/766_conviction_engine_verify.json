@@ -1,0 +1,119 @@
+{
+  "ops": 766,
+  "ts": "2026-05-17T16:55:27.114743+00:00",
+  "subject": "Conviction Engine deploy verify (roadmap #1)",
+  "function": {
+    "exists": true,
+    "runtime": "python3.12",
+    "last_modified": "2026-05-17T16:53:24.958+0000",
+    "timeout": 120,
+    "memory": 256
+  },
+  "schedule": {
+    "exists": true,
+    "state": "ENABLED",
+    "cron": "cron(45 */3 * * ? *)"
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"book_posture\": \"NEUTRAL / MIXED\", \"n_setups\": 6, \"n_actionable\": 2, \"headline\": {\"subject\": \"Crypto\", \"direction\": \"RISK-ON / LONG\", \"conviction\": 85, \"confidence\": \"HIGH\"}}"
+  },
+  "output": {
+    "book_posture": "NEUTRAL / MIXED",
+    "headline_call": {
+      "subject": "Crypto",
+      "direction": "RISK-ON / LONG",
+      "conviction": 85,
+      "confidence": "HIGH"
+    },
+    "n_setups": 6,
+    "n_actionable": 2,
+    "n_live": 11,
+    "n_engines": 11,
+    "n_stale": 0,
+    "skill_weighting": "active \u2014 engines weighted by signal-scorecard performance multipliers",
+    "n_single_names": 6
+  },
+  "setups_preview": [
+    {
+      "rank": 1,
+      "subject": "Crypto",
+      "direction": "RISK-ON / LONG",
+      "conviction": 85,
+      "confidence": "HIGH",
+      "n_engines": 1,
+      "n_families": 1,
+      "agreement_pct": 100,
+      "n_contrib": 1
+    },
+    {
+      "rank": 2,
+      "subject": "US equity \u2014 value tilt",
+      "direction": "RISK-OFF / DEFENSIVE",
+      "conviction": 58,
+      "confidence": "MODERATE",
+      "n_engines": 3,
+      "n_families": 1,
+      "agreement_pct": 100,
+      "n_contrib": 3
+    },
+    {
+      "rank": 3,
+      "subject": "US macro / housing cycle",
+      "direction": "RISK-OFF / DEFENSIVE",
+      "conviction": 43,
+      "confidence": "LOW",
+      "n_engines": 1,
+      "n_families": 1,
+      "agreement_pct": 100,
+      "n_contrib": 1
+    },
+    {
+      "rank": 4,
+      "subject": "Broad risk / equity beta",
+      "direction": "RISK-ON / LONG",
+      "conviction": 23,
+      "confidence": "LOW",
+      "n_engines": 4,
+      "n_families": 1,
+      "agreement_pct": 100,
+      "n_contrib": 4
+    },
+    {
+      "rank": 5,
+      "subject": "Cross-asset relative value",
+      "direction": "NEUTRAL / MIXED",
+      "conviction": 0,
+      "confidence": "MARGINAL",
+      "n_engines": 1,
+      "n_families": 1,
+      "agreement_pct": 0,
+      "n_contrib": 1
+    },
+    {
+      "rank": 6,
+      "subject": "US equity \u2014 positioning",
+      "direction": "NEUTRAL / MIXED",
+      "conviction": 0,
+      "confidence": "MARGINAL",
+      "n_engines": 1,
+      "n_families": 1,
+      "agreement_pct": 0,
+      "n_contrib": 1
+    }
+  ],
+  "checks": {
+    "function_deployed": true,
+    "schedule_set": true,
+    "invoke_ok": true,
+    "produced_setups": true,
+    "conviction_in_range": true,
+    "ranked_descending": true,
+    "has_evidence": true,
+    "engines_live": true,
+    "has_book_posture": true
+  },
+  "all_pass": true,
+  "verdict": "CONVICTION ENGINE LIVE \u2014 deployed, scheduled every 3h, producing ranked skill-weighted conviction setups with evidence + invalidation. Roadmap #1 complete."
+}
