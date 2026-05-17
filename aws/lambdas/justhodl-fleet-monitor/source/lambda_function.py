@@ -62,6 +62,11 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 
+# config-file substring catches X-config; these specific outputs are
+# event-driven or static pointers, not scheduled-engine outputs
+STATIC_OUTPUTS = {"history-api-url", "feedback-summary"}
+
+
 def now():
     return datetime.now(timezone.utc)
 
@@ -108,9 +113,10 @@ def sweep_data_outputs():
         age_h = (t - lm).total_seconds() / 3600.0
         name = key[len("data/"):-len(".json")]
         item = {"output": name, "age_hours": round(age_h, 1), "size": size}
-        # config / static files are not engine outputs — they change only
-        # when edited, so their age says nothing about system health
-        if "config" in name.lower():
+        # config / user-activity / static-pointer files are not scheduled
+        # engine outputs — their age says nothing about system health
+        if ("config" in name.lower() or name.startswith("user-")
+                or name in STATIC_OUTPUTS):
             static.append({"output": name, "age_hours": round(age_h, 1)})
             continue
         if size < MIN_SIZE:
