@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-boj-detail",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "BOJ Liquidity & Yen-Carry Detail Engine - tracks the Bank of Japan balance sheet, post-NIRP rate path, 10Y JGB, US-JP differential and USD/JPY to produce a 0-100 yen-carry-unwind risk score. Output data/boj-detail.json.",
+  "environment": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "boj-detail-daily",
+    "cron": "cron(20 11 * * ? *)",
+    "description": "BOJ Liquidity & Yen-Carry Detail Engine — daily 11:20 UTC"
+  }
+}

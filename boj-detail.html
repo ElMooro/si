@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOJ Liquidity &amp; Yen Carry · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🇯🇵</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;margin:5px 0}
+.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
+.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
+.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
+.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.comps{display:flex;gap:18px;flex-wrap:wrap;margin-top:13px}
+.comp{flex:1;min-width:120px}
+.comp .k{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.comp .bar{height:6px;border-radius:4px;background:var(--panel2);margin:4px 0 3px;overflow:hidden}
+.comp .fill{height:100%;border-radius:4px}
+.comp .v{font-family:var(--mono);font-size:11px;font-weight:700}
+.cbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:14px}
+.cb{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:8px;padding:15px}
+.cb .name{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.cb .big2{font-family:var(--mono);font-size:22px;font-weight:700;margin:6px 0 2px}
+.cb .tag{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px}
+.cb .det{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:6px;line-height:1.6}
+.cb .rd{color:var(--mute);font-size:11.5px;margin-top:8px;line-height:1.55}
+.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
+.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+.xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🇯🇵 BOJ Liquidity &amp; Yen Carry</h1>
+    <p class="subtitle">The Bank of Japan at desk depth — because the yen is the world's <b>carry-trade funding currency</b>. Decades of zero-rate policy made borrowing yen nearly free; that cheap yen funds long positions across global risk assets. This engine fuses the BOJ balance sheet, the post-NIRP rate path, the 10Y JGB, the US-JP differential and USD/JPY into one <b>yen-carry-unwind risk score</b>. The August 2024 unwind is the reference event.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/cb-injection.html">cb injection &amp; carry</a>
+      <a href="/ecb-detail.html">ecb detail</a>
+      <a href="/eurodollar.html">eurodollar</a>
+      <a href="/liquidity.html">global liquidity</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING BOJ LIQUIDITY &amp; YEN CARRY…</div></div>
+
+  <div id="risk"></div>
+
+  <h2>Balance Sheet · Policy Rate · JGB · Carry Differential · USD/JPY · Inflation</h2>
+  <div class="cbs" id="cards"></div>
+
+  <div id="carry"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn=(v,d=0)=>v==null?"—":(v>0?"+":"")+num(v,d);
+const scoreColor=(s)=>s>=1?"var(--green)":s===0?"var(--yellow)":s===-1?"var(--orange)":"var(--red)";
+const riskColor=(r)=>r==null?"var(--mute)":r>=72?"var(--red)":r>=50?"var(--orange)":r>=25?"var(--yellow)":"var(--green)";
+const trajColor=(t)=>/EXPAND/.test(t||"")?"var(--green)":/CONTRACT/.test(t||"")?"var(--red)":/TAPER/.test(t||"")?"var(--orange)":"var(--yellow)";
+const rateColor=(s)=>/EASING/.test(s||"")?"var(--green)":/TIGHTENING/.test(s||"")?"var(--red)":/NORMALIZING/.test(s||"")?"var(--orange)":"var(--cyan)";
+const fxColor=(s)=>/EXTREME/.test(s||"")?"var(--red)":/STRETCHED/.test(s||"")?"var(--orange)":/ELEVATED/.test(s||"")?"var(--yellow)":"var(--cyan)";
+
+function hero(d){
+  const c=scoreColor(d.boj_injection_score);
+  return `<div class="hero" style="border-left-color:${c}">
+    <div class="lab">BOJ Injection Stance</div>
+    <div class="big" style="color:${c}">${esc(d.stance_label||"—")}</div>
+    <div class="meta">${esc(d.headline||"")}</div>
+    <div class="meta">injection score ${d.boj_injection_score!=null?d.boj_injection_score:"—"} · scale -2 strong drain → +2 strong injection</div>
+  </div>`;
+}
+
+const COMP_LABELS={boj_tightening:"BOJ tightening",jgb_yield:"JGB 10Y",differential_compression:"Differential compression",usdjpy_stretch:"USD/JPY stretch",yen_rally_momentum:"Yen-rally momentum"};
+const COMP_MAX={boj_tightening:25,jgb_yield:20,differential_compression:20,usdjpy_stretch:20,yen_rally_momentum:15};
+
+function riskPanel(R){
+  if(!R) return "";
+  const c=riskColor(R.score_0_100);
+  const pos=Math.max(2,Math.min(98,(R.score_0_100||0)));
+  const comps=Object.keys(COMP_LABELS).map(k=>{
+    const v=(R.components||{})[k]||0,mx=COMP_MAX[k],pct=Math.min(100,v/mx*100);
+    return `<div class="comp"><div class="k">${COMP_LABELS[k]}</div>
+      <div class="bar"><div class="fill" style="width:${pct}%;background:${c}"></div></div>
+      <div class="v" style="color:${c}">${num(v,1)} / ${mx}</div></div>`;
+  }).join("");
+  return `<div class="elq" style="border-left-color:${c}">
+    <div class="lab">Yen-Carry Unwind Risk</div>
+    <div class="num" style="color:${c}">${num(R.score_0_100,0)}<span style="font-size:16px;color:var(--dim)"> / 100</span></div>
+    <div class="reg" style="color:${c}">${esc(R.regime||"—")}${R.unwind_in_progress?" · UNWIND DYNAMICS ACTIVE":""}</div>
+    <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
+    <div class="gscale"><span>stable</span><span>loaded 25</span><span>elevated 50</span><span>acute 72+</span></div>
+    <div class="comps">${comps}</div>
+    <div class="rd">${esc(R.read||"")}</div>
+  </div>`;
+}
+
+function card(name,color,big,tag,tagColor,det,rd){
+  return `<div class="cb" style="border-top-color:${color}">
+    <div class="name">${esc(name)}</div>
+    <div class="big2" style="color:${color}">${big}</div>
+    <div class="tag" style="color:${tagColor}">${esc(tag)}</div>
+    <div class="det">${det}</div>
+    <div class="rd">${esc(rd)}</div>
+  </div>`;
+}
+
+async function main(){
+  const d=await J("boj-detail.json");
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">BOJ-DETAIL DATA UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=hero(d);
+  document.getElementById("risk").innerHTML=riskPanel(d.carry_unwind_risk||{});
+
+  const B=d.balance_sheet||{},P=d.policy_rate||{},G=d.jgb_10y||{},X=d.rate_differential||{},F=d.usdjpy||{},I=d.inflation||{};
+  const bsC=trajColor(B.trajectory),rtC=rateColor(P.stance),fxC=fxColor(F.stretch);
+  const diffC=(X.change_6m_pp||0)<0?"var(--orange)":"var(--green)";
+  const cpiC=(I.cpi_yoy_pct||0)>=2?"var(--orange)":"var(--cyan)";
+  const cards=[
+    card("BOJ Balance Sheet",bsC,
+      "¥"+num(B.total_assets_jpy_tn)+" tn",
+      B.trajectory||"—",bsC,
+      `6m ${sgn(B.change_6m_pct,1)}% · 12m ${sgn(B.change_12m_pct,1)}%`,
+      B.read||""),
+    card("Policy Rate",rtC,
+      (P.policy_rate_pct!=null?P.policy_rate_pct+"%":"—"),
+      P.stance||"—",rtC,
+      `${esc(P.rate_source||"")} · 6m ${sgn(P.change_6m_pp,2)}pp · 12m ${sgn(P.change_12m_pp,2)}pp`,
+      P.read||""),
+    card("10Y JGB Yield",(G.change_6m_pp||0)>0?"var(--orange)":"var(--cyan)",
+      (G.yield_pct!=null?G.yield_pct+"%":"—"),
+      "REPATRIATION GAUGE",(G.change_6m_pp||0)>0?"var(--orange)":"var(--cyan)",
+      `6m ${sgn(G.change_6m_pp,2)}pp · 12m ${sgn(G.change_12m_pp,2)}pp`,
+      G.read||""),
+    card("US–JP Carry Differential",diffC,
+      (X.differential_pp!=null?X.differential_pp+" pp":"—"),
+      (X.change_6m_pp||0)<0?"COMPRESSING":"WIDE / STABLE",diffC,
+      `US 10Y ${X.us_10y_pct}% · JGB 10Y ${X.jp_10y_pct}% · 6m ${sgn(X.change_6m_pp,2)}pp`,
+      X.read||""),
+    card("USD / JPY",fxC,
+      num(F.level,1),
+      F.stretch||"—",fxC,
+      `1m ${sgn(F.change_1m_pct,1)}% · 3m ${sgn(F.change_3m_pct,1)}% · ${esc(F.momentum||"")}`,
+      F.read||""),
+    card("Japan Inflation",cpiC,
+      sgn(I.cpi_yoy_pct,1)+"%",
+      "CPI YOY",cpiC,
+      "the BOJ reaction function",
+      I.read||"")
+  ];
+  document.getElementById("cards").innerHTML=cards.join("");
+
+  const xr=d.cross_reference||{};
+  document.getElementById("carry").innerHTML=`<div class="panel" style="border-left-color:${riskColor((d.carry_unwind_risk||{}).score_0_100)}">
+    <div class="t">Carry / Eurodollar Read</div>
+    <div class="r">${esc(d.carry_read||"")}</div>
+    <div class="xref">cross-reference — global CB impulse: ${esc(xr.cb_injection_global_impulse||"n/a")} · eurodollar stress: ${esc(xr.eurodollar_stress_score!=null?xr.eurodollar_stress_score:"n/a")}</div>
+  </div>`;
+  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". FRED is the practical official mirror of BOJ statistics. Real data only — not investment advice.";
+  document.getElementById("ts").textContent=
+    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
