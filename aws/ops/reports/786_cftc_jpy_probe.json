@@ -1,0 +1,205 @@
+{
+  "ops": 786,
+  "ts": "2026-05-17T22:56:49.593779+00:00",
+  "subject": "Probe CFTC /cot/6J JPY structure",
+  "cot_6J": {
+    "status": 200,
+    "fn_error": null,
+    "body": {
+      "contract": "6J",
+      "name": "Japanese Yen",
+      "category": "currency",
+      "cftc_code": "097741",
+      "report_type": "tff",
+      "weekly_reports": [
+        {
+          "report_date": "2026-05-12",
+          "open_interest": 362042,
+          "noncommercial_long": 141897,
+          "noncommercial_short": 224329,
+          "net_speculator": -82432,
+          "commercial_long": 85065,
+          "commercial_short": 42886,
+          "net_commercial": 42179,
+          "managed_money_long": 75029,
+          "managed_money_short": 137469,
+          "net_managed_money": -62440,
+          "speculator_long_ratio": 38.7
+        },
+        {
+          "report_date": "2026-05-05",
+          "open_interest": 354005,
+          "noncommercial_long": 155256,
+          "noncommercial_short": 218749,
+          "net_speculator": -63493,
+          "commercial_long": 68788,
+          "commercial_short": 46946,
+          "net_commercial": 21842,
+          "managed_money_long": 86085,
+          "managed_money_short": 138982,
+          "net_managed_money": -52897,
+          "speculator_long_ratio": 41.5
+        },
+        {
+          "report_date": "2026-04-28",
+          "open_interest": 372780,
+          "noncommercial_long": 148312,
+          "noncommercial_short": 250664,
+          "net_speculator": -102352,
+          "commercial_long": 84091,
+          "commercial_short": 25315,
+          "net_commercial": 58776,
+          "managed_money_long": 81800,
+          "managed_money_short": 157602,
+          "net_managed_money": -75802,
+          "speculator_long_ratio": 37.2
+        },
+        {
+          "report_date": "2026-04-21",
+          "open_interest": 351782,
+          "noncommercial_long": 141264,
+          "noncommercial_short": 224159,
+          "net_speculator": -82895,
+          "commercial_long": 71654,
+          "commercial_short": 27261,
+          "net_commercial": 44393,
+          "managed_money_long": 80220,
+          "managed_money_short": 148717,
+          "net_managed_money": -68497,
+          "speculator_long_ratio": 38.7
+        },
+        {
+          "report_date": "2026-04-14",
+          "open_interest": 354344,
+          "noncommercial_long": 140401,
+          "noncommercial_short": 204879,
+          "net_speculator": -64478,
+          "commercial_long": 66562,
+          "commercial_short": 43133,
+          "net_commercial": 23429,
+          "managed_money_long": 77737,
+          "managed_money_short": 132182,
+          "net_managed_money": -54445,
+          "speculator_long_ratio": 40.7
+        },
+        {
+          "report_date": "2026-04-07",
+          "open_interest": 349373,
+          "noncommercial_long": 136824,
+          "noncommercial_short": 203879,
+          "net_speculator": -67055,
+          "commercial_long": 67943,
+          "commercial_short": 36075,
+          "net_commercial": 31868,
+          "managed_money_long": 76763,
+          "managed_money_short": 127873,
+          "net_managed_money": -51110,
+          "speculator_long_ratio": 40.2
+        },
+        {
+          "report_date": "2026-03-31",
+          "open_interest": 345276,
+          "noncommercial_long": 140443,
+          "noncommercial_short": 190270,
+          "net_speculator": -49827,
+          "commercial_long": 65995,
+          "commercial_short": 52624,
+          "net_commercial": 13371,
+          "managed_money_long": 77232,
+          "managed_money_short": 123414,
+          "net_managed_money": -46182,
+          "speculator_long_ratio": 42.5
+        },
+        {
+          "report_date": "2026-03-24",
+          "open_interest": 328210,
+          "noncommercial_long": 126187,
+          "noncommercial_short": 187289,
+          "net_speculator": -61102,
+          "commercial_long": 60117,
+          "commercial_short": 42836,
+          "net_commercial": 17281,
+          "managed_money_long": 67921,
+          "managed_money_short": 122773,
+          "net_managed_money": -54852,
+          "speculator_long_ratio": 40.3
+        }
+      ],
+      "current": {
+        "report_date": "2026-05-12",
+        "open_interest": 362042,
+        "noncommercial_long": 141897,
+        "noncommercial_short": 224329,
+        "net_speculator": -82432,
+        "commercial_long": 85065,
+        "commercial_short": 42886,
+        "net_commercial": 42179,
+        "managed_money_long": 75029,
+        "managed_money_short": 137469,
+        "net_managed_money": -62440,
+        "speculator_long_ratio": 38.7
+      },
+      "signals": {
+        "trend": "BEARISH",
+        "strength": 22.8,
+        "extreme": false,
+        "reversal_risk": false,
+        "weekly_change": -18939,
+        "description": "Normal positioning (38.7% long)"
+      }
+    }
+  },
+  "cot_6J_shape": {
+    "contract": "str",
+    "name": "str",
+    "category": "str",
+    "cftc_code": "str",
+    "report_type": "str",
+    "weekly_reports": [
+      {
+        "report_date": "str",
+        "open_interest": "int",
+        "noncommercial_long": "int",
+        "noncommercial_short": "int",
+        "net_speculator": "int",
+        "commercial_long": "int",
+        "commercial_short": "int",
+        "net_commercial": "int",
+        "managed_money_long": "int",
+        "managed_money_short": "int",
+        "net_managed_money": "int",
+        "speculator_long_ratio": "float"
+      }
+    ],
+    "current": {
+      "report_date": "str",
+      "open_interest": "int",
+      "noncommercial_long": "int",
+      "noncommercial_short": "int",
+      "net_speculator": "int",
+      "commercial_long": "int",
+      "commercial_short": "int",
+      "net_commercial": "int",
+      "managed_money_long": "int",
+      "managed_money_short": "int",
+      "net_managed_money": "int",
+      "speculator_long_ratio": "float"
+    },
+    "signals": {
+      "trend": "str",
+      "strength": "float",
+      "extreme": "bool",
+      "reversal_risk": "bool",
+      "weekly_change": "int",
+      "description": "str"
+    }
+  },
+  "cache_exists": true,
+  "cache_top_keys": [
+    "source",
+    "contracts",
+    "data",
+    "timestamp",
+    "cached_at"
+  ]
+}
