@@ -78,7 +78,7 @@ SIGNALS = [
          cool="Lumber prices are stable — housing-linked demand looks okay."),
     dict(key="chf_haven", name="Swiss franc (haven bid)", grid="funding_plumbing",
          fred="DEXSZUS", kind="mom", win=63, dir="fall", lead=1,
-         limit=420, unit="%3m (CHF/USD)",
+         limit=1300, unit="%3m (CHF/USD)",
          hot="The Swiss franc is strengthening sharply — a flight into the "
              "classic haven currency signals global risk-off.",
          cool="The Swiss franc is steady — no haven panic in the currency "
