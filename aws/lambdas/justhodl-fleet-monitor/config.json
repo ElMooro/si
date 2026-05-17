@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-fleet-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Full-Fleet Observability — auto-discovers and sweeps every data/*.json output, inventories the Lambda fleet, and actively probes the Anthropic API + every market-data key. Deduplicated Telegram alerts. Output _health/fleet.json.",
+  "environment": {},
+  "inherit_env": {
+    "from_function": "justhodl-ai-chat",
+    "keys": ["ANTHROPIC_API_KEY"]
+  },
+  "schedule": {
+    "rule_name": "fleet-monitor-3h",
+    "cron": "cron(20 */3 * * ? *)",
+    "description": "Full-Fleet Observability — every 3 hours"
+  }
+}
