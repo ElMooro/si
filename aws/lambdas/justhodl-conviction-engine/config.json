@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-conviction-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Full-System Conviction Engine — skill-weighted, decorrelated synthesis of every directional engine into ranked actionable setups with evidence + invalidation triggers. Output data/conviction.json.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "conviction-engine-3h",
+    "cron": "cron(45 */3 * * ? *)",
+    "description": "Full-System Conviction Engine — every 3 hours"
+  }
+}
