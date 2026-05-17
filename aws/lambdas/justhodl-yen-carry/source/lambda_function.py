@@ -159,73 +159,98 @@ def r2(x):
 
 
 # ───────────────── CFTC JPY positioning (cross-reference) ─────────────────
-def jpy_positioning():
-    """Pull JPY non-commercial net positioning from the in-system CFTC cache.
+def _stdev(xs):
+    n = len(xs)
+    if n < 2:
+        return 0.0
+    m = sum(xs) / n
+    return math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
 
-    Defensive: the cache is the agent's /cot/all response — structure can
-    vary, so this recursively locates the yen entry and any net-position
-    field. Returns {net, crowded_short, source} or None.
+
+def jpy_positioning():
+    """JPY non-commercial positioning from the in-system CFTC cache.
+
+    Reads data/cftc-all-cache.json (the agent's cached /cot/all response),
+    locates the Japanese Yen entry (6J / CFTC code 097741) and z-scores the
+    current net speculator position against its own recent history — a large,
+    historically-extreme net short yen = a crowded carry. Returns a block
+    or None.
     """
     cache = read_existing("data/cftc-all-cache.json")
     if not isinstance(cache, (dict, list)):
         return None
 
-    def is_yen(obj):
-        blob = json.dumps(obj)[:400].lower()
-        return ("japanese yen" in blob or "\"6j\"" in blob
-                or "097741" in blob or "usd/jpy" in blob)
+    entry = None
 
-    found = None
-
-    def walk(node, key_hint=""):
-        nonlocal found
-        if found is not None:
+    def walk(node):
+        nonlocal entry
+        if entry is not None:
             return
         if isinstance(node, dict):
-            hint = (key_hint or "").lower()
-            if ("6j" in hint or "yen" in hint) and any(
-                    isinstance(v, (int, float)) for v in node.values()):
-                found = node
+            cc = str(node.get("cftc_code", "")).strip()
+            ct = str(node.get("contract", "")).strip().upper()
+            nm = str(node.get("name", "")).lower()
+            if (cc == "097741" or ct == "6J" or "japanese yen" in nm) and (
+                    "weekly_reports" in node or "current" in node
+                    or "net_speculator" in node):
+                entry = node
                 return
-            if is_yen(node) and any(
-                    isinstance(v, (int, float)) for v in node.values()):
-                found = node
-                return
-            for k, v in node.items():
-                walk(v, str(k))
+            for v in node.values():
+                walk(v)
         elif isinstance(node, list):
             for it in node:
-                walk(it, key_hint)
+                walk(it)
 
     try:
         walk(cache)
     except Exception:
         return None
-    if not isinstance(found, dict):
+    if not isinstance(entry, dict):
         return None
 
-    # locate a net-position field by common naming
-    net = None
-    for k, v in found.items():
-        kl = str(k).lower()
-        if not isinstance(v, (int, float)):
-            continue
-        if ("net" in kl and ("non" in kl or "spec" in kl or "comm" in kl
-                             or "managed" in kl or "position" in kl)):
-            net = v
-            break
-    if net is None:
-        for k, v in found.items():
-            if str(k).lower() in ("net", "net_position", "noncomm_net",
-                                  "large_spec_net") and isinstance(
-                                      v, (int, float)):
-                net = v
-                break
-    if net is None:
+    cur = (entry.get("current") if isinstance(entry.get("current"), dict)
+           else entry)
+    net = cur.get("net_speculator")
+    if not isinstance(net, (int, float)):
+        net = cur.get("net_managed_money")
+    if not isinstance(net, (int, float)):
         return None
-    return {"net_noncommercial": net,
-            "crowded_short": net < 0,
-            "source": "cftc-all-cache"}
+
+    hist = [w["net_speculator"] for w in (entry.get("weekly_reports") or [])
+            if isinstance(w, dict)
+            and isinstance(w.get("net_speculator"), (int, float))]
+    z = None
+    if len(hist) >= 8:
+        shortness = [-x for x in hist]
+        m = sum(shortness) / len(shortness)
+        sd = _stdev(shortness)
+        if sd > 0:
+            z = ((-net) - m) / sd
+
+    sig = entry.get("signals") if isinstance(
+        entry.get("signals"), dict) else {}
+    side = "short" if net < 0 else "long"
+    return {
+        "net_speculator": net,
+        "net_managed_money": cur.get("net_managed_money"),
+        "report_date": cur.get("report_date"),
+        "open_interest": cur.get("open_interest"),
+        "net_zscore_vs_history": round(z, 2) if z is not None else None,
+        "crowded_short": net < 0,
+        "extreme": bool(sig.get("extreme")),
+        "reversal_risk": bool(sig.get("reversal_risk")),
+        "history_weeks": len(hist),
+        "source": "cftc-all-cache (6J / Japanese Yen)",
+        "read": (
+            f"Speculators are net {side} {abs(int(net)):,} JPY contracts "
+            f"(as of {cur.get('report_date')})"
+            + (f", {z:+.1f}sd vs the last {len(hist)}w"
+               if z is not None else "")
+            + (" — a net short yen IS the carry trade; the more extreme the "
+               "short, the more fuel for a squeeze."
+               if net < 0 else
+               " — speculators net long yen means the carry is not crowded.")),
+    }
 
 
 # ───────────────────────── synthesis ─────────────────────────
@@ -349,7 +374,7 @@ def lambda_handler(event, context):
     chg_6m = pct_change(fx, 182)
     rv20 = realized_vol(fx, 20)
     rv60 = realized_vol(fx, 60)
-    vol_regime = ("CALM" if (rv20 or 0) < 9
+    vol_regime = ("CALM" if (rv20 or 0) < 10.5
                   else "ELEVATED" if (rv20 or 0) < 14
                   else "STRESSED" if (rv20 or 0) < 20 else "SPIKING")
     # yen direction: USD/JPY falling = yen strengthening = carry pain
@@ -416,7 +441,16 @@ def lambda_handler(event, context):
         weights_avail += 25
     # crowded positioning — weight 20
     if pos is not None:
-        crowd = 12.0 if pos["crowded_short"] else 3.0
+        net = pos.get("net_speculator") or 0
+        z = pos.get("net_zscore_vs_history")
+        if net < 0:                       # net short yen — the carry is on
+            crowd = (clamp(10.0 + z * 5.0, 2, 20) if z is not None else 11.0)
+        else:                             # net long yen — carry not crowded
+            crowd = 4.0
+        if pos.get("extreme"):
+            crowd = max(crowd, 16.0)
+        if pos.get("reversal_risk"):
+            crowd = max(crowd, 14.0)
         comps["crowded_positioning"] = crowd
         weights_avail += 20
     # BOJ hawkish shift — weight 15
