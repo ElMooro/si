@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-consumer-pulse",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Consumer & Labour Pulse — consumer-health composite (sentiment, real spending/income, retail, delinquency) plus alt-data labour lead (Indeed job postings, temp-help, business applications) into a 0-100 pulse with regime + divergence. Output data/consumer-pulse.json.",
+  "environment": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "consumer-pulse-daily",
+    "cron": "cron(40 12 * * ? *)",
+    "description": "Consumer & Labour Pulse — daily 12:40 UTC"
+  }
+}
