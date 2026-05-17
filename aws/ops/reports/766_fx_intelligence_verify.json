@@ -1,0 +1,36 @@
+{
+  "ops": 766,
+  "ts": "2026-05-17T16:42:40.092295+00:00",
+  "subject": "FX Intelligence Engine verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": "Unhandled"
+  },
+  "read_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "headline": null,
+  "usd_regime": {
+    "regime": null,
+    "dollar_pressure": null,
+    "risk_barometer": null,
+    "risk_state": null,
+    "momentum_z": null
+  },
+  "n_currencies": 0,
+  "top3": [],
+  "bottom3": [],
+  "rate_diff_pairs": 0,
+  "positioning_available": null,
+  "positioning_n": 0,
+  "freshness": null,
+  "checks": {
+    "engine_runs": false,
+    "output_written": false,
+    "currencies_ok": false,
+    "usd_regime_ok": false,
+    "barometer_ok": false,
+    "headline_ok": false,
+    "fx_data_fresh": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]"
+}
