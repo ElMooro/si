@@ -1,0 +1,97 @@
+{
+  "ops": 741,
+  "ts": "2026-05-17T09:49:03.574944+00:00",
+  "subject": "signal-board verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"MILDLY RISK-OFF\\\", \\\"composite_signal\\\": -0.57, \\\"n_live\\\": 7, \\\"n_stale\\\": 0}\"}"
+  },
+  "summary": {
+    "schema": "1.0",
+    "composite_posture": "MILDLY RISK-OFF",
+    "composite_signal": -0.57,
+    "n_engines": 7,
+    "n_live": 7,
+    "n_stale": 0,
+    "categories": {
+      "positioning": {
+        "signal": 0.0,
+        "n": 2
+      },
+      "relative value": {
+        "signal": 0.0,
+        "n": 1
+      },
+      "equity valuation": {
+        "signal": -0.5,
+        "n": 2
+      },
+      "macro": {
+        "signal": -1.0,
+        "n": 1
+      },
+      "crypto": {
+        "signal": -2.0,
+        "n": 1
+      }
+    }
+  },
+  "engines": [
+    {
+      "engine": "PM Decision",
+      "signal_label": "NEUTRAL",
+      "read": "Desk posture NEUTRAL",
+      "stale": false
+    },
+    {
+      "engine": "Cross-Asset RV",
+      "signal_label": "NEUTRAL",
+      "read": "RV stretched",
+      "stale": false
+    },
+    {
+      "engine": "Fundamentals X-Ray",
+      "signal_label": "RISK-OFF",
+      "read": "4 undervalued vs 19 overvalued (DCF)",
+      "stale": false
+    },
+    {
+      "engine": "Housing Cycle",
+      "signal_label": "RISK-OFF",
+      "read": "Housing cycle SLOWING",
+      "stale": false
+    },
+    {
+      "engine": "Crypto Narratives",
+      "signal_label": "STRONG RISK-OFF",
+      "read": "Crypto RISK-OFF (17.9% breadth)",
+      "stale": false
+    },
+    {
+      "engine": "Short Pressure",
+      "signal_label": "NEUTRAL",
+      "read": "6 building short pressure, 4 covering",
+      "stale": false
+    },
+    {
+      "engine": "Mean Reversion",
+      "signal_label": "NEUTRAL",
+      "read": "138 cheap vs 139 rich on own multiple history",
+      "stale": false
+    }
+  ],
+  "frontend": {
+    "status": 200,
+    "marker": true
+  },
+  "checks": {
+    "invoke_ok": true,
+    "sidecar_valid": true,
+    "engines_aggregated": true,
+    "composite_computed": true,
+    "frontend_live": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 Signal Board live: 7 engines aggregated into a composite cross-asset posture"
+}
