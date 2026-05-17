@@ -617,6 +617,8 @@ const COLS=[
   // DCF
   {id:'dcfFairValue',label:'DCF Fair $',group:'dcf',fn:r=>r.dcfFairValue,fmt:'price'},
   {id:'dcfUpsidePct',label:'DCF Up%',group:'dcf',fn:r=>r.dcfUpsidePct,fmt:'pct1'},
+  {id:'mrPrice',label:'Mean Rev $',group:'dcf',fn:r=>r.mrPrice,fmt:'price'},
+  {id:'mrUpsidePct',label:'Mean Rev %',group:'dcf',fn:r=>r.mrUpsidePct,fmt:'pct1'},
   // ESG
   {id:'esgRating',label:'ESG',group:'esg',fn:r=>r.esgRating,fmt:'esg_badge'},
   {id:'esgScoreNumeric',label:'ESG Score',group:'esg',fn:r=>r.esgScoreNumeric,fmt:'num'},
@@ -932,6 +934,7 @@ function renderTable(){buildHeader();buildBody(filteredStocks);document.getEleme
 const SENTIMENT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/sentiment/data.json';
 const ALPHA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/alpha-score.json';
 const SMART_MONEY_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/smart-money-holdings.json';
+const MR_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/screener/mean-reversion.json';
 let smartMoneyByFund = {};  // {cik: {name, n_holdings, total_value, top_holdings}}
 
 // ── Stage 5: Macro engine integration ──────────────────────
@@ -1477,6 +1480,31 @@ async function loadAlphaScore() {
     applyFilters();
     console.log('Alpha Score loaded:', data.scored_count, 'stocks · tiers:', JSON.stringify(data.tier_distribution));
   } catch(e) { console.warn('Alpha Score failed:', e); }
+}
+
+// Mean-reversion price sidecar — joins by symbol, adds mrPrice + mrUpsidePct
+// + mrLabel (historical-multiple fair value, complements DCF).
+async function loadMeanReversion() {
+  try {
+    const res = await fetch(MR_URL + '?t=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    const byMap = {};
+    (data.stocks || []).forEach(s => { byMap[s.symbol] = s; });
+    allStocks = allStocks.map(stock => {
+      const m = byMap[stock.symbol];
+      return {
+        ...stock,
+        mrPrice:      m?.mr_price ?? null,
+        mrUpsidePct:  m?.mr_upside_pct ?? null,
+        mrMedianPe:   m?.median_pe ?? null,
+        mrLabel:      m?.label ?? null,
+      };
+    });
+    applyFilters();
+    console.log('Mean Reversion loaded:', data.n_priced, 'priced ·',
+                data.n_cheap_vs_history, 'cheap /', data.n_rich_vs_history, 'rich');
+  } catch(e) { console.warn('Mean Reversion failed:', e); }
 }
 
 function handleSort(col){
@@ -2059,6 +2087,7 @@ async function loadData(){
     loadSentiment();      // async — augments allStocks then re-applies filters
     loadSmartMoney();     // async — Stage 16 Smart Money × Screener join
     loadAlphaScore();     // async — Alpha Score Engine v1.0 (7-factor composite)
+    loadMeanReversion();  // async — historical-multiple mean-reversion price
     loadMacro();          // async — populates Macro Context panel from LCE+GBC
     loadJustCrossed();    // async — fetches the diff feed
     loadHistory();        // async — fetches per-stock score time series
