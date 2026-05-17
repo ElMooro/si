@@ -65,8 +65,8 @@ def fmp_ratios(symbol):
                     pe = float(pe)
                 except (TypeError, ValueError):
                     continue
-                if 0 < pe < 500:        # drop negative + absurd outliers
-                    pes.append(pe)
+                if 2.0 <= pe <= 60.0:   # sane equity P/E band — distorted
+                    pes.append(pe)       # near-zero-earnings years are excluded
             return pes
         except urllib.error.HTTPError as e:
             if e.code in (429, 503) and attempt < 1:
@@ -94,11 +94,16 @@ def analyse(stock):
     if cur_pe <= 0 or price <= 0:
         return {"symbol": sym, "mr_price": None, "mr_upside_pct": None,
                 "label": "n/a — negative / no earnings"}
+    if cur_pe > 80:
+        # a current P/E this high means today's earnings are themselves
+        # depressed — the reversion maths would be unreliable
+        return {"symbol": sym, "mr_price": None, "mr_upside_pct": None,
+                "label": "n/a — depressed current earnings"}
 
     pes = fmp_ratios(sym)
     if len(pes) < MIN_YEARS:
         return {"symbol": sym, "mr_price": None, "mr_upside_pct": None,
-                "label": "n/a — insufficient history"}
+                "label": "n/a — insufficient clean history"}
 
     median_pe = statistics.median(pes)
     mr_price = round(price * (median_pe / cur_pe), 2)
@@ -109,6 +114,8 @@ def analyse(stock):
         label = "RICH vs own history"
     else:
         label = "IN LINE"
+    # extreme gaps still warrant a caution flag even after the clean-band filter
+    confidence = "low" if abs(mr_upside) > 120 else "high"
     return {
         "symbol": sym,
         "mr_price": mr_price,
@@ -116,6 +123,7 @@ def analyse(stock):
         "median_pe": round(median_pe, 1),
         "current_pe": round(cur_pe, 1),
         "n_years": len(pes),
+        "confidence": confidence,
         "label": label,
     }
 
