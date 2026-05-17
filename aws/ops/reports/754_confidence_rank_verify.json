@@ -1,0 +1,96 @@
+{
+  "ops": 754,
+  "ts": "2026-05-17T13:12:45.000499+00:00",
+  "subject": "opportunity-engine confidence-discount verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "schema": "2.0",
+  "n_covered": 501,
+  "top10_confidence_mix": {
+    "high": 7,
+    "moderate": 2,
+    "single-source": 1
+  },
+  "top10": [
+    {
+      "t": "FICO",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 46.5,
+      "conf": "high",
+      "opp": 85.9
+    },
+    {
+      "t": "BX",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 32.2,
+      "conf": "high",
+      "opp": 83.7
+    },
+    {
+      "t": "DECK",
+      "verdict": "OPPORTUNITY",
+      "under": 40.0,
+      "conf": "high",
+      "opp": 83.5
+    },
+    {
+      "t": "DLTR",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 43.0,
+      "conf": "high",
+      "opp": 83.3
+    },
+    {
+      "t": "RMD",
+      "verdict": "OPPORTUNITY",
+      "under": 40.4,
+      "conf": "moderate",
+      "opp": 80.2
+    },
+    {
+      "t": "IDXX",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 36.2,
+      "conf": "high",
+      "opp": 80.1
+    },
+    {
+      "t": "NFLX",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 37.9,
+      "conf": "high",
+      "opp": 79.9
+    },
+    {
+      "t": "JKHY",
+      "verdict": "OPPORTUNITY",
+      "under": 43.1,
+      "conf": "moderate",
+      "opp": 79.7
+    },
+    {
+      "t": "PODD",
+      "verdict": "OPPORTUNITY",
+      "under": 50.0,
+      "conf": "single-source",
+      "opp": 79.5
+    },
+    {
+      "t": "META",
+      "verdict": "STRONG OPPORTUNITY",
+      "under": 21.1,
+      "conf": "high",
+      "opp": 79.1
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "schema_v2": true,
+    "universe_intact": true,
+    "top_favours_trustworthy": true
+  },
+  "all_pass": true,
+  "verdict": "CONFIDENCE-WEIGHTED RANKING LIVE \u2014 9/10 top picks are high/moderate confidence"
+}
