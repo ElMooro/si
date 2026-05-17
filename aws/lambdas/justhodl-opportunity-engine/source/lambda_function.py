@@ -254,9 +254,9 @@ def peer_comparison(m, peer_med):
         if abs(delta) < 8:
             read = "in line with peers"
         elif (delta > 0) == higher_better:
-            read = "better than peers" if higher_better else "richer than peers"
+            read = "better than peers" if higher_better else "cheaper than peers"
         else:
-            read = "weaker than peers" if higher_better else "cheaper than peers"
+            read = "weaker than peers" if higher_better else "richer than peers"
         rows.append({"metric": PEER_LABELS[key], "key": key,
                      "value": round(v, 2), "industry_median": round(pm, 2),
                      "delta_pct": round(delta, 1), "read": read})
@@ -502,42 +502,52 @@ def score_stock(s, mr, fund, short_state, peer_median_fn):
 
 
 def build_bottom_line(verdict, under, conf, capped, scorecard, cyc, cheaper):
-    """One plain-English sentence a non-investor can act on."""
+    """One plain-English summary a non-investor can act on - clean clauses."""
     if under is None:
-        val = "Valuation is unclear from the data"
+        val = "Valuation is unclear from the available data."
     elif capped:
-        val = ("Screens as deeply mispriced, but the gap is too wide to "
-               "trust as a precise number")
+        val = ("It screens as deeply mispriced, though the exact gap is too "
+               "wide to quote as a reliable number.")
     elif under >= 15:
-        val = f"Looks roughly {under:.0f}% undervalued"
+        val = f"It looks roughly {under:.0f}% undervalued."
     elif under >= 8:
-        val = f"Looks modestly undervalued (~{under:.0f}%)"
+        val = f"It looks modestly undervalued (~{under:.0f}%)."
     elif under > -8:
-        val = "Sits close to fair value"
+        val = "It sits close to fair value."
     elif under > -15:
-        val = f"Looks modestly expensive (~{abs(under):.0f}%)"
+        val = f"It looks modestly expensive (~{abs(under):.0f}%)."
     else:
-        val = f"Looks roughly {abs(under):.0f}% overvalued"
+        val = f"It looks roughly {abs(under):.0f}% overvalued."
 
     bs = scorecard["balance_sheet"]["score"]
-    quality = (" with a strong balance sheet" if bs >= 62
-               else " though the balance sheet is shaky" if bs <= 40 else "")
-    peer = (" and it is cheaper than its industry" if cheaper >= 2 else "")
+    strengths = []
+    if bs >= 62:
+        strengths.append("a strong balance sheet")
+    if cheaper >= 2:
+        strengths.append("a cheaper valuation than its industry peers")
+    extra = ""
+    if strengths:
+        extra = " It has " + " and ".join(strengths) + "."
+    elif bs <= 40:
+        extra = " The balance sheet looks shaky, though."
+
     cycle = ""
     if cyc["label"] == "LATE CYCLE - PEAK RISK":
-        cycle = " - but it is a cyclical near peak earnings, so the low P/E can mislead"
+        cycle = (" Note it is a cyclical near peak earnings, so a low P/E "
+                 "here can be misleading.")
     elif cyc["label"] == "EARLY CYCLE - RECOVERY UPSIDE":
-        cycle = " - and it looks early in its cycle, often the rewarding time to look"
+        cycle = (" It also looks early in its cycle - often the rewarding "
+                 "time to look.")
 
     tail = {
         "STRONG OPPORTUNITY": " Our models rate it a strong opportunity.",
         "OPPORTUNITY": " Worth a closer look.",
         "FAIR VALUE": " Fairly priced for now.",
         "EXPENSIVE": " The price already bakes in a lot.",
-        "HIGH RISK": " Treat with caution - the risks outweigh the discount.",
+        "HIGH RISK": " Treat with caution - the risks outweigh any discount.",
         "HOLD / NEUTRAL": " Nothing decisive either way.",
     }.get(verdict, "")
-    return (val + quality + peer + cycle + "." + tail).strip()
+    return (val + extra + cycle + tail).strip()
 
 
 # --------------------------------------------------------------------------
