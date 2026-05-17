@@ -1,0 +1,275 @@
+{
+  "ops": 744,
+  "ts": "2026-05-17T10:21:21.595083+00:00",
+  "subject": "CloudWatch error diagnostics \u2014 4 broken Lambdas",
+  "diagnostics": {
+    "justhodl-morning-intelligence": {
+      "log_group": "/aws/lambda/justhodl-morning-intelligence",
+      "total_events_scanned": 109,
+      "error_lines": 11,
+      "recent_errors": [
+        {
+          "t": "2026-05-13T13:00:36.918000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 778, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 219, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-13T13:01:32.943000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 778, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 219, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-13T13:03:39.117000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 778, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 219, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-14T13:00:37.429000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1044, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 239, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-14T13:01:39.946000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1044, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 239, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-14T13:03:33.183000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1044, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 239, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-14T17:07:40.819000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1044, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 239, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-14T17:12:44.611000+00:00",
+          "msg": "[ERROR] AttributeError: 'str' object has no attribute 'get'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1120, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0m=extract_metrics(all_data,weights)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 247, in extract_metrics\n\u00a0\u00a0\u00a0\u00a0alerts=[str(a.get(\"message\",a))[:80] for a in edge.get(\"alerts\",[])[:3]]"
+        },
+        {
+          "t": "2026-05-16T13:00:38.983000+00:00",
+          "msg": "[ERROR] TypeError: float() argument must be a string or a real number, not 'dict'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1128, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0brief=build_brief(templates,m,perf,err_analysis,weights,accuracy)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1078, in build_brief\n\u00a0\u00a0\u00a0\u00a0em=\"HIGH RISK\" if float(m[\"khalid_raw\"] or 0)>=70 else \"ELEVATED\" if float(m[\"khalid_raw\"] or 0)>=40 else \"LOW RISK\""
+        },
+        {
+          "t": "2026-05-16T13:01:51.380000+00:00",
+          "msg": "[ERROR] TypeError: float() argument must be a string or a real number, not 'dict'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1128, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0brief=build_brief(templates,m,perf,err_analysis,weights,accuracy)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1078, in build_brief\n\u00a0\u00a0\u00a0\u00a0em=\"HIGH RISK\" if float(m[\"khalid_raw\"] or 0)>=70 else \"ELEVATED\" if float(m[\"khalid_raw\"] or 0)>=40 else \"LOW RISK\""
+        },
+        {
+          "t": "2026-05-16T13:03:44.072000+00:00",
+          "msg": "[ERROR] TypeError: float() argument must be a string or a real number, not 'dict'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1128, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0brief=build_brief(templates,m,perf,err_analysis,weights,accuracy)\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 1078, in build_brief\n\u00a0\u00a0\u00a0\u00a0em=\"HIGH RISK\" if float(m[\"khalid_raw\"] or 0)>=70 else \"ELEVATED\" if float(m[\"khalid_raw\"] or 0)>=40 else \"LOW RISK\""
+        }
+      ]
+    },
+    "news-sentiment-agent": {
+      "log_group": "/aws/lambda/news-sentiment-agent",
+      "total_events_scanned": 180,
+      "error_lines": 90,
+      "recent_errors": [
+        {
+          "t": "2026-05-16T09:36:16.700000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T09:36:16.744000+00:00",
+          "msg": "INIT_REPORT Init Duration: 105.26 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T09:36:16.792000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T09:36:16.827000+00:00",
+          "msg": "INIT_REPORT Init Duration: 70.20 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T09:36:16.832000+00:00",
+          "msg": "REPORT RequestId: edd2dd0a-9eed-4fb8-9592-bfc578b0b93c\tDuration: 80.22 ms\tBilled Duration: 81 ms\tMemory Size: 512 MB\tMax Memory Used: 38 MB\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T13:00:16.958000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T13:00:17.017000+00:00",
+          "msg": "INIT_REPORT Init Duration: 135.72 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T13:00:17.075000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T13:00:17.126000+00:00",
+          "msg": "INIT_REPORT Init Duration: 94.81 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T13:00:17.141000+00:00",
+          "msg": "REPORT RequestId: 7558bdfa-5163-4bce-8955-c5cb39ea2065\tDuration: 118.14 ms\tBilled Duration: 119 ms\tMemory Size: 512 MB\tMax Memory Used: 38 MB\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T15:55:51.148000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T15:55:51.192000+00:00",
+          "msg": "INIT_REPORT Init Duration: 111.86 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T15:55:51.238000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-16T15:55:51.273000+00:00",
+          "msg": "INIT_REPORT Init Duration: 68.06 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-16T15:55:51.277000+00:00",
+          "msg": "REPORT RequestId: c35a04c7-fa09-4fe3-bca0-f40833a529a6\tDuration: 77.45 ms\tBilled Duration: 78 ms\tMemory Size: 512 MB\tMax Memory Used: 38 MB\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T04:29:16.728000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-17T04:29:16.787000+00:00",
+          "msg": "INIT_REPORT Init Duration: 137.68 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T04:29:16.844000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-17T04:29:16.895000+00:00",
+          "msg": "INIT_REPORT Init Duration: 94.50 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T04:29:16.902000+00:00",
+          "msg": "REPORT RequestId: 1de0a743-7cb2-4e35-bbe7-d340d02bc0ed\tDuration: 107.66 ms\tBilled Duration: 108 ms\tMemory Size: 512 MB\tMax Memory Used: 38 MB\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T10:02:21.943000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-17T10:02:22.001000+00:00",
+          "msg": "INIT_REPORT Init Duration: 144.51 ms\tPhase: init\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T10:02:22.063000+00:00",
+          "msg": "[ERROR] Runtime.ImportModuleError: Unable to import module 'lambda_news_agent': No module named 'lambda_news_agent'\nTraceback (most recent call last):"
+        },
+        {
+          "t": "2026-05-17T10:02:22.114000+00:00",
+          "msg": "INIT_REPORT Init Duration: 95.44 ms\tPhase: invoke\tStatus: error\tError Type: Runtime.ImportModuleError"
+        },
+        {
+          "t": "2026-05-17T10:02:22.120000+00:00",
+          "msg": "REPORT RequestId: 10dddeaa-e5de-4361-8667-8362e19434b6\tDuration: 109.39 ms\tBilled Duration: 110 ms\tMemory Size: 512 MB\tMax Memory Used: 40 MB\tStatus: error\tError Type: Runtime.ImportModuleError"
+        }
+      ]
+    },
+    "justhodl-email-reports-v2": {
+      "log_group": "/aws/lambda/justhodl-email-reports-v2",
+      "total_events_scanned": 53,
+      "error_lines": 12,
+      "recent_errors": [
+        {
+          "t": "2026-05-13T12:01:39.050000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-13T12:03:11.868000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-13T12:05:47.520000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-14T12:01:56.673000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-14T12:03:36.449000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-14T12:06:04.355000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-15T12:01:42.860000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-15T12:03:10.750000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-15T12:05:53.675000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-16T12:01:35.030000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-16T12:03:01.309000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        },
+        {
+          "t": "2026-05-16T12:05:27.946000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 413, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0ses.send_email(\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/client.py\", line 602, in _api_call\n\u00a0\u00a0\u00a0\u00a0return self._make_api_call(operation_name, kwargs)\n\u00a0\u00a0File \"/var/lang/lib/python3.11/site-packages/botocore/context.py\", line 123, in wrapper"
+        }
+      ]
+    },
+    "justhodl-nobrainer-rationale": {
+      "log_group": "/aws/lambda/justhodl-nobrainer-rationale",
+      "total_events_scanned": 561,
+      "error_lines": 12,
+      "recent_errors": [
+        {
+          "t": "2026-05-13T13:47:19.084000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-13T13:50:50.660000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-13T13:54:58.026000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-14T13:47:26.933000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-14T13:50:52.358000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-14T13:55:14.673000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-15T13:47:25.986000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-15T13:50:59.125000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-15T13:55:30.383000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-16T13:45:03.222000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-16T13:46:03.633000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        },
+        {
+          "t": "2026-05-16T13:48:02+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in build_telegram_digest\n\u00a0\u00a0\u00a0\u00a0lines.append(f\"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  \""
+        }
+      ]
+    }
+  }
+}
