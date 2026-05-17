@@ -1,0 +1,52 @@
+{
+  "ops": 771,
+  "ts": "2026-05-17T17:37:54.916830+00:00",
+  "subject": "Activity Nowcast redeploy (retry fix) + verify",
+  "update": "ok",
+  "function_state": "Active",
+  "invoke_1": {
+    "status": 200,
+    "fn_error": "Unhandled",
+    "body": null
+  },
+  "invoke_2": {
+    "status": 200,
+    "fn_error": "Unhandled",
+    "body": null
+  },
+  "invoke_3": {
+    "status": 200,
+    "fn_error": "Unhandled",
+    "body": null
+  },
+  "output": {
+    "ok": false,
+    "activity_index": null,
+    "activity_z": null,
+    "regime": "UNKNOWN",
+    "momentum": null,
+    "headline": null,
+    "n_ok": 0,
+    "errors": [
+      "WEI: <urlopen error [Errno 16] Device or resource busy>",
+      "ICSA: <urlopen error [Errno 16] Device or resource busy>",
+      "CCSA: <urlopen error [Errno 16] Device or resource busy>",
+      "NFCI: <urlopen error [Errno 16] Device or resource busy>",
+      "STLFSI4: <urlopen error [Errno 16] Device or resource busy>",
+      "BAA10Y: <urlopen error [Errno 16] Device or resource busy>"
+    ]
+  },
+  "divergence": null,
+  "components": [],
+  "checks": {
+    "function_active": true,
+    "output_ok": false,
+    "index_in_range": false,
+    "has_regime": false,
+    "all_series_ok": false,
+    "real_fred_data": false,
+    "divergence_works": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/output/components"
+}
