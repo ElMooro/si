@@ -85,8 +85,25 @@ def http(url, method="GET", headers=None, body=None, timeout=14):
 
 
 # ─────────────────────── 1. DATA OUTPUT SWEEP ───────────────────────
+def load_cadence_manifest():
+    """output name -> expected cadence in hours (None = event-driven engine).
+
+    Built from every Lambda's EventBridge schedule by build_cadence_manifest
+    and uploaded to S3. Lets the sweep judge each output against its own
+    cadence instead of one blunt threshold for all.
+    """
+    try:
+        d = json.loads(s3.get_object(
+            Bucket=BUCKET,
+            Key="_health/cadence-manifest.json")["Body"].read())
+        return {k: v.get("cadence_hours")
+                for k, v in (d.get("outputs") or {}).items()}
+    except Exception:
+        return {}
+
+
 def sweep_data_outputs():
-    """Every data/*.json output: age, size, and ok/error content flags."""
+    """Every data/*.json output: age vs its cadence, size, ok/error flags."""
     keys = []
     token = None
     try:
@@ -106,6 +123,7 @@ def sweep_data_outputs():
     except Exception as e:
         return {"available": False, "error": str(e)[:200]}
 
+    cadence = load_cadence_manifest()
     t = now()
     red, yellow, degraded, static = [], [], [], []
     green = 0
@@ -113,33 +131,48 @@ def sweep_data_outputs():
         age_h = (t - lm).total_seconds() / 3600.0
         name = key[len("data/"):-len(".json")]
         item = {"output": name, "age_hours": round(age_h, 1), "size": size}
-        # config / user-activity / static-pointer files are not scheduled
-        # engine outputs — their age says nothing about system health
-        if ("config" in name.lower() or name.startswith("user-")
-                or name in STATIC_OUTPUTS):
+
+        # thresholds: manifest cadence if known, else blunt fallback tiers
+        if name in cadence:
+            cad = cadence[name]
+            if cad is None:                    # engine has no schedule —
+                static.append({"output": name,  # event-driven, age is moot
+                               "age_hours": round(age_h, 1)})
+                continue
+            item["cadence_hours"] = cad
+            green_h, red_h = max(cad * 1.5, 6.0), max(cad * 4, 24.0)
+        elif ("config" in name.lower() or name.startswith("user-")
+              or name in STATIC_OUTPUTS):
             static.append({"output": name, "age_hours": round(age_h, 1)})
             continue
+        else:                                  # unmapped — blunt fallback
+            green_h, red_h = FRESH_H, STALE_RED_H
+
         if size < MIN_SIZE:
             item["issue"] = "empty / truncated output"
             red.append(item)
             continue
-        if age_h > STALE_RED_H:
-            item["issue"] = f"stale {age_h/24:.1f}d — engine likely dead"
+        if age_h > red_h:
+            if name in cadence:
+                item["issue"] = (f"stale {age_h:.0f}h — expected every "
+                                 f"{cadence[name]:g}h")
+            else:
+                item["issue"] = f"stale {age_h / 24:.1f}d — engine likely dead"
             red.append(item)
             continue
-        # fresh-ish file: peek inside for a self-reported failure
-        if age_h <= FRESH_H:
+        if age_h <= green_h:
+            # fresh for its cadence — peek inside for a self-reported failure
             try:
-                body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
-                d = json.loads(body)
+                d = json.loads(s3.get_object(
+                    Bucket=BUCKET, Key=key)["Body"].read())
                 if isinstance(d, dict):
                     if d.get("ok") is False:
                         item["issue"] = "engine reports ok=false"
                         degraded.append(item)
                         continue
-                    err = d.get("error")
-                    if err:
-                        item["issue"] = f"error field: {str(err)[:80]}"
+                    if d.get("error"):
+                        item["issue"] = (f"error field: "
+                                         f"{str(d.get('error'))[:80]}")
                         degraded.append(item)
                         continue
             except Exception:
@@ -154,6 +187,7 @@ def sweep_data_outputs():
     return {"available": True, "total": len(keys), "green": green,
             "n_yellow": len(yellow), "n_red": len(red),
             "n_degraded": len(degraded), "n_static": len(static),
+            "manifest_outputs": len(cadence),
             "red": red[:40], "degraded": degraded[:40],
             "yellow": yellow[:25], "static": static[:30]}
 
@@ -295,6 +329,7 @@ def lambda_handler(event, context):
             "data_outputs_aging": data_yellow,
             "data_outputs_stale_or_degraded": data_red,
             "data_outputs_static": data.get("n_static"),
+            "data_outputs_cadence_mapped": data.get("manifest_outputs"),
             "lambda_count": compute.get("n_functions"),
             "dependencies_down": len(dep_red),
             "dependencies_degraded": len(dep_yellow),

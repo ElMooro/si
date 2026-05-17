@@ -1,0 +1,41 @@
+name: Cadence Manifest
+
+# Regenerates the fleet-monitor's per-engine cadence manifest whenever any
+# Lambda's schedule changes (or the generator itself is updated), and uploads
+# it to S3 so the monitor always judges outputs against current cadences.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aws/lambdas/*/config.json'
+      - 'aws/tools/build_cadence_manifest.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and upload cadence manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Build manifest from Lambda configs
+        run: python aws/tools/build_cadence_manifest.py
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp cadence-manifest.json \
+            s3://justhodl-dashboard-live/_health/cadence-manifest.json \
+            --content-type application/json --cache-control "max-age=600"
+          echo "### Cadence manifest updated" >> $GITHUB_STEP_SUMMARY
+          python -c "import json;m=json.load(open('cadence-manifest.json'));print('Outputs mapped:',m['n_outputs'])" >> $GITHUB_STEP_SUMMARY
