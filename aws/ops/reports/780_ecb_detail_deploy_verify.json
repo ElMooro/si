@@ -1,0 +1,42 @@
+{
+  "ops": 780,
+  "ts": "2026-05-17T22:22:07.904678+00:00",
+  "subject": "Deploy + verify justhodl-ecb-detail (ECB liquidity engine)",
+  "deploy": "ERROR ClientError: An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'ECB / Eurosystem Liquidity Detail Engine \u2014 granular ECB capital-injection data straight from the ECB Data Portal (excess ",
+  "config_update": "An error occurred (ValidationException) when calling the UpdateFunctionConfiguration operation: 1 validation error detected: Value 'ECB / Eurosystem L",
+  "schedule": "ERROR An error occurred (ResourceNotFoundException) when calling the AddPermission operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-detail",
+  "invoke": {
+    "err": "An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-ecb-detail:$LATEST"
+  },
+  "read_err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.",
+  "output": {
+    "ok": null,
+    "headline": null,
+    "stance_label": null,
+    "excess_liquidity_eur_bn": null,
+    "liquidity_regime": null,
+    "drain_pace_bn_per_month": null,
+    "deposit_facility_recourse": null,
+    "current_accounts": null,
+    "net_liquidity_effect": null,
+    "balance_sheet_eur_bn": null,
+    "qt_pace": null,
+    "deposit_rate": null,
+    "main_refi_rate": null,
+    "marginal_rate": null,
+    "corridor_bp": null,
+    "errors": null
+  },
+  "checks": {
+    "function_live": false,
+    "schedule_wired": false,
+    "invoke_ok": false,
+    "output_ok": false,
+    "ecb_excess_liquidity_resolved": false,
+    "ecb_ilm_detail_resolved": false,
+    "balance_sheet_resolved": false,
+    "deposit_rate_resolved": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/output.errors (a series key may need correction)"
+}
