@@ -1,0 +1,260 @@
+{
+  "ops": 788,
+  "ts": "2026-05-17T23:21:23.544439+00:00",
+  "subject": "Probe SNB data sources (FRED + SNB data portal API)",
+  "fred_search_snb": [
+    {
+      "id": "FPCPITOTLZGCHE",
+      "title": "Inflation, consumer prices for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "QCHN628BIS",
+      "title": "Residential Property Prices for Switzerland",
+      "freq": "Q",
+      "end": "2025-10-01"
+    },
+    {
+      "id": "RBCHBIS",
+      "title": "Real Broad Effective Exchange Rate for Switzerland",
+      "freq": "M",
+      "end": "2026-03-01"
+    },
+    {
+      "id": "SNBMONTBASE",
+      "title": "Swiss Monetary Base Aggregate",
+      "freq": "M",
+      "end": "2026-03-01"
+    },
+    {
+      "id": "NYGDPPCAPKDCHE",
+      "title": "Constant GDP per capita for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "PCAGDPCHA646NWDB",
+      "title": "Gross Domestic Product Per Capita for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "QCHR628BIS",
+      "title": "Real Residential Property Prices for Switzerland",
+      "freq": "Q",
+      "end": "2025-10-01"
+    },
+    {
+      "id": "SPDYNTFRTINCHE",
+      "title": "Fertility Rate, Total for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "SIPOVGINICHE",
+      "title": "GINI Index for Switzerland",
+      "freq": "A",
+      "end": "2022-01-01"
+    },
+    {
+      "id": "CHINTDCHFUSD",
+      "title": "Swiss Intervention: Swiss National Bank Purchases of USD against CHF (",
+      "freq": "D",
+      "end": "2001-04-05"
+    },
+    {
+      "id": "DEBTTLCHA188A",
+      "title": "Central government debt, total (% of GDP) for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "SNBFORCURPOS",
+      "title": "Relevant Foreign Currency Positions of Swiss National Bank",
+      "freq": "M",
+      "end": "2026-02-01"
+    },
+    {
+      "id": "MKTGDPCHA646NWDB",
+      "title": "Gross Domestic Product for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "SNBREMBALPOS",
+      "title": "Balance of the Remaining Balance Sheet Positions of Swiss National Ban",
+      "freq": "M",
+      "end": "2026-02-01"
+    },
+    {
+      "id": "DDDI09USA156NWDB",
+      "title": "Life Insurance Premium Volume to GDP for United States",
+      "freq": "A",
+      "end": "2020-01-01"
+    },
+    {
+      "id": "POPTOTCHA647NWDB",
+      "title": "Population, Total for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "SPDYNLE00INCHE",
+      "title": "Life Expectancy at Birth, Total for Switzerland",
+      "freq": "A",
+      "end": "2024-01-01"
+    },
+    {
+      "id": "QCHN368BIS",
+      "title": "Residential Property Prices for Switzerland",
+      "freq": "Q",
+      "end": "2025-10-01"
+    }
+  ],
+  "fred_search_sight": [],
+  "fred_search_assets": [
+    {
+      "id": "DDDI06CHA156NWDB",
+      "title": "Central Bank Assets to GDP for Switzerland",
+      "freq": "A",
+      "end": "2016-01-01"
+    },
+    {
+      "id": "DDDI02CHA156NWDB",
+      "title": "Deposit Money Bank Assets to GDP for Switzerland",
+      "freq": "A",
+      "end": "2016-01-01"
+    },
+    {
+      "id": "DDDI04CHA156NWDB",
+      "title": "Deposit Money Bank Assets to Deposit Money Bank Assets and Central Ban",
+      "freq": "A",
+      "end": "2016-01-01"
+    },
+    {
+      "id": "DDDI03CHA156NWDB",
+      "title": "Non-Bank Financial Institutions' Assets to GDP for Switzerland (DISCON",
+      "freq": "A",
+      "end": "2006-01-01"
+    }
+  ],
+  "fred_direct": [
+    {
+      "id": "IR3TIB01CHM156N",
+      "ok": true,
+      "latest_date": "2026-04-01",
+      "latest_value": "-0.04"
+    },
+    {
+      "id": "IRLTLT01CHM156N",
+      "ok": true,
+      "latest_date": "2026-04-01",
+      "latest_value": "0.45"
+    },
+    {
+      "id": "CHECPIALLMINMEI",
+      "ok": true,
+      "latest_date": "2025-04-01",
+      "latest_value": "107.7312"
+    },
+    {
+      "id": "DEXSZUS",
+      "ok": true,
+      "latest_date": "2026-05-08",
+      "latest_value": "0.7773"
+    },
+    {
+      "id": "DEXUSEU",
+      "ok": true,
+      "latest_date": "2026-05-08",
+      "latest_value": "1.1773"
+    },
+    {
+      "id": "SNBREMBALPOS",
+      "ok": true,
+      "latest_date": "2026-02-01",
+      "latest_value": "371537.0"
+    },
+    {
+      "id": "MABMM301CHM189S",
+      "ok": true,
+      "latest_date": "2018-12-01",
+      "latest_value": "1064098409840.9799"
+    },
+    {
+      "id": "INTDSRCHM193N",
+      "ok": false,
+      "note": "HTTP Error 400: Bad Request"
+    }
+  ],
+  "snb_api": [
+    {
+      "cube": "rendoblid",
+      "label": "Confederation bond yield 10Y (daily)",
+      "ok": true,
+      "total_lines": 155,
+      "header_block": [
+        "\ufeff\"CubeId\";\"rendoblid\"",
+        "\"PublishingDate\";\"2025-09-01 14:29\"",
+        "\"Date\";\"D0\";\"Value\"",
+        "\"2025-01-01\";\"10J0\";",
+        "\"2025-01-02\";\"10J0\";"
+      ],
+      "last_rows": [
+        "\"2025-07-29\";\"10J0\";\"0.398\"",
+        "\"2025-07-30\";\"10J0\";\"0.378\"",
+        "\"2025-07-31\";\"10J0\";\"0.378\""
+      ]
+    },
+    {
+      "cube": "snbbipo",
+      "label": "SNB balance sheet items (candidate)",
+      "ok": true,
+      "total_lines": 423,
+      "header_block": [
+        "\ufeff\"CubeId\";\"snbbipo\"",
+        "\"PublishingDate\";\"2026-04-30 09:00\"",
+        "\"Date\";\"D0\";\"Value\"",
+        "\"2025-01\";\"GFG\";\"85504.50034637\"",
+        "\"2025-01\";\"D\";\"755772.4929365\""
+      ],
+      "last_rows": [
+        "\"2026-03\";\"SP\";\"290.00957271\"",
+        "\"2026-03\";\"RE\";\"165959.30040776\"",
+        "\"2026-03\";\"T1\";\"890207.68679441\""
+      ]
+    },
+    {
+      "cube": "snbmoba",
+      "label": "SNB monetary base (candidate)",
+      "ok": true,
+      "total_lines": 153,
+      "header_block": [
+        "\ufeff\"CubeId\";\"snbmoba\"",
+        "\"PublishingDate\";\"2026-04-21 09:00\"",
+        "\"Date\";\"D0\";\"Value\"",
+        "\"2025-01\";\"RF\";\"850942\"",
+        "\"2025-01\";\"W\";\"3996\""
+      ],
+      "last_rows": [
+        "\"2026-03\";\"N2\";\"502514\"",
+        "\"2026-03\";\"N3\";\"502260\"",
+        "\"2026-03\";\"S1\";\"1.00050571\""
+      ]
+    },
+    {
+      "cube": "snboffzid",
+      "label": "SNB sight deposits (candidate)",
+      "ok": false,
+      "note": "HTTP Error 404: Not Found"
+    },
+    {
+      "cube": "snbgwd",
+      "label": "SNB sight deposits weekly (candidate)",
+      "ok": false,
+      "note": "HTTP Error 404: Not Found"
+    }
+  ],
+  "verdict": "Probe complete \u2014 inspect fred_direct[].ok, fred_search_* and snb_api[].ok / header_block to pick the confirmed series & cube IDs for justhodl-snb-detail."
+}
