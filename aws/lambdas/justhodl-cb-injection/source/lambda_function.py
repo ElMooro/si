@@ -163,15 +163,27 @@ def lambda_handler(event, context):
     ecb_rate = latest("ECB_RATE")
     ecb_rate6 = level_change(data["ECB_RATE"], 182)
     ecb_st = cb_injection_stance(ecb_bs6, ecb_rate6)
+    # the dedicated ecb-detail engine reads excess liquidity straight from the
+    # ECB Data Portal — a sharper drain signal than the balance-sheet total,
+    # which can sit flat while excess liquidity actively drains
+    ecb_d = read_existing("data/ecb-detail.json") or {}
+    ecb_liq = ecb_d.get("liquidity") or {}
+    ecb_excess = ecb_liq.get("excess_liquidity_eur_bn")
+    if ecb_d.get("ok") and ecb_d.get("ecb_injection_score") is not None:
+        ecb_st = int(clamp(ecb_d["ecb_injection_score"], -2, 2))
+    ecb_extra = (f" Excess liquidity EUR {ecb_excess:,.0f}bn "
+                 f"({str(ecb_liq.get('trend', '')).lower()})."
+                 if ecb_excess is not None else "")
     banks.append({
         "cb": "ECB", "currency": "EUR",
         "balance_sheet_eur_mn": latest("ECB_BS"),
         "bs_change_6m_pct": ecb_bs6, "bs_change_12m_pct": ecb_bs12,
+        "excess_liquidity_eur_bn": ecb_excess,
         "policy_rate_pct": ecb_rate, "rate_change_6m_pp": ecb_rate6,
         "injection_stance": ecb_st, "stance_label": STANCE_LABEL[ecb_st],
         "read": (f"ECB balance sheet {ecb_bs6:+.1f}% over 6m, deposit "
                  f"facility rate {ecb_rate}% — "
-                 f"{STANCE_LABEL[ecb_st].lower()}."
+                 f"{STANCE_LABEL[ecb_st].lower()}.{ecb_extra}"
                  if ecb_bs6 is not None and ecb_rate is not None
                  else "ECB data partial")})
 
