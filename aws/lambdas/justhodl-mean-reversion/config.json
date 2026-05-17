@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-mean-reversion",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Historical-multiple mean-reversion price for the screener universe — median 6yr P/E reversion. Output screener/mean-reversion.json (symbol-keyed sidecar, merged client-side by the screener page).",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-analyst-consensus", "keys": ["FMP_KEY"]}
+  ],
+  "schedule": {
+    "rule_name": "mean-reversion-daily",
+    "cron": "cron(30 13 ? * MON-FRI *)",
+    "description": "Mean-reversion price engine — weekdays 13:30 UTC, after the screener refresh"
+  }
+}
