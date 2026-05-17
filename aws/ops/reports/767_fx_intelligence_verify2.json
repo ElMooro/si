@@ -1,0 +1,144 @@
+{
+  "ops": 767,
+  "ts": "2026-05-17T16:54:03.598883+00:00",
+  "subject": "FX Intelligence Engine re-verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "payload": "{\"statusCode\": 200, \"body\": \"USD DOWNTREND \u2014 REFLATION (dollar pressure 32.9/100, RISK-ON / carry-friendly). Strongest vs USD: BRL; weakest: INR.\"}"
+  },
+  "headline": "USD DOWNTREND \u2014 REFLATION (dollar pressure 32.9/100, RISK-ON / carry-friendly). Strongest vs USD: BRL; weakest: INR.",
+  "engine_errors": [],
+  "usd_regime": {
+    "regime": "USD DOWNTREND \u2014 REFLATION",
+    "dollar_pressure": 32.9,
+    "risk_barometer": 1.72,
+    "risk_state": "RISK-ON / carry-friendly",
+    "momentum_z": -1.07,
+    "broad_index": 118.04
+  },
+  "n_currencies": 12,
+  "currency_scorecard": [
+    {
+      "code": "BRL",
+      "chg_3m": 5.98,
+      "trend": "STRENGTHENING",
+      "mom_z": 1.9,
+      "vol_regime": "NORMAL",
+      "signal": 2
+    },
+    {
+      "code": "AUD",
+      "chg_3m": 2.19,
+      "trend": "STRENGTHENING",
+      "mom_z": 1.68,
+      "vol_regime": "NORMAL",
+      "signal": 2
+    },
+    {
+      "code": "CNY",
+      "chg_3m": 1.76,
+      "trend": "STRENGTHENING",
+      "mom_z": 1.81,
+      "vol_regime": "NORMAL",
+      "signal": 2
+    },
+    {
+      "code": "MXN",
+      "chg_3m": -0.1,
+      "trend": "STRENGTHENING",
+      "mom_z": 1.13,
+      "vol_regime": "NORMAL",
+      "signal": 2
+    },
+    {
+      "code": "KRW",
+      "chg_3m": -0.2,
+      "trend": "MIXED",
+      "mom_z": 0.69,
+      "vol_regime": "ELEVATED",
+      "signal": 0
+    },
+    {
+      "code": "GBP",
+      "chg_3m": -0.31,
+      "trend": "STRENGTHENING",
+      "mom_z": 1.54,
+      "vol_regime": "NORMAL",
+      "signal": 2
+    },
+    {
+      "code": "JPY",
+      "chg_3m": -0.36,
+      "trend": "MIXED",
+      "mom_z": 0.78,
+      "vol_regime": "NORMAL",
+      "signal": 0
+    },
+    {
+      "code": "CAD",
+      "chg_3m": -0.8,
+      "trend": "STRENGTHENING",
+      "mom_z": 0.35,
+      "vol_regime": "NORMAL",
+      "signal": 1
+    },
+    {
+      "code": "EUR",
+      "chg_3m": -1.05,
+      "trend": "STRENGTHENING",
+      "mom_z": 0.92,
+      "vol_regime": "LOW",
+      "signal": 1
+    },
+    {
+      "code": "CHF",
+      "chg_3m": -1.21,
+      "trend": "STRENGTHENING",
+      "mom_z": 0.83,
+      "vol_regime": "NORMAL",
+      "signal": 1
+    },
+    {
+      "code": "NZD",
+      "chg_3m": -1.46,
+      "trend": "STRENGTHENING",
+      "mom_z": 0.98,
+      "vol_regime": "NORMAL",
+      "signal": 1
+    },
+    {
+      "code": "INR",
+      "chg_3m": -3.94,
+      "trend": "WEAKENING",
+      "mom_z": -1.16,
+      "vol_regime": "NORMAL",
+      "signal": -2
+    }
+  ],
+  "rate_diff": {
+    "us_2y": 4.0,
+    "us_10y": 4.47,
+    "n_pairs": 4
+  },
+  "positioning": {
+    "available": false,
+    "n": 0
+  },
+  "freshness": {
+    "n_currencies": 12,
+    "oldest_fx_obs_days": 9,
+    "fx_data_stale": false
+  },
+  "checks": {
+    "engine_runs": true,
+    "output_written": true,
+    "currencies_ok": true,
+    "usd_regime_ok": true,
+    "barometer_ok": true,
+    "headline_ok": true,
+    "no_engine_errors": true
+  },
+  "all_pass": true,
+  "verdict": "FX INTELLIGENCE ENGINE LIVE & VERIFIED \u2014 per-currency scorecard, USD regime, FX risk barometer, rate differentials all computing on real FRED data."
+}
