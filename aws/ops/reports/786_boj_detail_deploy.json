@@ -1,0 +1,59 @@
+{
+  "ops": 786,
+  "ts": "2026-05-17T23:02:54.426897+00:00",
+  "subject": "Deploy + verify justhodl-boj-detail (yen-carry engine)",
+  "deploy": "updated (already existed)",
+  "schedule": {
+    "rule": "boj-detail-daily",
+    "cron": "cron(20 11 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"stance\": \"STRONG DRAIN\", \"carry_unwind_risk\": 61.7, \"regime\": \"UNWIND RISK ELEVATED\", \"errors\": 0}"
+  },
+  "boj_detail": {
+    "ok": true,
+    "headline": "BOJ: STRONG DRAIN. Yen-carry unwind risk 62/100 (UNWIND RISK ELEVATED). Balance sheet -4.8%/6m (tapering); policy rate 0.73% (tightening); USD/JPY 157.",
+    "stance": "STRONG DRAIN",
+    "carry_unwind_risk": 61.7,
+    "carry_regime": "UNWIND RISK ELEVATED",
+    "components": {
+      "boj_tightening": 15.9,
+      "jgb_yield": 20,
+      "differential_compression": 10.0,
+      "usdjpy_stretch": 15.8,
+      "yen_rally_momentum": 0
+    },
+    "balance_sheet_jpy_tn": 663.3,
+    "policy_rate_pct": 0.727,
+    "jgb_10y_pct": 2.515,
+    "differential_pp": 1.95,
+    "usdjpy": 156.64,
+    "errors": []
+  },
+  "cb_coverage": {
+    "ecb_detail": {
+      "ok": true,
+      "headline": "ECB: DRAINING. Excess liquidity EUR 2,258bn (abundant \u2014 draining); balance sheet +0.5%/6m (flat); deposit rate 2.0% \u2014 policy on hold.",
+      "generated_at": "2026-05-17T22:32:48.093184+00:00"
+    },
+    "cb_injection": {
+      "ok": true,
+      "global_impulse": "NEUTRAL",
+      "generated_at": "2026-05-17T22:38:11.284957+00:00"
+    }
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "carry_score_computed": true,
+    "real_fred_data": true
+  },
+  "all_pass": true,
+  "verdict": "BOJ-DETAIL LIVE \u2014 yen-carry-unwind risk 61.7/100 (UNWIND RISK ELEVATED); BOJ STRONG DRAIN; USD/JPY 156.64. Japan now covered at the same depth as the ECB engine; deployed, scheduled daily 11:20 UTC, real FRED data. Central-bank coverage for the eurodollar/carry system is complete: ECB-detail + BOJ-detail + cb-injection (ECB/BOJ/Fed/SNB synthesis)."
+}
