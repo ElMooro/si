@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Platform Health · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🩺</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:22px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:16px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .st{font-family:var(--mono);font-size:28px;font-weight:700;margin:5px 0 2px}
+.hero .meta{color:var(--mute);font-size:12px;margin-top:6px}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.cpill{font-family:var(--mono);font-size:11px;padding:5px 11px;border-radius:6px;background:var(--panel2);border:1px solid var(--line)}
+.cpill b{font-size:13px}
+.hist{display:flex;gap:3px;flex-wrap:wrap;margin-top:14px}
+.hdot{width:11px;height:11px;border-radius:2px;background:var(--dim)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:top}
+tr:hover td{background:var(--panel2)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.stt{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px}
+.typ{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.sev{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:#1c2433;color:var(--dim);text-transform:uppercase}
+.sev-critical{background:#ff557722;color:var(--red)}
+.kb{font-size:9px;color:var(--orange);font-family:var(--mono)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.tgl{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);cursor:pointer;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:5px 11px}
+.tgl.on{color:var(--cyan);border-color:var(--cyan)}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🩺 Platform Health</h1>
+    <p class="subtitle">Live operational status for the JustHodl.AI platform — every monitored Lambda, S3 feed, DynamoDB table, SSM parameter and EventBridge rule, checked on a schedule. Red and amber components sort to the top. When a feed goes stale or a function fails, it shows here instead of staying silent.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/signal-board.html">signal board</a>
+      <a href="/intelligence/">intelligence</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING PLATFORM HEALTH…</div></div>
+
+  <h2><span>Components</span><span id="filterwrap"></span></h2>
+  <div class="card"><div id="board"><div class="loading">…</div></div></div>
+  <p class="note" id="note">A component is healthy (green), degraded (amber), failed (red), informational (cyan) or unknown. "Known broken" marks components flagged as accepted/expected failures.</p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const SC={green:"var(--green)",yellow:"var(--yellow)",red:"var(--red)",unknown:"var(--dim)",info:"var(--cyan)"};
+let DASH=null, problemsOnly=false;
+
+function sysLabel(s){return s==="green"?"ALL SYSTEMS OPERATIONAL":s==="yellow"?"DEGRADED — ATTENTION NEEDED":s==="red"?"CRITICAL — FAILURES PRESENT":"STATUS UNKNOWN";}
+
+function renderBoard(){
+  const comps=(DASH.components||[]).filter(c=>!problemsOnly || ["red","yellow","unknown"].includes(c.status));
+  if(!comps.length){document.getElementById("board").innerHTML=`<div class="loading">${problemsOnly?"no problems — all clear":"no components"}</div>`;return;}
+  let h=`<table><thead><tr><th>Status</th><th>Component</th><th>Type</th><th>Severity</th><th>Detail</th></tr></thead><tbody>`;
+  for(const c of comps){
+    const col=SC[c.status]||"var(--dim)";
+    const detail=c.error?`<span style="color:var(--red)">${esc(c.error)}</span>`:esc(c.note||"");
+    h+=`<tr>
+      <td><span class="dot" style="background:${col}"></span><span class="stt" style="color:${col}">${esc((c.status||"?").toUpperCase())}</span></td>
+      <td style="color:var(--txt)">${esc(c.id)}${c.known_broken?' <span class="kb">⚑ known-broken</span>':''}</td>
+      <td><span class="typ">${esc(c.type||"")}</span></td>
+      <td><span class="sev sev-${esc(c.severity||"")}">${esc(c.severity||"")}</span></td>
+      <td style="color:var(--mute);max-width:420px">${detail||"—"}</td>
+    </tr>`;
+  }
+  document.getElementById("board").innerHTML=h+`</tbody></table>`;
+}
+
+async function loadHistory(){
+  try{
+    const res=await fetch(BASE+"_health/history.jsonl?t="+Date.now());
+    if(!res.ok)return"";
+    const lines=(await res.text()).trim().split("\n").filter(Boolean);
+    const rows=lines.slice(-48).map(l=>{try{return JSON.parse(l);}catch{return null;}}).filter(Boolean);
+    if(!rows.length)return"";
+    return `<div class="hist" title="system status history">`+
+      rows.map(r=>`<div class="hdot" style="background:${SC[r.system]||'var(--dim)'}" title="${esc(r.ts)}"></div>`).join("")+`</div>`;
+  }catch{return"";}
+}
+
+(async()=>{
+  let d=null;
+  try{const r=await fetch(BASE+"_health/dashboard.json?t="+Date.now());if(r.ok)d=await r.json();}catch{}
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="st" style="color:var(--orange);font-size:17px">HEALTH DATA UNAVAILABLE</div><div class="meta">The health-monitor sidecar could not be loaded.</div></div>`;document.getElementById("board").innerHTML="";return;}
+  DASH=d;
+  const col=SC[d.system_status]||"var(--dim)";
+  const cnt=d.counts||{};
+  const order=["red","yellow","unknown","info","green"];
+  const pills=order.filter(k=>cnt[k]!=null).map(k=>`<span class="cpill" style="border-color:${SC[k]}44"><b style="color:${SC[k]}">${cnt[k]}</b> ${k}</span>`).join("");
+  const histHtml=await loadHistory();
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">System Status</div>
+      <div class="st" style="color:${col}">${sysLabel(d.system_status)}</div>
+      <div class="meta">${d.total_components} components monitored · checked in ${d.duration_sec!=null?Math.round(d.duration_sec)+"s":"?"}</div>
+      <div class="counts">${pills}</div>
+      ${histHtml}
+    </div>`;
+  document.getElementById("filterwrap").innerHTML=`<span class="tgl" id="tgl" onclick="toggleFilter()">Problems only</span>`;
+  renderBoard();
+  document.getElementById("ts").textContent="health-monitor · checked "+(d.generated_at||"?");
+})();
+
+function toggleFilter(){
+  problemsOnly=!problemsOnly;
+  document.getElementById("tgl").classList.toggle("on",problemsOnly);
+  renderBoard();
+}
+</script>
+</body>
+</html>
