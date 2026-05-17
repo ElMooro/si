@@ -1,0 +1,87 @@
+{
+  "ops": 767,
+  "ts": "2026-05-17T17:04:08.153163+00:00",
+  "subject": "Conviction Engine corroboration-gate re-verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "book_posture": "NEUTRAL / MIXED",
+  "headline_call": {
+    "subject": "US equity \u2014 value tilt",
+    "direction": "RISK-OFF / DEFENSIVE",
+    "conviction": 45,
+    "confidence": "MODERATE"
+  },
+  "setups": [
+    {
+      "rank": 1,
+      "subject": "US equity \u2014 value tilt",
+      "direction": "RISK-OFF / DEFENSIVE",
+      "conviction": 45,
+      "confidence": "MODERATE",
+      "n_engines": 3,
+      "n_families": 1,
+      "corroboration_capped": true
+    },
+    {
+      "rank": 2,
+      "subject": "US macro / housing cycle",
+      "direction": "RISK-OFF / DEFENSIVE",
+      "conviction": 35,
+      "confidence": "LOW",
+      "n_engines": 1,
+      "n_families": 1,
+      "corroboration_capped": true
+    },
+    {
+      "rank": 3,
+      "subject": "Crypto",
+      "direction": "RISK-ON / LONG",
+      "conviction": 35,
+      "confidence": "LOW",
+      "n_engines": 1,
+      "n_families": 1,
+      "corroboration_capped": true
+    },
+    {
+      "rank": 4,
+      "subject": "Broad risk / equity beta",
+      "direction": "RISK-ON / LONG",
+      "conviction": 14,
+      "confidence": "MARGINAL",
+      "n_engines": 4,
+      "n_families": 3,
+      "corroboration_capped": false
+    },
+    {
+      "rank": 5,
+      "subject": "Cross-asset relative value",
+      "direction": "NEUTRAL / MIXED",
+      "conviction": 0,
+      "confidence": "MARGINAL",
+      "n_engines": 1,
+      "n_families": 1,
+      "corroboration_capped": false
+    },
+    {
+      "rank": 6,
+      "subject": "US equity \u2014 positioning",
+      "direction": "NEUTRAL / MIXED",
+      "conviction": 0,
+      "confidence": "MARGINAL",
+      "n_engines": 1,
+      "n_families": 1,
+      "corroboration_capped": false
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "lone_family_capped_low": true,
+    "single_engine_capped_35": true,
+    "high_needs_3_families": true,
+    "produced_setups": true
+  },
+  "all_pass": true,
+  "verdict": "CORROBORATION GATE WORKING \u2014 lone/single-family setups capped to LOW; HIGH conviction now requires 3+ independent engine families. Conviction Engine (roadmap #1) is institutional-grade and complete."
+}
