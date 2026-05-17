@@ -1,0 +1,16 @@
+{
+  "ops": 769,
+  "ts": "2026-05-17T17:25:55.364676+00:00",
+  "subject": "Activity Nowcast re-verify (ops 768 deploy race)",
+  "function": {
+    "exists": false,
+    "err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-activity-nowcast",
+    "found_in_scan": false
+  },
+  "schedule": {
+    "exists": true,
+    "state": "ENABLED"
+  },
+  "all_pass": false,
+  "verdict": "DEPLOY FAILED \u2014 function still absent after settle time; inspect deploy-lambdas.yml run for justhodl-activity-nowcast."
+}
