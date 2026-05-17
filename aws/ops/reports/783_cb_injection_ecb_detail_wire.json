@@ -1,0 +1,31 @@
+{
+  "ops": 783,
+  "ts": "2026-05-17T22:38:05.969429+00:00",
+  "subject": "Redeploy cb-injection (ecb-detail wiring) + dedupe schedule",
+  "redeploy": "ok",
+  "ecb_detail_wired": true,
+  "ecb_detail_targets_before": 2,
+  "dedupe": "removed 1 duplicate target(s)",
+  "ecb_detail_targets_after": 1,
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "ecb_leg": {
+    "stance_label": "DRAINING",
+    "injection_stance": -1,
+    "excess_liquidity_eur_bn": 2258.5,
+    "read": "ECB balance sheet +0.5% over 6m, deposit facility rate 2.0% \u2014 draining. Excess liquidity EUR 2,258bn (draining)."
+  },
+  "global_impulse": "NEUTRAL",
+  "checks": {
+    "redeploy_ok": true,
+    "ecb_detail_wired": true,
+    "invoke_ok": true,
+    "cb_injection_ok": true,
+    "ecb_leg_has_excess_liquidity": true,
+    "schedule_deduped": true
+  },
+  "all_pass": true,
+  "verdict": "CHAIN COMPLETE \u2014 cb-injection's ECB leg now consumes ecb-detail's excess-liquidity signal (ECB stance DRAINING, excess liquidity EUR 2258.5bn). ecb-detail schedule deduped to a single daily target."
+}
