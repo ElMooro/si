@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-snb-detail",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "SNB Liquidity & Franc Detail Engine - tracks the Swiss monetary base, FX reserves, rate path, 10Y yield and franc crosses to produce a 0-100 franc safe-haven pressure score. CHF is the second carry-funding currency. Output data/snb-detail.json.",
+  "environment": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "snb-detail-daily",
+    "cron": "cron(40 11 * * ? *)",
+    "description": "SNB Liquidity & Franc Detail Engine — daily 11:40 UTC"
+  }
+}
