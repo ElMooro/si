@@ -1,0 +1,58 @@
+{
+  "ops": 790,
+  "ts": "2026-05-17T23:39:08.543714+00:00",
+  "subject": "Ensure snb-detail live + verify full CB coverage stack",
+  "deploy": "updated",
+  "schedule": {
+    "rule": "snb-detail-daily",
+    "cron": "cron(40 11 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"stance\": \"NEUTRAL\", \"franc_pressure\": 35.8, \"regime\": \"FRANC FIRM \\u2014 funding currency, appreciation risk\", \"errors\": 0}"
+  },
+  "stack": {
+    "snb_detail": {
+      "ok": true,
+      "age_h": 0.0,
+      "stance": "NEUTRAL",
+      "chf_safe_haven_pressure": null,
+      "regime": null,
+      "headline": "SNB: NEUTRAL. Franc safe-haven pressure 36/100 (FRANC FIRM \u2014 funding currency, appreciation risk). Monetary base -2.2%/6m (contracting); short rate -0.04% (near zero); EUR/CHF 0.9151.",
+      "errors": []
+    },
+    "boj_detail": {
+      "ok": true,
+      "age_h": 0.6,
+      "stance": "STRONG DRAIN",
+      "yen_carry_unwind_risk": 61.7,
+      "regime": "UNWIND RISK ELEVATED"
+    },
+    "ecb_detail": {
+      "ok": true,
+      "age_h": 1.1,
+      "stance": "DRAINING",
+      "headline": "ECB: DRAINING. Excess liquidity EUR 2,258bn (abundant \u2014 draining); balance sheet +0.5%/6m (flat); deposit rate 2.0% \u2014 policy on hold."
+    },
+    "cb_injection": {
+      "ok": true,
+      "age_h": 1.0,
+      "global_impulse": "NEUTRAL"
+    }
+  },
+  "checks": {
+    "snb_deployed": true,
+    "snb_active": true,
+    "snb_scheduled": true,
+    "snb_invoke_ok": true,
+    "snb_output_ok": true,
+    "snb_score_computed": false,
+    "boj_detail_live": true,
+    "ecb_detail_live": true,
+    "cb_injection_live": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/stack/invoke"
+}
