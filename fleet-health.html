@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fleet Health · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🩺</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:5px;border-radius:8px;padding:22px;margin-bottom:16px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;margin:6px 0}
+.hero .meta{color:var(--mute);font-size:12px;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px}
+.card h3{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.card .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line);border-left-width:4px;border-radius:7px;background:var(--panel);margin-bottom:7px}
+.row .nm{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.row .dt{color:var(--mute);font-size:11.5px;font-family:var(--mono);text-align:right}
+.dot{display:inline-block;font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 9px;border-radius:3px;letter-spacing:.5px}
+.g{background:#26ffaf22;color:var(--green)}.g-b{border-left-color:var(--green)}
+.y{background:#ffd26622;color:var(--yellow)}.y-b{border-left-color:var(--yellow)}
+.r{background:#ff557722;color:var(--red)}.r-b{border-left-color:var(--red)}
+.u{background:#1c2433;color:var(--dim)}.u-b{border-left-color:var(--dim)}
+.issue{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:8px 4px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🩺 Fleet Health</h1>
+    <p class="subtitle">Auto-discovering full-fleet observability. Sweeps <b>every</b> data output (no registration needed — new engines are covered the moment they write a file), inventories the Lambda fleet, and actively probes the Anthropic API and every market-data key. The catch-all backstop beneath the curated health-monitor.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/audit.html">audit</a>
+      <a href="/conviction.html">conviction</a>
+      <a href="/signal-board.html">signal board</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING FLEET HEALTH…</div></div>
+  <div class="cards" id="cards"></div>
+
+  <h2>External Dependencies</h2>
+  <div id="deps"><div class="loading">…</div></div>
+
+  <h2>Data-Output Issues</h2>
+  <div id="issues"><div class="loading">…</div></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/_health/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const cls=(s)=>({green:"g",yellow:"y",red:"r"}[s]||"u");
+const sysColor=(s)=>({green:"var(--green)",yellow:"var(--yellow)",red:"var(--red)"}[s]||"var(--dim)");
+
+function row(name,status,detail){
+  const c=cls(status);
+  return `<div class="row ${c}-b">
+    <div><span class="dot ${c}">${esc((status||"?").toUpperCase())}</span>
+      <span class="nm" style="margin-left:8px">${esc(name)}</span></div>
+    <div class="dt">${esc(detail||"")}</div>
+  </div>`;
+}
+
+async function main(){
+  let d=null;
+  try{d=await fetch(BASE+"fleet.json?_="+Date.now()).then(r=>r.ok?r.json():null);}catch(e){}
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading">FLEET DATA UNAVAILABLE</div>';return;}
+  const col=sysColor(d.system_status);
+  const s=d.summary||{};
+  document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:${col}">
+    <div class="lab">System Status</div>
+    <div class="big" style="color:${col}">${esc((d.system_status||"?").toUpperCase())}</div>
+    <div class="meta">${s.dependencies_down||0} dependency outage(s) · ${s.data_outputs_stale_or_degraded||0} data output(s) stale/degraded · swept in ${d.elapsed_s||0}s</div>
+  </div>`;
+
+  document.getElementById("cards").innerHTML=
+    [["Data Outputs",s.data_outputs_total,"var(--cyan)"],
+     ["Fresh",s.data_outputs_fresh,"var(--green)"],
+     ["Aging",s.data_outputs_aging,"var(--yellow)"],
+     ["Stale / Degraded",s.data_outputs_stale_or_degraded,(s.data_outputs_stale_or_degraded>0?"var(--red)":"var(--green)")],
+     ["Lambda Fleet",s.lambda_count!=null?s.lambda_count:"—","var(--purple)"],
+     ["Deps Down",s.dependencies_down,(s.dependencies_down>0?"var(--red)":"var(--green)")]
+    ].map(([t,v,c])=>`<div class="card"><h3>${t}</h3><div class="v" style="color:${c}">${v==null?"—":v}</div></div>`).join("");
+
+  document.getElementById("deps").innerHTML=
+    (d.dependencies||[]).map(p=>row(p.name,p.status,p.detail)).join("")||'<div class="empty">no probes</div>';
+
+  const dat=d.data_outputs||{};
+  const bad=[].concat((dat.red||[]).map(x=>[x,"red"]),(dat.degraded||[]).map(x=>[x,"red"]),(dat.yellow||[]).map(x=>[x,"yellow"]));
+  document.getElementById("issues").innerHTML=bad.length
+    ? bad.map(([x,st])=>row(x.output,st,(x.issue||"")+" · "+x.age_hours+"h")).join("")
+    : '<div class="empty">✓ all data outputs fresh — nothing flagged</div>';
+
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
