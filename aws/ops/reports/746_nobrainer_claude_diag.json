@@ -1,0 +1,140 @@
+{
+  "ops": 746,
+  "ts": "2026-05-17T11:06:15.274295+00:00",
+  "subject": "nobrainer-rationale Claude-call diagnosis",
+  "env_keys_present": [
+    "ANTHROPIC_KEY",
+    "FORCE_TELEGRAM",
+    "MIN_SCORE",
+    "N_DIGEST",
+    "N_THESES",
+    "TELEGRAM_BOT_TOKEN"
+  ],
+  "anthropic_key_in_env": true,
+  "timeout": 600,
+  "memory": 512,
+  "total_events": 339,
+  "matched": 314,
+  "recent_lines": [
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] NVDA _compound_priority=TIER_3 score=430.6 systems=['eps_velocity', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] NVDA/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] GOOG COMPOUND: also flagged on 1 other system(s): smart-money"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] GOOG _compound_priority=TIER_3 score=404.0 systems=['pead', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] GOOG/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] AVGO COMPOUND: also flagged on 2 other system(s): smart-money, eps-velocity"
+    },
+    {
+      "t": "10:34:04",
+      "msg": "[rationale] AVGO _compound_priority=TIER_3 score=398.0 systems=['eps_velocity', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] AVGO/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] GOOGL COMPOUND: also flagged on 1 other system(s): smart-money"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] GOOGL _compound_priority=TIER_3 score=382.6 systems=['pead', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] GOOGL/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] HUM COMPOUND: also flagged on 3 other system(s): smart-money, deep-value, eps-velocity"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] HUM _compound_priority=TIER_3 score=356.4 systems=['deep_value', 'momentum', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] HUM/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] AMZN COMPOUND: also flagged on 2 other system(s): smart-money, eps-velocity"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] AMZN _compound_priority=TIER_3 score=324.8 systems=['nobrainers', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] AMZN/AIQ ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] META COMPOUND: also flagged on 2 other system(s): smart-money, eps-velocity"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] META _compound_priority=TIER_3 score=324.0 systems=['options_flow', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] META/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] MSFT COMPOUND: also flagged on 2 other system(s): smart-money, eps-velocity"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] MSFT _compound_priority=TIER_3 score=236.4 systems=['options_flow', 'rev_accel', 'smart_money']"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] MSFT/COMPOUND ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] UPS COMPOUND: also flagged on 1 other system(s): eps-velocity"
+    },
+    {
+      "t": "10:34:05",
+      "msg": "[rationale] UPS _compound_priority=TIER_2_HIGH score=243.3 systems=['nobrainers', 'options_flow']"
+    },
+    {
+      "t": "10:34:06",
+      "msg": "[rationale] UPS/BOTZ ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:06",
+      "msg": "[rationale] LRCX COMPOUND: also flagged on 1 other system(s): eps-velocity"
+    },
+    {
+      "t": "10:34:06",
+      "msg": "[rationale] LRCX _compound_priority=TIER_2_HIGH score=237.0 systems=['eps_velocity', 'nobrainers']"
+    },
+    {
+      "t": "10:34:06",
+      "msg": "[rationale] LRCX/SMH ERR HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "t": "10:34:06",
+      "msg": "[rationale] wrote 14721b to data/nobrainers-rationale.json"
+    }
+  ]
+}
