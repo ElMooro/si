@@ -409,19 +409,26 @@ def lambda_handler(event, context):
 
     html_str = "\n".join(html)
 
-    # Send email
-    ses.send_email(
-        Source=SES_SENDER,
-        Destination={"ToAddresses":RECIPIENTS},
-        Message={"Subject":{"Data":f"Daily Liquidity Brief — {datetime.utcnow().strftime('%Y-%m-%d')}"},
-                 "Body":{"Html":{"Data":html_str}}}
-    )
+    # Send email — tolerate SES rejection (unverified identity / sandbox)
+    # so a delivery-config issue does not hard-fail the whole run. The
+    # HTML report is still archived to S3 regardless.
+    email_sent = False
+    try:
+        ses.send_email(
+            Source=SES_SENDER,
+            Destination={"ToAddresses":RECIPIENTS},
+            Message={"Subject":{"Data":f"Daily Liquidity Brief — {datetime.utcnow().strftime('%Y-%m-%d')}"},
+                     "Body":{"Html":{"Data":html_str}}}
+        )
+        email_sent = True
+    except Exception as e:
+        print(f"[email-reports-v2] WARN SES send failed (report still archived): {e}")
 
     # Archive
     s3.put_object(Bucket=S3_BUCKET, Key=f"reports/dlb_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html",
                   Body=html_str, ContentType="text/html")
 
-    return {"statusCode":200,"body":json.dumps({"ok":True})}
+    return {"statusCode":200,"body":json.dumps({"ok":True,"email_sent":email_sent})}
 
 # -------------- HTTP helpers --------------
 def get_text(url, headers=None, timeout=20):

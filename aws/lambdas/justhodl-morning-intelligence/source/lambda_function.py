@@ -1098,7 +1098,9 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
     prompt="\n".join(parts)
     brief=ai(prompt,max_tokens=1200)
     if not brief:
-        em="HIGH RISK" if float(m["khalid_raw"] or 0)>=70 else "ELEVATED" if float(m["khalid_raw"] or 0)>=40 else "LOW RISK"
+        try: _kr=float(m["khalid_raw"])
+        except (TypeError,ValueError): _kr=0.0
+        em="HIGH RISK" if _kr>=70 else "ELEVATED" if _kr>=40 else "LOW RISK"
         brief=("JustHodl Brief "+date_str+"\n\n"
                "Khalid: "+str(m["khalid_raw"])+"/100 ("+str(m["khalid_regime"])+") "+em+"\n"
                "Edge: "+str(m["edge_score"])+" Phase: "+str(m["phase"])+"\n"

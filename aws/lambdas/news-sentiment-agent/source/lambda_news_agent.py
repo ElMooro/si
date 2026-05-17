@@ -35,3 +35,5 @@ def lambda_handler(event, context):
             "request_id": getattr(context, "aws_request_id", None),
         }),
     }
+
+# redeploy trigger 2026-05-17 — restore missing module in deployed package (ops 744)

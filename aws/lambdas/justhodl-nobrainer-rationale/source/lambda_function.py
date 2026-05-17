@@ -369,12 +369,12 @@ def build_telegram_digest(theses, leader_count, mu_count):
             "TIER_C_WATCHLIST":     "🟠",
             "TIER_D_MONITOR":       "⚪",
         }.get(c.get("flag"), "⚪")
-        lines.append(f"{flag_emoji} *{i}. {c.get('ticker')}* — {c.get('flag')} ({c.get('asymmetric_score'):.0f}/100)")
+        lines.append(f"{flag_emoji} *{i}. {c.get('ticker')}* — {c.get('flag')} ({c.get('asymmetric_score') or 0:.0f}/100)")
         lines.append(f"   theme: {c.get('theme_etf')} ({c.get('theme_phase')})  ·  tier {c.get('tier')}")
         if fund.get("mcap_to_rev") is not None:
             lines.append(f"   mcap/rev: {fund.get('mcap_to_rev'):.2f}×  ·  P/S: {fund.get('p_s', 'n/a')}")
-        lines.append(f"   supply={f.get('supply_inflection'):.0f}  val={f.get('valuation_asym'):.0f}  "
-                     f"cat={f.get('catalyst_prox'):.0f}  earnings: {c.get('next_earnings') or 'n/a'}")
+        lines.append(f"   supply={f.get('supply_inflection') or 0:.0f}  val={f.get('valuation_asym') or 0:.0f}  "
+                     f"cat={f.get('catalyst_prox') or 0:.0f}  earnings: {c.get('next_earnings') or 'n/a'}")
         # First sentence of thesis
         thesis = (t.get("thesis") or "").strip()
         if thesis:
