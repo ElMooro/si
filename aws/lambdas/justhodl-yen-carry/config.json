@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-yen-carry",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Yen Carry Trade & BOJ Liquidity Engine - fuses the BOJ funding leg, US-Japan carry width, USD/JPY vol detonator, JGB long-end stress and CFTC positioning into a carry regime + 0-100 unwind-risk score. Output data/yen-carry.json.",
+  "environment": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "yen-carry-daily",
+    "cron": "cron(0 12 * * ? *)",
+    "description": "Yen Carry & BOJ Liquidity Engine - daily 12:00 UTC"
+  }
+}
