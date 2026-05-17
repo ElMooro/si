@@ -1,0 +1,97 @@
+{
+  "ops": 779,
+  "ts": "2026-05-17T21:53:48.556498+00:00",
+  "subject": "Force-deploy + verify cb-injection (CB capital-injection & carry)",
+  "deploy_action": "updated existing",
+  "function_state": "Active",
+  "schedule_wired": true,
+  "invoke_1": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"impulse\": \"NEUTRAL\", \"carry_conditions\": \"NEUTRAL\", \"unwind_risk\": 20}"
+  },
+  "output": {
+    "ok": true,
+    "headline": "Global CB impulse: NEUTRAL. Carry funding neutral, unwind risk MODERATE (20/100). ['Fed'] injecting; ['BOJ'] draining.",
+    "global_injection_impulse": {
+      "score": 0.14,
+      "label": "NEUTRAL",
+      "read": "Weighted central-bank stance is neutral (impulse +0.14)."
+    },
+    "eurodollar_read": "Mixed \u2014 no decisive central-bank liquidity impulse; watch the carry funding currencies for the next signal.",
+    "cross_reference": {
+      "global_liquidity_regime": "CONTRACTING",
+      "china_liquidity_regime": "NEUTRAL"
+    },
+    "errors": []
+  },
+  "carry_trade": {
+    "funding_currencies": [
+      {
+        "ccy": "JPY",
+        "fx_per_usd": 156.64,
+        "change_1m_pct": -1.1,
+        "change_3m_pct": -0.29,
+        "funding_cb": "BOJ",
+        "cb_stance": -2
+      },
+      {
+        "ccy": "CHF",
+        "fx_per_usd": 0.7773,
+        "change_3m_pct": 0.19,
+        "funding_cb": "SNB",
+        "cb_stance": 0
+      }
+    ],
+    "carry_conditions": "NEUTRAL",
+    "unwind_risk_score": 20,
+    "unwind_risk_label": "MODERATE",
+    "read": "Carry funding conditions neutral; unwind risk moderate. A sharp move higher in the yen or franc, or a hawkish BOJ, is what forces a leveraged carry unwind."
+  },
+  "central_banks": [
+    {
+      "cb": "ECB",
+      "stance_label": "NEUTRAL",
+      "injection_stance": 0,
+      "bs_change_6m_pct": 0.46,
+      "policy_rate_pct": 2.0,
+      "read": "ECB balance sheet +0.5% over 6m, deposit facility rate 2.0% \u2014 neutral."
+    },
+    {
+      "cb": "BOJ",
+      "stance_label": "STRONG DRAIN",
+      "injection_stance": -2,
+      "bs_change_6m_pct": -4.75,
+      "policy_rate_pct": 1.26882,
+      "read": "BOJ balance sheet -4.8% over 6m, short rate 1.26882% (+0.45pp/6m) \u2014 strong drain; the carry funding leg."
+    },
+    {
+      "cb": "Fed",
+      "stance_label": "STRONG INJECTION",
+      "injection_stance": 2,
+      "bs_change_6m_pct": 2.25,
+      "policy_rate_pct": 3.75,
+      "read": "Fed balance sheet +2.2% over 6m (QT pace), funds rate 3.75% \u2014 strong injection."
+    },
+    {
+      "cb": "SNB",
+      "stance_label": "NEUTRAL",
+      "injection_stance": 0,
+      "bs_change_6m_pct": null,
+      "policy_rate_pct": -0.04,
+      "read": "SNB short rate -0.04% (+0.02pp/6m) \u2014 the franc is the second carry funding currency."
+    }
+  ],
+  "checks": {
+    "function_active": true,
+    "schedule_wired": true,
+    "no_fn_error": true,
+    "output_ok": true,
+    "four_central_banks": true,
+    "real_fred_data": true,
+    "impulse_computed": "NEUTRAL",
+    "carry_synthesis": true
+  },
+  "all_pass": true,
+  "verdict": "CB-INJECTION LIVE & VERIFIED \u2014 deployed, scheduled daily, computing per-CB injection stance for ECB/BOJ/Fed/SNB on real FRED data, with net global liquidity impulse and carry funding + unwind-risk synthesis. Eurodollar/carry coverage extended."
+}
