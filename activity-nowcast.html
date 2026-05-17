@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activity Nowcast · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📡</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:46px;font-weight:700;line-height:1;margin:4px 0}
+.hero .reg{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:.5px}
+.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--red),var(--orange),var(--yellow),var(--green));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.diverge{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:14px}
+.diverge .f{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.diverge .r{color:var(--mute);font-size:12.5px;margin-top:6px;line-height:1.6}
+.diverge .g{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:6px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:11px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
+tr:hover td{background:var(--panel2)}
+.sig{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:3px;white-space:nowrap}
+.s2{background:#26ffaf26;color:var(--green)}.s1{background:#26ffaf14;color:var(--green)}
+.s0{background:#1c2433;color:var(--mute)}
+.sm1{background:#ff7a1818;color:var(--orange)}.sm2{background:#ff557726;color:var(--red)}
+.num{text-align:right}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 12px}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📡 Activity Nowcast</h1>
+    <p class="subtitle">The monthly data — payrolls, production, retail sales — lands weeks stale. This is the high-frequency read that turns first: a basket of weekly and daily FRED series (Weekly Economic Index, jobless claims, financial conditions, credit spreads) blended into a real-time <b>Activity Index</b>. The divergence block flags when this fast read has rolled over below — or run hotter than — the lagging monthly composite.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/signal-board.html">signal board</a>
+      <a href="/conviction.html">conviction</a>
+      <a href="/macro-nowcast.html">monthly nowcast</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING ACTIVITY NOWCAST…</div></div>
+  <div id="div"></div>
+
+  <h2>High-Frequency Components</h2>
+  <div class="card"><table id="comps"><tbody><tr><td class="loading">…</td></tr></tbody></table></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const SC={2:"s2",1:"s1",0:"s0","-1":"sm1","-2":"sm2"};
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const regColor=(r)=>({ACCELERATING:"var(--green)",EXPANDING:"var(--green)",STEADY:"var(--yellow)",SLOWING:"var(--orange)",CONTRACTING:"var(--red)"}[r]||"var(--mute)");
+const momArrow=(m)=>m==="RISING"?"▲":m==="FALLING"?"▼":"▬";
+
+function hero(d){
+  const c=regColor(d.regime);
+  return `<div class="hero" style="border-left-color:${c}">
+    <div class="lab">Activity Index</div>
+    <div class="big" style="color:${c}">${d.activity_index}<span style="font-size:18px;color:var(--dim)">/100</span></div>
+    <div class="reg" style="color:${c}">${esc(d.regime)} · momentum ${momArrow(d.momentum)} ${esc(d.momentum)}</div>
+    <div class="gauge"><div class="mk" style="left:calc(${Math.max(0,Math.min(100,d.activity_index))}% - 1.5px)"></div></div>
+    <div class="gscale"><span>0 contracting</span><span>50 trend</span><span>100 accelerating</span></div>
+    <div class="meta">${esc(d.headline||"")}</div>
+    <div class="meta">${d.n_ok}/${d.n_series} series live · activity-z ${d.activity_z}</div>
+  </div>`;
+}
+
+function diverge(dv){
+  if(!dv||!dv.available) return "";
+  const col=dv.flag==="ALIGNED"?"var(--cyan)":dv.flag==="HIGH-FREQ LEADING LOWER"?"var(--red)":"var(--green)";
+  return `<div class="diverge" style="border-left-color:${col}">
+    <div class="f" style="color:${col}">⚡ DIVERGENCE — ${esc(dv.flag)}</div>
+    <div class="r">${esc(dv.read)}</div>
+    <div class="g">high-freq index ${dv.highfreq_index} vs monthly composite ${dv.monthly_score}${dv.monthly_regime?" ("+esc(dv.monthly_regime)+")":""} · gap ${dv.gap>0?"+":""}${dv.gap}</div>
+  </div>`;
+}
+
+async function main(){
+  const d=await J("activity-nowcast.json");
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">ACTIVITY NOWCAST UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=hero(d);
+  document.getElementById("div").innerHTML=diverge(d.divergence);
+  const rows=(d.components||[]).map(c=>{
+    const cls=SC[String(c.signal)]||"s0";
+    return `<tr>
+      <td><b>${esc(c.name)}</b><br><span style="color:var(--dim);font-size:10px">${esc(c.series)} · ${c.frequency==="w"?"weekly":"daily"} · ${esc(c.latest_date)}</span></td>
+      <td class="num">${esc(c.latest)}</td>
+      <td class="num">${c.level_z>0?"+":""}${c.level_z}</td>
+      <td class="num">${c.momentum_z>0?"+":""}${c.momentum_z}</td>
+      <td class="num">${c.contribution>0?"+":""}${c.contribution}</td>
+      <td><span class="sig ${cls}">${esc(c.signal_label)}</span></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("comps").innerHTML=
+    `<thead><tr><th>Series</th><th class="num">Latest</th><th class="num">Level z</th><th class="num">Mom z</th><th class="num">Contrib</th><th>Signal</th></tr></thead><tbody>${rows}</tbody>`;
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent=
+    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
