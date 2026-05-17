@@ -1,0 +1,158 @@
+{
+  "ops": 751,
+  "ts": "2026-05-17T12:25:40.569234+00:00",
+  "subject": "opportunity-engine verify (post-acea202)",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_covered\\\": 501, \\\"n_opportunities\\\": 25, \\\"verdict_counts\\\": {\\\"OPPORTUNITY\\\": 174, \\\"STRONG OPPORTUNITY\\\": 8, \\\"HIGH RISK\\\": 17, \\\"FAIR VALUE\\\": 119, \\\"HOLD / NEUTRAL\\\": 54, \\\"EXPENSIVE\\\": 129}}\"}"
+  },
+  "output": {
+    "schema_version": "1.0",
+    "generated_at": "2026-05-17T12:25:41.932737+00:00",
+    "is_fresh_today": true,
+    "n_covered": 501,
+    "verdict_counts": {
+      "OPPORTUNITY": 174,
+      "STRONG OPPORTUNITY": 8,
+      "HIGH RISK": 17,
+      "FAIR VALUE": 119,
+      "HOLD / NEUTRAL": 54,
+      "EXPENSIVE": 129
+    },
+    "n_top": 25,
+    "n_avoid": 10,
+    "confidence_distribution": {
+      "mixed": 132,
+      "high": 106,
+      "low": 153,
+      "single": 65,
+      "single-weak": 28,
+      "n/a": 17
+    },
+    "undervalued_pct_range": [
+      -60.0,
+      60.0
+    ],
+    "out_of_band_pct_tickers": []
+  },
+  "sample_top": [
+    {
+      "t": "HUM",
+      "verdict": "OPPORTUNITY",
+      "price": 305.12,
+      "fair_mid": 511.82,
+      "under_pct": 60.0,
+      "conf": "mixed",
+      "opp": 87.7,
+      "ops": [
+        "Trading ~60% below estimated fair value",
+        "Revenue growing ~10% a year",
+        "Rock-solid balance sheet"
+      ],
+      "risks": [
+        "Short sellers are building pressure",
+        "Valuation estimate is uncertain \u2014 the methods disagree on how cheap it is"
+      ]
+    },
+    {
+      "t": "EQT",
+      "verdict": "OPPORTUNITY",
+      "price": 56.22,
+      "fair_mid": 133.43,
+      "under_pct": 60.0,
+      "conf": "mixed",
+      "opp": 84.3,
+      "ops": [
+        "Trading ~60% below estimated fair value",
+        "Revenue growing ~74% a year",
+        "Recently entered an uptrend (golden cross)"
+      ],
+      "risks": [
+        "Valuation estimate is uncertain \u2014 the methods disagree on how cheap it is"
+      ]
+    },
+    {
+      "t": "BKNG",
+      "verdict": "STRONG OPPORTUNITY",
+      "price": 154.13,
+      "fair_mid": 243.45,
+      "under_pct": 58.0,
+      "conf": "high",
+      "opp": 80.0,
+      "ops": [
+        "Trading ~58% below estimated fair value",
+        "Two independent valuation methods agree it looks cheap",
+        "Revenue growing ~13% a year"
+      ],
+      "risks": []
+    },
+    {
+      "t": "ALL",
+      "verdict": "OPPORTUNITY",
+      "price": 217.37,
+      "fair_mid": 340.76,
+      "under_pct": 56.8,
+      "conf": "low",
+      "opp": 79.5,
+      "ops": [
+        "Trading ~57% below estimated fair value",
+        "Beaten earnings 7 quarters running",
+        "Highly profitable business"
+      ],
+      "risks": [
+        "Valuation estimate is uncertain \u2014 the methods disagree on how cheap it is"
+      ]
+    }
+  ],
+  "sample_avoid": [
+    {
+      "t": "MPC",
+      "verdict": "HIGH RISK",
+      "under_pct": 19.0,
+      "risks": [
+        "Revenue is shrinking (-4% YoY)",
+        "Carries heavy debt relative to equity",
+        "Valuation estimate is uncertain \u2014 the methods disagree on how cheap it is"
+      ]
+    },
+    {
+      "t": "KHC",
+      "verdict": "HIGH RISK",
+      "under_pct": 20.2,
+      "risks": [
+        "Revenue is shrinking (-4% YoY)"
+      ]
+    },
+    {
+      "t": "LEN",
+      "verdict": "HIGH RISK",
+      "under_pct": 26.3,
+      "risks": [
+        "Revenue is shrinking (-4% YoY)",
+        "Valuation estimate is uncertain \u2014 the methods disagree on how cheap it is"
+      ]
+    },
+    {
+      "t": "PRU",
+      "verdict": "HIGH RISK",
+      "under_pct": 41.2,
+      "risks": [
+        "In a downtrend \u2014 death cross 45d ago",
+        "Revenue is shrinking (-14% YoY)"
+      ]
+    }
+  ],
+  "checks": {
+    "invoke_ok": true,
+    "fresh_today": true,
+    "universe_covered": true,
+    "has_verdict_spread": true,
+    "no_out_of_band_pct": true,
+    "top_populated": true,
+    "page_live": true,
+    "page_wired_to_json": true
+  },
+  "all_pass": true,
+  "verdict": "OPPORTUNITY ENGINE HEALTHY \u2014 live, fresh, sane output, page wired"
+}
