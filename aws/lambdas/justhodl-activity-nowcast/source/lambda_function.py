@@ -56,7 +56,7 @@ SERIES = [
 
 
 def fred(series_id, limit):
-    # NB: FRED API host is api.stlouisfed.org (not api.fred.stlouisfed.org)
+    # FRED API host: api.stlouisfed.org
     url = ("https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
            f"&sort_order=desc&limit={limit}")
