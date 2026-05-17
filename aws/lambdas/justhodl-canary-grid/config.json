@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-canary-grid",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Global Early-Warning Grid — leading ex-US crisis canaries (trade, commodity, funding plumbing, labour) z-scored into one early-warning level that front-runs the crisis-composite. Output data/canary-grid.json.",
+  "environment": {
+    "FRED_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "canary-grid-daily",
+    "cron": "cron(30 12 * * ? *)",
+    "description": "Global Early-Warning Grid — daily 12:30 UTC"
+  }
+}
