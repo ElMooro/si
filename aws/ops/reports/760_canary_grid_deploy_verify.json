@@ -1,0 +1,146 @@
+{
+  "ops": 760,
+  "ts": "2026-05-17T15:07:40.950520+00:00",
+  "subject": "deploy + verify Canary Grid (Global Early-Warning Grid)",
+  "zip_bytes": 17410,
+  "deploy": {
+    "action": "updated"
+  },
+  "schedule": {
+    "rule": "canary-grid-daily",
+    "cron": "cron(30 12 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"early_warning_level\\\": 33.9, \\\"band\\\": \\\"WATCH\\\", \\\"n_available\\\": 8, \\\"n_total\\\": 9}\"}"
+  },
+  "output": {
+    "schema_version": "1.0",
+    "early_warning_level": 33.9,
+    "band": "WATCH",
+    "headline": "Most canaries are calm with a few soft spots \u2014 low but non-zero early-warning risk.",
+    "n_available": 8,
+    "n_total": 9,
+    "sub_grids": {
+      "trade_shipping": {
+        "score": 32.8,
+        "band": "WATCH",
+        "n": 2
+      },
+      "commodity_cycle": {
+        "score": 39.6,
+        "band": "WATCH",
+        "n": 2
+      },
+      "funding_plumbing": {
+        "score": 28.0,
+        "band": "WATCH",
+        "n": 2
+      },
+      "labor_industrial": {
+        "score": 38.5,
+        "band": "WATCH",
+        "n": 2
+      }
+    },
+    "top_deteriorating": [
+      "china_exports",
+      "temp_help",
+      "lumber",
+      "chf_haven"
+    ]
+  },
+  "signal_breakdown": [
+    {
+      "key": "korea_exports",
+      "grid": "trade_shipping",
+      "available": true,
+      "stress": 0.0,
+      "value": 51.02,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "china_exports",
+      "grid": "trade_shipping",
+      "available": true,
+      "stress": 65.6,
+      "value": -3.73,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "copper",
+      "grid": "commodity_cycle",
+      "available": true,
+      "stress": 26.9,
+      "value": 28.69,
+      "as_of": "2026-03-01"
+    },
+    {
+      "key": "lumber",
+      "grid": "commodity_cycle",
+      "available": true,
+      "stress": 52.3,
+      "value": 2.04,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "chf_haven",
+      "grid": "funding_plumbing",
+      "available": true,
+      "stress": 32.2,
+      "value": 1.22,
+      "as_of": "2026-05-08"
+    },
+    {
+      "key": "mfg_hours",
+      "grid": "labor_industrial",
+      "available": true,
+      "stress": 23.1,
+      "value": 1.71,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "temp_help",
+      "grid": "labor_industrial",
+      "available": true,
+      "stress": 53.9,
+      "value": -1.68,
+      "as_of": "2026-04-01"
+    },
+    {
+      "key": "swiss_unemp",
+      "grid": "labor_industrial",
+      "available": false,
+      "reason": "insufficient FRED history (0 pts)"
+    },
+    {
+      "key": "eurodollar_stress",
+      "grid": "funding_plumbing",
+      "available": true,
+      "stress": 23.7,
+      "value": 23.7,
+      "as_of": "2026-05-17T14:48:36.982300+00:00"
+    }
+  ],
+  "bug_notes": [],
+  "dbnomics_smoke": {
+    "series": "AMECO/ZUTN/EA19.1.0.0.0.ZUTN",
+    "points": 0,
+    "sample": null
+  },
+  "checks": {
+    "canary_deployed": true,
+    "schedule_wired": true,
+    "engine_runs_ok": true,
+    "output_schema_ok": true,
+    "composite_in_range": true,
+    "all_4_subgrids_present": true,
+    "enough_signals_live": true,
+    "no_bugs_found": true,
+    "dbnomics_fetcher_works": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[] / bug_notes / signal_breakdown"
+}
