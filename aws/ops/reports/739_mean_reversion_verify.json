@@ -1,0 +1,115 @@
+{
+  "ops": 739,
+  "ts": "2026-05-17T08:15:44.592850+00:00",
+  "subject": "mean-reversion engine + screener integration",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_priced\\\": 465, \\\"n_cheap_vs_history\\\": 165, \\\"n_rich_vs_history\\\": 154}\"}"
+  },
+  "summary": {
+    "schema": "1.0",
+    "count": 503,
+    "n_priced": 465,
+    "n_cheap": 165,
+    "n_rich": 154
+  },
+  "cheapest_vs_history": [
+    {
+      "symbol": "FIS",
+      "mr_price": 466.48,
+      "mr_upside_pct": 1016.0,
+      "current_pe": 8.1,
+      "median_pe": 89.9,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "TTD",
+      "mr_price": 159.36,
+      "mr_upside_pct": 653.5,
+      "current_pe": 23.2,
+      "median_pe": 174.9,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "UDR",
+      "mr_price": 197.51,
+      "mr_upside_pct": 435.0,
+      "current_pe": 24.6,
+      "median_pe": 131.7,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "LULU",
+      "mr_price": 555.96,
+      "mr_upside_pct": 366.6,
+      "current_pe": 9.0,
+      "median_pe": 41.9,
+      "label": "CHEAP vs own history"
+    },
+    {
+      "symbol": "XYZ",
+      "mr_price": 320.74,
+      "mr_upside_pct": 355.9,
+      "current_pe": 52.2,
+      "median_pe": 237.9,
+      "label": "CHEAP vs own history"
+    }
+  ],
+  "richest_vs_history": [
+    {
+      "symbol": "CIEN",
+      "mr_price": 57.95,
+      "mr_upside_pct": -89.5,
+      "current_pe": 343.0,
+      "median_pe": 35.8,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "LYV",
+      "mr_price": 17.51,
+      "mr_upside_pct": -89.6,
+      "current_pe": 469.1,
+      "median_pe": 48.6,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "GPC",
+      "mr_price": 9.06,
+      "mr_upside_pct": -90.2,
+      "current_pe": 212.7,
+      "median_pe": 20.8,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "FANG",
+      "mr_price": 12.66,
+      "mr_upside_pct": -93.8,
+      "current_pe": 142.8,
+      "median_pe": 8.9,
+      "label": "RICH vs own history"
+    },
+    {
+      "symbol": "OMC",
+      "mr_price": 3.81,
+      "mr_upside_pct": -94.6,
+      "current_pe": 230.4,
+      "median_pe": 12.4,
+      "label": "RICH vs own history"
+    }
+  ],
+  "screener_page": {
+    "status": 200,
+    "has_mr_url": true,
+    "has_loader": true,
+    "has_columns": true
+  },
+  "checks": {
+    "invoke_ok": true,
+    "sidecar_valid": true,
+    "prices_populated": true,
+    "page_has_integration": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 mean-reversion engine live; screener page carries the Mean Rev $ / Mean Rev % columns and loader"
+}
