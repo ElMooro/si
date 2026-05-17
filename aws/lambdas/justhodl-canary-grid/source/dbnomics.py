@@ -23,7 +23,10 @@ def fetch_series(series_id, timeout=25):
     Returns [(period, value|None), ...] oldest-first, or [] on any failure."""
     try:
         url = f"{API}/series/{urllib.parse.quote(series_id)}?observations=1"
-        with urllib.request.urlopen(url, timeout=timeout) as r:
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "justhodl-canary-grid/1.0",
+                          "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read())
         docs = ((data.get("series") or {}).get("docs")) or []
         if not docs:

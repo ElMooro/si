@@ -96,8 +96,8 @@ SIGNALS = [
              "go, a reliable lead on broader job losses.",
          cool="US temp employment is holding — no early labour-market cracks."),
     dict(key="swiss_unemp", name="Switzerland unemployment", grid="labor_industrial",
-         fred="LRHUTTTTCHM156S", kind="diff", win=6, dir="rise", lead=2,
-         limit=160, unit="ppt 6m",
+         fred=["LMUNRRTTCHM156S", "LRUNTTTTCHM156S", "LRHUTTTTCHM156S"],
+         kind="diff", win=6, dir="rise", lead=2, limit=160, unit="ppt 6m",
          hot="Swiss unemployment is rising — Switzerland is a sensitive "
              "global-risk bellwether and rising joblessness there has often "
              "preceded wider trouble.",
@@ -185,11 +185,16 @@ def band(score):
 def eval_signal(sig):
     base = {"key": sig["key"], "name": sig["name"], "sub_grid": sig["grid"],
             "lead_months": sig["lead"], "unit": sig["unit"]}
-    obs = fred(sig["fred"], sig["limit"])
-    series = transform(obs, sig["kind"], sig["win"])
-    if len(series) < 24:
+    ids = sig["fred"] if isinstance(sig["fred"], list) else [sig["fred"]]
+    series, used = [], None
+    for sid in ids:
+        cand = transform(fred(sid, sig["limit"]), sig["kind"], sig["win"])
+        if len(cand) >= 24:
+            series, used = cand, sid
+            break
+    if not series:
         return {**base, "available": False,
-                "reason": f"insufficient FRED history ({len(series)} pts)"}
+                "reason": f"no FRED series resolved ({'/'.join(ids)})"}
     latest_date, latest_val = series[0]
     hist = [v for _, v in series]
     mu = mean(hist)
@@ -204,8 +209,8 @@ def eval_signal(sig):
             sig["cool"] if stress <= 40 else
             f"{sig['name']} is near its historical norm — neutral signal.")
     return {**base, "available": True, "value": disp, "as_of": latest_date,
-            "transform": sig["kind"], "zscore": round(z, 2), "stress": stress,
-            "read": read}
+            "fred_series": used, "transform": sig["kind"],
+            "zscore": round(z, 2), "stress": stress, "read": read}
 
 
 def ingest_eurodollar():
