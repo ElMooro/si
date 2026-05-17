@@ -59,10 +59,20 @@ def fred(series_id, limit):
     url = (f"https://api.fred.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
            f"&sort_order=desc&limit={limit}")
-    req = urllib.request.Request(
-        url, headers={"User-Agent": "justhodl-activity-nowcast"})
-    with urllib.request.urlopen(req, timeout=20) as r:
-        d = json.loads(r.read())
+    last_err, d = None, None
+    for attempt in range(4):
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "justhodl-activity-nowcast"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                d = json.loads(r.read())
+            last_err = None
+            break
+        except Exception as e:                       # transient net/DNS
+            last_err = e
+            time.sleep(1.5 * (attempt + 1))
+    if d is None:
+        raise last_err or RuntimeError(f"FRED fetch failed: {series_id}")
     out = []
     for o in d.get("observations", []):
         v = o.get("value")
