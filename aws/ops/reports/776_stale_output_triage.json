@@ -1,0 +1,168 @@
+{
+  "ops": 776,
+  "ts": "2026-05-17T18:55:26.202680+00:00",
+  "subject": "Stale-output triage \u2014 broken engines vs orphaned legacy",
+  "engines": {
+    "justhodl-feedback": {
+      "function": "justhodl-feedback",
+      "exists": true,
+      "last_modified": "2026-05-04T12:47:16.948+0000",
+      "state": "Active",
+      "runtime": "python3.12",
+      "schedule": [],
+      "invocations_14d": {
+        "total": 5,
+        "last_day_with_activity": "2026-05-03"
+      },
+      "errors_14d": {
+        "total": 0,
+        "last_day_with_activity": "2026-05-03"
+      },
+      "recent_logs": [
+        "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244",
+        "START RequestId: 53b153bf-6c54-40e7-b96f-cc533031683e Version: $LATEST",
+        "END RequestId: 53b153bf-6c54-40e7-b96f-cc533031683e",
+        "REPORT RequestId: 53b153bf-6c54-40e7-b96f-cc533031683e\tDuration: 12534.40 ms\tBilled Duration: 13136 ms\tMemory Size: 256 MB\tMax Memory Used: 148 MB\tInit Duration: 601.51 ms",
+        "START RequestId: 3773e928-c1e8-4042-8e72-6cb7f2520365 Version: $LATEST",
+        "END RequestId: 3773e928-c1e8-4042-8e72-6cb7f2520365",
+        "REPORT RequestId: 3773e928-c1e8-4042-8e72-6cb7f2520365\tDuration: 229.25 ms\tBilled Duration: 230 ms\tMemory Size: 256 MB\tMax Memory Used: 148 MB",
+        "START RequestId: 4a340796-0094-4943-a20b-74691f7db3cc Version: $LATEST",
+        "END RequestId: 4a340796-0094-4943-a20b-74691f7db3cc",
+        "REPORT RequestId: 4a340796-0094-4943-a20b-74691f7db3cc\tDuration: 10.72 ms\tBilled Duration: 11 ms\tMemory Size: 256 MB\tMax Memory Used: 148 MB",
+        "START RequestId: 16fc38d5-a8c1-485d-8683-a10dbe0932c5 Version: $LATEST",
+        "END RequestId: 16fc38d5-a8c1-485d-8683-a10dbe0932c5",
+        "REPORT RequestId: 16fc38d5-a8c1-485d-8683-a10dbe0932c5\tDuration: 12245.53 ms\tBilled Duration: 12246 ms\tMemory Size: 256 MB\tMax Memory Used: 152 MB",
+        "START RequestId: ba947b51-0b11-4da5-a784-804d6b8b2e09 Version: $LATEST",
+        "END RequestId: ba947b51-0b11-4da5-a784-804d6b8b2e09",
+        "REPORT RequestId: ba947b51-0b11-4da5-a784-804d6b8b2e09\tDuration: 11888.91 ms\tBilled Duration: 11889 ms\tMemory Size: 256 MB\tMax Memory Used: 158 MB"
+      ]
+    },
+    "justhodl-pre-pump-detector": {
+      "function": "justhodl-pre-pump-detector",
+      "exists": true,
+      "last_modified": "2026-05-06T00:15:53.000+0000",
+      "state": "Active",
+      "runtime": "python3.12",
+      "schedule": [
+        {
+          "rule": "justhodl-pre-pump-detector-daily",
+          "state": "ENABLED",
+          "cron": "cron(15 13 * * ? *)"
+        }
+      ],
+      "invocations_14d": {
+        "total": 14,
+        "last_day_with_activity": "2026-05-16"
+      },
+      "errors_14d": {
+        "total": 0,
+        "last_day_with_activity": "2026-05-16"
+      },
+      "recent_logs": [
+        "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244",
+        "START RequestId: 96a42f82-278d-4f07-84de-7ddfafa445e4 Version: $LATEST",
+        "[prepump-v2] starting v2.0 (calibrated thresholds)",
+        "[prepump-v2] universe: 600 tickers",
+        "[prepump-v2] OK: 584, no_history: 0",
+        "[prepump-v2] wrote 238577b",
+        "[prepump-v2] tier_a=0 tier_b=28",
+        "[prepump-v2] TOP: [('EXAS', 69.0, 'TIER_B_BUILDING'), ('SWKS', 67.0, 'TIER_B_BUILDING'), ('CORZ', 67.0, 'TIER_B_BUILDING'), ('P', 65.0, 'TIER_B_BUILDING'), ('MASI', 64.0, 'TIER_B_B",
+        "END RequestId: 96a42f82-278d-4f07-84de-7ddfafa445e4",
+        "REPORT RequestId: 96a42f82-278d-4f07-84de-7ddfafa445e4\tDuration: 9905.36 ms\tBilled Duration: 10362 ms\tMemory Size: 1024 MB\tMax Memory Used: 114 MB\tInit Duration: 456.03 ms"
+      ]
+    },
+    "justhodl-dex-scanner": {
+      "function": "justhodl-dex-scanner",
+      "exists": true,
+      "last_modified": "2026-04-25T21:18:09.000+0000",
+      "state": "Active",
+      "runtime": "python3.12",
+      "schedule": [],
+      "invocations_14d": {
+        "total": 1344,
+        "last_day_with_activity": "2026-05-16"
+      },
+      "errors_14d": {
+        "total": 0,
+        "last_day_with_activity": "2026-05-16"
+      },
+      "recent_logs": [
+        "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:2b830756c5b10ff133ebda3f21aaa7e31ccd9f7038e1342adb459865da7617a3",
+        "START RequestId: ba3c214c-ed81-4710-b589-9a678be46301 Version: $LATEST",
+        "END RequestId: ba3c214c-ed81-4710-b589-9a678be46301",
+        "REPORT RequestId: ba3c214c-ed81-4710-b589-9a678be46301\tDuration: 2.32 ms\tBilled Duration: 315 ms\tMemory Size: 256 MB\tMax Memory Used: 67 MB\tInit Duration: 312.32 ms"
+      ]
+    }
+  },
+  "outputs": {
+    "dex-scanner-data": {
+      "age_hours": 1693.5,
+      "producer_in_code": [],
+      "referenced_by_pages": [],
+      "verdict": "ORPHANED \u2014 no producer, no live page; safe to archive"
+    },
+    "skew": {
+      "age_hours": 313.7,
+      "producer_in_code": [
+        "aws/lambdas/justhodl-vol-surface/source/lambda_function.py",
+        "aws/lambdas/justhodl-anomaly-detector/source/lambda_function.py",
+        "aws/lambdas/justhodl-dealer-gex/source/lambda_function.py"
+      ],
+      "referenced_by_pages": [],
+      "verdict": "HAS PRODUCER \u2014 investigate engine"
+    },
+    "institutional-convergence": {
+      "age_hours": 274.6,
+      "producer_in_code": [],
+      "referenced_by_pages": [],
+      "verdict": "ORPHANED \u2014 no producer, no live page; safe to archive"
+    },
+    "pre-pump-calibration": {
+      "age_hours": 282.8,
+      "producer_in_code": [],
+      "referenced_by_pages": [],
+      "verdict": "ORPHANED \u2014 no producer, no live page; safe to archive"
+    },
+    "feedback-summary": {
+      "age_hours": 318.1,
+      "producer_in_code": [
+        "aws/lambdas/justhodl-feedback/source/lambda_function.py"
+      ],
+      "referenced_by_pages": [],
+      "verdict": "HAS PRODUCER \u2014 investigate engine"
+    },
+    "user-trades": {
+      "age_hours": 243.5,
+      "producer_in_code": [
+        "aws/lambdas/justhodl-trade-journal/source/lambda_function.py"
+      ],
+      "referenced_by_pages": [],
+      "verdict": "HAS PRODUCER \u2014 investigate engine"
+    },
+    "user-watchlist": {
+      "age_hours": 243.5,
+      "producer_in_code": [
+        "aws/lambdas/justhodl-vol-regime/source/lambda_function.py",
+        "aws/lambdas/justhodl-watchlist/source/lambda_function.py"
+      ],
+      "referenced_by_pages": [
+        "watchlist.html",
+        "master-rank.html",
+        "watchlist.html",
+        "master-rank.html"
+      ],
+      "verdict": "HAS PRODUCER \u2014 investigate engine"
+    },
+    "history-api-url": {
+      "age_hours": 264.9,
+      "producer_in_code": [
+        "aws/lambdas/justhodl-health-monitor/source/expectations.py"
+      ],
+      "referenced_by_pages": [
+        "audit.html",
+        "audit.html"
+      ],
+      "verdict": "HAS PRODUCER \u2014 investigate engine"
+    }
+  }
+}
