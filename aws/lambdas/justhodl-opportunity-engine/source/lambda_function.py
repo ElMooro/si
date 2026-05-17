@@ -62,22 +62,45 @@ def clamp(v, lo=0, hi=100):
 
 
 def fair_value(price, dcf_fv, mr_fv):
-    """Two-method fair value → (low, mid, high, undervalued_pct, confidence)."""
-    fvs = [v for v in (dcf_fv, mr_fv) if v and v > 0]
-    if not fvs or not price or price <= 0:
+    """Two-method fair value with outlier rejection + agreement-gating.
+    Returns (low, mid, high, undervalued_pct, confidence).
+
+    Conservative by design — the failure mode of a naive blend is a wild
+    DCF ($800 on a $300 stock) dragging the average into fantasy. So:
+      • methods that imply >80% move are flagged 'extreme'
+      • 'high' confidence requires the two estimates within 40% of each other
+      • when they disagree on magnitude, the headline anchors on the
+        estimate CLOSER to the current price (the conservative read)
+      • the reported under/over-valued % is capped to a sane +/-60%
+    """
+    if not price or price <= 0:
         return None, None, None, None, "n/a"
-    mid = sum(fvs) / len(fvs)
+    fvs = [v for v in (dcf_fv, mr_fv) if v and v > 0]
+    if not fvs:
+        return None, None, None, None, "n/a"
+
     if len(fvs) == 2:
         lo, hi = min(fvs), max(fvs)
-        # confidence: do both methods agree on direction vs price?
-        d1 = dcf_fv > price
-        d2 = mr_fv > price
-        conf = "high" if d1 == d2 else "mixed"
+        agree_dir = (dcf_fv > price) == (mr_fv > price)
+        spread = hi / lo - 1.0
+        extreme = max(abs(dcf_fv / price - 1),
+                      abs(mr_fv / price - 1)) > 0.80
+        if agree_dir and spread <= 0.40 and not extreme:
+            anchor, conf = sum(fvs) / 2.0, "high"
+        elif agree_dir:
+            # agree on direction, not magnitude → anchor on the
+            # estimate nearer the price (conservative)
+            anchor = min(fvs, key=lambda v: abs(v - price))
+            conf = "low"
+        else:
+            anchor, conf = sum(fvs) / 2.0, "mixed"
     else:
-        lo, hi = mid * 0.9, mid * 1.1
-        conf = "moderate"
-    under = round((mid / price - 1) * 100, 1)
-    return round(lo, 2), round(mid, 2), round(hi, 2), under, conf
+        anchor = fvs[0]
+        lo, hi = anchor * 0.88, anchor * 1.12
+        conf = "single" if abs(anchor / price - 1) <= 0.80 else "single-weak"
+
+    under = max(-60.0, min(60.0, (anchor / price - 1) * 100))
+    return round(lo, 2), round(anchor, 2), round(hi, 2), round(under, 1), conf
 
 
 def score_stock(s, mr, fund, short_state):
@@ -152,8 +175,8 @@ def score_stock(s, mr, fund, short_state):
         risks.append("Not currently profitable")
     if short_state == "PRESSURE BUILDING":
         risks.append("Short sellers are building pressure")
-    if conf == "mixed":
-        risks.append("Valuation signal is mixed — the two methods disagree")
+    if conf in ("mixed", "low", "single-weak"):
+        risks.append("Valuation estimate is uncertain — the methods disagree on how cheap it is")
 
     if under is not None and under >= 15:
         ops.append(f"Trading ~{under:.0f}% below estimated fair value")
@@ -170,18 +193,21 @@ def score_stock(s, mr, fund, short_state):
     if op_m is not None and op_m > 20:
         ops.append("Highly profitable business")
 
-    # ── verdict (with the value-trap guard) ──
+    # ── verdict (value-trap guard + confidence-gated) ──
+    # STRONG OPPORTUNITY demands 'high' confidence: the two independent
+    # valuation methods must actually agree on magnitude, not just direction.
     value_trap = (under is not None and under >= 15
                   and (distress or (rev_g is not None and rev_g < -3)))
+    hi_conf = conf == "high"
     if distress:
         verdict, vcolor = "HIGH RISK", "red"
     elif value_trap:
         verdict, vcolor = "HIGH RISK", "red"
     elif under is not None and under <= -15:
         verdict, vcolor = "EXPENSIVE", "orange"
-    elif opp >= 70 and (under or 0) > 10:
+    elif hi_conf and opp >= 70 and (under or 0) > 12:
         verdict, vcolor = "STRONG OPPORTUNITY", "green"
-    elif opp >= 58 and (under or 0) > 0:
+    elif opp >= 56 and (under or 0) > 5:
         verdict, vcolor = "OPPORTUNITY", "cyan"
     elif under is not None and -15 < under < 8:
         verdict, vcolor = "FAIR VALUE", "yellow"
