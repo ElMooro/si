@@ -1,0 +1,132 @@
+{
+  "ops": 749,
+  "ts": "2026-05-17T11:43:39.377507+00:00",
+  "subject": "apply approved refresh-cadence right-sizing",
+  "operations": [
+    {
+      "rule": "justhodl-v9-auto-refresh",
+      "action": "delete",
+      "why": "daily-report-v3 already has morning+evening crons; 5-min on macro data is waste",
+      "before": {
+        "exists": true,
+        "schedule": "rate(5 minutes)",
+        "state": "ENABLED",
+        "description": ""
+      },
+      "after": {
+        "exists": false
+      },
+      "result": "DELETED"
+    },
+    {
+      "rule": "test-immediate",
+      "action": "delete",
+      "why": "leftover 1-minute test rule",
+      "before": {
+        "exists": true,
+        "schedule": "rate(1 minute)",
+        "state": "DISABLED",
+        "description": ""
+      },
+      "after": {
+        "exists": false
+      },
+      "result": "DELETED"
+    },
+    {
+      "rule": "news-sentiment-update",
+      "action": "disable",
+      "why": "target news-sentiment-agent is a stub",
+      "before": {
+        "exists": true,
+        "schedule": "rate(30 minutes)",
+        "state": "ENABLED",
+        "description": "Update news sentiment every 30 minutes"
+      },
+      "after": {
+        "exists": true,
+        "schedule": "rate(30 minutes)",
+        "state": "DISABLED",
+        "description": "Update news sentiment every 30 minutes"
+      },
+      "result": "DISABLED"
+    },
+    {
+      "rule": "bloomberg-terminal-refresh",
+      "action": "reschedule",
+      "why": "bloomberg-v8 calls Claude every run \u2014 5-min was the biggest token cost",
+      "before": {
+        "exists": true,
+        "schedule": "rate(5 minutes)",
+        "state": "ENABLED",
+        "description": ""
+      },
+      "after": {
+        "exists": true,
+        "schedule": "rate(1 hour)",
+        "state": "ENABLED",
+        "description": ""
+      },
+      "result": "RESCHEDULED"
+    },
+    {
+      "rule": "justhodl-crypto-intel-schedule",
+      "action": "reschedule",
+      "why": "crypto-intel calls Claude; 15-min AI commentary is overkill",
+      "before": {
+        "exists": true,
+        "schedule": "rate(15 minutes)",
+        "state": "ENABLED",
+        "description": ""
+      },
+      "after": {
+        "exists": true,
+        "schedule": "rate(30 minutes)",
+        "state": "ENABLED",
+        "description": ""
+      },
+      "result": "RESCHEDULED"
+    },
+    {
+      "rule": "bond-indices-hourly",
+      "action": "reschedule",
+      "why": "bond/ICE indices update daily, not hourly",
+      "before": {
+        "exists": true,
+        "schedule": "rate(1 hour)",
+        "state": "ENABLED",
+        "description": "Update bond indices every hour"
+      },
+      "after": {
+        "exists": true,
+        "schedule": "cron(0 12 * * ? *)",
+        "state": "ENABLED",
+        "description": "Update bond indices every hour"
+      },
+      "result": "RESCHEDULED"
+    },
+    {
+      "rule": "justhodl-history-snapshotter-5m",
+      "action": "reschedule",
+      "why": "snapshotting slow macro data every 5 min",
+      "before": {
+        "exists": true,
+        "schedule": "rate(5 minutes)",
+        "state": "ENABLED",
+        "description": "Trigger justhodl-history-snapshotter every 5 minutes"
+      },
+      "after": {
+        "exists": true,
+        "schedule": "rate(30 minutes)",
+        "state": "ENABLED",
+        "description": "Trigger justhodl-history-snapshotter every 5 minutes"
+      },
+      "result": "RESCHEDULED"
+    }
+  ],
+  "n_total": 7,
+  "n_ok": 7,
+  "n_skipped": 0,
+  "all_applied": true,
+  "verdict": "APPLIED \u2014 7 cadence changes done"
+}
