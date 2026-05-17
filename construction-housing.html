@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Housing & Construction · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🏗️</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:18px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .reg{font-family:var(--mono);font-size:30px;font-weight:700;margin:4px 0 2px}
+.hero .read{color:var(--mute);font-size:13px;line-height:1.6;margin-top:8px}
+.sig{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.sig span{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
+td{padding:10px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
+tr:hover td{background:var(--panel2)}
+.num{text-align:right}
+.role{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 6px;border-radius:3px;background:#1c2433;color:var(--dim);text-transform:uppercase}
+.r-leading{background:#a78bfa22;color:var(--purple)}
+.pos{color:var(--green)}.neg{color:var(--red)}.flat{color:var(--mute)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.loading{text-align:center;padding:50px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏗️ Housing &amp; Construction Cycle</h1>
+    <p class="subtitle">The US housing cycle, fused from FRED. <b>Building permits</b> lead — they're authorised activity not yet broken ground. Starts and completions are the pipeline; new and existing home sales are demand; <b>months' supply</b> and the <b>30-year mortgage rate</b> gate the whole thing; Case-Shiller tracks prices and the PPI tracks builder input-cost inflation. One decisive cycle read.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/macro-data.html">macro</a>
+      <a href="/liquidity.html">liquidity</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING HOUSING CYCLE…</div></div>
+
+  <h2>Series Detail</h2>
+  <div class="card"><div id="board"><div class="loading">…</div></div></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const C={green:"var(--green)",cyan:"var(--cyan)",yellow:"var(--yellow)",red:"var(--red)"};
+
+function chg(v){
+  if(v==null)return '<span class="flat">—</span>';
+  const cls=v>0.05?"pos":v<-0.05?"neg":"flat";
+  return `<span class="${cls}">${v>0?"+":""}${v}%</span>`;
+}
+
+function renderHero(d){
+  const col=C[d.regime_color]||"var(--cyan)";
+  document.getElementById("hero").innerHTML=`
+    <div class="hero" style="border-left-color:${col}">
+      <div class="lab">Housing Cycle</div>
+      <div class="reg" style="color:${col}">${esc(d.regime)} <span style="font-size:15px;color:var(--dim)">score ${d.cycle_score>0?"+":""}${d.cycle_score}</span></div>
+      <div class="read">${esc(d.read||"")}</div>
+      <div class="sig">${(d.signals||[]).map(s=>`<span>${esc(s)}</span>`).join("")}</div>
+    </div>`;
+}
+function renderBoard(d){
+  const rows=(d.series||[]);
+  let h=`<table><thead><tr><th>Indicator</th><th>Role</th><th class="num">Latest</th>
+    <th>Unit</th><th class="num">MoM</th><th class="num">3M</th><th class="num">YoY</th><th>As Of</th></tr></thead><tbody>`;
+  for(const r of rows){
+    if(!r.ok){h+=`<tr><td>${esc(r.label)}</td><td colspan="7" style="color:var(--dim)">series unavailable</td></tr>`;continue;}
+    const lead=r.role==="leading"?' r-leading':'';
+    h+=`<tr>
+      <td><b style="color:var(--txt)">${esc(r.label)}</b><br><span style="color:var(--dim);font-size:10px">${esc(r.series_id)}</span></td>
+      <td><span class="role${lead}">${esc(r.role)}</span></td>
+      <td class="num" style="color:var(--txt);font-weight:700">${r.latest}</td>
+      <td style="color:var(--dim)">${esc(r.unit)}</td>
+      <td class="num">${chg(r.mom_pct)}</td>
+      <td class="num">${chg(r.chg_3m_pct)}</td>
+      <td class="num">${chg(r.yoy_pct)}</td>
+      <td style="color:var(--dim)">${esc(r.as_of)}</td>
+    </tr>`;
+  }
+  document.getElementById("board").innerHTML=h+`</tbody></table>`;
+}
+(async()=>{
+  const d=await J("construction-housing.json");
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="reg" style="color:var(--orange);font-size:18px">AWAITING FIRST RUN</div><div class="read">The engine runs daily at 11:00 UTC.</div></div>`;document.getElementById("board").innerHTML="";return;}
+  renderHero(d); renderBoard(d);
+  document.getElementById("note").textContent=d.note||"";
+  document.getElementById("ts").textContent="engine: "+(d.method||"")+" · "+(d.n_resolved||0)+"/"+(d.n_series||0)+" series · generated "+(d.generated_at||"?");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-construction-housing",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Housing & Construction Cycle engine — FRED housing series fused into a cycle regime (permits/starts/sales/supply/rate/prices/costs). Output data/construction-housing.json.",
+  "environment": {"FRED_KEY": "2f057499936072679d8843d7fce99989"},
+  "schedule": {
+    "rule_name": "construction-housing-daily",
+    "cron": "cron(0 11 ? * * *)",
+    "description": "Housing & Construction Cycle engine — daily 11:00 UTC"
+  }
+}
