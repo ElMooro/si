@@ -59,7 +59,7 @@ STALE_HARD_DAYS = 95    # ~3 months — exclude from the grid entirely
 # dir : "fall" = falling is stress · "rise" = rising is stress
 SIGNALS = [
     dict(key="korea_exports", name="South Korea exports", grid="trade_shipping",
-         fred="XTEXVA01KRM664S", kind="yoy", win=12, dir="fall", lead=3,
+         fred=["IMF/IFS/M.KR.TXG_FOB_USD", "XTEXVA01KRM664S"], kind="yoy", win=12, dir="fall", lead=3,
          limit=160, unit="%YoY",
          hot="South Korea's exports are contracting — Korea reports first and "
              "its exports track the global semiconductor cycle, so this is an "
@@ -67,7 +67,7 @@ SIGNALS = [
          cool="South Korea's exports are holding up — global trade demand "
               "looks intact for now."),
     dict(key="china_exports", name="China exports", grid="trade_shipping",
-         fred="XTEXVA01CNM664S", kind="yoy", win=12, dir="fall", lead=3,
+         fred=["IMF/IFS/M.CN.TXG_FOB_USD", "XTEXVA01CNM664S"], kind="yoy", win=12, dir="fall", lead=3,
          limit=160, unit="%YoY",
          hot="China's exports are shrinking — global goods demand is weakening.",
          cool="China's exports are growing — global goods demand looks steady."),
@@ -140,6 +140,21 @@ def fred(series_id, limit):
         return []
 
 
+def fetch_observations(sid, limit):
+    """Source-agnostic fetch -> [(date, value), ...] newest-first.
+    An id containing '/' is DBnomics (PROVIDER/DATASET/SERIES); otherwise
+    it is a FRED series id. Lets one signal try multiple sources."""
+    if "/" in str(sid):
+        try:
+            from dbnomics import fetch_series
+            pts = [(p, v) for p, v in fetch_series(sid) if v is not None]
+            return list(reversed(pts))  # dbnomics returns oldest-first
+        except Exception as e:
+            print(f"[canary] DBnomics {sid}: {e}")
+            return []
+    return fred(sid, limit)
+
+
 def mean(xs):
     xs = [x for x in xs if x is not None]
     return sum(xs) / len(xs) if xs else None
@@ -202,15 +217,22 @@ def eval_signal(sig):
     base = {"key": sig["key"], "name": sig["name"], "sub_grid": sig["grid"],
             "lead_months": sig["lead"], "unit": sig["unit"]}
     ids = sig["fred"] if isinstance(sig["fred"], list) else [sig["fred"]]
-    series, used = [], None
-    for sid in ids:
-        cand = transform(fred(sid, sig["limit"]), sig["kind"], sig["win"])
+    valid = []  # (age_rank, preference_idx, series, sid)
+    for idx, sid in enumerate(ids):
+        cand = transform(fetch_observations(sid, sig["limit"]),
+                         sig["kind"], sig["win"])
         if len(cand) >= 24:
-            series, used = cand, sid
-            break
-    if not series:
+            a = age_days(cand[0][0])
+            valid.append((a if a is not None else 99999, idx, cand, sid))
+    if not valid:
         return {**base, "available": False,
-                "reason": f"no FRED series resolved ({'/'.join(ids)})"}
+                "reason": f"no series resolved ({', '.join(map(str, ids))})"}
+    # prefer the first source in preference order that is FRESH (<= hard
+    # limit); only if none are fresh fall back to the freshest stale one.
+    fresh = [v for v in valid if v[0] <= STALE_HARD_DAYS]
+    pick = (min(fresh, key=lambda v: v[1]) if fresh
+            else min(valid, key=lambda v: v[0]))
+    series, used = pick[2], pick[3]
     latest_date, latest_val = series[0]
     hist = [v for _, v in series]
     mu = mean(hist)
