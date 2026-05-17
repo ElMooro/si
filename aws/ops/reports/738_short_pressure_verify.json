@@ -1,0 +1,67 @@
+{
+  "ops": 738,
+  "ts": "2026-05-17T00:16:55.849562+00:00",
+  "subject": "short-pressure engine verify",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_covered\\\": 25, \\\"n_pressure_building\\\": 6, \\\"n_shorts_covering\\\": 4}\"}"
+  },
+  "summary": {
+    "schema": "1.0",
+    "n_covered": 25,
+    "n_failed": 0,
+    "n_pressure_building": 6,
+    "n_shorts_covering": 4,
+    "n_with_z": 25
+  },
+  "sample": [
+    {
+      "ticker": "FCX",
+      "short_ratio_latest": 42.8,
+      "baseline_20d": 26.6,
+      "z_score": 2.53,
+      "state": "PRESSURE BUILDING"
+    },
+    {
+      "ticker": "HUM",
+      "short_ratio_latest": 47.4,
+      "baseline_20d": 36.1,
+      "z_score": 1.77,
+      "state": "PRESSURE BUILDING"
+    },
+    {
+      "ticker": "FIX",
+      "short_ratio_latest": 68.6,
+      "baseline_20d": 47.7,
+      "z_score": 1.73,
+      "state": "PRESSURE BUILDING"
+    },
+    {
+      "ticker": "ARM",
+      "short_ratio_latest": 49.2,
+      "baseline_20d": 43.5,
+      "z_score": 1.52,
+      "state": "PRESSURE BUILDING"
+    },
+    {
+      "ticker": "APP",
+      "short_ratio_latest": 63.9,
+      "baseline_20d": 49.9,
+      "z_score": 1.46,
+      "state": "PRESSURE BUILDING"
+    }
+  ],
+  "frontend": {
+    "status": 200,
+    "marker": true
+  },
+  "checks": {
+    "invoke_ok": true,
+    "data_ok": true,
+    "z_populated": true,
+    "frontend_live": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 Short Pressure engine live and populated"
+}
