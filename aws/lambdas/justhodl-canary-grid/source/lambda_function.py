@@ -59,7 +59,7 @@ STALE_HARD_DAYS = 95    # ~3 months — exclude from the grid entirely
 # dir : "fall" = falling is stress · "rise" = rising is stress
 SIGNALS = [
     dict(key="korea_exports", name="South Korea exports", grid="trade_shipping",
-         fred=["IMF/IFS/M.KR.TXG_FOB_USD", "XTEXVA01KRM664S"], kind="yoy", win=12, dir="fall", lead=3,
+         fred="XTEXVA01KRM664S", kind="yoy", win=12, dir="fall", lead=3,
          limit=160, unit="%YoY",
          hot="South Korea's exports are contracting — Korea reports first and "
              "its exports track the global semiconductor cycle, so this is an "
@@ -67,7 +67,7 @@ SIGNALS = [
          cool="South Korea's exports are holding up — global trade demand "
               "looks intact for now."),
     dict(key="china_exports", name="China exports", grid="trade_shipping",
-         fred=["IMF/IFS/M.CN.TXG_FOB_USD", "XTEXVA01CNM664S"], kind="yoy", win=12, dir="fall", lead=3,
+         fred="XTEXVA01CNM664S", kind="yoy", win=12, dir="fall", lead=3,
          limit=160, unit="%YoY",
          hot="China's exports are shrinking — global goods demand is weakening.",
          cool="China's exports are growing — global goods demand looks steady."),
