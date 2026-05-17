@@ -1,0 +1,54 @@
+{
+  "ops": 737,
+  "ts": "2026-05-17T00:12:23.696217+00:00",
+  "subject": "construction-housing + crypto-narratives verify",
+  "invoke_housing": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"SLOWING\\\", \\\"cycle_score\\\": -1, \\\"n_resolved\\\": 10}\"}"
+  },
+  "invoke_crypto": {
+    "status": 200,
+    "fn_error": null,
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"stance\\\": \\\"RISK-OFF\\\", \\\"narrative_breadth_pct\\\": 9.6, \\\"n_categories\\\": 271}\"}"
+  },
+  "housing": {
+    "schema": "1.0",
+    "regime": "SLOWING",
+    "cycle_score": -1,
+    "n_resolved": 10,
+    "n_series": 10,
+    "n_signals": 6
+  },
+  "crypto": {
+    "schema": "1.0",
+    "stance": "RISK-OFF",
+    "breadth": 9.6,
+    "n_categories": 271,
+    "n_hot": 12,
+    "n_cold": 8,
+    "fg": {
+      "value": 42,
+      "classification": "Neutral"
+    },
+    "top_narrative": "Sharing Economy"
+  },
+  "page_housing": {
+    "status": 200,
+    "marker": true
+  },
+  "page_crypto": {
+    "status": 200,
+    "marker": true
+  },
+  "checks": {
+    "housing_invoke_ok": true,
+    "housing_data_ok": true,
+    "housing_page_live": true,
+    "crypto_invoke_ok": true,
+    "crypto_data_ok": true,
+    "crypto_page_live": true
+  },
+  "all_pass": true,
+  "verdict": "VERIFIED \u2014 Housing Cycle + Crypto Narratives both live and populated"
+}
