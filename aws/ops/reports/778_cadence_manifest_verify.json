@@ -1,0 +1,51 @@
+{
+  "ops": 778,
+  "ts": "2026-05-17T19:16:43.181051+00:00",
+  "subject": "Seed cadence manifest + verify manifest-aware fleet-monitor",
+  "manifest": {
+    "n_outputs": 127,
+    "engines_scanned": 201,
+    "scheduled": 103,
+    "event_driven": 24
+  },
+  "redeploy": "ok",
+  "manifest_code_live": true,
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"system_status\": \"yellow\", \"data_bad\": 0, \"deps_down\": 0, \"alert_sent\": false}"
+  },
+  "system_status": "yellow",
+  "summary": {
+    "data_outputs_total": 197,
+    "data_outputs_fresh": 135,
+    "data_outputs_aging": 33,
+    "data_outputs_stale_or_degraded": 0,
+    "data_outputs_static": 29,
+    "data_outputs_cadence_mapped": 127,
+    "lambda_count": 277,
+    "dependencies_down": 0,
+    "dependencies_degraded": 0
+  },
+  "sweep": {
+    "total": 197,
+    "green": 135,
+    "n_yellow": 33,
+    "n_red": 0,
+    "n_degraded": 0,
+    "n_static": 29,
+    "manifest_outputs": 127
+  },
+  "red": [],
+  "checks": {
+    "manifest_built": true,
+    "manifest_uploaded": true,
+    "redeploy_ok": true,
+    "manifest_code_live": true,
+    "invoke_ok": true,
+    "monitor_using_manifest": true,
+    "system_status_set": true
+  },
+  "all_pass": true,
+  "verdict": "CADENCE MANIFEST LIVE \u2014 127 outputs now judged against their own schedule (hourly/3h/6h/daily/weekly), not one blunt threshold. Auto-regenerates via the cadence-manifest workflow whenever any engine's schedule changes. System status: yellow."
+}
