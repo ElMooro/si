@@ -1,0 +1,119 @@
+{
+  "ops": 774,
+  "ts": "2026-05-17T18:29:54.173117+00:00",
+  "subject": "Force-deploy + verify fleet-monitor (full-fleet observability)",
+  "anthropic_key_inherited": "from ai-chat (ANTHROPIC_API_KEY)",
+  "zip_bytes": 5248,
+  "deploy_action": "updated existing",
+  "function_state": "Active",
+  "schedule_wired": true,
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"system_status\": \"red\", \"data_bad\": 11, \"deps_down\": 0, \"alert_sent\": true}"
+  },
+  "system_status": "red",
+  "summary": {
+    "data_outputs_total": 201,
+    "data_outputs_fresh": 153,
+    "data_outputs_aging": 37,
+    "data_outputs_stale_or_degraded": 11,
+    "lambda_count": 277,
+    "dependencies_down": 0,
+    "dependencies_degraded": 0
+  },
+  "dependencies": [
+    {
+      "name": "Anthropic API",
+      "status": "green",
+      "detail": "responding \u2014 credits OK"
+    },
+    {
+      "name": "FRED",
+      "status": "green",
+      "detail": "key valid"
+    },
+    {
+      "name": "FMP",
+      "status": "green",
+      "detail": "key valid"
+    },
+    {
+      "name": "Polygon",
+      "status": "green",
+      "detail": "key valid"
+    },
+    {
+      "name": "AlphaVantage",
+      "status": "green",
+      "detail": "key valid"
+    },
+    {
+      "name": "CoinMarketCap",
+      "status": "green",
+      "detail": "key valid"
+    }
+  ],
+  "data_sweep": {
+    "available": true,
+    "total": 201,
+    "green": 153,
+    "n_yellow": 37,
+    "n_red": 11,
+    "n_degraded": 0
+  },
+  "data_red_sample": [
+    {
+      "output": "khalid-config",
+      "age_hours": 1907.8,
+      "size": 19557,
+      "issue": "stale 79.5d \u2014 engine likely dead"
+    },
+    {
+      "output": "dex-scanner-data",
+      "age_hours": 1693.0,
+      "size": 144314,
+      "issue": "stale 70.5d \u2014 engine likely dead"
+    },
+    {
+      "output": "ka-config",
+      "age_hours": 508.5,
+      "size": 19557,
+      "issue": "stale 21.2d \u2014 engine likely dead"
+    },
+    {
+      "output": "feedback-summary",
+      "age_hours": 317.7,
+      "size": 466,
+      "issue": "stale 13.2d \u2014 engine likely dead"
+    },
+    {
+      "output": "skew",
+      "age_hours": 313.3,
+      "size": 322,
+      "issue": "stale 13.1d \u2014 engine likely dead"
+    },
+    {
+      "output": "pre-pump-calibration",
+      "age_hours": 282.3,
+      "size": 2893,
+      "issue": "stale 11.8d \u2014 engine likely dead"
+    }
+  ],
+  "data_degraded_sample": [],
+  "compute": {
+    "available": true,
+    "n_functions": 277
+  },
+  "checks": {
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "data_sweep_ran": true,
+    "dependency_probes_ran": true,
+    "anthropic_probed": true,
+    "system_status_set": true
+  },
+  "all_pass": true,
+  "verdict": "FLEET MONITOR LIVE & VERIFIED \u2014 auto-discovering observability deployed, scheduled every 3h. Swept all data outputs + probed Anthropic and every data-provider key in one pass. System status: red."
+}
