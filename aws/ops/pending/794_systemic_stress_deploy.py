@@ -1,3 +1,4 @@
+# re-trigger
 """ops/794 — deploy + schedule + verify justhodl-systemic-stress.
 
 Force-deploys the ECB CISS/SovCISS systemic & sovereign stress engine via
