@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spin-Off Desk &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#9986;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.tab.active{color:var(--bg);background:var(--green);border-color:var(--green);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(355px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.nm{color:var(--dim);font-size:10.5px;margin-top:2px;line-height:1.4}
+.scorebox{text-align:right;line-height:1}
+.scorebox .sc{font-family:var(--mono);font-size:23px;font-weight:700}
+.scorebox small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.chip{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);color:var(--mute)}
+.chip.tier{font-weight:700}
+.chip.win{background:rgba(0,212,255,.1);border-color:var(--cyan);color:var(--cyan)}
+.chip.hot{background:rgba(38,255,175,.1);border-color:var(--green);color:var(--green)}
+.cells{display:flex;gap:6px;margin:9px 0}
+.cell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:center}
+.cell .cl{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.cell .cv{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:2px}
+.thesis{background:var(--panel2);border-left:2px solid var(--green);border-radius:5px;padding:7px 10px;margin:8px 0;font-size:11.5px;color:var(--txt);line-height:1.55}
+.sigs{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}
+.sig{font-family:var(--mono);font-size:9px;color:var(--green);background:rgba(38,255,175,.07);border:1px solid rgba(38,255,175,.25);border-radius:4px;padding:2px 6px}
+.risk{color:var(--orange);font-size:10.5px;line-height:1.5;margin:6px 0}
+.risk b{color:var(--orange)}
+.meta{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.meta a{color:var(--dim);border-bottom:1px dashed var(--line);text-decoration:none}
+.meta a:hover{color:var(--cyan)}
+.pend{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:6px;padding:9px 12px}
+.pend .pt{font-family:var(--mono);font-size:12.5px;font-weight:700}
+.pend .pn{color:var(--orange);font-size:10px;margin-top:3px;line-height:1.5}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:20px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#9986; Spin-Off Desk</h1>
+    <p class="subtitle">When a company splits off a division as a new, separately-traded stock, index funds and big institutions <b>receive shares they did not choose and cannot hold</b> &mdash; so they dump them, regardless of price. That forced selling, plus the fact that the new "SpinCo" launches with little or no analyst coverage, leaves it systematically <b>mispriced for 12&ndash;24 months</b>. This desk sources every <b>Form 10-12B</b> spin-off registration straight from SEC EDGAR, prices and screens each one, and scores the documented edge: <b>fresh</b> = inside the peak forced-selling window, <b>orphan</b> = small SpinCo dumped hardest, <b>uncovered</b> = no analysts anchoring the price, plus post-spin drawdown and insider buying.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/merger-arb.html">merger-arb</a>
+      <a href="/capital-return.html">cannibals</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/catch-up.html">catch-up</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING SPIN-OFF DESK&hellip;</div></div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <div id="pending"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"&mdash;":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const tierColor=(t)=>t==="PRIME SPIN"?"var(--green)":t==="STRONG"?"var(--cyan)":t==="WATCH"?"var(--yellow)":"var(--dim)";
+function mcap(v){if(v==null||isNaN(v))return "&mdash;";v=Number(v);if(v>=1e12)return "$"+(v/1e12).toFixed(2)+"T";if(v>=1e9)return "$"+(v/1e9).toFixed(2)+"B";if(v>=1e6)return "$"+(v/1e6).toFixed(0)+"M";return "$"+num(v);}
+let DATA=null,VIEW="top";
+
+function card(c){
+  const tc=tierColor(c.tier);
+  const dh=c.from_52w_high_pct;
+  const dt=c.days_trading;
+  return `<div class="card" style="border-top-color:${tc}">
+    <div class="crow">
+      <div>
+        <div class="tk">${esc(c.symbol)}</div>
+        <div class="nm">${esc(c.name||"")}${c.sector?" &middot; "+esc(c.sector):""}</div>
+      </div>
+      <div class="scorebox">
+        <div class="sc" style="color:${tc}">${num(c.spinoff_score,0)}</div>
+        <small>SPIN SCORE</small>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip tier" style="color:${tc};border-color:${tc}">${esc(c.tier)}</span>
+      <span class="chip win">${esc(c.window||"")}</span>
+      <span class="chip">${esc(c.market_cap_label||"")}-cap</span>
+      ${c.neglect?`<span class="chip hot">uncovered</span>`:""}
+      ${c.insider_cluster_buy?`<span class="chip hot">insider buying</span>`:""}
+    </div>
+    <div class="cells">
+      <div class="cell"><div class="cl">Price</div><div class="cv">${c.price!=null?"$"+num(c.price,2):"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Market Cap</div><div class="cv">${mcap(c.market_cap)}</div></div>
+      <div class="cell"><div class="cl">From 52w High</div><div class="cv" style="color:${dh==null?'var(--mute)':dh<=-15?'var(--green)':'var(--mute)'}">${dh!=null?num(dh,0)+"%":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Trading</div><div class="cv">${dt!=null?(dt<400?dt+"d":Math.round(dt/30)+"mo"):"&mdash;"}${c.days_trading_approx?"*":""}</div></div>
+    </div>
+    <div class="thesis">${esc(c.thesis||"")}</div>
+    ${(c.signals&&c.signals.length)?`<div class="sigs">`+c.signals.map(s=>`<span class="sig">${esc(s)}</span>`).join("")+`</div>`:""}
+    <div class="risk"><b>Risk:</b> ${esc(c.risk||"")}</div>
+    <div class="meta">
+      ${c.parent?`<span>spun from ${esc(c.parent)}</span>`:""}
+      <span>10-12B filed ${esc(c.filed_date||"")}</span>
+      ${c.analyst_coverage!=null?`<span>${c.analyst_coverage} analysts</span>`:""}
+      ${c.filing_url?`<a href="${esc(c.filing_url)}" target="_blank" rel="noopener">SEC filing &#8599;</a>`:""}
+    </div>
+  </div>`;
+}
+
+function pendCard(p){
+  return `<div class="pend">
+    <div class="pt">${esc(p.name||"")}${p.symbol?" ("+esc(p.symbol)+")":""}</div>
+    <div class="pn">${esc(p.note||"Registered, not yet trading.")}</div>
+    <div class="meta"><span>filed ${esc(p.filed_date||"")}</span>${p.filing_url?`<a href="${esc(p.filing_url)}" target="_blank" rel="noopener">SEC filing &#8599;</a>`:""}</div>
+  </div>`;
+}
+
+function render(){
+  if(!DATA)return;
+  const g=document.getElementById("grid"),pe=document.getElementById("pending");
+  pe.innerHTML="";
+  if(VIEW==="pending"){
+    g.innerHTML="";
+    const pl=DATA.pending_registrations||[];
+    pe.innerHTML=pl.length
+      ? `<div class="sechead">Registered &mdash; Form 10-12B filed, not yet trading (${pl.length})</div><div class="grid">`+pl.map(pendCard).join("")+`</div>`
+      : '<div class="loading">No pending registrations right now.</div>';
+    return;
+  }
+  let list=[];
+  if(VIEW==="top")list=DATA.top_setups||[];
+  else if(VIEW==="fresh")list=DATA.fresh_spinoffs||[];
+  else if(VIEW==="seasoned")list=DATA.seasoned_spinoffs||[];
+  g.innerHTML=list.length
+    ? list.map(card).join("")
+    : '<div class="loading">No spin-offs in this view right now.</div>';
+}
+
+function tabs(){
+  const d=DATA;
+  const defs=[
+    ["top","Top Setups",(d.top_setups||[]).length],
+    ["fresh","Fresh 0-6mo",(d.fresh_spinoffs||[]).length],
+    ["seasoned","Seasoned 6-18mo",(d.seasoned_spinoffs||[]).length],
+    ["pending","Pending",(d.pending_registrations||[]).length],
+  ];
+  document.getElementById("tabs").innerHTML=defs.map(([k,lab,n])=>
+    `<div class="tab${k===VIEW?' active':''}" data-k="${k}">${lab} &middot; ${n}</div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{VIEW=t.dataset.k;tabs();render();});
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"spinoff-desk.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.generated_at){document.getElementById("hero").innerHTML='<div class="loading">SPIN-OFF DESK DATA UNAVAILABLE</div>';return;}
+  DATA=d;
+  const s=d.summary||{};
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.method||"")}</div>
+  </div>`;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="sl">Tradeable Spin-Offs</div><div class="sv" style="color:var(--green)">${num(s.n_trading)}</div></div>
+    <div class="stat"><div class="sl">Fresh 0-6mo</div><div class="sv" style="color:var(--cyan)">${num(s.n_fresh)}</div></div>
+    <div class="stat"><div class="sl">Rated Prime</div><div class="sv" style="color:var(--green)">${num(s.n_prime)}</div></div>
+    <div class="stat"><div class="sl">Best Score</div><div class="sv">${num(s.best_score,0)}</div></div>
+    <div class="stat"><div class="sl">Pending</div><div class="sv" style="color:var(--orange)">${num(s.n_pending)}</div></div>`;
+  tabs();render();
+  document.getElementById("note").textContent="Source: SEC EDGAR Form 10-12B full-text feed ("+(s.n_filings_scanned||0)+" registrations scanned), priced on FMP. Trading-day age marked * is estimated from the registration date when a precise listing date is unavailable. The spin-off edge is a patient, multi-month setup - forced selling can run for weeks before it clears. Research and education only, not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" - "+(d.elapsed_seconds||0)+"s";
+}
+main();
+</script>
+</body>
+</html>
