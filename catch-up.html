@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catch-Up Radar · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:16px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.group{margin-bottom:22px}
+.ghead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:12px 14px;margin-bottom:10px}
+.gsec{font-family:var(--mono);font-size:15px;font-weight:700}
+.gstat{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.leader{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-left:auto}
+.leader b{color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.score{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.stats{display:flex;gap:6px;margin:9px 0}
+.scell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 4px;text-align:center}
+.scell .sl{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.scell .sv{font-family:var(--mono);font-size:13px;font-weight:700;margin-top:2px}
+.tgt{display:flex;align-items:baseline;gap:8px;background:var(--panel2);border-radius:6px;padding:7px 10px;margin:8px 0}
+.tgt .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.tgt .pt{font-family:var(--mono);font-size:15px;font-weight:700}
+.tgt .up{font-family:var(--mono);font-size:14px;font-weight:700;margin-left:auto}
+.why{color:var(--mute);font-size:11.5px;line-height:1.6;margin:6px 0}
+.risk{font-size:10px;color:var(--orange);line-height:1.5;display:flex;gap:5px;margin-top:6px}
+.risk::before{content:"\26A0";flex-shrink:0}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎯 Catch-Up Radar</h1>
+    <p class="subtitle">When a sector is genuinely working, money rotates down the ladder: the obvious leader runs first, then the higher-beta names that haven't moved yet tend to close the gap. This radar finds those laggards — but only in sectors that are <b>actually working</b> (a broad, rising group), behind a leader that <b>genuinely ran</b>, and only where the laggard is a <b>healthy company</b> the tape simply hasn't found yet. A laggard with collapsing fundamentals is a value trap, not a catch-up — those are gated out.</p>
+    <nav class="crumbs">
+      <a href="/boom-board.html">boom board</a>
+      <a href="/capital-return.html">cannibals</a>
+      <a href="/screener/">screener</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING CATCH-UP RADAR…</div></div>
+  <div id="groups"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sc=(s)=>s>=65?"var(--green)":s>=50?"var(--cyan)":s>=38?"var(--yellow)":"var(--mute)";
+const sg=(v)=>v==null?"":(v>=0?"+":"")+num(v,0)+"%";
+
+function card(c){
+  const up=c.upside_pct;
+  const upc=up==null?"var(--dim)":up>=0?"var(--green)":"var(--red)";
+  return `<div class="card" style="border-top-color:${sc(c.catch_up_score)}">
+    <div class="crow">
+      <div><div class="tk">${esc(c.symbol)}</div><div class="nm">${esc(c.name||"")}</div></div>
+      <div class="score" style="color:${sc(c.catch_up_score)}">${num(c.catch_up_score)}<small>CATCH-UP SCORE</small></div>
+    </div>
+    <div class="stats">
+      <div class="scell"><div class="sl">3M Return</div><div class="sv" style="color:${c.r3m>=0?'var(--green)':'var(--red)'}">${sg(c.r3m)}</div></div>
+      <div class="scell"><div class="sl">Gap vs Leader</div><div class="sv" style="color:var(--cyan)">${num(c.gap_vs_leader_pp,0)}pp</div></div>
+      <div class="scell"><div class="sl">Beta</div><div class="sv">${num(c.beta,2)}</div></div>
+    </div>
+    <div class="tgt">
+      <span class="lab">price</span><span class="pt">${c.price!=null?"$"+num(c.price,2):"—"}</span>
+      <span class="lab" style="margin-left:6px">target</span>
+      <span class="pt">${c.price_target!=null?"$"+num(c.price_target,2):"—"}</span>
+      <span class="up" style="color:${upc}">${up!=null?(up>=0?"+":"")+num(up,0)+"%":""}</span>
+    </div>
+    <div class="why">${esc(c.why||"")}</div>
+    ${c.risk?`<div class="risk">${esc(c.risk)}</div>`:""}
+  </div>`;
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"beta-laggards.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">CATCH-UP RADAR DATA UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.how_to_read||"")}</div>
+  </div>`;
+  const groups=d.groups||[];
+  document.getElementById("groups").innerHTML=groups.length
+    ? groups.map(g=>`<div class="group">
+        <div class="ghead">
+          <span class="gsec">${esc(g.sector)}</span>
+          <span class="gstat">sector +${num(g.sector_3m_median_pct,0)}% (3M median) · ${num(g.sector_breadth_pct,0)}% participating</span>
+          <span class="leader">leader already ran: <b>${esc(g.leader&&g.leader.symbol)} ${sg(g.leader&&g.leader.r3m)}</b></span>
+        </div>
+        <div class="grid">${(g.laggards||[]).map(card).join("")}</div>
+      </div>`).join("")
+    : '<div class="loading">No working sectors with catch-up set-ups right now.</div>';
+  document.getElementById("note").textContent=(d.n_candidates||0)+" catch-up candidates across "+(d.n_working_sectors||0)+" working sectors · "+(d.universe_with_returns||0)+" stocks scanned. Rotation is a tendency, not a certainty — high-beta laggards also fall hardest if the sector rolls. Research and education only, not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>

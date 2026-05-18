@@ -86,6 +86,7 @@ CATEGORIES = [
 LABELS = {
     "boom-board": "Boom Board",
     "capital-return": "Capital-Return Cannibals",
+    "catch-up": "Catch-Up Radar",
     "metals-miners": "Metals & Miners",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
     "ecb": "ECB Data", "boj-detail": "BOJ & Yen Carry",
