@@ -1,0 +1,141 @@
+{
+  "ops": 831,
+  "ts": "2026-05-18T15:34:59.209970+00:00",
+  "subject": "Deploy-guard + verify justhodl-trend-engine",
+  "deploy": "updated",
+  "schedule": "updated",
+  "schedule_state": "ENABLED",
+  "schedule_cron": "cron(50 23 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"scored\\\": 21, \\\"regime\\\": \\\"BROAD TREND\\\", \\\"n_long\\\": 11, \\\"n_short\\\": 6, \\\"gross\\\": 364.4}\"}"
+  },
+  "trend_engine": {
+    "ok": true,
+    "checks": {
+      "schema_present": true,
+      "engine_tagged": true,
+      "headline_present": true,
+      "universe_is_21": true,
+      "scored_sane": true,
+      "counts_consistent": true,
+      "positions_well_formed": true,
+      "direction_deadband_discipline": true,
+      "ranked_by_conviction": true,
+      "inverse_vol_sizing": true,
+      "gross_reconciles": true,
+      "by_class_present": true,
+      "regime_valid": true,
+      "methodology_present": true,
+      "how_to_read_present": true
+    },
+    "headline": "Trend regime: BROAD TREND (81% of the universe trending). Long: DBC, USO, QQQ. Short: TLT, FXY, IEF. Strongest signal: Broad Commodities (DBC) LONG, conviction 91.2.",
+    "regime": "BROAD TREND",
+    "trend_breadth_pct": 81.0,
+    "scored": 21,
+    "n_long": 11,
+    "n_short": 6,
+    "n_flat": 4,
+    "portfolio_gross_pct": 364.4,
+    "gross_recomputed": 364.4,
+    "net_equity_tilt_pct": 59.6,
+    "by_class": [
+      {
+        "class": "Equities",
+        "stance": "NET LONG",
+        "net": 59.6
+      },
+      {
+        "class": "Rates",
+        "stance": "NET SHORT",
+        "net": -191.9
+      },
+      {
+        "class": "Credit",
+        "stance": "NET SHORT",
+        "net": -36.9
+      },
+      {
+        "class": "Commodities",
+        "stance": "NET LONG",
+        "net": 39.8
+      },
+      {
+        "class": "FX",
+        "stance": "NET SHORT",
+        "net": -30.2
+      },
+      {
+        "class": "Crypto",
+        "stance": "NET SHORT",
+        "net": -5.8
+      }
+    ],
+    "strongest_long": {
+      "sym": "DBC",
+      "name": "Broad Commodities",
+      "conv": 91.2,
+      "wt": 8.54
+    },
+    "strongest_short": {
+      "sym": "TLT",
+      "name": "20y+ US Treasury",
+      "conv": 60.2,
+      "wt": -24.27
+    },
+    "top5": [
+      {
+        "sym": "DBC",
+        "class": "Commodities",
+        "dir": "LONG",
+        "conv": 91.2,
+        "blended_t": 2.183,
+        "wt": 8.54,
+        "maturity": "developing",
+        "stress": false
+      },
+      {
+        "sym": "USO",
+        "class": "Commodities",
+        "dir": "LONG",
+        "conv": 89.0,
+        "blended_t": 1.983,
+        "wt": 3.04,
+        "maturity": "developing",
+        "stress": false
+      },
+      {
+        "sym": "QQQ",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 82.3,
+        "blended_t": 1.556,
+        "wt": 12.59,
+        "maturity": "fresh",
+        "stress": false
+      },
+      {
+        "sym": "SPY",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 76.9,
+        "blended_t": 1.319,
+        "wt": 16.46,
+        "maturity": "fresh",
+        "stress": false
+      },
+      {
+        "sym": "EEM",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 71.5,
+        "blended_t": 1.129,
+        "wt": 7.94,
+        "maturity": "fresh",
+        "stress": false
+      }
+    ]
+  },
+  "all_pass": true
+}
