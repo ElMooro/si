@@ -22,6 +22,9 @@ preflight establishes the data foundation:
      universe with market cap in a few paginated calls (the clean way)
   3. a short-interest endpoint probe, kept as a fallback lane
 No engine is built here - this only proves the data path.
+
+[re-dispatch: first push landed inside a merge commit so the run-ops
+HEAD^..HEAD diff missed it; this clean tip commit re-arms the trigger.]
 """
 import json, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
