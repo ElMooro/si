@@ -112,6 +112,8 @@ function deskCard(r){
     </div>
     <div class="cells">
       <div class="cell"><div class="cl">Effective Vol</div><div class="cv">${r.effective_vol_pct!=null?num(r.effective_vol_pct,1)+"%":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Tail Factor</div><div class="cv" style="color:${r.tail_factor>1.03?'var(--orange)':r.tail_factor<0.97?'var(--green)':'var(--mute)'}">${r.tail_factor!=null?num(r.tail_factor,2)+"x":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Sizing Vol</div><div class="cv">${r.tail_adj_vol_pct!=null?num(r.tail_adj_vol_pct,1)+"%":"&mdash;"}</div></div>
       <div class="cell"><div class="cl">Regime Tilt</div><div class="cv" style="color:${r.regime_mult>1.03?'var(--green)':r.regime_mult<0.97?'var(--orange)':'var(--mute)'}">${r.regime_mult!=null?num((r.regime_mult-1)*100,0)+"%":"&mdash;"}</div></div>
       <div class="cell"><div class="cl">Equity Beta</div><div class="cv">${sgn(r.equity_beta,2)}</div></div>
       <div class="cell"><div class="cl">Prior Sharpe</div><div class="cv">${num(r.prior_sharpe,2)}</div></div>
