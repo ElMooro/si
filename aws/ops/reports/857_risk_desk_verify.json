@@ -1,0 +1,109 @@
+{
+ "ops": 857,
+ "ts": "2026-05-18T23:45:38.377149+00:00",
+ "subject": "Verify the Risk Desk (the CRO cockpit landing page over the firm's eleven-engine risk stack)",
+ "checks": [
+  {
+   "check": "page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, 17593 bytes, cockpit markers present"
+  },
+  {
+   "check": "page_wires_all_engines",
+   "ok": true,
+   "detail": "all 11 engine feeds referenced"
+  },
+  {
+   "check": "feed_firm-risk-board",
+   "ok": true,
+   "detail": "age 0.8h, firm_posture=AMBER"
+  },
+  {
+   "check": "feed_tail-hedge",
+   "ok": true,
+   "detail": "age 0.3h, status=WATCH"
+  },
+  {
+   "check": "feed_risk-monitor",
+   "ok": true,
+   "detail": "age 4.7h, risk_posture=GREEN"
+  },
+  {
+   "check": "feed_liquidity-capacity",
+   "ok": true,
+   "detail": "age 4.4h, liquidity_posture=LIQUID"
+  },
+  {
+   "check": "feed_firm-stress",
+   "ok": true,
+   "detail": "age 3.8h, posture=AMBER"
+  },
+  {
+   "check": "feed_merger-arb-risk",
+   "ok": true,
+   "detail": "age 3.0h, posture=GREEN"
+  },
+  {
+   "check": "feed_firm-book",
+   "ok": true,
+   "detail": "age 4.7h, informational tile (no posture)"
+  },
+  {
+   "check": "feed_factor-risk",
+   "ok": true,
+   "detail": "age 4.1h, informational tile (no posture)"
+  },
+  {
+   "check": "feed_pnl-attribution",
+   "ok": true,
+   "detail": "age 3.9h, posture=WARMING"
+  },
+  {
+   "check": "feed_desk-allocator",
+   "ok": true,
+   "detail": "age 2.5h, informational tile (no posture)"
+  },
+  {
+   "check": "feed_desk-returns",
+   "ok": true,
+   "detail": "age 0.3h, informational tile (no posture)"
+  },
+  {
+   "check": "hero_source_complete",
+   "ok": true,
+   "detail": "firm_posture=AMBER binding=Tail / Stress P&L cro_brief=present"
+  },
+  {
+   "check": "desk_strip_populated",
+   "ok": true,
+   "detail": "7 strategy desks with names + capital weights"
+  },
+  {
+   "check": "directory_links_page",
+   "ok": true,
+   "detail": "directory 200, link present"
+  }
+ ],
+ "summary": "16/16 checks passed",
+ "all_passed": true,
+ "risk_desk": {
+  "page_url": "https://justhodl.ai/risk-desk.html",
+  "engines_reporting": 11,
+  "engines_total": 11,
+  "feeds_fresh": 11,
+  "firm_posture": "AMBER",
+  "firm_headline": "Firm risk posture AMBER -- 0 alert / 1 watch across 6 risk axes. Binding constraint: Tail / Stress P&L.",
+  "binding_constraint": "Tail / Stress P&L",
+  "live_postures": {
+   "firm-risk-board": "AMBER",
+   "tail-hedge": "WATCH",
+   "risk-monitor": "GREEN",
+   "liquidity-capacity": "LIQUID",
+   "firm-stress": "AMBER",
+   "merger-arb-risk": "GREEN",
+   "pnl-attribution": "WARMING"
+  },
+  "strategy_desks": 7
+ },
+ "verdict": "RISK DESK LIVE - the CRO cockpit is deployed and sound. The page leads with the Firm Risk Board verdict (firm posture AMBER, binding constraint Tail / Stress P&L) and renders all 11 risk engines as live status tiles, 11/11 feeds fresh, over a 7-desk allocation strip. Pure read-only aggregation - the Firm Risk Board stays the single source of truth."
+}
