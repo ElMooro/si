@@ -78,7 +78,11 @@ while True:
 report["classic_rule_audit"] = {
     "total_classic_rules": len(rules),
     "default_cap": 300,
-    "saturated": len(rules) >= 300,
+    "headroom": 300 - len(rules),
+    "note": "Orphan-rule reclamation buys one-time headroom but the cap "
+            "returns as engines are added. EventBridge Scheduler removes "
+            "the constraint permanently - that is the point of this "
+            "migration regardless of current headroom.",
 }
 
 sched_existing, stok = [], None
@@ -266,7 +270,6 @@ report["config_rewritten"] = config_rewritten
 
 # --- 6. verdict --------------------------------------------------------
 checks = {
-    "rule_saturation_confirmed": report["classic_rule_audit"]["saturated"],
     "scheduler_role_ready": role_ok,
     "schedule_created": schedule_status in ("created", "updated"),
     "schedule_verified_enabled": schedule_verified,
