@@ -1,0 +1,75 @@
+{
+  "ops": 838,
+  "ts": "2026-05-18T16:49:45.649071+00:00",
+  "subject": "Preflight - Index Reconstitution / Forced-Flow Desk",
+  "screener_universe": {
+    "n_stocks": 503,
+    "n_with_marketcap": 500,
+    "largest_cap_bil": 5389.4,
+    "smallest_cap_mil": 5039.5,
+    "cap_at_rank_1000_bil": null,
+    "reaches_russell_boundary": false
+  },
+  "fmp_probes": {
+    "company_screener": {
+      "status": 200,
+      "rows_returned": 1000,
+      "has_marketCap": true,
+      "has_exchange": true,
+      "sample_keys": [
+        "beta",
+        "companyName",
+        "country",
+        "exchange",
+        "exchangeShortName",
+        "industry",
+        "isActivelyTrading",
+        "isEtf",
+        "isFund",
+        "lastAnnualDividend",
+        "marketCap",
+        "price",
+        "sector",
+        "symbol",
+        "volume"
+      ],
+      "sample_row": {
+        "symbol": "XEL",
+        "companyName": "Xcel Energy Inc.",
+        "marketCap": 48849342778,
+        "exchangeShortName": "NASDAQ",
+        "sector": "Utilities",
+        "country": "US",
+        "isEtf": false,
+        "price": 78.2504
+      }
+    },
+    "us_universe_count": {
+      "by_exchange": {
+        "NYSE": 1568,
+        "NASDAQ": 2229,
+        "AMEX": 109
+      },
+      "total": 3906,
+      "enough_for_russell": true
+    },
+    "shares_float": {
+      "status": 200,
+      "keys": [
+        "date",
+        "floatShares",
+        "freeFloat",
+        "outstandingShares",
+        "source",
+        "symbol"
+      ],
+      "has_short_data": false
+    }
+  },
+  "build_guidance": {
+    "data_ready_for_index_recon": true,
+    "universe_source": "FMP /stable/company-screener, paginated by exchange + market-cap band - returns marketCap inline, no per-name profile calls needed",
+    "next_engine": "justhodl-index-recon - Index Reconstitution / Forced-Flow Desk: rank the full US universe by market cap, project the Russell 1000/2000 boundary and the FTSE banding zone, flag projected adds / deletes / up-migrations, score each on the forced-flow edge (passive AUM impact vs ADV, days-to-absorb, distance into the band)."
+  },
+  "verdict": "DATA READY - build the Index Reconstitution / Forced-Flow Desk."
+}
