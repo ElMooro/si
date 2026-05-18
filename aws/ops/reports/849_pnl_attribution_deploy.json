@@ -1,0 +1,81 @@
+{
+  "ops": 849,
+  "ts": "2026-05-18T19:48:59.424913+00:00",
+  "subject": "Deploy + verify justhodl-pnl-attribution - the firm Performance & P&L Attribution desk",
+  "checks": [
+    {
+      "check": "package_built",
+      "ok": true,
+      "detail": "7940 bytes"
+    },
+    {
+      "check": "lambda_deployed",
+      "ok": true,
+      "detail": "updated existing function"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "created justhodl-pnl-attribution-daily = ENABLED cron(0 3 * * ? *)"
+    },
+    {
+      "check": "invoke_accepted",
+      "ok": true,
+      "detail": "async invoke dispatched"
+    },
+    {
+      "check": "output_written",
+      "ok": true,
+      "detail": "pnl-attribution.json refreshed at 2026-05-18 19:49:10+00:00"
+    },
+    {
+      "check": "output_readable",
+      "ok": true,
+      "detail": "parsed ok"
+    },
+    {
+      "check": "posture_valid",
+      "ok": true,
+      "detail": "posture = WARMING"
+    },
+    {
+      "check": "ledger_obs_present",
+      "ok": true,
+      "detail": "ledger_observations = 0"
+    },
+    {
+      "check": "ledger_persisted",
+      "ok": true,
+      "detail": "0 rows in data/pnl-ledger.json"
+    },
+    {
+      "check": "ledger_count_consistent",
+      "ok": true,
+      "detail": "ledger 0 == published 0"
+    },
+    {
+      "check": "ledger_row_schema",
+      "ok": true,
+      "detail": "ledger empty (no marks yet)"
+    },
+    {
+      "check": "warming_payload_ok",
+      "ok": true,
+      "detail": "warming headline + firm block present"
+    },
+    {
+      "check": "warming_curve_present",
+      "ok": true,
+      "detail": "0 marked days listed"
+    }
+  ],
+  "pnl": {
+    "posture": "WARMING",
+    "ledger_observations": 0,
+    "rows_added_this_run": 0,
+    "spy_history_ok": true,
+    "headline": "P&L attribution is warming up: 0 of 5 daily marks logged. The desk-return feed appends one observation per trading day; full performance analytics unlock once 5 rows are in the firm ledger."
+  },
+  "all_pass": true,
+  "verdict": "P&L ATTRIBUTION DEPLOYED (WARMING) - engine, schedule and the append-only firm ledger are live and correct. The ledger holds 0 of 5 daily marks; full performance analytics unlock as the desk-return feed appends one observation per trading day. Running daily 03:00 UTC."
+}
