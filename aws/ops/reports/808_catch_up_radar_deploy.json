@@ -1,0 +1,157 @@
+{
+  "ops": 808,
+  "ts": "2026-05-18T12:38:19.487538+00:00",
+  "subject": "Deploy + verify justhodl-catch-up-radar",
+  "deploy": "created",
+  "schedule": {
+    "rule": "catch-up-radar-daily",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"hot_themes\\\": 19, \\\"catch_up_candidates\\\": 80, \\\"high_conviction\\\": 55, \\\"etf_catchup\\\": 11}\"}"
+  },
+  "catch_up_radar": {
+    "ok": true,
+    "fresh": true,
+    "headline": "Catch-Up Radar: 55 beta-laggards primed to follow their leaders, plus 11 ETFs whose basket is outrunning the fund. Top: AVGO \u2014 40% beta-adjusted shortfall inside Cybersecurity.",
+    "counts": {
+      "hot_themes": 19,
+      "catch_up_candidates": 80,
+      "high_conviction": 55,
+      "etf_catchup": 11
+    },
+    "n_hot_themes": 19,
+    "n_candidates": 80,
+    "n_priced": 34,
+    "n_with_target": 34,
+    "n_with_thesis": 80,
+    "n_etf_catchup": 11,
+    "top_themes": [
+      {
+        "tk": "ICLN",
+        "ms": 100.0,
+        "r20": 12.32
+      },
+      {
+        "tk": "BLCN",
+        "ms": 100.0,
+        "r20": 8.82
+      },
+      {
+        "tk": "CIBR",
+        "ms": 93.0,
+        "r20": 18.91
+      },
+      {
+        "tk": "TAN",
+        "ms": 93.0,
+        "r20": 17.83
+      },
+      {
+        "tk": "PBW",
+        "ms": 93.0,
+        "r20": 15.47
+      }
+    ],
+    "top_candidates": [
+      {
+        "sym": "AVGO",
+        "theme": "CIBR",
+        "score": 90.2,
+        "beta": 1.44,
+        "shortfall": 40.4,
+        "target": 543.26,
+        "upside": 27.8,
+        "trap": false
+      },
+      {
+        "sym": "FSLR",
+        "theme": "ICLN",
+        "score": 87.7,
+        "beta": 1.56,
+        "shortfall": 29.8,
+        "target": 283.1,
+        "upside": 21.3,
+        "trap": false
+      },
+      {
+        "sym": "MU",
+        "theme": "XSD",
+        "score": 87.7,
+        "beta": 1.92,
+        "shortfall": 75.9,
+        "target": 1086.99,
+        "upside": 50.0,
+        "trap": false
+      },
+      {
+        "sym": "NVDA",
+        "theme": "PSI",
+        "score": 86.7,
+        "beta": 2.24,
+        "shortfall": 121.4,
+        "target": 337.98,
+        "upside": 50.0,
+        "trap": false
+      },
+      {
+        "sym": "LRCX",
+        "theme": "PSI",
+        "score": 86.7,
+        "beta": 1.82,
+        "shortfall": 101.5,
+        "target": 427.08,
+        "upside": 50.0,
+        "trap": false
+      },
+      {
+        "sym": "AMAT",
+        "theme": "PSI",
+        "score": 86.7,
+        "beta": 1.65,
+        "shortfall": 88.1,
+        "target": 654.93,
+        "upside": 50.0,
+        "trap": false
+      }
+    ],
+    "top_etf": [
+      {
+        "tk": "PBW",
+        "gap": 51.9,
+        "target": 48.78
+      },
+      {
+        "tk": "XSD",
+        "gap": 37.9,
+        "target": 648.49
+      },
+      {
+        "tk": "PSI",
+        "gap": 35.8,
+        "target": 175.02
+      },
+      {
+        "tk": "ICLN",
+        "gap": 21.2,
+        "target": 24.56
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "fresh_output": true,
+    "structure_ok": true,
+    "hot_themes_found": true,
+    "all_candidates_have_thesis": true,
+    "priced_candidates_have_targets": true,
+    "no_negative_scores": true
+  },
+  "all_pass": true,
+  "verdict": "CATCH-UP RADAR LIVE \u2014 19 hot themes scanned, 80 beta-laggard set-ups (55 high-conviction), 11 ETF basket-gaps, 34 carrying catch-up targets. Deployed, scheduled daily 14:30 UTC, real data off theme-rotation + screener."
+}
