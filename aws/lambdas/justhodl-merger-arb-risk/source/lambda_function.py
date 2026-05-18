@@ -170,8 +170,15 @@ def lambda_handler(event, context):
         # negative for a BUMP-WATCH name trading above deal value (negative
         # gross spread) -- that is correct economics for a long arb leg.
         carry_if_closes = round(arb_pos * spread / 100.0, 3)
-        break_loss = (round(arb_pos * downside / 100.0, 3)
-                      if downside is not None else None)
+        # break loss: a deal breaking can only HURT a long arb leg -- the
+        # premium evaporates and the target falls to the unaffected price.
+        # It is capped at zero: if the unaffected-price estimate implies the
+        # target would rise on a break (target already below unaffected),
+        # that "gain" is a reference-price artifact and must not offset real
+        # break losses elsewhere in a downside-tail scenario.
+        break_loss = None
+        if downside is not None:
+            break_loss = round(min(0.0, arb_pos * downside / 100.0), 3)
         # market-implied break probability  p = s / (s + |d|) -- only defined
         # for a positive gross spread; a non-positive spread is a bump /
         # over-completion story, not a break-probability one
@@ -213,17 +220,16 @@ def lambda_handler(event, context):
     cluster_break = round(sum(s(p.get("break_loss_pct")) for p in live), 2)
     full_close = round(sum(s(p.get("carry_if_closes_pct")) for p in live), 2)
 
-    # worst-quartile: riskiest 25% by deal_risk break; the rest close
+    # worst-quartile: isolate the loss if just the riskiest 25% of deals
+    # (by deal-risk score) break -- a pure break-loss sum, no carry on the
+    # rest, so it sits cleanly between the cluster break and zero.
     ranked = sorted(
         [p for p in live if p.get("break_loss_pct") is not None],
         key=lambda p: -(p.get("deal_risk") or 0))
     q = max(1, len(ranked) // 4) if ranked else 0
     worst_q_break = ranked[:q]
-    worst_q_set = {p["symbol"] for p in worst_q_break}
     worst_quartile = round(
-        sum(s(p.get("break_loss_pct")) for p in worst_q_break)
-        + sum(s(p.get("carry_if_closes_pct")) for p in live
-              if p["symbol"] not in worst_q_set), 2)
+        sum(s(p.get("break_loss_pct")) for p in worst_q_break), 2)
 
     # model-expected: probability-weighted by the desk's deal-risk score
     model_expected = 0.0
@@ -241,9 +247,10 @@ def lambda_handler(event, context):
          "type": "tail", "book_pnl_pct": cluster_break,
          "note": ("the risk-arb catastrophe -- a financing freeze or "
                   "regulatory shift breaks deals together")},
-        {"scenario": "Worst-quartile break (riskiest 25% break, rest close)",
+        {"scenario": "Worst-quartile break (riskiest 25% of deals break)",
          "type": "stress", "book_pnl_pct": worst_quartile,
-         "note": "a selective break concentrated in the highest-risk deals"},
+         "note": ("the isolated loss if just the highest-risk quarter of "
+                  "the book breaks")},
         {"scenario": "Model-expected P&L (deal-risk weighted)",
          "type": "base", "book_pnl_pct": model_expected,
          "note": ("probability-weighted by the desk's deal-risk score on "
@@ -343,13 +350,18 @@ def lambda_handler(event, context):
         "factor_model_cross_reference": factor_xref,
         "method": (
             "The merger-arb sleeve is every firm-book name carried by the "
-            "Merger-Arb desk, joined by ticker to the Merger-Arb Spread "
-            "Desk's per-deal record. Break loss = position weight times the "
-            "deal's downside-to-unaffected; carry = position weight times "
-            "the gross spread. The cluster-break scenario breaks every live "
+            "Merger-Arb desk, sized by that desk's own signed contribution "
+            "(not the firm-net position), joined by ticker to the Merger-Arb "
+            "Spread Desk's per-deal record. Break loss = the desk position "
+            "times the deal's downside-to-unaffected, capped at zero -- a "
+            "deal break can only hurt a long arb leg. Carry = the desk "
+            "position times the gross spread (negative for a bump-watch name "
+            "above deal value). The cluster-break scenario breaks every live "
             "deal at once -- the correct tail for a risk-arb book, where "
-            "breaks correlate. Implied break probability is spread / (spread "
-            "+ |downside|)."),
+            "breaks correlate; the worst-quartile figure isolates the loss "
+            "from just the riskiest 25% of deals. Implied break probability "
+            "is spread / (spread + |downside|), defined only for a positive "
+            "spread."),
         "disclaimer": (
             "Risk-analytics model for the platform's model firm book. Deal "
             "terms and downside are sourced from SEC filings via the "
