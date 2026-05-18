@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desk Allocator &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#9878;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px}
+.allocwrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.allochead{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+.allocbar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.allocseg{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--bg);min-width:2px;overflow:hidden;white-space:nowrap}
+.alloclegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.lg{font-family:var(--mono);font-size:10px;color:var(--mute);display:flex;align-items:center;gap:5px}
+.lg .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(355px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:16px;font-weight:700}
+.nm{color:var(--dim);font-size:10.5px;margin-top:2px;line-height:1.4}
+.scorebox{text-align:right;line-height:1}
+.scorebox .sc{font-family:var(--mono);font-size:26px;font-weight:700}
+.scorebox small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.chip{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);color:var(--mute)}
+.chip.status{font-weight:700}
+.cells{display:flex;gap:6px;margin:9px 0;flex-wrap:wrap}
+.cell{flex:1;min-width:70px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:center}
+.cell .cl{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.cell .cv{font-family:var(--mono);font-size:13px;font-weight:700;margin-top:2px}
+.notes{margin:8px 0 0;padding:0;list-style:none}
+.notes li{font-size:11px;color:var(--mute);line-height:1.5;padding-left:13px;position:relative;margin-bottom:3px}
+.notes li:before{content:"\203A";position:absolute;left:0;color:var(--dim)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:20px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#9878; Desk Allocator</h1>
+    <p class="subtitle">A multi-strategy fund does not just pick trades &mdash; it decides <b>how much capital each strategy gets</b>. This is the capstone layer above the five strategy desks (<b>Best Ideas</b>, <b>Pairs</b>, <b>Trend</b>, <b>Merger-Arb</b>, <b>Risk Radar</b>): a central allocator that sizes each desk by <b>inverse-volatility risk parity</b> so every desk contributes a similar share of risk, then <b>tilts toward the macro regime</b> &mdash; trend and defensive desks gain weight when the tape turns risk-off, the long book gains in risk-on. A stale desk is taken <b>offline</b>; a live-but-empty desk runs at half weight. The headline number is the <b>diversification ratio</b>: how much the multi-desk structure cuts portfolio risk below the desks standing alone.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/merger-arb.html">merger-arb</a>
+      <a href="/trend-engine.html">trend desk</a>
+      <a href="/spinoff-desk.html">spin-off</a>
+      <a href="/risk-radar.html">risk radar</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING DESK ALLOCATOR&hellip;</div></div>
+  <div class="stats" id="stats"></div>
+  <div id="allocwrap"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"&mdash;":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn=(v,d=2)=>v==null||isNaN(v)?"&mdash;":(Number(v)>=0?"+":"")+Number(v).toFixed(d);
+const DESKC={"best-ideas":"var(--green)","pairs-arb":"var(--cyan)","trend-engine":"var(--purple)","merger-arb":"var(--yellow)","risk-radar":"var(--red)"};
+const statusColor=(s)=>s==="FIRING"?"var(--green)":s==="DRY"?"var(--yellow)":"var(--red)";
+let DATA=null;
+
+function deskCard(r){
+  const dc=DESKC[r.key]||"var(--cyan)";
+  const sc=statusColor(r.status);
+  return `<div class="card" style="border-top-color:${dc}">
+    <div class="crow">
+      <div>
+        <div class="tk" style="color:${dc}">${esc(r.name)}</div>
+        <div class="nm">${esc(r.archetype||"")}</div>
+      </div>
+      <div class="scorebox">
+        <div class="sc" style="color:${dc}">${num(r.capital_weight_pct,1)}%</div>
+        <small>OF CAPITAL</small>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip status" style="color:${sc};border-color:${sc}">${esc(r.status)}</span>
+      <span class="chip">${r.active_count!=null?r.active_count+" live":"&mdash;"}</span>
+      <span class="chip">${r.freshness_hours!=null?"book "+num(r.freshness_hours,0)+"h old":"no book"}</span>
+    </div>
+    <div class="cells">
+      <div class="cell"><div class="cl">Effective Vol</div><div class="cv">${r.effective_vol_pct!=null?num(r.effective_vol_pct,1)+"%":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Regime Tilt</div><div class="cv" style="color:${r.regime_mult>1.03?'var(--green)':r.regime_mult<0.97?'var(--orange)':'var(--mute)'}">${r.regime_mult!=null?num((r.regime_mult-1)*100,0)+"%":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Equity Beta</div><div class="cv">${sgn(r.equity_beta,2)}</div></div>
+      <div class="cell"><div class="cl">Prior Sharpe</div><div class="cv">${num(r.prior_sharpe,2)}</div></div>
+    </div>
+    <ul class="notes">${(r.notes||[]).map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
+  </div>`;
+}
+
+function render(){
+  if(!DATA)return;
+  const d=DATA,fm=d.firm||{},rg=d.regime||{};
+  const dr=fm.diversification_ratio;
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.how_to_read||"")}</div>
+  </div>`;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="sl">Desks Firing</div><div class="sv" style="color:var(--green)">${num(fm.desks_firing)}<span style="color:var(--dim);font-size:13px">/${num(fm.desks_total)}</span></div></div>
+    <div class="stat"><div class="sl">Firm Net Equity Beta</div><div class="sv">${sgn(fm.net_equity_beta,2)}</div></div>
+    <div class="stat"><div class="sl">Portfolio Vol Est</div><div class="sv">${num(fm.portfolio_vol_est_pct,1)}%</div></div>
+    <div class="stat"><div class="sl">Diversification Ratio</div><div class="sv" style="color:${dr!=null&&dr>=1.15?'var(--green)':dr!=null&&dr<1.05?'var(--orange)':'var(--mute)'}">${dr!=null?num(dr,2):"&mdash;"}</div></div>
+    <div class="stat"><div class="sl">Macro Regime</div><div class="sv" style="font-size:13px;color:var(--cyan)">${esc(rg.label||"&mdash;")}</div></div>
+    <div class="stat"><div class="sl">Dominant Desk</div><div class="sv" style="font-size:13px">${esc(fm.dominant_desk||"&mdash;")}</div></div>`;
+
+  const desks=(d.desks||[]);
+  const live=desks.filter(r=>r.capital_weight_pct>0);
+  const bar=live.map(r=>{
+    const dc=DESKC[r.key]||"var(--cyan)";
+    const w=r.capital_weight_pct;
+    return `<div class="allocseg" style="width:${w}%;background:${dc}" title="${esc(r.name)} ${num(w,1)}%">${w>=9?num(w,0)+"%":""}</div>`;
+  }).join("");
+  const legend=desks.map(r=>{
+    const dc=DESKC[r.key]||"var(--cyan)";
+    return `<span class="lg"><span class="dot" style="background:${dc}"></span>${esc(r.name)} ${num(r.capital_weight_pct,1)}%${r.status!=="FIRING"?" ("+r.status.toLowerCase()+")":""}</span>`;
+  }).join("");
+  document.getElementById("allocwrap").innerHTML=`<div class="allocwrap">
+    <div class="allochead">Capital Allocation &mdash; risk-parity weight by desk</div>
+    <div class="allocbar">${bar||'<div class="allocseg" style="width:100%;background:var(--line);color:var(--dim)">NO DESK ALLOCATED</div>'}</div>
+    <div class="alloclegend">${legend}</div>
+  </div>`;
+
+  document.getElementById("grid").innerHTML=desks.length
+    ? desks.map(deskCard).join("")
+    : '<div class="loading">No desks reporting.</div>';
+  document.getElementById("note").textContent=(d.methodology||"")+" "+(d.disclaimer||"");
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" - "+(d.build_seconds||0)+"s - "+(d.history_days||0)+"d allocation history";
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"desk-allocator.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.generated_at){document.getElementById("hero").innerHTML='<div class="loading">DESK ALLOCATOR DATA UNAVAILABLE</div>';return;}
+  DATA=d;render();
+}
+main();
+</script>
+</body>
+</html>
