@@ -1,0 +1,166 @@
+{
+ "ops": 830,
+ "ts": "2026-05-18T15:36:38.950446+00:00",
+ "subject": "Deploy + verify justhodl-merger-arb spread desk",
+ "checks": [
+  {
+   "check": "lambda_exists",
+   "pass": true,
+   "detail": "python3.12 mem=1024 timeout=300"
+  },
+  {
+   "check": "invoke_ok",
+   "pass": true,
+   "detail": "{\"ok\": true, \"n_priced\": 15, \"n_unverified\": 29, \"headline\": \"15 live merger-arb spreads priced - 3 tight carry, 7 wide. Best annualized 381.7%.\"}"
+  },
+  {
+   "check": "output_readable",
+   "pass": true,
+   "detail": "generated 2026-05-18T15:36:39.897361+00:00"
+  },
+  {
+   "check": "has_priced_deals",
+   "pass": true,
+   "detail": "15 priced, 29 unverified"
+  },
+  {
+   "check": "all_spreads_sane",
+   "pass": true,
+   "detail": "every spread within -30%..+55%"
+  },
+  {
+   "check": "all_deal_values_positive",
+   "pass": true,
+   "detail": "all > 0"
+  },
+  {
+   "check": "all_priced_tiered",
+   "pass": true,
+   "detail": "ok"
+  },
+  {
+   "check": "tiers_reconcile",
+   "pass": true,
+   "detail": "tier sum 15 vs priced 15"
+  },
+  {
+   "check": "all_have_s4_link",
+   "pass": true,
+   "detail": "all linked"
+  },
+  {
+   "check": "annualized_math",
+   "pass": true,
+   "detail": "gross*365/est_close reconciles"
+  },
+  {
+   "check": "schedule_live",
+   "pass": true,
+   "detail": "cron(40 13,21 * * ? *) state=ENABLED"
+  }
+ ],
+ "invoke": {
+  "status": 200,
+  "fn_error": null,
+  "body": {
+   "ok": true,
+   "n_priced": 15,
+   "n_unverified": 29,
+   "headline": "15 live merger-arb spreads priced - 3 tight carry, 7 wide. Best annualized 381.7%."
+  }
+ },
+ "headline": "15 live merger-arb spreads priced - 3 tight carry, 7 wide. Best annualized 381.7%.",
+ "summary": {
+  "n_feed_deals": 306,
+  "n_recent_pending": 44,
+  "n_priced": 15,
+  "n_unverified": 29,
+  "n_spac_skipped": 0,
+  "median_spread_pct": 0.43,
+  "best_annualized_pct": 381.7
+ },
+ "sample": [
+  {
+   "target": "CADE",
+   "acquirer": "HBANO",
+   "type": "ALL-STOCK",
+   "tier": "WIDE SPREAD",
+   "spread": 47.05,
+   "annualized": 381.7,
+   "deal_risk": 50.0,
+   "downside": -11.4
+  },
+  {
+   "target": "CCRD",
+   "acquirer": null,
+   "type": "ALL-CASH",
+   "tier": "WIDE SPREAD",
+   "spread": 27.12,
+   "annualized": 220.0,
+   "deal_risk": 50.0,
+   "downside": 16.5
+  },
+  {
+   "target": "VTYB",
+   "acquirer": "QNBC",
+   "type": "ALL-STOCK",
+   "tier": "WIDE SPREAD",
+   "spread": 9.75,
+   "annualized": 79.1,
+   "deal_risk": 44.0,
+   "downside": -15.0
+  },
+  {
+   "target": "PEN",
+   "acquirer": null,
+   "type": "ALL-CASH",
+   "tier": "WIDE SPREAD",
+   "spread": 15.13,
+   "annualized": 65.0,
+   "deal_risk": 24.0,
+   "downside": 4.5
+  },
+  {
+   "target": "QRVO",
+   "acquirer": "SWKS",
+   "type": "MIXED",
+   "tier": "WIDE SPREAD",
+   "spread": 6.27,
+   "annualized": 50.9,
+   "deal_risk": 64.0,
+   "downside": -8.8
+  },
+  {
+   "target": "TRVR",
+   "acquirer": "FMBH",
+   "type": "ALL-STOCK",
+   "tier": "TIGHT CARRY",
+   "spread": 3.96,
+   "annualized": 32.1,
+   "deal_risk": 26.0,
+   "downside": -4.1
+  },
+  {
+   "target": "AMWD",
+   "acquirer": "MBC",
+   "type": "ALL-STOCK",
+   "tier": "WIDE SPREAD",
+   "spread": 2.09,
+   "annualized": 16.9,
+   "deal_risk": 70.0,
+   "downside": 84.4
+  },
+  {
+   "target": "CVGW",
+   "acquirer": "AVO",
+   "type": "MIXED",
+   "tier": "TIGHT CARRY",
+   "spread": 0.43,
+   "annualized": 1.6,
+   "deal_risk": 36.0,
+   "downside": -1.3
+  }
+ ],
+ "all_pass": true,
+ "verdict": "PASS - merger-arb desk live and pricing real S-4 spreads end-to-end"
+}
