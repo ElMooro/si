@@ -37,12 +37,11 @@ characteristics -- and blends toward realized stats as history builds.
                         stale desk is OFFLINE (zero capital); an empty
                         desk is DRY (half weight).
   2. Effective vol      shrink(prior_vol, realized_vol, N) with prior
-                        weight K trading days. Realized desk-return
-                        history is Phase 2 -- until a desk-return feed
-                        exists N=0 and the documented archetype priors
-                        govern. The machinery is built and dormant, the
-                        same pattern the opportunity-calibrator ships
-                        with.
+                        weight K trading days. Realized desk vol is fed
+                        by justhodl-desk-returns, which marks each desk's
+                        book to market daily; until a desk clears 20
+                        observations the documented archetype prior
+                        dominates, then the realized number shrinks in.
   3. Inverse-vol parity base weight proportional to 1 / effective_vol --
                         the risk-parity backbone that equalises each
                         desk's risk contribution.
@@ -273,20 +272,19 @@ def shrink(prior_vol, realized_vol, n):
     return (1 - w_real) * prior_vol + w_real * realized_vol, n
 
 
-def realized_desk_vol(history, key):
-    """Realized volatility of a desk's return series from snapshot history.
+def realized_desk_vol(desk_returns, key):
+    """Realized annualized volatility of a desk from the desk-return feed.
 
-    Phase 2 hook: snapshots do not yet carry a per-desk realized return
-    ('ret'), so this returns (None, 0) and the documented archetype prior
-    governs. The instant a desk-return feed is wired into the snapshot
-    this warms up automatically -- no allocator change needed.
+    data/desk-returns.json (justhodl-desk-returns) carries a daily
+    mark-to-market return series per desk. Until a desk clears 20 daily
+    observations this returns (None, n) and the documented archetype prior
+    governs; past that the realized number shrinks in automatically.
     """
-    rets = []
-    for snap in history.get("snapshots", []):
-        dk = (snap.get("desks") or {}).get(key) or {}
-        r = dk.get("ret")
-        if isinstance(r, (int, float)):
-            rets.append(float(r))
+    series = ((desk_returns.get("desks") or {}).get(key) or {}).get(
+        "returns") or []
+    rets = [r["ret"] for r in series
+            if isinstance(r, dict)
+            and isinstance(r.get("ret"), (int, float))]
     if len(rets) < 20:
         return None, len(rets)
     mean = sum(rets) / len(rets)
@@ -364,6 +362,9 @@ def lambda_handler(event, context):
     if not isinstance(history.get("snapshots"), list):
         history["snapshots"] = []
 
+    # realized desk volatility comes from the justhodl-desk-returns feed
+    desk_returns = get_json("data/desk-returns.json") or {"desks": {}}
+
     regime = read_regime()
     risk_axis = regime["blended_risk_axis"]
 
@@ -386,7 +387,7 @@ def lambda_handler(event, context):
         else:
             status = "FIRING"
 
-        rvol, rn = realized_desk_vol(history, spec["key"])
+        rvol, rn = realized_desk_vol(desk_returns, spec["key"])
         eff_vol, used_n = shrink(spec["prior_vol"], rvol, rn)
 
         rows.append({
@@ -583,10 +584,12 @@ def lambda_handler(event, context):
         "methodology": (
             "Bayesian shrinkage allocator. Effective desk volatility = "
             "shrink(archetype prior, realized, N) with prior weight K=60 "
-            "trading days. Realized desk-return history is Phase 2: until a "
-            "per-desk return feed is wired N=0 and the documented archetype "
-            "priors (HFRI / SG CTA / SG Merger Arb index families) govern - "
-            "the shrinkage machinery is built and dormant. Base weight is "
+            "trading days. Realized desk vol comes from the "
+            "justhodl-desk-returns daily mark-to-market feed - until a desk "
+            "clears 20 daily observations N is small and the documented "
+            "archetype prior (HFRI / SG CTA / SG Merger Arb index families) "
+            "dominates, past which the realized number shrinks in. Base "
+            "weight is "
             "1/effective_vol; the regime multiplier is "
             "1 + 0.35 * risk_axis * desk_risk_beta clamped to [0.45, 1.70]; "
             "the risk axis blends signal-board's composite (60%) and "
@@ -623,7 +626,7 @@ def lambda_handler(event, context):
                 "active_count": r["active_count"],
                 "weight": r["capital_weight_pct"],
                 "effective_vol": round(r["effective_vol"], 4),
-                # 'ret' intentionally absent -- Phase 2 hook
+                # realized vol now comes from data/desk-returns.json
             } for r in rows
         },
         "firm": {

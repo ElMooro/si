@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-desk-returns",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Desk-return feed - marks each of the 7 strategy desks' books to today's close as a signed-weight daily MTM return series, so the Desk Allocator's Bayesian shrinkage can blend realized vol in over the archetype priors. Output data/desk-returns.json.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "inherit_env": true,
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-desk-returns-daily",
+    "cron": "cron(30 23 ? * MON-FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Weekdays 23:30 UTC via Amazon EventBridge Scheduler - after the US close so books mark to settled prices, and before the Desk Allocator's 00:30 UTC run so the fresh return series is available. Provisioned by ops 841."
+  }
+}
