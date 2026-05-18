@@ -7,7 +7,7 @@
   "timeout": 90,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Multi-strategy capital allocator - sizes the seven strategy desks by Bayesian-shrinkage inverse-vol risk parity with a macro regime tilt, rolls up firm net beta + diversification ratio, writes data/desk-allocator.json.",
+  "description": "Multi-strategy capital allocator - sizes the seven strategy desks by tail-aware inverse-vol risk parity (archetype skew prior shrunk toward firm-stress worst-case losses) plus a macro regime tilt, rolls up firm net beta + diversification ratio.",
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-desk-allocator-daily",

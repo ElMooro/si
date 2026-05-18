@@ -45,6 +45,11 @@ characteristics -- and blends toward realized stats as history builds.
   3. Inverse-vol parity base weight proportional to 1 / effective_vol --
                         the risk-parity backbone that equalises each
                         desk's risk contribution.
+  3b. Tail adjustment   daily-vol risk parity over-funds calm-but-
+                        fragile carry desks. Each desk's sizing vol is
+                        scaled by a tail factor -- a documented archetype
+                        skew prior that shrinks toward the firm Stress
+                        Desk's realised worst-case scenario losses.
   4. Regime tilt        signal-board composite + crisis-composite score
                         blend into one risk axis. Each desk carries a
                         risk_beta (how it wants the world): in risk-off
@@ -87,6 +92,10 @@ MAX_DESK_W = 0.45      # concentration cap -- no desk above 45% of capital
 STALE_HOURS = 48       # desk sidecar older than this -> OFFLINE
 DRY_MULT = 0.50        # a live-but-empty desk runs at half weight
 HISTORY_CAP = 400      # snapshots retained
+TAIL_BLEND = 0.40      # weight on firm-stress realised tail vs prior
+TAIL_FACTOR_LO = 0.75  # tail multiplier clamp - low
+TAIL_FACTOR_HI = 1.60  # tail multiplier clamp - high
+TAIL_STALE_HOURS = 48  # firm-stress sidecar older than this -> prior only
 
 # ---- desk registry: archetype priors --------------------------------------
 # prior_vol / equity_beta / prior_sharpe are documented long-run
@@ -102,6 +111,7 @@ DESKS = [
         "archetype": "Long equity - cross-engine factor confluence",
         "prior_vol": 0.16, "equity_beta": 1.05,
         "risk_beta": 1.00, "prior_sharpe": 0.70,
+        "tail_kurt": 1.05,
         "count_keys": ["n_total"], "count_arrays": ["stack"],
     },
     {
@@ -110,6 +120,7 @@ DESKS = [
         "archetype": "Market-neutral statistical arbitrage",
         "prior_vol": 0.07, "equity_beta": 0.05,
         "risk_beta": 0.00, "prior_sharpe": 0.80,
+        "tail_kurt": 1.25,
         "count_keys": ["summary.n_tradeable"], "count_arrays": ["pairs"],
     },
     {
@@ -118,6 +129,7 @@ DESKS = [
         "archetype": "Cross-asset CTA / managed futures",
         "prior_vol": 0.11, "equity_beta": -0.10,
         "risk_beta": -0.50, "prior_sharpe": 0.55,
+        "tail_kurt": 0.8,
         "count_keys": ["summary.n_long", "summary.n_short"],
         "count_arrays": ["positions"],
     },
@@ -127,6 +139,7 @@ DESKS = [
         "archetype": "Event-driven risk arbitrage",
         "prior_vol": 0.06, "equity_beta": 0.15,
         "risk_beta": 0.25, "prior_sharpe": 0.85,
+        "tail_kurt": 1.55,
         "count_keys": ["summary.n_priced", "summary.priced"],
         "count_arrays": ["all_priced", "tight_carry"],
     },
@@ -136,6 +149,7 @@ DESKS = [
         "archetype": "Event-driven - corporate spin-offs / special situations",
         "prior_vol": 0.20, "equity_beta": 0.85,
         "risk_beta": 0.35, "prior_sharpe": 0.60,
+        "tail_kurt": 1.3,
         "count_keys": ["summary.n_trading"],
         "count_arrays": ["top_setups", "fresh_spinoffs", "seasoned_spinoffs"],
     },
@@ -145,6 +159,7 @@ DESKS = [
         "archetype": "Event-driven - index reconstitution / forced-flow arb",
         "prior_vol": 0.11, "equity_beta": 0.20,
         "risk_beta": 0.10, "prior_sharpe": 0.55,
+        "tail_kurt": 1.2,
         "count_keys": ["n_additions", "n_deletions"],
         "count_arrays": ["russell_2000_additions", "russell_2000_deletions"],
     },
@@ -154,6 +169,7 @@ DESKS = [
         "archetype": "Defensive - fundamental-deterioration screen",
         "prior_vol": 0.13, "equity_beta": -0.55,
         "risk_beta": -1.00, "prior_sharpe": 0.40,
+        "tail_kurt": 0.85,
         "count_keys": ["n_carried"], "count_arrays": ["stack"],
     },
 ]
@@ -292,6 +308,41 @@ def realized_desk_vol(desk_returns, key):
     return math.sqrt(var) * math.sqrt(252), len(rets)
 
 
+def stress_tail_losses(stress, now):
+    """Per-desk deepest worst-case loss from data/firm-stress.json.
+
+    The firm Stress Desk re-prices the whole book through 15 named
+    scenarios and attributes each scenario's P&L to the desks. The
+    deepest loss a desk takes across every scenario is its realised
+    tail. Returns {desk_name: worst_loss_pct (negative)} and the
+    sidecar freshness in hours (None if unparseable).
+    """
+    if not isinstance(stress, dict):
+        return {}, None
+    ts = parse_ts(stress)
+    fresh_h = None
+    if ts is not None:
+        fresh_h = round((now - ts).total_seconds() / 3600.0, 1)
+    scenarios = stress.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios:
+        return {}, fresh_h
+    worst = {}
+    for sc in scenarios:
+        if not isinstance(sc, dict):
+            continue
+        for dp in (sc.get("desk_pnl") or []):
+            if not isinstance(dp, dict):
+                continue
+            name = dp.get("desk")
+            pnl = dp.get("pnl_pct")
+            if not isinstance(name, str) \
+                    or not isinstance(pnl, (int, float)):
+                continue
+            if name not in worst or pnl < worst[name]:
+                worst[name] = float(pnl)
+    return worst, fresh_h
+
+
 # ---- regime read -----------------------------------------------------------
 def read_regime():
     """Blend signal-board posture and crisis-composite into one risk axis.
@@ -402,8 +453,53 @@ def lambda_handler(event, context):
             "equity_beta": spec["equity_beta"],
             "risk_beta": spec["risk_beta"],
             "prior_sharpe": spec["prior_sharpe"],
+            "tail_kurt": spec["tail_kurt"],
             "_eff_vol": eff_vol,
         })
+
+    # ---- step 3b: tail-risk adjustment ----
+    # Inverse-vol risk parity sizes desks by daily volatility, a
+    # symmetric central-moment measure that under-penalises desks with
+    # negative skew / fat left tails - carry and event-driven books
+    # that look calm until a cluster of deals breaks. A multi-manager
+    # allocator does not size pods on vol alone. Each desk carries a
+    # documented archetype tail factor; when the firm's own Stress Desk
+    # sidecar is fresh, its realised worst-case scenario losses shrink
+    # in, exactly as realised vol shrinks into effective vol above.
+    stress = get_json("data/firm-stress.json")
+    stress_worst, stress_fresh_h = stress_tail_losses(stress, now)
+    stress_usable = bool(stress_worst) and stress_fresh_h is not None \
+        and stress_fresh_h <= TAIL_STALE_HOURS
+    stress_ratio = {}
+    if stress_usable:
+        name_set = {r["name"] for r in rows}
+        losses = sorted(abs(v) for k, v in stress_worst.items()
+                        if k in name_set and v < 0)
+        med = losses[len(losses) // 2] if losses else 0.0
+        if med > 1e-6:
+            for r in rows:
+                lv = stress_worst.get(r["name"])
+                if isinstance(lv, (int, float)) and lv < 0:
+                    stress_ratio[r["key"]] = abs(lv) / med
+    for r in rows:
+        prior_tail = r["tail_kurt"]
+        sr = stress_ratio.get(r["key"])
+        if sr is not None:
+            # stress ratio 1.0 == median desk -> multiplier 1.0
+            stress_tail = clamp(0.55 + 0.45 * sr,
+                                TAIL_FACTOR_LO, TAIL_FACTOR_HI)
+            tail_factor = ((1 - TAIL_BLEND) * prior_tail
+                           + TAIL_BLEND * stress_tail)
+            tail_src = "archetype prior + firm-stress realised"
+        else:
+            tail_factor = prior_tail
+            tail_src = "archetype prior"
+        tail_factor = clamp(tail_factor, TAIL_FACTOR_LO, TAIL_FACTOR_HI)
+        r["tail_factor"] = round(tail_factor, 3)
+        r["tail_src"] = tail_src
+        r["_tail_adj_vol"] = r["_eff_vol"] * tail_factor
+        r["tail_adj_vol"] = round(r["_tail_adj_vol"], 4)
+    tail_inputs = "fresh" if stress_usable else "archetype prior only"
 
     # ---- step 4: regime tilt ----
     for r in rows:
@@ -418,7 +514,8 @@ def lambda_handler(event, context):
             r["_health"] = DRY_MULT
         else:
             r["_health"] = 1.0
-        inv_vol = 1.0 / r["_eff_vol"] if r["_eff_vol"] > 1e-6 else 0.0
+        inv_vol = (1.0 / r["_tail_adj_vol"]
+                   if r["_tail_adj_vol"] > 1e-6 else 0.0)
         r["_raw"] = inv_vol * r["regime_mult"] * r["_health"]
 
     raw_sum = sum(r["_raw"] for r in rows)
@@ -502,6 +599,20 @@ def lambda_handler(event, context):
                          % ((r["regime_mult"] - 1) * 100, regime["label"]))
         else:
             notes.append("Regime-neutral archetype - no tilt applied.")
+        if r["tail_factor"] > 1.03:
+            notes.append(
+                "Tail factor %.2fx: negative-skew archetype - sizing "
+                "vol marked up so risk parity does not over-fund a "
+                "daily-calm but fragile desk (%s)."
+                % (r["tail_factor"], r["tail_src"]))
+        elif r["tail_factor"] < 0.97:
+            notes.append(
+                "Tail factor %.2fx: positive-skew / crisis-alpha "
+                "archetype - sizing vol marked down, the desk earns "
+                "more capital (%s)." % (r["tail_factor"], r["tail_src"]))
+        else:
+            notes.append("Tail factor ~1.0x: roughly symmetric return "
+                          "profile - no tail adjustment.")
         r["notes"] = notes
 
     # ---- headline ----
@@ -537,6 +648,10 @@ def lambda_handler(event, context):
             "equity_beta": r["equity_beta"],
             "risk_beta": r["risk_beta"],
             "prior_sharpe": r["prior_sharpe"],
+            "tail_kurt": r["tail_kurt"],
+            "tail_factor": r["tail_factor"],
+            "tail_src": r["tail_src"],
+            "tail_adj_vol_pct": round(r["tail_adj_vol"] * 100, 1),
             "regime_mult": r["regime_mult"],
             "capital_weight_pct": r["capital_weight_pct"],
             "notes": r["notes"],
@@ -569,35 +684,47 @@ def lambda_handler(event, context):
             "max_desk_weight_pct": MAX_DESK_W * 100,
             "stale_hours": STALE_HOURS,
             "dry_desk_multiplier": DRY_MULT,
+            "tail_blend": TAIL_BLEND,
+            "tail_factor_clamp": [TAIL_FACTOR_LO, TAIL_FACTOR_HI],
+            "tail_inputs": tail_inputs,
         },
         "how_to_read": (
             "Each strategy desk is treated as a pod. Capital is split by "
             "inverse-volatility risk parity so every desk contributes a "
             "similar share of risk, then tilted by the macro regime - the "
             "trend and defensive desks gain weight when the tape turns "
-            "risk-off, the long book gains in risk-on. A desk with a stale "
-            "or missing sidecar is OFFLINE and gets nothing; a live desk "
-            "with no positions is DRY and runs at half weight. The "
-            "diversification ratio is the headline - the higher above 1.0, "
-            "the more the multi-desk structure is cutting portfolio risk "
-            "below the weighted average of the desks standing alone."),
+            "risk-off, the long book gains in risk-on. Risk parity on "
+            "daily vol alone over-funds calm-but-fragile carry desks, so "
+            "each desk's sizing vol is first scaled by a tail factor: a "
+            "documented archetype skew prior - above 1.0 for negative-skew "
+            "event-driven and risk-arbitrage desks, below 1.0 for the "
+            "positive-skew trend desk - that shrinks toward the firm "
+            "Stress Desk's own worst-case scenario losses when that "
+            "sidecar is fresh. A desk with a stale or missing sidecar is "
+            "OFFLINE and gets nothing; a live desk with no positions is "
+            "DRY and runs at half weight. The diversification ratio is "
+            "the headline - the higher above 1.0, the more the multi-desk "
+            "structure is cutting portfolio risk below the weighted "
+            "average of the desks standing alone."),
         "methodology": (
-            "Bayesian shrinkage allocator. Effective desk volatility = "
-            "shrink(archetype prior, realized, N) with prior weight K=60 "
-            "trading days. Realized desk vol comes from the "
-            "justhodl-desk-returns daily mark-to-market feed - until a desk "
-            "clears 20 daily observations N is small and the documented "
-            "archetype prior (HFRI / SG CTA / SG Merger Arb index families) "
-            "dominates, past which the realized number shrinks in. Base "
-            "weight is "
-            "1/effective_vol; the regime multiplier is "
+            "Tail-aware Bayesian shrinkage allocator. Effective desk "
+            "volatility = shrink(archetype prior, realized, N) with prior "
+            "weight K=60 trading days; realized desk vol comes from the "
+            "justhodl-desk-returns daily mark-to-market feed. The sizing "
+            "volatility is then scaled by a tail factor = blend(archetype "
+            "skew/kurtosis prior, firm-stress realised worst-case loss "
+            "ratio) clamped to [0.75, 1.60], so negative-skew carry and "
+            "event-driven desks are no longer over-funded for being "
+            "daily-calm and the positive-skew trend desk is rewarded. Base "
+            "weight is 1/tail_adjusted_vol; the regime multiplier is "
             "1 + 0.35 * risk_axis * desk_risk_beta clamped to [0.45, 1.70]; "
             "the risk axis blends signal-board's composite (60%) and "
             "crisis-composite's score (40%). A 45% per-desk cap is applied "
             "with pro-rata redistribution. Firm net beta and the "
             "diversification ratio roll up through a prior cross-desk "
-            "correlation matrix. The allocator sizes the desks; it never "
-            "picks their trades."),
+            "correlation matrix on true effective vol, not the tail-scaled "
+            "number. The allocator sizes the desks; it never picks their "
+            "trades."),
         "disclaimer": (
             "Research and education only - not investment advice. Capital "
             "weights are a risk-budgeting framework, not a directive. "
@@ -626,6 +753,7 @@ def lambda_handler(event, context):
                 "active_count": r["active_count"],
                 "weight": r["capital_weight_pct"],
                 "effective_vol": round(r["effective_vol"], 4),
+                "tail_factor": r["tail_factor"],
                 # realized vol now comes from data/desk-returns.json
             } for r in rows
         },
