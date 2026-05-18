@@ -231,17 +231,25 @@ def lambda_handler(event, context):
         r["cap_bucket"] = r["cap_bucket"] or d.get("cap_bucket")
         r["price"] = r["price"] or num(d.get("price"))
         bs = num(d.get("bagger_score")) or num(d.get("score")) or 0
-        rer = num(d.get("with_rerating_x")) or num(d.get("flat_multiple_x"))
+        ks = d.get("key_stats") or {}                # nested in bagger
+        rcagr = num(ks.get("revenue_cagr_pct")) or num(
+            d.get("revenue_cagr_pct"))
+        roic = num(ks.get("roic_pct")) or num(d.get("roic_pct"))
+        tw = d.get("twin_engine") or {}              # nested twin-engine math
+        yr10 = tw.get("yr10") or {}
+        rer = num(yr10.get("with_rerating_x")) or num(
+            yr10.get("flat_multiple_x"))
         r["bagger_x"] = r["bagger_x"] or rer
-        rcagr = num(d.get("revenue_cagr_pct"))
-        roic = num(d.get("roic_pct"))
         r["_pts"] += clamp(bs / 100.0, 0, 1) * 26
         r["engines"].append("bagger")
         msg = "100-bagger DNA"
         if rcagr is not None and roic is not None:
             msg += f": {rcagr:.0f}% revenue CAGR at {roic:.0f}% ROIC"
+        cls = (tw.get("classification") or "").replace("_", " ").lower()
+        if cls and cls not in ("", "none"):
+            msg += f"; bagger-engine reads it {cls}"
         if rer:
-            msg += f"; engine models ~{rer:.0f}x over the runway"
+            msg += f" (~{rer:.0f}x modelled over a 10-year hold)"
         r["signals"].append(msg)
 
     # earnings-pead — serial estimate-beat streak + drift
@@ -354,7 +362,8 @@ def lambda_handler(event, context):
             bx = clamp(r["bagger_x"], 1.5, 12.0)
             tgt = round(price * bx, 2)
             upside = round((bx - 1.0) * 100.0, 1)
-            basis = (f"bagger-engine multibagger model (~{bx:.0f}x)")
+            basis = (f"bagger-engine multibagger model "
+                     f"(~{bx:.0f}x over a 10-year hold)")
             target_horizon = "multi-year"
 
         # honest risk flags
