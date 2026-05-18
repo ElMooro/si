@@ -59,6 +59,10 @@ VOL_WINDOW = 63                    # daily-return window for volatility
 MA_WINDOW = 200                    # trend-maturity reference moving average
 DEADBAND = 0.35                    # |blended t-stat| below this -> FLAT
 TARGET_VOL = 0.10                  # 10% annualised portfolio vol target
+VOL_FLOOR = 0.06                   # sizing-vol floor: near-cash instruments
+                                   # (SHY/IEF) are NOT free leverage
+MAX_GROSS = 2.00                   # 200% gross-notional leverage ceiling
+MAX_POS = 0.30                     # no single instrument past 30% of capital
 MIN_BARS = 260                     # need >252 + buffer for the 12m leg
 ANNUAL = 252.0
 
@@ -263,39 +267,78 @@ def analyse(symbol, name, asset_class, closes):
 
 # -------------------------------------------------------- vol targeting --
 def size_book(positions):
-    """Inverse-volatility sizing scaled to a portfolio volatility target.
+    """Inverse-volatility sizing scaled to a portfolio volatility target,
+    then constrained by a real-world leverage and concentration budget.
 
-    For an inverse-vol book the per-asset risk contribution w_i*vol_i is a
-    constant k (since w_i = k*sign/vol_i). Ignoring correlation, portfolio
-    vol = k*sqrt(n_active); set that to TARGET_VOL to solve k. Maturity and
-    shock haircuts are applied afterwards (they only pull realised vol
-    slightly below target - deliberately conservative)."""
+    Step 1 - inverse-vol target. For an inverse-vol book the per-asset risk
+    contribution w_i*vol_i is a constant k (w_i = k*sign/vol_i). Ignoring
+    correlation, portfolio vol = k*sqrt(n_active); set that to TARGET_VOL to
+    solve k. Sizing vol is FLOORED at VOL_FLOOR - a near-cash instrument
+    (1-3y Treasuries) carrying a trend signal is real, but it is not free
+    leverage; without the floor inverse-vol sizing hands a 1.5%-vol bond a
+    150%+ notional weight, which is a degenerate cash-vs-leverage bet, not a
+    trend position.
+
+    Step 2 - maturity / shock haircuts. Extended or shocked trends are
+    trimmed (they only pull realised vol below target - deliberately
+    conservative).
+
+    Step 3 - leverage + concentration budget. Real managed-futures programs
+    do not run unbounded gross. Gross notional is capped at MAX_GROSS (the
+    whole book scaled down pro-rata if it breaches), and no single
+    instrument exceeds MAX_POS of capital. When the cap binds the book runs
+    BELOW its 10% vol target - that is the intended, conservative outcome.
+
+    Returns (gross, net_equity_tilt, gross_uncapped, capped_flag).
+    """
     active = [p for p in positions if p["direction"] != "FLAT"]
     n = len(active)
     if n == 0:
         for p in positions:
             p["target_weight_pct"] = 0.0
-        return 0.0, 0.0
+        return 0.0, 0.0, 0.0, False
     k = TARGET_VOL / math.sqrt(n)
-    gross = 0.0
-    net_eq = 0.0
-    for p in positions:
-        if p["direction"] == "FLAT":
-            p["target_weight_pct"] = 0.0
-            continue
-        w = k * p["_sign"] / p["_avol"]            # inverse-vol, signed
+
+    # step 1 + 2: raw inverse-vol weight with floored sizing vol + haircuts
+    raw = {}
+    for p in active:
+        size_vol = max(p["_avol"], VOL_FLOOR)
+        w = k * p["_sign"] / size_vol
         if p["maturity"] == "extended":
             w *= 0.60
         elif p["maturity"] == "developing":
             w *= 0.85
         if p["stress_flag"]:
             w *= 0.50
+        raw[id(p)] = w
+
+    gross_uncapped = sum(abs(w) for w in raw.values())
+
+    # step 3a: pro-rata scale down if gross breaches the leverage ceiling
+    scale = 1.0
+    if gross_uncapped > MAX_GROSS:
+        scale = MAX_GROSS / gross_uncapped
+    capped = scale < 1.0
+
+    # step 3b: per-instrument concentration clamp (can pull gross a touch
+    # further below the ceiling - conservative by design)
+    gross = 0.0
+    net_eq = 0.0
+    for p in positions:
+        if p["direction"] == "FLAT":
+            p["target_weight_pct"] = 0.0
+            continue
+        w = raw[id(p)] * scale
+        w = max(-MAX_POS, min(MAX_POS, w))
+        if w != raw[id(p)] * scale:
+            capped = True
         wpct = round(w * 100, 2)
         p["target_weight_pct"] = wpct
         gross += abs(wpct)
         if p["asset_class"] == "Equities":
             net_eq += wpct
-    return round(gross, 1), round(net_eq, 1)
+    return (round(gross, 1), round(net_eq, 1),
+            round(gross_uncapped * 100, 1), capped)
 
 
 # ------------------------------------------------------------- aggregate --
@@ -362,7 +405,7 @@ def lambda_handler(event, context):
         if rec:
             positions.append(rec)
 
-    gross, net_eq = size_book(positions)
+    gross, net_eq, gross_uncapped, capped = size_book(positions)
     breadth, regime = regime_read(positions)
     classes = class_breakdown(positions)
 
@@ -410,6 +453,9 @@ def lambda_handler(event, context):
             "trend_breadth_pct": breadth,
             "regime": regime,
             "portfolio_gross_pct": gross,
+            "gross_uncapped_pct": gross_uncapped,
+            "leverage_capped": capped,
+            "max_gross_pct": round(MAX_GROSS * 100, 0),
             "net_equity_tilt_pct": net_eq,
             "target_vol_pct": round(TARGET_VOL * 100, 0),
         },
@@ -422,9 +468,11 @@ def lambda_handler(event, context):
             "across three horizons (3m/6m/12m). A signal past the deadband "
             "becomes a LONG or SHORT; target weights are inverse-volatility "
             "sized so every position contributes roughly equal risk, scaled "
-            "to a 10% portfolio-vol target. Extended or shocked trends are "
-            "trimmed, never reversed. Read the regime first: in CHOP the "
-            "book is mostly flat by design."),
+            "to a 10% portfolio-vol target and then held inside a real-world "
+            "budget - gross notional capped at 200%, no single instrument "
+            "past 30%. Extended or shocked trends are trimmed, never "
+            "reversed. Read the regime first: in CHOP the book is mostly "
+            "flat by design."),
         "methodology": (
             "Time-series (absolute) momentum on real daily closes for 21 "
             "liquid 1x ETF proxies across six asset classes. Per asset: "
@@ -432,7 +480,9 @@ def lambda_handler(event, context):
             "(cumulative return / (daily vol * sqrt(horizon))), a slow-"
             "tilted blend (0.25/0.35/0.40 for 63/126/252d), a trend-maturity "
             "read vs the 200d average in vol units, and a counter-trend "
-            "shock guard. Inverse-vol sizing with a portfolio-vol target. "
+            "shock guard. Inverse-vol sizing with sizing-vol floored so near-"
+            "cash instruments are not treated as free leverage, a 10% "
+            "portfolio-vol target, and a 200% gross / 30% per-position cap. "
             "This is the canonical CTA / managed-futures construction."),
         "disclaimer": (
             "Research, not investment advice. Trend-following endures long "

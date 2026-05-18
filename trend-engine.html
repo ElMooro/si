@@ -175,7 +175,7 @@ async function main(){
     <div class="stat"><div class="sl">Long</div><div class="sv" style="color:var(--green)">${num(s.n_long,0)}</div></div>
     <div class="stat"><div class="sl">Short</div><div class="sv" style="color:var(--red)">${num(s.n_short,0)}</div></div>
     <div class="stat"><div class="sl">Flat</div><div class="sv" style="color:var(--dim)">${num(s.n_flat,0)}</div></div>
-    <div class="stat"><div class="sl">Gross Exposure</div><div class="sv">${num(s.portfolio_gross_pct,1)}%</div></div>
+    <div class="stat"><div class="sl">Gross Exposure${s.leverage_capped?' · capped':''}</div><div class="sv" style="color:${s.leverage_capped?'var(--yellow)':'var(--txt)'}">${num(s.portfolio_gross_pct,0)}%</div></div>
     <div class="stat"><div class="sl">Net Equity Tilt</div><div class="sv" style="color:${s.net_equity_tilt_pct>=0?'var(--green)':'var(--red)'}">${sgn(s.net_equity_tilt_pct,1)}%</div></div>
     <div class="stat"><div class="sl">Vol Target</div><div class="sv">${num(s.target_vol_pct,0)}%</div></div>`;
   const bc=d.by_class||[];
