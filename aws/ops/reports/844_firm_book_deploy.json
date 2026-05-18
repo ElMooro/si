@@ -1,0 +1,274 @@
+{
+  "ops": 844,
+  "ts": "2026-05-18T18:54:14.736043+00:00",
+  "subject": "Deploy + verify justhodl-firm-book (consolidated cross-desk position blotter)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-firm-book-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "equity_book_present",
+      "ok": true,
+      "detail": "266 names"
+    },
+    {
+      "check": "equity_sorted_desc",
+      "ok": true,
+      "detail": "first5=[17.3431, 5.1241, 1.3323, 1.1926, 1.159]"
+    },
+    {
+      "check": "gross_reconciles",
+      "ok": false,
+      "detail": "firm_gross=89.5 (each firing desk deploys full capital weight)"
+    },
+    {
+      "check": "net_within_gross",
+      "ok": true,
+      "detail": "net=42.49 gross=89.5"
+    },
+    {
+      "check": "overlap_valid",
+      "ok": true,
+      "detail": "0 overlaps, all >=2 desks"
+    },
+    {
+      "check": "conflicts_valid",
+      "ok": true,
+      "detail": "3 conflicts, all flagged"
+    },
+    {
+      "check": "sectors_present",
+      "ok": true,
+      "detail": "13 sectors"
+    },
+    {
+      "check": "all_seven_desks_contributed",
+      "ok": true,
+      "detail": "['best-ideas', 'index-recon', 'merger-arb', 'pairs-arb', 'risk-radar', 'spinoff-desk', 'trend-engine']"
+    },
+    {
+      "check": "no_fabrication",
+      "ok": true,
+      "detail": "0 bad symbols"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(0 1 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_equity_names\\\": 266, \\\"n_macro\\\": 21, \\\"firm_gross_pct\\\": 89.5, \\\"firm_net_pct\\\": 42.49, \\\"overlaps\\\": 0, \\\"conflicts\\\": 3}\"}"
+  },
+  "firm_book": {
+    "headline": "Firm book: 266 net equity names, 76% gross / +29% net (53% long vs 23% short), top-10 = 40% of gross. 0 cross-desk conviction overlaps, 3 desk conflicts. Macro sleeve 21 positions, +13% net.",
+    "firm": {
+      "gross_exposure_pct": 89.5,
+      "net_exposure_pct": 42.49,
+      "equity_gross_pct": 76.0,
+      "equity_net_pct": 29.1,
+      "equity_long_pct": 52.55,
+      "equity_short_pct": -23.45,
+      "long_short_ratio": 2.24,
+      "macro_gross_pct": 13.5,
+      "macro_net_pct": 13.39,
+      "n_equity_names": 266,
+      "n_longs": 166,
+      "n_shorts": 100,
+      "n_macro_positions": 21,
+      "top10_concentration_pct": 39.7,
+      "biggest_long": {
+        "symbol": "CCRD",
+        "net_pct": 17.3431
+      },
+      "biggest_short": {
+        "symbol": "SATS",
+        "net_pct": -0.5625
+      }
+    },
+    "n_equity": 266,
+    "n_macro": 21,
+    "n_overlap": 0,
+    "n_conflicts": 3,
+    "top_positions": [
+      {
+        "symbol": "CCRD",
+        "side": "LONG",
+        "net_pct": 17.3431,
+        "gross_pct": 17.3431,
+        "n_desks": 1
+      },
+      {
+        "symbol": "PEN",
+        "side": "LONG",
+        "net_pct": 5.1241,
+        "gross_pct": 5.1241,
+        "n_desks": 1
+      },
+      {
+        "symbol": "AMWD",
+        "side": "LONG",
+        "net_pct": 1.3323,
+        "gross_pct": 1.3323,
+        "n_desks": 1
+      },
+      {
+        "symbol": "TRAX",
+        "side": "LONG",
+        "net_pct": 1.1926,
+        "gross_pct": 1.1926,
+        "n_desks": 1
+      },
+      {
+        "symbol": "BSEM",
+        "side": "LONG",
+        "net_pct": 1.159,
+        "gross_pct": 1.159,
+        "n_desks": 1
+      },
+      {
+        "symbol": "RHLD",
+        "side": "LONG",
+        "net_pct": 1.0414,
+        "gross_pct": 1.0414,
+        "n_desks": 1
+      },
+      {
+        "symbol": "VSNT",
+        "side": "LONG",
+        "net_pct": 1.0078,
+        "gross_pct": 1.0078,
+        "n_desks": 1
+      },
+      {
+        "symbol": "SUNB",
+        "side": "LONG",
+        "net_pct": 0.8567,
+        "gross_pct": 0.8567,
+        "n_desks": 1
+      },
+      {
+        "symbol": "RAL",
+        "side": "LONG",
+        "net_pct": 0.5879,
+        "gross_pct": 0.5879,
+        "n_desks": 1
+      },
+      {
+        "symbol": "MRNA",
+        "side": "SHORT",
+        "net_pct": -0.3608,
+        "gross_pct": 0.5626,
+        "n_desks": 2
+      },
+      {
+        "symbol": "SATS",
+        "side": "SHORT",
+        "net_pct": -0.5625,
+        "gross_pct": 0.5625,
+        "n_desks": 1
+      },
+      {
+        "symbol": "PSKY",
+        "side": "SHORT",
+        "net_pct": -0.5548,
+        "gross_pct": 0.5548,
+        "n_desks": 1
+      }
+    ],
+    "top_overlap": [],
+    "desk_contributions": {
+      "best-ideas": {
+        "name": "Best Ideas",
+        "capital_pct": 8.99,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 80,
+        "gross_contributed_pct": 8.99,
+        "note": "80 positions"
+      },
+      "merger-arb": {
+        "name": "Merger-Arb Desk",
+        "capital_pct": 24.36,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 15,
+        "gross_contributed_pct": 24.36,
+        "note": "15 positions"
+      },
+      "spinoff-desk": {
+        "name": "Spin-Off Desk",
+        "capital_pct": 7.29,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 9,
+        "gross_contributed_pct": 7.29,
+        "note": "9 positions"
+      },
+      "risk-radar": {
+        "name": "Risk Radar",
+        "capital_pct": 11.54,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 28,
+        "gross_contributed_pct": 11.54,
+        "note": "28 positions"
+      },
+      "index-recon": {
+        "name": "Index-Recon Desk",
+        "capital_pct": 13.33,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 50,
+        "gross_contributed_pct": 13.33,
+        "note": "50 positions"
+      },
+      "trend-engine": {
+        "name": "Trend Desk",
+        "capital_pct": 13.5,
+        "status": "FIRING",
+        "sleeve": "MACRO",
+        "n_positions": 21,
+        "gross_contributed_pct": 13.5,
+        "note": "21 positions"
+      },
+      "pairs-arb": {
+        "name": "Pairs Desk",
+        "capital_pct": 20.99,
+        "status": "FIRING",
+        "sleeve": "EQUITY",
+        "n_positions": 162,
+        "gross_contributed_pct": 10.49,
+        "note": "162 positions"
+      }
+    }
+  },
+  "all_pass": false,
+  "verdict": "REVIEW - see checks[]/firm_book"
+}
