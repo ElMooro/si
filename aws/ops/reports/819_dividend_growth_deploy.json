@@ -1,0 +1,108 @@
+{
+  "ops": 819,
+  "ts": "2026-05-18T14:05:41.221312+00:00",
+  "subject": "Deploy + verify justhodl-dividend-growth compounder screen",
+  "deploy": "ERROR ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-dividend-growth",
+  "schedule": "err An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"n_compounders\": 104, \"aristocrats\": 74, \"yield_traps\": 15, \"elapsed_s\": 6.2}"
+  },
+  "dividend_growth": {
+    "ok": true,
+    "headline": "104 dividend compounders pass the screen - 74 aristocrats (10+ year growth streaks), 12 growers, 18 emerging. 15 high-yield names quarantined as traps.",
+    "n_evaluated": 369,
+    "n_with_history": 365,
+    "n_compounders": 104,
+    "summary": {
+      "n_aristocrats": 74,
+      "n_growers": 12,
+      "n_emerging": 18,
+      "n_yield_traps": 15,
+      "median_yield_pct": 1.67,
+      "median_cagr5_pct": 7.7
+    },
+    "top5": [
+      {
+        "sym": "WSM",
+        "tier": "ARISTOCRAT",
+        "score": 94.9,
+        "yield": 1.62,
+        "cagr5": 21.0,
+        "streak": 19
+      },
+      {
+        "sym": "TSCO",
+        "tier": "ARISTOCRAT",
+        "score": 94.3,
+        "yield": 3.04,
+        "cagr5": 25.1,
+        "streak": 15
+      },
+      {
+        "sym": "SNA",
+        "tier": "ARISTOCRAT",
+        "score": 94.2,
+        "yield": 2.55,
+        "cagr5": 14.7,
+        "streak": 40
+      },
+      {
+        "sym": "ZTS",
+        "tier": "ARISTOCRAT",
+        "score": 92.4,
+        "yield": 2.78,
+        "cagr5": 20.1,
+        "streak": 12
+      },
+      {
+        "sym": "APH",
+        "tier": "ARISTOCRAT",
+        "score": 91.8,
+        "yield": 0.66,
+        "cagr5": 23.4,
+        "streak": 20
+      }
+    ],
+    "sample_traps": [
+      {
+        "sym": "TDG",
+        "yield": 7.83
+      },
+      {
+        "sym": "CPB",
+        "yield": 7.8
+      },
+      {
+        "sym": "GIS",
+        "yield": 7.4
+      },
+      {
+        "sym": "AMCR",
+        "yield": 7.02
+      },
+      {
+        "sym": "KHC",
+        "yield": 6.98
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": false,
+    "schedule_wired": false,
+    "invoke_ok": true,
+    "output_ok": true,
+    "enough_universe": true,
+    "has_compounders": true,
+    "every_compounder_growing": true,
+    "no_cuts_in_compounders": true,
+    "streaks_3plus": true,
+    "aristocrats_10plus_streak": true,
+    "growers_5plus_streak": true,
+    "traps_quarantined": true,
+    "ranked_by_score": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW - see checks[]/dividend_growth"
+}
