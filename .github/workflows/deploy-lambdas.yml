@@ -263,6 +263,48 @@ jobs:
               echo "  ✅ Schedule attached"
             fi
 
+            # ── EventBridge Scheduler (if config.json has .eventbridge_scheduler) ──
+            # Go-forward scheduling path. The classic 300-rule EventBridge cap
+            # is saturated, so new engines schedule via EventBridge Scheduler
+            # (1M-schedule quota). Purely additive — Lambdas using the classic
+            # .schedule block above are unaffected. See ops 821.
+            if [ -f "$dir/config.json" ] && jq -e '.eventbridge_scheduler' "$dir/config.json" >/dev/null 2>&1; then
+              sched_name=$(jq -r '.eventbridge_scheduler.schedule_name' "$dir/config.json")
+              sched_cron=$(jq -r '.eventbridge_scheduler.cron' "$dir/config.json")
+              sched_tz=$(jq -r '.eventbridge_scheduler.timezone // "UTC"' "$dir/config.json")
+              sched_role=$(jq -r '.eventbridge_scheduler.role_arn' "$dir/config.json")
+              sched_desc=$(jq -r '.eventbridge_scheduler.description // "Scheduled run"' "$dir/config.json")
+              region="${{ secrets.AWS_REGION }}"
+              acc="857687956942"
+              fn_arn="arn:aws:lambda:${region}:${acc}:function:${fn}"
+              target_json=$(jq -n --arg arn "$fn_arn" --arg role "$sched_role" \
+                '{Arn:$arn,RoleArn:$role,Input:"{}",RetryPolicy:{MaximumRetryAttempts:2,MaximumEventAgeInSeconds:3600}}')
+              echo "Setting up EventBridge Scheduler schedule $sched_name → $sched_cron ($sched_tz)"
+              if aws scheduler get-schedule --name "$sched_name" --region "$region" >/dev/null 2>&1; then
+                aws scheduler update-schedule \
+                  --name "$sched_name" \
+                  --schedule-expression "$sched_cron" \
+                  --schedule-expression-timezone "$sched_tz" \
+                  --flexible-time-window '{"Mode":"OFF"}' \
+                  --state ENABLED \
+                  --description "$sched_desc" \
+                  --target "$target_json" \
+                  --region "$region" --output text > /dev/null
+                echo "  ✅ Scheduler schedule updated"
+              else
+                aws scheduler create-schedule \
+                  --name "$sched_name" \
+                  --schedule-expression "$sched_cron" \
+                  --schedule-expression-timezone "$sched_tz" \
+                  --flexible-time-window '{"Mode":"OFF"}' \
+                  --state ENABLED \
+                  --description "$sched_desc" \
+                  --target "$target_json" \
+                  --region "$region" --output text > /dev/null
+                echo "  ✅ Scheduler schedule created"
+              fi
+            fi
+
             # ── Function URL (if config.json has .function_url.enabled=true) ──
             if [ -f "$dir/config.json" ] && jq -e '.function_url.enabled' "$dir/config.json" >/dev/null 2>&1; then
               region="${{ secrets.AWS_REGION }}"
