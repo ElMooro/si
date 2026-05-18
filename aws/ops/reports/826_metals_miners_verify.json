@@ -1,0 +1,89 @@
+{
+  "ops": 826,
+  "ts": "2026-05-18T15:07:39.934017+00:00",
+  "subject": "Deploy-guard + verify justhodl-metals-miners",
+  "deploy": "updated",
+  "schedule": "updated",
+  "schedule_state": "ENABLED",
+  "schedule_cron": "cron(10 14 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"complexes\\\": 5, \\\"universe\\\": 53, \\\"working\\\": [\\\"Copper\\\", \\\"Lithium\\\"]}\"}"
+  },
+  "best": {
+    "ok": true,
+    "checks": {
+      "five_complexes": true,
+      "all_have_regime": true,
+      "miners_scored": true,
+      "top_catch_up_filled": true,
+      "headline_present": true,
+      "has_targets": true,
+      "universe_matches": true
+    },
+    "headline": "Working complexes: Copper, Lithium. Top catch-up name: Global X Lithium & Battery ETF (LIT, grade B).",
+    "complex_regimes": {
+      "gold": "DOWNTREND",
+      "silver": "NEUTRAL",
+      "copper": "UPTREND",
+      "uranium": "DOWNTREND",
+      "lithium": "STRONG UPTREND"
+    },
+    "working_complexes": [
+      "Copper",
+      "Lithium"
+    ],
+    "miners_total": 53,
+    "with_target": 8,
+    "grade_dist": {
+      "D": 33,
+      "C": 15,
+      "B": 5
+    },
+    "build_seconds": 2.1,
+    "top5": [
+      {
+        "sym": "LIT",
+        "complex": "lithium",
+        "score": 76.8,
+        "grade": "B",
+        "target": null,
+        "implied_gain_pct": null
+      },
+      {
+        "sym": "CPER",
+        "complex": "copper",
+        "score": 71.4,
+        "grade": "B",
+        "target": null,
+        "implied_gain_pct": null
+      },
+      {
+        "sym": "SQM",
+        "complex": "lithium",
+        "score": 70.9,
+        "grade": "B",
+        "target": null,
+        "implied_gain_pct": null
+      },
+      {
+        "sym": "BHP",
+        "complex": "copper",
+        "score": 66.7,
+        "grade": "B",
+        "target": null,
+        "implied_gain_pct": null
+      },
+      {
+        "sym": "ALB",
+        "complex": "lithium",
+        "score": 66.6,
+        "grade": "B",
+        "target": 188.38,
+        "implied_gain_pct": 4.4
+      }
+    ]
+  },
+  "all_pass": true
+}
