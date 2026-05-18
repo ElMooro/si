@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merger-Arbitrage Desk &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#129309;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{font-family:var(--mono);font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.tab.active{color:var(--bg);background:var(--green);border-color:var(--green);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.tk .arrow{color:var(--dim);font-size:13px;margin:0 5px}
+.tk .acq{color:var(--mute);font-size:13px}
+.nm{color:var(--dim);font-size:10.5px;margin-top:2px;line-height:1.4}
+.ann{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.ann small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.chip{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);color:var(--mute)}
+.chip.type{background:rgba(0,212,255,.1);border-color:var(--cyan);color:var(--cyan)}
+.chip.tier{font-weight:700}
+.cells{display:flex;gap:6px;margin:9px 0}
+.cell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:center}
+.cell .cl{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.cell .cv{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:2px}
+.trade{background:var(--panel2);border-left:2px solid var(--green);border-radius:5px;padding:7px 10px;margin:8px 0;font-family:var(--mono);font-size:11px;color:var(--txt);line-height:1.5}
+.snip{color:var(--dim);font-size:10px;line-height:1.5;margin:6px 0;font-style:italic}
+.meta{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.meta a{color:var(--dim);border-bottom:1px dashed var(--line);text-decoration:none}
+.meta a:hover{color:var(--cyan)}
+.uvc{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:6px;padding:9px 12px}
+.uvc .uvt{font-family:var(--mono);font-size:13px;font-weight:700}
+.uvc .uvn{color:var(--orange);font-size:10.5px;margin-top:3px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:20px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#129309; Merger-Arbitrage Desk</h1>
+    <p class="subtitle">When a company agrees to buy another, the target's stock usually trades a little <b>below</b> the agreed deal price until the deal legally closes &mdash; that gap is the <b>arbitrage spread</b>, the return you capture for carrying deal-completion risk. This desk parses the real consideration straight out of each deal's <b>SEC S-4 filing</b>, prices the spread against the live market, and annualizes it. <b>Tight Carry</b> = small, low-risk spreads (steady annualized yield). <b>Wide Spread</b> = the market is pricing real deal risk (higher reward, watch regulators). <b>Bump Watch</b> = target trading above terms, meaning the market expects a sweetened bid.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/pairs-arb.html">pairs desk</a>
+      <a href="/capital-return.html">cannibals</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/catch-up.html">catch-up</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING MERGER-ARB DESK&hellip;</div></div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <div id="unverified"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"&mdash;":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const tierColor=(t)=>t==="TIGHT CARRY"?"var(--green)":t==="WIDE SPREAD"?"var(--yellow)":t==="BUMP WATCH"?"var(--purple)":"var(--orange)";
+const riskColor=(r)=>r==null?"var(--mute)":r<=40?"var(--green)":r<=60?"var(--yellow)":"var(--red)";
+let DATA=null,VIEW="all";
+
+function card(c){
+  const tc=tierColor(c.tier);
+  const sp=c.gross_spread_pct;
+  const spc=sp==null?"var(--dim)":sp>=0?"var(--green)":"var(--purple)";
+  const dn=c.downside_to_unaffected_pct;
+  return `<div class="card" style="border-top-color:${tc}">
+    <div class="crow">
+      <div>
+        <div class="tk">${esc(c.target)}<span class="arrow">&larr;</span><span class="acq">${esc(c.acquirer||c.acquirer_raw||"?")}</span></div>
+        <div class="nm">${esc(c.target_name||"")}<br>acquired by ${esc(c.acquirer_name||"")}</div>
+      </div>
+      <div class="ann" style="color:${c.annualized_return_pct>=0?'var(--green)':'var(--purple)'}">${c.annualized_return_pct!=null?(c.annualized_return_pct>=0?"+":"")+num(c.annualized_return_pct,0)+"%":"&mdash;"}<small>ANNUALIZED</small></div>
+    </div>
+    <div class="chips">
+      <span class="chip tier" style="color:${tc};border-color:${tc}">${esc(c.tier)}</span>
+      <span class="chip type">${esc(c.deal_type||"")}</span>
+      <span class="chip">${c.days_outstanding!=null?c.days_outstanding+"d outstanding":""}</span>
+    </div>
+    <div class="cells">
+      <div class="cell"><div class="cl">Gross Spread</div><div class="cv" style="color:${spc}">${sp!=null?(sp>=0?"+":"")+num(sp,2)+"%":"&mdash;"}</div></div>
+      <div class="cell"><div class="cl">Deal Risk</div><div class="cv" style="color:${riskColor(c.deal_risk)}">${num(c.deal_risk,0)}</div></div>
+      <div class="cell"><div class="cl">If Deal Breaks</div><div class="cv" style="color:var(--red)">${dn!=null?num(dn,0)+"%":"&mdash;"}</div></div>
+    </div>
+    <div class="cells">
+      <div class="cell"><div class="cl">Target Price</div><div class="cv">$${num(c.target_price,2)}</div></div>
+      <div class="cell"><div class="cl">Deal Value</div><div class="cv" style="color:var(--cyan)">$${num(c.deal_value,2)}</div></div>
+      <div class="cell"><div class="cl">Reward / Risk</div><div class="cv">${c.reward_risk!=null?num(c.reward_risk,2)+"x":"&mdash;"}</div></div>
+    </div>
+    <div class="trade">&#9656; ${esc(c.trade||"")}</div>
+    ${c.terms_snippet?`<div class="snip">S-4: &ldquo;&hellip;${esc(c.terms_snippet)}&hellip;&rdquo;</div>`:""}
+    <div class="meta">
+      <span>announced ${esc(c.announced||"")}</span>
+      <span>est. close ~${num(c.est_close_days,0)}d</span>
+      ${c.s4_link?`<a href="${esc(c.s4_link)}" target="_blank" rel="noopener">SEC S-4 &#8599;</a>`:""}
+    </div>
+  </div>`;
+}
+
+function render(){
+  if(!DATA)return;
+  let list=[];
+  if(VIEW==="all")list=DATA.all_priced||[];
+  else if(VIEW==="tight")list=DATA.tight_carry||[];
+  else if(VIEW==="wide")list=DATA.wide_spread||[];
+  else if(VIEW==="bump")list=DATA.bump_watch||[];
+  document.getElementById("grid").innerHTML=list.length
+    ? list.map(card).join("")
+    : '<div class="loading">No deals in this tier right now.</div>';
+}
+
+function tabs(){
+  const d=DATA;
+  const defs=[
+    ["all","All Priced",(d.all_priced||[]).length],
+    ["tight","Tight Carry",(d.tight_carry||[]).length],
+    ["wide","Wide Spread",(d.wide_spread||[]).length],
+    ["bump","Bump Watch",(d.bump_watch||[]).length],
+  ];
+  document.getElementById("tabs").innerHTML=defs.map(([k,lab,n])=>
+    `<div class="tab${k===VIEW?' active':''}" data-k="${k}">${lab} &middot; ${n}</div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{VIEW=t.dataset.k;tabs();render();});
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"merger-arb.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.generated_at){document.getElementById("hero").innerHTML='<div class="loading">MERGER-ARB DATA UNAVAILABLE</div>';return;}
+  DATA=d;
+  const s=d.summary||{};
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.method||"")}</div>
+  </div>`;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="sl">Priced Spreads</div><div class="sv" style="color:var(--green)">${num(s.n_priced)}</div></div>
+    <div class="stat"><div class="sl">Median Spread</div><div class="sv">${s.median_spread_pct!=null?num(s.median_spread_pct,2)+"%":"&mdash;"}</div></div>
+    <div class="stat"><div class="sl">Best Annualized</div><div class="sv" style="color:var(--cyan)">${s.best_annualized_pct!=null?"+"+num(s.best_annualized_pct,0)+"%":"&mdash;"}</div></div>
+    <div class="stat"><div class="sl">Pending Deals</div><div class="sv">${num(s.n_recent_pending)}</div></div>
+    <div class="stat"><div class="sl">Unverified</div><div class="sv" style="color:var(--orange)">${num(s.n_unverified)}</div></div>`;
+  tabs();render();
+  const uv=d.unverified||[];
+  if(uv.length){
+    document.getElementById("unverified").innerHTML=
+      `<div class="sechead">Unverified &mdash; catalyst exists, terms could not be priced (${uv.length})</div>`+
+      `<div class="grid">`+uv.map(u=>`<div class="uvc">
+        <div class="uvt">${esc(u.target)} &larr; ${esc(u.acquirer_raw||"?")}</div>
+        <div class="nm">${esc(u.target_name||"")}</div>
+        <div class="uvn">${esc(u.note||"terms unverified")}</div>
+        <div class="meta"><span>announced ${esc(u.announced||"")}</span>${u.s4_link?`<a href="${esc(u.s4_link)}" target="_blank" rel="noopener">SEC S-4 &#8599;</a>`:""}</div>
+      </div>`).join("")+`</div>`;
+  }
+  document.getElementById("note").textContent="Deal feed: justhodl-ma-tracker ("+(s.n_feed_deals||0)+" deals scanned, "+(s.n_spac_skipped||0)+" SPAC combinations skipped). Spreads are gross of fees and assume the deal closes on the estimated date. Merger arbitrage carries deal-break risk - the 'If Deal Breaks' figure estimates the fall to the unaffected price. Research and education only, not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" - "+(d.elapsed_seconds||0)+"s";
+}
+main();
+</script>
+</body>
+</html>
