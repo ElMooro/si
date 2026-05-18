@@ -5,15 +5,17 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 150,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Euro-Area Sovereign Fragmentation Engine - fuses ECB SovCISS (daily) and FRED 10Y yields into per-country OAT/BTP/Bonos-Bund spreads, a 0-100 fragmentation score, core-vs-periphery split, a France deep-dive and ECB TPI context. Output data/euro-fragmentation.json.",
+  "description": "Euro-Area Sovereign Fragmentation Engine - ECB SovCISS + FRED 10Y yields into per-country Bund spreads, a 0-100 fragmentation score, core/periphery split, France deep-dive and ECB TPI context. Output data/euro-fragmentation.json.",
   "environment": {
     "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
   },
   "schedule": {
     "rule_name": "euro-fragmentation-daily",
     "cron": "cron(20 12 * * ? *)",
-    "description": "Euro-Area Sovereign Fragmentation Engine — daily 12:20 UTC"
+    "description": "Euro-Area Sovereign Fragmentation Engine \u2014 daily 12:20 UTC"
   }
 }
