@@ -65,7 +65,8 @@ CATEGORIES = [
      "The book, position sizing, multi-strategy capital allocation and "
      "the trade journal.",
      ["portfolio", "portfolio-manager", "portfolio/", "pm-decision",
-      "desk-allocator", "allocator", "position-sizer", "sizing", "sizing/",
+      "firm-book", "desk-allocator", "allocator", "position-sizer",
+      "sizing", "sizing/",
       "trade-journal", "trades/", "watchlist"]),
     ("📉", "Volatility & Market Internals",
      "Vol regime, the VIX curve and market-internals breadth.",
