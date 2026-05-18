@@ -1,0 +1,105 @@
+{
+  "ops": 818,
+  "ts": "2026-05-18T13:55:37.135765+00:00",
+  "subject": "Deploy + verify justhodl-best-ideas confluence board",
+  "deploy": "created",
+  "schedule": "wired",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"n_total\": 89, \"titans\": 5, \"high\": 16}"
+  },
+  "best_ideas": {
+    "ok": true,
+    "headline": "89 names carry multi-engine conviction  5 TITANS confirmed across 4+ factor families, 16 HIGH-CONVICTION across 3.",
+    "n_total": 89,
+    "n_titans": 5,
+    "n_high": 16,
+    "engines_contributing": 12,
+    "with_target": 62,
+    "top5": [
+      {
+        "sym": "GOOGL",
+        "tier": "CONVICTION TITAN",
+        "fams": 4,
+        "engines": 5,
+        "score": 78.8,
+        "upside": 3.3,
+        "families": [
+          "Earnings momentum",
+          "Growth",
+          "Price momentum",
+          "Fundamental quality"
+        ]
+      },
+      {
+        "sym": "GOOG",
+        "tier": "CONVICTION TITAN",
+        "fams": 4,
+        "engines": 5,
+        "score": 78.7,
+        "upside": -4.7,
+        "families": [
+          "Earnings momentum",
+          "Growth",
+          "Price momentum",
+          "Fundamental quality"
+        ]
+      },
+      {
+        "sym": "VLO",
+        "tier": "CONVICTION TITAN",
+        "fams": 4,
+        "engines": 5,
+        "score": 74.2,
+        "upside": -16.6,
+        "families": [
+          "Capital allocation",
+          "Earnings momentum",
+          "Price momentum",
+          "Fundamental quality"
+        ]
+      },
+      {
+        "sym": "CRM",
+        "tier": "CONVICTION TITAN",
+        "fams": 4,
+        "engines": 4,
+        "score": 71.8,
+        "upside": 55.6,
+        "families": [
+          "Capital allocation",
+          "Earnings momentum",
+          "Fundamental quality",
+          "Sector rotation"
+        ]
+      },
+      {
+        "sym": "FSLR",
+        "tier": "CONVICTION TITAN",
+        "fams": 4,
+        "engines": 4,
+        "score": 67.6,
+        "upside": 5.0,
+        "families": [
+          "Earnings momentum",
+          "Price momentum",
+          "Sector rotation",
+          "Value"
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "has_stack": true,
+    "every_name_2plus_families": true,
+    "titans_are_4plus_families": true,
+    "enough_engines_contributing": true
+  },
+  "all_pass": true,
+  "verdict": "BEST IDEAS LIVE - 89 cross-confirmed names (5 conviction titans across 4+ families, 16 high-conviction across 3), 12 engines contributing, 62 carry price targets. Factor-confluence master screen production-clean."
+}
