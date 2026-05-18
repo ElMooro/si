@@ -118,7 +118,7 @@ function card(b){
     </div>
     <div class="tgt">
       <span class="lab">price</span><span class="pt">${b.price!=null?"$"+num(b.price,2):"—"}</span>
-      <span class="lab" style="margin-left:6px">target</span>
+      <span class="lab" style="margin-left:6px">target ${b.target_horizon==="multi-year"?"·multi-yr":"·12mo"}</span>
       <span class="pt">${b.price_target!=null?"$"+num(b.price_target,2):"—"}</span>
       <span class="up" style="color:${upc};margin-left:auto">${up!=null?(up>=0?"+":"")+num(up,0)+"%":""}</span>
     </div>

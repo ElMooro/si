@@ -127,24 +127,27 @@ def fmt_b(v):
 
 # ───────────────────────── price target ─────────────────────────
 def price_target(price, sd):
-    """Multi-method fair value: analyst consensus, DCF intrinsic value and a
-    growth-justified P/E (PEG ~ 1, fair multiple capped). Blended = median of
-    whatever is available and sane. Returns (target, upside_pct, basis)."""
+    """12-month fair value, anchored on analyst consensus. DCF and a
+    growth-justified P/E are cross-checks, each BOUNDED so a noisy input
+    cannot run away: FMP's DCF is unstable, and a growth multiple applied to
+    a structurally cheap cyclical/financial (a bank at 9x earnings) would
+    otherwise imply a fantasy target. Final upside is capped at a credible
+    12-month ceiling; if methods diverge past it the target is flagged
+    low-confidence. Returns (target, upside_pct, basis)."""
     if not price or price <= 0:
         return None, None, None
     cands = []
-    band = (0.35 * price, 5.0 * price)
 
     ptm = num(sd.get("priceTargetMedian")) or num(sd.get("priceTargetMean"))
-    if ptm and band[0] <= ptm <= band[1]:
+    if ptm and 0.4 * price <= ptm <= 2.6 * price:
         cands.append(("analyst consensus", ptm))
 
     dcf = num(sd.get("dcfFairValue"))
-    if dcf and band[0] <= dcf <= band[1]:
+    if dcf and 0.55 * price <= dcf <= 2.0 * price:   # FMP DCF is noisy
         cands.append(("DCF intrinsic value", dcf))
 
     g = num(sd.get("epsGrowth"))
-    if g is not None and abs(g) <= 5:          # epsGrowth stored as fraction
+    if g is not None and abs(g) <= 5:                # stored as fraction
         g *= 100.0
     if g is None:
         gr = num(sd.get("forwardRevenueGrowth")) or num(
@@ -152,20 +155,25 @@ def price_target(price, sd):
         if gr is not None:
             g = gr * 100.0 if abs(gr) <= 5 else gr
     fpe = num(sd.get("forwardPE")) or num(sd.get("peRatio"))
-    if fpe and fpe > 0 and g and g > 0:
-        fair_pe = clamp(g, 12.0, 45.0)         # PEG~1, multiple capped
-        growth_t = price * fair_pe / fpe
-        if band[0] <= growth_t <= band[1]:
-            cands.append(("growth-justified P/E", growth_t))
+    # growth-justified P/E ONLY for genuine growers already trading at a
+    # growth multiple (fpe > 13) — never for cheap cyclicals/financials —
+    # and the re-rating ratio is hard-capped so it cannot explode
+    if fpe and fpe > 13 and g and g > 10:
+        fair_pe = clamp(g, 15.0, 40.0)
+        ratio = clamp(fair_pe / fpe, 0.7, 1.6)
+        cands.append(("growth-justified P/E", price * ratio))
 
     if not cands:
         return None, None, None
     vals = sorted(v for _, v in cands)
     n = len(vals)
     blended = vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2
-    upside = round((blended / price - 1.0) * 100.0, 1)
+    upside = (blended / price - 1.0) * 100.0
     basis = "blend of " + ", ".join(name for name, _ in cands)
-    return round(blended, 2), upside, basis
+    if upside > 80:                                  # credible 12m ceiling
+        blended, upside = price * 1.80, 80.0
+        basis += " (capped — methods diverge, low-confidence)"
+    return round(blended, 2), round(upside, 1), basis
 
 
 # ───────────────────────── handler ─────────────────────────
@@ -207,7 +215,8 @@ def lambda_handler(event, context):
         if sy not in rec:
             rec[sy] = {"symbol": sy, "signals": [], "engines": [],
                        "_pts": 0.0, "name": None, "sector": None,
-                       "market_cap": None, "cap_bucket": None}
+                       "market_cap": None, "cap_bucket": None,
+                       "price": None, "bagger_x": None}
         return rec[sy]
 
     # bagger-engine — 100-bagger DNA
@@ -220,8 +229,10 @@ def lambda_handler(event, context):
         r["sector"] = r["sector"] or d.get("sector")
         r["market_cap"] = r["market_cap"] or num(d.get("market_cap"))
         r["cap_bucket"] = r["cap_bucket"] or d.get("cap_bucket")
+        r["price"] = r["price"] or num(d.get("price"))
         bs = num(d.get("bagger_score")) or num(d.get("score")) or 0
         rer = num(d.get("with_rerating_x")) or num(d.get("flat_multiple_x"))
+        r["bagger_x"] = r["bagger_x"] or rer
         rcagr = num(d.get("revenue_cagr_pct"))
         roic = num(d.get("roic_pct"))
         r["_pts"] += clamp(bs / 100.0, 0, 1) * 26
@@ -326,7 +337,7 @@ def lambda_handler(event, context):
         engines = sorted(set(r["engines"]))
         n_eng = len(engines)
         sd = by_sym.get(sy, {})
-        price = num(sd.get("price"))
+        price = num(sd.get("price")) or r.get("price")
         mcap = r["market_cap"] or num(sd.get("marketCap"))
         tier = (r.get("cap_bucket") or "").lower() or cap_tier(mcap)
         if tier not in ("nano", "micro", "small", "mid", "large",
@@ -338,6 +349,13 @@ def lambda_handler(event, context):
         boom = round(clamp(r["_pts"] + confirm_bonus, 0, 100), 1)
 
         tgt, upside, basis = price_target(price, sd)
+        target_horizon = "12-month"
+        if tgt is None and price and r.get("bagger_x"):
+            bx = clamp(r["bagger_x"], 1.5, 12.0)
+            tgt = round(price * bx, 2)
+            upside = round((bx - 1.0) * 100.0, 1)
+            basis = (f"bagger-engine multibagger model (~{bx:.0f}x)")
+            target_horizon = "multi-year"
 
         # honest risk flags
         flags = []
@@ -389,7 +407,8 @@ def lambda_handler(event, context):
             "boom_score": boom, "n_engines_confirming": n_eng,
             "signals_fired": engines, "signal_detail": r["signals"],
             "price_target": tgt, "upside_pct": upside,
-            "target_basis": basis, "why": why, "risk_flags": flags,
+            "target_basis": basis, "target_horizon": target_horizon,
+            "why": why, "risk_flags": flags,
         })
 
     board.sort(key=lambda x: (x["opportunity_score"], x["boom_score"]),
