@@ -1,0 +1,112 @@
+{
+  "ops": 815,
+  "ts": "2026-05-18T13:15:26.905047+00:00",
+  "subject": "Verify capital-return units fix",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "capital_return": {
+    "n_evaluated": 402,
+    "n_cannibals": 60,
+    "insane_yields": [],
+    "insane_fcf": [],
+    "financials_present": [],
+    "top30_with_target": 30,
+    "top8": [
+      {
+        "sym": "ADBE",
+        "sector": "Technology",
+        "score": 72.2,
+        "buyback": 11.27,
+        "total_yield": 11.27,
+        "fcf_yield": 9.84,
+        "pe": 14.1,
+        "upside": 39.1
+      },
+      {
+        "sym": "GIS",
+        "sector": "Consumer Defensive",
+        "score": 71.4,
+        "buyback": 6.83,
+        "total_yield": 14.23,
+        "fcf_yield": 13.02,
+        "pe": 8.1,
+        "upside": 34.9
+      },
+      {
+        "sym": "CTSH",
+        "sector": "Technology",
+        "score": 69.4,
+        "buyback": 6.17,
+        "total_yield": 8.89,
+        "fcf_yield": 11.62,
+        "pe": 10.1,
+        "upside": 67.6
+      },
+      {
+        "sym": "UHS",
+        "sector": "Healthcare",
+        "score": 68.3,
+        "buyback": 9.17,
+        "total_yield": 9.64,
+        "fcf_yield": 8.04,
+        "pe": 6.8,
+        "upside": 60.3
+      },
+      {
+        "sym": "HCA",
+        "sector": "Healthcare",
+        "score": 66.7,
+        "buyback": 10.73,
+        "total_yield": 11.43,
+        "fcf_yield": 8.2,
+        "pe": 14.1,
+        "upside": 1.6
+      },
+      {
+        "sym": "CI",
+        "sector": "Healthcare",
+        "score": 65.4,
+        "buyback": 4.8,
+        "total_yield": 6.93,
+        "fcf_yield": 11.12,
+        "pe": 11.9,
+        "upside": 16.7
+      },
+      {
+        "sym": "BBY",
+        "sector": "Consumer Cyclical",
+        "score": 65.0,
+        "buyback": 2.32,
+        "total_yield": 9.09,
+        "fcf_yield": 10.69,
+        "pe": 11.1,
+        "upside": 39.6
+      },
+      {
+        "sym": "ACN",
+        "sector": "Technology",
+        "score": 64.8,
+        "buyback": 4.45,
+        "total_yield": 8.22,
+        "fcf_yield": 10.47,
+        "pe": 13.6,
+        "upside": 56.9
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "cannibals_found": true,
+    "yields_sane": true,
+    "fcf_sane": true,
+    "financials_excluded": true,
+    "targets_present": true
+  },
+  "all_pass": true,
+  "verdict": "CAPITAL-RETURN VERIFIED - 60 cannibals, all yields sane, Financials/Real Estate excluded, 30/30 top names carry a price target. Cannibal screen production-clean."
+}
