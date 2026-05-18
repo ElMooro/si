@@ -1,0 +1,56 @@
+{
+  "ops": 809,
+  "ts": "2026-05-18T12:34:59.194910+00:00",
+  "subject": "Verify micro-cap bagger price targets populate",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "microcaps": {
+    "n": 39,
+    "with_target": 39,
+    "sample": [
+      {
+        "sym": "PPIH",
+        "price": 31.99,
+        "target": 358.29,
+        "upside": 1020.0,
+        "horizon": "multi-year",
+        "why": "Confirmed by 1 independent engine (bagger). 100-bagger dna: 20% revenue cagr at 14% roic; bagger-engine reads it potential 25x plus (~11x modelled over a 10-yea"
+      },
+      {
+        "sym": "ISSC",
+        "price": 16.275,
+        "target": 195.3,
+        "upside": 1100.0,
+        "horizon": "multi-year",
+        "why": "Confirmed by 1 independent engine (bagger). 100-bagger dna: 31% revenue cagr at 18% roic; bagger-engine reads it potential 100x (~17x modelled over a 10-year ho"
+      },
+      {
+        "sym": "NAGE",
+        "price": 3.65,
+        "target": 31.39,
+        "upside": 760.0,
+        "horizon": "multi-year",
+        "why": "Confirmed by 1 independent engine (bagger). 100-bagger dna: 17% revenue cagr at 16% roic; bagger-engine reads it potential 25x plus (~9x modelled over a 10-year"
+      },
+      {
+        "sym": "ACFN",
+        "price": 16.6,
+        "target": 112.88,
+        "upside": 580.0,
+        "horizon": "multi-year",
+        "why": "Confirmed by 1 independent engine (bagger). 100-bagger dna: 14% revenue cagr at 20% roic; bagger-engine reads it potential 10x (~7x modelled over a 10-year hold"
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "invoke_ok": true,
+    "microcaps_present": true,
+    "microcaps_have_targets": true
+  },
+  "all_pass": true,
+  "verdict": "MICRO-CAP TARGETS LIVE \u2014 39/39 micro-cap rockets now carry a 10-year bagger multibagger price target + thesis. Boom Board complete."
+}
