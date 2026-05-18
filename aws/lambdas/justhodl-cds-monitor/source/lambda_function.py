@@ -292,15 +292,16 @@ def lambda_handler(event, context):
     # alarms — while still flagging which names diverge from their peers.
     _crst = read_existing("data/credit-stress.json") or {}
     _cdspe = read_existing("data/cds-proxy.json") or {}
-    ig_oas_pct = (_crst.get("ig_oas") or _cdspe.get("ig_oas")
+    ig_oas_pct = (_crst.get("ig_oas_pct") or _crst.get("ig_oas")
+                  or _cdspe.get("ig_oas_pct") or _cdspe.get("ig_oas")
                   or (_crst.get("spreads") or {}).get("ig_oas"))
     try:
         ig_oas_pct = float(ig_oas_pct)
-        if not (0.3 <= ig_oas_pct <= 12.0):
+        if not (0.2 <= ig_oas_pct <= 12.0):
             ig_oas_pct = None
     except (TypeError, ValueError):
         ig_oas_pct = None
-    IG_OAS_NORMAL = 1.6   # mid-cycle ICE BofA IG OAS, %
+    IG_OAS_NORMAL = 1.05   # recent calm-regime ICE BofA IG OAS, %
 
     def market_anchor_cds(rows, base_anchor_bp, tilt_k=1.15,
                           tilt_lo=0.50, tilt_hi=2.30):
