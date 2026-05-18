@@ -1,0 +1,170 @@
+{
+  "ops": 852,
+  "ts": "2026-05-18T20:34:27.429185+00:00",
+  "subject": "Re-deploy + verify justhodl-merger-arb-risk (the Merger-Arb Book Risk Monitor - deal-break stress on the firm's risk-arbitrage sleeve)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-merger-arb-risk-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "posture_valid",
+      "ok": true,
+      "detail": "GREEN"
+    },
+    {
+      "check": "sleeve_identified",
+      "ok": true,
+      "detail": "n_arb_positions=15 (sleeve 24.36% of book)"
+    },
+    {
+      "check": "accounting_identity",
+      "ok": true,
+      "detail": "live(15) + no_deal(0) == positions(15)"
+    },
+    {
+      "check": "scenarios_present",
+      "ok": true,
+      "detail": "4 scenarios"
+    },
+    {
+      "check": "scenario_ordering_sane",
+      "ok": false,
+      "detail": "cluster=4.22 worst_q=8.52 model=5.011 full_close=4.67"
+    },
+    {
+      "check": "break_economics_sane",
+      "ok": true,
+      "detail": "all live deals sane (negative carry on a bump name is allowed)"
+    },
+    {
+      "check": "positions_match_count",
+      "ok": true,
+      "detail": "positions[]=15 vs n_arb_positions=15"
+    },
+    {
+      "check": "top_break_risks_sorted",
+      "ok": true,
+      "detail": "5 ranked, sorted_worst_first=True"
+    },
+    {
+      "check": "posture_reconciles",
+      "ok": true,
+      "detail": "posture=GREEN expected=GREEN (cluster_break=4.22)"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(30 3 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"posture\\\": \\\"GREEN\\\", \\\"cluster_break_pct\\\": 4.22, \\\"n_live_deals\\\": 15, \\\"n_arb_positions\\\": 15}\"}"
+  },
+  "merger_arb_risk": {
+    "headline": "Merger-arb sleeve is 24.4% of the firm book across 15 live deal(s). A full cluster break costs 4.2% of book; the sleeve earns 4.7% if every deal closes. Posture GREEN (cluster-break limits: soft -8%, hard -15%).",
+    "posture": "GREEN",
+    "summary": {
+      "n_arb_positions": 15,
+      "n_live_deals": 15,
+      "n_no_deal_data": 0,
+      "sleeve_pct_of_book": 24.36,
+      "cluster_break_pct": 4.22,
+      "worst_quartile_pct": 8.52,
+      "model_expected_pct": 5.011,
+      "full_close_carry_pct": 4.67,
+      "median_deal_risk": 50.0,
+      "largest_single_break": {
+        "symbol": "CADE",
+        "break_loss_pct": -0.555,
+        "deal_risk": 50.0
+      }
+    },
+    "scenarios": [
+      {
+        "scenario": "Cluster break (every live deal breaks at once)",
+        "type": "tail",
+        "book_pnl_pct": 4.22
+      },
+      {
+        "scenario": "Worst-quartile break (riskiest 25% break, rest close)",
+        "type": "stress",
+        "book_pnl_pct": 8.52
+      },
+      {
+        "scenario": "Model-expected P&L (deal-risk weighted)",
+        "type": "base",
+        "book_pnl_pct": 5.011
+      },
+      {
+        "scenario": "Full close (every deal closes on schedule)",
+        "type": "upside",
+        "book_pnl_pct": 4.67
+      }
+    ],
+    "top_break_risks": [
+      {
+        "symbol": "CADE",
+        "break_loss_pct": -0.555,
+        "deal_risk": 50.0,
+        "tier": "WIDE SPREAD"
+      },
+      {
+        "symbol": "VTYB",
+        "break_loss_pct": -0.159,
+        "deal_risk": 44.0,
+        "tier": "WIDE SPREAD"
+      },
+      {
+        "symbol": "QRVO",
+        "break_loss_pct": -0.102,
+        "deal_risk": 64.0,
+        "tier": "WIDE SPREAD"
+      },
+      {
+        "symbol": "TRVR",
+        "break_loss_pct": -0.065,
+        "deal_risk": 26.0,
+        "tier": "TIGHT CARRY"
+      },
+      {
+        "symbol": "REVG",
+        "break_loss_pct": -0.014,
+        "deal_risk": 56.0,
+        "tier": "BUMP WATCH"
+      }
+    ],
+    "factor_model_cross_reference": {
+      "stress_scenario": "2020 COVID Crash (Feb-Mar 2020)",
+      "factor_model_desk_pnl_pct": -11.134,
+      "note": "the firm Stress Desk's six-factor model estimate for the Merger-Arb desk in its worst scenario -- shown for comparison; the deal-break model above is the correct risk axis for an arb book"
+    }
+  },
+  "all_pass": false,
+  "verdict": "REVIEW - see checks[]/merger_arb_risk"
+}
