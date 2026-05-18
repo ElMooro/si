@@ -40,7 +40,7 @@ CATEGORIES = [
       "treasury-auctions", "auctions", "credit/"]),
     ("💹", "Equities, Screening & Value",
      "Stock screening, fundamentals, baggers and valuation work.",
-     ["screener/", "stock/", "stocks/", "deep-value", "fundamentals",
+     ["boom-board", "screener/", "stock/", "stocks/", "deep-value", "fundamentals",
       "baggers", "valuations", "master-rank", "eps-velocity",
       "pead-signals", "earnings-whisper", "earnings/", "sectors",
       "sector-tilt", "themes", "theme-tiers", "ath", "momentum",
@@ -84,6 +84,7 @@ CATEGORIES = [
 
 # nicer labels for pages whose filename is not self-explanatory
 LABELS = {
+    "boom-board": "Boom Board",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
     "ecb": "ECB Data", "boj-detail": "BOJ & Yen Carry",
     "snb-detail": "SNB & Swiss Franc", "systemic-stress": "Systemic Stress",

@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-opportunity-screener",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Boom Board - synthesis engine fusing bagger-engine, earnings-pead, eps-revision-velocity, revenue-acceleration and momentum-breakout into one cross-confirmed opportunity board with thesis + price targets. Output screener/opportunity-screener.json.",
+  "schedule": {
+    "rule_name": "opportunity-screener-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Boom Board opportunity synthesis - daily 14:00 UTC"
+  }
+}
