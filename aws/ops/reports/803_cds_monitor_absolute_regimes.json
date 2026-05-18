@@ -1,0 +1,122 @@
+{
+  "ops": 803,
+  "ts": "2026-05-18T11:35:16.223039+00:00",
+  "subject": "Deploy + verify cds-monitor absolute-regime fix",
+  "source_has_absolute_regimes": true,
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"composite\": 12.8, \"regime\": \"CALM\", \"alarm_board\": \"CLEAR\", \"errors\": 0}"
+  },
+  "cds_monitor": {
+    "ok": true,
+    "headline": "Global credit stress CALM. Composite 13/100; bank avg distance-to-default 2.1; alarm board CLEAR.",
+    "primary_signal": "absolute_market_anchored_credit_regime",
+    "composite": 12.8,
+    "regime": "CALM",
+    "alarm_board": "CLEAR",
+    "n_alarms_active": 0,
+    "alarms": [
+      "No active credit alarms"
+    ],
+    "bank_anchor_bp": 58.0,
+    "n_banks": 12,
+    "n_corporates": 14,
+    "banks_watch_or_worse": 0,
+    "corporates_watch_or_worse": 0,
+    "bank_regime_breakdown": {
+      "STRONG": 4,
+      "SOLID": 6,
+      "NORMAL": 2
+    },
+    "banks": [
+      {
+        "t": "BCS",
+        "dd": 1.32,
+        "cds_bp": 104.4,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "DB",
+        "dd": 1.34,
+        "cds_bp": 102.6,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "UBS",
+        "dd": 1.64,
+        "cds_bp": 81.3,
+        "regime": "SOLID"
+      },
+      {
+        "t": "C",
+        "dd": 1.72,
+        "cds_bp": 77.0,
+        "regime": "SOLID"
+      },
+      {
+        "t": "GS",
+        "dd": 1.98,
+        "cds_bp": 65.5,
+        "regime": "SOLID"
+      },
+      {
+        "t": "MS",
+        "dd": 2.05,
+        "cds_bp": 62.9,
+        "regime": "SOLID"
+      },
+      {
+        "t": "HSBC",
+        "dd": 2.2,
+        "cds_bp": 58.0,
+        "regime": "SOLID"
+      },
+      {
+        "t": "WFC",
+        "dd": 2.28,
+        "cds_bp": 55.7,
+        "regime": "SOLID"
+      },
+      {
+        "t": "BAC",
+        "dd": 2.54,
+        "cds_bp": 49.2,
+        "regime": "STRONG"
+      },
+      {
+        "t": "USB",
+        "dd": 2.75,
+        "cds_bp": 44.9,
+        "regime": "STRONG"
+      },
+      {
+        "t": "PNC",
+        "dd": 2.85,
+        "cds_bp": 43.1,
+        "regime": "STRONG"
+      },
+      {
+        "t": "JPM",
+        "dd": 3.01,
+        "cds_bp": 40.4,
+        "regime": "STRONG"
+      }
+    ],
+    "errors_n": 0
+  },
+  "checks": {
+    "source_has_absolute_regimes": true,
+    "deploy_ok": true,
+    "function_active": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "banks_priced": true,
+    "corporates_priced": true,
+    "no_false_alarm_quintile": true,
+    "absolute_regime_label": true
+  },
+  "all_pass": true,
+  "verdict": "CDS-MONITOR FALSE-ALARM FIX LIVE \u2014 single-name regimes are now absolute, cycle-aware bands. In the current market 0/12 G-SIB banks read WATCH-or-worse (was a permanent ~5/12 under peer-relative grading); composite 12.8/100, alarm board CLEAR. Bank regimes: {'STRONG': 4, 'SOLID': 6, 'NORMAL': 2}."
+}
