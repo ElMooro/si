@@ -5,13 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 150,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "ECB Systemic & Sovereign Stress Engine - pulls the ECB CISS (systemic financial stress; euro area + US/UK/CN/DE/FR/IT/ES) and SovCISS (sovereign stress per euro-area country) from the ECB Data Portal into percentile-ranked stress reads, a 0-100 composite and a euro fragmentation gauge. Output data/systemic-stress.json.",
+  "description": "ECB CISS/SovCISS engine - systemic financial stress (euro area + US/UK/CN/DE/FR/IT/ES) and per-country euro-area sovereign stress from the ECB Data Portal: percentile reads, 0-100 composite, fragmentation gauge. Output data/systemic-stress.json.",
   "environment": {},
   "schedule": {
     "rule_name": "systemic-stress-daily",
     "cron": "cron(0 12 * * ? *)",
-    "description": "ECB Systemic & Sovereign Stress Engine — daily 12:00 UTC"
+    "description": "ECB Systemic & Sovereign Stress Engine \u2014 daily 12:00 UTC"
   }
 }
