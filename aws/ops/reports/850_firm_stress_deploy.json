@@ -1,0 +1,266 @@
+{
+  "ops": 850,
+  "ts": "2026-05-18T20:00:02.803625+00:00",
+  "subject": "Deploy + verify justhodl-firm-stress (the firm Stress Desk - 15-scenario factor-driven P&L on the actual firm book, with desk/sector/name attribution and a reverse stress test)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-firm-stress-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "posture_valid",
+      "ok": true,
+      "detail": "AMBER"
+    },
+    {
+      "check": "scenarios_populated",
+      "ok": true,
+      "detail": "15 scenarios, well_formed=True"
+    },
+    {
+      "check": "scenarios_sorted_worst_first",
+      "ok": true,
+      "detail": "worst=-13.2 best=4.62"
+    },
+    {
+      "check": "book_pnl_in_range",
+      "ok": true,
+      "detail": "min=-13.2 max=4.62"
+    },
+    {
+      "check": "attribution_reconciles",
+      "ok": true,
+      "detail": "all 15 scenarios reconcile"
+    },
+    {
+      "check": "attribution_present",
+      "ok": true,
+      "detail": "desk/sector/losers/gainers populated on all 15"
+    },
+    {
+      "check": "names_modelled",
+      "ok": true,
+      "detail": "n_names_modelled=266"
+    },
+    {
+      "check": "loadings_coverage_adds_up",
+      "ok": true,
+      "detail": "direct=177 + sector=89 + book=0 = 266 vs n_names=266"
+    },
+    {
+      "check": "reverse_stress_present",
+      "ok": true,
+      "detail": "axis=risk-off (-10% tape) unit_pnl=-4.166"
+    },
+    {
+      "check": "reverse_stress_monotone",
+      "ok": true,
+      "detail": "15%->3.6x  25%->6.0x"
+    },
+    {
+      "check": "control_not_worst",
+      "ok": true,
+      "detail": "control_pnl=4.62 worst_type=historical worst=-13.2"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(0 3 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"posture\\\": \\\"AMBER\\\", \\\"worst\\\": -13.2, \\\"n_names\\\": 266, \\\"n_scenarios\\\": 15}\"}"
+  },
+  "firm_stress": {
+    "headline": "Worst modelled scenario: 2020 COVID Crash at -13.2% of book. 13 of 15 scenarios lose money. Firm stress posture AMBER (soft limit -12%, hard -20%).",
+    "posture": "AMBER",
+    "summary": {
+      "n_names_modelled": 266,
+      "n_direct_loadings": 177,
+      "n_sector_proxy": 89,
+      "n_book_fallback": 0,
+      "firm_gross_pct": 100.0,
+      "firm_net_pct": 42.49,
+      "annual_vol_pct": 7.09,
+      "var_99_1d_pct": 1.04,
+      "worst_scenario": "2020 COVID Crash (Feb-Mar 2020)",
+      "worst_loss_pct": -13.2,
+      "median_scenario_pnl_pct": -4.6,
+      "n_scenarios": 15,
+      "n_losing_scenarios": 13
+    },
+    "loss_limits": {
+      "soft_pct": -12.0,
+      "hard_pct": -20.0
+    },
+    "worst_scenario": {
+      "scenario": "2020 COVID Crash (Feb-Mar 2020)",
+      "type": "historical",
+      "book_pnl_pct": -13.2,
+      "worst_desk": {
+        "desk": "Merger-Arb Desk",
+        "pnl_pct": -11.134
+      },
+      "worst_sector": {
+        "sector": "Special Situations",
+        "pnl_pct": -11.134
+      },
+      "top_losers": [
+        {
+          "symbol": "AMWD",
+          "pnl_pct": -3.427
+        },
+        {
+          "symbol": "CADE",
+          "pnl_pct": -2.834
+        },
+        {
+          "symbol": "CCRD",
+          "pnl_pct": -2.298
+        },
+        {
+          "symbol": "PEN",
+          "pnl_pct": -1.15
+        },
+        {
+          "symbol": "RHLD",
+          "pnl_pct": -0.598
+        }
+      ]
+    },
+    "scenario_pnl": [
+      {
+        "scenario": "2020 COVID Crash (Feb-Mar 2020)",
+        "type": "historical",
+        "book_pnl_pct": -13.2
+      },
+      {
+        "scenario": "2008 Global Financial Crisis (Sep-Nov 2008)",
+        "type": "historical",
+        "book_pnl_pct": -11.19
+      },
+      {
+        "scenario": "Equity -20% Broad Selloff",
+        "type": "hypothetical",
+        "book_pnl_pct": -7.37
+      },
+      {
+        "scenario": "2022 Rate Shock (H1 2022)",
+        "type": "historical",
+        "book_pnl_pct": -6.16
+      },
+      {
+        "scenario": "Q4 2018 Selloff",
+        "type": "historical",
+        "book_pnl_pct": -5.65
+      },
+      {
+        "scenario": "Risk-Off Flight to Quality",
+        "type": "hypothetical",
+        "book_pnl_pct": -5.31
+      },
+      {
+        "scenario": "Stagflation Scenario",
+        "type": "hypothetical",
+        "book_pnl_pct": -4.86
+      },
+      {
+        "scenario": "Aug 2015 China Devaluation",
+        "type": "historical",
+        "book_pnl_pct": -4.6
+      },
+      {
+        "scenario": "Mar 2023 Regional Bank Crisis",
+        "type": "historical",
+        "book_pnl_pct": -4.13
+      },
+      {
+        "scenario": "Feb 2018 Volmageddon",
+        "type": "historical",
+        "book_pnl_pct": -3.41
+      },
+      {
+        "scenario": "Rates +150bp Shock",
+        "type": "hypothetical",
+        "book_pnl_pct": -2.04
+      },
+      {
+        "scenario": "2013 Taper Tantrum",
+        "type": "historical",
+        "book_pnl_pct": -1.84
+      },
+      {
+        "scenario": "Aug 2007 Quant / Momentum Crash",
+        "type": "historical",
+        "book_pnl_pct": -0.12
+      },
+      {
+        "scenario": "Momentum Unwind / Crowding Break",
+        "type": "hypothetical",
+        "book_pnl_pct": 0.12
+      },
+      {
+        "scenario": "Soft-Landing Melt-Up (positive control)",
+        "type": "control",
+        "book_pnl_pct": 4.62
+      }
+    ],
+    "reverse_stress": {
+      "unit_vector_used": "risk-off (-10% tape)",
+      "unit_pnl_pct": -4.166,
+      "to_minus_15pct": {
+        "reachable": true,
+        "multiplier": 3.6,
+        "implied_shock": {
+          "MKT": -0.3601,
+          "SIZE": -0.144,
+          "VALUE": -0.072,
+          "MOM": 0.072,
+          "QUALITY": 0.108,
+          "LOWVOL": 0.144
+        },
+        "interpretation": "a risk-off move roughly 3.6x the size of a -10% tape -- equivalent to a market leg of about -36%"
+      },
+      "to_minus_25pct": {
+        "reachable": true,
+        "multiplier": 6.0,
+        "implied_shock": {
+          "MKT": -0.6001,
+          "SIZE": -0.24,
+          "VALUE": -0.12,
+          "MOM": 0.12,
+          "QUALITY": 0.18,
+          "LOWVOL": 0.24
+        },
+        "interpretation": "a risk-off move roughly 6.0x the size of a -10% tape -- equivalent to a market leg of about -60%"
+      }
+    }
+  },
+  "all_pass": true,
+  "verdict": "STRESS DESK LIVE - firm stress posture AMBER. Worst of 15 scenarios: 2020 COVID Crash (Feb-Mar 2020) at -13.2% of book; 13/15 scenarios lose money. 266 names re-priced through cached six-factor loadings, attribution reconciles, reverse stress test live. Runs daily 03:00 UTC after the Factor Risk Model."
+}
