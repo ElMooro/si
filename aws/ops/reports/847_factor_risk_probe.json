@@ -1,0 +1,264 @@
+{
+  "ops": 847,
+  "ts": "2026-05-18T19:16:00.287641+00:00",
+  "subject": "Factor-risk-model build probe - firm-book input + Polygon factor-data feed",
+  "checks": [
+    {
+      "check": "firm_book_readable",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "check": "firm_book_equity_sleeve",
+      "ok": true,
+      "detail": "266 netted equity names"
+    },
+    {
+      "check": "firm_book_has_net_pct",
+      "ok": true,
+      "detail": "266/266 carry signed net_pct"
+    },
+    {
+      "check": "firm_book_has_sectors",
+      "ok": true,
+      "detail": "13 distinct sectors"
+    },
+    {
+      "check": "firm_book_priced",
+      "ok": false,
+      "detail": "164/266 priced"
+    },
+    {
+      "check": "polygon_factor_etfs",
+      "ok": true,
+      "detail": "8/8 factor ETFs returned daily bars"
+    },
+    {
+      "check": "polygon_single_stocks",
+      "ok": false,
+      "detail": "2/5 sample book names returned daily bars"
+    },
+    {
+      "check": "polygon_burst_completed",
+      "ok": true,
+      "detail": "11/12 burst calls ok, 0 throttled, 26.7s wall"
+    }
+  ],
+  "firm_book": {
+    "equity_names": 266,
+    "entry_fields": [
+      "desk_conflict",
+      "desks",
+      "gross_pct",
+      "n_desks",
+      "name",
+      "net_pct",
+      "price",
+      "sector",
+      "side",
+      "symbol"
+    ],
+    "n_with_price": 164,
+    "n_with_net_pct": 266,
+    "n_sectors": 13,
+    "sectors": [
+      "Basic Materials",
+      "Communication Services",
+      "Consumer Cyclical",
+      "Consumer Defensive",
+      "Energy",
+      "Financial Services",
+      "Healthcare",
+      "Industrials",
+      "Real Estate",
+      "Special Situations",
+      "Technology",
+      "Unknown",
+      "Utilities"
+    ],
+    "n_long": 166,
+    "n_short": 100,
+    "sample": [
+      {
+        "symbol": "CADE",
+        "name": "Cadence Bank",
+        "sector": "Special Situations",
+        "price": 42.11,
+        "side": "LONG",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "n_desks": 1,
+        "desks": {
+          "Merger-Arb Desk": 4.872
+        },
+        "desk_conflict": false
+      },
+      {
+        "symbol": "CCRD",
+        "name": "CoreCard Corporation",
+        "sector": "Special Situations",
+        "price": 23.6,
+        "side": "LONG",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "n_desks": 1,
+        "desks": {
+          "Merger-Arb Desk": 4.872
+        },
+        "desk_conflict": false
+      }
+    ],
+    "top5_by_gross": [
+      {
+        "symbol": "CADE",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "sector": "Special Situations"
+      },
+      {
+        "symbol": "CCRD",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "sector": "Special Situations"
+      },
+      {
+        "symbol": "PEN",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "sector": "Special Situations"
+      },
+      {
+        "symbol": "AMWD",
+        "net_pct": 4.872,
+        "gross_pct": 4.872,
+        "sector": "Special Situations"
+      },
+      {
+        "symbol": "TRVR",
+        "net_pct": 1.5859,
+        "gross_pct": 1.5859,
+        "sector": "Special Situations"
+      }
+    ]
+  },
+  "polygon": {
+    "factor_etfs": {
+      "SPY": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "IWM": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "MTUM": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "VLUE": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "QUAL": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "USMV": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "IWD": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "IWF": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      }
+    },
+    "sample_stocks": {
+      "CADE": {
+        "ok": false,
+        "bars": 0,
+        "first": null,
+        "last": null,
+        "http": 200,
+        "err": "no results (status=DELAYED)"
+      },
+      "CCRD": {
+        "ok": false,
+        "bars": 0,
+        "first": null,
+        "last": null,
+        "http": 200,
+        "err": "no results (status=DELAYED)"
+      },
+      "PEN": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "AMWD": {
+        "ok": true,
+        "bars": 29,
+        "first": "2026-04-08",
+        "last": "2026-05-18",
+        "http": 200,
+        "err": ""
+      },
+      "TRVR": {
+        "ok": false,
+        "bars": 0,
+        "first": null,
+        "last": null,
+        "http": 200,
+        "err": "no results (status=DELAYED)"
+      }
+    },
+    "rate_limit_burst": {
+      "calls": 12,
+      "wall_seconds": 26.7,
+      "http_200": 11,
+      "http_429": 0,
+      "calls_per_sec_observed": 0.45,
+      "verdict": "UNTHROTTLED - whole book fetchable in one Lambda run"
+    }
+  },
+  "all_pass": false,
+  "verdict": "REVIEW before building - failed: ['firm_book_priced', 'polygon_single_stocks']"
+}
