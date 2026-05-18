@@ -65,8 +65,8 @@ CATEGORIES = [
      "The book, position sizing, multi-strategy capital allocation and "
      "the trade journal.",
      ["portfolio", "portfolio-manager", "portfolio/", "pm-decision",
-      "firm-book", "desk-allocator", "allocator", "position-sizer",
-      "sizing", "sizing/",
+      "firm-book", "risk-monitor", "desk-allocator", "allocator",
+      "position-sizer", "sizing", "sizing/",
       "trade-journal", "trades/", "watchlist"]),
     ("📉", "Volatility & Market Internals",
      "Vol regime, the VIX curve and market-internals breadth.",
@@ -99,6 +99,7 @@ LABELS = {
     "merger-arb": "Merger-Arbitrage Desk",
     "spinoff-desk": "Spin-Off & Special-Situations Desk",
     "desk-allocator": "Desk Allocator \u2014 Multi-Strategy Capital",
+    "risk-monitor": "Risk Monitor \u2014 Firm Mandate",
     "dividend-growth": "Dividend Compounders",
     "metals-miners": "Metals & Miners",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
