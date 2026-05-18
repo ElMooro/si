@@ -1,0 +1,70 @@
+{
+  "ops": 796,
+  "ts": "2026-05-18T10:45:58.038785+00:00",
+  "subject": "Deploy + verify justhodl-cds-monitor (Merton credit engine)",
+  "deploy": "ERROR ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function",
+  "schedule": {
+    "rule": "cds-monitor-daily",
+    "cron": "cron(0 13 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"composite\": 10.7, \"regime\": \"CALM\", \"alarm_board\": \"CLEAR\", \"errors\": 0}"
+  },
+  "cds_monitor": {
+    "ok": true,
+    "headline": "Global credit stress CALM. Composite 11/100; bank synthetic CDS avg 0bp; alarm board CLEAR.",
+    "composite": 10.7,
+    "regime": "CALM",
+    "n_banks": 12,
+    "n_corporates": 14,
+    "bank_avg_cds_bp": 0.2,
+    "corporate_avg_cds_bp": 1.1,
+    "widest_bank": "Deutsche Bank",
+    "alarm_status": "CLEAR",
+    "n_alarms": 0,
+    "sample_banks": [
+      {
+        "t": "DB",
+        "cds": 2.1,
+        "pd": 0.034
+      },
+      {
+        "t": "C",
+        "cds": 0.4,
+        "pd": 0.006
+      },
+      {
+        "t": "BCS",
+        "cds": 0.4,
+        "pd": 0.007
+      },
+      {
+        "t": "GS",
+        "cds": 0.1,
+        "pd": 0.001
+      },
+      {
+        "t": "JPM",
+        "cds": 0.0,
+        "pd": 0.0
+      }
+    ],
+    "errors_n": 0
+  },
+  "checks": {
+    "deploy_ok": false,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "composite_computed": true,
+    "banks_priced": true,
+    "corporates_priced": true,
+    "merton_sane": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/invoke/cds_monitor"
+}
