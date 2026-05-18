@@ -1,0 +1,13 @@
+{
+  "ops": 811,
+  "ts": "2026-05-18T12:51:52.334890+00:00",
+  "subject": "Decommission justhodl-catch-up-radar (consolidate on beta-laggard)",
+  "steps": {
+    "eventbridge_rule": "deleted (2 target(s) removed)",
+    "lambda_permission": "removed",
+    "lambda": "deleted",
+    "s3_output": "deleted s3://justhodl-dashboard-live/screener/catch-up-radar.json"
+  },
+  "verify_lambda_gone": true,
+  "ok": true
+}
