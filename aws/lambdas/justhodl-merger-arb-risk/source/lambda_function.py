@@ -115,14 +115,18 @@ def lambda_handler(event, context):
             deal_by_target[tgt] = d
 
     # ---- 1) isolate the merger-arb sleeve from the firm book --------------
+    # the arb position is the Merger-Arb desk's OWN signed contribution to
+    # the name (pct of firm capital) -- NOT the firm-net position, which can
+    # conflate other desks holding the same ticker. A risk-arb desk is
+    # structurally long its targets, so this contribution is normally > 0.
     sleeve = []
     for r in firm["equity_book"]:
         dks = r.get("desks") or {}
-        if not any(is_arb_desk(k) for k in dks):
+        arb_pos = sum(float(v) for k, v in dks.items() if is_arb_desk(k))
+        if abs(arb_pos) < 1e-6:
             continue
-        net = float(r.get("net_pct") or 0.0)
-        if net == 0.0:
-            continue
+        r = dict(r)
+        r["_arb_pos"] = arb_pos
         sleeve.append(r)
 
     if not sleeve:
@@ -136,14 +140,16 @@ def lambda_handler(event, context):
     n_live = n_nodata = 0
     for r in sleeve:
         sym = r["symbol"].upper()
-        net = float(r["net_pct"])
+        arb_pos = float(r["_arb_pos"])           # Merger-Arb desk's position
+        firm_net = float(r.get("net_pct") or 0.0)
         d = deal_by_target.get(sym)
         rec = {
             "symbol": sym,
             "name": r.get("name") or sym,
             "sector": r.get("sector") or "Special Situations",
-            "side": r.get("side") or "",
-            "position_pct": round(net, 3),
+            "side": "LONG" if arb_pos > 0 else "SHORT",
+            "position_pct": round(arb_pos, 3),
+            "firm_net_pct": round(firm_net, 3),
         }
         if not d:
             n_nodata += 1
@@ -160,13 +166,18 @@ def lambda_handler(event, context):
         downside = d.get("downside_to_unaffected_pct")          # %, -ve
         downside = float(downside) if downside is not None else None
         deal_risk = d.get("deal_risk")
-        # firm-book P&L impact, as % of the whole firm book
-        carry_if_closes = round(net * spread / 100.0, 3)
-        break_loss = (round(net * downside / 100.0, 3)
+        # firm-book P&L impact, as % of the whole firm book. carry can be
+        # negative for a BUMP-WATCH name trading above deal value (negative
+        # gross spread) -- that is correct economics for a long arb leg.
+        carry_if_closes = round(arb_pos * spread / 100.0, 3)
+        break_loss = (round(arb_pos * downside / 100.0, 3)
                       if downside is not None else None)
-        # market-implied break probability  p = s / (s + |d|)
+        # market-implied break probability  p = s / (s + |d|) -- only defined
+        # for a positive gross spread; a non-positive spread is a bump /
+        # over-completion story, not a break-probability one
         implied_break = None
-        if downside is not None and (spread + abs(downside)) > 1e-6:
+        if (downside is not None and spread > 0
+                and (spread + abs(downside)) > 1e-6):
             implied_break = round(spread / (spread + abs(downside)), 3)
         # model break probability from the desk's deal-risk score
         p_break_model = None
