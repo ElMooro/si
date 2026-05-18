@@ -1,0 +1,45 @@
+{
+  "ops": 821,
+  "ts": "2026-05-18T14:29:38.111074+00:00",
+  "subject": "Migrate scheduled invocation to EventBridge Scheduler (remove the 300-rule cap blocker)",
+  "classic_rule_audit": {
+    "total_classic_rules": 276,
+    "default_cap": 300,
+    "headroom": 24,
+    "note": "Orphan-rule reclamation buys one-time headroom but the cap returns as engines are added. EventBridge Scheduler removes the constraint permanently - that is the point of this migration regardless of current headroom."
+  },
+  "scheduler_audit": {
+    "existing_scheduler_schedules": 0,
+    "scheduler_quota": "1,000,000 (default) - effectively uncapped"
+  },
+  "scheduler_role": {
+    "name": "justhodl-scheduler-role",
+    "status": "created"
+  },
+  "scheduler_schedule": {
+    "name": "justhodl-dividend-growth-daily",
+    "status": "created"
+  },
+  "schedule_verify": {
+    "state": "ENABLED",
+    "expression": "cron(45 13 * * ? *)",
+    "timezone": "UTC",
+    "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-dividend-growth",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "verified": true
+  },
+  "deband_aid": "removed 2 dividend-growth target(s) from capital-return-daily",
+  "host_rule_targets_after": [
+    "justhodl-capital-return"
+  ],
+  "config_rewritten": true,
+  "checks": {
+    "scheduler_role_ready": true,
+    "schedule_created": true,
+    "schedule_verified_enabled": true,
+    "band_aid_disarmed": true,
+    "config_migrated": true
+  },
+  "all_pass": true,
+  "verdict": "EVENTBRIDGE SCHEDULER LIVE - justhodl-dividend-growth now runs daily 13:45 UTC via EventBridge Scheduler (uncapped). The capital-return-daily band-aid is removed, disarming the target1-overwrite bug. Scheduler is the go-forward scheduling path; the 300-rule cap no longer blocks new engines."
+}

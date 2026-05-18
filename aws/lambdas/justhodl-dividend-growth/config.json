@@ -5,13 +5,16 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 300,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Dividend-growth compounder screen - ranks stocks RAISING the dividend (real 3y/5y dividend CAGR, multi-year growth streak, no cut, FCF-covered payout); tiers aristocrat/grower/emerging, high-yield traps quarantined. Output data/dividend-growth.json.",
-  "schedule": {
-    "rule_name": "capital-return-daily",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-dividend-growth-daily",
     "cron": "cron(45 13 * * ? *)",
-    "description": "Co-hosted on the capital-return-daily rule (shared multi-target rule) - daily 13:45 UTC. Account is at the EventBridge 300-rule cap; new per-Lambda rules are not created. See ops 820.",
-    "shared_rule": true
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily 13:45 UTC via Amazon EventBridge Scheduler. The account hit the classic EventBridge 300-rule cap; Scheduler (1M-schedule quota) is the go-forward scheduling path for all justhodl engines. Provisioned by ops 821."
   }
 }
