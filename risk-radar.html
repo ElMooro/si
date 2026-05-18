@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Radar &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='78' font-size='80'>&#9888;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--red)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1020px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--red)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.mode{font-family:var(--mono);font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;padding:5px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.mode b{color:var(--orange);font-size:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+.tab{font-family:var(--mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;padding:7px 13px;border-radius:6px;background:var(--panel);border:1px solid var(--line);color:var(--mute);cursor:pointer;user-select:none}
+.tab:hover{color:var(--txt);border-color:var(--dim)}
+.tab.on{background:rgba(255,85,119,.13);color:var(--red);border-color:rgba(255,85,119,.5)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin-top:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--orange);border-radius:8px;padding:14px}
+.card.tSHORT{border-top-color:var(--red)}
+.card.tAVOID{border-top-color:var(--orange)}
+.card.tDETERIORATING{border-top-color:var(--yellow)}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--txt)}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.sec{color:var(--dim);font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.score{font-family:var(--mono);font-size:23px;font-weight:700;text-align:right;line-height:1;color:var(--red)}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:3px}
+.tierrow{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.tier{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.tier.tSHORT{color:var(--red);background:rgba(255,85,119,.13);border:1px solid rgba(255,85,119,.45)}
+.tier.tAVOID{color:var(--orange);background:rgba(255,122,24,.13);border:1px solid rgba(255,122,24,.45)}
+.tier.tDETERIORATING{color:var(--yellow);background:rgba(255,210,102,.1);border:1px solid rgba(255,210,102,.4)}
+.mode-b{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--panel2);color:var(--mute);border:1px solid var(--line)}
+.cf{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid}
+.cf.short{color:var(--red);border-color:rgba(255,85,119,.4);background:rgba(255,85,119,.08)}
+.cf.trap{color:var(--purple);border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.08)}
+.axes{margin:9px 0}
+.ax{display:flex;align-items:center;gap:8px;margin:3px 0}
+.axl{font-family:var(--mono);font-size:8.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--dim);width:74px;flex-shrink:0}
+.axbar{flex:1;height:6px;background:var(--panel2);border-radius:3px;overflow:hidden}
+.axfill{height:100%;border-radius:3px}
+.axv{font-family:var(--mono);font-size:9px;color:var(--mute);width:24px;text-align:right}
+.flags{margin:8px 0 0}
+.flag{font-size:11px;color:var(--mute);line-height:1.5;display:flex;gap:6px;margin-top:4px}
+.flag::before{content:"\25B8";color:var(--red);flex-shrink:0}
+.thesis{color:var(--txt);font-size:11.5px;line-height:1.6;margin:9px 0 0;padding-top:9px;border-top:1px solid var(--line)}
+.cav{color:var(--dim);font-size:10px;line-height:1.5;margin-top:7px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:14px}
+.note{color:var(--dim);font-size:11px;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#9888; Risk Radar</h1>
+    <p class="subtitle">The platform runs a dozen screens for what to <b>buy</b>. This is the one for what to <b>avoid</b>. Every S&amp;P 500 name is scored on five fundamental-deterioration axes &mdash; solvency stress, earnings-quality erosion, an analyst exodus, momentum breakdown and overvaluation &mdash; then split into genuine <b>short candidates</b> (a multi-axis breakdown) and names to simply <b>avoid</b>. A risk screen flags danger; it does not time entries.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/screener/">screener</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">SCANNING THE INDEX FOR DETERIORATION&hellip;</div></div>
+  <div id="modes" class="modes"></div>
+  <div id="tabs" class="tabs"></div>
+  <div id="grid" class="grid"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const cap=(v)=>{if(v==null)return"&mdash;";const a=Math.abs(v);if(a>=1e12)return"$"+(a/1e12).toFixed(1)+"T";if(a>=1e9)return"$"+(a/1e9).toFixed(1)+"B";if(a>=1e6)return"$"+(a/1e6).toFixed(0)+"M";return"$"+a.toFixed(0);};
+let DATA=null,FILTER="all";
+
+const AXES=[["solvency","Solvency"],["earnings","Earnings"],["analyst","Analyst"],["momentum","Momentum"],["valuation","Valuation"]];
+function axColor(v){return v>=70?"var(--red)":v>=50?"var(--orange)":v>=30?"var(--yellow)":"var(--dim)";}
+function tierKey(t){return t==="SHORT CANDIDATE"?"tSHORT":t==="AVOID"?"tAVOID":"tDETERIORATING";}
+
+function card(c){
+  const tk=tierKey(c.tier);
+  const axrows=AXES.map(([k,lab])=>{
+    const v=(c.axis_scores||{})[k];
+    if(v==null)return `<div class="ax"><div class="axl">${lab}</div><div class="axbar"></div><div class="axv" style="color:var(--dim)">n/a</div></div>`;
+    return `<div class="ax"><div class="axl">${lab}</div><div class="axbar"><div class="axfill" style="width:${Math.min(v,100)}%;background:${axColor(v)}"></div></div><div class="axv">${v.toFixed(0)}</div></div>`;
+  }).join("");
+  const conf=[];
+  if(c.shorts_building)conf.push(`<span class="cf short">tape shorting</span>`);
+  if(c.value_trap_confirmed)conf.push(`<span class="cf trap">value trap</span>`);
+  const flags=(c.red_flags||[]).map(f=>`<div class="flag">${esc(f)}</div>`).join("");
+  return `<div class="card ${tk}">
+    <div class="crow">
+      <div>
+        <div class="tk">${esc(c.symbol)}</div>
+        <div class="nm">${esc(c.name)}</div>
+        <div class="sec">${esc(c.sector)} &middot; ${cap(c.market_cap)}</div>
+      </div>
+      <div class="score">${(c.deterioration_score||0).toFixed(0)}<small>DETERIORATION</small></div>
+    </div>
+    <div class="tierrow">
+      <span class="tier ${tk}">${esc(c.tier)}</span>
+      <span class="mode-b">${esc(c.failure_mode)}</span>
+      ${conf.join("")}
+    </div>
+    <div class="axes">${axrows}</div>
+    <div class="flags">${flags}</div>
+    <div class="thesis">${esc(c.short_thesis)}</div>
+    <div class="cav">${esc(c.caveat)}</div>
+  </div>`;
+}
+
+function render(){
+  if(!DATA)return;
+  let rows=DATA.stack||[];
+  if(FILTER==="short")rows=rows.filter(c=>c.tier==="SHORT CANDIDATE");
+  else if(FILTER==="avoid")rows=rows.filter(c=>c.tier==="AVOID");
+  else if(FILTER==="deteriorating")rows=rows.filter(c=>c.tier==="DETERIORATING");
+  document.getElementById("grid").innerHTML=rows.length?rows.map(card).join(""):
+    `<div class="loading">No names in this bucket.</div>`;
+}
+
+function setFilter(f,el){
+  FILTER=f;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));
+  el.classList.add("on");
+  render();
+}
+
+async function load(){
+  try{
+    const r=await fetch(S3+"data/risk-radar.json?t="+Date.now());
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    DATA=await r.json();
+    document.getElementById("hero").innerHTML=
+      `<div class="hl">${esc(DATA.headline)}</div>`+
+      `<div class="htr">Screened ${DATA.universe_screened} S&amp;P 500 names &middot; `+
+      `${DATA.n_carried} carry fundamental deterioration &middot; `+
+      `${DATA.n_short_candidates} short candidates, ${DATA.n_avoid} avoid.</div>`;
+    const bm=DATA.by_failure_mode||{};
+    document.getElementById("modes").innerHTML=Object.keys(bm).sort((a,b)=>bm[b]-bm[a])
+      .map(k=>`<span class="mode"><b>${bm[k]}</b> ${esc(k)}</span>`).join("");
+    const tabs=[["all","All ("+(DATA.stack||[]).length+")"],
+                ["short","Short Candidates ("+DATA.n_short_candidates+")"],
+                ["avoid","Avoid ("+DATA.n_avoid+")"],
+                ["deteriorating","Deteriorating"]];
+    document.getElementById("tabs").innerHTML=tabs.map(([f,lab],i)=>
+      `<div class="tab${i===0?" on":""}" data-f="${f}">${esc(lab)}</div>`).join("");
+    document.querySelectorAll(".tab").forEach(t=>
+      t.addEventListener("click",()=>setFilter(t.dataset.f,t)));
+    document.getElementById("note").textContent=(DATA.methodology||"")+"  "+(DATA.disclaimer||"");
+    const t=DATA.generated_at?new Date(DATA.generated_at):null;
+    document.getElementById("ts").textContent=t?("Generated "+t.toUTCString()):"";
+    render();
+  }catch(e){
+    document.getElementById("hero").innerHTML=
+      `<div class="loading" style="color:var(--red)">FEED UNAVAILABLE &mdash; ${esc(e.message)}</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>

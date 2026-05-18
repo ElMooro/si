@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-risk-radar",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 320,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Risk Radar - defensive desk. Scores the S&P 500 on five fundamental-deterioration axes (solvency, earnings, analyst exodus, momentum, overvaluation) and splits short candidates from avoid names. Output data/risk-radar.json.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-risk-radar-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Risk Radar fundamental-deterioration screen - daily 14:30 UTC via Amazon EventBridge Scheduler. The classic EventBridge 300-rule pool is saturated; Scheduler is the go-forward scheduling path."
+  }
+}
