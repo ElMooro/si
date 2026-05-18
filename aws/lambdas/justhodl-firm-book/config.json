@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-firm-book",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 320,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Firm Book - consolidated cross-desk position blotter. Sizes each desk's positions to its allocator capital weight, nets tickers across desks, rolls up firm gross/net exposure, sector tilts, conviction overlap and desk conflicts.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-firm-book-daily",
+    "cron": "cron(0 1 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Firm Book consolidated blotter - daily 01:00 UTC via Amazon EventBridge Scheduler, 30 minutes after the Desk Allocator publishes its capital weights so the book is built on fresh desk sizing."
+  }
+}
