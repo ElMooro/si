@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-merger-arb",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Merger-arbitrage spread desk - parses SEC S-4 deal terms on announced M&A, prices gross spread + annualized return + deal-break risk, writes data/merger-arb.json.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-merger-arb-2x",
+    "cron": "cron(40 13,21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Merger-arb spread desk - twice daily 13:40 and 21:40 UTC via Amazon EventBridge Scheduler. Scheduler is the go-forward path; the classic 300-rule EventBridge pool is saturated."
+  }
+}
