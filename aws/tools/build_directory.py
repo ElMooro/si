@@ -40,7 +40,7 @@ CATEGORIES = [
       "treasury-auctions", "auctions", "credit/"]),
     ("💹", "Equities, Screening & Value",
      "Stock screening, fundamentals, baggers and valuation work.",
-     ["boom-board", "screener/", "stock/", "stocks/", "deep-value", "fundamentals",
+     ["boom-board", "catch-up-radar", "screener/", "stock/", "stocks/", "deep-value", "fundamentals",
       "baggers", "valuations", "master-rank", "eps-velocity",
       "pead-signals", "earnings-whisper", "earnings/", "sectors",
       "sector-tilt", "themes", "theme-tiers", "ath", "momentum",
@@ -86,6 +86,7 @@ CATEGORIES = [
 LABELS = {
     "boom-radar": "Boom Radar (Hypergrowth)",
     "boom-board": "Boom Board",
+    "catch-up-radar": "Catch-Up Radar",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
     "ecb": "ECB Data", "boj-detail": "BOJ & Yen Carry",
     "snb-detail": "SNB & Swiss Franc", "systemic-stress": "Systemic Stress",

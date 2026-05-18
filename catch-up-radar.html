@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catch-Up Radar · JustHodl.AI</title>
+<style>
+  :root{
+    --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+    --cyan:#00d4ff;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;
+    --yellow:#ffd266;--purple:#a78bfa;--txt:#d6e0f0;--dim:#6c7a93;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);
+    font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+    font-size:13px;line-height:1.5;padding:18px 14px 60px;max-width:1180px;
+    margin:0 auto}
+  a{color:var(--cyan);text-decoration:none}
+  h1{font-size:20px;color:#fff;letter-spacing:.5px}
+  h2{font-size:13px;color:var(--cyan);text-transform:uppercase;
+    letter-spacing:1.5px;margin:26px 0 10px;border-bottom:1px solid var(--line);
+    padding-bottom:6px}
+  .sub{color:var(--dim);font-size:11.5px;margin-top:3px}
+  .nav{margin:10px 0 4px;font-size:11.5px}
+  .nav a{margin-right:14px;color:var(--dim)}
+  .nav a:hover{color:var(--cyan)}
+  .headline{background:var(--panel);border:1px solid var(--line);
+    border-left:3px solid var(--green);padding:11px 13px;margin:14px 0;
+    border-radius:5px;font-size:12.5px;color:#cfe}
+  .themes{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+  .chip{background:var(--panel2);border:1px solid var(--line);
+    border-radius:5px;padding:7px 10px;font-size:11px;min-width:128px}
+  .chip b{color:#fff;font-size:12px}
+  .chip .ms{float:right;color:var(--green)}
+  .chip .d{color:var(--dim);font-size:10.5px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;margin-top:6px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);
+    font-size:11.5px;vertical-align:top}
+  th{color:var(--dim);text-transform:uppercase;font-size:10px;
+    letter-spacing:.6px;cursor:default}
+  tr.row{cursor:pointer}
+  tr.row:hover{background:var(--panel2)}
+  .sym{color:#fff;font-weight:600}
+  .score{display:inline-block;min-width:34px;text-align:center;
+    padding:2px 5px;border-radius:4px;font-weight:600;font-size:11px}
+  .s-hi{background:rgba(38,255,175,.14);color:var(--green)}
+  .s-md{background:rgba(255,210,102,.13);color:var(--yellow)}
+  .s-lo{background:rgba(108,122,147,.16);color:var(--dim)}
+  .pos{color:var(--green)}.neg{color:var(--red)}.amb{color:var(--yellow)}
+  .tag{font-size:9.5px;padding:1px 5px;border-radius:3px;margin-left:5px;
+    border:1px solid var(--line)}
+  .tag-trap{color:var(--red);border-color:rgba(255,85,119,.4)}
+  .tag-lc{color:var(--orange);border-color:rgba(255,122,24,.4)}
+  .detail{display:none;background:var(--panel2)}
+  .detail td{padding:11px 13px;color:#bcc9dd;font-size:11.5px;line-height:1.65}
+  .detail .flag{color:var(--orange);display:block;margin-top:4px}
+  .foot{margin-top:30px;color:var(--dim);font-size:10.5px;line-height:1.6;
+    border-top:1px solid var(--line);padding-top:12px}
+  .empty{color:var(--dim);padding:14px;background:var(--panel);
+    border:1px solid var(--line);border-radius:5px}
+  .err{color:var(--red);padding:14px;background:var(--panel);
+    border:1px solid rgba(255,85,119,.4);border-radius:5px}
+  .tgt{color:var(--green);font-weight:600}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a href="/">⌂ Home</a><a href="/screener/">◂ Screener</a>
+  <a href="/boom-board.html">Boom Board</a>
+  <a href="/boom-radar.html">Boom Radar</a>
+  <a href="/directory.html">Directory</a>
+</div>
+<h1>🛰 Catch-Up Radar</h1>
+<div class="sub">Relative-value layer — beta-adjusted laggards primed to follow
+  the leaders, and ETFs whose basket has outrun the fund.</div>
+
+<div id="headline" class="headline">Loading…</div>
+
+<h2>Hot themes — the leader cohorts</h2>
+<div class="sub" style="margin-bottom:8px">Themes leading the market right now.
+  Laggards below are measured against these cohorts.</div>
+<div id="themes" class="themes"></div>
+
+<h2>Beta-laggards — set to follow the alphas</h2>
+<div class="sub" style="margin-bottom:6px">Names lagging their hot theme despite
+  a high beta — i.e. they "should" have moved and haven't yet. Tap a row for the
+  full thesis. Higher score = bigger unspent move + stronger theme + healthier
+  fundamentals.</div>
+<div id="lag-wrap"></div>
+
+<h2>ETF holdings catch-up</h2>
+<div class="sub" style="margin-bottom:6px">ETFs whose constituent basket has run
+  hotter than the fund's own price. A holdings-momentum read — liquid ETFs track
+  NAV via arbitrage, so this is the basket leading the fund, not a discount.</div>
+<div id="etf-wrap"></div>
+
+<div id="foot" class="foot"></div>
+
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/screener/catch-up-radar.json";
+const $=id=>document.getElementById(id);
+const sgn=v=>v==null?"—":(v>0?"pos":v<0?"neg":"amb");
+const pc=(v,d=0)=>v==null?"—":(v>0?"+":"")+v.toFixed(d)+"%";
+const esc=s=>(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function scoreCls(s){return s>=55?"s-hi":s>=38?"s-md":"s-lo";}
+
+function renderThemes(themes){
+  if(!themes||!themes.length){$("themes").innerHTML=
+    "<div class='empty'>No themes are clearly leading right now.</div>";return;}
+  $("themes").innerHTML=themes.slice(0,12).map(t=>`
+    <div class="chip">
+      <b>${esc(t.ticker)}</b><span class="ms">${t.momentum_score?.toFixed(0)??"—"}</span>
+      <div class="d">${esc(t.name||"")}</div>
+      <div class="d">20d <span class="${sgn(t.ret_20d)}">${pc(t.ret_20d)}</span>
+        · ${t.breadth_pct!=null?t.breadth_pct.toFixed(0)+"% breadth":"&nbsp;"}
+        · ${t.n_members} members</div>
+    </div>`).join("");
+}
+
+function renderLaggards(rows){
+  const w=$("lag-wrap");
+  if(!rows||!rows.length){w.innerHTML=
+    "<div class='empty'>No beta-laggard set-ups right now — leaders and "+
+    "laggards are moving together. The radar does not force a list.</div>";return;}
+  let h=`<table><thead><tr>
+    <th>Score</th><th>Symbol</th><th>Theme</th><th>β</th>
+    <th>20d ret</th><th>β-expected</th><th>Shortfall</th>
+    <th>Target</th><th>Upside</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    const tags=(r.value_trap_flag?'<span class="tag tag-trap">TRAP RISK</span>':'')
+      +(r.low_confidence&&!r.value_trap_flag?'<span class="tag tag-lc">LOW-CONF</span>':'');
+    h+=`<tr class="row" onclick="tog(${i})">
+      <td><span class="score ${scoreCls(r.catch_up_score)}">${r.catch_up_score?.toFixed(0)??"—"}</span></td>
+      <td><span class="sym">${esc(r.symbol)}</span>${tags}<br>
+        <span style="color:var(--dim);font-size:10px">${esc((r.name||"").slice(0,26))}</span></td>
+      <td>${esc(r.theme)}<br><span style="color:var(--dim);font-size:10px">${esc((r.theme_name||"").slice(0,20))}</span></td>
+      <td>${r.beta?.toFixed(1)??"—"}</td>
+      <td class="${sgn(r.ret_20d)}">${pc(r.ret_20d)}</td>
+      <td class="amb">${pc(r.beta_expected_20d)}</td>
+      <td class="pos">${pc(r.shortfall_pct)}</td>
+      <td class="tgt">${r.price_target!=null?"$"+r.price_target.toFixed(2):"—"}</td>
+      <td class="${sgn(r.upside_pct)}">${pc(r.upside_pct)}</td></tr>
+    <tr class="detail" id="d${i}"><td colspan="9">
+      ${esc(r.thesis)}
+      ${(r.flags||[]).map(f=>`<span class="flag">⚠ ${esc(f)}</span>`).join("")}
+      <span class="flag" style="color:var(--dim)">Horizon: ${esc(r.target_horizon||"")}
+        · convergence factor ${r.convergence_factor??"—"}
+        · fundamental health ${r.fundamental_health??"n/a"}/100</span>
+    </td></tr>`;
+  });
+  w.innerHTML=h+"</tbody></table>";
+}
+
+function renderEtf(rows){
+  const w=$("etf-wrap");
+  if(!rows||!rows.length){w.innerHTML=
+    "<div class='empty'>No ETF basket-vs-fund gaps right now.</div>";return;}
+  let h=`<table><thead><tr>
+    <th>ETF</th><th>Fund 20d</th><th>Basket 20d</th><th>Gap</th>
+    <th>Breadth</th><th>Target</th><th>Upside</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    h+=`<tr class="row" onclick="togE(${i})">
+      <td><span class="sym">${esc(r.ticker)}</span><br>
+        <span style="color:var(--dim);font-size:10px">${esc((r.name||"").slice(0,26))}</span></td>
+      <td class="${sgn(r.etf_ret_20d)}">${pc(r.etf_ret_20d)}</td>
+      <td class="${sgn(r.basket_ret_20d)}">${pc(r.basket_ret_20d)}</td>
+      <td class="pos">${pc(r.holdings_gap_pct)}</td>
+      <td>${r.breadth_pct!=null?r.breadth_pct.toFixed(0)+"%":"—"}</td>
+      <td class="tgt">${r.price_target!=null?"$"+r.price_target.toFixed(2):"—"}</td>
+      <td class="${sgn(r.upside_pct)}">${pc(r.upside_pct)}</td></tr>
+    <tr class="detail" id="e${i}"><td colspan="7">${esc(r.thesis)}
+      <span class="flag" style="color:var(--dim)">Horizon: ${esc(r.target_horizon||"")}</span>
+    </td></tr>`;
+  });
+  w.innerHTML=h+"</tbody></table>";
+}
+
+function tog(i){const d=$("d"+i);d.style.display=d.style.display==="table-row"?"none":"table-row";}
+function togE(i){const d=$("e"+i);d.style.display=d.style.display==="table-row"?"none":"table-row";}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(d=>{
+  if(d.error){$("headline").className="err";
+    $("headline").textContent="⚠ "+d.error;return;}
+  $("headline").textContent=d.headline||"";
+  renderThemes(d.hot_themes);
+  renderLaggards(d.catch_up_candidates);
+  renderEtf(d.etf_catchup);
+  const c=d.counts||{};
+  $("foot").innerHTML=
+    `${c.hot_themes||0} hot themes · ${c.catch_up_candidates||0} laggard set-ups `
+    +`(${c.high_conviction||0} high-conviction) · ${c.etf_catchup||0} ETF gaps · `
+    +`generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC<br><br>`
+    +`<b>Method.</b> ${esc(d.methodology||"")}<br><br>`
+    +`<b>Disclaimer.</b> ${esc(d.disclaimer||"")}`;
+}).catch(e=>{$("headline").className="err";
+  $("headline").textContent="⚠ Could not load the radar feed: "+e;});
+</script>
+</body>
+</html>
