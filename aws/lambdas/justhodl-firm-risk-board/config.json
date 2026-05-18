@@ -1,0 +1,21 @@
+{
+ "function_name": "justhodl-firm-risk-board",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm CRO Risk Board - synthesis layer rolling the eight firm risk engines into one worst-of posture, a binding-constraint readout, a limit-utilisation table, day-over-day deltas and a deterministic CRO brief. data/firm-risk-board.json.",
+ "environment": {},
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-firm-risk-board-daily",
+  "cron": "cron(0 4 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm CRO Risk Board - daily 04:00 UTC via Amazon EventBridge Scheduler, after merger-arb-risk (03:30), so it always synthesises a complete fresh risk stack."
+ }
+}
