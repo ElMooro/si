@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Desk &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128737;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1010px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .posture{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:2px;margin-bottom:6px}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.hero .bind{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:8px}
+.hero .bind b{color:var(--txt)}
+.brief{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:13px 15px;margin-bottom:14px}
+.brief .bt{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.brief .bb{font-size:12.5px;color:var(--txt);line-height:1.65}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:24px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+.grp{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:14px 0 7px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:9px}
+.tile{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:8px;padding:12px 13px;transition:transform .12s ease,border-color .12s ease,background .12s ease;opacity:0;animation:rise .4s ease forwards}
+.tile:hover{transform:translateY(-2px);background:var(--panel2)}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.tile .trow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tile .tn{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--txt)}
+.tile .ts{font-family:var(--mono);font-size:7.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-top:1px}
+.chip{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:3px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.tile .th{font-size:11px;color:var(--mute);line-height:1.5;margin-top:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:48px}
+.tile .tf{font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:8px;display:flex;justify-content:space-between}
+.deskstrip{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.desk{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:10px 11px}
+.desk .dn{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--txt);display:flex;justify-content:space-between;align-items:baseline}
+.desk .dn .dstat{font-size:7.5px;letter-spacing:.5px;padding:2px 5px;border-radius:3px}
+.desk .dw{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--cyan);margin-top:4px}
+.desk .dbar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:6px}
+.desk .dbar > i{display:block;height:100%;border-radius:3px;background:var(--cyan)}
+.foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.fchip{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 11px;min-width:128px}
+.fchip .cl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.fchip .cv{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:3px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:14px}
+.note{color:var(--dim);font-size:11px;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128737; Risk Desk</h1>
+    <p class="subtitle">The firm Risk Desk &mdash; the CRO cockpit. One screen for the whole risk stack: the Firm Risk Board's synthesised verdict on top, then every risk engine below as a live status board &mdash; consolidated book, mandate &amp; liquidity limits, scenario &amp; tail stress, factor and P&amp;L attribution, and the convexity hedge. Each tile reads that engine's own output; nothing is re-computed here. Click any tile for the full desk.</p>
+    <nav class="crumbs">
+      <a href="/firm-risk-board.html">risk board</a>
+      <a href="/firm-stress.html">stress desk</a>
+      <a href="/tail-hedge.html">tail hedge</a>
+      <a href="/firm-book.html">firm book</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING RISK DESK&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)",cyan:"var(--cyan)",dim:"var(--dim)"};
+const STALE_H=30;
+
+// The firm risk stack -- every engine, grouped as a CRO would read them.
+const GROUPS=[
+  {grp:"Synthesis &amp; Hedge",items:[
+    {k:"firm-risk-board",label:"Firm Risk Board",sub:"CRO synthesis",json:"firm-risk-board.json",href:"/firm-risk-board.html",pf:["firm_posture"]},
+    {k:"tail-hedge",label:"Tail Hedge Overlay",sub:"Convexity desk",json:"tail-hedge.json",href:"/tail-hedge.html",pf:["status","hedge_posture"],colorKey:"status_color"},
+  ]},
+  {grp:"Mandate &amp; Liquidity Limits",items:[
+    {k:"risk-monitor",label:"Risk Mandate Monitor",sub:"Limit breach board",json:"risk-monitor.json",href:"/risk-monitor.html",pf:["risk_posture"],colorKey:"posture_color"},
+    {k:"liquidity-capacity",label:"Liquidity &amp; Capacity",sub:"Days-to-liquidate",json:"liquidity-capacity.json",href:"/liquidity-capacity.html",pf:["liquidity_posture"]},
+  ]},
+  {grp:"Scenario &amp; Tail Stress",items:[
+    {k:"firm-stress",label:"Firm Stress Desk",sub:"15-scenario P&amp;L",json:"firm-stress.json",href:"/firm-stress.html",pf:["posture"]},
+    {k:"merger-arb-risk",label:"Merger-Arb Book Risk",sub:"Deal-break stress",json:"merger-arb-risk.json",href:"/merger-arb-risk.html",pf:["posture"]},
+  ]},
+  {grp:"Exposure, Factor &amp; Attribution",items:[
+    {k:"firm-book",label:"Firm Book",sub:"Consolidated blotter",json:"firm-book.json",href:"/firm-book.html",pf:[]},
+    {k:"factor-risk",label:"Factor Risk Model",sub:"6-factor decomposition",json:"factor-risk.json",href:"/factor-risk.html",pf:[]},
+    {k:"pnl-attribution",label:"P&amp;L Attribution",sub:"Performance desk",json:"pnl-attribution.json",href:"/pnl-attribution.html",pf:["posture"]},
+    {k:"desk-allocator",label:"Desk Allocator",sub:"Risk-parity capital",json:"desk-allocator.json",href:"/desk-allocator.html",pf:[]},
+    {k:"desk-returns",label:"Desk Returns",sub:"Daily MTM feed",json:"desk-returns.json",href:"/desk-returns.html",pf:[]},
+  ]},
+];
+
+function classify(word){
+  if(word==null) return {color:"cyan",rank:0};
+  const w=String(word).toUpperCase();
+  if(/GREEN|^OK$|LIVE|LIQUID/.test(w))                 return {color:"green",rank:1};
+  if(/AMBER|WATCH|MODERATE/.test(w))                   return {color:"orange",rank:2};
+  if(/RED|ALERT|BREACH|ILLIQUID|^TIGHT/.test(w))       return {color:"red",rank:3};
+  if(/WARMING|UNKNOWN/.test(w))                        return {color:"dim",rank:0};
+  return {color:"cyan",rank:0};
+}
+function statusOf(d,cfg){
+  if(!d) return {word:"NO FEED",color:"red",rank:3,info:false};
+  let word=null;
+  for(const f of (cfg.pf||[])){ if(d[f]!=null){ word=String(d[f]); break; } }
+  if(word==null) return {word:"INFO",color:"cyan",rank:0,info:true};
+  let c=classify(word);
+  if(cfg.colorKey&&typeof d[cfg.colorKey]==="string"&&COL[d[cfg.colorKey]])
+    c={color:d[cfg.colorKey],rank:c.rank};
+  return {word:word,color:c.color,rank:c.rank,info:false};
+}
+function ageHours(d){
+  if(!d||!d.generated_at) return null;
+  const t=Date.parse(d.generated_at);
+  if(isNaN(t)) return null;
+  return (Date.now()-t)/3600000;
+}
+function ageLabel(h){
+  if(h==null) return "age n/a";
+  if(h<1) return Math.round(h*60)+"m ago";
+  if(h<48) return h.toFixed(1)+"h ago";
+  return Math.round(h/24)+"d ago";
+}
+
+Promise.all(GROUPS.flatMap(g=>g.items).map(it=>
+  fetch(S3+it.json+"?t="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
+)).then(all=>{
+  const flat=GROUPS.flatMap(g=>g.items);
+  const data={};
+  flat.forEach((it,i)=>data[it.k]=all[i]);
+
+  const board=data["firm-risk-board"];
+  let h="";
+
+  // ---- HERO: the Firm Risk Board verdict -----------------------------------
+  if(board){
+    const fp=board.firm_posture||"--";
+    const pc=classify(fp).color;
+    const bc=board.binding_constraint||{};
+    h+='<div class="hero" style="border-left-color:'+COL[pc]+'">'+
+      '<div class="ptag">Firm Risk Posture &mdash; synthesised by the CRO Risk Board</div>'+
+      '<div class="posture" style="color:'+COL[pc]+'">'+esc(fp)+'</div>'+
+      '<div class="hl">'+esc(board.headline||"")+'</div>';
+    if(bc.label)
+      h+='<div class="bind">Binding constraint: <b>'+esc(bc.label)+'</b> &mdash; '+
+         esc(bc.status||"")+(bc.headline?' &middot; '+esc(bc.headline):'')+'</div>';
+    h+='</div>';
+    if(board.cro_brief)
+      h+='<div class="brief"><div class="bt">CRO Brief</div><div class="bb">'+esc(board.cro_brief)+'</div></div>';
+  }else{
+    h+='<div class="hero" style="border-left-color:var(--red)">'+
+      '<div class="ptag">Firm Risk Posture</div>'+
+      '<div class="posture" style="color:var(--red);font-size:20px">RISK BOARD FEED UNAVAILABLE</div>'+
+      '<div class="hl">The Firm Risk Board synthesis could not be loaded. Per-engine status is shown below; treat the firm-level verdict as stale until the board feed refreshes.</div></div>';
+  }
+
+  // ---- top-line stats ------------------------------------------------------
+  if(board){
+    const tl=board.tightest_limit||{};
+    const st=[
+      ["Firm Posture",esc(board.firm_posture||"--"),COL[classify(board.firm_posture).color]],
+      ["Alerts / Watches",(board.n_alert==null?"-":board.n_alert)+" / "+(board.n_watch==null?"-":board.n_watch),
+        (board.n_alert>0?"var(--red)":board.n_watch>0?"var(--orange)":"var(--green)")],
+      ["Binding Axis",esc((board.binding_constraint||{}).label||"--"),"var(--txt)"],
+      ["Tightest Limit",tl.utilization_pct==null?"--":Number(tl.utilization_pct).toFixed(0)+"%",
+        "var(--mute)"],
+      ["Board Confidence",esc(board.confidence||"--"),
+        board.confidence==="HIGH"?"var(--green)":board.confidence==="LOW"?"var(--red)":"var(--yellow)"],
+    ];
+    h+='<div class="stats">'+st.map(s=>
+      '<div class="stat"><div class="sl">'+s[0]+'</div><div class="sv" style="font-size:'+
+      (String(s[1]).length>9?"12px":"18px")+';color:'+s[2]+'">'+s[1]+'</div></div>').join("")+'</div>';
+  }
+
+  // ---- RISK STACK STATUS BOARD --------------------------------------------
+  const flatAll=GROUPS.flatMap(g=>g.items);
+  let nFresh=0,nFeeds=0,stalest=null;
+  flatAll.forEach(it=>{
+    const d=data[it.k]; if(d!=null){ nFeeds++; const a=ageHours(d);
+      if(a!=null&&a<=STALE_H) nFresh++;
+      if(a!=null&&(stalest==null||a>stalest.a)) stalest={k:it.label,a:a}; }
+  });
+  let nAlert=0,nWatch=0;
+  flatAll.forEach(it=>{const s=statusOf(data[it.k],it); if(s.rank===3)nAlert++; else if(s.rank===2)nWatch++;});
+
+  h+='<div class="sechead">Risk Stack Status Board <small>&mdash; '+flatAll.length+
+     ' engines, each reading its own live output</small></div>';
+
+  let idx=0;
+  GROUPS.forEach(g=>{
+    h+='<div class="grp">'+g.grp+'</div><div class="grid">';
+    g.items.forEach(it=>{
+      const d=data[it.k];
+      const s=statusOf(d,it);
+      const a=ageHours(d);
+      const stale=(a!=null&&a>STALE_H);
+      const cv=COL[s.color]||"var(--dim)";
+      const head=d?(d.headline||d.cro_brief||"&mdash;"):"Feed unavailable &mdash; this engine's output could not be loaded.";
+      h+='<a class="tile" href="'+it.href+'" style="border-left-color:'+cv+
+         ';animation-delay:'+(idx*45)+'ms">'+
+        '<div class="trow"><div><div class="tn">'+it.label+'</div>'+
+          '<div class="ts">'+it.sub+'</div></div>'+
+          '<span class="chip" style="background:'+cv+'22;color:'+cv+'">'+
+            esc(s.word)+'</span></div>'+
+        '<div class="th">'+esc(String(head).slice(0,200))+'</div>'+
+        '<div class="tf"><span>'+esc(it.json)+'</span>'+
+          '<span style="color:'+(stale?"var(--orange)":"var(--dim)")+'">'+
+          (stale?"STALE &middot; ":"")+ageLabel(a)+'</span></div>'+
+        '</a>';
+      idx++;
+    });
+    h+='</div>';
+  });
+
+  // ---- STRATEGY DESK ALLOCATION STRIP -------------------------------------
+  const alloc=data["desk-allocator"];
+  const desks=(alloc&&Array.isArray(alloc.desks))?alloc.desks:[];
+  if(desks.length){
+    const maxW=Math.max.apply(null,desks.map(x=>Number(x.capital_weight_pct)||0),1);
+    h+='<div class="sechead">Strategy Desks <small>&mdash; the seven pods the risk stack consolidates, sized by the Desk Allocator</small></div>';
+    h+='<div class="deskstrip">'+desks.map(dk=>{
+      const w=Number(dk.capital_weight_pct)||0;
+      const off=/OFFLINE|DRY|STALE/i.test(dk.status||"");
+      const sc=off?"var(--dim)":"var(--green)";
+      return '<div class="desk"><div class="dn"><span>'+esc(dk.name||dk.key||"--")+'</span>'+
+        '<span class="dstat" style="background:'+sc+'22;color:'+sc+'">'+esc(dk.status||"--")+'</span></div>'+
+        '<div class="dw">'+w.toFixed(1)+'%</div>'+
+        '<div class="dbar"><i style="width:'+Math.max(3,w/maxW*100)+'%"></i></div></div>';
+    }).join("")+'</div>';
+  }
+
+  // ---- FEED HEALTH FOOTER --------------------------------------------------
+  h+='<div class="sechead">Risk Stack Health <small>&mdash; freshness and alert load across the engines</small></div>';
+  h+='<div class="foot">'+
+    '<div class="fchip"><div class="cl">Engines Reporting</div><div class="cv" style="color:'+
+      (nFeeds===flatAll.length?"var(--green)":"var(--orange)")+'">'+nFeeds+' / '+flatAll.length+'</div></div>'+
+    '<div class="fchip"><div class="cl">Feeds Fresh</div><div class="cv" style="color:'+
+      (nFresh===nFeeds?"var(--green)":"var(--orange)")+'">'+nFresh+' / '+nFeeds+'</div></div>'+
+    '<div class="fchip"><div class="cl">Engines In Alert</div><div class="cv" style="color:'+
+      (nAlert>0?"var(--red)":"var(--green)")+'">'+nAlert+'</div></div>'+
+    '<div class="fchip"><div class="cl">Engines On Watch</div><div class="cv" style="color:'+
+      (nWatch>0?"var(--orange)":"var(--green)")+'">'+nWatch+'</div></div>'+
+    '<div class="fchip"><div class="cl">Stalest Feed</div><div class="cv" style="font-size:11px;color:var(--mute)">'+
+      (stalest?esc(stalest.k)+" &middot; "+ageLabel(stalest.a):"--")+'</div></div>'+
+    '</div>';
+
+  h+='<p class="note">The Risk Desk is a read-only cockpit. It aggregates the firm risk stack and never re-computes risk &mdash; the Firm Risk Board remains the single source of truth for the synthesised firm posture, and each tile reflects that engine\'s own most recent run. Built on a hypothetical research book with no costs or slippage. Research and education only, not investment advice.</p>';
+  h+='<div class="timestamp">risk desk rendered '+new Date().toISOString().slice(0,16).replace("T"," ")+
+     ' UTC'+(board&&board.generated_at?' &middot; board run '+esc(board.generated_at.slice(0,16).replace("T"," ")):'')+'</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">RISK DESK UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>

@@ -64,7 +64,8 @@ CATEGORIES = [
     ("🧮", "Portfolio, Risk & Execution",
      "The book, position sizing, multi-strategy capital allocation and "
      "the trade journal.",
-     ["portfolio", "portfolio-manager", "portfolio/", "pm-decision",
+     ["risk-desk", "portfolio", "portfolio-manager", "portfolio/",
+      "pm-decision",
       "firm-book", "risk-monitor", "factor-risk", "liquidity-capacity",
       "firm-stress", "merger-arb-risk", "pnl-attribution", "desk-allocator",
       "firm-risk-board", "tail-hedge", "allocator", "position-sizer",
@@ -106,6 +107,7 @@ LABELS = {
     "firm-stress": "Stress Desk \u2014 Scenario P&L",
     "merger-arb-risk": "Merger-Arb Book Risk \u2014 Deal-Break Stress",
     "pnl-attribution": "P&L Attribution \u2014 Performance Desk",
+    "risk-desk": "Risk Desk \u2014 CRO Cockpit",
     "firm-risk-board": "Firm Risk Board \u2014 CRO Synthesis",
     "tail-hedge": "Tail Hedge Overlay \u2014 Convexity Desk",
     "dividend-growth": "Dividend Compounders",
