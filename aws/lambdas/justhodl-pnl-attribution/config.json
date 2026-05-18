@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-pnl-attribution",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Performance and P&L Attribution desk - append-only firm return ledger from desk-returns + allocator weights; equity curve, Sharpe/Sortino/Calmar, drawdown, SPY-relative alpha, desk/allocation/factor attribution. Output data/pnl-attribution.json.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-pnl-attribution-daily",
+    "cron": "cron(0 3 * * ? *)",
+    "description": "P&L attribution - daily 03:00 UTC, after the factor-risk model"
+  }
+}

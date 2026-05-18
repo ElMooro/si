@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P&amp;L Attribution &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128200;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero.up{border-left-color:var(--green)}
+.hero.down{border-left-color:var(--red)}
+.hero.warm{border-left-color:var(--yellow)}
+.hero .big{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px;margin-bottom:6px;color:var(--cyan)}
+.hero.up .big{color:var(--green)}
+.hero.down .big{color:var(--red)}
+.hero.warm .big{color:var(--yellow)}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--panel2)}
+.tk{font-weight:700;font-size:12.5px}
+.nm{color:var(--dim);font-size:10px;font-family:'Inter',sans-serif}
+.long,.pos{color:var(--green)}
+.short,.neg{color:var(--red)}
+.flat{color:var(--mute)}
+.fbar{display:inline-flex;align-items:center;width:140px;height:11px;vertical-align:middle}
+.fhalf{width:50%;height:9px;display:flex;align-items:center}
+.fhalf.lft{justify-content:flex-end}
+.fcell{height:9px;border-radius:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.cards{display:flex;gap:10px;flex-wrap:wrap}
+.card{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card .ct{font-family:var(--mono);font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.card .cv{font-family:var(--mono);font-size:22px;font-weight:700}
+.card .cd{font-size:11.5px;color:var(--mute);margin-top:8px;line-height:1.55}
+.pill{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--mute);font-weight:700}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+.legend{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:6px}
+.legend span{margin-right:16px}
+.dot{display:inline-block;width:9px;height:3px;vertical-align:middle;margin-right:5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128200; P&amp;L Attribution</h1>
+    <p class="subtitle">The firm's <b>performance desk</b>. The risk monitor checks the box and the factor model says what the book bets on &mdash; this says <b>did we make money, where it came from, and whether it was skill or beta</b>. An immutable daily ledger marks the seven desks to an allocator-weighted firm return, then decomposes the cumulative P&amp;L <b>by desk</b>, by <b>allocation effect</b> (the allocator vs a naive equal-weight) and <b>by factor</b> (market-beta P&amp;L vs residual alpha), all benchmarked to SPY.</p>
+    <nav class="crumbs">
+      <a href="/factor-risk.html">factor risk</a>
+      <a href="/risk-monitor.html">risk monitor</a>
+      <a href="/firm-book.html">firm book</a>
+      <a href="/desk-allocator.html">desk allocator</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING P&amp;L ATTRIBUTION&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/pnl-attribution.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=2)=>(v==null?"--":(typeof v==="number"?v.toFixed(d):v));
+const sgnp=(v,d=2)=>(v==null?"--":(v>=0?"+":"")+Number(v).toFixed(d)+"%");
+const cls=v=>(v==null?"flat":(v>0?"pos":(v<0?"neg":"flat")));
+
+function stat(l,v,k){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv '+(k||"")+'">'+v+'</div></div>';}
+
+function fbar(v,max){
+  if(v==null||!max)return "";
+  const frac=Math.min(1,Math.abs(v)/max),pos=v>=0,c=pos?"var(--green)":"var(--red)";
+  const left=pos?'<span class="fhalf lft"></span>'
+    :'<span class="fhalf lft"><span class="fcell" style="width:'+(frac*100)+'%;background:'+c+'"></span></span>';
+  const right=pos?'<span class="fhalf"><span class="fcell" style="width:'+(frac*100)+'%;background:'+c+'"></span></span>'
+    :'<span class="fhalf"></span>';
+  return '<span class="fbar">'+left+right+'</span>';
+}
+
+// multi-series cumulative-return line chart
+function curve(rows){
+  if(!rows||rows.length<2)return '<div class="empty">Equity curve unlocks after two marked days.</div>';
+  const W=1080,H=210,PL=44,PR=12,PT=14,PB=24;
+  const series=[
+    {k:"firm_cum_pct",c:"#26ffaf",lbl:"Firm"},
+    {k:"equalweight_cum_pct",c:"#6f7b91",lbl:"Equal-weight desks"},
+    {k:"spy_cum_pct",c:"#00d4ff",lbl:"SPY"}
+  ];
+  let lo=0,hi=0;
+  rows.forEach(r=>series.forEach(s=>{const v=r[s.k];if(typeof v==="number"){lo=Math.min(lo,v);hi=Math.max(hi,v);}}));
+  if(hi-lo<0.5){hi+=0.5;lo-=0.5;}
+  const pad=(hi-lo)*0.12;hi+=pad;lo-=pad;
+  const X=i=>PL+(W-PL-PR)*(i/(rows.length-1));
+  const Y=v=>PT+(H-PT-PB)*(1-(v-lo)/(hi-lo));
+  let g="";
+  const zeroY=Y(0);
+  g+='<line x1="'+PL+'" y1="'+zeroY+'" x2="'+(W-PR)+'" y2="'+zeroY+'" stroke="#1c2433" stroke-width="1"/>';
+  [hi,(hi+lo)/2,lo].forEach(v=>{
+    g+='<text x="'+(PL-6)+'" y="'+(Y(v)+3)+'" fill="#6f7b91" font-size="9" text-anchor="end" font-family="monospace">'+v.toFixed(1)+'%</text>';
+  });
+  series.forEach(s=>{
+    let d="",started=false;
+    rows.forEach((r,i)=>{const v=r[s.k];if(typeof v!=="number")return;d+=(started?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" ";started=true;});
+    if(d)g+='<path d="'+d+'" fill="none" stroke="'+s.c+'" stroke-width="1.8"/>';
+  });
+  const f=rows[0].date,l=rows[rows.length-1].date;
+  g+='<text x="'+PL+'" y="'+(H-6)+'" fill="#6f7b91" font-size="9" font-family="monospace">'+esc(f)+'</text>';
+  g+='<text x="'+(W-PR)+'" y="'+(H-6)+'" fill="#6f7b91" font-size="9" text-anchor="end" font-family="monospace">'+esc(l)+'</text>';
+  let leg='<div class="legend">';
+  series.forEach(s=>leg+='<span><span class="dot" style="background:'+s.c+'"></span>'+s.lbl+'</span>');
+  leg+='</div>';
+  return '<div class="panel"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+g+'</svg>'+leg+'</div>';
+}
+
+function render(d){
+  const root=document.getElementById("root");
+  if(!d){root.innerHTML='<div class="loading">NO DATA</div>';return;}
+  const warm=d.posture==="WARMING";
+  const f=d.firm||{};
+  let h="";
+
+  if(warm){
+    h+='<div class="hero warm"><div class="big">WARMING UP</div><div class="hl">'+esc(d.headline||"")+'</div></div>';
+    h+='<div class="stats">'
+      +stat("Ledger Days",d.ledger_observations!=null?d.ledger_observations:"--")
+      +stat("Rows Added",d.rows_added_this_run!=null?d.rows_added_this_run:"--")
+      +stat("SPY Feed",d.spy_history_ok?"OK":"--")
+      +'</div>';
+    if((d.equity_curve||[]).length){
+      h+='<div class="sechead">Marked Days</div><table><thead><tr><th class="l">Date</th><th>Firm Return</th></tr></thead><tbody>';
+      d.equity_curve.forEach(r=>{h+='<tr><td class="l">'+esc(r.date)+'</td><td class="'+cls(r.firm_return_pct)+'">'+sgnp(r.firm_return_pct,3)+'</td></tr>';});
+      h+='</tbody></table>';
+    }
+    h+='<div class="note">'+esc(d.disclaimer||"")+'</div>';
+    h+='<div class="timestamp">generated '+esc(d.generated_at||"")+'</div>';
+    root.innerHTML=h;return;
+  }
+
+  const cum=f.cumulative_return_pct;
+  const hk=cum>0?"up":(cum<0?"down":"");
+  h+='<div class="hero '+hk+'"><div class="big">'+sgnp(cum)+' &nbsp;FIRM P&amp;L</div><div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  const bm=f.benchmark||{};
+  h+='<div class="stats">'
+    +stat("Cumulative",sgnp(cum),cls(cum))
+    +stat("Annualized",sgnp(f.annualized_return_pct),cls(f.annualized_return_pct))
+    +stat("Ann. Vol",num(f.annualized_vol_pct)+"%")
+    +stat("Sharpe",num(f.sharpe),cls(f.sharpe))
+    +stat("Sortino",num(f.sortino),cls(f.sortino))
+    +stat("Calmar",f.calmar==null?"--":num(f.calmar))
+    +stat("Max DD",num(f.max_drawdown_pct)+"%","neg")
+    +stat("Hit Rate",num(f.hit_rate_pct,1)+"%")
+    +'</div>';
+
+  // period returns
+  const pr=f.period_returns||{};
+  const prMap=[["1D","d1"],["1W","w1"],["MTD","mtd"],["QTD","qtd"],["YTD","ytd"],["ITD","itd"]];
+  h+='<div class="sechead">Period Returns</div><div class="stats">';
+  prMap.forEach(p=>{h+=stat(p[0],sgnp(pr[p[1]]),cls(pr[p[1]]));});
+  h+='</div>';
+
+  // equity curve
+  h+='<div class="sechead">Equity Curve <small>cumulative return &mdash; firm vs naive equal-weight vs SPY</small></div>';
+  h+=curve(d.equity_curve||[]);
+
+  // benchmark + risk cards
+  h+='<div class="sechead">Versus Benchmark &amp; Risk</div><div class="cards">';
+  h+='<div class="card"><div class="ct">Excess vs SPY</div><div class="cv '+cls(bm.excess_cumulative_pct)+'">'+sgnp(bm.excess_cumulative_pct)+'</div>'
+    +'<div class="cd">SPY '+sgnp(bm.spy_cumulative_pct)+' over '+(bm.aligned_days||0)+' aligned days. Beta to SPY <b>'+num(bm.beta_to_spy,3)+'</b>, annualized alpha <b>'+sgnp(bm.alpha_annualized_pct)+'</b>.</div></div>';
+  h+='<div class="card"><div class="ct">Information Ratio</div><div class="cv">'+num(bm.information_ratio)+'</div>'
+    +'<div class="cd">Tracking error '+num(bm.tracking_error_pct)+'%. Up-capture <b>'+num(bm.up_capture_pct)+'%</b>, down-capture <b>'+num(bm.down_capture_pct)+'%</b> of SPY.</div></div>';
+  h+='<div class="card"><div class="ct">Drawdown</div><div class="cv neg">'+num(f.current_drawdown_pct)+'%</div>'
+    +'<div class="cd">Current drawdown, '+(f.days_underwater||0)+' day(s) underwater. Worst single day '+sgnp(f.worst_day_pct)+', best '+sgnp(f.best_day_pct)+'. Gain/loss ratio '+num(f.gain_loss_ratio)+'.</div></div>';
+  h+='</div>';
+
+  // desk attribution
+  const dk=d.attribution_by_desk||[];
+  if(dk.length){
+    let mx=0;dk.forEach(x=>mx=Math.max(mx,Math.abs(x.contribution_pct||0)));
+    h+='<div class="sechead">Attribution by Desk <small>cumulative weight &times; return contribution to firm P&amp;L</small></div>';
+    h+='<table><thead><tr><th class="l">Desk</th><th>Contribution</th><th></th><th>Share of P&amp;L</th><th>Avg Weight</th><th>Days</th></tr></thead><tbody>';
+    dk.forEach(x=>{
+      h+='<tr><td class="l tk">'+esc(x.name)+'</td>'
+        +'<td class="'+cls(x.contribution_pct)+'">'+sgnp(x.contribution_pct,3)+'</td>'
+        +'<td>'+fbar(x.contribution_pct,mx)+'</td>'
+        +'<td>'+(x.share_of_pnl_pct==null?"--":num(x.share_of_pnl_pct,1)+"%")+'</td>'
+        +'<td>'+(x.avg_weight_pct==null?"--":num(x.avg_weight_pct,1)+"%")+'</td>'
+        +'<td>'+(x.days_marked||0)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+
+  // allocation + factor attribution cards
+  const ae=d.allocation_effect||{},fa=d.factor_attribution||{};
+  h+='<div class="sechead">Allocation Effect &amp; Factor Split</div><div class="cards">';
+  h+='<div class="card"><div class="ct">Allocator Value-Add</div><div class="cv '+cls(ae.allocator_value_add_pct)+'">'+sgnp(ae.allocator_value_add_pct,3)+'</div>'
+    +'<div class="cd">Firm '+sgnp(ae.firm_cumulative_pct)+' vs naive equal-weight of the seven desks '+sgnp(ae.equalweight_cumulative_pct)+'. '+esc(ae.verdict||"")+'</div></div>';
+  if(fa.available){
+    h+='<div class="card"><div class="ct">Skill vs Beta</div><div class="cv '+cls(fa.alpha_component_pct)+'">'+sgnp(fa.alpha_component_pct,3)+' alpha</div>'
+      +'<div class="cd">At net market beta '+num(fa.net_market_beta,3)+', market-driven P&amp;L is '+sgnp(fa.market_component_pct,3)+' and residual alpha '+sgnp(fa.alpha_component_pct,3)+'. Alpha is <b>'+num(fa.alpha_share_pct,1)+'%</b> of gross P&amp;L.</div></div>';
+  }else{
+    h+='<div class="card"><div class="ct">Skill vs Beta</div><div class="cv flat">--</div><div class="cd">'+esc(fa.note||"Awaiting factor-model beta and aligned SPY history.")+'</div></div>';
+  }
+  h+='</div>';
+
+  // recent days
+  const rd=d.recent_days||[];
+  if(rd.length){
+    h+='<div class="sechead">Recent Marks</div>';
+    h+='<table><thead><tr><th class="l">Date</th><th>Firm</th><th>SPY</th><th>Desks Marked</th><th class="l">Top Desk</th><th>Contribution</th></tr></thead><tbody>';
+    rd.forEach(r=>{
+      h+='<tr><td class="l">'+esc(r.date)+'</td>'
+        +'<td class="'+cls(r.firm_return_pct)+'">'+sgnp(r.firm_return_pct,3)+'</td>'
+        +'<td class="'+cls(r.spy_return_pct)+'">'+sgnp(r.spy_return_pct,3)+'</td>'
+        +'<td>'+(r.n_desks_marked||0)+'</td>'
+        +'<td class="l">'+esc(r.top_desk||"--")+'</td>'
+        +'<td class="'+cls(r.top_desk_contribution_pct)+'">'+sgnp(r.top_desk_contribution_pct,3)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+
+  h+='<div class="note">'+esc(d.methodology||"")+'<br><br>'+esc(d.disclaimer||"")+'</div>';
+  h+='<div class="timestamp">ledger '+(d.ledger_observations||0)+' rows &middot; generated '+esc(d.generated_at||"")+'</div>';
+  root.innerHTML=h;
+}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(render).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">FEED UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
