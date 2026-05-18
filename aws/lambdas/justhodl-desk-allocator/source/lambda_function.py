@@ -3,13 +3,15 @@ justhodl-desk-allocator -- the Multi-Strategy Capital Allocator.
 ================================================================
 WHY THIS EXISTS
 ---------------
-The platform grew five distinct STRATEGY DESKS, each producing its own
+The platform grew seven distinct STRATEGY DESKS, each producing its own
 book every day:
 
   Best Ideas    long equity, cross-engine factor confluence
   Pairs Desk    market-neutral statistical arbitrage
   Trend Desk    cross-asset CTA / managed futures
   Merger-Arb    event-driven risk arbitrage
+  Spin-Off Desk event-driven corporate separations / special situations
+  Index-Recon   event-driven index-reconstitution forced-flow capture
   Risk Radar    defensive / short fundamental-deterioration screen
 
 Each desk answers "what do I want to own". Nothing answers the question
@@ -130,6 +132,24 @@ DESKS = [
         "count_arrays": ["all_priced", "tight_carry"],
     },
     {
+        "key": "spinoff-desk", "name": "Spin-Off Desk",
+        "json_key": "data/spinoff-desk.json",
+        "archetype": "Event-driven - corporate spin-offs / special situations",
+        "prior_vol": 0.20, "equity_beta": 0.85,
+        "risk_beta": 0.35, "prior_sharpe": 0.60,
+        "count_keys": ["summary.n_trading"],
+        "count_arrays": ["top_setups", "fresh_spinoffs", "seasoned_spinoffs"],
+    },
+    {
+        "key": "index-recon", "name": "Index-Recon Desk",
+        "json_key": "data/index-recon.json",
+        "archetype": "Event-driven - index reconstitution / forced-flow arb",
+        "prior_vol": 0.11, "equity_beta": 0.20,
+        "risk_beta": 0.10, "prior_sharpe": 0.55,
+        "count_keys": ["n_additions", "n_deletions"],
+        "count_arrays": ["russell_2000_additions", "russell_2000_deletions"],
+    },
+    {
         "key": "risk-radar", "name": "Risk Radar",
         "json_key": "data/risk-radar.json",
         "archetype": "Defensive - fundamental-deterioration screen",
@@ -146,16 +166,28 @@ DESKS = [
 # portfolio-vol and diversification-ratio roll-up, never for sizing, and
 # labelled a prior in the output.
 DESK_ORDER = ["best-ideas", "pairs-arb", "trend-engine",
-              "merger-arb", "risk-radar"]
+              "merger-arb", "spinoff-desk", "index-recon", "risk-radar"]
 PRIOR_CORR = {
     ("best-ideas", "best-ideas"): 1.00, ("pairs-arb", "pairs-arb"): 1.00,
     ("trend-engine", "trend-engine"): 1.00, ("merger-arb", "merger-arb"): 1.00,
+    ("spinoff-desk", "spinoff-desk"): 1.00,
+    ("index-recon", "index-recon"): 1.00,
     ("risk-radar", "risk-radar"): 1.00,
     ("best-ideas", "pairs-arb"): 0.20, ("best-ideas", "trend-engine"): -0.10,
     ("best-ideas", "merger-arb"): 0.30, ("best-ideas", "risk-radar"): -0.60,
+    ("best-ideas", "spinoff-desk"): 0.45, ("best-ideas", "index-recon"): 0.20,
     ("pairs-arb", "trend-engine"): 0.00, ("pairs-arb", "merger-arb"): 0.15,
-    ("pairs-arb", "risk-radar"): -0.10, ("trend-engine", "merger-arb"): -0.05,
-    ("trend-engine", "risk-radar"): 0.15, ("merger-arb", "risk-radar"): -0.25,
+    ("pairs-arb", "risk-radar"): -0.10, ("pairs-arb", "spinoff-desk"): 0.10,
+    ("pairs-arb", "index-recon"): 0.15,
+    ("trend-engine", "merger-arb"): -0.05,
+    ("trend-engine", "risk-radar"): 0.15,
+    ("trend-engine", "spinoff-desk"): -0.05,
+    ("trend-engine", "index-recon"): 0.00,
+    ("merger-arb", "risk-radar"): -0.25,
+    ("merger-arb", "spinoff-desk"): 0.35, ("merger-arb", "index-recon"): 0.20,
+    ("spinoff-desk", "index-recon"): 0.20,
+    ("spinoff-desk", "risk-radar"): -0.45,
+    ("index-recon", "risk-radar"): -0.15,
 }
 
 
@@ -473,8 +505,9 @@ def lambda_handler(event, context):
 
     # ---- headline ----
     if not active_desks:
-        headline = ("All five strategy desks are OFFLINE - no desk has "
-                    "reported a fresh book. No capital allocated.")
+        headline = ("All %d strategy desks are OFFLINE - no desk has "
+                    "reported a fresh book. No capital allocated."
+                    % len(rows))
     else:
         top = sorted(rows, key=lambda r: -r.get("capital_weight_pct", 0))[:2]
         top_txt = ", ".join("%s %.0f%%" % (t["name"],
@@ -482,9 +515,9 @@ def lambda_handler(event, context):
                             for t in top)
         dr_txt = ("diversification ratio %.2f" % div_ratio) \
             if div_ratio else "diversification ratio n/a"
-        headline = ("%d of 5 desks firing. Capital concentrates in %s. "
+        headline = ("%d of %d desks firing. Capital concentrates in %s. "
                     "Firm net equity beta %+.2f, %s. Tape: %s."
-                    % (len(firing), top_txt, net_beta, dr_txt,
+                    % (len(firing), len(rows), top_txt, net_beta, dr_txt,
                        regime["label"]))
 
     # ---- assemble output rows (drop scratch fields) ----
