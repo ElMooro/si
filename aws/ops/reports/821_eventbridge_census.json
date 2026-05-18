@@ -1,0 +1,289 @@
+{
+  "ops": 821,
+  "ts": "2026-05-18T14:17:42.237827+00:00",
+  "subject": "EventBridge rule census + safe orphan reclamation",
+  "census": {
+    "total_rules_before": 300,
+    "live_lambda_functions": 290,
+    "healthy": 264,
+    "orphan_scheduled": 18,
+    "orphan_event_pattern_or_other": 0,
+    "disabled_with_live_target": 3,
+    "empty_no_targets": 14,
+    "non_lambda_targets": 1,
+    "aws_managed": 0
+  },
+  "reclaimed": [
+    "aiapi-daily-report",
+    "aiapi-hourly-monitor",
+    "chatgpt-daily-report",
+    "daily-market-report-email",
+    "fed-liquidity-auto-update",
+    "fed-liquidity-indicators-weekly-update",
+    "fed-liquidity-update-monday",
+    "fed-liquidity-update-thursday",
+    "fedliquidity-weekly-update",
+    "fredapi-weekly-update",
+    "macro-daily-email",
+    "openbb-combined-reports",
+    "openbb-correlation",
+    "openbb-daily-risk",
+    "openbb-ml-predictions",
+    "openbb-trading-signals",
+    "openbb-vix-check",
+    "ultimate-intelligence-schedule"
+  ],
+  "reclaim_failed": [],
+  "event_pattern_orphans_flagged": [],
+  "orphans_detail": [
+    {
+      "name": "aiapi-daily-report",
+      "schedule": "cron(0 14 * * ? *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "aiapi-monitor"
+      ]
+    },
+    {
+      "name": "aiapi-hourly-monitor",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "aiapi-monitor"
+      ]
+    },
+    {
+      "name": "chatgpt-daily-report",
+      "schedule": "cron(0 13 * * ? *)",
+      "state": "DISABLED",
+      "dead_targets": [
+        "report-email-agent"
+      ]
+    },
+    {
+      "name": "daily-market-report-email",
+      "schedule": "cron(0 13 * * ? *)",
+      "state": "DISABLED",
+      "dead_targets": [
+        "market-report-generator"
+      ]
+    },
+    {
+      "name": "fed-liquidity-auto-update",
+      "schedule": "cron(0 13 ? * MON,WED,FRI *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fredapi"
+      ]
+    },
+    {
+      "name": "fed-liquidity-indicators-weekly-update",
+      "schedule": "cron(0 14 ? * MON *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fed-liquidity-indicators"
+      ]
+    },
+    {
+      "name": "fed-liquidity-update-monday",
+      "schedule": "cron(0 14 ? * MON *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fedapi"
+      ]
+    },
+    {
+      "name": "fed-liquidity-update-thursday",
+      "schedule": "cron(0 14 ? * THU *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fedapi"
+      ]
+    },
+    {
+      "name": "fedliquidity-weekly-update",
+      "schedule": "cron(0 14 ? * MON *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fedliquidity"
+      ]
+    },
+    {
+      "name": "fredapi-weekly-update",
+      "schedule": "cron(0 14 ? * MON *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "fredapi"
+      ]
+    },
+    {
+      "name": "macro-daily-email",
+      "schedule": "cron(0 13 * * ? *)",
+      "state": "DISABLED",
+      "dead_targets": [
+        "macro-email-sender"
+      ]
+    },
+    {
+      "name": "openbb-combined-reports",
+      "schedule": "cron(0 12 * * ? *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-combined_daily_reports"
+      ]
+    },
+    {
+      "name": "openbb-correlation",
+      "schedule": "rate(4 hours)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-correlation_analysis"
+      ]
+    },
+    {
+      "name": "openbb-daily-risk",
+      "schedule": "cron(0 11 * * ? *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-daily_risk_report"
+      ]
+    },
+    {
+      "name": "openbb-ml-predictions",
+      "schedule": "cron(0 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-ml_predictions"
+      ]
+    },
+    {
+      "name": "openbb-trading-signals",
+      "schedule": "cron(0/30 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-trading_signals"
+      ]
+    },
+    {
+      "name": "openbb-vix-check",
+      "schedule": "cron(0/15 13-21 ? * MON-FRI *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "openbb-vix_alert"
+      ]
+    },
+    {
+      "name": "ultimate-intelligence-schedule",
+      "schedule": "cron(0 13 * * ? *)",
+      "state": "ENABLED",
+      "dead_targets": [
+        "ultimate-market-intelligence"
+      ]
+    }
+  ],
+  "disabled_detail": [
+    {
+      "name": "DailyMacroReportRule",
+      "schedule": "cron(0 12 * * ? *)",
+      "targets": [
+        "justhodl-daily-macro-report"
+      ]
+    },
+    {
+      "name": "macro-api-daily-update",
+      "schedule": "cron(0 13 * * ? *)",
+      "targets": [
+        "macro-report-api"
+      ]
+    },
+    {
+      "name": "news-sentiment-update",
+      "schedule": "rate(30 minutes)",
+      "targets": [
+        "news-sentiment-agent"
+      ]
+    }
+  ],
+  "empty_detail": [
+    {
+      "name": "aiapi-daily-training",
+      "schedule": "cron(0 2 * * ? *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "aiapi-hourly-collection",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "economyapi-weekly-update",
+      "schedule": "cron(0 14 ? * MON *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "fed-liquidity-update",
+      "schedule": "cron(0 8 ? * TUE,SAT *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "ice-bofa-update-schedule",
+      "schedule": "cron(0 9 ? * MON,WED,FRI *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "justhodl-edge-engine-6h",
+      "schedule": "rate(6 hours)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "liquidity-ofr-monitor",
+      "schedule": "rate(5 minutes)",
+      "state": "DISABLED"
+    },
+    {
+      "name": "liquidity-realtime-TEST",
+      "schedule": "rate(15 minutes)",
+      "state": "DISABLED"
+    },
+    {
+      "name": "multi-agent-daily-8am",
+      "schedule": "cron(0 13 * * ? *)",
+      "state": "DISABLED"
+    },
+    {
+      "name": "multi-agent-economic-hourly",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "multi-agent-market-15min",
+      "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "nyfed-data-update-schedule",
+      "schedule": "cron(0 8 ? * MON,THU *)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "ofr-daily-update",
+      "schedule": "rate(1 day)",
+      "state": "ENABLED"
+    },
+    {
+      "name": "ofr-hourly-critical",
+      "schedule": "rate(1 hour)",
+      "state": "ENABLED"
+    }
+  ],
+  "total_rules_after": 282,
+  "slots_freed": 18,
+  "headroom_after": 18,
+  "checks": {
+    "census_ran": true,
+    "live_fns_enumerated": true,
+    "no_reclaim_errors": true
+  },
+  "all_pass": true,
+  "verdict": "RECLAIMED 18 orphan EventBridge rule(s); bus now at 282/300 (18 slots free). Orphans were cron rules firing into deleted Lambdas. If headroom is still tight, migrate scheduled invocations to EventBridge Scheduler (no 300-rule cap)."
+}
