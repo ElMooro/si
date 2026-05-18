@@ -1,0 +1,374 @@
+{
+  "ops": 791,
+  "ts": "2026-05-18T09:39:56.104616+00:00",
+  "subject": "Probe ECB CISS/SovCISS + FRED stress series",
+  "ecb_ciss_dataflow": {
+    "error": null,
+    "n_series": 60,
+    "ref_areas": [
+      "AT",
+      "BE",
+      "CN",
+      "CZ",
+      "DE",
+      "DK",
+      "ES",
+      "FI",
+      "FR",
+      "GB",
+      "GR",
+      "HU",
+      "IE",
+      "IT",
+      "NL",
+      "PL",
+      "PT",
+      "SE",
+      "U2",
+      "US"
+    ],
+    "sample_series": [
+      {
+        "key": "CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "AT",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Austria",
+        "last_date": "2026-05-15",
+        "last_value": "0.012840264464586854"
+      },
+      {
+        "key": "CISS.D.AT.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "AT",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.0029321182500857126"
+      },
+      {
+        "key": "CISS.D.BE.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "BE",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Belgium",
+        "last_date": "2026-05-15",
+        "last_value": "0.07306234918629015"
+      },
+      {
+        "key": "CISS.D.BE.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "BE",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.05905507568739716"
+      },
+      {
+        "key": "CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "CN",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-15",
+        "last_value": "0.004922614000991341"
+      },
+      {
+        "key": "CISS.D.DE.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "DE",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Germany",
+        "last_date": "2026-05-15",
+        "last_value": "0.0023096412333446148"
+      },
+      {
+        "key": "CISS.D.DE.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "DE",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-15",
+        "last_value": "0.004051317496616032"
+      },
+      {
+        "key": "CISS.D.ES.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "ES",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Spain",
+        "last_date": "2026-05-15",
+        "last_value": "0.026010475926127756"
+      },
+      {
+        "key": "CISS.D.ES.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "ES",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-15",
+        "last_value": "0.0038689882508798237"
+      },
+      {
+        "key": "CISS.D.FI.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "FI",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Finland",
+        "last_date": "2026-05-15",
+        "last_value": "0.0330229012280177"
+      },
+      {
+        "key": "CISS.D.FI.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "FI",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.011651192205027142"
+      },
+      {
+        "key": "CISS.D.FR.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "FR",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress France",
+        "last_date": "2026-05-15",
+        "last_value": "0.03619389486984421"
+      },
+      {
+        "key": "CISS.D.FR.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "FR",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.07416530827636844"
+      },
+      {
+        "key": "CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "GB",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.05237726798775383"
+      },
+      {
+        "key": "CISS.D.GR.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "GR",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Greece",
+        "last_date": "2026-05-15",
+        "last_value": "0.023629953909265953"
+      },
+      {
+        "key": "CISS.D.IE.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "IE",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Ireland",
+        "last_date": "2026-05-15",
+        "last_value": "0.014111172164851334"
+      },
+      {
+        "key": "CISS.D.IE.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "IE",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.018088853431480277"
+      },
+      {
+        "key": "CISS.D.IT.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "IT",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Italy",
+        "last_date": "2026-05-15",
+        "last_value": "0.045596317198209536"
+      },
+      {
+        "key": "CISS.D.IT.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "IT",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.007185572499564828"
+      },
+      {
+        "key": "CISS.D.NL.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "NL",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Netherlands",
+        "last_date": "2026-05-15",
+        "last_value": "0.04030315075625383"
+      },
+      {
+        "key": "CISS.D.NL.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "NL",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.02190705093828663"
+      },
+      {
+        "key": "CISS.D.PT.Z0Z.4F.EC.SOV_CIN.IDX",
+        "ref_area": "PT",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Portugal",
+        "last_date": "2026-05-15",
+        "last_value": "0.011650183780684107"
+      },
+      {
+        "key": "CISS.D.PT.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "PT",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-14",
+        "last_value": "0.003963494844124665"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SOV_EWN.IDX",
+        "ref_area": "U2",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Euro area, correlation and equal-cou",
+        "last_date": "2026-05-15",
+        "last_value": "0.014917975258394204"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX",
+        "ref_area": "U2",
+        "title": "NEW SovCISS - Composite Indicator of Sovereign Stress Euro area, correlation and real GDP-",
+        "last_date": "2026-05-15",
+        "last_value": "0.015149962588956761"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_BM.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from bond market subindex",
+        "last_date": "2025-05-02",
+        "last_value": "0.031919"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_BMN.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from bond market subindex",
+        "last_date": "2026-05-14",
+        "last_value": "0.03281587875563151"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX",
+        "ref_area": "U2",
+        "title": "CISS - Composite Indicator of Systemic Stress",
+        "last_date": "2025-05-02",
+        "last_value": "0.094106"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+        "ref_area": "U2",
+        "title": "NEW CISS - Composite Indicator of Systemic Stress.",
+        "last_date": "2026-05-15",
+        "last_value": "0.0032403879526669097"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_CO.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from cross-subindex correlations",
+        "last_date": "2025-05-02",
+        "last_value": "-0.14613"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_CON.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from cross-subindex correlations",
+        "last_date": "2026-05-14",
+        "last_value": "-0.11942019597948526"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_EM.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from equity market subindex",
+        "last_date": "2025-05-02",
+        "last_value": "0.078493"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_EMN.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from equity market subindex",
+        "last_date": "2026-05-14",
+        "last_value": "0.029251959531797107"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_FI.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from financial intermediaries subindex",
+        "last_date": "2025-05-02",
+        "last_value": "0.080498"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_FIN.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from financial intermediaries subindex",
+        "last_date": "2026-05-14",
+        "last_value": "0.031810262572496056"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_FX.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from foreign exchange market subindex",
+        "last_date": "2025-05-02",
+        "last_value": "0.024171"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_FXN.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from foreign exchange market subindex",
+        "last_date": "2026-05-14",
+        "last_value": "0.010011343861121577"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_MM.CON",
+        "ref_area": "U2",
+        "title": "CISS contribution from money market subindex",
+        "last_date": "2025-05-02",
+        "last_value": "0.025156"
+      },
+      {
+        "key": "CISS.D.U2.Z0Z.4F.EC.SS_MMN.CON",
+        "ref_area": "U2",
+        "title": "NEW CISS - CISS contribution from money market subindex",
+        "last_date": "2026-05-14",
+        "last_value": "0.01892971539779437"
+      },
+      {
+        "key": "CISS.D.US.Z0Z.4F.EC.SS_CI.IDX",
+        "ref_area": "US",
+        "title": "CISS - Composite Indicator of Systemic Stress",
+        "last_date": "2025-05-02",
+        "last_value": "0.084507"
+      }
+    ]
+  },
+  "ecb_key_probe": {
+    "D.U2.Z0Z.4F.EC.SS_CIN.IDX": {
+      "ok": true,
+      "last": [
+        "2026-05-15",
+        "0.0032403879526669097"
+      ]
+    },
+    "D.US.Z0Z.4F.EC.SS_CIN.IDX": {
+      "ok": true,
+      "last": [
+        "2026-05-15",
+        "0.004071845975867633"
+      ]
+    },
+    "D.GB.Z0Z.4F.EC.SS_CIN.IDX": {
+      "ok": true,
+      "last": [
+        "2026-05-14",
+        "0.05237726798775383"
+      ]
+    },
+    "D.CN.Z0Z.4F.EC.SS_CIN.IDX": {
+      "ok": true,
+      "last": [
+        "2026-05-15",
+        "0.004922614000991341"
+      ]
+    },
+    "D.DE.Z0Z.4F.EC.SS_CIN.IDX": {
+      "ok": true,
+      "last": [
+        "2026-05-15",
+        "0.004051317496616032"
+      ]
+    }
+  },
+  "fred_stress_search": [
+    {
+      "id": "NFCINONFINLEVERAGE",
+      "title": "Chicago Fed National Financial Conditions Index Nonfinancial Leveral Subindex",
+      "freq": "W",
+      "end": "2026-05-08",
+      "term": "systemic stress"
+    },
+    {
+      "id": "CFSI",
+      "title": "Cleveland Financial Stress Index (DISCONTINUED)",
+      "freq": "D",
+      "end": "2016-05-05",
+      "term": "systemic stress"
+    },
+    {
+      "id": "WDCD678FRBCLE",
+      "title": "Contributions to the Cleveland Financial Stress Index: Weighted Dollar Crashes (",
+      "freq": "D",
+      "end": "2016-05-05",
+      "term": "systemic stress"
+    }
+  ],
+  "verdict": "ECB CISS dataflow: 60 series across ref-areas ['AT', 'BE', 'CN', 'CZ', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'GR', 'HU', 'IE', 'IT', 'NL', 'PL', 'PT', 'SE', 'U2', 'US']. Key probe hits: ['D.U2.Z0Z.4F.EC.SS_CIN.IDX', 'D.US.Z0Z.4F.EC.SS_CIN.IDX', 'D.GB.Z0Z.4F.EC.SS_CIN.IDX', 'D.CN.Z0Z.4F.EC.SS_CIN.IDX', 'D.DE.Z0Z.4F.EC.SS_CIN.IDX']. FRED mirrors found: 3."
+}
