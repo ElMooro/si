@@ -1,0 +1,181 @@
+{
+  "ops": 854,
+  "ts": "2026-05-18T21:18:07.150139+00:00",
+  "subject": "Verify the tail-aware desk-allocator (archetype skew prior + firm-stress worst-case overlay on inverse-vol risk parity)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-desk-allocator-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "seven_desks",
+      "ok": true,
+      "detail": "7 desks"
+    },
+    {
+      "check": "weights_sum_100",
+      "ok": true,
+      "detail": "sum=100.01"
+    },
+    {
+      "check": "cap_respected",
+      "ok": true,
+      "detail": "cap=45.0% over=[]"
+    },
+    {
+      "check": "tail_fields_present",
+      "ok": true,
+      "detail": "all 7 desks expose tail fields"
+    },
+    {
+      "check": "tail_factors_in_clamp",
+      "ok": true,
+      "detail": "all in [0.75, 1.60]"
+    },
+    {
+      "check": "tail_adj_vol_consistent",
+      "ok": true,
+      "detail": "tail_adj_vol == eff_vol x tail_factor on every desk"
+    },
+    {
+      "check": "merger_arb_tail_heavy",
+      "ok": true,
+      "detail": "merger-arb tail_factor=1.57 trend tail_factor=0.8 (need merger-arb>1.0 and >trend)"
+    },
+    {
+      "check": "tail_corrects_overweight",
+      "ok": true,
+      "detail": "merger-arb parity share 24.5->17.2%, trend 13.4->18.4%"
+    },
+    {
+      "check": "parameters_expose_tail",
+      "ok": true,
+      "detail": "tail_blend=0.4 clamp=[0.75, 1.6] inputs=fresh"
+    },
+    {
+      "check": "methodology_updated",
+      "ok": true,
+      "detail": "methodology documents the tail-aware change"
+    },
+    {
+      "check": "headline_present",
+      "ok": true,
+      "detail": "7 of 7 desks firing. Capital concentrates in Trend Desk 19%, Pairs Desk 18%. Firm net equity beta +0.12, diversification"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(30 0 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"desks_firing\\\": 7, \\\"desks_total\\\": 7, \\\"net_equity_beta\\\": 0.118, \\\"diversification_ratio\\\": 2.589, \\\"headline\\\": \\\"7 of 7 desks firing. Capital concentrates in Trend Desk 19%, Pairs Desk 18%. Firm net equity beta +0.12, diversification ratio 2.59. Tape: NEUTRAL / MIXED.\\\"}\"}"
+  },
+  "desk_allocator": {
+    "headline": "7 of 7 desks firing. Capital concentrates in Trend Desk 19%, Pairs Desk 18%. Firm net equity beta +0.12, diversification ratio 2.59. Tape: NEUTRAL / MIXED.",
+    "regime": "NEUTRAL / MIXED",
+    "tail_inputs": "fresh",
+    "desks": [
+      {
+        "key": "trend-engine",
+        "status": "FIRING",
+        "effective_vol_pct": 11.0,
+        "tail_factor": 0.8,
+        "tail_adj_vol_pct": 8.8,
+        "capital_weight_pct": 18.54,
+        "tail_src": "archetype prior"
+      },
+      {
+        "key": "pairs-arb",
+        "status": "FIRING",
+        "effective_vol_pct": 7.0,
+        "tail_factor": 1.25,
+        "tail_adj_vol_pct": 8.8,
+        "capital_weight_pct": 18.46,
+        "tail_src": "archetype prior"
+      },
+      {
+        "key": "merger-arb",
+        "status": "FIRING",
+        "effective_vol_pct": 6.0,
+        "tail_factor": 1.57,
+        "tail_adj_vol_pct": 9.4,
+        "capital_weight_pct": 17.06,
+        "tail_src": "archetype prior + firm-stress realised"
+      },
+      {
+        "key": "risk-radar",
+        "status": "FIRING",
+        "effective_vol_pct": 13.0,
+        "tail_factor": 0.826,
+        "tail_adj_vol_pct": 10.7,
+        "capital_weight_pct": 15.35,
+        "tail_src": "archetype prior + firm-stress realised"
+      },
+      {
+        "key": "index-recon",
+        "status": "FIRING",
+        "effective_vol_pct": 11.0,
+        "tail_factor": 1.02,
+        "tail_adj_vol_pct": 11.2,
+        "capital_weight_pct": 14.37,
+        "tail_src": "archetype prior + firm-stress realised"
+      },
+      {
+        "key": "best-ideas",
+        "status": "FIRING",
+        "effective_vol_pct": 16.0,
+        "tail_factor": 1.03,
+        "tail_adj_vol_pct": 16.5,
+        "capital_weight_pct": 9.6,
+        "tail_src": "archetype prior + firm-stress realised"
+      },
+      {
+        "key": "spinoff-desk",
+        "status": "FIRING",
+        "effective_vol_pct": 20.0,
+        "tail_factor": 1.21,
+        "tail_adj_vol_pct": 24.2,
+        "capital_weight_pct": 6.63,
+        "tail_src": "archetype prior + firm-stress realised"
+      }
+    ],
+    "firm": {
+      "desks_total": 7,
+      "desks_firing": 7,
+      "desks_offline": 0,
+      "net_equity_beta": 0.118,
+      "weighted_avg_desk_vol_pct": 10.79,
+      "portfolio_vol_est_pct": 4.17,
+      "diversification_ratio": 2.589,
+      "dominant_desk": "Trend Desk"
+    }
+  },
+  "all_pass": true,
+  "verdict": "TAIL-AWARE DESK-ALLOCATOR LIVE. Inverse-vol risk parity now runs on a tail-scaled sizing volatility: each desk's daily vol is multiplied by an archetype skew factor that shrinks toward the firm Stress Desk's worst-case scenario losses. The Merger-Arb desk - the platform's largest stress-test loser - is marked tail-heavy and no longer over-funded for being daily-calm; the positive-skew trend desk gains capital. Weights sum to 100, the 45% cap holds, all tail fields verified, schedule ENABLED daily 00:30 UTC."
+}
