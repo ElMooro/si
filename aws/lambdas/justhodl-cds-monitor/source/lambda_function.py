@@ -341,25 +341,37 @@ def lambda_handler(event, context):
             return None
         return s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2.0
 
-    def assign_peer_regimes(rows):
-        """Regime is peer-relative. Structural-model absolute levels are
-        unreliable (they overstate weak names), so each name is graded
-        against its own peer group rather than absolute spread bands."""
-        n = len(rows)
+    def assign_credit_regimes(rows):
+        """Regime from the ABSOLUTE market-anchored synthetic CDS — not a
+        peer percentile. A percentile ranking always brands the weakest
+        names 'ELEVATED' even when the entire group is healthy: a permanent
+        false alarm. Because the synthetic CDS here is already anchored to
+        the live IG credit market, these absolute bands move with the real
+        cycle — in calm markets every sound name reads STRONG/SOLID and only
+        genuine deterioration, or a true cycle turn, lifts a name into
+        WATCH or worse. peer_rank is retained as an ordering aid only."""
         for i, x in enumerate(rows):
-            pct = 1.0 - (i / (n - 1)) if n > 1 else 0.5  # 1.0 = widest
-            if pct >= 0.80:
-                x["regime"] = "ELEVATED"
-            elif pct >= 0.55:
-                x["regime"] = "WATCH"
-            elif pct >= 0.25:
+            s = x.get("synthetic_cds_bp")
+            if not isinstance(s, (int, float)):
+                x["regime"] = "UNKNOWN"
+            elif s < 55:
+                x["regime"] = "STRONG"
+            elif s < 90:
+                x["regime"] = "SOLID"
+            elif s < 145:
                 x["regime"] = "NORMAL"
+            elif s < 230:
+                x["regime"] = "WATCH"
+            elif s < 400:
+                x["regime"] = "ELEVATED"
+            elif s < 650:
+                x["regime"] = "STRESSED"
             else:
-                x["regime"] = "FIRM"
+                x["regime"] = "DISTRESSED"
             x["peer_rank"] = i + 1
 
-    assign_peer_regimes(banks)
-    assign_peer_regimes(corporates)
+    assign_credit_regimes(banks)
+    assign_credit_regimes(corporates)
 
     def avg(rows, key):
         v = [x[key] for x in rows]
@@ -382,9 +394,10 @@ def lambda_handler(event, context):
         + f". Corporates: median {corp_median_cds:.0f}bp"
         + (f", widest {corp_worst['name']} {corp_worst['synthetic_cds_bp']:.0f}bp"
            if corp_worst else "")
-        + ". Each name is graded peer-relative — structural models overstate "
-        "the absolute level of weak names, so the reliable signal is the "
-        "cross-sectional rank and the trend, not the synthetic bp alone."
+        + ". Each name is graded on absolute, cycle-aware credit bands — "
+        "the synthetic CDS is anchored to the live IG market, so a regime "
+        "of WATCH or worse reflects genuine deterioration, not merely being "
+        "the weakest of a healthy peer group."
         if bank_median_cds is not None and corp_median_cds is not None
         else "Single-name pricing partial.")
 
@@ -544,7 +557,7 @@ def lambda_handler(event, context):
         "single_name_cds": {
             "model": "CreditGrades structural model (equity-to-CDS bridge, "
                      "5-year horizon)",
-            "primary_signal": "peer_relative_rank",
+            "primary_signal": "absolute_market_anchored_credit_regime",
             "calibration": {
                 "method": "market-anchored — synthetic CDS level pinned to "
                           "ICE BofA IG OAS, structural distance-to-default "
