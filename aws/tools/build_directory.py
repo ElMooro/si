@@ -84,6 +84,7 @@ CATEGORIES = [
 
 # nicer labels for pages whose filename is not self-explanatory
 LABELS = {
+    "boom-radar": "Boom Radar (Hypergrowth)",
     "boom-board": "Boom Board",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
     "ecb": "ECB Data", "boj-detail": "BOJ & Yen Carry",
