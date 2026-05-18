@@ -1,0 +1,41 @@
+{
+  "ops": 813,
+  "ts": "2026-05-18T13:01:09.621971+00:00",
+  "subject": "Opportunity-stack consolidation",
+  "beta_laggard_deploy": "updated",
+  "beta_laggard_schedule": "wired",
+  "beta_laggard_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"working_sectors\": 2, \"candidates\": 9}"
+  },
+  "beta_laggard_output": {
+    "ok": true,
+    "headline": "9 high-beta catch-up candidates across 2 working sectors  leaders have run, these healthy laggards tend to follow.",
+    "n_working_sectors": 2,
+    "n_candidates": 9,
+    "universe": 502
+  },
+  "retire_boom_radar": {
+    "fn": "justhodl-boom-radar",
+    "lambda": "deleted",
+    "rule": "err Parameter validation failed:\nMissing required parameter in input: \"Name\"\nUnknown parameter in input: \"Rule\", must be one",
+    "s3:data/boom-radar.json": "deleted"
+  },
+  "retire_catch_up_radar": {
+    "fn": "justhodl-catch-up-radar",
+    "lambda": "already absent",
+    "rule": "already absent",
+    "s3:screener/catch-up-radar.json": "deleted"
+  },
+  "checks": {
+    "beta_laggard_deployed": true,
+    "beta_laggard_invoke_ok": true,
+    "beta_laggard_output_ok": true,
+    "beta_laggard_has_candidates": true,
+    "boom_radar_lambda_gone": true,
+    "catch_up_radar_lambda_gone": true
+  },
+  "all_pass": true,
+  "verdict": "CONSOLIDATION COMPLETE - canonical opportunity stack: Boom Board (opportunity-screener) + Catch-Up (beta-laggard, now LIVE with 9 candidates across 2 working sectors). boom-radar and catch-up-radar retired. ETF/CEF catch-up to be built next."
+}
