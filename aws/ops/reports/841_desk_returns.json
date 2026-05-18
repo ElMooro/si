@@ -1,0 +1,182 @@
+{
+  "ops": 841,
+  "ts": "2026-05-18T18:27:09.417011+00:00",
+  "subject": "Ship justhodl-desk-returns (daily desk MTM return feed) + wire it into the Desk Allocator's Bayesian shrinkage",
+  "checks": [
+    {
+      "check": "desk_returns_deploy_ok",
+      "ok": true,
+      "detail": "created"
+    },
+    {
+      "check": "desk_returns_schedule_wired",
+      "ok": true,
+      "detail": "created justhodl-desk-returns-daily"
+    },
+    {
+      "check": "desk_returns_invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "desk_returns_output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "desk_returns_schema_ok",
+      "ok": true,
+      "detail": "schema=1.0"
+    },
+    {
+      "check": "desk_returns_all_seven",
+      "ok": true,
+      "detail": "n=7 ['best-ideas', 'index-recon', 'merger-arb', 'pairs-arb', 'risk-radar', 'spinoff-desk', 'trend-engine']"
+    },
+    {
+      "check": "desk_returns_prices_resolved",
+      "ok": true,
+      "detail": "universe=220 resolved=220"
+    },
+    {
+      "check": "desk_returns_books_built",
+      "ok": true,
+      "detail": "7/7 desks built a book"
+    },
+    {
+      "check": "desk_returns_state_persisted",
+      "ok": true,
+      "detail": "7/7 desks stored prev_book+prev_date"
+    },
+    {
+      "check": "desk_returns_no_fabrication",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "check": "allocator_deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "allocator_invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "allocator_seven_desks",
+      "ok": true,
+      "detail": "n=7"
+    },
+    {
+      "check": "allocator_weights_sum_100",
+      "ok": true,
+      "detail": "sum=100.0"
+    },
+    {
+      "check": "allocator_reads_feed",
+      "ok": true,
+      "detail": "realized_n=[('merger-arb', 0), ('pairs-arb', 0), ('trend-engine', 0), ('index-recon', 0), ('risk-radar', 0), ('best-ideas', 0), ('spinoff-desk', 0)]"
+    }
+  ],
+  "desk_returns_deploy": "created",
+  "desk_returns_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"trading_date\\\": \\\"2026-05-18\\\", \\\"universe\\\": 220, \\\"prices_resolved\\\": 220, \\\"appended_any\\\": false, \\\"desks_fresh\\\": 7, \\\"vol_ready\\\": 0}\"}"
+  },
+  "allocator_deploy": "updated",
+  "allocator_invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"desks_firing\\\": 7, \\\"desks_total\\\": 7, \\\"net_equity_beta\\\": 0.153, \\\"diversification_ratio\\\": 2.429, \\\"headline\\\": \\\"7 of 7 desks firing. Capital concentrates in Merger-Arb Desk 24%, Pairs Desk 21%. Firm n"
+  },
+  "desk_returns": {
+    "headline": "No desk return logged this run (first observation - seeding book). 7/7 desk books are fresh; 0 desk(s) vol-ready.",
+    "trading_date": "2026-05-18",
+    "universe_size": 220,
+    "prices_resolved": 220,
+    "build_seconds": 6.92,
+    "desks": [
+      {
+        "key": "best-ideas",
+        "book_names": 40,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "pairs-arb",
+        "book_names": 43,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "trend-engine",
+        "book_names": 17,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "merger-arb",
+        "book_names": 15,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "spinoff-desk",
+        "book_names": 9,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "index-recon",
+        "book_names": 80,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      },
+      {
+        "key": "risk-radar",
+        "book_names": 28,
+        "book_fresh": true,
+        "appended_today": false,
+        "skip_reason": "first observation - seeding book",
+        "n_returns": 0,
+        "vol_ready": false
+      }
+    ]
+  },
+  "allocator": {
+    "headline": "7 of 7 desks firing. Capital concentrates in Merger-Arb Desk 24%, Pairs Desk 21%. Firm net equity beta +0.15, diversification ratio 2.43. Tape: NEUTRAL / MIXED.",
+    "desks_total": 7,
+    "diversification_ratio": 2.429,
+    "realized_n": {
+      "merger-arb": 0,
+      "pairs-arb": 0,
+      "trend-engine": 0,
+      "index-recon": 0,
+      "risk-radar": 0,
+      "best-ideas": 0,
+      "spinoff-desk": 0
+    }
+  },
+  "all_pass": true,
+  "verdict": "DESK-RETURN FEED LIVE - justhodl-desk-returns marks all 7 desk books to market daily (weekdays 23:30 UTC) and the Desk Allocator now reads data/desk-returns.json for realized vol. Feed seeded; the Bayesian shrinkage warms each desk in automatically as it clears 20 daily observations. The allocator's dormant Phase-2 hook is now wired."
+}
