@@ -1,0 +1,40 @@
+{
+  "ops": 795,
+  "ts": "2026-05-18T10:13:35.676754+00:00",
+  "subject": "Deploy + verify justhodl-euro-fragmentation",
+  "deploy": "ERROR ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function",
+  "schedule": {
+    "rule": "euro-fragmentation-daily",
+    "cron": "cron(20 12 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"score\": 43.8, \"regime\": \"DISPERSION\", \"france_oat_bund_bp\": 67.9, \"errors\": 0}"
+  },
+  "euro_fragmentation": {
+    "ok": true,
+    "headline": "Euro fragmentation DISPERSION. Score 44/100 \u2014 widest spread 78bp (Greece); France OAT-Bund 68bp.",
+    "score": 43.8,
+    "regime": "DISPERSION",
+    "widest_spread_bp": 78.4,
+    "france_oat_bund_bp": 67.9,
+    "france_sovciss_pct": 48.2,
+    "n_countries": 10,
+    "core_stress_flag": true,
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": false,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "score_computed": true,
+    "multi_country": true,
+    "france_focus_ok": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/invoke/euro_fragmentation"
+}
