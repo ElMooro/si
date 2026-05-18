@@ -1,0 +1,164 @@
+{
+  "ops": 836,
+  "ts": "2026-05-18T16:28:48.478515+00:00",
+  "subject": "Re-verify justhodl-spinoff-desk after the EFTS ciks-parsing + amendment-dedup fix (01f5b82)",
+  "checks": [
+    {
+      "check": "lambda_exists",
+      "ok": true,
+      "detail": "python3.12 mem=1024 timeout=300 modified=2026-05-18T16:24:06.000+0000"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "filings_scanned",
+      "ok": true,
+      "detail": "25"
+    },
+    {
+      "check": "partition_reconciles",
+      "ok": true,
+      "detail": "n_trading=9 fresh+seasoned=9"
+    },
+    {
+      "check": "scores_in_band",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "tiers_valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "entries_complete",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top_sorted",
+      "ok": true,
+      "detail": "[71.0, 69.0, 62.0, 60.0, 51.0, 35.0]"
+    },
+    {
+      "check": "top_subset_of_book",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "no_nonspinoff_leak",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "prime_count_reconciles",
+      "ok": true,
+      "detail": "summary=1 actual=1"
+    },
+    {
+      "check": "pending_have_links",
+      "ok": true,
+      "detail": "16/16 have links (100%)"
+    },
+    {
+      "check": "trading_have_links",
+      "ok": true,
+      "detail": "9/9 fresh+seasoned carry filing_url (100%)"
+    },
+    {
+      "check": "no_duplicate_tickers",
+      "ok": true,
+      "detail": "book_dups=[] top_dups=[]"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(20 13 * * ? *)"
+    }
+  ],
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_trading\\\": 9, \\\"n_fresh\\\": 3, \\\"n_prime\\\": 1, \\\"n_pending\\\": 16}\"}"
+  },
+  "spinoff_desk": {
+    "headline": "9 tradeable spin-offs in the post-separation drift window - 3 fresh (0-6mo), 1 rated PRIME. 16 more registered and pending.",
+    "n_filings_scanned": 25,
+    "n_trading": 9,
+    "n_fresh": 3,
+    "n_seasoned": 6,
+    "n_pending": 16,
+    "n_prime": 1,
+    "best_score": 71.0,
+    "n_with_parent": 1,
+    "n_trading_with_link": 9,
+    "n_pending_with_link": 16,
+    "top5": [
+      {
+        "sym": "TRAX",
+        "tier": "PRIME SPIN",
+        "score": 71.0,
+        "window": "fresh 0-6mo",
+        "cap": "small",
+        "parent": null,
+        "neglect": true,
+        "insider": false,
+        "has_link": true
+      },
+      {
+        "sym": "BSEM",
+        "tier": "STRONG",
+        "score": 69.0,
+        "window": "seasoned 6-18mo",
+        "cap": "micro",
+        "parent": "BioStem Technologies",
+        "neglect": true,
+        "insider": false,
+        "has_link": true
+      },
+      {
+        "sym": "RHLD",
+        "tier": "STRONG",
+        "score": 62.0,
+        "window": "seasoned 6-18mo",
+        "cap": "small",
+        "parent": null,
+        "neglect": false,
+        "insider": true,
+        "has_link": true
+      },
+      {
+        "sym": "VSNT",
+        "tier": "STRONG",
+        "score": 60.0,
+        "window": "fresh 0-6mo",
+        "cap": "mid",
+        "parent": null,
+        "neglect": true,
+        "insider": false,
+        "has_link": true
+      },
+      {
+        "sym": "SUNB",
+        "tier": "WATCH",
+        "score": 51.0,
+        "window": "fresh 0-6mo",
+        "cap": "large",
+        "parent": null,
+        "neglect": true,
+        "insider": false,
+        "has_link": true
+      }
+    ]
+  },
+  "all_pass": true,
+  "verdict": "SPIN-OFF DESK CLEAN - 25 10-12B registrations scanned, 9 tradeable spin-offs (3 fresh / 6 seasoned), 1 PRIME. EFTS ciks fix verified: 9/9 carry SEC links, 1 parents resolved, no duplicate tickers."
+}
