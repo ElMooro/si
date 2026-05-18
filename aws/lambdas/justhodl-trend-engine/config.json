@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-trend-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Cross-asset systematic trend desk - the CTA / managed-futures sleeve. Risk-adjusted 3-horizon time-series momentum over 21 liquid 1x ETF proxies, inverse-vol sized to a 10% portfolio-vol target. The crisis diversifier. Output data/trend-engine.json.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-trend-engine-daily",
+    "cron": "cron(50 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Cross-asset trend desk - daily 23:50 UTC via Amazon EventBridge Scheduler, after the US close once EOD prices settle and 20 min behind the pairs desk to stagger FMP load. The classic EventBridge 300-rule pool is saturated; Scheduler is the go-forward scheduling path."
+  }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Systematic Trend Desk · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📈</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:16px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 11px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sectionhdr{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:20px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.classgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px;margin-bottom:6px}
+.classcard{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:11px}
+.classcard .cn{font-family:var(--mono);font-size:13px;font-weight:700}
+.classcard .cs{font-family:var(--mono);font-size:10px;font-weight:700;margin-top:2px;letter-spacing:.5px}
+.classcard .cw{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:6px}
+.classcard .cls{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:3px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 13px}
+.tab{font-family:var(--mono);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;user-select:none}
+.tab:hover{color:var(--txt)}
+.tab.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.dir{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.8px;padding:3px 9px;border-radius:5px;display:inline-block}
+.dir.LONG{background:rgba(38,255,175,.13);color:var(--green);border:1px solid rgba(38,255,175,.4)}
+.dir.SHORT{background:rgba(255,85,119,.13);color:var(--red);border:1px solid rgba(255,85,119,.4)}
+.dir.FLAT{background:rgba(111,123,145,.13);color:var(--dim);border:1px solid var(--line)}
+.conv{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.conv small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.horizons{display:flex;gap:6px;margin:10px 0}
+.hz{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 4px;text-align:center}
+.hz .hl2{font-family:var(--mono);font-size:8px;letter-spacing:.3px;text-transform:uppercase;color:var(--dim)}
+.hz .hv{font-family:var(--mono);font-size:13px;font-weight:700;margin-top:2px}
+.hz .hr{font-family:var(--mono);font-size:8.5px;color:var(--dim);margin-top:1px}
+.wtrow{display:flex;align-items:baseline;gap:8px;background:var(--panel2);border-radius:6px;padding:8px 10px;margin:8px 0}
+.wtrow .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.wtrow .wt{font-family:var(--mono);font-size:17px;font-weight:700}
+.wtrow .vol{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:auto}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}
+.bdg{font-family:var(--mono);font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line)}
+.bdg.fresh{color:var(--green);border-color:rgba(38,255,175,.35)}
+.bdg.developing{color:var(--yellow);border-color:rgba(255,210,102,.35)}
+.bdg.extended{color:var(--orange);border-color:rgba(255,122,24,.35)}
+.bdg.stress{color:var(--red);border-color:rgba(255,85,119,.45)}
+.notes{color:var(--mute);font-size:11px;line-height:1.6;margin:6px 0 0}
+.notes div{margin-top:4px;padding-left:11px;position:relative}
+.notes div::before{content:"›";position:absolute;left:0;color:var(--dim)}
+.meta{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--line);padding-top:7px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📈 Systematic Trend Desk</h1>
+    <p class="subtitle">The CTA / managed-futures sleeve. Most of the platform is long-biased single-name equity — this desk is the opposite archetype: rules-based <b>time-series momentum</b> across 21 liquid ETF proxies in six asset classes (equities, rates, credit, commodities, FX, crypto). It scores <b>risk-adjusted</b> momentum (a t-stat, not a raw return) blended over three horizons, sizes positions <b>inverse to volatility</b> against a 10% portfolio-vol target, and trims stretched or shocked trends rather than chasing them. Trend-following is the classic <b>crisis diversifier</b> — the strategy that historically earns its keep when the long book and even a market-neutral pairs book are correlated and bleeding.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/pairs-arb.html">pairs desk</a>
+      <a href="/conviction.html">conviction</a>
+      <a href="/risk-radar.html">risk radar</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING TREND DESK…</div></div>
+  <div class="stats" id="stats"></div>
+  <div id="classwrap"></div>
+  <div class="sectionhdr">Positions · ranked by conviction</div>
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn=(v,d=2)=>v==null||isNaN(v)?"—":(v>=0?"+":"")+num(v,d);
+const convColor=(s)=>s>=80?"var(--green)":s>=60?"var(--cyan)":s>=40?"var(--yellow)":"var(--mute)";
+const tColor=(t)=>t==null?"var(--dim)":t>0.35?"var(--green)":t<-0.35?"var(--red)":"var(--mute)";
+
+let POS=[], FILTER="ALL";
+
+function card(p){
+  const d=p.direction||"FLAT";
+  const topc=d==="LONG"?"var(--green)":d==="SHORT"?"var(--red)":"var(--line)";
+  const wtc=p.target_weight_pct>0?"var(--green)":p.target_weight_pct<0?"var(--red)":"var(--dim)";
+  const hz=[["3m",p.mom_63d,p.ret_63d_pct],["6m",p.mom_126d,p.ret_126d_pct],["12m",p.mom_252d,p.ret_252d_pct]]
+    .map(([l,t,r])=>`<div class="hz"><div class="hl2">${l} mom</div><div class="hv" style="color:${tColor(t)}">${sgn(t,2)}</div><div class="hr">${sgn(r,1)}%</div></div>`).join("");
+  let badges=`<span class="bdg ${esc(p.maturity)}">${esc(p.maturity||"")} trend</span>`;
+  if(p.stress_flag) badges+=`<span class="bdg stress">counter-trend shock</span>`;
+  const notes=(p.notes||[]).map(n=>`<div>${esc(n)}</div>`).join("");
+  return `<div class="card" style="border-top-color:${topc}">
+    <div class="crow">
+      <div>
+        <div class="tk">${esc(p.symbol)}</div>
+        <div class="nm">${esc(p.name||"")} · ${esc(p.asset_class||"")}</div>
+        <div style="margin-top:6px"><span class="dir ${d}">${d}</span></div>
+      </div>
+      <div class="conv" style="color:${convColor(p.conviction)}">${num(p.conviction,0)}<small>CONVICTION</small></div>
+    </div>
+    <div class="horizons">${hz}</div>
+    <div class="wtrow">
+      <span class="lab">target weight</span>
+      <span class="wt" style="color:${wtc}">${sgn(p.target_weight_pct,2)}%</span>
+      <span class="vol">ann. vol ${num(p.annual_vol_pct,1)}%</span>
+    </div>
+    <div class="badges">${badges}</div>
+    <div class="notes">${notes}</div>
+    <div class="meta">
+      <span>blended t-stat ${sgn(p.blended_tstat,2)}</span>
+      <span>maturity ${sgn(p.maturity_sigma,1)}σ</span>
+      <span>px $${num(p.price,2)}</span>
+    </div>
+  </div>`;
+}
+
+function renderGrid(){
+  let list=POS.slice();
+  if(FILTER!=="ALL") list=list.filter(p=>(p.direction||"FLAT")===FILTER);
+  document.getElementById("grid").innerHTML=list.length
+    ? list.map(card).join("")
+    : '<div class="loading">No positions in this bucket.</div>';
+}
+
+function renderTabs(){
+  const counts={ALL:POS.length,LONG:0,SHORT:0,FLAT:0};
+  POS.forEach(p=>{counts[p.direction||"FLAT"]=(counts[p.direction||"FLAT"]||0)+1;});
+  const defs=[["ALL","All"],["LONG","Long"],["SHORT","Short"],["FLAT","Flat"]];
+  document.getElementById("tabs").innerHTML=defs.map(([k,l])=>
+    `<div class="tab ${k===FILTER?"on":""}" data-k="${k}">${l} · ${counts[k]||0}</div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{FILTER=t.dataset.k;renderTabs();renderGrid();});
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"trend-engine.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d){document.getElementById("hero").innerHTML='<div class="loading">TREND DESK DATA UNAVAILABLE</div>';return;}
+  const s=d.summary||{};
+  const regColor=s.regime==="BROAD TREND"?"var(--green)":s.regime==="MIXED"?"var(--yellow)":"var(--orange)";
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.how_to_read||"")}</div>
+  </div>`;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="sl">Regime</div><div class="sv" style="color:${regColor}">${esc(s.regime||"—")}</div></div>
+    <div class="stat"><div class="sl">Trend Breadth</div><div class="sv">${num(s.trend_breadth_pct,0)}%</div></div>
+    <div class="stat"><div class="sl">Long</div><div class="sv" style="color:var(--green)">${num(s.n_long,0)}</div></div>
+    <div class="stat"><div class="sl">Short</div><div class="sv" style="color:var(--red)">${num(s.n_short,0)}</div></div>
+    <div class="stat"><div class="sl">Flat</div><div class="sv" style="color:var(--dim)">${num(s.n_flat,0)}</div></div>
+    <div class="stat"><div class="sl">Gross Exposure</div><div class="sv">${num(s.portfolio_gross_pct,1)}%</div></div>
+    <div class="stat"><div class="sl">Net Equity Tilt</div><div class="sv" style="color:${s.net_equity_tilt_pct>=0?'var(--green)':'var(--red)'}">${sgn(s.net_equity_tilt_pct,1)}%</div></div>
+    <div class="stat"><div class="sl">Vol Target</div><div class="sv">${num(s.target_vol_pct,0)}%</div></div>`;
+  const bc=d.by_class||[];
+  if(bc.length){
+    const stColor=(st)=>st==="NET LONG"?"var(--green)":st==="NET SHORT"?"var(--red)":"var(--dim)";
+    document.getElementById("classwrap").innerHTML=
+      `<div class="sectionhdr">Asset-class stance</div><div class="classgrid">`+
+      bc.map(c=>`<div class="classcard">
+        <div class="cn">${esc(c.asset_class)}</div>
+        <div class="cs" style="color:${stColor(c.stance)}">${esc(c.stance)}</div>
+        <div class="cw" style="color:${c.net_weight_pct>=0?'var(--green)':'var(--red)'}">${sgn(c.net_weight_pct,1)}%</div>
+        <div class="cls">${c.longs}L · ${c.shorts}S · ${c.flats}F · gross ${num(c.gross_weight_pct,1)}%</div>
+      </div>`).join("")+`</div>`;
+  }
+  POS=d.positions||[];
+  renderTabs();
+  renderGrid();
+  document.getElementById("note").textContent=(d.methodology||"")+" "+(d.disclaimer||"");
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · "+(d.build_seconds||0)+"s · "+(s.scored||0)+"/"+(s.universe_count||0)+" instruments scored · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
