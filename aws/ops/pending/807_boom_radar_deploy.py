@@ -1,4 +1,4 @@
-"""ops/806 — deploy + schedule + verify justhodl-boom-radar.
+"""ops/807 — deploy + schedule + verify justhodl-boom-radar.
 
 Deploys the Hypergrowth Breakout Radar, wires its daily schedule, runs it
 asynchronously (the FMP universe scan takes 1-2 min) and verifies it writes
@@ -20,7 +20,7 @@ SRC = f"aws/lambdas/{FN}/source/lambda_function.py"
 CONF = json.load(open(f"aws/lambdas/{FN}/config.json"))
 ROLE = "arn:aws:iam::857687956942:role/lambda-execution-role"
 
-report = {"ops": 806, "ts": datetime.now(timezone.utc).isoformat(),
+report = {"ops": 807, "ts": datetime.now(timezone.utc).isoformat(),
           "subject": "Deploy + verify justhodl-boom-radar"}
 
 buf = io.BytesIO()
@@ -159,6 +159,6 @@ report["verdict"] = (
 
 print(json.dumps(report, indent=2, default=str))
 os.makedirs("aws/ops/reports", exist_ok=True)
-with open("aws/ops/reports/806_boom_radar_deploy.json", "w") as f:
+with open("aws/ops/reports/807_boom_radar_deploy.json", "w") as f:
     json.dump(report, f, indent=2, default=str)
-print("[ok] wrote aws/ops/reports/806_boom_radar_deploy.json")
+print("[ok] wrote aws/ops/reports/807_boom_radar_deploy.json")
