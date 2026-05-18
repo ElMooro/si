@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidity Monitor &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128167;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .posture{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:2px;margin-bottom:6px}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--panel2)}
+.tk{font-weight:700;font-size:12.5px}
+.nm{color:var(--dim);font-size:10px;font-family:'Inter',sans-serif}
+.long{color:var(--green)}
+.short{color:var(--red)}
+.badge{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+.t-T1{color:var(--green);border-color:#1d5e44;background:#0c2419}
+.t-T2{color:var(--cyan);border-color:#1d4e5e;background:#0c2024}
+.t-T3{color:var(--yellow);border-color:#6e5a18;background:#241f0c}
+.t-T4{color:var(--red);border-color:#6e2438;background:#240c12}
+.t-UN{color:var(--dim);border-color:var(--line);background:var(--panel2)}
+.tierbars{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px}
+.tierrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tierrow:last-child{margin-bottom:0}
+.tiername{font-family:var(--mono);font-size:10px;width:128px;flex-shrink:0;text-align:right}
+.tiertrack{flex:1;height:18px;background:var(--panel2);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden}
+.tierfill{position:absolute;top:0;bottom:0;left:0;border-radius:3px}
+.tierval{font-family:var(--mono);font-size:10px;width:118px;flex-shrink:0;color:var(--mute)}
+.pill{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid var(--line);color:var(--mute)}
+.pill.L{color:var(--green);border-color:#1d5e44}
+.pill.S{color:var(--red);border-color:#6e2438}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128167; Liquidity Monitor</h1>
+    <p class="subtitle">The firm's <b>liquidity &amp; capacity</b> desk. The Risk Monitor polices exposure; this screen answers the other question &mdash; <b>if the book had to be exited, how long would it take, and which positions are trapped?</b> Every firm-book position is measured in <b>days-to-liquidate</b> at a 20% participation cap, bucketed into liquidity tiers, and rolled into a 0&ndash;100 firm <b>liquidity score</b>. The illiquid tail is the part of the book that cannot be cut quickly in a drawdown.</p>
+    <nav class="crumbs">
+      <a href="/firm-book.html">firm book</a>
+      <a href="/risk-monitor.html">risk monitor</a>
+      <a href="/desk-allocator.html">desk allocator</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING LIQUIDITY MONITOR&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/liquidity-capacity.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const POSTURE={LIQUID:"var(--green)",MODERATE:"var(--cyan)",TIGHT:"var(--yellow)",ILLIQUID:"var(--red)",UNKNOWN:"var(--dim)"};
+function tcls(t){const k=(t||"").split(" ")[0];return ({T1:"t-T1",T2:"t-T2",T3:"t-T3",T4:"t-T4"})[k]||"t-UN";}
+function tcol(t){const k=(t||"").split(" ")[0];return ({T1:"var(--green)",T2:"var(--cyan)",T3:"var(--yellow)",T4:"var(--red)"})[k]||"var(--dim)";}
+function usd(v){if(v==null)return "--";const a=Math.abs(v);
+  if(a>=1e9)return "$"+(v/1e9).toFixed(2)+"B";
+  if(a>=1e6)return "$"+(v/1e6).toFixed(2)+"M";
+  if(a>=1e3)return "$"+(v/1e3).toFixed(0)+"K";return "$"+v.toFixed(0);}
+function days(v){return v==null?'<span style="color:var(--dim)">n/a</span>':v.toFixed(2);}
+
+function tierBars(tiers,book){
+  if(!tiers.length)return '<div class="empty">No positions.</div>';
+  return '<div class="tierbars">'+tiers.map(t=>{
+    const w=Math.min(100,t.book_pct||0);
+    return '<div class="tierrow">'+
+      '<div class="tiername"><span class="badge '+tcls(t.tier)+'">'+esc((t.tier||"").split(" ")[0])+'</span></div>'+
+      '<div class="tiertrack"><div class="tierfill" style="width:'+w+'%;background:'+tcol(t.tier)+'"></div></div>'+
+      '<div class="tierval">'+(t.book_pct||0).toFixed(1)+'% &middot; '+t.n+' names</div>'+
+    '</div>';
+  }).join("")+'</div>';
+}
+
+function nameTable(rows){
+  if(!rows.length)return '<div class="empty">No positions measured.</div>';
+  return '<table><thead><tr>'+
+    '<th class="l">Symbol</th><th class="l">Sector</th><th>Side</th>'+
+    '<th>Position</th><th>$ Volume</th><th>Days to exit</th><th>Tier</th>'+
+    '</tr></thead><tbody>'+
+    rows.map(p=>'<tr>'+
+      '<td class="l"><span class="tk">'+esc(p.symbol)+'</span>'+
+        '<div class="nm">'+esc((p.name||"").slice(0,30))+'</div></td>'+
+      '<td class="l" style="color:var(--mute);font-size:10px">'+esc((p.sector||"").slice(0,18))+'</td>'+
+      '<td><span class="pill '+(p.side==="LONG"?"L":p.side==="SHORT"?"S":"")+'">'+esc(p.side||"")+'</span></td>'+
+      '<td>'+usd(p.position_usd)+'</td>'+
+      '<td style="color:var(--mute)">'+usd(p.dollar_volume_usd)+'</td>'+
+      '<td style="font-weight:700;color:'+tcol(p.liquidity_tier)+'">'+days(p.days_to_liquidate)+'</td>'+
+      '<td><span class="badge '+tcls(p.liquidity_tier)+'">'+esc((p.liquidity_tier||"").split(" ")[0])+'</span></td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function deskTable(rows){
+  if(!rows.length)return '<div class="empty">No desk data.</div>';
+  return '<table><thead><tr><th class="l">Desk</th><th>Names</th>'+
+    '<th>Avg days to exit</th><th>Trapped</th></tr></thead><tbody>'+
+    rows.map(d=>'<tr>'+
+      '<td class="l" style="font-family:Inter,sans-serif">'+esc(d.desk)+'</td>'+
+      '<td style="color:var(--mute)">'+d.n_names+'</td>'+
+      '<td style="font-weight:700">'+days(d.avg_days_to_liquidate)+'</td>'+
+      '<td style="color:'+(d.trapped_names>0?"var(--red)":"var(--dim)")+'">'+d.trapped_names+'</td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function sectorTable(rows){
+  if(!rows.length)return '<div class="empty">No sector data.</div>';
+  return '<table><thead><tr><th class="l">Sector</th><th>Names</th>'+
+    '<th>Book share</th><th>Avg days to exit</th></tr></thead><tbody>'+
+    rows.map(s=>'<tr>'+
+      '<td class="l" style="font-family:Inter,sans-serif">'+esc(s.sector)+'</td>'+
+      '<td style="color:var(--mute)">'+s.n_names+'</td>'+
+      '<td style="color:var(--mute)">'+(s.book_pct||0).toFixed(1)+'%</td>'+
+      '<td style="font-weight:700">'+days(s.avg_days_to_liquidate)+'</td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function render(d){
+  const root=document.getElementById("root");
+  if(!d||d.ok===false){
+    root.innerHTML='<div class="empty">Liquidity monitor unavailable&mdash;'+esc((d&&d.error)||"the firm book has not been published yet.")+'</div>';
+    return;
+  }
+  const col=POSTURE[d.liquidity_posture]||"var(--mute)";
+  const f=d.firm||{};
+  let h='';
+  h+='<div class="hero" style="border-left-color:'+col+'">'+
+     '<div class="posture" style="color:'+col+'">'+esc(d.liquidity_posture)+
+       ' &middot; '+(d.liquidity_score==null?"--":d.liquidity_score)+'/100</div>'+
+     '<div class="hl">'+esc(d.headline)+'</div></div>';
+
+  const cards=[
+    ["Liquidity Score",d.liquidity_score==null?"--":d.liquidity_score+"","var(--cyan)"],
+    ["Clears in 1 Day",(f.pct_liquidatable_1d||0).toFixed(0)+"%","var(--green)"],
+    ["Clears in 1 Week",(f.pct_liquidatable_5d||0).toFixed(0)+"%","var(--green)"],
+    ["Avg Days to Exit",f.wavg_days_to_liquidate==null?"--":f.wavg_days_to_liquidate+"","var(--yellow)"],
+    ["Trapped Names",(f.n_trapped||0)+"",f.n_trapped>0?"var(--red)":"var(--green)"],
+    ["Trapped Book",(f.trapped_book_pct||0).toFixed(1)+"%",f.trapped_book_pct>5?"var(--red)":"var(--mute)"],
+    ["Equity Names",(f.n_equity_names||0)+"","var(--txt)"],
+    ["Notional AUM",usd(f.notional_aum_usd),"var(--purple)"]
+  ];
+  h+='<div class="stats">'+cards.map(c=>
+    '<div class="stat"><div class="sl">'+c[0]+'</div><div class="sv" style="color:'+c[2]+'">'+esc(c[1])+'</div></div>'
+  ).join("")+'</div>';
+
+  h+='<div class="sechead">Liquidity tiers <small>&mdash; share of the book by days-to-liquidate</small></div>';
+  h+=tierBars(d.tiers||[],f.book_usd);
+
+  h+='<div class="sechead">Least-liquid names <small>&mdash; the tail the desk watches</small></div>';
+  h+=nameTable(d.least_liquid_names||[]);
+
+  h+='<div class="sechead">Liquidity by desk <small>&mdash; which desk carries the slow-to-exit risk</small></div>';
+  h+=deskTable(d.by_desk||[]);
+
+  h+='<div class="sechead">Liquidity by sector</div>';
+  h+=sectorTable(d.by_sector||[]);
+
+  h+='<div class="note">'+esc(d.how_to_read||"")+'</div>';
+  if(f.n_unknown_volume>0)
+    h+='<div class="note">'+f.n_unknown_volume+' name(s) had no volume data and are excluded from the score.</div>';
+  h+='<div class="timestamp">generated '+esc((d.generated_at||"").replace("T"," ").slice(0,16))+' UTC</div>';
+  root.innerHTML=h;
+}
+
+fetch(S3,{cache:"no-store"}).then(r=>r.json()).then(render).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="empty">Failed to load liquidity monitor: '+esc(e.message)+'</div>';
+});
+</script>
+</body>
+</html>

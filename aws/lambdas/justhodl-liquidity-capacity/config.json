@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-liquidity-capacity",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 320,
+  "timeout": 150,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Firm Liquidity & Capacity Monitor - measures every firm-book position in days-to-liquidate at a 20% participation cap, buckets the book into liquidity tiers, scores firm liquidity 0-100 and surfaces the trapped illiquid tail. data/liquidity-capacity.json.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-liquidity-capacity-daily",
+    "cron": "cron(0 2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Liquidity & Capacity Monitor - daily 02:00 UTC via Amazon EventBridge Scheduler, after the Firm Book and Risk Monitor publish, so book liquidity is measured on a fresh consolidated book."
+  }
+}
