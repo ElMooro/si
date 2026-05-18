@@ -1,0 +1,96 @@
+{
+  "ops": 792,
+  "ts": "2026-05-18T09:35:46.202320+00:00",
+  "subject": "Probe Eurostat + DBnomics for IP + EA unemployment",
+  "eurostat_unemployment": {
+    "EA20": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?format=JSON&freq=M&s_adj=SA&age=TOTAL&unit=PC_ACT&sex=T&geo=EA20&sinceTimePeriod=20"
+    },
+    "EU27_2020": {
+      "ok": true,
+      "n": 15,
+      "latest": "2026-03",
+      "value": 6.0,
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?format=JSON&freq=M&s_adj=SA&age=TOTAL&unit=PC_ACT&sex=T&geo=EU27_2020&sinceTimePeri"
+    },
+    "DE": {
+      "ok": true,
+      "n": 15,
+      "latest": "2026-03",
+      "value": 4.0,
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?format=JSON&freq=M&s_adj=SA&age=TOTAL&unit=PC_ACT&sex=T&geo=DE&sinceTimePeriod=2025"
+    },
+    "EL": {
+      "ok": true,
+      "n": 15,
+      "latest": "2026-03",
+      "value": 9.0,
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?format=JSON&freq=M&s_adj=SA&age=TOTAL&unit=PC_ACT&sex=T&geo=EL&sinceTimePeriod=2025"
+    }
+  },
+  "eurostat_ip_industry": {
+    "EA20": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=EA20&sinceTim"
+    },
+    "DE": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=DE&sinceTimeP"
+    },
+    "FR": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=FR&sinceTimeP"
+    },
+    "IT": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=IT&sinceTimeP"
+    },
+    "ES": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=ES&sinceTimeP"
+    },
+    "NL": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I21&geo=NL&sinceTimeP"
+    }
+  },
+  "eurostat_ip_manufacturing": {
+    "DE_C_I21": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=C&s_adj=SCA&unit=I21&geo=DE&sinceTimePer"
+    },
+    "DE_BD_I15": {
+      "ok": false,
+      "note": "empty series",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sts_inpr_m?format=JSON&freq=M&indic_bt=PROD&nace_r2=B-D&s_adj=SCA&unit=I15&geo=DE&sinceTimeP"
+    }
+  },
+  "dbnomics_ip": {
+    "DE_B-D_SCA_I21": {
+      "ok": false,
+      "note": "HTTPError: HTTP Error 404: NOT FOUND"
+    },
+    "DE_B-D_SCA_I15": {
+      "ok": false,
+      "note": "HTTPError: HTTP Error 404: NOT FOUND"
+    }
+  },
+  "summary": {
+    "eurostat_unemp_live": [
+      "DE",
+      "EL",
+      "EU27_2020"
+    ],
+    "eurostat_ip_live": [],
+    "dbnomics_ip_live": []
+  }
+}
