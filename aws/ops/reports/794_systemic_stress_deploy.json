@@ -1,0 +1,64 @@
+{
+  "ops": 794,
+  "ts": "2026-05-18T09:55:06.498478+00:00",
+  "subject": "Deploy + verify justhodl-systemic-stress (ECB CISS/SovCISS)",
+  "deploy": "updated",
+  "schedule": {
+    "rule": "systemic-stress-daily",
+    "cron": "cron(0 12 * * ? *)",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"composite\": 42.6, \"regime\": \"WATCH\", \"fragmentation\": \"MILD DISPERSION\", \"errors\": 0}"
+  },
+  "systemic_stress": {
+    "ok": true,
+    "headline": "Systemic stress WATCH. Composite 43/100 \u2014 euro-area CISS calm (3th pct); euro sovereign fragmentation mild dispersion.",
+    "composite_score": 42.6,
+    "composite_regime": "WATCH",
+    "euro_area_ciss_pct": 3.2,
+    "euro_area_ciss_regime": "CALM",
+    "ciss_countries": [
+      "CN",
+      "DE",
+      "ES",
+      "FR",
+      "GB",
+      "IT",
+      "US"
+    ],
+    "most_stressed_systemic": "FR",
+    "sov_countries": [
+      "AT",
+      "BE",
+      "DE",
+      "ES",
+      "FI",
+      "FR",
+      "GR",
+      "IE",
+      "IT",
+      "NL",
+      "PT"
+    ],
+    "most_stressed_sovereign": "BE",
+    "fragmentation_score": 31.1,
+    "fragmentation_label": "MILD DISPERSION",
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "composite_computed": true,
+    "ciss_multi_country": true,
+    "sovciss_multi_country": true,
+    "real_ecb_data": true
+  },
+  "all_pass": true,
+  "verdict": "SYSTEMIC-STRESS LIVE \u2014 composite 42.6/100 (WATCH); euro-area CISS at its 3.2th percentile; euro fragmentation MILD DISPERSION. ECB CISS for 8 economies + SovCISS for 11 euro-area sovereigns, deployed, scheduled daily 12:00 UTC, real ECB Data Portal data."
+}
