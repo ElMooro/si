@@ -1,0 +1,127 @@
+{
+ "ops": 856,
+ "ts": "2026-05-18T23:28:22.687229+00:00",
+ "subject": "Deploy + verify justhodl-tail-hedge (the firm Tail Hedge Overlay - scenario-targeted convex protection sized so the worst stress scenario is pulled inside the soft loss limit)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-tail-hedge-daily"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "check": "output_fresh",
+   "ok": true,
+   "detail": "2s old"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "1.0"
+  },
+  {
+   "check": "posture_valid",
+   "ok": true,
+   "detail": "HEDGE RECOMMENDED"
+  },
+  {
+   "check": "severity_maps",
+   "ok": true,
+   "detail": "sev=1 status=WATCH color=orange"
+  },
+  {
+   "check": "tail_exposure_present",
+   "ok": true,
+   "detail": "worst=2020 COVID Crash (Feb-Mar 2020) loss=-13.2 soft=-12.0 hard=-20.0"
+  },
+  {
+   "check": "requirement_logic",
+   "ok": true,
+   "detail": "gap=-1.2/-1.2 required=True/True protection=1.2"
+  },
+  {
+   "check": "sleeve_valid",
+   "ok": true,
+   "detail": "class=EQUITY_CRASH expected=EQUITY_CRASH label=Equity crash protection"
+  },
+  {
+   "check": "payoff_multiple_correct",
+   "ok": true,
+   "detail": "EQUITY_CRASH -> 6.0 (want 6.0)"
+  },
+  {
+   "check": "sizing_math",
+   "ok": true,
+   "detail": "budget=0.2/0.2 carry=0.94/0.94"
+  },
+  {
+   "check": "regime_valid",
+   "ok": true,
+   "detail": "stance=ACCUMULATE score=30.8 carry_mult=1.31"
+  },
+  {
+   "check": "consistency_checks_present",
+   "ok": true,
+   "detail": "4 checks: stress_exceeds_var99, board_agrees_tail_is_binding, carry_within_budget, critical_feeds_fresh"
+  },
+  {
+   "check": "confidence_valid",
+   "ok": true,
+   "detail": "HIGH"
+  },
+  {
+   "check": "cost_benefit_present",
+   "ok": true,
+   "detail": "keys=['annualised_carry_pct', 'insurance_ratio', 'return_drag_pct', 'tail_loss_averted_pct']"
+  },
+  {
+   "check": "history_appended",
+   "ok": true,
+   "detail": "1 snapshot(s), last date 2026-05-18"
+  },
+  {
+   "check": "brief_present",
+   "ok": true,
+   "detail": "brief 772 chars"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(30 4 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "invoke": {
+  "status": 200,
+  "fn_error": null,
+  "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"hedge_posture\\\": \\\"HEDGE RECOMMENDED\\\", \\\"severity\\\": 1, \\\"scenario_class\\\": \\\"EQUITY_CRASH\\\", \\\"hedge_budget_pct\\\": 0.2, \\\"annualised_carry_pct\\\": 0.94, \\\"stance\\\": \\\"ACCUMULATE\\\", \\\"confidence\\\": \\\"HIGH\\\"}\"}"
+ },
+ "summary": "19/19 checks passed",
+ "all_passed": true,
+ "tail_hedge": {
+  "hedge_posture": "HEDGE RECOMMENDED",
+  "headline": "HEDGE RECOMMENDED -- 2020 COVID Crash loses -13.2%, 1.2pp past the -12% soft limit. Size ~0.20% of book in equity crash protection; covers ~1.2% in the tail for ~0.94%/yr carry.",
+  "tail_score": 15.0,
+  "confidence": "HIGH",
+  "worst_scenario": "2020 COVID Crash (Feb-Mar 2020)",
+  "worst_loss_pct": -13.2,
+  "soft_loss_limit_pct": -12.0,
+  "gap_pp": -1.2,
+  "scenario_class": "EQUITY_CRASH",
+  "hedge_budget_pct": 0.2,
+  "annualised_carry_pct": 0.94,
+  "regime_stance": "ACCUMULATE",
+  "regime_score": 30.8,
+  "cro_brief": "A tail hedge is recommended. The binding scenario is 2020 COVID Crash (Feb-Mar 2020): it loses -13.2% of book, 1.2pp beyond the -12% soft loss limit. Sleeve: Equity crash protection (SPY/QQQ put spreads + VIX calls). Size roughly 0.20% of book in premium; at the sleeve's ~6.0x tail payoff that returns about 1.2% of book in the named scenario, pulling the worst case back to the soft limit. Carry: about 0.94% per year at the current regime (carry multiplier 1.31x). Tail payoff per year of carry is 1.3x. Regime stance: ACCUMULATE. Calm regime (score 31) -- protection is cheap; this is the window to build or roll the sleeve forward at low premium. Book context: net market beta 0.28, net exposure +42% -- this is the residual directional risk the sleeve is protecting."
+ }
+}
