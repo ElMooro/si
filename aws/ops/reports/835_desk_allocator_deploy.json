@@ -1,0 +1,138 @@
+{
+  "ops": 835,
+  "ts": "2026-05-18T16:25:01.738048+00:00",
+  "subject": "Deploy + verify justhodl-desk-allocator (multi-strategy capital allocator)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-desk-allocator-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "all_five_desks",
+      "ok": true,
+      "detail": "['best-ideas', 'merger-arb', 'pairs-arb', 'risk-radar', 'trend-engine']"
+    },
+    {
+      "check": "statuses_valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "weights_sum_100",
+      "ok": true,
+      "detail": "sum=100.0 all_offline=False"
+    },
+    {
+      "check": "concentration_cap_held",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "desks_sorted_desc",
+      "ok": true,
+      "detail": "[30.69, 26.44, 17.01, 14.54, 11.32]"
+    },
+    {
+      "check": "firm_rollup_present",
+      "ok": true,
+      "detail": "net_beta=0.081 div=2.39"
+    },
+    {
+      "check": "regime_populated",
+      "ok": true,
+      "detail": "NEUTRAL / MIXED axis=-0.061"
+    },
+    {
+      "check": "history_snapshotted",
+      "ok": true,
+      "detail": "1 snapshots"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(30 0 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"desks_firing\\\": 5, \\\"desks_total\\\": 5, \\\"net_equity_beta\\\": 0.081, \\\"diversification_ratio\\\": 2.39, \\\"headline\\\": \\\"5 of 5 desks firing. Capital concentrates in Merger-Arb Desk 31%, Pairs Desk 26%. Firm net equity beta +0.08, diversification ratio 2.39. Tape: NEUTRAL / MIXED.\\\"}\"}"
+  },
+  "desk_allocator": {
+    "headline": "5 of 5 desks firing. Capital concentrates in Merger-Arb Desk 31%, Pairs Desk 26%. Firm net equity beta +0.08, diversification ratio 2.39. Tape: NEUTRAL / MIXED.",
+    "regime": "NEUTRAL / MIXED",
+    "desks_firing": 5,
+    "desks_offline": 0,
+    "net_equity_beta": 0.081,
+    "portfolio_vol_est_pct": 3.88,
+    "diversification_ratio": 2.39,
+    "dominant_desk": "Merger-Arb Desk",
+    "weights": [
+      {
+        "desk": "Merger-Arb Desk",
+        "key": "merger-arb",
+        "status": "FIRING",
+        "weight_pct": 30.69,
+        "active": 15,
+        "eff_vol_pct": 6.0,
+        "freshness_h": 0.8
+      },
+      {
+        "desk": "Pairs Desk",
+        "key": "pairs-arb",
+        "status": "FIRING",
+        "weight_pct": 26.44,
+        "active": 81,
+        "eff_vol_pct": 7.0,
+        "freshness_h": 1.5
+      },
+      {
+        "desk": "Trend Desk",
+        "key": "trend-engine",
+        "status": "FIRING",
+        "weight_pct": 17.01,
+        "active": 17,
+        "eff_vol_pct": 11.0,
+        "freshness_h": 0.7
+      },
+      {
+        "desk": "Risk Radar",
+        "key": "risk-radar",
+        "status": "FIRING",
+        "weight_pct": 14.54,
+        "active": 28,
+        "eff_vol_pct": 13.0,
+        "freshness_h": 1.0
+      },
+      {
+        "desk": "Best Ideas",
+        "key": "best-ideas",
+        "status": "FIRING",
+        "weight_pct": 11.32,
+        "active": 89,
+        "eff_vol_pct": 16.0,
+        "freshness_h": 1.7
+      }
+    ]
+  },
+  "all_pass": true,
+  "verdict": "DESK ALLOCATOR LIVE - 5/5 desks firing, firm net equity beta 0.081, diversification ratio 2.39. Capital concentrates in Merger-Arb Desk. Risk-parity + regime-tilt allocation production-clean, daily 00:30 UTC."
+}
