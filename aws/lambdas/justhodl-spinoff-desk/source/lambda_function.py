@@ -140,10 +140,17 @@ def pull_registrations():
         ticker = tm.group(1) if tm else None
         # strip the trailing "(TICK) (CIK ...)" decoration from the name
         clean = re.sub(r"\s*\([A-Z0-9.\-]+\)\s*\(CIK.*$", "", name0).strip()
-        cik = (src.get("cik") or "").lstrip("0") or None
-        adsh = src.get("_id") or h.get("_id") or ""
-        accession = adsh.split(":")[0]
-        primary = adsh.split(":")[1] if ":" in adsh else ""
+        # EFTS keeps CIKs in a list ("ciks"); EDGAR archive paths use the
+        # CIK with leading zeros stripped.
+        ciks = src.get("ciks") or []
+        cik = ciks[0].lstrip("0") if (ciks and ciks[0]) else None
+        # accession comes straight from "adsh"; the primary document
+        # filename is the tail of the hit _id ("accession:filename").
+        accession = src.get("adsh") or ""
+        hit_id = h.get("_id") or ""
+        if not accession and ":" in hit_id:
+            accession = hit_id.split(":")[0]
+        primary = hit_id.split(":")[1] if ":" in hit_id else ""
         out.append({
             "name": clean or name0,
             "ticker": ticker,
@@ -152,8 +159,22 @@ def pull_registrations():
             "filed_ts": ts,
             "accession": accession,
             "primary_doc": primary,
+            "form": src.get("file_type") or src.get("form") or "10-12B",
         })
-    return out
+    # A spin-off files an original 10-12B then one or more 10-12B/A
+    # amendments under the SAME (new SpinCo) CIK. Collapse to one record
+    # per CIK, keeping the most recent filing - the latest amendment is
+    # both the current terms and the closest proxy for the listing date.
+    by_cik = {}
+    no_cik = []
+    for r in out:
+        if not r["cik"]:
+            no_cik.append(r)
+            continue
+        cur = by_cik.get(r["cik"])
+        if cur is None or r["filed_ts"] > cur["filed_ts"]:
+            by_cik[r["cik"]] = r
+    return list(by_cik.values()) + no_cik
 
 
 def doc_url(cik, accession, primary):
@@ -411,6 +432,27 @@ def lambda_handler(event, context):
             else:
                 pending.append(r)
     pending.extend(r for r in regs if not r.get("ticker"))
+
+    # ticker/CIK-level dedup safety net: a SpinCo files an original 10-12B
+    # then one or more 10-12B/A amendments; the CIK dedup in
+    # pull_registrations already collapses these, but if EDGAR ever returns
+    # an amendment under a sibling CIK we still want a single book row.
+    def _dedup(rows, keyfn):
+        best = {}
+        keyless = []
+        for r in rows:
+            k = keyfn(r)
+            if k is None:
+                keyless.append(r)
+                continue
+            cur = best.get(k)
+            if cur is None or (r.get("filed_ts") or 0) > (cur.get("filed_ts") or 0):
+                best[k] = r
+        return list(best.values()) + keyless
+
+    trading = _dedup(trading, lambda r: (r.get("ticker") or "").upper() or None)
+    pending = _dedup(
+        pending, lambda r: r.get("cik") or (r.get("name") or "").strip().lower() or None)
 
     # inspect filings for the trading set (confirm spin-off + parent)
     for r in trading[:MAX_DOC_FETCH]:
