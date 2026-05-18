@@ -1,0 +1,131 @@
+{
+  "ops": 848,
+  "ts": "2026-05-18T19:35:54.026438+00:00",
+  "subject": "Deploy + verify justhodl-factor-risk - the firm Factor Risk Model",
+  "checks": [
+    {
+      "check": "package_built",
+      "ok": true,
+      "detail": "7970 bytes"
+    },
+    {
+      "check": "lambda_deployed",
+      "ok": true,
+      "detail": "updated existing function"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "created justhodl-factor-risk-daily = ENABLED cron(30 2 * * ? *)"
+    },
+    {
+      "check": "invoke_accepted",
+      "ok": true,
+      "detail": "async invoke dispatched"
+    },
+    {
+      "check": "output_written",
+      "ok": true,
+      "detail": "factor-risk.json refreshed at 2026-05-18 19:39:11+00:00"
+    },
+    {
+      "check": "six_factors",
+      "ok": true,
+      "detail": "6 factor exposures: ['MKT', 'SIZE', 'LOWVOL', 'VALUE', 'QUALITY', 'MOM']"
+    },
+    {
+      "check": "vol_sane",
+      "ok": true,
+      "detail": "annual vol = 7.09%"
+    },
+    {
+      "check": "risk_split_ok",
+      "ok": true,
+      "detail": "systematic 48.9% + idiosyncratic 51.1%"
+    },
+    {
+      "check": "var_monotone",
+      "ok": true,
+      "detail": "VaR95 0.73% <= VaR99 1.04%"
+    },
+    {
+      "check": "mctr_sums_100",
+      "ok": true,
+      "detail": "MCTR total = 100.0%"
+    },
+    {
+      "check": "scenarios_present",
+      "ok": true,
+      "detail": "7 scenarios, worst = -13.2"
+    },
+    {
+      "check": "coverage_complete",
+      "ok": true,
+      "detail": "177 direct + 89 proxy = 266 names"
+    },
+    {
+      "check": "risk_contributors_present",
+      "ok": true,
+      "detail": "15 contributors, top = CCRD (19.56%)"
+    },
+    {
+      "check": "net_beta_finite",
+      "ok": true,
+      "detail": "net market beta = 0.276"
+    },
+    {
+      "check": "loadings_cache_persisted",
+      "ok": true,
+      "detail": "177 names cached"
+    }
+  ],
+  "model": {
+    "annual_vol_pct": 7.09,
+    "pct_systematic": 48.9,
+    "var_95_1d_pct": 0.73,
+    "var_99_1d_pct": 1.04,
+    "es_95_1d_pct": 0.92,
+    "net_market_beta": 0.276,
+    "factor_exposures": [
+      [
+        "MKT",
+        27.59
+      ],
+      [
+        "SIZE",
+        17.93
+      ],
+      [
+        "LOWVOL",
+        -9.11
+      ],
+      [
+        "VALUE",
+        7.12
+      ],
+      [
+        "QUALITY",
+        -4.54
+      ],
+      [
+        "MOM",
+        -2.35
+      ]
+    ],
+    "worst_scenario": [
+      "2020 COVID crash (Feb-Mar 2020)",
+      -13.2
+    ],
+    "hedges": [
+      "SHORT 27.6% SPY",
+      "SHORT 17.9% IWM",
+      "LONG 9.1% USMV",
+      "SHORT 7.1% IWD",
+      "LONG 4.5% QUAL"
+    ],
+    "coverage": "177 direct / 89 proxy / 89 failed",
+    "headline": "Firm book annualised vol 7.1% (49% systematic). Largest factor bet: MKT +27.6%. Worst stress: 2020 COVID crash -13.2%."
+  },
+  "all_pass": true,
+  "verdict": "FACTOR RISK MODEL LIVE - the firm book is now decomposed into six tradable factors daily at 02:30 UTC. Annualised vol 7.09% (48.9% systematic), VaR95 0.73%. 177 direct / 89 proxy / 89 failed. The risk-analytics layer above the risk-monitor is operational."
+}
