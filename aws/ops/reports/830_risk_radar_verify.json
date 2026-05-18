@@ -1,0 +1,93 @@
+{
+  "ops": 830,
+  "ts": "2026-05-18T15:26:50.572631+00:00",
+  "subject": "Deploy-guard + verify justhodl-risk-radar",
+  "deploy": "updated",
+  "schedule": "updated",
+  "schedule_state": "ENABLED",
+  "schedule_cron": "cron(30 14 * * ? *)",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"carried\\\": 28, \\\"short_candidates\\\": 2, \\\"avoid\\\": 5}\"}"
+  },
+  "risk_radar": {
+    "ok": true,
+    "checks": {
+      "universe_screened_sane": true,
+      "schema_present": true,
+      "headline_present": true,
+      "counts_consistent": true,
+      "shorts_well_formed": true,
+      "stack_well_formed": true,
+      "red_flags_present": true,
+      "stack_sorted_desc": true,
+      "by_failure_mode_present": true,
+      "methodology_present": true
+    },
+    "headline": "28 S&P 500 names are deteriorating - 2 qualify as genuine short candidates, 5 more are simply best avoided. Worst breakdown: EchoStar Corporation (SATS), solvency risk.",
+    "universe_screened": 503,
+    "n_carried": 28,
+    "n_short_candidates": 2,
+    "n_avoid": 5,
+    "by_failure_mode": {
+      "SOLVENCY RISK": 9,
+      "MOMENTUM BREAKDOWN": 4,
+      "EARNINGS EROSION": 10,
+      "OVERVALUED": 5
+    },
+    "top5_short": [
+      {
+        "sym": "SATS",
+        "sector": "Technology",
+        "score": 58.6,
+        "mode": "SOLVENCY RISK",
+        "axes": 3,
+        "shorts_building": false,
+        "value_trap": false
+      },
+      {
+        "sym": "PSKY",
+        "sector": "Communication Services",
+        "score": 57.8,
+        "mode": "MOMENTUM BREAKDOWN",
+        "axes": 4,
+        "shorts_building": false,
+        "value_trap": false
+      }
+    ],
+    "top5_avoid": [
+      {
+        "sym": "TAP",
+        "sector": "Consumer Defensive",
+        "score": 52.8,
+        "mode": "EARNINGS EROSION"
+      },
+      {
+        "sym": "ARE",
+        "sector": "Real Estate",
+        "score": 50.3,
+        "mode": "EARNINGS EROSION"
+      },
+      {
+        "sym": "VST",
+        "sector": "Utilities",
+        "score": 48.3,
+        "mode": "SOLVENCY RISK"
+      },
+      {
+        "sym": "MRNA",
+        "sector": "Healthcare",
+        "score": 48.1,
+        "mode": "OVERVALUED"
+      },
+      {
+        "sym": "KHC",
+        "sector": "Consumer Defensive",
+        "score": 46.9,
+        "mode": "EARNINGS EROSION"
+      }
+    ]
+  },
+  "all_pass": true
+}
