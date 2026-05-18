@@ -1,0 +1,81 @@
+{
+  "ops": 804,
+  "ts": "2026-05-18T12:06:06.142908+00:00",
+  "subject": "Deploy + verify justhodl-opportunity-screener (Boom Board)",
+  "deploy": "updated",
+  "schedule": {
+    "rule": "opportunity-screener-daily",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"boom_candidates\": 704, \"errors\": 0}"
+  },
+  "boom_board": {
+    "ok": true,
+    "headline": "Boom Board: 704 cross-confirmed opportunities \u2014 0 micro-cap rockets, 40 serial estimate-beaters, 40 under-priced growers.",
+    "counts": {
+      "boom_candidates": 704,
+      "microcap_rockets": 0,
+      "serial_beaters": 40,
+      "hidden_growth": 40
+    },
+    "n_boom_candidates": 120,
+    "top5": [
+      {
+        "sym": "NVDA",
+        "score": 86.5,
+        "engines": 4,
+        "target": 275.0,
+        "upside_pct": 22.0
+      },
+      {
+        "sym": "AVGO",
+        "score": 82.2,
+        "engines": 4,
+        "target": 450.0,
+        "upside_pct": 5.8
+      },
+      {
+        "sym": "AAPL",
+        "score": 71.2,
+        "engines": 4,
+        "target": 238.06,
+        "upside_pct": -20.7
+      },
+      {
+        "sym": "MSFT",
+        "score": 69.6,
+        "engines": 4,
+        "target": 353.92,
+        "upside_pct": -16.1
+      },
+      {
+        "sym": "META",
+        "score": 69.3,
+        "engines": 4,
+        "target": 550.38,
+        "upside_pct": -10.4
+      }
+    ],
+    "top40_with_price_target": 30,
+    "top40_with_thesis": 40,
+    "n_commodities": 14,
+    "housing_regime": "SLOWING",
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "board_populated": true,
+    "thesis_present": true,
+    "price_targets_present": true,
+    "housing_present": true
+  },
+  "all_pass": true,
+  "verdict": "BOOM BOARD LIVE \u2014 120 cross-confirmed opportunities fused from 5 opportunity engines; 30/40 top names carry a multi-method price target, 40/40 carry a plain-English thesis. Microcap/serial-beater/hidden-growth views + commodities & housing populated. Deployed, scheduled daily 14:00 UTC."
+}
