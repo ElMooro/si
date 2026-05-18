@@ -1,0 +1,95 @@
+{
+  "ops": 814,
+  "ts": "2026-05-18T13:08:08.943175+00:00",
+  "subject": "Deploy capital-return cannibal screen + orphan cleanup",
+  "orphan_rule_cleanup": {
+    "boom-radar-daily": "deleted",
+    "catch-up-radar-daily": "already absent"
+  },
+  "deploy": "created",
+  "schedule": "wired",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"n_cannibals\": 81, \"n_evaluated\": 503}"
+  },
+  "capital_return": {
+    "ok": true,
+    "headline": "81 capital-return cannibals - companies shrinking their share count with free cash flow, lifting EPS for every remaining shareholder.",
+    "n_evaluated": 503,
+    "n_cannibals": 60,
+    "top30_with_target": 30,
+    "insane_yields": [
+      "URI",
+      "GEV",
+      "JCI"
+    ],
+    "top6": [
+      {
+        "sym": "SYF",
+        "score": 80.3,
+        "buyback": 12.23,
+        "total_yield": 13.91,
+        "fcf_yield": 40.96,
+        "pe": 6.8,
+        "upside": 24.2
+      },
+      {
+        "sym": "WDC",
+        "score": 78.4,
+        "buyback": 9.0,
+        "total_yield": 18.0,
+        "fcf_yield": 77.0,
+        "pe": 25.6,
+        "upside": -6.6
+      },
+      {
+        "sym": "BX",
+        "score": 76.4,
+        "buyback": 22.0,
+        "total_yield": 26.21,
+        "fcf_yield": 123.0,
+        "pe": 30.2,
+        "upside": 32.3
+      },
+      {
+        "sym": "ADBE",
+        "score": 72.2,
+        "buyback": 11.27,
+        "total_yield": 11.27,
+        "fcf_yield": 9.84,
+        "pe": 14.1,
+        "upside": 39.1
+      },
+      {
+        "sym": "BBY",
+        "score": 72.1,
+        "buyback": 2.32,
+        "total_yield": 9.09,
+        "fcf_yield": 10.69,
+        "pe": 11.1,
+        "upside": 39.6
+      },
+      {
+        "sym": "GIS",
+        "score": 71.4,
+        "buyback": 6.83,
+        "total_yield": 14.23,
+        "fcf_yield": 13.02,
+        "pe": 8.1,
+        "upside": 34.9
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "cannibals_found": true,
+    "yields_sane": false,
+    "targets_present": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW - see checks[]/capital_return"
+}
