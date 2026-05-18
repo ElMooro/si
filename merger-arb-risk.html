@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merger-Arb Book Risk &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#129309;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .posture{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:2px;margin-bottom:6px}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--panel2)}
+.tk{font-weight:700;font-size:12.5px}
+.nm{color:var(--dim);font-size:10px;font-family:'Inter',sans-serif}
+.badge{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+.b-tail{color:var(--red);border-color:#6e2438;background:#240c12}
+.b-stress{color:var(--orange);border-color:#6e4418;background:#241a0c}
+.b-base{color:var(--cyan);border-color:#1d4e5e;background:#0c2024}
+.b-upside{color:var(--green);border-color:#1d5e44;background:#0c2419}
+.t-tight{color:var(--green);border-color:#1d5e44}
+.t-wide{color:var(--yellow);border-color:#6e5a18}
+.t-bump{color:var(--cyan);border-color:#1d4e5e}
+.t-un{color:var(--dim);border-color:var(--line)}
+.scen{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 13px}
+.srow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:none}
+.sbadge{width:62px;flex-shrink:0}
+.sval{font-family:var(--mono);font-size:17px;font-weight:700;width:88px;flex-shrink:0;text-align:right}
+.sbody{flex:1;min-width:0}
+.sname{font-family:var(--mono);font-size:12px;font-weight:700}
+.snote{color:var(--dim);font-size:10.5px;line-height:1.45}
+.xref{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--purple);border-radius:8px;padding:12px 14px;margin-top:8px}
+.xref .xt{font-family:var(--mono);font-size:11px;color:var(--purple);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.xref .xb{font-size:11.5px;color:var(--mute);line-height:1.55}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#129309; Merger-Arb Book Risk</h1>
+    <p class="subtitle">The firm Stress Desk re-prices every position through equity style factors &mdash; the <b>wrong</b> risk model for a risk-arbitrage book. An arb position's P&amp;L is driven by one binary event: the deal <b>closes</b> (collect the spread) or it <b>breaks</b> (gap down to the unaffected price). And breaks <b>cluster</b>. This monitor joins the firm book's Merger-Arb sleeve to the Spread Desk's per-deal record and models the book on its correct axis &mdash; cluster break, worst-quartile break, deal-risk-weighted expected P&amp;L and full-close carry.</p>
+    <nav class="crumbs">
+      <a href="/merger-arb.html">spread desk</a>
+      <a href="/firm-stress.html">stress desk</a>
+      <a href="/risk-monitor.html">risk monitor</a>
+      <a href="/firm-book.html">firm book</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING MERGER-ARB BOOK RISK&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/merger-arb-risk.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const POSTURE={GREEN:"var(--green)",AMBER:"var(--yellow)",RED:"var(--red)",UNKNOWN:"var(--dim)"};
+function pnlCol(v){return v==null?"var(--dim)":v<0?"var(--red)":v>0?"var(--green)":"var(--mute)";}
+function pct(v,d){return v==null?"--":(v>0?"+":"")+Number(v).toFixed(d==null?2:d)+"%";}
+function tierCls(t){const k=(t||"").toUpperCase();
+  if(k.indexOf("TIGHT")>=0)return "t-tight";
+  if(k.indexOf("WIDE")>=0)return "t-wide";
+  if(k.indexOf("BUMP")>=0)return "t-bump";return "t-un";}
+
+function scenList(scen){
+  if(!scen||!scen.length)return '<div class="empty">No scenarios.</div>';
+  return '<div class="scen">'+scen.map(s=>
+    '<div class="srow">'+
+      '<div class="sbadge"><span class="badge b-'+esc(s.type)+'">'+esc(s.type)+'</span></div>'+
+      '<div class="sval" style="color:'+pnlCol(s.book_pnl_pct)+'">'+pct(s.book_pnl_pct)+'</div>'+
+      '<div class="sbody"><div class="sname">'+esc(s.scenario)+'</div>'+
+        '<div class="snote">'+esc(s.note||"")+'</div></div>'+
+    '</div>').join("")+'</div>';
+}
+
+function breakTable(rows){
+  if(!rows||!rows.length)return '<div class="empty">No priced deals matched to the firm book.</div>';
+  return '<table><thead><tr>'+
+    '<th class="l">Target</th><th>Position</th><th>Break Downside</th>'+
+    '<th>Break Loss</th><th>Carry</th><th>Deal Risk</th><th>Tier</th>'+
+    '</tr></thead><tbody>'+
+    rows.map(p=>'<tr>'+
+      '<td class="l"><span class="tk">'+esc(p.symbol)+'</span>'+
+        '<div class="nm">'+esc((p.name||"").slice(0,26))+'</div></td>'+
+      '<td>'+pct(p.position_pct,2)+'</td>'+
+      '<td style="color:var(--red)">'+pct(p.downside_to_unaffected_pct,1)+'</td>'+
+      '<td style="font-weight:700;color:'+pnlCol(p.break_loss_pct)+'">'+pct(p.break_loss_pct)+'</td>'+
+      '<td style="color:var(--green)">'+pct(p.carry_if_closes_pct)+'</td>'+
+      '<td style="color:var(--mute)">'+esc(p.deal_risk==null?"--":p.deal_risk)+'</td>'+
+      '<td><span class="badge '+tierCls(p.tier)+'">'+esc((p.tier||"--").split(" ")[0])+'</span></td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function posTable(rows){
+  const live=rows.filter(p=>p.has_live_deal);
+  const nd=rows.filter(p=>!p.has_live_deal);
+  let h="";
+  if(live.length){
+    h+='<table><thead><tr>'+
+      '<th class="l">Target</th><th class="l">Acquirer</th><th>Type</th>'+
+      '<th>Position</th><th>Spread</th><th>Ann.</th><th>Downside</th>'+
+      '<th>Impl. Break</th><th>Break Loss</th>'+
+      '</tr></thead><tbody>'+
+      live.map(p=>'<tr>'+
+        '<td class="l"><span class="tk">'+esc(p.symbol)+'</span>'+
+          '<div class="nm">'+esc((p.name||"").slice(0,24))+'</div></td>'+
+        '<td class="l" style="color:var(--mute);font-size:11px">'+esc(p.acquirer||"--")+'</td>'+
+        '<td style="color:var(--dim);font-size:10px">'+esc((p.deal_type||"--").replace("ALL-",""))+'</td>'+
+        '<td>'+pct(p.position_pct,2)+'</td>'+
+        '<td style="color:var(--green)">'+pct(p.gross_spread_pct,2)+'</td>'+
+        '<td style="color:var(--mute)">'+pct(p.annualized_return_pct,1)+'</td>'+
+        '<td style="color:var(--red)">'+pct(p.downside_to_unaffected_pct,1)+'</td>'+
+        '<td style="color:var(--yellow)">'+(p.implied_break_prob==null?"--":(p.implied_break_prob*100).toFixed(0)+"%")+'</td>'+
+        '<td style="font-weight:700;color:'+pnlCol(p.break_loss_pct)+'">'+pct(p.break_loss_pct)+'</td>'+
+      '</tr>').join("")+'</tbody></table>';
+  } else { h+='<div class="empty">No live priced deals in the sleeve.</div>'; }
+  if(nd.length){
+    h+='<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px">'+
+      nd.length+' arb position(s) with no priced deal in the current feed: '+
+      esc(nd.map(p=>p.symbol+" ("+pct(p.position_pct,2)+")").join(", "))+
+      ' &mdash; deal may have closed or is not yet parsed.</div>';
+  }
+  return h;
+}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(d=>{
+  const sm=d.summary||{},pc=POSTURE[d.posture]||"var(--dim)";
+  let h="";
+  h+='<div class="hero" style="border-left-color:'+pc+'">'+
+    '<div class="posture" style="color:'+pc+'">'+esc(d.posture||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+  h+='<div class="stats">'+
+    '<div class="stat"><div class="sl">Cluster Break</div><div class="sv" style="color:'+pnlCol(sm.cluster_break_pct)+'">'+pct(sm.cluster_break_pct)+'</div></div>'+
+    '<div class="stat"><div class="sl">Full-Close Carry</div><div class="sv" style="color:'+pnlCol(sm.full_close_carry_pct)+'">'+pct(sm.full_close_carry_pct)+'</div></div>'+
+    '<div class="stat"><div class="sl">Model Expected</div><div class="sv" style="color:'+pnlCol(sm.model_expected_pct)+'">'+pct(sm.model_expected_pct)+'</div></div>'+
+    '<div class="stat"><div class="sl">Sleeve % of Book</div><div class="sv">'+pct(sm.sleeve_pct_of_book,1)+'</div></div>'+
+    '<div class="stat"><div class="sl">Live Deals</div><div class="sv">'+esc(sm.n_live_deals)+' / '+esc(sm.n_arb_positions)+'</div></div>'+
+    '<div class="stat"><div class="sl">Median Deal Risk</div><div class="sv" style="color:var(--mute)">'+esc(sm.median_deal_risk==null?"--":sm.median_deal_risk)+'</div></div>'+
+  '</div>';
+  h+='<div class="sechead">Deal-Break Scenarios <small>&mdash; the firm-book P&amp;L of the merger-arb sleeve under each path</small></div>';
+  h+=scenList(d.scenarios);
+  h+='<div class="sechead">Largest Break Risks <small>&mdash; deals doing the most damage if they break</small></div>';
+  h+=breakTable(d.top_break_risks);
+  if(d.factor_model_cross_reference){
+    const x=d.factor_model_cross_reference;
+    h+='<div class="xref"><div class="xt">Factor-Model Cross-Reference</div>'+
+      '<div class="xb">The firm Stress Desk\u2019s six-factor model estimates the Merger-Arb desk at '+
+      '<b style="color:'+pnlCol(x.factor_model_desk_pnl_pct)+'">'+pct(x.factor_model_desk_pnl_pct)+'</b> in its worst scenario ('+esc(x.stress_scenario||"")+'). '+
+      'The deal-break cluster figure above &mdash; <b style="color:'+pnlCol(sm.cluster_break_pct)+'">'+pct(sm.cluster_break_pct)+'</b> &mdash; is the correct risk axis for an arb book: arb targets trade near deal value, so their equity beta overstates the true, bounded break risk.</div></div>';
+  }
+  h+='<div class="sechead">Full Arb Sleeve <small>&mdash; every Merger-Arb desk position joined to its live deal</small></div>';
+  h+=posTable(d.positions||[]);
+  h+='<p class="note">'+esc(d.method||"")+'<br><br><b>Cluster-break loss limits:</b> soft '+esc((d.loss_limits||{}).soft_pct)+'%, hard '+esc((d.loss_limits||{}).hard_pct)+'% of the firm book.<br>'+esc(d.disclaimer||"")+'</p>';
+  h+='<div class="timestamp">firm book '+esc((d.firm_book_asof||"").slice(0,16).replace("T"," "))+' &middot; deal feed '+esc((d.merger_arb_feed_asof||"").slice(0,16).replace("T"," "))+' &middot; run '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC</div>';
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">MERGER-ARB BOOK RISK UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>

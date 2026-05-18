@@ -1,0 +1,20 @@
+{
+ "function_name": "justhodl-merger-arb-risk",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Merger-Arb Book Risk Monitor - joins the firm book's Merger-Arb sleeve to the Spread Desk's per-deal record and models deal-break risk: cluster break, worst-quartile break, deal-risk-weighted expected P&L and full-close carry. data/merger-arb-risk.json.",
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-merger-arb-risk-daily",
+  "cron": "cron(30 3 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Merger-Arb Book Risk Monitor - daily 03:30 UTC via Amazon EventBridge Scheduler, after the firm Stress Desk, completing the firm risk stack on a fresh consolidated book."
+ }
+}
