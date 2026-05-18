@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Euro Fragmentation · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⚡</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;margin:5px 0}
+.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
+.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
+.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
+.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.comps{display:flex;gap:16px;flex-wrap:wrap;margin-top:13px}
+.comp{flex:1;min-width:115px}
+.comp .k{font-family:var(--mono);font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim)}
+.comp .bar{height:6px;border-radius:4px;background:var(--panel2);margin:4px 0 3px;overflow:hidden}
+.comp .fill{height:100%;border-radius:4px}
+.comp .v{font-family:var(--mono);font-size:11px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:14px}
+.cell{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:7px;padding:12px}
+.cell .cc{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px}
+.cell .bp{font-family:var(--mono);font-size:21px;font-weight:700;margin:5px 0 1px}
+.cell .pl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;color:var(--dim);text-transform:uppercase}
+.cell .rg{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3px;margin-top:5px}
+.cell .dt{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:4px;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
+.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
+.frrow{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-top:8px}
+.frrow .fk{font-family:var(--mono);font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim)}
+.frrow .fv{font-family:var(--mono);font-size:17px;font-weight:700}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+.xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚡ Euro-Area Sovereign Fragmentation</h1>
+    <p class="subtitle">The euro's structural fault line. This engine answers one question: is the monetary union's bond market pricing every member as one currency, or splintering — pricing redenomination risk into <b>France, Belgium and the periphery</b>? It fuses the ECB's daily <b>SovCISS</b> sovereign-stress index with <b>10Y yield spreads over the Bund</b> (OAT-Bund, BTP-Bund, Bonos-Bund). The 2011-12 crisis took BTP-Bund to ~550bp; France is now the locus that matters most — a core economy is harder to backstop than the periphery.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/systemic-stress.html">systemic stress</a>
+      <a href="/ecb-detail.html">ecb detail</a>
+      <a href="/cb-injection.html">cb injection</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING EURO FRAGMENTATION…</div></div>
+
+  <div id="score"></div>
+
+  <h2>France Focus — The Core Fragmentation Locus</h2>
+  <div id="france"></div>
+
+  <h2>Sovereign Spreads over the Bund</h2>
+  <div id="cvp" class="panel" style="border-left-color:var(--cyan)"></div>
+  <div class="grid" id="grid"></div>
+
+  <div id="tpi"></div>
+  <div id="xref"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn=(v,d=0)=>v==null?"—":(v>0?"+":"")+num(v,d);
+const regColor=(r)=>{r=r||"";return /ACUTE/.test(r)?"var(--red)":/FRAGMENTATION RISK|STRESSED/.test(r)?"var(--orange)":/DISPERSION|ELEVATED/.test(r)?"var(--yellow)":/FIRM/.test(r)?"var(--cyan)":/COHESIVE|CALM/.test(r)?"var(--green)":"var(--mute)";};
+const FLAG={DE:"🇩🇪",FR:"🇫🇷",IT:"🇮🇹",ES:"🇪🇸",NL:"🇳🇱",BE:"🇧🇪",AT:"🇦🇹",PT:"🇵🇹",IE:"🇮🇪",GR:"🇬🇷"};
+const COMP_LABELS={widest_spread:"Widest spread",spread_widening_pace:"Widening pace",sovciss_dispersion:"SovCISS dispersion",sovciss_momentum:"SovCISS momentum",core_fragmentation_flag:"Core flag"};
+const COMP_MAX={widest_spread:30,spread_widening_pace:25,sovciss_dispersion:20,sovciss_momentum:15,core_fragmentation_flag:10};
+
+function hero(d){
+  const c=regColor((d.fragmentation||{}).regime);
+  return `<div class="hero" style="border-left-color:${c}">
+    <div class="lab">Euro-Area Fragmentation</div>
+    <div class="big" style="color:${c}">${esc((d.fragmentation||{}).regime||"—")}</div>
+    <div class="meta">${esc(d.headline||"")}</div>
+  </div>`;
+}
+
+function scorePanel(F){
+  if(!F) return "";
+  const c=regColor(F.regime);
+  const pos=Math.max(2,Math.min(98,F.score_0_100||0));
+  const comps=Object.keys(COMP_LABELS).map(k=>{
+    const v=(F.components||{})[k]||0,mx=COMP_MAX[k];
+    return `<div class="comp"><div class="k">${COMP_LABELS[k]}</div>
+      <div class="bar"><div class="fill" style="width:${Math.min(100,v/mx*100)}%;background:${c}"></div></div>
+      <div class="v" style="color:${c}">${num(v,1)} / ${mx}</div></div>`;
+  }).join("");
+  return `<div class="elq" style="border-left-color:${c}">
+    <div class="lab">Fragmentation Score</div>
+    <div class="num" style="color:${c}">${num(F.score_0_100,0)}<span style="font-size:16px;color:var(--dim)"> / 100</span></div>
+    <div class="reg" style="color:${c}">${esc(F.regime||"—")}</div>
+    <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
+    <div class="gscale"><span>cohesive</span><span>dispersion 25</span><span>frag risk 48</span><span>acute 70+</span></div>
+    <div class="comps">${comps}</div>
+    <div class="rd">${esc(F.read||"")}</div>
+  </div>`;
+}
+
+function cell(cc,b){
+  if(!b) return "";
+  const c=regColor(b.sovciss_regime);
+  const isBench=b.group==="benchmark";
+  return `<div class="cell" style="border-top-color:${isBench?'var(--dim)':c}">
+    <div class="cc">${(FLAG[cc]||"")} ${esc(b.name||cc)} <span style="color:var(--dim);font-size:9px">${esc(b.group||"")}</span></div>
+    <div class="bp" style="color:${isBench?'var(--dim)':c}">${isBench?"BUND":(b.spread_vs_bund_bp!=null?num(b.spread_vs_bund_bp,0)+"bp":"—")}</div>
+    <div class="pl">${isBench?"benchmark · 10Y "+num(b.yield_10y_pct,2)+"%":"spread vs bund"}</div>
+    <div class="rg" style="color:${c}">SovCISS ${b.sovciss_percentile!=null?num(b.sovciss_percentile,0)+"th":"—"} · ${esc(b.sovciss_regime||"")}</div>
+    <div class="dt">${isBench?"":"1m "+sgn(b.spread_change_1m_bp,0)+"bp · 3m "+sgn(b.spread_change_3m_bp,0)+"bp"}</div>
+  </div>`;
+}
+
+async function main(){
+  const d=await J("euro-fragmentation.json");
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">EURO-FRAGMENTATION DATA UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=hero(d);
+  document.getElementById("score").innerHTML=scorePanel(d.fragmentation||{});
+
+  const FR=d.france_focus||{};
+  const frc=regColor(FR.sovciss_regime);
+  document.getElementById("france").innerHTML=`<div class="panel" style="border-left-color:${frc}">
+    <div class="t">🇫🇷 France — OAT-Bund Spread &amp; SovCISS</div>
+    <div class="frrow">
+      <div><div class="fk">OAT-Bund</div><div class="fv" style="color:${frc}">${num(FR.oat_bund_spread_bp,0)} bp</div></div>
+      <div><div class="fk">1m change</div><div class="fv" style="color:${(FR.spread_change_1m_bp||0)>0?'var(--red)':'var(--green)'}">${sgn(FR.spread_change_1m_bp,0)} bp</div></div>
+      <div><div class="fk">3m change</div><div class="fv" style="color:${(FR.spread_change_3m_bp||0)>0?'var(--red)':'var(--green)'}">${sgn(FR.spread_change_3m_bp,0)} bp</div></div>
+      <div><div class="fk">SovCISS pct</div><div class="fv" style="color:${frc}">${num(FR.sovciss_percentile,0)}th</div></div>
+      <div><div class="fk">regime</div><div class="fv" style="color:${frc}">${esc(FR.sovciss_regime||"—")}</div></div>
+    </div>
+    <div class="r">${esc(FR.read||"")}</div>
+  </div>`;
+
+  const CVP=d.core_vs_periphery||{};
+  document.getElementById("cvp").innerHTML=`<div class="t">Core vs Periphery</div>
+    <div class="frrow">
+      <div><div class="fk">core avg</div><div class="fv">${num(CVP.core_avg_spread_bp,0)} bp</div></div>
+      <div><div class="fk">periphery avg</div><div class="fv">${num(CVP.periphery_avg_spread_bp,0)} bp</div></div>
+      <div><div class="fk">most stressed</div><div class="fv">${(CVP.most_stressed_top3||[]).map(c=>FLAG[c]||c).join(" ")}</div></div>
+    </div>
+    <div class="r">${esc(CVP.read||"")}</div>`;
+
+  const co=d.countries||{};
+  const order=Object.keys(co).sort((a,b)=>{
+    if(co[a].group==="benchmark") return -1; if(co[b].group==="benchmark") return 1;
+    return (co[b].spread_vs_bund_bp||0)-(co[a].spread_vs_bund_bp||0);
+  });
+  document.getElementById("grid").innerHTML=order.map(cc=>cell(cc,co[cc])).join("");
+
+  const TPI=d.ecb_backstop||{};
+  document.getElementById("tpi").innerHTML=`<div class="panel" style="border-left-color:var(--purple)">
+    <div class="t">ECB Backstop — ${esc(TPI.instrument||"TPI")}</div>
+    <div class="r">${esc(TPI.read||"")}</div>
+  </div>`;
+
+  const xr=d.cross_reference||{};
+  document.getElementById("xref").innerHTML=`<div class="panel" style="border-left-color:var(--cyan)">
+    <div class="t">Cross-Reference</div>
+    <div class="xref">systemic stress: ${esc(xr.systemic_stress_regime||"n/a")} (${esc(xr.systemic_stress_composite!=null?xr.systemic_stress_composite:"n/a")}/100) · global CB impulse: ${esc(xr.cb_injection_global_impulse||"n/a")} · ECB stance: ${esc(xr.ecb_stance||"n/a")}</div>
+  </div>`;
+  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". SovCISS is daily; bp spreads use FRED OECD monthly 10Y yields. Real data only — not investment advice.";
+  document.getElementById("ts").textContent=
+    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
