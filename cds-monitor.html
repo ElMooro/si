@@ -61,7 +61,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <div class="container">
   <header>
     <h1>🚨 Global Credit Default &amp; Stress Monitor</h1>
-    <p class="subtitle">Real single-name CDS feeds cost $20k+/yr — so this engine builds the hedge-fund standard alternative: the <b>Merton structural model</b> (the framework behind Moody's CreditEdge / KMV). It treats each firm's equity as a call option on its assets and backs out a market-implied <b>distance to default</b>, a one-year default probability and a <b>synthetic CDS spread</b> for the big global banks and large corporates — then fuses that with the sovereign-CDS proxy, corporate bond stress, ECB systemic stress and the ex-US canary grid into one composite and an alarm board.</p>
+    <p class="subtitle">Real single-name CDS feeds cost $20k+/yr — so this engine builds the hedge-fund standard alternative: the <b>CreditGrades structural model</b> (the industry equity-to-CDS bridge from RiskMetrics/JPMorgan, 2002). It treats each firm's equity as a claim on its assets above an uncertain default barrier and backs out a market-implied <b>distance to default</b>, a 5-year default probability and a <b>synthetic CDS spread</b> for the big global banks and large corporates. Distance-to-default and its rank is the robust signal — structural models understate absolute investment-grade spreads. It then fuses that with the sovereign-CDS proxy, corporate bond stress, ECB systemic stress and the ex-US canary grid into one composite and an alarm board.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/systemic-stress.html">systemic stress</a>
@@ -77,7 +77,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <h2>Alarm Board</h2>
   <div id="alarms"></div>
 
-  <h2>Single-Name CDS — Global Banks <span style="color:var(--dim);font-size:10px">(Merton synthetic spread)</span></h2>
+  <h2>Single-Name CDS — Global Banks <span style="color:var(--dim);font-size:10px">(CreditGrades · distance-to-default)</span></h2>
   <div id="banksRead" class="panel" style="border-left-color:var(--cyan)"></div>
   <div class="grid" id="banksGrid"></div>
 
@@ -133,7 +133,7 @@ function cell(x){
     <div class="nm">${esc(x.name)}</div>
     <div class="bp" style="color:${c}">${num(x.synthetic_cds_bp,0)}<span style="font-size:10px;color:var(--dim)"> bp</span></div>
     <div class="pl">synthetic 5Y CDS</div>
-    <div class="dt">PD ${num(x.default_prob_1y_pct,2)}% · DD ${num(x.distance_to_default,2)} · vol ${num(x.equity_vol_pct,0)}%</div>
+    <div class="dt">5y PD ${num(x.default_prob_5y_pct,2)}% · DD ${num(x.distance_to_default,2)} · vol ${num(x.equity_vol_pct,0)}%</div>
   </div>`;
 }
 
@@ -151,7 +151,7 @@ async function main(){
   const SN=d.single_name_cds||{};
   document.getElementById("banksRead").innerHTML=
     `<div class="t">Single-Name Read</div><div class="r">${esc(SN.read||"")}</div>
-     <div class="r" style="font-size:11px;color:var(--dim)">Merton model · risk-free ${num(SN.risk_free_1y_pct,2)}% · LGD ${num(SN.lgd_assumption*100,0)}% · bank avg ${num(SN.bank_avg_cds_bp,0)}bp · corporate avg ${num(SN.corporate_avg_cds_bp,0)}bp</div>`;
+     <div class="r" style="font-size:11px;color:var(--dim)">CreditGrades model · risk-free ${num(SN.risk_free_1y_pct,2)}% · recovery ${num(SN.recovery_assumption*100,0)}% · bank avg ${num(SN.bank_avg_cds_bp,0)}bp · corporate avg ${num(SN.corporate_avg_cds_bp,0)}bp</div>`;
   document.getElementById("banksGrid").innerHTML=(SN.banks||[]).map(cell).join("");
   document.getElementById("corpGrid").innerHTML=(SN.corporates||[]).map(cell).join("");
 
@@ -175,7 +175,7 @@ async function main(){
       <div class="t">Canary Grid — Ex-US Early Warning</div>
       <div class="row"><div><div class="k">state</div><div class="v" style="color:${regColor(CY.state)}">${esc(CY.state||"—")}</div></div></div>
       <div class="r" style="font-size:11px">${esc(CY.source||"")}</div></div>`;
-  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". Synthetic CDS is model-implied (Merton) — a market-based estimate, not a traded CDS quote; bank readings run structurally higher by design. Real data only — not investment advice.";
+  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". Synthetic CDS is model-implied (CreditGrades) — a directional estimate, not a traded CDS quote; distance-to-default and its rank is the signal. Real data only — not investment advice.";
   document.getElementById("ts").textContent=
     "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
 }
