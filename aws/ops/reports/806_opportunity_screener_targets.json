@@ -1,0 +1,133 @@
+{
+  "ops": 806,
+  "ts": "2026-05-18T12:21:19.758244+00:00",
+  "subject": "Verify opportunity-screener credible price targets",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null
+  },
+  "boom_board": {
+    "headline": "Boom Board: 704 cross-confirmed opportunities \u2014 39 micro-cap rockets, 40 serial estimate-beaters, 40 under-priced growers.",
+    "counts": {
+      "boom_candidates": 704,
+      "microcap_rockets": 39,
+      "serial_beaters": 40,
+      "hidden_growth": 40
+    },
+    "n_12mo_targets": 91,
+    "insane_12mo_targets": [],
+    "max_12mo_upside": 80.0,
+    "microcap_top20_with_target": "0/20",
+    "microcap_sample": [
+      {
+        "sym": "PPIH",
+        "cap": "micro",
+        "price": 31.99,
+        "target": null,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "ISSC",
+        "cap": "micro",
+        "price": 16.275,
+        "target": null,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "NAGE",
+        "cap": "micro",
+        "price": 3.65,
+        "target": null,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "ACFN",
+        "cap": "nano",
+        "price": 16.6,
+        "target": null,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "ELMD",
+        "cap": "micro",
+        "price": 35.68,
+        "target": null,
+        "upside": null,
+        "horizon": "12-month"
+      }
+    ],
+    "board_top6": [
+      {
+        "sym": "AVGO",
+        "cap": "mega",
+        "opp": 68.7,
+        "upside": 32.9,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "CFR",
+        "cap": "mid",
+        "opp": 68.2,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "ALAB",
+        "cap": "unknown",
+        "opp": 68.0,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "NVDA",
+        "cap": "mega",
+        "opp": 67.9,
+        "upside": 22.0,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "GFS",
+        "cap": "unknown",
+        "opp": 65.4,
+        "upside": null,
+        "horizon": "12-month"
+      },
+      {
+        "sym": "MTZ",
+        "cap": "unknown",
+        "opp": 65.1,
+        "upside": null,
+        "horizon": "12-month"
+      }
+    ],
+    "hidden_growth_top3": [
+      {
+        "sym": "ZTS",
+        "upside": 80.0
+      },
+      {
+        "sym": "AXON",
+        "upside": 76.1
+      },
+      {
+        "sym": "CTSH",
+        "upside": 67.6
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "no_fantasy_12mo_targets": true,
+    "microcaps_have_targets": false,
+    "all_views_populated": true
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/boom_board"
+}
