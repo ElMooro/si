@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-pairs-arb",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Statistical-arbitrage pairs desk - the market-neutral sleeve. Finds cointegrated within-sector pairs dislocated past 2 sigma (AR(1) half-life gate + structural-break guards), outputs long/short trade tickets. Output data/pairs-arb.json.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-pairs-arb-daily",
+    "cron": "cron(30 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily 23:30 UTC via Amazon EventBridge Scheduler (after the US close, once EOD prices settle). Scheduler is the go-forward path - the classic EventBridge 300-rule pool is saturated. Provisioned by ops 824."
+  }
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pairs Desk · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⇄</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filt{font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer}
+.filt.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pr{font-family:var(--mono);font-size:16px;font-weight:700}
+.sec{color:var(--dim);font-size:11px;margin-top:1px}
+.score{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.tier{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.6px;padding:3px 8px;border-radius:4px;margin:8px 0 2px}
+.tier.t4{background:rgba(38,255,175,.14);color:var(--green);border:1px solid var(--green)}
+.tier.t3{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid var(--cyan)}
+.tier.t2{background:rgba(168,179,199,.1);color:var(--mute);border:1px solid var(--line)}
+.tier.tb{background:rgba(255,85,119,.12);color:var(--red);border:1px solid var(--red)}
+.ticket{display:flex;gap:8px;margin:9px 0;font-family:var(--mono);font-size:12px;font-weight:700}
+.leg{flex:1;border-radius:6px;padding:7px 9px;background:var(--panel2)}
+.leg .lab{font-size:8px;letter-spacing:.6px;font-weight:600;display:block}
+.leg .sym{font-size:14px}
+.leg .px{font-size:9.5px;color:var(--dim);font-weight:400}
+.leg.long{border:1px solid rgba(38,255,175,.4)}
+.leg.long .lab{color:var(--green)}
+.leg.short{border:1px solid rgba(255,85,119,.4)}
+.leg.short .lab{color:var(--red)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin:8px 0}
+.stat{background:var(--panel2);border-radius:5px;padding:6px 5px;text-align:center}
+.stat .v{font-family:var(--mono);font-size:13px;font-weight:700}
+.stat .k{font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.conv{display:flex;align-items:baseline;gap:8px;background:var(--panel2);border-radius:6px;padding:7px 10px;margin:8px 0}
+.conv .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.conv .pt{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)}
+.conv .ann{font-family:var(--mono);font-size:11px;font-weight:700;margin-left:auto;color:var(--cyan)}
+.sizing{color:var(--dim);font-size:10.5px;line-height:1.55;margin:6px 0}
+.notes{font-size:10.5px;color:var(--mute);line-height:1.6;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}
+.notes div{margin-bottom:3px}
+.flag{color:var(--yellow)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⇄ Pairs Desk</h1>
+    <p class="subtitle">Every other screen on this platform bets a stock goes <b>up</b> — they all quietly ride the same market beta. This one does not. It is <b>market-neutral statistical arbitrage</b>: it finds two stocks in the same sector that historically move together, then flags the moments their price spread has stretched abnormally far apart. You <b>long the cheap leg and short the rich leg</b> in equal dollar size and profit when the spread snaps back — whichever way the market goes. Strict gates: the spread must statistically mean-revert, the relationship must be stable, and it must have reverted repeatedly before.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/catch-up.html">catch-up</a>
+      <a href="/conviction.html">conviction</a>
+      <a href="/screener/">screener</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING PAIRS DESK…</div></div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const scoreColor=(s)=>s>=70?"var(--green)":s>=55?"var(--cyan)":s>=42?"var(--yellow)":"var(--mute)";
+let DATA=null,FILTER="all";
+
+function tierClass(t){
+  if(t==="SUSPECTED BREAK")return"tb";
+  if(t==="PRIME SETUP")return"t4";
+  if(t==="STRONG")return"t3";
+  return"t2";
+}
+
+function card(c){
+  const L=c.long_leg||{},Sh=c.short_leg||{};
+  const tcls=tierClass(c.tier);
+  const brk=c.suspected_break;
+  const topc=brk?"var(--red)":scoreColor(c.score);
+  const conv=c.expected_convergence_pct;
+  const ann=c.annualized_pct;
+  const notes=(c.notes||[]).map(n=>{
+    const isFlag=/CAUTION|exceeds|break/i.test(n);
+    return `<div class="${isFlag?'flag':''}">${isFlag?"⚠ ":"• "}${esc(n)}</div>`;
+  }).join("");
+  return `<div class="card" style="border-top-color:${topc}">
+    <div class="crow">
+      <div><div class="pr">${esc(c.pair)}</div><div class="sec">${esc(c.sector||"")}</div></div>
+      <div class="score" style="color:${topc}">${num(c.score,1)}<small>SCORE</small></div>
+    </div>
+    <span class="tier ${tcls}">${esc(c.tier)}</span>
+    <div class="ticket">
+      <div class="leg long"><span class="lab">LONG</span><span class="sym">${esc(L.symbol||"")}</span> <span class="px">${L.price!=null?"$"+num(L.price,2):""}</span></div>
+      <div class="leg short"><span class="lab">SHORT</span><span class="sym">${esc(Sh.symbol||"")}</span> <span class="px">${Sh.price!=null?"$"+num(Sh.price,2):""}</span></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v" style="color:${brk?'var(--red)':'var(--cyan)'}">${num(c.abs_z,2)}σ</div><div class="k">dislocation</div></div>
+      <div class="stat"><div class="v">${num(c.half_life_days,0)}d</div><div class="k">half-life</div></div>
+      <div class="stat"><div class="v">${num(c.correlation,2)}</div><div class="k">correlation</div></div>
+      <div class="stat"><div class="v">${num(c.round_trips,0)}</div><div class="k">round trips</div></div>
+    </div>
+    <div class="conv">
+      <span class="lab">expected convergence</span>
+      <span class="pt">${conv!=null?"+"+num(conv,1)+"%":"—"}</span>
+      <span class="ann">${ann!=null?num(ann,0)+"% annualized":""}</span>
+    </div>
+    <div class="sizing">${esc(c.sizing||"")}</div>
+    <div class="notes">${notes}</div>
+  </div>`;
+}
+
+function render(){
+  if(!DATA)return;
+  let list;
+  if(FILTER==="breaks")list=DATA.suspected_breaks||[];
+  else{
+    list=DATA.pairs||[];
+    if(FILTER==="prime")list=list.filter(c=>c.tier==="PRIME SETUP");
+    else if(FILTER==="strong")list=list.filter(c=>c.tier==="PRIME SETUP"||c.tier==="STRONG");
+  }
+  document.getElementById("grid").innerHTML=list.length
+    ? list.map(card).join("")
+    : '<div class="loading">No pairs match this filter.</div>';
+}
+
+function setFilter(f){FILTER=f;document.querySelectorAll(".filt").forEach(b=>b.classList.toggle("on",b.dataset.f===f));render();}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"pairs-arb.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">PAIRS DESK DATA UNAVAILABLE</div>';return;}
+  DATA=d;
+  const s=d.summary||{};
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.how_to_read||"")}</div>
+  </div>`;
+  document.getElementById("filters").innerHTML=[
+    ["all","All ("+(s.n_tradeable||0)+")"],
+    ["prime","Prime Setups ("+(s.n_prime||0)+")"],
+    ["strong","Strong+ ("+((s.n_prime||0)+(s.n_strong||0))+")"],
+    ["breaks","Suspected Breaks ("+(s.n_suspected_breaks||0)+")"]
+  ].map(([f,l])=>`<div class="filt${f==="all"?" on":""}" data-f="${f}" onclick="setFilter('${f}')">${l}</div>`).join("");
+  render();
+  document.getElementById("note").textContent="Method: within-sector cointegration — log-price correlation, an AR(1) mean-reversion gate with a 3–45 day half-life, a structural-stability check and a historical round-trip count. Expected convergence assumes the spread reverts to ±0.5σ and is shown before borrow costs and slippage. Market-neutral. Research and education only — not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · "+(d.pairs_tested||0)+" pairs tested · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
