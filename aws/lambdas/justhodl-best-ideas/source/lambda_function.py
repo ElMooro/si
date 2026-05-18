@@ -76,6 +76,9 @@ SPECS = [
     ("catchup", "Beta-Laggard Catch-Up", "data/beta-laggards.json",
      ["top_candidates"], "symbol", "catch_up_score", "ROTATION",
      "is set up to catch up to leaders in a working sector", None),
+    ("divgrow", "Dividend-Growth Compounder", "data/dividend-growth.json",
+     ["compounders"], "symbol", "compounder_score", "INCOME",
+     "compounds a reliably growing, well-covered dividend", None),
 ]
 
 FAMILY_LABEL = {
@@ -83,6 +86,7 @@ FAMILY_LABEL = {
     "MOMENTUM": "Price momentum", "VALUE": "Value",
     "QUALITY": "Fundamental quality", "CAPITAL": "Capital allocation",
     "SMART_MONEY": "Insider / smart money", "ROTATION": "Sector rotation",
+    "INCOME": "Dividend growth",
 }
 
 

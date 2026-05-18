@@ -60,7 +60,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <div class="container">
   <header>
     <h1>⭐ Best Ideas</h1>
-    <p class="subtitle">The platform runs twelve independent stock-picking engines — bagger DNA, earnings drift, estimate revisions, breakouts, deep value, fundamental quality, buyback cannibals, insider clusters, sector catch-up. Each is one lens. <b>Best Ideas</b> is the layer above them: the few stocks confirmed across <b>multiple orthogonal factor families</b>. Two engines in the same family agreeing is one signal wearing two hats; growth <b>and</b> value <b>and</b> capital-return all agreeing is rare — and that is what professional desks call their conviction list.</p>
+    <p class="subtitle">The platform runs thirteen independent stock-picking engines — bagger DNA, earnings drift, estimate revisions, breakouts, deep value, fundamental quality, buyback cannibals, insider clusters, sector catch-up, dividend-growth compounders. Each is one lens. <b>Best Ideas</b> is the layer above them: the few stocks confirmed across <b>multiple orthogonal factor families</b>. Two engines in the same family agreeing is one signal wearing two hats; growth <b>and</b> value <b>and</b> capital-return all agreeing is rare — and that is what professional desks call their conviction list.</p>
     <nav class="crumbs">
       <a href="/boom-board.html">boom board</a>
       <a href="/catch-up.html">catch-up</a>
@@ -84,7 +84,7 @@ const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const scoreColor=(s)=>s>=70?"var(--green)":s>=58?"var(--cyan)":s>=46?"var(--yellow)":"var(--mute)";
-const FAMCOLOR={"Growth":"#26ffaf","Earnings momentum":"#00d4ff","Price momentum":"#a78bfa","Value":"#ffd266","Fundamental quality":"#7fd1ff","Capital allocation":"#ff7a18","Insider / smart money":"#ff5577","Sector rotation":"#9aa7bd"};
+const FAMCOLOR={"Growth":"#26ffaf","Earnings momentum":"#00d4ff","Price momentum":"#a78bfa","Value":"#ffd266","Fundamental quality":"#7fd1ff","Capital allocation":"#ff7a18","Insider / smart money":"#ff5577","Sector rotation":"#9aa7bd","Dividend growth":"#5fe0c0"};
 let DATA=null,FILTER="all";
 
 function card(c){
