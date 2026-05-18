@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-index-recon",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Index Reconstitution / Forced-Flow Desk - projects Russell 2000 additions/deletions and 1000<->2000 migrations from live market caps, scores forced passive flow vs daily volume, plus S&P 500 inclusion candidates. Output data/index-recon.json.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-index-recon-daily",
+    "cron": "cron(10 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily 14:10 UTC via Amazon EventBridge Scheduler. Refreshes the Russell reconstitution projection and the S&P 500 inclusion-candidate watch list. Provisioned by ops 839."
+  }
+}
