@@ -1,0 +1,126 @@
+{
+  "ops": 832,
+  "ts": "2026-05-18T15:44:39.339062+00:00",
+  "subject": "Re-verify justhodl-trend-engine leverage-budget fix",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"scored\\\": 21, \\\"regime\\\": \\\"BROAD TREND\\\", \\\"n_long\\\": 11, \\\"n_short\\\": 6, \\\"gross\\\": 200.0}\"}"
+  },
+  "trend_engine": {
+    "ok": true,
+    "leverage_checks": {
+      "every_position_within_30pct": true,
+      "gross_within_200pct": true,
+      "gross_uncapped_surfaced": true,
+      "final_gross_le_uncapped": true,
+      "leverage_capped_is_bool": true,
+      "max_gross_pct_surfaced": true,
+      "gross_reconciles": true,
+      "no_absurd_class_leg": true,
+      "active_book_has_gross": true
+    },
+    "schema_checks": {
+      "schema_present": true,
+      "universe_is_21": true,
+      "scored_sane": true,
+      "counts_consistent": true,
+      "positions_well_formed": true,
+      "direction_deadband_discipline": true,
+      "ranked_by_conviction": true,
+      "inverse_vol_sizing": true,
+      "regime_valid": true,
+      "headline_present": true,
+      "methodology_present": true
+    },
+    "headline": "Trend regime: BROAD TREND (81% of the universe trending). Long: DBC, USO, QQQ. Short: TLT, FXY, IEF. Strongest signal: Broad Commodities (DBC) LONG, conviction 91.2.",
+    "regime": "BROAD TREND",
+    "max_abs_position_pct": 29.12,
+    "portfolio_gross_pct": 200.0,
+    "gross_uncapped_pct": 277.6,
+    "leverage_capped": true,
+    "net_equity_tilt_pct": 43.0,
+    "by_class": [
+      {
+        "class": "Equities",
+        "stance": "NET LONG",
+        "net": 43.0,
+        "gross": 43.0
+      },
+      {
+        "class": "Rates",
+        "stance": "NET SHORT",
+        "net": -75.7,
+        "gross": 75.7
+      },
+      {
+        "class": "Credit",
+        "stance": "NET SHORT",
+        "net": -26.6,
+        "gross": 26.6
+      },
+      {
+        "class": "Commodities",
+        "stance": "NET LONG",
+        "net": 28.7,
+        "gross": 28.7
+      },
+      {
+        "class": "FX",
+        "stance": "NET SHORT",
+        "net": -21.7,
+        "gross": 21.7
+      },
+      {
+        "class": "Crypto",
+        "stance": "NET SHORT",
+        "net": -4.2,
+        "gross": 4.2
+      }
+    ],
+    "top5": [
+      {
+        "sym": "DBC",
+        "class": "Commodities",
+        "dir": "LONG",
+        "conv": 91.2,
+        "vol": 24.1,
+        "wt": 6.15
+      },
+      {
+        "sym": "USO",
+        "class": "Commodities",
+        "dir": "LONG",
+        "conv": 88.9,
+        "vol": 67.7,
+        "wt": 2.19
+      },
+      {
+        "sym": "QQQ",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 82.7,
+        "vol": 19.2,
+        "wt": 9.1
+      },
+      {
+        "sym": "SPY",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 77.4,
+        "vol": 14.7,
+        "wt": 11.88
+      },
+      {
+        "sym": "EEM",
+        "class": "Equities",
+        "dir": "LONG",
+        "conv": 72.2,
+        "vol": 30.5,
+        "wt": 5.72
+      }
+    ]
+  },
+  "all_pass": true
+}
