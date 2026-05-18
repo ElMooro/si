@@ -1,0 +1,145 @@
+{
+  "ops": 834,
+  "ts": "2026-05-18T16:14:58.498303+00:00",
+  "subject": "Deploy + verify justhodl-spinoff-desk",
+  "checks": [
+    {
+      "check": "lambda_exists",
+      "ok": true,
+      "detail": "python3.12 mem=1024 timeout=300"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "filings_scanned",
+      "ok": true,
+      "detail": "67"
+    },
+    {
+      "check": "partition_reconciles",
+      "ok": true,
+      "detail": "n_trading=18 fresh+seasoned=18"
+    },
+    {
+      "check": "scores_in_band",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "tiers_valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "entries_complete",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "top_sorted",
+      "ok": true,
+      "detail": "[71.0, 69.0, 69.0, 62.0, 62.0, 62.0]"
+    },
+    {
+      "check": "top_subset_of_book",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "no_nonspinoff_leak",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "prime_count_reconciles",
+      "ok": true,
+      "detail": "summary=1 actual=1"
+    },
+    {
+      "check": "pending_have_links",
+      "ok": false,
+      "detail": "40/40 missing"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(20 13 * * ? *)"
+    }
+  ],
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_trading\\\": 18, \\\"n_fresh\\\": 5, \\\"n_prime\\\": 1, \\\"n_pending\\\": 40}\"}"
+  },
+  "spinoff_desk": {
+    "headline": "18 tradeable spin-offs in the post-separation drift window - 5 fresh (0-6mo), 1 rated PRIME. 40 more registered and pending.",
+    "n_filings_scanned": 67,
+    "n_trading": 18,
+    "n_fresh": 5,
+    "n_seasoned": 13,
+    "n_pending": 40,
+    "n_prime": 1,
+    "best_score": 71.0,
+    "top5": [
+      {
+        "sym": "TRAX",
+        "tier": "PRIME SPIN",
+        "score": 71.0,
+        "window": "fresh 0-6mo",
+        "cap": "small",
+        "parent": null,
+        "neglect": true,
+        "insider": false
+      },
+      {
+        "sym": "BSEM",
+        "tier": "STRONG",
+        "score": 69.0,
+        "window": "seasoned 6-18mo",
+        "cap": "micro",
+        "parent": null,
+        "neglect": true,
+        "insider": false
+      },
+      {
+        "sym": "BSEM",
+        "tier": "STRONG",
+        "score": 69.0,
+        "window": "seasoned 6-18mo",
+        "cap": "micro",
+        "parent": null,
+        "neglect": true,
+        "insider": false
+      },
+      {
+        "sym": "RHLD",
+        "tier": "STRONG",
+        "score": 62.0,
+        "window": "seasoned 6-18mo",
+        "cap": "small",
+        "parent": null,
+        "neglect": false,
+        "insider": true
+      },
+      {
+        "sym": "RHLD",
+        "tier": "STRONG",
+        "score": 62.0,
+        "window": "seasoned 6-18mo",
+        "cap": "small",
+        "parent": null,
+        "neglect": false,
+        "insider": true
+      }
+    ]
+  },
+  "all_pass": false
+}
