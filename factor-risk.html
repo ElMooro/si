@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Factor Risk Model &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128202;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .big{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1px;margin-bottom:6px;color:var(--cyan)}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:108px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--panel2)}
+.tk{font-weight:700;font-size:12.5px}
+.nm{color:var(--dim);font-size:10px;font-family:'Inter',sans-serif}
+.long{color:var(--green)}
+.short{color:var(--red)}
+.fbar{display:inline-flex;align-items:center;width:150px;height:11px;vertical-align:middle}
+.fhalf{width:50%;height:9px;display:flex;align-items:center}
+.fhalf.lft{justify-content:flex-end}
+.fcell{height:9px;border-radius:2px}
+.zline{width:1px;height:13px;background:var(--dim)}
+.badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid var(--line);font-weight:700}
+.b-direct{color:var(--cyan);border-color:#1d4e5e;background:#0c1f24}
+.b-proxy{color:var(--dim);border-color:var(--line);background:var(--panel2)}
+.pill{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--mute);font-weight:700}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128202; Factor Risk Model</h1>
+    <p class="subtitle">The firm's <b>risk-analytics</b> layer. Limit-checking tells you if the book is inside the box; this tells you <b>what the book is actually betting on</b>. A Barra-style model decomposes the consolidated firm book onto six tradable factors &mdash; <b>market, size, value, momentum, quality, low-vol</b> &mdash; by time-series regression, then splits risk into <b>systematic vs idiosyncratic</b>, estimates <b>VaR / Expected Shortfall</b>, stress-tests the book against historical scenarios and sizes the <b>factor hedges</b> that would neutralise an unwanted bet.</p>
+    <nav class="crumbs">
+      <a href="/risk-monitor.html">risk monitor</a>
+      <a href="/firm-book.html">firm book</a>
+      <a href="/liquidity-capacity.html">liquidity</a>
+      <a href="/desk-allocator.html">desk allocator</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING FACTOR RISK MODEL&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/factor-risk.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=2)=>(v==null?"--":(typeof v==="number"?v.toFixed(d):v));
+const sgn=(v,d=2)=>(v==null?"--":(v>=0?"+":"")+v.toFixed(d));
+const sgnp=(v,d=2)=>(v==null?"--":(v>=0?"+":"")+v.toFixed(d)+"%");
+
+// signed center-zero bar; max anchors the scale
+function fbar(v,max){
+  if(v==null||!max)return "";
+  const frac=Math.min(1,Math.abs(v)/max);
+  const pos=v>=0;
+  const c=pos?"var(--green)":"var(--red)";
+  const left=pos
+    ? '<span class="fhalf lft"></span>'
+    : '<span class="fhalf lft"><span class="fcell" style="width:'+(frac*100)+'%;background:'+c+'"></span></span>';
+  const right=pos
+    ? '<span class="fhalf"><span class="fcell" style="width:'+(frac*100)+'%;background:'+c+'"></span></span>'
+    : '<span class="fhalf"></span>';
+  return '<span class="fbar">'+left+'<span class="zline"></span>'+right+'</span>';
+}
+
+function render(d){
+  const root=document.getElementById("root");
+  if(!d||d.error){
+    root.innerHTML='<div class="hero"><div class="big" style="color:var(--red)">MODEL UNAVAILABLE</div>'+
+      '<div class="hl">'+esc((d&&d.error)||"no data")+'</div></div>';
+    return;
+  }
+  const f=d.firm||{};
+  let h="";
+
+  // hero
+  h+='<div class="hero"><div class="big">'+num(f.annual_vol_pct,1)+'% annualised vol</div>'+
+     '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  // stat row
+  const stats=[
+    ["Annual Vol",num(f.annual_vol_pct,1)+"%","var(--cyan)"],
+    ["Daily Vol",num(f.daily_vol_pct,2)+"%","var(--txt)"],
+    ["% Systematic",num(f.pct_systematic,0)+"%","var(--purple)"],
+    ["% Idiosyncratic",num(f.pct_idiosyncratic,0)+"%","var(--mute)"],
+    ["VaR 95% 1d",num(f.var_95_1d_pct,2)+"%","var(--yellow)"],
+    ["VaR 99% 1d",num(f.var_99_1d_pct,2)+"%","var(--orange)"],
+    ["ES 95% 1d",num(f.es_95_1d_pct,2)+"%","var(--red)"],
+    ["Net Mkt Beta",num(f.net_market_beta,2),(f.net_market_beta>=0?"var(--green)":"var(--red)")],
+  ];
+  h+='<div class="stats">';
+  stats.forEach(s=>{h+='<div class="stat"><div class="sl">'+s[0]+'</div><div class="sv" style="color:'+s[2]+'">'+s[1]+'</div></div>';});
+  h+='</div>';
+
+  // factor exposures
+  const fx=d.factor_exposures||[];
+  const fmax=Math.max(1,...fx.map(x=>Math.abs(x.book_exposure_pct||0)));
+  h+='<div class="sechead">Factor Exposures <small>&mdash; signed % of capital, and each factor\'s share of systematic risk (MCTR)</small></div>';
+  h+='<table><thead><tr><th class="l">Factor</th><th class="l">Book Exposure</th><th>Exposure %</th><th>MCTR % of Systematic</th><th>Factor Vol (ann)</th></tr></thead><tbody>';
+  if(fx.length){
+    fx.forEach(x=>{
+      const c=x.book_exposure_pct>=0?"long":"short";
+      h+='<tr><td class="l tk">'+esc(x.factor)+'</td>'+
+         '<td class="l">'+fbar(x.book_exposure_pct,fmax)+'</td>'+
+         '<td class="'+c+'">'+sgnp(x.book_exposure_pct)+'</td>'+
+         '<td>'+num(x.mctr_pct_of_systematic,1)+'%</td>'+
+         '<td style="color:var(--dim)">'+num(x.factor_vol_annual_pct,1)+'%</td></tr>';
+    });
+  }else{h+='<tr><td colspan="5" class="empty">no factor data</td></tr>';}
+  h+='</tbody></table>';
+
+  // scenario stress
+  const sc=d.scenarios||[];
+  h+='<div class="sechead">Scenario Stress P&amp;L <small>&mdash; book P&amp;L if each factor environment repeated; sorted worst first</small></div>';
+  h+='<table><thead><tr><th class="l">Scenario</th><th>Book P&amp;L</th><th class="l">Dominant Factor Shocks</th></tr></thead><tbody>';
+  if(sc.length){
+    sc.forEach(s=>{
+      const c=s.book_pnl_pct>=0?"long":"short";
+      let sh="";
+      if(s.shock){
+        sh=Object.keys(s.shock).map(k=>k+" "+sgn(s.shock[k]*100,0)+"%").join("  ");
+      }
+      h+='<tr><td class="l">'+esc(s.scenario)+(s.empirical?' <span class="pill">empirical</span>':'')+'</td>'+
+         '<td class="'+c+'" style="font-weight:700">'+sgnp(s.book_pnl_pct)+'</td>'+
+         '<td class="l" style="color:var(--dim);font-size:10.5px">'+esc(sh)+'</td></tr>';
+    });
+  }else{h+='<tr><td colspan="3" class="empty">no scenarios</td></tr>';}
+  h+='</tbody></table>';
+
+  // hedges
+  const hg=d.hedges||[];
+  h+='<div class="sechead">Suggested Factor Hedges <small>&mdash; the ETF trade that neutralises each material factor bet</small></div>';
+  if(hg.length){
+    h+='<table><thead><tr><th class="l">Factor</th><th>Current Exposure</th><th class="l">Suggested Hedge</th><th class="l">Rationale</th></tr></thead><tbody>';
+    hg.forEach(x=>{
+      const c=x.current_exposure_pct>=0?"long":"short";
+      h+='<tr><td class="l tk">'+esc(x.factor)+'</td>'+
+         '<td class="'+c+'">'+sgnp(x.current_exposure_pct)+'</td>'+
+         '<td class="l" style="color:var(--cyan);font-weight:700">'+esc(x.suggested_trade)+'</td>'+
+         '<td class="l" style="color:var(--dim);font-size:10.5px">'+esc(x.note)+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }else{
+    h+='<div class="empty">no material factor bets &mdash; book is broadly factor-neutral (all exposures under the 3% threshold)</div>';
+  }
+
+  // risk contributors
+  const rc=d.risk_contributors||[];
+  h+='<div class="sechead">Top Risk Contributors <small>&mdash; names carrying the most of the book\'s total variance</small></div>';
+  h+='<table><thead><tr><th class="l">#</th><th class="l">Name</th><th class="l">Sector</th><th>Weight</th><th>Risk Contribution</th><th class="l">Loading</th></tr></thead><tbody>';
+  if(rc.length){
+    rc.forEach((x,i)=>{
+      const wc=x.weight_pct>=0?"long":"short";
+      const rcc=x.risk_contribution_pct>=0?"var(--orange)":"var(--green)";
+      h+='<tr><td class="l" style="color:var(--dim)">'+(i+1)+'</td>'+
+         '<td class="l"><span class="tk">'+esc(x.symbol)+'</span><div class="nm">'+esc(x.name)+'</div></td>'+
+         '<td class="l" style="color:var(--mute);font-size:10.5px">'+esc(x.sector)+'</td>'+
+         '<td class="'+wc+'">'+sgnp(x.weight_pct)+'</td>'+
+         '<td style="color:'+rcc+';font-weight:700">'+sgnp(x.risk_contribution_pct)+'</td>'+
+         '<td class="l"><span class="badge b-'+esc(x.loading_source)+'">'+esc(x.loading_source)+'</span></td></tr>';
+    });
+  }else{h+='<tr><td colspan="6" class="empty">no contributor data</td></tr>';}
+  h+='</tbody></table>';
+
+  // coverage + method
+  const cv=d.coverage||{};
+  h+='<div class="note"><b>Coverage:</b> '+num(cv.n_direct_loadings,0)+' of '+num(cv.n_names,0)+
+     ' names regressed on direct price history, '+num(cv.n_proxy_loadings,0)+
+     ' on sector-average loadings ('+num(cv.fetched_this_run,0)+' fetched this run, '+
+     num(cv.served_from_cache,0)+' from cache, '+num(cv.failed_history,0)+' without enough history). '+
+     'Factor history: '+num(cv.factor_history_days,0)+' trading days.</div>';
+  h+='<div class="note"><b>Method:</b> '+esc(d.method||"")+'</div>';
+  h+='<div class="note">'+esc(d.disclaimer||"")+'</div>';
+  h+='<div class="timestamp">generated '+esc(d.generated_at||"")+' &middot; firm book as of '+esc(d.firm_book_asof||"")+'</div>';
+
+  root.innerHTML=h;
+}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(render).catch(e=>{
+  document.getElementById("root").innerHTML=
+    '<div class="hero"><div class="big" style="color:var(--red)">LOAD FAILED</div>'+
+    '<div class="hl">'+esc(e.message||e)+'</div></div>';
+});
+</script>
+</body>
+</html>

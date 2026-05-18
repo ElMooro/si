@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-factor-risk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Factor Risk Model - Barra-style decomposition of the firm book into 6 ETF-proxy factors (market/size/value/momentum/quality/low-vol): systematic vs idio risk, VaR/ES, scenario stress, hedges. Output data/factor-risk.json.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-factor-risk-daily",
+    "cron": "cron(30 2 * * ? *)",
+    "description": "Factor risk model - daily 02:30 UTC, after firm-book / risk-monitor / liquidity-capacity"
+  }
+}
