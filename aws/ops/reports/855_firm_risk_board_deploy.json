@@ -1,0 +1,171 @@
+{
+ "ops": 855,
+ "ts": "2026-05-18T22:58:21.267831+00:00",
+ "subject": "Deploy + verify justhodl-firm-risk-board (the firm CRO Risk Board - one worst-of posture synthesised from the eight firm risk engines)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-firm-risk-board-daily"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "check": "output_fresh",
+   "ok": true,
+   "detail": "3s old"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "1.0"
+  },
+  {
+   "check": "posture_valid",
+   "ok": true,
+   "detail": "AMBER"
+  },
+  {
+   "check": "dimensions_present",
+   "ok": true,
+   "detail": "7 dims, set_match=True"
+  },
+  {
+   "check": "posture_is_worst_of",
+   "ok": true,
+   "detail": "firm_severity=1 vs max(dimension severity)=1"
+  },
+  {
+   "check": "severity_posture_map",
+   "ok": true,
+   "detail": "severity 1 -> AMBER (posture says AMBER)"
+  },
+  {
+   "check": "binding_is_worst",
+   "ok": true,
+   "detail": "binding=TAIL_STRESS expected=TAIL_STRESS"
+  },
+  {
+   "check": "utilization_present",
+   "ok": true,
+   "detail": "5 live limit rows of 7"
+  },
+  {
+   "check": "tightest_limit_reconciles",
+   "ok": true,
+   "detail": "tightest=Worst-case stress P&L (66.0%)"
+  },
+  {
+   "check": "top_risks_sorted",
+   "ok": true,
+   "detail": "3 risks, sorted_desc=True"
+  },
+  {
+   "check": "consistency_checks_present",
+   "ok": true,
+   "detail": "2 checks: stress_exceeds_var, feeds_fresh"
+  },
+  {
+   "check": "confidence_valid",
+   "ok": true,
+   "detail": "HIGH"
+  },
+  {
+   "check": "history_appended",
+   "ok": true,
+   "detail": "1 snapshot(s), last date 2026-05-18"
+  },
+  {
+   "check": "brief_present",
+   "ok": true,
+   "detail": "brief 466 chars"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 4 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "invoke": {
+  "status": 200,
+  "fn_error": null,
+  "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"firm_posture\\\": \\\"AMBER\\\", \\\"n_alert\\\": 0, \\\"n_watch\\\": 1, \\\"binding\\\": \\\"TAIL_STRESS\\\", \\\"confidence\\\": \\\"HIGH\\\"}\"}"
+ },
+ "summary": "18/18 checks passed",
+ "all_passed": true,
+ "firm_risk_board": {
+  "firm_posture": "AMBER",
+  "headline": "Firm risk posture AMBER -- 0 alert / 1 watch across 6 risk axes. Binding constraint: Tail / Stress P&L.",
+  "binding_constraint": {
+   "dimension": "TAIL_STRESS",
+   "label": "Tail / Stress P&L",
+   "status": "WATCH",
+   "headline": "worst scenario -13.2% (2020 COVID Crash (Feb-Mar 2020))"
+  },
+  "n_alert": 0,
+  "n_watch": 1,
+  "confidence": "HIGH",
+  "cro_brief": "Firm posture AMBER. The book is inside hard mandate but at least one risk axis is elevated and warrants attention. The binding constraint is Tail / Stress P&L (WATCH) -- worst scenario -13.2% (2020 COVID Crash (Feb-Mar 2020)). Statistical risk: 99% 1-day VaR is 1.04% of book against a 5.0% limit; the worst named stress scenario is -13.2%. Performance ledger is still warming -- risk-adjusted metrics unlock shortly. First board snapshot -- no prior comparison yet.",
+  "dimensions": [
+   {
+    "dimension": "MANDATE",
+    "status": "OK",
+    "score": 58.5,
+    "stale": false
+   },
+   {
+    "dimension": "MARKET_VAR",
+    "status": "OK",
+    "score": 20.8,
+    "stale": false
+   },
+   {
+    "dimension": "TAIL_STRESS",
+    "status": "WATCH",
+    "score": 66.0,
+    "stale": false
+   },
+   {
+    "dimension": "LIQUIDITY",
+    "status": "OK",
+    "score": 11.1,
+    "stale": false
+   },
+   {
+    "dimension": "CONCENTRATION",
+    "status": "OK",
+    "score": 61.8,
+    "stale": false
+   },
+   {
+    "dimension": "EVENT_ARB",
+    "status": "OK",
+    "score": 6.1,
+    "stale": false
+   },
+   {
+    "dimension": "PERFORMANCE",
+    "status": "OK",
+    "score": 0.0,
+    "stale": false
+   }
+  ],
+  "tightest_limit": {
+   "limit": "Worst-case stress P&L",
+   "value": -13.2,
+   "ceiling": -20.0,
+   "unit": "% of book",
+   "utilization_pct": 66.0
+  }
+ }
+}
