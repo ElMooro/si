@@ -207,7 +207,7 @@ def lambda_handler(event, context):
         if sy not in rec:
             rec[sy] = {"symbol": sy, "signals": [], "engines": [],
                        "_pts": 0.0, "name": None, "sector": None,
-                       "market_cap": None}
+                       "market_cap": None, "cap_bucket": None}
         return rec[sy]
 
     # bagger-engine — 100-bagger DNA
@@ -219,6 +219,7 @@ def lambda_handler(event, context):
         r["name"] = r["name"] or d.get("name")
         r["sector"] = r["sector"] or d.get("sector")
         r["market_cap"] = r["market_cap"] or num(d.get("market_cap"))
+        r["cap_bucket"] = r["cap_bucket"] or d.get("cap_bucket")
         bs = num(d.get("bagger_score")) or num(d.get("score")) or 0
         rer = num(d.get("with_rerating_x")) or num(d.get("flat_multiple_x"))
         rcagr = num(d.get("revenue_cagr_pct"))
@@ -280,6 +281,14 @@ def lambda_handler(event, context):
         r["name"] = r["name"] or d.get("name")
         r["sector"] = r["sector"] or d.get("sector")
         r["market_cap"] = r["market_cap"] or num(d.get("market_cap"))
+        _ra_cb = d.get("cap_bucket")
+        if not _ra_cb:
+            _m = d.get("metrics") or {}
+            if d.get("is_microcap") or _m.get("is_microcap"):
+                _ra_cb = "micro"
+            elif d.get("is_smallcap") or _m.get("is_smallcap"):
+                _ra_cb = "small"
+        r["cap_bucket"] = r["cap_bucket"] or _ra_cb
         yoy = num(d.get("latest_yoy_growth_pct"))
         consec = num(d.get("consec_accel_quarters")) or num(
             d.get("consec_accel")) or 0
@@ -319,7 +328,10 @@ def lambda_handler(event, context):
         sd = by_sym.get(sy, {})
         price = num(sd.get("price"))
         mcap = r["market_cap"] or num(sd.get("marketCap"))
-        tier = cap_tier(mcap)
+        tier = (r.get("cap_bucket") or "").lower() or cap_tier(mcap)
+        if tier not in ("nano", "micro", "small", "mid", "large",
+                         "mega"):
+            tier = cap_tier(mcap)
         # cross-confirmation is the heart of the score
         confirm_bonus = {1: 0, 2: 8, 3: 16, 4: 22, 5: 26}.get(min(n_eng, 5),
                                                               26)
@@ -364,7 +376,13 @@ def lambda_handler(event, context):
         elif price:
             why += f"Trading at ${price:.2f}; price target pending data."
 
+        if upside is None:
+            opp = boom
+        else:
+            uc = (clamp(upside, -30, 100) + 30) / 130.0 * 100.0
+            opp = round(clamp(boom * 0.60 + uc * 0.40, 0, 100), 1)
         board.append({
+            "opportunity_score": opp,
             "symbol": sy, "name": r["name"] or sy,
             "sector": r["sector"] or sd.get("sector"),
             "market_cap": mcap, "cap_tier": tier, "price": price,
@@ -374,13 +392,14 @@ def lambda_handler(event, context):
             "target_basis": basis, "why": why, "risk_flags": flags,
         })
 
-    board.sort(key=lambda x: (x["n_engines_confirming"], x["boom_score"]),
+    board.sort(key=lambda x: (x["opportunity_score"], x["boom_score"]),
                reverse=True)
 
     # ── filtered views ──
-    microcap_rockets = [b for b in board
-                        if b["cap_tier"] in ("nano", "micro")
-                        and b["boom_score"] >= 35][:40]
+    microcap_rockets = sorted(
+        [b for b in board if b["cap_tier"] in ("nano", "micro")
+         and b["boom_score"] >= 16],
+        key=lambda x: x["opportunity_score"], reverse=True)[:40]
     serial_beaters = [b for b in board if "pead" in b["signals_fired"]
                       and b["boom_score"] >= 30][:40]
     # hidden growth — strong board score, real upside still on the table
