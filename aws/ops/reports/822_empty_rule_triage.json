@@ -1,0 +1,146 @@
+{
+  "ops": 822,
+  "ts": "2026-05-18T14:24:08.774812+00:00",
+  "subject": "edge-engine schedule repair + empty-rule triage",
+  "edge_engine": {
+    "engine_live": true,
+    "scheduled_by": [
+      "justhodl-edge-6h"
+    ],
+    "empty_rule_present": true,
+    "rule_deleted": true,
+    "action": "edge engine already scheduled by ['justhodl-edge-6h'] - deleted the redundant empty rule justhodl-edge-engine-6h"
+  },
+  "empty_rules_seen": 14,
+  "deleted_empty": [
+    {
+      "name": "liquidity-ofr-monitor",
+      "state": "DISABLED",
+      "schedule": "rate(5 minutes)",
+      "reason": "disabled empty rule"
+    },
+    {
+      "name": "liquidity-realtime-TEST",
+      "state": "DISABLED",
+      "schedule": "rate(15 minutes)",
+      "reason": "disabled empty rule"
+    },
+    {
+      "name": "multi-agent-daily-8am",
+      "state": "DISABLED",
+      "schedule": "cron(0 13 * * ? *)",
+      "reason": "disabled empty rule"
+    },
+    {
+      "name": "ofr-daily-update",
+      "state": "ENABLED",
+      "schedule": "rate(1 day)",
+      "reason": "enabled empty rule, no live Lambda matches its identity"
+    },
+    {
+      "name": "ofr-hourly-critical",
+      "state": "ENABLED",
+      "schedule": "rate(1 hour)",
+      "reason": "enabled empty rule, no live Lambda matches its identity"
+    }
+  ],
+  "flagged_empty": [
+    {
+      "name": "aiapi-daily-training",
+      "state": "ENABLED",
+      "schedule": "cron(0 2 * * ? *)",
+      "candidate_lambdas": [
+        "aiapi-market-analyzer"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "aiapi-hourly-collection",
+      "state": "ENABLED",
+      "schedule": "rate(1 hour)",
+      "candidate_lambdas": [
+        "aiapi-market-analyzer"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "economyapi-weekly-update",
+      "state": "ENABLED",
+      "schedule": "cron(0 14 ? * MON *)",
+      "candidate_lambdas": [
+        "economyapi"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "fed-liquidity-update",
+      "state": "ENABLED",
+      "schedule": "cron(0 8 ? * TUE,SAT *)",
+      "candidate_lambdas": [
+        "daily-liquidity-report",
+        "global-liquidity-agent-v2",
+        "justhodl-china-liquidity",
+        "justhodl-fed-speak",
+        "justhodl-global-liquidity",
+        "justhodl-liquidity-agent"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "ice-bofa-update-schedule",
+      "state": "ENABLED",
+      "schedule": "cron(0 9 ? * MON,WED,FRI *)",
+      "candidate_lambdas": [
+        "fred-ice-bofa-api"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "multi-agent-economic-hourly",
+      "state": "ENABLED",
+      "schedule": "rate(1 hour)",
+      "candidate_lambdas": [
+        "bea-economic-agent",
+        "census-economic-agent",
+        "multi-agent-orchestrator",
+        "ultimate-multi-agent"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "multi-agent-market-15min",
+      "state": "ENABLED",
+      "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+      "candidate_lambdas": [
+        "aiapi-market-analyzer",
+        "alphavantage-market-agent",
+        "justhodl-market-internals",
+        "multi-agent-orchestrator",
+        "permanent-market-intelligence",
+        "ultimate-multi-agent"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    },
+    {
+      "name": "nyfed-data-update-schedule",
+      "state": "ENABLED",
+      "schedule": "cron(0 8 ? * MON,THU *)",
+      "candidate_lambdas": [
+        "justhodl-nyfed-dealer-survey"
+      ],
+      "note": "enabled empty rule with a plausible target - review / re-wire manually rather than delete"
+    }
+  ],
+  "delete_failed": [],
+  "rules_before_822": 282,
+  "rules_after_822": 276,
+  "headroom_after": 24,
+  "slots_freed_822": 6,
+  "checks": {
+    "inventory_ran": true,
+    "edge_engine_resolved": true,
+    "no_delete_errors": true
+  },
+  "all_pass": true,
+  "verdict": "Edge engine: edge engine already scheduled by ['justhodl-edge-6h'] - deleted the redundant empty rule justhodl-edge-engine-6h | Empty-rule triage: deleted 5 dead rule(s), flagged 8 for review. EventBridge bus now at 276/300 (24 slots free)."
+}
