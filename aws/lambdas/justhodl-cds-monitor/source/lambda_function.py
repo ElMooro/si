@@ -267,31 +267,62 @@ def lambda_handler(event, context):
             errors.append(err)
         time.sleep(0.15)
 
-    # sort riskiest first — lowest distance-to-default
-    banks.sort(key=lambda x: x["distance_to_default"])
-    corporates.sort(key=lambda x: x["distance_to_default"])
+    # sort riskiest first — widest synthetic spread
+    banks.sort(key=lambda x: x["synthetic_cds_bp"], reverse=True)
+    corporates.sort(key=lambda x: x["synthetic_cds_bp"], reverse=True)
+
+    def _median(xs):
+        s = sorted(xs)
+        n = len(s)
+        if not n:
+            return None
+        return s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2.0
+
+    def assign_peer_regimes(rows):
+        """Regime is peer-relative. Structural-model absolute levels are
+        unreliable (they overstate weak names), so each name is graded
+        against its own peer group rather than absolute spread bands."""
+        n = len(rows)
+        for i, x in enumerate(rows):
+            pct = 1.0 - (i / (n - 1)) if n > 1 else 0.5  # 1.0 = widest
+            if pct >= 0.80:
+                x["regime"] = "ELEVATED"
+            elif pct >= 0.55:
+                x["regime"] = "WATCH"
+            elif pct >= 0.25:
+                x["regime"] = "NORMAL"
+            else:
+                x["regime"] = "FIRM"
+            x["peer_rank"] = i + 1
+
+    assign_peer_regimes(banks)
+    assign_peer_regimes(corporates)
 
     def avg(rows, key):
         v = [x[key] for x in rows]
         return round(sum(v) / len(v), 2) if v else None
 
+    bank_cds = [x["synthetic_cds_bp"] for x in banks]
+    corp_cds = [x["synthetic_cds_bp"] for x in corporates]
     bank_avg_dd = avg(banks, "distance_to_default")
     corp_avg_dd = avg(corporates, "distance_to_default")
     bank_avg_cds = avg(banks, "synthetic_cds_bp")
     corp_avg_cds = avg(corporates, "synthetic_cds_bp")
+    bank_median_cds = _median(bank_cds)
+    corp_median_cds = _median(corp_cds)
     bank_worst = banks[0] if banks else None
     corp_worst = corporates[0] if corporates else None
     sn_read = (
-        f"Banks: average distance-to-default {bank_avg_dd:.1f}"
-        + (f", weakest {bank_worst['name']} (DD {bank_worst['distance_to_default']:.1f}, "
-           f"{bank_worst['regime'].lower()})" if bank_worst else "")
-        + f". Corporates: average DD {corp_avg_dd:.1f}"
-        + (f", weakest {corp_worst['name']} (DD {corp_worst['distance_to_default']:.1f})"
+        f"Banks: median synthetic CDS {bank_median_cds:.0f}bp"
+        + (f", widest {bank_worst['name']} {bank_worst['synthetic_cds_bp']:.0f}bp"
+           if bank_worst else "")
+        + f". Corporates: median {corp_median_cds:.0f}bp"
+        + (f", widest {corp_worst['name']} {corp_worst['synthetic_cds_bp']:.0f}bp"
            if corp_worst else "")
-        + ". Distance-to-default is the robust signal — structural models "
-        "understate the absolute level of investment-grade and bank spreads, "
-        "so read the DD rank and its trend, not the synthetic bp in isolation."
-        if bank_avg_dd is not None and corp_avg_dd is not None
+        + ". Each name is graded peer-relative — structural models overstate "
+        "the absolute level of weak names, so the reliable signal is the "
+        "cross-sectional rank and the trend, not the synthetic bp alone."
+        if bank_median_cds is not None and corp_median_cds is not None
         else "Single-name pricing partial.")
 
     # ── 2. cross-reference the platform's credit engines ──
@@ -331,10 +362,15 @@ def lambda_handler(event, context):
 
     # ── 3. CONSOLIDATED GLOBAL CREDIT-STRESS COMPOSITE (0-100) ──
     parts, wts = [], []
-    if bank_avg_dd is not None:
-        # DD ~4 = no stress, DD ~1 = max stress
-        parts.append(clamp((4.0 - bank_avg_dd) / 3.0, 0, 1) * 100)
-        wts.append(0.28)
+    if bank_median_cds is not None:
+        # median synthetic spread is robust to the model's overstated tail;
+        # add a bump only when one name genuinely breaks from the pack
+        leg = clamp((bank_median_cds - 50) / 300, 0, 1) * 100
+        if bank_worst and bank_median_cds > 0 and \
+                bank_worst["synthetic_cds_bp"] > 3.0 * bank_median_cds:
+            leg = min(100.0, leg + 20.0)
+        parts.append(leg)
+        wts.append(0.24)
     if isinstance(sovereign["proxy_composite_0_100"], (int, float)):
         parts.append(float(sovereign["proxy_composite_0_100"]))
         wts.append(0.20)
@@ -369,23 +405,25 @@ def lambda_handler(event, context):
     def add(level, signal, detail):
         alarms.append({"level": level, "signal": signal, "detail": detail})
 
+    bmed = bank_median_cds or 0
     for b in banks:
-        dd = b["distance_to_default"]
-        if dd < 1.8:
-            add("ALERT", f"Bank credit distress — {b['name']}",
-                f"distance-to-default {dd:.1f} ({b['regime'].lower()}), "
-                f"5y default prob {b['default_prob_5y_pct']:.1f}%")
-        elif dd < 2.6:
+        s = b["synthetic_cds_bp"]
+        if s > max(450, 3.5 * bmed):
+            add("ALERT", f"Bank credit outlier — {b['name']}",
+                f"synthetic CDS {s:.0f}bp vs peer median {bmed:.0f}bp, "
+                f"distance-to-default {b['distance_to_default']:.1f}")
+        elif s > max(250, 2.2 * bmed):
             add("WATCH", f"Bank credit elevated — {b['name']}",
-                f"distance-to-default {dd:.1f} ({b['regime'].lower()})")
+                f"synthetic CDS {s:.0f}bp vs peer median {bmed:.0f}bp")
+    cmed = corp_median_cds or 0
     for c in corporates:
-        dd = c["distance_to_default"]
-        if dd < 1.8:
-            add("ALERT", f"Corporate credit distress — {c['name']}",
-                f"distance-to-default {dd:.1f} ({c['regime'].lower()})")
-        elif dd < 2.4:
+        s = c["synthetic_cds_bp"]
+        if s > max(450, 3.5 * cmed):
+            add("ALERT", f"Corporate credit outlier — {c['name']}",
+                f"synthetic CDS {s:.0f}bp vs peer median {cmed:.0f}bp")
+        elif s > max(280, 2.2 * cmed):
             add("WATCH", f"Corporate credit elevated — {c['name']}",
-                f"distance-to-default {dd:.1f}")
+                f"synthetic CDS {s:.0f}bp vs peer median {cmed:.0f}bp")
     if isinstance(hy_oas, (int, float)) and hy_oas >= 5.0:
         add("WATCH" if hy_oas < 7 else "ALERT", "High-yield credit stress",
             f"HY OAS {hy_oas:.2f}%")
@@ -443,7 +481,7 @@ def lambda_handler(event, context):
         "single_name_cds": {
             "model": "CreditGrades structural model (equity-to-CDS bridge, "
                      "5-year horizon)",
-            "primary_signal": "distance_to_default",
+            "primary_signal": "peer_relative_rank",
             "risk_free_1y_pct": round(r * 100, 2),
             "recovery_assumption": CG_R,
             "banks": banks,
@@ -452,6 +490,8 @@ def lambda_handler(event, context):
             "corporate_avg_distance_to_default": corp_avg_dd,
             "bank_avg_cds_bp": bank_avg_cds,
             "corporate_avg_cds_bp": corp_avg_cds,
+            "bank_median_cds_bp": bank_median_cds,
+            "corporate_median_cds_bp": corp_median_cds,
             "weakest_bank": (bank_worst or {}).get("name"),
             "weakest_corporate": (corp_worst or {}).get("name"),
             "read": sn_read,
