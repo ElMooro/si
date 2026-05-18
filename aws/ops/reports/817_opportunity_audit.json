@@ -1,0 +1,1671 @@
+{
+  "ops": 817,
+  "ts": "2026-05-18T13:43:47.925980+00:00",
+  "subject": "Opportunity-engine schema audit + FMP capability probe",
+  "engines": {
+    "data/bagger-engine.json": {
+      "ok": true,
+      "top_level": [
+        "candidates_in_range",
+        "elapsed_s",
+        "generated_at",
+        "method",
+        "methodology",
+        "n_errors",
+        "n_scored",
+        "pillar_weights",
+        "schema_version",
+        "tier_counts",
+        "tiers",
+        "top_100",
+        "universe_size"
+      ],
+      "generated_at": "2026-05-17T12:04:03.239658+00:00",
+      "structures": {
+        "pillar_weights": {
+          "_type": "dict",
+          "_keys": [
+            "alignment",
+            "margins",
+            "reinvestment",
+            "revenue",
+            "roic",
+            "small_base",
+            "valuation"
+          ]
+        },
+        "top_100": {
+          "_type": "list",
+          "_len": 100,
+          "_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ]
+        },
+        "tiers": {
+          "_type": "dict",
+          "_keys": [
+            "potential_100x",
+            "potential_10x",
+            "potential_25x",
+            "steady_compounders"
+          ],
+          "_nested": {
+            "potential_100x": {
+              "_type": "list",
+              "_len": 30,
+              "_item_keys": [
+                "bagger_score",
+                "cap_bucket",
+                "industry",
+                "key_stats",
+                "market_cap",
+                "name",
+                "pillars",
+                "price",
+                "rank",
+                "raw_score",
+                "sector",
+                "survival_note",
+                "survives",
+                "symbol",
+                "thesis",
+                "twin_engine"
+              ]
+            },
+            "potential_25x": {
+              "_type": "list",
+              "_len": 30,
+              "_item_keys": [
+                "bagger_score",
+                "cap_bucket",
+                "industry",
+                "key_stats",
+                "market_cap",
+                "name",
+                "pillars",
+                "price",
+                "rank",
+                "raw_score",
+                "sector",
+                "survival_note",
+                "survives",
+                "symbol",
+                "thesis",
+                "twin_engine"
+              ]
+            },
+            "potential_10x": {
+              "_type": "list",
+              "_len": 30,
+              "_item_keys": [
+                "bagger_score",
+                "cap_bucket",
+                "industry",
+                "key_stats",
+                "market_cap",
+                "name",
+                "pillars",
+                "price",
+                "rank",
+                "raw_score",
+                "sector",
+                "survival_note",
+                "survives",
+                "symbol",
+                "thesis",
+                "twin_engine"
+              ]
+            },
+            "steady_compounders": {
+              "_type": "list",
+              "_len": 30,
+              "_item_keys": [
+                "bagger_score",
+                "cap_bucket",
+                "industry",
+                "key_stats",
+                "market_cap",
+                "name",
+                "pillars",
+                "price",
+                "rank",
+                "raw_score",
+                "sector",
+                "survival_note",
+                "survives",
+                "symbol",
+                "thesis",
+                "twin_engine"
+              ]
+            }
+          }
+        },
+        "tier_counts": {
+          "_type": "dict",
+          "_keys": [
+            "potential_100x",
+            "potential_10x",
+            "potential_25x",
+            "steady_compounders"
+          ]
+        }
+      }
+    },
+    "data/capital-return.json": {
+      "ok": true,
+      "top_level": [
+        "cannibals",
+        "elapsed_s",
+        "generated_at",
+        "headline",
+        "how_to_read",
+        "method",
+        "n_cannibals",
+        "n_evaluated",
+        "ok",
+        "schema_version",
+        "source"
+      ],
+      "generated_at": "2026-05-18T13:15:33.256686+00:00",
+      "structures": {
+        "cannibals": {
+          "_type": "list",
+          "_len": 60,
+          "_item_keys": [
+            "buyback_yield_pct",
+            "cannibal_score",
+            "debt_to_equity",
+            "dividend_yield_pct",
+            "fcf_yield_pct",
+            "market_cap",
+            "name",
+            "pe_ratio",
+            "price",
+            "price_target",
+            "revenue_growth_pct",
+            "risk_flags",
+            "sector",
+            "shareholder_yield_pct",
+            "symbol",
+            "target_basis",
+            "upside_pct",
+            "why"
+          ]
+        }
+      }
+    },
+    "data/coffee-can.json": {
+      "ok": true,
+      "top_level": [
+        "discipline_reminder",
+        "elapsed_s",
+        "generated_at",
+        "holdings",
+        "last_action",
+        "method",
+        "n_holdings",
+        "portfolio",
+        "schema_version"
+      ],
+      "generated_at": "2026-05-18T13:00:08.242356+00:00",
+      "structures": {
+        "portfolio": {
+          "_type": "dict",
+          "_keys": [
+            "avg_return_pct",
+            "best_performer",
+            "best_return_pct",
+            "n_multibaggers_2x_plus",
+            "n_thesis_broken",
+            "n_thesis_weakening",
+            "n_winners"
+          ]
+        },
+        "holdings": {
+          "_type": "list",
+          "_len": 0
+        }
+      }
+    },
+    "data/deep-value.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T09:00:20+00:00",
+      "structures": {
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "n_contrarian",
+            "n_qualifying",
+            "n_tier_a",
+            "n_tier_b",
+            "n_universe",
+            "n_watch",
+            "statuses"
+          ],
+          "_nested": {
+            "statuses": {
+              "_type": "dict",
+              "_keys": [
+                "below_min_mcap",
+                "below_min_net_cash",
+                "deadline_skip",
+                "no_balance",
+                "no_income",
+                "no_quote",
+                "ok"
+              ]
+            }
+          }
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "contrarian_top",
+            "tier_a",
+            "top_25_excluded_financials",
+            "top_25_overall"
+          ],
+          "_nested": {
+            "top_25_overall": {
+              "_type": "list",
+              "_len": 14,
+              "_item_keys": [
+                "company",
+                "flag",
+                "mcap_to_rev",
+                "net_cash_pct",
+                "pct_from_52w_high",
+                "rev_yield",
+                "score",
+                "sector",
+                "symbol"
+              ]
+            },
+            "top_25_excluded_financials": {
+              "_type": "list",
+              "_len": 25,
+              "_item_keys": [
+                "flag",
+                "score",
+                "sector",
+                "symbol"
+              ]
+            },
+            "tier_a": {
+              "_type": "list",
+              "_len": 1,
+              "_item_type": "str"
+            },
+            "contrarian_top": {
+              "_type": "list",
+              "_len": 10,
+              "_item_type": "str"
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 64,
+          "_item_keys": [
+            "company",
+            "flag",
+            "fundamentals",
+            "rationale",
+            "score",
+            "status",
+            "symbol"
+          ]
+        }
+      }
+    },
+    "data/asymmetric-scorer.json": {
+      "ok": true,
+      "top_level": [
+        "as_of",
+        "cross_pollination",
+        "cutoffs",
+        "filter_logic",
+        "sector_breakdown",
+        "summary",
+        "top_setups",
+        "v",
+        "value_traps"
+      ],
+      "generated_at": null,
+      "structures": {
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "broad_market_aaii_extreme",
+            "dropped_this_week",
+            "n_big_insider_buys_market_wide",
+            "n_insider_clusters_market_wide",
+            "n_quality_passed",
+            "n_screener_total",
+            "n_setups",
+            "n_value_traps",
+            "n_with_stacking_signals",
+            "new_this_week",
+            "quality_gate_failures"
+          ],
+          "_nested": {
+            "quality_gate_failures": {
+              "_type": "dict",
+              "_keys": [
+                "debt_high",
+                "fcf_negative",
+                "liquidity_weak",
+                "no_earnings",
+                "piotroski_low",
+                "price_too_low"
+              ]
+            },
+            "new_this_week": {
+              "_type": "list",
+              "_len": 1,
+              "_item_type": "str"
+            },
+            "dropped_this_week": {
+              "_type": "list",
+              "_len": 1,
+              "_item_type": "str"
+            }
+          }
+        },
+        "cross_pollination": {
+          "_type": "dict",
+          "_keys": [
+            "aaii_pts",
+            "aaii_signal",
+            "btc_mvrv",
+            "onchain_extreme_signals"
+          ],
+          "_nested": {
+            "onchain_extreme_signals": {
+              "_type": "list",
+              "_len": 0
+            }
+          }
+        },
+        "cutoffs": {
+          "_type": "dict",
+          "_keys": [
+            "momentum",
+            "quality",
+            "safety",
+            "stacked",
+            "value"
+          ]
+        },
+        "sector_breakdown": {
+          "_type": "dict",
+          "_keys": [
+            "Basic Materials",
+            "Communication Services",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial Services",
+            "Healthcare",
+            "Industrials",
+            "Real Estate",
+            "Technology",
+            "Utilities"
+          ]
+        },
+        "top_setups": {
+          "_type": "list",
+          "_len": 30,
+          "_item_keys": [
+            "beta",
+            "category",
+            "composite_score",
+            "currentRatio",
+            "debtToEquity",
+            "dims_passed",
+            "dims_passed_list",
+            "epsGrowth",
+            "evEbitda",
+            "fcfGrowth",
+            "interestCoverage",
+            "marketCap",
+            "momentum_score",
+            "name",
+            "netMargin",
+            "operatingMargin",
+            "peRatio",
+            "piotroski",
+            "price",
+            "psRatio",
+            "quality_score",
+            "revenueGrowth",
+            "roe",
+            "safety_score",
+            "sector",
+            "stacked_raw_pts",
+            "stacked_score",
+            "stacked_signals",
+            "symbol",
+            "value_score"
+          ]
+        },
+        "value_traps": {
+          "_type": "list",
+          "_len": 15,
+          "_item_keys": [
+            "category",
+            "debtToEquity",
+            "marketCap",
+            "name",
+            "peRatio",
+            "piotroski",
+            "price",
+            "psRatio",
+            "sector",
+            "symbol",
+            "trap_reason"
+          ]
+        },
+        "filter_logic": {
+          "_type": "dict",
+          "_keys": [
+            "quality_gate",
+            "setup_filter",
+            "stacked_conviction"
+          ],
+          "_nested": {
+            "quality_gate": {
+              "_type": "dict",
+              "_keys": [
+                "max_debt_equity",
+                "min_current_ratio",
+                "min_market_cap",
+                "min_piotroski",
+                "min_price"
+              ]
+            },
+            "setup_filter": {
+              "_type": "dict",
+              "_keys": [
+                "dims_required",
+                "dims_total",
+                "top_pct_per_dim"
+              ]
+            },
+            "stacked_conviction": {
+              "_type": "dict",
+              "_keys": [
+                "cap_neg",
+                "cap_pos",
+                "point_weights",
+                "score_normalization",
+                "sources",
+                "version"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "data/earnings-pead.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T08:00:29+00:00",
+      "structures": {
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "n_evaluated",
+            "n_no_data",
+            "n_tier_a",
+            "n_tier_b",
+            "n_tier_s",
+            "n_universe",
+            "top_100_by_cap_bucket"
+          ],
+          "_nested": {
+            "top_100_by_cap_bucket": {
+              "_type": "dict",
+              "_keys": [
+                "large",
+                "mega",
+                "mid"
+              ]
+            }
+          }
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "tier_s",
+            "tier_s_full",
+            "top_25_overall"
+          ],
+          "_nested": {
+            "top_25_overall": {
+              "_type": "list",
+              "_len": 25,
+              "_item_keys": [
+                "avg_surprise_4q",
+                "beat_streak",
+                "cap_bucket",
+                "days_since_earnings",
+                "drift_active",
+                "flags",
+                "latest_surprise_pct",
+                "market_cap",
+                "post_earnings_return",
+                "score",
+                "sector",
+                "symbol",
+                "tier"
+              ]
+            },
+            "tier_s": {
+              "_type": "list",
+              "_len": 47,
+              "_item_type": "str"
+            },
+            "tier_s_full": {
+              "_type": "list",
+              "_len": 20,
+              "_item_keys": [
+                "beat_streak",
+                "flags",
+                "metrics",
+                "score",
+                "surprise_history",
+                "symbol",
+                "tier"
+              ]
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 581,
+          "_item_keys": [
+            "beat_streak",
+            "flags",
+            "metrics",
+            "score",
+            "surprise_history",
+            "symbol",
+            "tier"
+          ]
+        }
+      }
+    },
+    "data/eps-revision-velocity.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T09:30:11+00:00",
+      "structures": {
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "n_qualifying",
+            "n_tier_a",
+            "n_tier_b",
+            "n_universe",
+            "statuses"
+          ],
+          "_nested": {
+            "statuses": {
+              "_type": "dict",
+              "_keys": [
+                "below_min_velocity",
+                "ok"
+              ]
+            }
+          }
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "tier_a",
+            "tier_b_symbols",
+            "top_25_overall"
+          ],
+          "_nested": {
+            "top_25_overall": {
+              "_type": "list",
+              "_len": 25,
+              "_item_keys": [
+                "company",
+                "flag",
+                "fwd_rev_growth_pct",
+                "fy2_lift_pct",
+                "n_estimates",
+                "score",
+                "sector",
+                "symbol",
+                "upgrade_pct"
+              ]
+            },
+            "tier_a": {
+              "_type": "list",
+              "_len": 1,
+              "_item_type": "str"
+            },
+            "tier_b_symbols": {
+              "_type": "list",
+              "_len": 103,
+              "_item_type": "str"
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 347,
+          "_item_keys": [
+            "company",
+            "estimates",
+            "flag",
+            "fundamentals",
+            "ratings_breadth",
+            "rationale",
+            "score",
+            "status",
+            "symbol"
+          ]
+        }
+      }
+    },
+    "data/fundamentals.json": {
+      "ok": true,
+      "top_level": [
+        "companies",
+        "elapsed_s",
+        "failed_tickers",
+        "generated_at",
+        "method",
+        "n_covered",
+        "n_failed",
+        "note",
+        "schema_version",
+        "summary",
+        "universe_source"
+      ],
+      "generated_at": "2026-05-18T13:00:25.210103+00:00",
+      "structures": {
+        "failed_tickers": {
+          "_type": "list",
+          "_len": 0
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "avg_dcf_gap_pct",
+            "n_distress_risk",
+            "n_overvalued",
+            "n_strong_quality",
+            "n_undervalued"
+          ]
+        },
+        "companies": {
+          "_type": "list",
+          "_len": 25,
+          "_item_keys": [
+            "altman_z",
+            "dcf",
+            "dcf_gap_pct",
+            "fiscal_year",
+            "geo_mix",
+            "n_products",
+            "n_regions",
+            "ok",
+            "piotroski",
+            "price",
+            "product_mix",
+            "quality_label",
+            "ticker",
+            "top_product",
+            "top_product_pct",
+            "top_region",
+            "top_region_pct",
+            "valuation_label"
+          ]
+        }
+      }
+    },
+    "data/master-ranker.json": {
+      "ok": true,
+      "top_level": [
+        "alerts",
+        "as_of",
+        "calibration_weights",
+        "duration_s",
+        "feed_health",
+        "method",
+        "n_macro_signals",
+        "n_tickers_total",
+        "regime_context",
+        "schema_version",
+        "top_macro",
+        "top_tickers"
+      ],
+      "generated_at": null,
+      "structures": {
+        "regime_context": {
+          "_type": "dict",
+          "_keys": [
+            "capitulation_signal",
+            "composite_z",
+            "coverage_pct",
+            "crisis_trend",
+            "defcon_level",
+            "defcon_name",
+            "flashing_buckets",
+            "leading_markets_signal",
+            "regime",
+            "regime_color",
+            "risk_posture",
+            "spy_fwd_12m",
+            "spy_fwd_6m"
+          ]
+        },
+        "alerts": {
+          "_type": "dict",
+          "_keys": [
+            "calibration_active",
+            "n_extreme_macro",
+            "n_tier_3_plus_systems",
+            "n_tier_5_plus_systems"
+          ]
+        },
+        "top_tickers": {
+          "_type": "list",
+          "_len": 25,
+          "_item_keys": [
+            "contributions",
+            "details",
+            "n_systems",
+            "rationale",
+            "score",
+            "systems",
+            "ticker"
+          ]
+        },
+        "top_macro": {
+          "_type": "list",
+          "_len": 10,
+          "_item_keys": [
+            "abs_z",
+            "action_hint",
+            "category",
+            "name",
+            "rationale",
+            "score",
+            "type",
+            "z"
+          ]
+        },
+        "feed_health": {
+          "_type": "dict",
+          "_keys": [
+            "asymmetric",
+            "compound",
+            "deep_value",
+            "eps_velocity",
+            "insider",
+            "momentum_breakout",
+            "nobrainers",
+            "options_flow",
+            "pead",
+            "pre_pump",
+            "revenue_accel",
+            "smart_money",
+            "supply_inflection",
+            "theme_tiers",
+            "volatility_squeeze"
+          ],
+          "_nested": {
+            "compound": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "asymmetric": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "theme_tiers": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "eps_velocity": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "insider": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "smart_money": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "deep_value": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            },
+            "pead": {
+              "_type": "dict",
+              "_keys": [
+                "loaded",
+                "size_hint"
+              ]
+            }
+          }
+        },
+        "calibration_weights": {
+          "_type": "dict",
+          "_keys": []
+        }
+      }
+    },
+    "data/insider-aggregate.json": {
+      "ok": true,
+      "top_level": [
+        "elapsed_s",
+        "generated_at",
+        "headline_ratio_30d_dollar",
+        "method",
+        "methodology",
+        "n_transactions",
+        "notable_cluster_buys",
+        "regime",
+        "regime_read",
+        "schema_version",
+        "windows"
+      ],
+      "generated_at": "2026-05-16T16:55:28.680163+00:00",
+      "structures": {
+        "windows": {
+          "_type": "dict",
+          "_keys": [
+            "last_30d",
+            "last_7d",
+            "last_90d"
+          ],
+          "_nested": {
+            "last_7d": {
+              "_type": "dict",
+              "_keys": [
+                "buy_count",
+                "buy_sell_ratio_count",
+                "buy_sell_ratio_dollar",
+                "buy_usd",
+                "cluster_buys",
+                "sell_count",
+                "sell_usd"
+              ]
+            },
+            "last_30d": {
+              "_type": "dict",
+              "_keys": [
+                "buy_count",
+                "buy_sell_ratio_count",
+                "buy_sell_ratio_dollar",
+                "buy_usd",
+                "cluster_buys",
+                "sell_count",
+                "sell_usd"
+              ]
+            },
+            "last_90d": {
+              "_type": "dict",
+              "_keys": [
+                "buy_count",
+                "buy_sell_ratio_count",
+                "buy_sell_ratio_dollar",
+                "buy_usd",
+                "cluster_buys",
+                "sell_count",
+                "sell_usd"
+              ]
+            }
+          }
+        },
+        "notable_cluster_buys": {
+          "_type": "list",
+          "_len": 3,
+          "_item_keys": [
+            "n_buyers",
+            "name",
+            "symbol",
+            "total_usd"
+          ]
+        }
+      }
+    },
+    "data/momentum-breakout.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "spy_returns",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T13:00:22+00:00",
+      "structures": {
+        "spy_returns": {
+          "_type": "dict",
+          "_keys": [
+            "20d",
+            "60d"
+          ]
+        },
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "n_evaluated",
+            "n_no_history",
+            "n_no_signal",
+            "n_parabolic",
+            "n_tier_a",
+            "n_tier_b",
+            "n_universe"
+          ]
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "parabolic",
+            "tier_a",
+            "top_25_overall"
+          ],
+          "_nested": {
+            "top_25_overall": {
+              "_type": "list",
+              "_len": 25,
+              "_item_keys": [
+                "flags",
+                "pct_from_60d_high",
+                "ret_20d",
+                "ret_60d",
+                "rs_vs_spy_20d",
+                "score",
+                "symbol",
+                "tier",
+                "vol_ratio"
+              ]
+            },
+            "tier_a": {
+              "_type": "list",
+              "_len": 1,
+              "_item_type": "str"
+            },
+            "parabolic": {
+              "_type": "list",
+              "_len": 12,
+              "_item_type": "str"
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 582,
+          "_item_keys": [
+            "flags",
+            "is_parabolic",
+            "metrics",
+            "score",
+            "symbol",
+            "tier"
+          ]
+        }
+      }
+    },
+    "data/pead-signals.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T08:00:28+00:00",
+      "structures": {
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "by_cap_bucket",
+            "n_evaluated",
+            "n_no_data",
+            "n_pre_earnings_setups",
+            "n_tier_a",
+            "n_tier_b",
+            "n_tier_s",
+            "n_universe"
+          ],
+          "_nested": {
+            "by_cap_bucket": {
+              "_type": "dict",
+              "_keys": [
+                "large",
+                "mega",
+                "micro",
+                "mid",
+                "nano",
+                "small"
+              ]
+            }
+          }
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "best_microcap",
+            "best_smallcap",
+            "pre_earnings_setups",
+            "tier_s",
+            "top_30_overall"
+          ],
+          "_nested": {
+            "top_30_overall": {
+              "_type": "list",
+              "_len": 30,
+              "_item_keys": [
+                "avg_beat_pct",
+                "beat_accel",
+                "cap_bucket",
+                "days_since_earnings",
+                "days_to_next",
+                "drift_pct",
+                "flags",
+                "latest_beat_pct",
+                "score",
+                "streak",
+                "symbol",
+                "tier"
+              ]
+            },
+            "tier_s": {
+              "_type": "list",
+              "_len": 30,
+              "_item_type": "str"
+            },
+            "best_microcap": {
+              "_type": "list",
+              "_len": 0
+            },
+            "best_smallcap": {
+              "_type": "list",
+              "_len": 0
+            },
+            "pre_earnings_setups": {
+              "_type": "list",
+              "_len": 20,
+              "_item_keys": [
+                "days_to_next",
+                "next_earnings",
+                "score",
+                "streak",
+                "symbol"
+              ]
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 610,
+          "_item_keys": [
+            "flags",
+            "history",
+            "metrics",
+            "score",
+            "symbol",
+            "tier"
+          ]
+        }
+      }
+    },
+    "data/revenue-acceleration.json": {
+      "ok": true,
+      "top_level": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "generated_at": "2026-05-18T09:45:30+00:00",
+      "structures": {
+        "stats": {
+          "_type": "dict",
+          "_keys": [
+            "n_evaluated",
+            "n_microcap_picks",
+            "n_no_data",
+            "n_tier_a",
+            "n_tier_b",
+            "n_tier_s",
+            "n_universe"
+          ]
+        },
+        "summary": {
+          "_type": "dict",
+          "_keys": [
+            "microcap_picks",
+            "tier_s",
+            "top_25_overall"
+          ],
+          "_nested": {
+            "top_25_overall": {
+              "_type": "list",
+              "_len": 10,
+              "_item_keys": [
+                "acceleration",
+                "annualized_rev",
+                "consec_accel",
+                "flags",
+                "gm_trend",
+                "growth",
+                "is_microcap",
+                "op_leverage",
+                "score",
+                "sector",
+                "symbol",
+                "tier"
+              ]
+            },
+            "tier_s": {
+              "_type": "list",
+              "_len": 0
+            },
+            "microcap_picks": {
+              "_type": "list",
+              "_len": 0
+            }
+          }
+        },
+        "all_qualifying": {
+          "_type": "list",
+          "_len": 10,
+          "_item_keys": [
+            "acceleration_history",
+            "consec_accel_quarters",
+            "flags",
+            "metrics",
+            "score",
+            "symbol",
+            "tier",
+            "yoy_growth_history"
+          ]
+        }
+      }
+    },
+    "screener/opportunity-screener.json": {
+      "ok": true,
+      "top_level": [
+        "boom_candidates",
+        "commodities_metals",
+        "counts",
+        "elapsed_s",
+        "errors",
+        "generated_at",
+        "headline",
+        "hidden_growth",
+        "housing",
+        "how_to_read",
+        "method",
+        "microcap_rockets",
+        "ok",
+        "schema_version",
+        "serial_beaters",
+        "sources"
+      ],
+      "generated_at": "2026-05-18T12:35:07.897769+00:00",
+      "structures": {
+        "counts": {
+          "_type": "dict",
+          "_keys": [
+            "boom_candidates",
+            "hidden_growth",
+            "microcap_rockets",
+            "serial_beaters"
+          ]
+        },
+        "boom_candidates": {
+          "_type": "list",
+          "_len": 120,
+          "_item_keys": [
+            "boom_score",
+            "cap_tier",
+            "market_cap",
+            "n_engines_confirming",
+            "name",
+            "opportunity_score",
+            "price",
+            "price_target",
+            "risk_flags",
+            "sector",
+            "signal_detail",
+            "signals_fired",
+            "symbol",
+            "target_basis",
+            "target_horizon",
+            "upside_pct",
+            "why"
+          ]
+        },
+        "microcap_rockets": {
+          "_type": "list",
+          "_len": 39,
+          "_item_keys": [
+            "boom_score",
+            "cap_tier",
+            "market_cap",
+            "n_engines_confirming",
+            "name",
+            "opportunity_score",
+            "price",
+            "price_target",
+            "risk_flags",
+            "sector",
+            "signal_detail",
+            "signals_fired",
+            "symbol",
+            "target_basis",
+            "target_horizon",
+            "upside_pct",
+            "why"
+          ]
+        },
+        "serial_beaters": {
+          "_type": "list",
+          "_len": 40,
+          "_item_keys": [
+            "boom_score",
+            "cap_tier",
+            "market_cap",
+            "n_engines_confirming",
+            "name",
+            "opportunity_score",
+            "price",
+            "price_target",
+            "risk_flags",
+            "sector",
+            "signal_detail",
+            "signals_fired",
+            "symbol",
+            "target_basis",
+            "target_horizon",
+            "upside_pct",
+            "why"
+          ]
+        },
+        "hidden_growth": {
+          "_type": "list",
+          "_len": 40,
+          "_item_keys": [
+            "boom_score",
+            "cap_tier",
+            "market_cap",
+            "n_engines_confirming",
+            "name",
+            "opportunity_score",
+            "price",
+            "price_target",
+            "risk_flags",
+            "sector",
+            "signal_detail",
+            "signals_fired",
+            "symbol",
+            "target_basis",
+            "target_horizon",
+            "upside_pct",
+            "why"
+          ]
+        },
+        "commodities_metals": {
+          "_type": "dict",
+          "_keys": [
+            "composite_regime",
+            "items",
+            "playbook"
+          ],
+          "_nested": {
+            "items": {
+              "_type": "list",
+              "_len": 14,
+              "_item_keys": [
+                "category",
+                "level",
+                "name",
+                "regime",
+                "ytd_pct"
+              ]
+            }
+          }
+        },
+        "housing": {
+          "_type": "dict",
+          "_keys": [
+            "cycle_score",
+            "playbook",
+            "read",
+            "regime"
+          ]
+        },
+        "sources": {
+          "_type": "list",
+          "_len": 8,
+          "_item_type": "str"
+        },
+        "errors": {
+          "_type": "list",
+          "_len": 0
+        }
+      }
+    },
+    "data/beta-laggards.json": {
+      "ok": true,
+      "top_level": [
+        "disclaimer",
+        "elapsed_s",
+        "generated_at",
+        "groups",
+        "headline",
+        "how_to_read",
+        "method",
+        "n_candidates",
+        "n_working_sectors",
+        "ok",
+        "schema_version",
+        "top_candidates",
+        "universe_with_returns"
+      ],
+      "generated_at": "2026-05-18T13:30:41.193709+00:00",
+      "structures": {
+        "groups": {
+          "_type": "list",
+          "_len": 2,
+          "_item_keys": [
+            "laggards",
+            "leader",
+            "n_laggards",
+            "sector",
+            "sector_3m_median_pct",
+            "sector_breadth_pct"
+          ]
+        },
+        "top_candidates": {
+          "_type": "list",
+          "_len": 9,
+          "_item_keys": [
+            "beta",
+            "catch_up_score",
+            "fundamental_note",
+            "gap_vs_leader_pp",
+            "leader_symbol",
+            "name",
+            "price",
+            "price_target",
+            "r1m",
+            "r3m",
+            "risk",
+            "sector",
+            "symbol",
+            "upside_pct",
+            "why"
+          ]
+        }
+      }
+    },
+    "data/metals-miners.json": {
+      "ok": false,
+      "err": "NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "fmp_probes": {
+    "ma_latest": {
+      "ok": true,
+      "n": 8,
+      "keys": [
+        "acceptedDate",
+        "cik",
+        "companyName",
+        "link",
+        "symbol",
+        "targetedCik",
+        "targetedCompanyName",
+        "targetedSymbol",
+        "transactionDate"
+      ],
+      "sample": {
+        "symbol": "PSA-PO",
+        "companyName": "Public Storage",
+        "cik": "0001393311",
+        "targetedCompanyName": "National Storage Affiliates Trust",
+        "targetedCik": "0001618563",
+        "targetedSymbol": "NSA",
+        "transactionDate": "2026-05-11",
+        "acceptedDate": "2026-05-11 17:16:33",
+        "link": "https://www.sec.gov/Archives/edgar/data/1393311/000119312526217125/d110345ds4.htm"
+      }
+    },
+    "ma_search": {
+      "ok": true,
+      "n": 2149,
+      "keys": [
+        "acceptedDate",
+        "cik",
+        "companyName",
+        "link",
+        "symbol",
+        "targetedCik",
+        "targetedCompanyName",
+        "targetedSymbol",
+        "transactionDate"
+      ],
+      "sample": {
+        "symbol": "TPTA",
+        "companyName": "Terra Property Trust, Inc.",
+        "cik": "0001674356",
+        "targetedCompanyName": "Turning Point Therapeutics, Inc.",
+        "targetedCik": "0001595893",
+        "targetedSymbol": "TPTX",
+        "transactionDate": "2026-05-07",
+        "acceptedDate": "2026-05-07 16:05:54",
+        "link": "https://www.sec.gov/Archives/edgar/data/1674356/000110465926057103/tm2612950-1_s4.htm"
+      }
+    },
+    "etf_holdings_XLK": {
+      "ok": true,
+      "n": 76,
+      "keys": [
+        "asset",
+        "isin",
+        "marketValue",
+        "name",
+        "securityCusip",
+        "sharesNumber",
+        "symbol",
+        "updatedAt",
+        "weightPercentage"
+      ],
+      "sample": {
+        "symbol": "XLK",
+        "asset": "NVDA",
+        "name": "NVIDIA CORP",
+        "isin": "US67066G1040",
+        "securityCusip": "67066G104",
+        "sharesNumber": 77124804,
+        "weightPercentage": 15.53,
+        "marketValue": 18202307416,
+        "updatedAt": "2026-05-17 01:05:04"
+      }
+    },
+    "etf_info_XLK": {
+      "ok": true,
+      "n": 1,
+      "keys": [
+        "assetClass",
+        "assetsUnderManagement",
+        "avgVolume",
+        "description",
+        "domicile",
+        "etfCompany",
+        "expenseRatio",
+        "holdingsCount",
+        "inceptionDate",
+        "isActivelyTrading",
+        "isin",
+        "name",
+        "nav",
+        "navCurrency",
+        "sectorsList",
+        "securityCusip",
+        "symbol",
+        "updatedAt",
+        "website"
+      ],
+      "sample": {
+        "symbol": "XLK",
+        "name": "State Street Technology Select Sector SPDR ETF",
+        "description": "The State Street Technology Select Sector SPDR ETF seeks to provide investment results that, before expenses, correspond generally to the price and yield performance of the Technology Select Sector Index (the \"Index\").The Index seeks to provide an effective representation of the technology sector of the S&P 500 Index.Seeks to provide precise exposure to companies from technology hardware, storage and peripherals; software; communications equipment; semiconductors and semiconductor equipment; IT services; and electronic equipment, instruments and components industries.Allows investors to take strategic or tactical positions at a more targeted level than traditional style based investing.",
+        "isin": "US81369Y8030",
+        "assetClass": "Equity",
+        "securityCusip": "81369Y803",
+        "domicile": "US",
+        "website": "https://www.ssga.com/us/en/institutional/etfs/state-street-technology-select-sector-spdr-etf-xlk",
+        "etfCompany": "SPDR",
+        "expenseRatio": 0.08,
+        "assetsUnderManagement": 114980660000,
+        "avgVolume": 6005380,
+        "inceptionDate": "1998-12-16",
+        "nav": 176.28
+      }
+    },
+    "shares_float_AAPL": {
+      "ok": true,
+      "n": 1,
+      "keys": [
+        "date",
+        "floatShares",
+        "freeFloat",
+        "outstandingShares",
+        "source",
+        "symbol"
+      ],
+      "sample": {
+        "symbol": "AAPL",
+        "date": "2026-05-16 23:49:15",
+        "freeFloat": 99.83099999754891,
+        "floatShares": 14662534368,
+        "outstandingShares": 14687356000,
+        "source": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm"
+      }
+    },
+    "dividends_AAPL": {
+      "ok": true,
+      "n": 91,
+      "keys": [
+        "adjDividend",
+        "date",
+        "declarationDate",
+        "dividend",
+        "frequency",
+        "paymentDate",
+        "recordDate",
+        "symbol",
+        "yield"
+      ],
+      "sample": {
+        "symbol": "AAPL",
+        "date": "2026-05-11",
+        "recordDate": "2026-05-11",
+        "paymentDate": "2026-05-14",
+        "declarationDate": "2026-04-30",
+        "adjDividend": 0.27,
+        "dividend": 0.27,
+        "yield": 0.3587535875358754,
+        "frequency": "Quarterly"
+      }
+    }
+  },
+  "build_guidance": {
+    "merger_arb": "M&A feed keys: ['acceptedDate', 'cik', 'companyName', 'link', 'symbol', 'targetedCik', 'targetedCompanyName', 'targetedSymbol', 'transactionDate']",
+    "etf_catchup": "ETF holdings keys: ['asset', 'isin', 'marketValue', 'name', 'securityCusip', 'sharesNumber', 'symbol', 'updatedAt', 'weightPercentage']",
+    "short_squeeze": "shares-float keys: ['date', 'floatShares', 'freeFloat', 'outstandingShares', 'source', 'symbol']",
+    "dividend_growth": "dividends keys: ['adjDividend', 'date', 'declarationDate', 'dividend', 'frequency', 'paymentDate', 'recordDate', 'symbol', 'yield']"
+  },
+  "checks": {
+    "engines_readable": true,
+    "ma_probe_done": true
+  },
+  "all_pass": true,
+  "verdict": "AUDIT COMPLETE \u2014 15/16 opportunity engines readable, schemas captured for the conviction-stack build; FMP capabilities probed for merger-arb / short-squeeze / dividend builds."
+}
