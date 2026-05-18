@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-capital-return",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Capital-return cannibal screen - companies shrinking their share count via FCF-funded net buybacks at a reasonable valuation with a healthy business. Shareholder-yield factor with funding/valuation/quality gates. Output data/capital-return.json.",
+  "schedule": {
+    "rule_name": "capital-return-daily",
+    "cron": "cron(45 13 * * ? *)",
+    "description": "Capital-return cannibal screen - daily 13:45 UTC"
+  }
+}

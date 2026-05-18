@@ -85,6 +85,7 @@ CATEGORIES = [
 # nicer labels for pages whose filename is not self-explanatory
 LABELS = {
     "boom-board": "Boom Board",
+    "capital-return": "Capital-Return Cannibals",
     "metals-miners": "Metals & Miners",
     "cb-injection": "CB Injection & Carry", "ecb-detail": "ECB Detail",
     "ecb": "ECB Data", "boj-detail": "BOJ & Yen Carry",
