@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metals &amp; Miners · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⛏</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--yellow)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1020px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--yellow)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.cx{margin:22px 0}
+.cxhead{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px 8px 0 0;padding:13px 16px}
+.cxname{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.cxdrv{color:var(--dim);font-size:11px;margin-top:2px}
+.regime{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:5px;white-space:nowrap}
+.reg-up{color:var(--green);background:rgba(38,255,175,.12);border:1px solid rgba(38,255,175,.4)}
+.reg-neutral{color:var(--yellow);background:rgba(255,210,102,.1);border:1px solid rgba(255,210,102,.35)}
+.reg-down{color:var(--red);background:rgba(255,85,119,.12);border:1px solid rgba(255,85,119,.4)}
+.reg-unknown{color:var(--dim);background:var(--panel2);border:1px solid var(--line)}
+.cxmeta{font-family:var(--mono);font-size:10.5px;color:var(--dim);padding:7px 16px;background:var(--panel2);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;background:var(--panel2);border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px;padding:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.card.gA{border-top-color:var(--green)}
+.card.gB{border-top-color:var(--cyan)}
+.card.gC{border-top-color:var(--yellow)}
+.card.gD{border-top-color:var(--red)}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--txt)}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.score{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.gr-A{color:var(--green)}.gr-B{color:var(--cyan)}.gr-C{color:var(--yellow)}.gr-D{color:var(--red)}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0}
+.bdg{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--mute);border:1px solid var(--line)}
+.bdg.ty{color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.bdg.lv{color:var(--purple);border-color:rgba(167,139,250,.3)}
+.bdg.sv{color:var(--mute)}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.met{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:6px 7px;text-align:center}
+.met .ml{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.met .mv{font-family:var(--mono);font-size:12px;font-weight:700;margin-top:2px}
+.tgt{display:flex;align-items:baseline;gap:8px;background:var(--panel2);border-radius:6px;padding:8px 10px;margin:8px 0}
+.tgt .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.tgt .pt{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--txt)}
+.tgt .up{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)}
+.why{color:var(--mute);font-size:11.5px;line-height:1.6;margin:6px 0}
+.flags{margin-top:7px}
+.flag{font-size:10px;color:var(--yellow);line-height:1.5;display:flex;gap:5px;margin-top:3px}
+.flag::before{content:"\26A0";flex-shrink:0}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⛏ Metals &amp; Miners</h1>
+    <p class="subtitle">A miner is a <b>leveraged call on the metal it digs</b>. This screen anchors each complex — gold, silver, copper, uranium, lithium — to its own metal-trend regime, then ranks producers, royalty/streaming names, developers and the buyable ETFs on whether a <b>healthy</b> miner has lagged a metal that is <b>genuinely working</b>. Operating leverage cuts both ways: leverage into a falling metal is penalised, not rewarded. Every name carries a thesis, a metal-anchored target and honest risk flags.</p>
+    <nav class="crumbs">
+      <a href="/screener/">screener</a>
+      <a href="/index.html">desk</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING METALS &amp; MINERS…</div></div>
+  <div id="body"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(v,d=1)=>v==null||isNaN(v)?"—":(v>=0?"+":"")+Number(v).toFixed(d)+"%";
+const cls=(v)=>v==null||isNaN(v)?"":(v>=0?"pos":"neg");
+
+function regimeClass(r){
+  if(!r) return "reg-unknown";
+  if(r.indexOf("UPTREND")>=0) return "reg-up";
+  if(r.indexOf("DOWNTREND")>=0) return "reg-down";
+  if(r==="NEUTRAL") return "reg-neutral";
+  return "reg-unknown";
+}
+
+function card(m){
+  const g=m.grade||"D";
+  const tgt=m.target?`<div class="tgt"><span class="lab">Target</span><span class="pt">$${num(m.target,2)}</span>`+
+    (m.implied_gain_pct!=null?`<span class="up">${pct(m.implied_gain_pct)}</span>`:"")+`</div>`:"";
+  const mets=`<div class="metrics">`+
+    `<div class="met"><div class="ml">1M</div><div class="mv ${cls(m.ret_1m)}">${pct(m.ret_1m)}</div></div>`+
+    `<div class="met"><div class="ml">3M</div><div class="mv ${cls(m.ret_3m)}">${pct(m.ret_3m)}</div></div>`+
+    `<div class="met"><div class="ml">Metal lag 3M</div><div class="mv ${cls(m.metal_lag_3m)}">${pct(m.metal_lag_3m)}</div></div>`+
+    `</div>`;
+  const flags=(m.caveats||[]).map(c=>`<div class="flag">${esc(c)}</div>`).join("");
+  return `<div class="card g${g}">
+    <div class="crow">
+      <div><div class="tk">${esc(m.symbol)}</div><div class="nm">${esc(m.name)}</div></div>
+      <div class="score gr-${g}">${num(m.score,1)}<small>SCORE · ${g}</small></div>
+    </div>
+    <div class="badges">
+      <span class="bdg ty">${esc((m.type||"").replace("_"," "))}</span>
+      <span class="bdg lv">${num(m.leverage_class,1)}× leverage</span>
+      <span class="bdg sv">survive ${num(m.survivability,0)}</span>
+    </div>
+    ${mets}
+    ${tgt}
+    <div class="why">${esc(m.thesis)}</div>
+    <div class="why" style="color:var(--dim);font-size:10.5px">${esc(m.survivability_note)}</div>
+    <div class="flags">${flags}</div>
+  </div>`;
+}
+
+function complexBlock(c){
+  const rc=regimeClass(c.metal_regime);
+  const miners=(c.miners||[]).map(card).join("");
+  return `<div class="cx">
+    <div class="cxhead">
+      <div><div class="cxname">${esc(c.label)}</div><div class="cxdrv">Driver: ${esc(c.driver)}</div></div>
+      <div class="regime ${rc}">${esc(c.metal_regime||"UNKNOWN")}</div>
+    </div>
+    <div class="cxmeta">Proxy ${esc(c.proxy_etf)} · metal 3M ${pct(c.metal_ret_3m)} · 6M ${pct(c.metal_ret_6m)} · regime score ${num(c.metal_regime_score,1)}/100</div>
+    <div class="grid">${miners||'<div class="loading">No data</div>'}</div>
+  </div>`;
+}
+
+async function load(){
+  try{
+    const r=await fetch(S3+"screener/metals-miners.json?t="+Date.now());
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const d=await r.json();
+    document.getElementById("hero").innerHTML=
+      `<div class="hl">${esc(d.headline)}</div>`+
+      `<div class="htr">Universe: ${num(d.universe_count)} miners &amp; ETFs across `+
+      `${(d.complexes||[]).length} metal complexes. `+
+      `Working now: ${(d.working_complexes&&d.working_complexes.length)?esc(d.working_complexes.join(", ")):"none — screen is defensive"}.</div>`;
+    document.getElementById("body").innerHTML=(d.complexes||[]).map(complexBlock).join("");
+    document.getElementById("note").textContent=(d.methodology||"")+"  "+(d.disclaimer||"");
+    const t=d.generated_at?new Date(d.generated_at):null;
+    document.getElementById("ts").textContent=t?("Generated "+t.toUTCString()):"";
+  }catch(e){
+    document.getElementById("hero").innerHTML=
+      `<div class="loading" style="color:var(--red)">FEED UNAVAILABLE — ${esc(e.message)}</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>

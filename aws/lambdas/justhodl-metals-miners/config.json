@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-metals-miners",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Metals & Miners screen - scores gold/silver/copper/uranium/lithium miners as leveraged calls on their metal vs proxy-ETF trend regimes, gated on balance-sheet survivability, with metal-anchored price targets. Output screener/metals-miners.json.",
+  "environment": {},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-metals-miners-daily",
+    "cron": "cron(10 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Metals & Miners screen - daily 14:10 UTC via Amazon EventBridge Scheduler. The classic EventBridge 300-rule pool is saturated; Scheduler is the go-forward scheduling path."
+  }
+}
