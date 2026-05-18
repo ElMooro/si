@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-spinoff-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Spin-Off and Special-Situations Desk - sources Form 10-12B spin-off registrations from SEC EDGAR, prices and screens them on FMP, scores the post-separation forced-selling and analyst-neglect edge, writes data/spinoff-desk.json.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-spinoff-desk-daily",
+    "cron": "cron(20 13 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Spin-Off Desk - daily 13:20 UTC via Amazon EventBridge Scheduler. Scheduler is the go-forward path; the classic 300-rule EventBridge pool is saturated."
+  }
+}
