@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tail Hedge Overlay &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127769;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .posture{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.brief{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:13px 15px;margin-bottom:14px}
+.brief .bt{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.brief .bb{font-size:12.5px;color:var(--txt);line-height:1.65}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--panel2)}
+.kv{font-family:var(--mono);font-size:12px;color:var(--txt)}
+.kvm{color:var(--dim)}
+.sleeve{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 15px;margin-bottom:6px}
+.sleeve .st{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple);margin-bottom:3px}
+.sleeve .si{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:10px}
+.legs{display:flex;gap:8px;flex-wrap:wrap}
+.leg{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+.leg .ll{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.leg .lv{font-family:var(--mono);font-size:11.5px;color:var(--txt);margin-top:3px}
+.size{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sizebox{flex:1;min-width:128px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+.sizebox .bl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.sizebox .bv{font-family:var(--mono);font-size:17px;font-weight:700;margin-top:3px}
+.delta{display:flex;gap:8px;flex-wrap:wrap}
+.dchip{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 11px;min-width:128px}
+.dchip .cl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.dchip .cv{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:3px}
+.chkbox{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 13px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+.chk:last-child{border-bottom:none}
+.cdot{font-family:var(--mono);font-weight:700;flex-shrink:0;font-size:10px;width:34px}
+.barwrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 15px;margin-bottom:6px}
+.barlab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:5px}
+.bar{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;position:relative}
+.bar > i{display:block;height:100%;border-radius:5px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#127769; Tail Hedge Overlay</h1>
+    <p class="subtitle">The firm Tail Hedge Overlay &mdash; the convexity desk. The CRO Risk Board's standing finding is that the binding constraint is tail stress: a small, deliberately convex protection sleeve is sized so the worst modelled crash is pulled back inside the soft loss limit. The sleeve is <b>scenario-targeted</b> (the worst named scenario picks the instrument), <b>cost-budgeted</b> (sized to a premium budget, not a fear level) and <b>regime-timed</b> (accumulate cheap, monetise into stress). It sizes and recommends &mdash; it places no trades.</p>
+    <nav class="crumbs">
+      <a href="/firm-risk-board.html">risk board</a>
+      <a href="/firm-stress.html">stress desk</a>
+      <a href="/factor-risk.html">factor risk</a>
+      <a href="/firm-book.html">firm book</a>
+      <a href="/merger-arb-risk.html">arb risk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING TAIL HEDGE OVERLAY&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/tail-hedge.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)"};
+function pct(v,d){return v==null?"--":(v>0?"+":"")+Number(v).toFixed(d==null?2:d)+"%";}
+function num(v,d){return v==null?"--":Number(v).toFixed(d==null?2:d);}
+function dCol(v,inv){if(v==null)return"var(--dim)";const x=inv?-v:v;return x>0?"var(--red)":x<0?"var(--green)":"var(--mute)";}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(d=>{
+  const sc=COL[d.status_color]||"var(--dim)";
+  const te=d.tail_exposure||{},hr=d.hedge_requirement||{},hs=d.hedge_sleeve||{};
+  const rg=d.regime||{},cb=d.cost_benefit||{};
+  const cf=d.confidence||"--";
+  const cfc=cf=="HIGH"?"var(--green)":cf=="MEDIUM"?"var(--yellow)":"var(--red)";
+  const STANCEC={ACCUMULATE:"var(--green)",HOLD:"var(--yellow)",MONETIZE:"var(--cyan)"};
+  let h="";
+
+  h+='<div class="hero" style="border-left-color:'+sc+'">'+
+    '<div class="posture" style="color:'+sc+'">'+esc(d.hedge_posture||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  h+='<div class="brief"><div class="bt">CRO Hedge Brief</div><div class="bb">'+esc(d.cro_brief||"")+'</div></div>';
+
+  h+='<div class="stats">'+
+    '<div class="stat"><div class="sl">Hedge Posture</div><div class="sv" style="font-size:12px;color:'+sc+'">'+esc(d.hedge_posture)+'</div></div>'+
+    '<div class="stat"><div class="sl">Tail Score</div><div class="sv" style="color:'+sc+'">'+num(d.tail_score,0)+'</div></div>'+
+    '<div class="stat"><div class="sl">Scenario Class</div><div class="sv" style="font-size:11px;color:var(--purple)">'+esc(hs.scenario_class||"--")+'</div></div>'+
+    '<div class="stat"><div class="sl">Regime Stance</div><div class="sv" style="font-size:13px;color:'+(STANCEC[rg.stance]||"var(--dim)")+'">'+esc(rg.stance||"--")+'</div></div>'+
+    '<div class="stat"><div class="sl">Confidence</div><div class="sv" style="color:'+cfc+'">'+esc(cf)+'</div></div>'+
+    '</div>';
+
+  // tail score bar (soft -> hard band)
+  const ts=Math.max(2,Math.min(100,d.tail_score||0));
+  h+='<div class="barwrap"><div class="barlab"><span>WORST CASE AT SOFT LIMIT '+pct(te.soft_loss_limit_pct,0)+'</span>'+
+    '<span>HARD LIMIT '+pct(te.hard_loss_limit_pct,0)+'</span></div>'+
+    '<div class="bar"><i style="width:'+ts+'%;background:'+sc+'"></i></div>'+
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px">Worst modelled scenario '+
+    esc((te.worst_scenario||"--"))+' &mdash; book P&amp;L '+pct(te.worst_loss_pct,1)+
+    ' &middot; '+(hr.required?'<b style="color:'+sc+'">'+num(hr.required_protection_pct_of_book,2)+'% of book of protection required</b>':'<b style="color:var(--green)">inside the soft limit, no protection required</b>')+'</div></div>';
+
+  // tail exposure table
+  h+='<div class="sechead">Tail Exposure <small>&mdash; the book\'s crash sensitivity, straight from the stress desk and factor model</small></div>';
+  const ex=[
+    ["Worst modelled scenario",esc(te.worst_scenario||"--"),"var(--txt)"],
+    ["Worst-case book P&amp;L",pct(te.worst_loss_pct,1),sc],
+    ["Soft loss limit",pct(te.soft_loss_limit_pct,0),"var(--mute)"],
+    ["Hard loss limit",pct(te.hard_loss_limit_pct,0),"var(--mute)"],
+    ["Breach vs soft limit",te.breach_vs_soft_pp==null?"--":num(te.breach_vs_soft_pp,2)+" pp",dCol(te.breach_vs_soft_pp,true)],
+    ["Breach vs hard limit",te.breach_vs_hard_pp==null?"--":num(te.breach_vs_hard_pp,2)+" pp",dCol(te.breach_vs_hard_pp,true)],
+    ["Losing scenarios",(te.n_losing_scenarios==null?"--":te.n_losing_scenarios)+" / "+(te.n_scenarios==null?"--":te.n_scenarios),"var(--mute)"],
+    ["Median scenario P&amp;L",pct(te.median_scenario_pnl_pct,1),dCol(te.median_scenario_pnl_pct,true)],
+    ["99% 1-day VaR",pct(te.var_99_1d_pct,2),"var(--mute)"],
+    ["Net market beta",num(te.net_market_beta,2),"var(--mute)"],
+    ["Net / gross exposure",pct(te.net_exposure_pct,0)+" / "+num(te.gross_exposure_pct,0)+"%","var(--mute)"],
+    ["Equity names",te.n_equity_names==null?"--":te.n_equity_names,"var(--mute)"]
+  ];
+  h+='<table><tbody>'+ex.map(r=>'<tr><td class="l kvm">'+r[0]+'</td><td style="color:'+r[2]+'">'+r[1]+'</td></tr>').join("")+'</tbody></table>';
+
+  // hedge sleeve + sizing
+  h+='<div class="sechead">Hedge Sleeve &amp; Sizing <small>&mdash; scenario-targeted instrument, cost-budgeted to the gap</small></div>';
+  h+='<div class="sleeve"><div class="st">'+esc(hs.label||"--")+'</div>'+
+    '<div class="si">'+esc(hs.instruments||"")+'</div>'+
+    '<div class="legs">'+
+      '<div class="leg"><div class="ll">Primary leg</div><div class="lv">'+esc(hs.primary_leg||"--")+'</div></div>'+
+      '<div class="leg"><div class="ll">Convex leg</div><div class="lv">'+esc(hs.convex_leg||"--")+'</div></div>'+
+    '</div>'+
+    '<div class="size">'+
+      '<div class="sizebox"><div class="bl">Hedge Budget</div><div class="bv" style="color:var(--purple)">'+num(hs.hedge_budget_pct_of_book,2)+'%</div></div>'+
+      '<div class="sizebox"><div class="bl">Tail Payoff Multiple</div><div class="bv" style="color:var(--cyan)">'+num(hs.payoff_multiple,1)+'x</div></div>'+
+      '<div class="sizebox"><div class="bl">Payoff In Worst Case</div><div class="bv" style="color:var(--green)">'+num(hs.expected_payoff_in_worst_scenario_pct,2)+'%</div></div>'+
+      '<div class="sizebox"><div class="bl">Annualised Carry</div><div class="bv" style="color:var(--orange)">'+num(hs.annualised_carry_pct,2)+'%/yr</div></div>'+
+    '</div></div>';
+
+  // regime timing
+  h+='<div class="sechead">Regime Timing <small>&mdash; accumulate protection cheap, monetise it into stress</small></div>';
+  const stc=STANCEC[rg.stance]||"var(--dim)";
+  h+='<div class="sleeve"><div class="st" style="color:'+stc+'">'+esc(rg.stance||"--")+'</div>'+
+    '<div class="si">'+esc(rg.rationale||"")+'</div>'+
+    '<div class="size">'+
+      '<div class="sizebox"><div class="bl">Regime Score</div><div class="bv">'+num(rg.regime_score,0)+'</div></div>'+
+      '<div class="sizebox"><div class="bl">Eurodollar Stress</div><div class="bv" style="font-size:15px">'+num(rg.eurodollar_stress_score,0)+'</div></div>'+
+      '<div class="sizebox"><div class="bl">Canary Grid</div><div class="bv" style="font-size:15px">'+num(rg.canary_grid_level,0)+'</div></div>'+
+      '<div class="sizebox"><div class="bl">Carry Multiplier</div><div class="bv" style="font-size:15px;color:var(--orange)">'+num(rg.carry_multiplier,2)+'x</div></div>'+
+      '<div class="sizebox"><div class="bl">Firm Posture</div><div class="bv" style="font-size:13px">'+esc(rg.firm_posture||"--")+'</div></div>'+
+    '</div></div>';
+
+  // cost / benefit
+  h+='<div class="sechead">Cost / Benefit <small>&mdash; what the sleeve costs versus what it averts</small></div>';
+  h+='<div class="delta">'+
+    '<div class="dchip"><div class="cl">Annualised Carry</div><div class="cv" style="color:var(--orange)">'+num(cb.annualised_carry_pct,2)+'%/yr</div></div>'+
+    '<div class="dchip"><div class="cl">Tail Loss Averted</div><div class="cv" style="color:var(--green)">'+num(cb.tail_loss_averted_pct,2)+'%</div></div>'+
+    '<div class="dchip"><div class="cl">Tail Payoff / Yr Carry</div><div class="cv" style="color:var(--cyan)">'+(cb.insurance_ratio==null?"--":num(cb.insurance_ratio,2)+"x")+'</div></div>'+
+    '<div class="dchip"><div class="cl">Return Drag</div><div class="cv" style="color:var(--orange)">'+num(cb.return_drag_pct,2)+'%</div></div>'+
+    '</div>';
+
+  // day over day
+  h+='<div class="sechead">Day-Over-Day <small>&mdash; change vs the prior overlay snapshot</small></div>';
+  const dl=d.deltas;
+  if(!dl||!dl.prior_date){
+    h+='<div class="empty">First overlay snapshot &mdash; no prior comparison yet.</div>';
+  }else{
+    const mk=(lab,v,inv,suf)=>'<div class="dchip"><div class="cl">'+lab+'</div><div class="cv" style="color:'+
+      dCol(v,inv)+'">'+(v==null?"flat":(v>0?"+":"")+Number(v).toFixed(2)+(suf||""))+'</div></div>';
+    h+='<div class="delta">'+
+      '<div class="dchip"><div class="cl">Posture</div><div class="cv" style="color:'+
+        (dl.prior_posture!=d.hedge_posture?"var(--yellow)":"var(--mute)")+';font-size:11px">'+
+        (dl.prior_posture!=d.hedge_posture?esc(dl.prior_posture)+" &rarr;":"unchanged")+'</div></div>'+
+      mk("Worst Loss",dl.worst_loss_pp,true," pp")+
+      mk("Protection Req",dl.required_protection_pp,false," pp")+
+      mk("Carry",dl.annualised_carry_pp,false," pp")+
+      mk("Regime Score",dl.regime_score,false,"")+
+      '<div class="dchip"><div class="cl">Stance</div><div class="cv" style="color:'+
+        (dl.prior_stance!=(rg.stance)?"var(--yellow)":"var(--mute)")+';font-size:11px">'+
+        (dl.prior_stance!=(rg.stance)?esc(dl.prior_stance)+" &rarr;":"unchanged")+'</div></div>'+
+      '</div>'+
+      '<div style="font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:6px">vs '+esc(dl.prior_date)+'</div>';
+  }
+
+  // consistency checks
+  h+='<div class="sechead">Consistency Checks <small>&mdash; cross-engine integrity of the hedge picture</small></div>';
+  const ck=d.consistency_checks||[];
+  if(!ck.length){h+='<div class="empty">No checks this run.</div>';}
+  else{
+    h+='<div class="chkbox">'+ck.map(c=>
+      '<div class="chk"><span class="cdot" style="color:'+(c.ok?"var(--green)":"var(--orange)")+'">'+
+        (c.ok?"PASS":"FLAG")+'</span><span style="color:var(--mute)"><b style="color:var(--txt)">'+
+        esc(c.check)+'</b> &mdash; '+esc(c.detail)+'</span></div>').join("")+'</div>';
+  }
+
+  h+='<p class="note">'+esc(d.how_to_read||"")+'<br><br>'+esc(d.disclaimer||"")+'</p>';
+  h+='<div class="timestamp">run '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC &middot; '+
+    esc(d.build_seconds)+'s &middot; '+esc(d.method||"")+'</div>';
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">TAIL HEDGE OVERLAY UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>

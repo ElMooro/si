@@ -1,0 +1,21 @@
+{
+ "function_name": "justhodl-tail-hedge",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm Tail Hedge Overlay - reads the stress desk, factor risk model and firm book, then sizes a scenario-targeted convex protection sleeve so the worst modelled scenario is pulled back inside the soft loss limit. data/tail-hedge.json.",
+ "environment": {},
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-tail-hedge-daily",
+  "cron": "cron(30 4 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm Tail Hedge Overlay - daily 04:30 UTC via Amazon EventBridge Scheduler, after the firm-risk-board (04:00), so it always reads a complete fresh risk stack."
+ }
+}
