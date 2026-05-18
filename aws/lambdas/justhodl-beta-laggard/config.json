@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-beta-laggard",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Beta-laggard catch-up mapper - finds healthy high-beta laggards in genuinely working sectors where a leader has already run. Gates on sector breadth, a real dispersion gap and fundamental health. Output data/beta-laggards.json.",
+  "schedule": {
+    "rule_name": "beta-laggard-daily",
+    "cron": "cron(30 13 * * ? *)",
+    "description": "Beta-laggard catch-up mapper - daily 13:30 UTC"
+  }
+}
