@@ -50,11 +50,15 @@ def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
-def pct(v):
-    """Normalise a yield-type field to percent (FMP stores fractions)."""
-    if v is None:
-        return None
-    return v * 100.0 if abs(v) <= 1.5 else v
+# the stock-screener stores yield/margin/growth fields ALREADY in percent
+# units (its own filters compare buybackYield>=1 == "1% of mcap",
+# fcfYieldCalc>=4, netMargin>=15, revenueGrowth>=15) - so no rescaling.
+
+# FCF is not a meaningful funding metric for lenders / property vehicles:
+# their cash-flow statements are dominated by the loan book / rents, so the
+# cannibal "FCF-funded buyback" thesis does not apply. Institutional
+# shareholder-yield screens exclude these sectors - so do we.
+EXCLUDED_SECTORS = {"Financial Services", "Financials", "Real Estate"}
 
 
 def lambda_handler(event, context):
@@ -80,18 +84,21 @@ def lambda_handler(event, context):
         sy = (r.get("symbol") or "").upper()
         if not sy:
             continue
+        sector = r.get("sector")
+        if sector in EXCLUDED_SECTORS:
+            continue
         n_eval += 1
 
-        buyback = pct(num(r.get("buybackYield")))
-        div = pct(num(r.get("dividendYield"))) or 0.0
-        fcf_yield = pct(num(r.get("fcfYieldCalc")))
+        buyback = num(r.get("buybackYield"))
+        div = num(r.get("dividendYield")) or 0.0
+        fcf_yield = num(r.get("fcfYieldCalc"))
         pe = num(r.get("peRatio"))
         d2e = num(r.get("debtToEquity"))
         icov = num(r.get("interestCoverage"))
-        rev_g = pct(num(r.get("revenueGrowth")))
-        net_margin = pct(num(r.get("netMargin")))
+        rev_g = num(r.get("revenueGrowth"))
+        net_margin = num(r.get("netMargin"))
         altman = num(r.get("altmanZ"))
-        roic = pct(num(r.get("roic")))
+        roic = num(r.get("roic"))
         price = num(r.get("price"))
         mcap = num(r.get("marketCap"))
 
@@ -99,6 +106,10 @@ def lambda_handler(event, context):
         if buyback is None or buyback < 1.5:
             continue
         shareholder_yield = buyback + div
+        # sanity bound - no company sustainably returns >35% of its market
+        # value a year; such values are screener data artifacts, exclude
+        if buyback > 30 or shareholder_yield > 35:
+            continue
 
         # ── FUNDING gate: FCF must largely fund the payout, not debt ──
         if fcf_yield is None or fcf_yield <= 0:
