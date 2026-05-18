@@ -53,6 +53,10 @@ s3 = boto3.client("s3", region_name="us-east-1")
 EPS = 1e-9
 INDEX_RECON_CAP = 25   # top-N per side from index-recon -- a real desk
 #                        concentrates the flow book on the highest-edge names
+MAX_POS_WITHIN = 0.20  # no single position above 20% of its desk's gross --
+#                        score-proportional sizing alone lets an outlier
+#                        conviction score (e.g. a merger deal about to close)
+#                        dominate; a real desk caps single-name risk
 
 
 # ---- desk extraction registry ---------------------------------------------
@@ -138,6 +142,34 @@ def pos_score(v):
     """Conviction weight floored to a small positive -- never zero/negative."""
     f = num(v, 0.0)
     return f if f > EPS else 0.05
+
+
+def cap_within(shares, n):
+    """Cap any single within-desk gross share, redistribute, keep sum 1.0.
+
+    The ceiling adapts to the position count so it can never be made
+    infeasible (n * ceiling stays >= 1.5): a thin book is allowed a
+    higher single-name share, a deep book is held to MAX_POS_WITHIN.
+    """
+    if not shares:
+        return shares
+    ceiling = max(MAX_POS_WITHIN, 1.5 / max(n, 1))
+    s = list(shares)
+    for _ in range(12):
+        over = [i for i, v in enumerate(s) if v > ceiling + 1e-12]
+        if not over:
+            break
+        for i in over:
+            s[i] = ceiling
+        capped = sum(v for v in s if v >= ceiling - 1e-12)
+        free = [i for i, v in enumerate(s) if v < ceiling - 1e-12]
+        free_sum = sum(s[i] for i in free)
+        budget = 1.0 - capped
+        if free_sum <= EPS or budget <= 0:
+            break
+        for i in free:
+            s[i] = budget * s[i] / free_sum
+    return s
 
 
 def extract_desk(desk_key, spec):
@@ -235,13 +267,15 @@ def lambda_handler(event, context):
     for dk, spec in DESK_SPECS.items():
         raw, note = extract_desk(dk, spec)
         desk_cap = cap.get(dk, 0.0)
-        # within-desk normalisation: sum of |weight| within a desk == 1.0
+        # within-desk normalisation: gross shares sum to 1.0. Pair legs
+        # carry their pair score each, so a pair's two legs already
+        # split the pair's share -- no extra halving. A single-position
+        # concentration cap then prevents an outlier score dominating.
         tot_score = sum(p["raw_score"] for p in raw) or 1.0
+        shares = cap_within([p["raw_score"] / tot_score for p in raw],
+                            len(raw))
         sized = []
-        for p in raw:
-            within = p["raw_score"] / tot_score      # gross share in desk
-            if p["pair_leg"]:
-                within *= 0.5                        # pair leg = half-pair
+        for p, within in zip(raw, shares):
             firm_signed = p["side"] * within * desk_cap   # pct of firm cap
             sized.append({**p, "within_share": within,
                           "firm_signed_pct": firm_signed,
@@ -426,14 +460,16 @@ def lambda_handler(event, context):
             "reward/risk, Spin-Off score, Risk Radar deterioration score, "
             "Index-Recon edge score, Trend target weight, Pairs spread "
             "score) so the sum of position gross inside a desk is 1.0, "
-            "then scaled by that desk's Desk Allocator capital weight. "
-            "Long-only desks deploy long, Risk Radar short, Pairs "
-            "dollar-neutral per pair, Index-Recon long the index "
-            "additions and short the deletions, Trend by signal "
-            "direction. Index-Recon is concentrated to its top %d names "
-            "per side. Stock-for-stock merger hedges (short the acquirer) "
-            "are not modelled in v1 -- the target long is the book. "
-            "Research and education only, not investment advice."
+            "then scaled by that desk's Desk Allocator capital weight. No "
+            "single position exceeds 20%% of its desk's gross (an "
+            "adaptive cap with redistribution) so an outlier conviction "
+            "score cannot dominate the book. Long-only desks deploy long, "
+            "Risk Radar short, Pairs dollar-neutral per pair, Index-Recon "
+            "long the index additions and short the deletions, Trend by "
+            "signal direction. Index-Recon is concentrated to its top %d "
+            "names per side. Stock-for-stock merger hedges (short the "
+            "acquirer) are not modelled in v1 -- the target long is the "
+            "book. Research and education only, not investment advice."
             % INDEX_RECON_CAP),
         "disclaimer": (
             "Model book implied by the strategy desks at the allocator's "
