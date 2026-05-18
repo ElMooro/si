@@ -1,0 +1,167 @@
+{
+  "ops": 840,
+  "ts": "2026-05-18T17:50:59.125760+00:00",
+  "subject": "Extend + verify justhodl-desk-allocator - five to seven strategy desks (Spin-Off Desk + Index-Recon registered)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-desk-allocator-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "3s old"
+    },
+    {
+      "check": "all_seven_desks",
+      "ok": true,
+      "detail": "n=7 ['best-ideas', 'index-recon', 'merger-arb', 'pairs-arb', 'risk-radar', 'spinoff-desk', 'trend-engine']"
+    },
+    {
+      "check": "new_desks_registered",
+      "ok": true,
+      "detail": "present=['index-recon', 'spinoff-desk'] missing=[]"
+    },
+    {
+      "check": "new_desks_sized",
+      "ok": true,
+      "detail": "spinoff=FIRING/7.29% index-recon=FIRING/13.33%"
+    },
+    {
+      "check": "statuses_valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "weights_sum_100",
+      "ok": true,
+      "detail": "sum=100.0 all_offline=False"
+    },
+    {
+      "check": "concentration_cap_held",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "desks_sorted_desc",
+      "ok": true,
+      "detail": "[24.36, 20.99, 13.5, 13.33, 11.54, 8.99, 7.29]"
+    },
+    {
+      "check": "firm_rollup_present",
+      "ok": true,
+      "detail": "desks_total=7 net_beta=0.153 div=2.429"
+    },
+    {
+      "check": "regime_populated",
+      "ok": true,
+      "detail": "NEUTRAL / MIXED axis=-0.061"
+    },
+    {
+      "check": "history_snapshotted",
+      "ok": true,
+      "detail": "1 snapshots"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(30 0 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"desks_firing\\\": 7, \\\"desks_total\\\": 7, \\\"net_equity_beta\\\": 0.153, \\\"diversification_ratio\\\": 2.429, \\\"headline\\\": \\\"7 of 7 desks firing. Capital concentrates in Merger-Arb Desk 24%, Pairs Desk 21%. Firm net equity beta +0.15, diversification ratio 2.43. Tape: NEUTRAL / MIXED.\\\"}\"}"
+  },
+  "desk_allocator": {
+    "headline": "7 of 7 desks firing. Capital concentrates in Merger-Arb Desk 24%, Pairs Desk 21%. Firm net equity beta +0.15, diversification ratio 2.43. Tape: NEUTRAL / MIXED.",
+    "regime": "NEUTRAL / MIXED",
+    "desks_total": 7,
+    "desks_firing": 7,
+    "desks_offline": 0,
+    "net_equity_beta": 0.153,
+    "portfolio_vol_est_pct": 4.23,
+    "diversification_ratio": 2.429,
+    "dominant_desk": "Merger-Arb Desk",
+    "weights": [
+      {
+        "desk": "Merger-Arb Desk",
+        "key": "merger-arb",
+        "status": "FIRING",
+        "weight_pct": 24.36,
+        "active": 15,
+        "eff_vol_pct": 6.0,
+        "freshness_h": 2.2
+      },
+      {
+        "desk": "Pairs Desk",
+        "key": "pairs-arb",
+        "status": "FIRING",
+        "weight_pct": 20.99,
+        "active": 81,
+        "eff_vol_pct": 7.0,
+        "freshness_h": 2.9
+      },
+      {
+        "desk": "Trend Desk",
+        "key": "trend-engine",
+        "status": "FIRING",
+        "weight_pct": 13.5,
+        "active": 17,
+        "eff_vol_pct": 11.0,
+        "freshness_h": 2.1
+      },
+      {
+        "desk": "Index-Recon Desk",
+        "key": "index-recon",
+        "status": "FIRING",
+        "weight_pct": 13.33,
+        "active": 372,
+        "eff_vol_pct": 11.0,
+        "freshness_h": 0.8
+      },
+      {
+        "desk": "Risk Radar",
+        "key": "risk-radar",
+        "status": "FIRING",
+        "weight_pct": 11.54,
+        "active": 28,
+        "eff_vol_pct": 13.0,
+        "freshness_h": 2.4
+      },
+      {
+        "desk": "Best Ideas",
+        "key": "best-ideas",
+        "status": "FIRING",
+        "weight_pct": 8.99,
+        "active": 128,
+        "eff_vol_pct": 16.0,
+        "freshness_h": 1.2
+      },
+      {
+        "desk": "Spin-Off Desk",
+        "key": "spinoff-desk",
+        "status": "FIRING",
+        "weight_pct": 7.29,
+        "active": 9,
+        "eff_vol_pct": 20.0,
+        "freshness_h": 1.4
+      }
+    ]
+  },
+  "all_pass": true,
+  "verdict": "DESK ALLOCATOR EXTENDED TO 7 DESKS - 7/7 firing, firm net equity beta 0.153, diversification ratio 2.429. Spin-Off Desk + Index-Recon now risk-budgeted alongside the original five. Capital concentrates in Merger-Arb Desk. Production-clean, daily 00:30 UTC."
+}
