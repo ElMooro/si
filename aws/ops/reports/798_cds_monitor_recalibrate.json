@@ -1,0 +1,122 @@
+{
+  "ops": 798,
+  "ts": "2026-05-18T11:06:05.321648+00:00",
+  "subject": "Redeploy + verify cds-monitor (peer-relative calibration)",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"composite\": 24.8, \"regime\": \"CALM\", \"alarm_board\": \"WATCH\", \"errors\": 0}"
+  },
+  "cds_monitor": {
+    "ok": true,
+    "headline": "Global credit stress CALM. Composite 25/100; bank avg distance-to-default 1.8; alarm board WATCH.",
+    "composite": 24.8,
+    "regime": "CALM",
+    "n_banks": 12,
+    "n_corporates": 14,
+    "bank_median_cds_bp": 90.7,
+    "bank_avg_cds_bp": 106.47,
+    "weakest_bank": "Deutsche Bank",
+    "alarm_status": "WATCH",
+    "n_alarms": 2,
+    "bank_regime_spread": [
+      "ELEVATED",
+      "FIRM",
+      "NORMAL",
+      "WATCH"
+    ],
+    "banks_ranked": [
+      {
+        "t": "DB",
+        "cds_bp": 309.4,
+        "dd": 1.06,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "C",
+        "cds_bp": 219.9,
+        "dd": 1.24,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "BCS",
+        "cds_bp": 189.4,
+        "dd": 1.32,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "GS",
+        "cds_bp": 127.1,
+        "dd": 1.52,
+        "regime": "WATCH"
+      },
+      {
+        "t": "UBS",
+        "cds_bp": 124.7,
+        "dd": 1.53,
+        "regime": "WATCH"
+      },
+      {
+        "t": "WFC",
+        "cds_bp": 97.4,
+        "dd": 1.64,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "HSBC",
+        "cds_bp": 84.0,
+        "dd": 1.71,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "MS",
+        "cds_bp": 71.3,
+        "dd": 1.78,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "JPM",
+        "cds_bp": 23.4,
+        "dd": 2.24,
+        "regime": "NORMAL"
+      },
+      {
+        "t": "BAC",
+        "cds_bp": 15.3,
+        "dd": 2.4,
+        "regime": "FIRM"
+      },
+      {
+        "t": "USB",
+        "cds_bp": 11.6,
+        "dd": 2.5,
+        "regime": "FIRM"
+      },
+      {
+        "t": "PNC",
+        "cds_bp": 4.1,
+        "dd": 2.85,
+        "regime": "FIRM"
+      }
+    ],
+    "alarms": [
+      "Bank credit elevated \u2014 Deutsche Bank",
+      "Corporate credit elevated \u2014 Ford Motor"
+    ],
+    "errors_n": 0
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "banks_priced": true,
+    "corporates_priced": true,
+    "peer_regimes_diverse": true,
+    "composite_computed": true,
+    "composite_not_alarmist": true
+  },
+  "all_pass": true,
+  "verdict": "CDS-MONITOR RECALIBRATED \u2014 global credit stress 24.8/100 (CALM); bank median synthetic CDS 90.7bp, peer-relative regimes ['ELEVATED', 'FIRM', 'NORMAL', 'WATCH']; alarm board WATCH with 2 active. Single-name names graded against their own peer group \u2014 no longer alarmist."
+}
