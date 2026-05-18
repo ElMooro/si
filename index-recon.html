@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Index Reconstitution Desk · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='78' font-size='78'>🔀</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1010px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.recon{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.recon .pill{font-family:var(--mono);font-size:11px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 11px}
+.recon .pill b{color:var(--yellow)}
+.recon .cd{font-family:var(--mono);font-size:11px;background:var(--panel2);border:1px solid var(--cyan);border-radius:6px;padding:6px 11px;color:var(--cyan)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.tab{font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 13px;cursor:pointer;color:var(--mute);user-select:none}
+.tab:hover{border-color:var(--cyan);color:var(--txt)}
+.tab.active{background:var(--panel2);color:var(--txt);font-weight:700}
+.tab.active.bull{border-color:var(--green);box-shadow:inset 0 -2px 0 var(--green)}
+.tab.active.bear{border-color:var(--red);box-shadow:inset 0 -2px 0 var(--red)}
+.tab.active.neut{border-color:var(--cyan);box-shadow:inset 0 -2px 0 var(--cyan)}
+.tab .ct{color:var(--dim);font-weight:400}
+.lane-note{font-family:var(--mono);font-size:11px;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:6px;padding:9px 12px;margin-bottom:13px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.score{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.badge{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:5px;margin:9px 0 2px}
+.badge.bull{background:rgba(38,255,175,.12);color:var(--green);border:1px solid rgba(38,255,175,.4)}
+.badge.bear{background:rgba(255,85,119,.12);color:var(--red);border:1px solid rgba(255,85,119,.4)}
+.badge.neut{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid rgba(0,212,255,.4)}
+.cells{display:flex;gap:6px;margin:9px 0}
+.cell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 7px;text-align:center}
+.cell .cl{font-family:var(--mono);font-size:7.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--dim)}
+.cell .cv{font-family:var(--mono);font-size:13px;font-weight:700;margin-top:2px}
+.why{color:var(--mute);font-size:11.5px;line-height:1.6;margin:7px 0 0}
+.meta{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🔀 Index Reconstitution Desk</h1>
+    <p class="subtitle">Index funds are <b>price-insensitive</b>. When FTSE Russell reconstitutes its US indices at the end of June, every fund tracking the Russell 2000 <b>must</b> buy each addition and sell each deletion — in size, on the same day, at whatever price the close prints. That is a forced, rules-based flow you can see coming weeks ahead. This desk reconstructs the Russell map from live market caps and projects the four reconstitution events that pay, scoring each by how many days of normal volume the passive funds must absorb.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/spinoff-desk.html">spinoffs</a>
+      <a href="/merger-arb.html">merger-arb</a>
+      <a href="/desk-allocator.html">allocator</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING INDEX RECONSTITUTION MAP…</div></div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="lane-note" id="laneNote"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const edgeColor=(s)=>s>=70?"var(--cyan)":s>=55?"var(--purple)":s>=40?"var(--yellow)":"var(--mute)";
+
+const LANES=[
+  {key:"russell_2000_additions",label:"R2000 Additions",dir:"bull",
+   note:"Names climbing into the Russell 2000 for the first time. Every Russell-2000 tracker becomes a forced buyer — and the thinner the stock, the larger that bid is as a multiple of its daily volume. Forced passive BUYING."},
+  {key:"russell_demotions",label:"Demotions 1000→2000",dir:"bull",
+   note:"Former large-caps that have fallen into small-cap territory. They surrender a negligible Russell-1000 weight but pick up a far larger Russell-2000 weight — net passive demand is a buy. The counter-intuitive 'demotion pop'. Forced passive BUYING."},
+  {key:"russell_graduations",label:"Graduations 2000→1000",dir:"bear",
+   note:"Small-caps that have rallied up into the Russell 1000. They trade a meaningful Russell-2000 weight for a negligible large-cap weight — net passive SELLING, the documented post-graduation drag. Bearish / trim."},
+  {key:"russell_2000_deletions",label:"R2000 Deletions",dir:"bear",
+   note:"Names shrinking out of the index entirely. Every Russell-2000 tracker is a forced seller into an already-weak tape. Forced passive SELLING — bearish / avoid."},
+  {key:"sp500_candidates",label:"S&P 500 Candidates",dir:"neut",
+   note:"Size- and liquidity-eligible US companies not yet in the S&P 500. The index committee also requires GAAP profitability; an actual addition is announced about a week ahead and triggers the market's single largest forced bid. A watch list, not a projection."},
+];
+
+let DOC=null, ACTIVE=0;
+
+function eventCard(c){
+  const dir=c.direction==="BULLISH"?"bull":c.direction==="BEARISH"?"bear":"neut";
+  const dcol=dir==="bull"?"var(--green)":dir==="bear"?"var(--red)":"var(--cyan)";
+  const ec=edgeColor(c.edge_score);
+  const r1=c.one_year_return_pct;
+  const r1c=r1==null?"var(--dim)":r1>=0?"var(--green)":"var(--red)";
+  return `<div class="card" style="border-top-color:${ec}">
+    <div class="crow">
+      <div><div class="tk">${esc(c.symbol)}</div><div class="nm">${esc(c.name||"")} · ${esc(c.sector||"—")}</div></div>
+      <div class="score" style="color:${ec}">${num(c.edge_score,1)}<small>FORCED-FLOW EDGE</small></div>
+    </div>
+    <span class="badge ${dir}">${esc(c.event||c.direction||"")}</span>
+    <div class="cells">
+      <div class="cell"><div class="cl">Forced flow</div><div class="cv" style="color:${dcol}">$${num(c.est_forced_flow_musd,0)}M</div></div>
+      <div class="cell"><div class="cl">Days to absorb</div><div class="cv">${num(c.passive_days_to_absorb,1)}</div></div>
+      <div class="cell"><div class="cl">1Y return</div><div class="cv" style="color:${r1c}">${r1==null?"—":(r1>=0?"+":"")+num(r1,0)+"%"}</div></div>
+      <div class="cell"><div class="cl">Cap rank</div><div class="cv">#${num(c.rank)}</div></div>
+    </div>
+    <div class="why">${esc(c.thesis||"")}</div>
+    <div class="meta">
+      ${c.price!=null?`<span>$${num(c.price,2)}</span>`:""}
+      ${c.market_cap_bil!=null?`<span>Cap $${num(c.market_cap_bil,2)}B</span>`:""}
+      ${c.dollar_adv_mil!=null?`<span>ADV $${num(c.dollar_adv_mil,1)}M</span>`:""}
+      ${c.exchange?`<span>${esc(c.exchange)}</span>`:""}
+    </div>
+  </div>`;
+}
+
+function spCard(c){
+  const r1=c.one_year_return_pct;
+  const r1c=r1==null?"var(--dim)":r1>=0?"var(--green)":"var(--red)";
+  return `<div class="card" style="border-top-color:var(--cyan)">
+    <div class="crow">
+      <div><div class="tk">${esc(c.symbol)}</div><div class="nm">${esc(c.name||"")} · ${esc(c.sector||"—")}</div></div>
+      <div class="score" style="color:var(--cyan)">$${num(c.market_cap_bil,0)}B<small>MARKET CAP</small></div>
+    </div>
+    <span class="badge neut">S&amp;P 500 INCLUSION CANDIDATE</span>
+    <div class="cells">
+      <div class="cell"><div class="cl">Price</div><div class="cv">${c.price!=null?"$"+num(c.price,2):"—"}</div></div>
+      <div class="cell"><div class="cl">1Y return</div><div class="cv" style="color:${r1c}">${r1==null?"—":(r1>=0?"+":"")+num(r1,0)+"%"}</div></div>
+      <div class="cell"><div class="cl">Cap rank</div><div class="cv">#${num(c.rank)}</div></div>
+      <div class="cell"><div class="cl">ADV</div><div class="cv">$${num(c.dollar_adv_mil,0)}M</div></div>
+    </div>
+    <div class="why">${esc(c.note||"")}</div>
+    <div class="meta">${c.exchange?`<span>${esc(c.exchange)}</span>`:""}</div>
+  </div>`;
+}
+
+function renderTabs(){
+  document.getElementById("tabs").innerHTML=LANES.map((l,i)=>{
+    const list=DOC[l.key]||[];
+    const cnt=DOC["n_"+({russell_2000_additions:"additions",russell_demotions:"demotions",russell_graduations:"graduations",russell_2000_deletions:"deletions",sp500_candidates:"sp500_candidates"}[l.key])];
+    const shown=cnt!=null?cnt:list.length;
+    return `<div class="tab ${i===ACTIVE?"active "+l.dir:""}" onclick="pick(${i})">${esc(l.label)} <span class="ct">${shown}</span></div>`;
+  }).join("");
+}
+
+function renderGrid(){
+  const lane=LANES[ACTIVE];
+  const list=DOC[lane.key]||[];
+  document.getElementById("laneNote").textContent=lane.note;
+  const make=lane.key==="sp500_candidates"?spCard:eventCard;
+  document.getElementById("grid").innerHTML=list.length
+    ? list.map(make).join("")
+    : '<div class="loading">No names in this lane right now.</div>';
+}
+
+function pick(i){ ACTIVE=i; renderTabs(); renderGrid(); }
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"index-recon.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">INDEX RECONSTITUTION DATA UNAVAILABLE</div>';return;}
+  DOC=d;
+  const rc=d.reconstitution||{}, uni=d.universe||{};
+  let cd="";
+  if(rc.next_effective_date){
+    const days=Math.round((new Date(rc.next_effective_date)-new Date())/864e5);
+    cd=days>0?`<span class="cd">${days} days to reconstitution</span>`:`<span class="cd">reconstitution effective</span>`;
+  }
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(rc.note||"")}</div>
+    <div class="recon">
+      <span class="pill">${esc(rc.index_family||"FTSE Russell US indices")}</span>
+      <span class="pill">effective <b>${esc(rc.next_effective_date||"—")}</b></span>
+      ${cd}
+    </div>
+  </div>`;
+  document.getElementById("stats").innerHTML=[
+    ["Eligible universe",num(uni.n_eligible)],
+    ["Candidates scored",num(uni.n_candidates_scored)],
+    ["R1000 breakpoint cap","$"+num(uni.russell_1000_breakpoint_cap_bil,2)+"B"],
+    ["R3000 breakpoint cap","$"+num(uni.russell_3000_breakpoint_cap_bil,2)+"B"],
+    ["FTSE band each side",num(uni.ftse_band_pct_each_side,1)+"%"],
+  ].map(([l,v])=>`<div class="stat"><div class="sl">${l}</div><div class="sv">${v}</div></div>`).join("");
+  renderTabs();
+  renderGrid();
+  document.getElementById("note").textContent="Source: FMP company-screener + stock-price-change · "+num(uni.n_eligible)+" US common stocks ranked by total market cap · 1-year return resolved for "+num(uni.n_with_one_year_return)+" boundary names. Index membership is reconstructed from live market caps as a forward projection — not the official FTSE Russell list. Research and education only, not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema||"");
+}
+main();
+</script>
+</body>
+</html>
