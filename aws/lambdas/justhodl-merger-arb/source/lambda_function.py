@@ -50,8 +50,9 @@ SEC_UA = "JustHodl Research raafouis@gmail.com"
 MAX_DEAL_AGE_DAYS = 300        # ignore stale deals
 MAX_S4_DEALS = 45              # cap S-4 fetches per run
 S4_CAP_BYTES = 4_200_000       # read at most ~4MB of each S-4
-SANE_SPREAD_LO = -0.30         # accept spreads in this band only
-SANE_SPREAD_HI = 0.55
+SANE_SPREAD_LO = -0.12         # accept spreads in this band only
+SANE_SPREAD_HI = 0.25          # genuine pending-deal spreads almost never
+#                                exceed this - wider => misparse, quarantine
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -66,9 +67,14 @@ ANCHOR_RE = re.compile(
     re.IGNORECASE)
 CASH_RE = re.compile(
     r"\$\s?([\d,]+(?:\.\d{1,2})?)\s+(?:in\s+cash|per\s+share)", re.IGNORECASE)
+# the exchange ratio must resolve to ACQUIRER COMMON stock - requiring the
+# word "common" shortly after "shares of" rejects preferred-series examples,
+# fractional-share illustrations and fee-table figures that fooled v1
 RATIO_RE = re.compile(
-    r"(\d{1,2}\.\d{3,6})\s+(?:newly\s+issued\s+)?"
-    r"(?:validly\s+issued[^.]{0,70}?)?shares\s+of", re.IGNORECASE)
+    r"(\d{1,2}\.\d{3,6})\s+"
+    r"(?:newly\s+issued\s+|validly\s+issued\s+|"
+    r"fully\s+paid\s+(?:and\s+)?(?:non-?assessable\s+)?)*"
+    r"shares\s+of\s+[^.]{0,55}?common", re.IGNORECASE)
 
 
 # ----- http helpers ----------------------------------------------------------
