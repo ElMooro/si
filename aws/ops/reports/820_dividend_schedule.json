@@ -1,0 +1,35 @@
+{
+  "ops": 820,
+  "ts": "2026-05-18T14:12:59.552506+00:00",
+  "subject": "Schedule dividend-growth via shared rule + audit EventBridge rule saturation",
+  "rule_audit": {
+    "total_rules": 300,
+    "scheduled_rules": 300,
+    "event_pattern_rules": 0,
+    "note": "EventBridge default cap is 300 rules per event bus. The account is saturated - new per-Lambda rules now fail. Strategic fix: migrate scheduled invocations to EventBridge Scheduler (no 300 cap) or consolidate onto shared multi-target rules."
+  },
+  "host_rule": {
+    "name": "capital-return-daily",
+    "schedule": "cron(45 13 * * ? *)",
+    "state": "ENABLED",
+    "existing_targets": [
+      "justhodl-capital-return",
+      "justhodl-capital-return"
+    ],
+    "n_targets": 2
+  },
+  "wire": "added justhodl-dividend-growth as target #2 on capital-return-daily",
+  "host_targets_after": [
+    "justhodl-capital-return",
+    "justhodl-dividend-growth",
+    "justhodl-capital-return"
+  ],
+  "checks": {
+    "fn_arn_resolved": true,
+    "host_rule_found": true,
+    "wired_ok": true,
+    "target_verified": true
+  },
+  "all_pass": true,
+  "verdict": "DIVIDEND-GROWTH SCHEDULED - co-hosted on capital-return-daily (cron(45 13 * * ? *)), auto-refreshes daily. Account is at 300/300 EventBridge rules; recommend migrating scheduled invocations to EventBridge Scheduler to remove the cap."
+}
