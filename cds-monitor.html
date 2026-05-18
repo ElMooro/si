@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Credit Default Monitor · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚨</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;margin:5px 0}
+.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
+.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
+.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
+.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.alarm{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:7px;padding:10px 14px;margin-bottom:7px;display:flex;gap:12px;align-items:baseline}
+.alarm .lv{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.7px;padding:2px 7px;border-radius:4px;flex-shrink:0}
+.alarm .sg{font-family:var(--mono);font-size:12px;font-weight:700}
+.alarm .dt{color:var(--mute);font-size:11.5px;font-family:var(--mono)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin-bottom:14px}
+.cell{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:7px;padding:12px}
+.cell .cc{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.4px}
+.cell .nm{font-size:10px;color:var(--dim);margin-top:1px}
+.cell .bp{font-family:var(--mono);font-size:22px;font-weight:700;margin:6px 0 1px}
+.cell .pl{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;color:var(--dim);text-transform:uppercase}
+.cell .rg{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3px;margin-top:5px}
+.cell .dt{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
+.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:baseline;margin-top:7px}
+.row .k{font-family:var(--mono);font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim)}
+.row .v{font-family:var(--mono);font-size:16px;font-weight:700}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚨 Global Credit Default &amp; Stress Monitor</h1>
+    <p class="subtitle">Real single-name CDS feeds cost $20k+/yr — so this engine builds the hedge-fund standard alternative: the <b>Merton structural model</b> (the framework behind Moody's CreditEdge / KMV). It treats each firm's equity as a call option on its assets and backs out a market-implied <b>distance to default</b>, a one-year default probability and a <b>synthetic CDS spread</b> for the big global banks and large corporates — then fuses that with the sovereign-CDS proxy, corporate bond stress, ECB systemic stress and the ex-US canary grid into one composite and an alarm board.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/systemic-stress.html">systemic stress</a>
+      <a href="/euro-fragmentation.html">euro fragmentation</a>
+      <a href="/cb-injection.html">cb injection</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING GLOBAL CREDIT MONITOR…</div></div>
+
+  <div id="comp"></div>
+
+  <h2>Alarm Board</h2>
+  <div id="alarms"></div>
+
+  <h2>Single-Name CDS — Global Banks <span style="color:var(--dim);font-size:10px">(Merton synthetic spread)</span></h2>
+  <div id="banksRead" class="panel" style="border-left-color:var(--cyan)"></div>
+  <div class="grid" id="banksGrid"></div>
+
+  <h2>Single-Name CDS — Large Corporates</h2>
+  <div class="grid" id="corpGrid"></div>
+
+  <h2>Sovereign · Bond · Systemic · Canary</h2>
+  <div id="legs"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const regColor=(r)=>{r=(r||"").toUpperCase();return /CRISIS|DISTRESS|ALERT/.test(r)?"var(--red)":/STRESSED|STRESS/.test(r)?"var(--orange)":/ELEVATED|WATCH/.test(r)?"var(--yellow)":/INVESTMENT|FIRM|CLEAR/.test(r)?"var(--cyan)":/CALM|SAFE|INFO/.test(r)?"var(--green)":"var(--mute)";};
+const lvlColor=(l)=>l==="ALERT"?"var(--red)":l==="WATCH"?"var(--orange)":"var(--green)";
+
+function hero(d){
+  const c=regColor((d.global_credit_stress||{}).regime);
+  return `<div class="hero" style="border-left-color:${c}">
+    <div class="lab">Global Credit Default Stress</div>
+    <div class="big" style="color:${c}">${esc((d.global_credit_stress||{}).regime||"—")}</div>
+    <div class="meta">${esc(d.headline||"")}</div>
+  </div>`;
+}
+function comp(C){
+  if(!C) return "";
+  const c=regColor(C.regime);
+  const pos=Math.max(2,Math.min(98,C.score_0_100||0));
+  return `<div class="elq" style="border-left-color:${c}">
+    <div class="lab">Consolidated Credit-Stress Composite</div>
+    <div class="num" style="color:${c}">${num(C.score_0_100,0)}<span style="font-size:16px;color:var(--dim)"> / 100</span></div>
+    <div class="reg" style="color:${c}">${esc(C.regime||"—")}</div>
+    <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
+    <div class="gscale"><span>calm</span><span>watch 25</span><span>elevated 42</span><span>stressed 62+</span></div>
+    <div class="rd">${esc(C.read||"")}</div>
+  </div>`;
+}
+function alarmRow(a){
+  const c=lvlColor(a.level);
+  return `<div class="alarm" style="border-left-color:${c}">
+    <span class="lv" style="background:${c}22;color:${c}">${esc(a.level)}</span>
+    <span><span class="sg">${esc(a.signal)}</span> <span class="dt">— ${esc(a.detail)}</span></span>
+  </div>`;
+}
+function cell(x){
+  const c=regColor(x.regime);
+  return `<div class="cell" style="border-top-color:${c}">
+    <div class="cc">${esc(x.ticker)} <span class="rg" style="color:${c}">${esc(x.regime||"")}</span></div>
+    <div class="nm">${esc(x.name)}</div>
+    <div class="bp" style="color:${c}">${num(x.synthetic_cds_bp,0)}<span style="font-size:10px;color:var(--dim)"> bp</span></div>
+    <div class="pl">synthetic 5Y CDS</div>
+    <div class="dt">PD ${num(x.default_prob_1y_pct,2)}% · DD ${num(x.distance_to_default,2)} · vol ${num(x.equity_vol_pct,0)}%</div>
+  </div>`;
+}
+
+async function main(){
+  const d=await J("cds-monitor.json");
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">CDS-MONITOR DATA UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=hero(d);
+  document.getElementById("comp").innerHTML=comp(d.global_credit_stress||{});
+
+  const AB=d.alarm_board||{};
+  document.getElementById("alarms").innerHTML=
+    `<div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:8px">board status: <b style="color:${lvlColor(AB.status)}">${esc(AB.status||"—")}</b> · ${num(AB.n_active,0)} active</div>`
+    +(AB.alarms||[]).map(alarmRow).join("");
+
+  const SN=d.single_name_cds||{};
+  document.getElementById("banksRead").innerHTML=
+    `<div class="t">Single-Name Read</div><div class="r">${esc(SN.read||"")}</div>
+     <div class="r" style="font-size:11px;color:var(--dim)">Merton model · risk-free ${num(SN.risk_free_1y_pct,2)}% · LGD ${num(SN.lgd_assumption*100,0)}% · bank avg ${num(SN.bank_avg_cds_bp,0)}bp · corporate avg ${num(SN.corporate_avg_cds_bp,0)}bp</div>`;
+  document.getElementById("banksGrid").innerHTML=(SN.banks||[]).map(cell).join("");
+  document.getElementById("corpGrid").innerHTML=(SN.corporates||[]).map(cell).join("");
+
+  const SV=d.sovereign_cds||{},BD=d.global_bond_stress||{},CY=d.canary_alarms||{},SY=d.systemic_stress||{};
+  document.getElementById("legs").innerHTML=`
+    <div class="panel" style="border-left-color:${regColor(SV.regime)}">
+      <div class="t">Sovereign CDS — Proxy</div>
+      <div class="row"><div><div class="k">composite</div><div class="v" style="color:${regColor(SV.regime)}">${num(SV.proxy_composite_0_100,0)}/100</div></div>
+      <div><div class="k">regime</div><div class="v" style="color:${regColor(SV.regime)}">${esc(SV.regime||"—")}</div></div></div>
+      <div class="r" style="font-size:11px">${esc(SV.source||"")}</div></div>
+    <div class="panel" style="border-left-color:${regColor(BD.regime)}">
+      <div class="t">Global Bond Stress — ICE BofA OAS</div>
+      <div class="row"><div><div class="k">HY OAS</div><div class="v">${num(BD.hy_oas,2)}%</div></div>
+      <div><div class="k">IG OAS</div><div class="v">${num(BD.ig_oas,2)}%</div></div>
+      <div><div class="k">regime</div><div class="v" style="color:${regColor(BD.regime)}">${esc(BD.regime||"—")}</div></div></div></div>
+    <div class="panel" style="border-left-color:${regColor(SY.regime)}">
+      <div class="t">ECB Systemic Stress (CISS)</div>
+      <div class="row"><div><div class="k">composite</div><div class="v" style="color:${regColor(SY.regime)}">${num(SY.ciss_composite,0)}/100</div></div>
+      <div><div class="k">regime</div><div class="v" style="color:${regColor(SY.regime)}">${esc(SY.regime||"—")}</div></div></div></div>
+    <div class="panel" style="border-left-color:${regColor(CY.state)}">
+      <div class="t">Canary Grid — Ex-US Early Warning</div>
+      <div class="row"><div><div class="k">state</div><div class="v" style="color:${regColor(CY.state)}">${esc(CY.state||"—")}</div></div></div>
+      <div class="r" style="font-size:11px">${esc(CY.source||"")}</div></div>`;
+  document.getElementById("note").textContent="Sources: "+((d.sources||[]).join(" · ")||"—")+". Synthetic CDS is model-implied (Merton) — a market-based estimate, not a traded CDS quote; bank readings run structurally higher by design. Real data only — not investment advice.";
+  document.getElementById("ts").textContent=
+    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>

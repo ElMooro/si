@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-cds-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Global Credit Default Monitor - Merton structural model gives market-implied default probability + synthetic CDS for global banks & corporates, fused with sovereign/bond/systemic/canary stress into a composite + alarm board. Output data/cds-monitor.json.",
+  "environment": {
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "cds-monitor-daily",
+    "cron": "cron(0 13 * * ? *)",
+    "description": "Global Credit Default & Stress Monitor \u2014 daily 13:00 UTC"
+  }
+}
