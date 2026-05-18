@@ -1,0 +1,120 @@
+{
+  "ops": 797,
+  "ts": "2026-05-18T10:58:16.396499+00:00",
+  "subject": "Redeploy + verify cds-monitor (CreditGrades model)",
+  "deploy": "updated",
+  "schedule": {
+    "rule": "cds-monitor-daily",
+    "wired": true
+  },
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"composite\": 42.4, \"regime\": \"ELEVATED\", \"alarm_board\": \"ALERT\", \"errors\": 0}"
+  },
+  "cds_monitor": {
+    "ok": true,
+    "schema": "1.1",
+    "model": "CreditGrades structural model (equity-to-CDS bridge, 5-year horizon)",
+    "headline": "Global credit stress ELEVATED. Composite 42/100; bank avg distance-to-default 1.8; alarm board ALERT.",
+    "composite": 42.4,
+    "regime": "ELEVATED",
+    "n_banks": 12,
+    "n_corporates": 14,
+    "bank_avg_dd": 1.82,
+    "corporate_avg_dd": 3.7,
+    "bank_avg_cds_bp": 106.47,
+    "weakest_bank": "Deutsche Bank",
+    "alarm_status": "ALERT",
+    "n_alarms": 17,
+    "banks_ranked": [
+      {
+        "t": "DB",
+        "dd": 1.06,
+        "cds_bp": 309.4,
+        "regime": "DISTRESSED"
+      },
+      {
+        "t": "C",
+        "dd": 1.24,
+        "cds_bp": 219.9,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "BCS",
+        "dd": 1.32,
+        "cds_bp": 189.4,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "GS",
+        "dd": 1.52,
+        "cds_bp": 127.1,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "UBS",
+        "dd": 1.53,
+        "cds_bp": 124.7,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "WFC",
+        "dd": 1.64,
+        "cds_bp": 97.4,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "HSBC",
+        "dd": 1.71,
+        "cds_bp": 84.0,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "MS",
+        "dd": 1.78,
+        "cds_bp": 71.3,
+        "regime": "STRESSED"
+      },
+      {
+        "t": "JPM",
+        "dd": 2.24,
+        "cds_bp": 23.4,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "BAC",
+        "dd": 2.4,
+        "cds_bp": 15.3,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "USB",
+        "dd": 2.5,
+        "cds_bp": 11.6,
+        "regime": "ELEVATED"
+      },
+      {
+        "t": "PNC",
+        "dd": 2.85,
+        "cds_bp": 4.1,
+        "regime": "NORMAL"
+      }
+    ],
+    "errors_n": 0
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "creditgrades_model": true,
+    "banks_priced": true,
+    "corporates_priced": true,
+    "dd_values_sane": true,
+    "composite_computed": true
+  },
+  "all_pass": true,
+  "verdict": "CDS-MONITOR LIVE (CreditGrades) \u2014 global credit stress 42.4/100 (ELEVATED); 12 banks + 14 corporates priced, bank avg distance-to-default 1.82, weakest Deutsche Bank; alarm board ALERT. Distance-to-default is the primary signal; deployed + scheduled daily 13:00 UTC on real FMP + FRED data."
+}
