@@ -1,0 +1,88 @@
+{
+  "ops": 807,
+  "ts": "2026-05-18T12:22:30.004957+00:00",
+  "subject": "Deploy + verify justhodl-boom-radar",
+  "deploy": "updated",
+  "schedule": {
+    "rule": "boom-radar-daily",
+    "wired": true
+  },
+  "invoke": {
+    "async_status": 202
+  },
+  "boom_radar": {
+    "ok": true,
+    "fresh": true,
+    "headline": "Boom Radar: 4 PRIME + 22 STRONG hypergrowth set-ups from 230 small/mid-caps scanned. Top: Evercore Inc. (EVR) \u2014 boom score 75, +223% to target.",
+    "universe_size": 230,
+    "n_scanned": 230,
+    "n_qualified": 60,
+    "n_prime": 4,
+    "n_strong": 22,
+    "n_with_target": 60,
+    "top5": [
+      {
+        "sym": "EVR",
+        "score": 75.0,
+        "grade": "PRIME",
+        "rev_yoy": 100.3,
+        "beats": 0,
+        "peg": 0.12,
+        "target": 1076.04,
+        "upside": 222.6
+      },
+      {
+        "sym": "SANM",
+        "score": 75.0,
+        "grade": "PRIME",
+        "rev_yoy": 102.3,
+        "beats": 0,
+        "peg": 0.4,
+        "target": 545.16,
+        "upside": 131.6
+      },
+      {
+        "sym": "CDE",
+        "score": 75.0,
+        "grade": "PRIME",
+        "rev_yoy": 137.8,
+        "beats": 0,
+        "peg": 0.02,
+        "target": 63.0,
+        "upside": 257.8
+      },
+      {
+        "sym": "SUN",
+        "score": 75.0,
+        "grade": "PRIME",
+        "rev_yoy": 106.4,
+        "beats": 0,
+        "peg": 0.07,
+        "target": 307.02,
+        "upside": 331.5
+      },
+      {
+        "sym": "ARW",
+        "score": 74.5,
+        "grade": "STRONG",
+        "rev_yoy": 39.0,
+        "beats": 0,
+        "peg": 0.04,
+        "target": 1026.48,
+        "upside": 392.6
+      }
+    ]
+  },
+  "checks": {
+    "deploy_ok": true,
+    "function_active": true,
+    "schedule_wired": true,
+    "invoke_dispatched": true,
+    "fresh_output": true,
+    "output_ok": true,
+    "picks_produced": true,
+    "targets_present": true
+  },
+  "all_pass": true,
+  "verdict": "BOOM-RADAR LIVE \u2014 scanned 230 small/mid-caps, 60 qualified (4 PRIME, 22 STRONG), 60 with price targets. Deployed, scheduled daily 14:00 UTC, real FMP data."
+}
