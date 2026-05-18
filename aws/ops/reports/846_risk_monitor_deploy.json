@@ -1,0 +1,167 @@
+{
+  "ops": 846,
+  "ts": "2026-05-18T19:05:59.339650+00:00",
+  "subject": "Deploy + verify justhodl-risk-monitor (firm Risk Mandate Monitor - GREEN/AMBER/RED posture over the firm book)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-risk-monitor-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "2s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "payload_not_error",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "check": "posture_valid",
+      "ok": true,
+      "detail": "GREEN"
+    },
+    {
+      "check": "limits_present",
+      "ok": true,
+      "detail": "9 limits"
+    },
+    {
+      "check": "statuses_valid",
+      "ok": true,
+      "detail": "all valid"
+    },
+    {
+      "check": "posture_logic",
+      "ok": true,
+      "detail": "posture=GREEN expected=GREEN (breaches=0 watches=0)"
+    },
+    {
+      "check": "counts_reconcile",
+      "ok": true,
+      "detail": "n_breaches=0 n_watches=0"
+    },
+    {
+      "check": "single_name_consistency",
+      "ok": true,
+      "detail": "0 breach(es), bad=[], sn_limit_status=OK"
+    },
+    {
+      "check": "mandate_present",
+      "ok": true,
+      "detail": "missing=[]"
+    },
+    {
+      "check": "firm_book_input_available",
+      "ok": true,
+      "detail": "inputs={'firm_book': True, 'desk_allocator': True, 'desk_returns': True}"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(30 1 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"risk_posture\\\": \\\"GREEN\\\", \\\"n_breaches\\\": 0, \\\"n_watches\\\": 0, \\\"risk_budget_pct\\\": 58.5}\"}"
+  },
+  "risk_monitor": {
+    "headline": "RISK POSTURE GREEN - the firm book is inside every hard mandate limit. Risk-budget utilization 58.5%.",
+    "risk_posture": "GREEN",
+    "risk_budget_utilization_pct": 58.5,
+    "n_breaches": 0,
+    "n_watches": 0,
+    "n_warming": 1,
+    "breaches": [],
+    "watches": [],
+    "single_name_breaches": [],
+    "sector_breaches": [],
+    "limits": [
+      {
+        "limit": "Gross exposure",
+        "current": 100.0,
+        "utilization_pct": 71.4,
+        "status": "OK"
+      },
+      {
+        "limit": "Net exposure",
+        "current": 42.49,
+        "utilization_pct": 56.7,
+        "status": "OK"
+      },
+      {
+        "limit": "Single-name concentration",
+        "current": 4.872,
+        "utilization_pct": 60.9,
+        "status": "OK"
+      },
+      {
+        "limit": "Sector concentration",
+        "current": 24.36,
+        "utilization_pct": 69.6,
+        "status": "OK"
+      },
+      {
+        "limit": "Top-10 concentration",
+        "current": 30.9,
+        "utilization_pct": 61.8,
+        "status": "OK"
+      },
+      {
+        "limit": "Desk capital concentration",
+        "current": 24.36,
+        "utilization_pct": 54.1,
+        "status": "OK"
+      },
+      {
+        "limit": "Diversification ratio",
+        "current": 2.429,
+        "utilization_pct": 63.3,
+        "status": "OK"
+      },
+      {
+        "limit": "Desk drawdown stop",
+        "current": null,
+        "utilization_pct": null,
+        "status": "WARMING"
+      },
+      {
+        "limit": "Cross-desk conflicts",
+        "current": 3,
+        "utilization_pct": 30.0,
+        "status": "OK"
+      }
+    ],
+    "firm_snapshot": {
+      "gross_exposure_pct": 100.0,
+      "net_exposure_pct": 42.49,
+      "long_short_ratio": 2.01,
+      "n_equity_names": 266,
+      "top10_concentration_pct": 30.9,
+      "diversification_ratio": 2.429
+    }
+  },
+  "all_pass": true,
+  "verdict": "RISK MONITOR LIVE - firm risk posture GREEN, 0 breach(es) / 0 watch(es), risk-budget utilization 58.5%. The consolidated firm book is now scored against a hard institutional mandate every day, 01:30 UTC. The risk department is live."
+}
