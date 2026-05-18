@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Systemic &amp; Sovereign Stress · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🛡️</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:22px;margin-bottom:14px}
+.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.hero .big{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;margin:5px 0}
+.hero .meta{color:var(--mute);font-size:12.5px;margin-top:8px}
+.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
+.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
+.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:14px}
+.cell{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:7px;padding:12px}
+.cell .cc{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--txt)}
+.cell .pct{font-family:var(--mono);font-size:21px;font-weight:700;margin:5px 0 1px}
+.cell .pl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
+.cell .rg{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.4px;margin-top:5px}
+.cell .dt{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
+.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
+.frag{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-top:6px}
+.frag .fk{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.frag .fv{font-family:var(--mono);font-size:15px;font-weight:700}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+.xref{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🛡️ Systemic &amp; Sovereign Stress</h1>
+    <p class="subtitle">The ECB's official stress indices, straight from the <b>ECB Data Portal</b>. The <b>CISS</b> measures financial-system stress for the euro area and, country-by-country, for the US, UK, China, Germany, France, Italy and Spain — cross-correlation weighted so it spikes only when stress is broad. The <b>SovCISS</b> applies the same method to government bond markets across the euro area; the dispersion of SovCISS between member states is a direct read on <b>fragmentation</b> risk. Levels shown as percentile of ~11y of history.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/cb-injection.html">cb injection</a>
+      <a href="/ecb-detail.html">ecb detail</a>
+      <a href="/eurodollar.html">eurodollar</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING SYSTEMIC &amp; SOVEREIGN STRESS…</div></div>
+
+  <div id="comp"></div>
+
+  <h2>CISS · Systemic Financial Stress by Country</h2>
+  <div id="sysread" class="panel" style="border-left-color:var(--cyan)"></div>
+  <div class="grid" id="cissGrid"></div>
+
+  <h2>SovCISS · Sovereign Bond-Market Stress &amp; Euro Fragmentation</h2>
+  <div id="fragPanel"></div>
+  <div class="grid" id="sovGrid"></div>
+
+  <div id="xref"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn=(v,d=0)=>v==null?"—":(v>0?"+":"")+num(v,d);
+const regColor=(r)=>{r=r||"";return /CRISIS/.test(r)?"var(--red)":/STRESSED/.test(r)?"var(--orange)":/ELEVATED|WATCH/.test(r)?"var(--yellow)":/NORMAL/.test(r)?"var(--cyan)":/CALM|COHESIVE/.test(r)?"var(--green)":"var(--mute)";};
+const fragColor=(r)=>/ACUTE/.test(r||"")?"var(--red)":/BUILDING/.test(r||"")?"var(--orange)":/MILD/.test(r||"")?"var(--yellow)":"var(--green)";
+
+function hero(d){
+  const c=regColor((d.composite||{}).regime);
+  return `<div class="hero" style="border-left-color:${c}">
+    <div class="lab">ECB Systemic &amp; Sovereign Stress</div>
+    <div class="big" style="color:${c}">${esc((d.composite||{}).regime||"—")}</div>
+    <div class="meta">${esc(d.headline||"")}</div>
+  </div>`;
+}
+
+function comp(C){
+  if(!C) return "";
+  const c=regColor(C.regime);
+  const pos=Math.max(2,Math.min(98,C.score_0_100||0));
+  return `<div class="elq" style="border-left-color:${c}">
+    <div class="lab">Composite Stress Score</div>
+    <div class="num" style="color:${c}">${num(C.score_0_100,0)}<span style="font-size:16px;color:var(--dim)"> / 100</span></div>
+    <div class="reg" style="color:${c}">${esc(C.regime||"—")}</div>
+    <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
+    <div class="gscale"><span>calm</span><span>watch 35</span><span>elevated 55</span><span>stressed 75+</span></div>
+    <div class="rd">${esc(C.read||"")}</div>
+  </div>`;
+}
+
+function cell(name,b){
+  if(!b) return "";
+  const c=regColor(b.regime);
+  return `<div class="cell" style="border-top-color:${c}">
+    <div class="cc">${esc(name)}</div>
+    <div class="pct" style="color:${c}">${b.percentile!=null?num(b.percentile,0):"—"}<span style="font-size:10px;color:var(--dim)">th</span></div>
+    <div class="pl">percentile · 11y</div>
+    <div class="rg" style="color:${c}">${esc(b.regime||"—")}</div>
+    <div class="dt">idx ${num(b.value,4)} · 1m ${sgn(b.change_1m,4)}</div>
+  </div>`;
+}
+
+async function main(){
+  const d=await J("systemic-stress.json");
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">SYSTEMIC-STRESS DATA UNAVAILABLE</div>';return;}
+  document.getElementById("hero").innerHTML=hero(d);
+  document.getElementById("comp").innerHTML=comp(d.composite||{});
+
+  const SS=d.systemic_stress||{},SV=d.sovereign_stress||{};
+  document.getElementById("sysread").innerHTML=
+    `<div class="t">Systemic Read</div><div class="r">${esc(SS.read||"")}</div>`;
+
+  // CISS grid: euro area first, then countries
+  let cg="";
+  if(SS.euro_area) cg+=cell("🇪🇺 Euro Area",SS.euro_area);
+  const co=SS.countries||{};
+  const FLAG={US:"🇺🇸",GB:"🇬🇧",CN:"🇨🇳",DE:"🇩🇪",FR:"🇫🇷",IT:"🇮🇹",ES:"🇪🇸"};
+  Object.keys(co).sort((a,b)=>(co[b].percentile||0)-(co[a].percentile||0))
+    .forEach(k=>cg+=cell((FLAG[k]||"")+" "+(co[k].name||k),co[k]));
+  document.getElementById("cissGrid").innerHTML=cg;
+
+  // fragmentation panel
+  const fc=fragColor(SV.fragmentation_label);
+  document.getElementById("fragPanel").innerHTML=`<div class="panel" style="border-left-color:${fc}">
+    <div class="t">Euro-Area Fragmentation — <span style="color:${fc}">${esc(SV.fragmentation_label||"—")}</span></div>
+    <div class="frag">
+      <div><div class="fk">frag score</div><div class="fv" style="color:${fc}">${num(SV.fragmentation_score,0)}/100</div></div>
+      <div><div class="fk">worst vs Germany</div><div class="fv" style="color:${fc}">${sgn(SV.fragmentation_gap,3)}</div></div>
+      <div><div class="fk">euro avg SovCISS</div><div class="fv">${num(SV.euro_area_avg_sovciss,4)}</div></div>
+      <div><div class="fk">dispersion</div><div class="fv">${num(SV.dispersion,4)}</div></div>
+    </div>
+    <div class="r">${esc(SV.read||"")}</div>
+  </div>`;
+
+  // SovCISS grid sorted by stress
+  const sc=SV.countries||{};
+  const SFLAG={DE:"🇩🇪",FR:"🇫🇷",IT:"🇮🇹",ES:"🇪🇸",NL:"🇳🇱",BE:"🇧🇪",AT:"🇦🇹",FI:"🇫🇮",IE:"🇮🇪",GR:"🇬🇷",PT:"🇵🇹"};
+  let sg=Object.keys(sc).sort((a,b)=>(sc[b].percentile||0)-(sc[a].percentile||0))
+    .map(k=>cell((SFLAG[k]||"")+" "+(sc[k].name||k),sc[k])).join("");
+  document.getElementById("sovGrid").innerHTML=sg;
+
+  const xr=d.cross_reference||{};
+  document.getElementById("xref").innerHTML=`<div class="panel" style="border-left-color:var(--purple)">
+    <div class="t">Cross-Reference — Proxy &amp; Companion Engines</div>
+    <div class="xref">
+      cds-proxy: ${esc(xr.cds_proxy_regime||"n/a")} (${esc(xr.cds_proxy_composite!=null?xr.cds_proxy_composite:"n/a")}/100) ·
+      credit-stress: ${esc(xr.credit_stress_regime||"n/a")} ·
+      VIX: ${esc(xr.vix_level!=null?xr.vix_level:"n/a")} ·
+      canary-grid: ${esc(xr.canary_grid_state||"n/a")}
+    </div>
+    <div class="r" style="margin-top:6px">The ECB CISS/SovCISS indices above are the official systemic measure; cds-proxy supplies the bond-yield-derived sovereign spreads, credit-stress the ICE BofA corporate spreads, and the canary grid the ex-US early-warning signals — a consolidated stress picture.</div>
+  </div>`;
+  document.getElementById("note").textContent="Source: "+((d.sources||[]).join(" · ")||"—")+". The CISS is bounded 0-1; reference peaks — GFC ~0.9, euro crisis ~0.5, COVID ~0.6. Real data only — not investment advice.";
+  document.getElementById("ts").textContent=
+    "generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>
