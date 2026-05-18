@@ -1,0 +1,290 @@
+{
+  "ops": 842,
+  "ts": "2026-05-18T18:33:57.718979+00:00",
+  "subject": "Desk-stack health audit - 7 strategy desks + Desk Allocator + desk-return feed (read-only)",
+  "checks": [
+    {
+      "check": "justhodl-best-ideas__output_fresh",
+      "ok": true,
+      "detail": "1.9h (bar 30h)"
+    },
+    {
+      "check": "justhodl-best-ideas__schedule_enabled",
+      "ok": true,
+      "detail": "rule:best-ideas-daily = ENABLED cron(45 14 * * ? *)"
+    },
+    {
+      "check": "justhodl-pairs-arb__output_fresh",
+      "ok": true,
+      "detail": "3.6h (bar 30h)"
+    },
+    {
+      "check": "justhodl-pairs-arb__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-pairs-arb-daily = ENABLED cron(30 23 * * ? *)"
+    },
+    {
+      "check": "justhodl-trend-engine__output_fresh",
+      "ok": true,
+      "detail": "2.8h (bar 30h)"
+    },
+    {
+      "check": "justhodl-trend-engine__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-trend-engine-daily = ENABLED cron(50 23 * * ? *)"
+    },
+    {
+      "check": "justhodl-merger-arb__output_fresh",
+      "ok": true,
+      "detail": "2.9h (bar 30h)"
+    },
+    {
+      "check": "justhodl-merger-arb__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-merger-arb-2x = ENABLED cron(40 13,21 * * ? *)"
+    },
+    {
+      "check": "justhodl-spinoff-desk__output_fresh",
+      "ok": true,
+      "detail": "2.1h (bar 30h)"
+    },
+    {
+      "check": "justhodl-spinoff-desk__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-spinoff-desk-daily = ENABLED cron(20 13 * * ? *)"
+    },
+    {
+      "check": "justhodl-index-recon__output_fresh",
+      "ok": true,
+      "detail": "1.5h (bar 30h)"
+    },
+    {
+      "check": "justhodl-index-recon__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-index-recon-daily = ENABLED cron(10 14 * * ? *)"
+    },
+    {
+      "check": "justhodl-risk-radar__output_fresh",
+      "ok": true,
+      "detail": "3.1h (bar 30h)"
+    },
+    {
+      "check": "justhodl-risk-radar__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-risk-radar-daily = ENABLED cron(30 14 * * ? *)"
+    },
+    {
+      "check": "justhodl-desk-returns__output_fresh",
+      "ok": true,
+      "detail": "0.1h (bar 80h)"
+    },
+    {
+      "check": "justhodl-desk-returns__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-desk-returns-daily = ENABLED cron(30 23 ? * MON-FRI *)"
+    },
+    {
+      "check": "justhodl-desk-allocator__output_fresh",
+      "ok": true,
+      "detail": "0.1h (bar 30h)"
+    },
+    {
+      "check": "justhodl-desk-allocator__schedule_enabled",
+      "ok": true,
+      "detail": "scheduler:justhodl-desk-allocator-daily = ENABLED cron(30 0 * * ? *)"
+    },
+    {
+      "check": "allocator_readable",
+      "ok": true,
+      "detail": "7 desks"
+    },
+    {
+      "check": "all_desks_firing",
+      "ok": true,
+      "detail": "firing=7 dry=[] offline=[]"
+    },
+    {
+      "check": "desk_returns_readable",
+      "ok": true,
+      "detail": "7 desks tracked"
+    },
+    {
+      "check": "return_feed_present",
+      "ok": true,
+      "detail": "7 desks, 0 warmed up"
+    }
+  ],
+  "engines": [
+    {
+      "engine": "justhodl-best-ideas",
+      "out_key": "data/best-ideas.json",
+      "output_age_hours": 1.9,
+      "output_fresh": true,
+      "schedule_kind": "rule",
+      "schedule_name": "best-ideas-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(45 14 * * ? *)"
+    },
+    {
+      "engine": "justhodl-pairs-arb",
+      "out_key": "data/pairs-arb.json",
+      "output_age_hours": 3.6,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-pairs-arb-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(30 23 * * ? *)"
+    },
+    {
+      "engine": "justhodl-trend-engine",
+      "out_key": "data/trend-engine.json",
+      "output_age_hours": 2.8,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-trend-engine-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(50 23 * * ? *)"
+    },
+    {
+      "engine": "justhodl-merger-arb",
+      "out_key": "data/merger-arb.json",
+      "output_age_hours": 2.9,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-merger-arb-2x",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(40 13,21 * * ? *)"
+    },
+    {
+      "engine": "justhodl-spinoff-desk",
+      "out_key": "data/spinoff-desk.json",
+      "output_age_hours": 2.1,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-spinoff-desk-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(20 13 * * ? *)"
+    },
+    {
+      "engine": "justhodl-index-recon",
+      "out_key": "data/index-recon.json",
+      "output_age_hours": 1.5,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-index-recon-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(10 14 * * ? *)"
+    },
+    {
+      "engine": "justhodl-risk-radar",
+      "out_key": "data/risk-radar.json",
+      "output_age_hours": 3.1,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-risk-radar-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(30 14 * * ? *)"
+    },
+    {
+      "engine": "justhodl-desk-returns",
+      "out_key": "data/desk-returns.json",
+      "output_age_hours": 0.1,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-desk-returns-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(30 23 ? * MON-FRI *)"
+    },
+    {
+      "engine": "justhodl-desk-allocator",
+      "out_key": "data/desk-allocator.json",
+      "output_age_hours": 0.1,
+      "output_fresh": true,
+      "schedule_kind": "scheduler",
+      "schedule_name": "justhodl-desk-allocator-daily",
+      "schedule_state": "ENABLED",
+      "schedule_expr": "cron(30 0 * * ? *)"
+    }
+  ],
+  "desk_book": [
+    {
+      "desk": "Merger-Arb Desk",
+      "key": "merger-arb",
+      "status": "FIRING",
+      "active": 15,
+      "weight_pct": 24.36,
+      "freshness_h": 2.8
+    },
+    {
+      "desk": "Pairs Desk",
+      "key": "pairs-arb",
+      "status": "FIRING",
+      "active": 81,
+      "weight_pct": 20.99,
+      "freshness_h": 3.5
+    },
+    {
+      "desk": "Trend Desk",
+      "key": "trend-engine",
+      "status": "FIRING",
+      "active": 17,
+      "weight_pct": 13.5,
+      "freshness_h": 2.7
+    },
+    {
+      "desk": "Index-Recon Desk",
+      "key": "index-recon",
+      "status": "FIRING",
+      "active": 372,
+      "weight_pct": 13.33,
+      "freshness_h": 1.4
+    },
+    {
+      "desk": "Risk Radar",
+      "key": "risk-radar",
+      "status": "FIRING",
+      "active": 28,
+      "weight_pct": 11.54,
+      "freshness_h": 3.0
+    },
+    {
+      "desk": "Best Ideas",
+      "key": "best-ideas",
+      "status": "FIRING",
+      "active": 128,
+      "weight_pct": 8.99,
+      "freshness_h": 1.8
+    },
+    {
+      "desk": "Spin-Off Desk",
+      "key": "spinoff-desk",
+      "status": "FIRING",
+      "active": 9,
+      "weight_pct": 7.29,
+      "freshness_h": 2.0
+    }
+  ],
+  "firm": {
+    "desks_firing": 7,
+    "desks_offline": 0,
+    "net_equity_beta": 0.153,
+    "diversification_ratio": 2.429,
+    "dominant_desk": "Merger-Arb Desk"
+  },
+  "return_feed": {
+    "desks_tracked": 7,
+    "observations_per_desk": {
+      "best-ideas": 0,
+      "pairs-arb": 0,
+      "trend-engine": 0,
+      "merger-arb": 0,
+      "spinoff-desk": 0,
+      "index-recon": 0,
+      "risk-radar": 0
+    },
+    "desks_warmed_up": 0,
+    "note": "a desk needs 20 daily observations before realized vol shrinks in; until then the archetype prior governs - expected for a recently-seeded feed"
+  },
+  "all_pass": true,
+  "verdict": "DESK STACK HEALTHY - 9/9 engines fresh, 9/9 schedules ENABLED, all 7 desks firing into the allocator (diversification ratio 2.429). Return feed seeded and warming."
+}
