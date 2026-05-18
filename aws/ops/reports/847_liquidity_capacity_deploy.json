@@ -1,0 +1,249 @@
+{
+  "ops": 847,
+  "ts": "2026-05-18T19:19:02.888388+00:00",
+  "subject": "Deploy + verify justhodl-liquidity-capacity (firm Liquidity & Capacity Monitor - days-to-liquidate, tiers, 0-100 liquidity score, trapped tail)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "updated"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "updated justhodl-liquidity-capacity-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "2s old"
+    },
+    {
+      "check": "schema_ok",
+      "ok": true,
+      "detail": "1.0"
+    },
+    {
+      "check": "payload_not_error",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "check": "posture_valid",
+      "ok": true,
+      "detail": "LIQUID"
+    },
+    {
+      "check": "score_valid",
+      "ok": true,
+      "detail": "score=88.9"
+    },
+    {
+      "check": "positions_measured",
+      "ok": true,
+      "detail": "n_measured=162 of 266 (unknown_vol=104)"
+    },
+    {
+      "check": "tiers_present",
+      "ok": true,
+      "detail": "3 tiers"
+    },
+    {
+      "check": "days_sane",
+      "ok": true,
+      "detail": "25 measured, nonneg=True, sorted_desc=True"
+    },
+    {
+      "check": "liquidatable_monotonic",
+      "ok": true,
+      "detail": "1d=85.41 3d=100.0 5d=100.0"
+    },
+    {
+      "check": "posture_reconciles",
+      "ok": true,
+      "detail": "posture=LIQUID expected=LIQUID (score=88.9)"
+    },
+    {
+      "check": "book_dollars_sane",
+      "ok": true,
+      "detail": "book_usd=41517350.0 notional_aum=50000000.0"
+    },
+    {
+      "check": "by_desk_present",
+      "ok": true,
+      "detail": "5 desks"
+    },
+    {
+      "check": "by_sector_present",
+      "ok": true,
+      "detail": "13 sectors"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(0 2 * * ? *)"
+    }
+  ],
+  "deploy": "updated",
+  "schedule": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"liquidity_posture\\\": \\\"LIQUID\\\", \\\"liquidity_score\\\": 88.9, \\\"n_measured\\\": 162, \\\"n_trapped\\\": 0}\"}"
+  },
+  "liquidity_capacity": {
+    "headline": "Firm book liquidity LIQUID - score 88.9/100. 85% of the book clears in one day, 100% within a week; weighted-average exit 0.3 days. 0 trapped name(s) in the illiquid tail.",
+    "liquidity_posture": "LIQUID",
+    "liquidity_score": 88.9,
+    "firm": {
+      "notional_aum_usd": 50000000.0,
+      "n_equity_names": 266,
+      "n_measured": 162,
+      "n_unknown_volume": 104,
+      "book_usd": 41517350.0,
+      "pct_liquidatable_1d": 85.41,
+      "pct_liquidatable_3d": 100.0,
+      "pct_liquidatable_5d": 100.0,
+      "wavg_days_to_liquidate": 0.3,
+      "n_trapped": 0,
+      "trapped_book_pct": 0.0
+    },
+    "tiers": [
+      {
+        "tier": "T1 HIGHLY LIQUID",
+        "n": 137,
+        "book_usd": 18896750.0,
+        "book_pct": 45.52
+      },
+      {
+        "tier": "T2 LIQUID",
+        "n": 25,
+        "book_usd": 6019450.0,
+        "book_pct": 14.5
+      },
+      {
+        "tier": "UNKNOWN",
+        "n": 104,
+        "book_usd": 16601150.0,
+        "book_pct": 39.99
+      }
+    ],
+    "by_desk": [
+      {
+        "desk": "Merger-Arb Desk",
+        "n_names": 6,
+        "avg_days_to_liquidate": 0.54,
+        "trapped_names": 0
+      },
+      {
+        "desk": "Index-Recon Desk",
+        "n_names": 50,
+        "avg_days_to_liquidate": 0.54,
+        "trapped_names": 0
+      },
+      {
+        "desk": "Spin-Off Desk",
+        "n_names": 7,
+        "avg_days_to_liquidate": 0.2,
+        "trapped_names": 0
+      },
+      {
+        "desk": "Best Ideas",
+        "n_names": 74,
+        "avg_days_to_liquidate": 0.01,
+        "trapped_names": 0
+      },
+      {
+        "desk": "Risk Radar",
+        "n_names": 28,
+        "avg_days_to_liquidate": 0.01,
+        "trapped_names": 0
+      }
+    ],
+    "by_sector": [
+      {
+        "sector": "Special Situations",
+        "n_names": 6,
+        "book_pct": 23.29,
+        "avg_days_to_liquidate": 0.54
+      },
+      {
+        "sector": "Healthcare",
+        "n_names": 27,
+        "book_pct": 14.6,
+        "avg_days_to_liquidate": 0.41
+      },
+      {
+        "sector": "Financial Services",
+        "n_names": 10,
+        "book_pct": 5.99,
+        "avg_days_to_liquidate": 0.41
+      },
+      {
+        "sector": "Consumer Cyclical",
+        "n_names": 12,
+        "book_pct": 6.15,
+        "avg_days_to_liquidate": 0.38
+      },
+      {
+        "sector": "Energy",
+        "n_names": 8,
+        "book_pct": 2.91,
+        "avg_days_to_liquidate": 0.38
+      },
+      {
+        "sector": "Real Estate",
+        "n_names": 7,
+        "book_pct": 3.75,
+        "avg_days_to_liquidate": 0.22
+      },
+      {
+        "sector": "Industrials",
+        "n_names": 15,
+        "book_pct": 10.69,
+        "avg_days_to_liquidate": 0.18
+      },
+      {
+        "sector": "Technology",
+        "n_names": 36,
+        "book_pct": 13.25,
+        "avg_days_to_liquidate": 0.15
+      }
+    ],
+    "trapped_names": [],
+    "least_liquid_top5": [
+      {
+        "symbol": "CMTV",
+        "tier": "T2 LIQUID",
+        "days_to_liquidate": 1.33
+      },
+      {
+        "symbol": "EXOD",
+        "tier": "T2 LIQUID",
+        "days_to_liquidate": 1.33
+      },
+      {
+        "symbol": "PLYX",
+        "tier": "T2 LIQUID",
+        "days_to_liquidate": 1.33
+      },
+      {
+        "symbol": "PNBK",
+        "tier": "T2 LIQUID",
+        "days_to_liquidate": 1.33
+      },
+      {
+        "symbol": "SUIG",
+        "tier": "T2 LIQUID",
+        "days_to_liquidate": 1.33
+      }
+    ]
+  },
+  "all_pass": true,
+  "verdict": "LIQUIDITY MONITOR LIVE - firm book LIQUID, liquidity score 88.9/100. 162 positions measured against live FMP volume; 85.41% clears in a day, 0 trapped name(s). The firm book is now scored for liquidity risk every day, 02:00 UTC, alongside the Risk Monitor."
+}
