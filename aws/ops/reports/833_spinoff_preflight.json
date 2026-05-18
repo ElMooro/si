@@ -1,0 +1,233 @@
+{
+  "ops": 833,
+  "ts": "2026-05-18T16:02:17.911203+00:00",
+  "subject": "Spin-Off Desk preflight - opportunity-stack freshness + EDGAR/FMP probe",
+  "freshness": {
+    "best-ideas": {
+      "key": "data/best-ideas.json",
+      "exists": true,
+      "age_hours": 1.3,
+      "bytes": 157350,
+      "max_list_len": 80,
+      "top_keys": [
+        "schema_version",
+        "method",
+        "generated_at",
+        "elapsed_s",
+        "ok",
+        "headline",
+        "how_to_read",
+        "n_total",
+        "n_titans",
+        "n_high_conviction",
+        "stack",
+        "titans",
+        "high_conviction",
+        "family_legend"
+      ],
+      "healthy": true
+    },
+    "dividend-growth": {
+      "key": "data/dividend-growth.json",
+      "exists": true,
+      "age_hours": 1.9,
+      "bytes": 110168,
+      "max_list_len": 104,
+      "top_keys": [
+        "ok",
+        "schema_version",
+        "generated_at",
+        "elapsed_s",
+        "source",
+        "headline",
+        "how_to_read",
+        "n_evaluated",
+        "n_with_history",
+        "n_compounders",
+        "summary",
+        "compounders",
+        "yield_traps"
+      ],
+      "healthy": true
+    },
+    "merger-arb": {
+      "key": "data/merger-arb.json",
+      "exists": true,
+      "age_hours": 0.4,
+      "bytes": 45486,
+      "max_list_len": 29,
+      "top_keys": [
+        "generated_at",
+        "elapsed_seconds",
+        "headline",
+        "summary",
+        "tight_carry",
+        "wide_spread",
+        "bump_watch",
+        "all_priced",
+        "unverified",
+        "method"
+      ],
+      "healthy": true
+    },
+    "trend-engine": {
+      "key": "data/trend-engine.json",
+      "exists": true,
+      "age_hours": 0.3,
+      "bytes": 13561,
+      "max_list_len": 21,
+      "top_keys": [
+        "schema_version",
+        "engine",
+        "generated_at",
+        "build_seconds",
+        "headline",
+        "summary",
+        "positions",
+        "by_class",
+        "strongest_long",
+        "strongest_short",
+        "how_to_read",
+        "methodology",
+        "disclaimer"
+      ],
+      "healthy": true
+    }
+  },
+  "edgar_probes": {
+    "efts_10-12B": {
+      "url": "https://efts.sec.gov/LATEST/search-index?q=&forms=10-12B",
+      "status": 200,
+      "len": 60537,
+      "sample": "{\"took\":2854,\"timed_out\":false,\"_shards\":{\"total\":50,\"successful\":50,\"skipped\":0,\"failed\":0},\"hits\":{\"total\":{\"value\":2076,\"relation\":\"eq\"},\"max_score\":null,\"hits\":[{\"_index\":\"edgar_file\",\"_id\":\"0001628280-26-027570:octaveintelligenceform10-1.htm\",\"_score\":null,\"_source\":{\"ciks\":[\"0002083632\"],\"period_ending\":null,\"file_num\":[\"001-43124\"],\"display_names\":[\"Octave Intelligence plc  (OCTV)  (CIK 0002083632)\"],\"xsl\":null,\"sequence\":1,\"root_forms\":[\"10-12B\"],\"file_date\":\"2026-04-27\",\"biz_states\":[\"AL\"],\"sics\":[\"7372\"],\"form\":\"10-12B/A\",\"adsh\":\"0001628280-26-027570\",\"film_num\":[\"26901756\"],\"biz_locations\":[\"Madison, AL\"],\"file_type\":\"10-12B/A\",\"file_description\":\"10-12B/A\",\"inc_states\":[\"L2\"],\"items\":[]},\"sort\":[1777248000000]},{\"_index\":\"edgar_file\",\"_id\":\"0001628280-26-027240:enviriii-form10x12ba1.htm\",\"_score\":null,\"_source\":{\"ciks\":[\"0002104052\"],\"period_ending\":null,\"file_num\":[\"001-4320",
+      "hit_count": 100,
+      "first_hit": {
+        "display_names": [
+          "Octave Intelligence plc  (OCTV)  (CIK 0002083632)"
+        ],
+        "file_date": "2026-04-27",
+        "form": [
+          "10-12B"
+        ]
+      },
+      "total": {
+        "value": 2076,
+        "relation": "eq"
+      }
+    },
+    "efts_form10_spinoff": {
+      "url": "https://efts.sec.gov/LATEST/search-index?q=%22spin-off%22&forms=10-12B",
+      "status": 200,
+      "len": 59310,
+      "sample": "{\"took\":2127,\"timed_out\":false,\"_shards\":{\"total\":50,\"successful\":50,\"skipped\":0,\"failed\":0},\"hits\":{\"total\":{\"value\":4363,\"relation\":\"eq\"},\"max_score\":12.893059,\"hits\":[{\"_index\":\"edgar_file\",\"_id\":\"0000914062-01-500056:mpc10am2.txt\",\"_score\":12.893059,\"_source\":{\"ciks\":[\"0001129155\"],\"period_ending\":null,\"file_num\":[\"001-16263\"],\"display_names\":[\"MARINE PRODUCTS CORP  (MPX)  (CIK 0001129155)\"],\"xsl\":null,\"sequence\":1,\"root_forms\":[\"10-12B\"],\"file_date\":\"2001-02-13\",\"biz_states\":[\"GA\"],\"sics\":[\"3730\"],\"form\":\"10-12B/A\",\"adsh\":\"0000914062-01-500056\",\"film_num\":[\"1535205\"],\"biz_locations\":[\"Atlanta, GA\"],\"file_type\":\"10-12B/A\",\"file_description\":\"FORM 10-12B/A\",\"inc_states\":[\"DE\"],\"items\":[]}},{\"_index\":\"edgar_file\",\"_id\":\"0001047469-14-004658:a2220057zex-10_31.htm\",\"_score\":12.88487,\"_source\":{\"ciks\":[\"0001583107\"],\"period_ending\":null,\"file_num\":[\"001-36033\"],\"display_names\":[\"Theravanc",
+      "hit_count": 100,
+      "first_hit": {
+        "display_names": [
+          "MARINE PRODUCTS CORP  (MPX)  (CIK 0001129155)"
+        ],
+        "file_date": "2001-02-13",
+        "form": [
+          "10-12B"
+        ]
+      },
+      "total": {
+        "value": 4363,
+        "relation": "eq"
+      }
+    },
+    "browse_current_10-12B": {
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=10-12B&company=&dateb=&owner=include&count=40&output=atom",
+      "status": 200,
+      "len": 1053,
+      "sample": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\">\n<title>Latest Filings - Mon, 18 May 2026 12:02:21 EDT</title>\n<link rel=\"alternate\" href=\"/cgi-bin/browse-edgar?action=getcurrent\"/>\n<link rel=\"self\" href=\"/cgi-bin/browse-edgar?action=getcurrent\"/>\n<id>https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent</id>\n<author><name>Webmaster</name><email>webmaster@sec.gov</email></author>\n<updated>2026-05-18T12:02:21-04:00</updated>\n<entry>\n<title>10-12B/A - Honeywell Aerospace Inc. (0002089271) (Filer)</title>\n<link rel=\"alternate\" type=\"text/html\" href=\"https://www.sec.gov/Archives/edgar/data/2089271/000162828026035212/0001628280-26-035212-index.htm\"/>\n<summary type=\"html\">\n &lt;b&gt;Filed:&lt;/b&gt; 2026-05-14 &lt;b&gt;AccNo:&lt;/b&gt; 0001628280-26-035212 &lt;b&gt;Size:&lt;/b&gt; 13 MB\n</summary>\n<updated>2026-05-14T17:11:32-04:00</updated>\n<categor",
+      "json": false
+    }
+  },
+  "fmp_probes": {
+    "fmp_ipo_calendar": {
+      "url": "https://financialmodelingprep.com/stable/ipos-calendar?apikey=***",
+      "status": 200,
+      "type": "list",
+      "count": 434,
+      "sample": [
+        {
+          "symbol": "FMAC",
+          "date": "2026-05-18",
+          "daa": "2026-05-18T04:00:00.000Z",
+          "company": "FirstMark Horizon Acquisition Corp.",
+          "exchange": "NASDAQ",
+          "actions": "Expected",
+          "shares": null,
+          "priceRange": null,
+          "marketCap": null
+        },
+        {
+          "symbol": "AIIR",
+          "date": "2026-05-18",
+          "daa": "2026-05-18T04:00:00.000Z",
+          "company": "Air Global PLC Ordinary Shares",
+          "exchange": "NASDAQ",
+          "actions": "Expected",
+          "shares": null,
+          "priceRange": null,
+          "marketCap": null
+        }
+      ]
+    },
+    "fmp_company_notes": {
+      "url": "https://financialmodelingprep.com/stable/company-notes?symbol=AAPL&apikey=***",
+      "status": 200,
+      "type": "list",
+      "count": 7,
+      "sample": [
+        {
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "title": "0.000% Notes due 2025",
+          "exchange": "NASDAQ"
+        },
+        {
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "title": "1.625% Notes due 2026",
+          "exchange": "NASDAQ"
+        }
+      ]
+    },
+    "fmp_mergers": {
+      "url": "https://financialmodelingprep.com/stable/mergers-acquisitions-latest?page=0&apikey=***",
+      "status": 200,
+      "type": "list",
+      "count": 100,
+      "sample": [
+        {
+          "symbol": "PSA-PL",
+          "companyName": "Public Storage",
+          "cik": "0001393311",
+          "targetedCompanyName": "National Storage Affiliates Trust",
+          "targetedCik": "0001618563",
+          "targetedSymbol": "NSA",
+          "transactionDate": "2026-05-11",
+          "acceptedDate": "2026-05-11 17:16:33",
+          "link": "https://www.sec.gov/Archives/edgar/data/1393311/000119312526217125/d110345ds4.htm"
+        },
+        {
+          "symbol": "PSA-PH",
+          "companyName": "Public Storage",
+          "cik": "0001393311",
+          "targetedCompanyName": "National Storage Affiliates Trust",
+          "targetedCik": "0001618563",
+          "targetedSymbol": "NSA",
+          "transactionDate": "2026-05-11",
+          "acceptedDate": "2026-05-11 17:16:33",
+          "link": "https://www.sec.gov/Archives/edgar/data/1393311/000119312526217125/d110345ds4.htm"
+        }
+      ]
+    }
+  },
+  "build_guidance": {
+    "edgar_usable": true,
+    "stale_or_broken": [],
+    "note": "If EDGAR EFTS returns 200 with hits, build the Spin-Off Desk on the 10-12B full-text feed as the no-guess spine."
+  }
+}
