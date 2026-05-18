@@ -1,0 +1,231 @@
+{
+  "ops": 791,
+  "ts": "2026-05-18T09:27:09.421274+00:00",
+  "subject": "Probe FRED EU real-economy + ECB CISS/SovCISS sources",
+  "fred_unemployment": {
+    "euro_area": {
+      "id": "LRHUTTTTEZM156S",
+      "ok": true,
+      "latest_date": "2023-01-01",
+      "latest_value": "6.7"
+    },
+    "germany": {
+      "id": "LRHUTTTTDEM156S",
+      "ok": true,
+      "latest_date": "2026-03-01",
+      "latest_value": "4.0"
+    },
+    "france": {
+      "id": "LRHUTTTTFRM156S",
+      "ok": true,
+      "latest_date": "2026-03-01",
+      "latest_value": "7.7"
+    },
+    "italy": {
+      "id": "LRHUTTTTITM156S",
+      "ok": true,
+      "latest_date": "2026-03-01",
+      "latest_value": "5.2"
+    },
+    "spain": {
+      "id": "LRHUTTTTESM156S",
+      "ok": true,
+      "latest_date": "2026-03-01",
+      "latest_value": "10.3"
+    },
+    "netherlands": {
+      "id": "LRHUTTTTNLM156S",
+      "ok": true,
+      "latest_date": "2026-03-01",
+      "latest_value": "4.0"
+    },
+    "uk": {
+      "id": "LRHUTTTTGBM156S",
+      "ok": true,
+      "latest_date": "2025-12-01",
+      "latest_value": "5.2"
+    },
+    "usa": {
+      "id": "UNRATE",
+      "ok": true,
+      "latest_date": "2026-04-01",
+      "latest_value": "4.3"
+    }
+  },
+  "fred_industrial_production": {
+    "germany_PRINTO": {
+      "id": "PRINTO01DEM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "germany_PRMNTO": {
+      "id": "DEUPROINDMISMEI",
+      "ok": true,
+      "latest_date": "2024-03-01",
+      "latest_value": "91.43041"
+    },
+    "france_PRINTO": {
+      "id": "PRINTO01FRM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "italy_PRINTO": {
+      "id": "PRINTO01ITM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "spain_PRINTO": {
+      "id": "PRINTO01ESM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "ea_PRINTO": {
+      "id": "PRINTO01EZM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "uk_PRINTO": {
+      "id": "PRINTO01GBM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "germany_PRMNTO02": {
+      "id": "DEUPRMNTO01IXOBSAM",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    },
+    "ea_prod_b_d": {
+      "id": "PRMNTO01EZM661S",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 400: Bad Request"
+    }
+  },
+  "ecb_ciss": {
+    "ciss_ea_headline": {
+      "key": "D.U2.Z0Z.4F.EC.SS_CI.IDX",
+      "ok": true,
+      "latest": "2025-05-02",
+      "value": "0.094106"
+    },
+    "ciss_ea_headline_new": {
+      "key": "D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+      "ok": true,
+      "latest": "2026-05-15",
+      "value": "0.0032403879526669097"
+    },
+    "ciss_us_headline": {
+      "key": "D.US.Z0Z.4F.EC.SS_CI.IDX",
+      "ok": true,
+      "latest": "2025-05-02",
+      "value": "0.084507"
+    },
+    "ciss_cn_headline_new": {
+      "key": "D.CN.Z0Z.4F.EC.SS_CIN.IDX",
+      "ok": true,
+      "latest": "2026-05-15",
+      "value": "0.004922614000991341"
+    },
+    "ciss_uk_headline_new": {
+      "key": "D.GB.Z0Z.4F.EC.SS_CIN.IDX",
+      "ok": true,
+      "latest": "2026-05-14",
+      "value": "0.05237726798775383"
+    },
+    "ciss_ea_bond": {
+      "key": "D.U2.Z0Z.4F.EC.BON_CI.IDX",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 404: "
+    },
+    "ciss_ea_equity": {
+      "key": "D.U2.Z0Z.4F.EC.EQU_CI.IDX",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 404: "
+    },
+    "ciss_ea_money": {
+      "key": "D.U2.Z0Z.4F.EC.MMS_CI.IDX",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 404: "
+    },
+    "ciss_us_bond": {
+      "key": "D.US.Z0Z.4F.EC.BON_CI.IDX",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 404: "
+    },
+    "ciss_us_equity": {
+      "key": "D.US.Z0Z.4F.EC.EQU_CI.IDX",
+      "ok": false,
+      "note": "HTTPError:HTTP Error 404: "
+    },
+    "sovciss_ea": {
+      "key": "M.U2.Z0Z.4F.EC.SOV_GDPW.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.079905"
+    },
+    "sovciss_de": {
+      "key": "M.DE.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.047887"
+    },
+    "sovciss_fr": {
+      "key": "M.FR.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.101345"
+    },
+    "sovciss_it": {
+      "key": "M.IT.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.06679"
+    },
+    "sovciss_es": {
+      "key": "M.ES.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.03598"
+    },
+    "sovciss_pt": {
+      "key": "M.PT.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.072557"
+    },
+    "sovciss_gr": {
+      "key": "M.GR.Z0Z.4F.EC.SOV_CI.IDX",
+      "ok": true,
+      "latest": "2025-04",
+      "value": "0.039752"
+    }
+  },
+  "summary": {
+    "fred_unemp_live": [
+      "euro_area",
+      "france",
+      "germany",
+      "italy",
+      "netherlands",
+      "spain",
+      "uk",
+      "usa"
+    ],
+    "fred_ip_live": [
+      "germany_PRMNTO"
+    ],
+    "ecb_ciss_live": [
+      "ciss_cn_headline_new",
+      "ciss_ea_headline",
+      "ciss_ea_headline_new",
+      "ciss_uk_headline_new",
+      "ciss_us_headline",
+      "sovciss_de",
+      "sovciss_ea",
+      "sovciss_es",
+      "sovciss_fr",
+      "sovciss_gr",
+      "sovciss_it",
+      "sovciss_pt"
+    ]
+  }
+}
