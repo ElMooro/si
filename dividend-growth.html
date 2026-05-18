@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dividend Compounders · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>💵</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:16px}
+.hero .hl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)}
+.hero .htr{color:var(--mute);font-size:12px;margin-top:8px;line-height:1.6}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{font-family:var(--mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.tab:hover{color:var(--cyan)}
+.tab.on{color:var(--bg);background:var(--green);border-color:var(--green);font-weight:700}
+.tab.on.trap{background:var(--red);border-color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:8px;padding:14px}
+.crow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tk{font-family:var(--mono);font-size:17px;font-weight:700}
+.nm{color:var(--dim);font-size:11px;margin-top:1px}
+.score{font-family:var(--mono);font-size:21px;font-weight:700;text-align:right;line-height:1}
+.score small{display:block;font-size:8px;color:var(--dim);letter-spacing:.5px;font-weight:400;margin-top:2px}
+.badge{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.6px;padding:2px 7px;border-radius:4px;margin:7px 0 4px}
+.yields{display:flex;gap:6px;margin:7px 0}
+.ycell{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;text-align:center}
+.ycell .yl{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--dim)}
+.ycell .yv{font-family:var(--mono);font-size:14px;font-weight:700;margin-top:2px}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 7px;margin:8px 0}
+.bar{flex:1;background:var(--green);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+.bar span{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:7px;color:var(--dim)}
+.sparwrap{margin-bottom:14px}
+.why{color:var(--mute);font-size:11.5px;line-height:1.6;margin:6px 0}
+.flag{font-size:10px;color:var(--yellow);line-height:1.5;display:flex;gap:5px;margin-top:6px}
+.flag::before{content:"\26A0";flex-shrink:0}
+.meta{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;margin-top:7px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>💵 Dividend Compounders</h1>
+    <p class="subtitle">A rising dividend is one of the hardest signals a company can send — once a board raises the payout it has publicly committed cash it must keep finding, quarter after quarter. This screen ranks dividend <b>growth</b>, not dividend <b>level</b>: real 3y/5y dividend CAGR, a multi-year streak of raises with <b>no cut</b>, and a payout that <b>free cash flow can actually fund</b>. The naive "highest yield" screen buys yield traps — here the weakest high yields are quarantined separately.</p>
+    <nav class="crumbs">
+      <a href="/best-ideas.html">best ideas</a>
+      <a href="/capital-return.html">cannibals</a>
+      <a href="/boom-board.html">boom board</a>
+      <a href="/catch-up.html">catch-up</a>
+      <a href="/screener/">screener</a>
+      <a href="/index.html">desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="hero"><div class="loading">LOADING DIVIDEND SCREEN…</div></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const num=(v,d=0)=>v==null||isNaN(v)?"—":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const scoreColor=(s)=>s>=70?"var(--green)":s>=55?"var(--cyan)":s>=40?"var(--yellow)":"var(--mute)";
+const TIER={
+  "ARISTOCRAT":{c:"var(--green)",bg:"rgba(38,255,175,.13)"},
+  "GROWER":{c:"var(--cyan)",bg:"rgba(0,212,255,.12)"},
+  "EMERGING":{c:"var(--yellow)",bg:"rgba(255,210,102,.12)"},
+  "YIELD TRAP":{c:"var(--red)",bg:"rgba(255,85,119,.12)"}
+};
+let DATA=null,VIEW="ALL";
+
+function spark(hist){
+  if(!hist||!hist.length)return "";
+  const mx=Math.max(...hist.map(h=>h.dividend))||1;
+  const bars=hist.map(h=>{
+    const pct=Math.max(4,Math.round(h.dividend/mx*100));
+    return `<div class="bar" style="height:${pct}%"><span>${String(h.year).slice(2)}</span></div>`;
+  }).join("");
+  return `<div class="sparwrap"><div class="spark">${bars}</div></div>`;
+}
+
+function card(c){
+  const trap=c.tier==="YIELD TRAP";
+  const t=TIER[c.tier]||TIER.EMERGING;
+  const top=trap?"var(--red)":scoreColor(c.compounder_score);
+  const flags=(c.risk_flags||[]).map(f=>`<div class="flag">${esc(f)}</div>`).join("");
+  const cagr=c.div_cagr_5y_pct!=null?c.div_cagr_5y_pct:c.div_cagr_3y_pct;
+  const cagrL=c.div_cagr_5y_pct!=null?"5Y DIV CAGR":"3Y DIV CAGR";
+  const scoreBlock=trap
+    ? `<div class="score" style="color:var(--red)">⚠<small>TRAP RISK</small></div>`
+    : `<div class="score" style="color:${top}">${num(c.compounder_score)}<small>COMPOUNDER SCORE</small></div>`;
+  return `<div class="card" style="border-top-color:${top}">
+    <div class="crow">
+      <div><div class="tk">${esc(c.symbol)}</div><div class="nm">${esc(c.name||"")} · ${esc(c.sector||"")}</div></div>
+      ${scoreBlock}
+    </div>
+    <span class="badge" style="color:${t.c};background:${t.bg}">${esc(c.tier)}</span>
+    <div class="yields">
+      <div class="ycell"><div class="yl">Yield</div><div class="yv" style="color:var(--green)">${num(c.dividend_yield_pct,1)}%</div></div>
+      <div class="ycell"><div class="yl">${cagrL}</div><div class="yv" style="color:${cagr>=0?"var(--cyan)":"var(--red)"}">${cagr!=null?(cagr>=0?"+":"")+num(cagr,1)+"%":"—"}</div></div>
+      <div class="ycell"><div class="yl">Streak</div><div class="yv">${c.growth_streak_years||0}y</div></div>
+      <div class="ycell"><div class="yl">FCF Cov</div><div class="yv">${c.fcf_coverage!=null?num(c.fcf_coverage,2)+"x":"—"}</div></div>
+    </div>
+    ${spark(c.annual_history)}
+    <div class="why">${esc(c.why||"")}</div>
+    ${flags}
+    <div class="meta">
+      ${c.price!=null?`<span>$${num(c.price,2)}</span>`:""}
+      ${c.earnings_payout_pct!=null?`<span>Payout ${num(c.earnings_payout_pct,0)}%</span>`:""}
+      ${c.piotroski!=null?`<span>Piotroski ${c.piotroski}/9</span>`:""}
+      ${c.altman_z!=null?`<span>Altman-Z ${num(c.altman_z,1)}</span>`:""}
+      ${c.years_history!=null?`<span>${c.years_history}y history</span>`:""}
+    </div>
+  </div>`;
+}
+
+function rowsFor(v){
+  if(!DATA)return [];
+  if(v==="TRAP")return DATA.yield_traps||[];
+  const all=DATA.compounders||[];
+  if(v==="ALL")return all;
+  return all.filter(c=>c.tier===v);
+}
+
+function render(){
+  const rows=rowsFor(VIEW);
+  document.getElementById("grid").innerHTML=rows.length
+    ? rows.map(card).join("")
+    : '<div class="loading">No names in this tier right now.</div>';
+}
+
+function tabs(){
+  const s=DATA.summary||{};
+  const defs=[
+    ["ALL","All "+(DATA.n_compounders||0),false],
+    ["ARISTOCRAT","Aristocrats "+(s.n_aristocrats||0),false],
+    ["GROWER","Growers "+(s.n_growers||0),false],
+    ["EMERGING","Emerging "+(s.n_emerging||0),false],
+    ["TRAP","Yield Traps "+(s.n_yield_traps||0),true]
+  ];
+  document.getElementById("tabs").innerHTML=defs.map(([k,lab,trap])=>
+    `<div class="tab${VIEW===k?" on":""}${trap?" trap":""}" data-v="${k}">${lab}</div>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+    VIEW=t.dataset.v;tabs();render();
+  });
+}
+
+async function main(){
+  let d=null;
+  try{ d=await fetch(S3+"dividend-growth.json?_="+Date.now()).then(r=>r.ok?r.json():null); }catch(e){}
+  if(!d||!d.ok){document.getElementById("hero").innerHTML='<div class="loading">DIVIDEND SCREEN DATA UNAVAILABLE</div>';return;}
+  DATA=d;
+  const s=d.summary||{};
+  document.getElementById("hero").innerHTML=`<div class="hero">
+    <div class="hl">${esc(d.headline||"")}</div>
+    <div class="htr">${esc(d.how_to_read||"")}${s.median_yield_pct!=null?` &nbsp;·&nbsp; Median compounder: ${num(s.median_yield_pct,1)}% yield, ${num(s.median_cagr5_pct,1)}%/yr 5-year growth.`:""}</div>
+  </div>`;
+  tabs();render();
+  document.getElementById("note").textContent="Source: "+(d.source||"")+" · "+(d.n_evaluated||0)+" dividend payers screened · "+(d.n_with_history||0)+" with usable history · "+(d.n_compounders||0)+" passed all gates. Research and education only — not investment advice.";
+  document.getElementById("ts").textContent="generated "+(d.generated_at||"")+" · "+(d.elapsed_s||0)+"s · schema "+(d.schema_version||"");
+}
+main();
+</script>
+</body>
+</html>

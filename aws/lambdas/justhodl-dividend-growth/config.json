@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-dividend-growth",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Dividend-growth compounder screen - ranks stocks RAISING the dividend (real 3y/5y dividend CAGR, multi-year growth streak, no cut, FCF-covered payout); tiers aristocrat/grower/emerging, high-yield traps quarantined. Output data/dividend-growth.json.",
+  "schedule": {
+    "rule_name": "dividend-growth-daily",
+    "cron": "cron(20 14 * * ? *)",
+    "description": "Dividend-growth compounder screen - daily 14:20 UTC"
+  }
+}
