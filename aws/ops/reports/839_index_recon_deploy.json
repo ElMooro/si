@@ -1,0 +1,257 @@
+{
+  "ops": 839,
+  "ts": "2026-05-18T17:02:23.102975+00:00",
+  "subject": "Deploy + verify justhodl-index-recon (Index Reconstitution / Forced-Flow Desk)",
+  "checks": [
+    {
+      "check": "deploy_ok",
+      "ok": true,
+      "detail": "created"
+    },
+    {
+      "check": "schedule_wired",
+      "ok": true,
+      "detail": "created justhodl-index-recon-daily"
+    },
+    {
+      "check": "invoke_ok",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "check": "output_fresh",
+      "ok": true,
+      "detail": "2s old"
+    },
+    {
+      "check": "ok_true",
+      "ok": true,
+      "detail": "ok=True"
+    },
+    {
+      "check": "universe_sufficient",
+      "ok": true,
+      "detail": "n_eligible=3520"
+    },
+    {
+      "check": "breakpoints_sane",
+      "ok": true,
+      "detail": "R1000bp=5.609B  R3000bp=0.211B"
+    },
+    {
+      "check": "additions_bullish",
+      "ok": true,
+      "detail": "40 rows"
+    },
+    {
+      "check": "demotions_bullish",
+      "ok": true,
+      "detail": "30 rows"
+    },
+    {
+      "check": "graduations_bearish",
+      "ok": true,
+      "detail": "30 rows"
+    },
+    {
+      "check": "deletions_bearish",
+      "ok": true,
+      "detail": "40 rows"
+    },
+    {
+      "check": "edge_scores_valid",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "lists_sorted_desc",
+      "ok": true,
+      "detail": "edge_score descending"
+    },
+    {
+      "check": "counts_consistent",
+      "ok": true,
+      "detail": "A=143 D=111 G=102 X=229 S=52"
+    },
+    {
+      "check": "sp_candidates_not_members",
+      "ok": true,
+      "detail": "members=503 collisions=[]"
+    },
+    {
+      "check": "schedule_live",
+      "ok": true,
+      "detail": "ENABLED cron(10 14 * * ? *)"
+    }
+  ],
+  "deploy": "created",
+  "schedule": "created",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_universe\\\": 3520, \\\"additions\\\": 143, \\\"demotions\\\": 111, \\\"deletions\\\": 229, \\\"graduations\\\": 102, \\\"sp500_candidates\\\": 52}\"}"
+  },
+  "index_recon": {
+    "headline": "143 projected Russell 2000 additions and 111 demotions set up forced passive buying; 229 deletions and 102 graduations face forced selling. 52 S&P 500 inclusion candidates on watch.",
+    "next_effective_date": "2026-06-26",
+    "n_eligible": 3520,
+    "n_candidates_scored": 2798,
+    "n_with_one_year_return": 2850,
+    "r1000_breakpoint_cap_bil": 5.609,
+    "r3000_breakpoint_cap_bil": 0.211,
+    "n_additions": 143,
+    "n_demotions": 111,
+    "n_graduations": 102,
+    "n_deletions": 229,
+    "n_sp500_candidates": 52,
+    "top_additions": [
+      {
+        "sym": "RCKY",
+        "edge": 100.0,
+        "days": 25.0,
+        "ret1y": 67.4
+      },
+      {
+        "sym": "PRLD",
+        "edge": 100.0,
+        "days": 25.0,
+        "ret1y": 388.3
+      },
+      {
+        "sym": "TWIN",
+        "edge": 100.0,
+        "days": 25.0,
+        "ret1y": 147.2
+      },
+      {
+        "sym": "EDIT",
+        "edge": 100.0,
+        "days": 25.0,
+        "ret1y": 70.8
+      },
+      {
+        "sym": "FOSL",
+        "edge": 100.0,
+        "days": 25.0,
+        "ret1y": 145.8
+      }
+    ],
+    "top_demotions": [
+      {
+        "sym": "LBRDA",
+        "edge": 94.0,
+        "ret1y": -65.6
+      },
+      {
+        "sym": "NIQ",
+        "edge": 91.6,
+        "ret1y": -55.1
+      },
+      {
+        "sym": "CCC",
+        "edge": 89.7,
+        "ret1y": -51.3
+      },
+      {
+        "sym": "DUOL",
+        "edge": 88.8,
+        "ret1y": -78.1
+      },
+      {
+        "sym": "HIMS",
+        "edge": 88.8,
+        "ret1y": -63.3
+      }
+    ],
+    "top_graduations": [
+      {
+        "sym": "RSI",
+        "edge": 94.0,
+        "ret1y": 121.0
+      },
+      {
+        "sym": "PACS",
+        "edge": 94.0,
+        "ret1y": 248.1
+      },
+      {
+        "sym": "BLTE",
+        "edge": 94.0,
+        "ret1y": 120.3
+      },
+      {
+        "sym": "SRRK",
+        "edge": 92.8,
+        "ret1y": 57.6
+      },
+      {
+        "sym": "ESI",
+        "edge": 88.8,
+        "ret1y": 79.5
+      }
+    ],
+    "top_deletions": [
+      {
+        "sym": "NAGE",
+        "edge": 100.0,
+        "ret1y": -65.6
+      },
+      {
+        "sym": "RC",
+        "edge": 100.0,
+        "ret1y": -61.9
+      },
+      {
+        "sym": "CABO",
+        "edge": 100.0,
+        "ret1y": -67.9
+      },
+      {
+        "sym": "AVXL",
+        "edge": 100.0,
+        "ret1y": -66.3
+      },
+      {
+        "sym": "RXST",
+        "edge": 100.0,
+        "ret1y": -63.2
+      }
+    ],
+    "top_sp500_candidates": [
+      {
+        "sym": "BRK-A",
+        "cap_bil": 1046.18
+      },
+      {
+        "sym": "MRVL",
+        "cap_bil": 146.79
+      },
+      {
+        "sym": "SCCO",
+        "cap_bil": 143.54
+      },
+      {
+        "sym": "EPD",
+        "cap_bil": 85.88
+      },
+      {
+        "sym": "RKLB",
+        "cap_bil": 74.68
+      },
+      {
+        "sym": "NET",
+        "cap_bil": 71.47
+      },
+      {
+        "sym": "SATA",
+        "cap_bil": 69.88
+      },
+      {
+        "sym": "ET",
+        "cap_bil": 69.87
+      }
+    ]
+  },
+  "all_pass": true,
+  "verdict": "INDEX-RECON LIVE - 3520 eligible US names ranked; 143 Russell 2000 additions and 111 demotions on the forced-buy side, 102 graduations and 229 deletions on the forced-sell side, 52 S&P 500 inclusion candidates on watch. Reconstitution effective 2026-06-26. Production-clean, daily 14:10 UTC."
+}
