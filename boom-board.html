@@ -107,6 +107,10 @@ const scoreColor=(s)=>s>=70?"var(--green)":s>=50?"var(--cyan)":s>=35?"var(--yell
 function card(b){
   const up=b.upside_pct;
   const upc=up==null?"var(--dim)":up>=0?"var(--green)":"var(--red)";
+  const upMult=up==null?null:up/100+1;
+  const upTxt=up==null?"":(b.target_horizon==="multi-year"&&up>=100)
+    ?"~"+upMult.toFixed(upMult<10?1:0)+"x"
+    :(up>=0?"+":"")+num(up,0)+"%";
   const engs=(b.signals_fired||[]).map(e=>`<span class="bdg eng">${esc(e)}</span>`).join("");
   const flags=(b.risk_flags||[]).map(f=>`<div class="flag">${esc(f)}</div>`).join("");
   return `<div class="card" style="border-top-color:${scoreColor(b.boom_score)}">
@@ -123,7 +127,7 @@ function card(b){
       <span class="lab">price</span><span class="pt">${b.price!=null?"$"+num(b.price,2):"—"}</span>
       <span class="lab" style="margin-left:6px">target ${b.target_horizon==="multi-year"?"·multi-yr":"·12mo"}</span>
       <span class="pt">${b.price_target!=null?"$"+num(b.price_target,2):"—"}</span>
-      <span class="up" style="color:${upc};margin-left:auto">${up!=null?(up>=0?"+":"")+num(up,0)+"%":""}</span>
+      <span class="up" style="color:${upc};margin-left:auto">${upTxt}</span>
     </div>
     <div class="why">${esc(b.why||"")}</div>
     ${flags?`<div class="flags">${flags}</div>`:""}
