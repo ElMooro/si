@@ -1,0 +1,20 @@
+{
+ "function_name": "justhodl-firm-stress",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm Stress Desk - re-prices the firm book through 15 scenarios (historical replays + macro shocks) via cached six-factor loadings, attributes each loss by desk / sector / name and runs a reverse stress test. data/firm-stress.json.",
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-firm-stress-daily",
+  "cron": "cron(0 3 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm Stress Desk - daily 03:00 UTC via Amazon EventBridge Scheduler, after the Factor Risk Model publishes at 02:30 so the per-name factor loadings cache is fresh."
+ }
+}

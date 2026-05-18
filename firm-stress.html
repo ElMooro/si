@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stress Desk &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127786;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .posture{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:2px;margin-bottom:6px}
+.hero .hl{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
+th.l,td.l{text-align:left}
+td{font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}
+tr:last-child td{border-bottom:none}
+tr.srow{cursor:pointer}
+tr.srow:hover td{background:var(--panel2)}
+tr.sel td{background:#13202b}
+.tk{font-weight:700;font-size:12.5px}
+.nm{color:var(--dim);font-size:10px;font-family:'Inter',sans-serif}
+.long{color:var(--green)}
+.short{color:var(--red)}
+.badge{font-family:var(--mono);font-size:8px;letter-spacing:.4px;text-transform:uppercase;padding:3px 7px;border-radius:4px;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+.b-historical{color:var(--cyan);border-color:#1d4e5e;background:#0c2024}
+.b-hypothetical{color:var(--yellow);border-color:#6e5a18;background:#241f0c}
+.b-control{color:var(--green);border-color:#1d5e44;background:#0c2419}
+.pill{font-family:var(--mono);font-size:8.5px;letter-spacing:.4px;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1px solid var(--line);color:var(--mute)}
+.pill.L{color:var(--green);border-color:#1d5e44}
+.pill.S{color:var(--red);border-color:#6e2438}
+.bars{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px}
+.brow{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.brow:last-child{margin-bottom:0}
+.bname{font-family:var(--mono);font-size:10px;width:150px;flex-shrink:0;text-align:right;color:var(--mute)}
+.btrack{flex:1;height:16px;background:var(--panel2);border:1px solid var(--line);border-radius:4px;position:relative}
+.bmid{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--line)}
+.bfill{position:absolute;top:0;bottom:0;border-radius:3px}
+.bval{font-family:var(--mono);font-size:10px;width:74px;flex-shrink:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+.cols{display:flex;gap:14px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+.rev{display:flex;gap:8px;flex-wrap:wrap}
+.revcard{flex:1;min-width:220px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.revcard .rt{font-family:var(--mono);font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.revcard .rv{font-family:var(--mono);font-size:20px;font-weight:700;margin:4px 0;color:var(--orange)}
+.revcard .rd{font-size:11px;color:var(--mute);line-height:1.55}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11px;padding:10px}
+.hint{font-family:var(--mono);font-size:10px;color:var(--dim);margin:6px 0 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#127786; Stress Desk</h1>
+    <p class="subtitle">The firm's <b>scenario book</b>. The Risk Monitor polices exposure and the Factor Risk Model decomposes it &mdash; this desk asks the next question: <b>what does the actual book lose in a crisis?</b> Every firm-book position is re-priced through <b>15 named scenarios</b> &mdash; historical replays and hypothetical macro shocks &mdash; using the Factor Risk Model's cached six-factor loadings. Each loss is attributed by desk, sector and name, and a <b>reverse stress test</b> solves for the move that would cost the firm 15% and 25%.</p>
+    <nav class="crumbs">
+      <a href="/firm-book.html">firm book</a>
+      <a href="/risk-monitor.html">risk monitor</a>
+      <a href="/factor-risk.html">factor risk</a>
+      <a href="/liquidity-capacity.html">liquidity</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING STRESS DESK&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/firm-stress.json";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const POSTURE={GREEN:"var(--green)",AMBER:"var(--yellow)",RED:"var(--red)"};
+const FACTORS=["MKT","SIZE","VALUE","MOM","QUALITY","LOWVOL"];
+let DATA=null,SEL=0;
+
+function pnlCol(v){return v==null?"var(--dim)":v<0?"var(--red)":v>0?"var(--green)":"var(--mute)";}
+function pct(v,d){return v==null?"--":(v>0?"+":"")+Number(v).toFixed(d==null?2:d)+"%";}
+
+function divergeBar(v,scale){
+  // v is a signed %; scale is the max abs value mapped to half-width
+  const cap=Math.max(scale,0.01);
+  const frac=Math.max(-1,Math.min(1,v/cap));
+  const col=v<0?"var(--red)":"var(--green)";
+  let style;
+  if(frac<0){style="right:50%;width:"+(Math.abs(frac)*50)+"%;background:"+col;}
+  else{style="left:50%;width:"+(frac*50)+"%;background:"+col;}
+  return '<div class="btrack"><div class="bmid"></div><div class="bfill" style="'+style+'"></div></div>';
+}
+
+function attribBars(rows,key,labelKey){
+  if(!rows||!rows.length)return '<div class="empty">No attribution.</div>';
+  const scale=Math.max(...rows.map(r=>Math.abs(r[key]||0)),0.01);
+  return '<div class="bars">'+rows.map(r=>
+    '<div class="brow">'+
+      '<div class="bname">'+esc(String(r[labelKey]).slice(0,22))+'</div>'+
+      divergeBar(r[key]||0,scale)+
+      '<div class="bval" style="text-align:right;color:'+pnlCol(r[key])+'">'+pct(r[key])+'</div>'+
+    '</div>').join("")+'</div>';
+}
+
+function nameTable(rows){
+  if(!rows||!rows.length)return '<div class="empty">No names.</div>';
+  return '<table><thead><tr>'+
+    '<th class="l">Symbol</th><th class="l">Sector</th><th>Side</th>'+
+    '<th>Net %</th><th>Shocked Ret</th><th>P&amp;L %</th>'+
+    '</tr></thead><tbody>'+
+    rows.map(p=>'<tr>'+
+      '<td class="l"><span class="tk">'+esc(p.symbol)+'</span>'+
+        '<div class="nm">'+esc((p.name||"").slice(0,28))+'</div></td>'+
+      '<td class="l" style="color:var(--mute);font-size:10px">'+esc((p.sector||"").slice(0,16))+'</td>'+
+      '<td><span class="pill '+(p.side==="LONG"?"L":p.side==="SHORT"?"S":"")+'">'+esc(p.side||"--")+'</span></td>'+
+      '<td class="'+(p.net_pct<0?"short":"long")+'">'+pct(p.net_pct,2)+'</td>'+
+      '<td style="color:'+pnlCol(p.ret_pct)+'">'+pct(p.ret_pct)+'</td>'+
+      '<td style="font-weight:700;color:'+pnlCol(p.pnl_pct)+'">'+pct(p.pnl_pct)+'</td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function shockChips(shock){
+  return FACTORS.map(f=>{
+    const v=shock[f]||0,c=v<0?"var(--red)":v>0?"var(--green)":"var(--dim)";
+    return '<span class="pill" style="color:'+c+'">'+f+' '+(v>0?"+":"")+(v*100).toFixed(0)+'</span>';
+  }).join(" ");
+}
+
+function scenTable(scen){
+  return '<table><thead><tr>'+
+    '<th class="l">Scenario</th><th>Type</th><th>Book P&amp;L</th>'+
+    '</tr></thead><tbody>'+
+    scen.map((s,i)=>'<tr class="srow'+(i===SEL?" sel":"")+'" onclick="pick('+i+')">'+
+      '<td class="l"><span class="tk" style="font-size:12px">'+esc(s.scenario)+'</span></td>'+
+      '<td><span class="badge b-'+esc(s.type)+'">'+esc(s.type)+'</span></td>'+
+      '<td style="font-weight:700;font-size:13px;color:'+pnlCol(s.book_pnl_pct)+'">'+pct(s.book_pnl_pct)+'</td>'+
+    '</tr>').join("")+'</tbody></table>';
+}
+
+function detailPanel(s){
+  if(!s)return "";
+  return '<div class="panel">'+
+    '<div style="font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:3px">'+esc(s.scenario)+'</div>'+
+    '<div style="margin-bottom:10px">'+shockChips(s.shock)+'</div>'+
+    '<div style="font-family:var(--mono);font-size:15px;font-weight:700;color:'+pnlCol(s.book_pnl_pct)+';margin-bottom:12px">Firm P&amp;L '+pct(s.book_pnl_pct)+' of book</div>'+
+    '<div class="cols">'+
+      '<div class="col"><div class="sechead">P&amp;L by Desk</div>'+attribBars(s.desk_pnl,"pnl_pct","desk")+'</div>'+
+      '<div class="col"><div class="sechead">P&amp;L by Sector</div>'+attribBars((s.sector_pnl||[]).slice(0,8),"pnl_pct","sector")+'</div>'+
+    '</div>'+
+    '<div class="cols" style="margin-top:14px">'+
+      '<div class="col"><div class="sechead">Worst Names</div>'+nameTable(s.top_losers)+'</div>'+
+      '<div class="col"><div class="sechead">Best Names</div>'+nameTable(s.top_gainers)+'</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function reversePanel(r){
+  if(!r)return "";
+  const card=(t,o)=>{
+    if(!o||!o.reachable)
+      return '<div class="revcard"><div class="rt">'+t+'</div>'+
+        '<div class="rv" style="color:var(--green);font-size:13px">NOT REACHABLE</div>'+
+        '<div class="rd">'+esc((o&&o.note)||"")+'</div></div>';
+    return '<div class="revcard"><div class="rt">'+t+'</div>'+
+      '<div class="rv">'+Number(o.multiplier).toFixed(2)+'x</div>'+
+      '<div class="rd">'+esc(o.interpretation)+'</div></div>';
+  };
+  return '<div class="panel">'+
+    '<div style="font-family:var(--mono);font-size:12px;color:var(--mute);margin-bottom:4px">Reverse stress axis: <b>'+esc(r.unit_vector_used)+'</b> &middot; book P&amp;L on a single unit of that shock: <b style="color:'+pnlCol(r.unit_pnl_pct)+'">'+pct(r.unit_pnl_pct)+'</b></div>'+
+    '<p class="hint">How large a move would it take to cost the firm 15% / 25% of book? The shock is scaled along the axis the book actually loses on.</p>'+
+    '<div class="rev" style="margin-top:8px">'+card("Loss reaches -15%",r.to_minus_15pct)+card("Loss reaches -25%",r.to_minus_25pct)+'</div>'+
+  '</div>';
+}
+
+function pick(i){SEL=i;render();}
+
+function render(){
+  const d=DATA;if(!d){return;}
+  const sm=d.summary||{},sc=d.scenarios||[];
+  const pc=POSTURE[d.posture]||"var(--dim)";
+  let h="";
+  h+='<div class="hero" style="border-left-color:'+pc+'">'+
+    '<div class="posture" style="color:'+pc+'">'+esc(d.posture||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+  h+='<div class="stats">'+
+    '<div class="stat"><div class="sl">Worst Scenario Loss</div><div class="sv" style="color:'+pnlCol(sm.worst_loss_pct)+'">'+pct(sm.worst_loss_pct)+'</div></div>'+
+    '<div class="stat"><div class="sl">Median Scenario</div><div class="sv" style="color:'+pnlCol(sm.median_scenario_pnl_pct)+'">'+pct(sm.median_scenario_pnl_pct)+'</div></div>'+
+    '<div class="stat"><div class="sl">Losing Scenarios</div><div class="sv">'+esc(sm.n_losing_scenarios)+' / '+esc(sm.n_scenarios)+'</div></div>'+
+    '<div class="stat"><div class="sl">Names Modelled</div><div class="sv">'+esc(sm.n_names_modelled)+'</div></div>'+
+    '<div class="stat"><div class="sl">Firm Net</div><div class="sv">'+pct(sm.firm_net_pct,1)+'</div></div>'+
+    '<div class="stat"><div class="sl">Annual Vol</div><div class="sv" style="color:var(--mute)">'+(sm.annual_vol_pct==null?"--":sm.annual_vol_pct.toFixed(1)+"%")+'</div></div>'+
+  '</div>';
+  h+='<div class="sechead">Scenario Book <small>&mdash; ranked worst first; tap a row for full attribution</small></div>';
+  h+=scenTable(sc);
+  h+='<div class="sechead">Scenario Detail</div>';
+  h+=detailPanel(sc[SEL]);
+  h+='<div class="sechead">Reverse Stress Test</div>';
+  h+=reversePanel(d.reverse_stress);
+  const cv=sm.n_direct_loadings+" direct + "+sm.n_sector_proxy+" sector-proxy + "+sm.n_book_fallback+" book-fallback loadings";
+  h+='<p class="note">'+esc(d.method||"")+'<br><br><b>Coverage:</b> '+esc(cv)+'. <b>Loss limits:</b> soft '+esc((d.loss_limits||{}).soft_pct)+'%, hard '+esc((d.loss_limits||{}).hard_pct)+'%.<br>'+esc(d.disclaimer||"")+'</p>';
+  h+='<div class="timestamp">book as of '+esc((d.firm_book_asof||"").slice(0,16).replace("T"," "))+' &middot; stress run '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC</div>';
+  document.getElementById("root").innerHTML=h;
+}
+
+fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(d=>{
+  DATA=d;
+  // default selection: the worst scenario (list is already sorted worst-first)
+  SEL=0;render();
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">STRESS DESK DATA UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
