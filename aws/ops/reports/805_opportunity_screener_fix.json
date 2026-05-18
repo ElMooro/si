@@ -1,0 +1,135 @@
+{
+  "ops": 805,
+  "ts": "2026-05-18T12:13:06.458289+00:00",
+  "subject": "Redeploy + verify opportunity-screener microcap/rank fix",
+  "deploy": "updated",
+  "invoke": {
+    "status": 200,
+    "fn_error": null,
+    "body": "{\"ok\": true, \"boom_candidates\": 704, \"errors\": 0}"
+  },
+  "boom_board": {
+    "ok": true,
+    "headline": "Boom Board: 704 cross-confirmed opportunities \u2014 39 micro-cap rockets, 40 serial estimate-beaters, 40 under-priced growers.",
+    "counts": {
+      "boom_candidates": 704,
+      "microcap_rockets": 39,
+      "serial_beaters": 40,
+      "hidden_growth": 40
+    },
+    "n_microcap_rockets": 39,
+    "microcap_top5": [
+      {
+        "sym": "PPIH",
+        "cap": "micro",
+        "boom": 23.3,
+        "opp": 23.3,
+        "upside": null,
+        "target": null
+      },
+      {
+        "sym": "ISSC",
+        "cap": "micro",
+        "boom": 22.2,
+        "opp": 22.2,
+        "upside": null,
+        "target": null
+      },
+      {
+        "sym": "NAGE",
+        "cap": "micro",
+        "boom": 21.4,
+        "opp": 21.4,
+        "upside": null,
+        "target": null
+      },
+      {
+        "sym": "ACFN",
+        "cap": "nano",
+        "boom": 21.4,
+        "opp": 21.4,
+        "upside": null,
+        "target": null
+      },
+      {
+        "sym": "ELMD",
+        "cap": "micro",
+        "boom": 21.2,
+        "opp": 21.2,
+        "upside": null,
+        "target": null
+      }
+    ],
+    "board_top8": [
+      {
+        "sym": "UAL",
+        "cap": "large",
+        "opp": 77.2,
+        "boom": 62.0,
+        "upside": 117.0
+      },
+      {
+        "sym": "APP",
+        "cap": "large",
+        "opp": 77.1,
+        "boom": 67.3,
+        "upside": 89.3
+      },
+      {
+        "sym": "KEY",
+        "cap": "large",
+        "opp": 76.4,
+        "boom": 60.6,
+        "upside": 187.8
+      },
+      {
+        "sym": "CCL",
+        "cap": "large",
+        "opp": 75.1,
+        "boom": 58.5,
+        "upside": 217.8
+      },
+      {
+        "sym": "ROP",
+        "cap": "large",
+        "opp": 74.4,
+        "boom": 57.4,
+        "upside": 151.9
+      },
+      {
+        "sym": "FOX",
+        "cap": "large",
+        "opp": 74.1,
+        "boom": 56.8,
+        "upside": 122.5
+      },
+      {
+        "sym": "BIIB",
+        "cap": "large",
+        "opp": 74.0,
+        "boom": 56.6,
+        "upside": 128.8
+      },
+      {
+        "sym": "CFG",
+        "cap": "large",
+        "opp": 73.8,
+        "boom": 56.4,
+        "upside": 108.1
+      }
+    ],
+    "top10_negative_upside": 0,
+    "top10_avg_upside_pct": 144.6,
+    "errors": []
+  },
+  "checks": {
+    "deploy_ok": true,
+    "invoke_ok": true,
+    "output_ok": true,
+    "microcaps_surface": true,
+    "board_upside_ranked": true,
+    "microcaps_have_targets": false
+  },
+  "all_pass": false,
+  "verdict": "REVIEW \u2014 see checks[]/boom_board (microcaps must surface and the board must not be topped by negative-upside names)"
+}
