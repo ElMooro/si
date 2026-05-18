@@ -207,13 +207,25 @@ def price_name(ticker, name, group, r):
 
         bs = fmp("balance-sheet-statement", {"symbol": ticker, "limit": 1})
         bs = bs[0] if isinstance(bs, list) and bs else (bs or {})
-        debt = bs.get("totalDebt")
-        if not debt or debt <= 0:
-            debt = (bs.get("longTermDebt") or 0) + \
-                   (bs.get("shortTermDebt") or 0)
-        if not debt or debt <= 0:
+        ltd = bs.get("longTermDebt") or 0
+        std = bs.get("shortTermDebt") or 0
+        total_debt = bs.get("totalDebt") or 0
+        if total_debt <= 0:
+            total_debt = ltd + std
+        # The structural default barrier is the SENIOR BOND STACK that a 5Y
+        # senior CDS references. For a bank that is its long-term debt — NOT
+        # total borrowings: FMP's bank `totalDebt` sweeps in repo, fed-funds
+        # purchased and short-term wholesale funding, which is secured /
+        # self-liquidating and not the run-prone default point. Using it
+        # makes every G-SIB price as near-distressed. Corporates use total
+        # debt (their borrowings are the relevant barrier).
+        if group == "bank":
+            barrier_debt = ltd if ltd > 0 else total_debt
+        else:
+            barrier_debt = total_debt if total_debt > 0 else (ltd + std)
+        if barrier_debt <= 0:
             return None, f"{ticker}: no debt figure"
-        debt_per_share = debt / shares
+        debt_per_share = barrier_debt / shares
 
         hp = fmp("historical-price-eod/light", {"symbol": ticker})
         rows = hp if isinstance(hp, list) else (hp or {}).get("historical", [])
@@ -229,7 +241,7 @@ def price_name(ticker, name, group, r):
         return {
             "ticker": ticker, "name": name, "group": group,
             "market_cap_usd_bn": round(mcap / 1e9, 1),
-            "total_debt_usd_bn": round(debt / 1e9, 1),
+            "total_debt_usd_bn": round(total_debt / 1e9, 1),
             "equity_vol_pct": round(sigma_E * 100, 1),
             "asset_vol_pct": round(cg["asset_vol"] * 100, 1),
             "distance_to_default": round(cg["distance_to_default"], 2),
@@ -267,7 +279,58 @@ def lambda_handler(event, context):
             errors.append(err)
         time.sleep(0.15)
 
-    # sort riskiest first — widest synthetic spread
+    # ── 1b. MARKET-ANCHORED CALIBRATION of single-name CDS ──
+    # A structural model that compares market cap to debt conflates a low
+    # price-to-book (Deutsche Bank, Barclays trade ~0.5x book) with default
+    # risk — so its absolute synthetic spreads are unreliable: too hot for
+    # out-of-favour names, too cold for richly-valued ones. The structural
+    # distance-to-default is kept as the cross-sectional signal, but the
+    # LEVEL of each name's synthetic CDS is anchored to the observable
+    # credit market (ICE BofA IG OAS) and the model-driven tilt around that
+    # anchor is bounded to a realistic dispersion. Single-name CDS then sits
+    # on a real scale and moves with the real credit cycle — no false
+    # alarms — while still flagging which names diverge from their peers.
+    _crst = read_existing("data/credit-stress.json") or {}
+    _cdspe = read_existing("data/cds-proxy.json") or {}
+    ig_oas_pct = (_crst.get("ig_oas") or _cdspe.get("ig_oas")
+                  or (_crst.get("spreads") or {}).get("ig_oas"))
+    try:
+        ig_oas_pct = float(ig_oas_pct)
+        if not (0.3 <= ig_oas_pct <= 12.0):
+            ig_oas_pct = None
+    except (TypeError, ValueError):
+        ig_oas_pct = None
+    IG_OAS_NORMAL = 1.6   # mid-cycle ICE BofA IG OAS, %
+
+    def market_anchor_cds(rows, base_anchor_bp, tilt_k=1.15,
+                          tilt_lo=0.50, tilt_hi=2.30):
+        """Re-level each name's synthetic CDS onto the observable credit
+        market. anchor = base x (IG OAS / normal); each name is tilted off
+        the group-median distance-to-default, the tilt bounded so no name
+        runs away from a realistic spread. Returns the anchor (bp)."""
+        dds = sorted(x["distance_to_default"] for x in rows
+                     if isinstance(x.get("distance_to_default"),
+                                   (int, float)))
+        if not dds:
+            return None
+        med = dds[len(dds) // 2]
+        cycle = (ig_oas_pct / IG_OAS_NORMAL) if ig_oas_pct else 1.0
+        anchor = base_anchor_bp * cycle
+        for x in rows:
+            dd = x.get("distance_to_default")
+            x["structural_cds_raw_bp"] = x.get("synthetic_cds_bp")
+            if not isinstance(dd, (int, float)) or dd <= 0 or med <= 0:
+                x["synthetic_cds_bp"] = round(anchor, 1)
+                continue
+            tilt = clamp((med / dd) ** tilt_k, tilt_lo, tilt_hi)
+            x["synthetic_cds_bp"] = round(anchor * tilt, 1)
+        return round(anchor, 1)
+
+    bank_anchor_bp = market_anchor_cds(banks, 58.0)
+    corp_anchor_bp = market_anchor_cds(corporates, 50.0, tilt_lo=0.40,
+                                       tilt_hi=2.60)
+
+    # sort riskiest first — widest (calibrated) synthetic spread
     banks.sort(key=lambda x: x["synthetic_cds_bp"], reverse=True)
     corporates.sort(key=lambda x: x["synthetic_cds_bp"], reverse=True)
 
@@ -482,6 +545,16 @@ def lambda_handler(event, context):
             "model": "CreditGrades structural model (equity-to-CDS bridge, "
                      "5-year horizon)",
             "primary_signal": "peer_relative_rank",
+            "calibration": {
+                "method": "market-anchored — synthetic CDS level pinned to "
+                          "ICE BofA IG OAS, structural distance-to-default "
+                          "drives a bounded cross-sectional tilt",
+                "ig_oas_pct": ig_oas_pct,
+                "bank_anchor_bp": bank_anchor_bp,
+                "corporate_anchor_bp": corp_anchor_bp,
+                "note": "structural_cds_raw_bp on each name is the "
+                        "un-anchored model output, retained for transparency",
+            },
             "risk_free_1y_pct": round(r * 100, 2),
             "recovery_assumption": CG_R,
             "banks": banks,
