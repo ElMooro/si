@@ -1,0 +1,53 @@
+{
+ "ops": 877,
+ "ts": "2026-05-19T12:13:44.299484+00:00",
+ "subject": "Redeploy chart-patterns from the fixed source and validate every pattern row's marks land inside its chart series",
+ "checks": [
+  {
+   "check": "redeploy_ok",
+   "ok": true,
+   "detail": "chart-patterns redeployed from fixed source"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "scanned 503, 453 with a signal in 6.9s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "data/chart-patterns.json read"
+  },
+  {
+   "check": "all_crossover_rows_well_formed",
+   "ok": true,
+   "detail": "49 crossover rows checked, 0 malformed"
+  },
+  {
+   "check": "all_pattern_marks_in_range",
+   "ok": true,
+   "detail": "60 pattern rows checked, 0 malformed"
+  }
+ ],
+ "sample_pattern": {
+  "key": "double_tops",
+  "symbol": "CLX",
+  "status": "CONFIRMED",
+  "quality": 99,
+  "series_len": 200,
+  "first_mark_idx": 24
+ },
+ "summary": "5/5 checks passed",
+ "all_passed": true,
+ "scan": {
+  "universe_size": 503,
+  "n_with_signal": 453,
+  "counts": {
+   "cross_up_200dma": 25,
+   "cross_down_200dma": 24,
+   "double_tops": 382,
+   "double_bottoms": 404
+  }
+ },
+ "verdict": "CHART PATTERN SCANNER FULLY VERIFIED - the series-length fix holds across the whole output: every crossover series is a [date,close,ma] triple and every double top/bottom peak and trough lands inside its own chart window. The scanner is live, scheduled daily, and the protected Stock Screener is untouched."
+}
