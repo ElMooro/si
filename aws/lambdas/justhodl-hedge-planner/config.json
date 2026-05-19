@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-hedge-planner",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm Hedge Execution Planner - turns the Tail Hedge Overlay sleeve into a worked order ticket. Tracks the standing sleeve, emits the rebalance delta (open/add/trim/roll/switch/harvest), regime-gated with pre-trade checks. data/hedge-planner.json.",
+ "environment": {
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-hedge-planner-daily",
+  "cron": "cron(0 5 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm Hedge Execution Planner - daily 05:00 UTC via Amazon EventBridge Scheduler, after the Tail Hedge Overlay (04:30), so it always plans against a fresh sleeve target."
+ }
+}
