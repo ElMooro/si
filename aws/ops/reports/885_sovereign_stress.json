@@ -1,0 +1,63 @@
+{
+ "ops": 885,
+ "ts": "2026-05-19T14:26:45.827812+00:00",
+ "subject": "Verify sovereign-default stress (euro periphery + EM sovereign) in the Global Stress Matrix",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from source with sovereign panel"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=43, sovereign=24, build 2.4s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "sovereign_panel_present",
+   "ok": true,
+   "detail": "sovereign stress 24 (CALM)"
+  },
+  {
+   "check": "euro_periphery_read",
+   "ok": true,
+   "detail": "euro periphery 44 (DISPERSION) -- widest spread 78.4bp, periphery avg 52.1bp"
+  },
+  {
+   "check": "em_sovereign_read",
+   "ok": true,
+   "detail": "EM sovereign 3 (CALM) -- EMB vs UST drawdown 0.4%, 1m ratio 0.3%"
+  },
+  {
+   "check": "at_least_one_sovereign_subread",
+   "ok": true,
+   "detail": "euro=True, em=True"
+  },
+  {
+   "check": "sovereign_feeds_gsi",
+   "ok": true,
+   "detail": "Global Stress Index 43 (ELEVATED) -- six-component blend incl. sovereign 24"
+  },
+  {
+   "check": "page_renders_sovereign",
+   "ok": true,
+   "detail": "HTTP 200, Sovereign Stress card rendered"
+  }
+ ],
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "sovereign_stress": 24,
+  "euro_periphery": 44,
+  "euro_regime": "DISPERSION",
+  "em_sovereign": 3,
+  "emb_vs_ust_drawdown_pct": 0.4,
+  "global_stress_index": 43
+ },
+ "verdict": "SOVEREIGN STRESS LIVE - the Global Stress Matrix now reads sovereign-default risk: euro-area periphery via the BTP/Bonos-Bund fragmentation spreads, and EM USD sovereign debt via EMB versus Treasuries. Sovereign stress is folded into the Global Stress Index alongside the market matrix, credit, the VIX, rate volatility and contagion -- a six-dimension institutional stress index."
+}
