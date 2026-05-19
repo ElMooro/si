@@ -1,0 +1,79 @@
+{
+ "ops": 860,
+ "ts": "2026-05-19T00:28:52.984600+00:00",
+ "subject": "Deploy + verify justhodl-cro-digest (the CRO Morning Brief - pushes the Risk Desk verdict and today's hedge ticket to Telegram each morning)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-cro-digest-daily"
+  },
+  {
+   "check": "dry_run_invoke_ok",
+   "ok": true,
+   "detail": "status 200, ok=True"
+  },
+  {
+   "check": "brief_has_all_sections",
+   "ok": true,
+   "detail": "all 5 sections present"
+  },
+  {
+   "check": "brief_within_telegram_cap",
+   "ok": true,
+   "detail": "brief is 983 chars vs the 4096 Telegram cap"
+  },
+  {
+   "check": "brief_posture_valid",
+   "ok": true,
+   "detail": "posture=AMBER action=HOLD"
+  },
+  {
+   "check": "real_send_ok",
+   "ok": true,
+   "detail": "sent=True message_id=2200 info=sent"
+  },
+  {
+   "check": "digest_persisted",
+   "ok": true,
+   "detail": "cro-digest.json sent=True message_id=2200"
+  },
+  {
+   "check": "digest_matches_live_stack",
+   "ok": true,
+   "detail": "digest posture=AMBER vs board=AMBER | digest action=HOLD vs planner=HOLD"
+  },
+  {
+   "check": "history_appended",
+   "ok": true,
+   "detail": "1 snapshot(s), last 2026-05-19"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(15 12 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "11/11 checks passed",
+ "all_passed": true,
+ "cro_digest": {
+  "firm_posture": "AMBER",
+  "hedge_action": "HOLD",
+  "action_required": false,
+  "posture_changed": false,
+  "n_alert": 0,
+  "n_watch": 1,
+  "feeds_fresh": 12,
+  "char_count": 983,
+  "message_id": 2200,
+  "schedule": "12:15 UTC daily"
+ },
+ "verdict": "CRO MORNING BRIEF LIVE - the firm risk stack now sends a daily CRO note to Telegram. Today's brief (firm posture AMBER, hedge action HOLD, 0 alert / 1 watch, 12/12 feeds fresh) assembled, verified under the 4096-char cap, and delivered end-to-end (Telegram message_id 2200). Reflects the live Firm Risk Board and Hedge Planner. Runs daily 12:15 UTC after the overnight stack."
+}
