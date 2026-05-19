@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-vrp",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Volatility risk premium engine - implied vol minus realized vol. Daily computes equity-index VRP at 9d/30d/3m tenors, its percentile and z-score, the ex-post realized premium, and a RICH/NORMAL/THIN/INVERTED regime. data/vrp.json.",
+ "environment": {
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-vrp-daily",
+  "cron": "cron(30 22 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Volatility risk premium engine - daily 22:30 UTC via Amazon EventBridge Scheduler, after the US cash close so it scores against the settled VIX and SPY closes."
+ }
+}

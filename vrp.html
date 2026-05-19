@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volatility Risk Premium &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127786;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--purple)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:900px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .reg{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:1px;margin-bottom:7px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:110px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px}
+.stat .sx{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.interp{display:flex;gap:8px;flex-wrap:wrap}
+.icard{flex:1;min-width:240px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+.icard .it{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.icard .ib{font-size:12.5px;color:var(--mute);line-height:1.6}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:right;color:var(--dim);font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:7px 10px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--line);color:var(--mute)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#127786; Volatility Risk Premium</h1>
+    <p class="subtitle">Implied volatility minus realized volatility &mdash; what the options market charges to underwrite vol insurance, over and above the vol that actually occurs. RICH means selling vol is well paid (and complacency); THIN means the premium is compressed; INVERTED &mdash; realized above implied &mdash; is an early stress signal.</p>
+    <nav class="crumbs">
+      <a href="/vix-curve.html">vix curve</a>
+      <a href="/vol-regime.html">vol regime</a>
+      <a href="/tail-hedge.html">tail hedge</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING VRP&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const COL={green:"var(--green)",red:"var(--red)",orange:"var(--orange)",yellow:"var(--yellow)",cyan:"var(--cyan)",purple:"var(--purple)",dim:"var(--dim)"};
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const f1=v=>v==null?"&mdash;":Number(v).toFixed(1);
+const f2=v=>v==null?"&mdash;":Number(v).toFixed(2);
+const sgn=v=>v==null?"&mdash;":((v>=0?"+":"")+Number(v).toFixed(1));
+
+function vrpChart(dates,vals,lineColor){
+  const W=920,H=170,pl=44,pr=12,pt=12,pb=22;
+  const pts=vals.map((v,i)=>[i,v]).filter(p=>p[1]!=null);
+  if(pts.length<2)return '<div style="color:var(--dim);font-family:var(--mono);font-size:11px">insufficient series</div>';
+  const ys=pts.map(p=>p[1]);
+  let lo=Math.min(0,...ys),hi=Math.max(0,...ys);
+  const pad=(hi-lo)*0.12||1;lo-=pad;hi+=pad;
+  const n=vals.length-1;
+  const X=i=>pl+(i/n)*(W-pl-pr);
+  const Y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
+  const d=pts.map((p,k)=>(k?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  const zeroY=Y(0);
+  let g="";
+  [hi,(hi+lo)/2,lo].forEach(v=>{
+    g+='<line x1="'+pl+'" y1="'+Y(v).toFixed(1)+'" x2="'+(W-pr)+'" y2="'+Y(v).toFixed(1)+'" stroke="#1c2433"/>'+
+       '<text x="'+(pl-6)+'" y="'+(Y(v)+3).toFixed(1)+'" fill="#6f7b91" font-size="9" text-anchor="end" font-family="monospace">'+v.toFixed(1)+'</text>';
+  });
+  // zero reference line emphasised
+  g+='<line x1="'+pl+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-pr)+'" y2="'+zeroY.toFixed(1)+'" stroke="#ff5577" stroke-dasharray="3 3" stroke-width="1"/>';
+  const fillTop=Y(Math.max(...ys));
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="none" style="display:block">'+
+    g+
+    '<path d="'+d+'" fill="none" stroke="'+lineColor+'" stroke-width="1.6"/>'+
+    '<text x="'+pl+'" y="'+(H-6)+'" fill="#6f7b91" font-size="9" font-family="monospace">'+esc(dates[0]||"")+'</text>'+
+    '<text x="'+(W-pr)+'" y="'+(H-6)+'" fill="#6f7b91" font-size="9" text-anchor="end" font-family="monospace">'+esc(dates[dates.length-1]||"")+'</text>'+
+    '</svg>';
+}
+
+fetch(S3+"vrp.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d){document.getElementById("root").innerHTML='<div class="loading">VRP UNAVAILABLE</div>';return;}
+  const rc=COL[d.regime_color]||"var(--dim)";
+  const v=d.vrp||{},im=d.implied||{},rv=d.realized||{},ip=d.interpretation||{};
+  let h="";
+
+  h+='<div class="hero" style="border-left-color:'+rc+'">'+
+    '<div class="ptag">VRP regime &middot; 30-day equity</div>'+
+    '<div class="reg" style="color:'+rc+'">'+esc(d.regime||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  const st=[
+    ["VRP 30d",sgn(v.vrp_30d),"implied &minus; realized",rc],
+    ["Percentile 1y",v.vrp_30d_percentile_1y==null?"&mdash;":(Number(v.vrp_30d_percentile_1y).toFixed(0)+"%"),"vs trailing year","var(--cyan)"],
+    ["Implied (VIX)",f1(im.vix),"30-day implied vol","var(--mute)"],
+    ["Realized 21d",f1(rv.rv_21d),"SPY close-to-close","var(--mute)"],
+    ["Ex-post VRP",sgn(v.expost_vrp_mean),"did the premium pay?",(v.expost_vrp_mean!=null&&v.expost_vrp_mean>=0)?"var(--green)":"var(--orange)"],
+  ];
+  h+='<div class="stats">'+st.map(s=>
+    '<div class="stat"><div class="sl">'+s[0]+'</div>'+
+    '<div class="sv" style="color:'+s[3]+'">'+s[1]+'</div>'+
+    '<div class="sx">'+s[2]+'</div></div>').join("")+'</div>';
+
+  // VRP time series chart
+  const ser=d.series||{};
+  h+='<div class="sechead">VRP &mdash; trailing year <small style="color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px">&mdash; red dashed line = zero; below it the premium is inverted</small></div>';
+  h+='<div class="chartbox">'+vrpChart(ser.dates||[],ser.vrp_30d||[],rc)+'</div>';
+
+  // term structure of VRP
+  h+='<div class="sechead">VRP Term Structure</div>';
+  h+='<table><tr><th>Tenor</th><th>Implied</th><th>Realized</th><th>VRP</th></tr>'+
+     '<tr><td>9-day</td><td>'+f1(im.vix9d)+'</td><td>'+f1(rv.rv_10d)+'</td>'+
+       '<td style="color:'+rc+'">'+sgn(v.vrp_9d)+'</td></tr>'+
+     '<tr><td>30-day</td><td>'+f1(im.vix)+'</td><td>'+f1(rv.rv_21d)+'</td>'+
+       '<td style="color:'+rc+'">'+sgn(v.vrp_30d)+'</td></tr>'+
+     '<tr><td>3-month</td><td>'+f1(im.vix3m)+'</td><td>'+f1(rv.rv_63d)+'</td>'+
+       '<td style="color:'+rc+'">'+sgn(v.vrp_3m)+'</td></tr></table>'+
+     '<p class="note">Shape: <b style="color:var(--txt)">'+esc(v.term_structure||"--")+'</b>'+
+     ' &nbsp;&middot;&nbsp; realized 63d Garman-Klass cross-check: '+f1(rv.rv_garman_klass_21d)+
+     ' &nbsp;&middot;&nbsp; VRP z-score '+f2(v.vrp_30d_zscore_1y)+
+     ' &nbsp;&middot;&nbsp; 1y range '+f1(v.vrp_30d_min_1y)+' to '+f1(v.vrp_30d_max_1y)+
+     ' &nbsp;&middot;&nbsp; ex-post positive '+(v.expost_positive_pct==null?"&mdash;":Number(v.expost_positive_pct).toFixed(0)+"%")+' of windows.</p>';
+
+  // interpretation
+  h+='<div class="sechead">Read</div>';
+  h+='<div class="interp">'+
+     '<div class="icard"><div class="it" style="color:var(--green)">For vol-sellers</div>'+
+       '<div class="ib">'+esc(ip.for_vol_sellers||"--")+'</div></div>'+
+     '<div class="icard"><div class="it" style="color:var(--orange)">For hedgers</div>'+
+       '<div class="ib">'+esc(ip.for_hedgers||"--")+'</div></div></div>';
+
+  if(d.desk_note&&d.desk_note!==d.headline)
+    h+='<p class="note">'+esc(d.desk_note)+'</p>';
+  h+='<p class="note">'+esc(d.how_to_read||"")+'</p>';
+  h+='<div class="timestamp">computed '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+
+     ' UTC &middot; '+(rv.n_bars||0)+' SPY bars</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">VRP UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
