@@ -61,6 +61,15 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:14px}
 .note{color:var(--dim);font-size:11px;margin-top:12px;line-height:1.6}
+.tape{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 15px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.tape .tband{display:flex;flex-direction:column;gap:3px;min-width:128px}
+.tape .tk{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.tape .tsev{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:1px}
+.tape .tmsg{font-size:11.5px;color:var(--mute);flex:1;min-width:210px;line-height:1.55}
+.tape .gauges{display:flex;gap:6px;flex-wrap:wrap}
+.gchip{font-family:var(--mono);font-size:10px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:5px 8px;text-align:center;min-width:52px}
+.gchip .gn{color:var(--dim);font-size:8px;letter-spacing:.5px}
+.gchip .gv{font-weight:700;margin-top:1px}
 </style>
 </head>
 <body>
@@ -140,9 +149,12 @@ function ageLabel(h){
   return Math.round(h/24)+"d ago";
 }
 
-Promise.all(GROUPS.flatMap(g=>g.items).map(it=>
-  fetch(S3+it.json+"?t="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
-)).then(all=>{
+Promise.all([
+  Promise.all(GROUPS.flatMap(g=>g.items).map(it=>
+    fetch(S3+it.json+"?t="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
+  )),
+  fetch(S3+"cro-escalation.json?t="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
+]).then(([all,intraday])=>{
   const flat=GROUPS.flatMap(g=>g.items);
   const data={};
   flat.forEach((it,i)=>data[it.k]=all[i]);
@@ -189,6 +201,64 @@ Promise.all(GROUPS.flatMap(g=>g.items).map(it=>
       '<div class="stat"><div class="sl">'+s[0]+'</div><div class="sv" style="font-size:'+
       (String(s[1]).length>9?"12px":"18px")+';color:'+s[2]+'">'+s[1]+'</div></div>').join("")+'</div>';
   }
+
+  // ---- INTRADAY TAPE STRIP -------------------------------------------------
+  // The hero above is the overnight batch verdict; this strip is the live
+  // intraday read from the cro-escalation tripwire, so the cockpit shows
+  // "right now", not just the morning state.
+  (function(){
+    const SEVCOL={CLEAR:"var(--green)",WATCH:"var(--yellow)",
+                  ALERT:"var(--orange)",SEVERE:"var(--red)"};
+    let label="--",col="var(--dim)",msg="",meta="",gaugesHtml="";
+    if(!intraday){
+      label="--";msg="Intraday tape feed unavailable.";
+    }else if(intraday.simulated){
+      label="STANDBY";
+      msg="Last write was a verification test. A live reading lands at the next intraday checkpoint (14 / 16 / 18 / 20 UTC).";
+      meta="awaiting live read";
+    }else{
+      const ageMin=intraday.generated_at
+        ?(Date.now()-Date.parse(intraday.generated_at))/60000:null;
+      const stale=ageMin==null||ageMin>200;
+      if(stale){
+        label=intraday.severity_label||"--";
+        msg="Last intraday read "+(ageMin!=null?Math.round(ageMin/60)+"h ago":"time unknown")+
+            " \u2014 awaiting the next session checkpoint.";
+        meta="between checkpoints";
+      }else{
+        label=intraday.severity_label||"CLEAR";
+        col=SEVCOL[label]||"var(--cyan)";
+        const trips=intraday.tripped||[];
+        msg=trips.length
+          ?trips.slice(0,2).map(esc).join(" &middot; ")
+          :"Tape calm \u2014 no intraday tripwire. The morning brief still stands.";
+        ["SPY","QQQ","HYG","TLT","VIX"].forEach(g=>{
+          const row=(intraday.tape||{})[g]; if(!row) return;
+          const pct=row.day_pct;
+          const gc=(typeof pct!=="number")?"var(--dim)"
+            :(pct>=0?"var(--green)":"var(--red)");
+          const pv=(typeof pct!=="number")?"n/a"
+            :((pct>=0?"+":"")+pct.toFixed(1)+"%");
+          const lvl=(g==="VIX"&&typeof row.price==="number")
+            ?(" "+row.price.toFixed(0)):"";
+          gaugesHtml+='<div class="gchip"><div class="gn">'+g+lvl+
+            '</div><div class="gv" style="color:'+gc+'">'+pv+'</div></div>';
+        });
+        const np=(intraday.day_state||{}).n_pings||0;
+        meta=(np>0?("&#9888; "+np+" escalation"+(np>1?"s":"")+" pushed today")
+                  :"no escalations today")+
+             " &middot; checkpoint "+esc(intraday.checkpoint_utc||"--")+" UTC";
+      }
+    }
+    h+='<div class="tape" style="border-left:4px solid '+col+'">'+
+      '<div class="tband"><div class="tk">Intraday Tape &middot; live</div>'+
+        '<div class="tsev" style="color:'+col+'">'+esc(label)+'</div></div>'+
+      '<div class="tmsg">'+msg+
+        (meta?'<br><span style="color:var(--dim);font-family:var(--mono);'+
+              'font-size:9px">'+meta+'</span>':'')+'</div>'+
+      (gaugesHtml?'<div class="gauges">'+gaugesHtml+'</div>':'')+
+      '</div>';
+  })();
 
   // ---- RISK STACK STATUS BOARD --------------------------------------------
   const flatAll=GROUPS.flatMap(g=>g.items);
