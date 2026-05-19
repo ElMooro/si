@@ -1,0 +1,31 @@
+{
+ "ops": 869,
+ "ts": "2026-05-19T02:38:12.210237+00:00",
+ "subject": "Verify the econ-calendar -> morning intelligence brief wiring (deployed artifact + live feed + render transform)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "code updated, runtime=python3.12"
+  },
+  {
+   "check": "deployed_artifact_has_integration",
+   "ok": true,
+   "detail": "econ_calendar feed key=True, econ_next_major metric=True, ECON_CALENDAR brief line=True"
+  },
+  {
+   "check": "live_feed_fresh_and_shaped",
+   "ok": true,
+   "detail": "feed_status=ok, age=0.4h, next_major/counts/tally present=True"
+  },
+  {
+   "check": "brief_line_renders_with_real_data",
+   "ok": true,
+   "detail": "ECON_CALENDAR: next major US release: FOMC Minutes in 1d (consensus ?). This week: 68 releases, 2 tier-1 - FOMC Minutes (2026-05-20); Initial Jobless Claims (May/16) (2026-05-21). Recent surprises: 44"
+  }
+ ],
+ "rendered_brief_line": "ECON_CALENDAR: next major US release: FOMC Minutes in 1d (consensus ?). This week: 68 releases, 2 tier-1 - FOMC Minutes (2026-05-20); Initial Jobless Claims (May/16) (2026-05-21). Recent surprises: 44 above / 30 below consensus.",
+ "summary": "4/4 checks passed",
+ "all_passed": true,
+ "verdict": "ECON CALENDAR WIRED INTO THE MORNING BRIEF - the deployed morning-intelligence artifact carries the integration, the live econ-calendar feed is fresh and well-shaped, and the extraction transform renders a real ECON_CALENDAR line. From the next 8AM ET run the brief opens the day with the macro release schedule."
+}
