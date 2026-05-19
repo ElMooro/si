@@ -1,0 +1,94 @@
+{
+ "ops": 865,
+ "ts": "2026-05-19T01:41:52.968718+00:00",
+ "subject": "Deploy + verify justhodl-hedge-pnl (the Hedge Overlay Scorecard - scores whether the tail-hedge overlay is earning its carry)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-hedge-pnl-daily"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200, ok=True"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-hedge-pnl"
+  },
+  {
+   "check": "maturity_valid",
+   "ok": true,
+   "detail": "maturity=WARMING"
+  },
+  {
+   "check": "verdict_valid",
+   "ok": true,
+   "detail": "verdict=WARMING"
+  },
+  {
+   "check": "spy_history_loaded",
+   "ok": true,
+   "detail": "1254 SPY trading days loaded from FMP"
+  },
+  {
+   "check": "daily_marks_well_formed",
+   "ok": true,
+   "detail": "1 daily mark(s), all carry/payoff/pnl-bearing"
+  },
+  {
+   "check": "pnl_reconciles",
+   "ok": true,
+   "detail": "net -0.0037 == payoff 0.0000 - carry 0.0037"
+  },
+  {
+   "check": "carry_efficiency_consistent",
+   "ok": true,
+   "detail": "efficiency=0.0 vs payoff/carry=0.0"
+  },
+  {
+   "check": "track_has_scored_days",
+   "ok": true,
+   "detail": "1 scored day(s), cumulative carry 0.0037%"
+  },
+  {
+   "check": "page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, scorecard page live"
+  },
+  {
+   "check": "directory_links_page",
+   "ok": true,
+   "detail": "directory 200, link present"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(30 5 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "14/14 checks passed",
+ "all_passed": true,
+ "hedge_pnl": {
+  "maturity": "WARMING",
+  "verdict": "WARMING",
+  "n_days": 1,
+  "n_stress_days": 0,
+  "cumulative_carry_pct": 0.0037,
+  "cumulative_payoff_pct": 0.0,
+  "net_overlay_pnl_pct": -0.0037,
+  "carry_efficiency": 0.0,
+  "cover_per_carry": 1.3,
+  "schedule": "05:30 UTC daily"
+ },
+ "verdict": "HEDGE OVERLAY SCORECARD LIVE - the firm can now see whether the tail hedge is earning its carry. Today's read: WARMING (WARMING) over a 1-day track - 0.0037% carry bled, 0.0000% convex payoff, net -0.0037%. The arithmetic reconciles, the FMP history path works, the page is live. Runs daily 05:30 UTC."
+}
