@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dollar Radar &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128181;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:980px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px}
+.hero .pnum{font-family:var(--mono);font-size:13px;color:var(--mute);margin-bottom:8px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6}
+.pbar{height:14px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;margin:10px 0 4px;position:relative;overflow:hidden}
+.pbar .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--dim)}
+.pbar i{position:absolute;top:0;bottom:0;display:block}
+.pscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.canary{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:10px 12px;margin-bottom:7px}
+.canary .dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.canary .cb{flex:1}
+.canary .cn{font-family:var(--mono);font-size:11.5px;color:var(--txt);display:flex;justify-content:space-between;gap:10px}
+.canary .cn b{font-weight:400;color:var(--mute)}
+.canary .cd{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:3px;line-height:1.5}
+.sig{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px;border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 13px}
+.card .ct{font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:1px}
+.card .cs{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-bottom:6px}
+.card .cm{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-bottom:6px}
+.card .cm b{color:var(--txt)}
+.chart{width:100%;height:170px}
+.chart.big{height:240px}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.tbl th{text-align:right;color:var(--dim);font-weight:400;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;padding:6px 9px;border-bottom:1px solid var(--line)}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:right;color:var(--mute)}
+.tbl td b{color:var(--txt)}
+.pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:5px;border:1px solid}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128181; Dollar Radar</h1>
+    <p class="subtitle">One read on whether the dollar is set up to <b>pump</b> or <b>dump</b>, and why. The Dollar Pressure score is a weighted vote of ten leading canaries &mdash; net liquidity, QE/QT, the RRP and TGA plumbing, real yields, the US&ndash;Germany rate gap, the VIX safe-haven bid, credit spreads, dollar momentum and offshore funding stress. Liquidity <em>in</em> (QE, RRP drain, TGA drawdown) weighs the dollar down; liquidity <em>out</em> (QT, RRP build, TGA rebuild) holds it up. Plus the full FRED trade-weighted dollar family and double top/bottom detection.</p>
+    <nav class="crumbs">
+      <a href="/dxy.html">dxy</a>
+      <a href="/liquidity.html">liquidity</a>
+      <a href="/global-stress.html">global stress</a>
+      <a href="/crisis.html">crisis</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">SCANNING THE DOLLAR&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+let charts=[];
+
+function sigColor(s){
+  return s==="PUMP"?"var(--green)":(s==="DUMP"?"var(--red)":"var(--dim)");
+}
+function regimeColor(r){
+  if(!r)return "var(--dim)";
+  if(r.indexOf("PUMP")>=0)return "var(--green)";
+  if(r.indexOf("DUMP")>=0)return "var(--red)";
+  return "var(--yellow)";
+}
+function pctCell(v){
+  if(v==null)return '<td>&mdash;</td>';
+  const c=v>0?"var(--green)":(v<0?"var(--red)":"var(--mute)");
+  return '<td style="color:'+c+'">'+(v>0?"+":"")+v+'%</td>';
+}
+
+function canaryRow(c){
+  const col=sigColor(c.signal);
+  return '<div class="canary"><div class="dot" style="background:'+col+'"></div>'+
+    '<div class="cb"><div class="cn"><span>'+esc(c.label)+'</span>'+
+    '<b>'+esc(c.reading)+'</b></div>'+
+    '<div class="cd">'+esc(c.detail)+'</div></div>'+
+    '<span class="sig" style="color:'+col+';border-color:'+col+'">'+
+    esc(c.signal)+'</span></div>';
+}
+
+function baseOpt(){
+  return {animation:false,grid:{left:48,right:14,top:12,bottom:22},
+    xAxis:{type:"category",boundaryGap:false,axisLine:{lineStyle:{color:"#1c2433"}},
+      axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace"},splitLine:{show:false}},
+    yAxis:{type:"value",scale:true,axisLine:{show:false},axisTick:{show:false},
+      axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace"},
+      splitLine:{lineStyle:{color:"#141a24"}}},
+    tooltip:{trigger:"axis",backgroundColor:"#0f131a",borderColor:"#1c2433",
+      textStyle:{color:"#e6eaf2",fontSize:11}}};
+}
+function lineChart(el,series,color,extra){
+  const o=baseOpt();
+  o.xAxis.data=series.map(p=>p[0]);
+  o.series=[{type:"line",data:series.map(p=>p[1]),showSymbol:false,
+    lineStyle:{color:color,width:1.8},
+    areaStyle:{color:color,opacity:0.06}}];
+  if(extra)extra(o);
+  el.setOption(o);
+}
+
+function build(d){
+  charts=[];
+  const press=(d.dollar_pressure==null?0:d.dollar_pressure);
+  const rc=regimeColor(d.regime);
+  // hero
+  let h='<div class="hero" style="border-left-color:'+rc+'">'+
+    '<div class="ptag">Dollar Pressure</div>'+
+    '<div class="post" style="color:'+rc+'">'+esc(d.regime||"UNKNOWN")+'</div>'+
+    '<div class="pnum">'+(press>0?"+":"")+press+' / 100 &middot; '+
+    esc(d.canaries_pump||0)+' canaries lean pump &middot; '+
+    esc(d.canaries_dump||0)+' lean dump</div>';
+  // pressure bar (-100..+100, center 0)
+  const w=Math.min(50,Math.abs(press)/2);
+  const left=press>=0?50:(50-w);
+  h+='<div class="pbar"><div class="mid"></div>'+
+    '<i style="left:'+left+'%;width:'+w+'%;background:'+rc+'"></i></div>'+
+    '<div class="pscale"><span>-100 DUMP</span><span>0</span><span>PUMP +100</span></div>'+
+    '<div class="hl" style="margin-top:8px">'+esc(d.headline||"")+'</div></div>';
+
+  // canaries
+  let can='<div class="sechead">Pump / Dump Canaries</div>';
+  (d.canaries||[]).forEach(c=>{can+=canaryRow(c);});
+
+  // technicals chart
+  const t=d.technicals||{};
+  let tech="";
+  if(t.series&&t.series.length){
+    let pat="";
+    const dt=t.double_top,db=t.double_bottom;
+    if(dt)pat='<span class="pill" style="color:var(--red);border-color:var(--red)">DOUBLE TOP '+esc(dt.status)+'</span>';
+    else if(db)pat='<span class="pill" style="color:var(--green);border-color:var(--green)">DOUBLE BOTTOM '+esc(db.status)+'</span>';
+    tech='<div class="sechead">Dollar Index Technicals</div>'+
+      '<div class="card"><div class="ct">'+esc(t.index||"Dollar Index")+' '+pat+'</div>'+
+      '<div class="cm">Level <b>'+esc(t.level)+'</b> &middot; vs 50d <b>'+
+      (t.pct_vs_sma50!=null?(t.pct_vs_sma50>0?"+":"")+t.pct_vs_sma50+"%":"&mdash;")+
+      '</b> &middot; vs 200d <b>'+
+      (t.pct_vs_sma200!=null?(t.pct_vs_sma200>0?"+":"")+t.pct_vs_sma200+"%":"&mdash;")+
+      '</b> &middot; 1y range <b>'+(t.range_pctile_1y!=null?t.range_pctile_1y+"%ile":"&mdash;")+
+      '</b></div><div class="chart big" id="ch_tech"></div></div>';
+  }
+
+  // indices
+  let idx='<div class="sechead">FRED Trade-Weighted Dollar Family</div><div class="grid2">';
+  (d.indices||[]).forEach((it,i)=>{
+    idx+='<div class="card"><div class="ct">'+esc(it.name)+'</div>'+
+      '<div class="cs">'+esc(it.fred_id)+' &middot; '+esc(it.frequency)+'</div>'+
+      '<div class="cm">Level <b>'+esc(it.level)+'</b> &middot; 1m '+
+      fmtChg(it.chg_1m_pct)+' &middot; 3m '+fmtChg(it.chg_3m_pct)+
+      ' &middot; 1y '+fmtChg(it.chg_1y_pct)+'</div>'+
+      '<div class="chart" id="ch_idx'+i+'"></div></div>';
+  });
+  idx+='</div>';
+
+  // bilaterals table
+  let bil='<div class="sechead">Bilateral Crosses &middot; USD strength vs</div>'+
+    '<table class="tbl"><thead><tr><th>Currency</th><th>1M</th><th>3M</th><th>1Y</th></tr></thead><tbody>';
+  (d.bilaterals||[]).forEach(b=>{
+    bil+='<tr><td><b>'+esc(b.currency)+'</b></td>'+
+      pctCell(b.chg_1m_pct)+pctCell(b.chg_3m_pct)+pctCell(b.chg_1y_pct)+'</tr>';
+  });
+  bil+='</tbody></table>';
+
+  const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"";
+  const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
+    esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
+
+  document.getElementById("root").innerHTML=h+can+tech+idx+bil+note;
+
+  // render charts
+  if(t.series&&t.series.length){
+    const el=echarts.init(document.getElementById("ch_tech"));
+    lineChart(el,t.series,"#26ffaf",o=>{
+      const marks=[];
+      if(t.double_top){[t.double_top.extreme_1,t.double_top.extreme_2].forEach(p=>
+        marks.push({name:"peak",xAxis:p.date,yAxis:p.level}));}
+      if(t.double_bottom){[t.double_bottom.extreme_1,t.double_bottom.extreme_2].forEach(p=>
+        marks.push({name:"trough",xAxis:p.date,yAxis:p.level}));}
+      const neck=t.double_top?t.double_top.neckline:(t.double_bottom?t.double_bottom.neckline:null);
+      if(marks.length)o.series[0].markPoint={symbolSize:9,data:marks,
+        itemStyle:{color:"#ffd266"},label:{show:false}};
+      if(neck!=null)o.series[0].markLine={symbol:"none",silent:true,
+        data:[{yAxis:neck}],lineStyle:{color:"#a8b3c7",type:"dotted"},
+        label:{formatter:"neckline",color:"#a8b3c7",fontSize:9,fontFamily:"monospace"}};
+    });
+    charts.push(el);
+  }
+  (d.indices||[]).forEach((it,i)=>{
+    const node=document.getElementById("ch_idx"+i);
+    if(node&&it.series&&it.series.length){
+      const el=echarts.init(node);
+      lineChart(el,it.series,"#00d4ff");
+      charts.push(el);
+    }
+  });
+}
+function fmtChg(v){
+  if(v==null)return '<b>&mdash;</b>';
+  const c=v>0?"var(--green)":(v<0?"var(--red)":"var(--mute)");
+  return '<b style="color:'+c+'">'+(v>0?"+":"")+v+'%</b>';
+}
+
+fetch(S3+"dollar-radar.json?t="+Date.now())
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d){document.getElementById("root").innerHTML=
+      '<div class="loading">Dollar Radar unavailable right now.</div>';return;}
+    build(d);
+  })
+  .catch(()=>{document.getElementById("root").innerHTML=
+    '<div class="loading">Dollar Radar unavailable right now.</div>';});
+
+window.addEventListener("resize",()=>{charts.forEach(c=>{try{c.resize();}catch(e){}});});
+</script>
+</body>
+</html>
