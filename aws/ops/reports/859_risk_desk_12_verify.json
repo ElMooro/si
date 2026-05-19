@@ -1,0 +1,36 @@
+{
+ "ops": 859,
+ "ts": "2026-05-19T00:15:33.023846+00:00",
+ "subject": "Re-verify the Risk Desk cockpit after wiring the Hedge Execution Planner in as the twelfth engine tile",
+ "checks": [
+  {
+   "check": "page_deployed_with_exec_group",
+   "ok": true,
+   "detail": "HTTP 200, 17806 bytes, exec group rendered"
+  },
+  {
+   "check": "page_wires_all_12_engines",
+   "ok": true,
+   "detail": "all 12 engine feeds referenced (hedge-planner included)"
+  },
+  {
+   "check": "hedge_planner_tile_populates",
+   "ok": true,
+   "detail": "age 0.1h, action=HOLD, action_color=dim"
+  },
+  {
+   "check": "directory_links_both",
+   "ok": true,
+   "detail": "directory 200, risk-desk linked, hedge-planner linked"
+  }
+ ],
+ "summary": "4/4 checks passed",
+ "all_passed": true,
+ "cockpit": {
+  "page_url": "https://justhodl.ai/risk-desk.html",
+  "engines_on_cockpit": 12,
+  "hedge_planner_action": "HOLD",
+  "hedge_planner_headline": "HOLD -- The standing sleeve already matches the target and is within tenor -- carry it, no trade."
+ },
+ "verdict": "RISK DESK COCKPIT COMPLETE - the Hedge Execution Planner is the twelfth engine tile, in the Synthesis, Hedge & Execution group. The cockpit now carries the full decision spine on one screen: diagnose (Firm Risk Board) -> size (Tail Hedge Overlay) -> execute (Hedge Planner, current action HOLD). All twelve feeds wired, directory linked."
+}
