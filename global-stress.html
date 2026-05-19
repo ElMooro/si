@@ -147,6 +147,24 @@ function dimensions(d){
       rt.rate_vol_bp+"bp", stressColor(rt.stress_score), rsub,
       "sp_rates",rt.stress_score>=75);
   }
+  const sv=d.sovereign;
+  if(sv){
+    let svlines=[];
+    const ep=sv.euro_periphery, em=sv.em_sovereign;
+    if(ep)
+      svlines.push("Euro periphery <b>"+ep.stress_score+"</b> ("+
+        esc(ep.regime||ep.level||"")+")"+
+        (ep.widest_spread_bp!=null
+          ?" \u00b7 widest BTP/Bonos\u2013Bund "+Math.round(ep.widest_spread_bp)+"bp":""));
+    if(em)
+      svlines.push("EM sovereign <b>"+em.stress_score+"</b> ("+esc(em.level)+
+        ") \u00b7 EMB vs UST "+
+        (em.emb_vs_ust_drawdown_pct>0?"\u2212":"")+
+        em.emb_vs_ust_drawdown_pct+"%");
+    cards+=dimCard("Sovereign Stress \u00b7 Periphery & EM", sv.stress_score,
+      stressColor(sv.stress_score), svlines.join("<br>"),
+      (em&&em.series?"sp_sov":null), sv.stress_score>=75);
+  }
   const cg=d.contagion;
   if(cg){
     cards+=dimCard("Cross-Market Contagion", cg.avg_pairwise_correlation,
@@ -284,6 +302,9 @@ function build(d){
       stressHex(d.credit_spreads.composite_score));
   if(d.rates&&d.rates.series)
     spark("sp_rates",d.rates.series,stressHex(d.rates.stress_score));
+  if(d.sovereign&&d.sovereign.em_sovereign&&d.sovereign.em_sovereign.series)
+    spark("sp_sov",d.sovereign.em_sovereign.series,
+      stressHex(d.sovereign.stress_score));
   if(d.safe_haven)
     spark("sp_gold",d.safe_haven.series,"#ffd266");
 }

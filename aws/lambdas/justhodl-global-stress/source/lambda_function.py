@@ -91,6 +91,15 @@ def read_prev_history():
         return {"snapshots": []}
 
 
+def read_sidecar(key):
+    """Read another engine's published JSON; {} if absent."""
+    try:
+        return json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
+
+
 def fred_series(series_id, days=460):
     """FRED observations as [(date, value)] oldest-first; [] on failure."""
     if not FRED_KEY:
@@ -475,6 +484,63 @@ def safe_haven_panel():
             "series": [round(v, 2) for v in vals[-SERIES_BARS:]]}
 
 
+def sovereign_panel():
+    """Sovereign-default stress -- the layer beneath corporate credit.
+
+      Euro-area periphery: the BTP-Bund / Bonos-Bund spreads, read from
+      the dedicated euro-fragmentation engine (the proper spread vs the
+      German Bund benchmark, with a 0-100 fragmentation score).
+
+      EM sovereign: USD emerging-market sovereign debt (EMB) measured
+      against US Treasuries (IEF). A falling EMB/IEF ratio is the
+      EMBI-style sovereign spread widening -- expressed as relative
+      performance, it strips out the common duration move and isolates
+      the sovereign credit component."""
+    out_euro, out_em = None, None
+
+    # --- euro-area periphery (from the fragmentation engine) ---
+    frag = read_sidecar("data/euro-fragmentation.json")
+    fr = frag.get("fragmentation") or {}
+    cvp = frag.get("core_vs_periphery") or {}
+    if isinstance(fr.get("score_0_100"), (int, float)):
+        sc = round(clamp(fr["score_0_100"]))
+        out_euro = {"stress_score": sc, "level": stress_level(sc),
+                    "regime": fr.get("regime"),
+                    "periphery_avg_spread_bp": cvp.get(
+                        "periphery_avg_spread_bp"),
+                    "widest_periphery": cvp.get("widest_periphery"),
+                    "widest_spread_bp": fr.get("widest_spread_bp")}
+
+    # --- EM sovereign: EMB vs US Treasuries (IEF) ---
+    emb = get_closes("EMB")
+    ief = get_closes("IEF")
+    if emb and ief and len(emb) > 70 and len(ief) > 70:
+        n = min(len(emb), len(ief))
+        e = [c for _, c in emb][-n:]
+        t = [c for _, c in ief][-n:]
+        ratio = [e[i] / t[i] for i in range(n) if t[i]]
+        if len(ratio) > 70:
+            last = ratio[-1]
+            hi = max(ratio[-252:]) if len(ratio) >= 252 else max(ratio)
+            dd = (hi - last) / hi * 100.0 if hi else 0.0
+            m1 = ((last / ratio[-22] - 1) * 100
+                  if len(ratio) > 21 else None)
+            # ratio drawdown 0% = calm, ~15% = acute spread blowout
+            sc = round(clamp(dd / 15.0 * 100.0))
+            out_em = {"stress_score": sc, "level": stress_level(sc),
+                      "emb_vs_ust_drawdown_pct": round(dd, 1),
+                      "ratio_change_1m_pct": (round(m1, 1)
+                                              if m1 is not None else None),
+                      "series": [round(r, 4) for r in ratio[-SERIES_BARS:]]}
+
+    scores = [d["stress_score"] for d in (out_euro, out_em) if d]
+    if not scores:
+        return None
+    composite = round(sum(scores) / len(scores))
+    return {"stress_score": composite, "level": stress_level(composite),
+            "euro_periphery": out_euro, "em_sovereign": out_em}
+
+
 def update_history(gsi, market, eq, bd):
     """Append this run to the rolling history and return the snapshots."""
     hist = read_prev_history()
@@ -569,26 +635,30 @@ def lambda_handler(event, context):
 
     # ---- additional stress dimensions ----------------------------------
     iv = implied_vol_panel()         # forward-looking equity fear (VIX)
-    credit = credit_spread_panel()   # HY + IG option-adjusted spreads
+    credit = credit_spread_panel()   # ICE BofA OAS credit ladder
     rates = rates_panel()            # Treasury rate volatility + curve
+    sovereign = sovereign_panel()    # euro-periphery + EM sovereign stress
     contagion = contagion_index(rows)   # cross-market correlation
     breadth = stress_breadth(rows)      # how widespread the stress is
     haven = safe_haven_panel()          # active flight-to-safety demand
 
     # ---- the Global Stress Index: a weighted blend of the market
-    # matrix, credit spreads, equity-implied vol, rate volatility and
-    # contagion, renormalised over whatever components are available ----
+    # matrix, credit spreads, equity-implied vol, rate volatility,
+    # cross-market contagion and sovereign-default stress, renormalised
+    # over whatever components are available this run --------------------
     blend = []
     if market_stress is not None:
-        blend.append((0.34, market_stress))
+        blend.append((0.32, market_stress))
     if credit:
-        blend.append((0.20, credit["composite_score"]))
+        blend.append((0.18, credit["composite_score"]))
     if iv:
-        blend.append((0.18, iv["stress_score"]))
+        blend.append((0.17, iv["stress_score"]))
     if rates:
-        blend.append((0.14, rates["stress_score"]))
+        blend.append((0.13, rates["stress_score"]))
     if contagion:
-        blend.append((0.14, contagion["stress_score"]))
+        blend.append((0.10, contagion["stress_score"]))
+    if sovereign:
+        blend.append((0.10, sovereign["stress_score"]))
     global_stress = None
     if blend:
         wsum = sum(w for w, _ in blend)
@@ -613,6 +683,8 @@ def lambda_handler(event, context):
             extra.append("credit %d" % credit["composite_score"])
         if rates:
             extra.append("rate-vol %d" % rates["rate_vol_bp"])
+        if sovereign:
+            extra.append("sovereign %d" % sovereign["stress_score"])
         if contagion:
             extra.append("contagion %d" % contagion["stress_score"])
         headline = (
@@ -639,6 +711,7 @@ def lambda_handler(event, context):
         "implied_vol": iv,
         "credit_spreads": credit,
         "rates": rates,
+        "sovereign": sovereign,
         "contagion": contagion,
         "breadth": breadth,
         "safe_haven": haven,
@@ -661,7 +734,9 @@ def lambda_handler(event, context):
             "volatility (the VIX), rate volatility (realised volatility of "
             "the 10-year Treasury yield -- a MOVE-style bond fear gauge), "
             "and cross-market contagion (how correlated the markets have "
-            "become). 75+ is ACUTE. The market matrix drives the per-"
+            "become), plus sovereign-default stress (euro-area periphery "
+            "BTP/Bonos-Bund spreads and EM USD sovereign debt versus "
+            "Treasuries). 75+ is ACUTE. The market matrix drives the per-"
             "market flashing-red flags; breadth, the 2s10s curve, safe-"
             "haven demand and stress momentum are read alongside as "
             "confirmation. Credit is read across the full ICE BofA OAS "
@@ -725,6 +800,7 @@ def lambda_handler(event, context):
         "vix": (iv or {}).get("vix"),
         "credit_composite": (credit or {}).get("composite_score"),
         "rate_vol_bp": (rates or {}).get("rate_vol_bp"),
+        "sovereign_score": (sovereign or {}).get("stress_score"),
         "contagion_score": (contagion or {}).get("stress_score"),
         "stress_direction": (momentum or {}).get("direction"),
         "markets_scored": len(rows), "flashing_red": len(flashing),
