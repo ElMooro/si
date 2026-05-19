@@ -34,6 +34,14 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
 .schip .sv{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:3px}
 .sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.dims{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.dim{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 13px}
+.dim.acute{border-color:var(--red);animation:flash 1.4s ease-in-out infinite}
+.dim .dl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.dim .dv{font-family:var(--mono);font-size:24px;font-weight:700;margin:3px 0 3px}
+.dim .dd{font-family:var(--mono);font-size:10px;color:var(--mute);line-height:1.75}
+.dim .dd b{color:var(--txt)}
+.dim .dspark{width:100%;height:38px;margin-top:7px}
 .row{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:8px}
 .row.acute{border-color:var(--red);animation:flash 1.4s ease-in-out infinite}
 @keyframes flash{0%,100%{box-shadow:0 0 0 0 rgba(255,85,119,0)}50%{box-shadow:0 0 14px 1px rgba(255,85,119,0.55);border-color:#ff5577}}
@@ -82,6 +90,79 @@ function levelColor(l){
   return {ACUTE:"var(--red)",STRESSED:"var(--orange)",
           ELEVATED:"var(--yellow)",CALM:"var(--green)"}[l]||"var(--dim)";
 }
+function stressHex(s){
+  if(s==null)return "#6f7b91";
+  if(s>=75)return "#ff5577";
+  if(s>=55)return "#ff7a18";
+  if(s>=32)return "#ffd266";
+  return "#26ffaf";
+}
+
+function dimCard(label,val,col,lines,sparkId,acute){
+  return '<div class="dim'+(acute?" acute":"")+'">'+
+    '<div class="dl">'+label+'</div>'+
+    '<div class="dv" style="color:'+col+'">'+val+'</div>'+
+    '<div class="dd">'+lines+'</div>'+
+    (sparkId?'<div class="dspark" id="'+sparkId+'"></div>':'')+'</div>';
+}
+
+function dimensions(d){
+  let cards='';
+  const iv=d.implied_vol;
+  if(iv){
+    cards+=dimCard("Implied Volatility \u00b7 VIX", iv.vix,
+      stressColor(iv.stress_score),
+      "<b>"+(iv.percentile_1y!=null?iv.percentile_1y:"\u2014")+
+      "</b>th %ile (1y) \u00b7 1m chg <b>"+
+      (iv.change_1m>0?"+":"")+iv.change_1m+"</b> \u00b7 stress "+
+      iv.stress_score+" ("+iv.level+")","sp_vix",iv.stress_score>=75);
+  }
+  const cr=d.credit_spreads;
+  if(cr){
+    const sub=(cr.spreads||[]).map(s=>esc(s.name.replace("US ",""))+
+      " <b>"+s.oas_pct+"%</b> ("+s.level+")").join("<br>");
+    cards+=dimCard("Credit Spreads \u00b7 OAS", cr.composite_score,
+      stressColor(cr.composite_score), sub,"sp_credit",
+      cr.composite_score>=75);
+  }
+  const cg=d.contagion;
+  if(cg){
+    cards+=dimCard("Cross-Market Contagion", cg.avg_pairwise_correlation,
+      stressColor(cg.stress_score),
+      "avg pairwise correlation \u00b7 stress <b>"+cg.stress_score+
+      "</b> ("+cg.level+") \u00b7 "+cg.pairs+" market pairs",
+      null,cg.stress_score>=75);
+  }
+  const br=d.breadth;
+  if(br){
+    cards+=dimCard("Stress Breadth", br.elevated_plus+" / "+br.markets,
+      stressColor(br.breadth_score),
+      "markets ELEVATED+ \u00b7 <b>"+br.stressed_plus+"</b> stressed \u00b7 <b>"+
+      br.acute+"</b> acute (flashing red)",null,false);
+  }
+  const mo=d.stress_momentum;
+  if(mo){
+    const mc=mo.direction==="RISING"?"var(--red)":
+             mo.direction==="FALLING"?"var(--green)":"var(--cyan)";
+    cards+=dimCard("Stress Momentum", mo.direction, mc,
+      "5-run change <b>"+(mo.change_5_runs>0?"+":"")+
+      (mo.change_5_runs!=null?mo.change_5_runs:"\u2014")+
+      "</b> \u00b7 20-run <b>"+(mo.change_20_runs>0?"+":"")+
+      (mo.change_20_runs!=null?mo.change_20_runs:"\u2014")+
+      "</b> \u00b7 "+mo.runs_tracked+" runs tracked",null,false);
+  }
+  const sh=d.safe_haven;
+  if(sh){
+    cards+=dimCard("Safe-Haven Demand \u00b7 Gold", "$"+sh.gold,
+      sh.gold_1m_pct>1?"var(--yellow)":"var(--dim)",
+      "1m <b>"+(sh.gold_1m_pct>0?"+":"")+sh.gold_1m_pct+"%</b> \u00b7 3m <b>"+
+      (sh.gold_3m_pct>0?"+":"")+sh.gold_3m_pct+"%</b> \u00b7 vs 52w high "+
+      sh.gold_vs_52w_high_pct+"%","sp_gold",false);
+  }
+  if(!cards)return '';
+  return '<div class="sechead">Stress Dimensions &middot; what feeds the index</div>'+
+    '<div class="dims">'+cards+'</div>';
+}
 
 function marketRow(r,rank){
   const col=stressColor(r.stress);
@@ -127,6 +208,8 @@ function build(d){
     stressColor(d.equity_stress)+'">'+(d.equity_stress!=null?d.equity_stress:"\u2014")+'</div></div>'+
     '<div class="schip"><div class="sl">Bond Stress</div><div class="sv" style="color:'+
     stressColor(d.bond_stress)+'">'+(d.bond_stress!=null?d.bond_stress:"\u2014")+'</div></div>'+
+    '<div class="schip"><div class="sl">Market Matrix</div><div class="sv" style="color:'+
+    stressColor(d.market_stress_index)+'">'+(d.market_stress_index!=null?d.market_stress_index:"\u2014")+'</div></div>'+
     '<div class="schip"><div class="sl">Flashing Red</div><div class="sv" style="color:'+
     ((d.flashing_red||[]).length?"var(--red)":"var(--green)")+'">'+
     (d.flashing_red||[]).length+'</div></div></div>'+
@@ -142,10 +225,17 @@ function build(d){
   const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
     esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
 
-  document.getElementById("root").innerHTML=h+eq+bd+note;
+  document.getElementById("root").innerHTML=h+dimensions(d)+eq+bd+note;
 
-  (d.equities||[]).forEach(r=>spark("sp_equity_"+r.key,r.series,stressColor(r.stress)));
-  (d.bonds||[]).forEach(r=>spark("sp_bond_"+r.key,r.series,stressColor(r.stress)));
+  (d.equities||[]).forEach(r=>spark("sp_equity_"+r.key,r.series,stressHex(r.stress)));
+  (d.bonds||[]).forEach(r=>spark("sp_bond_"+r.key,r.series,stressHex(r.stress)));
+  if(d.implied_vol)
+    spark("sp_vix",d.implied_vol.series,stressHex(d.implied_vol.stress_score));
+  if(d.credit_spreads&&d.credit_spreads.spreads&&d.credit_spreads.spreads[0])
+    spark("sp_credit",d.credit_spreads.spreads[0].series,
+      stressHex(d.credit_spreads.composite_score));
+  if(d.safe_haven)
+    spark("sp_gold",d.safe_haven.series,"#ffd266");
 }
 
 fetch(S3+"global-stress.json?t="+Date.now())
