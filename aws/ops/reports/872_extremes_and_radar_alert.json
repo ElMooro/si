@@ -1,0 +1,103 @@
+{
+ "ops": 872,
+ "ts": "2026-05-19T10:16:54.434210+00:00",
+ "subject": "Deploy + verify justhodl-market-extremes (Market Cycle Extremes Radar) and the cro-escalation vol-radar alert",
+ "checks": [
+  {
+   "check": "me_deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "me_schedule_wired",
+   "ok": true,
+   "detail": "justhodl-market-extremes-daily"
+  },
+  {
+   "check": "me_invoke_ok",
+   "ok": true,
+   "detail": "200, posture=DISTRIBUTION"
+  },
+  {
+   "check": "me_schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-market-extremes"
+  },
+  {
+   "check": "me_posture_resolves",
+   "ok": true,
+   "detail": "posture=DISTRIBUTION"
+  },
+  {
+   "check": "me_feeds_reached",
+   "ok": true,
+   "detail": "8/8 feeds available"
+  },
+  {
+   "check": "me_scores_in_range",
+   "ok": true,
+   "detail": "top_risk=50 cycle_position=58"
+  },
+  {
+   "check": "me_canaries_well_formed",
+   "ok": true,
+   "detail": "6 top canaries, firing flags reconcile=True"
+  },
+  {
+   "check": "me_capitulation_consumed",
+   "ok": true,
+   "detail": "capitulation_score=33.5 source=justhodl-capitulation (consumed, not recomputed)"
+  },
+  {
+   "check": "me_posture_consistent",
+   "ok": true,
+   "detail": "posture=DISTRIBUTION top_risk=50 capitulation=33.5"
+  },
+  {
+   "check": "me_page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, page live"
+  },
+  {
+   "check": "me_directory_linked",
+   "ok": true,
+   "detail": "link present"
+  },
+  {
+   "check": "me_schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 23 * * ? *)"
+  },
+  {
+   "check": "ce_deploy_ok",
+   "ok": true,
+   "detail": "cro-escalation code updated"
+  },
+  {
+   "check": "ce_artifact_has_vol_radar_alert",
+   "ok": true,
+   "detail": "build_vol_radar_alert + vol-radar read + posture_alerted present in the deployed artifact"
+  },
+  {
+   "check": "ce_vol_radar_track_runs",
+   "ok": true,
+   "detail": "dry-run ok, vol_radar_posture=CALM, would_alert=False"
+  }
+ ],
+ "summary": "16/16 checks passed",
+ "all_passed": true,
+ "market_extremes": {
+  "posture": "DISTRIBUTION",
+  "top_risk": 50,
+  "capitulation": 33.5,
+  "cycle_position": 58,
+  "top_canaries_firing": [
+   "Equity valuations stretched",
+   "Volatility priced for calm (complacency)",
+   "Credit spreads pinned tight",
+   "Insiders distributing into strength"
+  ],
+  "feeds_available": "8/8"
+ },
+ "verdict": "MARKET CYCLE EXTREMES RADAR LIVE + the vol-radar alert is wired into the intraday tripwire. Cycle read: DISTRIBUTION (top-risk 50, capitulation 33.5, cycle position 58/100). cro-escalation now fires a Telegram ping on a vol-radar flip to COILED/PEAKING."
+}
