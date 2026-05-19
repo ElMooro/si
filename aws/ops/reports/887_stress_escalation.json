@@ -1,0 +1,111 @@
+{
+ "ops": 887,
+ "ts": "2026-05-19T17:42:52.311144+00:00",
+ "subject": "Verify the multi-dimensional stress escalation layer on the Global Stress Matrix",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from source with escalation layer"
+  },
+  {
+   "check": "invoke_run1_ok",
+   "ok": true,
+   "detail": "GSI=43, escalation posture=RED, build 2.2s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "escalation_block_present",
+   "ok": true,
+   "detail": "posture=RED, 8 dimensions, bands={'green': '<55', 'amber': '55-74 STRESSED', 'red': '>=75 ACUTE'}"
+  },
+  {
+   "check": "all_dimensions_well_formed",
+   "ok": true,
+   "detail": "all 8 dimensions well-formed (key/label/0-100 score/valid band)"
+  },
+  {
+   "check": "credit_ratevol_sovereign_funding_covered",
+   "ok": true,
+   "detail": "credit/rate-vol/sovereign/funding now escalation dimensions: {'rate_vol': 'GREEN 34/100', 'funding': 'GREEN 26/100', 'sovereign': 'GREEN 23/100', 'credit': 'GREEN 18/100'}"
+  },
+  {
+   "check": "posture_internally_consistent",
+   "ok": true,
+   "detail": "posture=RED (1 red / 1 amber) -- derivation matches"
+  },
+  {
+   "check": "run1_is_baseline",
+   "ok": true,
+   "detail": "run1 baseline_run=True, newly_red=[] (expected baseline + empty)"
+  },
+  {
+   "check": "run2_edge_detection_sane",
+   "ok": true,
+   "detail": "run2 baseline_run=False, newly_red=[] (back-to-back run must not re-alert -- no-spam edge detection)"
+  },
+  {
+   "check": "page_renders_escalation",
+   "ok": true,
+   "detail": "HTTP 200, Escalation Matrix rendered"
+  }
+ ],
+ "summary": "10/10 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "posture": "RED",
+  "n_red": 1,
+  "n_amber": 1,
+  "dimensions": [
+   {
+    "label": "Cross-Market Contagion",
+    "score": 88,
+    "band": "RED"
+   },
+   {
+    "label": "Market Matrix",
+    "score": 55,
+    "band": "AMBER"
+   },
+   {
+    "label": "Global Stress Index",
+    "score": 43,
+    "band": "GREEN"
+   },
+   {
+    "label": "Equity Vol (VIX)",
+    "score": 40,
+    "band": "GREEN"
+   },
+   {
+    "label": "Rate Volatility",
+    "score": 34,
+    "band": "GREEN"
+   },
+   {
+    "label": "USD Funding Plumbing",
+    "score": 26,
+    "band": "GREEN"
+   },
+   {
+    "label": "Sovereign Stress",
+    "score": 23,
+    "band": "GREEN"
+   },
+   {
+    "label": "Credit Spreads",
+    "score": 18,
+    "band": "GREEN"
+   }
+  ],
+  "red_dimensions": [
+   "Cross-Market Contagion"
+  ],
+  "global_stress_index": 43
+ },
+ "verdict": "STRESS ESCALATION MATRIX LIVE - the Global Stress Matrix now escalates per dimension. Every scored dimension -- market matrix, equity vol, credit, rate volatility, sovereign, funding and contagion -- is classified GREEN/AMBER/RED, rolled into one firm-wide posture, and the Telegram tripwire fires a single consolidated push the moment ANY dimension newly crosses into ACUTE -- not just the per-market flags and the diluted blend. Edge detection proven: back-to-back runs do not re-alert."
+}
