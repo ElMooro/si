@@ -1,0 +1,36 @@
+{
+ "ops": 866,
+ "ts": "2026-05-19T01:56:01.118517+00:00",
+ "subject": "Re-verify the Risk Desk cockpit after wiring the Hedge Overlay Scorecard in as the thirteenth engine tile",
+ "checks": [
+  {
+   "check": "page_deployed_with_scorecard_tile",
+   "ok": true,
+   "detail": "HTTP 200, 22264 bytes, scorecard tile rendered"
+  },
+  {
+   "check": "page_wires_all_13_engines",
+   "ok": true,
+   "detail": "all 13 engine feeds referenced (hedge-pnl included)"
+  },
+  {
+   "check": "scorecard_tile_populates",
+   "ok": true,
+   "detail": "age 0.2h, verdict=WARMING, verdict_color=dim (resolves in cockpit map: True)"
+  },
+  {
+   "check": "directory_links_scorecard",
+   "ok": true,
+   "detail": "directory 200, hedge-pnl link present"
+  }
+ ],
+ "summary": "4/4 checks passed",
+ "all_passed": true,
+ "cockpit": {
+  "page_url": "https://justhodl.ai/risk-desk.html",
+  "engines_on_cockpit": 13,
+  "scorecard_verdict": "WARMING",
+  "scorecard_maturity": "WARMING"
+ },
+ "verdict": "RISK DESK COCKPIT AT THIRTEEN - the Hedge Overlay Scorecard is the thirteenth tile, completing the hedge lifecycle in the Synthesis, Hedge & Execution group: synthesise -> size -> execute -> score (current verdict WARMING, WARMING). All thirteen feeds wired, directory linked."
+}
