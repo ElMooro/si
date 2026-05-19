@@ -1,0 +1,73 @@
+{
+ "ops": 884,
+ "ts": "2026-05-19T13:59:32.492037+00:00",
+ "subject": "Verify the ICE BofA credit-spread ladder in the Global Stress Matrix",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from expanded source"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=47, credit composite=15, build 2.9s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "seven_oas_indices",
+   "ok": true,
+   "detail": "7 indices: hy 2.8%, hy_bb 1.68%, hy_b 3.08%, hy_ccc 9.35%, ig 0.75%, em_corp 1.42%, em_hy 3.09%"
+  },
+  {
+   "check": "all_spread_rows_well_formed",
+   "ok": true,
+   "detail": "all 7 rows well-formed"
+  },
+  {
+   "check": "ccc_worst_junk_present",
+   "ok": true,
+   "detail": "CCC & Lower OAS 9.35% -- stress 52 (ELEVATED)"
+  },
+  {
+   "check": "em_credit_present",
+   "ok": true,
+   "detail": "EM Corporate 1.42%, EM HY Corporate 3.09%"
+  },
+  {
+   "check": "ccc_bb_dispersion_wired",
+   "ok": true,
+   "detail": "CCC-BB dispersion 7.67% -- ELEVATED (stress 33)"
+  },
+  {
+   "check": "worst_tier_wired",
+   "ok": true,
+   "detail": "worst tier: US HY -- CCC & Lower (worst) at 9.35% (ELEVATED)"
+  },
+  {
+   "check": "credit_feeds_gsi",
+   "ok": true,
+   "detail": "credit composite 15 -> Global Stress Index 47 (ELEVATED)"
+  },
+  {
+   "check": "page_renders_credit_ladder",
+   "ok": true,
+   "detail": "HTTP 200, Credit Spread Ladder rendered"
+  }
+ ],
+ "summary": "11/11 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "oas_indices": 7,
+  "credit_composite": 15,
+  "ccc_oas": 9.35,
+  "ccc_bb_dispersion": 7.67,
+  "worst_tier": "US HY -- CCC & Lower (worst)",
+  "global_stress_index": 47
+ },
+ "verdict": "ICE BofA CREDIT LADDER LIVE - the Global Stress Matrix now reads credit across seven option-adjusted spread indices: the US high-yield BB/B/CCC rating ladder, investment grade, and EM corporate / EM high-yield. The CCC-vs-BB dispersion flags distress concentrating in the weakest junk, and the credit composite feeds the Global Stress Index. Credit stress is now measured the way a credit desk measures it."
+}
