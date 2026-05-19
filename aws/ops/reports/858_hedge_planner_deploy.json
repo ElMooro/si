@@ -1,0 +1,124 @@
+{
+ "ops": 858,
+ "ts": "2026-05-19T00:11:58.062065+00:00",
+ "subject": "Deploy + verify justhodl-hedge-planner (the Hedge Execution Planner - turns the Tail Hedge Overlay sleeve into a worked order ticket and tracks the standing sleeve as state)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-hedge-planner-daily"
+  },
+  {
+   "check": "invoke_1_ok",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "check": "invoke_2_ok",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "check": "output_fresh",
+   "ok": true,
+   "detail": "2s old"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "1.0"
+  },
+  {
+   "check": "action_valid",
+   "ok": true,
+   "detail": "HOLD"
+  },
+  {
+   "check": "action_color_maps",
+   "ok": true,
+   "detail": "HOLD -> dim"
+  },
+  {
+   "check": "ticket_legs_well_formed",
+   "ok": true,
+   "detail": "0 leg(s), action HOLD"
+  },
+  {
+   "check": "ticket_sign_matches_action",
+   "ok": true,
+   "detail": "action HOLD, signed premium 0.0"
+  },
+  {
+   "check": "rebalance_delta_reconciles",
+   "ok": true,
+   "detail": "before 0.2 after 0.2 delta 0.0"
+  },
+  {
+   "check": "state_file_matches_standing_after",
+   "ok": true,
+   "detail": "hedge-book.json budget 0.2 vs standing-after 0.2"
+  },
+  {
+   "check": "cross_run_state_persists",
+   "ok": true,
+   "detail": "run1 after 0.2 -> run2 before 0.2, run1 OPEN run2 HOLD"
+  },
+  {
+   "check": "within_spend_cap",
+   "ok": true,
+   "detail": "standing-after 0.2% vs 1.5% cap"
+  },
+  {
+   "check": "pre_trade_checks_present",
+   "ok": true,
+   "detail": "5 checks: tail_is_binding_constraint, standing_within_spend_cap, sleeve_closes_the_gap, carry_within_budget, hedge_protects_net_long_book"
+  },
+  {
+   "check": "confidence_valid",
+   "ok": true,
+   "detail": "HIGH"
+  },
+  {
+   "check": "history_appended",
+   "ok": true,
+   "detail": "1 snapshot(s), last 2026-05-19"
+  },
+  {
+   "check": "brief_present",
+   "ok": true,
+   "detail": "cro_note 89 chars"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 5 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "19/19 checks passed",
+ "all_passed": true,
+ "hedge_planner": {
+  "action": "HOLD",
+  "headline": "HOLD -- The standing sleeve already matches the target and is within tenor -- carry it, no trade.",
+  "side_summary": "NO TRADE",
+  "ticket_premium_pct": 0.0,
+  "ticket_premium_usd": 0.0,
+  "n_legs": 0,
+  "standing_before_pct": 0.2,
+  "standing_after_pct": 0.2,
+  "scenario_class": "EQUITY_CRASH",
+  "stance": "ACCUMULATE",
+  "n_checks_flagged": 0,
+  "confidence": "HIGH",
+  "cro_note": "The standing sleeve already matches the target and is within tenor -- carry it, no trade.",
+  "run1_action": "OPEN",
+  "run2_action": "HOLD"
+ },
+ "verdict": "HEDGE EXECUTION PLANNER LIVE - the firm now turns a tail-hedge recommendation into a worked order ticket. First run actioned OPEN (NO TRADE, 0.0% of book, 0 leg[s]); the second run read the persisted sleeve and settled to HOLD, proving the rebalance state machine round-trips. Ticket sign, delta reconciliation, spend cap and pre-trade checks all hold. Runs daily 05:00 UTC after the Tail Hedge Overlay."
+}
