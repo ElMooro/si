@@ -214,6 +214,8 @@ def load_all():
         # ─── MASTER CRISIS COMPOSITE + CAPITULATION (Risk Pack) ───────
         "crisis_composite":"data/crisis-composite.json",
         "capitulation":"data/capitulation.json",
+        # ─── Economic Release Calendar (the ECO screen · 2026-05-19) ──
+        "econ_calendar":"data/econ-calendar.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -600,6 +602,20 @@ def extract_metrics(data,weights):
                                 if e.get("pead_signals") else None),
             "earnings_beat_rate": (e.get("aggregate_stats") or {}).get("beat_rate_eps"),
             "earnings_median_1d": (e.get("aggregate_stats") or {}).get("median_1d_return_pct"),
+        })(),
+        # Economic Release Calendar (the ECO screen — econ-calendar engine)
+        **(lambda ec=data.get("econ_calendar", {}): {
+            "econ_next_major": (ec.get("next_major") or {}).get("event"),
+            "econ_next_major_days": (ec.get("next_major") or {}).get("days_until"),
+            "econ_next_major_consensus": (ec.get("next_major") or {}).get("consensus"),
+            "econ_this_week_releases": (ec.get("counts") or {}).get("this_week"),
+            "econ_this_week_tier1": (ec.get("counts") or {}).get("this_week_tier1"),
+            "econ_recent_above": (ec.get("recent_surprise_tally") or {}).get("above"),
+            "econ_recent_below": (ec.get("recent_surprise_tally") or {}).get("below"),
+            "econ_this_week_tier1_events": [
+                str(e.get("event")) + " (" + str(e.get("date")) + ")"
+                for e in (ec.get("this_week") or []) if e.get("tier1")
+            ][:4],
         })(),
         # Crisis KB (#2) — top active patterns
         **(lambda k=data.get("crisis_kb", {}): {
@@ -1086,6 +1102,8 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "EARNINGS_NEXT_7D: "+str(m.get("n_earnings_7d") or 0)+" reports. Top:"+str(m.get("next_earnings_ticker") or "none")+" on "+str(m.get("next_earnings_date") or "?"),
         "PEAD_SIGNALS: "+str(m.get("n_pead_signals") or 0)+" drift candidates. Top:"+str(m.get("top_pead_ticker") or "none")+" "+str(m.get("top_pead_signal") or ""),
         "EARNINGS_BEAT_RATE: "+str(m.get("earnings_beat_rate") or "?")+" median_1d:"+str(m.get("earnings_median_1d") or "?")+"%",
+        # ═══ Economic Release Calendar — the ECO screen (2026-05-19) ══
+        "ECON_CALENDAR: next major US release: "+str(m.get("econ_next_major") or "none")+" in "+str(m.get("econ_next_major_days") if m.get("econ_next_major_days") is not None else "?")+"d (consensus "+str(m.get("econ_next_major_consensus") or "?")+"). This week: "+str(m.get("econ_this_week_releases") or 0)+" releases, "+str(m.get("econ_this_week_tier1") or 0)+" tier-1"+((" — "+"; ".join(m.get("econ_this_week_tier1_events") or [])) if m.get("econ_this_week_tier1_events") else "")+". Recent surprises: "+str(m.get("econ_recent_above") or 0)+" above / "+str(m.get("econ_recent_below") or 0)+" below consensus.",
         # ═══ Crisis KB (#2) ════════════════════════════════════════════
         "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",
