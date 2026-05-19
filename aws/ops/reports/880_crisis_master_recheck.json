@@ -1,0 +1,41 @@
+{
+ "ops": 880,
+ "ts": "2026-05-19T12:58:47.344379+00:00",
+ "subject": "Corrected re-verify: crisis-composite master score still computes with the Dollar Radar + Global Stress components",
+ "checks": [
+  {
+   "check": "crisis_composite_invoke_ok",
+   "ok": true,
+   "detail": "master_crisis_score=35.1 defcon=4"
+  },
+  {
+   "check": "crisis_composite_readable",
+   "ok": true,
+   "detail": "crisis-composite.json read"
+  },
+  {
+   "check": "crisis_master_score_computes",
+   "ok": true,
+   "detail": "master_crisis_score = 35.1, DEFCON 4 (NORMAL)"
+  },
+  {
+   "check": "crisis_has_both_new_components",
+   "ok": true,
+   "detail": "11 components -- global-stress:True dollar:True"
+  },
+  {
+   "check": "crisis_components_numeric",
+   "ok": true,
+   "detail": "all wired components carry a numeric crisis contribution or an availability flag"
+  }
+ ],
+ "summary": "5/5 checks passed",
+ "all_passed": true,
+ "crisis_snapshot": {
+  "master_crisis_score": 35.1,
+  "defcon_level": 4,
+  "defcon_name": "NORMAL",
+  "component_count": 11
+ },
+ "verdict": "CONFIRMED - the crisis composite computes a clean master crisis score of 35.1 (DEFCON 4) over 11 components, with the Dollar Radar and Global Stress Matrix both wired in. ops/879's failure was a key-name false negative; the integration is sound."
+}
