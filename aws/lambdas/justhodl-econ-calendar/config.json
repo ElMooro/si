@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-econ-calendar",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Forward economic release calendar - the desk ECO screen. Daily pulls the economic calendar (CPI, payrolls, PCE, ISM, GDP, jobless claims and the rest) with consensus, prior and post-release surprise. data/econ-calendar.json.",
+ "environment": {
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-econ-calendar-daily",
+  "cron": "cron(0 11 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Forward economic release calendar - daily 11:00 UTC via Amazon EventBridge Scheduler, ahead of the morning intelligence briefs so they can reference the day schedule."
+ }
+}

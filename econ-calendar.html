@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Economic Calendar &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128197;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1080px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:920px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .nm{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:.5px;margin-bottom:5px;color:var(--txt)}
+.hero .cd{font-family:var(--mono);font-size:13px;color:var(--cyan)}
+.hero .hl{font-family:var(--mono);font-size:12px;color:var(--mute);margin-top:8px;line-height:1.6}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.stat{flex:1;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+th{text-align:right;color:var(--dim);font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th.l,td.l{text-align:left}
+td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);color:var(--mute)}
+tr:hover td{background:var(--panel2)}
+.evt{color:var(--txt)}
+.t1{color:var(--cyan)}
+.tag{font-family:var(--mono);font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px}
+.imp-HIGH{background:#ff557722;color:var(--red)}
+.imp-MEDIUM{background:#ffd26622;color:var(--yellow)}
+.cty{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.fam{display:inline-flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.fambox{font-family:var(--mono);font-size:10px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.fambox b{color:var(--txt)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+.warn{background:#ff7a1818;border:1px solid var(--orange);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11.5px;color:var(--orange);margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128197; Economic Calendar</h1>
+    <p class="subtitle">The desk ECO screen &mdash; the forward schedule of scheduled macro releases. What prints this week, the market's consensus estimate, the prior, and &mdash; once it lands &mdash; how far the actual ran from consensus. Tier-one flags the genuine US market-movers: payrolls, CPI, PCE, ISM, GDP, the Fed.</p>
+    <nav class="crumbs">
+      <a href="/macro-surprise.html">macro surprise</a>
+      <a href="/catalyst-calendar.html">catalysts</a>
+      <a href="/macro-nowcast.html">nowcast</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING CALENDAR&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const FAMCOL={INFLATION:"var(--orange)",LABOR:"var(--cyan)",GROWTH:"var(--green)",HOUSING:"var(--purple)",SENTIMENT:"var(--yellow)",OTHER:"var(--dim)"};
+
+function val(raw,n){
+  if(raw!=null&&raw!=="")return esc(raw);
+  if(n!=null)return esc(n);
+  return "&mdash;";
+}
+function dlabel(iso){
+  try{const d=new Date(iso+"T00:00:00Z");
+    return d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"});
+  }catch(e){return esc(iso);}
+}
+
+fetch(S3+"econ-calendar.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d){document.getElementById("root").innerHTML='<div class="loading">CALENDAR UNAVAILABLE</div>';return;}
+  let h="";
+
+  if(d.feed_status&&d.feed_status!=="ok")
+    h+='<div class="warn">Calendar feed degraded &mdash; '+esc(d.feed_status)+'. Showing what loaded.</div>';
+
+  const nm=d.next_major;
+  h+='<div class="hero">';
+  if(nm){
+    const du=nm.days_until;
+    const when=du===0?"TODAY":du===1?"TOMORROW":du!=null?("IN "+du+" DAYS"):"SOON";
+    h+='<div class="ptag">Next major US release</div>'+
+       '<div class="nm">'+esc(nm.event)+'</div>'+
+       '<div class="cd">'+when+' &middot; '+dlabel(nm.date)+
+       (nm.time_utc?(" &middot; "+esc(nm.time_utc)+" UTC"):"")+
+       (nm.consensus!=null?(" &middot; consensus "+esc(nm.consensus)):"")+
+       (nm.previous!=null?(" &middot; prior "+esc(nm.previous)):"")+'</div>';
+  }else{
+    h+='<div class="ptag">Economic calendar</div><div class="nm">Schedule loaded</div>';
+  }
+  h+='<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  const c=d.counts||{};
+  const st=[
+    ["This Week",(c.this_week||0),"var(--cyan)"],
+    ["Tier-1 This Week",(c.this_week_tier1||0),"var(--txt)"],
+    ["Upcoming",(c.upcoming||0),"var(--mute)"],
+    ["Recently Printed",(c.recent_released||0),"var(--mute)"],
+  ];
+  h+='<div class="stats">'+st.map(s=>
+    '<div class="stat"><div class="sl">'+s[0]+'</div>'+
+    '<div class="sv" style="color:'+s[2]+'">'+s[1]+'</div></div>').join("")+'</div>';
+
+  // recent surprise tally by family
+  const bf=d.recent_surprise_by_family||{},tl=d.recent_surprise_tally||{};
+  if((tl.total||0)>0){
+    h+='<div class="sechead">Recent Surprises &mdash; '+(tl.above||0)+' above / '+
+       (tl.below||0)+' below / '+(tl.in_line||0)+' in-line consensus</div>';
+    h+='<div class="fam">'+Object.keys(bf).sort().map(f=>{
+      const x=bf[f];
+      return '<div class="fambox"><b style="color:'+(FAMCOL[f]||"var(--dim)")+'">'+esc(f)+
+        '</b> &nbsp;'+(x.above||0)+'&#9650; '+(x.below||0)+'&#9660; '+(x.in_line||0)+'=</div>';
+    }).join("")+'</div>';
+  }
+
+  // upcoming
+  const up=d.upcoming||[];
+  if(up.length){
+    h+='<div class="sechead">Upcoming Releases &mdash; consensus &amp; prior</div>';
+    h+='<table><tr><th class="l">Date</th><th class="l">Time</th><th class="l">Release</th>'+
+       '<th>Consensus</th><th>Prior</th></tr>';
+    up.forEach(e=>{
+      h+='<tr><td class="l">'+dlabel(e.date)+'</td>'+
+        '<td class="l cty">'+(e.time_utc?esc(e.time_utc):"&mdash;")+'</td>'+
+        '<td class="l"><span class="cty">'+esc(e.country)+'</span> '+
+          '<span class="'+(e.tier1?"t1":"evt")+'">'+esc(e.event)+'</span>'+
+          '<span class="tag imp-'+esc(e.impact)+'">'+esc(e.impact)+'</span>'+
+          (e.tier1?'<span class="tag" style="background:#00d4ff22;color:var(--cyan)">TIER-1</span>':'')+'</td>'+
+        '<td>'+val(e.raw_estimate,e.consensus)+'</td>'+
+        '<td style="color:var(--dim)">'+val(e.raw_previous,e.previous)+'</td></tr>';
+    });
+    h+='</table>';
+  }
+
+  // recent
+  const rc=d.recent||[];
+  if(rc.length){
+    h+='<div class="sechead">Recent Prints &mdash; actual vs consensus <small style="color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px">&mdash; colour = hotter / cooler than consensus, not good / bad</small></div>';
+    h+='<table><tr><th class="l">Date</th><th class="l">Release</th>'+
+       '<th>Actual</th><th>Consensus</th><th>Prior</th><th>Surprise</th></tr>';
+    rc.forEach(e=>{
+      const ac=e.vs_consensus==="ABOVE"?"var(--green)":e.vs_consensus==="BELOW"?"var(--red)":"var(--mute)";
+      h+='<tr><td class="l">'+dlabel(e.date)+'</td>'+
+        '<td class="l"><span class="cty">'+esc(e.country)+'</span> '+
+          '<span class="'+(e.tier1?"t1":"evt")+'">'+esc(e.event)+'</span></td>'+
+        '<td style="color:'+ac+';font-weight:700">'+val(e.raw_actual,e.actual)+'</td>'+
+        '<td>'+val(e.raw_estimate,e.consensus)+'</td>'+
+        '<td style="color:var(--dim)">'+val(e.raw_previous,e.previous)+'</td>'+
+        '<td style="color:'+ac+'">'+(e.surprise!=null?((e.surprise>=0?"+":"")+e.surprise):"&mdash;")+
+          (e.vs_consensus?(' '+e.vs_consensus):"")+'</td></tr>';
+    });
+    h+='</table>';
+  }
+
+  h+='<p class="note">'+esc(d.how_to_read||"")+' &mdash; source: '+esc(d.data_source||"")+'.</p>';
+  h+='<div class="timestamp">updated '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">CALENDAR UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
