@@ -1,0 +1,94 @@
+{
+ "ops": 870,
+ "ts": "2026-05-19T09:21:20.975464+00:00",
+ "subject": "Deploy + verify justhodl-vol-radar (the Volatility Turning-Point Radar - canary-based spike & peak warning)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-vol-radar-6h"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200, posture=CALM"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-vol-radar"
+  },
+  {
+   "check": "posture_resolves",
+   "ok": true,
+   "detail": "posture=CALM"
+  },
+  {
+   "check": "canary_feeds_reached",
+   "ok": true,
+   "detail": "7/7 canary feeds available"
+  },
+  {
+   "check": "scores_in_range",
+   "ok": true,
+   "detail": "spike_risk=29 exhaustion=0"
+  },
+  {
+   "check": "canaries_well_formed",
+   "ok": true,
+   "detail": "7 spike + 6 exhaustion canaries, all structured"
+  },
+  {
+   "check": "firing_flags_reconcile",
+   "ok": true,
+   "detail": "every canary fires iff points >= half its max"
+  },
+  {
+   "check": "posture_consistent_with_scores",
+   "ok": true,
+   "detail": "posture=CALM vs spike=29 exh=0 level=MID"
+  },
+  {
+   "check": "page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, radar page live"
+  },
+  {
+   "check": "directory_links_page",
+   "ok": true,
+   "detail": "directory 200, link present"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 0,6,12,18 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "13/13 checks passed",
+ "all_passed": true,
+ "vol_radar": {
+  "posture": "CALM",
+  "spike_risk": 29,
+  "exhaustion": 0,
+  "dominant": "SPIKE-RISK",
+  "vix": 17.82,
+  "vix_level": "MID",
+  "term_structure": "CONTANGO",
+  "spike_canaries_firing": [
+   "Steep VIX contango (curve pricing calm)",
+   "Volatility risk premium rich (crowded short)",
+   "Realized vol compressed to the floor"
+  ],
+  "exhaustion_canaries_firing": [],
+  "feeds_available": "7/7",
+  "schedule": "every 6h"
+ },
+ "verdict": "VOL TURNING-POINT RADAR LIVE - the platform now warns on volatility turning points before they happen. Today: CALM (spike-risk 29, exhaustion 0) with VIX 17.82 at the MID end of its range. 7/7 canary feeds wired, the firing flags reconcile, the posture is consistent. Runs every 6h."
+}
