@@ -438,6 +438,41 @@ def send_telegram(chat_id, text):
         return False, str(e), None
 
 
+def build_vol_radar_alert(now, vr):
+    """Telegram message for a vol-radar flip into COILED or PEAKING."""
+    posture = vr.get("posture")
+    sc = vr.get("scores") or {}
+    spike, exh = sc.get("spike_risk"), sc.get("exhaustion")
+    vs = vr.get("vol_state") or {}
+    if posture == "COILED":
+        head = "%s VOL RADAR FLIPPED TO COILED" % SIREN
+        gist = ("Spike-risk %s/100 -- the tape is primed for a volatility "
+                "expansion while vol is still low." % spike)
+        firing = vr.get("spike_canaries_firing") or []
+        impl = ("A vol spike is primed while protection is still cheap. "
+                "The Hedge Planner reads this as PULL FORWARD -- consider "
+                "adding protection ahead of the move.")
+    else:  # PEAKING
+        head = "%s VOL RADAR FLIPPED TO PEAKING" % SIREN
+        gist = ("Exhaustion %s/100 -- volatility is near a climax and "
+                "primed to mean-revert lower." % exh)
+        firing = vr.get("exhaustion_canaries_firing") or []
+        impl = ("Vol is near a climax and convex legs are near their "
+                "richest. The Hedge Planner reads this as FAVOR HARVEST -- "
+                "consider harvesting the convex leg into the move.")
+    lines = [head, "", gist]
+    if firing:
+        lines += ["", "Canaries firing: " + "; ".join(firing[:5]) + "."]
+    vix = vs.get("vix")
+    if vix is not None:
+        lines.append("VIX %s &middot; term structure %s."
+                     % (vix, vs.get("term_structure") or "?"))
+    lines += ["", impl, "",
+              '<a href="https://justhodl.ai/vol-radar.html">'
+              'Open the Vol Radar</a>']
+    return "\n".join(lines)
+
+
 # --------------------------------------------------------------------------
 def lambda_handler(event, context):
     t0 = time.time()
@@ -509,6 +544,33 @@ def lambda_handler(event, context):
                     "label": SEV_LABEL.get(severity),
                     "trips": trips[:6], "message_id": message_id}]
 
+    # ---- vol-radar turning-point alert (separate no-spam track) ----------
+    # Independent of the tape-severity escalation: fires one Telegram
+    # ping when the Volatility Turning-Point Radar FLIPS into COILED or
+    # PEAKING. posture_alerted persists across runs so a standing posture
+    # is not re-pinged; leaving the actionable zone re-arms it.
+    vr = read_json("data/vol-radar.json") or {}
+    vr_posture = vr.get("posture")
+    vr_scores = vr.get("scores") or {}
+    posture_alerted = (prior.get("vol_radar") or {}).get("posture_alerted")
+    vol_alerted_now, vol_tg = False, "no_flip"
+    if vr_posture in ("COILED", "PEAKING"):
+        if vr_posture != posture_alerted:
+            vmsg = build_vol_radar_alert(now, vr)
+            if dry_run:
+                vol_tg = "dry_run"
+                posture_alerted = vr_posture
+            else:
+                chat_id2 = event.get("chat_id") or get_chat_id()
+                ok2, vol_tg, _ = send_telegram(chat_id2, vmsg)
+                vol_alerted_now = ok2
+                if ok2:
+                    posture_alerted = vr_posture
+        else:
+            vol_tg = "already_alerted_%s" % vr_posture
+    else:
+        posture_alerted = None  # left the actionable zone -- re-arm
+
     out = {
         "schema_version": SCHEMA,
         "engine": "justhodl-cro-escalation",
@@ -533,6 +595,14 @@ def lambda_handler(event, context):
         "baseline_is_today": baseline_today,
 
         "day_state": day_state,
+        "vol_radar": {
+            "posture": vr_posture,
+            "spike_risk": vr_scores.get("spike_risk"),
+            "exhaustion": vr_scores.get("exhaustion"),
+            "alerted_this_run": vol_alerted_now,
+            "posture_alerted": posture_alerted,
+            "telegram_info": vol_tg,
+        },
         "telegram_info": tg_info,
         "message_id": message_id,
         "message": message,
@@ -575,4 +645,6 @@ def lambda_handler(event, context):
         "hedge_implication": implication,
         "max_severity_escalated_today": day_state.get(
             "max_severity_escalated", 0),
+        "vol_radar_posture": vr_posture,
+        "vol_radar_alerted": vol_alerted_now,
         "message": message if dry_run else None})}
