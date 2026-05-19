@@ -1,0 +1,62 @@
+{
+ "ops": 871,
+ "ts": "2026-05-19T09:52:48.628341+00:00",
+ "subject": "Verify the vol-radar -> hedge-planner timing overlay and the 14th risk-desk cockpit tile",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "hedge-planner code updated"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200, action=NONE"
+  },
+  {
+   "check": "vol_timing_present",
+   "ok": true,
+   "detail": "vol_timing={\"posture\": \"CALM\", \"spike_risk\": 29.0, \"exhaustion\": 0.0, \"timing_bias\": \"NEUTRAL\", \"timing_note\": null}"
+  },
+  {
+   "check": "vol_timing_matches_radar",
+   "ok": true,
+   "detail": "hedge-planner posture=CALM vs vol-radar posture=CALM"
+  },
+  {
+   "check": "timing_bias_valid",
+   "ok": true,
+   "detail": "timing_bias=NEUTRAL"
+  },
+  {
+   "check": "action_still_exposure_driven",
+   "ok": true,
+   "detail": "action=NONE (a valid exposure-driven action -- overlay did not hijack it)"
+  },
+  {
+   "check": "timing_note_in_cro_note",
+   "ok": true,
+   "detail": "no timing note for this action/posture pair (bias=NEUTRAL) -- nothing to surface"
+  },
+  {
+   "check": "cockpit_has_vol_radar_tile",
+   "ok": true,
+   "detail": "HTTP 200, vol-radar tile rendered"
+  },
+  {
+   "check": "cockpit_wires_all_14_engines",
+   "ok": true,
+   "detail": "all 14 engine feeds wired"
+  }
+ ],
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "integration": {
+  "hedge_action": "NONE",
+  "vol_radar_posture": "CALM",
+  "timing_bias": "NEUTRAL",
+  "timing_note": null,
+  "cockpit_tiles": 14
+ },
+ "verdict": "PREDICT-THEN-ACT LOOP CLOSED - the Hedge Execution Planner now carries the vol-radar timing overlay (action NONE, radar CALM -> timing bias NEUTRAL) without the radar overriding the exposure-driven action, and the Volatility Turning-Point Radar is the 14th tile on the risk-desk cockpit. All fourteen cockpit feeds wired."
+}
