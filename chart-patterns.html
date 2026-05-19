@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chart Pattern Scanner &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128200;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--orange)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:980px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 13px;cursor:pointer;color:var(--mute);user-select:none}
+.tab:hover{border-color:var(--dim)}
+.tab.active{color:var(--txt);border-color:var(--cyan);background:var(--panel2)}
+.tab .n{color:var(--dim);font-size:10px}
+.tab.active .n{color:var(--cyan)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 13px}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.card .sym{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:.5px}
+.badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:5px;border:1px solid var(--line)}
+.card .meta{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-bottom:6px;line-height:1.7}
+.card .meta b{color:var(--txt)}
+.chart{width:100%;height:168px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:4px 0 12px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.empty{color:var(--dim);font-family:var(--mono);font-size:11.5px;padding:24px;text-align:center;border:1px dashed var(--line);border-radius:8px}
+.note{color:var(--dim);font-size:11px;margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128200; Chart Pattern Scanner</h1>
+    <p class="subtitle">A daily S&amp;P 500 scan for four classic technical setups &mdash; a companion to the Stock Screener. The <b>200-DMA cross</b> flags a long-term trend flip; a <b>double top</b> is a bearish reversal and a <b>double bottom</b> its bullish mirror. The detector is deliberately strict &mdash; swing-point prominence, a tight level-tolerance band, a real valley depth and a recency window &mdash; and tags each pattern CONFIRMED (neckline broken) or FORMING. Patterns are probabilistic, not deterministic.</p>
+    <nav class="crumbs">
+      <a href="/screener/">screener</a>
+      <a href="/stock/">stock</a>
+      <a href="/momentum.html">momentum</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">SCANNING THE TAPE&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const TABS=[
+  {key:"cross_up_200dma",label:"200-DMA &#9650; Cross Up",color:"var(--green)"},
+  {key:"cross_down_200dma",label:"200-DMA &#9660; Cross Down",color:"var(--red)"},
+  {key:"double_tops",label:"Double Tops",color:"var(--red)"},
+  {key:"double_bottoms",label:"Double Bottoms",color:"var(--green)"}
+];
+let DATA=null, charts=[], built={};
+
+function badge(text,color){
+  return '<span class="badge" style="color:'+color+';border-color:'+color+'">'+text+'</span>';
+}
+
+// ---- card builders -------------------------------------------------------
+function crossCard(r,up,id){
+  const col=up?"var(--green)":"var(--red)";
+  const arrow=up?"&#9650;":"&#9660;";
+  const when=r.days_since_cross===0?"today":r.days_since_cross+"d ago";
+  return '<div class="card">'+
+    '<div class="top"><span class="sym">'+esc(r.symbol)+'</span>'+
+    badge(arrow+" crossed "+when,col)+'</div>'+
+    '<div class="meta">Close <b>'+r.close+'</b> &middot; 200-DMA <b>'+r.sma200+'</b> &middot; '+
+    '<b style="color:'+col+'">'+(r.pct_from_ma>0?"+":"")+r.pct_from_ma+'%</b> from MA'+
+    (r.ma_slope_20d?' &middot; MA '+esc(r.ma_slope_20d):'')+'</div>'+
+    '<div class="chart" id="'+id+'"></div></div>';
+}
+function patternCard(r,isTop,id){
+  const confirmed=r.status==="CONFIRMED";
+  const col=isTop?(confirmed?"var(--red)":"var(--yellow)")
+                 :(confirmed?"var(--green)":"var(--yellow)");
+  const depth=isTop?(r.valley_depth_pct+"% valley"):(r.rally_height_pct+"% rally");
+  return '<div class="card">'+
+    '<div class="top"><span class="sym">'+esc(r.symbol)+'</span>'+
+    badge(r.status,col)+'</div>'+
+    '<div class="meta">Quality <b>'+r.quality+'/100</b> &middot; '+depth+
+    ' &middot; neckline <b>'+r.neckline+'</b> &middot; last <b>'+r.last_close+'</b></div>'+
+    '<div class="chart" id="'+id+'"></div></div>';
+}
+
+// ---- echarts -------------------------------------------------------------
+function baseOpt(){
+  return {
+    animation:false,
+    grid:{left:46,right:12,top:10,bottom:22},
+    xAxis:{type:"category",boundaryGap:false,
+      axisLine:{lineStyle:{color:"#1c2433"}},
+      axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace",
+        showMaxLabel:true,interval:function(i,v){return false;}},
+      splitLine:{show:false}},
+    yAxis:{type:"value",scale:true,
+      axisLine:{show:false},axisTick:{show:false},
+      axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace"},
+      splitLine:{lineStyle:{color:"#141a24"}}},
+    tooltip:{trigger:"axis",backgroundColor:"#0f131a",
+      borderColor:"#1c2433",textStyle:{color:"#e6eaf2",fontSize:11}}
+  };
+}
+function renderCross(el,r,up){
+  const dates=r.series.map(p=>p[0]);
+  const close=r.series.map(p=>p[1]);
+  const ma=r.series.map(p=>p[2]);
+  const col=up?"#26ffaf":"#ff5577";
+  const o=baseOpt();
+  o.xAxis.data=dates;
+  o.series=[
+    {name:"Close",type:"line",data:close,showSymbol:false,
+     lineStyle:{color:col,width:1.8}},
+    {name:"200-DMA",type:"line",data:ma,showSymbol:false,
+     lineStyle:{color:"#6f7b91",width:1.2,type:"dashed"}}
+  ];
+  el.setOption(o);
+}
+function renderPattern(el,r,isTop){
+  const dates=r.series.map(p=>p[0]);
+  const close=r.series.map(p=>p[1]);
+  const col=isTop?"#ff5577":"#26ffaf";
+  const pts=isTop
+    ?[r.peak1,r.peak2].map(p=>({name:"Peak",xAxis:p.idx,yAxis:p.price}))
+        .concat([{name:"Trough",xAxis:r.trough.idx,yAxis:r.trough.price}])
+    :[r.trough1,r.trough2].map(p=>({name:"Trough",xAxis:p.idx,yAxis:p.price}))
+        .concat([{name:"Peak",xAxis:r.peak.idx,yAxis:r.peak.price}]);
+  const o=baseOpt();
+  o.xAxis.data=dates;
+  o.series=[{
+    name:"Close",type:"line",data:close,showSymbol:false,
+    lineStyle:{color:col,width:1.8},
+    markPoint:{symbolSize:8,data:pts,
+      itemStyle:{color:"#ffd266"},label:{show:false}},
+    markLine:{symbol:"none",silent:true,
+      data:[{yAxis:r.neckline}],
+      lineStyle:{color:"#a8b3c7",type:"dotted",width:1.2},
+      label:{formatter:"neckline",color:"#a8b3c7",fontSize:9,
+        fontFamily:"monospace",position:"insideEndTop"}}
+  }];
+  el.setOption(o);
+}
+
+// ---- tabs ----------------------------------------------------------------
+function showTab(ti){
+  document.querySelectorAll(".tab").forEach((t,i)=>
+    t.classList.toggle("active",i===ti));
+  document.querySelectorAll(".tabpane").forEach((p,i)=>
+    p.style.display=(i===ti?"block":"none"));
+  if(!built[ti]){ buildCharts(ti); built[ti]=true; }
+  charts.forEach(c=>{try{c.inst.resize();}catch(e){}});
+}
+function buildCharts(ti){
+  const tab=TABS[ti], rows=(DATA[tab.key]||[]);
+  rows.forEach((r,i)=>{
+    const ref=charts.find(c=>c.tab===ti&&c.i===i);
+    if(!ref)return;
+    const el=document.getElementById(ref.id);
+    if(!el)return;
+    const inst=echarts.init(el,null,{renderer:"canvas"});
+    ref.inst=inst;
+    if(tab.key==="cross_up_200dma")renderCross(inst,r,true);
+    else if(tab.key==="cross_down_200dma")renderCross(inst,r,false);
+    else if(tab.key==="double_tops")renderPattern(inst,r,true);
+    else renderPattern(inst,r,false);
+  });
+}
+
+// ---- page ----------------------------------------------------------------
+function build(d){
+  DATA=d; charts=[];
+  const c=d.counts||{};
+  let tabsHtml='<div class="tabs">';
+  TABS.forEach((t,i)=>{
+    tabsHtml+='<div class="tab'+(i===0?" active":"")+'" onclick="showTab('+i+')">'+
+      t.label+' <span class="n">'+((c[t.key]!=null)?c[t.key]:0)+'</span></div>';
+  });
+  tabsHtml+='</div>';
+
+  let panes="";
+  TABS.forEach((t,ti)=>{
+    const rows=(d[t.key]||[]);
+    let body;
+    if(!rows.length){
+      body='<div class="empty">No '+t.label.replace(/&#\d+;/g,"").trim()+
+        ' setups in the S&amp;P 500 today.</div>';
+    }else{
+      body='<div class="grid">';
+      rows.forEach((r,i)=>{
+        const id="ch_"+ti+"_"+i;
+        if(t.key==="cross_up_200dma"){ body+=crossCard(r,true,id); }
+        else if(t.key==="cross_down_200dma"){ body+=crossCard(r,false,id); }
+        else if(t.key==="double_tops"){ body+=patternCard(r,true,id); }
+        else { body+=patternCard(r,false,id); }
+        charts.push({tab:ti,i:i,id:id});
+      });
+      body+='</div>';
+    }
+    panes+='<div class="tabpane" style="display:'+(ti===0?"block":"none")+'">'+
+      '<div class="sechead">'+t.label+' &middot; '+rows.length+
+      ' name'+(rows.length===1?"":"s")+'</div>'+body+'</div>';
+  });
+
+  const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"";
+  const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
+    esc(d.disclaimer||"")+'</div>'+
+    '<div class="timestamp">'+esc(d.universe_size||0)+' S&amp;P 500 names scanned &middot; '+
+    esc(d.n_with_signal||0)+' with a signal &middot; updated '+esc(ts)+'</div>';
+
+  document.getElementById("root").innerHTML=tabsHtml+panes+note;
+  built={};
+  showTab(0);
+}
+
+fetch(S3+"chart-patterns.json?t="+Date.now())
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d){document.getElementById("root").innerHTML=
+      '<div class="empty">Pattern scan unavailable right now.</div>';return;}
+    build(d);
+  })
+  .catch(()=>{document.getElementById("root").innerHTML=
+    '<div class="empty">Pattern scan unavailable right now.</div>';});
+
+window.addEventListener("resize",()=>{
+  charts.forEach(c=>{try{if(c.inst)c.inst.resize();}catch(e){}});
+});
+</script>
+</body>
+</html>
