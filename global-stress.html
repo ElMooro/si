@@ -165,6 +165,22 @@ function dimensions(d){
       stressColor(sv.stress_score), svlines.join("<br>"),
       (em&&em.series?"sp_sov":null), sv.stress_score>=75);
   }
+  const fn=d.funding;
+  if(fn){
+    let fnlines=["<span style=\"color:var(--dim)\">"+
+      esc(fn.regime||fn.severity||"")+
+      (fn.n_signals!=null?" \u00b7 "+fn.n_signals+" funding signals":"")+
+      " \u00b7 cross-ref: eurodollar-stress</span>"];
+    (fn.hot_signals||[]).forEach(function(h){
+      fnlines.push(esc(h.label)+" <b>"+h.score+"</b>");
+    });
+    if((fn.hot_signals||[]).length===0)
+      fnlines.push("<span style=\"color:var(--dim)\">no funding signal "+
+        "hot right now</span>");
+    cards+=dimCard("Funding Stress \u00b7 USD plumbing", fn.stress_score,
+      stressColor(fn.stress_score), fnlines.join("<br>"), null,
+      fn.stress_score>=75);
+  }
   const cg=d.contagion;
   if(cg){
     cards+=dimCard("Cross-Market Contagion", cg.avg_pairwise_correlation,

@@ -541,6 +541,35 @@ def sovereign_panel():
             "euro_periphery": out_euro, "em_sovereign": out_em}
 
 
+def funding_panel():
+    """USD money-market / funding-plumbing stress -- a cross-reference
+    to the dedicated eurodollar-stress engine, which scores eight
+    funding signals (the broad dollar, cross-currency basis, repo and
+    SOFR, T-bill stress, EM FX, the long-bond curve and bond vol).
+
+    Surfaced here so the funding plumbing sits alongside the market-
+    stress read. It is deliberately NOT folded into the Global Stress
+    Index: eurodollar-stress already feeds the crisis composite, and
+    global-stress feeds it too, so blending it in would double-count
+    funding stress."""
+    es = read_sidecar("data/eurodollar-stress.json")
+    cs = es.get("composite_score")
+    if not isinstance(cs, (int, float)):
+        return None
+    hot = [{"label": h.get("label"), "score": h.get("score")}
+           for h in (es.get("hot_signals") or [])[:4]
+           if isinstance(h, dict) and h.get("label")]
+    return {"stress_score": round(clamp(cs)),
+            "regime": es.get("regime"),
+            "severity": es.get("severity"),
+            "n_signals": es.get("n_signals_used"),
+            "hot_signals": hot,
+            "source": "eurodollar-stress engine",
+            "note": ("USD funding-plumbing stress, cross-referenced from "
+                     "the dedicated eurodollar-stress engine. Read "
+                     "alongside the index; not blended into it.")}
+
+
 def update_history(gsi, market, eq, bd):
     """Append this run to the rolling history and return the snapshots."""
     hist = read_prev_history()
@@ -638,6 +667,7 @@ def lambda_handler(event, context):
     credit = credit_spread_panel()   # ICE BofA OAS credit ladder
     rates = rates_panel()            # Treasury rate volatility + curve
     sovereign = sovereign_panel()    # euro-periphery + EM sovereign stress
+    funding = funding_panel()        # USD funding plumbing (cross-ref)
     contagion = contagion_index(rows)   # cross-market correlation
     breadth = stress_breadth(rows)      # how widespread the stress is
     haven = safe_haven_panel()          # active flight-to-safety demand
@@ -685,6 +715,8 @@ def lambda_handler(event, context):
             extra.append("rate-vol %d" % rates["rate_vol_bp"])
         if sovereign:
             extra.append("sovereign %d" % sovereign["stress_score"])
+        if funding:
+            extra.append("funding %d" % funding["stress_score"])
         if contagion:
             extra.append("contagion %d" % contagion["stress_score"])
         headline = (
@@ -712,6 +744,7 @@ def lambda_handler(event, context):
         "credit_spreads": credit,
         "rates": rates,
         "sovereign": sovereign,
+        "funding": funding,
         "contagion": contagion,
         "breadth": breadth,
         "safe_haven": haven,
@@ -801,6 +834,7 @@ def lambda_handler(event, context):
         "credit_composite": (credit or {}).get("composite_score"),
         "rate_vol_bp": (rates or {}).get("rate_vol_bp"),
         "sovereign_score": (sovereign or {}).get("stress_score"),
+        "funding_score": (funding or {}).get("stress_score"),
         "contagion_score": (contagion or {}).get("stress_score"),
         "stress_direction": (momentum or {}).get("direction"),
         "markets_scored": len(rows), "flashing_red": len(flashing),
