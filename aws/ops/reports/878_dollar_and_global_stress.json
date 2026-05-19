@@ -1,0 +1,107 @@
+{
+ "ops": 878,
+ "ts": "2026-05-19T12:46:22.962251+00:00",
+ "subject": "Deploy + verify the Dollar Radar (FRED dollar indices + pump/dump canaries + double tops/bottoms) and the Global Stress Matrix (world equity & bond stress)",
+ "checks": [
+  {
+   "check": "dollar_deploy_ok",
+   "ok": true,
+   "detail": "created, schedule justhodl-dollar-radar-6h"
+  },
+  {
+   "check": "dollar_invoke_ok",
+   "ok": true,
+   "detail": "pressure=-22 regime=LEAN DUMP canaries=9 indices=4 in 7.0s"
+  },
+  {
+   "check": "dollar_output_readable",
+   "ok": true,
+   "detail": "data/dollar-radar.json read"
+  },
+  {
+   "check": "dollar_pressure_scored",
+   "ok": true,
+   "detail": "pressure=-22 regime=LEAN DUMP"
+  },
+  {
+   "check": "dollar_canaries_well_formed",
+   "ok": true,
+   "detail": "9 canaries, 3 pump / 3 dump"
+  },
+  {
+   "check": "dollar_fred_family_present",
+   "ok": true,
+   "detail": "4 FRED dollar indices: DTWEXBGS, DTWEXAFEGS, DTWEXEMEGS, RTWEXBGS; 10 bilateral crosses"
+  },
+  {
+   "check": "dollar_technicals_present",
+   "ok": true,
+   "detail": "dollar index level=119.282, series=320 pts, double_top=False double_bottom=False"
+  },
+  {
+   "check": "global_deploy_ok",
+   "ok": true,
+   "detail": "created, schedule justhodl-global-stress-6h"
+  },
+  {
+   "check": "global_invoke_ok",
+   "ok": true,
+   "detail": "GSI=55 eq=40 bond=47 markets=10 flashing=0 in 0.8s"
+  },
+  {
+   "check": "global_output_readable",
+   "ok": true,
+   "detail": "data/global-stress.json read"
+  },
+  {
+   "check": "global_index_scored",
+   "ok": true,
+   "detail": "GSI=55 (STRESSED), equity=40 bond=47"
+  },
+  {
+   "check": "global_equity_markets_ok",
+   "ok": true,
+   "detail": "6 equity markets: China 74, Euro Area 42, United Kingdom 42, Emerging Markets 40, Japan 26, United States 17"
+  },
+  {
+   "check": "global_bond_markets_ok",
+   "ok": true,
+   "detail": "4 bond markets: Intl Developed Govt 66, EM Sovereign 48, US Treasuries 42, US Credit 32"
+  },
+  {
+   "check": "global_worst_and_flash_coherent",
+   "ok": true,
+   "detail": "worst=China 74; flashing red: none"
+  },
+  {
+   "check": "page_live_dollar",
+   "ok": true,
+   "detail": "HTTP 200"
+  },
+  {
+   "check": "page_live_global_stress",
+   "ok": true,
+   "detail": "HTTP 200"
+  },
+  {
+   "check": "linked_from_landing_page",
+   "ok": true,
+   "detail": "landing page links both pages"
+  }
+ ],
+ "summary": "17/17 checks passed",
+ "all_passed": true,
+ "readings": {
+  "dollar_pressure": -22,
+  "dollar_regime": "LEAN DUMP",
+  "global_stress_index": 55,
+  "global_stress_level": "STRESSED",
+  "worst_market": {
+   "market": "China",
+   "asset_class": "equity",
+   "stress": 74,
+   "level": "STRESSED"
+  }
+ },
+ "verdict": "DOLLAR RADAR + GLOBAL STRESS MATRIX LIVE. The Dollar Radar scores Dollar Pressure -22 (LEAN DUMP) from its pump/dump canary composite over the FRED dollar family, with double top/bottom detection. The Global Stress Matrix scores world equity and bond stress at a Global Stress Index of 55 (STRESSED). Both run on a 6h schedule, both pages are live and linked from the landing page."
+}
