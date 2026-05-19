@@ -1,0 +1,93 @@
+{
+ "ops": 868,
+ "ts": "2026-05-19T02:30:08.628270+00:00",
+ "subject": "Deploy + verify justhodl-vrp (the Volatility Risk Premium engine - implied vol minus realized vol)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-vrp-daily"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200, regime=NORMAL"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-vrp"
+  },
+  {
+   "check": "data_feeds_healthy",
+   "ok": true,
+   "detail": "spy=ok implied=ok"
+  },
+  {
+   "check": "realized_vol_sane",
+   "ok": true,
+   "detail": "RV 10d/21d/63d = 11.81 / 10.5 / 14.69, GK 8.73"
+  },
+  {
+   "check": "implied_vol_present",
+   "ok": true,
+   "detail": "VIX=17.82 (2026-05-18)"
+  },
+  {
+   "check": "vrp_arithmetic_reconciles",
+   "ok": true,
+   "detail": "VRP30d 7.32 == VIX 17.82 - RV21d 10.5"
+  },
+  {
+   "check": "percentile_and_series_ok",
+   "ok": true,
+   "detail": "percentile=67.9, VRP series 252 points"
+  },
+  {
+   "check": "regime_resolves",
+   "ok": true,
+   "detail": "regime=NORMAL"
+  },
+  {
+   "check": "expost_vrp_computed",
+   "ok": true,
+   "detail": "ex-post VRP mean=3.9, positive 87.5% of windows"
+  },
+  {
+   "check": "page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, VRP page live"
+  },
+  {
+   "check": "directory_links_page",
+   "ok": true,
+   "detail": "directory 200, link present"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(30 22 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "14/14 checks passed",
+ "all_passed": true,
+ "vrp": {
+  "regime": "NORMAL",
+  "vrp_30d": 7.32,
+  "vrp_30d_percentile_1y": 67.9,
+  "vix": 17.82,
+  "rv_21d": 10.5,
+  "term_structure": "UPWARD",
+  "expost_vrp_mean": 3.9,
+  "expost_positive_pct": 87.5,
+  "schedule": "22:30 UTC daily"
+ },
+ "verdict": "VRP ENGINE LIVE - the platform now reads the volatility risk premium directly. Today: NORMAL, VRP 30d 7.32 (67th percentile of the year), VIX 17.82 vs realized 10.5. The arithmetic reconciles, the ex-post scorecard computed (3.9 avg). Runs daily 22:30 UTC."
+}
