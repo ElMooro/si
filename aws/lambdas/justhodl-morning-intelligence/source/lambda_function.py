@@ -218,6 +218,10 @@ def load_all():
         "econ_calendar":"data/econ-calendar.json",
         # ─── Market Cycle Extremes Radar (tops & bottoms · 2026-05-19) ─
         "market_extremes":"data/market-extremes.json",
+        # ─── Dollar Radar (pump/dump canary + FRED dollar family · 2026-05-19) ─
+        "dollar_radar":"data/dollar-radar.json",
+        # ─── Global Stress Matrix (world equity & bond stress · 2026-05-19) ──
+        "global_stress":"data/global-stress.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -631,6 +635,26 @@ def extract_metrics(data,weights):
                 str(c.get("label")) for c in (mx.get("top_canaries") or [])
                 if c.get("firing")
             ][:4],
+        })(),
+        # Dollar Radar (pump/dump pressure — dollar-radar engine)
+        **(lambda dr=data.get("dollar_radar", {}): {
+            "dollar_pressure": dr.get("dollar_pressure"),
+            "dollar_regime": dr.get("regime"),
+            "dollar_canaries_pump": dr.get("canaries_pump"),
+            "dollar_canaries_dump": dr.get("canaries_dump"),
+            "dollar_double_top": bool(
+                (dr.get("technicals") or {}).get("double_top")),
+            "dollar_double_bottom": bool(
+                (dr.get("technicals") or {}).get("double_bottom")),
+        })(),
+        # Global Stress Matrix (world equity & bond stress — global-stress)
+        **(lambda gs=data.get("global_stress", {}): {
+            "global_stress_index": gs.get("global_stress_index"),
+            "global_stress_level": gs.get("global_stress_level"),
+            "global_equity_stress": gs.get("equity_stress"),
+            "global_bond_stress": gs.get("bond_stress"),
+            "global_worst_market": (gs.get("worst_market") or {}).get("market"),
+            "global_flashing_red": gs.get("flashing_red") or [],
         })(),
         # Crisis KB (#2) — top active patterns
         **(lambda k=data.get("crisis_kb", {}): {
@@ -1121,6 +1145,10 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "ECON_CALENDAR: next major US release: "+str(m.get("econ_next_major") or "none")+" in "+str(m.get("econ_next_major_days") if m.get("econ_next_major_days") is not None else "?")+"d (consensus "+str(m.get("econ_next_major_consensus") or "?")+"). This week: "+str(m.get("econ_this_week_releases") or 0)+" releases, "+str(m.get("econ_this_week_tier1") or 0)+" tier-1"+((" — "+"; ".join(m.get("econ_this_week_tier1_events") or [])) if m.get("econ_this_week_tier1_events") else "")+". Recent surprises: "+str(m.get("econ_recent_above") or 0)+" above / "+str(m.get("econ_recent_below") or 0)+" below consensus.",
         # ═══ Market Cycle Extremes Radar — tops & bottoms (2026-05-19) ═
         "MARKET_CYCLE: posture "+str(m.get("cycle_posture") or "?")+" — cycle position "+str(m.get("cycle_position") if m.get("cycle_position") is not None else "?")+"/100 (0=capitulation bottom, 100=euphoria top). Top-risk "+str(m.get("cycle_top_risk") if m.get("cycle_top_risk") is not None else "?")+"/100, capitulation "+str(m.get("cycle_capitulation") if m.get("cycle_capitulation") is not None else "?")+"/100"+((" — top signs firing: "+"; ".join(m.get("cycle_top_signs") or [])) if m.get("cycle_top_signs") else "")+".",
+        # ═══ Dollar Radar — pump/dump pressure (2026-05-19) ════════════
+        "DOLLAR_RADAR: Dollar Pressure "+str(m.get("dollar_pressure") if m.get("dollar_pressure") is not None else "?")+"/±100 — regime "+str(m.get("dollar_regime") or "?")+" ("+str(m.get("dollar_canaries_pump") or 0)+" pump vs "+str(m.get("dollar_canaries_dump") or 0)+" dump canaries firing). Positive = USD squeeze/PUMP (risk-off, tighter global dollar liquidity); negative = DUMP (Fed QE/repo liquidity flood, risk-on)."+(" Dollar index double-top — reversal-lower risk." if m.get("dollar_double_top") else "")+(" Dollar index double-bottom — reversal-higher risk." if m.get("dollar_double_bottom") else ""),
+        # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
+        "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
         # ═══ Crisis KB (#2) ════════════════════════════════════════════
         "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",

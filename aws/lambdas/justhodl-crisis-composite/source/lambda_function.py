@@ -170,6 +170,22 @@ def comp_canary(d):
     return clamp(dig(d, "early_warning_level", "level", "score"))
 
 
+def comp_dollar(d):
+    # dollar-radar emits dollar_pressure -100 (DUMP) .. +100 (PUMP). A dollar
+    # PUMP is a USD-squeeze / global funding-stress crisis signal; a dollar
+    # DUMP (a liquidity flood) carries no crisis weight, so clamp floors it.
+    v = dig(d, "dollar_pressure")
+    if isinstance(v, (int, float)):
+        return clamp(float(v))
+    return None
+
+
+def comp_global_stress(d):
+    # global-stress emits global_stress_index 0-100 (high = world equity and
+    # bond stress already visible in the tape) -- a direct crisis reading.
+    return clamp(dig(d, "global_stress_index"))
+
+
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
     ("data/eurodollar-stress.json", 0.20, comp_eurodollar, "USD funding stress"),
@@ -181,6 +197,8 @@ COMPONENTS = [
     ("data/global-liquidity.json",  0.10, comp_liquidity,  "Global liquidity tide"),
     ("data/leading-markets.json",   0.12, comp_leading,    "Global leading markets"),
     ("data/canary-grid.json",       0.15, comp_canary,     "Global early-warning canaries"),
+    ("data/global-stress.json",     0.12, comp_global_stress, "Global equity & bond stress"),
+    ("data/dollar-radar.json",      0.10, comp_dollar,      "Dollar squeeze pressure"),
 ]
 
 DEFCON = [

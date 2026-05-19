@@ -105,6 +105,28 @@ def n_canary_grid(d):
     return m.get(band, 0), f"Global early-warning {band or 'n/a'} ({lvl}/100)"
 
 
+def n_dollar_radar(d):
+    # dollar_pressure -100 (DUMP) .. +100 (PUMP). A dollar PUMP (squeeze) is
+    # risk-off; a dollar DUMP (a liquidity flood) is risk-on.
+    p = d.get("dollar_pressure")
+    if not isinstance(p, (int, float)):
+        return 0, "Dollar pressure n/a"
+    reg = d.get("regime") or "n/a"
+    sig = (-2 if p >= 50 else -1 if p >= 20 else
+           2 if p <= -50 else 1 if p <= -20 else 0)
+    return sig, f"Dollar {reg} (pressure {p:+.0f})"
+
+
+def n_global_stress(d):
+    # global_stress_index 0-100; high = world equity/bond stress = risk-off.
+    gsi = d.get("global_stress_index")
+    lvl = d.get("global_stress_level") or "n/a"
+    if not isinstance(gsi, (int, float)):
+        return 0, "Global stress n/a"
+    sig = -2 if gsi >= 75 else -1 if gsi >= 55 else 1 if gsi < 32 else 0
+    return sig, f"Global market stress {lvl} ({gsi}/100)"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -115,6 +137,8 @@ FEEDS = [
     ("Short Pressure",     "positioning",      "data/short-pressure.json",     n_short_pressure),
     ("Mean Reversion",     "equity valuation", "screener/mean-reversion.json", n_mean_reversion),
     ("Canary Grid",        "macro",            "data/canary-grid.json",        n_canary_grid),
+    ("Dollar Radar",       "macro",            "data/dollar-radar.json",       n_dollar_radar),
+    ("Global Stress",      "macro",            "data/global-stress.json",      n_global_stress),
 ]
 
 
