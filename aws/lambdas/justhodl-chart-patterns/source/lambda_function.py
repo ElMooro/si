@@ -41,7 +41,10 @@ OUT_KEY = "data/chart-patterns.json"
 
 # ---- scan parameters -------------------------------------------------------
 HIST_BARS = 320          # daily closes pulled per symbol
-SERIES_BARS = 130        # bars carried in the output for charting
+SERIES_BARS = 200        # bars carried in the output for charting --
+#                          must exceed the max pattern span so every
+#                          peak/trough lands inside the chart window:
+#                          PATTERN_RECENT (60) + SEP_MAX (120) = 180.
 MIN_BARS_CROSS = 210     # need 200-DMA + an 8-day cross window
 MIN_BARS_PATTERN = 90    # enough tape to host a double top/bottom
 CROSS_RECENT = 5         # "just crossed" = within this many sessions
