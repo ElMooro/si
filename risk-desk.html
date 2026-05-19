@@ -232,6 +232,14 @@ Promise.all([
         msg=trips.length
           ?trips.slice(0,2).map(esc).join(" &middot; ")
           :"Tape calm \u2014 no intraday tripwire. The morning brief still stands.";
+        const imp=intraday.hedge_implication;
+        if(imp&&imp.recommended_action){
+          msg+='<br><b style="color:'+col+'">Hedge implication: '+
+               esc(imp.recommended_action)+
+               (imp.target_leg?" &middot; "+esc(imp.target_leg):"")+
+               '</b> <span style="color:var(--mute)">'+
+               esc(imp.rationale||"")+'</span>';
+        }
         ["SPY","QQQ","HYG","TLT","VIX"].forEach(g=>{
           const row=(intraday.tape||{})[g]; if(!row) return;
           const pct=row.day_pct;

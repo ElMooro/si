@@ -69,6 +69,27 @@ L3_VIX_LVL, L3_VIX_SOLO = 35.0, 50.0
 SEV_LABEL = {0: "CLEAR", 1: "WATCH", 2: "ALERT", 3: "SEVERE"}
 POSTURE_RANK = {"GREEN": 0, "AMBER": 1, "RED": 2}
 
+# Mirror of the Hedge Planner's sleeve classes -- so the escalation can
+# name the exact leg the intraday move implies, in the planner's own
+# vocabulary. "vix_leg" is which leg is the VIX-call leg (harvestable
+# into a vol spike), or None if the class carries no VIX leg.
+SLEEVE_CLASS_LEGS = {
+    "EQUITY_CRASH":    {"primary": "SPY put spread", "convex": "VIX calls",
+                        "vix_leg": "convex"},
+    "VOL_SPIKE":       {"primary": "VIX calls", "convex": "SPY put spread",
+                        "vix_leg": "primary"},
+    "MOMENTUM_UNWIND": {"primary": "MTUM puts",
+                        "convex": "VIX calls + crowded-long trim",
+                        "vix_leg": "convex"},
+    "CREDIT_EVENT":    {"primary": "HYG puts", "convex": "IWM put spread",
+                        "vix_leg": None},
+    "RATES_SHOCK":     {"primary": "TLT puts",
+                        "convex": "2s10s curve steepener", "vix_leg": None},
+}
+# a VIX up-move past this makes the VIX-call leg richly in-the-money --
+# the move stops being "add protection" and becomes "harvest the spike".
+VIX_HARVEST_PCT = 25.0
+
 # emojis as unicode escapes -- source stays pure ASCII
 SIREN = "\U0001F6A8"
 WARN = "\u26A0"
@@ -231,7 +252,115 @@ def score_drift(board, planner, base_posture, base_action):
 
 
 # --------------------------------------------------------------------------
-def build_message(now, severity, trips, base, tape, simulate):
+def classify_tape_scenario(tape):
+    """Which Hedge Planner sleeve class the live intraday move resembles.
+
+    A priority ladder, deliberately simple and robust: the gauge that is
+    most clearly leading the stress decides the class.
+    """
+    def g(sym):
+        return (tape.get(sym) or {}).get("day_pct")
+    spy, hyg, tlt = g("SPY"), g("HYG"), g("TLT")
+    qqq, iwm, vix = g("QQQ"), g("IWM"), g("VIX")
+    if hyg is not None and hyg <= -1.5:
+        return "CREDIT_EVENT"
+    if tlt is not None and tlt <= -2.0:
+        return "RATES_SHOCK"
+    if vix is not None and vix >= 35.0 and (spy is None or spy > -2.5):
+        return "VOL_SPIKE"
+    if spy is not None:
+        growth = [x for x in (qqq, iwm) if x is not None]
+        if growth and min(growth) <= spy - 1.5:
+            return "MOMENTUM_UNWIND"
+    return "EQUITY_CRASH"
+
+
+def hedge_implication(severity, tape, standing_class, standing_budget,
+                      hedge_required):
+    """The specific sleeve adjustment an ALERT/SEVERE move implies.
+
+    Not a worked ticket -- a directional read in the Hedge Planner's own
+    vocabulary (OPEN / ADD / HARVEST / SWITCH-REVIEW). Returns None below
+    ALERT: a watch-grade wobble does not warrant re-hedging.
+    """
+    if severity < 2:
+        return None
+    tape_class = classify_tape_scenario(tape)
+    vix_pct = (tape.get("VIX") or {}).get("day_pct")
+    legs = SLEEVE_CLASS_LEGS.get(standing_class or "", {})
+    boundary = ("The Hedge Planner produces the worked ticket -- strikes "
+                "and contracts -- at its next 05:00 UTC run; this is the "
+                "intraday directional read, not a ticket.")
+
+    # no protection on the book
+    if not hedge_required or not standing_class or (standing_budget or 0) <= 0:
+        return {
+            "recommended_action": "OPEN",
+            "tape_scenario_class": tape_class,
+            "standing_sleeve_class": standing_class,
+            "sleeve_class_match": False,
+            "target_leg": SLEEVE_CLASS_LEGS.get(tape_class, {}).get(
+                "primary"),
+            "rationale": ("No protective sleeve is on the book and a %s-grade "
+                          "move is underway intraday. The read is OPEN -- "
+                          "stand up a %s sleeve; this warrants an off-cycle "
+                          "review rather than waiting for the 05:00 UTC run."
+                          % (tape_class, tape_class)),
+            "boundary": boundary,
+        }
+
+    class_match = tape_class == standing_class
+    # the sleeve is built for a different stress than the tape is showing
+    if not class_match:
+        return {
+            "recommended_action": "SWITCH_REVIEW",
+            "tape_scenario_class": tape_class,
+            "standing_sleeve_class": standing_class,
+            "sleeve_class_match": False,
+            "target_leg": None,
+            "rationale": ("Live stress is %s-led but the standing sleeve is "
+                          "built for %s (%s). The binding scenario class may "
+                          "be rotating -- the read is REVIEW FOR SWITCH; the "
+                          "Hedge Planner re-derives the class at 05:00 UTC."
+                          % (tape_class, standing_class,
+                             legs.get("primary", "n/a"))),
+            "boundary": boundary,
+        }
+
+    # right class -- harvest the convex VIX leg if vol has spiked, else add
+    vix_leg_key = legs.get("vix_leg")
+    if vix_leg_key and vix_pct is not None and vix_pct >= VIX_HARVEST_PCT:
+        leg_name = legs.get(vix_leg_key)
+        return {
+            "recommended_action": "HARVEST",
+            "tape_scenario_class": tape_class,
+            "standing_sleeve_class": standing_class,
+            "sleeve_class_match": True,
+            "target_leg": leg_name,
+            "rationale": ("VIX +%.0f%% -- the %s leg of the standing %s "
+                          "sleeve is now richly in-the-money. The read is "
+                          "HARVEST: monetise that leg into the spike and "
+                          "recycle the premium into fresh OTM protection."
+                          % (vix_pct, leg_name, standing_class)),
+            "boundary": boundary,
+        }
+    return {
+        "recommended_action": "ADD",
+        "tape_scenario_class": tape_class,
+        "standing_sleeve_class": standing_class,
+        "sleeve_class_match": True,
+        "target_leg": legs.get("primary"),
+        "rationale": ("The standing %s sleeve (%s) is the right class for "
+                      "this move, but the tape has eaten into the protection "
+                      "budget. The read is ADD -- scale the primary leg "
+                      "toward the upper end of the sleeve budget."
+                      % (standing_class, legs.get("primary", "n/a"))),
+        "boundary": boundary,
+    }
+
+
+def build_message(now, severity, trips, base, tape, simulate,
+                   implication=None):
     icon = SIREN if severity >= 3 else WARN
     lines = []
     tag = "[VERIFICATION TEST] " if simulate else ""
@@ -256,8 +385,18 @@ def build_message(now, severity, trips, base, tape, simulate):
         lines.append("The tape is moving toward the <b>%s</b> scenario the "
                      "tail sleeve is sized for." % h(ws))
     lines.append("")
-    lines.append("%s Review the standing hedge sleeve and the Risk Desk."
-                 % ARROW)
+    if implication:
+        tgt = implication.get("target_leg")
+        lines.append("<b>Hedge implication: %s%s</b>"
+                     % (h(implication.get("recommended_action")),
+                        (" -- " + h(tgt)) if tgt else ""))
+        lines.append(h(implication.get("rationale")))
+        if implication.get("boundary"):
+            lines.append("<i>%s</i>" % h(implication["boundary"]))
+        lines.append("")
+    else:
+        lines.append("%s Review the standing hedge sleeve and the Risk Desk."
+                     % ARROW)
     lines.append("Risk Desk cockpit: %s" % RISK_DESK_URL)
     lines.append("<i>Hypothetical research book. Research and education "
                  "only, not investment advice.</i>")
@@ -331,6 +470,16 @@ def lambda_handler(event, context):
     severity = max(tape_sev, drift_sev)
     trips = drift_trips + tape_trips
 
+    # ---- the specific hedge-sleeve adjustment the move implies -----------
+    # populated at ALERT/SEVERE; reads the standing sleeve off the planner.
+    pl = planner if isinstance(planner, dict) else {}
+    standing = pl.get("standing_sleeve_after") or {}
+    implication = hedge_implication(
+        severity, tape,
+        standing.get("scenario_class") or pl.get("scenario_class"),
+        num(standing.get("budget_pct_of_book")),
+        bool(pl.get("hedge_required")))
+
     # ---- per-day escalation state ---------------------------------------
     prior = read_json(OUT_KEY) or {}
     day_state = prior.get("day_state") or {}
@@ -345,7 +494,7 @@ def lambda_handler(event, context):
 
     if should_escalate:
         message = build_message(now, severity, trips, base, tape,
-                                bool(simulate))
+                                bool(simulate), implication)
         if dry_run:
             tg_info = "dry_run"
         else:
@@ -379,6 +528,7 @@ def lambda_handler(event, context):
 
         "tape": {k: v for k, v in tape.items() if not k.startswith("_")},
         "drift": drift_trips,
+        "hedge_implication": implication,
         "morning_baseline": base,
         "baseline_is_today": baseline_today,
 
