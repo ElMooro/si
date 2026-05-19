@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-dollar-radar",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 180,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Dollar Radar - aggregates the FRED trade-weighted dollar family (Broad, Advanced, Emerging, Real) plus bilateral crosses, scores a 10-signal pump/dump canary composite (net liquidity, QE/QT, RRP, TGA, real yields, rate spread, VIX, credit, momentum, funding stress) and detects double tops/bottoms on the dollar index. data/dollar-radar.json.",
+ "environment": {
+  "FRED_KEY": "2f057499936072679d8843d7fce99989"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-dollar-radar-6h",
+  "cron": "cron(15 1,7,13,19 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Dollar Radar - every 6h via EventBridge Scheduler, re-scoring the dollar pump/dump canary composite as the FRED liquidity, rate and volatility feeds update."
+ }
+}
