@@ -119,9 +119,17 @@ function dimensions(d){
   }
   const cr=d.credit_spreads;
   if(cr){
-    const sub=(cr.spreads||[]).map(s=>esc(s.name.replace("US ",""))+
-      " <b>"+s.oas_pct+"%</b> ("+s.level+")").join("<br>");
-    cards+=dimCard("Credit Spreads \u00b7 OAS", cr.composite_score,
+    let sub="";
+    if(cr.worst_tier)
+      sub+="worst tier <b>"+esc(cr.worst_tier.name)+"</b> "+
+        cr.worst_tier.oas_pct+"% ("+cr.worst_tier.level+")";
+    if(cr.tier_dispersion)
+      sub+="<br>CCC\u2013BB dispersion <b>"+
+        cr.tier_dispersion.ccc_minus_bb_pct+"%</b> ("+
+        cr.tier_dispersion.level+")";
+    sub+="<br>"+(cr.spreads||[]).length+
+      " ICE BofA OAS indices \u00b7 see ladder below";
+    cards+=dimCard("Credit Spreads \u00b7 ICE BofA OAS", cr.composite_score,
       stressColor(cr.composite_score), sub,"sp_credit",
       cr.composite_score>=75);
   }
@@ -197,6 +205,21 @@ function marketRow(r,rank){
     '<div class="lv" style="color:'+col+';border-color:'+col+'">'+esc(lv)+'</div></div></div>';
 }
 
+function creditRow(r,rank){
+  const col=stressColor(r.stress_score);
+  const acute=r.stress_score>=75?" acute":"";
+  const stat="OAS "+r.oas_pct+"%  \u00b7  "+
+    (r.percentile_1y!=null?r.percentile_1y+"%ile (1y)":"\u2014")+"  \u00b7  1m "+
+    (r.change_1m_bps!=null?(r.change_1m_bps>0?"+":"")+r.change_1m_bps+"bp":"\u2014");
+  return '<div class="row'+acute+'">'+
+    '<div class="rank">'+rank+'</div>'+
+    '<div class="who"><div class="mk">'+esc(r.name)+'</div>'+
+    '<div class="stat">'+esc(stat)+'</div></div>'+
+    '<div class="spark" id="sp_credit_'+r.key+'"></div>'+
+    '<div class="score"><div class="sn" style="color:'+col+'">'+r.stress_score+'</div>'+
+    '<div class="lv" style="color:'+col+';border-color:'+col+'">'+esc(r.level)+'</div></div></div>';
+}
+
 function spark(id,series,color){
   const el=document.getElementById(id);
   if(!el||!series||!series.length)return;
@@ -237,14 +260,23 @@ function build(d){
   let bd='<div class="sechead">Bond Markets &middot; ranked by stress</div>';
   (d.bonds||[]).forEach((r,i)=>{bd+=marketRow(r,i+1);});
 
+  let cs='';
+  if(d.credit_spreads&&d.credit_spreads.spreads&&d.credit_spreads.spreads.length){
+    cs='<div class="sechead">Credit Spread Ladder &middot; ICE BofA option-adjusted spreads (junk-vs-Treasury)</div>';
+    d.credit_spreads.spreads.forEach((r,i)=>{cs+=creditRow(r,i+1);});
+  }
+
   const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"";
   const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
     esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
 
-  document.getElementById("root").innerHTML=h+dimensions(d)+eq+bd+note;
+  document.getElementById("root").innerHTML=h+dimensions(d)+eq+bd+cs+note;
 
   (d.equities||[]).forEach(r=>spark("sp_equity_"+r.key,r.series,stressHex(r.stress)));
   (d.bonds||[]).forEach(r=>spark("sp_bond_"+r.key,r.series,stressHex(r.stress)));
+  if(d.credit_spreads&&d.credit_spreads.spreads)
+    d.credit_spreads.spreads.forEach(r=>
+      spark("sp_credit_"+r.key,r.series,stressHex(r.stress_score)));
   if(d.implied_vol)
     spark("sp_vix",d.implied_vol.series,stressHex(d.implied_vol.stress_score));
   if(d.credit_spreads&&d.credit_spreads.spreads&&d.credit_spreads.spreads[0])

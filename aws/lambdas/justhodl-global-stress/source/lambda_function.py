@@ -306,17 +306,30 @@ def implied_vol_panel():
 
 
 def credit_spread_panel():
-    """The real bond-market stress signal -- option-adjusted spreads.
-    HY and IG OAS by level and 1y percentile."""
-    specs = [("hy", "BAMLH0A0HYM2", "US High-Yield OAS", 3.0, 9.0),
-             ("ig", "BAMLC0A0CM", "US Investment-Grade OAS", 0.8, 2.5)]
-    rows, scores = [], []
+    """The credit-stress dimension -- the full ICE BofA option-adjusted
+    spread ladder. OAS is the junk-vs-Treasury spread: the cleanest read
+    of how much extra yield the market demands to carry credit risk. It
+    spans the US high-yield rating ladder (BB -> B -> CCC & Lower),
+    investment grade, and emerging-market corporate credit, and derives
+    the CCC-vs-BB dispersion -- how hard the market is punishing the
+    worst junk relative to the best."""
+    specs = [
+        ("hy",      "BAMLH0A0HYM2",      "US High-Yield (Master)",       3.0,  9.0),
+        ("hy_bb",   "BAMLH0A1HYBB",      "US HY -- BB (top junk)",       1.8,  5.5),
+        ("hy_b",    "BAMLH0A2HYB",       "US HY -- B (mid junk)",        3.0,  9.0),
+        ("hy_ccc",  "BAMLH0A3HYC",       "US HY -- CCC & Lower (worst)", 7.0, 20.0),
+        ("ig",      "BAMLC0A0CM",        "US Investment-Grade",          0.8,  2.5),
+        ("em_corp", "BAMLEMCBPIOAS",     "EM Corporate",                 1.8,  6.5),
+        ("em_hy",   "BAMLEMHBHYCRPIOAS", "EM High-Yield Corporate",      4.0, 13.0),
+    ]
+    rows, scores, last_by = [], [], {}
     for key, sid, name, calm, acute in specs:
         obs = fred_series(sid, days=460)
         vals = [v for _, v in obs]
         if len(vals) < 60:
             continue
         last = vals[-1]
+        last_by[key] = last
         pc = pctile(last, vals[-252:])
         lvl_score = clamp((last - calm) / (acute - calm) * 100.0)
         score = round(0.5 * lvl_score
@@ -331,7 +344,23 @@ def credit_spread_panel():
     if not rows:
         return None
     composite = round(sum(scores) / len(scores))
-    return {"composite_score": composite, "level": stress_level(composite),
+    # CCC-vs-BB dispersion -- the worst junk punished harder than the
+    # best is distress concentrating in the weakest credits.
+    dispersion = None
+    if "hy_ccc" in last_by and "hy_bb" in last_by:
+        gap = last_by["hy_ccc"] - last_by["hy_bb"]
+        d_score = round(clamp((gap - 5.0) / (13.0 - 5.0) * 100.0))
+        dispersion = {"ccc_minus_bb_pct": round(gap, 2),
+                      "stress_score": d_score,
+                      "level": stress_level(d_score)}
+    worst = max(rows, key=lambda r: r["stress_score"])
+    return {"composite_score": composite,
+            "level": stress_level(composite),
+            "tier_dispersion": dispersion,
+            "worst_tier": {"name": worst["name"],
+                           "oas_pct": worst["oas_pct"],
+                           "stress_score": worst["stress_score"],
+                           "level": worst["level"]},
             "spreads": rows}
 
 
@@ -635,7 +664,10 @@ def lambda_handler(event, context):
             "become). 75+ is ACUTE. The market matrix drives the per-"
             "market flashing-red flags; breadth, the 2s10s curve, safe-"
             "haven demand and stress momentum are read alongside as "
-            "confirmation."),
+            "confirmation. Credit is read across the full ICE BofA OAS "
+            "ladder -- US high-yield BB/B/CCC, investment grade and EM "
+            "corporate -- with the CCC-vs-BB dispersion flagging distress "
+            "concentrating in the weakest credits."),
         "disclaimer": (
             "A market-stress monitor built from price action, credit "
             "spreads and implied volatility. It measures stress that is "
