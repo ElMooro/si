@@ -572,6 +572,7 @@ def lambda_handler(event, context):
         "escalated": escalated, "should_escalate": should_escalate,
         "n_tripped": len(trips), "telegram_info": tg_info,
         "message_id": message_id,
+        "hedge_implication": implication,
         "max_severity_escalated_today": day_state.get(
             "max_severity_escalated", 0),
         "message": message if dry_run else None})}
