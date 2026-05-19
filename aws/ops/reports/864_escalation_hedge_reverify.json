@@ -1,0 +1,30 @@
+{
+ "ops": 864,
+ "ts": "2026-05-19T01:26:05.667906+00:00",
+ "subject": "Re-verify the escalation -> hedge-sleeve link - implication computes at ALERT/SEVERE and is rendered into the escalation message",
+ "checks": [
+  {
+   "check": "alert_implication_computes",
+   "ok": true,
+   "detail": "severity=2 action=ADD leg=SPY put spread class=EQUITY_CRASH"
+  },
+  {
+   "check": "severe_implies_harvest_in_message",
+   "ok": true,
+   "detail": "severity=3 action=HARVEST should_escalate=True, message carries block=True"
+  },
+  {
+   "check": "credit_mismatch_implies_switch",
+   "ok": true,
+   "detail": "tape_class=CREDIT_EVENT standing_match=False action=SWITCH_REVIEW"
+  },
+  {
+   "check": "watch_carries_no_implication",
+   "ok": true,
+   "detail": "severity=1 hedge_implication=None"
+  }
+ ],
+ "summary": "4/4 checks passed",
+ "all_passed": true,
+ "verdict": "ESCALATION -> HEDGE LINK VERIFIED - the implication computes at ALERT and SEVERE (ADD / HARVEST by tape and standing sleeve), renders into the escalation message whenever the run escalates, reads SWITCH-REVIEW on a class mismatch, and stays null at WATCH. The intraday tripwire now tells the desk exactly what the sleeve move is, not just to look at it."
+}
