@@ -720,4 +720,7 @@ def lambda_handler(event, context):
             "max_severity_escalated", 0),
         "vol_radar_posture": vr_posture,
         "vol_radar_alerted": vol_alerted_now,
+        "cycle_extreme_posture": mx_posture,
+        "cycle_extreme_alerted": cyc_alerted_now,
+        "cycle_extreme_telegram": cyc_tg,
         "message": message if dry_run else None})}
