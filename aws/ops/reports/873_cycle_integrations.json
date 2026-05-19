@@ -1,0 +1,47 @@
+{
+ "ops": 873,
+ "ts": "2026-05-19T11:21:41.425935+00:00",
+ "subject": "Verify market-extremes -> morning brief wiring and the cro-escalation EUPHORIA/CAPITULATION cycle alert",
+ "checks": [
+  {
+   "check": "task1_deploy_ok",
+   "ok": true,
+   "detail": "morning-intelligence shipped"
+  },
+  {
+   "check": "task1_artifact_has_integration",
+   "ok": true,
+   "detail": "market_extremes feed=True, MARKET_CYCLE brief line=True, cycle_posture metric=True"
+  },
+  {
+   "check": "task1_brief_line_renders",
+   "ok": true,
+   "detail": "MARKET_CYCLE: posture DISTRIBUTION - cycle position 58/100. Top-risk 50/100, capitulation 33.5/100 - top signs: Equity valuations stretched; Volatility priced for calm (complacency); Credit spreads pi"
+  },
+  {
+   "check": "task2_deploy_ok",
+   "ok": true,
+   "detail": "cro-escalation shipped"
+  },
+  {
+   "check": "task2_artifact_has_alert",
+   "ok": true,
+   "detail": "build_cycle_extreme_alert=True, cycle_extreme output block=True, EUPHORIA/CAPITULATION trigger=True"
+  },
+  {
+   "check": "task2_cycle_track_runs",
+   "ok": false,
+   "detail": "dry-run ok, cycle posture=None, telegram=None, alerted=None"
+  }
+ ],
+ "rendered_brief_line": "MARKET_CYCLE: posture DISTRIBUTION - cycle position 58/100. Top-risk 50/100, capitulation 33.5/100 - top signs: Equity valuations stretched; Volatility priced for calm (complacency); Credit spreads pinned tight; Insiders distributing into strength.",
+ "cycle_extreme_state": {},
+ "summary": "5/6 checks passed",
+ "all_passed": false,
+ "state": {
+  "market_extremes_posture": "DISTRIBUTION",
+  "cycle_position": 58,
+  "cycle_extreme_telegram": null
+ },
+ "verdict": "CYCLE INTEGRATION VERIFICATION INCOMPLETE - 1 check(s) failed: task2_cycle_track_runs."
+}
