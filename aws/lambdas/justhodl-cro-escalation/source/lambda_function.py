@@ -473,6 +473,43 @@ def build_vol_radar_alert(now, vr):
     return "\n".join(lines)
 
 
+def build_cycle_extreme_alert(now, mx):
+    """Telegram message for a market-extremes flip into EUPHORIA or
+    CAPITULATION."""
+    posture = mx.get("posture")
+    sc = mx.get("scores") or {}
+    top_risk, capit = sc.get("top_risk"), sc.get("capitulation")
+    cyc = mx.get("cycle_position")
+    if posture == "EUPHORIA":
+        head = "%s MARKET CYCLE FLIPPED TO EUPHORIA" % SIREN
+        gist = ("Top-risk %s/100 -- the historical top signature is "
+                "filling in: the cluster of conditions that has marked "
+                "major market tops." % top_risk)
+        firing = mx.get("top_canaries_firing") or []
+        impl = ("Euphoria marks distribution, not a guaranteed top -- but "
+                "this is where downside risk turns asymmetric. Trim beta, "
+                "tighten stops, favour quality and protection.")
+    else:  # CAPITULATION
+        head = "%s MARKET CYCLE FLIPPED TO CAPITULATION" % SIREN
+        gist = ("Capitulation %s/100 -- the washout signature is firing: "
+                "the cluster of conditions seen near major market "
+                "bottoms." % capit)
+        firing = []
+        impl = ("Capitulation marks the best historical entries (2009, "
+                "2020) -- not a guaranteed bottom, but where upside risk "
+                "turns asymmetric. Re-risk deliberately into the washout.")
+    lines = [head, "", gist]
+    if firing:
+        lines += ["", "Top signs firing: " + "; ".join(firing[:5]) + "."]
+    if cyc is not None:
+        lines.append("Cycle position %s/100 (0 = capitulation bottom, "
+                      "100 = euphoria top)." % cyc)
+    lines += ["", impl, "",
+              '<a href="https://justhodl.ai/market-extremes.html">'
+              'Open the Cycle Radar</a>']
+    return "\n".join(lines)
+
+
 # --------------------------------------------------------------------------
 def lambda_handler(event, context):
     t0 = time.time()
@@ -571,6 +608,33 @@ def lambda_handler(event, context):
     else:
         posture_alerted = None  # left the actionable zone -- re-arm
 
+    # ---- market cycle extreme alert (separate no-spam track) -------------
+    # Fires one Telegram ping when the Market Cycle Extremes Radar FLIPS
+    # into EUPHORIA or CAPITULATION. Same no-spam discipline as the
+    # vol-radar track: cyc_alerted persists across runs so a standing
+    # extreme is not re-pinged; leaving the extreme re-arms it.
+    mx = read_json("data/market-extremes.json") or {}
+    mx_posture = mx.get("posture")
+    mx_scores = mx.get("scores") or {}
+    cyc_alerted = (prior.get("cycle_extreme") or {}).get("posture_alerted")
+    cyc_alerted_now, cyc_tg = False, "no_flip"
+    if mx_posture in ("EUPHORIA", "CAPITULATION"):
+        if mx_posture != cyc_alerted:
+            cmsg = build_cycle_extreme_alert(now, mx)
+            if dry_run:
+                cyc_tg = "dry_run"
+                cyc_alerted = mx_posture
+            else:
+                chat_id3 = event.get("chat_id") or get_chat_id()
+                ok3, cyc_tg, _ = send_telegram(chat_id3, cmsg)
+                cyc_alerted_now = ok3
+                if ok3:
+                    cyc_alerted = mx_posture
+        else:
+            cyc_tg = "already_alerted_%s" % mx_posture
+    else:
+        cyc_alerted = None  # left the extreme -- re-arm
+
     out = {
         "schema_version": SCHEMA,
         "engine": "justhodl-cro-escalation",
@@ -602,6 +666,15 @@ def lambda_handler(event, context):
             "alerted_this_run": vol_alerted_now,
             "posture_alerted": posture_alerted,
             "telegram_info": vol_tg,
+        },
+        "cycle_extreme": {
+            "posture": mx_posture,
+            "top_risk": mx_scores.get("top_risk"),
+            "capitulation": mx_scores.get("capitulation"),
+            "cycle_position": mx.get("cycle_position"),
+            "alerted_this_run": cyc_alerted_now,
+            "posture_alerted": cyc_alerted,
+            "telegram_info": cyc_tg,
         },
         "telegram_info": tg_info,
         "message_id": message_id,
