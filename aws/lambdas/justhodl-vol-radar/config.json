@@ -1,0 +1,21 @@
+{
+ "function_name": "justhodl-vol-radar",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Volatility Turning-Point Radar - scores how primed the tape is for a vol spike (spike-risk) and for a vol peak (exhaustion) from leading canary signals across the vix-curve, VRP, GEX, credit and capitulation engines. data/vol-radar.json.",
+ "environment": {},
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-vol-radar-6h",
+  "cron": "cron(0 0,6,12,18 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Volatility Turning-Point Radar - every 6h via Amazon EventBridge Scheduler, re-reading the canary feeds so the spike-risk and exhaustion scores track intraday regime shifts."
+ }
+}

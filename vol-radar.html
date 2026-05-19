@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volatility Turning-Point Radar &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128225;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1020px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--orange)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:930px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1.5px;margin-bottom:7px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6}
+.gauges{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.gauge{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+.gauge .gl{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.gauge .gv{font-family:var(--mono);font-size:24px;font-weight:700;margin:4px 0 7px}
+.bar{height:9px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.gauge .gx{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:5px}
+.vstrip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.vchip{font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 11px}
+.vchip b{color:var(--txt)}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:20px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.cgrid{display:flex;gap:10px;flex-wrap:wrap}
+.ccol{flex:1;min-width:300px}
+.ccol h3{font-family:var(--mono);font-size:11px;letter-spacing:.5px;margin:0 0 8px;text-transform:uppercase}
+.canary{display:flex;align-items:flex-start;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 11px;margin-bottom:6px}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0;border:1px solid var(--line)}
+.canary .cb{flex:1}
+.canary .cn{font-family:var(--mono);font-size:11px;color:var(--txt)}
+.canary .cd{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:2px}
+.pips{font-family:var(--mono);font-size:11px;letter-spacing:1px;margin-top:3px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.watch{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:11px 14px;font-family:var(--mono);font-size:12px;color:var(--txt);margin-top:12px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128225; Volatility Turning-Point Radar</h1>
+    <p class="subtitle">No engine predicts the exact day a volatility spike begins. What this one does is read the tape for priming &mdash; the leading canary signals that cluster <em>before</em> spikes and <em>before</em> vol peaks &mdash; and warn while vol is still calm, or still climbing. Spike-risk scores a coiled spring; exhaustion scores a spent one. It shifts the odds and warns early; it is not a timing oracle.</p>
+    <nav class="crumbs">
+      <a href="/vrp.html">vrp</a>
+      <a href="/vix-curve.html">vix curve</a>
+      <a href="/vol-regime.html">vol regime</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING RADAR&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const COL={green:"var(--green)",red:"var(--red)",orange:"var(--orange)",yellow:"var(--yellow)",cyan:"var(--cyan)",purple:"var(--purple)",dim:"var(--dim)"};
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+
+function scoreColor(v){
+  if(v>=60)return "var(--orange)";
+  if(v>=40)return "var(--yellow)";
+  if(v>=20)return "var(--cyan)";
+  return "var(--dim)";
+}
+function pips(p,mx){
+  let s="";
+  for(let i=0;i<mx;i++)s+=(i<p?"&#9679;":"&#9675;");
+  return s;
+}
+function canaryRow(c){
+  const fc=c.firing?"var(--orange)":"var(--dim)";
+  const dotbg=c.firing?"var(--orange)":"transparent";
+  return '<div class="canary"><div class="dot" style="background:'+dotbg+'"></div>'+
+    '<div class="cb"><div class="cn">'+esc(c.label)+'</div>'+
+    '<div class="cd">'+esc(c.detail||"")+'</div>'+
+    '<div class="pips" style="color:'+fc+'">'+pips(c.points||0,c.max||2)+'</div></div></div>';
+}
+
+fetch(S3+"vol-radar.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d){document.getElementById("root").innerHTML='<div class="loading">RADAR UNAVAILABLE</div>';return;}
+  const pc=COL[d.posture_color]||"var(--dim)";
+  const sc=d.scores||{},vs=d.vol_state||{},inp=d.inputs||{};
+  let h="";
+
+  h+='<div class="hero" style="border-left-color:'+pc+'">'+
+    '<div class="ptag">Vol turning-point posture &middot; dominant: '+esc(sc.dominant||"")+'</div>'+
+    '<div class="post" style="color:'+pc+'">'+esc(d.posture||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  // two gauges
+  const sr=sc.spike_risk||0,ex=sc.exhaustion||0;
+  h+='<div class="gauges">'+
+    '<div class="gauge"><div class="gl"><span>Spike-Risk</span><span>primed to break out</span></div>'+
+      '<div class="gv" style="color:'+scoreColor(sr)+'">'+sr+'<span style="font-size:12px;color:var(--dim)">/100</span></div>'+
+      '<div class="bar"><i style="width:'+sr+'%;background:'+scoreColor(sr)+'"></i></div>'+
+      '<div class="gx">'+(d.spike_canaries_firing||[]).length+' of '+(d.spike_canaries||[]).length+' canaries firing</div></div>'+
+    '<div class="gauge"><div class="gl"><span>Exhaustion</span><span>primed to peak &amp; revert</span></div>'+
+      '<div class="gv" style="color:'+scoreColor(ex)+'">'+ex+'<span style="font-size:12px;color:var(--dim)">/100</span></div>'+
+      '<div class="bar"><i style="width:'+ex+'%;background:'+scoreColor(ex)+'"></i></div>'+
+      '<div class="gx">'+(d.exhaustion_canaries_firing||[]).length+' of '+(d.exhaustion_canaries||[]).length+' canaries firing</div></div>'+
+    '</div>';
+
+  // vol state strip
+  const tsCol=vs.term_structure==="INVERTED"?"var(--red)":"var(--green)";
+  h+='<div class="vstrip">'+
+    '<div class="vchip">VIX <b>'+(vs.vix==null?"?":vs.vix)+'</b></div>'+
+    '<div class="vchip">Percentile <b>'+(vs.vix_percentile==null?"?":Number(vs.vix_percentile).toFixed(0)+"%")+'</b></div>'+
+    '<div class="vchip">Level <b>'+esc(vs.vix_level||"?")+'</b></div>'+
+    '<div class="vchip">Term structure <b style="color:'+tsCol+'">'+esc(vs.term_structure||"?")+'</b> ('+(vs.curve_3m_minus_9d==null?"?":(vs.curve_3m_minus_9d>=0?"+":"")+vs.curve_3m_minus_9d)+')</div>'+
+    '<div class="vchip">VVIX <b>'+(vs.vvix==null?"?":vs.vvix)+'</b></div>'+
+    '<div class="vchip">VRP <b>'+esc(inp.vrp_regime||"?")+'</b></div>'+
+    '</div>';
+
+  // canary board
+  h+='<div class="sechead">Canary Board <small style="color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px">&mdash; filled dot = firing</small></div>';
+  h+='<div class="cgrid">'+
+    '<div class="ccol"><h3 style="color:var(--orange)">Spike-Risk Canaries &mdash; vol bottom</h3>'+
+      (d.spike_canaries||[]).map(canaryRow).join("")+'</div>'+
+    '<div class="ccol"><h3 style="color:var(--cyan)">Exhaustion Canaries &mdash; vol top</h3>'+
+      (d.exhaustion_canaries||[]).map(canaryRow).join("")+'</div></div>';
+
+  if(d.watch_next)
+    h+='<div class="watch"><b style="color:var(--cyan)">WATCH NEXT:</b> '+esc(d.watch_next)+'</div>';
+
+  if(d.radar_note&&d.radar_note!==d.headline)
+    h+='<p class="note">'+esc(d.radar_note)+'</p>';
+  h+='<p class="note">'+esc(d.how_to_read||"")+' &mdash; '+esc(d.disclaimer||"")+' Canary feeds available: '+esc(inp.feeds_available||"?")+'.</p>';
+  h+='<div class="timestamp">scanned '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">RADAR UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
