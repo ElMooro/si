@@ -76,7 +76,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <div class="container">
   <header>
     <h1>&#128737; Risk Desk</h1>
-    <p class="subtitle">The firm Risk Desk &mdash; the CRO cockpit. One screen for the whole risk stack: the Firm Risk Board's synthesised verdict on top, then every risk engine below as a live status board &mdash; consolidated book, mandate &amp; liquidity limits, scenario &amp; tail stress, factor and P&amp;L attribution, the convexity hedge and the execution ticket that works it. Each tile reads that engine's own output; nothing is re-computed here. Click any tile for the full desk.</p>
+    <p class="subtitle">The firm Risk Desk &mdash; the CRO cockpit. One screen for the whole risk stack: the Firm Risk Board's synthesised verdict on top, then every risk engine below as a live status board &mdash; consolidated book, mandate &amp; liquidity limits, scenario &amp; tail stress, factor and P&amp;L attribution, the convexity hedge, the execution ticket that works it and the scorecard that grades its carry. Each tile reads that engine's own output; nothing is re-computed here. Click any tile for the full desk.</p>
     <nav class="crumbs">
       <a href="/firm-risk-board.html">risk board</a>
       <a href="/firm-stress.html">stress desk</a>
@@ -90,7 +90,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <script>
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
-const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)",cyan:"var(--cyan)",dim:"var(--dim)"};
+const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)",cyan:"var(--cyan)",yellow:"var(--yellow)",dim:"var(--dim)"};
 const STALE_H=30;
 
 // The firm risk stack -- every engine, grouped as a CRO would read them.
@@ -99,6 +99,7 @@ const GROUPS=[
     {k:"firm-risk-board",label:"Firm Risk Board",sub:"CRO synthesis",json:"firm-risk-board.json",href:"/firm-risk-board.html",pf:["firm_posture"]},
     {k:"tail-hedge",label:"Tail Hedge Overlay",sub:"Convexity desk",json:"tail-hedge.json",href:"/tail-hedge.html",pf:["status","hedge_posture"],colorKey:"status_color"},
     {k:"hedge-planner",label:"Hedge Execution Planner",sub:"Order ticket",json:"hedge-planner.json",href:"/hedge-planner.html",pf:["action"],colorKey:"action_color"},
+    {k:"hedge-pnl",label:"Hedge Overlay Scorecard",sub:"Earning its carry?",json:"hedge-pnl.json",href:"/hedge-pnl.html",pf:["verdict"],colorKey:"verdict_color"},
   ]},
   {grp:"Mandate &amp; Liquidity Limits",items:[
     {k:"risk-monitor",label:"Risk Mandate Monitor",sub:"Limit breach board",json:"risk-monitor.json",href:"/risk-monitor.html",pf:["risk_posture"],colorKey:"posture_color"},
