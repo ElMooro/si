@@ -1,0 +1,50 @@
+{
+ "ops": 880,
+ "ts": "2026-05-19T13:04:20.454793+00:00",
+ "subject": "Deploy + verify Telegram tripwires: Dollar Radar PUMP/DUMP flip alerts and Global Stress ACUTE flashing-red alerts",
+ "checks": [
+  {
+   "check": "dollar-radar_redeployed",
+   "ok": true,
+   "detail": "code + config pushed"
+  },
+  {
+   "check": "dollar-radar_telegram_env_set",
+   "ok": true,
+   "detail": "TELEGRAM_TOKEN + TELEGRAM_CHAT_ID present"
+  },
+  {
+   "check": "dollar-radar_telegram_reachable",
+   "ok": true,
+   "detail": "reachability push sent via the engine's own creds"
+  },
+  {
+   "check": "dollar-radar_normal_run_ok",
+   "ok": true,
+   "detail": "telegram_alert=None (silent now -- no flip, correct)"
+  },
+  {
+   "check": "global-stress_redeployed",
+   "ok": true,
+   "detail": "code + config pushed"
+  },
+  {
+   "check": "global-stress_telegram_env_set",
+   "ok": true,
+   "detail": "TELEGRAM_TOKEN + TELEGRAM_CHAT_ID present"
+  },
+  {
+   "check": "global-stress_telegram_reachable",
+   "ok": true,
+   "detail": "reachability push sent via the engine's own creds"
+  },
+  {
+   "check": "global-stress_normal_run_ok",
+   "ok": true,
+   "detail": "telegram_alert=False (silent now -- no flip, correct)"
+  }
+ ],
+ "summary": "8/8 checks passed",
+ "all_passed": true,
+ "verdict": "TELEGRAM TRIPWIRES LIVE - both engines redeployed with Telegram creds, both sent a reachability push through their own alert path, and both run clean with the telegram_alert field wired. From here, the Dollar Radar pushes on any flip into DOLLAR PUMP or DOLLAR DUMP, and the Global Stress Matrix pushes the moment any market goes ACUTE -- no-spam, one alert per genuine transition."
+}
