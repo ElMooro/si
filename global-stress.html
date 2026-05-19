@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Stress Matrix &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127758;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--red)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:980px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px}
+.hero .pnum{font-family:var(--mono);font-size:13px;color:var(--mute);margin-bottom:8px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6;margin-top:8px}
+.gbar{height:13px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;overflow:hidden;margin:4px 0}
+.gbar i{display:block;height:100%}
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.schip{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.schip .sv{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.row{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin-bottom:8px}
+.row.acute{border-color:var(--red);animation:flash 1.4s ease-in-out infinite}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 rgba(255,85,119,0)}50%{box-shadow:0 0 14px 1px rgba(255,85,119,0.55);border-color:#ff5577}}
+.row .rank{font-family:var(--mono);font-size:11px;color:var(--dim);width:18px;flex-shrink:0}
+.row .who{flex:1;min-width:0}
+.row .mk{font-family:var(--mono);font-size:13px;font-weight:700}
+.row .tk{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.row .stat{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:3px}
+.spark{width:120px;height:38px;flex-shrink:0}
+.score{text-align:right;flex-shrink:0;width:96px}
+.score .sn{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1}
+.score .lv{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;padding:2px 6px;border-radius:4px;border:1px solid;display:inline-block;margin-top:4px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#127758; Global Stress Matrix</h1>
+    <p class="subtitle">Stock-market and bond-market stress across the world, ranked. Six equity markets and four bond markets each score 0&ndash;100 on stress already visible in the tape &mdash; depth below the 52-week high, where realised volatility sits in its one-year range, and distance below the 200-day average. The most stressed markets <b style="color:var(--red)">flash red</b>. A thermometer, not a forecast.</p>
+    <nav class="crumbs">
+      <a href="/crisis.html">crisis</a>
+      <a href="/systemic-stress.html">systemic stress</a>
+      <a href="/bonds.html">bonds</a>
+      <a href="/dollar.html">dollar</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">SCANNING GLOBAL MARKETS&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+let charts=[];
+
+function stressColor(s){
+  if(s==null)return "var(--dim)";
+  if(s>=75)return "var(--red)";
+  if(s>=55)return "var(--orange)";
+  if(s>=32)return "var(--yellow)";
+  return "var(--green)";
+}
+function levelColor(l){
+  return {ACUTE:"var(--red)",STRESSED:"var(--orange)",
+          ELEVATED:"var(--yellow)",CALM:"var(--green)"}[l]||"var(--dim)";
+}
+
+function marketRow(r,rank){
+  const col=stressColor(r.stress);
+  const acute=r.stress>=75?" acute":"";
+  const lv=r.level||"";
+  const stat="DD "+r.drawdown_pct+"%  \u00b7  vol "+
+    (r.vol_percentile!=null?r.vol_percentile+"%ile":"\u2014")+"  \u00b7  vs 200d "+
+    (r.below_sma200_pct!=null?(r.below_sma200_pct>0?"+":"")+r.below_sma200_pct+"%":"\u2014");
+  return '<div class="row'+acute+'">'+
+    '<div class="rank">'+rank+'</div>'+
+    '<div class="who"><div class="mk">'+esc(r.market)+'</div>'+
+    '<div class="tk">'+esc(r.tracks)+'</div>'+
+    '<div class="stat">'+esc(stat)+'</div></div>'+
+    '<div class="spark" id="sp_'+r.asset_class+'_'+r.key+'"></div>'+
+    '<div class="score"><div class="sn" style="color:'+col+'">'+r.stress+'</div>'+
+    '<div class="lv" style="color:'+col+';border-color:'+col+'">'+esc(lv)+'</div></div></div>';
+}
+
+function spark(id,series,color){
+  const el=document.getElementById(id);
+  if(!el||!series||!series.length)return;
+  const inst=echarts.init(el);
+  inst.setOption({animation:false,grid:{left:2,right:2,top:4,bottom:4},
+    xAxis:{type:"category",show:false,data:series.map((_,i)=>i)},
+    yAxis:{type:"value",show:false,scale:true},
+    series:[{type:"line",data:series,showSymbol:false,
+      lineStyle:{color:color,width:1.6},
+      areaStyle:{color:color,opacity:0.12}}]});
+  charts.push(inst);
+}
+
+function build(d){
+  charts=[];
+  const gs=d.global_stress_index, gl=d.global_stress_level;
+  const gc=stressColor(gs);
+  let h='<div class="hero" style="border-left-color:'+gc+'">'+
+    '<div class="ptag">Global Stress Index</div>'+
+    '<div class="post" style="color:'+gc+'">'+(gs!=null?gs+" / 100":"UNKNOWN")+
+    '  '+esc(gl||"")+'</div>'+
+    '<div class="gbar"><i style="width:'+(gs!=null?gs:0)+'%;background:'+gc+'"></i></div>'+
+    '<div class="summary">'+
+    '<div class="schip"><div class="sl">Equity Stress</div><div class="sv" style="color:'+
+    stressColor(d.equity_stress)+'">'+(d.equity_stress!=null?d.equity_stress:"\u2014")+'</div></div>'+
+    '<div class="schip"><div class="sl">Bond Stress</div><div class="sv" style="color:'+
+    stressColor(d.bond_stress)+'">'+(d.bond_stress!=null?d.bond_stress:"\u2014")+'</div></div>'+
+    '<div class="schip"><div class="sl">Flashing Red</div><div class="sv" style="color:'+
+    ((d.flashing_red||[]).length?"var(--red)":"var(--green)")+'">'+
+    (d.flashing_red||[]).length+'</div></div></div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  let eq='<div class="sechead">Equity Markets &middot; ranked by stress</div>';
+  (d.equities||[]).forEach((r,i)=>{eq+=marketRow(r,i+1);});
+
+  let bd='<div class="sechead">Bond Markets &middot; ranked by stress</div>';
+  (d.bonds||[]).forEach((r,i)=>{bd+=marketRow(r,i+1);});
+
+  const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"";
+  const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
+    esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
+
+  document.getElementById("root").innerHTML=h+eq+bd+note;
+
+  (d.equities||[]).forEach(r=>spark("sp_equity_"+r.key,r.series,stressColor(r.stress)));
+  (d.bonds||[]).forEach(r=>spark("sp_bond_"+r.key,r.series,stressColor(r.stress)));
+}
+
+fetch(S3+"global-stress.json?t="+Date.now())
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d){document.getElementById("root").innerHTML=
+      '<div class="loading">Global Stress Matrix unavailable right now.</div>';return;}
+    build(d);
+  })
+  .catch(()=>{document.getElementById("root").innerHTML=
+    '<div class="loading">Global Stress Matrix unavailable right now.</div>';});
+
+window.addEventListener("resize",()=>{charts.forEach(c=>{try{c.resize();}catch(e){}});});
+</script>
+</body>
+</html>
