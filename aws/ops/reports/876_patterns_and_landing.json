@@ -1,0 +1,59 @@
+{
+ "ops": 876,
+ "ts": "2026-05-19T12:12:53.852011+00:00",
+ "subject": "Re-verify the chart-patterns SERIES_BARS fix and the 31 new landing-page product cards",
+ "checks": [
+  {
+   "check": "cp_deploy_ok",
+   "ok": true,
+   "detail": "chart-patterns shipped"
+  },
+  {
+   "check": "cp_invoke_ok",
+   "ok": true,
+   "detail": "scan ok"
+  },
+  {
+   "check": "cp_four_lists_present",
+   "ok": true,
+   "detail": "counts: cross_up_200dma=25, cross_down_200dma=24, double_tops=30, double_bottoms=30"
+  },
+  {
+   "check": "cp_all_pattern_marks_in_range",
+   "ok": true,
+   "detail": "all 60 double-top/bottom rows: every mark lands inside its series"
+  },
+  {
+   "check": "cp_widest_pattern_fits",
+   "ok": true,
+   "detail": "widest top CLX spans 120 bars in a 200-pt series"
+  },
+  {
+   "check": "cp_page_live",
+   "ok": true,
+   "detail": "HTTP 200"
+  },
+  {
+   "check": "landing_new_sections_present",
+   "ok": true,
+   "detail": "HTTP 200, all 3 new sections present"
+  },
+  {
+   "check": "landing_all_31_pages_linked",
+   "ok": true,
+   "detail": "all 31 new product pages linked from the landing page"
+  }
+ ],
+ "summary": "8/8 checks passed",
+ "all_passed": true,
+ "state": {
+  "pattern_counts": {
+   "cross_up_200dma": 25,
+   "cross_down_200dma": 24,
+   "double_tops": 30,
+   "double_bottoms": 30
+  },
+  "scanned": null
+ },
+ "verdict": "BOTH TASKS VERIFIED - the Chart Pattern Scanner fix holds: across 60 double-top/bottom rows every peak and trough now lands inside its charting series (was failing on wide patterns). Live scan: cross_up_200dma 25, cross_down_200dma 24, double_tops 30, double_bottoms 30. And the landing page carries the three new sections with all 31 product pages one click from the front door."
+}
