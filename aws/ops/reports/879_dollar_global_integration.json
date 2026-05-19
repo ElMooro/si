@@ -1,0 +1,77 @@
+{
+ "ops": 879,
+ "ts": "2026-05-19T12:52:08.678933+00:00",
+ "subject": "Verify Dollar Radar + Global Stress Matrix are wired into the crisis composite, signal board and morning brief",
+ "checks": [
+  {
+   "check": "crisis_composite_redeployed",
+   "ok": true,
+   "detail": "from wired source"
+  },
+  {
+   "check": "crisis_composite_invoke_ok",
+   "ok": true,
+   "detail": "invoked"
+  },
+  {
+   "check": "crisis_composite_readable",
+   "ok": true,
+   "detail": "crisis-composite.json read"
+  },
+  {
+   "check": "crisis_global_stress_component",
+   "ok": true,
+   "detail": "Global stress -> crisis 55.0 (weight 0.12)"
+  },
+  {
+   "check": "crisis_dollar_component",
+   "ok": true,
+   "detail": "Dollar squeeze -> crisis 0.0 (weight 0.1)"
+  },
+  {
+   "check": "crisis_master_still_computes",
+   "ok": false,
+   "detail": "master crisis score = None, DEFCON 4, 11 components total"
+  },
+  {
+   "check": "signal_board_redeployed",
+   "ok": true,
+   "detail": "from wired source"
+  },
+  {
+   "check": "signal_board_invoke_ok",
+   "ok": true,
+   "detail": "invoked"
+  },
+  {
+   "check": "signal_board_readable",
+   "ok": true,
+   "detail": "signal-board.json read"
+  },
+  {
+   "check": "signal_board_has_dollar_radar",
+   "ok": true,
+   "detail": "Dollar Radar: signal 1 -- RISK-ON"
+  },
+  {
+   "check": "signal_board_has_global_stress",
+   "ok": true,
+   "detail": "Global Stress: signal -1 -- RISK-OFF"
+  },
+  {
+   "check": "morning_intelligence_deployed",
+   "ok": true,
+   "detail": "last modified 2026-05-19T12:51:35.000+0000 -- DOLLAR_RADAR / GLOBAL_STRESS brief lines ship with the next 08:00 ET run"
+  }
+ ],
+ "summary": "11/12 checks passed",
+ "all_passed": false,
+ "readings": {
+  "crisis_master": null,
+  "global_stress_crisis_contribution": 55.0,
+  "dollar_crisis_contribution": 0.0,
+  "signal_board_dollar": 1,
+  "signal_board_global_stress": -1
+ },
+ "verdict": "INTEGRATION VERIFICATION INCOMPLETE - failed: crisis_master_still_computes."
+}
