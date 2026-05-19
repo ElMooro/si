@@ -56,6 +56,7 @@ ENGINES = {
     "tail-hedge": "data/tail-hedge.json",
     "firm-book": "data/firm-book.json",
     "firm-risk-board": "data/firm-risk-board.json",
+    "vol-radar": "data/vol-radar.json",
 }
 
 # Per-scenario-class leg breakdown. The Tail Hedge Overlay owns "how
@@ -339,6 +340,66 @@ def lambda_handler(event, context):
         reason = ("The standing sleeve already matches the target and is "
                   "within tenor -- carry it, no trade.")
 
+    # ---- vol-radar timing overlay ---------------------------------------
+    # The action above is driven purely by the exposure gap. The
+    # Volatility Turning-Point Radar does not override it -- it adds
+    # timing context: whether, within the planner's mandate, now is a
+    # well-timed moment to act. COILED (a spike primed while protection
+    # is still cheap) argues for pulling protection forward; PEAKING
+    # (vol near a climax, convex legs near their richest) argues for
+    # harvesting; ELEVATED warns that protection is expensive.
+    vr = feeds.get("vol-radar") or {}
+    vr_fresh = bool(vr) and ages.get("vol-radar") is not None \
+        and ages["vol-radar"] <= STALE_HOURS
+    vol_timing = None
+    timing_note = None
+    if vr_fresh:
+        vr_posture = vr.get("posture")
+        vr_scores = vr.get("scores") or {}
+        vr_spike = num(vr_scores.get("spike_risk"))
+        vr_exh = num(vr_scores.get("exhaustion"))
+        bias, tnote = "NEUTRAL", None
+        if vr_posture in ("COILED", "WATCH"):
+            if action in ("OPEN", "ADD", "ROLL"):
+                bias = "CONFIRMS"
+                tnote = ("Vol radar is %s -- spike canaries are firing "
+                         "while protection is still cheap; building it "
+                         "now is well-timed." % vr_posture)
+            elif action in ("HOLD", "NONE", "TRIM"):
+                bias = "PULL FORWARD"
+                tnote = ("Vol radar is %s -- a volatility spike is primed "
+                         "while protection is still cheap; consider "
+                         "pulling the next add forward rather than "
+                         "waiting for the gap to widen." % vr_posture)
+        elif vr_posture in ("PEAKING", "TOPPING"):
+            if action == "HARVEST":
+                bias = "CONFIRMS"
+                tnote = ("Vol radar is %s -- harvesting the convex leg now "
+                         "captures it near peak value." % vr_posture)
+            elif action in ("HOLD", "NONE"):
+                bias = "FAVOR HARVEST"
+                tnote = ("Vol radar is %s -- vol is near a climax and the "
+                         "convex legs are near their richest; favour "
+                         "harvesting into the move over holding."
+                         % vr_posture)
+            elif action in ("OPEN", "ADD", "ROLL"):
+                bias = "CAUTION"
+                tnote = ("Vol radar is %s -- protection is near its most "
+                         "expensive; size conservatively or prefer put "
+                         "spreads over outright premium." % vr_posture)
+        elif vr_posture == "ELEVATED" and action in ("OPEN", "ADD", "ROLL"):
+            bias = "CAUTION"
+            tnote = ("Vol radar is ELEVATED -- vol is high and not yet "
+                     "exhausted; protection is expensive, prefer spreads.")
+        vol_timing = {
+            "posture": vr_posture,
+            "spike_risk": vr_spike,
+            "exhaustion": vr_exh,
+            "timing_bias": bias,
+            "timing_note": tnote,
+        }
+        timing_note = tnote
+
     # ---- size the ticket -------------------------------------------------
     # quote only the underlyings the chosen sleeve actually needs.
     spots, n_quote_ok, n_quote_try = {}, 0, 0
@@ -559,6 +620,8 @@ def lambda_handler(event, context):
     if confidence != "HIGH":
         bits.append("Confidence is %s; treat contract counts as indicative."
                     % confidence)
+    if timing_note:
+        bits.append(timing_note)
     cro_note = " ".join(bits)
 
     # ---- history + deltas ------------------------------------------------
@@ -605,6 +668,7 @@ def lambda_handler(event, context):
         "stance": stance,
         "hedge_required": hedge_required,
         "scenario_class": use_class,
+        "vol_timing": vol_timing,
 
         "ticket": {
             "side_summary": side_summary,
