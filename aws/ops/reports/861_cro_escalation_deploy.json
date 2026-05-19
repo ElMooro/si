@@ -1,0 +1,64 @@
+{
+ "ops": 861,
+ "ts": "2026-05-19T00:50:24.331264+00:00",
+ "subject": "Deploy + verify justhodl-cro-escalation (the intraday firm-risk tripwire - escalates the CRO brief to Telegram only on a strictly worse intraday break)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-cro-escalation-intraday"
+  },
+  {
+   "check": "live_tape_run_ok",
+   "ok": true,
+   "detail": "severity=0 (CLEAR), escalated=False -- real FMP tape scored"
+  },
+  {
+   "check": "escalation_sends_ping",
+   "ok": true,
+   "detail": "severity=2 escalated=True message_id=2206 info=sent"
+  },
+  {
+   "check": "no_spam_same_severity",
+   "ok": true,
+   "detail": "re-run at ALERT -> should_escalate=False (must be False), max escalated today=2"
+  },
+  {
+   "check": "worse_break_re_escalates",
+   "ok": true,
+   "detail": "SEVERE break after ALERT -> severity=3 should_escalate=True (must be True)"
+  },
+  {
+   "check": "state_persisted",
+   "ok": true,
+   "detail": "cro-escalation.json day=2026-05-19 max_escalated=2 n_pings=1"
+  },
+  {
+   "check": "thresholds_documented",
+   "ok": true,
+   "detail": "tripwire ladder published in output: ['watch', 'alert', 'severe']"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 14,16,18,20 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "cro_escalation": {
+  "live_tape_severity": 0,
+  "live_tape_label": "CLEAR",
+  "live_tape_escalated": false,
+  "test_ping_message_id": 2206,
+  "schedule": "14/16/18/20 UTC daily"
+ },
+ "verdict": "INTRADAY RISK TRIPWIRE LIVE - the CRO brief now escalates. The watcher scored the real tape (severity 0 / CLEAR, escalated False), sent one verified [TEST] ALERT ping (Telegram message_id 2206), then PROVED its discipline: a re-run at the same severity stays silent, a genuine worse break re-escalates. Runs 14/16/18/20 UTC; most days it sends nothing."
+}
