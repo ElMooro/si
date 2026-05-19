@@ -625,13 +625,127 @@ def scan(spec, kind):
             "as_of": closes[-1][0], **st}
 
 
+# ---- multi-dimensional stress escalation -----------------------------------
+# The Global Stress Index is a weighted blend, so a single hot component can
+# be diluted inside the headline number. A real stress desk does not wait for
+# the blend -- it escalates per dimension. This layer classifies every scored
+# stress dimension into GREEN / AMBER / RED and edge-detects the moment any one
+# of them crosses into RED on its own (credit, rate-vol, sovereign and funding
+# routinely lead the equity matrix into a crisis).
+ESC_RED = 75      # ACUTE
+ESC_AMBER = 55    # STRESSED
+
+
+def esc_band(score):
+    if not isinstance(score, (int, float)):
+        return None
+    if score >= ESC_RED:
+        return "RED"
+    if score >= ESC_AMBER:
+        return "AMBER"
+    return "GREEN"
+
+
+def build_stress_escalation(global_stress, market_stress, worst, iv,
+                            credit, rates, sovereign, funding, contagion,
+                            prev):
+    """Assemble every scored stress dimension into a GREEN/AMBER/RED
+    escalation matrix, edge-detect the dimensions that have NEWLY gone RED
+    since the last run, and derive a single firm-wide stress posture."""
+    dims = []
+
+    def add(key, label, score, detail):
+        b = esc_band(score)
+        if b is None:
+            return
+        dims.append({"key": key, "label": label,
+                     "score": int(round(score)), "band": b,
+                     "detail": detail})
+
+    if market_stress is not None:
+        add("market_matrix", "Market Matrix", market_stress,
+            ("worst market: %s -- %s at %d/100"
+             % (worst["market"], worst["tracks"], worst["stress"]))
+            if worst else "cross-market price action")
+    if iv:
+        add("equity_vol", "Equity Vol (VIX)", iv.get("stress_score"),
+            "VIX %.1f, %s pct 1y percentile"
+            % (iv.get("vix") or 0.0, iv.get("percentile_1y")))
+    if credit:
+        wt = credit.get("worst_tier") or {}
+        add("credit", "Credit Spreads", credit.get("composite_score"),
+            "worst tier: %s OAS %.2f pct"
+            % (wt.get("name") or "n/a", wt.get("oas_pct") or 0.0))
+    if rates:
+        add("rate_vol", "Rate Volatility", rates.get("stress_score"),
+            "10y yield realised vol %d bp annualised"
+            % (rates.get("rate_vol_bp") or 0))
+    if sovereign:
+        ep = (sovereign.get("euro_periphery") or {}).get("stress_score")
+        em = (sovereign.get("em_sovereign") or {}).get("stress_score")
+        add("sovereign", "Sovereign Stress", sovereign.get("stress_score"),
+            "euro periphery %s, EM sovereign %s"
+            % (ep if ep is not None else "n/a",
+               em if em is not None else "n/a"))
+    if funding:
+        add("funding", "USD Funding Plumbing", funding.get("stress_score"),
+            "regime: %s" % (funding.get("regime") or "n/a"))
+    if contagion:
+        add("contagion", "Cross-Market Contagion",
+            contagion.get("stress_score"),
+            "%d pct of markets stressed"
+            % (contagion.get("breadth_score") or 0))
+    if global_stress is not None:
+        add("global_index", "Global Stress Index", global_stress,
+            "the headline weighted blend")
+
+    dims.sort(key=lambda d: -d["score"])
+
+    # edge detection -- a dimension counts as NEWLY red only when the prior
+    # run carried an escalation block and that dimension was not RED then,
+    # so a dimension that stays red does not re-alert every run.
+    prev_esc = (prev or {}).get("escalation") or {}
+    had_prev = bool(prev_esc.get("dimensions"))
+    prev_band = {d.get("key"): d.get("band")
+                 for d in prev_esc.get("dimensions", [])
+                 if isinstance(d, dict)}
+    newly_red = []
+    if had_prev:
+        newly_red = [d for d in dims
+                     if d["band"] == "RED"
+                     and prev_band.get(d["key"]) != "RED"]
+
+    n_red = sum(1 for d in dims if d["band"] == "RED")
+    n_amber = sum(1 for d in dims if d["band"] == "AMBER")
+    posture = "RED" if n_red else ("AMBER" if n_amber else "GREEN")
+    block = {
+        "posture": posture,
+        "n_red": n_red,
+        "n_amber": n_amber,
+        "dimensions": dims,
+        "red_dimensions": [d["label"] for d in dims if d["band"] == "RED"],
+        "newly_red": [d["key"] for d in newly_red],
+        "baseline_run": not had_prev,
+        "as_of": datetime.now(timezone.utc).isoformat(),
+        "bands": {"green": "<55", "amber": "55-74 STRESSED",
+                  "red": ">=75 ACUTE"},
+        "note": ("Per-dimension escalation. The blended Global Stress Index "
+                 "can sit calm while one dimension -- credit, rate vol, "
+                 "sovereign or funding -- goes ACUTE on its own; this matrix "
+                 "catches that and the tripwire fires on it directly."),
+    }
+    return block, newly_red
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     if isinstance(event, dict) and event.get("test_telegram"):
         send_telegram("\u2705 <b>Global Stress Matrix</b> -- Telegram "
-                      "tripwire armed and reachable. You will get a push the "
-                      "moment any market goes ACUTE and flashes red.")
+                      "tripwire armed and reachable. You will get a single "
+                      "push the moment any market OR any stress dimension "
+                      "(credit, rate vol, sovereign, funding, VIX, "
+                      "contagion) crosses into ACUTE.")
         return {"statusCode": 200,
                 "body": json.dumps({"ok": True, "test_telegram": "sent"})}
     if not FMP:
@@ -781,6 +895,17 @@ def lambda_handler(event, context):
             "spreads and implied volatility. It measures stress that is "
             "already present; it is not a forecast or investment advice."),
     }
+
+    # ---- multi-dimensional escalation matrix --------------------------------
+    # Classify every stress dimension GREEN/AMBER/RED and edge-detect the ones
+    # that have just crossed into RED. Read once here so the tripwire below can
+    # reuse the same previous-output snapshot for per-market edge detection.
+    prev = read_prev_output()
+    escalation, newly_red_dims = build_stress_escalation(
+        global_stress, market_stress, worst, iv, credit, rates,
+        sovereign, funding, contagion, prev)
+    out["escalation"] = escalation
+
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                       Body=json.dumps(out, default=str).encode("utf-8"),
@@ -790,28 +915,33 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": str(e)})}
 
-    # --- ACUTE / flashing-red tripwire -- fires only for a market that has
-    # NEWLY gone ACUTE since the last run, so a market that stays red does
-    # not re-alert. The previous output is the no-spam state.
+    # --- stress tripwire -- ONE consolidated push the moment any market OR
+    # any stress dimension NEWLY crosses into ACUTE/RED. A dimension or market
+    # that stays red does not re-alert; the previous output is the no-spam
+    # state, and a broad risk-off that trips several dimensions at once still
+    # sends a single message rather than one per dimension.
     alerted = False
     try:
-        prev = read_prev_output()
         prev_flash = set(prev.get("flashing_red") or [])
         new_flash = [m for m in flashing if m not in prev_flash]
-        prev_gsi = prev.get("global_stress_index")
-        gsi_into_acute = (global_stress is not None and global_stress >= 75
-                          and not (isinstance(prev_gsi, (int, float))
-                                   and prev_gsi >= 75))
-        if new_flash or gsi_into_acute:
-            lines = ["\U0001F6A8 <b>GLOBAL STRESS -- flashing red</b>", ""]
+        if new_flash or newly_red_dims:
+            lines = ["\U0001F6A8 <b>GLOBAL STRESS -- escalation</b>", ""]
+            for d in newly_red_dims:
+                lines.append("Just went ACUTE: <b>%s</b> %d/100 -- %s."
+                             % (d["label"], d["score"], d["detail"]))
             if new_flash:
-                lines.append("Just went ACUTE: <b>%s</b>."
+                lines.append("Markets just flashing red: <b>%s</b>."
                              % ", ".join(new_flash))
-            if gsi_into_acute:
-                lines.append("The Global Stress Index itself has crossed "
-                             "into ACUTE -- broad, cross-market stress.")
-            lines.append("Now flashing red: %s."
-                         % (", ".join(flashing) if flashing else "none"))
+            lines.append("")
+            lines.append("Stress posture: <b>%s</b> -- %d red, %d amber "
+                         "across %d dimensions."
+                         % (escalation["posture"], escalation["n_red"],
+                            escalation["n_amber"],
+                            len(escalation["dimensions"])))
+            red_now = escalation.get("red_dimensions") or []
+            if red_now:
+                lines.append("All dimensions red now: %s."
+                             % ", ".join(red_now))
             lines.append("Global Stress Index %s (%s) -- equity %s, bond %s."
                          % (global_stress,
                             stress_level(global_stress)
@@ -838,6 +968,10 @@ def lambda_handler(event, context):
         "contagion_score": (contagion or {}).get("stress_score"),
         "stress_direction": (momentum or {}).get("direction"),
         "markets_scored": len(rows), "flashing_red": len(flashing),
+        "escalation_posture": escalation["posture"],
+        "escalation_red": escalation["n_red"],
+        "escalation_amber": escalation["n_amber"],
+        "escalation_newly_red": escalation["newly_red"],
         "worst": worst["market"] if worst else None,
         "telegram_alert": alerted,
         "build_seconds": out["build_seconds"]})}

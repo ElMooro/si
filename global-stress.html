@@ -50,6 +50,14 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .row .mk{font-family:var(--mono);font-size:13px;font-weight:700}
 .row .tk{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
 .row .stat{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:3px}
+.epost{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.epost .esub{font-size:11px;color:var(--mute);font-weight:400}
+.ecard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:8px;padding:11px 13px}
+.ecard .el{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.ecard .ev{font-family:var(--mono);font-size:22px;font-weight:700;margin:3px 0}
+.ecard .eb{font-size:10px;font-weight:700;letter-spacing:1px}
+.ecard .ed{font-family:var(--mono);font-size:10px;color:var(--mute);line-height:1.6}
+.ecard .nr{background:var(--red);color:#fff;font-size:8px;padding:1px 5px;border-radius:3px;letter-spacing:1px;vertical-align:middle}
 .spark{width:120px;height:38px;flex-shrink:0}
 .score{text-align:right;flex-shrink:0;width:96px}
 .score .sn{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1}
@@ -267,6 +275,36 @@ function spark(id,series,color){
   charts.push(inst);
 }
 
+function bandHex(b){
+  if(b==="RED")return "#ff5577";
+  if(b==="AMBER")return "#ff7a18";
+  return "#26ffaf";
+}
+function escalationPanel(d){
+  const e=d.escalation;
+  if(!e||!e.dimensions||!e.dimensions.length)return "";
+  const pc=bandHex(e.posture);
+  let chips="";
+  e.dimensions.forEach(function(x){
+    const c=bandHex(x.band);
+    const nr=(e.newly_red||[]).indexOf(x.key)>-1;
+    chips+='<div class="ecard" style="border-left-color:'+c+'">'+
+      '<div class="el">'+esc(x.label)+(nr?' <span class="nr">NEW</span>':'')+'</div>'+
+      '<div class="ev" style="color:'+c+'">'+x.score+
+      ' <span class="eb">'+esc(x.band)+'</span></div>'+
+      '<div class="ed">'+esc(x.detail||"")+'</div></div>';
+  });
+  return '<div class="sechead">Stress Escalation Matrix &middot; '+
+    'per-dimension GREEN / AMBER / RED tripwire</div>'+
+    '<div class="epost" style="border-left-color:'+pc+'">'+
+    '<div class="ptag">Escalation Posture</div>'+
+    '<div class="post" style="color:'+pc+'">'+esc(e.posture)+
+    '  <span class="esub">'+e.n_red+' red \u00b7 '+e.n_amber+
+    ' amber \u00b7 '+e.dimensions.length+' dimensions</span></div>'+
+    '<div class="hl">'+esc(e.note||"")+'</div></div>'+
+    '<div class="dims">'+chips+'</div>';
+}
+
 function build(d){
   charts=[];
   const gs=d.global_stress_index, gl=d.global_stress_level;
@@ -304,7 +342,7 @@ function build(d){
   const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
     esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
 
-  document.getElementById("root").innerHTML=h+dimensions(d)+eq+bd+cs+note;
+  document.getElementById("root").innerHTML=h+escalationPanel(d)+dimensions(d)+eq+bd+cs+note;
 
   (d.equities||[]).forEach(r=>spark("sp_equity_"+r.key,r.series,stressHex(r.stress)));
   (d.bonds||[]).forEach(r=>spark("sp_bond_"+r.key,r.series,stressHex(r.stress)));
