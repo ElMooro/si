@@ -216,6 +216,8 @@ def load_all():
         "capitulation":"data/capitulation.json",
         # ─── Economic Release Calendar (the ECO screen · 2026-05-19) ──
         "econ_calendar":"data/econ-calendar.json",
+        # ─── Market Cycle Extremes Radar (tops & bottoms · 2026-05-19) ─
+        "market_extremes":"data/market-extremes.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -615,6 +617,19 @@ def extract_metrics(data,weights):
             "econ_this_week_tier1_events": [
                 str(e.get("event")) + " (" + str(e.get("date")) + ")"
                 for e in (ec.get("this_week") or []) if e.get("tier1")
+            ][:4],
+        })(),
+        # Market Cycle Extremes Radar (tops & bottoms — market-extremes)
+        **(lambda mx=data.get("market_extremes", {}): {
+            "cycle_posture": mx.get("posture"),
+            "cycle_position": mx.get("cycle_position"),
+            "cycle_top_risk": (mx.get("scores") or {}).get("top_risk"),
+            "cycle_capitulation": (mx.get("scores") or {}).get(
+                "capitulation"),
+            "cycle_capit_signal": (mx.get("bottom") or {}).get("signal"),
+            "cycle_top_signs": [
+                str(c.get("label")) for c in (mx.get("top_canaries") or [])
+                if c.get("firing")
             ][:4],
         })(),
         # Crisis KB (#2) — top active patterns
@@ -1104,6 +1119,8 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "EARNINGS_BEAT_RATE: "+str(m.get("earnings_beat_rate") or "?")+" median_1d:"+str(m.get("earnings_median_1d") or "?")+"%",
         # ═══ Economic Release Calendar — the ECO screen (2026-05-19) ══
         "ECON_CALENDAR: next major US release: "+str(m.get("econ_next_major") or "none")+" in "+str(m.get("econ_next_major_days") if m.get("econ_next_major_days") is not None else "?")+"d (consensus "+str(m.get("econ_next_major_consensus") or "?")+"). This week: "+str(m.get("econ_this_week_releases") or 0)+" releases, "+str(m.get("econ_this_week_tier1") or 0)+" tier-1"+((" — "+"; ".join(m.get("econ_this_week_tier1_events") or [])) if m.get("econ_this_week_tier1_events") else "")+". Recent surprises: "+str(m.get("econ_recent_above") or 0)+" above / "+str(m.get("econ_recent_below") or 0)+" below consensus.",
+        # ═══ Market Cycle Extremes Radar — tops & bottoms (2026-05-19) ═
+        "MARKET_CYCLE: posture "+str(m.get("cycle_posture") or "?")+" — cycle position "+str(m.get("cycle_position") if m.get("cycle_position") is not None else "?")+"/100 (0=capitulation bottom, 100=euphoria top). Top-risk "+str(m.get("cycle_top_risk") if m.get("cycle_top_risk") is not None else "?")+"/100, capitulation "+str(m.get("cycle_capitulation") if m.get("cycle_capitulation") is not None else "?")+"/100"+((" — top signs firing: "+"; ".join(m.get("cycle_top_signs") or [])) if m.get("cycle_top_signs") else "")+".",
         # ═══ Crisis KB (#2) ════════════════════════════════════════════
         "ACTIVE_CRISIS_PATTERNS: "+(", ".join(m.get("active_crisis_patterns") or []) or "none currently"),
         "TOP TRUSTED SIGNALS:",
