@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-cro-escalation",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm intraday risk tripwire - watches the live cross-asset tape (SPY/QQQ/HYG/TLT/IWM/VIX) and stack drift vs the morning CRO brief baseline, escalating one Telegram ping only on a strictly worse break. data/cro-escalation.json.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-cro-escalation-intraday",
+  "cron": "cron(0 14,16,18,20 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm intraday risk tripwire - runs at 14/16/18/20 UTC across the US session via Amazon EventBridge Scheduler, watching the tape against the morning CRO brief baseline."
+ }
+}
