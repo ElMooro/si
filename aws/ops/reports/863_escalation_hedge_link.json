@@ -1,0 +1,45 @@
+{
+ "ops": 863,
+ "ts": "2026-05-19T01:20:32.811994+00:00",
+ "subject": "Verify the escalation -> hedge-sleeve link - the intraday tripwire now surfaces the specific sleeve adjustment (ADD / HARVEST / SWITCH-REVIEW / OPEN) at ALERT/SEVERE",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "function code updated"
+  },
+  {
+   "check": "equity_alert_implies_sleeve_action",
+   "ok": false,
+   "detail": "severity=2 action=ADD leg=SPY put spread, message carries block=False"
+  },
+  {
+   "check": "vol_spike_implies_harvest",
+   "ok": true,
+   "detail": "severity=3 action=HARVEST leg=VIX calls -- VIX explosion harvests the convex leg"
+  },
+  {
+   "check": "class_mismatch_implies_switch",
+   "ok": true,
+   "detail": "tape_class=CREDIT_EVENT standing_match=False action=SWITCH_REVIEW"
+  },
+  {
+   "check": "watch_carries_no_implication",
+   "ok": true,
+   "detail": "severity=1 hedge_implication=None (must be null at WATCH)"
+  },
+  {
+   "check": "feed_ships_implication_field",
+   "ok": true,
+   "detail": "cro-escalation.json carries hedge_implication (=None at live severity CLEAR)"
+  },
+  {
+   "check": "page_renders_implication",
+   "ok": true,
+   "detail": "risk-desk.html intraday strip renders the implication line"
+  }
+ ],
+ "summary": "6/7 checks passed",
+ "all_passed": false,
+ "verdict": "ESCALATION HEDGE-LINK VERIFICATION INCOMPLETE - 1 check(s) failed: equity_alert_implies_sleeve_action."
+}
