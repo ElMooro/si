@@ -1,0 +1,86 @@
+{
+ "ops": 875,
+ "ts": "2026-05-19T12:06:09.208014+00:00",
+ "subject": "Deploy + verify justhodl-chart-patterns (Chart Pattern Scanner): 200-DMA crossovers and double tops/bottoms",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "justhodl-chart-patterns-daily ENABLED cron(30 23 * * ? *)"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "scanned 503, 453 with a signal in 6.7s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "data/chart-patterns.json read"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-chart-patterns"
+  },
+  {
+   "check": "universe_scanned",
+   "ok": true,
+   "detail": "universe_size=503, n_with_signal=453"
+  },
+  {
+   "check": "four_lists_present",
+   "ok": true,
+   "detail": "counts: cross_up_200dma=25, cross_down_200dma=24, double_tops=30, double_bottoms=30"
+  },
+  {
+   "check": "scan_found_signals",
+   "ok": true,
+   "detail": "109 setups across the four categories"
+  },
+  {
+   "check": "crossover_rows_well_formed",
+   "ok": true,
+   "detail": "MSCI up: cross 0d ago, 3.47% from MA, series=130 pts [date,close,ma]"
+  },
+  {
+   "check": "pattern_rows_well_formed",
+   "ok": false,
+   "detail": "HPE: double_bottom CONFIRMED q99, all 3 marks land in a 130-pt series"
+  },
+  {
+   "check": "page_live",
+   "ok": true,
+   "detail": "HTTP 200"
+  },
+  {
+   "check": "linked_from_landing_page",
+   "ok": true,
+   "detail": "landing page links chart-patterns"
+  },
+  {
+   "check": "linked_from_directory",
+   "ok": true,
+   "detail": "directory links chart-patterns"
+  }
+ ],
+ "summary": "12/13 checks passed",
+ "all_passed": false,
+ "scan": {
+  "universe_size": 503,
+  "n_with_signal": 453,
+  "counts": {
+   "cross_up_200dma": 25,
+   "cross_down_200dma": 24,
+   "double_tops": 382,
+   "double_bottoms": 404
+  },
+  "build_seconds": 6.7
+ },
+ "verdict": "CHART PATTERN SCANNER VERIFICATION INCOMPLETE - 1 check(s) failed: pattern_rows_well_formed."
+}
