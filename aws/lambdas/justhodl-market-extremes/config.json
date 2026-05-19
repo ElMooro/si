@@ -1,0 +1,21 @@
+{
+ "function_name": "justhodl-market-extremes",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Market Cycle Extremes Radar - scores top-risk (euphoria signs: stretched valuations, narrowing breadth, euphoric sentiment, complacent vol/credit, insider distribution) and reads the Capitulation engine for the washout side. data/market-extremes.json.",
+ "environment": {},
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-market-extremes-daily",
+  "cron": "cron(0 23 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Market Cycle Extremes Radar - daily 23:00 UTC via Amazon EventBridge Scheduler, after the valuation, breadth, sentiment and capitulation feeds have refreshed."
+ }
+}

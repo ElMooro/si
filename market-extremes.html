@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Cycle Extremes &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127914;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:920px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:1.5px;margin-bottom:7px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6}
+.dialbox{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 16px 12px;margin-bottom:14px}
+.dialhead{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;margin-bottom:9px}
+.dial{position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,var(--green) 0%,#11161f 50%,var(--red) 100%);border:1px solid var(--line)}
+.dial .marker{position:absolute;top:-5px;width:3px;height:24px;background:var(--txt);border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.8)}
+.dial-x{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:6px}
+.gauges{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.gauge{flex:1;min-width:230px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 15px}
+.gauge .gl{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.gauge .gv{font-family:var(--mono);font-size:24px;font-weight:700;margin:4px 0 7px}
+.bar{height:9px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.gauge .gx{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:5px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:20px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.canary{display:flex;align-items:flex-start;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:9px 11px;margin-bottom:6px}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0;border:1px solid var(--line)}
+.canary .cb{flex:1}
+.canary .cn{font-family:var(--mono);font-size:11px;color:var(--txt)}
+.canary .cd{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:2px}
+.pips{font-family:var(--mono);font-size:11px;letter-spacing:1px;margin-top:3px}
+.botbox{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:8px;padding:12px 15px;font-family:var(--mono);font-size:12px;color:var(--txt)}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#127914; Market Cycle Extremes</h1>
+    <p class="subtitle">Nobody picks the exact day of a market top or bottom. But major tops and bottoms each carry a recognisable historical signature &mdash; a cluster of conditions present near the turn. This radar scores the euphoria signature (top-risk) and reads the dedicated Capitulation engine for the washout side, placing the market on one cycle dial.</p>
+    <nav class="crumbs">
+      <a href="/capitulation.html">capitulation</a>
+      <a href="/vol-radar.html">vol radar</a>
+      <a href="/valuations.html">valuations</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING CYCLE RADAR&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const COL={green:"var(--green)",red:"var(--red)",orange:"var(--orange)",yellow:"var(--yellow)",cyan:"var(--cyan)",mute:"var(--mute)",dim:"var(--dim)"};
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+
+function scoreColor(v,topside){
+  if(v==null)return "var(--dim)";
+  if(v>=60)return topside?"var(--red)":"var(--green)";
+  if(v>=40)return "var(--yellow)";
+  if(v>=20)return "var(--cyan)";
+  return "var(--dim)";
+}
+function pips(p,mx){
+  let s="";for(let i=0;i<mx;i++)s+=(i<p?"&#9679;":"&#9675;");return s;
+}
+function canaryRow(c){
+  const fc=c.firing?"var(--red)":"var(--dim)";
+  return '<div class="canary"><div class="dot" style="background:'+(c.firing?"var(--red)":"transparent")+'"></div>'+
+    '<div class="cb"><div class="cn">'+esc(c.label)+'</div>'+
+    '<div class="cd">'+esc(c.detail||"")+'</div>'+
+    '<div class="pips" style="color:'+fc+'">'+pips(c.points||0,c.max||2)+'</div></div></div>';
+}
+
+fetch(S3+"market-extremes.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d){document.getElementById("root").innerHTML='<div class="loading">CYCLE RADAR UNAVAILABLE</div>';return;}
+  const pc=COL[d.posture_color]||"var(--dim)";
+  const sc=d.scores||{},bot=d.bottom||{},inp=d.inputs||{};
+  let h="";
+
+  h+='<div class="hero" style="border-left-color:'+pc+'">'+
+    '<div class="ptag">Market cycle posture</div>'+
+    '<div class="post" style="color:'+pc+'">'+esc(d.posture||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  // cycle-position dial
+  const cp=d.cycle_position;
+  h+='<div class="dialbox">'+
+    '<div class="dialhead"><span>Cycle Position</span><span>'+(cp==null?"?":cp)+' / 100</span></div>'+
+    '<div class="dial"><div class="marker" style="left:calc('+(cp==null?50:cp)+'% - 1px)"></div></div>'+
+    '<div class="dial-x"><span>0 &middot; deep capitulation</span><span>mid-cycle</span><span>deep euphoria &middot; 100</span></div>'+
+    '</div>';
+
+  // two gauges
+  const tr=sc.top_risk,ca=sc.capitulation;
+  h+='<div class="gauges">'+
+    '<div class="gauge"><div class="gl"><span>Top-Risk</span><span>euphoria signature</span></div>'+
+      '<div class="gv" style="color:'+scoreColor(tr,true)+'">'+(tr==null?"?":tr)+'<span style="font-size:12px;color:var(--dim)">/100</span></div>'+
+      '<div class="bar"><i style="width:'+(tr||0)+'%;background:'+scoreColor(tr,true)+'"></i></div>'+
+      '<div class="gx">'+(d.top_canaries_firing||[]).length+' of '+(d.top_canaries||[]).length+' top signs firing</div></div>'+
+    '<div class="gauge"><div class="gl"><span>Capitulation</span><span>washout score</span></div>'+
+      '<div class="gv" style="color:'+scoreColor(ca,false)+'">'+(ca==null?"?":Math.round(ca))+'<span style="font-size:12px;color:var(--dim)">/100</span></div>'+
+      '<div class="bar"><i style="width:'+(ca||0)+'%;background:'+scoreColor(ca,false)+'"></i></div>'+
+      '<div class="gx">from the dedicated Capitulation engine</div></div>'+
+    '</div>';
+
+  // top canary board
+  h+='<div class="sechead">Top Signature &mdash; euphoria canaries <small style="color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px">&mdash; filled dot = firing</small></div>';
+  h+=(d.top_canaries||[]).map(canaryRow).join("");
+
+  // bottom block
+  h+='<div class="sechead">Washout Side &mdash; Capitulation Engine</div>';
+  h+='<div class="botbox">Capitulation score <b>'+(ca==null?"?":Math.round(ca))+'/100</b>'+
+     ' &middot; signal <b>'+esc(bot.signal||"?")+'</b>'+
+     (bot.stabilising!=null?(' &middot; stabilising <b>'+(bot.stabilising?"yes":"no")+'</b>'):"")+
+     '<div style="color:var(--dim);font-size:10px;margin-top:5px">'+esc(bot.source||"")+'</div></div>';
+
+  if(d.radar_note&&d.radar_note!==d.headline)
+    h+='<p class="note">'+esc(d.radar_note)+'</p>';
+  h+='<p class="note">'+esc(d.how_to_read||"")+' &mdash; '+esc(d.disclaimer||"")+' Feeds available: '+esc(inp.feeds_available||"?")+'.</p>';
+  h+='<div class="timestamp">scanned '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">CYCLE RADAR UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
