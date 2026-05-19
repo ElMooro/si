@@ -1,0 +1,94 @@
+{
+ "ops": 867,
+ "ts": "2026-05-19T02:14:25.291874+00:00",
+ "subject": "Deploy + verify justhodl-econ-calendar (the forward economic release calendar - the desk ECO screen)",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "updated"
+  },
+  {
+   "check": "schedule_wired",
+   "ok": true,
+   "detail": "updated justhodl-econ-calendar-daily"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "200, feed_status=ok"
+  },
+  {
+   "check": "schema_ok",
+   "ok": true,
+   "detail": "schema=1.0 engine=justhodl-econ-calendar"
+  },
+  {
+   "check": "fmp_economic_calendar_works",
+   "ok": true,
+   "detail": "feed_status=ok (FMP economic-calendar endpoint WORKS on this plan)"
+  },
+  {
+   "check": "calendar_populated",
+   "ok": true,
+   "detail": "80 upcoming, 60 recent printed releases"
+  },
+  {
+   "check": "events_well_formed",
+   "ok": true,
+   "detail": "50 sampled events carry date/country/event/impact"
+  },
+  {
+   "check": "surprise_arithmetic_reconciles",
+   "ok": true,
+   "detail": "surprise == actual - consensus"
+  },
+  {
+   "check": "next_major_resolves",
+   "ok": true,
+   "detail": "next major US release: FOMC Minutes"
+  },
+  {
+   "check": "page_deployed",
+   "ok": true,
+   "detail": "HTTP 200, ECO screen live"
+  },
+  {
+   "check": "directory_links_page",
+   "ok": true,
+   "detail": "directory 200, link present"
+  },
+  {
+   "check": "schedule_live",
+   "ok": true,
+   "detail": "ENABLED cron(0 11 * * ? *)"
+  }
+ ],
+ "deploy": "updated",
+ "schedule": "updated",
+ "surprise_sample": {
+  "event": "Gross Domestic Product YoY (Q1)",
+  "actual": 2.1,
+  "consensus": 1.7,
+  "surprise": 0.4
+ },
+ "summary": "12/12 checks passed",
+ "all_passed": true,
+ "econ_calendar": {
+  "feed_status": "ok",
+  "upcoming": 80,
+  "recent_printed": 60,
+  "this_week": 68,
+  "this_week_tier1": 2,
+  "next_major": "FOMC Minutes",
+  "next_major_days": 1,
+  "recent_surprise_tally": {
+   "above": 44,
+   "below": 30,
+   "in_line": 11,
+   "total": 85
+  },
+  "schedule": "11:00 UTC daily"
+ },
+ "verdict": "ECONOMIC CALENDAR LIVE - the desk now has the ECO screen the platform was missing. FMP's economic-calendar endpoint works on this plan; 80 upcoming and 60 recently-printed releases loaded, next major US release FOMC Minutes in 1 day(s). The surprise arithmetic reconciles, the page is live. Runs daily 11:00 UTC."
+}
