@@ -76,39 +76,52 @@ def stdev(xs):
     return math.sqrt(sum((x - m) ** 2 for x in xs) / (n - 1))
 
 
+def _fmp_eod(endpoint, d_from):
+    url = ("https://financialmodelingprep.com/stable/%s"
+           "?symbol=SPY&from=%s&apikey=%s"
+           % (endpoint, d_from, urllib.parse.quote(FMP_KEY)))
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "justhodl-vrp/1.0"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        data = json.loads(r.read())
+    rows = data if isinstance(data, list) else (data or {}).get(
+        "historical", [])
+    out = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        d = str(row.get("date") or "")[:10]
+        c = num(row.get("close"))
+        if c is None:
+            c = num(row.get("price"))
+        if d and c is not None:
+            out.append({"date": d, "o": num(row.get("open")),
+                        "h": num(row.get("high")),
+                        "l": num(row.get("low")), "c": c})
+    out.sort(key=lambda x: x["date"])
+    return out
+
+
 def fmp_spy_ohlc():
-    """SPY daily OHLC via FMP /stable. Returns sorted [{date,o,h,l,c}]."""
+    """SPY daily bars via FMP /stable. Tries OHLC (full); falls back to
+    close-only (light) so close-to-close RV never depends on OHLC."""
     if not FMP_KEY:
         return [], "missing_fmp_key"
     d_from = (datetime.now(timezone.utc).date()
               - timedelta(days=RV_FETCH_DAYS)).isoformat()
-    url = ("https://financialmodelingprep.com/stable/"
-           "historical-price-eod/full?symbol=SPY&from=%s&apikey=%s"
-           % (d_from, urllib.parse.quote(FMP_KEY)))
     try:
-        req = urllib.request.Request(
-            url, headers={"User-Agent": "justhodl-vrp/1.0"})
-        with urllib.request.urlopen(req, timeout=20) as r:
-            data = json.loads(r.read())
-        rows = data if isinstance(data, list) else (data or {}).get(
-            "historical", [])
-        out = []
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-            d = str(row.get("date") or "")[:10]
-            c = num(row.get("close"))
-            if c is None:
-                c = num(row.get("price"))
-            o = num(row.get("open"))
-            h = num(row.get("high"))
-            lo = num(row.get("low"))
-            if d and c is not None:
-                out.append({"date": d, "o": o, "h": h, "l": lo, "c": c})
-        out.sort(key=lambda x: x["date"])
-        return out, ("ok" if out else "empty")
+        out = _fmp_eod("historical-price-eod/full", d_from)
+        if out:
+            return out, "ok"
+    except Exception as e:
+        print("fmp full fail: %s" % e)
+    try:
+        out = _fmp_eod("historical-price-eod/light", d_from)
+        if out:
+            return out, "ok_light"
     except Exception as e:
         return [], "%s: %s" % (type(e).__name__, e)
+    return [], "empty"
 
 
 def rv_close_to_close(closes):
@@ -248,7 +261,7 @@ def lambda_handler(event, context):
             term = "FLAT"
 
     # ---- regime --------------------------------------------------------
-    feed_ok = spy_status == "ok" and vix is not None
+    feed_ok = spy_status in ("ok", "ok_light") and vix is not None
     if not feed_ok:
         regime, rcolor = "UNAVAILABLE", "dim"
         headline = ("VRP unavailable -- %s."
