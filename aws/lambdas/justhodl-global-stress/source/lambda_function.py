@@ -141,11 +141,14 @@ EQUITY = [
     ("uk", "EWU", "United Kingdom", "MSCI United Kingdom"),
     ("japan", "EWJ", "Japan", "MSCI Japan"),
     ("china", "MCHI", "China", "MSCI China"),
+    ("india", "INDA", "India", "MSCI India"),
+    ("korea", "EWY", "South Korea", "MSCI South Korea"),
     ("em", "EEM", "Emerging Markets", "MSCI Emerging Markets"),
 ]
 BONDS = [
     ("ust", "IEF", "US Treasuries", "7-10y US Treasuries"),
-    ("uscredit", "HYG", "US Credit", "US high-yield corporates"),
+    ("usig", "LQD", "US IG Credit", "US investment-grade corporates"),
+    ("uscredit", "HYG", "US High-Yield", "US high-yield corporates"),
     ("intl", "BWX", "Intl Developed Govt", "ex-US developed sovereigns"),
     ("emdebt", "EMB", "EM Sovereign", "USD emerging-market sovereigns"),
 ]
@@ -375,6 +378,53 @@ def stress_breadth(rows):
             "breadth_score": round(elevated / n * 100)}
 
 
+def rates_panel():
+    """The bond market's fear gauge -- realised volatility of the 10-year
+    Treasury yield (a MOVE-style rate-vol read), plus the 2s10s curve as
+    term-structure context. Rate volatility is what flips the bond market
+    from orderly to disorderly; the curve is read alongside, not scored."""
+    obs = fred_series("DGS10", days=560)
+    yields = [v for _, v in obs]
+    if len(yields) < 80:
+        return None
+    # daily yield changes in basis points
+    chg = [(yields[i] - yields[i - 1]) * 100.0
+           for i in range(1, len(yields))]
+    if len(chg) < 60:
+        return None
+    # rolling 20-day realised vol of daily bp moves, annualised
+    vser = []
+    for end in range(20, len(chg) + 1):
+        w = chg[end - 20:end]
+        mean = sum(w) / 20.0
+        var = sum((x - mean) ** 2 for x in w) / 19.0
+        vser.append((var ** 0.5) * (252 ** 0.5))
+    if not vser:
+        return None
+    rv = vser[-1]
+    pc = pctile(rv, vser[-252:])
+    # ~60bp annualised = calm, ~160bp = acute (a MOVE-like band)
+    lvl_score = clamp((rv - 60.0) / (160.0 - 60.0) * 100.0)
+    score = round(0.5 * lvl_score + 0.5 * (pc if pc is not None else 50.0))
+    chg_1m = (round(rv - vser[-22]) if len(vser) > 21 else None)
+    # 2s10s curve shape -- context only, not folded into the score
+    curve, inverted = None, None
+    cobs = fred_series("T10Y2Y", days=120)
+    if cobs:
+        curve = round(cobs[-1][1], 2)
+        inverted = curve < 0
+    return {
+        "rate_vol_bp": round(rv),
+        "percentile_1y": round(pc) if pc is not None else None,
+        "change_1m_bp": chg_1m,
+        "curve_2s10s": curve,
+        "curve_inverted": inverted,
+        "stress_score": score,
+        "level": stress_level(score),
+        "series": [round(v) for v in vser[-SERIES_BARS:]],
+    }
+
+
 def safe_haven_panel():
     """Flight-to-safety confirmation -- active demand for gold."""
     closes = get_closes("GLD")
@@ -414,12 +464,17 @@ def update_history(gsi, market, eq, bd):
 
 
 def stress_momentum(snaps, gsi):
-    """Direction and rate of change of the Global Stress Index."""
+    """Direction and rate of change of the Global Stress Index, plus where
+    the current reading sits in its own accumulated history."""
     prior = [s.get("gsi") for s in snaps[:-1]
              if isinstance(s.get("gsi"), (int, float))]
+    allg = [s.get("gsi") for s in snaps
+            if isinstance(s.get("gsi"), (int, float))]
+    pct = pctile(gsi, allg) if len(allg) >= 12 else None
     if not prior:
         return {"direction": "n/a", "change_5_runs": None,
-                "change_20_runs": None, "runs_tracked": len(snaps)}
+                "change_20_runs": None, "percentile": None,
+                "runs_tracked": len(snaps)}
     ref5 = prior[-5] if len(prior) >= 5 else prior[0]
     ref20 = prior[-20] if len(prior) >= 20 else prior[0]
     d5 = gsi - ref5
@@ -428,6 +483,7 @@ def stress_momentum(snaps, gsi):
     return {"direction": direction,
             "change_5_runs": round(d5),
             "change_20_runs": round(gsi - ref20),
+            "percentile": round(pct) if pct is not None else None,
             "runs_tracked": len(snaps)}
 
 
@@ -485,22 +541,25 @@ def lambda_handler(event, context):
     # ---- additional stress dimensions ----------------------------------
     iv = implied_vol_panel()         # forward-looking equity fear (VIX)
     credit = credit_spread_panel()   # HY + IG option-adjusted spreads
+    rates = rates_panel()            # Treasury rate volatility + curve
     contagion = contagion_index(rows)   # cross-market correlation
     breadth = stress_breadth(rows)      # how widespread the stress is
     haven = safe_haven_panel()          # active flight-to-safety demand
 
     # ---- the Global Stress Index: a weighted blend of the market
-    # matrix, credit spreads, implied vol and contagion, renormalised
-    # over whatever components are available this run --------------------
+    # matrix, credit spreads, equity-implied vol, rate volatility and
+    # contagion, renormalised over whatever components are available ----
     blend = []
     if market_stress is not None:
-        blend.append((0.40, market_stress))
+        blend.append((0.34, market_stress))
     if credit:
-        blend.append((0.22, credit["composite_score"]))
+        blend.append((0.20, credit["composite_score"]))
     if iv:
-        blend.append((0.22, iv["stress_score"]))
+        blend.append((0.18, iv["stress_score"]))
+    if rates:
+        blend.append((0.14, rates["stress_score"]))
     if contagion:
-        blend.append((0.16, contagion["stress_score"]))
+        blend.append((0.14, contagion["stress_score"]))
     global_stress = None
     if blend:
         wsum = sum(w for w, _ in blend)
@@ -523,6 +582,8 @@ def lambda_handler(event, context):
             extra.append("VIX %.0f" % iv["vix"])
         if credit:
             extra.append("credit %d" % credit["composite_score"])
+        if rates:
+            extra.append("rate-vol %d" % rates["rate_vol_bp"])
         if contagion:
             extra.append("contagion %d" % contagion["stress_score"])
         headline = (
@@ -548,6 +609,7 @@ def lambda_handler(event, context):
         "bond_stress": bd_stress,
         "implied_vol": iv,
         "credit_spreads": credit,
+        "rates": rates,
         "contagion": contagion,
         "breadth": breadth,
         "safe_haven": haven,
@@ -563,15 +625,17 @@ def lambda_handler(event, context):
         "thresholds": {"calm": "<32", "elevated": "32-54",
                        "stressed": "55-74", "acute": ">=75 (flashes red)"},
         "how_to_read": (
-            "The Global Stress Index is a weighted blend of four "
+            "The Global Stress Index is a weighted blend of five "
             "dimensions: the market matrix (drawdown, realised vol and "
-            "trend across 10 world equity and bond markets), credit "
-            "spreads (HY and IG option-adjusted spreads), implied "
-            "volatility (the VIX), and cross-market contagion (how "
-            "correlated the markets have become). 75+ is ACUTE. The "
-            "market matrix drives the per-market flashing-red flags; "
-            "breadth, safe-haven demand and stress momentum are read "
-            "alongside as confirmation."),
+            "trend across 13 world equity and bond markets), credit "
+            "spreads (HY and IG option-adjusted spreads), equity-implied "
+            "volatility (the VIX), rate volatility (realised volatility of "
+            "the 10-year Treasury yield -- a MOVE-style bond fear gauge), "
+            "and cross-market contagion (how correlated the markets have "
+            "become). 75+ is ACUTE. The market matrix drives the per-"
+            "market flashing-red flags; breadth, the 2s10s curve, safe-"
+            "haven demand and stress momentum are read alongside as "
+            "confirmation."),
         "disclaimer": (
             "A market-stress monitor built from price action, credit "
             "spreads and implied volatility. It measures stress that is "
@@ -628,6 +692,7 @@ def lambda_handler(event, context):
         "equity_stress": eq_stress, "bond_stress": bd_stress,
         "vix": (iv or {}).get("vix"),
         "credit_composite": (credit or {}).get("composite_score"),
+        "rate_vol_bp": (rates or {}).get("rate_vol_bp"),
         "contagion_score": (contagion or {}).get("stress_score"),
         "stress_direction": (momentum or {}).get("direction"),
         "markets_scored": len(rows), "flashing_red": len(flashing),

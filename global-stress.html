@@ -63,7 +63,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 <div class="container">
   <header>
     <h1>&#127758; Global Stress Matrix</h1>
-    <p class="subtitle">Stock-market and bond-market stress across the world, ranked. Six equity markets and four bond markets each score 0&ndash;100 on stress already visible in the tape &mdash; depth below the 52-week high, where realised volatility sits in its one-year range, and distance below the 200-day average. The most stressed markets <b style="color:var(--red)">flash red</b>. A thermometer, not a forecast.</p>
+    <p class="subtitle">Stock-market and bond-market stress across the world, ranked. Thirteen equity and bond markets each score 0&ndash;100 on stress already visible in the tape &mdash; depth below the 52-week high, where realised volatility sits in its one-year range, and distance below the 200-day average. The Global Stress Index blends that market matrix with credit spreads, the VIX, Treasury rate volatility and cross-market contagion. The most stressed markets <b style="color:var(--red)">flash red</b>. A thermometer, not a forecast.</p>
     <nav class="crumbs">
       <a href="/crisis.html">crisis</a>
       <a href="/systemic-stress.html">systemic stress</a>
@@ -125,6 +125,20 @@ function dimensions(d){
       stressColor(cr.composite_score), sub,"sp_credit",
       cr.composite_score>=75);
   }
+  const rt=d.rates;
+  if(rt){
+    let rsub="<b>"+(rt.percentile_1y!=null?rt.percentile_1y:"\u2014")+
+      "</b>th %ile (1y) \u00b7 1m chg <b>"+
+      (rt.change_1m_bp>0?"+":"")+
+      (rt.change_1m_bp!=null?rt.change_1m_bp:"\u2014")+"bp</b>";
+    if(rt.curve_2s10s!=null)
+      rsub+=" \u00b7 2s10s <b>"+rt.curve_2s10s+"</b>"+
+        (rt.curve_inverted?" <span style=\"color:var(--red)\">inverted</span>":"");
+    rsub+=" \u00b7 stress "+rt.stress_score+" ("+rt.level+")";
+    cards+=dimCard("Rate Volatility \u00b7 10y Treasury",
+      rt.rate_vol_bp+"bp", stressColor(rt.stress_score), rsub,
+      "sp_rates",rt.stress_score>=75);
+  }
   const cg=d.contagion;
   if(cg){
     cards+=dimCard("Cross-Market Contagion", cg.avg_pairwise_correlation,
@@ -149,7 +163,9 @@ function dimensions(d){
       (mo.change_5_runs!=null?mo.change_5_runs:"\u2014")+
       "</b> \u00b7 20-run <b>"+(mo.change_20_runs>0?"+":"")+
       (mo.change_20_runs!=null?mo.change_20_runs:"\u2014")+
-      "</b> \u00b7 "+mo.runs_tracked+" runs tracked",null,false);
+      "</b>"+(mo.percentile!=null?" \u00b7 <b>"+mo.percentile+
+      "</b>th %ile of history":"")+" \u00b7 "+mo.runs_tracked+
+      " runs tracked",null,false);
   }
   const sh=d.safe_haven;
   if(sh){
@@ -234,6 +250,8 @@ function build(d){
   if(d.credit_spreads&&d.credit_spreads.spreads&&d.credit_spreads.spreads[0])
     spark("sp_credit",d.credit_spreads.spreads[0].series,
       stressHex(d.credit_spreads.composite_score));
+  if(d.rates&&d.rates.series)
+    spark("sp_rates",d.rates.series,stressHex(d.rates.stress_score));
   if(d.safe_haven)
     spark("sp_gold",d.safe_haven.series,"#ffd266");
 }
