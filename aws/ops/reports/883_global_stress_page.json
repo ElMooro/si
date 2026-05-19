@@ -1,0 +1,25 @@
+{
+ "ops": 883,
+ "ts": "2026-05-19T13:37:25.877514+00:00",
+ "subject": "Confirm the live Global Stress page renders the Rate Volatility panel",
+ "checks": [
+  {
+   "check": "page_http_200",
+   "ok": true,
+   "detail": "HTTP 200"
+  },
+  {
+   "check": "rate_volatility_panel_rendered",
+   "ok": true,
+   "detail": "Rate Volatility panel present"
+  },
+  {
+   "check": "expanded_subtitle_live",
+   "ok": true,
+   "detail": "13-market subtitle live"
+  }
+ ],
+ "summary": "3/3 checks passed",
+ "all_passed": true,
+ "verdict": "Global Stress page fully live with the Rate Volatility panel."
+}
