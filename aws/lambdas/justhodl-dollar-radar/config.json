@@ -11,7 +11,9 @@
  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
  "description": "Dollar Radar - aggregates the FRED trade-weighted dollar family (Broad, Advanced, Emerging, Real) plus bilateral crosses, scores a 10-signal pump/dump canary composite (net liquidity, QE/QT, RRP, TGA, real yields, rate spread, VIX, credit, momentum, funding stress) and detects double tops/bottoms on the dollar index. data/dollar-radar.json.",
  "environment": {
-  "FRED_KEY": "2f057499936072679d8843d7fce99989"
+  "FRED_KEY": "2f057499936072679d8843d7fce99989",
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
  },
  "eventbridge_scheduler": {
   "schedule_name": "justhodl-dollar-radar-6h",

@@ -50,6 +50,35 @@ EURODOLLAR_KEY = "data/eurodollar-stress.json"
 s3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+
+def send_telegram(msg):
+    """Best-effort Telegram push; never raises into the engine."""
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("[tg] no creds")
+        return
+    try:
+        body = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": msg,
+                           "parse_mode": "HTML",
+                           "disable_web_page_preview": True}).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.telegram.org/bot%s/sendMessage" % TELEGRAM_TOKEN,
+            data=body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=10).read()
+    except Exception as e:
+        print("[tg] err: %s" % e)
+
+
+def read_prev_output():
+    """Last run's output -- the previous JSON IS the no-spam state."""
+    try:
+        return json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read())
+    except Exception:
+        return {}
+
 # ---- the FRED dollar family ------------------------------------------------
 # headline trade-weighted indices
 INDICES = [
@@ -467,6 +496,12 @@ def regime_of(pressure):
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
+    if isinstance(event, dict) and event.get("test_telegram"):
+        send_telegram("\u2705 <b>Dollar Radar</b> -- Telegram tripwire armed "
+                      "and reachable. You will get a push on any flip into "
+                      "DOLLAR PUMP or DOLLAR DUMP.")
+        return {"statusCode": 200,
+                "body": json.dumps({"ok": True, "test_telegram": "sent"})}
     key = get_fred_key()
     start = (now - timedelta(days=900)).strftime("%Y-%m-%d")
 
@@ -522,6 +557,7 @@ def lambda_handler(event, context):
     regime, regime_note = regime_of(pressure)
     n_pump = sum(1 for c in canaries if c["lean"] > 0)
     n_dump = sum(1 for c in canaries if c["lean"] < 0)
+    prev_regime = read_prev_output().get("regime")
 
     # technicals + patterns on the broad dollar
     broad = fred.get("DTWEXBGS") or []
@@ -597,10 +633,39 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": str(e)})}
 
+    # --- regime-flip tripwire -- fires only on a flip INTO a hard regime,
+    # comparing to the previous run, so it never spams while a regime holds.
+    alerted = None
+    try:
+        p = "%+d" % int(round(pressure)) if pressure is not None else "?"
+        if regime == "DOLLAR PUMP" and prev_regime != "DOLLAR PUMP":
+            send_telegram(
+                "\U0001F6A8 <b>DOLLAR RADAR -- regime flip</b>\n\n"
+                "Dollar Pressure %s -> <b>DOLLAR PUMP</b>\n"
+                "(was %s)\n\n"
+                "The pump/dump canaries have clustered hard on the strong-"
+                "dollar side -- tighter global USD liquidity. A dollar "
+                "squeeze is a classic risk-off / funding-stress signal.\n\n"
+                "justhodl.ai/dollar.html" % (p, prev_regime or "n/a"))
+            alerted = "DOLLAR PUMP"
+        elif regime == "DOLLAR DUMP" and prev_regime != "DOLLAR DUMP":
+            send_telegram(
+                "\U0001F7E2 <b>DOLLAR RADAR -- regime flip</b>\n\n"
+                "Dollar Pressure %s -> <b>DOLLAR DUMP</b>\n"
+                "(was %s)\n\n"
+                "The canaries have clustered hard on the weak-dollar side "
+                "-- Fed liquidity (QE / RRP drain / TGA drawdown) is "
+                "flooding the system with dollars. Typically risk-on.\n\n"
+                "justhodl.ai/dollar.html" % (p, prev_regime or "n/a"))
+            alerted = "DOLLAR DUMP"
+    except Exception as e:
+        print("[tg] flip alert err: %s" % e)
+
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "dollar_pressure": pressure, "regime": regime,
         "canaries": len(canaries), "indices": len(indices_out),
         "bilaterals": len(bilat_out),
         "double_top": bool(technicals.get("double_top")),
         "double_bottom": bool(technicals.get("double_bottom")),
+        "telegram_alert": alerted,
         "build_seconds": out["build_seconds"]})}

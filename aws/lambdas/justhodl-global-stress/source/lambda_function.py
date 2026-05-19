@@ -50,6 +50,35 @@ SERIES_BARS = 130
 
 s3 = boto3.client("s3")
 
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+
+def send_telegram(msg):
+    """Best-effort Telegram push; never raises into the engine."""
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("[tg] no creds")
+        return
+    try:
+        body = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": msg,
+                           "parse_mode": "HTML",
+                           "disable_web_page_preview": True}).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.telegram.org/bot%s/sendMessage" % TELEGRAM_TOKEN,
+            data=body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=10).read()
+    except Exception as e:
+        print("[tg] err: %s" % e)
+
+
+def read_prev_output():
+    """Last run's output -- the previous JSON IS the no-spam state."""
+    try:
+        return json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read())
+    except Exception:
+        return {}
+
 # market -> (key, ETF, display name, what it tracks)
 EQUITY = [
     ("us", "SPY", "United States", "S&P 500"),
@@ -211,6 +240,12 @@ def scan(spec, kind):
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
+    if isinstance(event, dict) and event.get("test_telegram"):
+        send_telegram("\u2705 <b>Global Stress Matrix</b> -- Telegram "
+                      "tripwire armed and reachable. You will get a push the "
+                      "moment any market goes ACUTE and flashes red.")
+        return {"statusCode": 200,
+                "body": json.dumps({"ok": True, "test_telegram": "sent"})}
     if not FMP:
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": "no FMP key"})}
@@ -293,9 +328,44 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": str(e)})}
 
+    # --- ACUTE / flashing-red tripwire -- fires only for a market that has
+    # NEWLY gone ACUTE since the last run, so a market that stays red does
+    # not re-alert. The previous output is the no-spam state.
+    alerted = False
+    try:
+        prev = read_prev_output()
+        prev_flash = set(prev.get("flashing_red") or [])
+        new_flash = [m for m in flashing if m not in prev_flash]
+        prev_gsi = prev.get("global_stress_index")
+        gsi_into_acute = (global_stress is not None and global_stress >= 75
+                          and not (isinstance(prev_gsi, (int, float))
+                                   and prev_gsi >= 75))
+        if new_flash or gsi_into_acute:
+            lines = ["\U0001F6A8 <b>GLOBAL STRESS -- flashing red</b>", ""]
+            if new_flash:
+                lines.append("Just went ACUTE: <b>%s</b>."
+                             % ", ".join(new_flash))
+            if gsi_into_acute:
+                lines.append("The Global Stress Index itself has crossed "
+                             "into ACUTE -- broad, cross-market stress.")
+            lines.append("Now flashing red: %s."
+                         % (", ".join(flashing) if flashing else "none"))
+            lines.append("Global Stress Index %s (%s) -- equity %s, bond %s."
+                         % (global_stress,
+                            stress_level(global_stress)
+                            if global_stress is not None else "n/a",
+                            eq_stress, bd_stress))
+            lines.append("")
+            lines.append("justhodl.ai/global-stress.html")
+            send_telegram("\n".join(lines))
+            alerted = True
+    except Exception as e:
+        print("[tg] stress alert err: %s" % e)
+
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "global_stress_index": global_stress,
         "equity_stress": eq_stress, "bond_stress": bd_stress,
         "markets_scored": len(rows), "flashing_red": len(flashing),
         "worst": worst["market"] if worst else None,
+        "telegram_alert": alerted,
         "build_seconds": out["build_seconds"]})}

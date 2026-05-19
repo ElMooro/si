@@ -11,7 +11,9 @@
  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
  "description": "Global Stress Matrix - tracks stock-market and bond-market stress worldwide. Scores 6 equity markets (US, Euro Area, UK, Japan, China, EM) and 4 bond markets (US Treasuries, US Credit, Intl Govt, EM Sovereign) 0-100 from drawdown, realized-vol percentile and trend; flags the worst. data/global-stress.json.",
  "environment": {
-  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
  },
  "eventbridge_scheduler": {
   "schedule_name": "justhodl-global-stress-6h",
