@@ -1,0 +1,43 @@
+{
+ "ops": 862,
+ "ts": "2026-05-19T01:07:12.653877+00:00",
+ "subject": "Verify the live Intraday Tape strip on the Risk Desk cockpit, and refresh cro-escalation.json to a real read",
+ "checks": [
+  {
+   "check": "live_tape_run_ok",
+   "ok": true,
+   "detail": "severity=0 (CLEAR), simulated=False -- real FMP read"
+  },
+  {
+   "check": "escalation_feed_is_real",
+   "ok": true,
+   "detail": "cro-escalation.json simulated=False generated_at=2026-05-19T01:07:13.676463+00:00"
+  },
+  {
+   "check": "strip_data_present",
+   "ok": true,
+   "detail": "severity_label=CLEAR, tape gauges=HYG,IWM,QQQ,SPY,TLT,VIX"
+  },
+  {
+   "check": "page_has_intraday_strip",
+   "ok": true,
+   "detail": "HTTP 200, strip markers present, feed wired yes"
+  },
+  {
+   "check": "page_handles_all_grades",
+   "ok": true,
+   "detail": "strip colour-maps all four severity grades"
+  }
+ ],
+ "summary": "5/5 checks passed",
+ "all_passed": true,
+ "intraday_strip": {
+  "page_url": "https://justhodl.ai/risk-desk.html",
+  "live_severity": "CLEAR",
+  "live_severity_num": 0,
+  "escalated_today": 1,
+  "simulated": false,
+  "checkpoint_utc": "01:07"
+ },
+ "verdict": "INTRADAY STRIP LIVE - the Risk Desk cockpit now shows a live tape read under the overnight verdict. cro-escalation.json is refreshed to a real reading (severity CLEAR), the strip is deployed, wired and colour-maps all four grades. The cockpit reflects intraday state, not just the overnight batch."
+}
