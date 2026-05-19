@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-chart-patterns",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 1024,
+ "timeout": 600,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Chart Pattern Scanner - daily S&P 500 scan for four technical setups: fresh 200-DMA cross-ups and cross-downs, double tops and double bottoms, each tagged CONFIRMED or FORMING. Companion to the protected Stock Screener; writes data/chart-patterns.json.",
+ "environment": {
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-chart-patterns-daily",
+  "cron": "cron(30 23 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Chart Pattern Scanner - daily at 23:30 UTC, after the US close and EOD price settlement, so the 200-DMA crossovers and double top/bottom detections reflect the latest session."
+ }
+}
