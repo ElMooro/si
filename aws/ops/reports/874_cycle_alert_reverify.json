@@ -1,0 +1,46 @@
+{
+ "ops": 874,
+ "ts": "2026-05-19T11:28:09.496709+00:00",
+ "subject": "Re-verify the cro-escalation cycle-extreme alert track via the dry-run return payload",
+ "checks": [
+  {
+   "check": "deploy_ok",
+   "ok": true,
+   "detail": "cro-escalation shipped"
+  },
+  {
+   "check": "invoke_dry_run_ok",
+   "ok": true,
+   "detail": "dry_run=True"
+  },
+  {
+   "check": "cycle_fields_in_return",
+   "ok": true,
+   "detail": "posture=DISTRIBUTION telegram=no_flip alerted=False"
+  },
+  {
+   "check": "cycle_posture_matches_market_extremes",
+   "ok": true,
+   "detail": "cro-escalation cycle posture=DISTRIBUTION vs market-extremes posture=DISTRIBUTION"
+  },
+  {
+   "check": "cycle_track_state_valid",
+   "ok": true,
+   "detail": "cycle_extreme_telegram=no_flip (a valid no-spam track state)"
+  },
+  {
+   "check": "no_telegram_sent_on_dry_run",
+   "ok": true,
+   "detail": "cycle_extreme_alerted=False (no ping fired on dry-run)"
+  }
+ ],
+ "summary": "6/6 checks passed",
+ "all_passed": true,
+ "cycle_alert": {
+  "market_extremes_posture": "DISTRIBUTION",
+  "cycle_extreme_posture": "DISTRIBUTION",
+  "cycle_extreme_telegram": "no_flip",
+  "cycle_extreme_alerted": false
+ },
+ "verdict": "CYCLE-EXTREME ALERT TRACK VERIFIED - cro-escalation runs the market-extremes flip track each checkpoint; the cycle posture (DISTRIBUTION) matches the live radar and the no-spam track state is sound (no_flip). It will fire one Telegram ping on a flip into EUPHORIA or CAPITULATION. Both cycle integrations now confirmed."
+}
