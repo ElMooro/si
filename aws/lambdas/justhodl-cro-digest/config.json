@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-cro-digest",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Firm CRO Morning Brief - reads firm-risk-board + hedge-planner + tail-hedge, assembles a structured CRO morning note (posture + overnight change, binding constraint, hedge ticket, alerts, top risks) and pushes it to Telegram. data/cro-digest.json.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-cro-digest-daily",
+  "cron": "cron(15 12 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Firm CRO Morning Brief - daily 12:15 UTC via Amazon EventBridge Scheduler, after the overnight risk stack and the 05:00 UTC Hedge Execution Planner, so the brief reflects a fully refreshed stack."
+ }
+}
