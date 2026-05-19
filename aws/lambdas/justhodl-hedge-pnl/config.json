@@ -1,0 +1,23 @@
+{
+ "function_name": "justhodl-hedge-pnl",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Hedge overlay scorecard - scores whether the tail-hedge overlay is earning its carry. Walks the Hedge Planner daily record, models cumulative carry bled vs convex stress payoff captured, returns a cost-vs-cover verdict. data/hedge-pnl.json.",
+ "environment": {
+  "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-hedge-pnl-daily",
+  "cron": "cron(30 5 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Hedge overlay scorecard - daily 05:30 UTC via Amazon EventBridge Scheduler, after the 05:00 UTC Hedge Execution Planner, so it always scores against a fresh daily record."
+ }
+}

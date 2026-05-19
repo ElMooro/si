@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hedge Overlay Scorecard &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128176;</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:880px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .verdict{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:1px;margin-bottom:7px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.6}
+.brief{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:13px 15px;margin-bottom:14px}
+.brief .bt{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.brief .bb{font-size:12.5px;color:var(--txt);line-height:1.65}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{flex:1;min-width:122px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.stat .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.stat .sv{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px}
+.stat .sx{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 9px;border-bottom:1px solid var(--line);padding-bottom:5px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+th{text-align:right;color:var(--dim);font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:6px 9px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:6px 9px;border-bottom:1px solid var(--line);color:var(--mute)}
+tr:hover td{background:var(--panel2)}
+.tag{font-family:var(--mono);font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:3px}
+.loading{text-align:center;padding:48px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>&#128176; Hedge Overlay Scorecard</h1>
+    <p class="subtitle">Is the tail-hedge overlay earning its carry? A tail hedge is insurance &mdash; it is meant to bleed a small carry between events and pay convexly in a stress episode, so the test is cumulative convex payoff against cumulative carry, not whether it is green. This desk walks the Hedge Planner's daily record and scores the cost against the cover.</p>
+    <nav class="crumbs">
+      <a href="/hedge-planner.html">hedge planner</a>
+      <a href="/tail-hedge.html">tail hedge</a>
+      <a href="/risk-desk.html">risk desk</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="loading">LOADING SCORECARD&hellip;</div></div>
+</div>
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const COL={green:"var(--green)",red:"var(--red)",orange:"var(--orange)",yellow:"var(--yellow)",cyan:"var(--cyan)",dim:"var(--dim)"};
+const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const pct=(v,d)=>v==null?"&mdash;":((v>=0?"+":"")+Number(v).toFixed(d==null?3:d)+"%");
+
+fetch(S3+"hedge-pnl.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d){document.getElementById("root").innerHTML='<div class="loading">SCORECARD UNAVAILABLE</div>';return;}
+  const vc=COL[d.verdict_color]||"var(--dim)";
+  let h="";
+
+  h+='<div class="hero" style="border-left-color:'+vc+'">'+
+    '<div class="ptag">Overlay verdict &middot; '+esc(d.maturity||"")+'</div>'+
+    '<div class="verdict" style="color:'+vc+'">'+esc(d.verdict||"--")+'</div>'+
+    '<div class="hl">'+esc(d.headline||"")+'</div></div>';
+
+  if(d.cro_note&&d.cro_note!==d.headline)
+    h+='<div class="brief"><div class="bt">Scorecard Note</div><div class="bb">'+esc(d.cro_note)+'</div></div>';
+
+  const carry=d.carry||{},payoff=d.payoff||{},fwd=d.forward||{},track=d.track||{};
+  const net=d.net_overlay_pnl_pct;
+  const st=[
+    ["Carry Bled",pct(-(carry.cumulative_pct||0)),"cumulative, % of book","var(--red)"],
+    ["Convex Payoff",pct(payoff.cumulative_pct||0),(payoff.n_stress_days||0)+" stress day(s)","var(--green)"],
+    ["Net Overlay P&L",pct(net),"payoff &minus; carry",net>=0?"var(--green)":"var(--orange)"],
+    ["Carry Efficiency",d.carry_efficiency==null?"&mdash;":Number(d.carry_efficiency).toFixed(1)+"x","payoff per unit carry","var(--cyan)"],
+    ["Forward Cover",fwd.cover_per_carry==null?"&mdash;":Number(fwd.cover_per_carry).toFixed(1)+"x","% cover per 1%/yr carry","var(--purple)"],
+    ["Track Length",(track.n_days||0)+"d","scored days","var(--mute)"],
+  ];
+  h+='<div class="stats">'+st.map(s=>
+    '<div class="stat"><div class="sl">'+s[0]+'</div>'+
+    '<div class="sv" style="color:'+s[3]+'">'+s[1]+'</div>'+
+    '<div class="sx">'+s[2]+'</div></div>').join("")+'</div>';
+
+  // forward economics line
+  h+='<div class="sechead">Forward Economics</div>';
+  h+='<div class="brief" style="border-left-color:var(--purple)"><div class="bb">'+
+     'The standing <b>'+esc((d.sleeve||{}).scenario_class||"--")+'</b> sleeve carries '+
+     '<b>'+pct(fwd.annualised_carry_pct,2)+'/yr</b> of carry and is modelled to return '+
+     '<b>'+pct(fwd.expected_payoff_in_worst_scenario_pct,1)+'</b> of book in the worst stress scenario '+
+     '(payoff multiple '+Number(fwd.payoff_multiple||0).toFixed(1)+'x). '+
+     (fwd.cover_per_carry!=null?('That is ~<b>'+Number(fwd.cover_per_carry).toFixed(1)+
+       '%</b> of tail cover bought for every 1%/yr of carry paid.'):'')+
+     '</div></div>';
+
+  // day-by-day
+  const dl=(d.daily||[]).slice().reverse();
+  if(dl.length){
+    h+='<div class="sechead">Daily Marks <small style="color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px">&mdash; most recent first</small></div>';
+    h+='<table><tr><th>Date</th><th>Sleeve %</th><th>SPY day</th><th>Carry</th>'+
+       '<th>Payoff</th><th>Day P&L</th><th>Regime</th></tr>';
+    dl.forEach(r=>{
+      const rc=r.regime==="STRESS"?"var(--orange)":r.regime==="FLAT"?"var(--dim)":"var(--green)";
+      const dp=r.day_pnl_pct;
+      h+='<tr><td>'+esc(r.date)+'</td>'+
+        '<td>'+(r.standing_pct!=null?Number(r.standing_pct).toFixed(2)+"%":"&mdash;")+'</td>'+
+        '<td style="color:'+(r.spy_ret_pct==null?"var(--dim)":r.spy_ret_pct>=0?"var(--green)":"var(--red)")+'">'+
+          pct(r.spy_ret_pct,2)+'</td>'+
+        '<td style="color:var(--red)">'+pct(r.carry_pct,4)+'</td>'+
+        '<td style="color:var(--green)">'+(r.payoff_pct?pct(r.payoff_pct,3):"&mdash;")+'</td>'+
+        '<td style="color:'+(dp>=0?"var(--green)":"var(--orange)")+'">'+pct(dp,4)+'</td>'+
+        '<td><span class="tag" style="background:'+rc+'22;color:'+rc+'">'+esc(r.regime)+'</span></td></tr>';
+    });
+    h+='</table>';
+  }
+
+  const p=d.parameters||{};
+  h+='<p class="note">Method: carry is a slice of the sleeve\'s annualised carry each day, scaled to the sleeve size on the books. Convex payoff is marked only when SPY sells off past '+
+     (p.stress_threshold_pct!=null?p.stress_threshold_pct+"%":"the stress threshold")+
+     ' intraday, sized by the sleeve\'s payoff multiple and how deep the move ran versus the '+
+     (p.scenario_depth_pct!=null?p.scenario_depth_pct+"%":"worst")+' modelled scenario &mdash; zero on a calm day. '+
+     'The track reports WARMING until it has '+(p.warming_days||10)+'+ scored days. '+
+     'Stylised marks on a hypothetical research book &mdash; a transparent model of a stylised sleeve, not real option P&L. Research and education only, not investment advice.</p>';
+  h+='<div class="timestamp">scored '+esc((d.generated_at||"").slice(0,16).replace("T"," "))+' UTC &middot; '+
+     (d.spy_history_days||0)+' SPY days loaded</div>';
+
+  document.getElementById("root").innerHTML=h;
+}).catch(e=>{
+  document.getElementById("root").innerHTML='<div class="loading">SCORECARD UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
+});
+</script>
+</body>
+</html>
