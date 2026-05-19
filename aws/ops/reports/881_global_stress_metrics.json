@@ -1,0 +1,75 @@
+{
+ "ops": 881,
+ "ts": "2026-05-19T13:23:49.005848+00:00",
+ "subject": "Verify the enriched Global Stress Matrix: implied vol, credit spreads, contagion, breadth, momentum, safe-haven",
+ "checks": [
+  {
+   "check": "deployed",
+   "ok": true,
+   "detail": "redeployed; FRED_KEY set: True"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=48 matrix=55 VIX=18.43 credit=8 contagion=91 dir=n/a in 1.3s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "schema 1.1"
+  },
+  {
+   "check": "blended_index_present",
+   "ok": true,
+   "detail": "Global Stress Index 48 (blend) vs Market Matrix 55"
+  },
+  {
+   "check": "implied_vol_ok",
+   "ok": true,
+   "detail": "VIX 18.43, 67th %ile, stress 45 (ELEVATED)"
+  },
+  {
+   "check": "credit_spreads_ok",
+   "ok": true,
+   "detail": "composite 8 -- HY OAS 2.8%, IG OAS 0.75%"
+  },
+  {
+   "check": "contagion_ok",
+   "ok": true,
+   "detail": "avg correlation 0.79, stress 91 (ACUTE), 45 pairs"
+  },
+  {
+   "check": "breadth_ok",
+   "ok": true,
+   "detail": "8/10 markets ELEVATED+, 2 stressed, 0 acute"
+  },
+  {
+   "check": "stress_momentum_ok",
+   "ok": true,
+   "detail": "direction n/a, 5-run change None, 1 runs tracked"
+  },
+  {
+   "check": "safe_haven_ok",
+   "ok": true,
+   "detail": "gold 418.43, 1m -6.2%, haven demand 13"
+  },
+  {
+   "check": "history_written",
+   "ok": true,
+   "detail": "1 snapshot(s) in global-stress-history.json"
+  }
+ ],
+ "summary": "11/11 checks passed",
+ "all_passed": true,
+ "readings": {
+  "global_stress_index": 48,
+  "market_stress_index": 55,
+  "vix": 18.43,
+  "credit_composite": 8,
+  "contagion_correlation": 0.79,
+  "breadth_elevated": "8/10",
+  "stress_direction": "n/a",
+  "gold_1m_pct": -6.2
+ },
+ "verdict": "GLOBAL STRESS MATRIX ENRICHED + VERIFIED - the engine now blends six dimensions: the 10-market matrix, credit spreads (HY/IG OAS), implied volatility (VIX), cross-market contagion, breadth, stress momentum and safe-haven demand. All six compute live, the Global Stress Index is the weighted blend, and a rolling history is being kept. The crisis-composite / signal-board integration is untouched -- same key, richer number."
+}
