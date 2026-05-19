@@ -1,0 +1,68 @@
+{
+ "ops": 882,
+ "ts": "2026-05-19T13:31:39.045586+00:00",
+ "subject": "Verify Global Stress Matrix expansion: rate volatility, India/Korea/IG-credit markets, GSI history percentile",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from expanded source"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=36, 13 markets, rate-vol=68, build 5.7s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "thirteen_markets_scored",
+   "ok": true,
+   "detail": "8 equity + 5 bond markets scored"
+  },
+  {
+   "check": "new_markets_present",
+   "ok": true,
+   "detail": "present: ['India', 'South Korea', 'US IG Credit']; missing: []"
+  },
+  {
+   "check": "rate_volatility_panel",
+   "ok": true,
+   "detail": "rate-vol 68bp, 60th %ile, 2s10s 0.54, stress 34 (ELEVATED)"
+  },
+  {
+   "check": "all_dimensions_present",
+   "ok": true,
+   "detail": "6/6 dimensions present: implied_vol, credit_spreads, contagion, breadth, safe_haven, stress_momentum"
+  },
+  {
+   "check": "gsi_scores",
+   "ok": true,
+   "detail": "Global Stress Index 36 (ELEVATED); market matrix 57, VIX 45, credit 8, rate-vol 34, contagion 13"
+  },
+  {
+   "check": "momentum_has_percentile",
+   "ok": true,
+   "detail": "stress momentum FALLING, 2 runs tracked, history percentile=None"
+  },
+  {
+   "check": "page_live_with_rate_panel",
+   "ok": false,
+   "detail": "HTTP 200, Rate Volatility panel MISSING"
+  }
+ ],
+ "summary": "9/10 checks passed",
+ "all_passed": false,
+ "snapshot": {
+  "global_stress_index": 36,
+  "level": "ELEVATED",
+  "markets": 13,
+  "rate_vol_bp": 68,
+  "curve_2s10s": 0.54,
+  "worst": "India"
+ },
+ "verdict": "VERIFICATION INCOMPLETE - failed: page_live_with_rate_panel."
+}
