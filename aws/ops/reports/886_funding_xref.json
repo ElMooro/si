@@ -1,0 +1,62 @@
+{
+ "ops": 886,
+ "ts": "2026-05-19T14:50:28.861586+00:00",
+ "subject": "Verify the USD funding-stress cross-reference on the Global Stress Matrix",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from source with funding panel"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=44, funding=26, build 3.9s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "eurodollar_sidecar_exists",
+   "ok": true,
+   "detail": "eurodollar-stress composite 25.9, regime ABUNDANT_LIQUIDITY"
+  },
+  {
+   "check": "funding_panel_present",
+   "ok": true,
+   "detail": "funding stress 26, regime ABUNDANT_LIQUIDITY, 8 signals"
+  },
+  {
+   "check": "funding_matches_eurodollar_engine",
+   "ok": true,
+   "detail": "global-stress funding 26 vs eurodollar-stress composite 25.9 (should match -- it is a cross-reference)"
+  },
+  {
+   "check": "funding_carries_source_and_signals",
+   "ok": true,
+   "detail": "source=eurodollar-stress engine, 0 hot signals: none"
+  },
+  {
+   "check": "gsi_unchanged_six_component",
+   "ok": true,
+   "detail": "Global Stress Index 44 (ELEVATED) -- funding surfaced alongside, not blended in"
+  },
+  {
+   "check": "page_renders_funding",
+   "ok": true,
+   "detail": "HTTP 200, Funding Stress card rendered"
+  }
+ ],
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "funding_stress": 26,
+  "funding_regime": "ABUNDANT_LIQUIDITY",
+  "eurodollar_composite": 25.9,
+  "hot_signals": [],
+  "global_stress_index": 44
+ },
+ "verdict": "FUNDING CROSS-REFERENCE LIVE - the Global Stress Matrix now surfaces USD funding-plumbing stress from the dedicated eurodollar-stress engine: its composite, regime and hottest funding signals appear as a Funding Stress panel. It is read alongside the index, not blended into it -- which would double-count funding stress against the crisis composite. Surfaced, not rebuilt."
+}
