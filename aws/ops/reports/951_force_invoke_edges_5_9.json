@@ -1,0 +1,63 @@
+{
+  "ops": 951,
+  "title": "force-invoke edges 5-9 to seed first S3 outputs",
+  "run_at": "2026-05-20T13:55:27.167788Z",
+  "checks": [
+    {
+      "name": "e5.invoke",
+      "passed": true,
+      "detail": "dur=1.1s status=200 err=None body={\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient universe\\\", \\\"n\\\": 0}\"}"
+    },
+    {
+      "name": "e5.s3_output_fresh",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "name": "e6.invoke",
+      "passed": true,
+      "detail": "dur=10.5s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"NORMAL\\\", \\\"n_fresh\\\": 7, \\\"n_opportunities\\\": 29, \\\"signal_strength\\\": 80.0, \\\"top\\\": \\\"CTSH\\\"}\"}"
+    },
+    {
+      "name": "e6.s3_output_fresh",
+      "passed": true,
+      "detail": "size=56603B age_s=0"
+    },
+    {
+      "name": "e7.invoke",
+      "passed": true,
+      "detail": "dur=1.2s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"FLAT\\\", \\\"prev\\\": \\\"FLAT\\\", \\\"delta_30d\\\": 1811688347, \\\"signal\\\": 14.2}\"}"
+    },
+    {
+      "name": "e7.s3_output_fresh",
+      "passed": true,
+      "detail": "size=46365B age_s=0"
+    },
+    {
+      "name": "e8.invoke",
+      "passed": true,
+      "detail": "dur=1.2s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"POST_OPEX\\\", \\\"prev\\\": \\\"NORMAL\\\", \\\"intensity\\\": 65, \\\"next_opex\\\": \\\"2026-06-19\\\"}\"}"
+    },
+    {
+      "name": "e8.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4520B age_s=0"
+    },
+    {
+      "name": "e9.invoke",
+      "passed": true,
+      "detail": "dur=3.2s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0, \\\"n_fresh_tier_a\\\": 0, \\\"signal\\\": 0}\"}"
+    },
+    {
+      "name": "e9.s3_output_fresh",
+      "passed": true,
+      "detail": "size=3244B age_s=0"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "failed": 1
+  },
+  "overall_ok": false
+}
