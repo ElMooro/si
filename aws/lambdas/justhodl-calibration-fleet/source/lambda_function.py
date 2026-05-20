@@ -95,6 +95,14 @@ REGISTRY = [
 
 s3 = boto3.client("s3")
 ssm = boto3.client("ssm")
+ddb_client = boto3.client("dynamodb")
+
+# DynamoDB time-series store maintained by justhodl-history-snapshotter.
+# Schema: pk='feed#<output_key>', sk='<ISO timestamp>', payload=<JSON
+# blob of the entire engine output at that time>. Gives us historical
+# composite scores back to whenever the snapshotter first picked the
+# feed up -- typically many months of dense (~5-minute) data.
+HISTORY_TABLE = os.environ.get("HISTORY_TABLE", "justhodl-history")
 
 
 # ============== pure-python stats helpers ===============================
@@ -185,6 +193,83 @@ def send_telegram(msg):
 
 
 # ============== handler ==================================================
+def ddb_history_snapshots(output_key, score_path):
+    """Pull every snapshot of one feed from the history-snapshotter
+    DynamoDB store. Returns a list of (iso_date, score) pairs, oldest
+    first, with one entry per session (the LATEST intraday snapshot per
+    day, since intra-day variation is noise for daily IC calibration).
+    Empty list on any error -- the calibrator continues with whatever
+    history it does have."""
+    pk = "feed#" + output_key
+    by_date = {}
+    try:
+        last = None
+        while True:
+            kwargs = {"TableName": HISTORY_TABLE,
+                      "KeyConditionExpression": "pk = :pk",
+                      "ExpressionAttributeValues": {":pk": {"S": pk}}}
+            if last:
+                kwargs["ExclusiveStartKey"] = last
+            resp = ddb_client.query(**kwargs)
+            for it in resp.get("Items", []):
+                sk = it.get("sk", {}).get("S", "")
+                if not sk:
+                    continue
+                # payload may be stored as a Map or as a JSON string
+                payload = None
+                if "payload" in it:
+                    p = it["payload"]
+                    if "S" in p:
+                        try:
+                            payload = json.loads(p["S"])
+                        except Exception:
+                            continue
+                    elif "M" in p:
+                        # the AWS-SDK marshaled form -- unmarshal lazily;
+                        # we only need a single field
+                        payload = _unmarshal_dynamo(p)
+                if not isinstance(payload, dict):
+                    continue
+                score = deep_get(payload, score_path)
+                if not isinstance(score, (int, float)):
+                    continue
+                day = sk[:10]
+                # keep the LATEST intraday snapshot per day
+                by_date[day] = (sk, float(score))
+            last = resp.get("LastEvaluatedKey")
+            if not last:
+                break
+    except Exception as e:
+        print("[fleet] ddb query err %s: %s" % (output_key, e))
+        return []
+    return sorted(((d, v[1]) for d, v in by_date.items()),
+                  key=lambda x: x[0])
+
+
+def _unmarshal_dynamo(av):
+    """Minimal DynamoDB AttributeValue -> Python recursion. Handles
+    string, number, dict, list, boolean, null."""
+    if not isinstance(av, dict):
+        return av
+    if "S" in av:
+        return av["S"]
+    if "N" in av:
+        try:
+            n = av["N"]
+            return float(n) if "." in n or "e" in n.lower() else int(n)
+        except Exception:
+            return None
+    if "BOOL" in av:
+        return av["BOOL"]
+    if "NULL" in av:
+        return None
+    if "M" in av:
+        return {k: _unmarshal_dynamo(v) for k, v in av["M"].items()}
+    if "L" in av:
+        return [_unmarshal_dynamo(v) for v in av["L"]]
+    return None
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     today_iso = datetime.now(timezone.utc).date().isoformat()
@@ -268,6 +353,25 @@ def lambda_handler(event, context):
             dd = forward_dd(s.get("date"))
             if isinstance(sc, (int, float)) and dd is not None:
                 pairs.append((float(sc), dd))
+
+        # DDB backfill: history-snapshotter has been archiving the
+        # engine's full JSON every 5 minutes for as long as it has been
+        # in FEEDS_TO_SNAPSHOT. This is what lets the fleet calibrate on
+        # real history from day one rather than waiting ~3 months for
+        # its own forward-going snapshots to accumulate.
+        ddb_history = ddb_history_snapshots(reg["source_key"],
+                                            reg["score_path"])
+        seen_dates = set()
+        for s in snaps:
+            if (s.get("scores") or {}).get(name) is not None:
+                seen_dates.add(s.get("date"))
+        for d_iso, sc in ddb_history:
+            if d_iso in seen_dates:
+                continue
+            dd = forward_dd(d_iso)
+            if dd is not None:
+                pairs.append((float(sc), dd))
+                seen_dates.add(d_iso)
         # dedupe by date if necessary (gsi has more dates than fleet)
         # (a degree of double counting between gsi-dim-history snapshots
         # and current run is acceptable; both feed the same pair list)

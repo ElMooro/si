@@ -91,11 +91,22 @@ FEEDS_TO_SNAPSHOT = [
     "data/macro-nowcast.json",
     # Major dashboards
     "screener/data.json",
-    # Crypto / flows / edge (best-effort — skipped silently if missing)
+    # Crypto / flows / edge (best-effort -- skipped silently if missing)
     "data/crypto-intel.json",
     "data/options-flow.json",
     "data/edge-data.json",
     "data/flow-data.json",
+    # Calibration Fleet feeds -- composite-score engines registered for
+    # weekly IC calibration against forward SPY drawdown
+    "data/global-stress.json",
+    "data/crisis-composite.json",
+    "data/dollar-radar.json",
+    "data/vol-radar.json",
+    "data/market-extremes.json",
+    "data/signal-board.json",
+    "data/systemic-stress.json",
+    "data/vrp.json",
+    "data/credit-stress.json",
 ]
 
 s3 = boto3.client("s3", region_name=REGION)
