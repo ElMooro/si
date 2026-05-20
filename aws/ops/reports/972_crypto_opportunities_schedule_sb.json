@@ -1,0 +1,48 @@
+{
+  "ops": 972,
+  "title": "schedule crypto-opportunities + signal-board 21-engine integration",
+  "run_at": "2026-05-20T16:49:30.926809Z",
+  "checks": [
+    {
+      "name": "schedule.created",
+      "passed": true,
+      "detail": "rate(4 hours)"
+    },
+    {
+      "name": "schedule.live",
+      "passed": true,
+      "detail": "state=ENABLED expr=rate(4 hours) target_role=2:role/justhodl-scheduler-role"
+    },
+    {
+      "name": "sb.code_updated",
+      "passed": true,
+      "detail": "5735B"
+    },
+    {
+      "name": "sb.invoke",
+      "passed": true,
+      "detail": "status=200 body={\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.14, \\\"n_live\\\": 21, \\\"n_stale\\\": 0}\"}"
+    },
+    {
+      "name": "sb.engine_count_21",
+      "passed": true,
+      "detail": "engines=21 live=21 posture=NEUTRAL / MIXED"
+    },
+    {
+      "name": "sb.crypto_opportunities_ingested",
+      "passed": true,
+      "detail": "present=True stale=False signal=0 read=Crypto-opps NORMAL (conv=0, picks=3)"
+    },
+    {
+      "name": "engine.production_state",
+      "passed": true,
+      "detail": "state=NORMAL universe=196 vol=3 soc=0 stb=0 conv=0"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "overall_ok": true
+}
