@@ -1,0 +1,1485 @@
+{
+  "ops": 962,
+  "run_at": "2026-05-20T15:21:11.809303Z",
+  "checks": [
+    {
+      "name": "all_justhodl_lambdas_count",
+      "passed": true,
+      "detail": "n=288"
+    },
+    {
+      "name": "fn.justhodl-13f-positions",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-15T10:21:48"
+    },
+    {
+      "name": "fn.justhodl-aaii-sentiment",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-04-27T21:56:10"
+    },
+    {
+      "name": "fn.justhodl-ab-test",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-04T12:42:18"
+    },
+    {
+      "name": "fn.justhodl-activist-13d",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-20T14:06:38"
+    },
+    {
+      "name": "fn.justhodl-activist-filings-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-06T10:35:12"
+    },
+    {
+      "name": "fn.justhodl-activity-nowcast",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T17:49:59"
+    },
+    {
+      "name": "fn.justhodl-ai-brief",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-05T11:45:49"
+    },
+    {
+      "name": "fn.justhodl-ai-chat",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-16T19:10:46"
+    },
+    {
+      "name": "fn.justhodl-alert-router",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-10T11:12:06"
+    },
+    {
+      "name": "fn.justhodl-allocator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T20:22:48"
+    },
+    {
+      "name": "fn.justhodl-alpha-alerts",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-12T14:26:56"
+    },
+    {
+      "name": "fn.justhodl-alpha-calibrator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-13T09:00:50"
+    },
+    {
+      "name": "fn.justhodl-alpha-confluence",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-12T14:34:59"
+    },
+    {
+      "name": "fn.justhodl-alpha-daily-brief",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-13T00:22:12"
+    },
+    {
+      "name": "fn.justhodl-alpha-score",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=120 mod=2026-05-13T09:00:58"
+    },
+    {
+      "name": "fn.justhodl-analyst-consensus",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-16T00:45:03"
+    },
+    {
+      "name": "fn.justhodl-anomaly-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-13T00:50:44"
+    },
+    {
+      "name": "fn.justhodl-api-keys-admin",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-06T21:03:29"
+    },
+    {
+      "name": "fn.justhodl-asymmetric-hunter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-05T14:44:57"
+    },
+    {
+      "name": "fn.justhodl-asymmetric-scorer",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-04T20:14:49"
+    },
+    {
+      "name": "fn.justhodl-auction-crisis-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=240 mod=2026-04-27T12:58:37"
+    },
+    {
+      "name": "fn.justhodl-auction-grader",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-15T12:37:43"
+    },
+    {
+      "name": "fn.justhodl-backtest-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T18:15:33"
+    },
+    {
+      "name": "fn.justhodl-backtest-harness",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-13T23:54:06"
+    },
+    {
+      "name": "fn.justhodl-bagger-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=720 mod=2026-05-16T16:37:32"
+    },
+    {
+      "name": "fn.justhodl-bank-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T18:08:23"
+    },
+    {
+      "name": "fn.justhodl-best-ideas",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=320 timeout=120 mod=2026-05-18T16:38:16"
+    },
+    {
+      "name": "fn.justhodl-beta-laggard",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T13:01:12"
+    },
+    {
+      "name": "fn.justhodl-bloomberg-v8",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-16T19:34:47"
+    },
+    {
+      "name": "fn.justhodl-boj-detail",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T23:02:59"
+    },
+    {
+      "name": "fn.justhodl-bond-regime-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-04-25T15:33:08"
+    },
+    {
+      "name": "fn.justhodl-bond-trace",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T00:45:21"
+    },
+    {
+      "name": "fn.justhodl-buyback-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-20T14:06:54"
+    },
+    {
+      "name": "fn.justhodl-calibration-fleet",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-20T11:44:21"
+    },
+    {
+      "name": "fn.justhodl-calibration-snapshot",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-04T13:19:08"
+    },
+    {
+      "name": "fn.justhodl-calibration-snapshotter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-04T20:51:12"
+    },
+    {
+      "name": "fn.justhodl-calibrator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-06T18:15:41"
+    },
+    {
+      "name": "fn.justhodl-calls-backtest",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=512 timeout=180 mod=2026-05-05T12:53:38"
+    },
+    {
+      "name": "fn.justhodl-canary-grid",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-17T16:13:07"
+    },
+    {
+      "name": "fn.justhodl-capital-return",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-18T13:15:40"
+    },
+    {
+      "name": "fn.justhodl-capitulation",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T17:57:05"
+    },
+    {
+      "name": "fn.justhodl-catalyst-calendar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-12T23:15:12"
+    },
+    {
+      "name": "fn.justhodl-cb-injection",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T22:38:06"
+    },
+    {
+      "name": "fn.justhodl-cb-stance",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-14T00:47:33"
+    },
+    {
+      "name": "fn.justhodl-cdn-diag-temp",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-06T15:28:55"
+    },
+    {
+      "name": "fn.justhodl-cds-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T12:52:06"
+    },
+    {
+      "name": "fn.justhodl-cds-proxy",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T00:45:38"
+    },
+    {
+      "name": "fn.justhodl-chart-data",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-08T14:19:25"
+    },
+    {
+      "name": "fn.justhodl-chart-patterns",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-19T12:13:44"
+    },
+    {
+      "name": "fn.justhodl-charts-agent",
+      "passed": true,
+      "detail": "runtime=python3.9 mem=512 timeout=30 mod=2026-05-06T21:41:28"
+    },
+    {
+      "name": "fn.justhodl-china-liquidity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T17:55:31"
+    },
+    {
+      "name": "fn.justhodl-coffee-can",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-16T16:43:52"
+    },
+    {
+      "name": "fn.justhodl-commodity-curves",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-14T11:43:13"
+    },
+    {
+      "name": "fn.justhodl-compound-aggregator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T14:00:09"
+    },
+    {
+      "name": "fn.justhodl-construction-housing",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-17T00:07:59"
+    },
+    {
+      "name": "fn.justhodl-consumer-pulse",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T18:13:01"
+    },
+    {
+      "name": "fn.justhodl-conviction-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-17T17:01:18"
+    },
+    {
+      "name": "fn.justhodl-correlation-breaks",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=240 mod=2026-04-26T22:07:59"
+    },
+    {
+      "name": "fn.justhodl-correlation-surface",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-04T12:42:30"
+    },
+    {
+      "name": "fn.justhodl-cot-extremes-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-04-25T16:11:09"
+    },
+    {
+      "name": "fn.justhodl-cot-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-11T19:04:45"
+    },
+    {
+      "name": "fn.justhodl-credit-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-13T23:58:23"
+    },
+    {
+      "name": "fn.justhodl-crisis-composite",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T12:52:09"
+    },
+    {
+      "name": "fn.justhodl-crisis-knowledge-base",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-03T23:40:42"
+    },
+    {
+      "name": "fn.justhodl-crisis-plumbing",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-04-26T22:18:21"
+    },
+    {
+      "name": "fn.justhodl-cro-digest",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T00:28:55"
+    },
+    {
+      "name": "fn.justhodl-cro-escalation",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T11:28:10"
+    },
+    {
+      "name": "fn.justhodl-cross-asset-regime",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-06T10:41:13"
+    },
+    {
+      "name": "fn.justhodl-cross-asset-rv",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T20:29:32"
+    },
+    {
+      "name": "fn.justhodl-crypto-enricher",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-04-27T16:52:36"
+    },
+    {
+      "name": "fn.justhodl-crypto-funding",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-13T14:04:03"
+    },
+    {
+      "name": "fn.justhodl-crypto-intel",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=180 mod=2026-05-06T18:15:48"
+    },
+    {
+      "name": "fn.justhodl-crypto-narratives",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-17T00:09:28"
+    },
+    {
+      "name": "fn.justhodl-daily-macro-report",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=128 timeout=3 mod=2026-04-25T10:25:39"
+    },
+    {
+      "name": "fn.justhodl-daily-report-v3",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=900 mod=2026-05-16T19:47:39"
+    },
+    {
+      "name": "fn.justhodl-data-collector",
+      "passed": true,
+      "detail": "runtime=python3.9 mem=128 timeout=15 mod=2026-04-27T17:17:11"
+    },
+    {
+      "name": "fn.justhodl-dealer-gex",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=2048 timeout=600 mod=2026-05-14T12:01:39"
+    },
+    {
+      "name": "fn.justhodl-debate-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-13T00:06:23"
+    },
+    {
+      "name": "fn.justhodl-deep-value-screener",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-05T22:41:54"
+    },
+    {
+      "name": "fn.justhodl-desk-allocator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-18T21:18:12"
+    },
+    {
+      "name": "fn.justhodl-desk-returns",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-18T18:27:25"
+    },
+    {
+      "name": "fn.justhodl-dex-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-04-25T21:18:09"
+    },
+    {
+      "name": "fn.justhodl-divergence-engine-v2",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-07T10:13:16"
+    },
+    {
+      "name": "fn.justhodl-divergence-interpreter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-07T09:10:24"
+    },
+    {
+      "name": "fn.justhodl-divergence-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-04-25T16:00:09"
+    },
+    {
+      "name": "fn.justhodl-dividend-growth",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T14:13:08"
+    },
+    {
+      "name": "fn.justhodl-dix",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-13T11:51:24"
+    },
+    {
+      "name": "fn.justhodl-dollar-radar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=180 mod=2026-05-19T13:04:24"
+    },
+    {
+      "name": "fn.justhodl-earnings-nlp",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-13T23:46:37"
+    },
+    {
+      "name": "fn.justhodl-earnings-pead",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-06T13:57:55"
+    },
+    {
+      "name": "fn.justhodl-earnings-sentiment",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=900 mod=2026-05-11T18:59:44"
+    },
+    {
+      "name": "fn.justhodl-earnings-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-03T23:58:02"
+    },
+    {
+      "name": "fn.justhodl-earnings-whisper",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-07T10:58:18"
+    },
+    {
+      "name": "fn.justhodl-ecb-detail",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T22:27:29"
+    },
+    {
+      "name": "fn.justhodl-ecb-proxy",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T21:21:44"
+    },
+    {
+      "name": "fn.justhodl-econ-calendar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T02:14:30"
+    },
+    {
+      "name": "fn.justhodl-edge-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T21:36:03"
+    },
+    {
+      "name": "fn.justhodl-email-reports",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=120 mod=2026-04-26T12:18:03"
+    },
+    {
+      "name": "fn.justhodl-email-reports-v2",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=512 timeout=300 mod=2026-05-17T10:29:30"
+    },
+    {
+      "name": "fn.justhodl-eps-revision-velocity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-05T22:41:56"
+    },
+    {
+      "name": "fn.justhodl-esi",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T01:50:51"
+    },
+    {
+      "name": "fn.justhodl-etf-flows",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-04T00:18:41"
+    },
+    {
+      "name": "fn.justhodl-euro-fragmentation",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=150 mod=2026-05-18T10:13:34"
+    },
+    {
+      "name": "fn.justhodl-eurodollar-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-04T19:51:41"
+    },
+    {
+      "name": "fn.justhodl-event-study",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-06T18:07:45"
+    },
+    {
+      "name": "fn.justhodl-exchange-flows",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-04-27T22:36:01"
+    },
+    {
+      "name": "fn.justhodl-factor-risk",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=900 mod=2026-05-18T19:35:57"
+    },
+    {
+      "name": "fn.justhodl-fed-speak",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-07T11:48:28"
+    },
+    {
+      "name": "fn.justhodl-feedback",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-04T12:47:16"
+    },
+    {
+      "name": "fn.justhodl-financial-secretary",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-04-26T12:18:17"
+    },
+    {
+      "name": "fn.justhodl-finra-short",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-13T11:25:59"
+    },
+    {
+      "name": "fn.justhodl-firm-book",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=320 timeout=120 mod=2026-05-18T19:01:41"
+    },
+    {
+      "name": "fn.justhodl-firm-risk-board",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-18T22:58:26"
+    },
+    {
+      "name": "fn.justhodl-firm-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-18T20:00:05"
+    },
+    {
+      "name": "fn.justhodl-fleet-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=180 mod=2026-05-17T19:16:43"
+    },
+    {
+      "name": "fn.justhodl-forensic-screen",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-06T16:56:04"
+    },
+    {
+      "name": "fn.justhodl-fred-proxy",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-06T21:21:51"
+    },
+    {
+      "name": "fn.justhodl-fundamentals-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-16T23:50:19"
+    },
+    {
+      "name": "fn.justhodl-fx-intelligence",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-17T16:50:12"
+    },
+    {
+      "name": "fn.justhodl-gdelt-sentiment",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-04-27T18:48:48"
+    },
+    {
+      "name": "fn.justhodl-global-business-cycle",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-11T09:56:15"
+    },
+    {
+      "name": "fn.justhodl-global-liquidity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T17:01:00"
+    },
+    {
+      "name": "fn.justhodl-global-macro",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-07T12:03:25"
+    },
+    {
+      "name": "fn.justhodl-global-markets",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-14T01:30:12"
+    },
+    {
+      "name": "fn.justhodl-global-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-20T11:46:41"
+    },
+    {
+      "name": "fn.justhodl-gsi-calibrator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-20T01:05:18"
+    },
+    {
+      "name": "fn.justhodl-gsi-horizons",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-20T11:46:52"
+    },
+    {
+      "name": "fn.justhodl-health-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=300 mod=2026-05-06T18:16:36"
+    },
+    {
+      "name": "fn.justhodl-hedge-planner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T09:52:49"
+    },
+    {
+      "name": "fn.justhodl-hedge-pnl",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T01:41:56"
+    },
+    {
+      "name": "fn.justhodl-hiring-velocity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-16T16:45:36"
+    },
+    {
+      "name": "fn.justhodl-historical-analogs",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-04T12:25:28"
+    },
+    {
+      "name": "fn.justhodl-history-api",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=15 mod=2026-05-06T17:59:34"
+    },
+    {
+      "name": "fn.justhodl-history-snapshotter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-20T11:44:38"
+    },
+    {
+      "name": "fn.justhodl-implied-prob",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-07T17:18:46"
+    },
+    {
+      "name": "fn.justhodl-index-recon",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T17:02:29"
+    },
+    {
+      "name": "fn.justhodl-insider-aggregate",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-16T17:36:47"
+    },
+    {
+      "name": "fn.justhodl-insider-cluster-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1536 timeout=900 mod=2026-05-15T12:37:15"
+    },
+    {
+      "name": "fn.justhodl-insider-trades",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-04-27T21:56:19"
+    },
+    {
+      "name": "fn.justhodl-intelligence",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-06T18:16:19"
+    },
+    {
+      "name": "fn.justhodl-investor-agents",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T21:50:45"
+    },
+    {
+      "name": "fn.justhodl-ka-metrics",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-06T20:47:55"
+    },
+    {
+      "name": "fn.justhodl-khalid-adaptive",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-15T12:37:20"
+    },
+    {
+      "name": "fn.justhodl-khalid-metrics",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-04-25T10:27:46"
+    },
+    {
+      "name": "fn.justhodl-labor-leading",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-04-27T18:43:29"
+    },
+    {
+      "name": "fn.justhodl-leading-markets",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=180 mod=2026-05-16T20:04:24"
+    },
+    {
+      "name": "fn.justhodl-liquidity-agent",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-04-25T10:25:27"
+    },
+    {
+      "name": "fn.justhodl-liquidity-capacity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=320 timeout=150 mod=2026-05-18T19:19:07"
+    },
+    {
+      "name": "fn.justhodl-liquidity-credit-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-10T13:03:51"
+    },
+    {
+      "name": "fn.justhodl-liquidity-flow",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-04-27T22:12:33"
+    },
+    {
+      "name": "fn.justhodl-liquidity-profile",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-16T01:22:13"
+    },
+    {
+      "name": "fn.justhodl-liquidity-pulse",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-10T11:12:21"
+    },
+    {
+      "name": "fn.justhodl-live-pulse",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-20T11:49:52"
+    },
+    {
+      "name": "fn.justhodl-ma-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-11T17:38:56"
+    },
+    {
+      "name": "fn.justhodl-macro-nowcast",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-06T18:56:28"
+    },
+    {
+      "name": "fn.justhodl-macro-surprise",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-04T12:15:19"
+    },
+    {
+      "name": "fn.justhodl-margin-lending",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-15T17:12:32"
+    },
+    {
+      "name": "fn.justhodl-market-extremes",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T10:16:57"
+    },
+    {
+      "name": "fn.justhodl-market-internals",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=900 mod=2026-05-16T01:12:14"
+    },
+    {
+      "name": "fn.justhodl-master-allocator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-20T11:36:27"
+    },
+    {
+      "name": "fn.justhodl-master-ranker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T20:22:56"
+    },
+    {
+      "name": "fn.justhodl-mean-reversion",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-17T08:20:20"
+    },
+    {
+      "name": "fn.justhodl-merger-arb",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-18T16:22:09"
+    },
+    {
+      "name": "fn.justhodl-merger-arb-risk",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-18T20:43:52"
+    },
+    {
+      "name": "fn.justhodl-metals-miners",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T15:07:42"
+    },
+    {
+      "name": "fn.justhodl-microcap-float-squeeze",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=2048 timeout=600 mod=2026-05-06T12:03:56"
+    },
+    {
+      "name": "fn.justhodl-ml-predictions",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-04-25T10:28:03"
+    },
+    {
+      "name": "fn.justhodl-momentum-breakout",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-05T23:52:43"
+    },
+    {
+      "name": "fn.justhodl-momentum-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=2048 timeout=600 mod=2026-05-04T18:55:16"
+    },
+    {
+      "name": "fn.justhodl-morning-brief-tg",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-07T12:03:35"
+    },
+    {
+      "name": "fn.justhodl-morning-intelligence",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-19T12:51:35"
+    },
+    {
+      "name": "fn.justhodl-narrative-density-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-06T09:13:10"
+    },
+    {
+      "name": "fn.justhodl-news-sentiment",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=512 timeout=600 mod=2026-05-11T23:34:19"
+    },
+    {
+      "name": "fn.justhodl-news-velocity",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=900 mod=2026-05-15T00:00:22"
+    },
+    {
+      "name": "fn.justhodl-nobrainer-rationale",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-17T10:29:54"
+    },
+    {
+      "name": "fn.justhodl-nobrainer-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-05T16:52:02"
+    },
+    {
+      "name": "fn.justhodl-nyfed-dealer-survey",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-04-27T18:43:38"
+    },
+    {
+      "name": "fn.justhodl-oecd-cli",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-04-27T18:48:55"
+    },
+    {
+      "name": "fn.justhodl-onchain-ratios",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-04-27T18:43:52"
+    },
+    {
+      "name": "fn.justhodl-opex-calendar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90 mod=2026-05-20T14:07:10"
+    },
+    {
+      "name": "fn.justhodl-opportunity-calibrator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=240 mod=2026-05-17T14:27:53"
+    },
+    {
+      "name": "fn.justhodl-opportunity-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-17T13:58:05"
+    },
+    {
+      "name": "fn.justhodl-opportunity-screener",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-18T12:34:59"
+    },
+    {
+      "name": "fn.justhodl-options-flow",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=1024 timeout=300 mod=2026-05-06T21:36:11"
+    },
+    {
+      "name": "fn.justhodl-options-flow-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=2048 timeout=600 mod=2026-05-06T08:50:22"
+    },
+    {
+      "name": "fn.justhodl-options-gamma",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-04-27T22:36:07"
+    },
+    {
+      "name": "fn.justhodl-outcome-checker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=300 mod=2026-05-06T18:16:27"
+    },
+    {
+      "name": "fn.justhodl-pairs-arb",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-18T14:55:03"
+    },
+    {
+      "name": "fn.justhodl-pairs-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-07T09:56:49"
+    },
+    {
+      "name": "fn.justhodl-pead-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=2048 timeout=600 mod=2026-05-06T13:53:53"
+    },
+    {
+      "name": "fn.justhodl-plumbing-aggregator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-07T18:33:15"
+    },
+    {
+      "name": "fn.justhodl-pm-decision",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T20:26:52"
+    },
+    {
+      "name": "fn.justhodl-pnl-attribution",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-18T19:49:03"
+    },
+    {
+      "name": "fn.justhodl-pnl-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-04-26T12:53:01"
+    },
+    {
+      "name": "fn.justhodl-political-trades",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-15T12:37:32"
+    },
+    {
+      "name": "fn.justhodl-portfolio-admin",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-16T21:58:07"
+    },
+    {
+      "name": "fn.justhodl-portfolio-catalysts",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-12T23:15:24"
+    },
+    {
+      "name": "fn.justhodl-portfolio-risk",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-12T22:51:37"
+    },
+    {
+      "name": "fn.justhodl-portfolio-sizer",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-12T23:15:34"
+    },
+    {
+      "name": "fn.justhodl-portfolio-snapshot",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-12T22:51:46"
+    },
+    {
+      "name": "fn.justhodl-position-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-04T22:44:07"
+    },
+    {
+      "name": "fn.justhodl-position-sizer-v2",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-05T12:17:12"
+    },
+    {
+      "name": "fn.justhodl-pre-pump-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-06T00:15:53"
+    },
+    {
+      "name": "fn.justhodl-price-redundancy",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-04-27T18:49:09"
+    },
+    {
+      "name": "fn.justhodl-prompt-iterator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-04-25T14:57:12"
+    },
+    {
+      "name": "fn.justhodl-public-api-demo",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=15 mod=2026-05-06T21:21:58"
+    },
+    {
+      "name": "fn.justhodl-push-api",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-08T20:53:11"
+    },
+    {
+      "name": "fn.justhodl-redflag-alerter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-04-27T21:56:29"
+    },
+    {
+      "name": "fn.justhodl-regime-anomaly",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=240 mod=2026-04-26T21:36:46"
+    },
+    {
+      "name": "fn.justhodl-regime-composite",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-14T14:27:51"
+    },
+    {
+      "name": "fn.justhodl-repo-lending",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-15T12:37:49"
+    },
+    {
+      "name": "fn.justhodl-repo-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-06T18:16:34"
+    },
+    {
+      "name": "fn.justhodl-reports-builder",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-04-26T12:53:09"
+    },
+    {
+      "name": "fn.justhodl-retail-sentiment",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-14T00:24:01"
+    },
+    {
+      "name": "fn.justhodl-revenue-acceleration",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-06T14:12:39"
+    },
+    {
+      "name": "fn.justhodl-reversal-radar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-15T12:37:37"
+    },
+    {
+      "name": "fn.justhodl-risk-monitor",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-18T19:06:02"
+    },
+    {
+      "name": "fn.justhodl-risk-radar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=320 timeout=120 mod=2026-05-18T15:26:55"
+    },
+    {
+      "name": "fn.justhodl-risk-sizer",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-04T20:14:56"
+    },
+    {
+      "name": "fn.justhodl-russell-recon-frontrun",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=240 mod=2026-05-20T14:23:34"
+    },
+    {
+      "name": "fn.justhodl-rv-iv-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-20T13:43:33"
+    },
+    {
+      "name": "fn.justhodl-screener-alerts",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-11T17:49:00"
+    },
+    {
+      "name": "fn.justhodl-seasonality",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-16T01:22:06"
+    },
+    {
+      "name": "fn.justhodl-sec-10kq",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-04-27T18:44:15"
+    },
+    {
+      "name": "fn.justhodl-sec-13f",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-05-03T17:17:52"
+    },
+    {
+      "name": "fn.justhodl-sec-8k",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=768 timeout=300 mod=2026-04-27T18:44:37"
+    },
+    {
+      "name": "fn.justhodl-sector-earnings-diffusion",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-06T08:56:32"
+    },
+    {
+      "name": "fn.justhodl-sector-heatmap",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-16T01:51:10"
+    },
+    {
+      "name": "fn.justhodl-sector-rotation",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-13T09:22:13"
+    },
+    {
+      "name": "fn.justhodl-sector-tilt",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=128 timeout=30 mod=2026-05-07T09:49:16"
+    },
+    {
+      "name": "fn.justhodl-sellside-views",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-16T01:12:42"
+    },
+    {
+      "name": "fn.justhodl-short-interest",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-04T00:13:17"
+    },
+    {
+      "name": "fn.justhodl-short-pressure",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-17T00:14:07"
+    },
+    {
+      "name": "fn.justhodl-signal-board",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-20T14:14:43"
+    },
+    {
+      "name": "fn.justhodl-signal-logger",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-06T18:16:42"
+    },
+    {
+      "name": "fn.justhodl-signal-orthogonality",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=180 mod=2026-05-20T11:56:19"
+    },
+    {
+      "name": "fn.justhodl-signal-portfolio",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-04T12:21:35"
+    },
+    {
+      "name": "fn.justhodl-signal-scorecard",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T21:23:50"
+    },
+    {
+      "name": "fn.justhodl-smart-money-cluster",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-05T19:29:08"
+    },
+    {
+      "name": "fn.justhodl-smart-money-holdings",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-12T10:46:05"
+    },
+    {
+      "name": "fn.justhodl-smart-money-tracker",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-11T19:37:40"
+    },
+    {
+      "name": "fn.justhodl-snb-detail",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T23:39:11"
+    },
+    {
+      "name": "fn.justhodl-spinoff-desk",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-18T16:24:06"
+    },
+    {
+      "name": "fn.justhodl-stablecoin-flow",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90 mod=2026-05-20T13:18:27"
+    },
+    {
+      "name": "fn.justhodl-stock-ai-research",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=512 timeout=90 mod=2026-04-25T23:34:39"
+    },
+    {
+      "name": "fn.justhodl-stock-analyzer",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-06T21:36:18"
+    },
+    {
+      "name": "fn.justhodl-stock-screener",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1280 timeout=900 mod=2026-05-11T17:49:17"
+    },
+    {
+      "name": "fn.justhodl-streaming-fanout",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-20T12:04:58"
+    },
+    {
+      "name": "fn.justhodl-stress-loadings",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-09T11:38:59"
+    },
+    {
+      "name": "fn.justhodl-stress-scenarios",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=60 mod=2026-05-15T12:37:26"
+    },
+    {
+      "name": "fn.justhodl-stress-simulator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=30 mod=2026-05-09T11:56:57"
+    },
+    {
+      "name": "fn.justhodl-supply-inflection-scanner",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-05T14:20:30"
+    },
+    {
+      "name": "fn.justhodl-system-signal-logger",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-05T22:05:58"
+    },
+    {
+      "name": "fn.justhodl-systemic-stress",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=150 mod=2026-05-18T09:55:09"
+    },
+    {
+      "name": "fn.justhodl-tail-hedge",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-18T23:28:25"
+    },
+    {
+      "name": "fn.justhodl-tape-reader",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-07T11:34:36"
+    },
+    {
+      "name": "fn.justhodl-telegram-bot",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-04-25T10:28:08"
+    },
+    {
+      "name": "fn.justhodl-tenor-signal-interpreter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-09T13:33:13"
+    },
+    {
+      "name": "fn.justhodl-theme-detector",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-05T13:40:15"
+    },
+    {
+      "name": "fn.justhodl-theme-rotation-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-13T23:54:14"
+    },
+    {
+      "name": "fn.justhodl-theme-tier-classifier",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-05T14:35:15"
+    },
+    {
+      "name": "fn.justhodl-tic-flows",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-16T01:12:35"
+    },
+    {
+      "name": "fn.justhodl-tmp-433",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-11T15:49:36"
+    },
+    {
+      "name": "fn.justhodl-tmp-454",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=900 mod=2026-05-11T22:47:14"
+    },
+    {
+      "name": "fn.justhodl-tmp-458",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=600 mod=2026-05-11T23:36:00"
+    },
+    {
+      "name": "fn.justhodl-tmp-force-refresh",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=900 mod=2026-05-11T10:59:02"
+    },
+    {
+      "name": "fn.justhodl-track-record",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=180 mod=2026-05-17T13:32:08"
+    },
+    {
+      "name": "fn.justhodl-trade-evaluator",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-13T00:06:33"
+    },
+    {
+      "name": "fn.justhodl-trade-journal",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-07T15:18:25"
+    },
+    {
+      "name": "fn.justhodl-trade-logger",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-13T00:06:40"
+    },
+    {
+      "name": "fn.justhodl-treasury-proxy",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-06T21:27:33"
+    },
+    {
+      "name": "fn.justhodl-trend-engine",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=120 mod=2026-05-18T15:44:48"
+    },
+    {
+      "name": "fn.justhodl-ultimate-orchestrator",
+      "passed": true,
+      "detail": "runtime=python3.9 mem=1024 timeout=30 mod=2026-04-25T10:24:31"
+    },
+    {
+      "name": "fn.justhodl-universe-builder",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300 mod=2026-05-06T11:52:20"
+    },
+    {
+      "name": "fn.justhodl-valuations-agent",
+      "passed": true,
+      "detail": "runtime=python3.11 mem=512 timeout=120 mod=2026-04-25T10:29:58"
+    },
+    {
+      "name": "fn.justhodl-vix-curve",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-13T15:36:12"
+    },
+    {
+      "name": "fn.justhodl-vol-radar",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T09:21:23"
+    },
+    {
+      "name": "fn.justhodl-vol-regime",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-07T15:33:58"
+    },
+    {
+      "name": "fn.justhodl-vol-surface",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120 mod=2026-05-16T00:29:02"
+    },
+    {
+      "name": "fn.justhodl-vol-target-unwind",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90 mod=2026-05-20T14:49:27"
+    },
+    {
+      "name": "fn.justhodl-volatility-squeeze-hunter",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 mod=2026-05-06T13:47:59"
+    },
+    {
+      "name": "fn.justhodl-vrp",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-19T02:30:14"
+    },
+    {
+      "name": "fn.justhodl-watchlist",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=30 mod=2026-05-07T15:16:59"
+    },
+    {
+      "name": "fn.justhodl-watchlist-debate",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=900 mod=2026-05-13T23:54:22"
+    },
+    {
+      "name": "fn.justhodl-wave-signal-logger",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-04T19:54:22"
+    },
+    {
+      "name": "fn.justhodl-whats-changed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300 mod=2026-05-04T12:47:47"
+    },
+    {
+      "name": "fn.justhodl-yen-carry",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-17T23:07:28"
+    },
+    {
+      "name": "fn.justhodl-yield-curve",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=600 mod=2026-05-04T12:19:04"
+    },
+    {
+      "name": "target.justhodl-vix-backwardation-trigger",
+      "passed": false,
+      "detail": "NOT DEPLOYED"
+    },
+    {
+      "name": "target.justhodl-insider-buys-enriched",
+      "passed": false,
+      "detail": "NOT DEPLOYED"
+    },
+    {
+      "name": "target.justhodl-breadth-thrust",
+      "passed": false,
+      "detail": "NOT DEPLOYED"
+    },
+    {
+      "name": "target.justhodl-vol-target-unwind",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 mod=2026-05-20T14:49:27 n_env=0"
+    },
+    {
+      "name": "target.justhodl-capitulation",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 mod=2026-05-16T17:57:05 n_env=2"
+    },
+    {
+      "name": "s3_keys_matching_edges_1_4",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "summary": {
+    "total": 295,
+    "passed": 292
+  }
+}
