@@ -83,23 +83,42 @@ def http_get(url, timeout=12, retries=2):
 
 
 def fmp_history(symbol, days=300):
+    """Newest-first daily closes via FMP /stable/historical-price-eod/full.
+
+    The proven endpoint used by gap-fill-confirm, merger-arb, hedge-pnl, etc.
+    Surfaces fetch errors instead of silently returning [] (which masked the
+    HYG=0 SPY=0 root cause in ops 980).
+    """
     q = urllib.parse.quote_plus(symbol)
-    url = (f"https://financialmodelingprep.com/stable/historical-price-eod/light"
+    url = (f"https://financialmodelingprep.com/stable/historical-price-eod/full"
            f"?symbol={q}&apikey={FMP_KEY}")
     try:
-        data = json.loads(http_get(url))
-        if isinstance(data, dict):
-            hist = data.get("historical") or data.get("data") or []
-        else:
-            hist = data
-        closes = []
-        for r in hist[:days]:
-            c = r.get("close") or r.get("price")
-            if c is not None:
-                closes.append(float(c))
-        return closes
-    except Exception:
+        raw = http_get(url)
+    except Exception as e:
+        print(f"[fmp_history] http_get failed for {symbol}: {e}")
         return []
+    try:
+        data = json.loads(raw)
+    except Exception as e:
+        print(f"[fmp_history] json parse failed for {symbol}: {e}; raw[:200]={raw[:200]}")
+        return []
+    if isinstance(data, dict):
+        hist = data.get("historical") or data.get("data") or []
+    else:
+        hist = data
+    if not hist:
+        print(f"[fmp_history] empty hist for {symbol}; resp keys/type={type(data).__name__} "
+              f"sample={json.dumps(data)[:200]}")
+        return []
+    closes = []
+    for r in hist[:days]:
+        c = r.get("close") or r.get("adjClose") or r.get("price")
+        if c is not None:
+            try:
+                closes.append(float(c))
+            except (TypeError, ValueError):
+                continue
+    return closes
 
 
 def pct_return(closes, days):
