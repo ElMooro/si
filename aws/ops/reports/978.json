@@ -1,0 +1,336 @@
+{
+  "ops": 978,
+  "started_at_utc": "2026-05-20T21:36:22Z",
+  "repo_root": "/home/runner/work/si/si",
+  "engines": {
+    "justhodl-vvix-vov-regime": {
+      "deploy": {
+        "name": "justhodl-vvix-vov-regime",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-vvix-vov-regime-daily",
+        "cron": "cron(0 22 * * ? *)"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"strength\": 0.0, \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 987,
+        "last_modified": "2026-05-20T21:36:36+00:00",
+        "engine": "vvix-vov-regime",
+        "state": "QUIET",
+        "as_of": "2026-05-20T21:36:35Z",
+        "n_setups": 0,
+        "schema_keys": [
+          "as_of",
+          "current_metrics",
+          "engine",
+          "methodology",
+          "n_tickets",
+          "regime_explanation",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "trade_tickets",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-sympathetic-momentum": {
+      "deploy": {
+        "name": "justhodl-sympathetic-momentum",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-sympathetic-momentum-daily",
+        "cron": "cron(30 23 * * ? *)"
+      },
+      "invoke": {
+        "ok": false,
+        "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-sympathetic-momentum/invocations\""
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 862,
+        "last_modified": "2026-05-20T21:40:56+00:00",
+        "engine": "sympathetic-momentum",
+        "state": "QUIET",
+        "as_of": "2026-05-20T21:40:55Z",
+        "n_setups": null,
+        "schema_keys": [
+          "all_setups",
+          "as_of",
+          "engine",
+          "methodology",
+          "n_peer_groups_scanned",
+          "n_setups",
+          "n_tickers_in_universe",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "top_setups",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-insider-buyback-confluence": {
+      "deploy": {
+        "name": "justhodl-insider-buyback-confluence",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-insider-buyback-confluence-daily",
+        "cron": "cron(0 23 * * ? *)"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_confluences\": 0, \"n_high\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1469,
+        "last_modified": "2026-05-20T21:42:07+00:00",
+        "engine": "insider-buyback-confluence",
+        "state": "QUIET",
+        "as_of": "2026-05-20T21:42:06Z",
+        "n_setups": null,
+        "schema_keys": [
+          "all_confluences",
+          "as_of",
+          "engine",
+          "feeders",
+          "methodology",
+          "n_confluences",
+          "n_high_conviction",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "top_confluences",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-gap-fill-confirm": {
+      "deploy": {
+        "name": "justhodl-gap-fill-confirm",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-gap-fill-confirm-daily",
+        "cron": "cron(30 14 ? * MON-FRI *)"
+      },
+      "invoke": {
+        "ok": false,
+        "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-gap-fill-confirm/invocations\""
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 875,
+        "last_modified": "2026-05-20T21:47:27+00:00",
+        "engine": "gap-fill-confirm",
+        "state": "QUIET",
+        "as_of": "2026-05-20T21:47:26Z",
+        "n_setups": null,
+        "schema_keys": [
+          "all_setups",
+          "as_of",
+          "engine",
+          "methodology",
+          "n_high_conviction",
+          "n_setups",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "top_setups",
+          "universe_size",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-13f-price-divergence": {
+      "deploy": {
+        "name": "justhodl-13f-price-divergence",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-13f-price-divergence-weekly",
+        "cron": "cron(0 6 ? * TUE *)"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_divergences\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1256,
+        "last_modified": "2026-05-20T21:47:35+00:00",
+        "engine": "13f-price-divergence",
+        "state": "QUIET",
+        "as_of": "2026-05-20T21:47:34Z",
+        "n_setups": null,
+        "schema_keys": [
+          "all_divergences",
+          "as_of",
+          "engine",
+          "feeders",
+          "methodology",
+          "n_bearish",
+          "n_bullish",
+          "n_divergences",
+          "n_high_conviction",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "top_bearish",
+          "top_bullish",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-credit-equity-divergence": {
+      "deploy": {
+        "name": "justhodl-credit-equity-divergence",
+        "exists_before": false,
+        "post_create_state": "Active/Successful",
+        "ok": true,
+        "mode": "created"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-credit-equity-divergence-daily",
+        "cron": "cron(0 21 * * ? *)"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 500, 'body': '{\"error\": \"insufficient data: HYG=0 SPY=0\"}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 368,
+        "last_modified": "2026-05-20T21:47:48+00:00",
+        "engine": "credit-equity-divergence",
+        "state": null,
+        "as_of": "2026-05-20T21:47:47Z",
+        "n_setups": null,
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "error",
+          "trace"
+        ]
+      }
+    }
+  },
+  "signal_board_deploy": {
+    "name": "justhodl-signal-board",
+    "pre_state": "Active",
+    "post_code": "Active/Successful",
+    "post_cfg": "Active/Successful",
+    "ok": true,
+    "mode": "updated"
+  },
+  "signal_board_invoke": {
+    "ok": true,
+    "status_code": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.1, \"n_live\": 42, \"n_stale\": 0}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 42,
+    "n_live": 42,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.1,
+    "stale_engines_listed": [],
+    "expects_42": true
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 43467,
+    "markers": {
+      "earnings-iv-crush": true,
+      "stealth-accumulation": true,
+      "failed-pattern-reversal": true,
+      "squeeze-pretrigger": true,
+      "catalyst-skew-premove": true,
+      "crypto-etf-arb": true,
+      "lockup-expiration": true,
+      "precatalyst-vol-expansion": true,
+      "cef-discount": true,
+      "reit-nav-discount": true,
+      "divcut-warning": true,
+      "rating-change-cluster": true,
+      "multi-tf-convergence": true,
+      "52wk-quality-breakout": true,
+      "spac-floor-warrant": true,
+      "vvix-vov-regime": true,
+      "sympathetic-momentum": true,
+      "insider-buyback-confluence": true,
+      "gap-fill-confirm": true,
+      "13f-price-divergence": true,
+      "credit-equity-divergence": true
+    },
+    "markers_found": 21,
+    "expected_markers": 21
+  },
+  "scorecard": {
+    "n_engines": 6,
+    "n_deploy_ok": 6,
+    "n_schedule_ok": 6,
+    "n_invoke_ok": 4,
+    "n_s3_ok": 6,
+    "page_ok": true,
+    "signal_board_42_ok": true,
+    "all_pass": false
+  },
+  "ended_at_utc": "2026-05-20T21:48:08Z"
+}
