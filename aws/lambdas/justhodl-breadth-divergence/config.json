@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 240,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Breadth divergence detector. SPY 20d return + % of 11 SPDR sectors positive + 20d breadth slope + IWM-SPY small-cap lag. BEARISH (SPY up but breadth deteriorating + IWM lagging) or BULLISH (SPY down but breadth improving + IWM leading). Magee 1950s, Whaley 2009, Lo-MacKinlay 1988. ~58% hit / -5-12% (BEAR) or +6-10% (BULL) / 4-8wks. Daily 22 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-breadth-divergence-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Breadth divergence daily 22 UTC"
+  }
+}
