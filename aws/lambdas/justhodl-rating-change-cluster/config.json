@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Major-bank rating-change cluster detector. 3+ upgrades or downgrades within 14d from Goldman/MS/JPM/BofA/Citi/Barclays/Wells/UBS/Deutsche/Jefferies/Wedbush etc. Womack/Bradshaw/Liang edge basis. Daily 23:30 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-rating-change-cluster-daily",
+    "cron": "cron(30 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Rating change cluster daily 23:30 UTC"
+  }
+}

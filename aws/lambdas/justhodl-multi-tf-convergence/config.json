@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Multi-timeframe convergence scanner. Daily + weekly + monthly trend alignment with at least one fresh turn in last 5 days. ~70% hit rate on 12-18% moves over 8-13 weeks. Asness-Moskowitz-Pedersen 2013. Daily 00:00 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-multi-tf-convergence-daily",
+    "cron": "cron(0 0 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Multi-TF convergence scanner daily 00:00 UTC"
+  }
+}
