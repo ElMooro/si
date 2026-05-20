@@ -481,6 +481,79 @@ def n_credit_equity_divergence(d):
     return m.get(state, 0), f"Credit-eq {state or 'n/a'} (z={z})"
 
 
+# === Tier-4 Retail Edges Cluster (6 engines, 2026-05-20) ===
+
+def n_post_earnings_mean_rev(d):
+    """Counter-trend setups; LONG vs SHORT skew determines net direction."""
+    state = (d.get("state") or "").upper()
+    m = {"MEAN_REV_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    n_long = d.get("n_long_setups") or 0
+    n_short = d.get("n_short_setups") or 0
+    base = m.get(state, 0)
+    # Net direction skew
+    if state in ("MEAN_REV_RICH", "ACTIVE") and n_long + n_short > 0:
+        if n_long > n_short * 1.5:
+            base = abs(base) * 1
+        elif n_short > n_long * 1.5:
+            base = -abs(base) * 1
+        else:
+            base = 0
+    return base, f"PE-mean-rev {state or 'n/a'} (L={n_long}, S={n_short})"
+
+
+def n_insider_sell_cluster(d):
+    """Defensive engine: any HIGH/MEDIUM cluster = -1 (risk-off signal for portfolio)."""
+    state = (d.get("state") or "").upper()
+    m = {"RED_FLAG_RICH": -2, "ACTIVE": -1, "NORMAL": 0, "QUIET": 0}
+    n_high = d.get("n_high_severity") or 0
+    return m.get(state, 0), f"Ins-sell {state or 'n/a'} (HIGH={n_high})"
+
+
+def n_vix9d_vix_inversion(d):
+    """Statistical bottom signal during full inversion -> +1 (equity bullish 5-10d)."""
+    state = (d.get("state") or "").upper()
+    m = {"FULL_INVERSION_RICH": 1, "FULL_INVERSION_ACTIVE": 1,
+         "PARTIAL_INVERSION": 0, "NORMAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    persist = metrics.get("persistence_days_full_inversion")
+    return m.get(state, 0), f"VIX9D-inv {state or 'n/a'} (persist={persist}d)"
+
+
+def n_breadth_divergence(d):
+    """BEARISH_DIVERGENCE = -2 (topping process), BULLISH = +2 (bottoming)."""
+    state = (d.get("state") or "").upper()
+    m = {"BEARISH_DIVERGENCE_RICH": -2, "BEARISH_DIVERGENCE_ACTIVE": -1,
+         "BULLISH_DIVERGENCE_RICH": 2, "BULLISH_DIVERGENCE_ACTIVE": 1,
+         "NEUTRAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    n_pos = metrics.get("n_sectors_positive_20d")
+    return m.get(state, 0), f"Breadth-div {state or 'n/a'} (sectors+={n_pos}/11)"
+
+
+def n_skew_tail_hedging(d):
+    """TAIL_HEDGE_RICH = -2 (risk-off institutional hedging surge);
+    COMPLACENCY_RICH = -1 (cheap insurance signal, mildly bearish)."""
+    state = (d.get("state") or "").upper()
+    m = {"TAIL_HEDGE_RICH": -2, "TAIL_HEDGE_ACTIVE": -1, "TAIL_HEDGE_BUILDING": 0,
+         "COMPLACENCY_RICH": -1, "COMPLACENCY_ACTIVE": 0, "NORMAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    skew = metrics.get("skew")
+    days_e = metrics.get("days_skew_above_145")
+    return m.get(state, 0), f"SKEW {state or 'n/a'} (skew={skew}, elev={days_e}d)"
+
+
+def n_dxy_equity_divergence(d):
+    """DOLLAR_STRESS = -2 (equity risk-off via eurodollar stress);
+    DOLLAR_TAILWIND = +2 (risk-on weak dollar)."""
+    state = (d.get("state") or "").upper()
+    m = {"DOLLAR_STRESS_RICH": -2, "DOLLAR_STRESS_ACTIVE": -1,
+         "DOLLAR_TAILWIND_RICH": 2, "DOLLAR_TAILWIND_ACTIVE": 1,
+         "ACTIVE": 0, "NEUTRAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    z = metrics.get("spread_zscore_252d")
+    return m.get(state, 0), f"DXY-eq {state or 'n/a'} (z={z})"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -530,6 +603,13 @@ FEEDS = [
     ("Gap-Fill Continuation",     "equity tactical",  "data/gap-fill-confirm.json",          n_gap_fill_confirm),
     ("13F Price Divergence",      "smart money",      "data/13f-price-divergence.json",      n_13f_price_divergence),
     ("Credit-Equity Divergence",  "macro",            "data/credit-equity-divergence.json",  n_credit_equity_divergence),
+    # === Tier-4 Retail Edges Cluster (6 engines, 2026-05-20) ===
+    ("Post-Earnings Mean-Rev",    "equity tactical",  "data/post-earnings-mean-rev.json",    n_post_earnings_mean_rev),
+    ("Insider Sell Cluster",      "risk avoidance",   "data/insider-sell-cluster.json",      n_insider_sell_cluster),
+    ("VIX9D-VIX Inversion",       "volatility",       "data/vix9d-vix-inversion.json",       n_vix9d_vix_inversion),
+    ("Breadth Divergence",        "macro",            "data/breadth-divergence.json",        n_breadth_divergence),
+    ("SKEW Tail-Hedging",         "volatility",       "data/skew-tail-hedging.json",         n_skew_tail_hedging),
+    ("DXY-Equity Divergence",     "macro",            "data/dxy-equity-divergence.json",     n_dxy_equity_divergence),
 ]
 
 
