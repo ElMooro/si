@@ -1,0 +1,177 @@
+{
+  "started_at": 1779314117,
+  "engines": {
+    "justhodl-vvix-vov-regime": {
+      "name": "justhodl-vvix-vov-regime",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"strength\\\": 0.0, \\\"n_tickets\\\": 0}\"}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 988,
+        "last_modified": "2026-05-20T21:55:27+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.0,
+        "picks_n": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-sympathetic-momentum": {
+      "name": "justhodl-sympathetic-momentum",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0}\"}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 862,
+        "last_modified": "2026-05-20T21:56:36+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.0,
+        "picks_n": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-insider-buyback-confluence": {
+      "name": "justhodl-insider-buyback-confluence",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_confluences\\\": 0, \\\"n_high\\\": 0}\"}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1469,
+        "last_modified": "2026-05-20T21:56:39+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "picks_n": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-gap-fill-confirm": {
+      "name": "justhodl-gap-fill-confirm",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0, \\\"n_high\\\": 0}\"}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 876,
+        "last_modified": "2026-05-20T21:57:43+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "picks_n": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-13f-price-divergence": {
+      "name": "justhodl-13f-price-divergence",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_divergences\\\": 0}\"}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1256,
+        "last_modified": "2026-05-20T21:57:48+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "picks_n": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-credit-equity-divergence": {
+      "name": "justhodl-credit-equity-divergence",
+      "wait": {
+        "ok": true,
+        "status": "Successful",
+        "state": "Active"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient data: HYG=0 SPY=0\\\"}\"}"
+      },
+      "s3": {
+        "ok": false,
+        "size_bytes": 368,
+        "last_modified": "2026-05-20T21:57:54+00:00",
+        "state": null,
+        "signal_strength": null,
+        "picks_n": 0,
+        "error_in_payload": "insufficient data: HYG=0 SPY=0"
+      }
+    }
+  },
+  "signal_board": {
+    "wait": {
+      "ok": true,
+      "status": "Successful",
+      "state": "Active"
+    },
+    "invoke": {
+      "ok": true,
+      "status_code": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.1, \\\"n_live\\\": 42, \\\"n_stale\\\": 0}\"}"
+    },
+    "verify": {
+      "ok": true,
+      "n_engines": 42,
+      "n_live": 42,
+      "n_stale": 0,
+      "composite_posture": "NEUTRAL / MIXED",
+      "composite_signal": 0.1,
+      "expects_42": true
+    }
+  },
+  "page": {
+    "ok": false,
+    "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "scorecard": {
+    "n_engines": 6,
+    "n_invoke_ok": 6,
+    "n_s3_ok": 5,
+    "signal_board_42_ok": true,
+    "page_ok": false,
+    "all_pass": false
+  }
+}
