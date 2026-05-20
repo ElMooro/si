@@ -1,0 +1,88 @@
+{
+  "ops": 963,
+  "title": "manual deploy edges 1, 2, 3 Lambdas via Boto3 (CI not picking them up)",
+  "run_at": "2026-05-20T15:25:29.264693Z",
+  "checks": [
+    {
+      "name": "e1.config_loaded",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256"
+    },
+    {
+      "name": "e1.zip_built",
+      "passed": true,
+      "detail": "size=7442B"
+    },
+    {
+      "name": "e1.created",
+      "passed": true,
+      "detail": "new function created"
+    },
+    {
+      "name": "e1.invoke",
+      "passed": true,
+      "detail": "dur=2.1s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"vix-backwardation-trigger\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:24:43.820204+00:00\\\", \\\"state\\\": \\\"NULL\\\", \\\"prev_state\\\": \\\"NULL\\\", \\\"state_s"
+    },
+    {
+      "name": "e1.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4800B age_s=2"
+    },
+    {
+      "name": "e2.config_loaded",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256"
+    },
+    {
+      "name": "e2.zip_built",
+      "passed": true,
+      "detail": "size=5848B"
+    },
+    {
+      "name": "e2.created",
+      "passed": true,
+      "detail": "new function created"
+    },
+    {
+      "name": "e2.invoke",
+      "passed": true,
+      "detail": "dur=1.1s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"insider-buys-enriched\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:24:53.175076+00:00\\\", \\\"source\\\": \\\"data/insider-clusters.json\\\", \\\"source_as_of\\\""
+    },
+    {
+      "name": "e2.s3_output_fresh",
+      "passed": true,
+      "detail": "size=21169B age_s=1"
+    },
+    {
+      "name": "e3.config_loaded",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256"
+    },
+    {
+      "name": "e3.zip_built",
+      "passed": true,
+      "detail": "size=8710B"
+    },
+    {
+      "name": "e3.created",
+      "passed": true,
+      "detail": "new function created"
+    },
+    {
+      "name": "e3.invoke",
+      "passed": true,
+      "detail": "dur=26.1s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"breadth-thrust\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:25:01.754921+00:00\\\", \\\"state\\\": \\\"INSUFFICIENT_DATA\\\", \\\"prev_state\\\": \\\"NULL\\\", \\\"state"
+    },
+    {
+      "name": "e3.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4452B age_s=2"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0
+  },
+  "overall_ok": true
+}
