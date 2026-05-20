@@ -542,32 +542,35 @@ def sovereign_panel():
 
 
 def funding_panel():
-    """USD money-market / funding-plumbing stress -- a cross-reference
-    to the dedicated eurodollar-stress engine, which scores eight
-    funding signals (the broad dollar, cross-currency basis, repo and
-    SOFR, T-bill stress, EM FX, the long-bond curve and bond vol).
-
-    Surfaced here so the funding plumbing sits alongside the market-
-    stress read. It is deliberately NOT folded into the Global Stress
-    Index: eurodollar-stress already feeds the crisis composite, and
-    global-stress feeds it too, so blending it in would double-count
-    funding stress."""
-    es = read_sidecar("data/eurodollar-stress.json")
-    cs = es.get("composite_score")
-    if not isinstance(cs, (int, float)):
+    """Money-market / funding stress -- a cross-reference into the
+    dedicated eurodollar-stress engine. That engine scores eight funding
+    signals hourly (the broad dollar, EM FX, T-bill demand, the
+    SOFR-IORB spread, cross-currency basis, oil, the 30Y-10Y curve
+    inversion, bond vol) and publishes a composite 0-100 plus the
+    hottest stressors. Surfaced here as a context panel only -- funding
+    does NOT feed the GSI blend, because the eurodollar signal is
+    already its own component of the firm-wide crisis composite. The
+    intent is visibility, not double-counting."""
+    fs = read_sidecar("data/eurodollar-stress.json")
+    if not isinstance(fs.get("composite_score"), (int, float)):
         return None
-    hot = [{"label": h.get("label"), "score": h.get("score")}
-           for h in (es.get("hot_signals") or [])[:4]
-           if isinstance(h, dict) and h.get("label")]
-    return {"stress_score": round(clamp(cs)),
-            "regime": es.get("regime"),
-            "severity": es.get("severity"),
-            "n_signals": es.get("n_signals_used"),
-            "hot_signals": hot,
-            "source": "eurodollar-stress engine",
-            "note": ("USD funding-plumbing stress, cross-referenced from "
-                     "the dedicated eurodollar-stress engine. Read "
-                     "alongside the index; not blended into it.")}
+    sc = round(clamp(fs["composite_score"]))
+    hot = fs.get("hot_signals") or []
+    return {
+        "stress_score": sc,
+        "level": stress_level(sc),
+        "severity": fs.get("severity"),
+        "regime": fs.get("regime"),
+        "n_signals": fs.get("n_signals_used"),
+        "n_signals_used": fs.get("n_signals_used"),
+        "n_signals_total": fs.get("n_signals_total"),
+        "n_failures": fs.get("n_failures"),
+        "hot_signals": [{"id": h.get("id"), "label": h.get("label"),
+                         "score": h.get("score")}
+                        for h in hot[:3]],
+        "as_of": fs.get("as_of"),
+        "source": "eurodollar-stress engine (hourly)",
+    }
 
 
 def update_history(gsi, market, eq, bd):
