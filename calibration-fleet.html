@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calibration Fleet &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128300;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--purple)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.schip{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.schip .sv{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:3px;color:var(--txt)}
+.schip.predictive .sv{color:var(--green)}
+.schip.weak .sv{color:var(--cyan)}
+.schip.noise .sv{color:var(--mute)}
+.schip.contrarian .sv{color:var(--orange)}
+.schip.insufficient .sv{color:var(--dim)}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.etable{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.etable th,.etable td{padding:9px 11px;text-align:left;font-family:var(--mono);font-size:11.5px;border-bottom:1px solid var(--line)}
+.etable th{background:var(--panel2);color:var(--dim);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:normal}
+.etable td.num{text-align:right}
+.etable td.dn{color:var(--txt);font-weight:700}
+.etable td.rating{font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:0.5px;text-align:center}
+.etable tr:last-child td{border-bottom:none}
+.etable tr:hover td{background:var(--panel2)}
+.bar{display:inline-block;height:7px;border-radius:2px;vertical-align:middle;margin-left:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.ecard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:8px;padding:13px 14px}
+.ecard.predictive{border-left-color:var(--green)}
+.ecard.weak{border-left-color:var(--cyan)}
+.ecard.noise{border-left-color:var(--mute)}
+.ecard.contrarian{border-left-color:var(--orange)}
+.ecard.insufficient{border-left-color:var(--dim)}
+.ecard .eh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ecard .en{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--txt)}
+.ecard .er{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.ecard.predictive .er{color:var(--green)}
+.ecard.weak .er{color:var(--cyan)}
+.ecard.noise .er{color:var(--mute)}
+.ecard.contrarian .er{color:var(--orange)}
+.ecard .es{font-family:var(--mono);font-size:11px;color:var(--mute);display:flex;justify-content:space-between;margin-top:4px}
+.ecard .es b{color:var(--txt)}
+.ecard .esp{margin-top:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);line-height:1.5}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65;margin-top:18px}
+.method b{color:var(--txt)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:18px;line-height:1.6}
+.ts{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+.fail{padding:18px;color:var(--mute);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Calibration Fleet</h1>
+    <p class="subtitle">Universal IC-calibration loop. For every signal engine in the registry, the fleet calibrator pairs the engine's daily score with the 21-session forward SPY drawdown and computes Spearman rank IC. This is the time-series quality check across the entire signal fleet -- which engines genuinely predict equity drawdowns, which are noise, and which are contrarian. Synthesizers read SSM /justhodl/calibration-fleet/weights to consume IC-weighted blends.</p>
+    <nav class="crumbs">
+      <a href="/">home</a>
+      <a href="/global-stress.html">global stress</a>
+      <a href="/gsi-calibration.html">gsi calibration</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="fail">loading fleet calibration report&hellip;</div></div>
+</div>
+<script>
+const URL_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);}
+function fmtIC(x){return x==null?"\u2014":(x>=0?"+":"")+x.toFixed(3);}
+function fmtPct(x){return x==null?"\u2014":x.toFixed(1)+"%";}
+function ratingColor(r){
+  return r==="PREDICTIVE"?"var(--green)":
+         r==="WEAK_PREDICTIVE"?"var(--cyan)":
+         r==="NOISE"?"var(--mute)":
+         r==="WEAK_CONTRARIAN"?"var(--orange)":
+         r==="CONTRARIAN"?"var(--red)":"var(--dim)";
+}
+function ratingClass(r){
+  return r==="PREDICTIVE"?"predictive":
+         r==="WEAK_PREDICTIVE"?"weak":
+         r==="NOISE"?"noise":
+         r==="WEAK_CONTRARIAN"||r==="CONTRARIAN"?"contrarian":"insufficient";
+}
+function ratingLabel(r){
+  if(!r)return "\u2014";
+  return r.replace("_"," ");
+}
+
+function build(d){
+  const s=d.summary||{};
+  const engines=d.engines||[];
+
+  // ─── summary chips ───
+  let h='<div class="summary">'+
+    '<div class="schip"><div class="sl">Engines</div><div class="sv">'+s.engines_total+'</div></div>'+
+    '<div class="schip predictive"><div class="sl">Predictive</div><div class="sv">'+(s.predictive||0)+'</div></div>'+
+    '<div class="schip weak"><div class="sl">Weak</div><div class="sv">'+(s.weak||0)+'</div></div>'+
+    '<div class="schip noise"><div class="sl">Noise</div><div class="sv">'+(s.noise||0)+'</div></div>'+
+    '<div class="schip contrarian"><div class="sl">Contrarian</div><div class="sv">'+(s.contrarian||0)+'</div></div>'+
+    '<div class="schip insufficient"><div class="sl">Insufficient</div><div class="sv">'+(s.insufficient||0)+'</div></div>'+
+    '<div class="schip"><div class="sl">Forward Window</div><div class="sv" style="font-size:17px">'+(d.forward_days||21)+'d</div></div>'+
+    '</div>';
+
+  // ─── per-engine table ───
+  let tbl='<div class="sechead">Per-Engine Information Coefficient &middot; against 21-session forward SPY drawdown</div>';
+  tbl+='<table class="etable"><thead><tr>'+
+    '<th>Engine</th><th>Current</th><th class="num">N paired</th>'+
+    '<th class="num">IC</th><th>Strength</th>'+
+    '<th class="num">Hit %</th><th class="num">Split-half (1H / 2H)</th>'+
+    '<th class="num">Weight prop.</th><th>Rating</th>'+
+    '</tr></thead><tbody>';
+  engines.forEach(e=>{
+    const r=e.quality_rating, col=ratingColor(r);
+    const ic=e.ic_spearman;
+    const barW=ic==null?0:Math.min(40, Math.abs(ic)*100);
+    const cur=e.current_score==null?"\u2014":Number(e.current_score).toFixed(1);
+    const sh1=e.ic_first_half, sh2=e.ic_second_half;
+    const wn=e.weight_proposal_normalised;
+    tbl+='<tr>'+
+      '<td class="dn">'+esc(e.label||e.name)+'</td>'+
+      '<td class="num" style="color:var(--mute)">'+cur+'</td>'+
+      '<td class="num" style="color:var(--mute)">'+e.n_paired+'</td>'+
+      '<td class="num" style="color:'+col+';font-weight:700">'+fmtIC(ic)+'</td>'+
+      '<td><span class="bar" style="width:'+barW+'%;background:'+col+'"></span></td>'+
+      '<td class="num" style="color:var(--mute)">'+fmtPct(e.hit_rate)+'</td>'+
+      '<td class="num" style="color:var(--mute);font-size:10.5px">'+
+        (sh1==null?"\u2014":fmtIC(sh1))+' / '+(sh2==null?"\u2014":fmtIC(sh2))+
+        (e.ic_stability_gap!=null?'  \u00b7  \u0394'+e.ic_stability_gap.toFixed(2):"")+'</td>'+
+      '<td class="num" style="color:'+col+';font-weight:700">'+
+        (wn==null?"\u2014":(wn*100).toFixed(1)+"%")+'</td>'+
+      '<td class="rating" style="color:'+col+'">'+esc(ratingLabel(r))+'</td>'+
+    '</tr>';
+  });
+  tbl+='</tbody></table>';
+
+  // ─── cards ───
+  let cards='<div class="sechead">Fleet Engine Cards</div><div class="cards">';
+  engines.forEach(e=>{
+    const r=e.quality_rating, cls=ratingClass(r);
+    cards+='<div class="ecard '+cls+'">'+
+      '<div class="eh"><div class="en">'+esc(e.label||e.name)+'</div>'+
+        '<div class="er">'+esc(ratingLabel(r))+'</div></div>'+
+      '<div class="es"><span>current score</span><b>'+
+        (e.current_score==null?"\u2014":Number(e.current_score).toFixed(1))+'</b></div>'+
+      '<div class="es"><span>IC (Spearman)</span>'+
+        '<b style="color:'+ratingColor(r)+'">'+fmtIC(e.ic_spearman)+'</b></div>'+
+      '<div class="es"><span>N paired</span><b>'+e.n_paired+'</b></div>'+
+      '<div class="es"><span>hit rate (top-Q)</span><b>'+fmtPct(e.hit_rate)+'</b></div>'+
+      '<div class="es"><span>weight proposal</span><b style="color:'+ratingColor(r)+'">'+
+        (e.weight_proposal_normalised==null?"\u2014":(e.weight_proposal_normalised*100).toFixed(1)+"%")+'</b></div>'+
+      (e.note?'<div class="esp">'+esc(e.note)+'</div>':"")+
+    '</div>';
+  });
+  cards+='</div>';
+
+  // ─── methodology ───
+  let meth='<div class="method">'+esc(d.methodology||"")+
+    '<br><br><b>How to read this page.</b> Engines are time-series-IC-tested against the same forward outcome (21-session SPY drawdown) so they are directly comparable. PREDICTIVE engines (IC>=0.15) genuinely lead drawdowns and earn positive weight proposals; CONTRARIAN engines (IC<=-0.15) move the wrong way for stress prediction and may be candidates for sign-flipping or removal; NOISE engines (|IC|<0.05) are uninformative on this target. The split-half IC checks stability: if first-half IC and second-half IC diverge widely, the relationship is not stationary and the engine is regime-fragile. Hit rate is the % of top-quartile-score observations that coincided with above-median forward drawdown -- a robust, nonparametric companion to IC.<br><br><b>Downstream use.</b> SSM /justhodl/calibration-fleet/weights publishes the normalised weight proposals; synthesizer engines (signal-board, crisis-composite, alpha-confluence) can read them to weight engines by their out-of-sample predictive performance rather than by static priors.<br><br><b>History accumulation.</b> The fleet writes a daily snapshot of every registered engine to data/calibration-fleet-history.json. Engines with no upstream history start from today and need '+(d.min_n||30)+' sessions before IC can be reported. SPY closes come from the GSI dim-history file so the forward outcome is canonical across the fleet.</div>';
+
+  const ts=d.as_of?new Date(d.as_of).toLocaleString():"";
+  const note='<div class="note">Source: data/calibration-fleet.json (written by justhodl-calibration-fleet, daily 09:10 UTC) &middot; SSM /justhodl/calibration-fleet/weights is the machine-readable feed for synthesizers.</div>'+
+    '<div class="ts">last calibrated '+esc(ts)+' &middot; '+
+    (d.history_snapshots||0)+' fleet snapshots, '+(d.spy_dates_available||0)+' SPY dates available</div>';
+
+  document.getElementById("root").innerHTML=h+tbl+cards+meth+note;
+}
+
+function load(){
+  fetch(URL_BASE+"data/calibration-fleet.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(build)
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">Fleet calibration report not yet available. The calibration-fleet Lambda runs daily at 09:10 UTC and produces data/calibration-fleet.json on its first run. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+</script>
+</body>
+</html>

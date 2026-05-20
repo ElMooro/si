@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-calibration-fleet",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 240,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Calibration Fleet -- universal IC-calibration loop. For every signal engine in the registry, fits Spearman rank IC vs 21-session forward SPY drawdown. Publishes per-engine IC + weight proposals to data/calibration-fleet.json + SSM.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-calibration-fleet-daily",
+  "cron": "cron(10 9 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Calibration Fleet - daily 09:10 UTC. Daily cadence accumulates the per-engine history; the IC fit re-runs on every invocation."
+ }
+}
