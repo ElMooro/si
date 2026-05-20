@@ -1,0 +1,68 @@
+{
+  "ops": 968,
+  "title": "verify all 3 follow-up tasks (deploy-lambdas fix + orphan delete + signal-board flagship)",
+  "run_at": "2026-05-20T15:59:33.898521Z",
+  "checks": [
+    {
+      "name": "task2.lambda_gone",
+      "passed": true,
+      "detail": "Lambda deleted successfully"
+    },
+    {
+      "name": "task2.s3_object_gone",
+      "passed": true,
+      "detail": "S3 object deleted"
+    },
+    {
+      "name": "task2.successor_healthy",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:40"
+    },
+    {
+      "name": "task3.landing_page_live",
+      "passed": true,
+      "detail": "status=200 size=115358"
+    },
+    {
+      "name": "task3.signal_board_card_present",
+      "passed": true,
+      "detail": "found=7/7 missing=[]"
+    },
+    {
+      "name": "task3.source_wired",
+      "passed": true,
+      "detail": "signalBoard source key present"
+    },
+    {
+      "name": "task1.env_field_canonical",
+      "passed": true,
+      "detail": "accepts both .env (canonical) and .environment (legacy)"
+    },
+    {
+      "name": "task1.inherit_env_boolean",
+      "passed": true,
+      "detail": "handles inherit_env:true via standard secrets bundle"
+    },
+    {
+      "name": "task1.missing_mode",
+      "passed": true,
+      "detail": "workflow_dispatch MISSING mode for orphan recovery"
+    },
+    {
+      "name": "task1.all_mode",
+      "passed": true,
+      "detail": "workflow_dispatch ALL mode for full redeploy"
+    },
+    {
+      "name": "signal_board.live_aggregation",
+      "passed": true,
+      "detail": "engines=20 live=20 posture=NEUTRAL / MIXED"
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0
+  },
+  "overall_ok": true
+}
