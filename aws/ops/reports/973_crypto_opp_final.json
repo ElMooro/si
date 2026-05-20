@@ -1,0 +1,73 @@
+{
+  "ops": 973,
+  "title": "FINAL unified verify on crypto-opportunities (whole retail feature)",
+  "run_at": "2026-05-20T16:56:19.856266Z",
+  "checks": [
+    {
+      "name": "A.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 mod=2026-05-20T16:49:29"
+    },
+    {
+      "name": "A.env_has_cmc_key",
+      "passed": true,
+      "detail": "CMC_KEY_present=True env_keys=2"
+    },
+    {
+      "name": "B.s3_fresh",
+      "passed": true,
+      "detail": "size=7303B age_m=4 state=NORMAL"
+    },
+    {
+      "name": "B.schema_complete",
+      "passed": true,
+      "detail": "missing=[] engine=crypto-opportunities version=1.0"
+    },
+    {
+      "name": "B.trade_tickets_complete",
+      "passed": true,
+      "detail": "sample_rows=3 all_complete=True"
+    },
+    {
+      "name": "B.scan_actually_executed",
+      "passed": true,
+      "detail": "universe=195 filtered=183 enriched=30"
+    },
+    {
+      "name": "C.schedule_enabled",
+      "passed": true,
+      "detail": "state=ENABLED expr=rate(4 hours) tz=UTC"
+    },
+    {
+      "name": "D.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 size=27149 missing=[]"
+    },
+    {
+      "name": "E.dex_nav_link",
+      "passed": true,
+      "detail": "gold link present"
+    },
+    {
+      "name": "F.directory_link",
+      "passed": true,
+      "detail": "linked from Crypto category"
+    },
+    {
+      "name": "G.signal_board_engines_21",
+      "passed": true,
+      "detail": "engines=21 live=21 posture=NEUTRAL / MIXED signal=0.14"
+    },
+    {
+      "name": "G.crypto_opps_in_signal_board",
+      "passed": true,
+      "detail": "present=True stale=False signal=0 read=Crypto-opps NORMAL (conv=0, picks=3)"
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "overall_ok": true
+}
