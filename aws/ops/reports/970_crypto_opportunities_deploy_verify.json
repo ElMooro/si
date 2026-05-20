@@ -1,0 +1,73 @@
+{
+  "ops": 970,
+  "title": "force-deploy + verify justhodl-crypto-opportunities",
+  "run_at": "2026-05-20T16:26:18.065039Z",
+  "checks": [
+    {
+      "name": "zip_built",
+      "passed": true,
+      "detail": "11377B"
+    },
+    {
+      "name": "donor_env_loaded",
+      "passed": false,
+      "detail": "keys=['S3_BUCKET'] CMC_KEY_present=False"
+    },
+    {
+      "name": "create_function",
+      "passed": true,
+      "detail": "new function created"
+    },
+    {
+      "name": "lambda.deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=240 env_keys=1"
+    },
+    {
+      "name": "lambda.has_cmc_key",
+      "passed": false,
+      "detail": "CMC_KEY_present=False"
+    },
+    {
+      "name": "invoke.success",
+      "passed": true,
+      "detail": "dur=84.9s outer=200 inner=200 state=QUIET conv=0 vol=2 soc=0 stb=0 log_tail=['fetched 196 CMC listings (post mcap filter)', 'scan universe (mcap <= $5B): 184', 'enriching 30 coins with CoinGecko data...', 'REPORT RequestId: 8bcead79-5330-4ee8-a655-1420f1bc21af\\tDuration: 84264.65 ms\\tBilled Duration"
+    },
+    {
+      "name": "s3.fresh",
+      "passed": true,
+      "detail": "size=6432B age_s=3"
+    },
+    {
+      "name": "s3.schema_complete",
+      "passed": true,
+      "detail": "missing=[] engine=crypto-opportunities version=1.0"
+    },
+    {
+      "name": "s3.scan_executed",
+      "passed": true,
+      "detail": "universe=196 filtered=184 enriched=30 state=QUIET"
+    },
+    {
+      "name": "s3.trade_tickets",
+      "passed": true,
+      "detail": "sample_rows=2 all_have_tickets=True"
+    },
+    {
+      "name": "page.live_and_wired",
+      "passed": true,
+      "detail": "status=200 size=27149 missing=[]"
+    },
+    {
+      "name": "dex.nav_link",
+      "passed": true,
+      "detail": "link in topnav"
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 10,
+    "failed": 2
+  },
+  "overall_ok": false
+}
