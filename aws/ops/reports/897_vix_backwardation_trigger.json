@@ -1,0 +1,64 @@
+{
+ "ops": 897,
+ "ts": "2026-05-20T12:34:58.070138+00:00",
+ "subject": "Verify #1 VIX backwardation capitulation trigger e2e",
+ "checks": [
+  {
+   "check": "lambda_deployed",
+   "ok": false,
+   "detail": "ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-vix-backwardation-trigger"
+  },
+  {
+   "check": "s3_output_present",
+   "ok": false,
+   "detail": "NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  {
+   "check": "schema_complete",
+   "ok": false,
+   "detail": "missing=['engine', 'state', 'current_readings', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'historical_episodes']"
+  },
+  {
+   "check": "forward_expectations_3_horizons",
+   "ok": false,
+   "detail": "horizons with N>=5: 0/3, details={'1m': {'return_pct': None, 'win_rate_pct': None, 'n': None}, '3m': {'return_pct': None, 'win_rate_pct': None, 'n': None}, '12m': {'return_pct': None, 'win_rate_pct': None, 'n': None}}"
+  },
+  {
+   "check": "current_readings_live",
+   "ok": false,
+   "detail": "readings present 0/5: vix9d=None vix=None vix3m=None vvix=None spy=None curve_status=None"
+  },
+  {
+   "check": "historical_episodes_computed",
+   "ok": false,
+   "detail": "0 episodes have fwd_3m, total=0"
+  },
+  {
+   "check": "recommended_trade_present",
+   "ok": false,
+   "detail": "primary=missing"
+  },
+  {
+   "check": "ssm_state",
+   "ok": false,
+   "detail": "ParameterNotFound: An error occurred (ParameterNotFound) when calling the GetParameter operation: "
+  },
+  {
+   "check": "page_live",
+   "ok": false,
+   "detail": "HTTPError: HTTP Error 404: Not Found"
+  }
+ ],
+ "summary": "0/9 checks passed",
+ "all_passed": false,
+ "live_signal": {
+  "state": null,
+  "signal_strength": null,
+  "curve_status": null,
+  "fwd_3m_avg": null,
+  "fwd_3m_win_rate": null,
+  "fwd_12m_avg": null,
+  "n_historical_episodes": 0
+ },
+ "verdict": "VERIFICATION INCOMPLETE -- see per-check details."
+}
