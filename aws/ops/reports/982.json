@@ -1,0 +1,37 @@
+{
+  "started_at": 1779314421,
+  "lambda_meta": {
+    "function_name": "justhodl-credit-equity-divergence",
+    "runtime": "python3.12",
+    "code_sha256": "cz7c0DM280zvjZXlv/S/l+x92vmq6hZNUQ19JpKdxHQ=",
+    "code_size": 5218,
+    "last_modified": "2026-05-20T21:52:46.000+0000",
+    "memory": 512,
+    "timeout": 180,
+    "state": "Active",
+    "last_update_status": "Successful",
+    "version": "$LATEST",
+    "env_keys": [
+      "CMC_KEY",
+      "S3_BUCKET"
+    ],
+    "fmp_key_present": false,
+    "fmp_key_tail": null
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "log_result": null,
+    "body": "{\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient data: HYG=0 SPY=0\\\"}\"}"
+  },
+  "s3": {
+    "size": 368,
+    "last_modified": "2026-05-20T22:00:25+00:00",
+    "body": {
+      "engine": "credit-equity-divergence",
+      "error": "insufficient data: HYG=0 SPY=0",
+      "trace": "Traceback (most recent call last):\n  File \"/var/task/lambda_function.py\", line 196, in lambda_handler\n    raise RuntimeError(f\"insufficient data: HYG={len(hyg)} SPY={len(spy)}\")\nRuntimeError: insufficient data: HYG=0 SPY=0\n",
+      "as_of": "2026-05-20T22:00:24Z"
+    }
+  }
+}
