@@ -240,6 +240,23 @@ def n_rv_iv_scanner(d):
     return m.get(state, 0), f"VRP/Dispersion {state or 'n/a'}{vrp_str}"
 
 
+def n_crypto_opportunities(d):
+    """Crypto opportunity scanner: retail-actionable small-cap setups.
+
+    OPPORTUNITY_RICH => +2 (cross-confirmed convergence regime, risk-on for crypto small caps)
+    ACTIVE          => +1 (multiple actionable signals)
+    NORMAL          =>  0 (modest setup density)
+    QUIET           => -1 (no setups, often coincides with broader crypto risk-off)
+    """
+    state = (d.get("state") or "").upper()
+    m = {"OPPORTUNITY_RICH": 2, "ACTIVE": 1, "NORMAL": 0, "QUIET": -1}
+    summ = d.get("summary") or {}
+    n_conv = summ.get("n_convergence") or 0
+    n_total = (summ.get("n_volume_surge") or 0) + (summ.get("n_social_velocity") or 0) + (summ.get("n_stable_inflows") or 0)
+    return m.get(state, 0), f"Crypto-opps {state or 'n/a'} (conv={n_conv}, picks={n_total})"
+
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -263,6 +280,8 @@ FEEDS = [
     ("Edge#8 OPEX Calendar",      "volatility",  "data/opex-calendar.json",             n_opex_calendar),
     ("Edge#9 Activist 13D",       "smart money", "data/activist-13d.json",              n_activist_13d),
     ("Edge#10 RV-IV / Dispersion","volatility",  "data/rv-iv-scanner.json",             n_rv_iv_scanner),
+    # Retail opportunity engine
+    ("Crypto Opportunities",      "crypto",      "data/crypto-opportunities.json",      n_crypto_opportunities),
 ]
 
 

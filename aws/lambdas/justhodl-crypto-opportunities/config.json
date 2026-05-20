@@ -8,5 +8,12 @@
   "inherit_env": true,
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-crypto-opportunities-4h",
+    "cron": "rate(4 hours)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Crypto opportunities scan -- volume/social/stable/convergence every 4h"
   }
 }
