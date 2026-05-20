@@ -1,0 +1,146 @@
+{
+  "started_at": 1779314905,
+  "target": "justhodl-credit-equity-divergence",
+  "candidate_donors": [
+    "justhodl-gap-fill-confirm",
+    "justhodl-13f-price-divergence",
+    "justhodl-vvix-vov-regime",
+    "justhodl-sympathetic-momentum",
+    "justhodl-insider-buyback-confluence",
+    "justhodl-crypto-etf-arb",
+    "justhodl-earnings-pead",
+    "justhodl-merger-arb",
+    "justhodl-hedge-pnl",
+    "justhodl-divergence-engine-v2",
+    "justhodl-fundamentals-engine",
+    "justhodl-buyback-scanner"
+  ],
+  "donor_scan": [
+    {
+      "name": "justhodl-gap-fill-confirm",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-13f-price-divergence",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-vvix-vov-regime",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-sympathetic-momentum",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-insider-buyback-confluence",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-crypto-etf-arb",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-earnings-pead",
+      "has_keys": [
+        "FMP_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-merger-arb",
+      "has_keys": [
+        "FMP_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-hedge-pnl",
+      "has_keys": [
+        "FMP_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-divergence-engine-v2",
+      "has_keys": [
+        "FMP_KEY",
+        "FRED_KEY"
+      ],
+      "n": 2
+    },
+    {
+      "name": "justhodl-fundamentals-engine",
+      "has_keys": [
+        "FMP_KEY"
+      ],
+      "n": 1
+    },
+    {
+      "name": "justhodl-buyback-scanner",
+      "has_keys": [
+        "CMC_KEY"
+      ],
+      "n": 1
+    }
+  ],
+  "chosen_donor": "justhodl-earnings-pead",
+  "chosen_secrets_keys": [
+    "FMP_KEY"
+  ],
+  "fmp_key_tail": "UlS8xb",
+  "target_env_before": [
+    "CMC_KEY",
+    "S3_BUCKET"
+  ],
+  "target_env_after": [
+    "CMC_KEY",
+    "FMP_KEY",
+    "S3_BUCKET"
+  ],
+  "wait_pre": {
+    "ok": true,
+    "status": "Successful"
+  },
+  "update": {
+    "last_modified": "2026-05-20T22:08:27.000+0000",
+    "last_update_status": "InProgress"
+  },
+  "wait_post": {
+    "ok": true,
+    "status": "Successful"
+  },
+  "invoke": {
+    "status_code": 200,
+    "function_error": null,
+    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"CREDIT_BEAR_ACTIVE\\\", \\\"n_tickets\\\": 1}\"}"
+  },
+  "s3": {
+    "size": 1409,
+    "last_modified": "2026-05-20T22:08:33+00:00",
+    "state": "CREDIT_BEAR_ACTIVE",
+    "signal_strength": 0.45,
+    "error": null,
+    "divergences_n": 0,
+    "preview": "{\"engine\": \"credit-equity-divergence\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T22:08:32Z\", \"state\": \"CREDIT_BEAR_ACTIVE\", \"signal_strength\": 0.45, \"current_metrics\": {\"hyg_20d_ret_pct\": -0.8, \"spy_20d_ret_pct\": 4.22, \"hyg_spy_spread_20d\": -5.02, \"spread_zscore_252d\": -1.09, \"lqd_20d_ret_pct\": -1.7, \"emb_20d_ret_pct\": -1.51, \"persistent_3d\": true, \"lqd_confirms\": true}, \"regime_explanation\": \"Mild bearish divergence z=-1.09\", \"trade_tickets\": [{\"ticker\": \"SPY\", \"side\": \"SHORT\", \"rationale\": \"CREDIT_BEAR_ACTIVE setup, smaller size\", \"target_pct\": -3, \"stop_pct\": 2, \"holding_period\": \"2-4 weeks\""
+  },
+  "all_pass": true
+}
