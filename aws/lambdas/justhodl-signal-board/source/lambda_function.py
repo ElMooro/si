@@ -127,6 +127,108 @@ def n_global_stress(d):
     return sig, f"Global market stress {lvl} ({gsi}/100)"
 
 
+# ── 10-Edge institutional roadmap normalisers ──────────────────────────
+def n_vix_backwardation(d):
+    """Edge #1: VIX backwardation post-capitulation trigger."""
+    state = (d.get("state") or "").upper()
+    m = {"FIRED": 2, "ARMED": 1, "WARM": 0, "NULL": 0, "COOLDOWN": 0}
+    return m.get(state, 0), f"VIX-back trigger {state or 'n/a'}"
+
+
+def n_insider_buys(d):
+    """Edge #2: Enriched insider open-market BUY clusters."""
+    # Field is in summary or top-level depending on engine version
+    s = d.get("summary") or {}
+    n_clusters = (s.get("n_clusters_today") or s.get("n_clusters")
+                  or d.get("n_clusters_today") or d.get("n_clusters") or 0)
+    avg_sig = (s.get("avg_cluster_signal") or d.get("avg_cluster_signal") or 0)
+    sig = 2 if n_clusters >= 5 and avg_sig > 60 else (
+        1 if n_clusters >= 2 else 0)
+    return sig, f"{n_clusters} insider buy-clusters (avg signal {avg_sig})"
+
+
+def n_breadth_thrust(d):
+    """Edge #3: Zweig breadth-thrust capitulation reversal."""
+    state = (d.get("state") or d.get("zweig_state") or "").upper()
+    m = {"FIRED": 2, "ARMED": 1, "NULL": 0, "COOLDOWN": 0}
+    return m.get(state, 0), f"Zweig breadth-thrust {state or 'n/a'}"
+
+
+def n_vol_target_unwind(d):
+    """Edge #4: Vol-target fund mechanical unwind detector."""
+    state = (d.get("state") or "").upper()
+    m = {"UNWIND_ACTIVE": -2, "ELEVATED_RISK": -1, "ARMED": -1,
+         "WARM": 0, "QUIET": 0, "POST_UNWIND_REBOUND": 1, "NULL": 0}
+    return m.get(state, 0), f"Vol-target {state or 'n/a'}"
+
+
+def n_russell_recon(d):
+    """Edge #5: Russell/S&P reconstitution front-run."""
+    phase = (d.get("calendar_phase") or "").upper()
+    # Event-driven not directional broad signal; only flag during active windows
+    m = {"DORMANT": 0, "EARLY_MONITORING": 0, "POST_RANK_SNAPSHOT": 0,
+         "PRE_ANNOUNCEMENT": 1, "ANNOUNCED_HIGH_CONVICTION": 1,
+         "FINAL_WEEK": 1, "POST_REBAL_FADE": -1}
+    return m.get(phase, 0), f"Russell-recon {phase or 'n/a'}"
+
+
+def n_buyback_scanner(d):
+    """Edge #6: Buyback authorization scanner."""
+    state = (d.get("state") or "").upper()
+    m = {"CROSS_CONFIRMED_HOT": 2, "MEGA_AUTH_WAVE": 2,
+         "DRIFT_HUNTING": 1, "ELEVATED": 1, "NORMAL": 0,
+         "QUIET": 0, "LOW_ACTIVITY": 0, "WAVE": 1,
+         "MEGA_AUTH_DETECTED": 1}
+    n_fresh = d.get("n_fresh_last_7d") or 0
+    return m.get(state, 0), f"Buyback auth {state or 'n/a'} ({n_fresh} fresh 7d)"
+
+
+def n_stablecoin_flow(d):
+    """Edge #7: Stablecoin mint flow tracker."""
+    state = (d.get("state") or "").upper()
+    m = {"PARABOLIC_MINT": 2, "EXPLOSIVE_MINT": 2,
+         "EXPANDING": 1, "FLAT": 0, "CONTRACTING": -2}
+    delta = d.get("delta_30d_usd") or (d.get("aggregate") or {}).get("delta_30d_usd")
+    delta_str = ""
+    if isinstance(delta, (int, float)):
+        delta_str = f"  ({delta/1e9:+.1f}B 30d)"
+    return m.get(state, 0), f"Stablecoin {state or 'n/a'}{delta_str}"
+
+
+def n_opex_calendar(d):
+    """Edge #8: OPEX gamma-pinning calendar."""
+    state = (d.get("state") or "").upper()
+    m = {"POST_OPEX": 1, "OPEX_WEEK": 0, "OPEX_DAY": 0, "BUILDUP": 0,
+         "QUIET": 0, "QUAD_WITCHING": -1, "NORMAL": 0}
+    days = d.get("days_to_next_opex")
+    days_str = f" ({days}d to next OPEX)" if days is not None else ""
+    return m.get(state, 0), f"OPEX {state or 'n/a'}{days_str}"
+
+
+def n_activist_13d(d):
+    """Edge #9: Activist 13D fresh-filing alert."""
+    state = (d.get("state") or "").upper()
+    m = {"FRESH_TIER_A": 2, "TIER_A_HOT": 2, "MULTI_ACTIVIST": 2,
+         "WAVE": 1, "NEW_FILING": 1, "ACTIVE": 1, "QUIET": 0}
+    n_fresh = (d.get("current_readings") or {}).get("fresh_tier_a_count") or 0
+    return m.get(state, 0), f"Activist 13D {state or 'n/a'} ({n_fresh} fresh)"
+
+
+def n_rv_iv_scanner(d):
+    """Edge #10: RV-IV variance risk premium + implied dispersion."""
+    state = (d.get("state") or "").upper()
+    # VRP_RICH = short-vol carry edge => mild risk-on
+    # VRP_CHEAP = vol cheap relative to realized => realised vol coming => risk-off
+    # DISPERSION_RICH = single-name dispersion vs index => stock-pickers' market
+    # DISPERSION_CHEAP = inverse, factor correlation regime
+    m = {"VRP_RICH": 1, "VRP_CHEAP": -1, "DISPERSION_RICH": 1,
+         "DISPERSION_CHEAP": 0, "NORMAL": 0}
+    summ = d.get("summary") or {}
+    vrp = summ.get("vrp_spy_vol_pts")
+    vrp_str = f" (SPY VRP {vrp:+.1f})" if isinstance(vrp, (int, float)) else ""
+    return m.get(state, 0), f"VRP/Dispersion {state or 'n/a'}{vrp_str}"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -139,6 +241,17 @@ FEEDS = [
     ("Canary Grid",        "macro",            "data/canary-grid.json",        n_canary_grid),
     ("Dollar Radar",       "macro",            "data/dollar-radar.json",       n_dollar_radar),
     ("Global Stress",      "macro",            "data/global-stress.json",      n_global_stress),
+    # 10-Edge institutional roadmap
+    ("Edge#1 VIX Backwardation",  "volatility",  "data/vix-backwardation-trigger.json", n_vix_backwardation),
+    ("Edge#2 Insider Buys",       "smart money", "data/insider-buys-enriched.json",     n_insider_buys),
+    ("Edge#3 Breadth Thrust",     "volatility",  "data/breadth-thrust.json",            n_breadth_thrust),
+    ("Edge#4 Vol-Target Unwind",  "volatility",  "data/vol-target-unwind.json",         n_vol_target_unwind),
+    ("Edge#5 Russell Recon",      "events",      "data/russell-recon-frontrun.json",    n_russell_recon),
+    ("Edge#6 Buyback Scanner",    "events",      "data/buyback-scanner.json",           n_buyback_scanner),
+    ("Edge#7 Stablecoin Flow",    "crypto",      "data/stablecoin-flow.json",           n_stablecoin_flow),
+    ("Edge#8 OPEX Calendar",      "volatility",  "data/opex-calendar.json",             n_opex_calendar),
+    ("Edge#9 Activist 13D",       "smart money", "data/activist-13d.json",              n_activist_13d),
+    ("Edge#10 RV-IV / Dispersion","volatility",  "data/rv-iv-scanner.json",             n_rv_iv_scanner),
 ]
 
 
