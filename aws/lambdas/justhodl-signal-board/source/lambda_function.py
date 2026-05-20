@@ -414,6 +414,73 @@ def n_spac_floor_warrant(d):
     return m.get(state, 0), f"SPAC-floor {state or 'n/a'} (picks={n})"
 
 
+# === Tier-3 Retail Edges Cluster (6 engines, 2026-05-20) ===
+
+def n_vvix_vov_regime(d):
+    """Vol-of-vol regime: VEGA_RICH = -1 (sell vol = risk-off), VEGA_CHEAP = +1."""
+    state = (d.get("state") or "").upper()
+    m = {"VEGA_RICH": -1, "VEGA_ACTIVE": -1, "VEGA_CHEAP": 1, "VEGA_BUILDING": 1,
+         "NEUTRAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    ratio = metrics.get("vvix_vix_ratio")
+    z = metrics.get("vvix_z")
+    return m.get(state, 0), f"VVIX-VoV {state or 'n/a'} (ratio={ratio}, z={z})"
+
+
+def n_sympathetic_momentum(d):
+    """Peer-catchup setups are bullish (laggards expected to catch up)."""
+    state = (d.get("state") or "").upper()
+    m = {"CATCHUP_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    n = d.get("n_setups") or 0
+    return m.get(state, 0), f"Sympathetic-mom {state or 'n/a'} (setups={n})"
+
+
+def n_insider_buyback_confluence(d):
+    """Double-signal insider+buyback = strong bullish (long-hold)."""
+    state = (d.get("state") or "").upper()
+    m = {"CONFLUENCE_RICH": 2, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    n = d.get("n_high_conviction") or d.get("n_confluences") or 0
+    return m.get(state, 0), f"Ins-byb-conf {state or 'n/a'} (high={n})"
+
+
+def n_gap_fill_confirm(d):
+    """Gap continuation setups = direction-agnostic event flag."""
+    state = (d.get("state") or "").upper()
+    m = {"CONTINUATION_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    n = d.get("n_high_conviction") or d.get("n_setups") or 0
+    return m.get(state, 0), f"Gap-fill {state or 'n/a'} (setups={n})"
+
+
+def n_13f_price_divergence(d):
+    """BULLISH divergences = +1, BEARISH = -1, mixed = net."""
+    state = (d.get("state") or "").upper()
+    n_bull = d.get("n_bullish") or 0
+    n_bear = d.get("n_bearish") or 0
+    if state in ("DIVERGENCE_RICH", "ACTIVE"):
+        if n_bull > n_bear * 1.5:
+            sig = 2 if state == "DIVERGENCE_RICH" else 1
+        elif n_bear > n_bull * 1.5:
+            sig = -2 if state == "DIVERGENCE_RICH" else -1
+        else:
+            sig = 0
+    elif state == "NORMAL":
+        sig = 1 if n_bull > n_bear else (-1 if n_bear > n_bull else 0)
+    else:
+        sig = 0
+    return sig, f"13F-div {state or 'n/a'} (BULL={n_bull}, BEAR={n_bear})"
+
+
+def n_credit_equity_divergence(d):
+    """CREDIT_BULL_RICH = +2 (equity bullish), CREDIT_BEAR_RICH = -2 (equity risk-off)."""
+    state = (d.get("state") or "").upper()
+    m = {"CREDIT_BULL_RICH": 2, "CREDIT_BULL_ACTIVE": 1,
+         "CREDIT_BEAR_RICH": -2, "CREDIT_BEAR_ACTIVE": -1,
+         "NEUTRAL": 0, "QUIET": 0}
+    metrics = d.get("current_metrics") or {}
+    z = metrics.get("spread_zscore_252d")
+    return m.get(state, 0), f"Credit-eq {state or 'n/a'} (z={z})"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -456,6 +523,13 @@ FEEDS = [
     ("Multi-TF Convergence",      "equity tactical",  "data/multi-tf-convergence.json",      n_multi_tf_convergence),
     ("52W Quality Breakout",      "equity tactical",  "data/52wk-quality-breakout.json",     n_52wk_quality_breakout),
     ("SPAC Floor + Warrant",      "asymmetric",       "data/spac-floor-warrant.json",        n_spac_floor_warrant),
+    # === Tier-3 Retail Edges Cluster (6 engines, 2026-05-20) ===
+    ("VVIX VoV Regime",           "volatility",       "data/vvix-vov-regime.json",           n_vvix_vov_regime),
+    ("Sympathetic Momentum",      "equity tactical",  "data/sympathetic-momentum.json",      n_sympathetic_momentum),
+    ("Insider+Buyback Confluence","smart money",      "data/insider-buyback-confluence.json",n_insider_buyback_confluence),
+    ("Gap-Fill Continuation",     "equity tactical",  "data/gap-fill-confirm.json",          n_gap_fill_confirm),
+    ("13F Price Divergence",      "smart money",      "data/13f-price-divergence.json",      n_13f_price_divergence),
+    ("Credit-Equity Divergence",  "macro",            "data/credit-equity-divergence.json",  n_credit_equity_divergence),
 ]
 
 
