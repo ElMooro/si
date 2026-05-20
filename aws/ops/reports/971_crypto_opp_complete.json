@@ -1,0 +1,43 @@
+{
+  "ops": 971,
+  "title": "crypto-opportunities: backfill secrets bundle + schedule + final verify",
+  "run_at": "2026-05-20T16:41:41.929887Z",
+  "checks": [
+    {
+      "name": "buyback.added_crypto_keys",
+      "passed": true,
+      "detail": "added=['CMC_KEY'] total=1"
+    },
+    {
+      "name": "crypto_opp.env_complete",
+      "passed": false,
+      "detail": "n_env=2 has_CMC=True"
+    },
+    {
+      "name": "schedule.installed",
+      "passed": true,
+      "detail": "rule=crypto-opportunities-4h cron='0 0,4,8,12,16,20 * * * *' UTC"
+    },
+    {
+      "name": "reinvoke.success",
+      "passed": true,
+      "detail": "outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"NORMAL\\\", \\\"previous_state\\\": \\\"NORMAL\\\", \\\"n_volume_surge\\\": 3, \\\"n_social_velocity\\\": 0, \\\"n_stable_inflows\\\": 0, \\\"n_convergence\\\": 0, \\\"sig"
+    },
+    {
+      "name": "output.fresh_after_env_fix",
+      "passed": true,
+      "detail": "state=NORMAL universe=196 filtered=184 enriched=30 vol=3 soc=0 stb=0 conv=0"
+    },
+    {
+      "name": "output.has_trade_tickets",
+      "passed": true,
+      "detail": "first row"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1
+  },
+  "overall_ok": false
+}
