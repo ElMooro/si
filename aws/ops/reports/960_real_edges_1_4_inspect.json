@@ -1,0 +1,170 @@
+{
+  "ops": 960,
+  "title": "real edges 1-4 inspection + seed missing S3",
+  "run_at": "2026-05-20T14:42:09.275141Z",
+  "edges": {
+    "1": {
+      "real_lambda": "justhodl-capitulation",
+      "primary_s3": {
+        "key": "data/capitulation.json",
+        "size_b": 1096,
+        "last_modified": "2026-05-20T12:45:07",
+        "parsed_ok": true,
+        "top_keys": [
+          "action",
+          "capitulation_score",
+          "crisis_trend",
+          "elapsed_s",
+          "generated_at",
+          "insider_regime",
+          "interpretation",
+          "method",
+          "schema_version",
+          "shopping_list",
+          "signal",
+          "smart_money_confirm",
+          "stabilising",
+          "washout_components"
+        ],
+        "engine": null,
+        "state": null,
+        "as_of": null,
+        "signal_strength": null,
+        "canonical_compliance": "MISSING ['engine', 'version', 'as_of', 'state', 'signal_strength', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'methodology', 'sources', 'schedule']",
+        "why_now_len": 0,
+        "why_now_preview": "",
+        "schedule": null,
+        "forward_horizons": []
+      },
+      "history_s3": {
+        "key": "data/capitulation-history.json",
+        "size_b": 3105,
+        "last_modified": "2026-05-20T12:45:07",
+        "parsed_ok": true,
+        "top_keys": [
+          "snapshots",
+          "updated_at"
+        ],
+        "engine": null,
+        "state": null,
+        "as_of": null,
+        "signal_strength": null,
+        "canonical_compliance": "MISSING ['engine', 'version', 'as_of', 'state', 'signal_strength', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'methodology', 'sources', 'schedule']",
+        "why_now_len": 0,
+        "why_now_preview": "",
+        "schedule": null,
+        "forward_horizons": []
+      }
+    },
+    "2": {
+      "real_lambda_candidates": [
+        "justhodl-insider-cluster-scanner",
+        "justhodl-insider-aggregate"
+      ],
+      "insider_clusters_s3": {
+        "key": "data/insider-clusters.json",
+        "size_b": 43974,
+        "last_modified": "2026-05-20T14:41:06",
+        "parsed_ok": true,
+        "top_keys": [
+          "clusters",
+          "duration_s",
+          "generated_at",
+          "lookback_days",
+          "method",
+          "schema_version",
+          "stats",
+          "thresholds"
+        ],
+        "engine": null,
+        "state": null,
+        "as_of": null,
+        "signal_strength": null,
+        "canonical_compliance": "MISSING ['engine', 'version', 'as_of', 'state', 'signal_strength', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'methodology', 'sources', 'schedule']",
+        "why_now_len": 0,
+        "why_now_preview": "",
+        "schedule": null,
+        "forward_horizons": []
+      },
+      "insider_aggregate_s3": {
+        "key": "data/insider-aggregate.json",
+        "size_b": 2748,
+        "last_modified": "2026-05-19T22:30:46",
+        "parsed_ok": true,
+        "top_keys": [
+          "data_coverage_days",
+          "elapsed_s",
+          "generated_at",
+          "headline_ratio_30d_dollar",
+          "method",
+          "methodology",
+          "n_transactions",
+          "notable_cluster_buys",
+          "regime",
+          "regime_read",
+          "schema_version",
+          "windows"
+        ],
+        "engine": null,
+        "state": null,
+        "as_of": null,
+        "signal_strength": null,
+        "canonical_compliance": "MISSING ['engine', 'version', 'as_of', 'state', 'signal_strength', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'sources', 'schedule']",
+        "why_now_len": 0,
+        "why_now_preview": "",
+        "schedule": null,
+        "forward_horizons": []
+      },
+      "smart_money_clusters_s3": {
+        "key": "data/smart-money-clusters.json",
+        "size_b": 153467,
+        "last_modified": "2026-05-19T16:00:48",
+        "parsed_ok": true,
+        "top_keys": [
+          "as_of_quarter",
+          "clusters",
+          "duration_s",
+          "generated_at",
+          "method",
+          "schema_version",
+          "stats"
+        ],
+        "engine": null,
+        "state": null,
+        "as_of": null,
+        "signal_strength": null,
+        "canonical_compliance": "MISSING ['engine', 'version', 'as_of', 'state', 'signal_strength', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'methodology', 'sources', 'schedule']",
+        "why_now_len": 0,
+        "why_now_preview": "",
+        "schedule": null,
+        "forward_horizons": []
+      },
+      "insider_buys_enriched_s3": {
+        "key": "data/insider-buys-enriched.json",
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      }
+    },
+    "3": {
+      "repo_dir": "aws/lambdas/justhodl-breadth-thrust",
+      "lambda_exists": false,
+      "lookup_err": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-breadth-thrust"
+    },
+    "4": {
+      "real_lambda": "justhodl-vol-target-unwind",
+      "invoke": {
+        "dur_s": 0.97,
+        "status": 200,
+        "err": null,
+        "body": "{\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient SPY history\\\"}\"}"
+      },
+      "s3_vol_target_unwind": {
+        "key": "data/vol-target-unwind.json",
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      },
+      "s3_vol_target": {
+        "key": "data/vol-target.json",
+        "err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+      }
+    }
+  }
+}
