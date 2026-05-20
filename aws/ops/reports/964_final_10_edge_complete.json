@@ -1,0 +1,188 @@
+{
+  "ops": 964,
+  "title": "Edge #4 redeploy + FINAL 10-edge verify + signal-board kick",
+  "run_at": "2026-05-20T15:30:49.955199Z",
+  "checks": [
+    {
+      "name": "e4.zip_built",
+      "passed": true,
+      "detail": "8913B"
+    },
+    {
+      "name": "e4.code_updated",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "name": "e4.invoke_post_fix",
+      "passed": false,
+      "detail": "dur=0.9s outer=200 inner=500 body={\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient SPY history\\\"}\"}"
+    },
+    {
+      "name": "e4.s3_fresh",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "name": "verify.e1.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:40"
+    },
+    {
+      "name": "verify.e1.s3_output",
+      "passed": true,
+      "detail": "size=4800B age_h=0.1"
+    },
+    {
+      "name": "verify.e1.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e2.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:47"
+    },
+    {
+      "name": "verify.e2.s3_output",
+      "passed": true,
+      "detail": "size=21169B age_h=0.1"
+    },
+    {
+      "name": "verify.e2.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e3.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:56"
+    },
+    {
+      "name": "verify.e3.s3_output",
+      "passed": true,
+      "detail": "size=4452B age_h=0.1"
+    },
+    {
+      "name": "verify.e3.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e4.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:30:38"
+    },
+    {
+      "name": "verify.e4.s3_output",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "name": "verify.e5.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:23:34"
+    },
+    {
+      "name": "verify.e5.s3_output",
+      "passed": true,
+      "detail": "size=29516B age_h=1.1"
+    },
+    {
+      "name": "verify.e5.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e6.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:06:54"
+    },
+    {
+      "name": "verify.e6.s3_output",
+      "passed": true,
+      "detail": "size=59242B age_h=1.4"
+    },
+    {
+      "name": "verify.e6.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e7.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T13:18:27"
+    },
+    {
+      "name": "verify.e7.s3_output",
+      "passed": true,
+      "detail": "size=46365B age_h=1.6"
+    },
+    {
+      "name": "verify.e7.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e8.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:07:10"
+    },
+    {
+      "name": "verify.e8.s3_output",
+      "passed": true,
+      "detail": "size=4524B age_h=1.4"
+    },
+    {
+      "name": "verify.e8.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e9.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:06:38"
+    },
+    {
+      "name": "verify.e9.s3_output",
+      "passed": true,
+      "detail": "size=3745B age_h=1.4"
+    },
+    {
+      "name": "verify.e9.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "verify.e10.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T13:43:33"
+    },
+    {
+      "name": "verify.e10.s3_output",
+      "passed": true,
+      "detail": "size=6387B age_h=1.8"
+    },
+    {
+      "name": "verify.e10.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "name": "signal_board.invoke",
+      "passed": true,
+      "detail": "status=200 body={\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.11, \\\"n_live\\\": 19, \\\"n_stale\\\": 1}\"}"
+    },
+    {
+      "name": "signal_board.aggregating",
+      "passed": true,
+      "detail": "engines=20 live=19 posture=NEUTRAL / MIXED"
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "passed": 32,
+    "failed": 3
+  },
+  "overall_ok": false
+}
