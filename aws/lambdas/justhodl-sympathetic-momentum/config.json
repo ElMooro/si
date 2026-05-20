@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Sympathetic momentum peer-catchup scanner. 25 sub-industry peer groups, 90+ tickers. Within each group: leader 5d>80th pctile + laggard underperforms by >=1.5 group-std + 90d corr>0.55 + RSI<75. Scores composite setup, generates long-laggard trade tickets. Daily 23:30 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-sympathetic-momentum-daily",
+    "cron": "cron(30 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Sympathetic momentum peer-catchup scanner daily 23:30 UTC"
+  }
+}

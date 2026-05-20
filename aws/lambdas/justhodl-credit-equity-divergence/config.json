@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Credit-equity (HYG vs SPY) paired-divergence engine with LQD+EMB confirmation. 20d return spread, 252d z-score, 3-day persistence filter. Triggers CREDIT_BEAR (z<=-1.5, equity vulnerable) or CREDIT_BULL (z>=+1.5, equity bullish). Edge basis: Gilchrist-Zakrajsek 2012. +5% BULL / -7% BEAR / 4-8 wks. Daily 21 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-credit-equity-divergence-daily",
+    "cron": "cron(0 21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Credit-equity divergence daily 21 UTC"
+  }
+}

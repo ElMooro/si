@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Insider x buyback double-signal confluence. Reads insider-buys-enriched + buyback-scanner outputs, finds tickers with both signals fresh, scores composite weighted by N insiders, $ value, recency, % market cap, FCF cov. Quality gate >$500M market cap. Edge basis: Jenter-Lewellen 2018, Peyer-Vermaelen 2009 ~70% hit on +15-25%/6-12mo. Daily 23 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-insider-buyback-confluence-daily",
+    "cron": "cron(0 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Insider x buyback double-signal confluence daily 23 UTC"
+  }
+}

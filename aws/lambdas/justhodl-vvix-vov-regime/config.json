@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "VVIX/VIX vol-of-vol regime detector. Combines VVIX z-score, VIX term structure (VIX-VIX3M), realized vol of VIX, VIX 252d percentile. Classifies regime: VEGA_RICH (sell vol) / VEGA_CHEAP (buy vol) / NEUTRAL. Generates UVXY/SVXY/VIX call-spread retail tickets. Daily 22 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-vvix-vov-regime-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "VVIX vol-of-vol regime daily 22 UTC after US close"
+  }
+}

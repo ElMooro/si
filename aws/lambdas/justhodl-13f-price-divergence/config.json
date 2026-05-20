@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "13F vs price divergence resolution. Reads 13F aggregate positions, compares against 60d price returns. BULLISH (instit adding + price down >=15%), BEARISH (instit selling + price up >=20%). Time-decay after 90d. Quality gate >$500M mcap. Edge basis: Wermers 2000, Cohen-Polk-Silli 2010. +18%/6mo BULL, -12%/6mo BEAR. Weekly Tue 06 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-13f-price-divergence-weekly",
+    "cron": "cron(0 6 ? * TUE *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "13F vs price divergence resolution weekly Tuesday 06 UTC"
+  }
+}
