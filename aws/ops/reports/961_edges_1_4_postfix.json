@@ -1,0 +1,43 @@
+{
+  "ops": 961,
+  "title": "edges 1-4 post-fix: invoke + S3 + schema verify",
+  "run_at": "2026-05-20T14:49:45.292251Z",
+  "checks": [
+    {
+      "name": "e1.deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-vix-backwardation-trigger"
+    },
+    {
+      "name": "e2.deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-buys-enriched"
+    },
+    {
+      "name": "e3.deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-breadth-thrust"
+    },
+    {
+      "name": "e4.deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 mod=2026-05-20T14:49"
+    },
+    {
+      "name": "e4.invoke",
+      "passed": false,
+      "detail": "dur=1.1s outer=200 inner=500 body={\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient SPY history\\\"}\"}"
+    },
+    {
+      "name": "e4.s3_fresh",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 1,
+    "failed": 5
+  },
+  "overall_ok": false
+}
