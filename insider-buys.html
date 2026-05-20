@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insider Open-Market Buys - JustHodl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1340px;margin:0 auto;padding:14px 16px 80px}
+
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:14px;flex-wrap:wrap}
+.top h1{font-size:19px;margin:0;font-weight:600}
+.top .sub{color:var(--mute);font-size:11px;margin-top:3px;max-width:720px}
+.top .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-block;padding:5px 10px;border:1px solid var(--line);
+  background:var(--panel);color:var(--mute);border-radius:3px;font-size:11px;
+  font-family:inherit;cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--txt);border-color:#2a3445}
+.btn.active{color:var(--txt);background:var(--panel2);border-color:var(--cyan)}
+
+.summary{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:11px 14px;margin-bottom:14px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 18px}
+.summary div{font-size:11px;color:var(--dim)}
+.summary b{color:var(--txt);font-weight:500;display:block;font-size:20px;margin-top:2px}
+
+.controls{margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.controls .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-right:6px}
+
+.setup{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+  padding:14px 16px;margin-bottom:12px;position:relative}
+.setup.high{border-color:var(--green);box-shadow:0 0 10px rgba(38,255,175,.08)}
+.setup.medium-high{border-color:var(--cyan)}
+.setup.medium{border-color:var(--yellow)}
+.setup.base{border-color:var(--line)}
+
+.setup-h{display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center;margin-bottom:10px}
+.setup-h .ticker{font-size:22px;font-weight:700;letter-spacing:.3px;color:var(--cyan)}
+.setup.high .setup-h .ticker{color:var(--green)}
+.setup-h .name{color:var(--mute);font-size:12px}
+.setup-h .conv{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);text-align:right}
+.setup-h .conv b{display:block;font-size:13px;color:var(--cyan);font-weight:600}
+.setup.high .setup-h .conv b{color:var(--green)}
+.setup-h .score{font-size:32px;font-weight:700;color:var(--txt);line-height:1.0}
+.setup-h .score-l{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;text-align:center}
+
+.setup-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 16px;margin-bottom:10px;font-size:11px;color:var(--dim)}
+.setup-meta b{color:var(--mute);font-weight:500}
+
+.fwd-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.fwd-cell{padding:8px 10px;background:var(--panel2);border-radius:3px;border-left:3px solid var(--line);text-align:center}
+.fwd-cell .l{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.fwd-cell .v{font-size:18px;font-weight:700;color:var(--green)}
+.fwd-cell.win .v{color:var(--cyan)}
+.fwd-cell.tier .v{font-size:14px}
+.fwd-cell .s{font-size:10px;color:var(--mute);margin-top:1px}
+
+.boosts{margin-bottom:10px;display:flex;flex-wrap:wrap;gap:5px}
+.boost{font-size:10px;color:var(--green);background:rgba(38,255,175,.08);border:1px solid rgba(38,255,175,.3);padding:2px 7px;border-radius:8px}
+
+.section{margin-top:10px;padding-top:10px;border-top:1px solid var(--panel2)}
+.section .sl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-weight:500}
+.trade-card{background:var(--panel2);border-left:3px solid var(--cyan);padding:8px 12px;margin-bottom:6px;border-radius:3px}
+.trade-card.options{border-left-color:var(--purple)}
+.trade-card .instr{font-weight:600;color:var(--txt);font-size:12px;margin-bottom:4px}
+.trade-card .thesis,.trade-card .meta{font-size:11px;color:var(--mute);margin-bottom:2px}
+.trade-card .meta b{color:var(--dim);font-weight:500}
+.exit-rules{margin:4px 0 0 18px;padding:0;font-size:11px;color:var(--mute)}
+.exit-rules li{margin-bottom:2px}
+
+.why-now{font-size:12px;color:var(--mute);line-height:1.65}
+.why-now strong{color:var(--cyan)}
+.why-now p{margin:6px 0}
+
+.insiders-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.insider-pill{font-size:10px;color:var(--mute);background:var(--panel2);padding:2px 6px;border-radius:3px;border:1px solid var(--line)}
+.insider-pill b{color:var(--txt);font-weight:600}
+
+.empty-state{padding:50px 20px;text-align:center;color:var(--dim);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:4px}
+.foot{margin-top:24px;color:var(--dim);font-size:11px;line-height:1.6;padding-top:14px;border-top:1px solid var(--line)}
+.foot b{color:var(--mute);font-weight:500}
+.foot .ref{margin:5px 0 0 16px;font-size:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <h1>Insider Open-Market BUY Clusters</h1>
+    <div class="sub">The most robust academic alpha factor for retail stock-picking. Filtered for transaction code P (open-market purchase), aggregated by ticker with 3+ insider clusters surfaced. Per-cluster expected returns and trade ticket grounded in Lakonishok-Lee + Cohen-Malloy-Pomorski empirical work.</div>
+  </div>
+  <div class="right">
+    <a class="btn" href="insider-clusters.html">Raw Clusters</a>
+    <a class="btn" href="insiders.html">Insiders</a>
+    <a class="btn" href="baggers.html">Baggers</a>
+    <a class="btn" href="directory.html">All</a>
+  </div>
+</div>
+
+<div id="root">
+  <div class="empty-state">Loading enriched insider setups&hellip;</div>
+</div>
+
+</div>
+
+<script>
+const URL_BASE='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
+const REPORT_KEY='data/insider-buys-enriched.json';
+const REFRESH_MS=120000;
+
+let currentData=null;
+let convFilter='ALL';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtUSD(n){if(n==null)return '\u2014';n=Number(n);if(n>=1e9)return '$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(0)+'k';return '$'+n.toFixed(0);}
+function fmtPct(n){if(n==null||isNaN(n))return '\u2014';return(n>=0?'+':'')+Number(n).toFixed(1)+'%';}
+
+function inlineMd(s){return esc(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');}
+function renderMd(md){
+  if(!md)return '';
+  const paras=md.split('\n\n');
+  return paras.map(p=>'<p>'+inlineMd(p)+'</p>').join('');
+}
+
+function renderSetup(s){
+  const conv=(s.recommended_trade&&s.recommended_trade.conviction_tier||'BASE').toLowerCase().replace(/[ _]/g,'-');
+  const exp=s.expected_returns||{};
+  const e1=exp['1m']||{},e3=exp['3m']||{},e12=exp['12m']||{};
+  const fund=s.fundamentals||{};
+  const mcap=fund.market_cap;
+  const trade=s.recommended_trade||{};
+
+  let html='<div class="setup '+conv+'">';
+  
+  // header
+  html+='<div class="setup-h">'+
+    '<div><div class="ticker">'+esc(s.ticker||'')+'</div></div>'+
+    '<div class="name">'+esc(s.company||'')+'<br>'+
+      '<span style="color:var(--dim);font-size:11px">'+esc(s.highest_role||'')+'</span></div>'+
+    '<div class="conv">'+
+      '<div style="margin-bottom:2px">conviction</div>'+
+      '<b>'+esc(trade.conviction_tier||'BASE')+'</b>'+
+    '</div>'+
+    '<div style="text-align:center"><div class="score">'+esc(s.score||0)+'</div>'+
+      '<div class="score-l">score / 100</div></div>'+
+  '</div>';
+
+  // meta strip
+  html+='<div class="setup-meta">'+
+    '<div><b>Insiders</b> '+esc(s.n_insiders||0)+' (txns: '+esc(s.n_transactions||0)+')</div>'+
+    '<div><b>Total $</b> '+fmtUSD(s.total_value_usd)+'</div>'+
+    '<div><b>Mcap</b> '+fmtUSD(mcap)+'</div>'+
+    '<div><b>Price</b> $'+esc(fund.price||0)+'</div>'+
+    '<div><b>From 52w high</b> '+fmtPct(fund.pct_from_52w_high)+'</div>'+
+    '<div><b>Dates</b> '+esc(s.first_buy||'')+' \u2192 '+esc(s.last_buy||'')+'</div>'+
+  '</div>';
+
+  // forward expectations strip
+  html+='<div class="fwd-strip">'+
+    fwdCell('1 month', fmtPct(e1.return_pct), 'expected SPY-relative')+
+    fwdCell('3 months', fmtPct(e3.return_pct), 'win rate '+(e3.win_rate_pct||'?')+'%', 'win')+
+    fwdCell('12 months', fmtPct(e12.return_pct), 'Lakonishok horizon')+
+    fwdCell('Size tier', trade.conviction_tier, (trade.primary&&trade.primary.size_guidance)||'', 'tier')+
+  '</div>';
+
+  // quality boosts
+  if((exp.quality_boosts_applied||[]).length){
+    html+='<div class="boosts">'+
+      (exp.quality_boosts_applied||[]).map(b=>'<div class="boost">'+esc(b.factor)+'</div>').join('')+
+    '</div>';
+  }
+
+  // trade card
+  if(trade.primary){
+    html+='<div class="section"><div class="sl">Recommended trade</div>'+
+      '<div class="trade-card"><div class="instr">'+esc(trade.primary.instrument||'')+'</div>'+
+        '<div class="thesis">'+esc(trade.primary.entry||'')+'</div>'+
+        '<div class="meta"><b>Size</b> '+esc(trade.primary.size_guidance||'')+
+        '&nbsp; &middot; &nbsp;<b>Horizon</b> '+esc(trade.primary.expected_horizon||'')+
+        '&nbsp; &middot; &nbsp;<b>Basis</b> '+esc(trade.primary.expected_return_basis||'')+
+      '</div></div>';
+    if(trade.options_alt){
+      html+='<div class="trade-card options"><div class="instr">'+esc(trade.options_alt.instrument||'')+'</div>'+
+        '<div class="thesis">'+esc(trade.options_alt.thesis||'')+'</div>'+
+        '<div class="meta"><b>Size</b> '+esc(trade.options_alt.size_guidance||'')+
+        '&nbsp; &middot; &nbsp;<b>Max loss</b> '+esc(trade.options_alt.max_loss||'')+
+        '&nbsp; &middot; &nbsp;<b>Horizon</b> '+esc(trade.options_alt.expected_horizon||'')+
+      '</div></div>';
+    }
+    if((trade.exit_rules||[]).length){
+      html+='<ul class="exit-rules">'+(trade.exit_rules||[]).map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul>';
+    }
+    html+='</div>';
+  }
+
+  // why-now
+  if(s.why_now_explainer){
+    html+='<div class="section"><div class="sl">Why this, why now</div>'+
+      '<div class="why-now">'+renderMd(s.why_now_explainer)+'</div></div>';
+  }
+
+  // insiders list
+  if((s.insiders||[]).length){
+    html+='<div class="section"><div class="sl">Insiders</div>'+
+      '<div class="insiders-list">'+
+        (s.insiders||[]).slice(0,8).map(i=>'<div class="insider-pill"><b>'+esc(i.name||'')+'</b> '+esc(i.role||'')+' &middot; '+fmtUSD(i.total_value)+'</div>').join('')+
+      '</div></div>';
+  }
+
+  html+='</div>';
+  return html;
+}
+
+function fwdCell(label,value,sub,cls){
+  return '<div class="fwd-cell '+(cls||'')+'">'+
+    '<div class="l">'+esc(label)+'</div>'+
+    '<div class="v">'+esc(value)+'</div>'+
+    '<div class="s">'+esc(sub||'')+'</div>'+
+  '</div>';
+}
+
+function render(){
+  const root=document.getElementById('root');
+  if(!currentData||!currentData.engine){
+    root.innerHTML='<div class="empty-state">Insider buys output not yet available. The enrichment Lambda runs daily at 16:30 UTC, 45 min after the cluster scanner.</div>';
+    return;
+  }
+  const setups=currentData.top_setups||[];
+  const sum=currentData.summary||{};
+  const filtered=setups.filter(s=>{
+    if(convFilter==='ALL')return true;
+    return (s.recommended_trade||{}).conviction_tier===convFilter;
+  });
+
+  let html='<div class="summary">'+
+    '<div>Source clusters<b>'+esc(sum.total_clusters_in_source||0)+'</b></div>'+
+    '<div>Enriched<b>'+esc(sum.enriched_returned||0)+'</b></div>'+
+    '<div>HIGH conviction<b style="color:var(--green)">'+esc(sum.high_conviction||0)+'</b></div>'+
+    '<div>MEDIUM-HIGH<b style="color:var(--cyan)">'+esc(sum.medium_high_conviction||0)+'</b></div>'+
+    '<div>As of<b style="font-size:13px;font-weight:400">'+esc(currentData.as_of?new Date(currentData.as_of).toLocaleString():'')+'</b></div>'+
+  '</div>';
+
+  html+='<div class="controls"><div class="lbl">Filter conviction:</div>';
+  ['ALL','HIGH','MEDIUM-HIGH','MEDIUM','BASE'].forEach(t=>{
+    html+='<button class="btn'+(t===convFilter?' active':'')+'" onclick="setFilter(\''+t+'\')">'+esc(t)+'</button>';
+  });
+  html+='</div>';
+
+  if(filtered.length===0){
+    html+='<div class="empty-state">No clusters in '+esc(convFilter)+' tier today. Try ALL or check back tomorrow.</div>';
+  }else{
+    html+=filtered.map(renderSetup).join('');
+  }
+
+  html+='<div class="foot">'+
+    '<div><b>Methodology:</b> '+esc(currentData.methodology||'')+'</div>'+
+    '<div style="margin-top:8px"><b>Academic basis:</b></div>'+
+    '<ul class="ref">'+(currentData.academic_basis||[]).map(a=>'<li>'+esc(a)+'</li>').join('')+'</ul>'+
+    '<div style="margin-top:8px"><b>Sources:</b> '+esc((currentData.sources||[]).join(', '))+'</div>'+
+    '<div style="margin-top:8px"><b>Risk note:</b> insider buys can be motivated by signaling alone. Single-name idiosyncratic risk is real. Always size for the downside; use the position-sizer for risk-adjusted sizing.</div>'+
+  '</div>';
+
+  root.innerHTML=html;
+}
+
+function setFilter(t){convFilter=t;render();}
+window.setFilter=setFilter;
+
+function load(){
+  fetch(URL_BASE+REPORT_KEY+'?cb='+Date.now())
+    .then(r=>r.json()).then(d=>{currentData=d;render();})
+    .catch(e=>{document.getElementById('root').innerHTML='<div class="empty-state">data/insider-buys-enriched.json not reachable. Error: '+esc(e.message||e)+'</div>';});
+}
+load();
+setInterval(load,REFRESH_MS);
+</script>
+</body>
+</html>
