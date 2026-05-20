@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-gsi-horizons",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 240,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Multi-Horizon GSI calibrator -- fits IC + weights at 5/21/63/252-day forward horizons on the same dim-history. Publishes per-horizon weights to SSM /justhodl/gsi/weights/Nd + data/gsi-horizons.json (term structure of stress).",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-gsi-horizons-weekly",
+  "cron": "cron(30 9 ? * SUN *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Multi-Horizon GSI -- weekly Sunday 09:30 UTC, after the canonical 21d calibrator (09:00)."
+ }
+}

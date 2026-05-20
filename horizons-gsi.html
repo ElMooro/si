@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GSI Horizons &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128202;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px}
+.hcard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:8px;padding:13px 14px}
+.hcard .ht{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+.hcard .hg{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--txt);line-height:1}
+.hcard .hl{font-family:var(--mono);font-size:10.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--cyan);margin-top:3px}
+.hcard .hl.calm{color:var(--green)}
+.hcard .hl.elevated{color:var(--yellow)}
+.hcard .hl.stressed{color:var(--orange)}
+.hcard .hl.acute{color:var(--red)}
+.hcard .hm{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.hcard .hm b{color:var(--txt)}
+.chart{width:100%;height:300px;margin-top:6px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.dtab{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dtab th,.dtab td{padding:9px 11px;text-align:left;font-family:var(--mono);font-size:11.5px;border-bottom:1px solid var(--line)}
+.dtab th{background:var(--panel2);color:var(--dim);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:normal}
+.dtab td.num{text-align:right}
+.dtab td.dn{color:var(--txt);font-weight:700}
+.dtab td.top{background:var(--panel2);font-weight:700;color:var(--green)}
+.dtab tr:last-child td{border-bottom:none}
+.ts_card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 14px;margin-bottom:9px}
+.ts_card .tsh{font-family:var(--mono);font-size:12.5px;color:var(--txt);font-weight:700;margin-bottom:4px}
+.ts_card .tsr{font-family:var(--mono);font-size:10.5px;color:var(--mute);line-height:1.6}
+.ts_card .tsr b{color:var(--green)}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65;margin-top:18px}
+.method b{color:var(--txt)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:18px;line-height:1.6}
+.ts{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+.fail{padding:18px;color:var(--mute);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>GSI Horizons</h1>
+    <p class="subtitle">The term structure of stress. Same six-dimension Global Stress Index calibrated at four forward horizons: 5d tactical, 21d monthly (canonical), 63d quarterly, 252d cycle. Each horizon gets its own empirically-fit weight vector because different dimensions lead at different speeds.</p>
+    <nav class="crumbs">
+      <a href="/">home</a>
+      <a href="/global-stress.html">global stress</a>
+      <a href="/gsi-calibration.html">21d calibration</a>
+      <a href="/calibration-fleet.html">fleet</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="fail">loading multi-horizon GSI&hellip;</div></div>
+</div>
+<script>
+const URL_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+let chart1=null, chart2=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);}
+function fmt(x,d){return x==null?"\u2014":(typeof x=="number"?(x>=0?"+":"")+x.toFixed(d||3):String(x));}
+function levelClass(g){return g==null?"":(g<32?"calm":g<55?"elevated":g<75?"stressed":"acute");}
+function levelLabel(g){return g==null?"\u2014":(g<32?"CALM":g<55?"ELEVATED":g<75?"STRESSED":"ACUTE");}
+
+function build(d){
+  if(!d.results){
+    document.getElementById("root").innerHTML='<div class="fail">'+esc(d.note||"GSI horizons not available yet.")+'</div>';
+    return;
+  }
+
+  const horizons=d.horizons||[5,21,63,252];
+  const dims=["market","credit","vix","rate_vol","contagion","sovereign"];
+  const dimLabels={"market":"Market","credit":"Credit","vix":"VIX","rate_vol":"Rate Vol","contagion":"Contagion","sovereign":"Sovereign"};
+
+  // ── horizon cards (4 GSIs, one per horizon) ──
+  // we need the current GSI per horizon -- that's NOT in gsi-horizons.json,
+  // it's in global-stress.json under gsi_by_horizon. Fetch both.
+  fetch(URL_BASE+"data/global-stress.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(gs=>{
+      const gbh=gs.gsi_by_horizon||{};
+
+      let cards='<div class="hrow">';
+      horizons.forEach(hd=>{
+        const r=d.results[String(hd)]||{};
+        const gval=gbh[String(hd)]?.gsi;
+        const lvlC=levelClass(gval), lvlL=levelLabel(gval);
+        const n=r.sample_size||0, mode=r.mode||"-";
+        cards+='<div class="hcard">'+
+          '<div class="ht">'+esc(r.horizon_label||hd+"d")+'</div>'+
+          '<div class="hg">'+(gval==null?"\u2014":gval)+'</div>'+
+          '<div class="hl '+lvlC+'">'+lvlL+'</div>'+
+          '<div class="hm">N=<b>'+n+'</b> &middot; '+esc(mode)+'</div>'+
+        '</div>';
+      });
+      cards+='</div>';
+
+      // ── term-structure GSI chart ──
+      let tsChart='<div class="sechead">GSI Term Structure</div><div id="ts_chart" class="chart"></div>';
+
+      // ── weights table per horizon ──
+      let wtbl='<div class="sechead">Weights by Horizon (per dimension)</div>'+
+        '<table class="dtab"><thead><tr><th>Dimension</th>';
+      horizons.forEach(hd=>{wtbl+='<th class="num">'+hd+'d</th>';});
+      wtbl+='<th>Prior</th></tr></thead><tbody>';
+      dims.forEach(dim=>{
+        wtbl+='<tr><td class="dn">'+esc(dimLabels[dim])+'</td>';
+        let maxH=null, maxW=-1;
+        horizons.forEach(hd=>{
+          const w=((d.results[String(hd)]||{}).weights||{})[dim];
+          if(w!=null && w>maxW){maxW=w; maxH=hd;}
+        });
+        horizons.forEach(hd=>{
+          const w=((d.results[String(hd)]||{}).weights||{})[dim];
+          const isTop=(hd===maxH);
+          wtbl+='<td class="num'+(isTop?" top":"")+'" style="color:'+(isTop?"var(--green)":"var(--txt)")+'">'+
+            (w==null?"\u2014":(w*100).toFixed(1)+"%")+'</td>';
+        });
+        wtbl+='<td class="num" style="color:var(--mute)">'+(((d.results["21"]||{}).priors||{})[dim]*100||0).toFixed(0)+'%</td></tr>';
+      });
+      wtbl+='</tbody></table>';
+
+      // ── IC table per horizon ──
+      let itbl='<div class="sechead">Spearman IC by Horizon (vs forward SPY drawdown)</div>'+
+        '<table class="dtab"><thead><tr><th>Dimension</th>';
+      horizons.forEach(hd=>{itbl+='<th class="num">'+hd+'d</th>';});
+      itbl+='</tr></thead><tbody>';
+      dims.forEach(dim=>{
+        itbl+='<tr><td class="dn">'+esc(dimLabels[dim])+'</td>';
+        horizons.forEach(hd=>{
+          const ic=((d.results[String(hd)]||{}).ic||{})[dim];
+          const c=ic==null?"var(--dim)":(ic>=0.15?"var(--green)":ic>=0.05?"var(--cyan)":ic<=-0.15?"var(--red)":ic<=-0.05?"var(--orange)":"var(--mute)");
+          itbl+='<td class="num" style="color:'+c+';font-weight:'+(Math.abs(ic||0)>=0.05?"700":"400")+'">'+fmt(ic,3)+'</td>';
+        });
+        itbl+='</tr>';
+      });
+      itbl+='</tbody></table>';
+
+      // ── term structure summary cards ──
+      const ts=d.term_structure||[];
+      let tsCards='<div class="sechead">Term-Structure Read</div>';
+      ts.forEach(t=>{
+        tsCards+='<div class="ts_card">'+
+          '<div class="tsh">'+esc(t.label||(t.horizon+"d"))+
+          '<span style="color:var(--dim);font-weight:400;margin-left:10px;font-size:11px">'+
+          'N='+t.n+' &middot; '+esc(t.mode)+'</span></div>'+
+          '<div class="tsr">top dimension: <b>'+(t.top_dim?esc(dimLabels[t.top_dim]||t.top_dim):"\u2014")+
+          '</b> (IC '+(t.top_ic==null?"\u2014":fmt(t.top_ic,3))+
+          ') &middot; rank: '+(t.rank||[]).map(r=>esc(dimLabels[r]||r)).join(" \u2192 ")+'</div>'+
+        '</div>';
+      });
+
+      // ── methodology ──
+      let meth='<div class="method">'+esc(d.methodology||"")+
+        '<br><br><b>How to read this page.</b> The four cards at the top are the same GSI computed at four different forward-window calibrations. If the 5d GSI is high but the 252d is low, the system is reading a tactical spike inside a benign cycle. If the 252d is rising while the 5d is calm, a cycle-level break is building beneath the surface. Cross-horizon disagreement on the top-contributing dimension is the most informative reading -- it tells you what kind of risk is dominant at each speed.</div>';
+
+      const tsStamp=d.as_of?new Date(d.as_of).toLocaleString():"";
+      const note='<div class="note">Source: data/gsi-horizons.json (justhodl-gsi-horizons, Sunday 09:30 UTC) + data/global-stress.json (live GSIs).</div>'+
+        '<div class="ts">calibrated '+esc(tsStamp)+' &middot; '+d.snapshots_total+' sessions in dim-history</div>';
+
+      document.getElementById("root").innerHTML=cards+tsChart+wtbl+itbl+tsCards+meth+note;
+
+      // term-structure chart: GSI vs horizon on log-x
+      if(chart1){chart1.dispose();chart1=null;}
+      const el=document.getElementById("ts_chart");
+      if(el){
+        chart1=echarts.init(el);
+        const tsData=horizons.map(hd=>{
+          const v=gbh[String(hd)]?.gsi;
+          return [hd, v==null?null:v];
+        });
+        chart1.setOption({
+          animation:false,
+          backgroundColor:"transparent",
+          tooltip:{trigger:"axis",backgroundColor:"#0f131a",borderColor:"#1c2433",
+            textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11},
+            formatter:p=>{const x=p[0]; return x.data[0]+'d horizon<br><b>GSI '+(x.data[1]==null?'-':x.data[1])+'</b>';}},
+          grid:{left:55,right:24,top:18,bottom:42},
+          xAxis:{type:"log",
+            axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:10,formatter:v=>v+"d"},
+            axisLine:{lineStyle:{color:"#1c2433"}},name:"forward horizon (log)",
+            nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10},
+            nameGap:25,nameLocation:"middle"},
+          yAxis:{type:"value",min:0,max:100,
+            axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10},
+            splitLine:{lineStyle:{color:"#1c2433"}},
+            name:"GSI",nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10}},
+          series:[{
+            data:tsData,type:"line",symbol:"circle",symbolSize:12,
+            lineStyle:{color:"#00d4ff",width:3},itemStyle:{color:"#00d4ff"},
+            markArea:{silent:true,itemStyle:{opacity:0.06},
+              data:[
+                [{name:"CALM",yAxis:0,itemStyle:{color:"#26ffaf"}},{yAxis:32}],
+                [{name:"ELEVATED",yAxis:32,itemStyle:{color:"#ffd266"}},{yAxis:55}],
+                [{name:"STRESSED",yAxis:55,itemStyle:{color:"#ff7a18"}},{yAxis:75}],
+                [{name:"ACUTE",yAxis:75,itemStyle:{color:"#ff5577"}},{yAxis:100}]
+              ]
+            }
+          }]
+        });
+      }
+    })
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">global-stress.json not reachable. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+
+function load(){
+  fetch(URL_BASE+"data/gsi-horizons.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(build)
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">GSI horizons report not yet available. The justhodl-gsi-horizons Lambda runs Sundays at 09:30 UTC. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+window.addEventListener("resize",()=>{if(chart1)chart1.resize();});
+</script>
+</body>
+</html>

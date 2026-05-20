@@ -146,6 +146,35 @@ def load_weights():
     return None, "priors", 0, None
 
 
+HORIZON_DAYS = [5, 21, 63, 252]
+
+
+def load_horizon_weights():
+    """Read per-horizon GSI weights from SSM /justhodl/gsi/weights/Nd
+    (written by justhodl-gsi-horizons). Returns a dict
+    {horizon_days: {dim: weight, ...}} for whichever horizons have
+    been calibrated. Missing horizons are absent from the dict --
+    callers fall back to the canonical 21d weights for those."""
+    out = {}
+    for hd in HORIZON_DAYS:
+        try:
+            p = ssm.get_parameter(Name="/justhodl/gsi/weights/%dd" % hd)
+            payload = json.loads(p["Parameter"]["Value"])
+            w = payload.get("weights") or {}
+            needed = set(PRIOR_WEIGHTS.keys())
+            if set(w.keys()) >= needed and all(
+                    isinstance(w[k], (int, float)) for k in needed):
+                out[hd] = {
+                    "weights": {k: float(w[k]) for k in needed},
+                    "mode": payload.get("mode"),
+                    "sample_size": payload.get("sample_size"),
+                    "ic": payload.get("ic"),
+                }
+        except Exception:
+            pass   # this horizon not calibrated yet
+    return out
+
+
 def write_dim_history(snapshot):
     """Append today's per-dimension snapshot to data/gsi-dim-history.json,
     keyed by ISO date so multiple intra-day runs collapse to one entry
@@ -1111,6 +1140,30 @@ def lambda_handler(event, context):
         global_stress = (round(sum(w * s for w, s in blend) / wsum)
                          if wsum > 0 else None)
 
+    # ---- multi-horizon GSI -------------------------------------------------
+    # Read per-horizon weights published by justhodl-gsi-horizons. For each
+    # horizon that's been calibrated, compute the GSI using the same dim
+    # components but the horizon's own weight vector. The output's
+    # gsi_by_horizon is the term structure of stress -- tactical (5d),
+    # canonical (21d), quarterly (63d), and cycle (252d) views from the same
+    # underlying dim values.
+    horizon_weights = load_horizon_weights()
+    gsi_by_horizon = {}
+    for hd, h in horizon_weights.items():
+        hw = h.get("weights") or {}
+        h_blend = [(hw[k], components[k]) for k in hw
+                   if components.get(k) is not None]
+        if h_blend:
+            hwsum = sum(w for w, _ in h_blend)
+            if hwsum > 0:
+                gsi_by_horizon[str(hd)] = {
+                    "horizon_days": hd,
+                    "gsi": round(sum(w * s for w, s in h_blend) / hwsum),
+                    "mode": h.get("mode"),
+                    "sample_size": h.get("sample_size"),
+                    "weights": {k: round(hw[k], 4) for k in hw},
+                }
+
     worst = max(rows, key=lambda r: r["stress"]) if rows else None
     flashing = [r["market"] + " " + r["asset_class"]
                 for r in rows if r["stress"] >= 75]
@@ -1186,6 +1239,7 @@ def lambda_handler(event, context):
             "calibrated_at": calibrated_at,
             "priors": PRIOR_WEIGHTS,
         },
+        "gsi_by_horizon": gsi_by_horizon,
         "market_stress_index": market_stress,
         "equity_stress": eq_stress,
         "bond_stress": bd_stress,
