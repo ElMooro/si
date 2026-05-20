@@ -1,0 +1,25 @@
+{
+ "function_name": "justhodl-live-pulse",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 60,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Live Pulse -- fast intraday stress layer. Polls SPY/VIX/DXY/MOVE live quotes every 15 min during US market hours, computes a 0-100 pulse weighted (35/30/15/20), compares vs morning GSI for intraday drift. Telegram tripwire.",
+ "environment": {
+  "FMP_API_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-live-pulse-15m",
+  "cron": "cron(0/15 13-21 ? * MON-FRI *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Live Pulse -- every 15 min during US market hours (13:00-21:00 UTC, Mon-Fri)."
+ }
+}

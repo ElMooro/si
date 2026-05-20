@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Pulse &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#9889;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+.htop{display:flex;align-items:center;gap:14px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0;color:var(--yellow);flex:1}
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.refresh{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.subtitle{color:var(--mute);font-size:12.5px;margin:8px 0 0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.hero.benign{border-left-color:var(--green)}
+.hero.watchful{border-left-color:var(--yellow)}
+.hero.pressure{border-left-color:var(--orange)}
+.hero.event{border-left-color:var(--red);animation:flash 2s infinite}
+@keyframes flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(255,85,119,0.35)}}
+.hero .gh{flex:1;min-width:180px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .pv{font-family:var(--mono);font-size:62px;font-weight:700;color:var(--txt);line-height:1}
+.hero .pl{font-family:var(--mono);font-size:15px;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;font-weight:700}
+.hero.benign .pl{color:var(--green)}
+.hero.watchful .pl{color:var(--yellow)}
+.hero.pressure .pl{color:var(--orange)}
+.hero.event .pl{color:var(--red)}
+.hero .desc{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:8px}
+.hero .drift{font-family:var(--mono);font-size:12.5px;color:var(--mute);margin-top:6px}
+.hero .drift b{color:var(--txt);font-weight:700}
+.hero .drift .up{color:var(--red)}
+.hero .drift .dn{color:var(--green)}
+.comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px}
+.comp{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 14px}
+.comp.unavail{opacity:0.4;border-style:dashed}
+.comp .cn{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+.comp .cv{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--txt)}
+.comp .ct{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px;line-height:1.5}
+.comp .ct b{color:var(--txt)}
+.comp .cb{height:5px;background:var(--panel2);border-radius:3px;margin-top:6px;overflow:hidden}
+.comp .cb i{display:block;height:100%;background:var(--cyan)}
+.comp.benign .cb i{background:var(--green)}
+.comp.watchful .cb i{background:var(--yellow)}
+.comp.pressure .cb i{background:var(--orange)}
+.comp.event .cb i{background:var(--red)}
+.chart{width:100%;height:280px;margin-top:6px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65;margin-top:18px}
+.method b{color:var(--txt)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:18px;line-height:1.6}
+.ts{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+.fail{padding:18px;color:var(--mute);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="htop">
+      <h1>Live Pulse</h1>
+      <span class="live-dot"></span>
+      <span class="refresh">auto-refresh 30s</span>
+    </div>
+    <p class="subtitle">High-cadence intraday stress signal. Polls SPY / VIX / DXY / MOVE every 15 minutes during US market hours, computes a weighted 0-100 pulse (35/30/15/20), and tracks intraday DRIFT against the morning's batch GSI. The fast layer on top of the batch stress engines -- answers: "what's happening NOW, between batches?"</p>
+    <nav class="crumbs">
+      <a href="/">home</a>
+      <a href="/global-stress.html">batch GSI</a>
+      <a href="/horizons-gsi.html">horizons</a>
+      <a href="/signal-board.html">signal board</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="fail">loading live pulse&hellip;</div></div>
+</div>
+<script>
+const URL_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+let trail_chart=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);}
+function fmt(x,d){return x==null?"\u2014":(typeof x=="number"?x.toFixed(d||2):String(x));}
+function levelClass(p){return p==null?"":(p<30?"benign":p<55?"watchful":p<75?"pressure":"event");}
+
+function build(d){
+  const lvlC=levelClass(d.pulse);
+
+  // ── hero ──
+  const drift=d.drift_vs_morning_gsi;
+  const driftHtml=drift==null?'':
+    'drift vs morning GSI <b class="'+(drift>0?"up":drift<0?"dn":"")+'">'+(drift>=0?"+":"")+drift+'</b> ('+
+    'morning GSI '+(d.morning_gsi==null?"\u2014":d.morning_gsi)+')';
+  let h='<div class="hero '+lvlC+'">'+
+    '<div class="gh">'+
+      '<div class="ptag">Live Pulse</div>'+
+      '<div class="pv">'+(d.pulse==null?"\u2014":d.pulse)+'</div>'+
+      '<div class="pl">'+esc(d.level||"")+'</div>'+
+      '<div class="desc">'+esc(d.posture||"")+'</div>'+
+      '<div class="drift">'+driftHtml+'</div>'+
+    '</div>'+
+  '</div>';
+
+  // ── components ──
+  let cs='<div class="comps">';
+  (d.components||[]).forEach(c=>{
+    const sc=c.score, cls=levelClass(sc);
+    const det=c.detail||{};
+    let detLine="";
+    if(c.name==="spy") detLine="SPY "+fmt(det.price)+" &middot; "+(det.ret_pct>=0?"+":"")+fmt(det.ret_pct,2)+"% intraday";
+    else if(c.name==="vix") detLine="VIX "+fmt(det.vix)+" &middot; "+(det.delta>=0?"+":"")+fmt(det.delta,2)+" delta";
+    else if(c.name==="dxy") detLine="DXY "+fmt(det.dxy)+" &middot; "+(det.ret_pct>=0?"+":"")+fmt(det.ret_pct,2)+"%";
+    else if(c.name==="move") detLine="MOVE "+fmt(det.move,1);
+    const unavail=sc==null;
+    cs+='<div class="comp '+(unavail?"unavail":cls)+'">'+
+      '<div class="cn">'+esc(c.name.toUpperCase())+' &middot; '+(c.weight*100).toFixed(0)+'% weight</div>'+
+      '<div class="cv">'+(sc==null?"\u2014":sc.toFixed(0))+'</div>'+
+      '<div class="ct">'+(unavail?"<i>quote unavailable</i>":detLine)+'</div>'+
+      '<div class="cb"><i style="width:'+(sc==null?0:sc)+'%"></i></div>'+
+    '</div>';
+  });
+  cs+='</div>';
+
+  // ── intraday trail chart ──
+  let trail='<div class="sechead">Intraday Pulse Trail &middot; last '+((d.history_trail||[]).length)+' snapshots</div>'+
+    '<div id="trail_chart" class="chart"></div>';
+
+  // ── methodology ──
+  let meth='<div class="method">'+esc(d.methodology||"")+
+    '<br><br><b>Levels.</b> BENIGN <30, WATCHFUL 30-55, PRESSURE 55-75, EVENT >=75. The intraday trail at the bottom shows the last several hours of pulse readings -- a rising trail during a session is the institutionally meaningful signal that pressure is building, even if the absolute level is still WATCHFUL.<br><br><b>Drift vs morning GSI.</b> Pulse - morning_GSI. Positive drift means intraday risk has built up since the morning batch read; negative means it has receded. The pulse is calibrated to be COMPARABLE to the GSI -- both 0-100 -- so the drift is in the same scale.</div>';
+
+  const tsStamp=d.as_of?new Date(d.as_of).toLocaleString():"";
+  const note='<div class="note">Source: data/live-pulse.json (justhodl-live-pulse, every 15 min during US market hours). Quotes via FMP /stable.</div>'+
+    '<div class="ts">last pulse '+esc(tsStamp)+'</div>';
+
+  document.getElementById("root").innerHTML=h+cs+trail+meth+note;
+
+  // chart
+  if(trail_chart){trail_chart.dispose();trail_chart=null;}
+  const el=document.getElementById("trail_chart");
+  if(el){
+    trail_chart=echarts.init(el);
+    const data=(d.history_trail||[]).map(r=>[r.ts, r.pulse, r.drift]);
+    trail_chart.setOption({
+      animation:false, backgroundColor:"transparent",
+      tooltip:{trigger:"axis",backgroundColor:"#0f131a",borderColor:"#1c2433",
+        textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11}},
+      grid:{left:50,right:50,top:18,bottom:42},
+      xAxis:{type:"time",
+        axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:9.5},
+        axisLine:{lineStyle:{color:"#1c2433"}}},
+      yAxis:[
+        {type:"value",min:0,max:100,position:"left",
+         axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10},
+         splitLine:{lineStyle:{color:"#1c2433"}},
+         name:"pulse",nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10}},
+        {type:"value",position:"right",
+         axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10},
+         splitLine:{show:false},
+         name:"drift",nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10}}
+      ],
+      series:[
+        {name:"pulse",type:"line",yAxisIndex:0,smooth:true,
+          data:data.map(r=>[r[0],r[1]]),
+          lineStyle:{color:"#00d4ff",width:2.5},itemStyle:{color:"#00d4ff"},
+          areaStyle:{color:"rgba(0,212,255,0.13)"},
+          markArea:{silent:true,itemStyle:{opacity:0.05},
+            data:[
+              [{name:"EVENT",yAxis:75,itemStyle:{color:"#ff5577"}},{yAxis:100}]
+            ]}},
+        {name:"drift",type:"line",yAxisIndex:1,smooth:true,
+          data:data.map(r=>[r[0],r[2]]),
+          lineStyle:{color:"#a78bfa",width:1.5,type:"dashed"},
+          itemStyle:{color:"#a78bfa"},symbol:"none"}
+      ]
+    });
+  }
+}
+
+function load(){
+  fetch(URL_BASE+"data/live-pulse.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(build)
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">Live pulse not yet available. The justhodl-live-pulse Lambda runs every 15 min during US market hours (13:00-21:00 UTC, Mon-Fri). Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+setInterval(load, 30000);   // 30s auto-refresh
+window.addEventListener("resize",()=>{if(trail_chart)trail_chart.resize();});
+</script>
+</body>
+</html>
