@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "REIT NAV-discount mean-reversion. 80+ US REITs across office/retail/industrial/multifamily/healthcare/data-center/mREIT. Flags >20% discount to estimated NAV (book + FFO multiplier). 12-18mo mean-reversion holds. Damodaran 2020. Weekly Mon 22 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-reit-nav-discount-weekly",
+    "cron": "cron(0 22 ? * MON *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "REIT NAV discount weekly Mon 22 UTC"
+  }
+}

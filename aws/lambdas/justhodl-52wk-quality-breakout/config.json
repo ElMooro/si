@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "52-week-high breakout scanner with 5 quality gates: fresh 52w break + earnings surprise +10% + no insider selling + sector RS positive + volume 1.5x avg. O'Neil + Marchand 2024 framework. Daily 22 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-52wk-quality-breakout-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "52w quality breakout scanner daily 22 UTC"
+  }
+}
