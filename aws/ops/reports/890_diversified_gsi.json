@@ -1,0 +1,75 @@
+{
+ "ops": 890,
+ "ts": "2026-05-20T01:02:14.646932+00:00",
+ "subject": "Fix the predictive GSI -- deep backfill + diversification-preserving recalibration",
+ "checks": [
+  {
+   "check": "calibrator_redeployed",
+   "ok": true,
+   "detail": "from source with shrinkage + cap + floor"
+  },
+  {
+   "check": "deep_backfill_ran",
+   "ok": false,
+   "detail": "backfilled=279, total=None, range 2025-03-11 -> 2026-05-20"
+  },
+  {
+   "check": "dim_history_expanded",
+   "ok": false,
+   "detail": "280 snapshots in store -- spans deep multi-regime training window"
+  },
+  {
+   "check": "calibrator_ran",
+   "ok": true,
+   "detail": "mode=empirical, N=269, IC={'market': -0.1482, 'credit': 0.0336, 'vix': 0.1554, 'rate_vol': -0.3878, 'contagion': -0.3091, 'sovereign': -0.0924}"
+  },
+  {
+   "check": "ssm_weights_diversified",
+   "ok": true,
+   "detail": "mode=empirical, N=269, sum=1.0001, weights={'contagion': 0.05, 'credit': 0.143, 'market': 0.254, 'rate_vol': 0.103, 'sovereign': 0.05, 'vix': 0.4}"
+  },
+  {
+   "check": "ssm_no_dim_at_zero",
+   "ok": true,
+   "detail": "min weight = 0.050 (floor 0.05)"
+  },
+  {
+   "check": "ssm_no_dim_above_cap",
+   "ok": true,
+   "detail": "max weight = 0.400 (cap 0.40)"
+  },
+  {
+   "check": "report_has_diversification_params",
+   "ok": true,
+   "detail": "report exposes empirical, priors, shrinkage=0.6, weight_floor=0.05, weight_cap=0.4"
+  },
+  {
+   "check": "engine_uses_calibrated_weights",
+   "ok": false,
+   "detail": "GSI=42, mode=empirical, N=269, active weights=n/a"
+  },
+  {
+   "check": "engine_blend_is_diversified",
+   "ok": false,
+   "detail": "0/6 dimensions active in the blend (was 2/6 in ops 889)"
+  }
+ ],
+ "summary": "6/10 checks passed",
+ "all_passed": false,
+ "snapshot": {
+  "history_snapshots": 280,
+  "ssm_mode": "empirical",
+  "ssm_sample_size": 269,
+  "ssm_weights": {
+   "market": 0.254,
+   "credit": 0.143,
+   "vix": 0.4,
+   "rate_vol": 0.103,
+   "contagion": 0.05,
+   "sovereign": 0.05
+  },
+  "ssm_min_weight": 0.05,
+  "ssm_max_weight": 0.4
+ },
+ "verdict": "VERIFICATION INCOMPLETE - failed: deep_backfill_ran, dim_history_expanded, engine_uses_calibrated_weights, engine_blend_is_diversified."
+}
