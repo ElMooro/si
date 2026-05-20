@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 90,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "OPEX/0DTE gamma pinning calendar (Edge #8). Classifies trading day into OPEX regime (PRE/OPEX/POST/QUAD), computes Polygon max-pain, backtests 5y SPY post-OPEX returns, provides state-aware trade tickets.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPEX Calendar | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;
+  --yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1500px;margin:0 auto}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px}
+h1{font-size:18px;color:var(--cyan);font-weight:600}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px}
+.sub{color:var(--mute);font-size:12px;margin-top:4px}
+.nav{margin-top:8px;font-size:12px;color:var(--dim)}
+.nav a{color:var(--mute);margin-right:14px}
+
+.banner{padding:24px;border-radius:8px;margin-bottom:20px;border:1px solid var(--line);background:var(--panel);display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:900px){.banner{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.banner{grid-template-columns:1fr}}
+.banner.s-NORMAL{border-color:#3a4458}
+.banner.s-PRE_OPEX{border-color:var(--yellow);background:linear-gradient(135deg,rgba(255,210,102,0.06),var(--panel))}
+.banner.s-OPEX_WEEK{border-color:var(--orange);background:linear-gradient(135deg,rgba(255,122,24,0.08),var(--panel))}
+.banner.s-OPEX_DAY{border-color:var(--red);background:linear-gradient(135deg,rgba(255,85,119,0.10),var(--panel))}
+.banner.s-POST_OPEX{border-color:var(--green);background:linear-gradient(135deg,rgba(38,255,175,0.10),var(--panel))}
+.banner.s-QUAD_WITCHING_PRE_OPEX,.banner.s-QUAD_WITCHING_OPEX_WEEK,.banner.s-QUAD_WITCHING_OPEX_DAY{border-color:var(--purple);background:linear-gradient(135deg,rgba(167,139,250,0.10),var(--panel))}
+
+.lbl{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.big{font-size:22px;font-weight:600}
+.big.green{color:var(--green)}
+.big.red{color:var(--red)}
+.big.yellow{color:var(--yellow)}
+.big.purple{color:var(--purple)}
+
+.row{display:grid;gap:16px;margin-bottom:20px}
+.row.cols-3{grid-template-columns:repeat(3,1fr)}
+.row.cols-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.row.cols-3,.row.cols-4{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted var(--line);font-size:12px}
+.kv:last-child{border:none}
+.kv .k{color:var(--mute)}
+.kv .v{font-variant-numeric:tabular-nums}
+.kv .v.green{color:var(--green)}
+.kv .v.red{color:var(--red)}
+.kv .v.yellow{color:var(--yellow)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.green{color:var(--green)}
+td.red{color:var(--red)}
+.chk{display:inline-block;width:16px;height:16px;border-radius:3px;text-align:center;line-height:16px;font-weight:700;font-size:11px}
+.chk.yes{background:var(--green);color:#0a0e14}
+.chk.no{background:rgba(255,85,119,0.2);color:var(--red);border:1px solid var(--red)}
+.md{color:var(--mute);font-size:13px;line-height:1.6}
+.md strong{color:var(--txt)}
+.md h3{color:var(--txt);font-size:15px;margin:12px 0 8px}
+.md ul{margin:6px 0;padding-left:22px}
+.trade-card{background:var(--panel2);border-left:3px solid var(--cyan);padding:12px;border-radius:4px;margin:8px 0}
+.trade-card.primary{border-left-color:var(--green)}
+.trade-card.alt{border-left-color:var(--orange)}
+.ticker{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:6px}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:11px;margin-right:4px}
+.pill.green{color:var(--green);border-color:var(--green)}
+.pill.red{color:var(--red);border-color:var(--red)}
+.pill.yellow{color:var(--yellow);border-color:var(--yellow)}
+.footer{margin-top:24px;padding:14px;color:var(--dim);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+<h1>OPEX CALENDAR <span class="lbl" id="stateTag" style="margin-left:8px"></span></h1>
+<div class="sub">Edge #8 of 10 — monthly options-expiration anomaly. Real Polygon max-pain + 5y SPY backtest. State-aware iron condors and post-OPEX longs.</div>
+<div class="nav"><a href="/">Home</a> <a href="/directory.html">Directory</a> <a href="/vix-capitulation.html">VIX</a> <a href="/breadth-thrust.html">Breadth</a></div>
+</header>
+
+<div class="banner" id="banner">
+  <div>
+    <div class="lbl">REGIME</div>
+    <div class="big" id="state">--</div>
+  </div>
+  <div>
+    <div class="lbl">NEXT OPEX</div>
+    <div class="big" id="nextOpex">--</div>
+    <div class="lbl" id="daysTo">--</div>
+  </div>
+  <div>
+    <div class="lbl">MAX PAIN (LIVE)</div>
+    <div class="big" id="maxPain">--</div>
+    <div class="lbl" id="spy">SPY --</div>
+  </div>
+  <div>
+    <div class="lbl">SIGNAL STRENGTH</div>
+    <div class="big" id="sig">--</div>
+    <div class="lbl" id="quad"></div>
+  </div>
+</div>
+
+<div class="row cols-3">
+  <div class="panel">
+    <h2>CURRENT READINGS</h2>
+    <div class="kv"><span class="k">Days to OPEX (trading)</span><span class="v" id="r_dto">--</span></div>
+    <div class="kv"><span class="k">Days since prior OPEX</span><span class="v" id="r_dsp">--</span></div>
+    <div class="kv"><span class="k">Next OPEX is quad-witch</span><span class="v" id="r_quad">--</span></div>
+    <div class="kv"><span class="k">SPY current</span><span class="v" id="r_spy">--</span></div>
+    <div class="kv"><span class="k">Max pain</span><span class="v" id="r_mp">--</span></div>
+    <div class="kv"><span class="k">Pin distance</span><span class="v" id="r_pd">--</span></div>
+    <div class="kv"><span class="k">Contracts analyzed</span><span class="v" id="r_nc">--</span></div>
+    <div class="kv"><span class="k">Previous regime</span><span class="v" id="r_prev">--</span></div>
+  </div>
+  <div class="panel">
+    <h2>FORWARD EXPECTATIONS (SPY)</h2>
+    <table><thead><tr><th>Horizon</th><th class="num">Return</th><th class="num">Win Rate</th></tr></thead>
+    <tbody id="fwdTbl"></tbody></table>
+    <div class="lbl" style="margin-top:14px">Basis (current regime):</div>
+    <div class="md" id="fwdBasis"></div>
+  </div>
+  <div class="panel">
+    <h2>TRIGGER CONDITIONS</h2>
+    <div id="triggers"></div>
+  </div>
+</div>
+
+<div class="row cols-3">
+  <div class="panel" style="grid-column: span 2">
+    <h2>RECOMMENDED TRADE</h2>
+    <div id="trades"></div>
+  </div>
+  <div class="panel">
+    <h2>TOP STRIKES BY OPEN INTEREST</h2>
+    <table><thead><tr><th>Strike</th><th class="num">Open Interest</th></tr></thead><tbody id="topOI"></tbody></table>
+  </div>
+</div>
+
+<div class="row cols-3">
+  <div class="panel">
+    <h2>5Y BACKTEST: PRE-OPEX 5D</h2>
+    <div id="btPre"></div>
+  </div>
+  <div class="panel">
+    <h2>5Y BACKTEST: POST-OPEX 5D</h2>
+    <div id="btPost"></div>
+  </div>
+  <div class="panel">
+    <h2>5Y BACKTEST: POST QUAD-WITCH 5D</h2>
+    <div id="btQuad"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>RECENT POST-OPEX EPISODES</h2>
+    <table><thead><tr><th>3rd Friday</th><th>Type</th><th class="num">Post-OPEX 5d %</th></tr></thead><tbody id="histTbl"></tbody></table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>WHY NOW (RETAIL EXPLAINER)</h2>
+    <div class="md" id="whyNow"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>METHODOLOGY & SOURCES</h2>
+    <div class="md" id="meth"></div>
+  </div>
+</div>
+
+<div class="footer">
+  JustHodl.AI OPEX Calendar Engine | <span id="engine">--</span> | Last refresh: <span id="asOf">--</span>
+  <br>Refreshes every 120s. Polygon options chain + FMP /stable/ SPY history. Lambda runs every 30min during market hours.
+</div>
+
+<script>
+const URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opex-calendar.json";
+
+function fmtPct(x, signed=true){ if(x===null||x===undefined||isNaN(x)) return "--"; return (signed && x>=0 ? "+" : "") + Number(x).toFixed(2) + "%"; }
+function fmt(x, d=2){ if(x===null||x===undefined) return "--"; return Number(x).toFixed(d); }
+function mdToHtml(s){
+  if(!s) return "";
+  s = s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  s = s.replace(/### (.+)/g,"<h3>$1</h3>");
+  s = s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s = s.replace(/^- (.+)$/gm,"<li>$1</li>");
+  s = s.replace(/(<li>.*?<\/li>\n?)+/g,m=>"<ul>"+m+"</ul>");
+  s = s.replace(/\n\n+/g,"</p><p>");
+  return "<p>"+s+"</p>";
+}
+function colorClass(v){ return v>0 ? "green" : (v<0 ? "red" : "mute"); }
+
+async function load(){
+  try{
+    const r = await fetch(URL + "?t=" + Date.now());
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    render(await r.json());
+  }catch(e){
+    document.getElementById("state").textContent = "ERR";
+    document.getElementById("whyNow").textContent = "Load error: " + e.message;
+  }
+}
+
+function render(d){
+  const st = d.state || "NORMAL";
+  document.getElementById("state").textContent = st.replace(/_/g," ");
+  document.getElementById("stateTag").textContent = "STATE: " + st;
+  document.getElementById("banner").className = "banner s-" + st;
+  document.getElementById("sig").textContent = (d.signal_strength||0) + "/100";
+  document.getElementById("sig").className = "big " + (
+    d.signal_strength>=70 ? "green" : d.signal_strength>=50 ? "yellow" : "mute"
+  );
+
+  const c = d.calendar || {};
+  document.getElementById("nextOpex").textContent = c.next_opex || "--";
+  document.getElementById("daysTo").textContent = (c.days_to_next_opex_trading||0) + " trading days";
+  document.getElementById("quad").textContent = c.is_next_quad_witching ? "QUAD WITCHING" : "";
+
+  const r = d.current_readings || {};
+  document.getElementById("maxPain").textContent = r.max_pain ? "$" + r.max_pain : "--";
+  document.getElementById("spy").textContent = r.spy_current ? "SPY $" + Number(r.spy_current).toFixed(2) : "SPY --";
+
+  document.getElementById("r_dto").textContent = r.days_to_next_opex_trading;
+  document.getElementById("r_dsp").textContent = r.days_since_prior_opex_trading;
+  document.getElementById("r_quad").textContent = r.is_quad_witching ? "YES" : "no";
+  document.getElementById("r_quad").className = "v " + (r.is_quad_witching ? "yellow" : "");
+  document.getElementById("r_spy").textContent = r.spy_current ? "$" + Number(r.spy_current).toFixed(2) : "--";
+  document.getElementById("r_mp").textContent = r.max_pain ? "$" + r.max_pain : "--";
+  const pd = r.pin_distance_pct;
+  document.getElementById("r_pd").textContent = pd === null || pd === undefined ? "--" : fmtPct(pd);
+  document.getElementById("r_pd").className = "v " + colorClass(pd||0);
+  document.getElementById("r_nc").textContent = r.n_contracts_analyzed || 0;
+  document.getElementById("r_prev").textContent = d.previous_state || "--";
+
+  // Forward
+  const fe = d.forward_expectations || {};
+  let fwdH = "";
+  ["1m","3m","12m"].forEach(k=>{
+    const o = fe[k] || {};
+    fwdH += `<tr><td>${k==="1m"?"Next 1 month":k==="3m"?"Next quarter":"Next year"}</td>
+      <td class="num ${(o.return_pct||0)>=0?'green':'red'}">${fmtPct(o.return_pct)}</td>
+      <td class="num">${o.win_rate_pct||"--"}%</td></tr>`;
+  });
+  document.getElementById("fwdTbl").innerHTML = fwdH;
+  document.getElementById("fwdBasis").innerHTML =
+    "<strong>1m:</strong> "+(fe["1m"]?.basis||"--")+"<br>"+
+    "<strong>3m:</strong> "+(fe["3m"]?.basis||"--")+"<br>"+
+    "<strong>12m:</strong> "+(fe["12m"]?.basis||"--");
+
+  // Triggers
+  const tc = d.trigger_conditions || [];
+  document.getElementById("triggers").innerHTML = tc.map(c=>{
+    const ok = c.satisfied;
+    return `<div class="kv">
+      <span class="k"><span class="chk ${ok?"yes":"no"}">${ok?"Y":"N"}</span> &nbsp; ${c.name}</span>
+      <span class="v" style="font-size:11px;color:var(--dim)">w=${(c.weight*100).toFixed(0)}%</span>
+    </div>`;
+  }).join("");
+
+  // Trades
+  const tr = d.recommended_trade || {};
+  let trH = "";
+  if(tr.primary){
+    trH += `<div class="trade-card primary"><div class="ticker">PRIMARY: ${tr.primary.instrument}</div>
+      <div style="color:var(--mute);font-size:12px;line-height:1.5">${tr.primary.thesis||""}</div>
+      <div style="margin-top:8px"><span class="pill green">Size: ${tr.primary.size_guidance||"--"}</span>
+        <span class="pill yellow">Horizon: ${tr.primary.expected_horizon||"--"}</span>
+        <span class="pill red">Max loss: ${tr.primary.max_loss||"--"}</span></div>
+      <div style="color:var(--dim);font-size:11px;margin-top:6px">${tr.primary.expected_return_basis||""}</div></div>`;
+  }
+  if(tr.defined_risk_alt){
+    trH += `<div class="trade-card alt"><div class="ticker">DEFINED-RISK ALT: ${tr.defined_risk_alt.instrument}</div>
+      <div style="color:var(--mute);font-size:12px">${tr.defined_risk_alt.thesis||""}</div>
+      <div style="margin-top:6px"><span class="pill">Size: ${tr.defined_risk_alt.size_guidance||"--"}</span></div></div>`;
+  }
+  if(tr.options_alt){
+    trH += `<div class="trade-card alt"><div class="ticker">OPTIONS ALT: ${tr.options_alt.instrument}</div>
+      <div style="color:var(--mute);font-size:12px">${tr.options_alt.thesis||""}</div>
+      <div style="margin-top:6px"><span class="pill">Size: ${tr.options_alt.size_guidance||"--"}</span></div></div>`;
+  }
+  if(tr.exit_rules){
+    trH += `<div style="margin-top:8px"><div class="lbl">EXIT RULES</div><ul style="margin:6px 0;padding-left:20px;color:var(--mute);font-size:12px">`;
+    trH += tr.exit_rules.map(e=>"<li>"+e+"</li>").join("");
+    trH += "</ul></div>";
+  }
+  document.getElementById("trades").innerHTML = trH;
+
+  // Top strikes
+  const top = (r.top_strikes_by_oi||[]).slice(0,8);
+  document.getElementById("topOI").innerHTML = top.map(s=>
+    `<tr><td>$${s.strike}</td><td class="num">${(s.oi||0).toLocaleString()}</td></tr>`
+  ).join("") || "<tr><td colspan='2' class='lbl'>(no chain data yet)</td></tr>";
+
+  // Backtests
+  const bt = d.historical_backtest || {};
+  function btCard(s){
+    if(!s || !s.n) return "<div class='lbl'>(no data)</div>";
+    return `
+      <div class="kv"><span class="k">Sample size</span><span class="v">n=${s.n}</span></div>
+      <div class="kv"><span class="k">Mean return</span><span class="v ${(s.mean||0)>=0?'green':'red'}">${fmtPct(s.mean)}</span></div>
+      <div class="kv"><span class="k">Median</span><span class="v">${fmtPct(s.median)}</span></div>
+      <div class="kv"><span class="k">Win rate</span><span class="v">${s.win_rate_pct}%</span></div>
+      <div class="kv"><span class="k">Min</span><span class="v red">${fmtPct(s.min)}</span></div>
+      <div class="kv"><span class="k">Max</span><span class="v green">${fmtPct(s.max)}</span></div>
+    `;
+  }
+  document.getElementById("btPre").innerHTML = btCard(bt.pre_opex_5d);
+  document.getElementById("btPost").innerHTML = btCard(bt.post_opex_5d);
+  document.getElementById("btQuad").innerHTML = btCard(bt.post_quad_witch_5d);
+
+  // Historical episodes
+  const he = d.historical_episodes || [];
+  document.getElementById("histTbl").innerHTML = he.length ? he.map(e=>
+    `<tr><td>${e.date}</td><td>${e.is_quad?"<span class='pill yellow'>quad</span>":"monthly"}</td>
+     <td class="num ${(e.fwd_5d_pct||0)>=0?'green':'red'}">${fmtPct(e.fwd_5d_pct)}</td></tr>`
+  ).join("") : "<tr><td colspan='3' class='lbl'>(no episodes yet)</td></tr>";
+
+  // Why now
+  document.getElementById("whyNow").innerHTML = mdToHtml(d.why_now_explainer || "");
+
+  // Methodology
+  let m = `<p>${d.methodology||""}</p>`;
+  if(d.sources){
+    m += "<p><strong>Sources:</strong></p><ul>";
+    m += d.sources.map(s=>"<li>"+s+"</li>").join("");
+    m += "</ul>";
+  }
+  m += `<p><strong>Schedule:</strong> ${d.schedule||"--"}</p>`;
+  document.getElementById("meth").innerHTML = m;
+
+  document.getElementById("engine").textContent = (d.engine||"--") + " v" + (d.version||"");
+  document.getElementById("asOf").textContent = d.as_of || "--";
+}
+
+load();
+setInterval(load, 120000);
+</script>
+</body>
+</html>
