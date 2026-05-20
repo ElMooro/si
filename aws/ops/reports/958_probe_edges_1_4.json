@@ -1,0 +1,56 @@
+{
+  "ops": 958,
+  "title": "probe deployed Lambda names + S3 outputs for edges 1-4",
+  "run_at": "2026-05-20T14:29:20.431998Z",
+  "checks": [
+    {
+      "name": "lambdas_found",
+      "passed": true,
+      "detail": "[{\"name\": \"justhodl-capitulation\", \"runtime\": \"python3.12\", \"mem\": 256, \"timeout\": 60, \"last_modified\": \"2026-05-16T17:57\"}, {\"name\": \"justhodl-vol-target-unwind\", \"runtime\": \"python3.12\", \"mem\": 512, \"timeout\": 90, \"last_modified\": \"2026-05-20T12:55\"}]"
+    },
+    {
+      "name": "s3.data/vix-backwardation-trigger.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/vix-capitulation.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/insider-buys.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/insider-buys-enriched.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/insider-clusters.json",
+      "passed": true,
+      "detail": "size=82519B mod=2026-05-19 14:41:05+00:00"
+    },
+    {
+      "name": "s3.data/breadth-thrust.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/vol-target-unwind.json",
+      "passed": false,
+      "detail": "not found"
+    },
+    {
+      "name": "s3.data/vol-target.json",
+      "passed": false,
+      "detail": "not found"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 2
+  }
+}
