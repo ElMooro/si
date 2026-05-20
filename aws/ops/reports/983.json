@@ -1,0 +1,14 @@
+{
+  "started_at": 1779314680,
+  "target": "justhodl-credit-equity-divergence",
+  "donor": "justhodl-buyback-scanner",
+  "donor_env_keys": [
+    "CMC_KEY"
+  ],
+  "secrets_extracted": [
+    "CMC_KEY"
+  ],
+  "secrets_n": 1,
+  "fatal": "Donor justhodl-buyback-scanner has no FMP_KEY",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/983_patch_credit_equity_env.py\", line 73, in main\n    raise RuntimeError(f\"Donor {DONOR} has no FMP_KEY\")\nRuntimeError: Donor justhodl-buyback-scanner has no FMP_KEY\n"
+}
