@@ -1,0 +1,243 @@
+{
+  "ops": 950,
+  "title": "unified re-verify of edges 5-10 (Russell-recon, buyback-scanner, stablecoin-flow, opex-calendar, activist-13d, rv-iv-scanner)",
+  "run_at": "2026-05-20T13:45:27.812470Z",
+  "per_edge_summary": {
+    "5": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    "6": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1
+    },
+    "7": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1
+    },
+    "8": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1
+    },
+    "9": {
+      "total": 4,
+      "passed": 3,
+      "failed": 1
+    },
+    "10": {
+      "total": 16,
+      "passed": 13,
+      "failed": 3
+    }
+  },
+  "checks": [
+    {
+      "edge": 5,
+      "name": "e5.lambda_deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-russell-recon"
+    },
+    {
+      "edge": 6,
+      "name": "e6.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300"
+    },
+    {
+      "edge": 6,
+      "name": "e6.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 6,
+      "name": "e6.memory_adequate",
+      "passed": true,
+      "detail": "1024MB"
+    },
+    {
+      "edge": 6,
+      "name": "e6.s3_output_present",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "edge": 7,
+      "name": "e7.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90"
+    },
+    {
+      "edge": 7,
+      "name": "e7.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 7,
+      "name": "e7.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 7,
+      "name": "e7.s3_output_present",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "edge": 8,
+      "name": "e8.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90"
+    },
+    {
+      "edge": 8,
+      "name": "e8.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 8,
+      "name": "e8.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 8,
+      "name": "e8.s3_output_present",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "edge": 9,
+      "name": "e9.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300"
+    },
+    {
+      "edge": 9,
+      "name": "e9.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 9,
+      "name": "e9.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 9,
+      "name": "e9.s3_output_present",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "edge": 10,
+      "name": "e10.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120"
+    },
+    {
+      "edge": 10,
+      "name": "e10.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 10,
+      "name": "e10.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 10,
+      "name": "e10.s3_output_present",
+      "passed": true,
+      "detail": "size=6387B"
+    },
+    {
+      "edge": 10,
+      "name": "e10.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 10,
+      "name": "e10.edge_specific_keys",
+      "passed": false,
+      "detail": "missing=['top_20_iv_rich', 'top_20_iv_cheap', 'n_scanned']"
+    },
+    {
+      "edge": 10,
+      "name": "e10.engine_id_matches",
+      "passed": true,
+      "detail": "got=rv-iv-scanner"
+    },
+    {
+      "edge": 10,
+      "name": "e10.state_valid",
+      "passed": true,
+      "detail": "got=NORMAL valid=('LOW_DISPERSION', 'NORMAL', 'HIGH_DISPERSION', 'EARNINGS_SEASON', 'INSUFFICIENT_DATA')"
+    },
+    {
+      "edge": 10,
+      "name": "e10.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=0"
+    },
+    {
+      "edge": 10,
+      "name": "e10.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=5"
+    },
+    {
+      "edge": 10,
+      "name": "e10.forward_horizons_complete",
+      "passed": false,
+      "detail": "['21d', '63d', '252d']"
+    },
+    {
+      "edge": 10,
+      "name": "e10.trade_ticket_primary",
+      "passed": true,
+      "detail": "primary_len=262"
+    },
+    {
+      "edge": 10,
+      "name": "e10.why_now_substantive",
+      "passed": true,
+      "detail": "len=632"
+    },
+    {
+      "edge": 10,
+      "name": "e10.data_recent_48h",
+      "passed": true,
+      "detail": "as_of=2026-05-20T13:45:26.024391Z age_hours=0.0"
+    },
+    {
+      "edge": 10,
+      "name": "e10.ssm_state_present",
+      "passed": false,
+      "detail": "An error occurred (ParameterNotFound) when calling the GetParameter operation: "
+    },
+    {
+      "edge": 10,
+      "name": "e10.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=14308 wired=True"
+    }
+  ],
+  "summary": {
+    "total": 33,
+    "passed": 25,
+    "failed": 8
+  },
+  "overall_ok": false
+}
