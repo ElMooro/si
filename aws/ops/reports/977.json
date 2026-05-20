@@ -1,0 +1,439 @@
+{
+  "ops": 977,
+  "started_at_utc": "2026-05-20T18:37:06Z",
+  "repo_root": "/home/runner/work/si/si",
+  "engines": {
+    "justhodl-precatalyst-vol-expansion": {
+      "deploy": {
+        "name": "justhodl-precatalyst-vol-expansion",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"picks\": 0, \"deep_low_iv\": 0, \"run_seconds\": 0.2}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1233,
+        "last_modified": "2026-05-20T18:37:19+00:00",
+        "engine": "justhodl-precatalyst-vol-expansion",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:37:18.057616Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "picks",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-cef-discount": {
+      "deploy": {
+        "name": "justhodl-cef-discount",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"discounted\": 0, \"deep\": 0, \"run_seconds\": 0.2}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1201,
+        "last_modified": "2026-05-20T18:37:33+00:00",
+        "engine": "justhodl-cef-discount",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:37:32.926133Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "picks",
+          "premiums_to_avoid",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-reit-nav-discount": {
+      "deploy": {
+        "name": "justhodl-reit-nav-discount",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"picks\": 0, \"deep\": 0, \"run_seconds\": 0.1}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1314,
+        "last_modified": "2026-05-20T18:37:48+00:00",
+        "engine": "justhodl-reit-nav-discount",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:37:47.768543Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "picks",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-divcut-warning": {
+      "deploy": {
+        "name": "justhodl-divcut-warning",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"flagged\": 0, \"high_risk\": 0, \"run_seconds\": 0.1}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1333,
+        "last_modified": "2026-05-20T18:38:03+00:00",
+        "engine": "justhodl-divcut-warning",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:38:02.546971Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "warnings",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-rating-change-cluster": {
+      "deploy": {
+        "name": "justhodl-rating-change-cluster",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"buy_picks\": 0, \"sell_picks\": 0, \"run_seconds\": 0.1}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1092,
+        "last_modified": "2026-05-20T18:38:18+00:00",
+        "engine": "justhodl-rating-change-cluster",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:38:17.283077Z",
+        "schema_keys": [
+          "as_of",
+          "buy_picks",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "run_seconds",
+          "sell_picks",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-multi-tf-convergence": {
+      "deploy": {
+        "name": "justhodl-multi-tf-convergence",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"bull\": 0, \"bear\": 0, \"run_seconds\": 0.2}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1204,
+        "last_modified": "2026-05-20T18:38:33+00:00",
+        "engine": "justhodl-multi-tf-convergence",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:38:32.355632Z",
+        "schema_keys": [
+          "as_of",
+          "bear_picks",
+          "bull_picks",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-52wk-quality-breakout": {
+      "deploy": {
+        "name": "justhodl-52wk-quality-breakout",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"picks\": 0, \"high_quality\": 0, \"run_seconds\": 0.3}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1260,
+        "last_modified": "2026-05-20T18:38:48+00:00",
+        "engine": "justhodl-52wk-quality-breakout",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:38:47.610706Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "picks",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    },
+    "justhodl-spac-floor-warrant": {
+      "deploy": {
+        "name": "justhodl-spac-floor-warrant",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated"
+      },
+      "permission": {
+        "ok": true,
+        "mode": "added"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"picks\": 0, \"run_seconds\": 0.1}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 1350,
+        "last_modified": "2026-05-20T18:39:03+00:00",
+        "engine": "justhodl-spac-floor-warrant",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:39:02.307442Z",
+        "schema_keys": [
+          "as_of",
+          "engine",
+          "forward_expectations",
+          "methodology",
+          "picks",
+          "run_seconds",
+          "signal_strength",
+          "sources",
+          "state",
+          "summary",
+          "version",
+          "why_now"
+        ]
+      }
+    }
+  },
+  "signal_board": {
+    "deploy_ok": true,
+    "invoke": {
+      "ok": true,
+      "status_code": 200,
+      "function_error": null,
+      "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.11, \"n_live\": 36, \"n_stale\": 0}'}"
+    },
+    "verify": {
+      "ok": true,
+      "n_engines": 36,
+      "n_live": 36,
+      "n_stale": 0,
+      "composite_posture": "NEUTRAL / MIXED",
+      "composite_signal": 0.11,
+      "expects_36": true
+    }
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 40960,
+    "markers": {
+      "earnings-iv-crush": true,
+      "stealth-accumulation": true,
+      "failed-pattern-reversal": true,
+      "squeeze-pretrigger": true,
+      "catalyst-skew-premove": true,
+      "crypto-etf-arb": true,
+      "lockup-expiration": true,
+      "precatalyst-vol-expansion": true,
+      "cef-discount": true,
+      "reit-nav-discount": true,
+      "divcut-warning": true,
+      "rating-change-cluster": true,
+      "multi-tf-convergence": true,
+      "52wk-quality-breakout": true,
+      "spac-floor-warrant": true
+    },
+    "markers_found": 15,
+    "total_markers_expected": 15
+  },
+  "scorecard": {
+    "n_engines": 8,
+    "n_deploy_ok": 8,
+    "n_schedule_ok": 8,
+    "n_invoke_ok": 8,
+    "n_s3_ok": 8,
+    "page_ok": true,
+    "signal_board_36_ok": true,
+    "all_pass": true
+  },
+  "ended_at_utc": "2026-05-20T18:39:20Z"
+}
