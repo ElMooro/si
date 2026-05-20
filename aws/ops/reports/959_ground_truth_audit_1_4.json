@@ -1,0 +1,599 @@
+{
+  "ops": 959,
+  "title": "ground-truth audit: edges 1-4 real AWS Lambda names + S3 keys",
+  "run_at": "2026-05-20T14:39:08.697661Z",
+  "n_all_justhodl_lambdas": 288,
+  "n_all_data_s3_keys": 24517,
+  "edge_mapping": {
+    "1_vix_backwardation": {
+      "keywords": [
+        "vix",
+        "capitulation",
+        "backward"
+      ],
+      "candidate_lambdas": [
+        {
+          "name": "justhodl-capitulation",
+          "last_modified": "2026-05-16T17:57:05",
+          "mem": 256,
+          "timeout": 60
+        },
+        {
+          "name": "justhodl-vix-curve",
+          "last_modified": "2026-05-13T15:36:12",
+          "mem": 512,
+          "timeout": 120
+        }
+      ],
+      "candidate_s3_keys": [
+        {
+          "key": "data/vix-curve-history.json",
+          "size_kb": 157.1,
+          "last_modified": "2026-05-20T14:30:18"
+        },
+        {
+          "key": "data/vix-curve.json",
+          "size_kb": 1.4,
+          "last_modified": "2026-05-20T14:30:18"
+        },
+        {
+          "key": "data/capitulation-history.json",
+          "size_kb": 3.0,
+          "last_modified": "2026-05-20T12:45:07"
+        },
+        {
+          "key": "data/capitulation.json",
+          "size_kb": 1.1,
+          "last_modified": "2026-05-20T12:45:07"
+        }
+      ]
+    },
+    "2_insider_buys": {
+      "keywords": [
+        "insider",
+        "buy",
+        "cluster"
+      ],
+      "candidate_lambdas": [
+        {
+          "name": "justhodl-buyback-scanner",
+          "last_modified": "2026-05-20T14:06:54",
+          "mem": 1024,
+          "timeout": 300
+        },
+        {
+          "name": "justhodl-insider-aggregate",
+          "last_modified": "2026-05-16T17:36:47",
+          "mem": 512,
+          "timeout": 300
+        },
+        {
+          "name": "justhodl-insider-cluster-scanner",
+          "last_modified": "2026-05-15T12:37:15",
+          "mem": 1536,
+          "timeout": 900
+        },
+        {
+          "name": "justhodl-smart-money-cluster",
+          "last_modified": "2026-05-05T19:29:08",
+          "mem": 512,
+          "timeout": 300
+        },
+        {
+          "name": "justhodl-insider-trades",
+          "last_modified": "2026-04-27T21:56:19",
+          "mem": 512,
+          "timeout": 300
+        }
+      ],
+      "candidate_s3_keys": [
+        {
+          "key": "data/insider-trades.json",
+          "size_kb": 85.3,
+          "last_modified": "2026-05-20T14:33:57"
+        },
+        {
+          "key": "data/buyback-scanner.json",
+          "size_kb": 57.9,
+          "last_modified": "2026-05-20T14:06:48"
+        },
+        {
+          "key": "data/insider-aggregate-history.json",
+          "size_kb": 0.6,
+          "last_modified": "2026-05-19T22:30:46"
+        },
+        {
+          "key": "data/insider-aggregate.json",
+          "size_kb": 2.7,
+          "last_modified": "2026-05-19T22:30:46"
+        },
+        {
+          "key": "data/smart-money-clusters.json",
+          "size_kb": 149.9,
+          "last_modified": "2026-05-19T16:00:48"
+        },
+        {
+          "key": "data/insider-clusters.json",
+          "size_kb": 80.6,
+          "last_modified": "2026-05-19T14:41:05"
+        }
+      ]
+    },
+    "3_breadth_thrust": {
+      "keywords": [
+        "breadth",
+        "thrust",
+        "zweig"
+      ],
+      "candidate_lambdas": [],
+      "candidate_s3_keys": []
+    },
+    "4_vol_target_unwind": {
+      "keywords": [
+        "vol-target",
+        "vol_target",
+        "voltarget",
+        "unwind"
+      ],
+      "candidate_lambdas": [
+        {
+          "name": "justhodl-vol-target-unwind",
+          "last_modified": "2026-05-20T12:55:23",
+          "mem": 512,
+          "timeout": 90
+        }
+      ],
+      "candidate_s3_keys": []
+    }
+  },
+  "recently_modified_lambdas": [
+    {
+      "name": "justhodl-russell-recon-frontrun",
+      "runtime": "python3.12",
+      "mem": 1024,
+      "timeout": 240,
+      "last_modified": "2026-05-20T14:23:34",
+      "code_size_kb": 9.8,
+      "age_min": 15.6
+    },
+    {
+      "name": "justhodl-signal-board",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-20T14:14:43",
+      "code_size_kb": 5.2,
+      "age_min": 24.4
+    },
+    {
+      "name": "justhodl-opex-calendar",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 90,
+      "last_modified": "2026-05-20T14:07:10",
+      "code_size_kb": 8.6,
+      "age_min": 32.0
+    },
+    {
+      "name": "justhodl-buyback-scanner",
+      "runtime": "python3.12",
+      "mem": 1024,
+      "timeout": 300,
+      "last_modified": "2026-05-20T14:06:54",
+      "code_size_kb": 10.2,
+      "age_min": 32.2
+    },
+    {
+      "name": "justhodl-activist-13d",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-20T14:06:38",
+      "code_size_kb": 8.4,
+      "age_min": 32.5
+    },
+    {
+      "name": "justhodl-rv-iv-scanner",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-20T13:43:33",
+      "code_size_kb": 8.8,
+      "age_min": 55.6
+    }
+  ],
+  "all_justhodl_lambdas_first_30": [
+    {
+      "name": "justhodl-russell-recon-frontrun",
+      "runtime": "python3.12",
+      "mem": 1024,
+      "timeout": 240,
+      "last_modified": "2026-05-20T14:23:34",
+      "code_size_kb": 9.8
+    },
+    {
+      "name": "justhodl-signal-board",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 120,
+      "last_modified": "2026-05-20T14:14:43",
+      "code_size_kb": 5.2
+    },
+    {
+      "name": "justhodl-opex-calendar",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 90,
+      "last_modified": "2026-05-20T14:07:10",
+      "code_size_kb": 8.6
+    },
+    {
+      "name": "justhodl-buyback-scanner",
+      "runtime": "python3.12",
+      "mem": 1024,
+      "timeout": 300,
+      "last_modified": "2026-05-20T14:06:54",
+      "code_size_kb": 10.2
+    },
+    {
+      "name": "justhodl-activist-13d",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-20T14:06:38",
+      "code_size_kb": 8.4
+    },
+    {
+      "name": "justhodl-rv-iv-scanner",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-20T13:43:33",
+      "code_size_kb": 8.8
+    },
+    {
+      "name": "justhodl-stablecoin-flow",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 90,
+      "last_modified": "2026-05-20T13:18:27",
+      "code_size_kb": 7.1
+    },
+    {
+      "name": "justhodl-vol-target-unwind",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 90,
+      "last_modified": "2026-05-20T12:55:23",
+      "code_size_kb": 8.5
+    },
+    {
+      "name": "justhodl-streaming-fanout",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-20T12:04:58",
+      "code_size_kb": 3.7
+    },
+    {
+      "name": "justhodl-signal-orthogonality",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 180,
+      "last_modified": "2026-05-20T11:56:19",
+      "code_size_kb": 4.6
+    },
+    {
+      "name": "justhodl-live-pulse",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 60,
+      "last_modified": "2026-05-20T11:49:52",
+      "code_size_kb": 4.7
+    },
+    {
+      "name": "justhodl-gsi-horizons",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 240,
+      "last_modified": "2026-05-20T11:46:52",
+      "code_size_kb": 4.8
+    },
+    {
+      "name": "justhodl-global-stress",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 240,
+      "last_modified": "2026-05-20T11:46:41",
+      "code_size_kb": 16.7
+    },
+    {
+      "name": "justhodl-history-snapshotter",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-20T11:44:38",
+      "code_size_kb": 5.3
+    },
+    {
+      "name": "justhodl-calibration-fleet",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 240,
+      "last_modified": "2026-05-20T11:44:21",
+      "code_size_kb": 7.1
+    },
+    {
+      "name": "justhodl-master-allocator",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 180,
+      "last_modified": "2026-05-20T11:36:27",
+      "code_size_kb": 6.5
+    },
+    {
+      "name": "justhodl-gsi-calibrator",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 180,
+      "last_modified": "2026-05-20T01:05:18",
+      "code_size_kb": 5.0
+    },
+    {
+      "name": "justhodl-dollar-radar",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 180,
+      "last_modified": "2026-05-19T13:04:24",
+      "code_size_kb": 8.6
+    },
+    {
+      "name": "justhodl-crisis-composite",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T12:52:09",
+      "code_size_kb": 5.2
+    },
+    {
+      "name": "justhodl-morning-intelligence",
+      "runtime": "python3.12",
+      "mem": 512,
+      "timeout": 120,
+      "last_modified": "2026-05-19T12:51:35",
+      "code_size_kb": 23.8
+    },
+    {
+      "name": "justhodl-chart-patterns",
+      "runtime": "python3.12",
+      "mem": 1024,
+      "timeout": 600,
+      "last_modified": "2026-05-19T12:13:44",
+      "code_size_kb": 5.1
+    },
+    {
+      "name": "justhodl-cro-escalation",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T11:28:10",
+      "code_size_kb": 9.4
+    },
+    {
+      "name": "justhodl-market-extremes",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T10:16:57",
+      "code_size_kb": 4.8
+    },
+    {
+      "name": "justhodl-hedge-planner",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T09:52:49",
+      "code_size_kb": 9.0
+    },
+    {
+      "name": "justhodl-vol-radar",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T09:21:23",
+      "code_size_kb": 5.7
+    },
+    {
+      "name": "justhodl-vrp",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T02:30:14",
+      "code_size_kb": 5.5
+    },
+    {
+      "name": "justhodl-econ-calendar",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T02:14:30",
+      "code_size_kb": 4.5
+    },
+    {
+      "name": "justhodl-hedge-pnl",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T01:41:56",
+      "code_size_kb": 4.9
+    },
+    {
+      "name": "justhodl-cro-digest",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-19T00:28:55",
+      "code_size_kb": 5.0
+    },
+    {
+      "name": "justhodl-tail-hedge",
+      "runtime": "python3.12",
+      "mem": 256,
+      "timeout": 60,
+      "last_modified": "2026-05-18T23:28:25",
+      "code_size_kb": 8.3
+    }
+  ],
+  "all_data_s3_keys_first_30": [
+    {
+      "key": "data/streaming-config.json",
+      "size_kb": 1.4,
+      "last_modified": "2026-05-20T14:38:33"
+    },
+    {
+      "key": "data/streaming-fanout.json",
+      "size_kb": 2.6,
+      "last_modified": "2026-05-20T14:38:33"
+    },
+    {
+      "key": "data/sector-rotation.json",
+      "size_kb": 18.7,
+      "last_modified": "2026-05-20T14:38:25"
+    },
+    {
+      "key": "data/insider-trades.json",
+      "size_kb": 85.3,
+      "last_modified": "2026-05-20T14:33:57"
+    },
+    {
+      "key": "data/alert-history.json",
+      "size_kb": 54.5,
+      "last_modified": "2026-05-20T14:33:11"
+    },
+    {
+      "key": "data/retail-sentiment.json",
+      "size_kb": 24.7,
+      "last_modified": "2026-05-20T14:30:51"
+    },
+    {
+      "key": "data/risk-radar.json",
+      "size_kb": 45.0,
+      "last_modified": "2026-05-20T14:30:37"
+    },
+    {
+      "key": "data/sector-heatmap.json",
+      "size_kb": 196.2,
+      "last_modified": "2026-05-20T14:30:36"
+    },
+    {
+      "key": "data/_streaming/live_pulse_last.json",
+      "size_kb": 0.2,
+      "last_modified": "2026-05-20T14:30:33"
+    },
+    {
+      "key": "data/universe.json",
+      "size_kb": 427.6,
+      "last_modified": "2026-05-20T14:30:25"
+    },
+    {
+      "key": "data/auction-tenor-signals.json",
+      "size_kb": 3.1,
+      "last_modified": "2026-05-20T14:30:24"
+    },
+    {
+      "key": "data/china-liquidity-history.json",
+      "size_kb": 0.7,
+      "last_modified": "2026-05-20T14:30:19"
+    },
+    {
+      "key": "data/china-liquidity.json",
+      "size_kb": 1.1,
+      "last_modified": "2026-05-20T14:30:19"
+    },
+    {
+      "key": "data/price-redundancy.json",
+      "size_kb": 2.6,
+      "last_modified": "2026-05-20T14:30:18"
+    },
+    {
+      "key": "data/vix-curve-history.json",
+      "size_kb": 157.1,
+      "last_modified": "2026-05-20T14:30:18"
+    },
+    {
+      "key": "data/vix-curve.json",
+      "size_kb": 1.4,
+      "last_modified": "2026-05-20T14:30:18"
+    },
+    {
+      "key": "data/archive/auction-crisis/20260520.json",
+      "size_kb": 11.3,
+      "last_modified": "2026-05-20T14:30:16"
+    },
+    {
+      "key": "data/auction-crisis.json",
+      "size_kb": 11.3,
+      "last_modified": "2026-05-20T14:30:16"
+    },
+    {
+      "key": "data/reversal-radar-history.json",
+      "size_kb": 12.2,
+      "last_modified": "2026-05-20T14:30:10"
+    },
+    {
+      "key": "data/reversal-radar.json",
+      "size_kb": 0.6,
+      "last_modified": "2026-05-20T14:30:10"
+    },
+    {
+      "key": "data/live-pulse-history.json",
+      "size_kb": 1.4,
+      "last_modified": "2026-05-20T14:30:03"
+    },
+    {
+      "key": "data/live-pulse.json",
+      "size_kb": 2.4,
+      "last_modified": "2026-05-20T14:30:03"
+    },
+    {
+      "key": "data/plumbing-stress.json",
+      "size_kb": 25.3,
+      "last_modified": "2026-05-20T14:27:15"
+    },
+    {
+      "key": "data/redflag-alerts.json",
+      "size_kb": 1.4,
+      "last_modified": "2026-05-20T14:26:49"
+    },
+    {
+      "key": "data/stress-scenarios.json",
+      "size_kb": 16.2,
+      "last_modified": "2026-05-20T14:25:21"
+    },
+    {
+      "key": "data/russell-recon-frontrun.json",
+      "size_kb": 28.8,
+      "last_modified": "2026-05-20T14:24:22"
+    },
+    {
+      "key": "data/khalid-adaptive-history.json",
+      "size_kb": 20.9,
+      "last_modified": "2026-05-20T14:20:51"
+    },
+    {
+      "key": "data/khalid-adaptive.json",
+      "size_kb": 2.4,
+      "last_modified": "2026-05-20T14:20:51"
+    },
+    {
+      "key": "data/vol-regime.json",
+      "size_kb": 3.6,
+      "last_modified": "2026-05-20T14:18:13"
+    },
+    {
+      "key": "data/catalyst-calendar.json",
+      "size_kb": 3.6,
+      "last_modified": "2026-05-20T14:17:45"
+    }
+  ]
+}
