@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       function:
-        description: 'Lambda name to redeploy (leave blank to deploy all)'
+        description: 'Lambda name to redeploy. Special values: MISSING (deploy only undeployed), ALL (redeploy every Lambda). Blank = nothing.'
         required: false
         default: ''
 
@@ -57,8 +57,32 @@ jobs:
           fi
 
           if [ -n "${{ github.event.inputs.function }}" ]; then
-            echo "Manual dispatch for: ${{ github.event.inputs.function }}"
-            echo "targets=${{ github.event.inputs.function }}" >> $GITHUB_OUTPUT
+            input="${{ github.event.inputs.function }}"
+            if [ "$input" = "MISSING" ]; then
+              # Scan all aws/lambdas/*/source/ dirs; deploy any Lambda whose function
+              # name doesn't yet exist in AWS. Recovery path for past CI failures.
+              echo "Manual dispatch in MISSING mode -- scanning for undeployed Lambdas"
+              all_missing=""
+              for d in aws/lambdas/*/; do
+                fn=$(basename "$d")
+                [ ! -d "$d/source" ] && continue
+                if ! aws lambda get-function --function-name "$fn" --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
+                  all_missing="$all_missing $fn"
+                  echo "  MISSING: $fn"
+                fi
+              done
+              targets=$(echo "$all_missing" | xargs)
+              echo "Found $(echo $targets | wc -w) missing Lambdas"
+              echo "targets=$targets" >> $GITHUB_OUTPUT
+            elif [ "$input" = "ALL" ]; then
+              # Scan and redeploy EVERY Lambda. Use sparingly -- 200+ functions.
+              echo "Manual dispatch in ALL mode -- redeploying everything"
+              targets=$(ls -d aws/lambdas/*/ 2>/dev/null | xargs -n1 basename | paste -sd ' ' -)
+              echo "targets=$targets" >> $GITHUB_OUTPUT
+            else
+              echo "Manual dispatch for: $input"
+              echo "targets=$input" >> $GITHUB_OUTPUT
+            fi
           else
             # Fallback to HEAD^ if we don't have both refs
             if [ -n "$parent_sha" ] && [ "$parent_sha" != "0000000000000000000000000000000000000000" ]; then
@@ -101,23 +125,42 @@ jobs:
               fn_timeout=$(jq -r '.timeout // 300' "$dir/config.json")
               fn_memory=$(jq -r '.memory // 512' "$dir/config.json")
               fn_desc=$(jq -r '.description // "JustHodl.AI Lambda"' "$dir/config.json")
-              # Build --environment arg from .environment object (only if non-empty)
-              env_kv=$(jq -r '.environment // {} | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
+              # Build --environment arg from .env (canonical) or .environment (legacy)
+              # config-declared env block (only if non-empty)
+              env_kv=$(jq -r '(.env // .environment // {}) | to_entries | map("\(.key)=\(.value)") | join(",")' "$dir/config.json")
               # If .inherit_env is set, copy specified keys from another Lambda's
               # environment. Useful for cred values like ANTHROPIC_API_KEY that
               # already exist on another function but shouldn't be in git.
               #
-              # Two schemas supported:
-              #   (a) Single object:
+              # Three schemas supported:
+              #   (a) Boolean `true` -- copy a standard "secrets bundle" from
+              #       justhodl-buyback-scanner (known-good source of all keys).
+              #       This is the simplest pattern for new Lambdas that just
+              #       need the standard FMP/FRED/Telegram/Anthropic keys.
+              #   (b) Single object:
               #       "inherit_env": {"from_function": "X", "keys": ["K1","K2"]}
-              #   (b) Array of objects (for keys spread across multiple functions):
+              #   (c) Array of objects (for keys spread across multiple functions):
               #       "inherit_env": [
               #         {"from_function": "A", "keys": ["K1"]},
               #         {"from_function": "B", "keys": ["K2","K3"]}
               #       ]
               if jq -e '.inherit_env' "$dir/config.json" >/dev/null 2>&1; then
-                is_array=$(jq -r '.inherit_env | type == "array"' "$dir/config.json")
-                if [ "$is_array" = "true" ]; then
+                ie_type=$(jq -r '.inherit_env | type' "$dir/config.json")
+                if [ "$ie_type" = "boolean" ]; then
+                  # Boolean true -- pull standard secrets bundle from buyback-scanner
+                  if [ "$(jq -r '.inherit_env' "$dir/config.json")" = "true" ]; then
+                    src_fn="justhodl-buyback-scanner"
+                    standard_keys="FMP_KEY FRED_KEY POLYGON_KEY ALPHA_VANTAGE_KEY CMC_KEY ANTHROPIC_API_KEY TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID TELEGRAM_TOKEN NEWSAPI_KEY BLS_KEY BEA_KEY CENSUS_KEY"
+                    src_env=$(aws lambda get-function-configuration --function-name "$src_fn" --region "${{ secrets.AWS_REGION }}" --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                    for k in $standard_keys; do
+                      v=$(echo "$src_env" | jq -r ".\"$k\" // empty")
+                      if [ -n "$v" ] && [ "$v" != "null" ]; then
+                        if [ -z "$env_kv" ]; then env_kv="$k=$v"; else env_kv="$env_kv,$k=$v"; fi
+                      fi
+                    done
+                    echo "  [inherit_env=true] pulled standard secrets bundle from $src_fn"
+                  fi
+                elif [ "$ie_type" = "array" ]; then
                   n_entries=$(jq -r '.inherit_env | length' "$dir/config.json")
                   for i in $(seq 0 $((n_entries - 1))); do
                     src_fn=$(jq -r ".inherit_env[$i].from_function" "$dir/config.json")
