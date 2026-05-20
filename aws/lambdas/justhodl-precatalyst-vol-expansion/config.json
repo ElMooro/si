@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Pre-catalyst vol expansion scanner. Stocks with earnings/FDA/Fed catalyst in 7-21d AND current 30d realized vol at 5y percentile <= 25. Builds long-straddle / long-strangle trade tickets to capture IV expansion before catalyst. Daily 21:30 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-precatalyst-vol-expansion-daily",
+    "cron": "cron(30 21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Pre-catalyst vol expansion scanner daily 21:30 UTC"
+  }
+}

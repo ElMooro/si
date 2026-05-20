@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Dividend cut early-warning engine. 5-signal cut-risk model: payout > 100%, FCF/div < 1x, EPS revisions -15%+, debt/EBITDA > 5x, yield > 8%. Flags AVOIDANCE candidates. Weekly Sun 22 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-divcut-warning-weekly",
+    "cron": "cron(0 22 ? * SUN *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Dividend cut warning weekly Sun 22 UTC"
+  }
+}
