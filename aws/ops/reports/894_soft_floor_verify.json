@@ -1,0 +1,70 @@
+{
+ "ops": 894,
+ "ts": "2026-05-20T10:22:41.048257+00:00",
+ "subject": "Verify soft-floor + cap + shrinkage regularization",
+ "checks": [
+  {
+   "check": "calibrator_rerun",
+   "ok": true,
+   "detail": "mode=empirical N=269, IC={'market': -0.1482, 'credit': 0.0336, 'vix': 0.1554, 'rate_vol': -0.3878, 'contagion': -0.3091, 'sovereign': -0.0924}"
+  },
+  {
+   "check": "floor_satisfied",
+   "ok": true,
+   "detail": "min weight = 0.05"
+  },
+  {
+   "check": "cap_satisfied",
+   "ok": true,
+   "detail": "max weight = 0.4"
+  },
+  {
+   "check": "weights_sum_to_unity",
+   "ok": true,
+   "detail": "sum = 1.0001"
+  },
+  {
+   "check": "ssm_weights_present",
+   "ok": true,
+   "detail": "mode=empirical, weights={'market': 0.254, 'credit': 0.1429, 'vix': 0.4, 'rate_vol': 0.1032, 'contagion': 0.05, 'sovereign': 0.05}"
+  },
+  {
+   "check": "global_stress_applies_softened",
+   "ok": true,
+   "detail": "GSI=42, mode=empirical, active weights={'market': 0.254, 'credit': 0.1429, 'vix': 0.4, 'rate_vol': 0.1032, 'contagion': 0.05, 'sovereign': 0.05}"
+  }
+ ],
+ "summary": "6/6 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "sample_size": 269,
+  "mode": "empirical",
+  "ic": {
+   "market": -0.1482,
+   "credit": 0.0336,
+   "vix": 0.1554,
+   "rate_vol": -0.3878,
+   "contagion": -0.3091,
+   "sovereign": -0.0924
+  },
+  "active_weights": {
+   "market": 0.254,
+   "credit": 0.1429,
+   "vix": 0.4,
+   "rate_vol": 0.1032,
+   "contagion": 0.05,
+   "sovereign": 0.05
+  },
+  "priors": {
+   "market": 0.32,
+   "credit": 0.18,
+   "vix": 0.17,
+   "rate_vol": 0.13,
+   "contagion": 0.1,
+   "sovereign": 0.1
+  },
+  "global_stress_index": 42,
+  "global_stress_level": "ELEVATED"
+ },
+ "verdict": "SOFT-FLOOR REGULARIZATION LIVE - the GSI weights are now regularized with floor 5%, cap 40%, and 60/40 empirical/prior shrinkage. Every dimension keeps a meaningful contribution, no single predictor dominates, and the index degrades gracefully toward priors when the empirical fit weakens. Global-stress applies the regularized weights on each run."
+}
