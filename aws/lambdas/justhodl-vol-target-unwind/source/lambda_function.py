@@ -106,18 +106,31 @@ def http_get_json(url, timeout=20):
 
 
 def fmp_history(symbol, years=25):
-    end = dt.date.today()
-    start = end - dt.timedelta(days=int(365 * years))
+    """FMP /stable/historical-price-eod/full returns full available history.
+
+    The /stable/ endpoint does NOT accept from/to params (or silently
+    ignores/breaks them). Just request by symbol; caller can slice the
+    tail for the desired window.
+    """
     url = (
         f"https://financialmodelingprep.com/stable/historical-price-eod/full"
-        f"?symbol={symbol}&from={start.isoformat()}&to={end.isoformat()}&apikey={FMP_KEY}"
+        f"?symbol={symbol}&apikey={FMP_KEY}"
     )
     try:
         d = http_get_json(url, timeout=30)
-        rows = d.get("historical") or d if isinstance(d, list) else d.get("historical", [])
+        # /stable/ returns either a flat list or a {symbol, historical: [...]} dict
         if isinstance(d, list):
             rows = d
+        elif isinstance(d, dict):
+            rows = d.get("historical", [])
+        else:
+            rows = []
         rows = sorted(rows, key=lambda r: r.get("date", ""))
+        # Slice tail to requested years (defensive: works on 5y or 25y returns)
+        if years and rows:
+            max_rows = int(365 * years) + 30
+            rows = rows[-max_rows:]
+        print(f"fmp_history {symbol} returned {len(rows)} rows")
         return rows
     except Exception as e:
         print(f"fmp_history error {symbol}: {e}")
