@@ -1,0 +1,127 @@
+{
+ "ops": 891,
+ "ts": "2026-05-20T01:05:14.692750+00:00",
+ "subject": "Deploy + run the GSI calibrator; verify empirical weights flow through to the live index",
+ "checks": [
+  {
+   "check": "calibrator_updated",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "global_stress_refreshed",
+   "ok": true,
+   "detail": "from source"
+  },
+  {
+   "check": "backfill_ran",
+   "ok": true,
+   "detail": "backfilled 279 rows, total 280, range 2025-03-11 -> 2026-05-20"
+  },
+  {
+   "check": "history_populated",
+   "ok": true,
+   "detail": "data/gsi-dim-history.json has 280 snapshots (need >= 60 for the calibrator to reach 'empirical' mode)"
+  },
+  {
+   "check": "calibrator_invoked_ok",
+   "ok": true,
+   "detail": "mode=empirical sample_size=269 elapsed=0.5s"
+  },
+  {
+   "check": "ssm_weights_written",
+   "ok": false,
+   "detail": "SSM weights: market=0.000, credit=0.000, vix=0.000, rates=0.000, contagion=0.000, sovereign=0.000 (sum=0.000)"
+  },
+  {
+   "check": "calibration_report_published",
+   "ok": false,
+   "detail": "mode=empirical N=269; IC: "
+  },
+  {
+   "check": "live_invoke_after_calibration",
+   "ok": true,
+   "detail": "GSI=42 weights_mode=None sample=None"
+  },
+  {
+   "check": "gsi_uses_empirical_weights",
+   "ok": false,
+   "detail": "live mode=empirical; weights match SSM=False; values=market=0.254, credit=0.143, vix=0.400, rates=0.000, contagion=0.050, sovereign=0.050"
+  },
+  {
+   "check": "weekly_schedule_wired",
+   "ok": true,
+   "detail": "updated schedule justhodl-gsi-calibrator-weekly, cron(0 9 ? * SUN *) UTC"
+  }
+ ],
+ "summary": "7/10 checks passed",
+ "all_passed": false,
+ "snapshot": {
+  "ssm_weights": {
+   "weights": {
+    "market": 0.254,
+    "credit": 0.1429,
+    "vix": 0.4,
+    "rate_vol": 0.1032,
+    "contagion": 0.05,
+    "sovereign": 0.05
+   },
+   "empirical_weights": {
+    "market": 0.0,
+    "credit": 0.0,
+    "vix": 1.0,
+    "rate_vol": 0.0,
+    "contagion": 0.0,
+    "sovereign": 0.0
+   },
+   "priors": {
+    "market": 0.32,
+    "credit": 0.18,
+    "vix": 0.17,
+    "rate_vol": 0.13,
+    "contagion": 0.1,
+    "sovereign": 0.1
+   },
+   "ic": {
+    "market": -0.1482,
+    "credit": 0.0336,
+    "vix": 0.1554,
+    "rate_vol": -0.3878,
+    "contagion": -0.3091,
+    "sovereign": -0.0924
+   },
+   "n_by_dim": {
+    "market": 50,
+    "credit": 269,
+    "vix": 269,
+    "rate_vol": 269,
+    "contagion": 205,
+    "sovereign": 199
+   },
+   "sample_size": 269,
+   "mode": "empirical",
+   "calibrated_at": "2026-05-20T01:05:39.174654+00:00",
+   "forward_days": 21,
+   "ic_floor": 0.05,
+   "weight_floor": 0.05,
+   "weight_cap": 0.4,
+   "shrinkage": 0.6,
+   "min_n_blend": 30,
+   "min_n_full": 60
+  },
+  "calibration_mode": "empirical",
+  "calibration_n": 269,
+  "ic_by_dim": {},
+  "live_weights": {
+   "vix": 0.4,
+   "credit": 0.1429,
+   "contagion": 0.05,
+   "rate_vol": 0.1032,
+   "sovereign": 0.05,
+   "market": 0.254
+  },
+  "live_mode": "empirical",
+  "live_gsi": 42
+ },
+ "verdict": "VERIFICATION INCOMPLETE - failed: ssm_weights_written, calibration_report_published, gsi_uses_empirical_weights."
+}
