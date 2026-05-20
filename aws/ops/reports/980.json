@@ -1,0 +1,173 @@
+{
+  "objects": {
+    "data/vvix-vov-regime.json": {
+      "size": 988,
+      "last_modified": "2026-05-20T21:47:21+00:00",
+      "parsed": true,
+      "state": "QUIET",
+      "signal_strength": 0.0,
+      "error": null,
+      "picks_n": 0,
+      "keys": [
+        "as_of",
+        "current_metrics",
+        "engine",
+        "methodology",
+        "n_tickets",
+        "regime_explanation",
+        "run_seconds",
+        "signal_strength",
+        "sources",
+        "state",
+        "trade_tickets",
+        "version",
+        "why_now"
+      ],
+      "preview": "{\"engine\": \"vvix-vov-regime\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T21:47:20Z\", \"state\": \"QUIET\", \"signal_strength\": 0.0, \"current_metrics\": {\"vix\": null, \"vvix\": null, \"vix3m\": null, \"vvix_vix_ratio\": null, \"vvix_z\": null, \"vix_pct_252\": null, \"vix_term_shape\": null, \"vix_rv20\": null}, \"regime_explanation\": \"Insufficient data\", \"trade_tickets\": [], \"n_tickets\": 0, \"methodology\": \"VVIX/VIX ratio (Park 2015) + VVIX 252d z-score (Whaley 2009) + VIX term structure VIX-VIX3M (Eraker 2008) + 20d r"
+    },
+    "data/sympathetic-momentum.json": {
+      "size": 862,
+      "last_modified": "2026-05-20T21:49:30+00:00",
+      "parsed": true,
+      "state": "QUIET",
+      "signal_strength": 0.0,
+      "error": null,
+      "picks_n": 0,
+      "keys": [
+        "all_setups",
+        "as_of",
+        "engine",
+        "methodology",
+        "n_peer_groups_scanned",
+        "n_setups",
+        "n_tickers_in_universe",
+        "run_seconds",
+        "signal_strength",
+        "sources",
+        "state",
+        "top_setups",
+        "version",
+        "why_now"
+      ],
+      "preview": "{\"engine\": \"sympathetic-momentum\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T21:49:29Z\", \"state\": \"QUIET\", \"signal_strength\": 0.0, \"n_setups\": 0, \"n_peer_groups_scanned\": 25, \"n_tickers_in_universe\": 173, \"top_setups\": [], \"all_setups\": [], \"methodology\": \"Peer groups (25 sub-industry buckets, 90+ tickers). Within each group: leader = 5d return >= 80th pctile AND >5%. Laggard candidates must (a) underperform leader by >=1.5 group-std, (b) 90d corr to leader > 0.55, (c) RSI14 <= 75. Composite scor"
+    },
+    "data/insider-buyback-confluence.json": {
+      "size": 1469,
+      "last_modified": "2026-05-20T21:42:07+00:00",
+      "parsed": true,
+      "state": "QUIET",
+      "signal_strength": 0.1,
+      "error": null,
+      "picks_n": 0,
+      "keys": [
+        "all_confluences",
+        "as_of",
+        "engine",
+        "feeders",
+        "methodology",
+        "n_confluences",
+        "n_high_conviction",
+        "run_seconds",
+        "signal_strength",
+        "sources",
+        "state",
+        "top_confluences",
+        "version",
+        "why_now"
+      ],
+      "preview": "{\"engine\": \"insider-buyback-confluence\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T21:42:06Z\", \"state\": \"QUIET\", \"signal_strength\": 0.1, \"n_confluences\": 0, \"n_high_conviction\": 0, \"feeders\": {\"insider_keys\": [\"engine\", \"version\", \"as_of\", \"state\", \"signal_strength\", \"source\", \"source_as_of\", \"summary\"], \"insider_error\": null, \"insider_tickers_count\": 0, \"buyback_keys\": [\"engine\", \"version\", \"as_of\", \"state\", \"state_description\", \"signal_strength\", \"n_total_candidates_8k\", \"n_unique_tickers\"], \"b"
+    },
+    "data/gap-fill-confirm.json": {
+      "size": 875,
+      "last_modified": "2026-05-20T21:47:27+00:00",
+      "parsed": true,
+      "state": "QUIET",
+      "signal_strength": 0.1,
+      "error": null,
+      "picks_n": 0,
+      "keys": [
+        "all_setups",
+        "as_of",
+        "engine",
+        "methodology",
+        "n_high_conviction",
+        "n_setups",
+        "run_seconds",
+        "signal_strength",
+        "sources",
+        "state",
+        "top_setups",
+        "universe_size",
+        "version",
+        "why_now"
+      ],
+      "preview": "{\"engine\": \"gap-fill-confirm\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T21:47:26Z\", \"state\": \"QUIET\", \"signal_strength\": 0.1, \"n_setups\": 0, \"n_high_conviction\": 0, \"universe_size\": 100, \"top_setups\": [], \"all_setups\": [], \"methodology\": \"Gap-fill setup: 5-factor screen. (1) Gap >=1.5% open vs prior close. (2) Volume >=1.5x 20d avg. (3) 5d trend aligned with gap direction. (4) Gap fill 30-80% (sweet spot). (5) No earnings within 3d. Composite score weights gap size, volume ratio, trend alignment"
+    },
+    "data/13f-price-divergence.json": {
+      "size": 1256,
+      "last_modified": "2026-05-20T21:47:35+00:00",
+      "parsed": true,
+      "state": "QUIET",
+      "signal_strength": 0.1,
+      "error": null,
+      "picks_n": 0,
+      "keys": [
+        "all_divergences",
+        "as_of",
+        "engine",
+        "feeders",
+        "methodology",
+        "n_bearish",
+        "n_bullish",
+        "n_divergences",
+        "n_high_conviction",
+        "run_seconds",
+        "signal_strength",
+        "sources",
+        "state",
+        "top_bearish",
+        "top_bullish",
+        "version",
+        "why_now"
+      ],
+      "preview": "{\"engine\": \"13f-price-divergence\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T21:47:34Z\", \"state\": \"QUIET\", \"signal_strength\": 0.1, \"n_divergences\": 0, \"n_bullish\": 0, \"n_bearish\": 0, \"n_high_conviction\": 0, \"feeders\": {\"feeder_keys\": [\"generated_at\", \"as_of_quarter\", \"funds_total\", \"funds_parsed\", \"funds_failed\", \"fund_errors\", \"by_fund\", \"aggregate_by_ticker\"], \"feeder_error\": null, \"n_tickers_in_feeder\": 0}, \"top_bullish\": [], \"top_bearish\": [], \"all_divergences\": [], \"methodology\": \"Resolution"
+    },
+    "data/credit-equity-divergence.json": {
+      "size": 368,
+      "last_modified": "2026-05-20T21:47:48+00:00",
+      "parsed": true,
+      "state": null,
+      "signal_strength": null,
+      "error": "insufficient data: HYG=0 SPY=0",
+      "picks_n": 0,
+      "keys": [
+        "as_of",
+        "engine",
+        "error",
+        "trace"
+      ],
+      "preview": "{\"engine\": \"credit-equity-divergence\", \"error\": \"insufficient data: HYG=0 SPY=0\", \"trace\": \"Traceback (most recent call last):\\n  File \\\"/var/task/lambda_function.py\\\", line 177, in lambda_handler\\n    raise RuntimeError(f\\\"insufficient data: HYG={len(hyg)} SPY={len(spy)}\\\")\\nRuntimeError: insufficient data: HYG=0 SPY=0\\n\", \"as_of\": \"2026-05-20T21:47:47Z\"}"
+    }
+  },
+  "started_at": 1779313793,
+  "lambda_cfg": {
+    "justhodl-sympathetic-momentum": {
+      "timeout": 540,
+      "memory": 1024,
+      "last_update_status": "Successful",
+      "state": "Active"
+    },
+    "justhodl-gap-fill-confirm": {
+      "timeout": 600,
+      "memory": 1024,
+      "last_update_status": "Successful",
+      "state": "Active"
+    },
+    "justhodl-credit-equity-divergence": {
+      "timeout": 180,
+      "memory": 512,
+      "last_update_status": "Successful",
+      "state": "Active"
+    }
+  }
+}
