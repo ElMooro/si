@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stablecoin Flow | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1500px;margin:0 auto;}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{text-decoration:underline;}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+h1{font-size:18px;color:var(--cyan);font-weight:600;}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px;}
+.subtitle{color:var(--mute);font-size:12px;}
+.crumbs{font-size:12px;color:var(--mute);}
+.crumbs a{margin:0 4px;}
+
+.banner{padding:24px;border-radius:8px;margin-bottom:20px;border:1px solid var(--line);background:var(--panel);}
+.banner.s-CONTRACTING{background:linear-gradient(135deg,rgba(255,85,119,0.12),var(--panel));border-color:var(--red);}
+.banner.s-FLAT{background:linear-gradient(135deg,rgba(168,179,199,0.08),var(--panel));border-color:#3a4458;}
+.banner.s-EXPANDING{background:linear-gradient(135deg,rgba(0,212,255,0.10),var(--panel));border-color:var(--cyan);}
+.banner.s-EXPLOSIVE_MINT{background:linear-gradient(135deg,rgba(38,255,175,0.14),var(--panel));border-color:var(--green);}
+.banner.s-PARABOLIC_MINT{background:linear-gradient(135deg,rgba(167,139,250,0.18),var(--panel));border-color:var(--purple);box-shadow:0 0 30px rgba(167,139,250,0.2);}
+.state-label{font-size:11px;color:var(--mute);letter-spacing:0.1em;}
+.state-name{font-size:28px;font-weight:600;margin:4px 0 8px;}
+.state-name.s-CONTRACTING{color:var(--red);}
+.state-name.s-FLAT{color:var(--mute);}
+.state-name.s-EXPANDING{color:var(--cyan);}
+.state-name.s-EXPLOSIVE_MINT{color:var(--green);}
+.state-name.s-PARABOLIC_MINT{color:var(--purple);}
+.state-desc{color:var(--mute);font-size:13px;max-width:1000px;}
+
+.grid{display:grid;gap:16px;margin-bottom:20px;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g2{grid-template-columns:1fr 1fr;}
+@media(max-width:1000px){.g4,.g3,.g2{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;}
+.metric{display:flex;flex-direction:column;}
+.metric .label{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.metric .val{font-size:22px;font-weight:600;color:var(--txt);}
+.metric .val.pos{color:var(--green);}
+.metric .val.neg{color:var(--red);}
+.metric .val.warn{color:var(--yellow);}
+.metric .sub{font-size:11px;color:var(--dim);margin-top:4px;}
+
+.tcond{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;}
+.tcond:last-child{border-bottom:none;}
+.tcond .name{color:var(--mute);}
+.tcond .val.ok{color:var(--green);}
+.tcond .val.no{color:var(--red);}
+.tcond .weight{color:var(--dim);font-size:10px;margin-left:8px;}
+
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);}
+th{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
+tr:hover{background:var(--panel2);}
+.tk{color:var(--cyan);font-weight:600;}
+.num{font-variant-numeric:tabular-nums;text-align:right;}
+.pos{color:var(--green);}
+.neg{color:var(--red);}
+.muted{color:var(--mute);}
+
+.bar-pos{display:inline-block;width:80px;height:6px;background:var(--panel2);border-radius:3px;vertical-align:middle;overflow:hidden;}
+.bar-pos > div{height:100%;background:var(--green);}
+
+.why{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:6px;}
+.why h3{font-size:14px;color:var(--cyan);margin-bottom:12px;}
+.why p{margin-bottom:10px;color:var(--mute);}
+.why strong{color:var(--txt);}
+.why ul{margin:10px 0;padding-left:18px;}
+.why li{color:var(--mute);margin-bottom:4px;}
+
+.ticket{background:var(--panel2);border-left:3px solid var(--cyan);padding:14px 16px;margin-top:12px;border-radius:0 4px 4px 0;}
+.ticket h4{font-size:11px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;letter-spacing:0.08em;}
+.ticket p{font-size:12px;color:var(--mute);margin-bottom:6px;}
+.ticket strong{color:var(--txt);}
+.ticket ul{margin-top:8px;padding-left:18px;}
+.ticket li{font-size:11.5px;color:var(--mute);margin-bottom:4px;}
+
+footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>STABLECOIN MINT FLOW TRACKER</h1>
+    <div class="subtitle">Edge #7 -- The leading indicator for crypto. 14-30 day forward signal.</div>
+  </div>
+  <div class="crumbs">
+    <a href="/">home</a> /
+    <a href="/directory.html">directory</a> /
+    stablecoin-flow
+  </div>
+</header>
+
+<div id="root"><div class="panel">Loading stablecoin flow...</div></div>
+
+<footer>
+  <div>Engine: <strong>justhodl-stablecoin-flow</strong> | Source: DefiLlama stablecoins API | Schedule: hourly</div>
+  <div style="margin-top:6px;">Forward priors: 2017-2024 stablecoin/BTC correlation backtest (Tether dominance era + post-USDC + post-ETF)</div>
+  <div style="margin-top:6px;color:var(--mute);">JustHodl.AI institutional research. Not investment advice.</div>
+</footer>
+
+<script>
+const DATA_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/stablecoin-flow.json";
+
+function pct(v, d=2){ if(v===null||v===undefined) return "--"; return (v>=0?"+":"")+v.toFixed(d)+"%"; }
+function usdB(v){ if(v===null||v===undefined) return "--"; const sign = v>=0?"+":""; const a = Math.abs(v); if(a>=1e9) return sign+"$"+(v/1e9).toFixed(2)+"B"; if(a>=1e6) return sign+"$"+(v/1e6).toFixed(0)+"M"; return sign+"$"+v.toLocaleString(); }
+function usd(v){ if(!v) return "--"; if(v>=1e9) return "$"+(v/1e9).toFixed(1)+"B"; if(v>=1e6) return "$"+(v/1e6).toFixed(0)+"M"; return "$"+v.toLocaleString(); }
+
+function mdToHtml(md) {
+  if (!md) return "";
+  let h = md;
+  h = h.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+  h = h.replace(/^## (.*)$/gm, "<h3>$1</h3>");
+  h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/^\- (.*)$/gm, "<li>$1</li>");
+  h = h.replace(/(<li>.*<\/li>(\n<li>.*<\/li>)*)/g, "<ul>$1</ul>");
+  h = h.split("\n\n").map(p => p.startsWith("<") ? p : "<p>"+p+"</p>").join("\n");
+  return h;
+}
+
+function renderBanner(d) {
+  const s = d.state || "FLAT";
+  const agg = d.aggregate || {};
+  return `<div class="banner s-${s}">
+    <div class="state-label">REGIME</div>
+    <div class="state-name s-${s}">${s.replace(/_/g, ' ')}</div>
+    <div class="state-desc">${d.state_description || ''}</div>
+    <div style="margin-top:14px;display:flex;gap:32px;flex-wrap:wrap;">
+      <div><span class="muted">Total mcap:</span> <strong>$${(agg.total_usd/1e9).toFixed(0)}B</strong></div>
+      <div><span class="muted">30d delta:</span> <strong class="${agg.delta_30d_usd>=0?'pos':'neg'}">${usdB(agg.delta_30d_usd)}</strong></div>
+      <div><span class="muted">7d delta:</span> <strong class="${agg.delta_7d_usd>=0?'pos':'neg'}">${usdB(agg.delta_7d_usd)}</strong></div>
+      <div><span class="muted">24h delta:</span> <strong class="${agg.delta_24h_usd>=0?'pos':'neg'}">${usdB(agg.delta_24h_usd)}</strong></div>
+      <div><span class="muted">Signal:</span> <strong>${d.signal_strength||0}/100</strong></div>
+      ${d.state_transition?'<div style="color:var(--yellow);font-weight:600;">REGIME CHANGE</div>':''}
+    </div>
+  </div>`;
+}
+
+function renderForwardPriors(d) {
+  const f = d.forward_expectations_by_asset_60d || {};
+  return `<div class="grid g4">
+    <div class="panel metric">
+      <div class="label">BTC 60d Forward</div>
+      <div class="val ${f.BTC_pct>=0?'pos':'neg'}">${pct(f.BTC_pct,1)}</div>
+      <div class="sub">empirical median</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">ETH 60d Forward</div>
+      <div class="val ${f.ETH_pct>=0?'pos':'neg'}">${pct(f.ETH_pct,1)}</div>
+      <div class="sub">empirical median</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">Alt Basket 60d Fwd</div>
+      <div class="val ${f.ALT_basket_pct>=0?'pos':'neg'}">${pct(f.ALT_basket_pct,1)}</div>
+      <div class="sub">avg of top-50 alts ex-BTC/ETH</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">SPX 60d Fwd (correl)</div>
+      <div class="val ${f.SPX_pct>=0?'pos':'neg'}">${pct(f.SPX_pct,1)}</div>
+      <div class="sub">indirect via global liquidity</div>
+    </div>
+  </div>`;
+}
+
+function renderTopStablecoins(d) {
+  const coins = d.top_stablecoins_by_mcap || [];
+  return `<div class="panel" style="overflow-x:auto;">
+    <h2>Top Stablecoins (by mcap)</h2>
+    <table>
+      <thead><tr>
+        <th>Symbol</th><th>Name</th>
+        <th class="num">Mcap</th>
+        <th class="num">24h</th>
+        <th class="num">7d</th>
+        <th class="num">30d</th>
+        <th class="num">30d %</th>
+        <th>Mechanism</th>
+      </tr></thead>
+      <tbody>${coins.map(c => `
+        <tr>
+          <td class="tk">${c.symbol}</td>
+          <td class="muted">${(c.name||'').substring(0,28)}</td>
+          <td class="num">${usd(c.circulating_usd)}</td>
+          <td class="num ${c.delta_24h>=0?'pos':'neg'}">${usdB(c.delta_24h)}</td>
+          <td class="num ${c.delta_7d>=0?'pos':'neg'}">${usdB(c.delta_7d)}</td>
+          <td class="num ${c.delta_30d>=0?'pos':'neg'}">${usdB(c.delta_30d)}</td>
+          <td class="num ${c.delta_30d_pct>=0?'pos':'neg'}">${pct(c.delta_30d_pct,1)}</td>
+          <td class="muted">${c.mechanism||'?'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderTopMinters(d) {
+  const minters = d.top_5_minters_30d || [];
+  const burners = d.top_3_burners_30d || [];
+  return `<div class="grid g2">
+    <div class="panel">
+      <h2>Top 5 Minters (30d)</h2>
+      <table>
+        <thead><tr><th>Symbol</th><th class="num">30d Delta</th><th class="num">30d %</th></tr></thead>
+        <tbody>${minters.map(c => `
+          <tr>
+            <td class="tk">${c.symbol}</td>
+            <td class="num pos">${usdB(c.delta_30d)}</td>
+            <td class="num pos">${pct(c.delta_30d_pct,1)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>Top 3 Burners (30d)</h2>
+      <table>
+        <thead><tr><th>Symbol</th><th class="num">30d Delta</th><th class="num">30d %</th></tr></thead>
+        <tbody>${burners.map(c => `
+          <tr>
+            <td class="tk">${c.symbol}</td>
+            <td class="num neg">${usdB(c.delta_30d)}</td>
+            <td class="num neg">${pct(c.delta_30d_pct,1)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderConditions(d) {
+  const tc = d.trigger_conditions || [];
+  return `<div class="panel">
+    <h2>Trigger Conditions</h2>
+    ${tc.map(c => `<div class="tcond">
+      <div class="name">${c.name}</div>
+      <div><span class="val ${c.satisfied?'ok':'no'}">${c.satisfied?'YES':'NO'}</span>
+        <span class="weight">w=${(c.weight*100).toFixed(0)}%</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderForward(d) {
+  const fe = d.forward_expectations || {};
+  return `<div class="panel">
+    <h2>Forward Expectations (BTC composite)</h2>
+    <table>
+      <thead><tr><th>Horizon</th><th class="num">Return</th><th class="num">Win Rate</th><th>Basis</th></tr></thead>
+      <tbody>
+        ${["1m","3m","12m"].map(h => {
+          const e = fe[h] || {};
+          return `<tr>
+            <td><strong>${h.toUpperCase()}</strong></td>
+            <td class="num ${e.return_pct>=0?'pos':'neg'}">${pct(e.return_pct,1)}</td>
+            <td class="num">${e.win_rate_pct||'--'}%</td>
+            <td class="muted">${e.basis||''}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderHistorical(d) {
+  const eps = d.historical_episodes || [];
+  if (!eps.length) return '';
+  return `<div class="panel">
+    <h2>Historical Analogs (same state)</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Event</th><th class="num">BTC 60d Actual</th></tr></thead>
+      <tbody>${eps.map(e => `
+        <tr>
+          <td>${e.date}</td>
+          <td class="muted">${e.label}</td>
+          <td class="num ${e.btc_60d_actual_pct>=0?'pos':'neg'}">${pct(e.btc_60d_actual_pct,0)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderTrade(d) {
+  const t = d.recommended_trade || {};
+  const p = t.primary || {};
+  let html = `<div class="panel">
+    <h2>Recommended Trade</h2>
+    <div class="ticket">
+      <h4>Primary</h4>
+      <p><strong>Instrument:</strong> ${p.instrument||''}</p>
+      <p><strong>Thesis:</strong> ${p.thesis||''}</p>
+      <p><strong>Sizing:</strong> ${p.size_guidance||''}</p>
+      <p><strong>Max loss:</strong> ${p.max_loss||''}</p>
+      <p><strong>Horizon:</strong> ${p.expected_horizon||''}</p>
+      <p><strong>Basis:</strong> <span class="muted">${p.expected_return_basis||''}</span></p>
+    </div>`;
+  if (t.defined_risk_alt) {
+    const a = t.defined_risk_alt;
+    html += `<div class="ticket" style="border-left-color:var(--yellow);">
+      <h4 style="color:var(--yellow);">Defined-Risk Alt</h4>
+      <p><strong>Instrument:</strong> ${a.instrument||''}</p>
+      <p><strong>Thesis:</strong> ${a.thesis||''}</p>
+      <p><strong>Sizing:</strong> ${a.size_guidance||''}</p>
+    </div>`;
+  }
+  if (t.leveraged_alt) {
+    const a = t.leveraged_alt;
+    html += `<div class="ticket" style="border-left-color:var(--purple);">
+      <h4 style="color:var(--purple);">Leveraged Alt</h4>
+      <p><strong>Instrument:</strong> ${a.instrument||''}</p>
+      <p><strong>Thesis:</strong> ${a.thesis||''}</p>
+      <p><strong>Sizing:</strong> ${a.size_guidance||''}</p>
+    </div>`;
+  }
+  if (t.exit_rules) {
+    html += `<div style="margin-top:14px;">
+      <h4 style="font-size:11px;color:var(--mute);text-transform:uppercase;margin-bottom:8px;">Exit Rules</h4>
+      <ul style="padding-left:18px;color:var(--mute);font-size:12px;">${t.exit_rules.map(r => `<li>${r}</li>`).join('')}</ul>
+    </div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function render(d) {
+  let html = renderBanner(d);
+  html += renderForwardPriors(d);
+  html += '<div class="grid g2">';
+  html += renderConditions(d);
+  html += renderForward(d);
+  html += '</div>';
+  html += renderTopMinters(d);
+  html += '<div style="margin-top:20px;">' + renderTopStablecoins(d) + '</div>';
+  html += '<div style="margin-top:20px;">' + renderTrade(d) + '</div>';
+  html += '<div style="margin-top:20px;">' + renderHistorical(d) + '</div>';
+  html += '<div style="margin-top:20px;" class="why"><h3>Why Now</h3>' + mdToHtml(d.why_now_explainer||'') + '</div>';
+  html += '<div style="margin-top:20px;" class="panel"><h2>Methodology</h2><p class="muted" style="font-size:11.5px;line-height:1.6;">' + (d.methodology||'') + '</p></div>';
+  document.getElementById('root').innerHTML = html;
+}
+
+async function load() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    const d = await r.json();
+    render(d);
+  } catch (e) {
+    document.getElementById("root").innerHTML = `<div class="panel">Failed to load data: ${e}</div>`;
+  }
+}
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

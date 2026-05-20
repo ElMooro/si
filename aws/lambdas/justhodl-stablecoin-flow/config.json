@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 90,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Stablecoin mint/flow tracker (Edge #7). Aggregates 15+ USD stables via DefiLlama; classifies regime; outputs BTC/ETH/alt forward priors with trade ticket.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}
