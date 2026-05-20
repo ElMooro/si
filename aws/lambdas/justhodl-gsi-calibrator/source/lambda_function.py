@@ -43,6 +43,16 @@ FORWARD_DAYS = 21          # forward window: ~1 trading month
 MIN_N_BLEND = 30           # below this, fall back entirely to priors
 MIN_N_FULL = 60            # above this, weight purely on empirical IC
 IC_FLOOR = 0.05            # absolute IC below this is treated as noise
+WEIGHT_FLOOR = 0.05        # every dimension gets at least 5% weight --
+                           # preserves cross-dimension diversification
+                           # even when one dim dominates the IC ranking
+WEIGHT_CAP = 0.40          # no single dimension exceeds 40% -- prevents
+                           # the index from collapsing into a single
+                           # predictor when one IC outscores the rest
+SHRINKAGE = 0.6            # at full-empirical mode, final weight is
+                           # 0.6 * empirical + 0.4 * prior -- priors
+                           # carry institutional knowledge that limited
+                           # sample-period IC alone cannot replace
 DIMS = ("market", "credit", "vix", "rate_vol", "contagion", "sovereign")
 PRIORS = {"market": 0.32, "credit": 0.18, "vix": 0.17,
           "rate_vol": 0.13, "contagion": 0.10, "sovereign": 0.10}
@@ -84,6 +94,45 @@ def spearman(a, b):
     if len(a) != len(b) or len(a) < 5:
         return None
     return pearson(rankdata(a), rankdata(b))
+
+
+def cap_and_floor(weights, floor=WEIGHT_FLOOR, cap=WEIGHT_CAP, max_iter=30):
+    """Project a weight vector onto the simplex constrained by per-
+    dimension floor and cap. Iteratively normalises, clips any
+    violations, and redistributes the displaced mass across the
+    unconstrained dimensions; converges in 1-3 iterations in practice."""
+    w = {k: float(v) for k, v in weights.items()}
+    s0 = sum(w.values())
+    if s0 <= 0:
+        return w
+    w = {k: v / s0 for k, v in w.items()}
+    n = len(w)
+    if floor * n > 1.0 or cap * n < 1.0:
+        return w   # constraints infeasible -- pass through
+    for _ in range(max_iter):
+        below = {k for k, v in w.items() if v < floor - 1e-12}
+        above = {k for k, v in w.items() if v > cap + 1e-12}
+        if not below and not above:
+            return w
+        for k in below:
+            w[k] = floor
+        for k in above:
+            w[k] = cap
+        fixed_sum = floor * len(below) + cap * len(above)
+        free = [k for k in w if k not in below and k not in above]
+        free_target = 1.0 - fixed_sum
+        free_current = sum(w[k] for k in free)
+        if free_target < 0:
+            return w   # infeasible -- bail
+        if free_current > 0 and free:
+            scale = free_target / free_current
+            for k in free:
+                w[k] *= scale
+        elif free:
+            even = free_target / len(free)
+            for k in free:
+                w[k] = even
+    return w
 
 
 def send_telegram(msg):
@@ -186,21 +235,37 @@ def lambda_handler(event, context):
     else:
         empirical = dict(PRIORS)   # no positive IC -> stick with priors
 
-    # ---- sample-size smoothing -----------------------------------------
+    # ---- sample-size smoothing + always shrink toward priors -----------
+    # Even at "empirical" mode (N >= MIN_N_FULL), the final weight is a
+    # SHRINKAGE blend of empirical IC and the priors -- not a full
+    # replacement. Priors encode dimension-level institutional knowledge
+    # that limited-sample IC alone cannot replace, and shrinkage protects
+    # against the index collapsing into one dominant predictor when a
+    # single sample window happens to favour it.
     if n < MIN_N_BLEND:
         mode = "insufficient"
-        final = dict(PRIORS)
+        alpha = 0.0
     elif n < MIN_N_FULL:
         mode = "blended"
-        alpha = (n - MIN_N_BLEND) / float(MIN_N_FULL - MIN_N_BLEND)
-        final = {d: alpha * empirical[d] + (1.0 - alpha) * PRIORS[d]
-                 for d in DIMS}
+        # ramp empirical content from 0 at N=MIN_N_BLEND up to SHRINKAGE
+        # at N=MIN_N_FULL, then hold at SHRINKAGE for "empirical"
+        alpha = SHRINKAGE * (n - MIN_N_BLEND) / float(
+            MIN_N_FULL - MIN_N_BLEND)
     else:
         mode = "empirical"
-        final = empirical
+        alpha = SHRINKAGE
 
-    # normalise (defensive -- blending two probability vectors keeps the
-    # sum at 1 but floating-point drift can creep in)
+    shrunk = {d: alpha * empirical[d] + (1.0 - alpha) * PRIORS[d]
+              for d in DIMS}
+
+    # ---- enforce per-dimension floor and cap ---------------------------
+    # No dimension drops below WEIGHT_FLOOR (preserves diversification)
+    # or exceeds WEIGHT_CAP (prevents any single dimension from
+    # dominating the index); displaced mass redistributes across the
+    # unconstrained dimensions.
+    final = cap_and_floor(shrunk, floor=WEIGHT_FLOOR, cap=WEIGHT_CAP)
+
+    # defensive renormalisation against floating-point drift
     fsum = sum(final.values())
     if fsum > 0:
         final = {d: final[d] / fsum for d in DIMS}
@@ -218,6 +283,9 @@ def lambda_handler(event, context):
         "calibrated_at": calibrated_at,
         "forward_days": FORWARD_DAYS,
         "ic_floor": IC_FLOOR,
+        "weight_floor": WEIGHT_FLOOR,
+        "weight_cap": WEIGHT_CAP,
+        "shrinkage": SHRINKAGE,
         "min_n_blend": MIN_N_BLEND,
         "min_n_full": MIN_N_FULL,
     }
