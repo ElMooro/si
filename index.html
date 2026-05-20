@@ -764,6 +764,37 @@ table.tbl tr:last-child td{border-bottom: none}
   <!-- ────────── MAIN GRID ────────── -->
   <div class="grid">
 
+    <!-- ★ Signal Board — Flagship cross-asset posture (20-engine synthesis) -->
+    <section class="card col-12" id="signalBoardCard" style="border-left:3px solid #facc15">
+      <div class="card-head">
+        <div>
+          <div class="card-title">SIGNAL BOARD <span style="color:#facc15;font-weight:600">★</span></div>
+          <div class="card-subtitle" id="sbSub">Cross-asset posture · 20-engine synthesis</div>
+        </div>
+        <a href="/signal-board.html" class="card-action">DETAIL →</a>
+      </div>
+      <div id="signalBoardBody" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1.6fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Composite Posture</div>
+          <div id="sbPosture" style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="sbSignal" style="font-size:12px;color:var(--muted);margin-top:2px">signal —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Engines Live</div>
+          <div id="sbLive" style="font-size:24px;font-weight:600;color:var(--text)">—</div>
+          <div id="sbStale" style="font-size:12px;color:var(--muted);margin-top:2px">— stale</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Last Update</div>
+          <div id="sbAsOf" style="font-size:13px;color:var(--text);line-height:1.4">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Movers</div>
+          <div id="sbMovers" style="font-size:12px;line-height:1.6;color:var(--text)">—</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Today's Setups -->
     <section class="card col-7">
       <div class="card-head">
@@ -1751,6 +1782,7 @@ const SOURCES = {
   risk:     `${S3}/risk/recommendations.json`,
   setups:   `${S3}/opportunities/asymmetric-equity.json`,
   pnl:      `${S3}/portfolio/pnl-daily.json`,
+  signalBoard: `${S3}/signal-board.json`,
 };
 
 const STATE = {data: {}, errors: {}, lastUpdate: null};
@@ -2255,6 +2287,79 @@ function renderPnl(){
   body.innerHTML = html;
 }
 
+// ── SIGNAL BOARD (flagship cross-asset posture, 20-engine synthesis)
+function renderSignalBoard(){
+  const d = STATE.data.signalBoard;
+  if(!d) return;
+
+  const posture = d.composite_posture || '—';
+  const signal = d.composite_signal;
+  const nLive = d.n_live ?? 0;
+  const nEngines = d.n_engines ?? 0;
+  const nStale = d.n_stale ?? 0;
+  const generated = d.generated_at || '';
+
+  // Color the posture text based on direction
+  const postureEl = document.getElementById('sbPosture');
+  if(postureEl){
+    let color = 'var(--text)';
+    if(posture.includes('RISK-ON') && !posture.includes('OFF')) color = '#10b981';
+    else if(posture.includes('RISK-OFF')) color = '#ef4444';
+    else if(posture.includes('MILDLY RISK-ON')) color = '#10b981';
+    else if(posture.includes('MILDLY RISK-OFF')) color = '#f59e0b';
+    else color = '#facc15';
+    postureEl.textContent = posture;
+    postureEl.style.color = color;
+  }
+
+  const sigEl = document.getElementById('sbSignal');
+  if(sigEl && signal != null){
+    const arrow = signal > 0 ? '↑' : (signal < 0 ? '↓' : '·');
+    sigEl.textContent = `signal ${arrow} ${signal>=0?'+':''}${Number(signal).toFixed(2)} (range -2..+2)`;
+  }
+
+  const liveEl = document.getElementById('sbLive');
+  if(liveEl) liveEl.textContent = `${nLive}/${nEngines}`;
+
+  const staleEl = document.getElementById('sbStale');
+  if(staleEl) staleEl.textContent = `${nStale} stale · ${nEngines-nLive-nStale} no-data`;
+
+  const asOfEl = document.getElementById('sbAsOf');
+  if(asOfEl && generated){
+    try{
+      const t = new Date(generated);
+      asOfEl.textContent = t.toUTCString().slice(5, 22) + ' UTC';
+    }catch(e){
+      asOfEl.textContent = generated.slice(0,19);
+    }
+  }
+
+  // Top movers: highest |signal| engines that are live
+  const moversEl = document.getElementById('sbMovers');
+  if(moversEl && Array.isArray(d.engines)){
+    const live = d.engines.filter(e => e.signal != null && !e.stale);
+    const sorted = live.slice().sort((a,b) => Math.abs(b.signal) - Math.abs(a.signal));
+    const top = sorted.slice(0, 4);
+    if(top.length === 0){
+      moversEl.textContent = 'No live signals';
+    }else{
+      moversEl.innerHTML = top.map(e => {
+        const color = e.signal > 0 ? '#10b981' : (e.signal < 0 ? '#ef4444' : 'var(--muted)');
+        const arrow = e.signal > 0 ? '+' : (e.signal < 0 ? '−' : '·');
+        const name = (e.engine || '').slice(0, 22);
+        return `<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--muted);font-size:11px">${escHtml(name)}</span><span style="color:${color};font-weight:600">${arrow}${Math.abs(e.signal)}</span></div>`;
+      }).join('');
+    }
+  }
+
+  // Update subtitle with category breakdown
+  const subEl = document.getElementById('sbSub');
+  if(subEl && d.categories){
+    const cats = Object.entries(d.categories).map(([k,v]) => `${k} ${v.signal>=0?'+':''}${Number(v.signal).toFixed(1)}`).join(' · ');
+    subEl.textContent = cats || 'Cross-asset posture · 20-engine synthesis';
+  }
+}
+
 /* ──────────────────────────────────────────────────────────────
    FETCH ORCHESTRATION — parallel, fault-tolerant
    ────────────────────────────────────────────────────────────── */
@@ -2273,6 +2378,13 @@ async function loadAll(){
   // Render alert + strip first (depend on multiple sources)
   if(STATE.data.intel) renderAlert(STATE.data.intel);
   renderStrip();
+
+  // Flagship cross-asset posture card (top of grid)
+  if(STATE.data.signalBoard) renderSignalBoard();
+  else if(STATE.errors.signalBoard){
+    const sb = document.getElementById('signalBoardBody');
+    if(sb) sb.innerHTML = `<div class="err" style="grid-column:1/-1">⚠ Signal-board feed unavailable</div>`;
+  }
 
   // Render each card, even if some failed
   if(STATE.data.setups) renderSetups();
