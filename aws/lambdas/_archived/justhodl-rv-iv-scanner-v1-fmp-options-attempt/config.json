@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "RV-IV single-stock scanner (Edge #10). 60-name universe; Yang-Zhang 21d RV vs FMP ATM 30d IV; cross-sectional VRP regime + trade tickets.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}

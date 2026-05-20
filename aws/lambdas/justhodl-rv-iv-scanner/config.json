@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 120,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "RV-IV Variance Risk Premium + Implied Dispersion scanner (Edge #10). FRED single-name VIX vs FMP OHLC realized vol; institutional dispersion trade structure.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}
