@@ -44,10 +44,10 @@ S3_BUCKET = "justhodl-dashboard-live"
 REPORT_KEY = "data/breadth-thrust.json"
 CACHE_KEY = "data/breadth-history.json"
 STATE_SSM = "/justhodl/breadth-thrust/state"
-FMP_KEY = os.environ.get("FMP_KEY", "")
-POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+POLYGON_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 # ---- Zweig thresholds (canonical) -------------------------------------
 ZWEIG_LOW = 0.40

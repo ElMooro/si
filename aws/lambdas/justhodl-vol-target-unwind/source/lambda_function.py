@@ -71,12 +71,12 @@ import boto3
 # ----------------------------------------------------------------------
 # Config
 # ----------------------------------------------------------------------
-FMP_KEY = os.environ.get("FMP_KEY", "")
+FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/vol-target-unwind.json"
 SSM_STATE_KEY = "/justhodl/vol-target-unwind/state"
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 # Vol-target thresholds (annualized realized vol on SPY)
 THRESH_RE_LEVER = 16.0     # below = funds re-leverage long

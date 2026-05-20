@@ -45,9 +45,9 @@ import boto3
 S3_BUCKET = "justhodl-dashboard-live"
 REPORT_KEY = "data/vix-backwardation-trigger.json"
 STATE_SSM = "/justhodl/vix-backwardation/state"
-FMP_KEY = os.environ.get("FMP_KEY", "")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 # ---- trigger thresholds (tuned to historical episodes) ------------------
 VVIX_PANIC_FLOOR = 130

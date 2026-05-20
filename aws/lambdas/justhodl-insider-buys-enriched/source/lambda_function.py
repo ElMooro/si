@@ -54,8 +54,8 @@ import boto3
 S3_BUCKET = "justhodl-dashboard-live"
 SOURCE_KEY = "data/insider-clusters.json"
 REPORT_KEY = "data/insider-buys-enriched.json"
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 # ---- empirical expected-return model parameters ------------------------
 BASE_RETURNS = {"1m": 1.2, "3m": 3.5, "12m": 9.0}
