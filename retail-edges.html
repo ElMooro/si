@@ -147,7 +147,7 @@ h1 .icon{margin-right:8px}
 <div class="best-trades">
   <h2>Today's Best Retail Trades<span class="updated" id="best-updated">--</span></h2>
   <div class="best-grid" id="best-grid">
-    <div class="loading">Loading top setups from all 21 engines...</div>
+    <div class="loading">Loading top setups from all 27 engines...</div>
   </div>
 </div>
 
@@ -253,6 +253,31 @@ const ENGINES = [
   { key:'credit-equity-divergence', s3:'data/credit-equity-divergence.json',
     title:'Credit (HYG) vs Equity (SPY) Divergence', icon:'🚦',
     desc:'HYG vs SPY 20d return spread + 252d z-score + 3-day persistence. LQD/EMB confirmation overlay. CREDIT_BEAR_RICH = equity vulnerable (short SPY / puts). CREDIT_BULL_RICH = equity bullish. Gilchrist-Zakrajsek 2012. +5% BULL / -7% BEAR / 4-8 wks.',
+    render: renderGeneric, category:'macro' },
+  // ===== Tier-4 Retail Edges =====
+  { key:'post-earnings-mean-rev', s3:'data/post-earnings-mean-rev.json',
+    title:'Post-Earnings Mean-Reversion', icon:'🔄',
+    desc:'4-factor: earnings 5-15td ago + RSI extreme (<=25 or >=75) + price ext >=1.5 std vs 50dMA + IV crushed <=50 percentile. Counter-trend LONG/SHORT 5-10d hold. Bernard-Thomas 1989, Bali 2008. ~58% hit / +2-4%.',
+    render: renderGeneric, category:'equity-tactical' },
+  { key:'insider-sell-cluster', s3:'data/insider-sell-cluster.json',
+    title:'Insider Sell Cluster (Defensive)', icon:'🚨',
+    desc:'EXCLUDES 10b5-1 plan trades. >=3 distinct sellers/14d, >=$2M, CEO/CFO weighted, max % holdings sold. $500M mcap gate. RISK AVOIDANCE — exit longs / hedge, not aggressive short. Cohen-Malloy-Pomorski 2012 (-3 to -8% / 60d).',
+    render: renderGeneric, category:'risk-avoidance' },
+  { key:'vix9d-vix-inversion', s3:'data/vix9d-vix-inversion.json',
+    title:'VIX9D-VIX Front-End Inversion', icon:'⚡',
+    desc:'Full backwardation VIX9D > VIX > VIX3M + persistence >=3d + spread z >=+1.5 + VVIX confirms. SVXY long / SPY long (statistical bottom) / VIX call spread tickets. Andersen-Bondarenko 2014, Park 2015. ~70% hit / +3.5% SPY / 10d.',
+    render: renderGeneric, category:'volatility' },
+  { key:'breadth-divergence', s3:'data/breadth-divergence.json',
+    title:'Breadth Divergence (Sectors vs SPY)', icon:'📊',
+    desc:'SPY 20d return + 11 SPDR sector breadth + 20d slope + IWM-SPY small-cap lag. BEARISH (narrow leadership) or BULLISH (broadening participation). Magee 1950s, Whaley 2009. ~58% / -5-12% (BEAR) or +6-10% (BULL) / 4-8 wks.',
+    render: renderGeneric, category:'macro' },
+  { key:'skew-tail-hedging', s3:'data/skew-tail-hedging.json',
+    title:'CBOE SKEW Tail-Hedging Detector', icon:'🛡️',
+    desc:'TAIL_HEDGE_RICH: SKEW >=150 + 5+d elevated + VVIX confirms = institutional hedge surge (SPY puts/XLP/XLU/SH). COMPLACENCY_RICH: SKEW <=110 = cheap insurance opportunity. Bali-Murray 2013, Bollerslev-Todorov 2011.',
+    render: renderGeneric, category:'volatility' },
+  { key:'dxy-equity-divergence', s3:'data/dxy-equity-divergence.json',
+    title:'DXY-Equity Divergence (with EM confirm)', icon:'💵',
+    desc:'Dollar (UUP/DXY) vs SPY + EEM confirmation. DOLLAR_STRESS_RICH (eurodollar stress: long UUP / SH / GLD / XLP) or DOLLAR_TAILWIND_RICH (risk-on weak USD: long EEM / UDN / COPX / FCG). Frankel-Saiki 2002, Bruno-Shin 2015. ~60% / +4% / 3-6 wks.',
     render: renderGeneric, category:'macro' },
 ];
 
