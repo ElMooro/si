@@ -1,12 +1,14 @@
 {
-  "name": "justhodl-insider-buys-enriched",
+  "function_name": "justhodl-insider-buys-enriched",
   "description": "Institutional enrichment of insider-cluster-scanner output. Per-cluster expected forward returns (1m/3m/12m) with academic-prior + quality-boost adjustments (Lakonishok-Lee, Cohen-Malloy-Pomorski), retail trade ticket with options alt where liquid, why-now narrative. Daily 16:30 UTC.",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "memory_mb": 256,
-  "timeout_s": 60,
-  "architectures": ["x86_64"],
+  "memory": 256,
+  "timeout": 60,
+  "architectures": [
+    "x86_64"
+  ],
   "inherit_env": true,
   "environment": {}
 }

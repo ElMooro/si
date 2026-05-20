@@ -1,12 +1,14 @@
 {
-  "name": "justhodl-breadth-thrust",
+  "function_name": "justhodl-breadth-thrust",
   "description": "Zweig Breadth Thrust + Whaley January Barometer + Coppock Curve. 11-of-11 historical 12m positive returns when fired. State machine NULL/ARMED/FIRED/COOLDOWN. Polygon grouped aggs for NYSE A/D ratio, cached incrementally. Forward returns computed live from 20y SPY history at curated trigger dates. Daily 22:00 UTC.",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "memory_mb": 256,
-  "timeout_s": 90,
-  "architectures": ["x86_64"],
+  "memory": 256,
+  "timeout": 90,
+  "architectures": [
+    "x86_64"
+  ],
   "inherit_env": true,
   "environment": {}
 }
