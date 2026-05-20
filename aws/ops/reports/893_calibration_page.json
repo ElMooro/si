@@ -1,0 +1,30 @@
+{
+ "ops": 893,
+ "ts": "2026-05-20T04:09:57.831312+00:00",
+ "subject": "Verify the GSI Calibration dashboard page is live",
+ "checks": [
+  {
+   "check": "page_serves",
+   "ok": true,
+   "detail": "HTTP 200, 6/6 markers present"
+  },
+  {
+   "check": "calibration_json_complete",
+   "ok": true,
+   "detail": "mode=empirical, N=269, 100 paired obs, ic dims ok, weights dims ok, missing top fields: none"
+  },
+  {
+   "check": "linked_from_index",
+   "ok": true,
+   "detail": "calibration link present in /"
+  },
+  {
+   "check": "linked_from_directory",
+   "ok": true,
+   "detail": "GSI Calibration link present in /directory.html"
+  }
+ ],
+ "summary": "4/4 checks passed",
+ "all_passed": true,
+ "verdict": "GSI CALIBRATION PAGE LIVE - https://justhodl.ai/gsi-calibration.html renders the full calibrator report: the active mode, the per-dimension Spearman IC table, the prior-vs-active weight comparison chart, the paired-observations scatter grid (dimension score vs forward SPY drawdown) and the methodology. Linked from the landing page and the directory. The transparency loop is closed: the engine reads weights from SSM, the calibrator publishes both the SSM weights and the explanatory JSON, and the page renders why the GSI is weighted the way it is."
+}
