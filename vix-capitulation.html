@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIX Backwardation Capitulation Trigger - JustHodl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1240px;margin:0 auto;padding:14px 16px 80px}
+
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:14px;flex-wrap:wrap}
+.top h1{font-size:19px;margin:0;font-weight:600;letter-spacing:.2px}
+.top .sub{color:var(--mute);font-size:11px;margin-top:3px;max-width:680px}
+.top .right{display:flex;gap:8px;align-items:center}
+.btn{display:inline-block;padding:5px 10px;border:1px solid var(--line);
+  background:var(--panel);color:var(--mute);border-radius:3px;font-size:11px;
+  font-family:inherit;cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--txt);border-color:#2a3445}
+
+.state-banner{padding:18px 22px;border-radius:5px;background:var(--panel);
+  border:1px solid var(--line);margin-bottom:18px;display:grid;
+  grid-template-columns:1fr auto;gap:18px;align-items:center}
+.state-banner.s-fired{border-color:var(--green);box-shadow:0 0 16px rgba(38,255,175,.16)}
+.state-banner.s-armed{border-color:var(--yellow);box-shadow:0 0 14px rgba(255,210,102,.10)}
+.state-banner.s-warm{border-color:var(--orange)}
+.state-banner.s-cooldown{border-color:var(--purple)}
+.state-banner .state-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.state-banner .state-value{font-size:32px;font-weight:700;letter-spacing:.8px}
+.state-banner.s-fired .state-value{color:var(--green)}
+.state-banner.s-armed .state-value{color:var(--yellow)}
+.state-banner.s-warm .state-value{color:var(--orange)}
+.state-banner.s-null .state-value{color:var(--dim)}
+.state-banner.s-cooldown .state-value{color:var(--purple)}
+.state-banner .sub-info{color:var(--mute);font-size:11px;margin-top:6px}
+.state-banner .strength{font-size:36px;font-weight:700;color:var(--cyan);text-align:right}
+.state-banner .strength-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;text-align:right;margin-top:2px}
+
+.sechead{margin:18px 0 9px;font-size:11px;color:var(--mute);
+  text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;
+  border-bottom:1px solid var(--line);font-weight:600}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:14px}
+
+.readings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px}
+.reading{padding:8px 10px;background:var(--panel2);border-radius:3px;border-left:3px solid var(--line)}
+.reading .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.reading .v{font-size:20px;font-weight:600;color:var(--txt)}
+.reading.curve.full-back{border-left-color:var(--green)}
+.reading.curve.front-back{border-left-color:var(--yellow)}
+.reading.curve.contango{border-left-color:var(--dim)}
+.reading .s{font-size:10px;color:var(--mute);margin-top:2px}
+
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{text-align:left;color:var(--dim);font-weight:500;padding:8px 10px;
+  border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+table.dt th.num{text-align:right}
+table.dt td{padding:8px 10px;border-bottom:1px solid var(--panel2);color:var(--txt)}
+table.dt td.num{text-align:right}
+table.dt tr:hover{background:var(--panel2)}
+table.dt td.dim{color:var(--dim)}
+table.dt td.good{color:var(--green);font-weight:600}
+table.dt td.bad{color:var(--red);font-weight:600}
+table.dt td.warn{color:var(--yellow);font-weight:600}
+
+.cond{display:flex;align-items:center;gap:12px;padding:9px 12px;margin-bottom:6px;border-radius:3px;background:var(--panel2);border-left:3px solid var(--line)}
+.cond.sat{border-left-color:var(--green)}
+.cond.unsat{border-left-color:var(--dim);opacity:.7}
+.cond .mark{font-size:18px;font-weight:700;width:22px;text-align:center}
+.cond.sat .mark{color:var(--green)}
+.cond.unsat .mark{color:var(--dim)}
+.cond .name{flex:1;color:var(--txt);font-weight:500}
+.cond .curr{font-size:11px;color:var(--mute);text-align:right}
+.cond .w{font-size:10px;color:var(--dim);min-width:36px;text-align:right}
+
+.trade-card{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:10px}
+.trade-card.primary{border-color:var(--cyan);background:linear-gradient(180deg,rgba(0,212,255,.04),var(--panel2))}
+.trade-card .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.trade-card.primary .label{color:var(--cyan)}
+.trade-card .instr{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:8px}
+.trade-card .thesis{color:var(--mute);font-size:12px;margin-bottom:8px;line-height:1.55}
+.trade-card .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 14px;font-size:11px;color:var(--dim)}
+.trade-card .meta b{color:var(--mute);font-weight:500}
+.exit-rules{margin:8px 0 4px;padding-left:18px;color:var(--mute);font-size:11px}
+.exit-rules li{margin-bottom:3px}
+
+.explainer{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 20px;font-size:13px;line-height:1.7;color:var(--txt)}
+.explainer strong{color:var(--cyan)}
+.explainer code{background:var(--panel2);padding:1px 5px;border-radius:2px;color:var(--yellow);font-family:inherit}
+.explainer ul{margin:10px 0 10px 18px;padding:0}
+.explainer li{margin-bottom:4px;color:var(--mute)}
+
+.fwd-table th{text-align:right}
+.fwd-table th:first-child{text-align:left}
+.fwd-table td.horizon{color:var(--cyan);font-weight:600;text-align:left;font-size:13px}
+.fwd-table td.basis{color:var(--dim);font-size:11px}
+
+.hist-table td.good{color:var(--green)}
+.hist-table td.bad{color:var(--red)}
+
+.foot{margin-top:20px;color:var(--dim);font-size:11px;line-height:1.6;padding-top:14px;border-top:1px solid var(--line)}
+.foot b{color:var(--mute);font-weight:500}
+.foot .meta-row{margin-bottom:5px}
+
+.fail{padding:18px;color:var(--red);background:var(--panel);border:1px solid var(--line);border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <h1>VIX Backwardation Capitulation Trigger</h1>
+    <div class="sub">The once-per-cycle institutional buy signal. Fires when the VIX term structure inverts into full backwardation (VIX9D &gt; VIX &gt; VIX3M) while VVIX is in panic territory. Historically: an 86-95% win rate over 3-12 month horizons across 15+ episodes since 2008.</div>
+  </div>
+  <div class="right">
+    <a class="btn" href="vix-curve.html">Vol Term Structure</a>
+    <a class="btn" href="vrp.html">VRP</a>
+    <a class="btn" href="signal-board.html">Signal Board</a>
+    <a class="btn" href="directory.html">All</a>
+  </div>
+</div>
+
+<div id="root"><div class="panel" style="color:var(--dim)">Loading current state&hellip;</div></div>
+
+</div>
+
+<script>
+const URL_BASE='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
+const REPORT_KEY='data/vix-backwardation-trigger.json';
+const REFRESH_MS=60000;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtNum(n,p){if(n==null||isNaN(n))return '\u2014'; return Number(n).toFixed(p==null?2:p);}
+function fmtPct(n){if(n==null||isNaN(n))return '\u2014'; const s=(n>=0?'+':'')+Number(n).toFixed(1)+'%'; return s;}
+function pctClass(n){if(n==null)return 'dim'; return n>0?'good':(n<0?'bad':'dim');}
+
+function renderState(d){
+  const s=(d.state||'NULL').toLowerCase();
+  const sub=[];
+  if(d.state_since)sub.push('since '+new Date(d.state_since).toLocaleString());
+  if(d.cooldown_until)sub.push('cooldown until '+new Date(d.cooldown_until).toLocaleString());
+  if(d.state_transition)sub.push('transition: '+d.state_transition);
+  return '<div class="state-banner s-'+s+'">'+
+    '<div>'+
+      '<div class="state-label">Current State</div>'+
+      '<div class="state-value">'+esc(d.state)+'</div>'+
+      '<div class="sub-info">'+sub.join(' &middot; ')+'</div>'+
+    '</div>'+
+    '<div>'+
+      '<div class="strength">'+esc(d.signal_strength||0)+'</div>'+
+      '<div class="strength-l">signal strength / 100</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderReadings(r){
+  const cs=(r.curve_status||'').toLowerCase().replace(/[ _]/g,'-');
+  let curveClass='';
+  if(cs.indexOf('full')>=0)curveClass='full-back';
+  else if(cs.indexOf('front')>=0)curveClass='front-back';
+  else if(cs.indexOf('contango')>=0)curveClass='contango';
+  return '<div class="readings">'+
+    reading('VIX9D','9-day',r.vix9d)+
+    reading('VIX','30-day',r.vix)+
+    reading('VIX3M','3-month',r.vix3m)+
+    reading('VIX6M','6-month',r.vix6m)+
+    reading('VVIX','vol-of-vol',r.vvix,r.vvix==null?null:(r.vvix>130?'PANIC':null))+
+    reading('SPY','underlying','$'+fmtNum(r.spy_price,2))+
+    '<div class="reading curve '+curveClass+'"><div class="l">term structure</div>'+
+      '<div class="v">'+fmtPct(r.curve_9d_to_3m_pct)+'</div>'+
+      '<div class="s">'+esc(r.curve_status||'\u2014')+'</div></div>'+
+  '</div>';
+}
+function reading(lbl,sub,val,note){
+  return '<div class="reading"><div class="l">'+esc(lbl)+'</div>'+
+    '<div class="v">'+esc(val==null?'\u2014':val)+'</div>'+
+    '<div class="s">'+esc(sub||'')+(note?' &middot; <b style="color:var(--yellow)">'+esc(note)+'</b>':'')+'</div></div>';
+}
+
+function renderConditions(conds){
+  return conds.map(c=>{
+    const cl=c.satisfied?'sat':'unsat';
+    const m=c.satisfied?'\u2713':'\u00d7';
+    return '<div class="cond '+cl+'">'+
+      '<div class="mark">'+m+'</div>'+
+      '<div class="name">'+esc(c.name)+'</div>'+
+      '<div class="curr">'+esc(c.current)+'</div>'+
+      '<div class="w">w'+esc(c.weight)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderForward(f){
+  if(!f||!f['3m'])return '<div class="panel" style="color:var(--dim)">forward expectations not yet computed.</div>';
+  const horizons=[['1m','Next 1 month'],['3m','Next 3 months'],['12m','Next 12 months']];
+  let rows='';
+  horizons.forEach(([k,lbl])=>{
+    const x=f[k]||{};
+    rows+='<tr>'+
+      '<td class="horizon">'+esc(lbl)+'</td>'+
+      '<td class="num '+pctClass(x.return_pct)+'">'+fmtPct(x.return_pct)+'</td>'+
+      '<td class="num">'+fmtPct(x.median_pct)+'</td>'+
+      '<td class="num">'+(x.win_rate_pct==null?'\u2014':fmtNum(x.win_rate_pct,0)+'%')+'</td>'+
+      '<td class="num good">'+fmtPct(x.best_pct)+'</td>'+
+      '<td class="num bad">'+fmtPct(x.worst_pct)+'</td>'+
+      '<td class="num dim">'+esc(x.n||0)+'</td>'+
+    '</tr>';
+  });
+  return '<table class="dt fwd-table">'+
+    '<thead><tr><th>Horizon</th><th class="num">Avg return</th><th class="num">Median</th><th class="num">Win rate</th><th class="num">Best</th><th class="num">Worst</th><th class="num">N</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '<div style="color:var(--dim);font-size:11px;margin-top:8px">SPY forward returns computed live from 20y FMP history at each historical trigger date. The basis is calendar-day forwards (not trading-day).</div>';
+}
+
+function renderTrade(t){
+  if(!t)return '';
+  let html='';
+  if(t.primary){
+    html+=tradeCard('Primary trade',t.primary,'primary');
+  }
+  if(t.defined_risk_alt){
+    html+=tradeCard('Defined-risk alt',t.defined_risk_alt,'');
+  }
+  if(t.leveraged_alt){
+    html+=tradeCard('Leveraged alt',t.leveraged_alt,'');
+  }
+  if(t.exit_rules&&t.exit_rules.length){
+    html+='<div class="trade-card"><div class="label">Exit rules</div>'+
+      '<ul class="exit-rules">'+t.exit_rules.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul></div>';
+  }
+  return html;
+}
+function tradeCard(label,t,cls){
+  const fields=[];
+  if(t.size_guidance)fields.push('<b>Size</b> '+esc(t.size_guidance));
+  if(t.max_loss)fields.push('<b>Max loss</b> '+esc(t.max_loss));
+  if(t.expected_horizon)fields.push('<b>Horizon</b> '+esc(t.expected_horizon));
+  if(t.expected_return_basis)fields.push('<b>Basis</b> '+esc(t.expected_return_basis));
+  return '<div class="trade-card '+cls+'">'+
+    '<div class="label">'+esc(label)+'</div>'+
+    '<div class="instr">'+esc(t.instrument||'')+'</div>'+
+    (t.thesis?'<div class="thesis">'+esc(t.thesis)+'</div>':'')+
+    (fields.length?'<div class="meta">'+fields.map(f=>'<div>'+f+'</div>').join('')+'</div>':'')+
+  '</div>';
+}
+
+function renderExplainer(md){
+  if(!md)return '';
+  // Simple markdown: **bold**, * bullets, paragraph splits
+  const lines=md.split('\n');
+  let out='',inList=false;
+  for(const ln of lines){
+    if(/^\s*\*\s/.test(ln)){
+      if(!inList){out+='<ul>';inList=true;}
+      out+='<li>'+inline(ln.replace(/^\s*\*\s/,''))+'</li>';
+    }else{
+      if(inList){out+='</ul>';inList=false;}
+      if(ln.trim()){out+='<p>'+inline(ln)+'</p>';}
+    }
+  }
+  if(inList)out+='</ul>';
+  return '<div class="explainer">'+out+'</div>';
+  function inline(s){return esc(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>');}
+}
+
+function renderHistory(rows){
+  if(!rows||!rows.length)return '<div class="panel" style="color:var(--dim)">no historical events recorded</div>';
+  let body='';
+  rows.forEach(r=>{
+    body+='<tr>'+
+      '<td>'+esc(r.date)+'</td>'+
+      '<td class="dim">'+esc(r.label)+'</td>'+
+      '<td class="num">$'+fmtNum(r.spy_at_trigger,2)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_1m_pct)+'">'+fmtPct(r.fwd_1m_pct)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_3m_pct)+'">'+fmtPct(r.fwd_3m_pct)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_12m_pct)+'">'+fmtPct(r.fwd_12m_pct)+'</td>'+
+    '</tr>';
+  });
+  return '<table class="dt hist-table">'+
+    '<thead><tr><th>Date</th><th>Event</th><th class="num">SPY at</th><th class="num">Fwd 1m</th><th class="num">Fwd 3m</th><th class="num">Fwd 12m</th></tr></thead>'+
+    '<tbody>'+body+'</tbody></table>';
+}
+
+function build(d){
+  if(!d||!d.engine){
+    document.getElementById('root').innerHTML='<div class="fail">VIX backwardation trigger output not yet available. The engine runs 3x daily MON-FRI at 14, 17, 21 UTC. If you just deployed, give it a minute.</div>';
+    return;
+  }
+  const html=
+    renderState(d)+
+    '<div class="sechead">Current Readings</div>'+
+    '<div class="panel">'+renderReadings(d.current_readings||{})+'</div>'+
+    '<div class="sechead">Trigger Conditions</div>'+
+    '<div class="panel">'+renderConditions(d.trigger_conditions||[])+'</div>'+
+    '<div class="sechead">Forward Expectations (when this fires)</div>'+
+    '<div class="panel">'+renderForward(d.forward_expectations||{})+'</div>'+
+    '<div class="sechead">Why this, why now</div>'+
+    renderExplainer(d.why_now_explainer)+
+    '<div class="sechead">Recommended Trade</div>'+
+    renderTrade(d.recommended_trade||{})+
+    '<div class="sechead">Historical Episodes</div>'+
+    '<div class="panel">'+renderHistory(d.historical_episodes||[])+'</div>'+
+    '<div class="foot">'+
+      '<div class="meta-row"><b>Schedule:</b> '+esc(d.schedule||'n/a')+'</div>'+
+      '<div class="meta-row"><b>Last update:</b> '+esc(d.as_of?new Date(d.as_of).toLocaleString():'')+'</div>'+
+      '<div class="meta-row"><b>Methodology:</b> '+esc(d.methodology||'')+'</div>'+
+      '<div class="meta-row"><b>Sources:</b> '+esc((d.sources||[]).join(', '))+'</div>'+
+      '<div class="meta-row" style="margin-top:8px;color:var(--mute)"><b>Risk note:</b> Past performance does not guarantee future returns. The signal has 1-2 historical near-misses where the bottom was a week away. Size your trades accordingly; the position-sizer (<a href="position-sizer.html">/position-sizer.html</a>) gives you risk-adjusted size given account size and stop level.</div>'+
+    '</div>';
+  document.getElementById('root').innerHTML=html;
+}
+
+function load(){
+  fetch(URL_BASE+REPORT_KEY+'?cb='+Date.now())
+    .then(r=>r.json()).then(build)
+    .catch(e=>{
+      document.getElementById('root').innerHTML='<div class="fail">data/vix-backwardation-trigger.json not reachable. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+setInterval(load,REFRESH_MS);
+</script>
+</body>
+</html>

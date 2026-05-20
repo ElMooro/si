@@ -1,0 +1,12 @@
+{
+  "name": "justhodl-vix-backwardation-trigger",
+  "description": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN based on VIX9D/VIX/VIX3M term structure + VVIX panic gauge. Emits retail trade ticket + forward 1m/3m/12m expected returns computed live from 20y SPY history at curated historical analogues. 3x daily MON-FRI.",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "memory_mb": 256,
+  "timeout_s": 60,
+  "architectures": ["x86_64"],
+  "inherit_env": true,
+  "environment": {}
+}
