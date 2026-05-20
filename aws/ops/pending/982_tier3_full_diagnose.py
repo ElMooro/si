@@ -1,5 +1,5 @@
 """
-ops 981 - Tier-3 Comprehensive Diagnostic
+ops 982 - Tier-3 Comprehensive Diagnostic
 ==========================================
 
 Three checks in one report so we can write proper fixes:
@@ -19,7 +19,7 @@ Three checks in one report so we can write proper fixes:
      to confirm they actually complete now that we're past cold-start.
 
 All from a single Lambda-deploy via the ops runner. Writes
-aws/ops/reports/981.json.
+aws/ops/reports/982.json.
 """
 import json
 import os
@@ -53,7 +53,7 @@ LONG_RUNNING_ENGINES = ["justhodl-sympathetic-momentum", "justhodl-gap-fill-conf
 REPO_ROOT = Path(__file__).resolve().parents[3]
 REPORTS_DIR = REPO_ROOT / "aws" / "ops" / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-REPORT_PATH = REPORTS_DIR / "981.json"
+REPORT_PATH = REPORTS_DIR / "982.json"
 
 
 def http_get(url, timeout=20):
@@ -218,7 +218,7 @@ def warm_invoke(lambda_c, fn):
 
 def main():
     report = {
-        "ops_id": "981",
+        "ops_id": "982",
         "purpose": "Comprehensive Tier-3 diagnostic: feeders + FMP probes + warm invokes",
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "feeders": {},
