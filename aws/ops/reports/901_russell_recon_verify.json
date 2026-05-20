@@ -1,0 +1,29 @@
+{
+  "ops": 901,
+  "title": "verify Edge #5 (Russell reconstitution front-run)",
+  "started_at": "2026-05-20T13:06:20.093290Z",
+  "duration_seconds": 0.8,
+  "checks": [
+    {
+      "check": "e5.lambda_deployed",
+      "ok": false,
+      "note": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-russell-recon-frontrun"
+    },
+    {
+      "check": "e5.ssm_snapshot_written",
+      "ok": false,
+      "note": "len=0"
+    },
+    {
+      "check": "e5.page_live",
+      "ok": false,
+      "note": "http=404 size=0"
+    }
+  ],
+  "summary": {
+    "pass": 0,
+    "fail": 3,
+    "total": 3
+  },
+  "overall_ok": false
+}
