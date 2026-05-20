@@ -700,6 +700,44 @@ def lambda_handler(event, context):
         "trigger_conditions": trigger_conditions,
         "forward_expectations": forward_expectations,
         "top_opportunities": top,
+        "recommended_trade": (
+            {
+                "primary": top[0].get("primary", {
+                    "instrument": top[0].get("ticker", ""),
+                    "thesis": f"Top buyback authorization: {top[0].get('ticker','')} "
+                              f"~{top[0].get('pct_of_mcap', 0):.1f}% of mcap; "
+                              f"academic drift prior over 90d.",
+                    "size_guidance": "1-2% per name, max 8% basket exposure",
+                    "max_loss": "20% trailing stop",
+                    "expected_horizon": "90 calendar days",
+                    "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen 1995, "
+                                             "Peyer-Vermaelen 2009",
+                }),
+                "defined_risk_alt": {
+                    "instrument": f"{top[0].get('ticker','')} 90d ATM call diagonal",
+                    "thesis": "Defined-risk vehicle for buyback-drift thesis; "
+                              "capped downside, leveraged to drift",
+                },
+                "exit_rules": top[0].get("exit_rules", [
+                    "Hard exit at T+90 (drift edge decays after 3 months)",
+                    "Stop if down 20% from authorization date",
+                    "Re-evaluate if 8-K announces program pause/suspension",
+                    "Take partial profit if up 12% before T+45",
+                ]),
+            }
+            if top else
+            {
+                "primary": {
+                    "instrument": "Stand down",
+                    "thesis": "No fresh buyback authorizations meeting threshold. "
+                              "Re-engage when 8-K tape activity returns.",
+                    "size_guidance": "n/a", "max_loss": "n/a",
+                    "expected_horizon": "wait",
+                    "expected_return_basis": "n/a",
+                },
+                "exit_rules": [],
+            }
+        ),
         "why_now_explainer": why_now,
         "methodology": (
             "Pull last 21 days of 8-K filings from SEC EDGAR matching 4 search "

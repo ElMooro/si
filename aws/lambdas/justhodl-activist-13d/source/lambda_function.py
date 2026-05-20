@@ -525,7 +525,7 @@ def lambda_handler(event, context):
         "trigger_conditions": triggers,
         "forward_expectations": forward,
         "top_setups": top,
-        "all_setups_full_list": all_setups,
+        "all_setups": all_setups,
         "recommended_trade": (top[0]["recommended_trade"] if top
                               else {"primary": {"instrument": "Wait for activist 13D filing",
                                                 "thesis": "No active setups; re-engage on next filing",
@@ -534,9 +534,17 @@ def lambda_handler(event, context):
                                                 "expected_return_basis": "n/a"},
                                     "exit_rules": []}),
         "why_now_explainer": (top[0]["why_now_explainer"] if top
-                              else "### No active activist 13D setups\n\nQueue is empty -- "
-                                   "all curated activists have no SC 13D filings in the past 21 days. "
-                                   "Re-engage when a fresh filing appears."),
+                              else "### No active activist 13D setups in queue\n\n"
+                                   "The curated 18-name activist roster (Elliott, Trian, Starboard, "
+                                   "Pershing Square, Icahn, ValueAct, Engine, JANA, Third Point, "
+                                   "RC Ventures and others) currently has no SC 13D or SC 13D/A "
+                                   "filings in the past 21 trading days. This is a *waiting* state, "
+                                   "not a negative signal -- activist filings cluster in unpredictable "
+                                   "waves, and the Brav-Jiang-Partnoy-Thomas (2008) edge of +6 to +12 % "
+                                   "alpha over 12 months only triggers when a fresh tier-A filing "
+                                   "appears with <5 trading days of age. Polling every 2 hours via "
+                                   "SEC EDGAR full-text search; this page auto-updates when the next "
+                                   "qualifying filing is detected. No action required."),
         "academic_basis": [
             "Brav, Jiang, Partnoy, Thomas (2008): Hedge Fund Activism, Corporate Governance, and Firm Performance",
             "Krishnan, Partnoy, Thomas (2015): The Second Wave of Hedge Fund Activism",

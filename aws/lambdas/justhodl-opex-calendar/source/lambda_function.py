@@ -646,14 +646,33 @@ def lambda_handler(event, context):
 
     why_now = build_why_now(state, calendar, mp, priors, backtest)
 
+    # Dealer gamma proxy derived from pin distance + OPEX phase.
+    # SqueezeMetrics / SpotGamma framing: dealers structurally LONG gamma when
+    # market sits at max-pain pre-OPEX (volatility-dampening flow); SHORT gamma
+    # when spot dislocates from pin in the final OPEX day (pin breaks =
+    # volatility-amplifying flow). NEUTRAL otherwise.
+    _pin_dist = abs(mp.get("pin_distance_pct") or 0) if mp else 0
+    if state in ("OPEX_WEEK", "QUAD_WITCHING") and _pin_dist <= 0.5:
+        dealer_gex_proxy = "LONG_GAMMA"
+    elif state in ("OPEX_DAY", "QUAD_WITCHING_OPEX_DAY") and _pin_dist > 1.0:
+        dealer_gex_proxy = "SHORT_GAMMA"
+    elif state == "POST_OPEX":
+        dealer_gex_proxy = "SHORT_GAMMA"
+    else:
+        dealer_gex_proxy = "NEUTRAL"
+
     output = {
         "engine": "opex-calendar",
-        "version": "1.0",
+        "version": "1.1",
         "as_of": dt.datetime.utcnow().isoformat() + "Z",
         "state": state,
         "previous_state": prev_state,
         "state_transition": state != prev_state,
         "signal_strength": intensity,
+        # Top-level edge-defining readings (canonical schema)
+        "days_to_next_opex": calendar.get("days_to_next_opex_trading"),
+        "max_pain": (mp.get("max_pain") if mp else None),
+        "dealer_gex_proxy": dealer_gex_proxy,
         "calendar": calendar,
         "current_readings": {
             "next_opex": calendar["next_opex"],

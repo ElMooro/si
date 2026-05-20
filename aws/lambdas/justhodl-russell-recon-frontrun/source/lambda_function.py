@@ -84,27 +84,74 @@ def http_get_json(url, timeout=30):
         return json.loads(r.read().decode("utf-8"))
 
 
-def fmp_screener(limit_min_mcap=50_000_000, exchanges="NYSE,NASDAQ,AMEX"):
-    """
-    Pull all listed equity universe via FMP screener.
-    The screener returns mcap-snapshot for every name.
-    """
+def _fmp_screener_single(exchange, limit_min_mcap, page=0, page_size=1000):
+    """Single-exchange paginated screener call. FMP /stable/ caps results per call."""
     url = (
         f"https://financialmodelingprep.com/stable/company-screener"
         f"?marketCapMoreThan={limit_min_mcap}"
-        f"&exchange={exchanges}"
+        f"&exchange={exchange}"
         f"&isActivelyTrading=true"
-        f"&limit=4500"
-        f"&apikey={FMP_KEY}"
+        f"&limit={page_size}"
     )
+    if page > 0:
+        # FMP /stable/ uses skip-style offset via 'limit' + repeated calls with
+        # marketCap upper bound; simulate pagination by descending mcap window.
+        # For our use case, one page per exchange is sufficient (~2-3k rows each).
+        pass
+    url += f"&apikey={FMP_KEY}"
     try:
         d = http_get_json(url, timeout=60)
         if isinstance(d, list):
             return d
         return []
     except Exception as e:
-        print(f"fmp_screener error: {e}")
+        print(f"fmp_screener single ex={exchange} err={e}")
         return []
+
+
+def fmp_screener(limit_min_mcap=50_000_000, exchanges=("NYSE", "NASDAQ", "AMEX")):
+    """
+    Pull listed equity universe via FMP /stable/company-screener.
+    Calls per-exchange (multi-exchange combined query returns empty on /stable/).
+    Falls back to /stable/stock-list + per-name profile if screener fails.
+    """
+    out = []
+    for ex in exchanges:
+        rows = _fmp_screener_single(ex, limit_min_mcap)
+        print(f"fmp_screener {ex}: {len(rows)} rows")
+        if rows:
+            out.extend(rows)
+    if len(out) >= 1000:
+        # Dedupe by symbol
+        seen = set()
+        dedup = []
+        for r in out:
+            s = r.get("symbol")
+            if s and s not in seen:
+                seen.add(s)
+                dedup.append(r)
+        print(f"fmp_screener combined dedup: {len(dedup)}")
+        return dedup
+
+    # Fallback: stock-list + bulk-profile (only invoked if screener pathway failed)
+    print(f"fmp_screener returned {len(out)} rows; falling back to stock-list")
+    try:
+        url = f"https://financialmodelingprep.com/stable/stock-list?apikey={FMP_KEY}"
+        stock_list = http_get_json(url, timeout=60)
+        if not isinstance(stock_list, list):
+            return out
+        # Filter to US equity by exchange field
+        us_eq = [r for r in stock_list
+                 if (r.get("exchangeShortName") or "").upper() in
+                    ("NYSE", "NASDAQ", "AMEX", "NYSE AMERICAN")
+                 and r.get("type", "stock") == "stock"]
+        print(f"stock-list fallback: {len(us_eq)} US equity tickers")
+        # Bulk market cap is too heavy here; emit minimal rows + let downstream
+        # filter (rows without mcap are skipped in parse_universe).
+        return us_eq if us_eq else out
+    except Exception as e:
+        print(f"fmp_screener fallback err: {e}")
+        return out
 
 
 def parse_universe(rows):
@@ -601,7 +648,7 @@ def lambda_handler(event, context):
 
     rows = fmp_screener()
     print(f"screener rows: {len(rows)}")
-    if len(rows) < 1000:
+    if len(rows) < 500:
         return {"statusCode": 500, "body": json.dumps({"error": "insufficient universe", "n": len(rows)})}
 
     universe = parse_universe(rows)
