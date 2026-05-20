@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JustHodl - Live Institutional Stream</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1320px;margin:0 auto;padding:14px 16px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.top h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px}
+.top .sub{color:var(--mute);font-size:11px;margin-top:2px}
+.top .right{display:flex;gap:8px;align-items:center}
+.btn{display:inline-block;padding:5px 10px;border:1px solid var(--line);
+  background:var(--panel);color:var(--mute);border-radius:3px;font-size:11px;
+  font-family:inherit;cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--txt);border-color:#2a3445}
+.status{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border:1px solid var(--line);background:var(--panel);border-radius:3px;
+  font-size:11px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim);
+  display:inline-block;flex:0 0 8px}
+.dot.live{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.warn{background:var(--yellow)}
+.dot.dead{background:var(--red)}
+.meta{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:10px 12px;margin-bottom:14px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 18px}
+.meta div{font-size:11px;color:var(--dim)}
+.meta b{color:var(--txt);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:10px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:11px 13px;position:relative;transition:border-color .4s}
+.card.pulse{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,212,255,.18)}
+.card .ch{font-size:10px;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:3px}
+.card .hd{font-size:13px;color:var(--txt);font-weight:600;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:baseline}
+.card .v{font-size:26px;font-weight:700;color:var(--cyan);line-height:1.0}
+.card .lvl{font-size:10px;color:var(--mute);text-transform:uppercase;
+  letter-spacing:.4px;margin-top:2px}
+.card .det{font-size:11px;color:var(--dim);margin-top:8px;
+  display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.card .det span b{color:var(--mute);font-weight:500}
+.card .ts{position:absolute;top:11px;right:13px;font-size:10px;color:var(--dim)}
+.card.empty .v{color:var(--dim);font-size:14px;font-weight:400}
+.lvl.calm,.lvl.benign,.lvl.risk-on,.lvl.risk_on,.lvl.bullish{color:var(--green)}
+.lvl.elevated,.lvl.watchful,.lvl.risk_on_tilt,.lvl.risk-on-tilt,.lvl.neutral{color:var(--yellow)}
+.lvl.stressed,.lvl.pressure,.lvl.defensive_tilt,.lvl.defensive-tilt,.lvl.bearish{color:var(--orange)}
+.lvl.acute,.lvl.event,.lvl.defensive,.lvl.crisis{color:var(--red)}
+
+.sechead{margin:16px 0 8px;font-size:11px;color:var(--mute);
+  text-transform:uppercase;letter-spacing:.7px;padding-bottom:5px;
+  border-bottom:1px solid var(--line)}
+.tape{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  max-height:480px;overflow-y:auto;font-size:12px}
+.tape-row{display:grid;grid-template-columns:78px 110px 1fr 90px;
+  padding:6px 12px;border-bottom:1px solid var(--panel2);gap:10px;
+  align-items:start}
+.tape-row:hover{background:var(--panel2)}
+.tape-row .t{color:var(--dim);font-size:11px}
+.tape-row .c{color:var(--cyan);font-size:11px;text-transform:uppercase;
+  letter-spacing:.4px}
+.tape-row .m{color:var(--txt);font-size:12px}
+.tape-row .h{color:var(--mute);font-size:11px;text-align:right}
+.tape-row.flip{background:rgba(255,210,102,.05)}
+.tape-row.flip .c{color:var(--yellow)}
+.tape-row.first .c{color:var(--purple)}
+.tape-row.system .c{color:var(--dim)}
+.tape-row.system .m{color:var(--dim);font-style:italic}
+.empty-tape{padding:40px 16px;text-align:center;color:var(--dim);font-size:12px}
+
+.note{margin-top:18px;color:var(--dim);font-size:11px;line-height:1.6}
+.note b{color:var(--mute);font-weight:500}
+.fail{padding:14px;color:var(--red);background:var(--panel);border:1px solid var(--line);
+  border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <h1>Live Institutional Stream</h1>
+    <div class="sub">Real-time signal-delta fanout. Subscribed to all tracked institutional channels.</div>
+  </div>
+  <div class="right">
+    <span class="status" id="ws_status"><span class="dot" id="ws_dot"></span><span id="ws_text">connecting&hellip;</span></span>
+    <a class="btn" href="signal-board.html">Signal Board</a>
+    <a class="btn" href="risk-desk.html">Risk Desk</a>
+    <a class="btn" href="directory.html">All</a>
+  </div>
+</div>
+
+<div class="meta" id="meta">
+  <div>connection &middot; <b id="m_url">resolving&hellip;</b></div>
+  <div>channels &middot; <b id="m_channels">&mdash;</b></div>
+  <div>pushes &middot; <b id="m_pushes">0</b></div>
+  <div>last push &middot; <b id="m_last">&mdash;</b></div>
+  <div>session &middot; <b id="m_session">&mdash;</b></div>
+</div>
+
+<div class="sechead">Live Engine Cards</div>
+<div class="grid" id="cards"></div>
+
+<div class="sechead">Streaming Tape</div>
+<div class="tape" id="tape"><div class="empty-tape">Waiting for first push&hellip; (subscribed channels will appear here when an institutional signal moves enough to broadcast)</div></div>
+
+<div class="note" id="explainer"></div>
+
+</div>
+
+<script>
+const URL_BASE='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
+const CONFIG_KEY='data/streaming-config.json';
+const RECONNECT_BACKOFF=[2000,4000,8000,15000,30000];
+const PING_MS=25000;
+const POLL_FALLBACK_MS=30000;
+const TAPE_MAX=200;
+
+let ws=null;
+let cfg=null;
+let pushCount=0;
+let reconnectIx=0;
+let pingTimer=null;
+let pollTimer=null;
+let sessionStart=Date.now();
+const engineCards={};   // engine_name -> DOM card el
+const lastEngineState={};
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtTime(d){const h=String(d.getHours()).padStart(2,'0');const m=String(d.getMinutes()).padStart(2,'0');const s=String(d.getSeconds()).padStart(2,'0');return h+':'+m+':'+s;}
+function fmtAgo(t){if(!t)return '\u2014';const d=Math.floor((Date.now()-t)/1000);if(d<5)return 'just now';if(d<60)return d+'s ago';const m=Math.floor(d/60);if(m<60)return m+'m ago';return Math.floor(m/60)+'h ago';}
+function lvlClass(v){if(!v)return '';return String(v).toLowerCase().replace(/[^a-z_-]/g,'').replace(/_/g,'-');}
+
+function setStatus(state,txt){
+  const dot=document.getElementById('ws_dot');
+  const t=document.getElementById('ws_text');
+  dot.className='dot '+state;
+  t.textContent=txt;
+}
+
+function appendTape(row){
+  const tape=document.getElementById('tape');
+  if(tape.querySelector('.empty-tape'))tape.innerHTML='';
+  const div=document.createElement('div');
+  div.className='tape-row '+(row.cls||'');
+  div.innerHTML='<div class="t">'+esc(row.time)+'</div>'+
+    '<div class="c">'+esc(row.channel)+'</div>'+
+    '<div class="m">'+esc(row.msg)+'</div>'+
+    '<div class="h">'+esc(row.head||'')+'</div>';
+  tape.insertBefore(div,tape.firstChild);
+  while(tape.children.length>TAPE_MAX)tape.removeChild(tape.lastChild);
+}
+
+function buildCards(){
+  const grid=document.getElementById('cards');
+  grid.innerHTML='';
+  (cfg.engines||[]).forEach(e=>{
+    const card=document.createElement('div');
+    card.className='card empty';
+    card.id='card_'+e.name;
+    card.innerHTML='<div class="ts" id="ts_'+e.name+'">&mdash;</div>'+
+      '<div class="ch">'+esc(e.channel)+'</div>'+
+      '<div class="hd"><span>'+esc(e.name.replace(/_/g,' '))+'</span>'+
+        '<span style="font-size:10px;color:var(--dim)">'+esc(e.headline_field)+'</span></div>'+
+      '<div class="v" id="v_'+e.name+'">awaiting&hellip;</div>'+
+      '<div class="lvl" id="lvl_'+e.name+'"></div>'+
+      '<div class="det" id="det_'+e.name+'"></div>';
+    grid.appendChild(card);
+    engineCards[e.name]=card;
+  });
+}
+
+function updateCard(engineName,summary,deltaReason){
+  const e=(cfg.engines||[]).find(x=>x.channel===engineName||x.name===engineName);
+  if(!e)return;
+  const card=engineCards[e.name];
+  if(!card)return;
+  card.classList.remove('empty');
+  card.classList.add('pulse');
+  setTimeout(()=>card.classList.remove('pulse'),900);
+  const v=summary[e.headline_field];
+  const lvl=summary[e.flip_field];
+  document.getElementById('v_'+e.name).textContent=(v==null?'\u2014':v);
+  const lvlEl=document.getElementById('lvl_'+e.name);
+  lvlEl.textContent=lvl||'';
+  lvlEl.className='lvl '+lvlClass(lvl);
+  document.getElementById('ts_'+e.name).textContent=fmtAgo(Date.now());
+  // detail rows: all other fields
+  const det=document.getElementById('det_'+e.name);
+  const rows=[];
+  Object.keys(summary).forEach(k=>{
+    if(k===e.headline_field||k===e.flip_field||k==='engine'||k==='as_of')return;
+    rows.push('<span><b>'+esc(k)+'</b> '+esc(summary[k])+'</span>');
+  });
+  if(summary.as_of)rows.push('<span><b>as_of</b> '+esc(String(summary.as_of).slice(11,19))+'</span>');
+  if(deltaReason)rows.push('<span style="grid-column:1/-1;color:var(--cyan);margin-top:4px">\u2192 '+esc(deltaReason)+'</span>');
+  det.innerHTML=rows.join('');
+  lastEngineState[e.name]={summary,t:Date.now()};
+}
+
+function handleMessage(raw){
+  let msg;try{msg=JSON.parse(raw);}catch(e){return;}
+  if(msg.action==='pong')return;
+  if(!msg.channel)return;
+  pushCount++;
+  document.getElementById('m_pushes').textContent=pushCount;
+  document.getElementById('m_last').textContent=fmtTime(new Date());
+  const summary=(msg.payload||{}).summary||msg.payload||{};
+  const reason=(msg.payload||{}).delta_reason||'';
+  updateCard(msg.channel,summary,reason);
+  const e=(cfg.engines||[]).find(x=>x.channel===msg.channel);
+  const head=e?(esc(e.headline_field)+'='+esc(summary[e.headline_field])):'';
+  const cls=reason.indexOf('flip')>=0?'flip':(reason.indexOf('first')>=0?'first':'');
+  appendTape({
+    time:fmtTime(new Date()),
+    channel:msg.channel,
+    msg:reason||'updated',
+    head:head,
+    cls:cls
+  });
+}
+
+function startPing(){
+  if(pingTimer)clearInterval(pingTimer);
+  pingTimer=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({action:'ping'}));},PING_MS);
+}
+
+function pollFallback(){
+  // S3 fallback: refresh fanout log every 30s, re-render any engine
+  // that doesn't yet have a card payload.
+  if(pollTimer)return;
+  pollTimer=setInterval(()=>{
+    fetch(URL_BASE+'data/streaming-fanout.json?cb='+Date.now())
+      .then(r=>r.json())
+      .then(d=>{
+        (d.actions||[]).forEach(a=>{
+          if(!lastEngineState[a.engine]&&a.headline!=null){
+            updateCard(a.engine,{[a.engine]:'',engine:a.engine,
+              ...{[((cfg.engines||[]).find(x=>x.name===a.engine)||{}).headline_field||'value']:a.headline},
+              ...{[((cfg.engines||[]).find(x=>x.name===a.engine)||{}).flip_field||'flip']:a.flip_state}},'(polled from S3)');
+          }
+        });
+      })
+      .catch(()=>{});
+  },POLL_FALLBACK_MS);
+}
+
+function connect(){
+  if(!cfg||!cfg.ws_url){
+    setStatus('dead','no ws url');
+    return;
+  }
+  setStatus('warn','connecting');
+  try{ws=new WebSocket(cfg.ws_url);}catch(e){
+    appendTape({time:fmtTime(new Date()),channel:'system',msg:'ws open failed: '+e,cls:'system'});
+    setStatus('dead','open failed');
+    scheduleReconnect();
+    return;
+  }
+  ws.onopen=()=>{
+    reconnectIx=0;
+    setStatus('live','live');
+    appendTape({time:fmtTime(new Date()),channel:'system',msg:'connected '+cfg.ws_url,cls:'system'});
+    ws.send(JSON.stringify({action:'subscribe',channels:cfg.channels||[]}));
+    startPing();
+  };
+  ws.onmessage=ev=>handleMessage(ev.data);
+  ws.onerror=ev=>{appendTape({time:fmtTime(new Date()),channel:'system',msg:'ws error',cls:'system'});};
+  ws.onclose=ev=>{
+    setStatus('warn','disconnected');
+    if(pingTimer){clearInterval(pingTimer);pingTimer=null;}
+    appendTape({time:fmtTime(new Date()),channel:'system',msg:'disconnected (code '+ev.code+')',cls:'system'});
+    scheduleReconnect();
+  };
+}
+
+function scheduleReconnect(){
+  const wait=RECONNECT_BACKOFF[Math.min(reconnectIx,RECONNECT_BACKOFF.length-1)];
+  reconnectIx++;
+  setStatus('warn','reconnecting in '+(wait/1000)+'s');
+  setTimeout(connect,wait);
+  pollFallback();
+}
+
+function loadInitialSnapshots(){
+  // Fetch the per-engine sidecars so cards aren't blank on first paint.
+  (cfg.engines||[]).forEach(e=>{
+    fetch(URL_BASE+'data/_streaming/'+e.name+'_last.json?cb='+Date.now())
+      .then(r=>r.ok?r.json():null)
+      .then(d=>{if(d&&d.summary)updateCard(e.name,d.summary,'(initial)');})
+      .catch(()=>{});
+  });
+}
+
+function start(){
+  document.getElementById('m_session').textContent=fmtTime(new Date(sessionStart));
+  document.getElementById('m_url').textContent=cfg.ws_url||'(unset)';
+  document.getElementById('m_channels').textContent=(cfg.channels||[]).join(', ');
+  buildCards();
+  loadInitialSnapshots();
+  document.getElementById('explainer').innerHTML=
+    '<b>How this works.</b> justhodl-streaming-fanout polls 7 institutional signal engines every minute during US market hours, '+
+    'comparing each engine&apos;s headline against the last-broadcast snapshot. On a meaningful delta '+
+    '(score change above the engine&apos;s threshold OR a level/regime/posture flip), it invokes openbb-websocket-broadcast which '+
+    'fans the delta out to every connection in DDB subscribed to that channel. This page is one such subscriber. '+
+    'The streaming tape is the raw event log; the cards above show each engine&apos;s latest broadcast value. '+
+    '<br><br><b>Channels:</b> '+esc((cfg.channels||[]).join(', '))+
+    '<br><b>Source:</b> data/streaming-config.json (fanout publishes) + data/streaming-fanout.json (audit) + '+
+    'wss endpoint above (openbb-websocket-handler).';
+  connect();
+}
+
+fetch(URL_BASE+CONFIG_KEY+'?cb='+Date.now())
+  .then(r=>r.json())
+  .then(c=>{cfg=c;start();})
+  .catch(e=>{
+    document.getElementById('cards').innerHTML='<div class="fail">streaming-config.json not yet published. The fanout Lambda writes it on its first run; if you just deployed, give it 60 seconds.<br><br>Error: '+esc(e.message||e)+'</div>';
+    setStatus('dead','no config');
+  });
+
+window.addEventListener('beforeunload',()=>{if(ws)ws.close();});
+</script>
+</body>
+</html>

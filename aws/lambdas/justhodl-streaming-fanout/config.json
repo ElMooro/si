@@ -1,0 +1,15 @@
+{
+  "name": "justhodl-streaming-fanout",
+  "description": "Delta-detecting institutional intraday fanout: polls 7 tracked signal engines, broadcasts to WS subscribers only on meaningful change. Builds streaming-config.json for live.html. Every 1m US market hours.",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "memory_mb": 256,
+  "timeout_s": 60,
+  "architectures": ["x86_64"],
+  "inherit_env": true,
+  "environment": {
+    "WS_STAGE": "prod",
+    "BROADCAST_FN": "openbb-websocket-broadcast"
+  }
+}
