@@ -1,0 +1,53 @@
+{
+  "ops": 967,
+  "title": "delete orphan justhodl-capitulation Lambda (superseded by Edge #1)",
+  "run_at": "2026-05-20T15:53:56.939895Z",
+  "checks": [
+    {
+      "name": "successor.exists",
+      "passed": true,
+      "detail": "justhodl-vix-backwardation-trigger mod=2026-05-20T15:24:40"
+    },
+    {
+      "name": "successor.s3_fresh",
+      "passed": true,
+      "detail": "size=2351B age_h=0.4"
+    },
+    {
+      "name": "orphan.arn",
+      "passed": true,
+      "detail": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-capitulation"
+    },
+    {
+      "name": "orphan.eb_rules_found",
+      "passed": true,
+      "detail": "n=1 rules=['capitulation-3h']"
+    },
+    {
+      "name": "orphan.eb_targets_removed",
+      "passed": true,
+      "detail": "n=1 rules=['capitulation-3h']"
+    },
+    {
+      "name": "orphan.scheduler_schedules_removed",
+      "passed": true,
+      "detail": "n=0 names=[]"
+    },
+    {
+      "name": "orphan.deleted",
+      "passed": true,
+      "detail": "justhodl-capitulation delete_function ok"
+    },
+    {
+      "name": "orphan.s3_object_deleted",
+      "passed": true,
+      "detail": "data/capitulation.json"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "overall_ok": true
+}
