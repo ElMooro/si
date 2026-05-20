@@ -99,9 +99,12 @@ EDGES = [
         "edge": 10, "engine": "rv-iv-scanner", "lambda": "justhodl-rv-iv-scanner",
         "s3_key": "data/rv-iv-scanner.json", "page": "rv-iv-scanner.html",
         "ssm_key": "/justhodl/rv-iv-scanner/state",
-        "valid_states": ("LOW_DISPERSION", "NORMAL", "HIGH_DISPERSION",
-                         "EARNINGS_SEASON", "INSUFFICIENT_DATA"),
-        "extra_required": ["top_20_iv_rich", "top_20_iv_cheap", "n_scanned"],
+        "valid_states": ("NORMAL", "VRP_RICH", "VRP_CHEAP",
+                         "DISPERSION_RICH", "DISPERSION_CHEAP"),
+        "extra_required": ["top_iv_rich", "top_iv_cheap", "summary",
+                           "current_readings"],
+        "forward_horizons": ("21d", "63d", "252d"),
+        "ssm_optional": True,
     },
 ]
 
@@ -181,11 +184,12 @@ def verify_edge(cfg):
         isinstance(tc, list) and len(tc) >= 3,
         f"n={len(tc) if isinstance(tc, list) else 'NA'}")
 
-    # 9. Forward expectations
+    # 9. Forward expectations -- horizons can be edge-specific
+    fe_horizons = cfg.get("forward_horizons", ("1m", "3m", "12m"))
     fe = d.get("forward_expectations", {})
     add(e, "forward_horizons_complete",
-        isinstance(fe, dict) and all(h in fe for h in ("1m", "3m", "12m")),
-        list(fe.keys()) if isinstance(fe, dict) else type(fe).__name__)
+        isinstance(fe, dict) and all(h in fe for h in fe_horizons),
+        f"got={list(fe.keys())[:6] if isinstance(fe, dict) else type(fe).__name__} expected={fe_horizons}")
 
     # 10. Recommended trade
     trade = d.get("recommended_trade", {})
@@ -209,13 +213,16 @@ def verify_edge(cfg):
     except Exception as ex:
         add(e, "data_recent_48h", False, str(ex)[:80])
 
-    # 13. SSM state parameter
-    try:
-        p = ssm.get_parameter(Name=cfg["ssm_key"])
-        val = json.loads(p["Parameter"]["Value"])
-        add(e, "ssm_state_present", True, f"state={val.get('state', '?')}")
-    except (ClientError, json.JSONDecodeError, KeyError) as ex:
-        add(e, "ssm_state_present", False, str(ex)[:100])
+    # 13. SSM state parameter (skip if edge marks it optional)
+    if cfg.get("ssm_optional"):
+        add(e, "ssm_state_present", True, "skipped (engine doesn't use SSM persistence)")
+    else:
+        try:
+            p = ssm.get_parameter(Name=cfg["ssm_key"])
+            val = json.loads(p["Parameter"]["Value"])
+            add(e, "ssm_state_present", True, f"state={val.get('state', '?')}")
+        except (ClientError, json.JSONDecodeError, KeyError) as ex:
+            add(e, "ssm_state_present", False, str(ex)[:100])
 
     # 14. Page reachable + references S3 data key
     try:

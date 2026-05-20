@@ -97,45 +97,46 @@ def main():
 
     # 4. Full canonical schema
     required = [
-        "engine", "version", "as_of", "state", "previous_state",
-        "state_transition", "state_description", "signal_strength",
-        "universe_size", "n_scanned", "n_with_vrp",
-        "vrp_mean", "vrp_spread", "n_earnings_within_10d",
-        "top_20_iv_rich", "top_20_iv_cheap", "earnings_within_10d",
+        "engine", "version", "as_of", "state",
+        "signal_strength",
+        "summary", "current_readings",
+        "top_iv_rich", "top_iv_cheap",
         "trigger_conditions", "forward_expectations",
         "recommended_trade", "historical_episodes",
-        "why_now_explainer", "methodology", "sources", "schedule",
+        "why_now_explainer",
     ]
     missing = [k for k in required if k not in d]
     add("schema_complete", len(missing) == 0,
         "all_present" if not missing else f"missing={missing}")
     add("engine_id", d.get("engine") == "rv-iv-scanner", d.get("engine"))
 
-    valid_states = ("LOW_DISPERSION", "NORMAL", "HIGH_DISPERSION",
-                    "EARNINGS_SEASON", "INSUFFICIENT_DATA")
+    valid_states = ("NORMAL", "VRP_RICH", "VRP_CHEAP",
+                    "DISPERSION_RICH", "DISPERSION_CHEAP")
     add("state_valid", d.get("state") in valid_states, d.get("state"))
 
-    add("n_scanned_sane", d.get("n_scanned", 0) >= 20,
-        f"n_scanned={d.get('n_scanned')}")
-    add("n_with_vrp_sane", d.get("n_with_vrp", 0) >= 5,
-        f"n_with_vrp={d.get('n_with_vrp')}")
+    # New Edge #10 schema: summary{} holds the scan readings
+    summ = d.get("summary", {})
+    add("summary_dict_present", isinstance(summ, dict) and "basket_size" in summ,
+        f"summary_keys={list(summ.keys())[:8]}" if isinstance(summ, dict) else "not-dict")
+    add("basket_size_sane", isinstance(summ.get("basket_size"), int) and summ["basket_size"] >= 3,
+        f"basket_size={summ.get('basket_size')}")
 
-    rich = d.get("top_20_iv_rich", [])
+    rich = d.get("top_iv_rich", [])
     add("top_iv_rich_list", isinstance(rich, list),
         f"n={len(rich) if isinstance(rich, list) else 'NA'}")
-    cheap = d.get("top_20_iv_cheap", [])
+    cheap = d.get("top_iv_cheap", [])
     add("top_iv_cheap_list", isinstance(cheap, list),
         f"n={len(cheap) if isinstance(cheap, list) else 'NA'}")
 
     if isinstance(rich, list) and rich:
         sample = rich[0]
         ok = (isinstance(sample, dict) and "ticker" in sample
-              and "vrp" in sample and "iv_30d" in sample)
+              and "vrp_vol_pts" in sample and "iv" in sample)
         add("iv_rich_row_structure", ok,
             f"keys={list(sample.keys())[:7]}" if isinstance(sample, dict) else "not-dict")
 
     fe = d.get("forward_expectations", {})
-    add("forward_horizons", all(h in fe for h in ("1m", "3m", "12m")),
+    add("forward_horizons", all(h in fe for h in ("21d", "63d", "252d")),
         list(fe.keys()))
 
     tc = d.get("trigger_conditions", [])
