@@ -1,0 +1,199 @@
+{
+  "ops": 958,
+  "title": "final 10-edge scorecard after edges 1-3 config normalisation + edge 4 seed",
+  "run_at": "2026-05-20T14:28:59.584441Z",
+  "per_edge_summary": {
+    "1": {
+      "passed": 0,
+      "total": 2
+    },
+    "2": {
+      "passed": 0,
+      "total": 2
+    },
+    "3": {
+      "passed": 0,
+      "total": 2
+    },
+    "4": {
+      "passed": 2,
+      "total": 4
+    },
+    "5": {
+      "passed": 2,
+      "total": 2
+    },
+    "6": {
+      "passed": 2,
+      "total": 2
+    },
+    "7": {
+      "passed": 2,
+      "total": 2
+    },
+    "8": {
+      "passed": 2,
+      "total": 2
+    },
+    "9": {
+      "passed": 2,
+      "total": 2
+    },
+    "10": {
+      "passed": 2,
+      "total": 2
+    }
+  },
+  "checks": [
+    {
+      "edge": "1",
+      "name": "lambda_deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-vix-backwardation-trigger"
+    },
+    {
+      "edge": "1",
+      "name": "s3_output_present_initial",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "edge": "2",
+      "name": "lambda_deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-buys-enriched"
+    },
+    {
+      "edge": "2",
+      "name": "s3_output_present_initial",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "edge": "3",
+      "name": "lambda_deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-breadth-thrust"
+    },
+    {
+      "edge": "3",
+      "name": "s3_output_present_initial",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "edge": "4",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512MB timeout=90s"
+    },
+    {
+      "edge": "4",
+      "name": "s3_output_present_initial",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "edge": "4",
+      "name": "seed_invoke",
+      "passed": true,
+      "detail": "dur=1.0s status=200 err=None body={\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient SPY history\\\"}\"}"
+    },
+    {
+      "edge": "4",
+      "name": "s3_output_present_post_seed",
+      "passed": false,
+      "detail": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "edge": "5",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024MB timeout=240s"
+    },
+    {
+      "edge": "5",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=29516B age_h=0.1"
+    },
+    {
+      "edge": "6",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024MB timeout=300s"
+    },
+    {
+      "edge": "6",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=59242B age_h=0.4"
+    },
+    {
+      "edge": "7",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512MB timeout=90s"
+    },
+    {
+      "edge": "7",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=46365B age_h=0.6"
+    },
+    {
+      "edge": "8",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512MB timeout=90s"
+    },
+    {
+      "edge": "8",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=4524B age_h=0.4"
+    },
+    {
+      "edge": "9",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512MB timeout=300s"
+    },
+    {
+      "edge": "9",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=3745B age_h=0.4"
+    },
+    {
+      "edge": "10",
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512MB timeout=120s"
+    },
+    {
+      "edge": "10",
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=6387B age_h=0.7"
+    }
+  ],
+  "summary": {
+    "total": 22,
+    "passed": 14,
+    "failed": 8
+  },
+  "overall_ok": false,
+  "scorecard": {
+    "1": "0/2",
+    "2": "0/2",
+    "3": "0/2",
+    "4": "2/4",
+    "5": "2/2",
+    "6": "2/2",
+    "7": "2/2",
+    "8": "2/2",
+    "9": "2/2",
+    "10": "2/2"
+  }
+}
