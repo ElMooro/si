@@ -1,0 +1,46 @@
+{
+ "ops": 898,
+ "ts": "2026-05-20T12:42:26.442512+00:00",
+ "subject": "Verify #2 insider-buys-enriched e2e",
+ "checks": [
+  {
+   "check": "lambda_deployed",
+   "ok": false,
+   "detail": "ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-buys-enriched"
+  },
+  {
+   "check": "source_clusters_present",
+   "ok": true,
+   "detail": "present (modified 2026-05-19 14:41:05+00:00, 82519 bytes)"
+  },
+  {
+   "check": "s3_output_present",
+   "ok": false,
+   "detail": "NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  {
+   "check": "schema_complete",
+   "ok": false,
+   "detail": "missing=['engine', 'summary', 'top_setups', 'methodology', 'academic_basis']"
+  },
+  {
+   "check": "per_cluster_enrichment",
+   "ok": false,
+   "detail": "no top_setups"
+  },
+  {
+   "check": "page_live",
+   "ok": false,
+   "detail": "HTTPError: HTTP Error 404: Not Found"
+  }
+ ],
+ "summary": "1/6 checks passed",
+ "all_passed": false,
+ "live_state": {
+  "enriched_count": null,
+  "high_conviction": null,
+  "medium_high": null,
+  "top_3": []
+ },
+ "verdict": "VERIFICATION INCOMPLETE -- see per-check details."
+}
