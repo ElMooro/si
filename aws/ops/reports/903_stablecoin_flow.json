@@ -1,0 +1,18 @@
+{
+  "ops": 903,
+  "edge": 7,
+  "engine": "stablecoin-flow",
+  "run_at": "2026-05-20T13:18:26.880860Z",
+  "checks": [
+    {
+      "name": "lambda_deployed",
+      "passed": false,
+      "detail": "An error occurred (ResourceNotFoundException) when calling the GetFunction operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-stablecoin-flow"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  }
+}
