@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyback Scanner | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1500px;margin:0 auto;}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{text-decoration:underline;}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+h1{font-size:18px;color:var(--cyan);font-weight:600;}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px;}
+.subtitle{color:var(--mute);font-size:12px;}
+.crumbs{font-size:12px;color:var(--mute);}
+.crumbs a{margin:0 4px;}
+
+.banner{padding:24px;border-radius:8px;margin-bottom:20px;border:1px solid var(--line);background:var(--panel);}
+.banner.s-VERY_QUIET{background:linear-gradient(135deg,rgba(168,179,199,0.08),var(--panel));border-color:#3a4458;}
+.banner.s-NORMAL{background:linear-gradient(135deg,rgba(0,212,255,0.08),var(--panel));border-color:var(--cyan);}
+.banner.s-HIGH_ACTIVITY{background:linear-gradient(135deg,rgba(38,255,175,0.12),var(--panel));border-color:var(--green);}
+.banner.s-CRISIS_OVERSHOOT{background:linear-gradient(135deg,rgba(167,139,250,0.16),var(--panel));border-color:var(--purple);}
+.state-label{font-size:11px;color:var(--mute);letter-spacing:0.1em;}
+.state-name{font-size:28px;font-weight:600;margin:4px 0 8px;}
+.state-name.s-VERY_QUIET{color:var(--mute);}
+.state-name.s-NORMAL{color:var(--cyan);}
+.state-name.s-HIGH_ACTIVITY{color:var(--green);}
+.state-name.s-CRISIS_OVERSHOOT{color:var(--purple);}
+.state-desc{color:var(--mute);font-size:13px;max-width:1000px;}
+
+.grid{display:grid;gap:16px;margin-bottom:20px;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g2{grid-template-columns:1fr 1fr;}
+@media(max-width:1000px){.g4,.g3,.g2{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr;}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;}
+.metric{display:flex;flex-direction:column;}
+.metric .label{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.metric .val{font-size:22px;font-weight:600;color:var(--txt);}
+.metric .val.pos{color:var(--green);}
+.metric .val.neg{color:var(--red);}
+.metric .val.warn{color:var(--yellow);}
+.metric .sub{font-size:11px;color:var(--dim);margin-top:4px;}
+
+.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;margin:8px 0;}
+.bar > div{height:100%;}
+.fill-cyan{background:var(--cyan);}
+.fill-green{background:var(--green);}
+
+.tcond{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;}
+.tcond:last-child{border-bottom:none;}
+.tcond .name{color:var(--mute);}
+.tcond .val.ok{color:var(--green);}
+.tcond .val.no{color:var(--red);}
+.tcond .weight{color:var(--dim);font-size:10px;margin-left:8px;}
+
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);}
+th{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;font-weight:500;}
+tr:hover{background:var(--panel2);}
+.tk{color:var(--cyan);font-weight:600;}
+.num{font-variant-numeric:tabular-nums;text-align:right;}
+.pos{color:var(--green);}
+.neg{color:var(--red);}
+.muted{color:var(--mute);}
+.score-bar{display:inline-block;width:60px;height:6px;background:var(--panel2);border-radius:3px;vertical-align:middle;margin-right:6px;overflow:hidden;}
+.score-bar > div{height:100%;}
+
+.tranche-small{background:rgba(168,179,199,0.15);color:var(--mute);padding:2px 6px;border-radius:3px;font-size:10px;}
+.tranche-medium{background:rgba(0,212,255,0.15);color:var(--cyan);padding:2px 6px;border-radius:3px;font-size:10px;}
+.tranche-large{background:rgba(38,255,175,0.15);color:var(--green);padding:2px 6px;border-radius:3px;font-size:10px;}
+.tranche-mega{background:rgba(167,139,250,0.15);color:var(--purple);padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+
+.why{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:6px;}
+.why h3{font-size:14px;color:var(--cyan);margin-bottom:12px;}
+.why p{margin-bottom:10px;color:var(--mute);}
+.why strong{color:var(--txt);}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:0;}
+.tab{padding:8px 14px;cursor:pointer;font-size:11px;color:var(--dim);border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:0.05em;}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+.tab:hover{color:var(--txt);}
+
+.ticket{background:var(--panel2);border-left:3px solid var(--cyan);padding:14px 16px;margin-top:12px;border-radius:0 4px 4px 0;}
+.ticket h4{font-size:11px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;letter-spacing:0.08em;}
+.ticket p{font-size:12px;color:var(--mute);margin-bottom:6px;}
+.ticket strong{color:var(--txt);}
+.ticket ul{margin-top:8px;padding-left:18px;}
+.ticket li{font-size:11.5px;color:var(--mute);margin-bottom:4px;}
+
+footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>BUYBACK AUTHORIZATION + DRIFT SCANNER</h1>
+    <div class="subtitle">Edge #6 -- SEC 8-K repurchase tracker -- academic drift edge per tranche</div>
+  </div>
+  <div class="crumbs">
+    <a href="/">home</a> /
+    <a href="/directory.html">directory</a> /
+    buybacks
+  </div>
+</header>
+
+<div id="root"><div class="panel">Loading buyback scanner...</div></div>
+
+<footer>
+  <div>Engine: <strong>justhodl-buyback-scanner</strong> | Source: SEC EDGAR EFTS + FMP /stable/ | Schedule: daily 12:00 UTC</div>
+  <div style="margin-top:6px;">Forward priors: Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)</div>
+  <div style="margin-top:6px;color:var(--mute);">JustHodl.AI institutional research. Not investment advice.</div>
+</footer>
+
+<script>
+const DATA_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/buyback-scanner.json";
+let CURRENT_TAB = "top";
+
+function pct(v, d=1){ if(v===null||v===undefined) return "--"; return (v>=0?"+":"")+v.toFixed(d)+"%"; }
+function usd(v){ if(!v) return "--"; if(v>=1e9) return "$"+(v/1e9).toFixed(2)+"B"; if(v>=1e6) return "$"+(v/1e6).toFixed(0)+"M"; return "$"+v.toLocaleString(); }
+function num(v,d=0){ if(v===null||v===undefined) return "--"; return v.toFixed(d); }
+function ago(d){ if(d===null||d===undefined) return "--"; if(d===0) return "today"; if(d===1) return "1d ago"; return d+"d ago"; }
+function trClass(t){ if(!t) return ""; return "tranche-"+t.toLowerCase(); }
+
+function mdToHtml(md) {
+  if (!md) return "";
+  let h = md;
+  h = h.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+  h = h.replace(/^## (.*)$/gm, "<h3>$1</h3>");
+  h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/^\- (.*)$/gm, "<li>$1</li>");
+  h = h.replace(/(<li>.*<\/li>(\n<li>.*<\/li>)*)/g, "<ul>$1</ul>");
+  h = h.split("\n\n").map(p => p.startsWith("<") ? p : "<p>"+p+"</p>").join("\n");
+  return h;
+}
+
+function renderBanner(d) {
+  const s = d.state || "NORMAL";
+  return `<div class="banner s-${s}">
+    <div class="state-label">META TAPE STATE</div>
+    <div class="state-name s-${s}">${s.replace(/_/g, ' ')}</div>
+    <div class="state-desc">${d.state_description || ''}</div>
+    <div style="margin-top:14px;display:flex;gap:32px;flex-wrap:wrap;">
+      <div><span class="muted">Fresh (7d):</span> <strong>${d.n_fresh_last_7d || 0}</strong></div>
+      <div><span class="muted">Total opportunities:</span> <strong>${d.n_enriched_opportunities || 0}</strong></div>
+      <div><span class="muted">Signal:</span> <strong>${d.signal_strength || 0}/100</strong></div>
+      <div><span class="muted">Annual auth (US):</span> <strong>$${d.annual_buyback_auth_usd_bn || 0}B</strong></div>
+    </div>
+  </div>`;
+}
+
+function renderMetrics(d) {
+  const tp = d.tranche_priors_drift_90d_pct || {};
+  return `<div class="grid g4">
+    <div class="panel metric">
+      <div class="label">SMALL (< 2% mcap)</div>
+      <div class="val muted">+${tp.SMALL_lt_2pct||2}%</div>
+      <div class="sub">90d expected drift</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">MEDIUM (2-5%)</div>
+      <div class="val" style="color:var(--cyan);">+${tp.MEDIUM_2_to_5pct||5}%</div>
+      <div class="sub">90d expected drift</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">LARGE (5-10%)</div>
+      <div class="val pos">+${tp.LARGE_5_to_10pct||8}%</div>
+      <div class="sub">90d expected drift</div>
+    </div>
+    <div class="panel metric">
+      <div class="label">MEGA (> 10%)</div>
+      <div class="val" style="color:var(--purple);">+${tp.MEGA_gt_10pct||12}%</div>
+      <div class="sub">90d expected drift (highest conviction)</div>
+    </div>
+  </div>`;
+}
+
+function renderConditions(d) {
+  const tc = d.trigger_conditions || [];
+  return `<div class="panel">
+    <h2>Trigger Conditions</h2>
+    ${tc.map(c => `<div class="tcond">
+      <div class="name">${c.name}</div>
+      <div><span class="val ${c.satisfied?'ok':'no'}">${c.satisfied?'YES':'NO'}</span>
+        <span class="muted">(${c.current}/${c.threshold})</span>
+        <span class="weight">w=${(c.weight*100).toFixed(0)}%</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderForward(d) {
+  const fe = d.forward_expectations || {};
+  return `<div class="panel">
+    <h2>Forward Expectations (Basket-Level)</h2>
+    <table>
+      <thead><tr><th>Horizon</th><th class="num">Return</th><th class="num">Win Rate</th><th>Basis</th></tr></thead>
+      <tbody>
+        ${["1m","3m","12m"].map(h => {
+          const e = fe[h] || {};
+          return `<tr>
+            <td><strong>${h.toUpperCase()}</strong></td>
+            <td class="num pos">${pct(e.return_pct)}</td>
+            <td class="num">${e.win_rate_pct||'--'}%</td>
+            <td class="muted">${e.basis||''}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderOpportunityRow(o, idx) {
+  const tranche = o.trade_ticket && o.trade_ticket.tranche;
+  const finalExp = o.trade_ticket && o.trade_ticket.final_expected_drift_90d_pct;
+  const scoreColor = o.edge_score >= 70 ? "var(--green)" : o.edge_score >= 50 ? "var(--cyan)" : "var(--mute)";
+  return `<tr>
+    <td class="num muted">${idx+1}</td>
+    <td class="tk">${o.ticker}</td>
+    <td class="muted" title="${o.company||''}">${(o.company||'').substring(0,28)}</td>
+    <td><span class="${trClass(tranche)}">${tranche||'?'}</span></td>
+    <td class="num">${o.pct_of_mcap?o.pct_of_mcap.toFixed(1)+'%':'--'}</td>
+    <td class="num">${usd(o.authorization_usd)}</td>
+    <td class="num">${usd(o.market_cap)}</td>
+    <td class="muted">${ago(o.days_since_announcement)}</td>
+    <td class="num ${o.insider_net_buys_usd>1e6?'pos':''}">${o.insider_net_buys_usd?usd(o.insider_net_buys_usd):'--'}</td>
+    <td class="num ${o.price_perf_90d_pct<-15?'pos':o.price_perf_90d_pct<0?'warn':''}">${pct(o.price_perf_90d_pct)}</td>
+    <td class="num pos">${finalExp?'+'+finalExp.toFixed(1)+'%':'--'}</td>
+    <td>
+      <span class="score-bar"><div style="width:${o.edge_score||0}%;background:${scoreColor};"></div></span>
+      <strong>${(o.edge_score||0).toFixed(0)}</strong>
+    </td>
+  </tr>`;
+}
+
+function renderOpportunityTable(d) {
+  const top = d.top_opportunities || [];
+  let rows;
+  if (CURRENT_TAB === "top") rows = top.slice(0, 25);
+  else if (CURRENT_TAB === "mega") rows = top.filter(o => (o.pct_of_mcap||0) >= 5);
+  else if (CURRENT_TAB === "insider") rows = top.filter(o => (o.insider_net_buys_usd||0) > 1e6);
+  else if (CURRENT_TAB === "recovery") rows = top.filter(o => (o.price_perf_90d_pct||0) < -15);
+  else rows = top;
+
+  return `<div class="panel" style="overflow-x:auto;">
+    <div class="tabs">
+      <div class="tab ${CURRENT_TAB==='top'?'active':''}" onclick="__tab('top')">TOP 25</div>
+      <div class="tab ${CURRENT_TAB==='mega'?'active':''}" onclick="__tab('mega')">LARGE+MEGA (>5%)</div>
+      <div class="tab ${CURRENT_TAB==='insider'?'active':''}" onclick="__tab('insider')">INSIDER CONFIRMED</div>
+      <div class="tab ${CURRENT_TAB==='recovery'?'active':''}" onclick="__tab('recovery')">V-RECOVERY SETUP</div>
+    </div>
+    <div style="margin-top:14px;">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Ticker</th><th>Company</th><th>Tranche</th>
+        <th class="num">% MCap</th><th class="num">Auth</th><th class="num">MCap</th>
+        <th>Age</th><th class="num">Insider 30d</th><th class="num">Perf 90d</th>
+        <th class="num">Exp 90d</th><th>Edge</th>
+      </tr></thead>
+      <tbody>${rows.map((o,i)=>renderOpportunityRow(o,i)).join('')}</tbody>
+    </table>
+    ${rows.length===0?'<div class="muted" style="padding:14px;">No opportunities match this filter.</div>':''}
+    </div>
+  </div>`;
+}
+
+function renderTopTicket(d) {
+  const top = d.top_opportunities || [];
+  if (!top.length) return '';
+  const o = top[0];
+  const t = o.trade_ticket || {};
+  const p = t.primary || {};
+  return `<div class="panel">
+    <h2>Top Opportunity: ${o.ticker}</h2>
+    <div style="font-size:13px;color:var(--mute);margin-bottom:8px;">${o.company} -- ${o.exchange}</div>
+    <div class="grid g3" style="margin-bottom:12px;">
+      <div class="metric"><div class="label">Tranche</div><div class="val"><span class="${trClass(t.tranche)}">${t.tranche||'?'}</span></div></div>
+      <div class="metric"><div class="label">Base Drift Expected (90d)</div><div class="val pos">+${(t.base_expected_drift_90d_pct||0).toFixed(1)}%</div></div>
+      <div class="metric"><div class="label">Final Expected (w/ multipliers)</div><div class="val pos">+${(t.final_expected_drift_90d_pct||0).toFixed(1)}%</div></div>
+    </div>
+    <div class="ticket">
+      <h4>Primary Trade</h4>
+      <p><strong>Instrument:</strong> ${p.instrument}</p>
+      <p><strong>Thesis:</strong> ${p.thesis}</p>
+      <p><strong>Sizing:</strong> ${p.size_guidance}</p>
+      <p><strong>Max loss:</strong> ${p.max_loss}</p>
+      <p><strong>Horizon:</strong> ${p.expected_horizon}</p>
+      <p><strong>Basis:</strong> <span class="muted">${p.expected_return_basis}</span></p>
+      ${(t.cross_confirmation_multipliers||[]).length ? `<p><strong>Cross-confirmation:</strong></p><ul>${
+        t.cross_confirmation_multipliers.map(m => `<li>${m.factor}: <span class="pos">x${m.multiplier}</span></li>`).join('')
+      }</ul>` : ''}
+      <p style="margin-top:10px;"><strong>Exit rules:</strong></p>
+      <ul>${(t.exit_rules||[]).map(r => `<li>${r}</li>`).join('')}</ul>
+    </div>
+  </div>`;
+}
+
+function render(d) {
+  let html = renderBanner(d);
+  html += renderMetrics(d);
+  html += '<div class="grid g2">';
+  html += renderConditions(d);
+  html += renderForward(d);
+  html += '</div>';
+  html += renderTopTicket(d);
+  html += '<div style="margin-top:20px;">' + renderOpportunityTable(d) + '</div>';
+  html += '<div style="margin-top:20px;" class="why"><h3>Why Now</h3>' + mdToHtml(d.why_now_explainer||'') + '</div>';
+  html += '<div style="margin-top:20px;" class="panel"><h2>Methodology</h2><p class="muted" style="font-size:11.5px;line-height:1.6;">' + (d.methodology||'') + '</p></div>';
+  document.getElementById('root').innerHTML = html;
+}
+
+let LAST_DATA = null;
+window.__tab = (t) => { CURRENT_TAB = t; if (LAST_DATA) render(LAST_DATA); };
+
+async function load() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    const d = await r.json();
+    LAST_DATA = d;
+    render(d);
+  } catch (e) {
+    document.getElementById("root").innerHTML = `<div class="panel">Failed to load data: ${e}</div>`;
+  }
+}
+load();
+setInterval(load, 120000);
+</script>
+</body>
+</html>
