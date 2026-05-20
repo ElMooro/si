@@ -1,0 +1,95 @@
+{
+ "ops": 896,
+ "ts": "2026-05-20T12:04:46.132796+00:00",
+ "subject": "Verify edge upgrades #4 multi-horizon GSI + #5 streaming intra-day layer e2e",
+ "checks": [
+  {
+   "check": "4_lambda_deployed",
+   "ok": true,
+   "detail": "runtime=python3.12 timeout=240s"
+  },
+  {
+   "check": "4_schedule_wired",
+   "ok": true,
+   "detail": "weekly Sunday 09:30 UTC (updated)"
+  },
+  {
+   "check": "4_invoke",
+   "ok": true,
+   "detail": "horizons=None snapshots=None top_dims=[]"
+  },
+  {
+   "check": "4_s3_output",
+   "ok": false,
+   "detail": "horizons=[5, 21, 63, 252], all_horizons_present=True, snapshots=280"
+  },
+  {
+   "check": "4_ssm_/justhodl/gsi/weights/5d",
+   "ok": true,
+   "detail": "mode=empirical, N=274, weights={'market': 0.254, 'credit': 0.143, 'vix': 0.4, 'rate_vol': 0.103, 'contagion': 0.05, 'sovereign': 0.05}"
+  },
+  {
+   "check": "4_ssm_/justhodl/gsi/weights/21d",
+   "ok": true,
+   "detail": "mode=empirical, N=269, weights={'market': 0.254, 'credit': 0.143, 'vix': 0.4, 'rate_vol': 0.103, 'contagion': 0.05, 'sovereign': 0.05}"
+  },
+  {
+   "check": "4_ssm_/justhodl/gsi/weights/63d",
+   "ok": true,
+   "detail": "mode=empirical, N=248, weights={'market': 0.32, 'credit': 0.18, 'vix': 0.17, 'rate_vol': 0.13, 'contagion': 0.1, 'sovereign': 0.1}"
+  },
+  {
+   "check": "4_ssm_/justhodl/gsi/weights/252d",
+   "ok": true,
+   "detail": "mode=empirical, N=153, weights={'market': 0.22, 'credit': 0.124, 'vix': 0.117, 'rate_vol': 0.089, 'contagion': 0.4, 'sovereign': 0.05}"
+  },
+  {
+   "check": "4_global_stress_emits_gsi_by_horizon",
+   "ok": true,
+   "detail": "horizons present in gsi_by_horizon=['5', '21', '63', '252'], values={'5': 42, '21': 42, '63': 44, '252': 59}"
+  },
+  {
+   "check": "4_page_live",
+   "ok": true,
+   "detail": "status=200, bytes=13276"
+  },
+  {
+   "check": "5_lambda_deployed",
+   "ok": true,
+   "detail": "runtime=python3.12 timeout=300s"
+  },
+  {
+   "check": "5_ws_api_id_propagated",
+   "ok": true,
+   "detail": "WS_API_ID=q7vco36knh WS_STAGE=prod"
+  },
+  {
+   "check": "5_schedule_wired",
+   "ok": true,
+   "detail": "every 1m 13-20 UTC Mon-Fri (created)"
+  },
+  {
+   "check": "5_invoke",
+   "ok": true,
+   "detail": "tracked=7 broadcasts=7 no_ops=0 missing=0"
+  },
+  {
+   "check": "5_streaming_config_published",
+   "ok": true,
+   "detail": "ws_url=wss://q7vco36knh.execute-api.us-east-1.amazonaws.com/prod channels=['crisis', 'dollar_radar', 'global_stress', 'live_pulse', 'master_alloc', 'signal_board', 'vol_radar'] engines=7"
+  },
+  {
+   "check": "5_fanout_log_published",
+   "ok": true,
+   "detail": "tracked=7 broadcasts=7 no_ops=0"
+  },
+  {
+   "check": "5_live_html_live",
+   "ok": true,
+   "detail": "status=200, bytes=15166"
+  }
+ ],
+ "summary": "16/17 checks passed",
+ "all_passed": false,
+ "verdict": "VERIFICATION INCOMPLETE - see per-check details."
+}
