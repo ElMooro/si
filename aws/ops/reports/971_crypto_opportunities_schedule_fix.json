@@ -1,0 +1,48 @@
+{
+  "ops": 971,
+  "title": "inspect crypto-opportunities output + schedule + env fix",
+  "run_at": "2026-05-20T16:31:59.159911Z",
+  "checks": [
+    {
+      "name": "output.parsed",
+      "passed": true,
+      "detail": "state=QUIET v=2 s=0 stb=0 c=0"
+    },
+    {
+      "name": "sample.top_vol_pick",
+      "passed": true,
+      "detail": "BB (BounceBit) mcap=$35,247,194 24h=14.50733531% vol/mcap=0.287"
+    },
+    {
+      "name": "donor.cmc_key_found",
+      "passed": true,
+      "detail": "donor=justhodl-crypto-narratives key_len=36"
+    },
+    {
+      "name": "env.updated",
+      "passed": true,
+      "detail": "env keys=['CMC_KEY', 'S3_BUCKET']"
+    },
+    {
+      "name": "schedule.upserted",
+      "passed": false,
+      "detail": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+    },
+    {
+      "name": "schedule.permission",
+      "passed": true,
+      "detail": "added"
+    },
+    {
+      "name": "reinvoke.success",
+      "passed": true,
+      "detail": "dur=80.7s state=NORMAL conv=0 vol=3 soc=0 stb=0"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 6,
+    "failed": 1
+  },
+  "overall_ok": false
+}
