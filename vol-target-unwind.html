@@ -1,292 +1,360 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vol-Target Unwind Trigger - JustHodl</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vol-Target Unwind Trigger | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
 <style>
-:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
-a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:1280px;margin:0 auto;padding:14px 16px 80px}
-.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:14px;flex-wrap:wrap}
-.top h1{font-size:19px;margin:0;font-weight:600}
-.top .sub{color:var(--mute);font-size:11px;margin-top:3px;max-width:760px}
-.top .right{display:flex;gap:8px;align-items:center}
-.btn{display:inline-block;padding:5px 10px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:3px;font-size:11px;font-family:inherit;cursor:pointer;text-decoration:none}
-.btn:hover{color:var(--txt);border-color:#2a3445}
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1400px;margin:0 auto;}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{text-decoration:underline;}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+h1{font-size:18px;color:var(--cyan);font-weight:600;}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px;}
+.subtitle{color:var(--mute);font-size:12px;}
+.crumbs{font-size:12px;color:var(--mute);}
+.crumbs a{margin:0 4px;}
 
-.state-banner{padding:18px 22px;border-radius:5px;background:var(--panel);border:1px solid var(--line);margin-bottom:18px;display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center}
-.state-banner.s-short_fired{border-color:var(--red);box-shadow:0 0 16px rgba(255,85,119,.18)}
-.state-banner.s-long_fired{border-color:var(--green);box-shadow:0 0 16px rgba(38,255,175,.16)}
-.state-banner.s-short_armed{border-color:var(--orange)}
-.state-banner.s-long_armed{border-color:var(--yellow)}
-.state-banner.s-watch{border-color:var(--purple)}
-.state-banner .state-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.state-banner .state-value{font-size:30px;font-weight:700;letter-spacing:.6px}
-.state-banner.s-short_fired .state-value{color:var(--red)}
-.state-banner.s-long_fired .state-value{color:var(--green)}
-.state-banner.s-short_armed .state-value{color:var(--orange)}
-.state-banner.s-long_armed .state-value{color:var(--yellow)}
-.state-banner.s-watch .state-value{color:var(--purple)}
-.state-banner.s-null .state-value{color:var(--dim)}
-.state-banner .sub-info{color:var(--mute);font-size:11px;margin-top:6px}
-.state-banner .strength{font-size:34px;font-weight:700;color:var(--cyan);text-align:right}
-.state-banner .strength-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;text-align:right;margin-top:2px}
-.state-banner .aum{font-size:22px;font-weight:700;color:var(--yellow);text-align:right}
-.state-banner .aum-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;text-align:right;margin-top:2px}
+.banner{padding:20px 24px;border-radius:8px;margin-bottom:24px;background:var(--panel);border:1px solid var(--line);position:relative;overflow:hidden;}
+.banner.state-FIRED_UP{border-color:var(--red);background:linear-gradient(135deg, rgba(255,85,119,0.08) 0%, var(--panel) 80%);}
+.banner.state-PANIC{border-color:var(--red);background:linear-gradient(135deg, rgba(255,85,119,0.18) 0%, var(--panel) 80%);}
+.banner.state-FIRED_DOWN{border-color:var(--green);background:linear-gradient(135deg, rgba(38,255,175,0.08) 0%, var(--panel) 80%);}
+.banner.state-ARMED_UP{border-color:var(--orange);background:linear-gradient(135deg, rgba(255,122,24,0.06) 0%, var(--panel) 80%);}
+.banner.state-ARMED_DOWN{border-color:var(--yellow);}
+.banner.state-COOLDOWN{border-color:var(--purple);}
+.banner.state-NULL{border-color:var(--line);}
+.state-label{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em;}
+.state-value{font-size:32px;font-weight:600;letter-spacing:-0.01em;margin:4px 0;}
+.state-value.FIRED_UP, .state-value.PANIC{color:var(--red);}
+.state-value.FIRED_DOWN{color:var(--green);}
+.state-value.ARMED_UP{color:var(--orange);}
+.state-value.ARMED_DOWN{color:var(--yellow);}
+.state-value.COOLDOWN{color:var(--purple);}
+.state-value.NULL{color:var(--mute);}
+.signal-bar{height:6px;background:var(--line);border-radius:3px;margin-top:12px;overflow:hidden;}
+.signal-fill{height:100%;background:linear-gradient(90deg, var(--green) 0%, var(--yellow) 50%, var(--orange) 75%, var(--red) 100%);transition:width 0.5s;}
 
-.sechead{margin:18px 0 9px;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:600}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:14px}
+.grid{display:grid;gap:16px;margin-bottom:24px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3, 1fr);}
+.grid-4{grid-template-columns:repeat(4, 1fr);}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
 
-.readings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px}
-.reading{padding:8px 10px;background:var(--panel2);border-radius:3px;border-left:3px solid var(--line)}
-.reading.high-vol{border-left-color:var(--red)}
-.reading.elevated-vol{border-left-color:var(--orange)}
-.reading.normal-vol{border-left-color:var(--dim)}
-.reading.low-vol{border-left-color:var(--green)}
-.reading .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.reading .v{font-size:20px;font-weight:600;color:var(--txt)}
-.reading .s{font-size:10px;color:var(--mute);margin-top:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;}
+.panel.accent-green{border-color:rgba(38,255,175,0.3);}
+.panel.accent-red{border-color:rgba(255,85,119,0.3);}
+.panel.accent-orange{border-color:rgba(255,122,24,0.3);}
 
-table.dt{width:100%;border-collapse:collapse;font-size:12px}
-table.dt th{text-align:left;color:var(--dim);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-table.dt th.num{text-align:right}
-table.dt td{padding:8px 10px;border-bottom:1px solid var(--panel2);color:var(--txt)}
-table.dt td.num{text-align:right}
-table.dt tr:hover{background:var(--panel2)}
-table.dt td.dim{color:var(--dim)}
-table.dt td.good{color:var(--green);font-weight:600}
-table.dt td.bad{color:var(--red);font-weight:600}
+.reading{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);}
+.reading:last-child{border-bottom:none;}
+.reading-label{color:var(--mute);}
+.reading-value{color:var(--txt);font-weight:600;}
+.reading-value.danger{color:var(--red);}
+.reading-value.warn{color:var(--orange);}
+.reading-value.ok{color:var(--green);}
 
-.dual-fwd{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.dual-fwd .col{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px 13px}
-.dual-fwd .col h3{margin:0 0 8px;font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-.dual-fwd .col h3.short{color:var(--red)}
-.dual-fwd .col h3.long{color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);}
+th{color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;font-weight:500;font-size:11px;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;}
+td.pos{color:var(--green);}
+td.neg{color:var(--red);}
 
-.cond{display:flex;align-items:center;gap:12px;padding:9px 12px;margin-bottom:6px;border-radius:3px;background:var(--panel2);border-left:3px solid var(--line)}
-.cond.sat{border-left-color:var(--green)}
-.cond.unsat{border-left-color:var(--dim);opacity:.7}
-.cond .mark{font-size:18px;font-weight:700;width:22px;text-align:center}
-.cond.sat .mark{color:var(--green)}
-.cond.unsat .mark{color:var(--dim)}
-.cond .name{flex:1;color:var(--txt);font-weight:500}
-.cond .curr{font-size:11px;color:var(--mute);text-align:right}
-.cond .w{font-size:10px;color:var(--dim);min-width:36px;text-align:right}
+.horizon-card{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:12px;}
+.horizon-card .h{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;}
+.horizon-card .val{font-size:24px;font-weight:600;margin:4px 0;}
+.horizon-card .val.pos{color:var(--green);}
+.horizon-card .val.neg{color:var(--red);}
+.horizon-card .meta{font-size:11px;color:var(--dim);}
 
-.trade-card{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:10px}
-.trade-card.primary{border-color:var(--cyan);background:linear-gradient(180deg,rgba(0,212,255,.04),var(--panel2))}
-.trade-card .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
-.trade-card.primary .label{color:var(--cyan)}
-.trade-card .instr{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:8px}
-.trade-card .thesis{color:var(--mute);font-size:12px;margin-bottom:8px;line-height:1.55}
-.trade-card .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 14px;font-size:11px;color:var(--dim)}
-.trade-card .meta b{color:var(--mute);font-weight:500}
-.exit-rules{margin:8px 0 4px;padding-left:18px;color:var(--mute);font-size:11px}
-.exit-rules li{margin-bottom:3px}
+.cond-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);}
+.cond-row:last-child{border-bottom:none;}
+.cond-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cond-dot.ok{background:var(--green);box-shadow:0 0 8px var(--green);}
+.cond-dot.bad{background:var(--dim);}
+.cond-name{flex:1;}
+.cond-val{color:var(--mute);font-size:11px;}
+.cond-weight{color:var(--dim);font-size:10px;}
 
-.explainer{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 20px;font-size:13px;line-height:1.7;color:var(--txt)}
-.explainer strong{color:var(--cyan)}
-.explainer p{margin:6px 0}
+.trade-card{background:var(--panel2);border-radius:6px;padding:14px;margin-bottom:12px;border:1px solid var(--line);}
+.trade-card h3{font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.trade-card .instrument{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px;}
+.trade-card .thesis{color:var(--mute);font-size:12px;margin:8px 0;line-height:1.6;}
+.trade-card .meta-row{display:flex;justify-content:space-between;margin:4px 0;font-size:11px;}
+.trade-card .meta-row span:first-child{color:var(--dim);}
 
-.foot{margin-top:20px;color:var(--dim);font-size:11px;line-height:1.6;padding-top:14px;border-top:1px solid var(--line)}
-.foot b{color:var(--mute);font-weight:500}
-.fail{padding:18px;color:var(--red);background:var(--panel);border:1px solid var(--line);border-radius:4px;font-size:12px}
+.why-now{background:var(--panel);border-left:3px solid var(--cyan);padding:16px 20px;border-radius:0 6px 6px 0;color:var(--txt);font-size:13px;line-height:1.7;}
+.why-now strong{color:var(--cyan);}
+
+.exit-rules{list-style:none;}
+.exit-rules li{padding:6px 0;color:var(--mute);font-size:12px;}
+.exit-rules li::before{content:"▸ ";color:var(--cyan);margin-right:6px;}
+
+footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+.aum-bar{margin:8px 0;}
+.aum-fill{display:flex;height:24px;border-radius:4px;overflow:hidden;background:var(--line);}
+.aum-seg{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--bg);font-weight:600;}
+.aum-rp{background:var(--red);}
+.aum-vc{background:var(--orange);}
+.aum-cta{background:var(--yellow);}
+.aum-tdf{background:var(--cyan);}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-<div class="top">
+<header>
   <div>
-    <h1>Vol-Target Fund Unwind Trigger</h1>
-    <div class="sub">Front-run mechanical de-risk by risk-parity, vol-control, and CTA funds (~$400-600B aggregate AUM). SHORT signal fires when SPY 21d realized vol crosses 20% from below (mechanical selling expected over next 1-5 sessions). LONG signal fires when realized vol falls back through 16% from above (mechanical re-leveraging expected over 5-21 sessions).</div>
+    <h1>📉 Vol-Target Unwind Trigger</h1>
+    <div class="subtitle">Edge #4 · front-running mechanical de-leveraging by $670B+ in vol-targeting AUM</div>
   </div>
-  <div class="right">
-    <a class="btn" href="vix-curve.html">Vol Curve</a>
-    <a class="btn" href="vrp.html">VRP</a>
-    <a class="btn" href="directory.html">All</a>
+  <div class="crumbs">
+    <a href="/">home</a> · <a href="/directory.html">all engines</a> · <a href="/vix-capitulation.html">VIX backwardation</a> · <a href="/breadth-thrust.html">breadth thrust</a>
+  </div>
+</header>
+
+<div id="root">
+  <div class="banner state-NULL">
+    <div class="state-label">loading...</div>
+    <div class="state-value">—</div>
   </div>
 </div>
 
-<div id="root"><div class="panel" style="color:var(--dim)">Loading vol-target state&hellip;</div></div>
-
-</div>
+<footer>
+  <span id="ts">—</span>
+  <span>data: <a href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vol-target-unwind.json" target="_blank">vol-target-unwind.json</a></span>
+</footer>
 
 <script>
-const URL_BASE='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
-const REPORT_KEY='data/vol-target-unwind.json';
-const REFRESH_MS=60000;
+const DATA_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vol-target-unwind.json";
 
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function fmt(n,p){if(n==null||isNaN(n))return '\u2014';return Number(n).toFixed(p==null?2:p);}
-function fmtPct(n){if(n==null||isNaN(n))return '\u2014';return(n>=0?'+':'')+Number(n).toFixed(1)+'%';}
-function fmtUSD(n){if(n==null)return '\u2014';return '$'+(n/1e9).toFixed(0)+'B';}
-function pctClass(n){if(n==null)return 'dim';return n>0?'good':(n<0?'bad':'dim');}
+function fmt(v, d = 2) {
+  if (v === null || v === undefined) return "—";
+  if (typeof v !== "number") return v;
+  return v.toFixed(d);
+}
+function fmtPct(v, d = 2) {
+  if (v === null || v === undefined) return "—";
+  return (v >= 0 ? "+" : "") + v.toFixed(d) + "%";
+}
+function cls(v) { return v > 0 ? "pos" : v < 0 ? "neg" : ""; }
 
-function volClass(v){if(v==null)return 'normal-vol';if(v>=20)return 'high-vol';if(v>=16)return 'elevated-vol';if(v<12)return 'low-vol';return 'normal-vol';}
-
-function renderState(d){
-  const s=(d.state||'NULL').toLowerCase();
-  const sub=[];
-  if(d.state_since)sub.push('since '+new Date(d.state_since).toLocaleString());
-  if(d.state_transition)sub.push('transition: '+d.state_transition);
-  return '<div class="state-banner s-'+s+'">'+
-    '<div><div class="state-label">Current State</div>'+
-    '<div class="state-value">'+esc(d.state)+'</div>'+
-    '<div class="sub-info">'+sub.join(' &middot; ')+'</div></div>'+
-    '<div><div class="aum">'+fmtUSD(d.estimated_aum_at_risk_usd)+'</div>'+
-    '<div class="aum-l">est AUM at risk</div></div>'+
-    '<div><div class="strength">'+esc(d.signal_strength||0)+'</div>'+
-    '<div class="strength-l">signal / 100</div></div></div>';
+function mdToHtml(md) {
+  if (!md) return "";
+  return md
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/^/, "<p>").concat("</p>");
 }
 
-function renderReadings(r){
-  const th=r.thresholds||{};
-  return '<div class="readings">'+
-    '<div class="reading '+volClass(r.rv21)+'"><div class="l">RV21 (Parkinson)</div>'+
-      '<div class="v">'+fmt(r.rv21,2)+'%</div>'+
-      '<div class="s">21d annualised vol</div></div>'+
-    '<div class="reading '+volClass(r.rv5)+'"><div class="l">RV5 (Parkinson)</div>'+
-      '<div class="v">'+fmt(r.rv5,2)+'%</div>'+
-      '<div class="s">5d short window</div></div>'+
-    '<div class="reading '+volClass(r.rv21_close_to_close)+'"><div class="l">RV21 (close-to-close)</div>'+
-      '<div class="v">'+fmt(r.rv21_close_to_close,2)+'%</div>'+
-      '<div class="s">sanity check</div></div>'+
-    '<div class="reading"><div class="l">RV21 prev</div>'+
-      '<div class="v">'+fmt(r.rv21_prev,2)+'%</div>'+
-      '<div class="s">d-1 reading</div></div>'+
-    '<div class="reading"><div class="l">Trend</div>'+
-      '<div class="v" style="color:'+(r.rv_trend==='RISING'?'var(--red)':'var(--green)')+'">'+esc(r.rv_trend||'\u2014')+'</div>'+
-      '<div class="s">accelerating: '+(r.accelerating?'yes':'no')+'</div></div>'+
-    '<div class="reading"><div class="l">RV5/RV21</div>'+
-      '<div class="v">'+fmt(r.rv5_to_rv21_ratio,3)+'</div>'+
-      '<div class="s">acceleration ratio</div></div>'+
-    '<div class="reading"><div class="l">SPY last</div>'+
-      '<div class="v">$'+fmt(r.spy_last,2)+'</div>'+
-      '<div class="s">'+esc(r.as_of_date||'')+'</div></div>'+
-    '<div class="reading"><div class="l">Thresholds</div>'+
-      '<div class="v" style="font-size:14px">low '+th.low+'%, watch '+th.watch+'%</div>'+
-      '<div class="s">high '+th.high+'%, extreme '+th.extreme+'%</div></div>'+
-  '</div>';
-}
+function render(d) {
+  const root = document.getElementById("root");
+  const state = d.state || "NULL";
+  const cr = d.current_readings || {};
+  const fwd = d.forward_expectations || {};
+  const trade = d.recommended_trade || {};
+  const aum = d.aum_breakdown_bn || {};
+  const aumTotal = Object.values(aum).reduce((a,b) => a+b, 0);
 
-function renderConditions(c){
-  return (c||[]).map(x=>{
-    const cl=x.satisfied?'sat':'unsat';const m=x.satisfied?'\u2713':'\u00d7';
-    return '<div class="cond '+cl+'"><div class="mark">'+m+'</div>'+
-      '<div class="name">'+esc(x.name)+'</div>'+
-      '<div class="curr">'+esc(x.current)+'</div>'+
-      '<div class="w">w'+esc(x.weight)+'</div></div>';
-  }).join('');
-}
+  const stateClassMap = {
+    "FIRED_UP": "FIRED_UP", "PANIC": "PANIC",
+    "FIRED_DOWN": "FIRED_DOWN", "ARMED_UP": "ARMED_UP",
+    "ARMED_DOWN": "ARMED_DOWN", "COOLDOWN": "COOLDOWN", "NULL": "NULL"
+  };
+  const sc = stateClassMap[state] || "NULL";
 
-function renderForwardTable(f,horiz){
-  let body='';
-  horiz.forEach(([k,lbl])=>{
-    const x=f[k]||{};
-    body+='<tr><td style="color:var(--cyan);font-weight:600">'+esc(lbl)+'</td>'+
-      '<td class="num '+pctClass(x.return_pct)+'">'+fmtPct(x.return_pct)+'</td>'+
-      '<td class="num">'+fmtPct(x.median_pct)+'</td>'+
-      '<td class="num">'+(x.win_rate_pct==null?'\u2014':fmt(x.win_rate_pct,0)+'%')+'</td>'+
-      '<td class="num dim">'+esc(x.n||0)+'</td></tr>';
-  });
-  return '<table class="dt"><thead><tr><th>Horizon</th><th class="num">Avg</th><th class="num">Median</th><th class="num">Win rate</th><th class="num">N</th></tr></thead><tbody>'+body+'</tbody></table>';
-}
+  // Conditions
+  const conds = (d.trigger_conditions || []).map(c => `
+    <div class="cond-row">
+      <div class="cond-dot ${c.satisfied ? 'ok' : 'bad'}"></div>
+      <div class="cond-name">${c.name}</div>
+      <div class="cond-val">${fmt(c.current)} vs ${fmt(c.threshold)}</div>
+      <div class="cond-weight">w=${(c.weight*100).toFixed(0)}%</div>
+    </div>
+  `).join("");
 
-function renderBothSides(d){
-  const both=d.forward_expectations_both_sides||{};
-  const sh=both.short_setup||{},lg=both.long_setup||{};
-  const horiz=[['5d','5 days'],['21d','21 days'],['63d','63 days']];
-  return '<div class="dual-fwd">'+
-    '<div class="col"><h3 class="short">SHORT setup forwards</h3>'+
-      renderForwardTable(sh,horiz)+
-      '<div style="margin-top:6px;font-size:11px;color:var(--dim)">Computed at curated historical SPY 21d RV crossings above 20% from below.</div>'+
-    '</div>'+
-    '<div class="col"><h3 class="long">LONG setup forwards</h3>'+
-      renderForwardTable(lg,horiz)+
-      '<div style="margin-top:6px;font-size:11px;color:var(--dim)">Computed at curated historical SPY 21d RV crossings below 16% from above.</div>'+
-    '</div>'+
-  '</div>';
-}
-
-function renderTrade(t){
-  if(!t)return '';let html='';
-  if(t.primary)html+=tradeCard('Primary trade',t.primary,'primary');
-  if(t.leveraged_alt)html+=tradeCard('Leveraged alt',t.leveraged_alt,'');
-  if(t.exit_rules&&t.exit_rules.length)html+='<div class="trade-card"><div class="label">Exit rules</div><ul class="exit-rules">'+t.exit_rules.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul></div>';
-  return html;
-}
-function tradeCard(label,t,cls){
-  const fields=[];
-  if(t.size_guidance)fields.push('<b>Size</b> '+esc(t.size_guidance));
-  if(t.max_loss)fields.push('<b>Max loss</b> '+esc(t.max_loss));
-  if(t.expected_horizon)fields.push('<b>Horizon</b> '+esc(t.expected_horizon));
-  if(t.expected_return_basis)fields.push('<b>Basis</b> '+esc(t.expected_return_basis));
-  return '<div class="trade-card '+cls+'"><div class="label">'+esc(label)+'</div>'+
-    '<div class="instr">'+esc(t.instrument||'')+'</div>'+
-    (t.thesis?'<div class="thesis">'+esc(t.thesis)+'</div>':'')+
-    (fields.length?'<div class="meta">'+fields.map(f=>'<div>'+f+'</div>').join('')+'</div>':'')+
-  '</div>';
-}
-
-function renderExplainer(md){
-  if(!md)return '';
-  const paras=md.split('\n\n');
-  return '<div class="explainer">'+paras.map(p=>'<p>'+esc(p).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')+'</p>').join('')+'</div>';
-}
-
-function renderHistory(rows,side){
-  if(!rows||!rows.length)return '<div style="color:var(--dim);padding:10px">no '+side+' events</div>';
-  let body='';
-  rows.forEach(r=>{
-    body+='<tr><td>'+esc(r.date)+'</td><td class="dim">'+esc(r.label)+'</td>'+
-      '<td class="num">$'+fmt(r.spy_at_trigger,2)+'</td>'+
-      '<td class="num '+pctClass(r.fwd_5d_pct)+'">'+fmtPct(r.fwd_5d_pct)+'</td>'+
-      '<td class="num '+pctClass(r.fwd_21d_pct)+'">'+fmtPct(r.fwd_21d_pct)+'</td>'+
-      '<td class="num '+pctClass(r.fwd_63d_pct)+'">'+fmtPct(r.fwd_63d_pct)+'</td></tr>';
-  });
-  return '<table class="dt"><thead><tr><th>Date</th><th>Event</th><th class="num">SPY</th><th class="num">Fwd 5d</th><th class="num">Fwd 21d</th><th class="num">Fwd 63d</th></tr></thead><tbody>'+body+'</tbody></table>';
-}
-
-function build(d){
-  if(!d||!d.engine){
-    document.getElementById('root').innerHTML='<div class="fail">vol-target-unwind output not yet available. Engine runs 4x daily MON-FRI.</div>';
-    return;
+  // Horizon cards
+  function hcard(label, h) {
+    if (!h || h.return_pct === null) return `
+      <div class="horizon-card">
+        <div class="h">${label}</div>
+        <div class="val">—</div>
+        <div class="meta">no data</div>
+      </div>`;
+    return `
+      <div class="horizon-card">
+        <div class="h">next ${label}</div>
+        <div class="val ${cls(h.return_pct)}">${fmtPct(h.return_pct)}</div>
+        <div class="meta">${h.win_rate_pct}% win · n=${h.n} · med ${fmtPct(h.median_pct)}</div>
+        <div class="meta">range ${fmtPct(h.worst_pct)} to ${fmtPct(h.best_pct)}</div>
+      </div>`;
   }
-  const html=renderState(d)+
-    '<div class="sechead">Current Vol Readings</div>'+
-    '<div class="panel">'+renderReadings(d.current_readings||{})+'</div>'+
-    '<div class="sechead">Trigger Conditions</div>'+
-    '<div class="panel">'+renderConditions(d.trigger_conditions)+'</div>'+
-    '<div class="sechead">Forward Expectations (both sides)</div>'+
-    renderBothSides(d)+
-    '<div class="sechead">Why this, why now</div>'+
-    renderExplainer(d.why_now_explainer)+
-    '<div class="sechead">Recommended Trade</div>'+
-    renderTrade(d.recommended_trade||{})+
-    '<div class="sechead">SHORT historical episodes</div>'+
-    '<div class="panel">'+renderHistory((d.historical_episodes||{}).short_triggers,'short')+'</div>'+
-    '<div class="sechead">LONG historical episodes</div>'+
-    '<div class="panel">'+renderHistory((d.historical_episodes||{}).long_triggers,'long')+'</div>'+
-    '<div class="foot"><div><b>Schedule:</b> '+esc(d.schedule||'')+'</div>'+
-    '<div><b>Methodology:</b> '+esc(d.methodology||'')+'</div>'+
-    '<div><b>Sources:</b> '+esc((d.sources||[]).join(', '))+'</div>'+
-    '<div style="margin-top:8px"><b>Risk note:</b> short setups require quick exits; brief vol spikes (1-2 sessions) may not trigger the full mechanical de-risk flow. Use 5-day time stop.</div></div>';
-  document.getElementById('root').innerHTML=html;
+
+  // AUM bar
+  const aumBar = `
+    <div class="aum-bar">
+      <div class="aum-fill">
+        ${aum.risk_parity ? `<div class="aum-seg aum-rp" style="flex:${aum.risk_parity};">$${aum.risk_parity}B</div>` : ''}
+        ${aum.vol_control ? `<div class="aum-seg aum-vc" style="flex:${aum.vol_control};">$${aum.vol_control}B</div>` : ''}
+        ${aum.cta_trend ? `<div class="aum-seg aum-cta" style="flex:${aum.cta_trend};">$${aum.cta_trend}B</div>` : ''}
+        ${aum.target_date_glide ? `<div class="aum-seg aum-tdf" style="flex:${aum.target_date_glide};">$${aum.target_date_glide}B</div>` : ''}
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;">
+        risk-parity · vol-control · CTAs · target-date glide · total ~$${aumTotal}B
+      </div>
+    </div>`;
+
+  // Historical episodes
+  const eps = (d.regime_analog_set === 're_lever_down_cross' ? d.historical_episodes_down : d.historical_episodes_up) || [];
+  const epsRows = eps.slice(-10).reverse().map(e => `
+    <tr>
+      <td>${e.date}</td>
+      <td class="num">${fmt(e.rv_at_trigger)}</td>
+      <td class="num">$${fmt(e.entry_price)}</td>
+      <td class="num ${cls(e.fwd_1w_pct)}">${fmtPct(e.fwd_1w_pct)}</td>
+      <td class="num ${cls(e.fwd_1m_pct)}">${fmtPct(e.fwd_1m_pct)}</td>
+      <td class="num ${cls(e.fwd_3m_pct)}">${fmtPct(e.fwd_3m_pct)}</td>
+      <td class="num ${cls(e.fwd_12m_pct)}">${fmtPct(e.fwd_12m_pct)}</td>
+    </tr>
+  `).join("");
+
+  // Trade cards
+  const tradeHtml = `
+    ${trade.primary ? `
+    <div class="trade-card">
+      <h3>PRIMARY</h3>
+      <div class="instrument">${trade.primary.instrument}</div>
+      <div class="thesis">${trade.primary.thesis}</div>
+      <div class="meta-row"><span>direction</span><span>${trade.primary.direction || ''}</span></div>
+      <div class="meta-row"><span>size</span><span>${trade.primary.size_guidance || '—'}</span></div>
+      <div class="meta-row"><span>max loss</span><span>${trade.primary.max_loss || '—'}</span></div>
+      <div class="meta-row"><span>horizon</span><span>${trade.primary.expected_horizon || '—'}</span></div>
+      <div class="meta-row"><span>basis</span><span>${trade.primary.expected_return_basis || '—'}</span></div>
+    </div>` : ''}
+    ${trade.defined_risk_alt ? `
+    <div class="trade-card">
+      <h3>DEFINED-RISK ALT</h3>
+      <div class="instrument">${trade.defined_risk_alt.instrument}</div>
+      <div class="thesis">${trade.defined_risk_alt.thesis}</div>
+      <div class="meta-row"><span>max loss</span><span>${trade.defined_risk_alt.max_loss || '—'}</span></div>
+      <div class="meta-row"><span>max gain</span><span>${trade.defined_risk_alt.max_gain || '—'}</span></div>
+    </div>` : ''}
+    ${trade.leveraged_alt ? `
+    <div class="trade-card">
+      <h3>LEVERAGED ALT</h3>
+      <div class="instrument">${trade.leveraged_alt.instrument}</div>
+      <div class="thesis">${trade.leveraged_alt.thesis}</div>
+      <div class="meta-row"><span>size</span><span>${trade.leveraged_alt.size_guidance || '—'}</span></div>
+    </div>` : ''}
+    ${trade.exit_rules ? `
+    <div class="panel" style="margin-top:8px;">
+      <h2>Exit rules</h2>
+      <ul class="exit-rules">
+        ${trade.exit_rules.map(r => `<li>${r}</li>`).join("")}
+      </ul>
+    </div>` : ''}
+  `;
+
+  root.innerHTML = `
+    <div class="banner state-${sc}">
+      <div class="state-label">live state · regime ${d.regime_analog_set || ''}</div>
+      <div class="state-value ${sc}">${state}</div>
+      <div style="color:var(--mute);font-size:12px;margin-top:4px;">
+        signal strength ${d.signal_strength}/100 · AUM at risk ~$${d.aum_at_risk_usd_bn}B
+      </div>
+      <div class="signal-bar"><div class="signal-fill" style="width:${d.signal_strength}%;"></div></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <h2>Live readings</h2>
+        <div class="reading"><span class="reading-label">SPY close</span><span class="reading-value">$${fmt(cr.spy_close)}</span></div>
+        <div class="reading"><span class="reading-label">RV21 (close-to-close)</span><span class="reading-value ${cr.spy_realized_vol_21d_pct >= 20 ? 'danger' : cr.spy_realized_vol_21d_pct >= 18 ? 'warn' : 'ok'}">${fmt(cr.spy_realized_vol_21d_pct)}%</span></div>
+        <div class="reading"><span class="reading-label">RV5 (5-day)</span><span class="reading-value">${fmt(cr.spy_realized_vol_5d_pct)}%</span></div>
+        <div class="reading"><span class="reading-label">RV21 Yang-Zhang</span><span class="reading-value">${fmt(cr.spy_realized_vol_21d_yang_zhang_pct)}%</span></div>
+        <div class="reading"><span class="reading-label">RV5 Parkinson</span><span class="reading-value">${fmt(cr.spy_realized_vol_5d_parkinson_pct)}%</span></div>
+        <div class="reading"><span class="reading-label">VIX</span><span class="reading-value">${fmt(cr.vix)}</span></div>
+        <div class="reading"><span class="reading-label">VIX − RV21 (risk premium)</span><span class="reading-value">${fmtPct(cr.vix_minus_rv21)}</span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Trigger conditions</h2>
+        ${conds}
+        <div style="margin-top:16px;font-size:11px;color:var(--dim);">
+          de-lever threshold ${d.thresholds.de_lever_pct}% · panic ${d.thresholds.panic_pct}% · re-lever ${d.thresholds.re_lever_pct}%
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Capital at risk — vol-targeting fund AUM</h2>
+      ${aumBar}
+      <div style="font-size:12px;color:var(--mute);margin-top:8px;">
+        These funds carry an explicit mandate to re-balance position size when realized vol breaches threshold. The flow is mechanical, knowable, and front-runnable.
+      </div>
+    </div>
+
+    <div class="grid grid-4">
+      ${hcard("1w (5d)", fwd["1w"])}
+      ${hcard("1m (21d)", fwd["1m"])}
+      ${hcard("3m (63d)", fwd["3m"])}
+      ${hcard("12m (252d)", fwd["12m"])}
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <h2>Why now</h2>
+        <div class="why-now">${mdToHtml(d.why_now_explainer)}</div>
+      </div>
+
+      <div class="panel">
+        <h2>Recommended trade</h2>
+        ${tradeHtml}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <h2>Recent historical analogs (${d.regime_analog_set})</h2>
+      <table>
+        <thead>
+          <tr><th>date</th><th class="num">RV@trigger</th><th class="num">SPY entry</th><th class="num">fwd 1w</th><th class="num">fwd 1m</th><th class="num">fwd 3m</th><th class="num">fwd 12m</th></tr>
+        </thead>
+        <tbody>${epsRows || '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:24px;">No historical analogs available.</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <h2>Methodology</h2>
+      <div style="font-size:12px;color:var(--mute);line-height:1.7;">${d.methodology}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:12px;">
+        <strong style="color:var(--mute);">Sources:</strong> ${(d.sources || []).join(" · ")}
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">
+        <strong style="color:var(--mute);">Schedule:</strong> ${d.schedule}
+      </div>
+    </div>
+  `;
+  document.getElementById("ts").textContent = `as_of ${d.as_of} · refreshed ${new Date().toLocaleTimeString()}`;
 }
 
-function load(){
-  fetch(URL_BASE+REPORT_KEY+'?cb='+Date.now())
-    .then(r=>r.json()).then(build)
-    .catch(e=>{document.getElementById('root').innerHTML='<div class="fail">data/vol-target-unwind.json not reachable.</div>';});
+async function load() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    const d = await r.json();
+    render(d);
+  } catch (e) {
+    document.getElementById("root").innerHTML = `<div class="panel">Failed to load data: ${e}</div>`;
+  }
 }
-load();setInterval(load,REFRESH_MS);
+load();
+setInterval(load, 60000);
 </script>
 </body>
 </html>
