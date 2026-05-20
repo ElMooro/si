@@ -1,0 +1,102 @@
+{
+  "ops": 953,
+  "title": "dump real S3 schemas + diagnose Edge #5",
+  "run_at": "2026-05-20T14:08:11.495829Z",
+  "checks": [
+    {
+      "name": "e5.s3_get",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "name": "e6.top_keys_count",
+      "passed": true,
+      "detail": "22 keys"
+    },
+    {
+      "name": "e6.schema_dump",
+      "passed": true,
+      "detail": "{\"annual_buyback_auth_usd_bn\": 1200, \"as_of\": \"2026-05-20T14:06:47.719594Z\", \"cross_confirmation_multipliers\": {\"_type\": \"dict\", \"_keys\": [\"insider_net_buys_gt_1m\", \"v_recovery_down_15pct_90d\", \"first_buyback_in_2y\", \"asr_accelerated\"]}, \"engine\": \"buyback-scanner\", \"forward_expectations\": {\"_type\": \"dict\", \"_keys\": [\"1m\", \"3m\", \"12m\"]}, \"lookback_days\": 21, \"methodology\": {\"_type\": \"string\", \"_len\": 612, \"_head\": \"Pull last 21 days of 8-K filings from SEC EDGAR matching 4 se"
+    },
+    {
+      "name": "e6.trade_like_fields",
+      "passed": true,
+      "detail": "['n_enriched_opportunities', 'n_total_candidates_8k', 'top_opportunities']"
+    },
+    {
+      "name": "e6.why_like_fields",
+      "passed": true,
+      "detail": "['why_now_explainer']"
+    },
+    {
+      "name": "e6.state_like_fields",
+      "passed": true,
+      "detail": "['state', 'state_description']"
+    },
+    {
+      "name": "e8.top_keys_count",
+      "passed": true,
+      "detail": "19 keys"
+    },
+    {
+      "name": "e8.schema_dump",
+      "passed": true,
+      "detail": "{\"as_of\": \"2026-05-20T14:06:52.589704Z\", \"calendar\": {\"_type\": \"dict\", \"_keys\": [\"state\", \"today\", \"next_opex\", \"prior_opex\", \"days_to_next_opex_trading\", \"days_since_prior_opex_trading\", \"is_next_quad_witching\"]}, \"current_readings\": {\"_type\": \"dict\", \"_keys\": [\"next_opex\", \"days_to_next_opex_trading\", \"days_since_prior_opex_trading\", \"is_quad_witching\", \"max_pain\", \"spy_current\", \"pin_distance_pct\", \"n_contracts_analyzed\", \"top_strikes_by_oi\"]}, \"engine\": \"opex-calendar\", \""
+    },
+    {
+      "name": "e8.trade_like_fields",
+      "passed": true,
+      "detail": "['recommended_trade']"
+    },
+    {
+      "name": "e8.why_like_fields",
+      "passed": true,
+      "detail": "['why_now_explainer']"
+    },
+    {
+      "name": "e8.state_like_fields",
+      "passed": true,
+      "detail": "['previous_state', 'state', 'state_transition']"
+    },
+    {
+      "name": "e9.top_keys_count",
+      "passed": true,
+      "detail": "18 keys"
+    },
+    {
+      "name": "e9.schema_dump",
+      "passed": true,
+      "detail": "{\"academic_basis\": {\"_type\": \"list\", \"_len\": 3, \"_first_keys\": \"n/a\"}, \"all_setups\": {\"_type\": \"list\", \"_len\": 0, \"_first_keys\": \"n/a\"}, \"as_of\": \"2026-05-20T14:06:58.627930Z\", \"current_readings\": {\"_type\": \"dict\", \"_keys\": [\"n_setups_top20\", \"fresh_tier_a_count\", \"max_n_activists_in_target\", \"highest_composite_score\"]}, \"engine\": \"activist-13d\", \"forward_expectations\": {\"_type\": \"dict\", \"_keys\": [\"1m\", \"3m\", \"12m\"]}, \"methodology\": {\"_type\": \"string\", \"_len\": 523, \"_head\": \""
+    },
+    {
+      "name": "e9.trade_like_fields",
+      "passed": true,
+      "detail": "['all_setups', 'recommended_trade', 'top_setups']"
+    },
+    {
+      "name": "e9.why_like_fields",
+      "passed": true,
+      "detail": "['why_now_explainer']"
+    },
+    {
+      "name": "e9.state_like_fields",
+      "passed": true,
+      "detail": "['state']"
+    },
+    {
+      "name": "e5.env_vars",
+      "passed": true,
+      "detail": "env_keys=[]"
+    },
+    {
+      "name": "e5.candidate_universe_objects",
+      "passed": true,
+      "detail": "[\"data/snapshots/data_13f-positions-2026-05-04.json (14607269B)\", \"data/snapshots/data_13f-positions-2026-05-05.json (14607267B)\", \"data/snapshots/data_13f-positions-2026-05-06.json (14607322B)\", \"data/snapshots/data_13f-positions-2026-05-07.json (14607322B)\", \"data/snapshots/data_13f-positions-2026-05-08.json (14605571B)\", \"data/snapshots/data_13f-positions-2026-05-09.json (14605261B)\", \"data/snapshots/data_13f-positions-2026-05-10.json (14605261B)\", \"data/snapshots/data_13f"
+    }
+  ],
+  "summary": {
+    "total": 18,
+    "passed": 17,
+    "failed": 1
+  }
+}
