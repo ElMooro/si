@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Russell Reconstitution Front-Run | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#0f131a; --panel2:#11161f; --line:#1c2433;
+  --txt:#e6eaf2; --mute:#a8b3c7; --dim:#6f7b91;
+  --green:#26ffaf; --red:#ff5577; --orange:#ff7a18;
+  --yellow:#ffd266; --cyan:#00d4ff; --purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1500px;margin:0 auto;}
+a{color:var(--cyan);text-decoration:none;}
+a:hover{text-decoration:underline;}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+h1{font-size:18px;color:var(--cyan);font-weight:600;}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px;}
+.subtitle{color:var(--mute);font-size:12px;}
+.crumbs{font-size:12px;color:var(--mute);}
+.crumbs a{margin:0 4px;}
+
+.banner{padding:20px 24px;border-radius:8px;margin-bottom:24px;background:var(--panel);border:1px solid var(--line);position:relative;overflow:hidden;}
+.banner.phase-ANNOUNCED_HIGH_CONVICTION, .banner.phase-FINAL_WEEK{border-color:var(--green);background:linear-gradient(135deg, rgba(38,255,175,0.10) 0%, var(--panel) 80%);}
+.banner.phase-PRE_ANNOUNCEMENT{border-color:var(--cyan);}
+.banner.phase-POST_RANK_SNAPSHOT, .banner.phase-EARLY_MONITORING{border-color:var(--yellow);}
+.banner.phase-DORMANT, .banner.phase-POST_REBAL_FADE{border-color:var(--dim);}
+.phase-label{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em;}
+.phase-value{font-size:28px;font-weight:600;letter-spacing:-0.01em;margin:4px 0;color:var(--green);}
+.phase-value.dim{color:var(--mute);}
+.banner-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-top:16px;}
+.banner-cell{padding:8px;}
+.banner-cell .h{font-size:11px;color:var(--dim);text-transform:uppercase;}
+.banner-cell .v{font-size:22px;color:var(--txt);font-weight:600;margin-top:4px;}
+
+.grid{display:grid;gap:16px;margin-bottom:24px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3, 1fr);}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}.banner-grid{grid-template-columns:repeat(2, 1fr);}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;}
+.panel.accent-green{border-color:rgba(38,255,175,0.3);}
+.panel.accent-red{border-color:rgba(255,85,119,0.3);}
+
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);}
+th{color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;font-weight:500;font-size:11px;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;}
+td.pos{color:var(--green);}
+td.neg{color:var(--red);}
+.ticker{color:var(--cyan);font-weight:600;}
+
+.cond-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);}
+.cond-row:last-child{border-bottom:none;}
+.cond-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cond-dot.ok{background:var(--green);}
+.cond-dot.bad{background:var(--dim);}
+.cond-name{flex:1;}
+.cond-val{color:var(--mute);font-size:11px;}
+
+.trade-card{background:var(--panel2);border-radius:6px;padding:14px;margin-bottom:12px;border:1px solid var(--line);}
+.trade-card h3{font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.trade-card .instrument{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:4px;}
+.trade-card .thesis{color:var(--mute);font-size:12px;margin:8px 0;line-height:1.6;}
+.trade-card .meta-row{display:flex;justify-content:space-between;margin:4px 0;font-size:11px;}
+.trade-card .meta-row span:first-child{color:var(--dim);}
+
+.why-now{background:var(--panel);border-left:3px solid var(--cyan);padding:16px 20px;border-radius:0 6px 6px 0;color:var(--txt);font-size:13px;line-height:1.7;}
+.why-now strong{color:var(--cyan);}
+
+.exit-rules{list-style:none;}
+.exit-rules li{padding:6px 0;color:var(--mute);font-size:12px;}
+.exit-rules li::before{content:"▸ ";color:var(--cyan);margin-right:6px;}
+
+.priors-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;}
+.prior-card{background:var(--panel2);padding:12px;border-radius:6px;border:1px solid var(--line);}
+.prior-card .type{font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.prior-card .ret{font-size:18px;font-weight:600;}
+.prior-card .meta{font-size:10px;color:var(--dim);margin-top:4px;}
+
+footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+.tabs{display:flex;gap:4px;margin-bottom:12px;}
+.tab{padding:8px 14px;background:var(--panel);border:1px solid var(--line);color:var(--mute);cursor:pointer;font-family:inherit;font-size:12px;border-radius:4px;}
+.tab.active{color:var(--cyan);border-color:var(--cyan);}
+@media(max-width:700px){.priors-grid{grid-template-columns:repeat(2, 1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 Russell Reconstitution Front-Run</h1>
+    <div class="subtitle">Edge #5 · pre-rebalance positioning ahead of $5.6T in mechanical buying/selling</div>
+  </div>
+  <div class="crumbs">
+    <a href="/">home</a> · <a href="/directory.html">all engines</a> · <a href="/vix-capitulation.html">VIX backwardation</a> · <a href="/insider-buys.html">insider buys</a> · <a href="/breadth-thrust.html">breadth thrust</a> · <a href="/vol-target-unwind.html">vol-target unwind</a>
+  </div>
+</header>
+
+<div id="root">
+  <div class="banner phase-DORMANT">
+    <div class="phase-label">loading...</div>
+    <div class="phase-value dim">—</div>
+  </div>
+</div>
+
+<footer>
+  <span id="ts">—</span>
+  <span>data: <a href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/russell-recon-frontrun.json" target="_blank">russell-recon-frontrun.json</a></span>
+</footer>
+
+<script>
+const DATA_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/russell-recon-frontrun.json";
+
+function fmt(v, d = 2) {
+  if (v === null || v === undefined) return "—";
+  if (typeof v !== "number") return v;
+  return v.toFixed(d);
+}
+function fmtPct(v, d = 2) {
+  if (v === null || v === undefined) return "—";
+  return (v >= 0 ? "+" : "") + v.toFixed(d) + "%";
+}
+function fmtMcap(v) {
+  if (!v) return "—";
+  if (v >= 1e12) return "$" + (v/1e12).toFixed(1) + "T";
+  if (v >= 1e9) return "$" + (v/1e9).toFixed(1) + "B";
+  if (v >= 1e6) return "$" + (v/1e6).toFixed(0) + "M";
+  return "$" + Math.round(v);
+}
+function fmtFlow(v) {
+  if (!v) return "—";
+  const abs = Math.abs(v);
+  const sign = v >= 0 ? "+" : "−";
+  if (abs >= 1e9) return sign + "$" + (abs/1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return sign + "$" + (abs/1e6).toFixed(0) + "M";
+  return sign + "$" + Math.round(abs);
+}
+function cls(v) { return v > 0 ? "pos" : v < 0 ? "neg" : ""; }
+
+function mdToHtml(md) {
+  if (!md) return "";
+  return md.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+           .replace(/\n\n/g, "</p><p>")
+           .replace(/^/, "<p>").concat("</p>");
+}
+
+let CURRENT_VIEW = "longs";
+
+function setupsRows(setups, isShort) {
+  if (!setups || !setups.length) {
+    return `<tr><td colspan="9" style="color:var(--dim);text-align:center;padding:24px;">No setups yet — prior rank snapshot empty (first run) or no migrations identified.</td></tr>`;
+  }
+  return setups.map(s => `
+    <tr>
+      <td><span class="ticker">${s.symbol}</span></td>
+      <td style="color:var(--mute);font-size:11px;">${(s.name || '').substring(0,30)}</td>
+      <td>${(s.migration_type || '').replace(/_/g, ' ')}</td>
+      <td class="num">${fmtMcap(s.mcap)}</td>
+      <td class="num">${s.rank || '—'}</td>
+      <td class="num" style="color:var(--mute);">${s.prior_rank || '—'}</td>
+      <td class="num ${cls(isShort ? -1 : 1)}">${fmtFlow(s.estimated_flow_usd)}</td>
+      <td class="num ${isShort ? 'neg' : 'pos'}">${fmtPct(s.expected_return_to_rebal_pct)}</td>
+      <td class="num">${fmt(s.edge_score, 1)}</td>
+    </tr>
+  `).join("");
+}
+
+function render(d) {
+  const root = document.getElementById("root");
+  const phase = d.calendar_phase || "DORMANT";
+  const trade = d.recommended_trade || {};
+  const aum = d.aum_benchmarked_usd_bn || {};
+  const summary = d.summary || {};
+  const priors = d.forward_expectations_priors || {};
+  const conds = d.trigger_conditions || [];
+
+  const condRows = conds.map(c => `
+    <div class="cond-row">
+      <div class="cond-dot ${c.satisfied ? 'ok' : 'bad'}"></div>
+      <div class="cond-name">${c.name}</div>
+      <div class="cond-val">${c.current} / threshold ${c.threshold}</div>
+    </div>
+  `).join("");
+
+  const priorsHtml = ["ADD_R3000", "DELETE_R3000", "UPCAP_R2K_TO_R1K", "DOWNCAP_R1K_TO_R2K"].map(k => {
+    const p = priors[k] || {};
+    const ret = p.expected_return_to_rebal_pct;
+    return `
+      <div class="prior-card">
+        <div class="type">${k.replace(/_/g, ' ')}</div>
+        <div class="ret ${cls(ret)}">${fmtPct(ret)}</div>
+        <div class="meta">to rebal · win rate ${p.win_rate_pct || '?'}%</div>
+        <div class="meta">${p.academic_basis || ''}</div>
+      </div>`;
+  }).join("");
+
+  const tradeHtml = `
+    ${trade.primary ? `
+      <div class="trade-card">
+        <h3>PRIMARY · LONG</h3>
+        <div class="instrument">${trade.primary.instrument}</div>
+        <div class="thesis">${trade.primary.thesis}</div>
+        <div class="meta-row"><span>direction</span><span>${trade.primary.direction || '—'}</span></div>
+        <div class="meta-row"><span>size</span><span>${trade.primary.size_guidance || '—'}</span></div>
+        <div class="meta-row"><span>max loss</span><span>${trade.primary.max_loss || '—'}</span></div>
+        <div class="meta-row"><span>horizon</span><span>${trade.primary.expected_horizon || '—'}</span></div>
+        <div class="meta-row"><span>basis</span><span>${trade.primary.expected_return_basis || '—'}</span></div>
+      </div>` : ''}
+    ${trade.short_alt ? `
+      <div class="trade-card">
+        <h3>SHORT BASKET</h3>
+        <div class="instrument">${trade.short_alt.instrument}</div>
+        <div class="thesis">${trade.short_alt.thesis}</div>
+        <div class="meta-row"><span>size</span><span>${trade.short_alt.size_guidance || '—'}</span></div>
+      </div>` : ''}
+    ${trade.options_alt ? `
+      <div class="trade-card">
+        <h3>OPTIONS ALT</h3>
+        <div class="instrument">${trade.options_alt.instrument}</div>
+        <div class="thesis">${trade.options_alt.thesis}</div>
+        <div class="meta-row"><span>max loss</span><span>${trade.options_alt.max_loss || '—'}</span></div>
+      </div>` : ''}
+    ${trade.exit_rules ? `
+      <div class="panel" style="margin-top:8px;">
+        <h2>Exit rules</h2>
+        <ul class="exit-rules">${trade.exit_rules.map(r => `<li>${r}</li>`).join("")}</ul>
+      </div>` : ''}
+  `;
+
+  root.innerHTML = `
+    <div class="banner phase-${phase}">
+      <div class="phase-label">calendar phase</div>
+      <div class="phase-value">${phase.replace(/_/g, ' ')}</div>
+      <div class="banner-grid">
+        <div class="banner-cell">
+          <div class="h">rebal friday</div>
+          <div class="v">${d.rebal_friday || '—'}</div>
+        </div>
+        <div class="banner-cell">
+          <div class="h">days to rebal</div>
+          <div class="v">${d.days_to_rebal}</div>
+        </div>
+        <div class="banner-cell">
+          <div class="h">aum benchmarked</div>
+          <div class="v">$${aum.total || 0}B</div>
+        </div>
+        <div class="banner-cell">
+          <div class="h">signal strength</div>
+          <div class="v">${d.signal_strength}/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="panel">
+        <h2>Migration counts</h2>
+        <div class="cond-row"><div class="cond-name">Adds to R3000</div><div class="cond-val" style="color:var(--green);font-size:16px;font-weight:600;">${summary.n_adds_r3000 || 0}</div></div>
+        <div class="cond-row"><div class="cond-name">Deletes from R3000</div><div class="cond-val" style="color:var(--red);font-size:16px;font-weight:600;">${summary.n_deletes_r3000 || 0}</div></div>
+        <div class="cond-row"><div class="cond-name">Up-caps R2K→R1K</div><div class="cond-val" style="font-size:14px;">${summary.n_upcaps || 0}</div></div>
+        <div class="cond-row"><div class="cond-name">Down-caps R1K→R2K</div><div class="cond-val" style="font-size:14px;">${summary.n_downcaps || 0}</div></div>
+        <div class="cond-row"><div class="cond-name">Borderline R2K cutoff</div><div class="cond-val" style="font-size:14px;">${summary.n_borderline || 0}</div></div>
+        <div class="cond-row"><div class="cond-name">Universe size</div><div class="cond-val">${d.universe_size}</div></div>
+        <div class="cond-row"><div class="cond-name">Prior snapshot ranks</div><div class="cond-val">${summary.n_prior_snapshot_size || 0}</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Trigger conditions</h2>
+        ${condRows}
+      </div>
+
+      <div class="panel">
+        <h2>Why now</h2>
+        <div class="why-now">${mdToHtml(d.why_now_explainer)}</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Academic forward expectations by setup type</h2>
+      <div class="priors-grid">${priorsHtml}</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Top trade setups</h2>
+      <div class="tabs">
+        <button class="tab ${CURRENT_VIEW === 'longs' ? 'active' : ''}" onclick="window.__setView('longs')">LONGS (adds + upcaps)</button>
+        <button class="tab ${CURRENT_VIEW === 'shorts' ? 'active' : ''}" onclick="window.__setView('shorts')">SHORTS (deletes + downcaps)</button>
+        <button class="tab ${CURRENT_VIEW === 'borderline' ? 'active' : ''}" onclick="window.__setView('borderline')">BORDERLINE</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ticker</th>
+            <th>name</th>
+            <th>type</th>
+            <th class="num">mcap</th>
+            <th class="num">rank</th>
+            <th class="num">prior</th>
+            <th class="num">est. flow</th>
+            <th class="num">expected to rebal</th>
+            <th class="num">edge</th>
+          </tr>
+        </thead>
+        <tbody>${
+          CURRENT_VIEW === 'longs' ? setupsRows(d.top_long_setups, false) :
+          CURRENT_VIEW === 'shorts' ? setupsRows(d.top_short_setups, true) :
+          setupsRows((d.migrations || {}).borderline, false)
+        }</tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Recommended trade</h2>
+      ${tradeHtml}
+    </div>
+
+    <div class="panel">
+      <h2>Methodology</h2>
+      <div style="font-size:12px;color:var(--mute);line-height:1.7;">${d.methodology}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:12px;">
+        <strong style="color:var(--mute);">Sources:</strong> ${(d.sources || []).join(" · ")}
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">
+        <strong style="color:var(--mute);">Schedule:</strong> ${d.schedule}
+      </div>
+    </div>
+  `;
+  document.getElementById("ts").textContent = `as_of ${d.as_of} · refreshed ${new Date().toLocaleTimeString()}`;
+}
+
+let LAST_DATA = null;
+window.__setView = (v) => { CURRENT_VIEW = v; if (LAST_DATA) render(LAST_DATA); };
+
+async function load() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    const d = await r.json();
+    LAST_DATA = d;
+    render(d);
+  } catch (e) {
+    document.getElementById("root").innerHTML = `<div class="panel">Failed to load data: ${e}</div>`;
+  }
+}
+load();
+setInterval(load, 120000);
+</script>
+</body>
+</html>
