@@ -1,0 +1,37 @@
+{
+  "ops": 968,
+  "title": "force-invoke Edge #2 to surface new state field",
+  "run_at": "2026-05-20T15:48:11.894364Z",
+  "checks": [
+    {
+      "name": "invoke_ok",
+      "passed": true,
+      "detail": "dur=1.4s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"insider-buys-enriched\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:48:09.242870+00:00\\\", \\\"state\\\": \\\"ELEVATED\\\", \\\"signal_strength\\\": 75, \\\"source\\\""
+    },
+    {
+      "name": "has_state",
+      "passed": true,
+      "detail": "state=ELEVATED"
+    },
+    {
+      "name": "has_signal_strength",
+      "passed": true,
+      "detail": "signal_strength=75"
+    },
+    {
+      "name": "fresh_post_invoke",
+      "passed": true,
+      "detail": "age_s=1"
+    },
+    {
+      "name": "state_enum_valid",
+      "passed": true,
+      "detail": "state=ELEVATED"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 5
+  },
+  "overall_ok": true
+}
