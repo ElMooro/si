@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vol-Target Unwind Trigger - JustHodl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1280px;margin:0 auto;padding:14px 16px 80px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:14px;flex-wrap:wrap}
+.top h1{font-size:19px;margin:0;font-weight:600}
+.top .sub{color:var(--mute);font-size:11px;margin-top:3px;max-width:760px}
+.top .right{display:flex;gap:8px;align-items:center}
+.btn{display:inline-block;padding:5px 10px;border:1px solid var(--line);background:var(--panel);color:var(--mute);border-radius:3px;font-size:11px;font-family:inherit;cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--txt);border-color:#2a3445}
+
+.state-banner{padding:18px 22px;border-radius:5px;background:var(--panel);border:1px solid var(--line);margin-bottom:18px;display:grid;grid-template-columns:1fr auto auto;gap:18px;align-items:center}
+.state-banner.s-short_fired{border-color:var(--red);box-shadow:0 0 16px rgba(255,85,119,.18)}
+.state-banner.s-long_fired{border-color:var(--green);box-shadow:0 0 16px rgba(38,255,175,.16)}
+.state-banner.s-short_armed{border-color:var(--orange)}
+.state-banner.s-long_armed{border-color:var(--yellow)}
+.state-banner.s-watch{border-color:var(--purple)}
+.state-banner .state-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.state-banner .state-value{font-size:30px;font-weight:700;letter-spacing:.6px}
+.state-banner.s-short_fired .state-value{color:var(--red)}
+.state-banner.s-long_fired .state-value{color:var(--green)}
+.state-banner.s-short_armed .state-value{color:var(--orange)}
+.state-banner.s-long_armed .state-value{color:var(--yellow)}
+.state-banner.s-watch .state-value{color:var(--purple)}
+.state-banner.s-null .state-value{color:var(--dim)}
+.state-banner .sub-info{color:var(--mute);font-size:11px;margin-top:6px}
+.state-banner .strength{font-size:34px;font-weight:700;color:var(--cyan);text-align:right}
+.state-banner .strength-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;text-align:right;margin-top:2px}
+.state-banner .aum{font-size:22px;font-weight:700;color:var(--yellow);text-align:right}
+.state-banner .aum-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;text-align:right;margin-top:2px}
+
+.sechead{margin:18px 0 9px;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.8px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:14px}
+
+.readings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px}
+.reading{padding:8px 10px;background:var(--panel2);border-radius:3px;border-left:3px solid var(--line)}
+.reading.high-vol{border-left-color:var(--red)}
+.reading.elevated-vol{border-left-color:var(--orange)}
+.reading.normal-vol{border-left-color:var(--dim)}
+.reading.low-vol{border-left-color:var(--green)}
+.reading .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.reading .v{font-size:20px;font-weight:600;color:var(--txt)}
+.reading .s{font-size:10px;color:var(--mute);margin-top:2px}
+
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{text-align:left;color:var(--dim);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+table.dt th.num{text-align:right}
+table.dt td{padding:8px 10px;border-bottom:1px solid var(--panel2);color:var(--txt)}
+table.dt td.num{text-align:right}
+table.dt tr:hover{background:var(--panel2)}
+table.dt td.dim{color:var(--dim)}
+table.dt td.good{color:var(--green);font-weight:600}
+table.dt td.bad{color:var(--red);font-weight:600}
+
+.dual-fwd{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dual-fwd .col{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px 13px}
+.dual-fwd .col h3{margin:0 0 8px;font-size:12px;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.dual-fwd .col h3.short{color:var(--red)}
+.dual-fwd .col h3.long{color:var(--green)}
+
+.cond{display:flex;align-items:center;gap:12px;padding:9px 12px;margin-bottom:6px;border-radius:3px;background:var(--panel2);border-left:3px solid var(--line)}
+.cond.sat{border-left-color:var(--green)}
+.cond.unsat{border-left-color:var(--dim);opacity:.7}
+.cond .mark{font-size:18px;font-weight:700;width:22px;text-align:center}
+.cond.sat .mark{color:var(--green)}
+.cond.unsat .mark{color:var(--dim)}
+.cond .name{flex:1;color:var(--txt);font-weight:500}
+.cond .curr{font-size:11px;color:var(--mute);text-align:right}
+.cond .w{font-size:10px;color:var(--dim);min-width:36px;text-align:right}
+
+.trade-card{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin-bottom:10px}
+.trade-card.primary{border-color:var(--cyan);background:linear-gradient(180deg,rgba(0,212,255,.04),var(--panel2))}
+.trade-card .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.trade-card.primary .label{color:var(--cyan)}
+.trade-card .instr{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:8px}
+.trade-card .thesis{color:var(--mute);font-size:12px;margin-bottom:8px;line-height:1.55}
+.trade-card .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 14px;font-size:11px;color:var(--dim)}
+.trade-card .meta b{color:var(--mute);font-weight:500}
+.exit-rules{margin:8px 0 4px;padding-left:18px;color:var(--mute);font-size:11px}
+.exit-rules li{margin-bottom:3px}
+
+.explainer{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 20px;font-size:13px;line-height:1.7;color:var(--txt)}
+.explainer strong{color:var(--cyan)}
+.explainer p{margin:6px 0}
+
+.foot{margin-top:20px;color:var(--dim);font-size:11px;line-height:1.6;padding-top:14px;border-top:1px solid var(--line)}
+.foot b{color:var(--mute);font-weight:500}
+.fail{padding:18px;color:var(--red);background:var(--panel);border:1px solid var(--line);border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <h1>Vol-Target Fund Unwind Trigger</h1>
+    <div class="sub">Front-run mechanical de-risk by risk-parity, vol-control, and CTA funds (~$400-600B aggregate AUM). SHORT signal fires when SPY 21d realized vol crosses 20% from below (mechanical selling expected over next 1-5 sessions). LONG signal fires when realized vol falls back through 16% from above (mechanical re-leveraging expected over 5-21 sessions).</div>
+  </div>
+  <div class="right">
+    <a class="btn" href="vix-curve.html">Vol Curve</a>
+    <a class="btn" href="vrp.html">VRP</a>
+    <a class="btn" href="directory.html">All</a>
+  </div>
+</div>
+
+<div id="root"><div class="panel" style="color:var(--dim)">Loading vol-target state&hellip;</div></div>
+
+</div>
+
+<script>
+const URL_BASE='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
+const REPORT_KEY='data/vol-target-unwind.json';
+const REFRESH_MS=60000;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmt(n,p){if(n==null||isNaN(n))return '\u2014';return Number(n).toFixed(p==null?2:p);}
+function fmtPct(n){if(n==null||isNaN(n))return '\u2014';return(n>=0?'+':'')+Number(n).toFixed(1)+'%';}
+function fmtUSD(n){if(n==null)return '\u2014';return '$'+(n/1e9).toFixed(0)+'B';}
+function pctClass(n){if(n==null)return 'dim';return n>0?'good':(n<0?'bad':'dim');}
+
+function volClass(v){if(v==null)return 'normal-vol';if(v>=20)return 'high-vol';if(v>=16)return 'elevated-vol';if(v<12)return 'low-vol';return 'normal-vol';}
+
+function renderState(d){
+  const s=(d.state||'NULL').toLowerCase();
+  const sub=[];
+  if(d.state_since)sub.push('since '+new Date(d.state_since).toLocaleString());
+  if(d.state_transition)sub.push('transition: '+d.state_transition);
+  return '<div class="state-banner s-'+s+'">'+
+    '<div><div class="state-label">Current State</div>'+
+    '<div class="state-value">'+esc(d.state)+'</div>'+
+    '<div class="sub-info">'+sub.join(' &middot; ')+'</div></div>'+
+    '<div><div class="aum">'+fmtUSD(d.estimated_aum_at_risk_usd)+'</div>'+
+    '<div class="aum-l">est AUM at risk</div></div>'+
+    '<div><div class="strength">'+esc(d.signal_strength||0)+'</div>'+
+    '<div class="strength-l">signal / 100</div></div></div>';
+}
+
+function renderReadings(r){
+  const th=r.thresholds||{};
+  return '<div class="readings">'+
+    '<div class="reading '+volClass(r.rv21)+'"><div class="l">RV21 (Parkinson)</div>'+
+      '<div class="v">'+fmt(r.rv21,2)+'%</div>'+
+      '<div class="s">21d annualised vol</div></div>'+
+    '<div class="reading '+volClass(r.rv5)+'"><div class="l">RV5 (Parkinson)</div>'+
+      '<div class="v">'+fmt(r.rv5,2)+'%</div>'+
+      '<div class="s">5d short window</div></div>'+
+    '<div class="reading '+volClass(r.rv21_close_to_close)+'"><div class="l">RV21 (close-to-close)</div>'+
+      '<div class="v">'+fmt(r.rv21_close_to_close,2)+'%</div>'+
+      '<div class="s">sanity check</div></div>'+
+    '<div class="reading"><div class="l">RV21 prev</div>'+
+      '<div class="v">'+fmt(r.rv21_prev,2)+'%</div>'+
+      '<div class="s">d-1 reading</div></div>'+
+    '<div class="reading"><div class="l">Trend</div>'+
+      '<div class="v" style="color:'+(r.rv_trend==='RISING'?'var(--red)':'var(--green)')+'">'+esc(r.rv_trend||'\u2014')+'</div>'+
+      '<div class="s">accelerating: '+(r.accelerating?'yes':'no')+'</div></div>'+
+    '<div class="reading"><div class="l">RV5/RV21</div>'+
+      '<div class="v">'+fmt(r.rv5_to_rv21_ratio,3)+'</div>'+
+      '<div class="s">acceleration ratio</div></div>'+
+    '<div class="reading"><div class="l">SPY last</div>'+
+      '<div class="v">$'+fmt(r.spy_last,2)+'</div>'+
+      '<div class="s">'+esc(r.as_of_date||'')+'</div></div>'+
+    '<div class="reading"><div class="l">Thresholds</div>'+
+      '<div class="v" style="font-size:14px">low '+th.low+'%, watch '+th.watch+'%</div>'+
+      '<div class="s">high '+th.high+'%, extreme '+th.extreme+'%</div></div>'+
+  '</div>';
+}
+
+function renderConditions(c){
+  return (c||[]).map(x=>{
+    const cl=x.satisfied?'sat':'unsat';const m=x.satisfied?'\u2713':'\u00d7';
+    return '<div class="cond '+cl+'"><div class="mark">'+m+'</div>'+
+      '<div class="name">'+esc(x.name)+'</div>'+
+      '<div class="curr">'+esc(x.current)+'</div>'+
+      '<div class="w">w'+esc(x.weight)+'</div></div>';
+  }).join('');
+}
+
+function renderForwardTable(f,horiz){
+  let body='';
+  horiz.forEach(([k,lbl])=>{
+    const x=f[k]||{};
+    body+='<tr><td style="color:var(--cyan);font-weight:600">'+esc(lbl)+'</td>'+
+      '<td class="num '+pctClass(x.return_pct)+'">'+fmtPct(x.return_pct)+'</td>'+
+      '<td class="num">'+fmtPct(x.median_pct)+'</td>'+
+      '<td class="num">'+(x.win_rate_pct==null?'\u2014':fmt(x.win_rate_pct,0)+'%')+'</td>'+
+      '<td class="num dim">'+esc(x.n||0)+'</td></tr>';
+  });
+  return '<table class="dt"><thead><tr><th>Horizon</th><th class="num">Avg</th><th class="num">Median</th><th class="num">Win rate</th><th class="num">N</th></tr></thead><tbody>'+body+'</tbody></table>';
+}
+
+function renderBothSides(d){
+  const both=d.forward_expectations_both_sides||{};
+  const sh=both.short_setup||{},lg=both.long_setup||{};
+  const horiz=[['5d','5 days'],['21d','21 days'],['63d','63 days']];
+  return '<div class="dual-fwd">'+
+    '<div class="col"><h3 class="short">SHORT setup forwards</h3>'+
+      renderForwardTable(sh,horiz)+
+      '<div style="margin-top:6px;font-size:11px;color:var(--dim)">Computed at curated historical SPY 21d RV crossings above 20% from below.</div>'+
+    '</div>'+
+    '<div class="col"><h3 class="long">LONG setup forwards</h3>'+
+      renderForwardTable(lg,horiz)+
+      '<div style="margin-top:6px;font-size:11px;color:var(--dim)">Computed at curated historical SPY 21d RV crossings below 16% from above.</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderTrade(t){
+  if(!t)return '';let html='';
+  if(t.primary)html+=tradeCard('Primary trade',t.primary,'primary');
+  if(t.leveraged_alt)html+=tradeCard('Leveraged alt',t.leveraged_alt,'');
+  if(t.exit_rules&&t.exit_rules.length)html+='<div class="trade-card"><div class="label">Exit rules</div><ul class="exit-rules">'+t.exit_rules.map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul></div>';
+  return html;
+}
+function tradeCard(label,t,cls){
+  const fields=[];
+  if(t.size_guidance)fields.push('<b>Size</b> '+esc(t.size_guidance));
+  if(t.max_loss)fields.push('<b>Max loss</b> '+esc(t.max_loss));
+  if(t.expected_horizon)fields.push('<b>Horizon</b> '+esc(t.expected_horizon));
+  if(t.expected_return_basis)fields.push('<b>Basis</b> '+esc(t.expected_return_basis));
+  return '<div class="trade-card '+cls+'"><div class="label">'+esc(label)+'</div>'+
+    '<div class="instr">'+esc(t.instrument||'')+'</div>'+
+    (t.thesis?'<div class="thesis">'+esc(t.thesis)+'</div>':'')+
+    (fields.length?'<div class="meta">'+fields.map(f=>'<div>'+f+'</div>').join('')+'</div>':'')+
+  '</div>';
+}
+
+function renderExplainer(md){
+  if(!md)return '';
+  const paras=md.split('\n\n');
+  return '<div class="explainer">'+paras.map(p=>'<p>'+esc(p).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')+'</p>').join('')+'</div>';
+}
+
+function renderHistory(rows,side){
+  if(!rows||!rows.length)return '<div style="color:var(--dim);padding:10px">no '+side+' events</div>';
+  let body='';
+  rows.forEach(r=>{
+    body+='<tr><td>'+esc(r.date)+'</td><td class="dim">'+esc(r.label)+'</td>'+
+      '<td class="num">$'+fmt(r.spy_at_trigger,2)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_5d_pct)+'">'+fmtPct(r.fwd_5d_pct)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_21d_pct)+'">'+fmtPct(r.fwd_21d_pct)+'</td>'+
+      '<td class="num '+pctClass(r.fwd_63d_pct)+'">'+fmtPct(r.fwd_63d_pct)+'</td></tr>';
+  });
+  return '<table class="dt"><thead><tr><th>Date</th><th>Event</th><th class="num">SPY</th><th class="num">Fwd 5d</th><th class="num">Fwd 21d</th><th class="num">Fwd 63d</th></tr></thead><tbody>'+body+'</tbody></table>';
+}
+
+function build(d){
+  if(!d||!d.engine){
+    document.getElementById('root').innerHTML='<div class="fail">vol-target-unwind output not yet available. Engine runs 4x daily MON-FRI.</div>';
+    return;
+  }
+  const html=renderState(d)+
+    '<div class="sechead">Current Vol Readings</div>'+
+    '<div class="panel">'+renderReadings(d.current_readings||{})+'</div>'+
+    '<div class="sechead">Trigger Conditions</div>'+
+    '<div class="panel">'+renderConditions(d.trigger_conditions)+'</div>'+
+    '<div class="sechead">Forward Expectations (both sides)</div>'+
+    renderBothSides(d)+
+    '<div class="sechead">Why this, why now</div>'+
+    renderExplainer(d.why_now_explainer)+
+    '<div class="sechead">Recommended Trade</div>'+
+    renderTrade(d.recommended_trade||{})+
+    '<div class="sechead">SHORT historical episodes</div>'+
+    '<div class="panel">'+renderHistory((d.historical_episodes||{}).short_triggers,'short')+'</div>'+
+    '<div class="sechead">LONG historical episodes</div>'+
+    '<div class="panel">'+renderHistory((d.historical_episodes||{}).long_triggers,'long')+'</div>'+
+    '<div class="foot"><div><b>Schedule:</b> '+esc(d.schedule||'')+'</div>'+
+    '<div><b>Methodology:</b> '+esc(d.methodology||'')+'</div>'+
+    '<div><b>Sources:</b> '+esc((d.sources||[]).join(', '))+'</div>'+
+    '<div style="margin-top:8px"><b>Risk note:</b> short setups require quick exits; brief vol spikes (1-2 sessions) may not trigger the full mechanical de-risk flow. Use 5-day time stop.</div></div>';
+  document.getElementById('root').innerHTML=html;
+}
+
+function load(){
+  fetch(URL_BASE+REPORT_KEY+'?cb='+Date.now())
+    .then(r=>r.json()).then(build)
+    .catch(e=>{document.getElementById('root').innerHTML='<div class="fail">data/vol-target-unwind.json not reachable.</div>';});
+}
+load();setInterval(load,REFRESH_MS);
+</script>
+</body>
+</html>

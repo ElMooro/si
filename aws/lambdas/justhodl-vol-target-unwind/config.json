@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 90,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Vol-target unwind trigger (Edge #4). RV21 vs 16/20/25 thresholds; estimates AUM mechanically rebalancing; outputs trade ticket and forward expectations.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}
