@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Opportunities — Retail Trade Tickets | JustHodl.AI</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-primary:#04060d;--bg-secondary:#080c18;--bg-card:#0c1220;--bg-hover:#111929;
+  --border:#1a2540;--border-bright:#1e3060;
+  --cyan:#00d4ff;--cyan-dim:#0090bb;--green:#00ff88;--green-dim:#00a855;
+  --red:#ff2255;--orange:#ff8c00;--yellow:#ffd700;--purple:#a855f7;--gold:#facc15;
+  --text-primary:#d0dff5;--text-secondary:#5a7a9a;--text-dim:#2a4060;
+  --font-mono:'JetBrains Mono',monospace;--font-display:'Orbitron',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-mono);font-size:12px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.008) 2px,rgba(0,212,255,.008) 4px);pointer-events:none;z-index:9999}
+
+.topnav{background:var(--bg-secondary);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:4px;height:36px;overflow-x:auto;white-space:nowrap}
+.topnav a{color:var(--text-secondary);text-decoration:none;padding:6px 10px;font-size:10px;letter-spacing:1px;transition:color .2s}
+.topnav a:hover{color:var(--cyan)}
+.topnav a.active{color:var(--gold);border-bottom:2px solid var(--gold)}
+.nav-brand{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:2px;margin-right:16px}
+
+.page-header{background:linear-gradient(135deg,#04060d,#0a0a18 50%,#04060d);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.page-title{font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.page-subtitle{font-size:11px;color:var(--text-secondary);margin-top:4px;letter-spacing:1px;max-width:680px;line-height:1.5}
+
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);padding:5px 12px;border-radius:2px;font-size:10px;color:var(--green);letter-spacing:1.5px}
+.pulse-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+
+/* STATE banner */
+.state-banner{padding:18px 24px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:minmax(240px,auto) 1fr auto;gap:24px;align-items:center;background:var(--bg-secondary)}
+.state-pill{display:inline-block;font-family:var(--font-display);font-size:22px;font-weight:900;letter-spacing:2px;padding:8px 18px;border:1px solid var(--gold);color:var(--gold);background:rgba(250,204,21,.06);border-radius:2px}
+.state-pill.opportunity-rich{border-color:var(--green);color:var(--green);background:rgba(0,255,136,.06)}
+.state-pill.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.06)}
+.state-pill.normal{border-color:var(--text-secondary);color:var(--text-primary);background:rgba(90,122,154,.06)}
+.state-pill.quiet{border-color:var(--red);color:var(--red);background:rgba(255,34,85,.04)}
+.state-desc{font-size:13px;color:var(--text-primary);line-height:1.55}
+.state-counts{display:flex;gap:18px;font-size:10px;color:var(--text-secondary);letter-spacing:1px;justify-content:flex-end;flex-wrap:wrap}
+.state-counts span b{display:block;font-size:20px;color:var(--text-primary);font-weight:700;margin-bottom:2px}
+.state-counts span.gold b{color:var(--gold)}
+
+.container{padding:24px;max-width:1700px;margin:0 auto}
+.section{margin-bottom:32px}
+.section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);gap:16px;flex-wrap:wrap}
+.section-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:2px;text-transform:uppercase}
+.section-title.flagship{color:var(--gold)}
+.section-explainer{font-size:11px;color:var(--text-secondary);line-height:1.6;max-width:760px;margin-top:4px}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.card.flagship{border-left:3px solid var(--gold)}
+.card.volume{border-left:3px solid var(--orange)}
+.card.social{border-left:3px solid var(--purple)}
+.card.stable{border-left:3px solid var(--green)}
+
+table.opps{width:100%;border-collapse:collapse;table-layout:auto}
+table.opps th{font-size:9px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2);white-space:nowrap;font-weight:600}
+table.opps th.r{text-align:right}
+table.opps td{padding:11px 12px;border-bottom:1px solid rgba(26,37,64,.45);font-size:12px;vertical-align:middle}
+table.opps td.r{text-align:right;font-variant-numeric:tabular-nums}
+table.opps tr.row-main{cursor:pointer;transition:background .15s}
+table.opps tr.row-main:hover{background:var(--bg-hover)}
+table.opps tr.row-trade{display:none;background:rgba(0,0,0,.25)}
+table.opps tr.row-trade.open{display:table-row}
+table.opps tr.row-trade td{padding:14px 18px;border-top:1px solid var(--border-bright)}
+
+.token-cell{display:flex;align-items:center;gap:10px}
+.token-logo{width:24px;height:24px;border-radius:50%;background:var(--bg-hover);object-fit:cover;flex-shrink:0}
+.token-meta{display:flex;flex-direction:column;line-height:1.3}
+.token-ticker{font-weight:700;color:var(--text-primary);font-size:13px;letter-spacing:.5px}
+.token-name{font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+.pct-up{color:var(--green);font-weight:600}
+.pct-down{color:var(--red);font-weight:600}
+.pct-flat{color:var(--text-secondary)}
+.sig-bar{display:inline-block;width:60px;height:5px;background:var(--border);border-radius:2px;overflow:hidden;vertical-align:middle;margin-right:6px}
+.sig-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));border-radius:2px}
+.sig-fill.volume{background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.sig-fill.social{background:linear-gradient(90deg,var(--purple),var(--cyan))}
+.sig-fill.stable{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.sig-fill.gold{background:linear-gradient(90deg,var(--gold),var(--green))}
+
+.signal-chips{display:flex;gap:4px}
+.chip{font-size:8px;padding:2px 6px;border-radius:2px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.chip.volume{background:rgba(255,140,0,.1);color:var(--orange);border-color:rgba(255,140,0,.3)}
+.chip.social{background:rgba(168,85,247,.1);color:var(--purple);border-color:rgba(168,85,247,.3)}
+.chip.stable{background:rgba(0,255,136,.1);color:var(--green);border-color:rgba(0,255,136,.3)}
+
+.ticket{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:8px}
+.ticket-field{display:flex;flex-direction:column;gap:4px}
+.ticket-label{font-size:9px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+.ticket-value{font-size:12px;color:var(--text-primary);line-height:1.4;font-weight:500}
+.ticket-value.entry{color:var(--cyan)}
+.ticket-value.stop{color:var(--red)}
+.ticket-value.target{color:var(--green)}
+.ticket-primary{grid-column:1/-1;font-size:13px;color:var(--text-primary);line-height:1.55;padding:10px 12px;background:rgba(0,212,255,.04);border-left:2px solid var(--cyan);margin-bottom:4px}
+.ticket-primary.flagship{background:rgba(250,204,21,.06);border-left-color:var(--gold)}
+.ticket-risks{grid-column:1/-1;font-size:10px;color:var(--text-secondary);line-height:1.55;padding-top:6px;border-top:1px dashed var(--border)}
+.ticket-risks b{color:var(--red);display:block;margin-bottom:4px;font-size:9px;letter-spacing:1px}
+.ticket-risks li{margin-left:18px}
+
+.expand-hint{font-size:10px;color:var(--cyan);letter-spacing:1px}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary);font-size:12px;line-height:1.8}
+.empty-state .emoji{font-size:40px;opacity:.4;margin-bottom:14px;display:block}
+
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.why-now{background:var(--bg-card);border:1px solid var(--border);padding:18px 22px;border-radius:2px;font-size:12px;color:var(--text-primary);line-height:1.7}
+.why-now h2{color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:10px;font-family:var(--font-display);font-weight:700;text-transform:uppercase}
+.why-now h3{color:var(--cyan);font-size:11px;letter-spacing:1.5px;margin-top:14px;margin-bottom:6px;text-transform:uppercase}
+.why-now ul{margin-left:18px;color:var(--text-secondary)}
+.why-now b,.why-now strong{color:var(--text-primary)}
+
+.meta-row{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:var(--bg-secondary);border-top:1px solid var(--border);font-size:10px;color:var(--text-secondary);letter-spacing:1px}
+
+.alert-row{margin:0 24px 18px;padding:14px 18px;border-radius:2px;font-size:12px;line-height:1.6;display:none}
+.alert-row.show{display:block}
+.alert-row.warn{background:rgba(255,140,0,.06);border:1px solid rgba(255,140,0,.3);color:var(--orange)}
+.alert-row b{color:var(--text-primary)}
+
+@media(max-width:900px){
+  .state-banner{grid-template-columns:1fr}
+  .state-counts{justify-content:flex-start}
+  table.opps th:nth-child(5),table.opps td:nth-child(5),
+  table.opps th:nth-child(6),table.opps td:nth-child(6),
+  table.opps th:nth-child(7),table.opps td:nth-child(7){display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <span class="nav-brand">JUSTHODL.AI</span>
+  <a href="/">HOME</a>
+  <a href="/charts.html">CHARTS</a>
+  <a href="/crypto/">CRYPTO</a>
+  <a href="/dex.html">DEX</a>
+  <a href="/crypto-opportunities.html" class="active">💎 OPPORTUNITIES</a>
+  <a href="/crypto-narratives.html">NARRATIVES</a>
+  <a href="/positioning/">POSITIONING</a>
+  <a href="/valuations.html">VALUATIONS</a>
+  <a href="/flow.html">FLOW</a>
+  <a href="/edge.html">EDGE</a>
+  <a href="/intelligence.html">INTEL</a>
+  <a href="/risk.html">RISK</a>
+  <a href="/stock/">STOCKS</a>
+</nav>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">💎 Crypto Opportunities</div>
+    <div class="page-subtitle">3 cross-confirmed retail signals — volume on low caps · social velocity · stablecoin pair inflows — plus convergence picks (highest-conviction setups). Every row has an entry/stop/target ticket.</div>
+  </div>
+  <div class="live-badge"><div class="pulse-dot"></div><span id="liveStatus">LIVE</span></div>
+</div>
+
+<!-- STATE BANNER -->
+<div class="state-banner">
+  <div>
+    <span class="state-pill" id="stateBadge">LOADING…</span>
+    <div style="margin-top:8px;font-size:10px;color:var(--text-secondary);letter-spacing:1.5px">REGIME · 4H REFRESH</div>
+  </div>
+  <div class="state-desc" id="stateDesc">Scanning top 500 coins for actionable setups…</div>
+  <div class="state-counts">
+    <span class="gold"><b id="cntConv">—</b>CONVERGENCE</span>
+    <span><b id="cntVol">—</b>VOLUME</span>
+    <span><b id="cntSoc">—</b>SOCIAL</span>
+    <span><b id="cntStb">—</b>STABLE</span>
+  </div>
+</div>
+
+<div id="loadAlert" class="alert-row warn">
+  <b>⚠ Heads up:</b> <span id="loadAlertText">Initial scan in progress…</span>
+</div>
+
+<div class="container">
+
+  <!-- FLAGSHIP: CONVERGENCE -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title flagship">⭐ Convergence — Highest Conviction</div>
+        <div class="section-explainer">Coins firing on <b>2 or more</b> independent signals. This is where retail edge actually lives — cross-confirmation filters out the single-signal pump-and-dumps. Click any row for the trade ticket.</div>
+      </div>
+    </div>
+    <div class="card flagship">
+      <table class="opps" id="tblConv">
+        <thead>
+          <tr>
+            <th>#</th><th>TOKEN</th><th>SIGNALS</th><th class="r">MCAP</th>
+            <th class="r">PRICE</th><th class="r">24H</th><th class="r">7D</th>
+            <th class="r">VOL/MCAP</th><th>STRENGTH</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyConv">
+          <tr class="row-main"><td colspan="10" class="empty-state"><span class="spinner"></span>Scanning…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- VOLUME SURGE -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">🔥 Volume Surge — Huge Trading on Low Caps</div>
+        <div class="section-explainer">Small-cap coins ($5M – $500M) with <b>vol/mcap &gt; 0.20</b> AND <b>24h volume up &gt;50%</b>. High turnover relative to size = setup phase or breakout candidate. Filters dust + only flags real recent volume.</div>
+      </div>
+    </div>
+    <div class="card volume">
+      <table class="opps" id="tblVol">
+        <thead>
+          <tr>
+            <th>#</th><th>TOKEN</th><th class="r">MCAP</th><th class="r">PRICE</th>
+            <th class="r">24H</th><th class="r">VOL 24H</th><th class="r">VOL/MCAP</th>
+            <th class="r">VOL Δ%</th><th>STRENGTH</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyVol">
+          <tr class="row-main"><td colspan="10" class="empty-state"><span class="spinner"></span>Scanning…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SOCIAL VELOCITY -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">🗣 Social Velocity — Community Heating Up</div>
+        <div class="section-explainer">Small/mid caps (&lt;$2B) with active Reddit discussion (&gt;5 posts &amp; &gt;10 active accounts in 48h) or high CoinGecko community score. Slower-burn opportunities — narrative builds for days/weeks before price catches up.</div>
+      </div>
+    </div>
+    <div class="card social">
+      <table class="opps" id="tblSoc">
+        <thead>
+          <tr>
+            <th>#</th><th>TOKEN</th><th class="r">MCAP</th><th class="r">PRICE</th>
+            <th class="r">24H</th><th class="r">7D</th>
+            <th class="r">CG SCORE</th><th class="r">REDDIT ACT</th>
+            <th>STRENGTH</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbodySoc">
+          <tr class="row-main"><td colspan="10" class="empty-state"><span class="spinner"></span>Scanning…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- STABLE INFLOWS -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">💵 Stablecoin Inflows — Real Buyer Demand</div>
+        <div class="section-explainer">Coins with <b>&gt;65% of 24h volume on USDT/USDC/BUSD/DAI pairs</b> AND volume up &gt;30%. Stablecoin pairs = real fiat-on-ramp demand (not BTC-pair rotation). <b>Strongest of the 3 signals</b> — larger position size justified.</div>
+      </div>
+    </div>
+    <div class="card stable">
+      <table class="opps" id="tblStb">
+        <thead>
+          <tr>
+            <th>#</th><th>TOKEN</th><th class="r">MCAP</th><th class="r">PRICE</th>
+            <th class="r">24H</th><th class="r">VOL Δ%</th>
+            <th class="r">% USDT/USDC</th><th class="r">PAIRS</th>
+            <th>STRENGTH</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyStb">
+          <tr class="row-main"><td colspan="10" class="empty-state"><span class="spinner"></span>Scanning…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- WHY NOW -->
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">📖 Why Now / Methodology</div>
+      </div>
+    </div>
+    <div class="why-now" id="whyNow">
+      <span class="spinner"></span>Loading explainer…
+    </div>
+  </section>
+
+</div>
+
+<div class="meta-row">
+  <span id="metaAsOf">—</span>
+  <span id="metaSources">CMC · CoinGecko · Auto-refresh 5min</span>
+</div>
+
+<script>
+const DATA_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/crypto-opportunities.json";
+
+function fmtUsd(n){
+  if(n==null||isNaN(n)) return "—";
+  const a=Math.abs(n);
+  if(a>=1e12) return "$"+(n/1e12).toFixed(2)+"T";
+  if(a>=1e9)  return "$"+(n/1e9).toFixed(2)+"B";
+  if(a>=1e6)  return "$"+(n/1e6).toFixed(1)+"M";
+  if(a>=1e3)  return "$"+(n/1e3).toFixed(1)+"k";
+  return "$"+n.toFixed(0);
+}
+function fmtPrice(p){
+  if(p==null||isNaN(p)) return "—";
+  if(p>=1)    return "$"+p.toLocaleString(undefined,{maximumFractionDigits:2,minimumFractionDigits:2});
+  if(p>=0.01) return "$"+p.toFixed(4);
+  if(p>=0.0001)return "$"+p.toFixed(6);
+  return "$"+p.toFixed(8);
+}
+function fmtPct(p){
+  if(p==null||isNaN(p)) return "—";
+  const cls = p>0 ? "pct-up" : (p<0 ? "pct-down" : "pct-flat");
+  const sign = p>0 ? "+" : "";
+  return `<span class="${cls}">${sign}${p.toFixed(2)}%</span>`;
+}
+function escHtml(s){
+  if(s==null) return "";
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function strengthBar(s, kind){
+  const pct = Math.min(100, Math.max(0, s||0));
+  return `<span class="sig-bar"><span class="sig-fill ${kind}" style="width:${pct}%"></span></span><span style="font-size:10px;color:var(--text-secondary)">${pct}</span>`;
+}
+
+function tradeTicketHtml(t, flagship){
+  if(!t) return "";
+  const riskList = (t.risks||[]).map(r => `<li>${escHtml(r)}</li>`).join("");
+  const primCls = flagship ? "ticket-primary flagship" : "ticket-primary";
+  return `<div class="ticket">
+    <div class="${primCls}">${escHtml(t.primary||"")}</div>
+    ${t.entry_zone ? `<div class="ticket-field"><div class="ticket-label">Entry zone</div><div class="ticket-value entry">${escHtml(t.entry_zone)}</div></div>`:""}
+    ${t.stop_loss  ? `<div class="ticket-field"><div class="ticket-label">Stop loss</div><div class="ticket-value stop">${escHtml(t.stop_loss)}</div></div>`:""}
+    ${t.target_1   ? `<div class="ticket-field"><div class="ticket-label">Target 1</div><div class="ticket-value target">${escHtml(t.target_1)}</div></div>`:""}
+    ${t.target_2   ? `<div class="ticket-field"><div class="ticket-label">Target 2</div><div class="ticket-value target">${escHtml(t.target_2)}</div></div>`:""}
+    ${t.size       ? `<div class="ticket-field"><div class="ticket-label">Position size</div><div class="ticket-value">${escHtml(t.size)}</div></div>`:""}
+    ${t.timeframe  ? `<div class="ticket-field"><div class="ticket-label">Timeframe</div><div class="ticket-value">${escHtml(t.timeframe)}</div></div>`:""}
+    ${riskList ? `<div class="ticket-risks"><b>RISKS</b><ul>${riskList}</ul></div>` : ""}
+  </div>`;
+}
+
+function rowConvergence(c, idx){
+  const chips = (c.signals_fired||[]).map(s => `<span class="chip ${s}">${s.toUpperCase()}</span>`).join("");
+  const rowId = `conv-${idx}`;
+  return `<tr class="row-main" onclick="toggle('${rowId}')">
+    <td style="color:var(--text-dim)">${c.rank||idx+1}</td>
+    <td><div class="token-cell"><img class="token-logo" src="${escHtml(c.logo_url||'')}" alt="" onerror="this.style.display='none'"><div class="token-meta"><div class="token-ticker">${escHtml(c.ticker)}</div><div class="token-name">${escHtml(c.name||'')}</div></div></div></td>
+    <td><div class="signal-chips">${chips}</div><div style="font-size:9px;color:var(--text-secondary);margin-top:2px">${c.n_signals} signals</div></td>
+    <td class="r">${fmtUsd(c.mcap_usd)}</td>
+    <td class="r">${fmtPrice(c.price_usd)}</td>
+    <td class="r">${fmtPct(c.pct_change_24h)}</td>
+    <td class="r">${fmtPct(c.pct_change_7d)}</td>
+    <td class="r">${(c.vol_mcap_ratio||0).toFixed(2)}</td>
+    <td>${strengthBar(c.composite_score, 'gold')}</td>
+    <td class="expand-hint">▾</td>
+  </tr>
+  <tr class="row-trade" id="${rowId}"><td colspan="10">${tradeTicketHtml(c.trade_ticket, true)}</td></tr>`;
+}
+
+function rowVolume(r, idx){
+  const rowId = `vol-${idx}`;
+  return `<tr class="row-main" onclick="toggle('${rowId}')">
+    <td style="color:var(--text-dim)">${r.rank||idx+1}</td>
+    <td><div class="token-cell"><img class="token-logo" src="${escHtml(r.logo_url||'')}" alt="" onerror="this.style.display='none'"><div class="token-meta"><div class="token-ticker">${escHtml(r.ticker)}</div><div class="token-name">${escHtml(r.name||'')}</div></div></div></td>
+    <td class="r">${fmtUsd(r.mcap_usd)}</td>
+    <td class="r">${fmtPrice(r.price_usd)}</td>
+    <td class="r">${fmtPct(r.pct_change_24h)}</td>
+    <td class="r">${fmtUsd(r.vol_24h_usd)}</td>
+    <td class="r">${(r.vol_mcap_ratio||0).toFixed(2)}</td>
+    <td class="r">${fmtPct(r.vol_change_24h_pct)}</td>
+    <td>${strengthBar(r.signal_strength, 'volume')}</td>
+    <td class="expand-hint">▾</td>
+  </tr>
+  <tr class="row-trade" id="${rowId}"><td colspan="10">${tradeTicketHtml(r.trade_ticket, false)}</td></tr>`;
+}
+
+function rowSocial(r, idx){
+  const sm = r.social_meta || {};
+  const rowId = `soc-${idx}`;
+  return `<tr class="row-main" onclick="toggle('${rowId}')">
+    <td style="color:var(--text-dim)">${r.rank||idx+1}</td>
+    <td><div class="token-cell"><img class="token-logo" src="${escHtml(r.logo_url||'')}" alt="" onerror="this.style.display='none'"><div class="token-meta"><div class="token-ticker">${escHtml(r.ticker)}</div><div class="token-name">${escHtml(r.name||'')}</div></div></div></td>
+    <td class="r">${fmtUsd(r.mcap_usd)}</td>
+    <td class="r">${fmtPrice(r.price_usd)}</td>
+    <td class="r">${fmtPct(r.pct_change_24h)}</td>
+    <td class="r">${fmtPct(r.pct_change_7d)}</td>
+    <td class="r">${sm.coingecko_score != null ? sm.coingecko_score.toFixed(1) : '—'}</td>
+    <td class="r">${sm.reddit_accounts_active_48h != null ? Math.round(sm.reddit_accounts_active_48h) : '—'}</td>
+    <td>${strengthBar(r.signal_strength, 'social')}</td>
+    <td class="expand-hint">▾</td>
+  </tr>
+  <tr class="row-trade" id="${rowId}"><td colspan="10">${tradeTicketHtml(r.trade_ticket, false)}</td></tr>`;
+}
+
+function rowStable(r, idx){
+  const sm = r.stable_meta || {};
+  const rowId = `stb-${idx}`;
+  return `<tr class="row-main" onclick="toggle('${rowId}')">
+    <td style="color:var(--text-dim)">${r.rank||idx+1}</td>
+    <td><div class="token-cell"><img class="token-logo" src="${escHtml(r.logo_url||'')}" alt="" onerror="this.style.display='none'"><div class="token-meta"><div class="token-ticker">${escHtml(r.ticker)}</div><div class="token-name">${escHtml(r.name||'')}</div></div></div></td>
+    <td class="r">${fmtUsd(r.mcap_usd)}</td>
+    <td class="r">${fmtPrice(r.price_usd)}</td>
+    <td class="r">${fmtPct(r.pct_change_24h)}</td>
+    <td class="r">${fmtPct(r.vol_change_24h_pct)}</td>
+    <td class="r"><span class="pct-up">${sm.pct_volume_stables != null ? sm.pct_volume_stables.toFixed(0)+'%' : '—'}</span></td>
+    <td class="r" style="font-size:10px;color:var(--text-secondary)">${sm.n_pairs_stable||0}/${sm.n_pairs_total||0}</td>
+    <td>${strengthBar(r.signal_strength, 'stable')}</td>
+    <td class="expand-hint">▾</td>
+  </tr>
+  <tr class="row-trade" id="${rowId}"><td colspan="10">${tradeTicketHtml(r.trade_ticket, false)}</td></tr>`;
+}
+
+function toggle(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('open');
+}
+
+function emptyRow(msg){
+  return `<tr class="row-main"><td colspan="10" class="empty-state"><span class="emoji">🌙</span>${escHtml(msg)}</td></tr>`;
+}
+
+function renderMarkdown(md){
+  // Very lightweight MD-to-HTML for the why-now block
+  let html = escHtml(md);
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Lists
+  html = html.replace(/(^|\n)- (.+)/g, '$1<li>$2</li>');
+  html = html.replace(/(<li>[\s\S]+?<\/li>)/g, m => '<ul>' + m + '</ul>').replace(/<\/ul>\s*<ul>/g, '');
+  // Paragraphs
+  html = html.replace(/\n\n+/g, '</p><p>');
+  return '<p>' + html + '</p>';
+}
+
+async function loadData(){
+  try{
+    const r = await fetch(DATA_URL + '?t=' + Date.now(), {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+
+    // State pill
+    const stateMap = {
+      'OPPORTUNITY_RICH': 'opportunity-rich',
+      'ACTIVE': 'active',
+      'NORMAL': 'normal',
+      'QUIET': 'quiet',
+    };
+    const badge = document.getElementById('stateBadge');
+    badge.textContent = d.state || 'UNKNOWN';
+    badge.className = 'state-pill ' + (stateMap[d.state] || 'normal');
+    document.getElementById('stateDesc').textContent = d.state_description || '';
+
+    // Counts
+    const sm = d.summary || {};
+    document.getElementById('cntConv').textContent = sm.n_convergence ?? 0;
+    document.getElementById('cntVol').textContent  = sm.n_volume_surge ?? 0;
+    document.getElementById('cntSoc').textContent  = sm.n_social_velocity ?? 0;
+    document.getElementById('cntStb').textContent  = sm.n_stable_inflows ?? 0;
+
+    // Tables
+    const conv = d.convergence || [];
+    document.getElementById('tbodyConv').innerHTML =
+      conv.length ? conv.map(rowConvergence).join('') : emptyRow('No convergence setups right now. The 3 single-signal tables below may still have actionable picks.');
+
+    const vol = d.top_volume_surge || [];
+    document.getElementById('tbodyVol').innerHTML =
+      vol.length ? vol.map(rowVolume).join('') : emptyRow('No volume-surge candidates passing filters.');
+
+    const soc = d.top_social_velocity || [];
+    document.getElementById('tbodySoc').innerHTML =
+      soc.length ? soc.map(rowSocial).join('') : emptyRow('No social-velocity candidates passing filters.');
+
+    const stb = d.top_stable_inflows || [];
+    document.getElementById('tbodyStb').innerHTML =
+      stb.length ? stb.map(rowStable).join('') : emptyRow('No stablecoin-inflow candidates passing filters.');
+
+    // Why-now
+    document.getElementById('whyNow').innerHTML = renderMarkdown(d.why_now_explainer || '');
+
+    // Meta
+    const asOf = d.as_of ? new Date(d.as_of) : null;
+    document.getElementById('metaAsOf').textContent = asOf
+      ? 'Last scan: ' + asOf.toISOString().replace('T',' ').slice(0,19) + ' UTC · ' + (d.run_duration_seconds||0) + 's'
+      : '—';
+
+    // Hide alert
+    document.getElementById('loadAlert').classList.remove('show');
+
+  }catch(e){
+    document.getElementById('loadAlertText').textContent = 'Feed unavailable: ' + e.message + '. Engine runs every 4h — retry shortly.';
+    document.getElementById('loadAlert').classList.add('show');
+    document.getElementById('liveStatus').textContent = 'STALE';
+    console.error(e);
+  }
+}
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000); // 5-min refresh
+</script>
+
+</body>
+</html>

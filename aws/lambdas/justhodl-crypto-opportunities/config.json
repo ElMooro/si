@@ -1,0 +1,12 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 240,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Retail-actionable crypto opportunity engine. 3 cross-confirmed signals (volume surge vs mcap, social velocity from CoinGecko community data, stablecoin pair inflows) + convergence table for 2+ signal coins. Each row has retail trade ticket (entry/stop/target/size/timeframe/risks). Schedule every 4h.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  }
+}
