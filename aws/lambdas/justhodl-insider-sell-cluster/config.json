@@ -1,19 +1,19 @@
 {
-  "runtime": "python3.12",
-  "memory": 768,
-  "timeout": 300,
-  "handler": "lambda_function.lambda_handler",
-  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Defensive insider sell-cluster scanner. 5-factor: excludes 10b5-1 plan trades, >=3 distinct sellers/14d, >=$2M cumulative, CEO/CFO title weighting, max % holdings sold. >$500M mcap gate. Cohen-Malloy-Pomorski 2012 (-3 to -8% / 60d edge). RISK AVOIDANCE — exit longs / hedge, not aggressive short. Daily 23:30 UTC.",
-  "inherit_env": true,
-  "env": {
-    "S3_BUCKET": "justhodl-dashboard-live"
-  },
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-insider-sell-cluster-daily",
-    "cron": "cron(30 23 * * ? *)",
-    "timezone": "UTC",
-    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "Insider sell cluster defensive scanner daily 23:30 UTC"
-  }
+    "runtime": "python3.12",
+    "memory": 768,
+    "timeout": 300,
+    "handler": "lambda_function.lambda_handler",
+    "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "description": "Insider sell cluster defensive scanner. Excludes 10b5-1 plan trades. >=3 sellers/14d, >=$2M cum, CEO/CFO weighted, $500M mcap gate. Risk-avoidance (exit longs/hedge). Cohen-Malloy-Pomorski 2012. Daily 23:30 UTC.",
+    "inherit_env": true,
+    "env": {
+        "S3_BUCKET": "justhodl-dashboard-live"
+    },
+    "eventbridge_scheduler": {
+        "schedule_name": "justhodl-insider-sell-cluster-daily",
+        "cron": "cron(30 23 * * ? *)",
+        "timezone": "UTC",
+        "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+        "description": "Insider sell cluster defensive scanner daily 23:30 UTC"
+    }
 }

@@ -1,19 +1,19 @@
 {
-  "runtime": "python3.12",
-  "memory": 512,
-  "timeout": 180,
-  "handler": "lambda_function.lambda_handler",
-  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Front-end VIX stress detector. VIX9D > VIX > VIX3M (full backwardation) + persistence >=3d + spread z>=+1.5 + VVIX confirmation. Generates SVXY long / SPY long (statistical bottom) / VIX call spread tickets. Andersen-Bondarenko 2014, Park 2015, Cheng 2019. ~70% hit / +3.5% SPY / 10d. Daily 21:30 UTC.",
-  "inherit_env": true,
-  "env": {
-    "S3_BUCKET": "justhodl-dashboard-live"
-  },
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-vix9d-vix-inversion-daily",
-    "cron": "cron(30 21 * * ? *)",
-    "timezone": "UTC",
-    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "VIX9D-VIX front-end inversion detector daily 21:30 UTC"
-  }
+    "runtime": "python3.12",
+    "memory": 512,
+    "timeout": 180,
+    "handler": "lambda_function.lambda_handler",
+    "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "description": "Front-end VIX stress detector. Full backwardation VIX9D>VIX>VIX3M + persistence>=3d + spread z>=+1.5 + VVIX confirms. SVXY / SPY long (statistical bottom) / VIX call spread. Andersen-Bondarenko 2014. Daily 21:30 UTC.",
+    "inherit_env": true,
+    "env": {
+        "S3_BUCKET": "justhodl-dashboard-live"
+    },
+    "eventbridge_scheduler": {
+        "schedule_name": "justhodl-vix9d-vix-inversion-daily",
+        "cron": "cron(30 21 * * ? *)",
+        "timezone": "UTC",
+        "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+        "description": "VIX9D-VIX front-end inversion detector daily 21:30 UTC"
+    }
 }

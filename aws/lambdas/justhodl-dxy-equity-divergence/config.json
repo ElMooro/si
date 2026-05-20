@@ -1,19 +1,19 @@
 {
-  "runtime": "python3.12",
-  "memory": 512,
-  "timeout": 240,
-  "handler": "lambda_function.lambda_handler",
-  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Dollar-equity divergence (UUP/DXY vs SPY) with EM (EEM) confirmation. DOLLAR_STRESS_RICH: dollar 20d outperforms SPY by z>=+1.5 + persistent 5d + EEM stressed -> eurodollar stress (long UUP / SH / GLD). DOLLAR_TAILWIND_RICH: dollar underperforms + EM strong -> risk-on (long EEM / COPX). Frankel-Saiki 2002, Bruno-Shin 2015. ~60%/+4%/3-6wk. Daily 21 UTC.",
-  "inherit_env": true,
-  "env": {
-    "S3_BUCKET": "justhodl-dashboard-live"
-  },
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-dxy-equity-divergence-daily",
-    "cron": "cron(0 21 * * ? *)",
-    "timezone": "UTC",
-    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "DXY-equity divergence regime detector daily 21 UTC"
-  }
+    "runtime": "python3.12",
+    "memory": 512,
+    "timeout": 240,
+    "handler": "lambda_function.lambda_handler",
+    "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "description": "Dollar-equity divergence (UUP/DXY vs SPY) with EM (EEM) confirmation. DOLLAR_STRESS_RICH (eurodollar stress, long UUP/SH/GLD) or DOLLAR_TAILWIND_RICH (risk-on weak USD). Bruno-Shin 2015. Daily 21 UTC.",
+    "inherit_env": true,
+    "env": {
+        "S3_BUCKET": "justhodl-dashboard-live"
+    },
+    "eventbridge_scheduler": {
+        "schedule_name": "justhodl-dxy-equity-divergence-daily",
+        "cron": "cron(0 21 * * ? *)",
+        "timezone": "UTC",
+        "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+        "description": "DXY-equity divergence regime detector daily 21 UTC"
+    }
 }

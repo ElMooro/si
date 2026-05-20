@@ -1,19 +1,19 @@
 {
-  "runtime": "python3.12",
-  "memory": 1024,
-  "timeout": 540,
-  "handler": "lambda_function.lambda_handler",
-  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Post-earnings drift exhaustion / mean-rev scanner. 4-factor: earnings 5-15td ago + RSI<=25 or >=75 + price ext >=1.5 std vs 50dMA + IV crushed <=50 percentile. Counter-trend LONG/SHORT tickets 5-10d hold. Bernard-Thomas 1989, Chordia-Shivakumar 2006, Bali 2008. ~58% hit / +2-4%. Daily 00 UTC.",
-  "inherit_env": true,
-  "env": {
-    "S3_BUCKET": "justhodl-dashboard-live"
-  },
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-post-earnings-mean-rev-daily",
-    "cron": "cron(0 0 * * ? *)",
-    "timezone": "UTC",
-    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "Post-earnings mean-rev scanner daily 00 UTC"
-  }
+    "runtime": "python3.12",
+    "memory": 1024,
+    "timeout": 540,
+    "handler": "lambda_function.lambda_handler",
+    "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "description": "Post-earnings drift exhaustion / mean-rev scanner. 4-factor: earnings 5-15td ago + RSI<=25 or >=75 + price ext >=1.5 std vs 50dMA + IV crushed. Counter-trend 5-10d hold. Bernard-Thomas 1989, Bali 2008. Daily 00 UTC.",
+    "inherit_env": true,
+    "env": {
+        "S3_BUCKET": "justhodl-dashboard-live"
+    },
+    "eventbridge_scheduler": {
+        "schedule_name": "justhodl-post-earnings-mean-rev-daily",
+        "cron": "cron(0 0 * * ? *)",
+        "timezone": "UTC",
+        "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+        "description": "Post-earnings mean-rev scanner daily 00 UTC"
+    }
 }

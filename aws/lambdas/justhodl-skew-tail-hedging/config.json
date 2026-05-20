@@ -1,19 +1,19 @@
 {
-  "runtime": "python3.12",
-  "memory": 512,
-  "timeout": 180,
-  "handler": "lambda_function.lambda_handler",
-  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "CBOE SKEW tail-hedging detector. SKEW>=150 + 5+ days elevated + VVIX confirmation = TAIL_HEDGE_RICH (defensive). SKEW<=110 + 5+ days low = COMPLACENCY_RICH (cheap hedge buy). Bali-Murray 2013, Bollerslev-Todorov 2011, Whaley 2008. ~55% hit tail event / 30-60d; cheap insurance at complacency. Daily 22:30 UTC.",
-  "inherit_env": true,
-  "env": {
-    "S3_BUCKET": "justhodl-dashboard-live"
-  },
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-skew-tail-hedging-daily",
-    "cron": "cron(30 22 * * ? *)",
-    "timezone": "UTC",
-    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "CBOE SKEW tail-hedging detector daily 22:30 UTC"
-  }
+    "runtime": "python3.12",
+    "memory": 512,
+    "timeout": 180,
+    "handler": "lambda_function.lambda_handler",
+    "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "description": "CBOE SKEW tail-hedging detector. TAIL_HEDGE_RICH: SKEW>=150+5d+VVIX confirms (institutional hedge surge). COMPLACENCY_RICH: SKEW<=110 (cheap insurance). Bali-Murray 2013, Bollerslev-Todorov 2011. Daily 22:30 UTC.",
+    "inherit_env": true,
+    "env": {
+        "S3_BUCKET": "justhodl-dashboard-live"
+    },
+    "eventbridge_scheduler": {
+        "schedule_name": "justhodl-skew-tail-hedging-daily",
+        "cron": "cron(30 22 * * ? *)",
+        "timezone": "UTC",
+        "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+        "description": "CBOE SKEW tail-hedging detector daily 22:30 UTC"
+    }
 }
