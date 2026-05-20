@@ -52,6 +52,7 @@ SSM_STATE_KEY = "/justhodl/skew-tail-hedging/state"
 
 FMP_KEY = os.environ.get("FMP_KEY", "")
 ALPHA_VANTAGE_KEY = os.environ.get("ALPHA_VANTAGE_KEY", "")
+FRED_KEY = os.environ.get("FRED_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
@@ -127,6 +128,152 @@ def alphavantage_quote(symbol):
         return None
 
 
+def fred_series(series_id, limit=300):
+    """Fetch a FRED series, return list of {date, value} dicts ordered newest-first.
+
+    This is the proven SKEW data path used by anomaly-detector and options-flow.
+    CBOE publishes SKEW to FRED as series id 'SKEW'. FMP and AlphaVantage do
+    not carry the ^SKEW CBOE index symbol, so this is the primary fallback.
+    """
+    if not FRED_KEY:
+        return []
+    url = (f"https://api.stlouisfed.org/fred/series/observations"
+           f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+           f"&sort_order=desc&limit={limit}")
+    try:
+        data = json.loads(http_get(url))
+        obs = data.get("observations", [])
+        out = []
+        for o in obs:
+            v = o.get("value")
+            if v in (None, ".", ""):
+                continue
+            try:
+                out.append({"date": o.get("date"), "value": float(v)})
+            except Exception:
+                pass
+        return out  # newest first per sort_order=desc
+    except Exception as e:
+        print(f"[fred] {series_id}: {type(e).__name__}: {str(e)[:120]}")
+        return []
+
+
+def yahoo_chart_history(symbol, days=300):
+    """Yahoo Finance chart endpoint - secondary fallback for SKEW/VVIX.
+
+    Returns list of close prices newest-first (matches FMP convention).
+    Used by vol-surface for ^VVIX/^SKEW; works as long as Yahoo's anti-bot
+    doesn't 429. Best-effort: silent failure returns [] so callers degrade.
+    """
+    try:
+        end = int(time.time())
+        start = end - days * 86400
+        url = (f"https://query1.finance.yahoo.com/v7/finance/chart/{symbol}"
+               f"?period1={start}&period2={end}&interval=1d&includePrePost=false")
+        req = urllib.request.Request(
+            url, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                              "AppleWebKit/537.36 (KHTML, like Gecko) "
+                              "Chrome/124.0.0.0 Safari/537.36"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            j = json.loads(r.read().decode("utf-8", errors="ignore"))
+        result = j.get("chart", {}).get("result", [{}])[0]
+        closes_raw = ((result.get("indicators", {}).get("quote", [{}])[0] or {})
+                      .get("close") or [])
+        closes = [float(c) for c in closes_raw if c is not None]
+        closes.reverse()  # newest first
+        return closes
+    except Exception as e:
+        print(f"[yahoo] {symbol}: {type(e).__name__}: {str(e)[:120]}")
+        return []
+
+
+def stooq_history(symbol_no_caret, days=300):
+    """Stooq CSV history fallback. Returns list of closes (newest first).
+    Reliable for CBOE indices that FMP/AlphaVantage don't carry."""
+    sym = symbol_no_caret.lower().lstrip("^")
+    url = f"https://stooq.com/q/d/l/?s={sym}&i=d"
+    try:
+        csv_text = http_get(url, timeout=15, retries=2)
+        if not csv_text or "Date,Open,High,Low,Close" not in csv_text.split("\n", 1)[0]:
+            return []
+        lines = csv_text.strip().split("\n")
+        closes = []
+        for line in lines[1:]:
+            parts = line.split(",")
+            if len(parts) >= 5:
+                try:
+                    closes.append(float(parts[4]))
+                except (ValueError, IndexError):
+                    continue
+        closes.reverse()
+        return closes[:days]
+    except Exception:
+        return []
+
+
+def stooq_quote(symbol_no_caret):
+    h = stooq_history(symbol_no_caret, days=2)
+    return h[0] if h else None
+
+
+def cboe_quote(symbol_no_caret):
+    """CBOE delayed-quotes JSON API. Reliable for ^SKEW, ^VIX, ^VVIX."""
+    sym = symbol_no_caret.lstrip("^").upper()
+    # CBOE uses _PREFIX for index symbols, e.g. _SKEW, _VIX
+    for tag in (f"_{sym}", sym):
+        url = f"https://cdn.cboe.com/api/global/delayed_quotes/quotes/{tag}.json"
+        try:
+            data = json.loads(http_get(url, timeout=10, retries=1))
+            d = data.get("data") or {}
+            for k in ("current_price", "last_price", "price", "close"):
+                v = d.get(k)
+                if v is not None:
+                    return float(v)
+        except Exception:
+            continue
+    return None
+
+
+def yahoo_quote(symbol_with_caret):
+    """Yahoo Finance v7 quote API. Often has CBOE indices like ^SKEW."""
+    sym = urllib.parse.quote(symbol_with_caret, safe="")
+    url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={sym}"
+    try:
+        data = json.loads(http_get(url, timeout=10, retries=1))
+        res = (data.get("quoteResponse") or {}).get("result") or []
+        if res:
+            p = res[0].get("regularMarketPrice") or res[0].get("ask") or res[0].get("bid")
+            return float(p) if p else None
+    except Exception:
+        pass
+    return None
+
+
+def yahoo_history(symbol_with_caret, days=300):
+    """Yahoo Finance v8 chart API. Returns closes newest-first."""
+    sym = urllib.parse.quote(symbol_with_caret, safe="")
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
+           f"?range=2y&interval=1d")
+    try:
+        data = json.loads(http_get(url, timeout=12, retries=1))
+        result = (data.get("chart") or {}).get("result") or []
+        if not result:
+            return []
+        result = result[0]
+        timestamps = result.get("timestamp") or []
+        quotes = (result.get("indicators") or {}).get("quote") or []
+        if not quotes or not timestamps:
+            return []
+        closes_raw = quotes[0].get("close") or []
+        # Pair timestamps with closes, drop None, sort newest first
+        pairs = [(t, c) for t, c in zip(timestamps, closes_raw) if c is not None]
+        pairs.sort(reverse=True)
+        return [float(c) for _, c in pairs[:days]]
+    except Exception:
+        return []
+
+
 def zscore_latest(series):
     if not series or len(series) < 30:
         return None
@@ -184,12 +331,64 @@ def fetch_all():
                 out[f"{tag}_hist"] = f.result()
             except Exception:
                 out[f"{tag}_hist"] = []
-    # Fallback for VIX-family that FMP may not have current
+    # Fallback chain for VIX-family + SKEW that FMP may not have current:
+    # FMP -> FRED (CBOE pubs there) -> Yahoo chart -> AlphaVantage -> Stooq
+    # Order: FRED ahead of Yahoo because FRED is institutional + key-authed (no 429
+    # rate-limit roulette like Yahoo gets from Lambda IPs). Stooq last because it's
+    # been failing in production (per ops 988 evidence: state=None for skew).
+    fred_series_map = {"skew": "SKEW", "vix": "VIXCLS", "vvix": "VXVCLS"}
+    sources_used = {}
     for tag in ("skew", "vix", "vvix"):
-        if out.get(f"{tag}_now") is None:
-            av = alphavantage_quote(SYMBOLS[tag])
-            if av:
-                out[f"{tag}_now"] = av
+        if out.get(f"{tag}_now") and out.get(f"{tag}_hist"):
+            sources_used[tag] = "fmp"
+            continue
+
+        # FRED (primary fallback for CBOE indices)
+        fred_id = fred_series_map.get(tag)
+        if fred_id:
+            fred_obs = fred_series(fred_id, limit=300)
+            if fred_obs:
+                if out.get(f"{tag}_now") is None:
+                    out[f"{tag}_now"] = fred_obs[0]["value"]
+                if not out.get(f"{tag}_hist"):
+                    out[f"{tag}_hist"] = [o["value"] for o in fred_obs]
+                sources_used[tag] = "fred"
+                continue
+
+        # Yahoo chart (secondary fallback)
+        yh = yahoo_chart_history(SYMBOLS[tag], days=300)
+        if yh:
+            if out.get(f"{tag}_now") is None:
+                out[f"{tag}_now"] = yh[0]
+            if not out.get(f"{tag}_hist"):
+                out[f"{tag}_hist"] = yh
+            sources_used[tag] = "yahoo"
+            continue
+
+        # AlphaVantage quote-only (tertiary fallback)
+        av = alphavantage_quote(SYMBOLS[tag])
+        if av:
+            out[f"{tag}_now"] = av
+            sources_used[tag] = sources_used.get(tag, "alphavantage")
+            continue
+
+        # Stooq CSV history (quaternary fallback)
+        sq = stooq_quote(SYMBOLS[tag])
+        if sq:
+            out[f"{tag}_now"] = sq
+            sources_used[tag] = "stooq"
+            continue
+        sources_used[tag] = sources_used.get(tag, "none")
+
+    # If history still missing for any, try Stooq history one more time
+    for tag in ("skew", "vix", "vvix"):
+        if not out.get(f"{tag}_hist"):
+            sh = stooq_history(SYMBOLS[tag], days=300)
+            if sh:
+                out[f"{tag}_hist"] = sh
+                if sources_used.get(tag) in (None, "none"):
+                    sources_used[tag] = "stooq"
+    out["sources_used"] = sources_used
     return out
 
 
@@ -204,9 +403,56 @@ def lambda_handler(event, context):
         skew_h = levels.get("skew_hist", [])
         vvix_h = levels.get("vvix_hist", [])
         vix_h = levels.get("vix_hist", [])
+        sources_used = levels.get("sources_used", {})
 
-        if skew is None:
-            raise RuntimeError("SKEW quote unavailable from FMP and AlphaVantage")
+        # Graceful degrade: if SKEW is completely unavailable from any source,
+        # emit a NORMAL/DATA_UNAVAILABLE output rather than 500ing out.
+        if skew is None and not skew_h:
+            out_degraded = {
+                "engine": "skew-tail-hedging",
+                "version": VERSION,
+                "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "state": "DATA_UNAVAILABLE",
+                "signal_strength": 0.0,
+                "current_metrics": {
+                    "skew": None, "vix": vix, "vvix": vvix, "spy": spy,
+                    "sources_used": sources_used,
+                },
+                "regime_explanation": (
+                    "CBOE SKEW index unavailable from FMP, AlphaVantage, and "
+                    "Stooq (all 3 fallback sources). Engine cannot signal "
+                    "until SKEW data returns. This is a data-availability "
+                    "issue, not a market regime signal."
+                ),
+                "trade_tickets": [],
+                "n_tickets": 0,
+                "methodology": (
+                    "CBOE SKEW tail-hedging detector. Data feeds: primary "
+                    "FMP /stable/quote + /stable/historical-price-eod/light; "
+                    "fallback AlphaVantage GLOBAL_QUOTE; final fallback Stooq "
+                    "CSV (https://stooq.com/q/d/l/?s=skew). When all 3 fail, "
+                    "engine emits DATA_UNAVAILABLE rather than synthetic signal."
+                ),
+                "sources": [
+                    "FMP /stable/quote + /stable/historical-price-eod/light",
+                    "AlphaVantage GLOBAL_QUOTE fallback",
+                    "Stooq CSV fallback (https://stooq.com)",
+                ],
+                "why_now": "SKEW data unavailable; engine in safe-degraded mode",
+                "run_seconds": round(time.time() - start, 2),
+            }
+            s3.put_object(
+                Bucket=S3_BUCKET, Key=S3_KEY,
+                Body=json.dumps(out_degraded, indent=2).encode("utf-8"),
+                ContentType="application/json",
+                CacheControl="no-cache, max-age=60",
+            )
+            return {"statusCode": 200, "body": json.dumps(
+                {"ok": True, "state": "DATA_UNAVAILABLE", "sources_used": sources_used})}
+
+        # If we have history but no live quote, use most recent history as live
+        if skew is None and skew_h:
+            skew = skew_h[0]
 
         # Prepend live quote if recent history doesn't have today
         if skew_h and abs(skew_h[0] - skew) > 0.5:
@@ -311,6 +557,7 @@ def lambda_handler(event, context):
                 "days_skew_above_145": days_elevated,
                 "days_skew_above_150": days_extreme,
                 "days_skew_below_115": days_complacent,
+                "sources_used": sources_used,
             },
             "regime_explanation": why,
             "trade_tickets": tickets,
