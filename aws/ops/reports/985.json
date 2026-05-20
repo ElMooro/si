@@ -1,0 +1,186 @@
+{
+  "ops": 985,
+  "started_at": "2026-05-20T22:11:09Z",
+  "engines": {
+    "justhodl-vvix-vov-regime": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"strength\": 0.0, \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 988,
+        "last_modified": "2026-05-20T22:11:17+00:00",
+        "engine": "vvix-vov-regime",
+        "state": "QUIET",
+        "signal_strength": 0.0,
+        "as_of": "2026-05-20T22:11:16Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-sympathetic-momentum": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_setups\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 862,
+        "last_modified": "2026-05-20T22:12:28+00:00",
+        "engine": "sympathetic-momentum",
+        "state": "QUIET",
+        "signal_strength": 0.0,
+        "as_of": "2026-05-20T22:12:27Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-insider-buyback-confluence": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_confluences\": 0, \"n_high\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1469,
+        "last_modified": "2026-05-20T22:12:30+00:00",
+        "engine": "insider-buyback-confluence",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T22:12:29Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-gap-fill-confirm": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_setups\": 0, \"n_high\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 875,
+        "last_modified": "2026-05-20T22:12:34+00:00",
+        "engine": "gap-fill-confirm",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T22:12:33Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-13f-price-divergence": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_divergences\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1256,
+        "last_modified": "2026-05-20T22:12:37+00:00",
+        "engine": "13f-price-divergence",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T22:12:36Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-credit-equity-divergence": {
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"CREDIT_BEAR_ACTIVE\", \"n_tickets\": 1}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1409,
+        "last_modified": "2026-05-20T22:12:40+00:00",
+        "engine": "credit-equity-divergence",
+        "state": "CREDIT_BEAR_ACTIVE",
+        "signal_strength": 0.45,
+        "as_of": "2026-05-20T22:12:39Z",
+        "n_picks": 1,
+        "error_in_payload": null
+      }
+    }
+  },
+  "signal_board_invoke": {
+    "ok": true,
+    "status_code": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.1, \"n_live\": 42, \"n_stale\": 0}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 42,
+    "n_live": 42,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.1,
+    "expects_42": true,
+    "all_42_live": true,
+    "tier3_engines_in_board": {
+      "VVIX VoV Regime": {
+        "live": true,
+        "signal": 1,
+        "comment": ""
+      },
+      "Sympathetic Momentum": {
+        "live": true,
+        "signal": null,
+        "comment": ""
+      },
+      "Insider+Buyback Confluence": {
+        "live": true,
+        "signal": null,
+        "comment": ""
+      },
+      "Gap-Fill Continuation": {
+        "live": true,
+        "signal": null,
+        "comment": ""
+      },
+      "13F Price Divergence": {
+        "live": true,
+        "signal": null,
+        "comment": ""
+      },
+      "Credit-Equity Divergence": {
+        "live": true,
+        "signal": -1,
+        "comment": ""
+      }
+    }
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 43467,
+    "markers_found": 21,
+    "expected": 21,
+    "missing": []
+  },
+  "scorecard": {
+    "n_engines": 6,
+    "n_invoke_ok": 6,
+    "n_s3_ok": 6,
+    "n_real_state": 6,
+    "signal_board_42_42_ok": true,
+    "page_21_markers_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-20T22:12:48Z"
+}
