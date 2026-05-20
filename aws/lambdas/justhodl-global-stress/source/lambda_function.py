@@ -47,11 +47,23 @@ FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-stress.json"
 HIST_KEY = "data/global-stress-history.json"
+DIM_HIST_KEY = "data/gsi-dim-history.json"
+WEIGHTS_PARAM = "/justhodl/gsi/weights"
 
 HIST_BARS = 300
 SERIES_BARS = 130
+DIM_HIST_BARS = 400   # ~1.5y of daily dimension snapshots
+
+# Prior dimension weights -- used as fallback when the calibrator has
+# not yet accumulated enough paired observations to fit empirical
+# weights. The calibrator linearly blends prior -> empirical between
+# N=30 and N=60 paired observations of (dim_scores -> forward SPY
+# 21-session drawdown), and runs purely on empirical IC from N>=60.
+PRIOR_WEIGHTS = {"market": 0.32, "credit": 0.18, "vix": 0.17,
+                 "rate_vol": 0.13, "contagion": 0.10, "sovereign": 0.10}
 
 s3 = boto3.client("s3")
+ssm = boto3.client("ssm")
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -98,6 +110,58 @@ def read_sidecar(key):
             Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception:
         return {}
+
+
+def load_weights():
+    """Load the empirically-calibrated dimension weights from SSM.
+
+    Returns (weights_dict_or_None, mode, sample_size, last_calibrated).
+    Mode is one of:
+      'empirical'  -- N >= 60 paired observations, weights from IC alone
+      'blended'    -- 30 <= N < 60, linear blend prior -> empirical
+      'priors'     -- N < 30 or no calibration yet, fall back to priors
+    The calibrator publishes a payload of the form
+      {"weights": {<dim>: w, ...}, "sample_size": N,
+       "mode": "...", "calibrated_at": "<iso>", ...}
+    so the engine only has to read and validate the shape."""
+    try:
+        p = ssm.get_parameter(Name=WEIGHTS_PARAM)
+        payload = json.loads(p["Parameter"]["Value"])
+        w = payload.get("weights") or {}
+        n = int(payload.get("sample_size") or 0)
+        needed = set(PRIOR_WEIGHTS.keys())
+        if set(w.keys()) >= needed and all(
+                isinstance(w[k], (int, float)) and w[k] >= 0 for k in needed):
+            mode = payload.get("mode") or (
+                "empirical" if n >= 60
+                else "blended" if n >= 30
+                else "priors")
+            return ({k: float(w[k]) for k in needed}, mode, n,
+                    payload.get("calibrated_at"))
+    except Exception as e:
+        print("load_weights: %s" % e)
+    return None, "priors", 0, None
+
+
+def write_dim_history(snapshot):
+    """Append today's per-dimension snapshot to data/gsi-dim-history.json,
+    keyed by ISO date so multiple intra-day runs collapse to one entry
+    per date. This is the input the calibrator fits weights on."""
+    hist = read_sidecar(DIM_HIST_KEY)
+    snaps = hist.get("snapshots") or []
+    today = snapshot["date"]
+    # collapse to one entry per date (latest run for the day wins)
+    snaps = [s for s in snaps if s.get("date") != today]
+    snaps.append(snapshot)
+    # keep most-recent DIM_HIST_BARS sessions
+    snaps = sorted(snaps, key=lambda s: s.get("date") or "")[-DIM_HIST_BARS:]
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=DIM_HIST_KEY,
+                      Body=json.dumps({"snapshots": snaps},
+                                      default=str).encode("utf-8"),
+                      ContentType="application/json")
+    except Exception as e:
+        print("dim-history write fail: %s" % e)
 
 
 def fred_series(series_id, days=460):
@@ -740,6 +804,233 @@ def build_stress_escalation(global_stress, market_stress, worst, iv,
     return block, newly_red
 
 
+def run_backfill(days=200):
+    """One-shot historical reconstruction of per-dimension stress scores
+    for the past `days` trading sessions. Bootstraps the calibrator with
+    real data so it doesn't have to wait months for forward-going
+    snapshots to accumulate.
+
+    Reuses the engine's helpers (stress_for, fred_series, get_closes)
+    so each historical dimension is computed with the same logic the
+    live engine uses on its current data -- just with closes truncated
+    to the as-of date. Pre-fetches each market/series once, then slices
+    in-memory per date for speed.
+
+    Returns counts + the earliest/latest backfilled date. Writes to the
+    same DIM_HIST_KEY the live engine appends to, collapsing per date."""
+    t0 = time.time()
+    if not FMP or not FRED_KEY:
+        return {"statusCode": 500,
+                "body": json.dumps({"ok": False, "error": "missing keys"})}
+
+    # ---- pre-fetch every series once -----------------------------------
+    # market tuples are (key, ETF, display, tracks); key in market_closes
+    # is (etf_symbol, kind, internal_key)
+    market_closes = {}
+    for key, etf, name, tracks in EQUITY:
+        cs = get_closes(etf)
+        if cs and len(cs) > 60:
+            market_closes[(etf, "equity", key)] = cs
+    for key, etf, name, tracks in BONDS:
+        cs = get_closes(etf)
+        if cs and len(cs) > 60:
+            market_closes[(etf, "bond", key)] = cs
+    spy_cs = market_closes.get(("SPY", "equity", "us"))
+    spy_by_date = ({d.isoformat() if hasattr(d, "isoformat") else str(d): c
+                    for d, c in spy_cs} if spy_cs else {})
+
+    credit_obs = {}
+    for sid in ("BAMLH0A0HYM2", "BAMLH0A1HYBB", "BAMLH0A2HYB",
+                "BAMLH0A3HYC", "BAMLC0A0CM", "BAMLEMCBPIOAS",
+                "BAMLEMHBHYCRPIOAS"):
+        obs = fred_series(sid, days=900)
+        if obs and len(obs) > 60:
+            credit_obs[sid] = obs
+    vix_obs = fred_series("VIXCLS", days=900)
+    dgs10_obs = fred_series("DGS10", days=900)
+
+    emb_cs = next((cs for (sym, kind, key), cs in market_closes.items()
+                   if sym == "EMB"), None)
+    ief_cs = next((cs for (sym, kind, key), cs in market_closes.items()
+                   if sym == "IEF"), None)
+
+    # ---- the trading-day index = union of SPY closes (clean equity grid)
+    if not spy_cs:
+        return {"statusCode": 500,
+                "body": json.dumps({"ok": False,
+                                    "error": "no SPY history"})}
+    spy_dates = [d for d, _ in spy_cs]   # oldest -> newest
+    # last `days+21` -- keep enough room for the calibrator's forward
+    # window so backfilled rows are all usable
+    target_dates = spy_dates[-(days + 21):-21] if len(spy_dates) > days + 21 \
+        else spy_dates[:-21]
+    if len(target_dates) < 30:
+        return {"statusCode": 500,
+                "body": json.dumps({"ok": False,
+                                    "error": "thin history"})}
+
+    # ---- iterate historical dates --------------------------------------
+    snapshots = []
+    for t in target_dates:
+        date_iso = t.isoformat() if hasattr(t, "isoformat") else str(t)
+        # market matrix at t -- mean stress across all markets, with each
+        # market scored using closes truncated to t
+        msc, eqs, bds = [], [], []
+        for (sym, kind, key), cs in market_closes.items():
+            trunc = [(d, c) for d, c in cs if d <= t]
+            if len(trunc) < 60:
+                continue
+            r = stress_for([c for _, c in trunc], kind)
+            if r is None:
+                continue
+            msc.append(r["stress"])
+            (eqs if kind == "equity" else bds).append(r["stress"])
+        market_t = round(sum(msc) / len(msc)) if msc else None
+
+        # credit ladder at t -- mean stress across the 7 ICE BofA OAS
+        cscores = []
+        for sid, obs in credit_obs.items():
+            vals_to_t = [v for d, v in obs if d <= t]
+            if len(vals_to_t) < 60:
+                continue
+            last = vals_to_t[-1]
+            # calm/acute brackets matching the live panel (HY-ish default
+            # for unspecified -- but each series scored against its own
+            # 1y percentile, which dominates the score anyway)
+            calm_acute = {
+                "BAMLH0A0HYM2": (3.0, 9.0),
+                "BAMLH0A1HYBB": (1.8, 5.5),
+                "BAMLH0A2HYB": (3.0, 9.0),
+                "BAMLH0A3HYC": (7.0, 20.0),
+                "BAMLC0A0CM": (0.8, 2.5),
+                "BAMLEMCBPIOAS": (1.8, 6.5),
+                "BAMLEMHBHYCRPIOAS": (4.0, 13.0),
+            }[sid]
+            calm, acute = calm_acute
+            lvl = clamp((last - calm) / (acute - calm) * 100.0)
+            pc = pctile(last, vals_to_t[-252:]) if len(vals_to_t) >= 60 \
+                else None
+            score = 0.5 * lvl + 0.5 * (pc if pc is not None else 50.0)
+            cscores.append(score)
+        credit_t = round(sum(cscores) / len(cscores)) if cscores else None
+
+        # VIX at t
+        vix_t = None
+        if vix_obs:
+            vals = [v for d, v in vix_obs if d <= t]
+            if len(vals) > 60:
+                last = vals[-1]
+                pc = pctile(last, vals[-252:])
+                lvl = clamp((last - 14) / (35 - 14) * 100.0)
+                vix_t = round(0.5 * lvl + 0.5 * (pc if pc is not None
+                                                  else 50.0))
+
+        # rate vol at t -- realised vol of DGS10 over the prior 60 days
+        rate_t = None
+        if dgs10_obs:
+            vals = [v for d, v in dgs10_obs if d <= t]
+            if len(vals) > 70:
+                window = vals[-60:]
+                deltas = [(window[i] - window[i - 1]) * 100
+                          for i in range(1, len(window))]
+                if deltas:
+                    m = sum(deltas) / len(deltas)
+                    var = sum((x - m) ** 2 for x in deltas) / len(deltas)
+                    rv_bp = (var ** 0.5)
+                    # ~3bp daily 10y move calm, ~10bp acute
+                    rate_t = round(clamp((rv_bp - 3) / (10 - 3) * 100.0))
+
+        # contagion at t -- avg pairwise correlation of select market
+        # daily returns over the prior 60 days
+        cont_t = None
+        keys = [("SPY", "equity"), ("EFA", "equity"), ("EEM", "equity"),
+                ("HYG", "bond"), ("IEF", "bond"), ("GLD", "equity"),
+                ("EMB", "bond")]
+        ret_cols = []
+        for sym, kind in keys:
+            cs = next((cs for (s, k, kk), cs in market_closes.items()
+                       if s == sym), None)
+            if not cs:
+                continue
+            trunc = [c for d, c in cs if d <= t]
+            if len(trunc) < 65:
+                continue
+            window = trunc[-61:]
+            rets = [window[i] / window[i - 1] - 1.0
+                    for i in range(1, len(window))]
+            ret_cols.append(rets)
+        if len(ret_cols) >= 3:
+            corrs = []
+            for i in range(len(ret_cols)):
+                for j in range(i + 1, len(ret_cols)):
+                    n = min(len(ret_cols[i]), len(ret_cols[j]))
+                    c = pearson(ret_cols[i][-n:], ret_cols[j][-n:])
+                    if c is not None:
+                        corrs.append(c)
+            if corrs:
+                avg_corr = sum(corrs) / len(corrs)
+                cont_t = round(clamp((avg_corr - 0.2) / (0.85 - 0.2) * 100.0))
+
+        # sovereign at t -- EMB/IEF ratio drawdown from prior 252d high
+        sov_t = None
+        if emb_cs and ief_cs:
+            emb_trunc = [(d, c) for d, c in emb_cs if d <= t]
+            ief_trunc = [(d, c) for d, c in ief_cs if d <= t]
+            if len(emb_trunc) > 60 and len(ief_trunc) > 60:
+                e = [c for _, c in emb_trunc]
+                ti = [c for _, c in ief_trunc]
+                n = min(len(e), len(ti))
+                ratio = [e[i] / ti[i] for i in range(n) if ti[i]]
+                if len(ratio) > 70:
+                    last = ratio[-1]
+                    hi = max(ratio[-252:]) if len(ratio) >= 252 \
+                        else max(ratio)
+                    dd = (hi - last) / hi * 100.0 if hi else 0.0
+                    sov_t = round(clamp(dd / 15.0 * 100.0))
+
+        # blend with prior weights (what was deployed historically)
+        dims = {"market": market_t, "credit": credit_t, "vix": vix_t,
+                "rate_vol": rate_t, "contagion": cont_t,
+                "sovereign": sov_t}
+        avail = [(PRIOR_WEIGHTS[k], v) for k, v in dims.items()
+                 if v is not None]
+        gsi_t = None
+        if avail:
+            ws = sum(w for w, _ in avail)
+            gsi_t = round(sum(w * v for w, v in avail) / ws) if ws else None
+
+        snapshots.append({
+            "date": date_iso, "gsi": gsi_t,
+            "dims": {k: v for k, v in dims.items() if v is not None},
+            "spy_close": spy_by_date.get(date_iso),
+            "weights_mode": "priors", "backfilled": True,
+        })
+
+    # ---- write -----------------------------------------------------------
+    existing = read_sidecar(DIM_HIST_KEY).get("snapshots") or []
+    by_date = {s["date"]: s for s in existing}
+    for s in snapshots:
+        by_date[s["date"]] = s
+    merged = sorted(by_date.values(), key=lambda s: s["date"])
+    merged = merged[-DIM_HIST_BARS:]
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=DIM_HIST_KEY,
+                      Body=json.dumps({"snapshots": merged},
+                                      default=str).encode("utf-8"),
+                      ContentType="application/json")
+    except Exception as e:
+        return {"statusCode": 500,
+                "body": json.dumps({"ok": False, "error": str(e)})}
+    return {"statusCode": 200,
+            "body": json.dumps({"ok": True, "backfilled": len(snapshots),
+                                "total_snapshots": len(merged),
+                                "earliest": merged[0]["date"] if merged
+                                else None,
+                                "latest": merged[-1]["date"] if merged
+                                else None,
+                                "elapsed_s": round(time.time() - t0, 1)})}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -751,6 +1042,8 @@ def lambda_handler(event, context):
                       "contagion) crosses into ACUTE.")
         return {"statusCode": 200,
                 "body": json.dumps({"ok": True, "test_telegram": "sent"})}
+    if isinstance(event, dict) and event.get("backfill"):
+        return run_backfill(int(event.get("days") or 200))
     if not FMP:
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": "no FMP key"})}
@@ -789,27 +1082,31 @@ def lambda_handler(event, context):
     breadth = stress_breadth(rows)      # how widespread the stress is
     haven = safe_haven_panel()          # active flight-to-safety demand
 
-    # ---- the Global Stress Index: a weighted blend of the market
-    # matrix, credit spreads, equity-implied vol, rate volatility,
-    # cross-market contagion and sovereign-default stress, renormalised
-    # over whatever components are available this run --------------------
-    blend = []
-    if market_stress is not None:
-        blend.append((0.32, market_stress))
-    if credit:
-        blend.append((0.18, credit["composite_score"]))
-    if iv:
-        blend.append((0.17, iv["stress_score"]))
-    if rates:
-        blend.append((0.13, rates["stress_score"]))
-    if contagion:
-        blend.append((0.10, contagion["stress_score"]))
-    if sovereign:
-        blend.append((0.10, sovereign["stress_score"]))
+    # ---- the Global Stress Index ---------------------------------------
+    # A weighted blend of the market matrix, credit spreads, equity-
+    # implied vol, rate volatility, contagion and sovereign stress.
+    # Weights come from SSM /justhodl/gsi/weights when the calibrator
+    # has fit empirical weights against forward equity drawdowns;
+    # otherwise the engine falls back to the priors set in this file.
+    # The blend is renormalised over whichever components actually
+    # computed this run.
+    empirical, weights_mode, sample_size, calibrated_at = load_weights()
+    weights = empirical or PRIOR_WEIGHTS
+    components = {
+        "market": market_stress,
+        "credit": credit["composite_score"] if credit else None,
+        "vix": iv["stress_score"] if iv else None,
+        "rate_vol": rates["stress_score"] if rates else None,
+        "contagion": contagion["stress_score"] if contagion else None,
+        "sovereign": sovereign["stress_score"] if sovereign else None,
+    }
+    blend = [(weights[k], components[k]) for k in weights
+             if components.get(k) is not None]
     global_stress = None
     if blend:
         wsum = sum(w for w, _ in blend)
-        global_stress = round(sum(w * s for w, s in blend) / wsum)
+        global_stress = (round(sum(w * s for w, s in blend) / wsum)
+                         if wsum > 0 else None)
 
     worst = max(rows, key=lambda r: r["stress"]) if rows else None
     flashing = [r["market"] + " " + r["asset_class"]
@@ -820,6 +1117,31 @@ def lambda_handler(event, context):
                            bd_stress)
     momentum = (stress_momentum(snaps, global_stress)
                 if global_stress is not None else None)
+
+    # Per-dimension snapshot for the calibrator. Keyed by ISO date so
+    # intra-day re-runs collapse to one entry per session. SPY close is
+    # recorded too so the calibrator can compute forward 21-session
+    # drawdown without re-fetching anything later. Best-effort.
+    spy_close = None
+    try:
+        for r in rows:
+            if r.get("key") == "spy" and r.get("series"):
+                spy_close = r["series"][-1]
+                break
+    except Exception:
+        pass
+    today_iso = datetime.now(timezone.utc).date().isoformat()
+    dim_snapshot = {
+        "date": today_iso,
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "gsi": global_stress,
+        "dims": {k: components[k] for k in components
+                 if components[k] is not None},
+        "spy_close": spy_close,
+        "weights_mode": weights_mode,
+    }
+    if dim_snapshot["dims"]:
+        write_dim_history(dim_snapshot)
 
     headline = "n/a"
     if global_stress is not None and worst:
@@ -854,6 +1176,13 @@ def lambda_handler(event, context):
         "global_stress_index": global_stress,
         "global_stress_level": (stress_level(global_stress)
                                 if global_stress is not None else None),
+        "weights": {
+            "values": {k: round(weights[k], 4) for k in weights},
+            "mode": weights_mode,
+            "sample_size": sample_size,
+            "calibrated_at": calibrated_at,
+            "priors": PRIOR_WEIGHTS,
+        },
         "market_stress_index": market_stress,
         "equity_stress": eq_stress,
         "bond_stress": bd_stress,

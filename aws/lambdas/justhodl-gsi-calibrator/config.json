@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-gsi-calibrator",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 180,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "GSI calibrator (#23) - weekly empirical reweighting of the Global Stress Index dimensions by Spearman IC vs 21-session forward SPY drawdown. Writes weights to SSM /justhodl/gsi/weights + report to data/gsi-calibration.json.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-gsi-calibrator-weekly",
+  "cron": "cron(0 9 ? * SUN *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "GSI calibrator weekly recalibration - Sundays 09:00 UTC."
+ }
+}
