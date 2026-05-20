@@ -1,0 +1,388 @@
+{
+  "ops": 976,
+  "started_at_utc": "2026-05-20T18:09:38Z",
+  "repo_root": "/home/runner/work/si/si",
+  "engines": {
+    "justhodl-earnings-iv-crush": {
+      "deploy": {
+        "name": "justhodl-earnings-iv-crush",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_rich\": 0, \"n_cheap\": 0, \"n_total\": 0, \"duration_s\": 3.9}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 2896,
+        "last_modified": "2026-05-20T18:09:53+00:00",
+        "engine": "earnings-iv-crush",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:09:52.668999Z",
+        "schema_keys": [
+          "as_of",
+          "current_readings",
+          "engine",
+          "fair_priced",
+          "forward_expectations",
+          "historical_episodes",
+          "methodology",
+          "previous_state",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "top_cheap",
+          "top_rich",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-stealth-accumulation": {
+      "deploy": {
+        "name": "justhodl-stealth-accumulation",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_convergence\": 1, \"n_3plus\": 0, \"feeds_available\": [\"insider\", \"smart_money\", \"short_pressure\", \"options_flow\"]}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 7369,
+        "last_modified": "2026-05-20T18:10:09+00:00",
+        "engine": "stealth-accumulation",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:10:08.206520Z",
+        "schema_keys": [
+          "as_of",
+          "convergence",
+          "current_readings",
+          "engine",
+          "forward_expectations",
+          "historical_episodes",
+          "methodology",
+          "previous_state",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "top_insider_only",
+          "top_options_flow_only",
+          "top_short_covering_only",
+          "top_smart_money_only",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-failed-pattern-reversal": {
+      "deploy": {
+        "name": "justhodl-failed-pattern-reversal",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_long\": 0, \"n_short\": 0, \"duration_s\": 0.6}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 2860,
+        "last_modified": "2026-05-20T18:10:23+00:00",
+        "engine": "failed-pattern-reversal",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:10:22.234123Z",
+        "schema_keys": [
+          "as_of",
+          "current_readings",
+          "engine",
+          "failed_breakdowns_long",
+          "failed_breakouts_short",
+          "forward_expectations",
+          "historical_episodes",
+          "methodology",
+          "previous_state",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-squeeze-pretrigger": {
+      "deploy": {
+        "name": "justhodl-squeeze-pretrigger",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_imminent\": 0, \"n_pretrigger\": 0, \"n_total\": 0, \"duration_s\": 1.0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 2759,
+        "last_modified": "2026-05-20T18:10:37+00:00",
+        "engine": "squeeze-pretrigger",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:10:36.445918Z",
+        "schema_keys": [
+          "as_of",
+          "current_readings",
+          "early_setups",
+          "engine",
+          "forward_expectations",
+          "historical_episodes",
+          "imminent_setups",
+          "methodology",
+          "pretrigger_setups",
+          "previous_state",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-catalyst-skew-premove": {
+      "deploy": {
+        "name": "justhodl-catalyst-skew-premove",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_setups\": 0, \"n_bull\": 0, \"n_bear\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 2064,
+        "last_modified": "2026-05-20T18:10:52+00:00",
+        "engine": "catalyst-skew-premove",
+        "state": "QUIET",
+        "as_of": "2026-05-20T18:10:51.379525Z",
+        "schema_keys": [
+          "as_of",
+          "balanced_setups",
+          "bear_skew_setups",
+          "bull_skew_setups",
+          "engine",
+          "forward_expectations",
+          "historical_episodes",
+          "methodology",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-crypto-etf-arb": {
+      "deploy": {
+        "name": "justhodl-crypto-etf-arb",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"ARB_RICH\", \"max_abs_pct\": 82.674, \"n_premium\": 5, \"n_discount\": 9, \"duration_s\": 4.49}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 33456,
+        "last_modified": "2026-05-20T18:11:10+00:00",
+        "engine": "crypto-etf-arb",
+        "state": "ARB_RICH",
+        "as_of": "2026-05-20T18:11:09.057549Z",
+        "schema_keys": [
+          "as_of",
+          "asset_per_share_baselines",
+          "current_readings",
+          "discount_setups",
+          "engine",
+          "etfs",
+          "fair_priced",
+          "forward_expectations",
+          "historical_episodes",
+          "methodology",
+          "premium_setups",
+          "previous_state",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "trigger_conditions",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    },
+    "justhodl-lockup-expiration": {
+      "deploy": {
+        "name": "justhodl-lockup-expiration",
+        "exists_before": true,
+        "pre_state": "Active/Successful",
+        "post_code_state": "Active/Successful",
+        "post_cfg_state": "Active/Successful",
+        "ok": true,
+        "mode": "updated"
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NORMAL\", \"n_imminent\": 0, \"n_high_conviction\": 0, \"n_total\": 3, \"duration_s\": 2.0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size_bytes": 8578,
+        "last_modified": "2026-05-20T18:11:25+00:00",
+        "engine": "lockup-expiration",
+        "state": "NORMAL",
+        "as_of": "2026-05-20T18:11:24.495595Z",
+        "schema_keys": [
+          "approaching_lockups_21d",
+          "as_of",
+          "current_readings",
+          "engine",
+          "forward_expectations",
+          "high_conviction_setups",
+          "historical_episodes",
+          "imminent_lockups_7d",
+          "methodology",
+          "previous_state",
+          "recently_passed_lockups",
+          "recommended_trade",
+          "run_duration_seconds",
+          "schedule",
+          "signal_strength",
+          "sources",
+          "state",
+          "state_description",
+          "summary",
+          "trigger_conditions",
+          "upcoming_lockups_35d",
+          "version",
+          "why_now_explainer"
+        ]
+      }
+    }
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 28,
+    "n_live": 22,
+    "n_stale": 6,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.18,
+    "stale_engines_listed": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "expects_28": true
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 34138,
+    "markers": {
+      "earnings-iv-crush": true,
+      "stealth-accumulation": true,
+      "failed-pattern-reversal": true,
+      "squeeze-pretrigger": true,
+      "catalyst-skew-premove": true,
+      "crypto-etf-arb": true,
+      "lockup-expiration": true
+    },
+    "markers_found": 7
+  },
+  "scorecard": {
+    "n_engines": 7,
+    "n_deploy_ok": 7,
+    "n_invoke_ok": 7,
+    "n_s3_ok": 7,
+    "page_ok": true,
+    "signal_board_ok": true,
+    "all_pass": true
+  },
+  "ended_at_utc": "2026-05-20T18:11:28Z"
+}
