@@ -1,0 +1,134 @@
+{
+ "ops": 895,
+ "ts": "2026-05-20T11:54:46.670129+00:00",
+ "subject": "Verify edge upgrades #1 / #2 / #3 e2e",
+ "engines": [
+  {
+   "engine": "#1 calibration-fleet",
+   "fn": "justhodl-calibration-fleet",
+   "checks": [
+    {
+     "check": "lambda_deployed",
+     "ok": true,
+     "detail": "runtime=python3.12 timeout=240s modified=2026-05-20T11:44:21.000+0000"
+    },
+    {
+     "check": "schedule_wired",
+     "ok": true,
+     "detail": "justhodl-calibration-fleet-daily: exists (cron(10 9 * * ? *))"
+    },
+    {
+     "check": "invoke_success",
+     "ok": true,
+     "detail": "FunctionError=None, StatusCode=200, keys=['ok', 'engines', 'predictive', 'noise', 'contrarian', 'insufficient', 'elapsed_s']"
+    },
+    {
+     "check": "s3_output_present",
+     "ok": true,
+     "detail": "key=data/calibration-fleet.json, size=4452 B, top_keys=['as_of', 'forward_days', 'ic_floor', 'min_n', 'min_n_stable', 'engines', 'summary', 'history_snapshots']"
+    },
+    {
+     "check": "schema_valid",
+     "ok": false,
+     "detail": "missing=['fleet']"
+    },
+    {
+     "check": "ssm:/justhodl/calibration-fleet/weights",
+     "ok": true,
+     "detail": "len=769"
+    },
+    {
+     "check": "page_live",
+     "ok": true,
+     "detail": "status=200, bytes=12823"
+    }
+   ],
+   "summary": "6/7",
+   "passed": false
+  },
+  {
+   "engine": "#2 master-allocator",
+   "fn": "justhodl-master-allocator",
+   "checks": [
+    {
+     "check": "lambda_deployed",
+     "ok": true,
+     "detail": "runtime=python3.12 timeout=180s modified=2026-05-20T11:36:27.299+0000"
+    },
+    {
+     "check": "schedule_wired",
+     "ok": true,
+     "detail": "justhodl-master-allocator-3h: exists (cron(20 0,3,6,9,12,15,18,21 * * ? *))"
+    },
+    {
+     "check": "invoke_success",
+     "ok": true,
+     "detail": "FunctionError=None, StatusCode=200, keys=['ok', 'posture', 'confidence', 'active_bps', 'signals_used', 'elapsed_s']"
+    },
+    {
+     "check": "s3_output_present",
+     "ok": true,
+     "detail": "key=data/master-allocation.json, size=5234 B, top_keys=['as_of', 'posture', 'confidence', 'active_risk_bps', 'risk_budget_clipped', 'horizon', 'benchmark', 'target_allocation']"
+    },
+    {
+     "check": "schema_valid",
+     "ok": false,
+     "detail": "missing=['target']"
+    },
+    {
+     "check": "ssm:/justhodl/master-allocation/target",
+     "ok": true,
+     "detail": "len=256"
+    },
+    {
+     "check": "page_live",
+     "ok": true,
+     "detail": "status=200, bytes=14824"
+    }
+   ],
+   "summary": "6/7",
+   "passed": false
+  },
+  {
+   "engine": "#3 signal-orthogonality",
+   "fn": "justhodl-signal-orthogonality",
+   "checks": [
+    {
+     "check": "lambda_deployed",
+     "ok": true,
+     "detail": "runtime=python3.12 timeout=180s modified=2026-05-20T11:41:43.734+0000"
+    },
+    {
+     "check": "schedule_wired",
+     "ok": true,
+     "detail": "justhodl-signal-orthogonality-weekly: exists (cron(45 9 ? * SUN *))"
+    },
+    {
+     "check": "invoke_success",
+     "ok": true,
+     "detail": "FunctionError=None, StatusCode=200, keys=['as_of', 'engines_total', 'snapshots_total', 'mode', 'note']"
+    },
+    {
+     "check": "s3_output_present",
+     "ok": true,
+     "detail": "key=data/signal-orthogonality.json, size=209 B, top_keys=['as_of', 'engines_total', 'snapshots_total', 'mode', 'note']"
+    },
+    {
+     "check": "schema_valid",
+     "ok": false,
+     "detail": "missing=['summary', 'per_engine']"
+    },
+    {
+     "check": "page_live",
+     "ok": true,
+     "detail": "status=200, bytes=12525"
+    }
+   ],
+   "summary": "5/6",
+   "passed": false
+  }
+ ],
+ "all_passed": false,
+ "summary": "#1 calibration-fleet 6/7 | #2 master-allocator 6/7 | #3 signal-orthogonality 5/6",
+ "verdict": "VERIFICATION INCOMPLETE - see per-engine checks."
+}
