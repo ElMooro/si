@@ -1,0 +1,182 @@
+{
+  "ops": 989,
+  "started_at": "2026-05-20T23:27:32Z",
+  "fix_deploy": {
+    "ok": true,
+    "zip_bytes": 7503,
+    "settled": {
+      "ok": true,
+      "state": "Active",
+      "last_status": "Successful"
+    }
+  },
+  "engines": {
+    "justhodl-post-earnings-mean-rev": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_setups\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1104,
+        "last_modified": "2026-05-20T23:27:48+00:00",
+        "engine": "post-earnings-mean-rev",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T23:27:47Z",
+        "n_picks": 0,
+        "sources_used": null,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-insider-sell-cluster": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_clusters\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 972,
+        "last_modified": "2026-05-20T23:27:57+00:00",
+        "engine": "insider-sell-cluster",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T23:27:56Z",
+        "n_picks": 0,
+        "sources_used": null,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-vix9d-vix-inversion": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NORMAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1281,
+        "last_modified": "2026-05-20T23:28:02+00:00",
+        "engine": "vix9d-vix-inversion",
+        "state": "NORMAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:28:00Z",
+        "n_picks": 0,
+        "sources_used": null,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-breadth-divergence": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1573,
+        "last_modified": "2026-05-20T23:28:07+00:00",
+        "engine": "breadth-divergence",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:28:06Z",
+        "n_picks": 0,
+        "sources_used": null,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-skew-tail-hedging": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NORMAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1399,
+        "last_modified": "2026-05-20T23:28:15+00:00",
+        "engine": "skew-tail-hedging",
+        "state": "NORMAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:28:14Z",
+        "n_picks": 0,
+        "sources_used": {
+          "skew": "yahoo",
+          "vix": "fmp",
+          "vvix": "fmp"
+        },
+        "error_in_payload": null
+      }
+    },
+    "justhodl-dxy-equity-divergence": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1337,
+        "last_modified": "2026-05-20T23:28:20+00:00",
+        "engine": "dxy-equity-divergence",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:28:19Z",
+        "n_picks": 0,
+        "sources_used": null,
+        "error_in_payload": null
+      }
+    }
+  },
+  "signal_board_invoke": {
+    "ok": true,
+    "outer_status": 200,
+    "inner_status": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.08, \"n_live\": 48, \"n_stale\": 0}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 48,
+    "n_live": 48,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.08,
+    "expects_48": true,
+    "all_48_live": true
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 45965,
+    "markers_found": 27,
+    "expected": 27,
+    "missing": []
+  },
+  "scorecard": {
+    "fix_deploy_ok": true,
+    "n_engines_total": 6,
+    "n_invoke_ok": 6,
+    "n_s3_ok": 6,
+    "n_real_state": 6,
+    "signal_board_48_48_ok": true,
+    "page_27_markers_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-20T23:28:31Z",
+  "telegram_sent": true
+}
