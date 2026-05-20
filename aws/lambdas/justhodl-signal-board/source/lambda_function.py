@@ -137,9 +137,20 @@ def n_vix_backwardation(d):
 
 def n_insider_buys(d):
     """Edge #2: Enriched insider open-market BUY clusters."""
-    # Field is in summary or top-level depending on engine version
+    # Prefer canonical `state` field; fall back to count-based heuristic
+    state = (d.get("state") or "").upper()
+    state_map = {"FRESH_HIGH_CONVICTION": 2, "ELEVATED": 1,
+                 "NORMAL": 0, "QUIET": 0}
+    if state in state_map:
+        sig = state_map[state]
+        s = d.get("summary") or {}
+        n_high = s.get("high_conviction") or 0
+        n_enriched = s.get("enriched_returned") or 0
+        return sig, f"Insider buys {state} ({n_high} high-conv / {n_enriched} enriched)"
+    # Legacy fallback for older outputs
     s = d.get("summary") or {}
     n_clusters = (s.get("n_clusters_today") or s.get("n_clusters")
+                  or s.get("enriched_returned")
                   or d.get("n_clusters_today") or d.get("n_clusters") or 0)
     avg_sig = (s.get("avg_cluster_signal") or d.get("avg_cluster_signal") or 0)
     sig = 2 if n_clusters >= 5 and avg_sig > 60 else (
