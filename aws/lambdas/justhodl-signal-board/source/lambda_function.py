@@ -256,6 +256,79 @@ def n_crypto_opportunities(d):
     return m.get(state, 0), f"Crypto-opps {state or 'n/a'} (conv={n_conv}, picks={n_total})"
 
 
+# ===== Retail-Edges Engines (7 new engines, 2026-05-20) =====
+
+def n_earnings_iv_crush(d):
+    """Pre-earnings IV vs realized. Both RICH and CHEAP regimes are edges (opposite directions)."""
+    state = (d.get("state") or "").upper()
+    m = {"RICH_REGIME": 1, "CHEAP_REGIME": 1, "MIXED": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_rich = summ.get("n_rich") or 0
+    n_cheap = summ.get("n_cheap") or 0
+    return m.get(state, 0), f"IV-crush {state or 'n/a'} (rich={n_rich}, cheap={n_cheap})"
+
+
+def n_stealth_accumulation(d):
+    """4-signal smart-money convergence. RICH = high conviction = +2."""
+    state = (d.get("state") or "").upper()
+    m = {"STEALTH_RICH": 2, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_conv = summ.get("n_convergence_2plus") or 0
+    n_3 = summ.get("n_convergence_3plus") or 0
+    return m.get(state, 0), f"Stealth {state or 'n/a'} (conv={n_conv}, 3+sig={n_3})"
+
+
+def n_failed_pattern_reversal(d):
+    """Failed-breakdown longs = bullish (+1), failed-breakouts shorts = bearish (-1)."""
+    state = (d.get("state") or "").upper()
+    m = {"BULLISH_REVERSAL_RICH": 1, "BEARISH_REVERSAL_RICH": -1,
+         "ACTIVE": 0, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_long = summ.get("n_failed_breakdowns_long") or 0
+    n_short = summ.get("n_failed_breakouts_short") or 0
+    return m.get(state, 0), f"Failed-patterns {state or 'n/a'} (L={n_long}, S={n_short})"
+
+
+def n_squeeze_pretrigger(d):
+    """Short squeezes = bullish setups. RICH=+1, ACTIVE=+1, NORMAL/QUIET=0."""
+    state = (d.get("state") or "").upper()
+    m = {"SQUEEZE_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_imm = summ.get("n_imminent_5of5") or 0
+    n_pre = summ.get("n_pretrigger_4of5") or 0
+    return m.get(state, 0), f"Squeeze {state or 'n/a'} (5/5={n_imm}, 4/5={n_pre})"
+
+
+def n_catalyst_skew_premove(d):
+    """BULL_SKEW = bullish positioning ahead of catalysts. BEAR_SKEW = bearish."""
+    state = (d.get("state") or "").upper()
+    m = {"BULL_SKEW_RICH": 1, "BEAR_SKEW_RICH": -1, "ACTIVE": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_bull = summ.get("n_bull_skew") or 0
+    n_bear = summ.get("n_bear_skew") or 0
+    return m.get(state, 0), f"Cat-skew {state or 'n/a'} (bull={n_bull}, bear={n_bear})"
+
+
+def n_crypto_etf_arb(d):
+    """ETF arb opportunities = tradeable edge. RICH/ACTIVE = +1, QUIET = 0."""
+    state = (d.get("state") or "").upper()
+    m = {"ARB_RICH": 1, "ACTIVE": 1, "QUIET": 0}
+    summ = d.get("summary") or {}
+    max_gap = summ.get("max_abs_gap_pct") or 0
+    n_act = (summ.get("n_premium") or 0) + (summ.get("n_discount") or 0)
+    return m.get(state, 0), f"ETF-arb {state or 'n/a'} (|gap|={max_gap:.2f}%, act={n_act})"
+
+
+def n_lockup_expiration(d):
+    """Lockup fades are bearish on specific names. RICH = -1, ACTIVE/NORMAL = 0."""
+    state = (d.get("state") or "").upper()
+    m = {"FADE_RICH": -1, "ACTIVE": 0, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_imm = summ.get("n_imminent_7d") or 0
+    n_hc = summ.get("n_high_conviction") or 0
+    return m.get(state, 0), f"Lockup {state or 'n/a'} (imm={n_imm}, hc={n_hc})"
+
+
 
 # (engine, category, s3_key, normaliser)
 FEEDS = [
@@ -282,6 +355,14 @@ FEEDS = [
     ("Edge#10 RV-IV / Dispersion","volatility",  "data/rv-iv-scanner.json",             n_rv_iv_scanner),
     # Retail opportunity engine
     ("Crypto Opportunities",      "crypto",      "data/crypto-opportunities.json",      n_crypto_opportunities),
+    # === Retail-Edges Cluster (7 engines, 2026-05-20) ===
+    ("Earnings IV Crush",         "volatility",       "data/earnings-iv-crush.json",        n_earnings_iv_crush),
+    ("Stealth Accumulation",      "smart money",      "data/stealth-accumulation.json",     n_stealth_accumulation),
+    ("Failed Pattern Reversal",   "equity tactical",  "data/failed-pattern-reversal.json",  n_failed_pattern_reversal),
+    ("Squeeze Pre-Trigger",       "positioning",      "data/squeeze-pretrigger.json",       n_squeeze_pretrigger),
+    ("Catalyst+Skew Premove",     "positioning",      "data/catalyst-skew-premove.json",    n_catalyst_skew_premove),
+    ("Crypto ETF Arb",            "crypto",           "data/crypto-etf-arb.json",           n_crypto_etf_arb),
+    ("Lockup Expiration",         "events",           "data/lockup-expiration.json",        n_lockup_expiration),
 ]
 
 

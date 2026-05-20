@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Retail Edges - JustHodl.AI</title>
+<meta name="description" content="Institutional-grade retail trading edges. 7 specialized engines: Pre-earnings IV crush, smart-money stealth accumulation, failed-pattern reversal, short-squeeze pre-trigger, catalyst+skew premove, crypto ETF arb, IPO lockup expiration." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+<style>
+:root{
+  --bg:#0a0e14; --panel:#0d1320; --border:#1d2535; --text:#e6edf3; --muted:#8b949e;
+  --gold:#f3b800; --green:#3fb950; --red:#f85149; --blue:#58a6ff; --purple:#a371f7;
+  --orange:#ff8c42; --cyan:#39d0d8;
+  --font-mono:'JetBrains Mono', 'Fira Code', 'Consolas', 'Menlo', monospace;
+  --font-body:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.terminal-header{padding:12px 20px;border-bottom:1px solid var(--border);background:var(--panel);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.terminal-header .brand{font-family:var(--font-mono);font-size:14px;color:var(--gold)}
+.terminal-header .brand-sub{color:var(--muted);font-size:11px;margin-left:8px}
+.terminal-header nav a{margin-left:12px;color:var(--muted);font-size:12px;font-family:var(--font-mono)}
+.terminal-header nav a:hover{color:var(--gold)}
+.terminal-header nav a.active{color:var(--gold)}
+
+.container{max-width:1700px;margin:0 auto;padding:20px}
+
+h1{font-family:var(--font-mono);font-size:24px;color:var(--gold);margin-bottom:8px}
+h1 .icon{margin-right:8px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:24px;font-family:var(--font-mono)}
+
+/* TODAY'S BEST TRADES section */
+.best-trades{background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border:2px solid var(--gold);border-radius:8px;padding:20px;margin-bottom:24px;
+  box-shadow:0 0 30px rgba(243,184,0,0.2)}
+.best-trades h2{font-family:var(--font-mono);font-size:18px;color:var(--gold);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+.best-trades h2::before{content:'🔥';font-size:20px}
+.best-trades .updated{color:var(--muted);font-size:11px;font-family:var(--font-mono);float:right}
+.best-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;margin-top:12px}
+.best-card{background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:6px;padding:14px;
+  cursor:pointer;transition:all 0.15s ease}
+.best-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.best-card .engine{color:var(--muted);font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.5px}
+.best-card .ticker{font-family:var(--font-mono);font-size:22px;color:var(--gold);font-weight:600;margin:4px 0}
+.best-card .side{font-family:var(--font-mono);font-size:11px;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:6px}
+.best-card .side.long{background:rgba(63,185,80,0.15);color:var(--green);border:1px solid rgba(63,185,80,0.3)}
+.best-card .side.short{background:rgba(248,81,73,0.15);color:var(--red);border:1px solid rgba(248,81,73,0.3)}
+.best-card .side.neutral{background:rgba(139,148,158,0.15);color:var(--muted);border:1px solid rgba(139,148,158,0.3)}
+.best-card .stratline{color:var(--text);font-size:11px;line-height:1.45;margin-top:6px;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.best-card .score{font-family:var(--font-mono);font-size:11px;color:var(--cyan);margin-top:8px}
+
+/* Engine cards */
+.engines-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.engine-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.engine-header{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.engine-title{font-family:var(--font-mono);font-size:16px;color:var(--text)}
+.engine-title .icon{margin-right:8px}
+.state-badge{font-family:var(--font-mono);font-size:11px;padding:4px 8px;border-radius:3px;font-weight:600}
+.state-badge.rich{background:rgba(243,184,0,0.15);color:var(--gold);border:1px solid rgba(243,184,0,0.3)}
+.state-badge.active{background:rgba(88,166,255,0.15);color:var(--blue);border:1px solid rgba(88,166,255,0.3)}
+.state-badge.normal{background:rgba(139,148,158,0.15);color:var(--muted);border:1px solid rgba(139,148,158,0.3)}
+.state-badge.quiet{background:rgba(139,148,158,0.1);color:#6e7681;border:1px solid rgba(139,148,158,0.2)}
+.state-badge.bullish{background:rgba(63,185,80,0.15);color:var(--green);border:1px solid rgba(63,185,80,0.3)}
+.state-badge.bearish{background:rgba(248,81,73,0.15);color:var(--red);border:1px solid rgba(248,81,73,0.3)}
+.state-badge.fade{background:rgba(255,140,66,0.15);color:var(--orange);border:1px solid rgba(255,140,66,0.3)}
+
+.engine-body{padding:16px 18px}
+.engine-desc{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:12px}
+.kpi-row{display:flex;flex-wrap:wrap;gap:18px;padding:10px 0;margin-bottom:14px;
+  border-bottom:1px dashed var(--border)}
+.kpi{display:flex;flex-direction:column}
+.kpi-label{color:var(--muted);font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.5px}
+.kpi-value{color:var(--text);font-family:var(--font-mono);font-size:18px;margin-top:2px}
+.kpi-value.gold{color:var(--gold)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.red{color:var(--red)}
+.kpi-value.cyan{color:var(--cyan)}
+
+.setup-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px;margin-top:8px}
+.setup-table th{text-align:left;padding:8px 10px;color:var(--muted);
+  border-bottom:1px solid var(--border);font-weight:500;font-size:10px;text-transform:uppercase}
+.setup-table td{padding:8px 10px;border-bottom:1px solid rgba(29,37,53,0.5);color:var(--text)}
+.setup-table tr.row-clickable{cursor:pointer}
+.setup-table tr.row-clickable:hover{background:rgba(88,166,255,0.05)}
+.setup-table .ticker-cell{color:var(--gold);font-weight:600}
+.expand-row td{padding:0;background:rgba(0,0,0,0.25)}
+.expand-content{padding:14px 16px;border-left:3px solid var(--gold);font-size:11px;color:var(--text);line-height:1.5}
+.expand-content strong{color:var(--gold);font-weight:600;display:block;margin-top:8px;margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
+.expand-content ul{padding-left:18px;margin:4px 0}
+.expand-content li{margin:2px 0;color:var(--muted)}
+
+.section-title{font-family:var(--font-mono);font-size:12px;color:var(--gold);margin:14px 0 8px;
+  text-transform:uppercase;letter-spacing:0.5px}
+
+.why-now{background:rgba(0,0,0,0.3);border-left:3px solid var(--cyan);
+  padding:12px 14px;margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;font-family:var(--font-body)}
+.why-now h4{color:var(--cyan);font-family:var(--font-mono);font-size:11px;margin-bottom:6px}
+
+.loading{text-align:center;padding:40px;color:var(--muted);font-family:var(--font-mono);font-size:13px}
+.empty{padding:14px;color:var(--muted);font-size:12px;font-style:italic}
+.error{padding:14px;color:var(--red);font-family:var(--font-mono);font-size:11px}
+
+.footer{margin-top:30px;padding-top:20px;border-top:1px solid var(--border);
+  color:var(--muted);font-size:11px;text-align:center;font-family:var(--font-mono)}
+
+/* Mobile */
+@media (max-width:768px){
+  .container{padding:12px}
+  h1{font-size:18px}
+  .kpi-row{gap:14px}
+  .kpi-value{font-size:15px}
+  .engine-title{font-size:14px}
+  .setup-table{font-size:10px}
+  .setup-table th,.setup-table td{padding:6px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="terminal-header">
+  <div>
+    <span class="brand">JUSTHODL.AI</span>
+    <span class="brand-sub">retail-edges/v1</span>
+  </div>
+  <nav>
+    <a href="/">Terminal</a>
+    <a href="/dex.html">DEX</a>
+    <a href="/crypto-opportunities.html">💎 Crypto Ops</a>
+    <a href="/retail-edges.html" class="active">💰 Retail Edges</a>
+    <a href="/risk-desk.html">Risk Desk</a>
+    <a href="/directory.html">All</a>
+  </nav>
+</div>
+
+<div class="container">
+
+<h1><span class="icon">💰</span>Retail Edges</h1>
+<div class="subtitle">7 specialized engines. Cross-confirmed setups + retail trade tickets. Updated continuously.</div>
+
+<!-- TODAY'S BEST TRADES -->
+<div class="best-trades">
+  <h2>Today's Best Retail Trades<span class="updated" id="best-updated">--</span></h2>
+  <div class="best-grid" id="best-grid">
+    <div class="loading">Loading top setups from all 7 engines...</div>
+  </div>
+</div>
+
+<!-- ENGINE CARDS -->
+<div class="engines-grid" id="engines-grid">
+  <div class="loading">Loading engines...</div>
+</div>
+
+<div class="footer">
+  <p>Engines refresh on independent schedules (30 min - daily). Page auto-refreshes every 5 min.</p>
+  <p>Not financial advice. Backtests and historical episodes are illustrative -- past performance does not guarantee future results.</p>
+</div>
+
+</div>
+
+<script>
+const S3_BASE = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com';
+
+// Engine registry: order = display order
+const ENGINES = [
+  { key:'earnings-iv-crush', s3:'data/earnings-iv-crush.json',
+    title:'Pre-Earnings IV Crush', icon:'💎',
+    desc:'Implied move vs historical realized move per ticker reporting next 14d. RICH = sell premium (iron condor / credit spread). CHEAP = buy premium (long straddle).',
+    render: renderIVCrush, category:'volatility' },
+  { key:'stealth-accumulation', s3:'data/stealth-accumulation.json',
+    title:'Smart-Money Stealth Accumulation', icon:'🎯',
+    desc:'Cross-confirms 4 smart-money signals: insider clusters + 13F adds + short covering + bullish options. 2+ signals = the edge.',
+    render: renderStealth, category:'smart-money' },
+  { key:'failed-pattern-reversal', s3:'data/failed-pattern-reversal.json',
+    title:'Failed Breakdown / Breakout Reversal', icon:'🔄',
+    desc:'Stocks that break 20-day high/low then reclaim/reject within 24h. Trapped traders fuel the reversal. ~64% win rate on longs.',
+    render: renderFailedPattern, category:'tactical' },
+  { key:'squeeze-pretrigger', s3:'data/squeeze-pretrigger.json',
+    title:'Short Squeeze Pre-Trigger', icon:'🚀',
+    desc:'Mid/large caps with 4-5 of 5 squeeze conditions: SI/float >18%, days-to-cover >6, util >80%, z-score, catalyst <30d. Mcap $1B-$50B.',
+    render: renderSqueeze, category:'positioning' },
+  { key:'catalyst-skew-premove', s3:'data/catalyst-skew-premove.json',
+    title:'Catalyst + Options Skew', icon:'⚡',
+    desc:'Upcoming catalysts (3-21d) with directional options skew. BULL/BEAR/BALANCED setups with trade tickets per event.',
+    render: renderCatalystSkew, category:'positioning' },
+  { key:'crypto-etf-arb', s3:'data/crypto-etf-arb.json',
+    title:'Crypto ETF NAV Arbitrage', icon:'⚖️',
+    desc:'15 spot BTC/ETH ETFs (IBIT, FBTC, ETHA, ETHE...) vs spot NAV. Premium >0.4% = sell ETF / buy spot. Discount = inverse. Mean-reverts 1-3 days.',
+    render: renderCryptoETF, category:'crypto' },
+  { key:'lockup-expiration', s3:'data/lockup-expiration.json',
+    title:'IPO Lockup Expiration Fade', icon:'📅',
+    desc:'US IPOs hitting 180-day lockup expiration in next 35 days. Heavier runup + smaller mcap = stronger fade signal.',
+    render: renderLockup, category:'event' },
+];
+
+const fmtN = n => n == null ? '-' : (typeof n === 'number' ? n.toLocaleString('en-US', {maximumFractionDigits:2}) : n);
+const fmtPct = n => n == null ? '-' : (typeof n === 'number' ? (n>0?'+':'') + n.toFixed(2) + '%' : n);
+const fmtPrice = n => n == null ? '-' : '$' + Number(n).toFixed(2);
+const fmtMcap = n => !n ? '-' : n >= 1e12 ? '$' + (n/1e12).toFixed(2) + 'T' : n >= 1e9 ? '$' + (n/1e9).toFixed(2) + 'B' : '$' + (n/1e6).toFixed(0) + 'M';
+const ago = iso => {
+  if (!iso) return '-';
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = ms / 60000;
+  if (min < 60) return Math.round(min) + 'm ago';
+  if (min < 1440) return Math.round(min/60) + 'h ago';
+  return Math.round(min/1440) + 'd ago';
+};
+
+const stateBadge = s => {
+  if (!s) return '<span class="state-badge quiet">UNKNOWN</span>';
+  const cls = s.includes('RICH') ? 'rich' :
+              s.includes('ACTIVE') ? 'active' :
+              s.includes('BULLISH') || s.includes('BULL') ? 'bullish' :
+              s.includes('BEARISH') || s.includes('BEAR') ? 'bearish' :
+              s.includes('FADE') ? 'fade' :
+              s.includes('NORMAL') ? 'normal' : 'quiet';
+  return `<span class="state-badge ${cls}">${s}</span>`;
+};
+
+async function fetchEngine(s3key) {
+  try {
+    const r = await fetch(`${S3_BASE}/${s3key}?cb=${Date.now()}`, {cache:'no-store'});
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) { return null; }
+}
+
+function renderTicketDetails(t) {
+  if (!t) return '<em>No ticket</em>';
+  const fields = ['strategy','primary','entry','stop_loss','stop','target_1','target','target_2','stretch_target','size','timeframe','options_play'];
+  let h = '';
+  for (const f of fields) {
+    if (t[f]) h += `<strong>${f.toUpperCase().replace(/_/g,' ')}</strong>${t[f]}`;
+  }
+  if (t.stage_1_pre_lockup) {
+    h += '<strong>STAGE 1 PRE-LOCKUP</strong>';
+    for (const k of Object.keys(t.stage_1_pre_lockup)) {
+      h += `<div style="padding-left:10px"><em>${k}:</em> ${t.stage_1_pre_lockup[k]}</div>`;
+    }
+  }
+  if (t.stage_2_post_lockup_confirmation) {
+    h += '<strong>STAGE 2 POST-LOCKUP</strong>';
+    for (const k of Object.keys(t.stage_2_post_lockup_confirmation)) {
+      h += `<div style="padding-left:10px"><em>${k}:</em> ${t.stage_2_post_lockup_confirmation[k]}</div>`;
+    }
+  }
+  if (t.risks && Array.isArray(t.risks)) {
+    h += '<strong>RISKS</strong><ul>';
+    for (const r of t.risks) h += `<li>${r}</li>`;
+    h += '</ul>';
+  }
+  return h;
+}
+
+let expandedRows = new Set();
+function toggleRow(rowId, contentHTML) {
+  const exists = document.getElementById('expand-'+rowId);
+  if (exists) { exists.remove(); expandedRows.delete(rowId); return; }
+  const tr = document.getElementById(rowId);
+  if (!tr) return;
+  const newTr = document.createElement('tr');
+  newTr.id = 'expand-'+rowId;
+  newTr.className = 'expand-row';
+  newTr.innerHTML = `<td colspan="99"><div class="expand-content">${contentHTML}</div></td>`;
+  tr.parentNode.insertBefore(newTr, tr.nextSibling);
+  expandedRows.add(rowId);
+}
+window.toggleRow = toggleRow;
+
+function renderIVCrush(d) {
+  if (!d) return '<div class="error">Engine offline. Will populate after first run (~22 UTC daily).</div>';
+  const rich = d.top_rich || [];
+  const cheap = d.top_cheap || [];
+  const expectedReturn = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Rich (sell premium)</div><div class="kpi-value gold">${rich.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Cheap (buy premium)</div><div class="kpi-value cyan">${cheap.length}</div></div>
+      <div class="kpi"><div class="kpi-label">In window</div><div class="kpi-value">${d.summary?.n_earnings_in_window ?? '-'}</div></div>
+      <div class="kpi"><div class="kpi-label">1m exp.</div><div class="kpi-value gold">+${expectedReturn['1m'] ?? '-'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Win rate</div><div class="kpi-value cyan">${expectedReturn.wr ?? '-'}%</div></div>
+    </div>`;
+  if (rich.length) {
+    h += `<div class="section-title">Top RICH (sell premium) - ${rich.length}</div>`;
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Earn</th><th>Implied %</th><th>Hist %</th><th>Ratio</th><th>Score</th><th></th></tr></thead><tbody>`;
+    rich.slice(0,10).forEach((r,i)=>{
+      const id = `ivc-rich-${i}`;
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${r.earnings_date}</td>
+        <td>${r.implied_move_proxy_pct?.toFixed(1)}%</td>
+        <td>${r.historical_avg_move_pct?.toFixed(1)}%</td>
+        <td>${r.ratio_implied_vs_historical?.toFixed(2)}x</td>
+        <td>${r.signal_strength}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  if (cheap.length) {
+    h += `<div class="section-title">Top CHEAP (buy premium) - ${cheap.length}</div>`;
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Earn</th><th>Implied %</th><th>Hist %</th><th>Ratio</th><th>Score</th><th></th></tr></thead><tbody>`;
+    cheap.slice(0,10).forEach((r,i)=>{
+      const id = `ivc-cheap-${i}`;
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${r.earnings_date}</td>
+        <td>${r.implied_move_proxy_pct?.toFixed(1)}%</td>
+        <td>${r.historical_avg_move_pct?.toFixed(1)}%</td>
+        <td>${r.ratio_implied_vs_historical?.toFixed(2)}x</td>
+        <td>${r.signal_strength}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderStealth(d) {
+  if (!d) return '<div class="error">Engine offline. Will populate after first run.</div>';
+  const conv = d.convergence || [];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">3+ signals</div><div class="kpi-value gold">${d.summary?.n_convergence_3plus ?? '-'}</div></div>
+      <div class="kpi"><div class="kpi-label">2+ signals</div><div class="kpi-value cyan">${conv.length}</div></div>
+      <div class="kpi"><div class="kpi-label">6m exp.</div><div class="kpi-value gold">+${exp['6m'] ?? '-'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Win rate</div><div class="kpi-value cyan">${exp.wr ?? '-'}%</div></div>
+    </div>`;
+  if (conv.length) {
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Signals</th><th>Score</th><th>Evidence</th><th></th></tr></thead><tbody>`;
+    conv.slice(0,12).forEach((c,i)=>{
+      const id = `stl-${i}`;
+      const sigs = c.signals_fired.join(' + ');
+      const ev = Object.values(c.signal_breakdown || {}).map(s=>s.evidence).filter(Boolean).join(' | ');
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(c.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${c.ticker}</td>
+        <td><span style="color:var(--cyan)">${c.n_signals}/4</span> ${sigs}</td>
+        <td>${c.composite_score}</td>
+        <td style="font-size:10px;color:var(--muted)">${ev.substring(0,90)}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  } else h += '<div class="empty">No convergence (2+ signals) detected. Engine reads insider+13F+short+options feeds.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderFailedPattern(d) {
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const longs = d.failed_breakdowns_long || [];
+  const shorts = d.failed_breakouts_short || [];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Failed Breakdowns (Long)</div><div class="kpi-value green">${longs.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Failed Breakouts (Short)</div><div class="kpi-value red">${shorts.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Universe</div><div class="kpi-value">${d.summary?.universe_size ?? '-'}</div></div>
+      <div class="kpi"><div class="kpi-label">Win rate</div><div class="kpi-value cyan">${exp.wr ?? '-'}%</div></div>
+    </div>`;
+  if (longs.length) {
+    h += `<div class="section-title" style="color:var(--green)">FAILED BREAKDOWNS - LONG SETUPS</div>`;
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Price</th><th>Mcap</th><th>20d Low</th><th>Reclaim</th><th>Score</th><th></th></tr></thead><tbody>`;
+    longs.slice(0,10).forEach((r,i)=>{
+      const id = `fpr-l-${i}`;
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${fmtPrice(r.price_usd)}</td>
+        <td>${fmtMcap(r.mcap_usd)}</td>
+        <td>${fmtPrice(r.pattern_meta?.window_low)}</td>
+        <td>${r.pattern_meta?.reclaim_magnitude_pct?.toFixed(1)}%</td>
+        <td>${r.signal_strength}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  if (shorts.length) {
+    h += `<div class="section-title" style="color:var(--red)">FAILED BREAKOUTS - SHORT SETUPS</div>`;
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Price</th><th>Mcap</th><th>20d High</th><th>Reject</th><th>Score</th><th></th></tr></thead><tbody>`;
+    shorts.slice(0,10).forEach((r,i)=>{
+      const id = `fpr-s-${i}`;
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${fmtPrice(r.price_usd)}</td>
+        <td>${fmtMcap(r.mcap_usd)}</td>
+        <td>${fmtPrice(r.pattern_meta?.window_high)}</td>
+        <td>${r.pattern_meta?.reject_magnitude_pct?.toFixed(1)}%</td>
+        <td>${r.signal_strength}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderSqueeze(d) {
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const imm = d.imminent_setups || [];
+  const pre = d.pretrigger_setups || [];
+  const early = d.early_setups || [];
+  const all = [...imm, ...pre, ...early];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Imminent (5/5)</div><div class="kpi-value gold">${imm.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Pre-Trigger (4/5)</div><div class="kpi-value cyan">${pre.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Early (3/5)</div><div class="kpi-value">${early.length}</div></div>
+      <div class="kpi"><div class="kpi-label">2m exp.</div><div class="kpi-value gold">+${exp['2m'] ?? '-'}%</div></div>
+    </div>`;
+  if (all.length) {
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Quality</th><th>SI/F</th><th>DTC</th><th>Util</th><th>Catalyst</th><th></th></tr></thead><tbody>`;
+    all.slice(0,15).forEach((r,i)=>{
+      const id = `sqz-${i}`;
+      const cat = r.catalysts_30d && r.catalysts_30d[0];
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${r.setup_quality}</td>
+        <td>${r.score_components?.si_pct_float?.toFixed(0)}%</td>
+        <td>${r.score_components?.days_to_cover?.toFixed(1)}</td>
+        <td>${r.score_components?.short_utilization?.toFixed(0)}%</td>
+        <td style="font-size:10px;color:var(--muted)">${cat ? `${cat.type} in ${cat.dte}d` : '-'}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  } else h += '<div class="empty">No qualifying setups today.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderCatalystSkew(d) {
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const bull = d.bull_skew_setups || [];
+  const bear = d.bear_skew_setups || [];
+  const bal = d.balanced_setups || [];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Bull Skew</div><div class="kpi-value green">${bull.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Bear Skew</div><div class="kpi-value red">${bear.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Balanced</div><div class="kpi-value">${bal.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Win rate</div><div class="kpi-value cyan">${exp.wr ?? '-'}%</div></div>
+    </div>`;
+  const buckets = [
+    ['BULL_SKEW Long Setups', bull, 'var(--green)', 'cs-b'],
+    ['BEAR_SKEW Short Setups', bear, 'var(--red)', 'cs-r'],
+    ['BALANCED Vol Setups', bal, 'var(--cyan)', 'cs-x'],
+  ];
+  for (const [label, list, color, prefix] of buckets) {
+    if (!list.length) continue;
+    h += `<div class="section-title" style="color:${color}">${label}</div>`;
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Event</th><th>DTE</th><th>C/P</th><th>Score</th><th></th></tr></thead><tbody>`;
+    list.slice(0,8).forEach((r,i)=>{
+      const id = `${prefix}-${i}`;
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td style="font-size:10px">${r.event?.type || '-'}</td>
+        <td>${r.event?.dte ?? '-'}d</td>
+        <td>${r.options_skew?.call_put_ratio?.toFixed(2)}</td>
+        <td>${r.signal_strength}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+  if (!bull.length && !bear.length && !bal.length) h += '<div class="empty">No directional setups today.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderCryptoETF(d) {
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const all = d.etfs || [];
+  const prem = d.premium_setups || [];
+  const disc = d.discount_setups || [];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Max |gap|</div><div class="kpi-value gold">${d.summary?.max_abs_gap_pct?.toFixed(2) ?? '-'}%</div></div>
+      <div class="kpi"><div class="kpi-label">Premiums</div><div class="kpi-value green">${prem.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Discounts</div><div class="kpi-value red">${disc.length}</div></div>
+      <div class="kpi"><div class="kpi-label">BTC spot</div><div class="kpi-value gold">$${fmtN(d.summary?.btc_spot_usd)}</div></div>
+      <div class="kpi"><div class="kpi-label">ETH spot</div><div class="kpi-value cyan">$${fmtN(d.summary?.eth_spot_usd)}</div></div>
+    </div>`;
+  if (all.length) {
+    h += `<table class="setup-table"><thead><tr><th>Sym</th><th>Asset</th><th>Price</th><th>NAV</th><th>Gap %</th><th>Signal</th><th></th></tr></thead><tbody>`;
+    all.forEach((r,i)=>{
+      const id = `etf-${i}`;
+      const gapColor = r.premium_discount_pct > 0.4 ? 'var(--green)' : r.premium_discount_pct < -0.4 ? 'var(--red)' : 'var(--muted)';
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.symbol}</td>
+        <td>${r.asset}</td>
+        <td>${fmtPrice(r.etf_price_usd)}</td>
+        <td>${fmtPrice(r.implied_nav_per_share)}</td>
+        <td style="color:${gapColor}">${(r.premium_discount_pct>0?'+':'')}${r.premium_discount_pct?.toFixed(3)}%</td>
+        <td>${r.signal}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  } else h += '<div class="empty">Awaiting first 30-min scan.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+function renderLockup(d) {
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const imm = d.imminent_lockups_7d || [];
+  const app = d.approaching_lockups_21d || [];
+  const upc = d.upcoming_lockups_35d || [];
+  const all = [...imm, ...app, ...upc];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Imminent (≤7d)</div><div class="kpi-value gold">${imm.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Approaching (≤21d)</div><div class="kpi-value orange">${app.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Upcoming (≤35d)</div><div class="kpi-value">${upc.length}</div></div>
+      <div class="kpi"><div class="kpi-label">High Conviction</div><div class="kpi-value cyan">${d.summary?.n_high_conviction ?? '-'}</div></div>
+    </div>`;
+  if (all.length) {
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>IPO</th><th>Lockup</th><th>DTL</th><th>Runup</th><th>Mcap</th><th>Score</th><th></th></tr></thead><tbody>`;
+    all.slice(0,15).forEach((r,i)=>{
+      const id = `lkp-${i}`;
+      const runupColor = r.runup_pct_vs_ipo > 50 ? 'var(--gold)' : r.runup_pct_vs_ipo > 0 ? 'var(--green)' : 'var(--red)';
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.symbol}</td>
+        <td style="font-size:10px">${r.ipo_date}</td>
+        <td style="font-size:10px">${r.lockup_expiration_date}</td>
+        <td>${r.days_to_lockup}d</td>
+        <td style="color:${runupColor}">${(r.runup_pct_vs_ipo>0?'+':'')}${r.runup_pct_vs_ipo?.toFixed(0)}%</td>
+        <td>${fmtMcap(r.mcap_usd)}</td>
+        <td>${r.fade_score}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  } else h += '<div class="empty">No lockups in 35d window.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
+}
+
+// Build the "Today's Best Trades" master section
+function buildBestTrades(allData) {
+  const cards = [];
+  for (const eng of ENGINES) {
+    const d = allData[eng.key];
+    if (!d) continue;
+    const rec = d.recommended_trade;
+    if (!rec || !rec.ticket || (!rec.ticker && !rec.symbol)) continue;
+    const ticker = rec.ticker || rec.symbol;
+    if (!ticker) continue;
+    const ticket = rec.ticket;
+    const side = (ticket.side || '').toLowerCase();
+    let sideClass = 'neutral', sideLabel = 'WATCH';
+    if (side.includes('long') || side.includes('arb_long_etf')) { sideClass = 'long'; sideLabel = 'LONG'; }
+    else if (side.includes('short') || side.includes('hedge') || side.includes('arb_short')) { sideClass = 'short'; sideLabel = 'SHORT'; }
+    else if (side.includes('long_vol')) { sideClass = 'neutral'; sideLabel = 'LONG VOL'; }
+    const strat = (ticket.primary || ticket.strategy || '').substring(0,180);
+    const score = rec.signal_strength || ticket.signal_strength || d.signal_strength;
+    cards.push({
+      engine: eng.title,
+      ticker,
+      side: sideLabel,
+      sideClass,
+      strategy: strat,
+      score: score ?? '-',
+      icon: eng.icon,
+    });
+  }
+  // Sort by score desc, max 6 cards
+  cards.sort((a,b)=> (b.score||0) - (a.score||0));
+  return cards.slice(0,6);
+}
+
+async function loadAll() {
+  // Parallel fetch all engines
+  const results = await Promise.all(ENGINES.map(e => fetchEngine(e.s3)));
+  const dataMap = {};
+  ENGINES.forEach((e,i) => { dataMap[e.key] = results[i]; });
+
+  // Best Trades
+  const bestGrid = document.getElementById('best-grid');
+  const best = buildBestTrades(dataMap);
+  if (best.length === 0) {
+    bestGrid.innerHTML = '<div class="empty">Awaiting first engine runs. Engines deploy over the next 24h via scheduler.</div>';
+  } else {
+    bestGrid.innerHTML = best.map(c => `
+      <div class="best-card">
+        <div class="engine">${c.icon} ${c.engine}</div>
+        <div class="ticker">${c.ticker}</div>
+        <div class="side ${c.sideClass}">${c.side}</div>
+        <div class="stratline">${c.strategy}</div>
+        <div class="score">SCORE ${c.score}</div>
+      </div>`).join('');
+  }
+  // Update timestamp
+  const ts = Object.values(dataMap).map(d => d?.as_of).filter(Boolean).sort().reverse()[0];
+  document.getElementById('best-updated').textContent = ts ? 'updated ' + ago(ts) : '';
+
+  // Engine cards
+  const engineGrid = document.getElementById('engines-grid');
+  let h = '';
+  for (const eng of ENGINES) {
+    const d = dataMap[eng.key];
+    h += `
+      <div class="engine-card">
+        <div class="engine-header">
+          <div class="engine-title"><span class="icon">${eng.icon}</span>${eng.title}</div>
+          <div>${stateBadge(d?.state)} <span style="color:var(--muted);font-size:11px;margin-left:8px;font-family:var(--font-mono)">${d?.as_of ? ago(d.as_of) : '-'}</span></div>
+        </div>
+        <div class="engine-body">
+          <div class="engine-desc">${eng.desc}</div>
+          ${eng.render(d)}
+        </div>
+      </div>`;
+  }
+  engineGrid.innerHTML = h;
+}
+
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);
+</script>
+</body>
+</html>
