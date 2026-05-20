@@ -1,0 +1,585 @@
+{
+  "ops": 955,
+  "title": "final v3 unified re-verify of edges 5-10",
+  "run_at": "2026-05-20T14:12:32.503922Z",
+  "per_edge_summary": {
+    "5": {
+      "total": 5,
+      "passed": 3,
+      "failed": 2
+    },
+    "6": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1
+    },
+    "7": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1
+    },
+    "8": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1
+    },
+    "9": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1
+    },
+    "10": {
+      "total": 17,
+      "passed": 16,
+      "failed": 1
+    }
+  },
+  "checks": [
+    {
+      "edge": 5,
+      "name": "e5.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=240"
+    },
+    {
+      "edge": 5,
+      "name": "e5.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 5,
+      "name": "e5.memory_adequate",
+      "passed": true,
+      "detail": "1024MB"
+    },
+    {
+      "edge": 5,
+      "name": "e5.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 5,
+      "name": "e5.s3_output_present",
+      "passed": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "edge": 6,
+      "name": "e6.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=300"
+    },
+    {
+      "edge": 6,
+      "name": "e6.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 6,
+      "name": "e6.memory_adequate",
+      "passed": true,
+      "detail": "1024MB"
+    },
+    {
+      "edge": 6,
+      "name": "e6.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 6,
+      "name": "e6.s3_output_present",
+      "passed": true,
+      "detail": "size=59242B"
+    },
+    {
+      "edge": 6,
+      "name": "e6.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 6,
+      "name": "e6.edge_specific_keys",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 6,
+      "name": "e6.engine_id_matches",
+      "passed": true,
+      "detail": "got=buyback-scanner"
+    },
+    {
+      "edge": 6,
+      "name": "e6.state_valid",
+      "passed": true,
+      "detail": "field=state got=NORMAL valid_n=9"
+    },
+    {
+      "edge": 6,
+      "name": "e6.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=80.0"
+    },
+    {
+      "edge": 6,
+      "name": "e6.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=4"
+    },
+    {
+      "edge": 6,
+      "name": "e6.forward_horizons_complete",
+      "passed": true,
+      "detail": "got=['1m', '3m', '12m'] expected=('1m', '3m', '12m')"
+    },
+    {
+      "edge": 6,
+      "name": "e6.trade_ticket_present",
+      "passed": true,
+      "detail": "path=top_opportunities[0] keys=['ticker', 'company', 'exchange', 'announcement_date', 'days_since_announcement', 'filing_adsh']"
+    },
+    {
+      "edge": 6,
+      "name": "e6.why_now_substantive",
+      "passed": true,
+      "detail": "len=1255 min=200"
+    },
+    {
+      "edge": 6,
+      "name": "e6.data_recent_168h",
+      "passed": true,
+      "detail": "age_hours=0.1 max=168"
+    },
+    {
+      "edge": 6,
+      "name": "e6.ssm_state_present",
+      "passed": true,
+      "detail": "engine does not use SSM persistence"
+    },
+    {
+      "edge": 6,
+      "name": "e6.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=16365 wired=True"
+    },
+    {
+      "edge": 7,
+      "name": "e7.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90"
+    },
+    {
+      "edge": 7,
+      "name": "e7.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 7,
+      "name": "e7.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 7,
+      "name": "e7.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 7,
+      "name": "e7.s3_output_present",
+      "passed": true,
+      "detail": "size=46365B"
+    },
+    {
+      "edge": 7,
+      "name": "e7.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 7,
+      "name": "e7.edge_specific_keys",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 7,
+      "name": "e7.engine_id_matches",
+      "passed": true,
+      "detail": "got=stablecoin-flow"
+    },
+    {
+      "edge": 7,
+      "name": "e7.state_valid",
+      "passed": true,
+      "detail": "field=state got=FLAT valid_n=5"
+    },
+    {
+      "edge": 7,
+      "name": "e7.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=14.2"
+    },
+    {
+      "edge": 7,
+      "name": "e7.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=5"
+    },
+    {
+      "edge": 7,
+      "name": "e7.forward_horizons_complete",
+      "passed": true,
+      "detail": "got=['1m', '3m', '12m'] expected=('1m', '3m', '12m')"
+    },
+    {
+      "edge": 7,
+      "name": "e7.trade_ticket_present",
+      "passed": true,
+      "detail": "path=recommended_trade keys=['primary', 'exit_rules']"
+    },
+    {
+      "edge": 7,
+      "name": "e7.why_now_substantive",
+      "passed": true,
+      "detail": "len=1206 min=200"
+    },
+    {
+      "edge": 7,
+      "name": "e7.data_recent_168h",
+      "passed": true,
+      "detail": "age_hours=0.3 max=168"
+    },
+    {
+      "edge": 7,
+      "name": "e7.ssm_state_present",
+      "passed": true,
+      "detail": "state=FLAT"
+    },
+    {
+      "edge": 7,
+      "name": "e7.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=15852 wired=True"
+    },
+    {
+      "edge": 8,
+      "name": "e8.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90"
+    },
+    {
+      "edge": 8,
+      "name": "e8.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 8,
+      "name": "e8.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 8,
+      "name": "e8.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 8,
+      "name": "e8.s3_output_present",
+      "passed": true,
+      "detail": "size=4524B"
+    },
+    {
+      "edge": 8,
+      "name": "e8.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 8,
+      "name": "e8.edge_specific_keys",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 8,
+      "name": "e8.engine_id_matches",
+      "passed": true,
+      "detail": "got=opex-calendar"
+    },
+    {
+      "edge": 8,
+      "name": "e8.state_valid",
+      "passed": true,
+      "detail": "field=state got=POST_OPEX valid_n=7"
+    },
+    {
+      "edge": 8,
+      "name": "e8.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=65"
+    },
+    {
+      "edge": 8,
+      "name": "e8.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=5"
+    },
+    {
+      "edge": 8,
+      "name": "e8.forward_horizons_complete",
+      "passed": true,
+      "detail": "got=['1m', '3m', '12m'] expected=('1m', '3m', '12m')"
+    },
+    {
+      "edge": 8,
+      "name": "e8.trade_ticket_present",
+      "passed": true,
+      "detail": "path=recommended_trade keys=['primary', 'options_alt', 'exit_rules']"
+    },
+    {
+      "edge": 8,
+      "name": "e8.why_now_substantive",
+      "passed": true,
+      "detail": "len=698 min=200"
+    },
+    {
+      "edge": 8,
+      "name": "e8.data_recent_168h",
+      "passed": true,
+      "detail": "age_hours=0.1 max=168"
+    },
+    {
+      "edge": 8,
+      "name": "e8.ssm_state_present",
+      "passed": true,
+      "detail": "state=POST_OPEX"
+    },
+    {
+      "edge": 8,
+      "name": "e8.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=16541 wired=True"
+    },
+    {
+      "edge": 9,
+      "name": "e9.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=300"
+    },
+    {
+      "edge": 9,
+      "name": "e9.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 9,
+      "name": "e9.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 9,
+      "name": "e9.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 9,
+      "name": "e9.s3_output_present",
+      "passed": true,
+      "detail": "size=3745B"
+    },
+    {
+      "edge": 9,
+      "name": "e9.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 9,
+      "name": "e9.edge_specific_keys",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 9,
+      "name": "e9.engine_id_matches",
+      "passed": true,
+      "detail": "got=activist-13d"
+    },
+    {
+      "edge": 9,
+      "name": "e9.state_valid",
+      "passed": true,
+      "detail": "field=state got=QUIET valid_n=7"
+    },
+    {
+      "edge": 9,
+      "name": "e9.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=0"
+    },
+    {
+      "edge": 9,
+      "name": "e9.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=4"
+    },
+    {
+      "edge": 9,
+      "name": "e9.forward_horizons_complete",
+      "passed": true,
+      "detail": "got=['1m', '3m', '12m'] expected=('1m', '3m', '12m')"
+    },
+    {
+      "edge": 9,
+      "name": "e9.trade_ticket_present",
+      "passed": true,
+      "detail": "path=recommended_trade keys=['primary', 'exit_rules']"
+    },
+    {
+      "edge": 9,
+      "name": "e9.why_now_substantive",
+      "passed": true,
+      "detail": "len=668 min=100"
+    },
+    {
+      "edge": 9,
+      "name": "e9.data_recent_168h",
+      "passed": true,
+      "detail": "age_hours=0.1 max=168"
+    },
+    {
+      "edge": 9,
+      "name": "e9.ssm_state_present",
+      "passed": true,
+      "detail": "engine does not use SSM persistence"
+    },
+    {
+      "edge": 9,
+      "name": "e9.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=14850 wired=True"
+    },
+    {
+      "edge": 10,
+      "name": "e10.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=120"
+    },
+    {
+      "edge": 10,
+      "name": "e10.runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "edge": 10,
+      "name": "e10.memory_adequate",
+      "passed": true,
+      "detail": "512MB"
+    },
+    {
+      "edge": 10,
+      "name": "e10.env_vars_present",
+      "passed": false,
+      "detail": "n_env=0 sample=[]"
+    },
+    {
+      "edge": 10,
+      "name": "e10.s3_output_present",
+      "passed": true,
+      "detail": "size=6387B"
+    },
+    {
+      "edge": 10,
+      "name": "e10.canonical_schema",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 10,
+      "name": "e10.edge_specific_keys",
+      "passed": true,
+      "detail": "all_present"
+    },
+    {
+      "edge": 10,
+      "name": "e10.engine_id_matches",
+      "passed": true,
+      "detail": "got=rv-iv-scanner"
+    },
+    {
+      "edge": 10,
+      "name": "e10.state_valid",
+      "passed": true,
+      "detail": "field=state got=NORMAL valid_n=5"
+    },
+    {
+      "edge": 10,
+      "name": "e10.signal_strength_sane",
+      "passed": true,
+      "detail": "signal_strength=0"
+    },
+    {
+      "edge": 10,
+      "name": "e10.trigger_conditions_min3",
+      "passed": true,
+      "detail": "n=5"
+    },
+    {
+      "edge": 10,
+      "name": "e10.forward_horizons_complete",
+      "passed": true,
+      "detail": "got=['21d', '63d', '252d'] expected=('21d', '63d', '252d')"
+    },
+    {
+      "edge": 10,
+      "name": "e10.trade_ticket_present",
+      "passed": true,
+      "detail": "path=recommended_trade keys=['primary', 'exit_rules']"
+    },
+    {
+      "edge": 10,
+      "name": "e10.why_now_substantive",
+      "passed": true,
+      "detail": "len=632 min=200"
+    },
+    {
+      "edge": 10,
+      "name": "e10.data_recent_48h",
+      "passed": true,
+      "detail": "age_hours=0.5 max=48"
+    },
+    {
+      "edge": 10,
+      "name": "e10.ssm_state_present",
+      "passed": true,
+      "detail": "engine does not use SSM persistence"
+    },
+    {
+      "edge": 10,
+      "name": "e10.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=14308 wired=True"
+    }
+  ],
+  "summary": {
+    "total": 90,
+    "passed": 83,
+    "failed": 7
+  },
+  "overall_ok": false
+}

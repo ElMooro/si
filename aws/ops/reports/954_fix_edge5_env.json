@@ -1,0 +1,23 @@
+{
+  "ops": 954,
+  "title": "fix Edge #5 environment + re-invoke",
+  "run_at": "2026-05-20T14:12:30.743380Z",
+  "checks": [
+    {
+      "name": "donor.env_loaded",
+      "passed": false,
+      "detail": "donor=justhodl-buyback-scanner found_keys=[] total=0"
+    },
+    {
+      "name": "donor.env_loaded",
+      "passed": false,
+      "detail": "donor has no env vars either!"
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2
+  },
+  "overall_ok": false
+}
