@@ -1,0 +1,113 @@
+{
+  "ops": 906,
+  "edge": 10,
+  "engine": "rv-iv-scanner",
+  "run_at": "2026-05-20T13:45:26.427596Z",
+  "checks": [
+    {
+      "name": "lambda_deployed",
+      "passed": true,
+      "detail": "arn=ast-1:857687956942:function:justhodl-rv-iv-scanner"
+    },
+    {
+      "name": "runtime_python312",
+      "passed": true,
+      "detail": "python3.12"
+    },
+    {
+      "name": "memory_sufficient",
+      "passed": true,
+      "detail": "mem=512MB"
+    },
+    {
+      "name": "timeout_sufficient",
+      "passed": false,
+      "detail": "timeout=120s"
+    },
+    {
+      "name": "invoke_success",
+      "passed": true,
+      "detail": "dur=0.9s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"NORMAL\\\", \\\"signal_strength\\\": 0, \\\"vrp_spy\\\": null, \\\"dispersion_gap\\\": 0.0, \\\"basket_size\\\": 0}\"}"
+    },
+    {
+      "name": "s3_output_present",
+      "passed": true,
+      "detail": "size=6387B"
+    },
+    {
+      "name": "s3_output_parseable",
+      "passed": true,
+      "detail": "top_keys=['engine', 'version', 'as_of', 'state', 'signal_strength']"
+    },
+    {
+      "name": "schema_complete",
+      "passed": false,
+      "detail": "missing=['previous_state', 'state_transition', 'state_description', 'universe_size', 'n_scanned', 'n_with_vrp', 'vrp_mean', 'vrp_spread', 'n_earnings_within_10d', 'top_20_iv_rich', 'top_20_iv_cheap', 'earnings_within_10d']"
+    },
+    {
+      "name": "engine_id",
+      "passed": true,
+      "detail": "rv-iv-scanner"
+    },
+    {
+      "name": "state_valid",
+      "passed": true,
+      "detail": "NORMAL"
+    },
+    {
+      "name": "n_scanned_sane",
+      "passed": false,
+      "detail": "n_scanned=None"
+    },
+    {
+      "name": "n_with_vrp_sane",
+      "passed": false,
+      "detail": "n_with_vrp=None"
+    },
+    {
+      "name": "top_iv_rich_list",
+      "passed": true,
+      "detail": "n=0"
+    },
+    {
+      "name": "top_iv_cheap_list",
+      "passed": true,
+      "detail": "n=0"
+    },
+    {
+      "name": "forward_horizons",
+      "passed": false,
+      "detail": "['21d', '63d', '252d']"
+    },
+    {
+      "name": "trigger_conditions_valid",
+      "passed": true,
+      "detail": "n=5"
+    },
+    {
+      "name": "trade_ticket_present",
+      "passed": true,
+      "detail": "keys=['primary', 'exit_rules']"
+    },
+    {
+      "name": "why_now_explainer_long",
+      "passed": true,
+      "detail": "len=632"
+    },
+    {
+      "name": "ssm_state_written",
+      "passed": false,
+      "detail": "An error occurred (ParameterNotFound) when calling the GetParameter operation: "
+    },
+    {
+      "name": "page_live",
+      "passed": true,
+      "detail": "status=200 len=14308 url_present=True"
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "passed": 14,
+    "failed": 6
+  }
+}
