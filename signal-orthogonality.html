@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Signal Orthogonality &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#129518;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--orange)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.schip{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.schip .sv{font-family:var(--mono);font-size:21px;font-weight:700;margin-top:3px;color:var(--txt)}
+.schip.green .sv{color:var(--green)}
+.schip.cyan .sv{color:var(--cyan)}
+.schip.orange .sv{color:var(--orange)}
+.schip.red .sv{color:var(--red)}
+.schip.purple .sv{color:var(--purple)}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.chart{width:100%;height:480px}
+.cluster{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:8px;padding:12px 14px;margin-bottom:10px}
+.cluster .ch{font-family:var(--mono);font-size:13px;color:var(--txt);font-weight:700;margin-bottom:6px}
+.cluster .ch .csub{font-weight:400;color:var(--mute);font-size:11px;margin-left:8px}
+.cluster .ck{font-family:var(--mono);font-size:11.5px;color:var(--green);margin-top:4px}
+.cluster .ck b{font-weight:700}
+.cluster .cr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:3px;margin-left:12px;line-height:1.6}
+.cluster .corrs{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.rtab,.wtab{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rtab th,.rtab td,.wtab th,.wtab td{padding:9px 11px;text-align:left;font-family:var(--mono);font-size:11.5px;border-bottom:1px solid var(--line)}
+.rtab th,.wtab th{background:var(--panel2);color:var(--dim);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:normal}
+.rtab td.num,.wtab td.num{text-align:right;font-weight:700}
+.rtab tr:last-child td,.wtab tr:last-child td{border-bottom:none}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65;margin-top:18px}
+.method b{color:var(--txt)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:18px;line-height:1.6}
+.ts{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+.fail{padding:18px;color:var(--mute);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Signal Orthogonality</h1>
+    <p class="subtitle">Pairwise correlation audit across the calibration-fleet history. Identifies engines that move together (redundancy clusters), recommends the IC-strongest keeper per cluster, and reports the effective-information-rank of the signal fleet. Conservative -- it recommends, it does not retire.</p>
+    <nav class="crumbs">
+      <a href="/">home</a>
+      <a href="/calibration-fleet.html">calibration fleet</a>
+      <a href="/master-allocator.html">allocator</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="fail">loading orthogonality audit&hellip;</div></div>
+</div>
+<script>
+const URL_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+let chart=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);}
+function fmt(x,d){return x==null?"\u2014":(typeof x=="number"?(x>=0?"+":"")+x.toFixed(d||3):String(x));}
+
+function build(d){
+  if(d.mode==="insufficient"){
+    document.getElementById("root").innerHTML='<div class="fail">'+esc(d.note||"Insufficient fleet history.")+'</div>';
+    return;
+  }
+
+  const s=d.summary||{};
+
+  // summary chips
+  let h='<div class="summary">'+
+    '<div class="schip"><div class="sl">Engines</div><div class="sv">'+d.engines_total+'</div></div>'+
+    '<div class="schip purple"><div class="sl">Effective Rank</div><div class="sv">'+
+      (d.effective_information_rank==null?"\u2014":d.effective_information_rank)+'</div></div>'+
+    '<div class="schip"><div class="sl">Mean |Corr|</div><div class="sv" style="font-size:18px">'+
+      (d.mean_abs_pairwise_corr==null?"\u2014":d.mean_abs_pairwise_corr)+'</div></div>'+
+    '<div class="schip red"><div class="sl">Retire Candidates</div><div class="sv">'+(s.n_retire_candidates||0)+'</div></div>'+
+    '<div class="schip orange"><div class="sl">High-Redund Clusters</div><div class="sv">'+(s.n_clusters||0)+'</div></div>'+
+    '<div class="schip cyan"><div class="sl">Mod Watchlist</div><div class="sv">'+(s.n_watchlist||0)+'</div></div>'+
+    '<div class="schip green"><div class="sl">Independent</div><div class="sv">'+(s.n_independent_singletons||0)+'</div></div>'+
+    '<div class="schip"><div class="sl">Sessions</div><div class="sv">'+d.snapshots_total+'</div></div>'+
+    '</div>';
+
+  // heatmap
+  let hmSec='<div class="sechead">Pairwise Correlation Heatmap &middot; Spearman rank, '+d.engines_total+' engines</div>'+
+    '<div id="corr_heatmap" class="chart"></div>';
+
+  // clusters
+  const clusters=d.clusters_high_redundancy||[];
+  let clSec='<div class="sechead">High-Redundancy Clusters &middot; |corr| >= '+d.high_corr_threshold+'</div>';
+  if(clusters.length===0){
+    clSec+='<div style="color:var(--dim);font-family:var(--mono);font-size:11.5px">No clusters at the high-redundancy threshold. Every engine is contributing distinct information at this resolution.</div>';
+  } else {
+    clusters.forEach(c=>{
+      clSec+='<div class="cluster">'+
+        '<div class="ch">Cluster of '+c.size+' engines<span class="csub">'+esc(c.labels.join(", "))+'</span></div>'+
+        '<div class="ck"><b>KEEP:</b> '+esc(c.keeper_label)+(c.keeper_ic!=null?' (IC '+fmt(c.keeper_ic)+')':'')+'</div>'+
+        '<div class="cr">candidates to retire: '+esc((c.candidates_to_retire||[]).map(r=>r).join(", ")||"none")+'</div>'+
+        '<div class="corrs">internal correlations: '+(c.internal_corr||[]).map(p=>'<b>'+esc(p.a.slice(0,8))+'\u2194'+esc(p.b.slice(0,8))+'</b> '+(p.corr>=0?"+":"")+p.corr).join("  &middot;  ")+'</div>'+
+      '</div>';
+    });
+  }
+
+  // retire candidates table
+  const retire=d.retirement_candidates||[];
+  let rtSec='';
+  if(retire.length>0){
+    rtSec='<div class="sechead">Retirement Candidates</div>'+
+      '<table class="rtab"><thead><tr>'+
+      '<th>Engine</th><th>Redundant With</th><th class="num">Correlation</th>'+
+      '<th class="num">Engine IC</th><th class="num">Keeper IC</th>'+
+      '</tr></thead><tbody>';
+    retire.forEach(r=>{
+      rtSec+='<tr>'+
+        '<td>'+esc(r.label)+'</td>'+
+        '<td>'+esc(r.redundant_with_label)+'</td>'+
+        '<td class="num" style="color:var(--orange)">'+fmt(r.correlation)+'</td>'+
+        '<td class="num" style="color:'+(r.engine_ic>0?"var(--green)":"var(--mute)")+'">'+
+          (r.engine_ic==null?"\u2014":fmt(r.engine_ic))+'</td>'+
+        '<td class="num" style="color:'+(r.keeper_ic>0?"var(--green)":"var(--mute)")+'">'+
+          (r.keeper_ic==null?"\u2014":fmt(r.keeper_ic))+'</td>'+
+      '</tr>';
+    });
+    rtSec+='</tbody></table>';
+  }
+
+  // watchlist
+  const wl=d.watchlist_moderate||[];
+  let wlSec='';
+  if(wl.length>0){
+    wlSec='<div class="sechead">Moderate-Redundancy Watchlist &middot; '+d.moderate_corr_threshold+' <= |corr| < '+d.high_corr_threshold+'</div>'+
+      '<table class="wtab"><thead><tr>'+
+      '<th>Engine A</th><th>Engine B</th><th class="num">Correlation</th>'+
+      '<th class="num">IC A</th><th class="num">IC B</th>'+
+      '</tr></thead><tbody>';
+    wl.forEach(p=>{
+      wlSec+='<tr>'+
+        '<td>'+esc(p.a_label)+'</td>'+
+        '<td>'+esc(p.b_label)+'</td>'+
+        '<td class="num" style="color:var(--cyan)">'+fmt(p.corr)+'</td>'+
+        '<td class="num" style="color:'+(p.ic_a>0?"var(--green)":"var(--mute)")+'">'+
+          (p.ic_a==null?"\u2014":fmt(p.ic_a))+'</td>'+
+        '<td class="num" style="color:'+(p.ic_b>0?"var(--green)":"var(--mute)")+'">'+
+          (p.ic_b==null?"\u2014":fmt(p.ic_b))+'</td>'+
+      '</tr>';
+    });
+    wlSec+='</tbody></table>';
+  }
+
+  // methodology
+  let meth='<div class="method">'+esc(d.methodology||"")+'</div>';
+
+  const ts=d.as_of?new Date(d.as_of).toLocaleString():"";
+  const note='<div class="note">Source: data/signal-orthogonality.json (written by justhodl-signal-orthogonality, Sunday 09:45 UTC).</div>'+
+    '<div class="ts">audited '+esc(ts)+' &middot; '+(d.duration_s||0)+'s &middot; '+d.snapshots_total+' fleet sessions</div>';
+
+  document.getElementById("root").innerHTML=h+hmSec+clSec+rtSec+wlSec+meth+note;
+
+  // build heatmap
+  if(chart){chart.dispose();chart=null;}
+  const el=document.getElementById("corr_heatmap");
+  if(el){
+    const engines=d.engines||[];
+    const matrix=d.correlation_matrix||{};
+    const data=[];
+    engines.forEach((a,i)=>engines.forEach((b,j)=>{
+      const c=(matrix[a]||{})[b];
+      if(c!=null)data.push([i,j,Math.round(c*100)/100]);
+    }));
+    chart=echarts.init(el);
+    chart.setOption({
+      animation:false,
+      backgroundColor:"transparent",
+      tooltip:{position:"top",backgroundColor:"#0f131a",borderColor:"#1c2433",
+        textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11},
+        formatter:p=>esc(d.engine_labels[engines[p.value[0]]]||engines[p.value[0]])+
+          '<br>&times; '+esc(d.engine_labels[engines[p.value[1]]]||engines[p.value[1]])+
+          '<br><b>corr '+(p.value[2]>=0?"+":"")+p.value[2]+'</b>'},
+      grid:{left:130,right:24,top:18,bottom:120},
+      xAxis:{type:"category",data:engines,splitArea:{show:true},
+        axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:9.5,
+          rotate:60,interval:0,
+          formatter:v=>(d.engine_labels[v]||v).slice(0,18)},
+        axisLine:{lineStyle:{color:"#1c2433"}}},
+      yAxis:{type:"category",data:engines,splitArea:{show:true},
+        axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:9.5,
+          formatter:v=>(d.engine_labels[v]||v).slice(0,16)},
+        axisLine:{lineStyle:{color:"#1c2433"}}},
+      visualMap:{min:-1,max:1,calculable:true,orient:"horizontal",left:"center",bottom:18,
+        textStyle:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:10},
+        inRange:{color:["#ff5577","#11161f","#26ffaf"]}},
+      series:[{name:"corr",type:"heatmap",data:data,
+        label:{show:engines.length<=12,color:"#0a0e14",fontFamily:"IBM Plex Mono",fontSize:9}}]
+    });
+  }
+}
+
+function load(){
+  fetch(URL_BASE+"data/signal-orthogonality.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(build)
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">Orthogonality report not yet available. The justhodl-signal-orthogonality Lambda runs Sundays at 09:45 UTC. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+window.addEventListener("resize",()=>{if(chart)chart.resize();});
+</script>
+</body>
+</html>

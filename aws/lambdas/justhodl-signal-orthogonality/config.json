@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-signal-orthogonality",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 180,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Signal Orthogonality -- pairwise correlation + cluster audit across the fleet history. Identifies redundancy clusters at |corr|>=0.8, recommends keepers by IC, surfaces a moderate watchlist, and reports the effective-information-rank of the fleet.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-signal-orthogonality-weekly",
+  "cron": "cron(45 9 ? * SUN *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Signal Orthogonality -- weekly Sunday 09:45 UTC, after the fleet calibrator has fresh IC scores."
+ }
+}
