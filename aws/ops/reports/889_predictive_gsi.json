@@ -1,0 +1,78 @@
+{
+ "ops": 889,
+ "ts": "2026-05-20T00:53:43.825635+00:00",
+ "subject": "Verify the predictive GSI: backfill -> calibrate -> GSI reads SSM weights",
+ "checks": [
+  {
+   "check": "global_stress_deployed",
+   "ok": true,
+   "detail": "justhodl-global-stress"
+  },
+  {
+   "check": "gsi_calibrator_deployed",
+   "ok": true,
+   "detail": "justhodl-gsi-calibrator"
+  },
+  {
+   "check": "backfill_ok",
+   "ok": true,
+   "detail": "backfilled=200, total=200, range 2025-07-03 -> 2026-04-20, elapsed 7.7s"
+  },
+  {
+   "check": "dim_history_populated",
+   "ok": true,
+   "detail": "200 snapshots total, 200 with >=5 dims + spy_close"
+  },
+  {
+   "check": "calibrator_ran",
+   "ok": true,
+   "detail": "mode=empirical, N=190, IC={'market': -0.1482, 'credit': 0.133, 'vix': 0.2685, 'rate_vol': -0.5522, 'contagion': -0.2217, 'sovereign': -0.0713}, elapsed 0.3s"
+  },
+  {
+   "check": "ssm_weights_written",
+   "ok": true,
+   "detail": "mode=empirical, N=190, weights={'market': 0.0, 'credit': 0.2753, 'vix': 0.7247, 'rate_vol': 0.0, 'contagion': 0.0, 'sovereign': 0.0}"
+  },
+  {
+   "check": "calibration_report_complete",
+   "ok": true,
+   "detail": "100 paired observations in report, methodology 251 chars"
+  },
+  {
+   "check": "global_stress_uses_calibrated_weights",
+   "ok": true,
+   "detail": "weights.mode=empirical, sample_size=190, GSI=34, weights={'contagion': 0.0, 'credit': 0.2753, 'sovereign': 0.0, 'rate_vol': 0.0, 'market': 0.0, 'vix': 0.7247}"
+  },
+  {
+   "check": "calibrator_scheduled_weekly",
+   "ok": true,
+   "detail": "updated -> Sundays 09:00 UTC"
+  }
+ ],
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "dim_history_snapshots": 200,
+  "calibrator_mode": "empirical",
+  "sample_size": 190,
+  "ic_per_dim": {
+   "market": -0.1482,
+   "credit": 0.133,
+   "vix": 0.2685,
+   "rate_vol": -0.5522,
+   "contagion": -0.2217,
+   "sovereign": -0.0713
+  },
+  "calibrated_weights": {
+   "market": 0.0,
+   "credit": 0.2753,
+   "vix": 0.7247,
+   "rate_vol": 0.0,
+   "contagion": 0.0,
+   "sovereign": 0.0
+  },
+  "global_stress_index_with_new_weights": 34,
+  "weights_mode_in_engine": "empirical"
+ },
+ "verdict": "PREDICTIVE GSI LIVE - the Global Stress Index has been recalibrated against forward equity drawdowns. The backfill reconstructed historical dimension scores for ~200 sessions, the calibrator fit Spearman rank IC of each dimension against the 21-session forward SPY drawdown, and re-weighted the blend by empirical IC. Global-stress now loads those weights from SSM on every run, with the prior weights kept as a fallback. The calibrator is scheduled weekly so the GSI stays self-improving as new data arrives."
+}
