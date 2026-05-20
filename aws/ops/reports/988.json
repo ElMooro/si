@@ -1,0 +1,329 @@
+{
+  "ops": 988,
+  "started_at": "2026-05-20T23:09:38Z",
+  "engines": {
+    "justhodl-post-earnings-mean-rev": {
+      "deploy": {
+        "fn": "justhodl-post-earnings-mean-rev",
+        "zip_bytes": 5949,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-post-earnings-mean-rev",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.3
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-post-earnings-mean-rev-daily",
+        "cron": "cron(0 0 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_setups\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1104,
+        "last_modified": "2026-05-20T23:09:58+00:00",
+        "engine": "post-earnings-mean-rev",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T23:09:57Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-insider-sell-cluster": {
+      "deploy": {
+        "fn": "justhodl-insider-sell-cluster",
+        "zip_bytes": 5259,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-sell-cluster",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.2
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-insider-sell-cluster-daily",
+        "cron": "cron(30 23 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"QUIET\", \"n_clusters\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 972,
+        "last_modified": "2026-05-20T23:10:12+00:00",
+        "engine": "insider-sell-cluster",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T23:10:11Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-vix9d-vix-inversion": {
+      "deploy": {
+        "fn": "justhodl-vix9d-vix-inversion",
+        "zip_bytes": 4709,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-vix9d-vix-inversion",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.2
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-vix9d-vix-inversion-daily",
+        "cron": "cron(30 21 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NORMAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1281,
+        "last_modified": "2026-05-20T23:10:24+00:00",
+        "engine": "vix9d-vix-inversion",
+        "state": "NORMAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:10:22Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-breadth-divergence": {
+      "deploy": {
+        "fn": "justhodl-breadth-divergence",
+        "zip_bytes": 5071,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-breadth-divergence",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.3
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-breadth-divergence-daily",
+        "cron": "cron(0 22 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1573,
+        "last_modified": "2026-05-20T23:10:35+00:00",
+        "engine": "breadth-divergence",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:10:34Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-skew-tail-hedging": {
+      "deploy": {
+        "fn": "justhodl-skew-tail-hedging",
+        "zip_bytes": 4767,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-skew-tail-hedging",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.2
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-skew-tail-hedging-daily",
+        "cron": "cron(30 22 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": false,
+        "outer_status": 200,
+        "inner_status": 500,
+        "function_error": null,
+        "body_preview": "{'statusCode': 500, 'body': '{\"error\": \"SKEW quote unavailable from FMP and AlphaVantage\"}'}"
+      },
+      "s3": {
+        "ok": false,
+        "size": 396,
+        "last_modified": "2026-05-20T23:10:46+00:00",
+        "engine": "skew-tail-hedging",
+        "state": null,
+        "signal_strength": null,
+        "as_of": "2026-05-20T23:10:45Z",
+        "n_picks": 0,
+        "error_in_payload": "SKEW quote unavailable from FMP and AlphaVantage"
+      }
+    },
+    "justhodl-dxy-equity-divergence": {
+      "deploy": {
+        "fn": "justhodl-dxy-equity-divergence",
+        "zip_bytes": 5130,
+        "existed_before": false,
+        "create_ok": true,
+        "create_resp": {
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-dxy-equity-divergence",
+          "state": "Pending"
+        },
+        "wait_active": {
+          "ok": true,
+          "state": "Active",
+          "last_status": "Successful",
+          "waited_s": 3.2
+        },
+        "ok": true
+      },
+      "schedule": {
+        "ok": true,
+        "mode": "updated",
+        "name": "justhodl-dxy-equity-divergence-daily",
+        "cron": "cron(0 21 * * ? *)",
+        "tz": "UTC",
+        "perm_added": true
+      },
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "size": 1337,
+        "last_modified": "2026-05-20T23:10:57+00:00",
+        "engine": "dxy-equity-divergence",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-20T23:10:55Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    }
+  },
+  "baseline_env_keys": [
+    "ALPHA_VANTAGE_KEY",
+    "BEA_KEY",
+    "BLS_KEY",
+    "CENSUS_KEY",
+    "CMC_KEY",
+    "FMP_KEY",
+    "FRED_KEY",
+    "NEWSAPI_KEY",
+    "POLYGON_KEY",
+    "S3_BUCKET",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "signal_board_invoke": {
+    "ok": true,
+    "outer_status": 200,
+    "inner_status": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.08, \"n_live\": 48, \"n_stale\": 0}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 48,
+    "n_live": 48,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.08,
+    "expects_48": true,
+    "all_48_live": true
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 45965,
+    "markers_found": 27,
+    "expected": 27,
+    "missing": []
+  },
+  "scorecard": {
+    "n_engines_total": 6,
+    "n_deploy_ok": 6,
+    "n_schedule_ok": 6,
+    "n_invoke_ok": 5,
+    "n_s3_ok": 5,
+    "n_real_state": 5,
+    "signal_board_48_48_ok": true,
+    "page_27_markers_ok": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-20T23:11:07Z",
+  "telegram_sent": false
+}
