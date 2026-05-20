@@ -59,12 +59,13 @@ import math
 import boto3
 from botocore.exceptions import ClientError
 
-FMP_KEY = os.environ.get("FMP_KEY", "")
+FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
+FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 S3_KEY = "data/russell-recon-frontrun.json"
 SSM_KEY = "/justhodl/russell-recon/state"
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 AUM_R1000_BN = 4200    # $ billion benchmarked to Russell 1000 (FTSE 2024)
 AUM_R2000_BN = 950     # $ billion benchmarked to Russell 2000
