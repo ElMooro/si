@@ -1,0 +1,132 @@
+{
+  "ops": 959,
+  "title": "edges 1-4 post-redeploy invoke + verify",
+  "run_at": "2026-05-20T15:31:18.311048Z",
+  "per_edge_summary": {
+    "1": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "2": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "3": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "4": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "checks": [
+    {
+      "edge": 1,
+      "name": "e1.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-20T15:24:40"
+    },
+    {
+      "edge": 1,
+      "name": "e1.invoke_success",
+      "passed": true,
+      "detail": "dur=2.1s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"vix-backwardation-trigger\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:30:58.705316+00:00\\\", \\\"state\\\": \\\"NULL\\\", \\\"prev_state\\\": \\\"NULL\\\", \\\"state_s"
+    },
+    {
+      "edge": 1,
+      "name": "e1.s3_output_fresh",
+      "passed": true,
+      "detail": "size=2351B age_s=2"
+    },
+    {
+      "edge": 1,
+      "name": "e1.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=16851 wired=True"
+    },
+    {
+      "edge": 2,
+      "name": "e2.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=60 mod=2026-05-20T15:24:47"
+    },
+    {
+      "edge": 2,
+      "name": "e2.invoke_success",
+      "passed": true,
+      "detail": "dur=1.0s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"insider-buys-enriched\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:31:03.489141+00:00\\\", \\\"source\\\": \\\"data/insider-clusters.json\\\", \\\"source_as_of\\\""
+    },
+    {
+      "edge": 2,
+      "name": "e2.s3_output_fresh",
+      "passed": true,
+      "detail": "size=21169B age_s=1"
+    },
+    {
+      "edge": 2,
+      "name": "e2.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=14145 wired=True"
+    },
+    {
+      "edge": 3,
+      "name": "e3.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=256 timeout=90 mod=2026-05-20T15:24:56"
+    },
+    {
+      "edge": 3,
+      "name": "e3.invoke_success",
+      "passed": true,
+      "detail": "dur=5.9s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"engine\\\": \\\"breadth-thrust\\\", \\\"version\\\": \\\"1.0\\\", \\\"as_of\\\": \\\"2026-05-20T15:31:07.577605+00:00\\\", \\\"state\\\": \\\"INSUFFICIENT_DATA\\\", \\\"prev_state\\\": \\\"INSUFFICIENT_DA"
+    },
+    {
+      "edge": 3,
+      "name": "e3.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4446B age_s=1"
+    },
+    {
+      "edge": 3,
+      "name": "e3.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=16201 wired=True"
+    },
+    {
+      "edge": 4,
+      "name": "e4.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12 mem=512 timeout=90 mod=2026-05-20T15:30:38"
+    },
+    {
+      "edge": 4,
+      "name": "e4.invoke_success",
+      "passed": true,
+      "detail": "dur=1.0s outer=200 inner=200 body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"NULL\\\", \\\"rv21\\\": 10.71540089917653, \\\"signal\\\": 35}\"}"
+    },
+    {
+      "edge": 4,
+      "name": "e4.s3_output_fresh",
+      "passed": true,
+      "detail": "size=9195B age_s=2"
+    },
+    {
+      "edge": 4,
+      "name": "e4.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 len=16994 wired=True"
+    }
+  ],
+  "summary": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "pct": 100.0
+  },
+  "overall_ok": true
+}
