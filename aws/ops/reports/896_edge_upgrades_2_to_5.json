@@ -1,0 +1,353 @@
+{
+ "ops": 896,
+ "ts": "2026-05-20T11:51:41.783018+00:00",
+ "subject": "Verify edge upgrades #2-#5 end-to-end",
+ "checks": [
+  {
+   "check": "master_allocator_deployed",
+   "ok": true,
+   "detail": "State=Active, LastUpdateStatus=Successful"
+  },
+  {
+   "check": "master_allocator_schedule_wired",
+   "ok": true,
+   "detail": "updated cron(20 0,3,6,9,12,15,18,21 * * ? *)"
+  },
+  {
+   "check": "master_allocator_invokes_clean",
+   "ok": true,
+   "detail": "status=200, error=None, body_ok=True, elapsed=0.7s"
+  },
+  {
+   "check": "master_allocator_output_s3",
+   "ok": true,
+   "detail": "data/master-allocation.json present, top-level fields=18"
+  },
+  {
+   "check": "master_allocator_ssm_published",
+   "ok": true,
+   "detail": "/justhodl/master-allocation/target -> ['target', 'posture', 'confidence', 'as_of']"
+  },
+  {
+   "check": "signal_orthogonality_deployed",
+   "ok": true,
+   "detail": "State=Active, LastUpdateStatus=Successful"
+  },
+  {
+   "check": "signal_orthogonality_schedule_wired",
+   "ok": true,
+   "detail": "updated cron(45 9 ? * SUN *)"
+  },
+  {
+   "check": "signal_orthogonality_invokes_clean",
+   "ok": false,
+   "detail": "status=200, error=None, body_ok=None, elapsed=Nones"
+  },
+  {
+   "check": "signal_orthogonality_output_s3",
+   "ok": true,
+   "detail": "data/signal-orthogonality.json present, top-level fields=5"
+  },
+  {
+   "check": "gsi_horizons_deployed",
+   "ok": true,
+   "detail": "State=Active, LastUpdateStatus=Successful"
+  },
+  {
+   "check": "gsi_horizons_schedule_wired",
+   "ok": true,
+   "detail": "updated cron(30 9 ? * SUN *)"
+  },
+  {
+   "check": "gsi_horizons_invokes_clean",
+   "ok": true,
+   "detail": "status=200, error=None, body_ok=True, elapsed=1.0s"
+  },
+  {
+   "check": "gsi_horizons_output_s3",
+   "ok": true,
+   "detail": "data/gsi-horizons.json present, top-level fields=11"
+  },
+  {
+   "check": "live_pulse_deployed",
+   "ok": true,
+   "detail": "State=Active, LastUpdateStatus=Successful"
+  },
+  {
+   "check": "live_pulse_schedule_wired",
+   "ok": true,
+   "detail": "updated cron(0/15 13-21 ? * MON-FRI *)"
+  },
+  {
+   "check": "live_pulse_invokes_clean",
+   "ok": true,
+   "detail": "status=200, error=None, body_ok=True, elapsed=0.4s"
+  },
+  {
+   "check": "live_pulse_output_s3",
+   "ok": true,
+   "detail": "data/live-pulse.json present, top-level fields=12"
+  },
+  {
+   "check": "gsi_horizons_per_horizon_ssm",
+   "ok": true,
+   "detail": "horizons calibrated: [5, 21, 63, 252] of [5, 21, 63, 252]"
+  },
+  {
+   "check": "global_stress_has_gsi_by_horizon",
+   "ok": true,
+   "detail": "4 horizons in gsi_by_horizon: ['5', '21', '63', '252']"
+  },
+  {
+   "check": "page_master-allocator_serves",
+   "ok": true,
+   "detail": "status=200, bytes=14824"
+  },
+  {
+   "check": "page_signal-orthogonality_serves",
+   "ok": true,
+   "detail": "status=200, bytes=12525"
+  },
+  {
+   "check": "page_horizons-gsi_serves",
+   "ok": true,
+   "detail": "status=200, bytes=13228"
+  },
+  {
+   "check": "page_live-pulse_serves",
+   "ok": true,
+   "detail": "status=200, bytes=11545"
+  }
+ ],
+ "engines": {
+  "master_allocator": {
+   "function_name": "justhodl-master-allocator",
+   "checks": [],
+   "deployed": true,
+   "state": "Active",
+   "schedule": {
+    "name": "justhodl-master-allocator-3h",
+    "ok": true,
+    "detail": "updated cron(20 0,3,6,9,12,15,18,21 * * ? *)"
+   },
+   "invocation": {
+    "ok": true,
+    "elapsed_s": 0.7,
+    "summary": {
+     "ok": true,
+     "posture": "NEUTRAL",
+     "confidence": 70,
+     "active_bps": 189,
+     "signals_used": 5,
+     "elapsed_s": 0.7
+    }
+   },
+   "output_key": "data/master-allocation.json",
+   "output_top_keys": [
+    "as_of",
+    "posture",
+    "confidence",
+    "active_risk_bps",
+    "risk_budget_clipped",
+    "horizon",
+    "benchmark",
+    "target_allocation",
+    "deltas_from_benchmark",
+    "asset_labels",
+    "position_limits",
+    "max_active_bps",
+    "signals_used",
+    "contributions"
+   ]
+  },
+  "signal_orthogonality": {
+   "function_name": "justhodl-signal-orthogonality",
+   "checks": [],
+   "deployed": true,
+   "state": "Active",
+   "schedule": {
+    "name": "justhodl-signal-orthogonality-weekly",
+    "ok": true,
+    "detail": "updated cron(45 9 ? * SUN *)"
+   },
+   "invocation": {
+    "ok": false,
+    "elapsed_s": null,
+    "summary": {
+     "as_of": "2026-05-20T11:51:47.251452+00:00",
+     "engines_total": 0,
+     "snapshots_total": 1,
+     "mode": "insufficient",
+     "note": "need 20 sessions of fleet history (have 1) before redundancy clustering is meaningful."
+    }
+   },
+   "output_key": "data/signal-orthogonality.json",
+   "output_top_keys": [
+    "as_of",
+    "engines_total",
+    "snapshots_total",
+    "mode",
+    "note"
+   ]
+  },
+  "gsi_horizons": {
+   "function_name": "justhodl-gsi-horizons",
+   "checks": [],
+   "deployed": true,
+   "state": "Active",
+   "schedule": {
+    "name": "justhodl-gsi-horizons-weekly",
+    "ok": true,
+    "detail": "updated cron(30 9 ? * SUN *)"
+   },
+   "invocation": {
+    "ok": true,
+    "elapsed_s": 1.0,
+    "summary": {
+     "ok": true,
+     "horizons_fit": [
+      5,
+      21,
+      63,
+      252
+     ],
+     "snapshots": 280,
+     "modes": {
+      "5": "empirical",
+      "21": "empirical",
+      "63": "empirical",
+      "252": "empirical"
+     },
+     "elapsed_s": 1.0
+    }
+   },
+   "output_key": "data/gsi-horizons.json",
+   "output_top_keys": [
+    "as_of",
+    "horizons",
+    "horizon_labels",
+    "snapshots_total",
+    "earliest_snapshot",
+    "latest_snapshot",
+    "results",
+    "dim_dominance",
+    "term_structure",
+    "duration_s",
+    "methodology"
+   ]
+  },
+  "live_pulse": {
+   "function_name": "justhodl-live-pulse",
+   "checks": [],
+   "deployed": true,
+   "state": "Active",
+   "schedule": {
+    "name": "justhodl-live-pulse-15m",
+    "ok": true,
+    "detail": "updated cron(0/15 13-21 ? * MON-FRI *)"
+   },
+   "invocation": {
+    "ok": true,
+    "elapsed_s": 0.4,
+    "summary": {
+     "ok": true,
+     "pulse": 55,
+     "level": "PRESSURE",
+     "drift": 13,
+     "morning_gsi": 42,
+     "components_available": [
+      "spy",
+      "move"
+     ],
+     "elapsed_s": 0.4
+    }
+   },
+   "output_key": "data/live-pulse.json",
+   "output_top_keys": [
+    "as_of",
+    "pulse",
+    "level",
+    "posture",
+    "drift_vs_morning_gsi",
+    "morning_gsi",
+    "components",
+    "components_available",
+    "components_missing",
+    "duration_s",
+    "methodology",
+    "history_trail"
+   ]
+  },
+  "global_stress_horizons": {
+   "gsi_by_horizon": {
+    "5": {
+     "horizon_days": 5,
+     "gsi": 42,
+     "mode": "empirical",
+     "sample_size": 274,
+     "weights": {
+      "vix": 0.4,
+      "rate_vol": 0.1032,
+      "market": 0.254,
+      "credit": 0.1429,
+      "sovereign": 0.05,
+      "contagion": 0.05
+     }
+    },
+    "21": {
+     "horizon_days": 21,
+     "gsi": 42,
+     "mode": "empirical",
+     "sample_size": 269,
+     "weights": {
+      "vix": 0.4,
+      "rate_vol": 0.1032,
+      "market": 0.254,
+      "credit": 0.1429,
+      "sovereign": 0.05,
+      "contagion": 0.05
+     }
+    },
+    "63": {
+     "horizon_days": 63,
+     "gsi": 44,
+     "mode": "empirical",
+     "sample_size": 248,
+     "weights": {
+      "vix": 0.17,
+      "rate_vol": 0.13,
+      "market": 0.32,
+      "credit": 0.18,
+      "sovereign": 0.1,
+      "contagion": 0.1
+     }
+    },
+    "252": {
+     "horizon_days": 252,
+     "gsi": 59,
+     "mode": "empirical",
+     "sample_size": 153,
+     "weights": {
+      "vix": 0.1169,
+      "rate_vol": 0.0894,
+      "market": 0.22,
+      "credit": 0.1237,
+      "sovereign": 0.05,
+      "contagion": 0.4
+     }
+    }
+   },
+   "canonical_gsi": 42
+  }
+ },
+ "summary": "22/23 checks passed",
+ "all_passed": false,
+ "upgrades_status": {
+  "1_calibration_fleet": "verified separately in ops/895 (9/9 pass)",
+  "2_master_allocator": true,
+  "3_signal_orthogonality": false,
+  "4_gsi_horizons": true,
+  "5_live_pulse": true
+ },
+ "verdict": "VERIFICATION INCOMPLETE -- failed: signal_orthogonality_invokes_clean"
+}
