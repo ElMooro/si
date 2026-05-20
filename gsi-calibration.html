@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSI Calibration &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#128202;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:980px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--cyan);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.65;margin-top:10px}
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.schip{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.schip .sv{font-family:var(--mono);font-size:21px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:24px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.ictab{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ictab th,.ictab td{padding:9px 12px;text-align:left;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--line)}
+.ictab th{background:var(--panel2);color:var(--dim);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:normal}
+.ictab td.num{text-align:right;font-weight:700}
+.ictab tr:last-child td{border-bottom:none}
+.bar{display:inline-block;height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:4px;vertical-align:middle;width:80px;position:relative;margin-right:6px}
+.bar i{display:block;height:100%}
+.chart{width:100%;height:300px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:10px}
+.scgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.sccell{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 6px 4px}
+.sccell .scname{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);padding:4px 8px}
+.sccell .scname b{color:var(--txt)}
+.sccell .sccanv{width:100%;height:200px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--mute);font-size:12px;line-height:1.7;margin-top:14px}
+.timestamp{color:var(--dim);font-family:var(--mono);font-size:10.5px;text-align:right;margin-top:8px}
+.pos{color:var(--green)}.neg{color:var(--red)}.dimv{color:var(--dim)}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:0.6}}
+@media (max-width:680px){.bar{width:50px}.chart{height:240px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>GSI Calibration</h1>
+<p class="subtitle">Per-dimension Information Coefficient against 21-session forward SPY drawdown.
+The Global Stress Index dimension weights are re-fit weekly from this -- weighting the blend by what
+has actually led equity drawdowns, not by the priors.</p>
+<nav class="crumbs">
+  <a href="/">home</a>
+  <a href="/global-stress.html">global stress</a>
+  <a href="/dollar.html">dollar</a>
+  <a href="/risk-desk.html">risk desk</a>
+  <a href="/directory.html">all tools</a>
+</nav>
+</header>
+<div id="root"><div style="padding:40px;text-align:center;color:var(--mute);font-family:var(--mono)">Loading calibration data&hellip;</div></div>
+</div>
+<script>
+const DIMS=["market","credit","vix","rate_vol","contagion","sovereign"];
+const DIM_LABEL={market:"Market matrix",credit:"Credit spreads",vix:"VIX",
+  rate_vol:"Rate volatility",contagion:"Contagion",sovereign:"Sovereign"};
+let charts=[];
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function pct(x){return x==null?"\u2014":(x>=0?"+":"")+x.toFixed(1)+"%"}
+function modeColor(m){return m==="empirical"?"var(--green)":m==="blended"?"var(--yellow)":m==="insufficient"?"var(--orange)":"var(--mute)"}
+function icColor(ic){if(ic==null)return"var(--dim)";return ic>=0.10?"var(--green)":ic>=0.05?"var(--yellow)":ic>=-0.05?"var(--mute)":"var(--red)"}
+function modeBlurb(m){
+  if(m==="empirical")return"Fully empirical: weights are computed purely from per-dimension IC against forward SPY drawdown. Dimensions with IC below the 0.05 floor get zero weight.";
+  if(m==="blended")return"Linear blend of priors and empirical IC weights -- ramping toward fully empirical as more paired observations accumulate.";
+  if(m==="insufficient")return"Not enough paired observations yet -- the engine is running on the priors set in the source. Run the backfill or wait.";
+  return"No calibration yet; the engine is running on priors.";
+}
+
+function renderHero(d){
+  const mode=d.mode||"priors";
+  const calib=d.calibrated_at?new Date(d.calibrated_at).toLocaleString():"\u2014";
+  const earliest=d.earliest_snapshot||"\u2014", latest=d.latest_snapshot||"\u2014";
+  return '<div class="hero">'+
+    '<div class="ptag">GSI Calibration Mode</div>'+
+    '<div class="post" style="color:'+modeColor(mode)+'">'+esc(mode.toUpperCase())+'</div>'+
+    '<div class="summary">'+
+      '<div class="schip"><div class="sl">Sample Size</div><div class="sv">'+
+        (d.sample_size!=null?d.sample_size:"\u2014")+'</div></div>'+
+      '<div class="schip"><div class="sl">Forward Window</div><div class="sv">'+
+        (d.forward_days||21)+'d</div></div>'+
+      '<div class="schip"><div class="sl">IC Floor</div><div class="sv">'+
+        (d.ic_floor!=null?d.ic_floor.toFixed(2):"0.05")+'</div></div>'+
+      '<div class="schip"><div class="sl">Snapshots</div><div class="sv">'+
+        (d.snapshots_total!=null?d.snapshots_total:"\u2014")+'</div></div>'+
+    '</div>'+
+    '<div class="hl">'+esc(modeBlurb(mode))+
+      '<br><span style="color:var(--dim)">Calibrated at '+esc(calib)+
+      ' &middot; history span '+esc(earliest)+' &rarr; '+esc(latest)+'</span></div>'+
+  '</div>';
+}
+
+function renderICTable(d){
+  const ic=d.ic||{}, nbd=d.n_by_dim||{};
+  const wf=d.weights||{}, wp=d.priors||{}, we=d.empirical_weights||wf;
+  let h='<div class="sechead">Information Coefficient -- by dimension</div>';
+  h+='<table class="ictab"><thead><tr>'+
+    '<th>Dimension</th><th>IC (Spearman)</th><th>N</th>'+
+    '<th>Prior weight</th><th>Empirical</th><th>Active</th></tr></thead><tbody>';
+  // sort by IC desc (nulls last)
+  const rows=DIMS.slice().sort((a,b)=>{
+    const ia=ic[a]==null?-99:ic[a], ib=ic[b]==null?-99:ic[b];
+    return ib-ia;
+  });
+  rows.forEach(dim=>{
+    const i=ic[dim], n=nbd[dim]||0, p=wp[dim]||0, e=we[dim]||0, w=wf[dim]||0;
+    const col=icColor(i);
+    const wpct=(w*100).toFixed(1), ppct=(p*100).toFixed(1), epct=(e*100).toFixed(1);
+    h+='<tr><td><b>'+esc(DIM_LABEL[dim]||dim)+'</b></td>'+
+      '<td class="num" style="color:'+col+'">'+(i==null?"\u2014":(i>=0?"+":"")+i.toFixed(3))+'</td>'+
+      '<td class="num">'+n+'</td>'+
+      '<td class="num"><span class="bar"><i style="width:'+(p*100*2.5)+'%;background:var(--dim)"></i></span>'+ppct+'%</td>'+
+      '<td class="num dimv">'+epct+'%</td>'+
+      '<td class="num"><span class="bar"><i style="width:'+(w*100*2.5)+'%;background:'+col+'"></i></span><b style="color:'+col+'">'+wpct+'%</b></td></tr>';
+  });
+  h+='</tbody></table>';
+  return h;
+}
+
+function renderWeightBar(d){
+  const ic=d.ic||{}, wf=d.weights||{}, wp=d.priors||{};
+  let h='<div class="sechead">Prior vs Active Weights</div>'+
+    '<div id="wchart" class="chart"></div>';
+  setTimeout(()=>{
+    const el=document.getElementById("wchart");
+    if(!el)return;
+    const inst=echarts.init(el);
+    inst.setOption({
+      animation:false,
+      backgroundColor:"transparent",
+      tooltip:{trigger:"axis",backgroundColor:"#0f131a",borderColor:"#1c2433",textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11},
+        formatter:p=>{const dim=p[0].axisValue;const cIC=ic[dim];return '<b>'+(DIM_LABEL[dim]||dim)+'</b><br>'+
+          p.map(s=>s.marker+s.seriesName+': <b>'+(s.value*100).toFixed(1)+'%</b>').join("<br>")+
+          '<br><span style="color:#6f7b91">IC '+(cIC==null?"\u2014":(cIC>=0?"+":"")+cIC.toFixed(3))+'</span>';}},
+      legend:{data:["Prior","Active (calibrated)"],textStyle:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:10.5},top:4},
+      grid:{left:60,right:24,top:38,bottom:36},
+      xAxis:{type:"category",data:DIMS,axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:10.5,formatter:v=>(DIM_LABEL[v]||v).split(" ")[0]},axisLine:{lineStyle:{color:"#1c2433"}}},
+      yAxis:{type:"value",max:0.8,axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10,formatter:v=>(v*100).toFixed(0)+"%"},splitLine:{lineStyle:{color:"#1c2433"}}},
+      series:[
+        {name:"Prior",type:"bar",data:DIMS.map(d=>wp[d]||0),itemStyle:{color:"#6f7b91"},barWidth:18},
+        {name:"Active (calibrated)",type:"bar",data:DIMS.map(d=>wf[d]||0),itemStyle:{color:"#00d4ff"},barWidth:18}
+      ]
+    });
+    charts.push(inst);
+  },50);
+  return h;
+}
+
+function renderScatters(d){
+  const paired=d.paired_observations||[];
+  const ic=d.ic||{};
+  if(paired.length<5)return '<div class="sechead">Paired Observations</div>'+
+    '<div class="note">Not enough paired observations yet to plot the fit.</div>';
+  let h='<div class="sechead">Paired Observations &middot; dimension score vs forward 21d SPY drawdown</div>'+
+    '<div class="scgrid">';
+  DIMS.forEach(dim=>{
+    const pts=paired
+      .filter(p=>typeof p.dims?.[dim]==="number" && typeof p.drawdown_21d_pct==="number")
+      .map(p=>[p.dims[dim],p.drawdown_21d_pct]);
+    const cIC=ic[dim];
+    const col=icColor(cIC);
+    h+='<div class="sccell">'+
+      '<div class="scname"><b>'+esc(DIM_LABEL[dim]||dim)+'</b> &middot; '+
+        'IC <span style="color:'+col+'">'+(cIC==null?"\u2014":(cIC>=0?"+":"")+cIC.toFixed(3))+'</span> '+
+        '&middot; N='+pts.length+'</div>'+
+      '<div class="sccanv" id="sc_'+dim+'"></div></div>';
+    setTimeout(()=>{
+      const el=document.getElementById("sc_"+dim);
+      if(!el)return;
+      const inst=echarts.init(el);
+      // simple OLS line: y = a + b*x
+      let line=null;
+      if(pts.length>=10){
+        const n=pts.length;
+        const mx=pts.reduce((s,p)=>s+p[0],0)/n;
+        const my=pts.reduce((s,p)=>s+p[1],0)/n;
+        let nu=0,de=0;
+        pts.forEach(p=>{nu+=(p[0]-mx)*(p[1]-my);de+=(p[0]-mx)*(p[0]-mx);});
+        if(de>0){const b=nu/de, a=my-b*mx;
+          const xs=pts.map(p=>p[0]); const xmin=Math.min(...xs), xmax=Math.max(...xs);
+          line=[[xmin,a+b*xmin],[xmax,a+b*xmax]];}
+      }
+      const series=[{type:"scatter",data:pts,symbolSize:6,itemStyle:{color:col,opacity:0.75}}];
+      if(line) series.push({type:"line",data:line,showSymbol:false,lineStyle:{color:col,width:1.2,type:"dashed",opacity:0.7}});
+      inst.setOption({
+        animation:false,backgroundColor:"transparent",
+        tooltip:{trigger:"item",backgroundColor:"#0f131a",borderColor:"#1c2433",
+          textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11},
+          formatter:p=>p.data?p.data.length===2?'<b>score '+p.data[0]+'</b><br>fwd drawdown '+p.data[1].toFixed(2)+'%':'':''},
+        grid:{left:38,right:14,top:10,bottom:30},
+        xAxis:{type:"value",name:"stress score",nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:9.5},
+          nameLocation:"middle",nameGap:18,
+          axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:9.5},
+          splitLine:{lineStyle:{color:"#1c2433"}},axisLine:{lineStyle:{color:"#1c2433"}}},
+        yAxis:{type:"value",name:"fwd drawdown %",nameTextStyle:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:9.5},
+          nameLocation:"middle",nameGap:30,
+          axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:9.5,formatter:v=>v.toFixed(1)},
+          splitLine:{lineStyle:{color:"#1c2433"}},axisLine:{lineStyle:{color:"#1c2433"}}},
+        series:series
+      });
+      charts.push(inst);
+    },80);
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderNote(d){
+  return '<div class="note"><b style="color:var(--mute)">Methodology.</b> '+esc(d.methodology||"")+
+    '<br><br><b style="color:var(--mute)">Reading the IC.</b> A positive IC means higher current stress in that dimension '+
+    'has historically been followed by deeper 21-session SPY drawdowns -- it has been a leading indicator over this sample. '+
+    'Negative or near-zero IC means that dimension did NOT lead drawdowns over this window; the calibrator sets its weight to '+
+    'zero rather than letting noise dilute the index. The active weights re-renormalise over the surviving dimensions.'+
+    '<br><br><b style="color:var(--mute)">Limitations.</b> A single-regime fit can be misleading -- ICs that look flat or '+
+    'negative in a risk-on year (high rate-vol with rallying equities, for example) can flip in a different regime. The '+
+    'calibrator re-runs weekly and broadens its regime mix as new sessions accumulate.</div>';
+}
+
+fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/gsi-calibration.json?cb="+Date.now())
+  .then(r=>r.json())
+  .then(d=>{
+    const ts=d.calibrated_at?new Date(d.calibrated_at).toLocaleString():"\u2014";
+    const root=document.getElementById("root");
+    root.innerHTML=renderHero(d)+renderICTable(d)+renderWeightBar(d)+
+      renderScatters(d)+renderNote(d)+
+      '<div class="timestamp">calibrated '+esc(ts)+'</div>';
+    window.addEventListener("resize",()=>charts.forEach(c=>c&&c.resize()));
+  })
+  .catch(e=>{
+    document.getElementById("root").innerHTML='<div class="note" style="color:var(--red)">'+
+      'Calibration data not available yet ('+esc(String(e))+'). The calibrator may not have run yet; '+
+      'the engine is reading priors in the meantime.</div>';
+  });
+</script>
+</body>
+</html>
