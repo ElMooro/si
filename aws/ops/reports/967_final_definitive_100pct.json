@@ -1,0 +1,483 @@
+{
+  "ops": 967,
+  "title": "FINAL DEFINITIVE 100% verification (10 edges + signal-board)",
+  "run_at": "2026-05-20T15:43:47.702177Z",
+  "edge_status": {
+    "1": {
+      "name": "VIX Backwardation Trigger",
+      "lambda": "justhodl-vix-backwardation-trigger",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "2": {
+      "name": "Insider Buy Clusters",
+      "lambda": "justhodl-insider-buys-enriched",
+      "passed": 5,
+      "total": 7,
+      "status": "RED"
+    },
+    "3": {
+      "name": "Zweig Breadth Thrust",
+      "lambda": "justhodl-breadth-thrust",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "4": {
+      "name": "Vol-Target Fund Unwind",
+      "lambda": "justhodl-vol-target-unwind",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "5": {
+      "name": "Russell Recon Front-Run",
+      "lambda": "justhodl-russell-recon-frontrun",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "6": {
+      "name": "Buyback Auth Scanner",
+      "lambda": "justhodl-buyback-scanner",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "7": {
+      "name": "Stablecoin Mint Flow",
+      "lambda": "justhodl-stablecoin-flow",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "8": {
+      "name": "OPEX Gamma Calendar",
+      "lambda": "justhodl-opex-calendar",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "9": {
+      "name": "Activist 13D Alert",
+      "lambda": "justhodl-activist-13d",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "10": {
+      "name": "RV-IV / Implied Dispersion",
+      "lambda": "justhodl-rv-iv-scanner",
+      "passed": 6,
+      "total": 6,
+      "status": "GREEN"
+    },
+    "SB": {
+      "name": "Signal Board (synthesis)",
+      "lambda": "justhodl-signal-board",
+      "passed": 4,
+      "total": 4,
+      "status": "GREEN"
+    }
+  },
+  "checks": [
+    {
+      "edge": 1,
+      "name": "e1.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 1,
+      "name": "e1.s3_output_present",
+      "passed": true,
+      "detail": "size=2351B age_h=0.2"
+    },
+    {
+      "edge": 1,
+      "name": "e1.engine_field",
+      "passed": true,
+      "detail": "engine=vix-backwardation-trigger"
+    },
+    {
+      "edge": 1,
+      "name": "e1.has_state",
+      "passed": true,
+      "detail": "field=state val=NULL"
+    },
+    {
+      "edge": 1,
+      "name": "e1.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=0.2"
+    },
+    {
+      "edge": 1,
+      "name": "e1.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 2,
+      "name": "e2.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 2,
+      "name": "e2.s3_output_present",
+      "passed": true,
+      "detail": "size=21169B age_h=0.2"
+    },
+    {
+      "edge": 2,
+      "name": "e2.engine_field",
+      "passed": true,
+      "detail": "engine=insider-buys-enriched"
+    },
+    {
+      "edge": 2,
+      "name": "e2.has_state",
+      "passed": false,
+      "detail": "field=state val=None"
+    },
+    {
+      "edge": 2,
+      "name": "e2.state_enum_valid",
+      "passed": false,
+      "detail": "got=None expected_in=('FRESH_HIGH_CONVICTION', 'ELEVATED', 'NORMAL', 'QUIET')"
+    },
+    {
+      "edge": 2,
+      "name": "e2.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=0.2"
+    },
+    {
+      "edge": 2,
+      "name": "e2.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 3,
+      "name": "e3.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 3,
+      "name": "e3.s3_output_present",
+      "passed": true,
+      "detail": "size=4446B age_h=0.2"
+    },
+    {
+      "edge": 3,
+      "name": "e3.engine_field",
+      "passed": true,
+      "detail": "engine=breadth-thrust"
+    },
+    {
+      "edge": 3,
+      "name": "e3.has_state",
+      "passed": true,
+      "detail": "field=state val=INSUFFICIENT_DATA"
+    },
+    {
+      "edge": 3,
+      "name": "e3.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=0.2"
+    },
+    {
+      "edge": 3,
+      "name": "e3.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 4,
+      "name": "e4.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 4,
+      "name": "e4.s3_output_present",
+      "passed": true,
+      "detail": "size=9199B age_h=0.1"
+    },
+    {
+      "edge": 4,
+      "name": "e4.engine_field",
+      "passed": true,
+      "detail": "engine=vol-target-unwind-trigger"
+    },
+    {
+      "edge": 4,
+      "name": "e4.has_state",
+      "passed": true,
+      "detail": "field=state val=NULL"
+    },
+    {
+      "edge": 4,
+      "name": "e4.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=0.1"
+    },
+    {
+      "edge": 4,
+      "name": "e4.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 5,
+      "name": "e5.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 5,
+      "name": "e5.s3_output_present",
+      "passed": true,
+      "detail": "size=29516B age_h=1.3"
+    },
+    {
+      "edge": 5,
+      "name": "e5.engine_field",
+      "passed": true,
+      "detail": "engine=russell-recon-frontrun"
+    },
+    {
+      "edge": 5,
+      "name": "e5.has_state",
+      "passed": true,
+      "detail": "field=calendar_phase val=PRE_ANNOUNCEMENT"
+    },
+    {
+      "edge": 5,
+      "name": "e5.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=1.3"
+    },
+    {
+      "edge": 5,
+      "name": "e5.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 6,
+      "name": "e6.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 6,
+      "name": "e6.s3_output_present",
+      "passed": true,
+      "detail": "size=59242B age_h=1.6"
+    },
+    {
+      "edge": 6,
+      "name": "e6.engine_field",
+      "passed": true,
+      "detail": "engine=buyback-scanner"
+    },
+    {
+      "edge": 6,
+      "name": "e6.has_state",
+      "passed": true,
+      "detail": "field=state val=NORMAL"
+    },
+    {
+      "edge": 6,
+      "name": "e6.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=1.6"
+    },
+    {
+      "edge": 6,
+      "name": "e6.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 7,
+      "name": "e7.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 7,
+      "name": "e7.s3_output_present",
+      "passed": true,
+      "detail": "size=46365B age_h=1.8"
+    },
+    {
+      "edge": 7,
+      "name": "e7.engine_field",
+      "passed": true,
+      "detail": "engine=stablecoin-flow"
+    },
+    {
+      "edge": 7,
+      "name": "e7.has_state",
+      "passed": true,
+      "detail": "field=state val=FLAT"
+    },
+    {
+      "edge": 7,
+      "name": "e7.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=1.8"
+    },
+    {
+      "edge": 7,
+      "name": "e7.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 8,
+      "name": "e8.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 8,
+      "name": "e8.s3_output_present",
+      "passed": true,
+      "detail": "size=4524B age_h=1.6"
+    },
+    {
+      "edge": 8,
+      "name": "e8.engine_field",
+      "passed": true,
+      "detail": "engine=opex-calendar"
+    },
+    {
+      "edge": 8,
+      "name": "e8.has_state",
+      "passed": true,
+      "detail": "field=state val=POST_OPEX"
+    },
+    {
+      "edge": 8,
+      "name": "e8.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=1.6"
+    },
+    {
+      "edge": 8,
+      "name": "e8.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 9,
+      "name": "e9.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 9,
+      "name": "e9.s3_output_present",
+      "passed": true,
+      "detail": "size=3745B age_h=1.6"
+    },
+    {
+      "edge": 9,
+      "name": "e9.engine_field",
+      "passed": true,
+      "detail": "engine=activist-13d"
+    },
+    {
+      "edge": 9,
+      "name": "e9.has_state",
+      "passed": true,
+      "detail": "field=state val=QUIET"
+    },
+    {
+      "edge": 9,
+      "name": "e9.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=1.6"
+    },
+    {
+      "edge": 9,
+      "name": "e9.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 10,
+      "name": "e10.lambda_deployed",
+      "passed": true,
+      "detail": "ok"
+    },
+    {
+      "edge": 10,
+      "name": "e10.s3_output_present",
+      "passed": true,
+      "detail": "size=6387B age_h=2.0"
+    },
+    {
+      "edge": 10,
+      "name": "e10.engine_field",
+      "passed": true,
+      "detail": "engine=rv-iv-scanner"
+    },
+    {
+      "edge": 10,
+      "name": "e10.has_state",
+      "passed": true,
+      "detail": "field=state val=NORMAL"
+    },
+    {
+      "edge": 10,
+      "name": "e10.data_age_under_168h",
+      "passed": true,
+      "detail": "age_h=2.0"
+    },
+    {
+      "edge": 10,
+      "name": "e10.page_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 0,
+      "name": "e0.sb.lambda_deployed",
+      "passed": true,
+      "detail": "runtime=python3.12"
+    },
+    {
+      "edge": 0,
+      "name": "e0.sb.s3_output_present",
+      "passed": true,
+      "detail": "size=4810B composite_posture=NEUTRAL / MIXED"
+    },
+    {
+      "edge": 0,
+      "name": "e0.sb.n_engines_20plus",
+      "passed": true,
+      "detail": "n_engines=20 n_live=20"
+    },
+    {
+      "edge": 0,
+      "name": "e0.sb.has_10_edge_engines",
+      "passed": true,
+      "detail": "edge_engines_count=10"
+    }
+  ],
+  "summary": {
+    "total": 65,
+    "passed": 63,
+    "failed": 2,
+    "pct": 96.9
+  },
+  "overall_ok": false
+}
