@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Master Allocator &middot; JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>&#127919;</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--yellow)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hero{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--yellow);border-radius:8px;padding:18px;margin-bottom:14px}
+.hero .ptag{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.hero .post{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:1.5px;margin-bottom:4px}
+.hero .post.defensive{color:var(--red)}
+.hero .post.defensive_tilt{color:var(--orange)}
+.hero .post.neutral{color:var(--mute)}
+.hero .post.risk_on_tilt{color:var(--cyan)}
+.hero .post.risk_on{color:var(--green)}
+.hero .hl{font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:1.65;margin-top:10px}
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.schip{flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.schip .sl{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.schip .sv{font-family:var(--mono);font-size:21px;font-weight:700;margin-top:3px}
+.sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.alloctab{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.alloctab th,.alloctab td{padding:9px 12px;text-align:left;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--line)}
+.alloctab th{background:var(--panel2);color:var(--dim);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:normal}
+.alloctab td.num{text-align:right;font-weight:700}
+.alloctab td.delta.pos{color:var(--green)}
+.alloctab td.delta.neg{color:var(--red)}
+.alloctab td.delta.zero{color:var(--mute)}
+.bar{display:inline-block;height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:4px;vertical-align:middle;width:100px;position:relative;margin-left:8px}
+.bar i{display:block;height:100%}
+.chart{width:100%;height:280px;margin-top:6px}
+.contribs{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.contrib-asset{margin-bottom:11px;border-bottom:1px solid var(--line);padding-bottom:9px}
+.contrib-asset:last-child{border-bottom:none}
+.contrib-asset .ca-h{font-family:var(--mono);font-size:12.5px;color:var(--txt);font-weight:700;margin-bottom:4px}
+.contrib-asset .ca-h .cnum{font-weight:400;color:var(--mute);margin-left:7px;font-size:11px}
+.contrib-asset .cr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-left:14px;line-height:1.7}
+.contrib-asset .cr .cpp{font-weight:700;color:var(--txt)}
+.contrib-asset .cr .cpp.pos{color:var(--green)}
+.contrib-asset .cr .cpp.neg{color:var(--red)}
+.signals{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:10px}
+.scard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:8px;padding:12px 13px}
+.scard.in{border-left-color:var(--cyan)}
+.scard .sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.scard .sn{font-family:var(--mono);font-size:12.5px;color:var(--txt);font-weight:700}
+.scard .sv{font-family:var(--mono);font-size:13px;color:var(--cyan);font-weight:700}
+.scard .sr{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:3px;display:flex;justify-content:space-between}
+.scard .sr b{color:var(--txt)}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--mute);line-height:1.65;margin-top:18px}
+.method b{color:var(--txt)}
+.note{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:18px;line-height:1.6}
+.ts{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+.fail{padding:18px;color:var(--mute);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Master Allocator</h1>
+    <p class="subtitle">Institutional Capital Allocation Decision Engine. Bridges the signal universe to a single, accountable, top-of-firm portfolio target. Strategic benchmark + signal-driven tactical tilts; each signal's influence proportional to its empirical IC from the calibration fleet; position limits and active-risk budget bound deviations.</p>
+    <nav class="crumbs">
+      <a href="/">home</a>
+      <a href="/calibration-fleet.html">calibration fleet</a>
+      <a href="/global-stress.html">global stress</a>
+      <a href="/directory.html">directory</a>
+    </nav>
+  </header>
+  <div id="root"><div class="fail">loading allocator output&hellip;</div></div>
+</div>
+<script>
+const URL_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/";
+let chart=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]);}
+function fmt(x,d){return (x==null?"\u2014":(typeof x=="number"?x.toFixed(d||2):x));}
+function postureClass(p){return (p||"").toLowerCase();}
+
+function build(d){
+  const t=d.target_allocation||{}, b=d.benchmark||{}, L=d.asset_labels||{};
+  const dl=d.deltas_from_benchmark||{};
+  const sigs=d.signals_used||{};
+  const contribs=d.contributions||{};
+
+  // hero
+  let h='<div class="hero">'+
+    '<div class="ptag">Tactical Posture</div>'+
+    '<div class="post '+postureClass(d.posture)+'">'+esc(d.posture||"NEUTRAL").replace(/_/g," ")+'</div>'+
+    '<div class="summary">'+
+      '<div class="schip"><div class="sl">Confidence</div><div class="sv" style="color:var(--cyan)">'+(d.confidence||0)+'</div></div>'+
+      '<div class="schip"><div class="sl">Equity Tilt</div><div class="sv" style="color:'+(d.summary&&d.summary.equity_tilt_pp<0?"var(--red)":"var(--green)")+'">'+
+        (d.summary?(d.summary.equity_tilt_pp>=0?"+":"")+d.summary.equity_tilt_pp+"pp":"-")+'</div></div>'+
+      '<div class="schip"><div class="sl">Duration Tilt</div><div class="sv" style="color:'+(d.summary&&d.summary.duration_tilt_pp>=0?"var(--green)":"var(--red)")+'">'+
+        (d.summary?(d.summary.duration_tilt_pp>=0?"+":"")+d.summary.duration_tilt_pp+"pp":"-")+'</div></div>'+
+      '<div class="schip"><div class="sl">Gold Tilt</div><div class="sv" style="color:'+(d.summary&&d.summary.gold_tilt_pp>=0?"var(--green)":"var(--red)")+'">'+
+        (d.summary?(d.summary.gold_tilt_pp>=0?"+":"")+d.summary.gold_tilt_pp+"pp":"-")+'</div></div>'+
+      '<div class="schip"><div class="sl">Cash Tilt</div><div class="sv" style="color:'+(d.summary&&d.summary.cash_tilt_pp>=0?"var(--green)":"var(--red)")+'">'+
+        (d.summary?(d.summary.cash_tilt_pp>=0?"+":"")+d.summary.cash_tilt_pp+"pp":"-")+'</div></div>'+
+      '<div class="schip"><div class="sl">Active Risk</div><div class="sv">'+(d.active_risk_bps||0)+'bp</div></div>'+
+    '</div>'+
+    '<div class="hl">'+esc(d.rationale||"")+'</div>'+
+  '</div>';
+
+  // bar chart
+  let chartSec='<div class="sechead">Allocation &middot; benchmark vs target</div><div id="alloc_chart" class="chart"></div>';
+
+  // table
+  let tbl='<div class="sechead">Target Portfolio</div>'+
+    '<table class="alloctab"><thead><tr>'+
+    '<th>Asset Class</th><th class="num">Benchmark</th><th class="num">Target</th>'+
+    '<th class="num">Delta</th><th>Allocation</th>'+
+    '</tr></thead><tbody>';
+  const assets=Object.keys(t);
+  assets.forEach(a=>{
+    const tgt=t[a], bm=b[a], delta=dl[a];
+    const dl_cls=delta>0.05?"pos":delta<-0.05?"neg":"zero";
+    const dl_str=delta==null?"\u2014":(delta>=0?"+":"")+delta.toFixed(1)+"pp";
+    const barW=Math.min(120,(tgt||0)*2);
+    const barColor=delta>0.5?"var(--green)":delta<-0.5?"var(--red)":"var(--cyan)";
+    tbl+='<tr>'+
+      '<td>'+esc(L[a]||a)+'</td>'+
+      '<td class="num" style="color:var(--mute)">'+fmt(bm,1)+'%</td>'+
+      '<td class="num">'+fmt(tgt,1)+'%</td>'+
+      '<td class="num delta '+dl_cls+'">'+dl_str+'</td>'+
+      '<td><span class="bar"><i style="width:'+barW+'px;background:'+barColor+'"></i></span></td>'+
+    '</tr>';
+  });
+  tbl+='</tbody></table>';
+
+  // rationale: top contributing signals per asset
+  let contSec='<div class="sechead">Rationale &middot; signal contributions per asset</div><div class="contribs">';
+  const sortedAssets=Object.keys(contribs).sort((a,b)=>{
+    const da=Math.abs(dl[a]||0), db=Math.abs(dl[b]||0);
+    return db-da;
+  });
+  if(sortedAssets.length===0){
+    contSec+='<div style="color:var(--dim);font-family:var(--mono);font-size:11px">No tilts above 0.05pp contribution -- the allocator is sitting at the strategic benchmark.</div>';
+  } else {
+    sortedAssets.forEach(a=>{
+      const items=contribs[a]||[];
+      items.sort((x,y)=>Math.abs(y.tilt_pp)-Math.abs(x.tilt_pp));
+      contSec+='<div class="contrib-asset">'+
+        '<div class="ca-h">'+esc(L[a]||a)+'<span class="cnum">target '+fmt(t[a],1)+'% &middot; delta '+(dl[a]>=0?"+":"")+fmt(dl[a],2)+'pp</span></div>';
+      items.slice(0,5).forEach(c=>{
+        const cls=c.tilt_pp>0?"pos":c.tilt_pp<0?"neg":"";
+        contSec+='<div class="cr">'+esc(c.signal)+' (value '+esc(c.value)+', intensity '+esc(c.intensity)+
+          ', '+esc(c.state)+(c.ic!=null?', IC '+(c.ic>=0?"+":"")+esc(c.ic):'')+') '+
+          '<span class="cpp '+cls+'">'+(c.tilt_pp>=0?"+":"")+esc(c.tilt_pp)+'pp</span></div>';
+      });
+      contSec+='</div>';
+    });
+  }
+  contSec+='</div>';
+
+  // signals
+  let sigSec='<div class="sechead">Signals Read ('+Object.keys(sigs).length+')</div><div class="signals">';
+  Object.entries(sigs).forEach(([n,s])=>{
+    const cls=s.in_allocator?"in":"";
+    sigSec+='<div class="scard '+cls+'">'+
+      '<div class="sh"><div class="sn">'+esc(s.label||n)+'</div>'+
+      '<div class="sv">'+fmt(s.value,1)+'</div></div>'+
+      '<div class="sr"><span>intensity</span><b>'+esc(s.intensity)+'</b></div>'+
+      (s.regime?'<div class="sr"><span>regime</span><b>'+esc(s.regime)+'</b></div>':'')+
+      (s.ic!=null?'<div class="sr"><span>IC weight</span><b>'+(s.ic>=0?"+":"")+esc(s.ic.toFixed(3))+'</b></div>':'')+
+      (s.in_allocator?'':'<div class="sr" style="color:var(--dim)">no tilt function (informational only)</div>')+
+    '</div>';
+  });
+  sigSec+='</div>';
+
+  // methodology
+  let meth='<div class="method">'+esc(d.methodology||"")+
+    '<br><br><b>How to read this page.</b> The strategic benchmark is a configurable hedge-fund-style allocation (60% growth assets, 30% defensive, 10% real assets + alternatives). Tactical tilts are signal-driven and IC-weighted -- a signal with high empirical IC against forward equity drawdowns gets more influence on the final allocation than one without. Position limits cap each asset class (per the limits table in the JSON), and a '+(d.max_active_bps||800)+' bp active-risk budget caps total tracking error to benchmark. The allocation is renormalised to 100%, with any clipped mass redistributed across unconstrained dimensions.<br><br><b>Downstream use.</b> SSM /justhodl/master-allocation/target publishes the target allocation as a machine-readable map for position-sizers / execution layers to act on.</div>';
+
+  const ts=d.as_of?new Date(d.as_of).toLocaleString():"";
+  const note='<div class="note">Source: data/master-allocation.json (written by justhodl-master-allocator, every 3h) &middot; SSM /justhodl/master-allocation/target is the machine-readable feed.</div>'+
+    '<div class="ts">computed '+esc(ts)+' &middot; '+(d.duration_s||0)+'s</div>';
+
+  document.getElementById("root").innerHTML=h+chartSec+tbl+contSec+sigSec+meth+note;
+
+  // ECharts allocation bar chart
+  if(chart){chart.dispose();chart=null;}
+  const el=document.getElementById("alloc_chart");
+  if(el){
+    chart=echarts.init(el);
+    chart.setOption({
+      animation:false,
+      backgroundColor:"transparent",
+      tooltip:{trigger:"axis",backgroundColor:"#0f131a",borderColor:"#1c2433",
+        textStyle:{color:"#e6eaf2",fontFamily:"IBM Plex Mono",fontSize:11}},
+      legend:{data:["Benchmark","Target"],textStyle:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:10.5},top:4},
+      grid:{left:60,right:24,top:38,bottom:84},
+      xAxis:{type:"category",data:assets,
+        axisLabel:{color:"#a8b3c7",fontFamily:"IBM Plex Mono",fontSize:9.5,rotate:30,interval:0,
+          formatter:v=>(L[v]||v).split(" ")[0].replace("(","")},
+        axisLine:{lineStyle:{color:"#1c2433"}}},
+      yAxis:{type:"value",axisLabel:{color:"#6f7b91",fontFamily:"IBM Plex Mono",fontSize:10,formatter:v=>v+"%"},
+        splitLine:{lineStyle:{color:"#1c2433"}}},
+      series:[
+        {name:"Benchmark",type:"bar",data:assets.map(a=>b[a]||0),itemStyle:{color:"#6f7b91"},barWidth:14},
+        {name:"Target",type:"bar",data:assets.map(a=>t[a]||0),itemStyle:{color:"#ffd266"},barWidth:14}
+      ]
+    });
+  }
+}
+
+function load(){
+  fetch(URL_BASE+"data/master-allocation.json?cb="+Date.now())
+    .then(r=>r.json())
+    .then(build)
+    .catch(e=>{
+      document.getElementById("root").innerHTML='<div class="fail">Master allocator output not yet available. The justhodl-master-allocator Lambda runs every 3h and publishes data/master-allocation.json. Error: '+esc(e.message||e)+'</div>';
+    });
+}
+load();
+window.addEventListener("resize",()=>{if(chart)chart.resize();});
+</script>
+</body>
+</html>

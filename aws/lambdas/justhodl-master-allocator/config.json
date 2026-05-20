@@ -1,0 +1,24 @@
+{
+ "function_name": "justhodl-master-allocator",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 180,
+ "architectures": [
+  "x86_64"
+ ],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Master Allocator -- the institutional Capital Allocation Decision Engine. Reads the signal universe + fleet IC weights, applies bounded per-signal tilts to a strategic benchmark, enforces position limits + active-risk budget. Output: target portfolio.",
+ "environment": {
+  "TELEGRAM_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+  "TELEGRAM_CHAT_ID": "8678089260"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-master-allocator-3h",
+  "cron": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Master Allocator -- every 3h. Quick re-aggregation as upstream signal engines update."
+ }
+}
