@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "IPO lockup expiration fade tracker. Tracks 220d of US IPOs, computes 180d lockup expiration. Surfaces lockups in next 35d with fade-score (runup + proximity + small-cap). Two-stage trade tickets (T-3 pre-lockup vs T+1 confirmation). Daily 22 UTC.",
+  "inherit_env": true,
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-lockup-expiration-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "IPO lockup expiration scan daily 22 UTC"
+  }
+}

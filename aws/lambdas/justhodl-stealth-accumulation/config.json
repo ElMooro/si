@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Smart-money stealth accumulation synthesis. Cross-confirms insider clusters + 13F smart-money + short covering + bullish options on same ticker. Convergence table (2+ signals) is the retail edge. Reads 4 existing S3 feeds. Daily 23 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-stealth-accumulation-daily",
+    "cron": "cron(0 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Stealth accumulation synthesis daily 23 UTC"
+  }
+}

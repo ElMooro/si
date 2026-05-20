@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 768,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Mid/large cap short squeeze pre-trigger. 5-condition score: SI/float >18%, days-to-cover >6, short util >80%, z-score >0.5, catalyst 30d. IMMINENT (5/5) / PRE_TRIGGER (4/5) / EARLY (3/5). Mcap $1B-$50B; rejects already +30% in 20d. Daily 23:30 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-squeeze-pretrigger-daily",
+    "cron": "cron(30 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Short squeeze pre-trigger scan daily 23:30 UTC"
+  }
+}

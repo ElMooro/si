@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Catalyst calendar + options skew pre-move synthesizer. Detects bullish/bearish options positioning 3-21d before known catalysts (earnings/FDA/Fed). Three setup types: BULL_SKEW long, BEAR_SKEW short, BALANCED straddle. Daily 00:30 UTC.",
+  "inherit_env": true,
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-catalyst-skew-premove-daily",
+    "cron": "cron(30 0 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Catalyst+skew premove synthesis 00:30 UTC daily"
+  }
+}

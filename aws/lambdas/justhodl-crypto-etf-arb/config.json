@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Spot BTC/ETH ETF premium-discount vs NAV. 15 ETFs (IBIT FBTC ARKB BITB HODL BRRR EZBC GBTC + ETHA FETH ETHE ETH ETHV ETHW QETH). Arb tickets for premiums/discounts >0.4%. Telegram alert >0.8%. Every 30 min during US market hours.",
+  "inherit_env": true,
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-crypto-etf-arb-30min",
+    "cron": "cron(0,30 13-21 ? * MON-FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Crypto ETF arb 30-min during US market hours"
+  }
+}
