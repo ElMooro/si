@@ -1,0 +1,372 @@
+{
+  "ops": 966,
+  "title": "FINAL 10-edge complete verification",
+  "run_at": "2026-05-20T15:38:55.195537Z",
+  "per_edge_summary": {
+    "1": {
+      "p": 5,
+      "t": 5
+    },
+    "2": {
+      "p": 4,
+      "t": 5
+    },
+    "3": {
+      "p": 5,
+      "t": 5
+    },
+    "4": {
+      "p": 5,
+      "t": 5
+    },
+    "5": {
+      "p": 5,
+      "t": 5
+    },
+    "6": {
+      "p": 5,
+      "t": 5
+    },
+    "7": {
+      "p": 5,
+      "t": 5
+    },
+    "8": {
+      "p": 5,
+      "t": 5
+    },
+    "9": {
+      "p": 5,
+      "t": 5
+    },
+    "10": {
+      "p": 5,
+      "t": 5
+    },
+    "SB": {
+      "p": 2,
+      "t": 2
+    }
+  },
+  "checks": [
+    {
+      "edge": 1,
+      "name": "e1.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:40"
+    },
+    {
+      "edge": 1,
+      "name": "e1.s3_output_fresh",
+      "passed": true,
+      "detail": "size=2351B age_h=0.1"
+    },
+    {
+      "edge": 1,
+      "name": "e1.has_engine_field",
+      "passed": true,
+      "detail": "vix-backwardation-trigger"
+    },
+    {
+      "edge": 1,
+      "name": "e1.has_state",
+      "passed": true,
+      "detail": "NULL"
+    },
+    {
+      "edge": 1,
+      "name": "e1.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 2,
+      "name": "e2.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:47"
+    },
+    {
+      "edge": 2,
+      "name": "e2.s3_output_fresh",
+      "passed": true,
+      "detail": "size=21169B age_h=0.1"
+    },
+    {
+      "edge": 2,
+      "name": "e2.has_engine_field",
+      "passed": true,
+      "detail": "insider-buys-enriched"
+    },
+    {
+      "edge": 2,
+      "name": "e2.has_state",
+      "passed": false,
+      "detail": "None"
+    },
+    {
+      "edge": 2,
+      "name": "e2.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 3,
+      "name": "e3.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:24:56"
+    },
+    {
+      "edge": 3,
+      "name": "e3.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4446B age_h=0.1"
+    },
+    {
+      "edge": 3,
+      "name": "e3.has_engine_field",
+      "passed": true,
+      "detail": "breadth-thrust"
+    },
+    {
+      "edge": 3,
+      "name": "e3.has_state",
+      "passed": true,
+      "detail": "INSUFFICIENT_DATA"
+    },
+    {
+      "edge": 3,
+      "name": "e3.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 4,
+      "name": "e4.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T15:36:22"
+    },
+    {
+      "edge": 4,
+      "name": "e4.s3_output_fresh",
+      "passed": true,
+      "detail": "size=9199B age_h=0.0"
+    },
+    {
+      "edge": 4,
+      "name": "e4.has_engine_field",
+      "passed": true,
+      "detail": "vol-target-unwind-trigger"
+    },
+    {
+      "edge": 4,
+      "name": "e4.has_state",
+      "passed": true,
+      "detail": "NULL"
+    },
+    {
+      "edge": 4,
+      "name": "e4.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 5,
+      "name": "e5.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:23:34"
+    },
+    {
+      "edge": 5,
+      "name": "e5.s3_output_fresh",
+      "passed": true,
+      "detail": "size=29516B age_h=1.2"
+    },
+    {
+      "edge": 5,
+      "name": "e5.has_engine_field",
+      "passed": true,
+      "detail": "russell-recon-frontrun"
+    },
+    {
+      "edge": 5,
+      "name": "e5.has_state",
+      "passed": true,
+      "detail": "PRE_ANNOUNCEMENT"
+    },
+    {
+      "edge": 5,
+      "name": "e5.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 6,
+      "name": "e6.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:06:54"
+    },
+    {
+      "edge": 6,
+      "name": "e6.s3_output_fresh",
+      "passed": true,
+      "detail": "size=59242B age_h=1.5"
+    },
+    {
+      "edge": 6,
+      "name": "e6.has_engine_field",
+      "passed": true,
+      "detail": "buyback-scanner"
+    },
+    {
+      "edge": 6,
+      "name": "e6.has_state",
+      "passed": true,
+      "detail": "NORMAL"
+    },
+    {
+      "edge": 6,
+      "name": "e6.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 7,
+      "name": "e7.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T13:18:27"
+    },
+    {
+      "edge": 7,
+      "name": "e7.s3_output_fresh",
+      "passed": true,
+      "detail": "size=46365B age_h=1.7"
+    },
+    {
+      "edge": 7,
+      "name": "e7.has_engine_field",
+      "passed": true,
+      "detail": "stablecoin-flow"
+    },
+    {
+      "edge": 7,
+      "name": "e7.has_state",
+      "passed": true,
+      "detail": "FLAT"
+    },
+    {
+      "edge": 7,
+      "name": "e7.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 8,
+      "name": "e8.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:07:10"
+    },
+    {
+      "edge": 8,
+      "name": "e8.s3_output_fresh",
+      "passed": true,
+      "detail": "size=4524B age_h=1.5"
+    },
+    {
+      "edge": 8,
+      "name": "e8.has_engine_field",
+      "passed": true,
+      "detail": "opex-calendar"
+    },
+    {
+      "edge": 8,
+      "name": "e8.has_state",
+      "passed": true,
+      "detail": "POST_OPEX"
+    },
+    {
+      "edge": 8,
+      "name": "e8.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 9,
+      "name": "e9.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T14:06:38"
+    },
+    {
+      "edge": 9,
+      "name": "e9.s3_output_fresh",
+      "passed": true,
+      "detail": "size=3745B age_h=1.5"
+    },
+    {
+      "edge": 9,
+      "name": "e9.has_engine_field",
+      "passed": true,
+      "detail": "activist-13d"
+    },
+    {
+      "edge": 9,
+      "name": "e9.has_state",
+      "passed": true,
+      "detail": "QUIET"
+    },
+    {
+      "edge": 9,
+      "name": "e9.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": 10,
+      "name": "e10.lambda_deployed",
+      "passed": true,
+      "detail": "mod=2026-05-20T13:43:33"
+    },
+    {
+      "edge": 10,
+      "name": "e10.s3_output_fresh",
+      "passed": true,
+      "detail": "size=6387B age_h=1.9"
+    },
+    {
+      "edge": 10,
+      "name": "e10.has_engine_field",
+      "passed": true,
+      "detail": "rv-iv-scanner"
+    },
+    {
+      "edge": 10,
+      "name": "e10.has_state",
+      "passed": true,
+      "detail": "NORMAL"
+    },
+    {
+      "edge": 10,
+      "name": "e10.page_live_and_wired",
+      "passed": true,
+      "detail": "status=200 wired=True"
+    },
+    {
+      "edge": "SB",
+      "name": "eSB.invoke",
+      "passed": true,
+      "detail": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.1, \\\"n_live\\\": 20, \\\"n_stale\\\": 0}\"}"
+    },
+    {
+      "edge": "SB",
+      "name": "eSB.aggregating_20",
+      "passed": true,
+      "detail": "engines=20 live=20 posture=NEUTRAL / MIXED"
+    }
+  ],
+  "summary": {
+    "total": 52,
+    "passed": 51,
+    "failed": 1,
+    "pct": 98.1
+  },
+  "overall_ok": false
+}
