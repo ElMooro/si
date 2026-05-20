@@ -1,0 +1,265 @@
+{
+  "ops": 987,
+  "started_at": "2026-05-20T22:47:40Z",
+  "engines": {
+    "justhodl-post-earnings-mean-rev": {
+      "deployed": false
+    },
+    "justhodl-insider-sell-cluster": {
+      "deployed": false
+    },
+    "justhodl-vix9d-vix-inversion": {
+      "deployed": false
+    },
+    "justhodl-breadth-divergence": {
+      "deployed": false
+    },
+    "justhodl-skew-tail-hedging": {
+      "deployed": false
+    },
+    "justhodl-dxy-equity-divergence": {
+      "deployed": false
+    }
+  },
+  "donor": {
+    "fn": "justhodl-earnings-pead",
+    "has_fmp": true,
+    "all_keys_in_donor": [
+      "FMP_KEY",
+      "MAX_TICKERS",
+      "N_WORKERS",
+      "S3_BUCKET",
+      "TIMEOUT_BUDGET_S"
+    ],
+    "n_optional_present": 0
+  },
+  "ci_wait": [
+    {
+      "t": 1779317260,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317281,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317301,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317321,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317342,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317362,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317383,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317403,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317423,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317444,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317464,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317485,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317505,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317526,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317546,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317567,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317587,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317607,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317628,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317648,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317669,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317689,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317709,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317730,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317750,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317771,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317791,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317812,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317832,
+      "present": 0,
+      "missing": 6
+    },
+    {
+      "t": 1779317852,
+      "present": 0,
+      "missing": 6
+    }
+  ],
+  "lambdas_present": [],
+  "lambdas_missing": [
+    "justhodl-post-earnings-mean-rev",
+    "justhodl-insider-sell-cluster",
+    "justhodl-vix9d-vix-inversion",
+    "justhodl-breadth-divergence",
+    "justhodl-skew-tail-hedging",
+    "justhodl-dxy-equity-divergence"
+  ],
+  "signal_board_invoke": {
+    "ok": true,
+    "outer_status_code": 200,
+    "inner_status_code": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.1, \"n_live\": 42, \"n_stale\": 6}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 48,
+    "n_live": 42,
+    "n_stale": 6,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.1,
+    "expects_48": true,
+    "all_48_live": false,
+    "tier4_engines_in_board": {
+      "Post-Earnings Mean-Rev": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      },
+      "Insider Sell Cluster": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      },
+      "VIX9D-VIX Inversion": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      },
+      "Breadth Divergence": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      },
+      "SKEW Tail-Hedging": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      },
+      "DXY-Equity Divergence": {
+        "live": false,
+        "signal": null,
+        "comment": ""
+      }
+    }
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 45965,
+    "markers_found": 27,
+    "expected": 27,
+    "missing": []
+  },
+  "scorecard": {
+    "n_engines_total": 6,
+    "n_engines_deployed": 0,
+    "n_invoke_ok": 0,
+    "n_s3_ok": 0,
+    "n_real_state": 0,
+    "signal_board_48_48_ok": false,
+    "page_27_markers_ok": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-20T22:58:01Z"
+}
