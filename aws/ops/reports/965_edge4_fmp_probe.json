@@ -1,0 +1,35 @@
+{
+  "ops": 965,
+  "run_at": "2026-05-20T15:35:32.589019Z",
+  "checks": [
+    {
+      "name": "fmp.base",
+      "passed": true,
+      "detail": "type=list n=1255 sample_keys=['symbol', 'date', 'open', 'high', 'low', 'close', 'volume', 'change']"
+    },
+    {
+      "name": "fmp.light",
+      "passed": true,
+      "detail": "type=list n=1255 sample_keys=['symbol', 'date', 'price', 'volume']"
+    },
+    {
+      "name": "fmp.v3",
+      "passed": false,
+      "detail": "HTTP Error 403: Forbidden"
+    },
+    {
+      "name": "e4.code_location",
+      "passed": true,
+      "detail": "url_len=1229"
+    },
+    {
+      "name": "e4.invoke_with_logs",
+      "passed": true,
+      "detail": "body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"NULL\\\", \\\"rv21\\\": 10.584972161883153, \\\"signal\\\": 35}\"} relevant_logs=['vol-target-unwind run started fmp_key_set=True', 'fmp_history SPY returned 1255 rows', 'REPORT RequestId: 75c039d6-0878-48d8-9cf6-a571505a3ccc\\tDuration: 1003.79 ms\\tBilled Duration: 1004 ms\\tMemory Size: 512 MB\\tMax Mem"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 4
+  }
+}
