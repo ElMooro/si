@@ -1,0 +1,58 @@
+{
+ "ops": 888,
+ "ts": "2026-05-20T00:30:20.839922+00:00",
+ "subject": "Verify the funding-stress cross-reference panel",
+ "checks": [
+  {
+   "check": "redeployed",
+   "ok": true,
+   "detail": "from deduplicated source"
+  },
+  {
+   "check": "invoke_ok",
+   "ok": true,
+   "detail": "GSI=44, funding=26, build 3.1s"
+  },
+  {
+   "check": "output_readable",
+   "ok": true,
+   "detail": "global-stress.json read"
+  },
+  {
+   "check": "funding_panel_published",
+   "ok": true,
+   "detail": "funding stress 26 (CALM) -- regime 'ABUNDANT_LIQUIDITY', severity 'ABUNDANT', 8 signals"
+  },
+  {
+   "check": "mirrors_eurodollar_engine",
+   "ok": true,
+   "detail": "global-stress funding 26 vs eurodollar-stress composite 26.28"
+  },
+  {
+   "check": "hot_signals_from_source",
+   "ok": false,
+   "detail": "no hot_signals -- upstream may report none right now"
+  },
+  {
+   "check": "funding_does_not_corrupt_gsi",
+   "ok": true,
+   "detail": "GSI 44 (ELEVATED) -- six-component blend (market, credit, VIX, rate-vol, contagion, sovereign); funding panel published but NOT blended"
+  },
+  {
+   "check": "page_renders_funding",
+   "ok": true,
+   "detail": "HTTP 200, Funding Stress card rendered; cross-ref attribution present"
+  }
+ ],
+ "summary": "7/8 checks passed",
+ "all_passed": false,
+ "snapshot": {
+  "funding_score": 26,
+  "funding_level": "CALM",
+  "funding_regime": "ABUNDANT_LIQUIDITY",
+  "n_hot_signals": 0,
+  "global_stress_index": 44,
+  "upstream_composite": 26.28
+ },
+ "verdict": "VERIFICATION INCOMPLETE - failed: hot_signals_from_source."
+}
