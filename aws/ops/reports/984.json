@@ -1,146 +1,256 @@
 {
-  "started_at": 1779314905,
-  "target": "justhodl-credit-equity-divergence",
-  "candidate_donors": [
-    "justhodl-gap-fill-confirm",
-    "justhodl-13f-price-divergence",
-    "justhodl-vvix-vov-regime",
-    "justhodl-sympathetic-momentum",
-    "justhodl-insider-buyback-confluence",
-    "justhodl-crypto-etf-arb",
-    "justhodl-earnings-pead",
-    "justhodl-merger-arb",
-    "justhodl-hedge-pnl",
-    "justhodl-divergence-engine-v2",
-    "justhodl-fundamentals-engine",
-    "justhodl-buyback-scanner"
-  ],
-  "donor_scan": [
-    {
-      "name": "justhodl-gap-fill-confirm",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
-    },
-    {
-      "name": "justhodl-13f-price-divergence",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
-    },
-    {
+  "ops_id": "984",
+  "purpose": "Direct env injection of 11 baseline keys into 6 Tier-3 engines",
+  "started_at": "2026-05-20T22:11:16Z",
+  "baseline_keys": {
+    "FMP_KEY": "***S8xb",
+    "FRED_KEY": "***9989",
+    "POLYGON_KEY": "***JX_d",
+    "ALPHAVANTAGE_KEY": "***KPUL",
+    "CMC_KEY": "***9597",
+    "NEWSAPI_KEY": "***f940",
+    "BEA_KEY": "***AC47",
+    "BLS_KEY": "***b863",
+    "CENSUS_KEY": "***f515",
+    "TELEGRAM_TOKEN": "***1aGs",
+    "TELEGRAM_CHAT": "8678089260",
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "engines": {
+    "justhodl-vvix-vov-regime": {
       "name": "justhodl-vvix-vov-regime",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 2,
+        "n_keys_after": 12,
+        "added": [
+          "FMP_KEY",
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 1.5,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"VEGA_BUILDING\\\", \\\"strength\\\": 0.4, \\\"n_tickets\\\": 0}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 1066,
+        "last_modified": "2026-05-20 22:11:21+00:00",
+        "state": "VEGA_BUILDING",
+        "signal_strength": 0.4,
+        "error": null,
+        "n_keys": 13,
+        "is_error_stub": false
+      }
     },
-    {
+    "justhodl-sympathetic-momentum": {
       "name": "justhodl-sympathetic-momentum",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 2,
+        "n_keys_after": 12,
+        "added": [
+          "FMP_KEY",
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 3.0,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"ACTIVE\\\", \\\"n_setups\\\": 7}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 9146,
+        "last_modified": "2026-05-20 22:11:29+00:00",
+        "state": "ACTIVE",
+        "signal_strength": 0.7,
+        "error": null,
+        "n_keys": 14,
+        "is_error_stub": false
+      }
     },
-    {
+    "justhodl-insider-buyback-confluence": {
       "name": "justhodl-insider-buyback-confluence",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 2,
+        "n_keys_after": 12,
+        "added": [
+          "FMP_KEY",
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 1.1,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_confluences\\\": 0, \\\"n_high\\\": 0}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 1469,
+        "last_modified": "2026-05-20 22:11:35+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "error": null,
+        "n_keys": 14,
+        "is_error_stub": false
+      }
     },
-    {
-      "name": "justhodl-crypto-etf-arb",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
+    "justhodl-gap-fill-confirm": {
+      "name": "justhodl-gap-fill-confirm",
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 2,
+        "n_keys_after": 12,
+        "added": [
+          "FMP_KEY",
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 2.4,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0, \\\"n_high\\\": 0}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 875,
+        "last_modified": "2026-05-20 22:11:42+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "error": null,
+        "n_keys": 14,
+        "is_error_stub": false
+      }
     },
-    {
-      "name": "justhodl-earnings-pead",
-      "has_keys": [
-        "FMP_KEY"
-      ],
-      "n": 1
+    "justhodl-13f-price-divergence": {
+      "name": "justhodl-13f-price-divergence",
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 2,
+        "n_keys_after": 12,
+        "added": [
+          "FMP_KEY",
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 1.7,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_divergences\\\": 0}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 1256,
+        "last_modified": "2026-05-20 22:11:48+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "error": null,
+        "n_keys": 17,
+        "is_error_stub": false
+      }
     },
-    {
-      "name": "justhodl-merger-arb",
-      "has_keys": [
-        "FMP_KEY"
-      ],
-      "n": 1
-    },
-    {
-      "name": "justhodl-hedge-pnl",
-      "has_keys": [
-        "FMP_KEY"
-      ],
-      "n": 1
-    },
-    {
-      "name": "justhodl-divergence-engine-v2",
-      "has_keys": [
-        "FMP_KEY",
-        "FRED_KEY"
-      ],
-      "n": 2
-    },
-    {
-      "name": "justhodl-fundamentals-engine",
-      "has_keys": [
-        "FMP_KEY"
-      ],
-      "n": 1
-    },
-    {
-      "name": "justhodl-buyback-scanner",
-      "has_keys": [
-        "CMC_KEY"
-      ],
-      "n": 1
+    "justhodl-credit-equity-divergence": {
+      "name": "justhodl-credit-equity-divergence",
+      "env_update": {
+        "ok": true,
+        "n_keys_before": 3,
+        "n_keys_after": 12,
+        "added": [
+          "FRED_KEY",
+          "POLYGON_KEY",
+          "ALPHAVANTAGE_KEY",
+          "NEWSAPI_KEY",
+          "BEA_KEY",
+          "BLS_KEY",
+          "CENSUS_KEY",
+          "TELEGRAM_TOKEN",
+          "TELEGRAM_CHAT"
+        ],
+        "filled_empty": []
+      },
+      "invoke": {
+        "outer_status": 200,
+        "function_error": null,
+        "inner_status_code": 200,
+        "elapsed_s": 1.5,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"CREDIT_BEAR_ACTIVE\\\", \\\"n_tickets\\\": 1}\"}",
+        "ok": true
+      },
+      "s3": {
+        "size": 1409,
+        "last_modified": "2026-05-20 22:11:55+00:00",
+        "state": "CREDIT_BEAR_ACTIVE",
+        "signal_strength": 0.45,
+        "error": null,
+        "n_keys": 13,
+        "is_error_stub": false
+      }
     }
-  ],
-  "chosen_donor": "justhodl-earnings-pead",
-  "chosen_secrets_keys": [
-    "FMP_KEY"
-  ],
-  "fmp_key_tail": "UlS8xb",
-  "target_env_before": [
-    "CMC_KEY",
-    "S3_BUCKET"
-  ],
-  "target_env_after": [
-    "CMC_KEY",
-    "FMP_KEY",
-    "S3_BUCKET"
-  ],
-  "wait_pre": {
-    "ok": true,
-    "status": "Successful"
   },
-  "update": {
-    "last_modified": "2026-05-20T22:08:27.000+0000",
-    "last_update_status": "InProgress"
+  "scorecard": {
+    "n_engines": 6,
+    "n_env_updated": 6,
+    "n_invoke_ok": 6,
+    "n_s3_real_data": 6,
+    "all_pass": true
   },
-  "wait_post": {
-    "ok": true,
-    "status": "Successful"
-  },
-  "invoke": {
-    "status_code": 200,
-    "function_error": null,
-    "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"CREDIT_BEAR_ACTIVE\\\", \\\"n_tickets\\\": 1}\"}"
-  },
-  "s3": {
-    "size": 1409,
-    "last_modified": "2026-05-20T22:08:33+00:00",
-    "state": "CREDIT_BEAR_ACTIVE",
-    "signal_strength": 0.45,
-    "error": null,
-    "divergences_n": 0,
-    "preview": "{\"engine\": \"credit-equity-divergence\", \"version\": \"1.0.0\", \"as_of\": \"2026-05-20T22:08:32Z\", \"state\": \"CREDIT_BEAR_ACTIVE\", \"signal_strength\": 0.45, \"current_metrics\": {\"hyg_20d_ret_pct\": -0.8, \"spy_20d_ret_pct\": 4.22, \"hyg_spy_spread_20d\": -5.02, \"spread_zscore_252d\": -1.09, \"lqd_20d_ret_pct\": -1.7, \"emb_20d_ret_pct\": -1.51, \"persistent_3d\": true, \"lqd_confirms\": true}, \"regime_explanation\": \"Mild bearish divergence z=-1.09\", \"trade_tickets\": [{\"ticker\": \"SPY\", \"side\": \"SHORT\", \"rationale\": \"CREDIT_BEAR_ACTIVE setup, smaller size\", \"target_pct\": -3, \"stop_pct\": 2, \"holding_period\": \"2-4 weeks\""
-  },
-  "all_pass": true
+  "finished_at": "2026-05-20T22:11:56Z"
 }
