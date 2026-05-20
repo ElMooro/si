@@ -50,9 +50,12 @@ HIST_KEY = "data/global-stress-history.json"
 DIM_HIST_KEY = "data/gsi-dim-history.json"
 WEIGHTS_PARAM = "/justhodl/gsi/weights"
 
-HIST_BARS = 300
+HIST_BARS = 2100     # ~8.5y of daily bars per symbol -- enough for an
+                     # 8-year historical backfill of the calibrator; live
+                     # panels slice short windows out of this regardless,
+                     # so the larger cap is harmless during 6h scans
 SERIES_BARS = 130
-DIM_HIST_BARS = 400   # ~1.5y of daily dimension snapshots
+DIM_HIST_BARS = 2100   # ~8y of daily dimension snapshots in store
 
 # Prior dimension weights -- used as fallback when the calibrator has
 # not yet accumulated enough paired observations to fit empirical
