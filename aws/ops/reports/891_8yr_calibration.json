@@ -1,0 +1,77 @@
+{
+ "ops": 891,
+ "ts": "2026-05-20T01:16:10.905132+00:00",
+ "subject": "8-year backfill + recalibrate with corrected verify",
+ "checks": [
+  {
+   "check": "engine_redeployed_with_hist_bars_2100",
+   "ok": true,
+   "detail": "global-stress redeployed -- HIST_BARS now 2100"
+  },
+  {
+   "check": "8yr_backfill_ran",
+   "ok": false,
+   "detail": "backfilled=0 sessions, range None -> None"
+  },
+  {
+   "check": "history_holds_8yr",
+   "ok": false,
+   "detail": "280 snapshots in store"
+  },
+  {
+   "check": "calibrator_ran_on_8yr",
+   "ok": false,
+   "detail": "mode=empirical, N=269, IC={'market': -0.148, 'credit': 0.034, 'vix': 0.155, 'rate_vol': -0.388, 'contagion': -0.309, 'sovereign': -0.092}"
+  },
+  {
+   "check": "ssm_weights_diversified_8yr",
+   "ok": true,
+   "detail": "weights={'contagion': 0.05, 'credit': 0.143, 'market': 0.254, 'rate_vol': 0.103, 'sovereign': 0.05, 'vix': 0.4}, sum=1.0001, min=0.050, max=0.400"
+  },
+  {
+   "check": "engine_serves_calibrated_weights",
+   "ok": false,
+   "detail": "GSI=42, mode=empirical, N=269, weights={'contagion': 0.05, 'credit': 0.143, 'market': 0.254, 'rate_vol': 0.103, 'sovereign': 0.05, 'vix': 0.4}"
+  },
+  {
+   "check": "engine_blend_uses_all_six_dimensions",
+   "ok": true,
+   "detail": "6/6 dimensions carrying weight in the live blend"
+  }
+ ],
+ "summary": "3/7 checks passed",
+ "all_passed": false,
+ "snapshot": {
+  "backfill_sessions": 0,
+  "earliest_session": null,
+  "latest_session": null,
+  "history_store_count": 280,
+  "calibrator_mode": "empirical",
+  "calibrator_sample_size": 269,
+  "ic_per_dim": {
+   "market": -0.148,
+   "credit": 0.034,
+   "vix": 0.155,
+   "rate_vol": -0.388,
+   "contagion": -0.309,
+   "sovereign": -0.092
+  },
+  "ssm_weights": {
+   "market": 0.254,
+   "credit": 0.143,
+   "vix": 0.4,
+   "rate_vol": 0.103,
+   "contagion": 0.05,
+   "sovereign": 0.05
+  },
+  "engine_weights": {
+   "credit": 0.143,
+   "sovereign": 0.05,
+   "rate_vol": 0.103,
+   "market": 0.254,
+   "vix": 0.4,
+   "contagion": 0.05
+  }
+ },
+ "verdict": "VERIFICATION INCOMPLETE - failed: 8yr_backfill_ran, history_holds_8yr, calibrator_ran_on_8yr, engine_serves_calibrated_weights."
+}
