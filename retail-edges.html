@@ -196,6 +196,39 @@ const ENGINES = [
     title:'IPO Lockup Expiration Fade', icon:'📅',
     desc:'US IPOs hitting 180-day lockup expiration in next 35 days. Heavier runup + smaller mcap = stronger fade signal.',
     render: renderLockup, category:'event' },
+  // === Tier-2 Retail Edges (8 engines, 2026-05-20) ===
+  { key:'precatalyst-vol-expansion', s3:'data/precatalyst-vol-expansion.json',
+    title:'Pre-Catalyst Vol Expansion', icon:'⚡',
+    desc:'Stocks with catalyst in 7-21d AND 30d realized vol at 5y percentile <=25. Long-straddle plays profiting from IV expansion. Goncalves-Pinto 2017; Hu-Pan 2023.',
+    render: renderGeneric, category:'volatility' },
+  { key:'cef-discount', s3:'data/cef-discount.json',
+    title:'CEF Discount Mean-Reversion', icon:'💼',
+    desc:'60+ liquid CEF universe across equity/bond/MLP/REIT/muni. Flags >10% NAV discount with mean-rev target to 3%. Collects dividend yield while waiting. Pontiff 1996; Cherkes-Sagi-Wermers 2020.',
+    render: renderGeneric, category:'tactical' },
+  { key:'reit-nav-discount', s3:'data/reit-nav-discount.json',
+    title:'REIT NAV Discount', icon:'🏢',
+    desc:'80+ US REIT universe across office/retail/industrial/multifamily/healthcare/data-center/mREIT. >20% discount to estimated NAV (book + FFO multiplier). 12-18mo mean-rev holds. Damodaran 2020.',
+    render: renderGeneric, category:'tactical' },
+  { key:'divcut-warning', s3:'data/divcut-warning.json',
+    title:'Dividend Cut Warning', icon:'⚠️',
+    desc:'5-signal cut-risk model: payout>100%, FCF/div<1x, EPS rev -15%, debt/EBITDA>5x, yield>8%. AVOIDANCE engine — saves 25-40% drawdown on cut announcements. Brav-Graham-Harvey-Michaely 2005.',
+    render: renderGeneric, category:'risk-avoidance' },
+  { key:'rating-change-cluster', s3:'data/rating-change-cluster.json',
+    title:'Major-Bank Rating Cluster', icon:'📊',
+    desc:'3+ upgrades or downgrades within 14d from major investment banks (GS/MS/JPM/BofA/Citi/Barclays/Wells/UBS/Deutsche/Jefferies/Wedbush+). ~65% hit rate on +12% 4-6w. Womack 1996; Bradshaw 2019; Liang 2024.',
+    render: renderGeneric, category:'smart-money' },
+  { key:'multi-tf-convergence', s3:'data/multi-tf-convergence.json',
+    title:'3-Timeframe Convergence', icon:'📈',
+    desc:'Daily + Weekly + Monthly trend alignment with at least one fresh turn in last 5 days. 20/50 MA spread + slope. ~70% hit rate on 12-18% moves over 8-13 weeks. Asness-Moskowitz-Pedersen 2013.',
+    render: renderGeneric, category:'tactical' },
+  { key:'52wk-quality-breakout', s3:'data/52wk-quality-breakout.json',
+    title:'52-Week Quality Breakout', icon:'🚀',
+    desc:'Fresh 52w high + 4 quality gates: earnings surprise +10%, no insider sell, sector RS positive, volume 1.5x avg. ~65% hit rate on +20% over 3-6mo (vs raw 52w breakouts at 52%). O\'Neil + Marchand 2024.',
+    render: renderGeneric, category:'tactical' },
+  { key:'spac-floor-warrant', s3:'data/spac-floor-warrant.json',
+    title:'SPAC Trust-Value Floor + Warrants', icon:'🎯',
+    desc:'Pre-merger SPACs trading $9.85-$10.20 (near trust value). Downside floored at redemption; upside via free warrants on announced deal. Risk-free 6-12% annualized baseline. Gahng-Ritter-Zhang 2023.',
+    render: renderGeneric, category:'asymmetric' },
 ];
 
 const fmtN = n => n == null ? '-' : (typeof n === 'number' ? n.toLocaleString('en-US', {maximumFractionDigits:2}) : n);
@@ -228,6 +261,80 @@ async function fetchEngine(s3key) {
     if (!r.ok) return null;
     return await r.json();
   } catch (e) { return null; }
+}
+
+function renderGeneric(d) {
+  // Generic renderer for Tier-2 engines with standardized schema:
+  // {state, signal_strength, summary, picks/warnings/buy_picks/bull_picks,
+  //  forward_expectations, methodology, why_now}
+  if (!d) return '<em>No data yet — engine will populate on next scheduled run.</em>';
+  const state = d.state || '-';
+  const sig = d.signal_strength || 0;
+  const summ = d.summary || {};
+  const fwd = d.forward_expectations || {};
+  const meth = d.methodology || {};
+  const why = d.why_now || '';
+  // Determine "picks" array — could be picks, warnings, buy_picks, bull_picks etc
+  const picksArr = d.picks || d.warnings || d.buy_picks || d.bull_picks || [];
+  let h = '';
+  h += `<div style="margin-bottom:12px;padding:10px;background:rgba(255,255,255,0.03);border-radius:4px">`;
+  h += `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">`;
+  h += `<span><strong>STATE:</strong> <code style="color:#69db7c;font-weight:700">${state}</code></span>`;
+  h += `<span><strong>Signal:</strong> ${sig}/100</span>`;
+  h += `<span>${ago(d.as_of)}</span>`;
+  h += `</div>`;
+  if (why) h += `<div style="margin-top:8px;font-size:13px;color:#aaa">${why}</div>`;
+  h += `</div>`;
+  // Summary stats
+  const summKeys = Object.keys(summ).slice(0, 6);
+  if (summKeys.length > 0) {
+    h += `<div style="margin-bottom:10px"><strong style="display:block;margin-bottom:4px">Summary</strong>`;
+    h += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">`;
+    for (const k of summKeys) {
+      const v = summ[k];
+      const display = typeof v === 'object' ? JSON.stringify(v).slice(0, 40) : v;
+      h += `<div><em>${k.replace(/_/g,' ')}:</em> <span style="color:#69db7c">${display}</span></div>`;
+    }
+    h += `</div></div>`;
+  }
+  // Picks (top 5)
+  if (picksArr.length > 0) {
+    h += `<div style="margin-bottom:10px"><strong style="display:block;margin-bottom:4px">Top Picks (${picksArr.length} total)</strong>`;
+    h += `<table style="width:100%;font-size:12px;border-collapse:collapse">`;
+    const samplePick = picksArr[0];
+    // Pick relevant column keys
+    const ignoreKeys = new Set(['trade_ticket','avoidance_ticket','upgrades','downgrades','trends','trends_past','gates_passed','signals_fired']);
+    const cols = Object.keys(samplePick).filter(k => !ignoreKeys.has(k)).slice(0, 5);
+    h += `<thead><tr style="border-bottom:1px solid #333">`;
+    for (const c of cols) h += `<th style="padding:4px;text-align:left">${c.replace(/_/g,' ')}</th>`;
+    h += `</tr></thead><tbody>`;
+    for (const p of picksArr.slice(0, 5)) {
+      h += `<tr style="border-bottom:1px solid #222">`;
+      for (const c of cols) {
+        let v = p[c];
+        if (typeof v === 'number') v = (Math.abs(v) >= 1000 ? v.toLocaleString() : (Number.isInteger(v) ? v : v.toFixed(2)));
+        else if (typeof v === 'object' && v !== null) v = JSON.stringify(v).slice(0,30);
+        h += `<td style="padding:3px 4px">${v == null ? '-' : v}</td>`;
+      }
+      h += `</tr>`;
+    }
+    h += `</tbody></table></div>`;
+  }
+  // Forward expectations
+  if (Object.keys(fwd).length > 0) {
+    h += `<div style="margin-bottom:8px;font-size:12px;color:#aaa"><strong style="color:#fff">Forward Priors:</strong> `;
+    h += Object.entries(fwd).map(([k,v]) => `${k.replace(/_/g,' ')}: <span style="color:#69db7c">${v}</span>`).join(' | ');
+    h += `</div>`;
+  }
+  // Methodology — collapsible
+  if (Object.keys(meth).length > 0) {
+    h += `<details style="margin-top:10px;font-size:11px;color:#888"><summary style="cursor:pointer">Methodology</summary>`;
+    for (const [k, v] of Object.entries(meth)) {
+      h += `<div style="padding:3px 0"><em>${k.replace(/_/g,' ')}:</em> ${typeof v === 'object' ? JSON.stringify(v) : v}</div>`;
+    }
+    h += `</details>`;
+  }
+  return h;
 }
 
 function renderTicketDetails(t) {

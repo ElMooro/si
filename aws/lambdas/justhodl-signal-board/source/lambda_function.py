@@ -329,6 +329,90 @@ def n_lockup_expiration(d):
     return m.get(state, 0), f"Lockup {state or 'n/a'} (imm={n_imm}, hc={n_hc})"
 
 
+# === Tier-2 Retail Edges normalizers (8 engines, 2026-05-20) ===
+
+def n_precatalyst_vol_expansion(d):
+    """Low IV + catalyst ahead = long-vol setup (bullish for vol, neutral for direction)."""
+    state = (d.get("state") or "").upper()
+    m = {"EXPANSION_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_picks = summ.get("picks") or 0
+    n_deep = summ.get("deep_low_iv_picks") or 0
+    return m.get(state, 0), f"PreCat-Vol {state or 'n/a'} (picks={n_picks}, deep={n_deep})"
+
+
+def n_cef_discount(d):
+    """CEF deep discounts = mean-rev long setups."""
+    state = (d.get("state") or "").upper()
+    m = {"DISCOUNT_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_disc = summ.get("discounted_n") or 0
+    n_deep = summ.get("deep_discount_n") or 0
+    return m.get(state, 0), f"CEF-disc {state or 'n/a'} (disc={n_disc}, deep={n_deep})"
+
+
+def n_reit_nav_discount(d):
+    """REIT NAV discounts = long mean-rev setups."""
+    state = (d.get("state") or "").upper()
+    m = {"DEEP_DISCOUNT_RICH": 1, "DISCOUNT_ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n = summ.get("fetched") or 0
+    n_deep = summ.get("deep_discount_n") or 0
+    return m.get(state, 0), f"REIT-NAV {state or 'n/a'} (picks={n}, deep={n_deep})"
+
+
+def n_divcut_warning(d):
+    """Dividend cut risk = AVOIDANCE signal. HIGH_RISK = -1 (bearish on income names)."""
+    state = (d.get("state") or "").upper()
+    m = {"HIGH_RISK_RICH": -1, "ELEVATED": -1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_flag = summ.get("flagged_n") or 0
+    n_high = summ.get("high_risk_n") or 0
+    return m.get(state, 0), f"DivCut-warn {state or 'n/a'} (flag={n_flag}, hi={n_high})"
+
+
+def n_rating_change_cluster(d):
+    """3+ major-bank upgrades = bullish; 3+ downgrades = bearish."""
+    state = (d.get("state") or "").upper()
+    m = {"CLUSTER_BUY_RICH": 2, "CLUSTER_BUY_ACTIVE": 1,
+         "CLUSTER_SELL_RICH": -2, "CLUSTER_SELL_ACTIVE": -1,
+         "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_buy = summ.get("buy_picks_n") or 0
+    n_sell = summ.get("sell_picks_n") or 0
+    return m.get(state, 0), f"Rating-cluster {state or 'n/a'} (B={n_buy}, S={n_sell})"
+
+
+def n_multi_tf_convergence(d):
+    """3-timeframe alignment: bull = +2, bear = -2."""
+    state = (d.get("state") or "").upper()
+    m = {"BULL_CONVERGENCE_RICH": 2, "BULL_CONVERGENCE_ACTIVE": 1,
+         "BEAR_CONVERGENCE_RICH": -2, "BEAR_CONVERGENCE_ACTIVE": -1,
+         "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n_b = summ.get("bull_n") or 0
+    n_be = summ.get("bear_n") or 0
+    return m.get(state, 0), f"3TF-conv {state or 'n/a'} (bull={n_b}, bear={n_be})"
+
+
+def n_52wk_quality_breakout(d):
+    """Quality 52w breakouts = bullish."""
+    state = (d.get("state") or "").upper()
+    m = {"QUALITY_BREAKOUT_RICH": 1, "QUALITY_BREAKOUT_ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n = summ.get("breakouts_found") or 0
+    n_high = summ.get("high_quality_n_4_gates") or 0
+    return m.get(state, 0), f"52w-QB {state or 'n/a'} (picks={n}, 4gates={n_high})"
+
+
+def n_spac_floor_warrant(d):
+    """SPAC asymmetric floor plays = +1 risk-free yield + warrant upside."""
+    state = (d.get("state") or "").upper()
+    m = {"ASYMMETRIC_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    summ = d.get("summary") or {}
+    n = summ.get("qualifying_picks_n") or 0
+    return m.get(state, 0), f"SPAC-floor {state or 'n/a'} (picks={n})"
+
 
 # (engine, category, s3_key, normaliser)
 FEEDS = [
@@ -363,6 +447,15 @@ FEEDS = [
     ("Catalyst+Skew Premove",     "positioning",      "data/catalyst-skew-premove.json",    n_catalyst_skew_premove),
     ("Crypto ETF Arb",            "crypto",           "data/crypto-etf-arb.json",           n_crypto_etf_arb),
     ("Lockup Expiration",         "events",           "data/lockup-expiration.json",        n_lockup_expiration),
+    # === Tier-2 Retail Edges Cluster (8 engines, 2026-05-20) ===
+    ("Pre-Catalyst Vol Expansion","volatility",       "data/precatalyst-vol-expansion.json", n_precatalyst_vol_expansion),
+    ("CEF Discount",              "equity tactical",  "data/cef-discount.json",              n_cef_discount),
+    ("REIT NAV Discount",         "equity tactical",  "data/reit-nav-discount.json",         n_reit_nav_discount),
+    ("Dividend Cut Warning",      "risk avoidance",   "data/divcut-warning.json",            n_divcut_warning),
+    ("Rating Change Cluster",     "smart money",      "data/rating-change-cluster.json",     n_rating_change_cluster),
+    ("Multi-TF Convergence",      "equity tactical",  "data/multi-tf-convergence.json",      n_multi_tf_convergence),
+    ("52W Quality Breakout",      "equity tactical",  "data/52wk-quality-breakout.json",     n_52wk_quality_breakout),
+    ("SPAC Floor + Warrant",      "asymmetric",       "data/spac-floor-warrant.json",        n_spac_floor_warrant),
 ]
 
 
