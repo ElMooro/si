@@ -175,7 +175,11 @@ def lambda_handler(event, context):
                      % (MIN_N, len(snaps))),
         }
         write_json(OUT_KEY, report)
-        return {"statusCode": 200, "body": json.dumps(report)}
+        return {"statusCode": 200, "body": json.dumps({
+            "ok": True, "mode": "insufficient",
+            "snapshots": len(snaps), "engines": 0,
+            "note": "fleet history too thin -- accumulating",
+            "elapsed_s": round(time.time() - t0, 1)})}
 
     # --- 2. assemble per-engine series ----------------------------------
     # series[engine] = [(date, score), ...] in chronological order
