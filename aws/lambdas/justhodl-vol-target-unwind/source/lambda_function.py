@@ -670,3 +670,5 @@ def lambda_handler(event, context):
     telegram_alert(state, rv21, spy_close)
 
     return {"statusCode": 200, "body": json.dumps({"state": state, "rv21": rv21, "signal": signal_strength})}
+
+# redeploy-trigger: 2026-05-20

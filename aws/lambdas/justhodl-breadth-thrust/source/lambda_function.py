@@ -699,3 +699,5 @@ def lambda_handler(event, context):
               whaley.get("state"), coppock.get("state"),
               sig, len(history_rows)))
     return {"statusCode": 200, "body": json.dumps(body, default=str)}
+
+# redeploy-trigger: 2026-05-20

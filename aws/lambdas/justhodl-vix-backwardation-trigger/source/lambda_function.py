@@ -570,3 +570,5 @@ def lambda_handler(event, context):
           (state, signal_strength, vix9d, vix, vix3m, vvix,
            len(history_rows)))
     return {"statusCode": 200, "body": json.dumps(body, default=str)}
+
+# redeploy-trigger: 2026-05-20

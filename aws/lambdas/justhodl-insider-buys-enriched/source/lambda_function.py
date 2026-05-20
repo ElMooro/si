@@ -434,3 +434,5 @@ def lambda_handler(event, context):
           "%d source clusters" % (
             len(enriched), n_high, n_medhi, len(clusters)))
     return {"statusCode": 200, "body": json.dumps(body, default=str)}
+
+# redeploy-trigger: 2026-05-20
