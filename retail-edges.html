@@ -147,7 +147,7 @@ h1 .icon{margin-right:8px}
 <div class="best-trades">
   <h2>Today's Best Retail Trades<span class="updated" id="best-updated">--</span></h2>
   <div class="best-grid" id="best-grid">
-    <div class="loading">Loading top setups from all 7 engines...</div>
+    <div class="loading">Loading top setups from all 21 engines...</div>
   </div>
 </div>
 
@@ -229,6 +229,31 @@ const ENGINES = [
     title:'SPAC Trust-Value Floor + Warrants', icon:'🎯',
     desc:'Pre-merger SPACs trading $9.85-$10.20 (near trust value). Downside floored at redemption; upside via free warrants on announced deal. Risk-free 6-12% annualized baseline. Gahng-Ritter-Zhang 2023.',
     render: renderGeneric, category:'asymmetric' },
+  // === Tier-3 Retail Edges (6 engines, 2026-05-20) ===
+  { key:'vvix-vov-regime', s3:'data/vvix-vov-regime.json',
+    title:'VVIX Vol-of-Vol Regime', icon:'🌀',
+    desc:'VVIX/VIX ratio + VVIX 252d z-score + VIX term structure (VIX-VIX3M) + RV of VIX. VEGA_RICH = sell vol (UVXY short / SVXY long / VIX call spread). VEGA_CHEAP = buy vol. Whaley 2009; Park 2015. ~62% hit on 4-8d.',
+    render: renderGeneric, category:'volatility' },
+  { key:'sympathetic-momentum', s3:'data/sympathetic-momentum.json',
+    title:'Sympathetic Momentum (Peer Catch-Up)', icon:'🔗',
+    desc:'25 sub-industry peer groups (90+ tickers). Leader 5d return >80th pctile + laggard underperforms by >=1.5 group-std + 90d corr >0.55 + RSI <75. Long-laggard tickets, 5-15d hold. Lou-Polk-Ku 2014; Hou 2007.',
+    render: renderGeneric, category:'tactical' },
+  { key:'insider-buyback-confluence', s3:'data/insider-buyback-confluence.json',
+    title:'Insider × Buyback Confluence', icon:'💎',
+    desc:'Double-signal: tickers with BOTH fresh insider clusters AND active buybacks. Weighted by N buyers, $ value, % market cap, FCF coverage. 1.5x multiplier when both strong. >$500M mcap gate. Jenter-Lewellen 2018. ~70% hit / +15-25% / 6-12mo.',
+    render: renderGeneric, category:'smart-money' },
+  { key:'gap-fill-confirm', s3:'data/gap-fill-confirm.json',
+    title:'Gap-Fill Continuation', icon:'⚡',
+    desc:'5-factor: gap >=1.5% + vol >=1.5x 20d avg + trend aligned + fill 30-80% (sweet spot) + no earnings within 3d. Long or short continuation tickets, 1-3 day hold. Gao-Han-Li-Zhou 2018. ~64% hit / +1.8% drift.',
+    render: renderGeneric, category:'tactical' },
+  { key:'13f-price-divergence', s3:'data/13f-price-divergence.json',
+    title:'13F Position vs Price Divergence', icon:'🔍',
+    desc:'BULLISH: institutions adding >=5% AND price down >=15%. BEARISH: institutions selling >=5% AND price up >=20%. Time-decay after 90d disclosure. >$500M mcap gate. Wermers 2000; Cohen-Polk-Silli 2010. +18%/6mo BULL, -12%/6mo BEAR.',
+    render: renderGeneric, category:'smart-money' },
+  { key:'credit-equity-divergence', s3:'data/credit-equity-divergence.json',
+    title:'Credit (HYG) vs Equity (SPY) Divergence', icon:'🚦',
+    desc:'HYG vs SPY 20d return spread + 252d z-score + 3-day persistence. LQD/EMB confirmation overlay. CREDIT_BEAR_RICH = equity vulnerable (short SPY / puts). CREDIT_BULL_RICH = equity bullish. Gilchrist-Zakrajsek 2012. +5% BULL / -7% BEAR / 4-8 wks.',
+    render: renderGeneric, category:'macro' },
 ];
 
 const fmtN = n => n == null ? '-' : (typeof n === 'number' ? n.toLocaleString('en-US', {maximumFractionDigits:2}) : n);
