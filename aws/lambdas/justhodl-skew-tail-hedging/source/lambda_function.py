@@ -217,63 +217,6 @@ def stooq_quote(symbol_no_caret):
     return h[0] if h else None
 
 
-def cboe_quote(symbol_no_caret):
-    """CBOE delayed-quotes JSON API. Reliable for ^SKEW, ^VIX, ^VVIX."""
-    sym = symbol_no_caret.lstrip("^").upper()
-    # CBOE uses _PREFIX for index symbols, e.g. _SKEW, _VIX
-    for tag in (f"_{sym}", sym):
-        url = f"https://cdn.cboe.com/api/global/delayed_quotes/quotes/{tag}.json"
-        try:
-            data = json.loads(http_get(url, timeout=10, retries=1))
-            d = data.get("data") or {}
-            for k in ("current_price", "last_price", "price", "close"):
-                v = d.get(k)
-                if v is not None:
-                    return float(v)
-        except Exception:
-            continue
-    return None
-
-
-def yahoo_quote(symbol_with_caret):
-    """Yahoo Finance v7 quote API. Often has CBOE indices like ^SKEW."""
-    sym = urllib.parse.quote(symbol_with_caret, safe="")
-    url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={sym}"
-    try:
-        data = json.loads(http_get(url, timeout=10, retries=1))
-        res = (data.get("quoteResponse") or {}).get("result") or []
-        if res:
-            p = res[0].get("regularMarketPrice") or res[0].get("ask") or res[0].get("bid")
-            return float(p) if p else None
-    except Exception:
-        pass
-    return None
-
-
-def yahoo_history(symbol_with_caret, days=300):
-    """Yahoo Finance v8 chart API. Returns closes newest-first."""
-    sym = urllib.parse.quote(symbol_with_caret, safe="")
-    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
-           f"?range=2y&interval=1d")
-    try:
-        data = json.loads(http_get(url, timeout=12, retries=1))
-        result = (data.get("chart") or {}).get("result") or []
-        if not result:
-            return []
-        result = result[0]
-        timestamps = result.get("timestamp") or []
-        quotes = (result.get("indicators") or {}).get("quote") or []
-        if not quotes or not timestamps:
-            return []
-        closes_raw = quotes[0].get("close") or []
-        # Pair timestamps with closes, drop None, sort newest first
-        pairs = [(t, c) for t, c in zip(timestamps, closes_raw) if c is not None]
-        pairs.sort(reverse=True)
-        return [float(c) for _, c in pairs[:days]]
-    except Exception:
-        return []
-
-
 def zscore_latest(series):
     if not series or len(series) < 30:
         return None
