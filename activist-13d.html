@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activist 13D Scanner | JustHodl</title>
+<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;
+  --yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;padding:24px;max-width:1500px;margin:0 auto}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px}
+h1{font-size:18px;color:var(--cyan);font-weight:600}
+h2{font-size:14px;color:var(--mute);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px}
+.sub{color:var(--mute);font-size:12px;margin-top:4px}
+.nav{margin-top:8px;font-size:12px;color:var(--dim)}
+.nav a{color:var(--mute);margin-right:14px}
+
+.row{display:grid;gap:16px;margin-bottom:20px}
+.row.cols-3{grid-template-columns:repeat(3,1fr)}
+.row.cols-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.row.cols-3,.row.cols-4{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+.panel.banner{padding:18px}
+.lbl{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.big{font-size:22px;font-weight:600}
+.big.green{color:var(--green)}
+.big.yellow{color:var(--yellow)}
+.big.red{color:var(--red)}
+.big.purple{color:var(--purple)}
+
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted var(--line);font-size:12px}
+.kv:last-child{border:none}
+.kv .k{color:var(--mute)}
+.kv .v{font-variant-numeric:tabular-nums}
+.kv .v.green{color:var(--green)}
+.kv .v.red{color:var(--red)}
+
+.setup{background:var(--panel2);border:1px solid var(--line);border-left-width:4px;border-radius:5px;padding:14px;margin-bottom:10px}
+.setup.tier-A{border-left-color:var(--green)}
+.setup.tier-B{border-left-color:var(--cyan)}
+.setup.tier-A_SHORT{border-left-color:var(--red)}
+.setup .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.setup .ticker{font-size:18px;font-weight:700;color:var(--txt)}
+.setup .activist{font-size:13px;color:var(--cyan)}
+.setup .age{font-size:11px;color:var(--dim)}
+.setup .age.fresh{color:var(--green);font-weight:700}
+.setup .age.stale{color:var(--red)}
+.setup .row{grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+@media(max-width:600px){.setup .row{grid-template-columns:1fr 1fr}}
+.cell{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px;text-align:center}
+.cell .l{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.cell .v{font-size:14px;font-weight:700;margin-top:3px}
+.cell .v.green{color:var(--green)}
+.cell .v.red{color:var(--red)}
+
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:10px;margin-right:4px}
+.pill.tier-A{color:var(--green);border-color:var(--green)}
+.pill.tier-B{color:var(--cyan);border-color:var(--cyan)}
+.pill.tier-A_SHORT{color:var(--red);border-color:var(--red)}
+.pill.multi{color:var(--purple);border-color:var(--purple);background:rgba(167,139,250,0.10)}
+.pill.fresh{color:var(--green);border-color:var(--green);background:rgba(38,255,175,0.10)}
+
+.trade{margin-top:10px;padding:10px;background:rgba(38,255,175,0.05);border:1px dashed var(--line);border-radius:4px}
+.trade .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.trade .text{font-size:12px;color:var(--mute);margin-top:4px;line-height:1.5}
+.trade .meta{margin-top:6px;font-size:11px;color:var(--dim)}
+
+.md{color:var(--mute);font-size:13px;line-height:1.6}
+.md strong{color:var(--txt)}
+.md h3{color:var(--txt);font-size:15px;margin:12px 0 8px}
+.md ul{margin:6px 0;padding-left:22px}
+
+.chk{display:inline-block;width:16px;height:16px;border-radius:3px;text-align:center;line-height:16px;font-weight:700;font-size:11px}
+.chk.yes{background:var(--green);color:#0a0e14}
+.chk.no{background:rgba(255,85,119,0.2);color:var(--red);border:1px solid var(--red)}
+
+.filter-bar{margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{background:var(--panel);border:1px solid var(--line);color:var(--mute);padding:6px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px}
+.filter-btn.active{background:var(--cyan);color:#0a0e14;border-color:var(--cyan)}
+.footer{margin-top:24px;padding:14px;color:var(--dim);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+<h1>ACTIVIST 13D SCANNER <span id="stateTag" class="lbl" style="margin-left:8px"></span></h1>
+<div class="sub">Edge #9 of 10 — fresh schedule 13D filings by 17 curated activists. Brav-Jiang-Partnoy-Thomas 2008: +6-9% above-market over 18m.</div>
+<div class="nav"><a href="/">Home</a> <a href="/directory.html">Directory</a> <a href="/baggers.html">Baggers</a> <a href="/insider-buys.html">Insiders</a></div>
+</header>
+
+<div class="row cols-4">
+  <div class="panel banner">
+    <div class="lbl">STATE</div>
+    <div class="big" id="state">--</div>
+  </div>
+  <div class="panel banner">
+    <div class="lbl">SIGNAL STRENGTH</div>
+    <div class="big" id="sig">--</div>
+    <div class="lbl">0-100 scale</div>
+  </div>
+  <div class="panel banner">
+    <div class="lbl">FRESH TIER-A SETUPS</div>
+    <div class="big" id="freshA">--</div>
+    <div class="lbl">filed in past 5 trading days</div>
+  </div>
+  <div class="panel banner">
+    <div class="lbl">ACTIVISTS TRACKED</div>
+    <div class="big" id="actCount">--</div>
+    <div class="lbl">Elliott, Trian, Pershing, Icahn, ...</div>
+  </div>
+</div>
+
+<div class="row cols-3">
+  <div class="panel">
+    <h2>FORWARD EXPECTATIONS (TOP-20 WEIGHTED)</h2>
+    <div class="kv"><span class="k">Next 1 month</span><span class="v" id="f1m">--</span></div>
+    <div class="kv"><span class="k">Next quarter</span><span class="v" id="f3m">--</span></div>
+    <div class="kv"><span class="k">Next 12 months</span><span class="v" id="f12m">--</span></div>
+    <div class="lbl" style="margin-top:12px">Basis: above-S&P 500, age-decayed</div>
+  </div>
+  <div class="panel">
+    <h2>SUMMARY</h2>
+    <div class="kv"><span class="k">Total setups</span><span class="v" id="nTotal">--</span></div>
+    <div class="kv"><span class="k">Fresh tier-A</span><span class="v" id="nFreshA">--</span></div>
+    <div class="kv"><span class="k">Multi-activist targets</span><span class="v" id="nMulti">--</span></div>
+    <div class="kv"><span class="k">Top composite score</span><span class="v" id="topScore">--</span></div>
+  </div>
+  <div class="panel">
+    <h2>TRIGGER CONDITIONS</h2>
+    <div id="triggers"></div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-f="all">ALL</button>
+  <button class="filter-btn" data-f="A">TIER A</button>
+  <button class="filter-btn" data-f="B">TIER B</button>
+  <button class="filter-btn" data-f="A_SHORT">SHORT</button>
+  <button class="filter-btn" data-f="fresh">FRESH (under 5td)</button>
+  <button class="filter-btn" data-f="multi">MULTI-ACTIVIST</button>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>TOP SETUPS (RANKED BY COMPOSITE SCORE)</h2>
+    <div id="setups"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>WHY NOW (TOP SETUP RETAIL EXPLAINER)</h2>
+    <div class="md" id="whyNow"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="panel">
+    <h2>METHODOLOGY & ACADEMIC BASIS</h2>
+    <div class="md" id="meth"></div>
+  </div>
+</div>
+
+<div class="footer">
+  JustHodl.AI Activist 13D Engine | <span id="engine">--</span> | Last refresh: <span id="asOf">--</span>
+  <br>Refreshes every 120s. Data: SEC EDGAR per-filer JSON + FMP /stable/ quotes. Lambda runs every 2 hours.
+</div>
+
+<script>
+const URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/activist-13d.json";
+let allSetups = [];
+let activeFilter = "all";
+
+function fmtPct(x, signed=true){ if(x===null||x===undefined||isNaN(x)) return "--"; return (signed && x>=0 ? "+" : "") + Number(x).toFixed(2) + "%"; }
+function fmt(x, d=2){ if(x===null||x===undefined) return "--"; return Number(x).toFixed(d); }
+function mdToHtml(s){
+  if(!s) return "";
+  s = s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  s = s.replace(/### (.+)/g,"<h3>$1</h3>");
+  s = s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s = s.replace(/^- (.+)$/gm,"<li>$1</li>");
+  s = s.replace(/(<li>.*?<\/li>\n?)+/g,m=>"<ul>"+m+"</ul>");
+  s = s.replace(/\n\n+/g,"</p><p>");
+  return "<p>"+s+"</p>";
+}
+
+async function load(){
+  try{
+    const r = await fetch(URL + "?t=" + Date.now());
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    render(await r.json());
+  }catch(e){
+    document.getElementById("state").textContent = "ERR";
+    document.getElementById("whyNow").textContent = "Load error: " + e.message;
+  }
+}
+
+function setupCard(s){
+  const target = s.target_ticker || s.target_name || "(unknown target)";
+  const p = s.forward_priors || {};
+  const isFresh = s.age_trading_days <= 5;
+  const isStale = s.age_trading_days > 20;
+  const isMulti = s.n_activists_in_target >= 2;
+  let pills = `<span class="pill tier-${s.tier}">${s.tier}</span>`;
+  if(isFresh) pills += `<span class="pill fresh">FRESH ${s.age_trading_days}td</span>`;
+  if(isMulti) pills += `<span class="pill multi">n=${s.n_activists_in_target} activists</span>`;
+
+  const tr = s.recommended_trade || {};
+  const primary = tr.primary || {};
+
+  return `
+  <div class="setup tier-${s.tier}" data-tier="${s.tier}" data-fresh="${isFresh}" data-multi="${isMulti}">
+    <div class="hdr">
+      <div>
+        <div class="ticker">${target}</div>
+        <div class="activist">${s.activist_name}</div>
+        <div style="margin-top:4px">${pills}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="age ${isFresh?'fresh':isStale?'stale':''}">${s.age_trading_days} trading days ago</div>
+        <div class="lbl" style="margin:3px 0">filed ${s.filing_date}</div>
+        <div class="lbl" style="color:var(--cyan)">Composite: ${s.composite_score}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="cell"><div class="l">1m</div><div class="v ${(p["1m"]||0)>=0?'green':'red'}">${fmtPct(p["1m"])}</div></div>
+      <div class="cell"><div class="l">Quarter</div><div class="v ${(p["3m"]||0)>=0?'green':'red'}">${fmtPct(p["3m"])}</div></div>
+      <div class="cell"><div class="l">12m</div><div class="v ${(p["12m"]||0)>=0?'green':'red'}">${fmtPct(p["12m"])}</div></div>
+      <div class="cell"><div class="l">18m</div><div class="v ${(p["18m"]||0)>=0?'green':'red'}">${fmtPct(p["18m"])}</div></div>
+    </div>
+
+    <div class="trade">
+      <div class="label">RECOMMENDED TRADE</div>
+      <div class="text"><strong>${primary.instrument||"--"}</strong></div>
+      <div class="text">${primary.thesis||""}</div>
+      <div class="meta">
+        Size: ${primary.size_guidance||"--"} | Horizon: ${primary.expected_horizon||"--"} | Max loss: ${primary.max_loss||"--"}
+      </div>
+      <div class="meta">${primary.expected_return_basis||""}</div>
+      <div class="meta"><a href="${s.filing_url||'#'}" target="_blank" rel="noopener">View SEC filing -></a></div>
+    </div>
+  </div>`;
+}
+
+function applyFilter(){
+  const setups = activeFilter === "all" ? allSetups
+    : activeFilter === "fresh" ? allSetups.filter(s=>s.age_trading_days<=5)
+    : activeFilter === "multi" ? allSetups.filter(s=>s.n_activists_in_target>=2)
+    : allSetups.filter(s=>s.tier===activeFilter);
+  document.getElementById("setups").innerHTML = setups.length
+    ? setups.map(setupCard).join("")
+    : "<div class='lbl'>(no setups match this filter)</div>";
+}
+
+function render(d){
+  document.getElementById("state").textContent = d.state || "QUIET";
+  document.getElementById("stateTag").textContent = d.state || "";
+  const sig = d.signal_strength || 0;
+  document.getElementById("sig").textContent = sig + "/100";
+  document.getElementById("sig").className = "big " + (sig>=70?"green":sig>=40?"yellow":"red");
+
+  const sum = d.summary || {};
+  document.getElementById("freshA").textContent = sum.n_fresh_tier_a || 0;
+  document.getElementById("freshA").className = "big " + (sum.n_fresh_tier_a>0?"green":"mute");
+  document.getElementById("actCount").textContent = sum.activists_tracked || 17;
+
+  document.getElementById("nTotal").textContent = sum.n_total_setups || 0;
+  document.getElementById("nFreshA").textContent = sum.n_fresh_tier_a || 0;
+  document.getElementById("nMulti").textContent = sum.n_multi_activist || 0;
+  const cr = d.current_readings || {};
+  document.getElementById("topScore").textContent = cr.highest_composite_score || "--";
+
+  const fe = d.forward_expectations || {};
+  function setF(id, k){
+    const v = fe[k]?.return_pct;
+    const el = document.getElementById(id);
+    el.textContent = fmtPct(v);
+    el.className = "v " + (v===null||v===undefined?"":(v>=0?"green":"red"));
+  }
+  setF("f1m","1m"); setF("f3m","3m"); setF("f12m","12m");
+
+  const tc = d.trigger_conditions || [];
+  document.getElementById("triggers").innerHTML = tc.map(c=>{
+    const ok = c.satisfied;
+    return `<div class="kv">
+      <span class="k"><span class="chk ${ok?"yes":"no"}">${ok?"Y":"N"}</span> &nbsp; ${c.name}</span>
+      <span class="v" style="font-size:11px;color:var(--dim)">w=${(c.weight*100).toFixed(0)}%</span>
+    </div>`;
+  }).join("");
+
+  allSetups = d.top_setups || [];
+  applyFilter();
+
+  document.getElementById("whyNow").innerHTML = mdToHtml(d.why_now_explainer || "");
+
+  let m = `<p>${d.methodology||""}</p>`;
+  if(d.academic_basis){
+    m += "<p><strong>Academic basis:</strong></p><ul>";
+    m += d.academic_basis.map(s=>"<li>"+s+"</li>").join("");
+    m += "</ul>";
+  }
+  if(d.sources){
+    m += "<p><strong>Sources:</strong></p><ul>";
+    m += d.sources.map(s=>"<li>"+s+"</li>").join("");
+    m += "</ul>";
+  }
+  m += `<p><strong>Schedule:</strong> ${d.schedule||"--"}</p>`;
+  document.getElementById("meth").innerHTML = m;
+
+  document.getElementById("engine").textContent = (d.engine||"--") + " v" + (d.version||"");
+  document.getElementById("asOf").textContent = d.as_of || "--";
+}
+
+document.querySelectorAll(".filter-btn").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    activeFilter = b.dataset.f;
+    applyFilter();
+  });
+});
+
+load();
+setInterval(load, 120000);
+</script>
+</body>
+</html>
