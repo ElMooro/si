@@ -371,10 +371,30 @@ def lambda_handler(event, context):
                   if e["recommended_trade"]["conviction_tier"]
                   == "MEDIUM-HIGH")
 
+    # State classification per institutional standard:
+    #   FRESH_HIGH_CONVICTION: >=2 high-conviction setups landed
+    #   ELEVATED            : >=4 enriched setups, mixed tiers
+    #   NORMAL              : standard cluster activity
+    #   QUIET               : no clusters cleared filters
+    if n_high >= 2:
+        state = "FRESH_HIGH_CONVICTION"
+    elif len(enriched) >= 4 and n_medhi >= 2:
+        state = "ELEVATED"
+    elif len(enriched) >= 1:
+        state = "NORMAL"
+    else:
+        state = "QUIET"
+
+    # Composite signal strength
+    signal_strength = min(100,
+        n_high * 25 + n_medhi * 15 + min(len(enriched), 10) * 3)
+
     body = {
         "engine": "insider-buys-enriched",
         "version": "1.0",
         "as_of": as_of,
+        "state": state,
+        "signal_strength": signal_strength,
         "source": SOURCE_KEY,
         "source_as_of": src.get("as_of"),
         "summary": {
