@@ -1,0 +1,71 @@
+{
+ "ops": 895,
+ "ts": "2026-05-20T11:48:44.409114+00:00",
+ "subject": "Verify Universal IC Calibration Fleet end-to-end",
+ "checks": [
+  {
+   "check": "fleet_lambda_deployed",
+   "ok": true,
+   "detail": "justhodl-calibration-fleet"
+  },
+  {
+   "check": "snapshotter_deployed",
+   "ok": true,
+   "detail": "LastUpdateStatus=Successful, State=Active"
+  },
+  {
+   "check": "fleet_invoke_ok",
+   "ok": true,
+   "detail": "engines=10 predictive=0 noise=1 contrarian=0 insufficient=9 elapsed=1.0s"
+  },
+  {
+   "check": "report_well_formed",
+   "ok": true,
+   "detail": "engines=10, fields ok=True"
+  },
+  {
+   "check": "at_least_one_engine_calibrated",
+   "ok": true,
+   "detail": "1 engines with IC and N>=30: global_stress=-0.02 (N=269, NOISE)"
+  },
+  {
+   "check": "global_stress_calibrated",
+   "ok": true,
+   "detail": "global_stress IC=-0.0195, N=269, rating=NOISE, hit_rate=52.1, stability_gap=0.1191"
+  },
+  {
+   "check": "ssm_weights_published",
+   "ok": true,
+   "detail": "10 weights, sum=0.0, calibrated_at=2026-05-20T11:48:46.566396+00:00"
+  },
+  {
+   "check": "fleet_scheduled_daily",
+   "ok": true,
+   "detail": "updated -> daily 09:10 UTC"
+  },
+  {
+   "check": "snapshotter_runs_clean",
+   "ok": true,
+   "detail": "snapshotter invocation status 200"
+  }
+ ],
+ "summary": "9/9 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "engines_total": 10,
+  "predictive": 0,
+  "weak": 0,
+  "insufficient": 9,
+  "noise": 1,
+  "contrarian": 0,
+  "top_ic": [
+   [
+    "Global Stress Matrix",
+    -0.0195
+   ]
+  ],
+  "global_stress_ic": -0.0195,
+  "global_stress_n": 269
+ },
+ "verdict": "UNIVERSAL IC CALIBRATION FLEET LIVE - the platform now has rigorous continuous-IC calibration for composite-score engines, complementing the existing accuracy-based per-event calibrator. The fleet bootstraps from the DDB history-snapshotter store so every registered engine is evaluated against forward SPY drawdowns from day one, publishes ic_spearman + hit_rate + split-half stability + quality_rating per engine to data/calibration-fleet.json, and a machine-readable weight map to SSM /justhodl/calibration-fleet/weights for synthesizers to consume. Re-runs daily at 09:10 UTC -- the loop is closed."
+}
