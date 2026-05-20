@@ -1,0 +1,83 @@
+{
+  "ops": 953,
+  "title": "post-fix invoke + verify of 4 Lambdas (Edges #5/#6/#8/#9)",
+  "run_at": "2026-05-20T14:07:02.085561Z",
+  "checks": [
+    {
+      "name": "e5.invoke_ok",
+      "passed": true,
+      "detail": "dur=1.1s status=200 err=None body={\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient universe\\\", \\\"n\\\": 0}\"}"
+    },
+    {
+      "name": "e5.s3_output_present",
+      "passed": false,
+      "detail": "size=0B err=An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    {
+      "name": "e6.invoke_ok",
+      "passed": true,
+      "detail": "dur=11.07s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"NORMAL\\\", \\\"n_fresh\\\": 11, \\\"n_opportunities\\\": 30, \\\"signal_strength\\\": 80.0, \\\"top\\\": \\\"COUR\\\"}\"}"
+    },
+    {
+      "name": "e6.s3_output_present",
+      "passed": true,
+      "detail": "size=59242B err=None"
+    },
+    {
+      "name": "e6.recommended_trade_present",
+      "passed": false,
+      "detail": "keys=[]"
+    },
+    {
+      "name": "e6.trade_ticket_primary_nonempty",
+      "passed": false,
+      "detail": "instrument=? thesis_len=0"
+    },
+    {
+      "name": "e8.invoke_ok",
+      "passed": true,
+      "detail": "dur=1.28s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"POST_OPEX\\\", \\\"prev\\\": \\\"POST_OPEX\\\", \\\"intensity\\\": 65, \\\"next_opex\\\": \\\"2026-06-19\\\"}\"}"
+    },
+    {
+      "name": "e8.s3_output_present",
+      "passed": true,
+      "detail": "size=4524B err=None"
+    },
+    {
+      "name": "e8.top_level_keys_present",
+      "passed": false,
+      "detail": "missing=['days_to_next_opex', 'max_pain', 'dealer_gex_proxy'] dgex=? dtno=? mp=?"
+    },
+    {
+      "name": "e8.dealer_gex_proxy_valid",
+      "passed": false,
+      "detail": "got=None"
+    },
+    {
+      "name": "e9.invoke_ok",
+      "passed": true,
+      "detail": "dur=2.97s status=200 err=None body={\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0, \\\"n_fresh_tier_a\\\": 0, \\\"signal\\\": 0}\"}"
+    },
+    {
+      "name": "e9.s3_output_present",
+      "passed": true,
+      "detail": "size=3745B err=None"
+    },
+    {
+      "name": "e9.all_setups_key_present",
+      "passed": true,
+      "detail": "keys_subset=['top_setups', 'all_setups']"
+    },
+    {
+      "name": "e9.why_now_substantive",
+      "passed": true,
+      "detail": "len=668 preview='### No active activist 13D setups in queue\\n\\nThe curated 18-name activist roster '"
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "passed": 9,
+    "failed": 5
+  },
+  "overall_ok": false
+}
