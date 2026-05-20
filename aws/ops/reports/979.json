@@ -1,0 +1,186 @@
+{
+  "ops_id": "979",
+  "purpose": "Tier-3 retail-edges pure verification (no race conditions)",
+  "started_at": "2026-05-20T21:47:13Z",
+  "engines": {
+    "justhodl-vvix-vov-regime": {
+      "name": "justhodl-vvix-vov-regime",
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "runtime": "python3.12",
+        "memory": 512,
+        "timeout": 180,
+        "last_modified": "2026-05-20T21:36:23.300+0000",
+        "ok": true
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"strength\\\": 0.0, \\\"n_tickets\\\": 0}\"}"
+      },
+      "schedule": {
+        "ok": false,
+        "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule operation: Schedule schedule-vvix-vov-regime does not exist."
+      },
+      "s3": {
+        "exists": true,
+        "size_bytes": 988,
+        "last_modified": "2026-05-20 21:47:21+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.0,
+        "as_of": "2026-05-20T21:47:20Z",
+        "n_picks": 0,
+        "ok": true
+      }
+    },
+    "justhodl-sympathetic-momentum": {
+      "name": "justhodl-sympathetic-momentum",
+      "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-sympathetic-momentum/invocations\"",
+      "traceback": "Traceback (most recent call last):\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py\", line 534, in _make_request\n    response = conn.getresponse()\n               ^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py\", line 571, in getresponse\n    httplib_response = super().getresponse()\n                       ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 1450, in getresponse\n    response.begin()\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 336, in begin\n    version, status, reason = self._read_status()\n                              ^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 297, in _read_status\n    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/socket.py\", line 720, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py\", line 1251, in recv_into\n    return self.read(nbytes, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py\", line 1103, in read\n    return self._sslobj.read(len, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    "justhodl-insider-buyback-confluence": {
+      "name": "justhodl-insider-buyback-confluence",
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "runtime": "python3.12",
+        "memory": 768,
+        "timeout": 300,
+        "last_modified": "2026-05-20T21:41:59.859+0000",
+        "ok": true
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_confluences\\\": 0, \\\"n_high\\\": 0}\"}"
+      },
+      "schedule": {
+        "ok": false,
+        "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule operation: Schedule schedule-insider-buyback-confluence does not exist."
+      },
+      "s3": {
+        "exists": true,
+        "size_bytes": 1469,
+        "last_modified": "2026-05-20 21:52:34+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T21:52:33Z",
+        "n_picks": 0,
+        "ok": true
+      }
+    },
+    "justhodl-gap-fill-confirm": {
+      "name": "justhodl-gap-fill-confirm",
+      "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-gap-fill-confirm/invocations\"",
+      "traceback": "Traceback (most recent call last):\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py\", line 534, in _make_request\n    response = conn.getresponse()\n               ^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py\", line 571, in getresponse\n    httplib_response = super().getresponse()\n                       ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 1450, in getresponse\n    response.begin()\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 336, in begin\n    version, status, reason = self._read_status()\n                              ^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py\", line 297, in _read_status\n    line = str(self.fp.readline(_MAXLINE + 1), \"iso-8859-1\")\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/socket.py\", line 720, in readinto\n    return self._sock.recv_into(b)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py\", line 1251, in recv_into\n    return self.read(nbytes, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/ssl.py\", line 1103, in read\n    return self._sslobj.read(len, buffer)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    "justhodl-13f-price-divergence": {
+      "name": "justhodl-13f-price-divergence",
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "runtime": "python3.12",
+        "memory": 1024,
+        "timeout": 540,
+        "last_modified": "2026-05-20T21:47:28.135+0000",
+        "ok": true
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_divergences\\\": 0}\"}"
+      },
+      "schedule": {
+        "ok": false,
+        "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule operation: Schedule schedule-13f-price-divergence does not exist."
+      },
+      "s3": {
+        "exists": true,
+        "size_bytes": 1256,
+        "last_modified": "2026-05-20 21:57:48+00:00",
+        "state": "QUIET",
+        "signal_strength": 0.1,
+        "as_of": "2026-05-20T21:57:47Z",
+        "n_picks": 0,
+        "ok": true
+      }
+    },
+    "justhodl-credit-equity-divergence": {
+      "name": "justhodl-credit-equity-divergence",
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "runtime": "python3.12",
+        "memory": 512,
+        "timeout": 180,
+        "last_modified": "2026-05-20T21:52:46.000+0000",
+        "ok": true
+      },
+      "invoke": {
+        "ok": true,
+        "status_code": 200,
+        "function_error": null,
+        "body_preview": "{\"statusCode\": 500, \"body\": \"{\\\"error\\\": \\\"insufficient data: HYG=0 SPY=0\\\"}\"}"
+      },
+      "schedule": {
+        "ok": false,
+        "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule operation: Schedule schedule-credit-equity-divergence does not exist."
+      },
+      "s3": {
+        "exists": true,
+        "size_bytes": 368,
+        "last_modified": "2026-05-20 21:57:53+00:00",
+        "state": null,
+        "signal_strength": null,
+        "as_of": "2026-05-20T21:57:51Z",
+        "n_picks": 0,
+        "ok": false
+      }
+    }
+  },
+  "signal_board": {
+    "deploy": {
+      "ok": true,
+      "zip_size": 8560
+    },
+    "invoke": {
+      "ok": true,
+      "status_code": 200,
+      "function_error": null,
+      "body_preview": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"composite_posture\\\": \\\"NEUTRAL / MIXED\\\", \\\"composite_signal\\\": 0.1, \\\"n_live\\\": 42, \\\"n_stale\\\": 0}\"}"
+    },
+    "verify": {
+      "n_engines": null,
+      "n_live": 42,
+      "n_stale": 0,
+      "composite_posture": "NEUTRAL / MIXED",
+      "composite_signal": 0.1,
+      "expects_42": true,
+      "ok": true
+    }
+  },
+  "page": {
+    "ok": false,
+    "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  },
+  "scorecard": {
+    "n_engines": 6,
+    "n_engine_full_ok": 3,
+    "n_schedule_ok": 0,
+    "signal_board_deploy_ok": true,
+    "signal_board_verify_ok": true,
+    "n_signal_board_engines": null,
+    "page_ok": false,
+    "page_markers": null,
+    "all_pass": false
+  },
+  "finished_at": "2026-05-20T21:57:59Z"
+}
