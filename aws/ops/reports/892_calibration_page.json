@@ -1,0 +1,62 @@
+{
+ "ops": 892,
+ "ts": "2026-05-20T01:14:28.439415+00:00",
+ "subject": "Verify the GSI calibration dashboard page",
+ "checks": [
+  {
+   "check": "calibrator_rerun_ok",
+   "ok": true,
+   "detail": "mode=empirical, N=269"
+  },
+  {
+   "check": "calibration_json_well_formed",
+   "ok": true,
+   "detail": "all expected keys present, 100 paired obs, mode=empirical, N=269"
+  },
+  {
+   "check": "paired_obs_shape_correct",
+   "ok": true,
+   "detail": "first row: date=2025-11-10, drawdown=4.24%, 5 dims"
+  },
+  {
+   "check": "page_renders_calibration_shell",
+   "ok": true,
+   "detail": "HTTP 200, all 7 shell markers present"
+  },
+  {
+   "check": "directory_links_to_calibration",
+   "ok": true,
+   "detail": "directory.html 200, link present"
+  },
+  {
+   "check": "landing_links_to_calibration",
+   "ok": true,
+   "detail": "index 200, GSI CALIBRATION card rendered"
+  }
+ ],
+ "summary": "6/6 checks passed",
+ "all_passed": true,
+ "snapshot": {
+  "mode": "empirical",
+  "sample_size": 269,
+  "n_paired_observations": 100,
+  "active_weights": {
+   "market": 0.254,
+   "credit": 0.1429,
+   "vix": 0.4,
+   "rate_vol": 0.1032,
+   "contagion": 0.05,
+   "sovereign": 0.05
+  },
+  "ic_per_dim": {
+   "market": -0.1482,
+   "credit": 0.0336,
+   "vix": 0.1554,
+   "rate_vol": -0.3878,
+   "contagion": -0.3091,
+   "sovereign": -0.0924
+  },
+  "calibrated_at": "2026-05-20T01:14:29.623600+00:00"
+ },
+ "verdict": "GSI CALIBRATION DASHBOARD LIVE - the empirical reweighting of the Global Stress Index is no longer a black box. The page renders the per-dimension IC against 21-session forward SPY drawdown, the prior vs active weight bars, and the actual paired observations as scatter plots with OLS fit lines. Linked from the landing page (RISK, HEDGING & VOLATILITY) and the directory."
+}
