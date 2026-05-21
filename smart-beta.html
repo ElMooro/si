@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Beta Composite · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+  --val:#26ffaf;--qty:#00d4ff;--mom:#ffd266;--lvl:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.regime-banner{background:var(--panel);border:1px solid var(--line);padding:24px;border-radius:8px;margin-bottom:18px;border-left:4px solid var(--green)}
+.regime-banner .label{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.regime-banner .v{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:1px;color:var(--green)}
+.regime-banner .vsub{font-family:var(--mono);font-size:13px;color:var(--mute);margin-top:8px}
+.factor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.factor-card{background:var(--panel);border:1px solid var(--line);padding:16px;border-radius:6px;border-top:3px solid var(--line)}
+.factor-card.leader{border-top-color:var(--green)}
+.factor-card.laggard{border-top-color:var(--red)}
+.factor-card h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;margin-bottom:8px}
+.factor-card .v{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--txt)}
+.factor-card .vsub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:6px;line-height:1.5}
+.factor-card.value h3{color:var(--val)}
+.factor-card.quality h3{color:var(--qty)}
+.factor-card.momentum h3{color:var(--mom)}
+.factor-card.low_vol h3{color:var(--lvl)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:22px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.tk small{display:block;color:var(--dim);font-size:9.5px;font-weight:400}
+.score-bar{display:inline-block;height:5px;border-radius:3px;background:var(--line);width:74px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.score-fill{display:block;height:100%;background:var(--green)}
+.up{color:var(--green)}.dn{color:var(--red)}.warn{color:var(--orange)}.dim{color:var(--dim)}
+.pct-bar{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px}
+.pct-bar .b{display:inline-block;height:4px;background:var(--line);width:50px;border-radius:2px;overflow:hidden}
+.pct-bar .b span{display:block;height:100%}
+.pct-val .b span{background:var(--val)}
+.pct-qty .b span{background:var(--qty)}
+.pct-mom .b span{background:var(--mom)}
+.pct-lvl .b span{background:var(--lvl)}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;font-family:var(--mono);letter-spacing:.5px}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>🎯 Smart Beta Composite · Refinitiv/MSCI Methodology</h1>
+  <p class="subtitle">The canonical 4-factor smart-beta methodology powering <strong>$300B+ in ETFs</strong> (MSCI Diversified Multiple-Factor, FTSE Russell Smart Beta). Equal-weight percentile-rank composite of <strong>Value</strong> (1/PE + 1/PB), <strong>Quality</strong> (ROIC + Gross Margin), <strong>Momentum</strong> (12-minus-1), and <strong>Low Volatility</strong> (negated realized vol). Identifies market factor regime + diversified leaders.</p>
+  <nav class="crumbs"><a href="/">← Home</a><a href="/starmine.html">StarMine</a><a href="/predictability.html">Predictability</a><a href="/gf-value.html">GF Value</a></nav>
+</header>
+
+<div id="root"><div class="loading">Loading Smart Beta data...</div></div>
+
+<footer>
+  <span id="last_updated">—</span> · v<span id="version">—</span> · Universe: <span id="universe_n">—</span> top-mcap S&amp;P names · Sources: FMP /stable/key-metrics-ttm + /stable/ratios-ttm + /stable/historical-price-eod/full · Refresh daily 00:15 UTC
+</footer>
+</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/smart-beta.json';
+
+function pctBar(pct, factorKey){
+  if(pct===null||pct===undefined) return '<span class="dim">—</span>';
+  const cls = {value:'pct-val',quality:'pct-qty',momentum:'pct-mom',low_vol:'pct-lvl'}[factorKey] || 'pct-val';
+  const v = Math.max(0, Math.min(100, pct));
+  return `<span class="pct-bar ${cls}"><span class="b"><span style="width:${v}%"></span></span>${pct.toFixed(0)}</span>`;
+}
+
+function compositeBar(score){
+  if(score===null||score===undefined) return '—';
+  const v = Math.max(0, Math.min(100, score));
+  return `<span class="mono">${score.toFixed(1)}</span><span class="score-bar"><span class="score-fill" style="width:${v}%"></span></span>`;
+}
+
+function fmtPct(v, signed=false){
+  if(v===null||v===undefined) return '<span class="dim">—</span>';
+  const sign = signed && v>=0 ? '+' : '';
+  return `${sign}${v.toFixed(1)}%`;
+}
+
+function fmtFloat(v, dec=2){
+  if(v===null||v===undefined) return '<span class="dim">—</span>';
+  return v.toFixed(dec);
+}
+
+function render(d){
+  if(!d||!d.ok){
+    document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
+    return;
+  }
+  document.getElementById('last_updated').textContent = d.generated_at;
+  document.getElementById('version').textContent = d.version || '—';
+  document.getElementById('universe_n').textContent = d.n_valid || '—';
+
+  const factorNames = {value:'Value', quality:'Quality', momentum:'Momentum', low_vol:'Low Vol'};
+  const factorHelp = {
+    value: 'Cheap based on PE + PB',
+    quality: 'High ROIC + margin',
+    momentum: '12-1 month momentum',
+    low_vol: 'Low realized vol'
+  };
+
+  const html = `
+    <div class="regime-banner">
+      <div class="label">Current Factor Regime</div>
+      <div class="v">${d.factor_regime.replace(/_/g,' ')}</div>
+      <div class="vsub">Leading factor: <span class="up">${factorNames[d.leading_factor]||d.leading_factor}</span> (median pct: ${d.factor_medians?.[d.leading_factor]?.toFixed(0)||'—'}) · Lagging: <span class="dn">${factorNames[d.lagging_factor]||d.lagging_factor}</span> (median pct: ${d.factor_medians?.[d.lagging_factor]?.toFixed(0)||'—'}) · Spread: ${d.factor_spread_points?.toFixed(0)||'—'}pp</div>
+    </div>
+
+    <h2>Factor Medians (Universe-Wide)</h2>
+    <div class="factor-grid">
+      ${['value','quality','momentum','low_vol'].map(f=>`
+        <div class="factor-card ${f} ${f===d.leading_factor?'leader':f===d.lagging_factor?'laggard':''}">
+          <h3>${factorNames[f]} ${f===d.leading_factor?'· LEADER':f===d.lagging_factor?'· LAGGARD':''}</h3>
+          <div class="v">${d.factor_medians?.[f]?.toFixed(1)||'—'}</div>
+          <div class="vsub">Median percentile · ${factorHelp[f]}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><h3>Universe Analyzed</h3><div class="v">${d.n_valid||0}</div><div class="vsub">of ${d.n_universe||'—'} tickers</div></div>
+      <div class="kpi"><h3>Diversified Leaders</h3><div class="v up">${d.n_diversified_leaders||0}</div><div class="vsub">all 4 factors ≥60</div></div>
+      <div class="kpi"><h3>Top Composite</h3><div class="v" style="color:var(--cyan)">${d.top_25_diversified[0]?.ticker||'—'}</div><div class="vsub">score ${d.top_25_diversified[0]?.composite?.toFixed(1)||'—'}</div></div>
+      <div class="kpi"><h3>Bottom Composite</h3><div class="v dn">${d.bottom_25_laggards[0]?.ticker||'—'}</div><div class="vsub">score ${d.bottom_25_laggards[0]?.composite?.toFixed(1)||'—'}</div></div>
+      <div class="kpi"><h3>Factor Spread</h3><div class="v ${d.factor_spread_points>=25?'warn':'mute'}">${d.factor_spread_points?.toFixed(0)||'—'}pp</div><div class="vsub">leader vs laggard</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('top')">Top 25 Composite</div>
+      <div class="tab" onclick="switchTab('div')">Diversified Leaders (All 4≥60)</div>
+      <div class="tab" onclick="switchTab('bottom')">Bottom 25 Laggards</div>
+      <div class="tab" onclick="switchTab('value')">Value Leaders</div>
+      <div class="tab" onclick="switchTab('quality')">Quality Leaders</div>
+      <div class="tab" onclick="switchTab('momentum')">Momentum Leaders</div>
+      <div class="tab" onclick="switchTab('low_vol')">Low Vol Leaders</div>
+      <div class="tab" onclick="switchTab('sector')">Sector Quality</div>
+      <div class="tab" onclick="switchTab('method')">Methodology</div>
+    </div>
+
+    <div id="tab-top" class="tab-pane active">
+      <table>
+        <thead><tr>
+          <th>Rank</th><th>Ticker</th><th>Sector</th><th>Composite</th>
+          <th>Value Pct</th><th>Quality Pct</th><th>Mom Pct</th><th>LowVol Pct</th>
+          <th>PE</th><th>PB</th><th>ROIC</th><th>GM</th><th>12-1 Mom%</th><th>Vol%</th>
+        </tr></thead>
+        <tbody>${(d.top_25_diversified||[]).map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${compositeBar(t.composite)}</td>
+            <td>${pctBar(t.value_pct,'value')}</td>
+            <td>${pctBar(t.quality_pct,'quality')}</td>
+            <td>${pctBar(t.momentum_pct,'momentum')}</td>
+            <td>${pctBar(t.low_vol_pct,'low_vol')}</td>
+            <td class="mono">${fmtFloat(t.pe_ttm,1)}</td>
+            <td class="mono">${fmtFloat(t.pb_ttm,1)}</td>
+            <td class="mono">${t.roic_ttm?(t.roic_ttm*100).toFixed(1)+'%':'—'}</td>
+            <td class="mono">${t.gross_margin_ttm?(t.gross_margin_ttm*100).toFixed(0)+'%':'—'}</td>
+            <td class="mono">${fmtPct(t.twelve_minus_one_pct,true)}</td>
+            <td class="mono dim">${fmtFloat(t.annualized_vol_pct,1)}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-div" class="tab-pane">
+      ${d.diversified_factor_leaders?.length ? `
+      <p class="dim" style="margin:8px 0">Names ranking in top 40% on ALL 4 factors — the rarest and most defensive cohort. These are MSCI's "diversified multiple-factor" picks.</p>
+      <table>
+        <thead><tr><th>Rank</th><th>Ticker</th><th>Sector</th><th>Composite</th><th>Value</th><th>Quality</th><th>Momentum</th><th>Low Vol</th></tr></thead>
+        <tbody>${d.diversified_factor_leaders.map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${compositeBar(t.composite)}</td>
+            <td>${pctBar(t.value_pct,'value')}</td>
+            <td>${pctBar(t.quality_pct,'quality')}</td>
+            <td>${pctBar(t.momentum_pct,'momentum')}</td>
+            <td>${pctBar(t.low_vol_pct,'low_vol')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>` : '<p class="dim" style="padding:16px">No names qualify as 4-factor leaders right now. Market is showing strong factor dispersion — focus on single-factor leadership instead.</p>'}
+    </div>
+
+    <div id="tab-bottom" class="tab-pane">
+      <table>
+        <thead><tr><th>Rank</th><th>Ticker</th><th>Sector</th><th>Composite</th><th>Value</th><th>Quality</th><th>Momentum</th><th>Low Vol</th><th>PE</th><th>12-1 Mom%</th><th>Vol%</th></tr></thead>
+        <tbody>${(d.bottom_25_laggards||[]).map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${compositeBar(t.composite)}</td>
+            <td>${pctBar(t.value_pct,'value')}</td>
+            <td>${pctBar(t.quality_pct,'quality')}</td>
+            <td>${pctBar(t.momentum_pct,'momentum')}</td>
+            <td>${pctBar(t.low_vol_pct,'low_vol')}</td>
+            <td class="mono">${fmtFloat(t.pe_ttm,1)}</td>
+            <td class="mono">${fmtPct(t.twelve_minus_one_pct,true)}</td>
+            <td class="mono">${fmtFloat(t.annualized_vol_pct,1)}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${['value','quality','momentum','low_vol'].map(f=>`
+    <div id="tab-${f}" class="tab-pane">
+      <p class="dim" style="margin:8px 0">Top 10 names by <strong>${factorNames[f]}</strong> factor.</p>
+      <table>
+        <thead><tr><th>Rank</th><th>Ticker</th><th>Sector</th><th>${factorNames[f]} Pct</th><th>Composite</th>
+          ${f==='value'?'<th>PE</th><th>PB</th>':''}
+          ${f==='quality'?'<th>ROIC</th><th>Gross Margin</th>':''}
+          ${f==='momentum'?'<th>12-1 Mom%</th><th>12m Ret</th><th>1m Ret</th>':''}
+          ${f==='low_vol'?'<th>Vol Annual %</th>':''}
+        </tr></thead>
+        <tbody>${(d.factor_leaders?.[f]||[]).map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${pctBar(t[f+'_pct'],f)}</td>
+            <td>${compositeBar(t.composite)}</td>
+            ${f==='value'?`<td class="mono">${fmtFloat(t.pe_ttm,1)}</td><td class="mono">${fmtFloat(t.pb_ttm,1)}</td>`:''}
+            ${f==='quality'?`<td class="mono">${t.roic_ttm?(t.roic_ttm*100).toFixed(1)+'%':'—'}</td><td class="mono">${t.gross_margin_ttm?(t.gross_margin_ttm*100).toFixed(0)+'%':'—'}</td>`:''}
+            ${f==='momentum'?`<td class="mono">${fmtPct(t.twelve_minus_one_pct,true)}</td><td class="mono">${fmtPct(t.ret_12m_pct,true)}</td><td class="mono dim">${fmtPct(t.ret_1m_pct,true)}</td>`:''}
+            ${f==='low_vol'?`<td class="mono">${fmtFloat(t.annualized_vol_pct,1)}%</td>`:''}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('')}
+
+    <div id="tab-sector" class="tab-pane">
+      <table>
+        <thead><tr><th>Sector</th><th>N</th><th>Avg Composite</th></tr></thead>
+        <tbody>${Object.entries(d.sector_breakdown||{}).sort((a,b)=>b[1].avg_composite-a[1].avg_composite).map(([sec,o])=>`
+          <tr>
+            <td><strong>${sec}</strong></td>
+            <td class="mono">${o.n}</td>
+            <td class="mono">${compositeBar(o.avg_composite)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-method" class="tab-pane">
+      <div class="callout">
+        <strong>EDGE BASIS</strong>
+        ${d.edge_basis||''}
+      </div>
+      <h2>Factor Definitions</h2>
+      <table>
+        <tbody>
+          ${Object.entries(d.methodology?.factors||{}).map(([k,v])=>`<tr><td><strong class="${k==='value'?'up':k==='quality'?'cyan':k==='momentum'?'warn':'dim'}">${factorNames[k]||k}</strong></td><td>${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      <h2>Composite Construction</h2>
+      <p class="mono dim">${d.methodology?.composite||''}</p>
+      <h2>Regime Classification Bands</h2>
+      <table>
+        <tbody>
+          ${Object.entries(d.methodology?.regime_classification||{}).map(([k,v])=>`<tr><td><strong>${k}</strong></td><td class="mono">${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('root').innerHTML = html;
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
+  console.error(e);
+  document.getElementById('root').innerHTML = '<div class="loading">Data load failed: '+e.message+'</div>';
+});
+</script>
+</body>
+</html>
