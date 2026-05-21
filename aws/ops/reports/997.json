@@ -1,0 +1,117 @@
+{
+  "started_at": "2026-05-21T03:49:13.431849+00:00",
+  "engine_s3": {
+    "state": "NEUTRAL",
+    "version": "2.0.0",
+    "composite_z": 0.224,
+    "dispersion": 0.78,
+    "divergence_flag": false,
+    "n_valid_signals": 5,
+    "n_total_signals": 5,
+    "generated_at": "2026-05-21T03:45:46.526445+00:00",
+    "why_now": "Composite stress z=+0.22 in neutral band. No actionable extreme. Monitor.",
+    "actions_count": 0,
+    "signals": [
+      {
+        "id": "VIXCLS",
+        "ok": true,
+        "z_stress": -0.042,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0
+      },
+      {
+        "id": "VXNCLS",
+        "ok": true,
+        "z_stress": 0.606,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0
+      },
+      {
+        "id": "USEPUINDXD",
+        "ok": true,
+        "z_stress": 0.599,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0
+      },
+      {
+        "id": "STLFSI4",
+        "ok": true,
+        "z_stress": -0.736,
+        "latest_date": "2026-05-15",
+        "freshness_mult": 1.0
+      },
+      {
+        "id": "UMCSENT",
+        "ok": true,
+        "z_stress": 1.336,
+        "latest_date": "2026-03-01",
+        "freshness_mult": 0.4
+      }
+    ],
+    "sources_present": true,
+    "edge_basis_present": true
+  },
+  "engine_invoke": {
+    "ok": true,
+    "function_error": null,
+    "state": "NEUTRAL",
+    "composite_z": 0.224
+  },
+  "signal_board": {
+    "ok": true,
+    "function_error": null,
+    "n_live": 54,
+    "n_stale": 0,
+    "n_total": 54,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.11,
+    "engines_array_len": 0,
+    "put_call_entry": null,
+    "all_keys": [
+      "ok",
+      "composite_posture",
+      "composite_signal",
+      "n_live",
+      "n_stale"
+    ]
+  },
+  "page": {
+    "size_bytes": 48837,
+    "marker_patterns": {
+      "data_engine": 0,
+      "engine_card_class": 1,
+      "card_class": 0,
+      "h3_titles": 0,
+      "h4_titles": 7,
+      "div_card": 2,
+      "tier_badge": 0
+    },
+    "sentiment_title_present": true,
+    "old_title_absent": true,
+    "sentiment_category_present": true,
+    "baker_wurgler_present": true,
+    "tier5_total_count": 0
+  },
+  "scorecard": {
+    "engine_state_real_v2": true,
+    "engine_state_value": "NEUTRAL",
+    "engine_version_2_0_0": true,
+    "engine_composite_z_numeric": true,
+    "engine_5_of_5_signals": true,
+    "engine_dispersion_numeric": true,
+    "engine_sources_present": true,
+    "engine_edge_basis_present": true,
+    "engine_signals_5": true,
+    "engine_all_signals_ok": true,
+    "engine_invoke_no_error": true,
+    "board_invoke_no_error": true,
+    "board_total_54": true,
+    "board_all_live": true,
+    "page_new_title": true,
+    "page_old_title_gone": true,
+    "page_sentiment_category": true,
+    "page_baker_wurgler_cite": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T03:49:17.208236+00:00"
+}
