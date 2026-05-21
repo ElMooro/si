@@ -1,0 +1,109 @@
+{
+  "started_at": "2026-05-21T13:04:07.805192+00:00",
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T13:04:04.725+0000",
+    "waited_sec": 0.3
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 68.4
+  },
+  "invoke_summary": {
+    "ok": true,
+    "version": "1.0.0",
+    "universe_state": "LOW_FRAUD_RISK",
+    "n_analyzed": 50,
+    "n_red_flags": 1,
+    "n_watch": 5,
+    "n_clean": 44,
+    "median_m": -2.595,
+    "top_3_red_flags": [
+      {
+        "t": "NVDA",
+        "m": -1.132
+      }
+    ]
+  },
+  "s3": {
+    "version": "1.0.0",
+    "generated_at": "2026-05-21T13:04:08.985270+00:00",
+    "universe_state": "LOW_FRAUD_RISK",
+    "n_universe_analyzed": 50,
+    "n_likely_manipulator": 1,
+    "n_watch_list": 5,
+    "n_unlikely_manipulator": 44,
+    "median_m_score": -2.595,
+    "max_m_score": -1.132,
+    "min_m_score": -3.269,
+    "verdict_counts_recomputed": {
+      "red": 1,
+      "watch": 5,
+      "clean": 44
+    },
+    "sector_red_flags": {
+      "Technology": 1
+    },
+    "red_flags_sample": [
+      {
+        "t": "NVDA",
+        "m": -1.132,
+        "fy": "2026",
+        "dsri": 1.008,
+        "gmi": 1.055,
+        "tata": 0.084
+      }
+    ],
+    "cleanest_3": [
+      {
+        "t": "QCOM",
+        "m": -3.269,
+        "fy": "2025"
+      },
+      {
+        "t": "CVX",
+        "m": -3.034,
+        "fy": "2025"
+      },
+      {
+        "t": "META",
+        "m": -3.015,
+        "fy": "2025"
+      }
+    ],
+    "worst_5_in_all": [
+      {
+        "t": "NVDA",
+        "m": -1.132
+      },
+      {
+        "t": "LLY",
+        "m": -1.885
+      },
+      {
+        "t": "AVGO",
+        "m": -2.096
+      },
+      {
+        "t": "NFLX",
+        "m": -2.161
+      },
+      {
+        "t": "MRK",
+        "m": -2.186
+      }
+    ]
+  },
+  "scorecard": {
+    "version_1_0_0": true,
+    "universe_state_real": true,
+    "n_universe_min_30": true,
+    "median_m_in_range": true,
+    "all_tickers_have_verdicts": true,
+    "verdict_counts_match": true,
+    "invoke_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T13:05:16.727986+00:00"
+}
