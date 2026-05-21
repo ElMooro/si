@@ -1,0 +1,248 @@
+{
+  "ops": 998,
+  "started_at": "2026-05-21T11:53:27.567609+00:00",
+  "engine": "justhodl-gf-value",
+  "feature_pack": "Pro Pack v3",
+  "feature_number": 1,
+  "ci_wait": {
+    "ok": true,
+    "last_modified": "2026-05-21T11:53:27.703292+00:00",
+    "waited_sec": 0
+  },
+  "invoke": {
+    "ok": true,
+    "elapsed_sec": 29.2,
+    "body": {
+      "ok": true,
+      "n_valid": 486,
+      "universe_state": "MARKET_SIGNIFICANTLY_OVERVALUED",
+      "n_deep_value": 21,
+      "median_mos_pct": -39.5
+    }
+  },
+  "invoke_summary": {
+    "ok": true,
+    "elapsed_sec": 29.2,
+    "n_valid": 486,
+    "universe_state": "MARKET_SIGNIFICANTLY_OVERVALUED",
+    "n_deep_value": 21,
+    "median_mos_pct": -39.5
+  },
+  "s3": {
+    "ok": true,
+    "version": "1.0.0",
+    "generated_at": "2026-05-21T11:53:28.319620+00:00",
+    "universe": "S&P 500",
+    "universe_state": "MARKET_SIGNIFICANTLY_OVERVALUED",
+    "universe_median_mos_pct": -39.5,
+    "n_analyzed": 503,
+    "n_valid": 486,
+    "n_deep_value": 21,
+    "n_undervalued": 95,
+    "n_fair": 64,
+    "n_modestly_overvalued": 41,
+    "n_significantly_overvalued": 265,
+    "deepest_value_n": 25,
+    "most_overvalued_n": 25,
+    "all_tickers_n": 486,
+    "methodology_present": true,
+    "sources_present": true,
+    "edge_basis_present": true,
+    "deepest_sample": [
+      {
+        "ticker": "CMCSA",
+        "price": 24.88,
+        "gf_value": 80.94,
+        "margin_of_safety_pct": 69.3,
+        "rating": "DEEP_VALUE",
+        "n_lenses": 2,
+        "lenses_used": [
+          "dcf",
+          "graham"
+        ],
+        "dcf_fair_value": 95.93,
+        "evebit_fair_value": null,
+        "graham_number": 56.96,
+        "price_5yr_low": 24.76,
+        "price_5yr_high": 61.75,
+        "dcf_meta": {
+          "fcf_ttm": 21893000000.0,
+          "growth_used": 6.39,
+          "wacc": 0.09,
+          "shares": 3636000000,
+          "net_debt": 100962000000
+        },
+        "evebit_meta": null,
+        "graham_meta": {
+          "eps": 5.41,
+          "bvps": 26.65
+        }
+      },
+      {
+        "ticker": "GDDY",
+        "price": 92.24,
+        "gf_value": 272.46,
+        "margin_of_safety_pct": 66.1,
+        "rating": "DEEP_VALUE",
+        "n_lenses": 2,
+        "lenses_used": [
+          "dcf",
+          "graham"
+        ],
+        "dcf_fair_value": 433.37,
+        "evebit_fair_value": null,
+        "graham_number": 15.0,
+        "price_5yr_low": 65.31,
+        "price_5yr_high": 214.35,
+        "dcf_meta": {
+          "fcf_ttm": 1575500000.0,
+          "growth_used": 15.0,
+          "wacc": 0.09,
+          "shares": 136166667,
+          "net_debt": 2781700000
+        },
+        "evebit_meta": null,
+        "graham_meta": {
+          "eps": 6.33,
+          "bvps": 1.58
+        }
+      },
+      {
+        "ticker": "CAG",
+        "price": 13.76,
+        "gf_value": 40.46,
+        "margin_of_safety_pct": 66.0,
+        "rating": "DEEP_VALUE",
+        "n_lenses": 2,
+        "lenses_used": [
+          "dcf",
+          "graham"
+        ],
+        "dcf_fair_value": 45.86,
+        "evebit_fair_value": null,
+        "graham_number": 31.82,
+        "price_5yr_low": 13.43,
+        "price_5yr_high": 40.96,
+        "dcf_meta": {
+          "fcf_ttm": 1302600000.0,
+          "growth_used": 7.88,
+          "wacc": 0.09,
+          "shares": 478300000,
+          "net_debt": 7999600000
+        },
+        "evebit_meta": null,
+        "graham_meta": {
+          "eps": 2.41,
+          "bvps": 18.68
+        }
+      }
+    ],
+    "overvalued_sample": [
+      {
+        "ticker": "LITE",
+        "price": 868.07,
+        "gf_value": 25.25,
+        "margin_of_safety_pct": -3337.9,
+        "rating": "SIGNIFICANTLY_OVERVALUED",
+        "n_lenses": 1,
+        "lenses_used": [
+          "graham"
+        ],
+        "dcf_fair_value": null,
+        "evebit_fair_value": null,
+        "graham_number": 11.81,
+        "price_5yr_low": 36.07,
+        "price_5yr_high": 1053.09,
+        "dcf_meta": null,
+        "evebit_meta": null,
+        "graham_meta": {
+          "eps": 0.38,
+          "bvps": 16.3
+        }
+      },
+      {
+        "ticker": "STX",
+        "price": 751.07,
+        "gf_value": 39.42,
+        "margin_of_safety_pct": -1805.3,
+        "rating": "SIGNIFICANTLY_OVERVALUED",
+        "n_lenses": 1,
+        "lenses_used": [
+          "dcf"
+        ],
+        "dcf_fair_value": 39.42,
+        "evebit_fair_value": null,
+        "graham_number": null,
+        "price_5yr_low": 48.49,
+        "price_5yr_high": 834.01,
+        "dcf_meta": {
+          "fcf_ttm": 818000000.0,
+          "growth_used": 3.0,
+          "wacc": 0.09,
+          "shares": 217000000,
+          "net_debt": 4482000000
+        },
+        "evebit_meta": null,
+        "graham_meta": null
+      },
+      {
+        "ticker": "COHR",
+        "price": 358.5,
+        "gf_value": 19.36,
+        "margin_of_safety_pct": -1751.8,
+        "rating": "SIGNIFICANTLY_OVERVALUED",
+        "n_lenses": 1,
+        "lenses_used": [
+          "dcf"
+        ],
+        "dcf_fair_value": 0.57,
+        "evebit_fair_value": null,
+        "graham_number": null,
+        "price_5yr_low": 27.66,
+        "price_5yr_high": 404.94,
+        "dcf_meta": {
+          "fcf_ttm": 192764000.0,
+          "growth_used": 3.0,
+          "wacc": 0.09,
+          "shares": 154800000,
+          "net_debt": 2984458000
+        },
+        "evebit_meta": null,
+        "graham_meta": null
+      }
+    ]
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 14049,
+    "title_ok": true,
+    "data_fetch_present": true,
+    "all_5_ratings_present": true,
+    "all_3_lenses_present": true,
+    "methodology_present": true,
+    "guru_attribution": true
+  },
+  "scorecard": {
+    "ci_deploy_ok": true,
+    "engine_invoke_ok": true,
+    "engine_elapsed_under_900s": true,
+    "s3_fetch_ok": true,
+    "s3_version_1_0_0": true,
+    "s3_n_valid_min_300": true,
+    "s3_universe_state_real": true,
+    "s3_deepest_25": true,
+    "s3_overvalued_25": true,
+    "s3_methodology_present": true,
+    "s3_sources_present": true,
+    "s3_edge_basis_present": true,
+    "page_loads_ok": true,
+    "page_title_ok": true,
+    "page_data_fetch": true,
+    "page_5_ratings": true,
+    "page_3_lenses": true,
+    "page_methodology": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T11:53:57.157781+00:00"
+}
