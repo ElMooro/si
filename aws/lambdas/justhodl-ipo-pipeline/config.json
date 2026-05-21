@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "IPO Pipeline + Recent Performance Tracker. Bloomberg/Refinitiv ECM gap. Upcoming 60d + recent 90d w/ returns. Ritter & Welch 2002 (17.9% avg first-day pop). Daily 22:30 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-earnings-quality", "keys": ["FMP_KEY"]},
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-ipo-pipeline-daily",
+    "cron": "cron(30 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "IPO Pipeline Tracker daily 22:30 UTC"
+  }
+}

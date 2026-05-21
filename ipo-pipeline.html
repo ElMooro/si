@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IPO Pipeline · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚀</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase}
+.boom{color:var(--green);background:rgba(38,255,175,.18)}
+.healthy{color:var(--cyan);background:rgba(0,212,255,.15)}
+.mixed{color:var(--yellow);background:rgba(255,210,102,.15)}
+.bust{color:var(--red);background:rgba(255,85,119,.18)}
+.empty{text-align:center;padding:48px 20px;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1px}
+.loading{text-align:center;padding:60px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right;margin-top:6px}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;font-size:12.5px;color:var(--mute);margin-top:16px}
+.method strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px}
+@media(max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚀 IPO Pipeline + Recent Performance</h1>
+    <p class="subtitle">Bloomberg IPO function + Refinitiv ECM gap: upcoming IPOs in next <span class="mono">60 days</span> + recent IPOs last <span class="mono">90 days</span> with realized returns. Regime: <span class="mono">IPO_BOOM</span> (+25%) / <span class="mono">IPO_HEALTHY</span> / <span class="mono">IPO_MIXED</span> / <span class="mono">IPO_BUST</span>. Ritter &amp; Welch 2002.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/gf-value.html">GF Value</a>
+      <a href="/magic-formula.html">Magic Formula</a>
+      <a href="/baggers.html">Baggers</a>
+      <a href="/screener/">screener</a>
+      <a href="/brief.html">brief</a>
+    </nav>
+  </header>
+  <section class="kpis">
+    <div class="kpi"><h3>IPO Regime</h3><div class="v mono" id="k_regime" style="font-size:14px">—</div><div class="vsub" id="k_regime_sub">last 90d avg return</div></div>
+    <div class="kpi"><h3>Upcoming (60d)</h3><div class="v" id="k_upcoming" style="color:var(--cyan)">—</div><div class="vsub">scheduled IPOs</div></div>
+    <div class="kpi"><h3>Recent (90d)</h3><div class="v" id="k_recent">—</div><div class="vsub">priced + tracked</div></div>
+    <div class="kpi"><h3>Above offering</h3><div class="v pos" id="k_above">—</div><div class="vsub">positive return</div></div>
+    <div class="kpi"><h3>Below offering</h3><div class="v neg" id="k_below">—</div><div class="vsub">negative return</div></div>
+  </section>
+  <div class="callout"><strong>Best recent IPO</strong><span id="best_txt">loading…</span></div>
+  <div class="tabs">
+    <div class="tab active" data-t="upcoming">Upcoming (Next 60d)</div>
+    <div class="tab" data-t="recent">Recent + Performance</div>
+    <div class="tab" data-t="method">Methodology</div>
+  </div>
+  <div class="tab-pane active" id="pane-upcoming">
+    <div id="upcoming_body"><div class="loading">LOADING UPCOMING IPOS…</div></div>
+    <p class="timestamp" id="upcoming_ts"></p>
+  </div>
+  <div class="tab-pane" id="pane-recent">
+    <div id="recent_body"><div class="loading">LOADING RECENT IPOS…</div></div>
+    <p class="timestamp" id="recent_ts"></p>
+  </div>
+  <div class="tab-pane" id="pane-method">
+    <div class="method">
+      <strong>IPO Pipeline Methodology</strong>
+      <p>Upcoming window: next 60 calendar days of scheduled IPOs from FMP's /stable/ipos-calendar feed. Includes ticker, exchange, expected pricing date, price range, and shares offered (when disclosed).</p>
+      <p>Recent window: IPOs priced in the last 90 calendar days. For each, current price is fetched via /stable/quote and return-since-IPO is computed against the midpoint of the offering range (or the offer price if disclosed). Returns of <span class="pos">+positive</span> indicate trading above offering price.</p>
+      <p><strong style="color:var(--green)">Regime bands</strong>: <span class="flag boom">IPO_BOOM</span> avg ≥+25% · <span class="flag healthy">IPO_HEALTHY</span> +5…+25% · <span class="flag mixed">IPO_MIXED</span> −10…+5% · <span class="flag bust">IPO_BUST</span> ≤−10%. Boom regimes historically precede top-of-cycle (1999, 2007, 2021); bust regimes precede cleansing (2002, 2009, 2022) and tactical re-entry windows.</p>
+      <p>Edge basis: Ritter &amp; Welch 2002 documented average first-day pop of 17.9%; Loughran &amp; Ritter 1995 showed 3-year post-IPO underperformance of ~22% vs market. Bloomberg's IPO function + Refinitiv's ECM module are the two most-used allocator tools for ECM monitoring.</p>
+    </div>
+  </div>
+</div>
+<script>
+const S3_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const J=(k)=>fetch(`${S3_BASE}/data/${k}?_=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
+const usd=(v)=>v==null?"—":"$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:2});
+const pct=(v,d=1)=>v==null?"—":(v>0?"+":"")+Number(v).toFixed(d)+"%";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const REGCLS={IPO_BOOM:"boom",IPO_HEALTHY:"healthy",IPO_MIXED:"mixed",IPO_BUST:"bust",NO_DATA:"mixed"};
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  document.getElementById("pane-"+t.dataset.t).classList.add("active");
+});
+function upcomingRow(r){
+  const range=(r.price_low!=null&&r.price_high!=null)?
+    (r.price_low===r.price_high?usd(r.price_low):`${usd(r.price_low)}–${usd(r.price_high)}`)
+    :(r.raw_price_range||"—");
+  return `<tr><td><span class="tk">${esc(r.symbol||"—")}</span></td>
+    <td>${esc(r.company||"—")}</td>
+    <td class="mono">${esc(r.date||"—")}</td>
+    <td class="mono">${esc(r.exchange||"—")}</td>
+    <td class="mono">${range}</td>
+    <td class="mono">${r.shares_offered?Number(r.shares_offered).toLocaleString():"—"}</td></tr>`;
+}
+function recentRow(r){
+  const ret=r.return_pct_since_ipo;
+  const cls=ret>=0?"pos":"neg";
+  return `<tr><td><span class="tk">${esc(r.symbol)}</span></td>
+    <td>${esc(r.company||"—")}</td>
+    <td class="mono">${esc(r.ipo_date||"—")}</td>
+    <td class="mono">${usd(r.offer_price)}</td>
+    <td class="mono">${usd(r.current_price)}</td>
+    <td class="mono ${cls}">${pct(ret,1)}</td>
+    <td class="mono" style="color:var(--dim)">${r.market_cap_usd?"$"+(r.market_cap_usd/1e9).toFixed(2)+"B":"—"}</td></tr>`;
+}
+(async()=>{
+  const d=await J("ipo-pipeline.json");
+  if(!d){
+    document.getElementById("upcoming_body").innerHTML=`<div class="empty">DATA UNAVAILABLE</div>`;
+    return;
+  }
+  document.getElementById("k_regime").innerHTML=`<span class="flag ${REGCLS[d.regime]||'mixed'}">${(d.regime||'').replace('IPO_','')}</span>`;
+  const ps=d.performance_summary||{};
+  document.getElementById("k_regime_sub").textContent=`avg ${pct(ps.avg_return_pct)}`;
+  document.getElementById("k_upcoming").textContent=d.n_upcoming_60d||0;
+  document.getElementById("k_recent").textContent=d.n_recent_90d_with_perf||0;
+  document.getElementById("k_above").textContent=ps.n_above_offering||0;
+  document.getElementById("k_below").textContent=ps.n_below_offering||0;
+  if(ps.best_performer){
+    const b=ps.best_performer;
+    document.getElementById("best_txt").innerHTML=`<strong style="color:var(--txt);font-family:var(--mono);font-size:14px">${esc(b.symbol)}</strong> ${esc(b.company||"")} · IPO ${usd(b.offer_price)} → now ${usd(b.current_price)} · <span class="mono pos">${pct(b.return_pct_since_ipo)}</span>`;
+  } else {
+    document.getElementById("best_txt").textContent="No recent IPOs with performance data.";
+  }
+  if((d.upcoming||[]).length){
+    document.getElementById("upcoming_body").innerHTML=
+      `<table><thead><tr><th>Symbol</th><th>Company</th><th>Date</th><th>Exchange</th><th>Price Range</th><th>Shares</th></tr></thead><tbody>${d.upcoming.map(upcomingRow).join("")}</tbody></table>`;
+  } else {
+    document.getElementById("upcoming_body").innerHTML=`<div class="empty">No IPOs scheduled in next 60 days.</div>`;
+  }
+  if((d.recent||[]).length){
+    document.getElementById("recent_body").innerHTML=
+      `<table><thead><tr><th>Symbol</th><th>Company</th><th>IPO Date</th><th>Offer</th><th>Current</th><th>Return</th><th>Mkt Cap</th></tr></thead><tbody>${d.recent.map(recentRow).join("")}</tbody></table>`;
+  } else {
+    document.getElementById("recent_body").innerHTML=`<div class="empty">No recent IPOs with performance data.</div>`;
+  }
+  const ts=new Date(d.generated_at).toLocaleString();
+  document.getElementById("upcoming_ts").textContent=`Last refresh: ${ts}`;
+  document.getElementById("recent_ts").textContent=`Last refresh: ${ts}`;
+})();
+</script>
+</body>
+</html>
