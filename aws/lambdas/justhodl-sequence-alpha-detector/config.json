@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Sequence Alpha Detector. 3-step institutional accumulation engine: insider cluster (Lakonishok/Lee) + activist 13D (Brav/Jiang) + PEAD (Bernard/Thomas) probabilistically fused. Cross-confirms with Pro Pack v3 #7+#10+#8. Daily 14:30 UTC.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-sequence-alpha-detector-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Sequence Alpha Detector daily 14:30 UTC after upstream feeds"
+  }
+}
