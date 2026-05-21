@@ -146,13 +146,34 @@ def collect_short_volume_history(days_back=14):
 
 # ────────────────────────── Polygon short interest snapshot ──────────────────────────
 def fetch_polygon_short_interest(ticker):
-    """Get latest short interest snapshot from Polygon."""
-    url = f"https://api.polygon.io/stocks/v1/short-interest?ticker={urllib.parse.quote(ticker)}&limit=2&apiKey={POLYGON_KEY}"
+    """Get latest short interest snapshot from Polygon.
+
+    BUGFIX 2026-05-21 (ops 1012 surfaced): the endpoint without explicit
+    order parameter defaulted to ascending settlement_date, so results[0]
+    was the OLDEST snapshot. With limit=2 + AAPL having SI history back to
+    2017, the engine silently returned 2017-12-29 data for every ticker
+    for years. Fix: add order=desc to get latest-first, raise limit to
+    survive future schema variations, and explicitly sort in-code by
+    settlement_date desc as a defense-in-depth backstop.
+    """
+    url = (f"https://api.polygon.io/stocks/v1/short-interest"
+           f"?ticker={urllib.parse.quote(ticker)}"
+           f"&order=desc&sort=settlement_date&limit=10"
+           f"&apiKey={POLYGON_KEY}")
     try:
         d = http_get(url, timeout=12)
         results = d.get("results") or []
         if not results:
             return None
+        # Defense-in-depth: re-sort locally by settlement_date desc in case
+        # the API ignores order params or returns unsorted results.
+        try:
+            results = sorted(
+                results,
+                key=lambda r: (r.get("settlement_date") or ""),
+                reverse=True)
+        except Exception:
+            pass
         latest = results[0]
         prev = results[1] if len(results) > 1 else None
         si = latest.get("short_interest")
@@ -162,14 +183,16 @@ def fetch_polygon_short_interest(ticker):
             days_to_cover = round(si / avg_vol, 2)
         si_change = None
         if prev and prev.get("short_interest") and si:
-            si_change = round(((si - prev["short_interest"]) / prev["short_interest"]) * 100, 2)
+            si_change = round(((si - prev["short_interest"]) /
+                                prev["short_interest"]) * 100, 2)
         return {
             "settlement_date": latest.get("settlement_date"),
             "short_interest": si,
             "avg_daily_volume": avg_vol,
             "days_to_cover": days_to_cover,
             "prev_settlement": prev.get("settlement_date") if prev else None,
-            "prev_short_interest": prev.get("short_interest") if prev else None,
+            "prev_short_interest": prev.get("short_interest")
+                if prev else None,
             "si_change_pct": si_change,
         }
     except Exception:
