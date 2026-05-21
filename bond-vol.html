@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bond Vol Composite · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📊</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.regime-banner{background:var(--panel);border:1px solid var(--line);padding:24px;border-radius:8px;margin-bottom:18px;border-left:4px solid var(--green)}
+.regime-banner .label{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.regime-banner .v{font-family:var(--mono);font-size:36px;font-weight:700;letter-spacing:1px}
+.regime-banner .vsub{font-family:var(--mono);font-size:13px;color:var(--mute);margin-top:6px}
+.regime-CRISIS{border-left-color:var(--red)!important}
+.regime-CRISIS .v{color:var(--red)!important}
+.regime-ELEVATED{border-left-color:var(--orange)!important}
+.regime-ELEVATED .v{color:var(--orange)!important}
+.regime-NORMAL{border-left-color:var(--yellow)!important}
+.regime-NORMAL .v{color:var(--yellow)!important}
+.regime-BOND_VOL_LOW{border-left-color:var(--cyan)!important}
+.regime-BOND_VOL_LOW .v{color:var(--cyan)!important}
+.channel-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.channel-card{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.channel-card h3{font-size:10.5px;color:var(--cyan);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase}
+.channel-card .vol{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--txt)}
+.channel-card .z-row{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px}
+.channel-card .z-row .lbl{color:var(--dim);text-transform:uppercase;letter-spacing:.8px;font-size:9.5px}
+.channel-card .edge{font-size:11px;color:var(--mute);margin-top:10px;line-height:1.5}
+.channel-card .meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:8px}
+.zbar{position:relative;height:6px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden}
+.zbar-fill{position:absolute;top:0;height:100%;background:var(--green);transition:.3s}
+.zbar-mid{position:absolute;top:-4px;left:50%;width:1px;height:14px;background:var(--mute);opacity:.4}
+.z-pos{background:var(--red)!important}
+.z-neg{background:var(--cyan)!important}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.up{color:var(--green)}.dn{color:var(--red)}.warn{color:var(--orange)}.dim{color:var(--dim)}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;font-family:var(--mono);letter-spacing:.5px}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--cyan)}
+.callout strong{color:var(--cyan);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>📊 Bond Vol Composite (Synthetic MOVE)</h1>
+  <p class="subtitle">Bloomberg MOVE-equivalent regime gauge built from 5 independent FRED bond-stress channels: <strong>10Y yield vol</strong>, <strong>2Y yield vol</strong>, <strong>2s10s curve vol</strong>, <strong>HY credit spread vol</strong>, <strong>BBB IG spread vol</strong>. Equal-weight z-score composite identifies bond-market vol regime (LOW / NORMAL / ELEVATED / CRISIS). ICE MOVE itself is paywalled.</p>
+  <nav class="crumbs"><a href="/">← Home</a><a href="/retail-edges.html">Retail Edges</a><a href="/risk-desk.html">Risk Desk</a><a href="/liquidity.html">Liquidity</a></nav>
+</header>
+
+<div id="root"><div class="loading">Loading Bond Vol Composite...</div></div>
+
+<footer>
+  <span id="last_updated">—</span> · v<span id="version">—</span> · Sources: FRED (DGS10, DGS2, T10Y2Y, BAMLH0A0HYM2, BAMLC0A4CBBB) · 30-day realized vol annualized, z-scored vs 1-year history · Refresh hourly :15
+</footer>
+</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/bond-vol.json';
+
+function fmtZ(z){
+  if(z===null||z===undefined) return '<span class="dim">—</span>';
+  const cls = z>=1.0 ? 'dn' : z<=-1.0 ? 'up' : 'warn';
+  const sign = z>=0 ? '+' : '';
+  return `<span class="${cls}">${sign}${z.toFixed(2)}σ</span>`;
+}
+
+function zBar(z){
+  if(z===null||z===undefined) return '<div class="zbar"><div class="zbar-mid"></div></div>';
+  const cls = z>=0 ? 'z-pos' : 'z-neg';
+  const abs = Math.min(3, Math.abs(z));
+  const pct = (abs/3)*50;
+  const left = z>=0 ? '50' : (50-pct);
+  return `<div class="zbar"><div class="zbar-mid"></div><div class="zbar-fill ${cls}" style="left:${left}%;width:${pct}%"></div></div>`;
+}
+
+function fmtPct(v){
+  if(v===null||v===undefined) return '—';
+  return v.toFixed(1)+'%';
+}
+
+function render(d){
+  if(!d||!d.ok){
+    document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
+    return;
+  }
+  document.getElementById('last_updated').textContent = d.generated_at;
+  document.getElementById('version').textContent = d.version || '—';
+
+  const regimeMessages = {
+    'CRISIS': 'Tail event unfolding. Expect risk-off rotation, vol-of-vol spike, liquidity drain.',
+    'ELEVATED': 'Stress building across bond channels. Watch for follow-through into equity vol.',
+    'NORMAL': 'Baseline regime. No outsized cross-asset signal from bond vol.',
+    'BOND_VOL_LOW': 'Compressed bond vol = complacency risk. Vol-targeted positioning maxes out → asymmetric downside.',
+    'DATA_UNAVAILABLE': 'Insufficient data.'
+  };
+
+  const html = `
+    <div class="regime-banner regime-${d.regime}">
+      <div class="label">Current Bond Vol Regime</div>
+      <div class="v">${d.regime.replace('_',' ')}</div>
+      <div class="vsub">Composite z: ${d.composite_z_score!==null ? (d.composite_z_score>=0?'+':'')+d.composite_z_score.toFixed(2)+'σ' : '—'} · ${d.n_channels_live}/${d.n_channels_total} channels live · ${regimeMessages[d.regime]||''}</div>
+    </div>
+
+    <h2>5 Bond-Stress Channels</h2>
+    <div class="channel-grid">
+      ${d.channels.map(c=>`
+        <div class="channel-card">
+          <h3>${c.name}</h3>
+          ${c.ok ? `
+            <div class="vol">${c.realized_vol_now!==null ? c.realized_vol_now.toFixed(4) : '—'}</div>
+            <div class="meta">${c.fred_series} · 30d realized · ${c.latest_obs_date||'—'}</div>
+            ${zBar(c.z_score)}
+            <div class="z-row">
+              <span class="lbl">Z-score</span>
+              <span class="mono">${fmtZ(c.z_score)}</span>
+            </div>
+            <div class="z-row">
+              <span class="lbl">Pct 1Y</span>
+              <span class="mono">${fmtPct(c.percentile_1y)}</span>
+            </div>
+            <div class="edge">${c.edge}</div>
+          ` : `
+            <div class="vol dim">—</div>
+            <div class="edge dn">${c.error||'data unavailable'}</div>
+          `}
+        </div>
+      `).join('')}
+    </div>
+
+    <h2>Regime Bands</h2>
+    <table>
+      <thead><tr><th>Regime</th><th>Threshold</th></tr></thead>
+      <tbody>
+        ${Object.entries(d.regime_bands||{}).map(([k,v])=>`
+          <tr>
+            <td><strong class="${k===d.regime ? 'warn' : 'dim'}">${k}</strong></td>
+            <td class="mono">${v}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h2>Methodology</h2>
+    <div class="callout">
+      <strong>EDGE BASIS</strong>
+      ${d.edge_basis||''}
+    </div>
+    <table>
+      <tbody>
+        <tr><td>Realized vol window</td><td class="mono">${d.methodology?.realized_vol_window_days||'—'} trading days</td></tr>
+        <tr><td>Z-score baseline</td><td class="mono">${d.methodology?.zscore_baseline_days||'—'} days (1Y)</td></tr>
+        <tr><td>Annualization</td><td class="mono">${d.methodology?.annualization||'—'}</td></tr>
+        <tr><td>Composite aggregation</td><td class="mono">${d.methodology?.composite_aggregation||'—'}</td></tr>
+        <tr><td>Outlier treatment</td><td class="mono">${d.methodology?.outlier_treatment||'—'}</td></tr>
+        <tr><td>Data provider</td><td class="mono">${d.sources?.data_provider||'—'}</td></tr>
+        <tr><td>MOVE rationale</td><td>${d.sources?.rationale||'—'}</td></tr>
+      </tbody>
+    </table>
+  `;
+  document.getElementById('root').innerHTML = html;
+}
+
+fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
+  console.error(e);
+  document.getElementById('root').innerHTML = '<div class="loading">Data load failed: '+e.message+'</div>';
+});
+</script>
+</body>
+</html>
