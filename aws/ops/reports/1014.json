@@ -1,0 +1,61 @@
+{
+  "started_at": "2026-05-21T16:57:39.984802+00:00",
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T16:56:54.000+0000",
+    "code_size": 5170,
+    "waited_sec": 0.2
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 5.2,
+    "error": null
+  },
+  "s3": {
+    "n_tickers_in_by_ticker": 157,
+    "n_with_settlement_date": 157,
+    "n_null_settlement_date": 0,
+    "settlement_dates_by_year": {
+      "2018": 130,
+      "2021": 13,
+      "2019": 4,
+      "2020": 3,
+      "2022": 5,
+      "2024": 2
+    },
+    "n_2024_or_later": 2,
+    "n_stuck_at_2017": 0,
+    "max_settlement_date": "2024-08-15",
+    "min_settlement_date": "2018-05-15",
+    "AAPL": {
+      "settlement_date": "2018-05-15",
+      "short_interest": 46385494,
+      "latest_short_pct": 30.93,
+      "days_to_cover": 1.27,
+      "signal": "DISTRIBUTION"
+    },
+    "MSFT": {
+      "settlement_date": "2018-05-15",
+      "short_interest": 48292076
+    },
+    "NVDA": {
+      "settlement_date": "2018-05-15",
+      "short_interest": 13664405
+    },
+    "n_tickers_finra": 153,
+    "n_tickers_polygon": 157,
+    "generated_at": "2026-05-21T16:57:45.259492+00:00"
+  },
+  "scorecard": {
+    "lambda_active": true,
+    "invoke_ok": true,
+    "n_tickers_min_50": true,
+    "n_2024_or_later_min_80pct": false,
+    "AAPL_settlement_in_2024_plus": false,
+    "AAPL_settlement_not_2017": true,
+    "no_majority_2017_stalled": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-21T16:57:45.531844+00:00"
+}
