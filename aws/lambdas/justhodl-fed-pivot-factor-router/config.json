@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 30,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Fed Pivot Factor Router. Reads cb-stance Fed pivot classification (HAWKISH_PIVOT/DOVISH_PIVOT/DRIFT/STABLE) and prescribes equity factor rotation recipe (value/growth/USD/defensives/small caps) per Bernanke-Kuttner 2005. Hourly.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fed-pivot-factor-router-hourly",
+    "cron": "cron(45 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Fed Pivot Factor Router hourly"
+  }
+}
