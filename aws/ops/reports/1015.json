@@ -1,0 +1,100 @@
+{
+  "started_at": "2026-05-21T17:06:30.198237+00:00",
+  "probe_deployed": true,
+  "probe_result": {
+    "fmp_key_present": true,
+    "poly_key_present": true,
+    "fmp_equity_short_interest": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "[]"
+    },
+    "fmp_short_interest_by_symbol": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "[]"
+    },
+    "fmp_short_interest": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "[]"
+    },
+    "fmp_short_volume": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "[]"
+    },
+    "fmp_historical_short_interest": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "[]"
+    },
+    "fmp_v3_short_interest": {
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden",
+      "body_first_300b": "{\n  \"Error Message\": \"Legacy Endpoint : Due to Legacy endpoints being no longer supported - This endpoint is only available for legacy users who have valid subscriptions prior August 31, 2025. Please visit our documentation page https://site.financialmodelingprep.com/developer/docs for our current A"
+    },
+    "poly_v2_short_interest": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "404 page not found"
+    },
+    "poly_v3_short_interest": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "404 page not found"
+    },
+    "poly_stocks_v2": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_300b": "404 page not found"
+    },
+    "poly_short_volume_aggregates": {
+      "status": 200,
+      "content_type": "application/json",
+      "n_bytes": 1108,
+      "n_results": 2,
+      "latest_settlement_date": "2024-02-06",
+      "sample_first_600b": "{\"status\":\"OK\",\"request_id\":\"7572d490e7ab4179ac65d92031cd310a\",\"results\":[{\"ticker\":\"AAPL\",\"date\":\"2024-02-06\",\"total_volume\":16264662.000000,\"short_volume\":5683713.000000,\"exempt_volume\":67840.000000,\"non_exempt_volume\":5615873.000000,\"short_volume_ratio\":34.95,\"nyse_short_volume\":356029,\"nyse_short_volume_exempt\":4308,\"nasdaq_carteret_short_volume\":5298900,\"nasdaq_carteret_short_volume_exempt\":63532,\"nasdaq_chicago_short_volume\":28784,\"nasdaq_chicago_short_volume_exempt\":0,\"adf_short_volume\":0,\"adf_short_volume_exempt\":0},{\"ticker\":\"AAPL\",\"date\":\"2024-02-07\",\"total_volume\":18774437.000000,\"s"
+    },
+    "finra_shortint_20260515": {
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden",
+      "body_first_300b": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+    },
+    "finra_shortint_20260430": {
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden",
+      "body_first_300b": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+    },
+    "finra_shortint_alt_path": {
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden",
+      "body_first_300b": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+    },
+    "finra_data_catalog": {
+      "status": 200,
+      "content_type": "text/plain",
+      "n_bytes": 57716,
+      "n_results": null,
+      "latest_settlement_date": null,
+      "sample_first_600b": "tradeReportDate,securitiesInformationProcessorSymbolIdentifier,shortParQuantity,shortExemptParQuantity,totalParQuantity,marketCode,reportingFacilityCode\n2026-01-06,A,414.000000,0.000000,2487.000000,B,NCTRF\n2026-01-06,A,398175.000000,338.000000,951685.000000,Q,NQTRF\n2026-01-06,A,11531.000000,0.000000,33858.000000,N,NYTRF\n2026-01-06,AA,30072.000000,0.000000,51339.000000,B,NCTRF\n2026-01-06,AA,2519931.000000,4607.000000,5017586.000000,Q,NQTRF\n2026-01-06,AA,77641.000000,0.000000,188741.000000,N,NYTRF\n2026-01-06,AAA,694.000000,0.000000,4886.000000,Q,NQTRF\n2026-01-06,AAAA,100.000000,0.000000,100.0000"
+    }
+  },
+  "function_error": null,
+  "winners": [
+    {
+      "candidate": "poly_short_volume_aggregates",
+      "n_results": 2,
+      "latest_settlement": "2024-02-06",
+      "fresh_2024_plus": true
+    }
+  ],
+  "recommended": {
+    "candidate": "poly_short_volume_aggregates",
+    "n_results": 2,
+    "latest_settlement": "2024-02-06",
+    "fresh_2024_plus": true
+  },
+  "ended_at": "2026-05-21T17:06:37.137951+00:00"
+}
