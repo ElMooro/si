@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Pro Pack v3 #10 EVA Spread. Stern Stewart EVA=NOPAT-WACC*IC + Bennett Stewart 2002 EVA Momentum + MVA. WACC=CAPM Rf=FRED DGS10 ERP=5.5pct Damodaran IG=FRED BAMLC0A4CBBB. Super Compounder filter fuses with #7+#8. Daily 00:45 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-starmine", "keys": ["FMP_KEY"]},
+    {"from_function": "justhodl-cross-asset-rv", "keys": ["FRED_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-eva-spread-daily",
+    "cron": "cron(45 0 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "EVA Spread daily 00:45 UTC after Smart Beta 00:15"
+  }
+}
