@@ -133,6 +133,42 @@ def safe_get(d, *keys, default=None):
     return cur
 
 
+def to_number(v):
+    """Coerce upstream value to numeric. Handles dict-wrapped indicators.
+
+    Upstream feeds sometimes return nested dicts for indicators (e.g.,
+    mcclellan = {'oscillator': 50.2, 'summation': 1234.5, 'date': '...'}
+    instead of a scalar). This helper extracts the most likely numeric
+    field, returning None if no numeric value found. Fixes 2026-05-21
+    TypeError when c3_breadth_collapse tried `dict < int`.
+    """
+    if v is None:
+        return None
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return v
+    if isinstance(v, dict):
+        # Try common numeric subkeys in priority order
+        for key in ("value", "oscillator", "current", "latest", "score",
+                     "level", "ratio", "percent", "pct", "now", "today"):
+            if key in v:
+                nested = to_number(v[key])
+                if nested is not None:
+                    return nested
+        # Last-ditch: find FIRST numeric value in dict
+        for val in v.values():
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
+                return val
+        return None
+    if isinstance(v, str):
+        try:
+            return float(v.replace(",", "").replace("%", ""))
+        except (ValueError, AttributeError):
+            return None
+    if isinstance(v, list) and v:
+        return to_number(v[0])
+    return None
+
+
 # ---------- Per-condition evaluators ----------
 def evaluate_c1_vix_spike():
     """Returns (fired_bool, detail_dict)."""
@@ -207,13 +243,18 @@ def evaluate_c3_breadth_collapse():
     mi = fetch_s3_json("data/market-internals.json")
 
     detail = {}
-    pct_above_50d = (safe_get(bt, "pct_above_50d_ma") or
-                       safe_get(bd, "pct_above_50d") or
-                       safe_get(mi, "pct_above_50d_ma"))
-    mcclellan = (safe_get(bt, "mcclellan") or
-                  safe_get(bd, "mcclellan_oscillator") or
-                  safe_get(mi, "mcclellan"))
-    advance_decline = safe_get(mi, "advance_decline_line")
+    # Coerce upstream values via to_number() — upstream feeds sometimes
+    # nest indicators as dicts ({oscillator: 50, summation: 1234}) instead
+    # of scalars. Bug from 2026-05-21: dict<int TypeError on mcclellan.
+    pct_above_50d = to_number(
+        safe_get(bt, "pct_above_50d_ma") or
+        safe_get(bd, "pct_above_50d") or
+        safe_get(mi, "pct_above_50d_ma"))
+    mcclellan = to_number(
+        safe_get(bt, "mcclellan") or
+        safe_get(bd, "mcclellan_oscillator") or
+        safe_get(mi, "mcclellan"))
+    advance_decline = to_number(safe_get(mi, "advance_decline_line"))
     detail["pct_above_50d_ma"] = pct_above_50d
     detail["mcclellan"] = mcclellan
     detail["advance_decline"] = advance_decline
