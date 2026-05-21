@@ -1,0 +1,123 @@
+{
+  "started_at": "2026-05-21T12:36:20.292709+00:00",
+  "gf_value_v101": {
+    "error": "'mos_pct'",
+    "trace": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/1001_propack_v3_phase_b_triple_verify.py\", line 280, in main\n    report[\"gf_value_v101\"] = verify_gf_value()\n                              ^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/si/si/aws/ops/pending/1001_propack_v3_phase_b_triple_verify.py\", line 127, in verify_gf_value\n    \"mos_pct\": t[\"mos_pct\"], \"dcf\": t.get(\"dcf_fair_value\"),\n               ~^^^^^^^^^^^\nKeyError: 'mos_pct'\n"
+  },
+  "bond_vol": {
+    "lambda_ready": {
+      "ok": true,
+      "last_modified": "2026-05-21T12:33:09.483+0000",
+      "waited_sec": 0.2
+    },
+    "invoke": {
+      "ok": true,
+      "function_error": null,
+      "elapsed_sec": 2.4
+    },
+    "invoke_summary": {
+      "ok": true,
+      "version": "1.0.0",
+      "regime": "NORMAL",
+      "composite_z": -0.93,
+      "n_channels_live": 5,
+      "n_channels_total": 5
+    },
+    "s3": {
+      "version": "1.0.0",
+      "generated_at": "2026-05-21T12:36:42.238841+00:00",
+      "regime": "NORMAL",
+      "composite_z_score": -0.93,
+      "n_channels_live": 5,
+      "n_channels_total": 5,
+      "channels_summary": [
+        {
+          "id": "dgs10",
+          "fred": "DGS10",
+          "ok": true,
+          "rv": 0.6535,
+          "z": null,
+          "pct": null,
+          "latest": "2026-05-19"
+        },
+        {
+          "id": "dgs2",
+          "fred": "DGS2",
+          "ok": true,
+          "rv": 0.6837,
+          "z": null,
+          "pct": null,
+          "latest": "2026-05-19"
+        },
+        {
+          "id": "t10y2y",
+          "fred": "T10Y2Y",
+          "ok": true,
+          "rv": 0.3184,
+          "z": null,
+          "pct": null,
+          "latest": "2026-05-20"
+        },
+        {
+          "id": "hy_spread",
+          "fred": "BAMLH0A0HYM2",
+          "ok": true,
+          "rv": 0.7524,
+          "z": -0.66,
+          "pct": 31.0,
+          "latest": "2026-05-19"
+        },
+        {
+          "id": "ig_bbb",
+          "fred": "BAMLC0A4CBBB",
+          "ok": true,
+          "rv": 0.1542,
+          "z": -1.19,
+          "pct": 15.1,
+          "latest": "2026-05-19"
+        }
+      ]
+    },
+    "scorecard": {
+      "version_1_0_0": true,
+      "n_channels_live_min_4": true,
+      "n_channels_total_5": true,
+      "composite_z_numeric": true,
+      "regime_real": true,
+      "invoke_ok": true,
+      "channels_have_z": false,
+      "all_pass": false
+    }
+  },
+  "starmine": {
+    "lambda_ready": {
+      "ok": true,
+      "last_modified": "2026-05-21T12:33:18.328+0000",
+      "waited_sec": 0.2
+    },
+    "invoke": {
+      "ok": true,
+      "function_error": null,
+      "elapsed_sec": 15.6
+    },
+    "invoke_summary": {
+      "ok": false,
+      "error": "sp500 fetch failed"
+    },
+    "s3": {
+      "ok": false,
+      "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    "scorecard": {
+      "all_pass": false,
+      "s3_fetch_failed": true
+    }
+  },
+  "scorecard_summary": {
+    "gf_value_v101_all_pass": null,
+    "bond_vol_all_pass": false,
+    "starmine_all_pass": false,
+    "all_three_pass": false
+  },
+  "ended_at": "2026-05-21T12:37:00.123225+00:00"
+}
