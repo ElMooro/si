@@ -1,0 +1,79 @@
+{
+  "ops": 992,
+  "started_at": "2026-05-21T00:32:34.817614+00:00",
+  "donor": "justhodl-earnings-pead",
+  "env_keys_present": [
+    "FMP_KEY"
+  ],
+  "deploy": {
+    "ok": true,
+    "state": "Active",
+    "last_status": "Successful"
+  },
+  "invoke": {
+    "ok": true,
+    "probes": {
+      "FRED_CBOEEQUITYPCRATIO": {
+        "ok": false,
+        "error": "no_fred_key"
+      },
+      "FRED_PUTCALL": {
+        "ok": false,
+        "error": "no_fred_key"
+      },
+      "FRED_VIXCLS": {
+        "ok": false,
+        "error": "no_fred_key"
+      },
+      "Yahoo_CPC_simple": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "Yahoo_CPC_browser": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "Yahoo_CPCE_simple": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "Yahoo_CPCE_browser": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "Yahoo_dollar_CPC": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "Yahoo_dollar_CPCE": {
+        "ok": false,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "CBOE_direct_CSV": [
+        {
+          "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/CPCE_History.csv",
+          "ok": false,
+          "error": "HTTP Error 403: Forbidden"
+        },
+        {
+          "url": "https://cdn.cboe.com/data/us/options/market_statistics/daily/_market_statistics.csv",
+          "ok": false,
+          "error": "HTTP Error 403: Forbidden"
+        },
+        {
+          "url": "https://www.cboe.com/us/options/market_statistics/historical_data/equitypc.csv",
+          "ok": false,
+          "error": "HTTP Error 404: Not Found"
+        }
+      ],
+      "AlphaVantage_options": {
+        "ok": false,
+        "error": "no_av_key"
+      }
+    }
+  },
+  "working_sources": {},
+  "n_working": 0,
+  "delete_probe_ok": true,
+  "ended_at": "2026-05-21T00:32:41.189522+00:00"
+}
