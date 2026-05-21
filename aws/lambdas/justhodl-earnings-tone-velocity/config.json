@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 90,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earnings Call Tone Velocity. YoY same-quarter tone delta per ticker (vs ±45d prior year match) + guidance transition red/green alerts. Loughran-McDonald 2011. Daily 14:30 UTC after earnings-sentiment refresh.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-earnings-tone-velocity-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Earnings Tone Velocity daily 14:30 UTC (4.5h after earnings-sentiment refresh at 10:00 UTC)"
+  }
+}
