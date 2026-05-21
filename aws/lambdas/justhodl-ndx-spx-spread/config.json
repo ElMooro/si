@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "NDX-SPX (QQQ/SPY) spread mean-rev. 4-factor: ratio z-score 252d, 5d persistence, IWM small-cap confirm, XLK/XLF + top-5 concentration. NDX_EXTREME_LEAD (tech fade) or SPX_EXTREME_LEAD (tech recover). Fama-French 1992. ~58%/3-5%/4-8w. Daily 21:45 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-ndx-spx-spread-daily",
+    "cron": "cron(45 21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "NDX-SPX (QQQ/SPY) spread mean-reversion daily 21:45 UTC"
+  }
+}

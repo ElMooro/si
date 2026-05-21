@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 240,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "CTA / Lev Fund trend exhaustion in equity index futures (ES+NQ+RTY+YM). CFTC TFF 156w pctile + z-score + 4w change. CTA_MAX_LONG (unwind, short) or CTA_MAX_SHORT (cover rally, long). Moskowitz-Ooi-Pedersen 2012. ~58%/+-3-7%/2-4wk. Weekly Tue 23 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-cta-trend-exhaust-weekly",
+    "cron": "cron(0 23 ? * TUE *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "CTA trend exhaustion (CFTC TFF) weekly Tue 23 UTC"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 540,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "TTM buyback yield ranking. 5-factor quality: gross+net yield, FCF coverage>=1x, P/E<30, 4-qtr consistency. $2B+ mcap gate. Top 20 equal-weighted portfolio quarterly rebalance. Pontiff-Woodgate 2008 (+4-6%/yr top decile). Weekly Mon 13:00 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-buyback-yield-ranking-weekly",
+    "cron": "cron(0 13 ? * MON *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Buyback yield ranking weekly Mon 13:00 UTC"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 1536,
+  "timeout": 720,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earnings quality scanner via Sloan accruals + Beneish proxies. 4-factor: accruals %assets, OCF/NI cash conv, DSRI+GMI, YoY accrual change. Top 20 LONG / bottom 10 AVOID. $2B+ mcap gate. Sloan 1996 (+10%/yr), Beneish 1999. Weekly Wed 13:30 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-earnings-quality-weekly",
+    "cron": "cron(30 13 ? * WED *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Earnings quality scanner weekly Wed 13:30 UTC"
+  }
+}

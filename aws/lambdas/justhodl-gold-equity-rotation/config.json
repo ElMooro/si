@@ -1,0 +1,19 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 180,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Gold-equity rotation. 5-factor: SPY/GLD ratio z-score, 20d momentum + MA50/MA200, 5d persistence, GDX+SLV strength, DXY overlay. GOLD_BREAKOUT_RICH or EQUITY_DOMINANT_RICH. Erb-Harvey 2013, Baur-Lucey 2010. ~60% hit / +5-8% / 8-16wk. Daily 22:45 UTC.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-gold-equity-rotation-daily",
+    "cron": "cron(45 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Gold-equity rotation regime detector daily 22:45 UTC"
+  }
+}
