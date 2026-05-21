@@ -56,7 +56,7 @@ from datetime import datetime, timezone
 import boto3
 
 # ---------- Constants ----------
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/smart-beta.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -175,11 +175,21 @@ def fmp_historical_prices(symbol, days=PRICE_HISTORY_DAYS):
     return []
 
 
+ND_FACTOR_FIELDS = ("priceToEarningsRatioTTM", "priceToBookRatioTTM",
+                    "returnOnInvestedCapitalTTM", "grossProfitMarginTTM")
+
+
 # ---------- Factor computation ----------
-def compute_value(km):
-    """Value = 0.5 * (1/PE) + 0.5 * (1/PB). Higher = cheaper."""
-    pe = km.get("peRatioTTM") or km.get("pe")
-    pb = km.get("pbRatioTTM") or km.get("pb")
+def compute_value(km, ratios):
+    """Value = 0.5 * (1/PE) + 0.5 * (1/PB). Higher = cheaper.
+    PE/PB live in /stable/ratios-ttm (not /stable/key-metrics-ttm)."""
+    pe = ratios.get("priceToEarningsRatioTTM")
+    pb = ratios.get("priceToBookRatioTTM")
+    try:
+        pe = float(pe) if pe is not None else None
+        pb = float(pb) if pb is not None else None
+    except (ValueError, TypeError):
+        return None, None, None
     if not pe or pe <= 0 or not pb or pb <= 0:
         return None, None, None
     v = 0.5 * (1.0 / pe) + 0.5 * (1.0 / pb)
@@ -187,11 +197,11 @@ def compute_value(km):
 
 
 def compute_quality(km, ratios):
-    """Quality = 0.5 * ROIC + 0.5 * GrossMargin. Higher = better."""
-    roic = (km.get("roicTTM") or km.get("roic"))
-    gm = (ratios.get("grossProfitMarginTTM") or
-          km.get("grossProfitMarginTTM") or
-          ratios.get("grossMargin"))
+    """Quality = 0.5 * ROIC + 0.5 * GrossMargin. Higher = better.
+    ROIC in /stable/key-metrics-ttm (returnOnInvestedCapitalTTM).
+    GrossMargin in /stable/ratios-ttm (grossProfitMarginTTM)."""
+    roic = km.get("returnOnInvestedCapitalTTM")
+    gm = ratios.get("grossProfitMarginTTM")
     if roic is None or gm is None:
         return None, None, None
     try:
@@ -258,7 +268,7 @@ def analyze_ticker(symbol, sector):
     prices = sorted([p for p in prices_raw if p.get("date")],
                     key=lambda x: x["date"])
 
-    value_raw, pe, pb = compute_value(km)
+    value_raw, pe, pb = compute_value(km, ratios)
     quality_raw, roic, gm = compute_quality(km, ratios)
     momentum_pct, ret_12m, ret_1m = compute_momentum(prices)
     lowvol_raw, vol_annual_pct = compute_low_vol(prices)

@@ -59,7 +59,7 @@ from datetime import datetime, timezone
 import boto3
 
 # ---------- Constants ----------
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/predictability.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -67,7 +67,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-FMP_SLEEP_SEC = 0.5   # 2 calls/ticker -> ~100 calls + sleeps = ~2 min
+FMP_SLEEP_SEC = 0.5   # 3 calls/ticker -> ~150 calls + sleeps = ~3 min
 HTTP_TIMEOUT = 25
 HISTORY_YEARS = 10
 
@@ -156,6 +156,16 @@ def fmp_income_statement(symbol, years=HISTORY_YEARS):
 
 def fmp_quote(symbol):
     url = f"{FMP_BASE}/quote?symbol={symbol}&apikey={FMP_KEY}"
+    d = http_json(url)
+    if isinstance(d, list) and d:
+        return d[0]
+    return {}
+
+
+def fmp_ratios_ttm(symbol):
+    """/stable/ratios-ttm has priceToEarningsRatioTTM (PE) etc.
+    The /stable/quote endpoint does NOT include PE."""
+    url = f"{FMP_BASE}/ratios-ttm?symbol={symbol}&apikey={FMP_KEY}"
     d = http_json(url)
     if isinstance(d, list) and d:
         return d[0]
@@ -256,6 +266,8 @@ def analyze_ticker(symbol, sector):
     time.sleep(FMP_SLEEP_SEC)
     q = fmp_quote(symbol)
     time.sleep(FMP_SLEEP_SEC)
+    ratios = fmp_ratios_ttm(symbol)
+    time.sleep(FMP_SLEEP_SEC)
 
     if not inc or len(inc) < 4:
         return {"ticker": symbol, "sector": sector, "ok": False,
@@ -291,7 +303,13 @@ def analyze_ticker(symbol, sector):
     stars = predictability_stars(rev_r2, eps_r2)
 
     price = q.get("price")
-    pe_ttm = q.get("pe")
+    pe_ttm = (ratios.get("priceToEarningsRatioTTM") or
+              ratios.get("priceToEarningsRatio"))
+    if pe_ttm is not None:
+        try:
+            pe_ttm = float(pe_ttm)
+        except (ValueError, TypeError):
+            pe_ttm = None
     market_cap = q.get("marketCap")
     val_bucket = valuation_bucket(pe_ttm)
 
@@ -530,6 +548,7 @@ def lambda_handler(event, context):
         "sources": {
             "income_statement": "FMP /stable/income-statement",
             "quote": "FMP /stable/quote",
+            "ratios_ttm": "FMP /stable/ratios-ttm (PE for valuation overlay)",
             "universe": "STATIC_TOP50_SPX (shared with StarMine #4)",
         },
     }
