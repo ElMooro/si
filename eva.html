@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EVA Spread · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📈</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:22px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 8px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:30px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+h2 .sub{font-size:10.5px;color:var(--dim);font-family:var(--mono);letter-spacing:1px;text-transform:none}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1080px;line-height:1.65}
+nav.crumbs{margin-top:12px;display:flex;flex-wrap:wrap;gap:14px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);padding-bottom:2px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.regime{display:grid;grid-template-columns:auto 1fr auto;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;align-items:center}
+.regime .stateBox{font-family:var(--mono);text-align:center;padding:10px 18px;border-radius:6px;border:1px solid var(--line);min-width:220px}
+.regime .stateBox .label{font-size:10px;letter-spacing:1.4px;color:var(--dim);text-transform:uppercase}
+.regime .stateBox .name{font-size:19px;font-weight:700;margin:5px 0;letter-spacing:.6px}
+.regime .stateBox .strength{font-size:11px;color:var(--mute);font-family:var(--mono)}
+.regime .desc{font-size:13px;color:var(--txt);line-height:1.6}
+.regime .wacc{font-family:var(--mono);font-size:11px;color:var(--mute);min-width:240px;text-align:right}
+.regime .wacc .row{display:flex;justify-content:space-between;gap:14px;padding:3px 0}
+.regime .wacc .row b{color:var(--cyan);font-weight:700}
+.st-CREATING_VALUE_BROAD{color:var(--green);border-color:var(--green)!important;background:#26ffaf12}
+.st-MIXED{color:var(--yellow);border-color:var(--yellow)!important;background:#ffd26612}
+.st-DESTROYING_VALUE_BROAD{color:var(--red);border-color:var(--red)!important;background:#ff557712}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:14px 16px}
+.card h3{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.card .big{font-family:var(--mono);font-size:26px;font-weight:700;margin:2px 0;color:var(--txt)}
+.card .sub{font-size:10.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);letter-spacing:.4px}
+.card.green .big{color:var(--green)}.card.red .big{color:var(--red)}
+.card.cyan .big{color:var(--cyan)}.card.purple .big{color:var(--purple)}
+
+.cardw{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:4px 12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:920px){.two{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.regime{grid-template-columns:1fr}.regime .wacc{text-align:left}}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:10px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px;background:var(--panel);position:sticky;top:0}
+td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:middle}
+tr:hover td{background:var(--panel2)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tk{font-weight:700;color:var(--txt)}
+.tk .sec{color:var(--dim);font-weight:400;font-size:10px;margin-left:5px}
+
+.pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px;font-family:var(--mono);text-transform:uppercase}
+.p-SUPER{background:#a78bfa25;color:var(--purple)}
+.p-CREATOR{background:#26ffaf22;color:var(--green)}
+.p-DESTROYER{background:#ff557722;color:var(--red)}
+
+.super{background:linear-gradient(180deg,#a78bfa08,transparent);border:1px solid #a78bfa44;border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.super .superHdr{font-family:var(--mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--purple);margin-bottom:10px}
+.super .superHdr b{color:var(--cyan)}
+
+.loading{text-align:center;padding:44px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.empty{padding:30px 16px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1080px}
+.note b{color:var(--mute)}
+
+.sectorBar{display:grid;grid-template-columns:140px 1fr 70px 70px;gap:10px;align-items:center;margin:6px 0;font-family:var(--mono);font-size:11px}
+.sectorBar .sn{color:var(--mute)}
+.sectorBar .sb{height:9px;background:#1c2433;border-radius:2px;overflow:hidden;position:relative}
+.sectorBar .sf{height:100%}
+.sectorBar .sv{text-align:right;color:var(--mute);font-size:10.5px}
+.sectorBar .pc{text-align:right;color:var(--dim);font-size:10.5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📈 EVA SPREAD · Economic Profit Engine</h1>
+    <p class="subtitle">Stern Stewart's institutional flagship plus Bennett Stewart's 2002 EVA Momentum enhancement. <b>EVA Spread = ROIC − WACC</b> identifies companies that earn returns above their cost of capital — true economic value creators versus accounting-profitable but capital-destroying businesses. WACC computed via CAPM (Ke = Rf+β·ERP, Kd = Rf+IG-spread, weighted by E/V vs D/V with tax shield). Per Bennett Stewart's research, EVA correlates with stock returns ~50% better than EPS. The <b>Super Compounder</b> filter (Spread &gt;5pp + ROIC &gt;20% + EVA Momentum &gt;0) fuses with #7 Predictability and #8 Smart Beta for the institutional compound-and-hold screen.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/predictability.html">predictability</a>
+      <a href="/smart-beta.html">smart beta</a>
+      <a href="/gf-value.html">gf value</a>
+      <a href="/magic-formula.html">magic formula</a>
+      <a href="/starmine.html">starmine</a>
+      <a href="/baggers.html">baggers</a>
+      <a href="/fundamentals.html">fundamentals</a>
+    </nav>
+  </header>
+
+  <!-- REGIME -->
+  <div id="regime" class="regime"><div class="loading" style="grid-column:1/-1">LOADING REGIME…</div></div>
+
+  <!-- 4 KPIs -->
+  <div class="grid4" id="kpis"><div class="loading" style="grid-column:1/-1">LOADING KPIS…</div></div>
+
+  <!-- SUPER COMPOUNDERS - flagship cross-engine fusion panel -->
+  <h2>SUPER COMPOUNDERS <span class="sub">EVA Spread &gt;5pp · ROIC &gt;20% · EVA Momentum &gt;0 · institutional compound-and-hold list</span></h2>
+  <div id="super"><div class="loading">…</div></div>
+
+  <!-- TOP 10 EVA SPREAD -->
+  <h2>TOP 10 EVA SPREAD <span class="sub">ROIC minus WACC, cross-sectional ranking</span></h2>
+  <div class="cardw"><div id="topSpread"><div class="loading">…</div></div></div>
+
+  <!-- TWO COLUMN: MOMENTUM / MVA -->
+  <div class="two" style="margin-top:18px">
+    <div>
+      <h2 style="margin-top:0">EVA MOMENTUM <span class="sub">ΔEVA / Invested Capital — Bennett Stewart 2002</span></h2>
+      <div class="cardw"><div id="topMom"><div class="loading">…</div></div></div>
+    </div>
+    <div>
+      <h2 style="margin-top:0">MARKET VALUE ADDED <span class="sub">MVA = Market Cap − Invested Capital</span></h2>
+      <div class="cardw"><div id="topMva"><div class="loading">…</div></div></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM DESTROYERS -->
+  <h2>VALUE DESTROYERS <span class="sub">ROIC below WACC — capital being eroded</span></h2>
+  <div class="cardw"><div id="bottom"><div class="loading">…</div></div></div>
+
+  <!-- SECTOR HEATMAP -->
+  <h2>SECTOR BREAKDOWN <span class="sub">% value creators + median EVA spread per sector</span></h2>
+  <div class="cardw" style="padding:16px 20px"><div id="sectors"><div class="loading">…</div></div></div>
+
+  <p class="note" id="methodology"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const fmtPP=(x,p=2)=>x==null||isNaN(x)?"—":(x>=0?"+":"")+(+x).toFixed(p)+"pp";
+const fmtPct=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p)+"%";
+const fmtNum=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p);
+const fmtMcap=x=>!x||isNaN(x)?"—":Math.abs(x)>=1e12?"$"+(x/1e12).toFixed(2)+"T":Math.abs(x)>=1e9?"$"+(x/1e9).toFixed(1)+"B":Math.abs(x)>=1e6?"$"+(x/1e6).toFixed(0)+"M":"$"+x;
+const fmtDate=s=>!s?"—":(""+s).replace("T"," ").replace(/\.\d+Z?$/,"").slice(0,16)+"Z";
+const spColor=x=>x==null?"var(--dim)":x>=20?"var(--green)":x>=5?"#7be9b4":x>=0?"var(--mute)":x>=-5?"var(--yellow)":"var(--red)";
+
+(async()=>{
+  const d=await J("eva-spread.json");
+  if(!d){
+    document.getElementById("regime").innerHTML=`<div class="empty" style="grid-column:1/-1">EVA feed unavailable — engine may be deploying for the first time. Schedule: daily 00:45 UTC.</div>`;
+    return;
+  }
+  const w=d.wacc_inputs||{};
+  const m=d.universe_medians||{};
+
+  // ---------- REGIME ----------
+  const regCls=d.universe_state||"MIXED";
+  const stateLabels={
+    CREATING_VALUE_BROAD:"Value Creation Broad",
+    MIXED:"Mixed",
+    DESTROYING_VALUE_BROAD:"Value Destruction Broad",
+  };
+  const stateDescs={
+    CREATING_VALUE_BROAD:"≥70% of universe earns above its cost of capital. The S&P heavyweights are compounding economic value — buy-and-hold environment.",
+    MIXED:"40–70% of universe creates economic value. Stock-picking environment — separate creators from destroyers with the EVA Spread.",
+    DESTROYING_VALUE_BROAD:"<40% of universe earns above WACC. Capital is being eroded across the index — defensive posture warranted.",
+  };
+  document.getElementById("regime").innerHTML=`
+    <div class="stateBox st-${regCls}">
+      <div class="label">Universe Regime</div>
+      <div class="name">${esc(stateLabels[regCls]||regCls)}</div>
+      <div class="strength">${d.n_value_creators}/${d.n_valid} CREATORS</div>
+    </div>
+    <div class="desc">${esc(stateDescs[regCls]||"")}</div>
+    <div class="wacc">
+      <div class="row"><span>Risk-Free 10Y</span><b>${fmtPct(w.risk_free_10y_pct,2)}</b></div>
+      <div class="row"><span>Equity Risk Premium</span><b>${fmtPct(w.equity_risk_premium_pct,2)}</b></div>
+      <div class="row"><span>IG Credit Spread (BBB OAS)</span><b>${fmtPct(w.ig_credit_spread_pct,2)}</b></div>
+      <div class="row"><span>Median Universe WACC</span><b>${fmtPct(m.wacc_pct,2)}</b></div>
+    </div>`;
+
+  // ---------- 4 KPIs ----------
+  const kpis=[
+    ["Value Creators",d.n_value_creators,"EVA Spread > 0","green"],
+    ["Value Destroyers",d.n_value_destroyers,"EVA Spread < 0","red"],
+    ["Super Compounders",d.n_super_compounders,"Spread > 5pp + ROIC > 20% + Mom > 0","purple"],
+    ["Median EVA Spread",fmtPP(m.eva_spread_pct,2),`ROIC ${fmtPct(m.roic_pct,1)} vs WACC ${fmtPct(m.wacc_pct,1)}`,"cyan"],
+  ];
+  document.getElementById("kpis").innerHTML=kpis.map(([t,v,s,c])=>
+    `<div class="card ${c}"><h3>${esc(t)}</h3><div class="big">${v}</div><div class="sub">${esc(s)}</div></div>`).join("");
+
+  // ---------- SUPER COMPOUNDERS ----------
+  const sup=d.super_compounders||[];
+  const supEl=document.getElementById("super");
+  if(sup.length){
+    let h=`<div class="super">
+      <div class="superHdr">${sup.length} super compounders · cross-engine fusion target → also check <b>#7 Predictability 5★</b> + <b>#8 Smart Beta Quality leaders</b> for institutional quadruple-confluence</div>
+      <table><thead><tr>
+        <th>Ticker</th><th class="num">EVA Spread</th><th class="num">ROIC</th>
+        <th class="num">WACC</th><th class="num">EVA Momentum</th><th class="num">EVA Margin</th><th class="num">MVA Multiple</th>
+      </tr></thead><tbody>`;
+    for(const r of sup){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="sec">${esc(r.sector||"")}</span></td>
+        <td class="num" style="color:var(--green);font-weight:700">${fmtPP(r.eva_spread_pct,2)}</td>
+        <td class="num">${fmtPct(r.roic_ttm_pct,2)}</td>
+        <td class="num" style="color:var(--mute)">${fmtPct(r.wacc_pct,2)}</td>
+        <td class="num" style="color:${(r.eva_momentum_pct||0)>=10?'var(--green)':'var(--txt)'}">${fmtPP(r.eva_momentum_pct,2)}</td>
+        <td class="num">${r.eva_margin_pct==null?"—":(r.eva_margin_pct>0?"+":"")+fmtNum(r.eva_margin_pct,1)+"%"}</td>
+        <td class="num">${r.mva_multiple==null?"—":fmtNum(r.mva_multiple,2)+"×"}</td>
+      </tr>`;
+    }
+    supEl.innerHTML=h+`</tbody></table></div>`;
+  } else {
+    supEl.innerHTML=`<div class="cardw" style="padding:24px"><div class="empty">No Super Compounders today. Regime is ${esc(regCls)}; cycle through #7 Predictability for moat candidates instead.</div></div>`;
+  }
+
+  // ---------- TOP 10 EVA SPREAD ----------
+  const ts=d.top_10_eva_spread||[];
+  const tsEl=document.getElementById("topSpread");
+  if(ts.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">EVA Spread</th><th class="num">ROIC</th>
+      <th class="num">WACC</th><th class="num">EVA Momentum</th><th class="num">EVA USD</th>
+      <th class="num">EVA Margin</th><th class="num">Spread %ile</th><th>Status</th>
+    </tr></thead><tbody>`;
+    for(const r of ts){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="sec">${esc(r.sector||"")}</span></td>
+        <td class="num" style="color:${spColor(r.eva_spread_pct)};font-weight:700">${fmtPP(r.eva_spread_pct,2)}</td>
+        <td class="num">${fmtPct(r.roic_ttm_pct,2)}</td>
+        <td class="num" style="color:var(--mute)">${fmtPct(r.wacc_pct,2)}</td>
+        <td class="num">${fmtPP(r.eva_momentum_pct,2)}</td>
+        <td class="num">${fmtMcap(r.eva_usd)}</td>
+        <td class="num">${r.eva_margin_pct==null?"—":(r.eva_margin_pct>0?"+":"")+fmtNum(r.eva_margin_pct,1)+"%"}</td>
+        <td class="num" style="color:var(--dim)">${r.eva_spread_pct_pctile==null?"—":fmtNum(r.eva_spread_pct_pctile,0)}</td>
+        <td>${r.super_compounder?'<span class="pill p-SUPER">Super</span>':'<span class="pill p-CREATOR">Creator</span>'}</td>
+      </tr>`;
+    }
+    tsEl.innerHTML=h+`</tbody></table>`;
+  }
+
+  // ---------- TOP 10 EVA MOMENTUM ----------
+  const tm=d.top_10_eva_momentum||[];
+  const tmEl=document.getElementById("topMom");
+  if(tm.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">EVA Momentum</th><th class="num">Spread</th><th class="num">ROIC</th>
+    </tr></thead><tbody>`;
+    for(const r of tm){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="sec">${esc(r.sector||"")}</span></td>
+        <td class="num" style="color:${r.eva_momentum_pct>=10?'var(--green)':r.eva_momentum_pct>=0?'var(--mute)':'var(--red)'};font-weight:700">${fmtPP(r.eva_momentum_pct,2)}</td>
+        <td class="num">${fmtPP(r.eva_spread_pct,2)}</td>
+        <td class="num">${fmtPct(r.roic_ttm_pct,1)}</td>
+      </tr>`;
+    }
+    tmEl.innerHTML=h+`</tbody></table>`;
+  }
+
+  // ---------- TOP 10 MVA ----------
+  const mv=d.top_10_mva||[];
+  const mvEl=document.getElementById("topMva");
+  if(mv.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">MVA</th><th class="num">Mkt Cap</th><th class="num">MVA ×IC</th><th class="num">Spread</th>
+    </tr></thead><tbody>`;
+    for(const r of mv){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="sec">${esc(r.sector||"")}</span></td>
+        <td class="num" style="color:var(--cyan);font-weight:700">${fmtMcap(r.mva_usd)}</td>
+        <td class="num" style="color:var(--mute)">${fmtMcap(r.market_cap_usd)}</td>
+        <td class="num">${r.mva_multiple==null?"—":fmtNum(r.mva_multiple,1)+"×"}</td>
+        <td class="num" style="color:${spColor(r.eva_spread_pct)}">${fmtPP(r.eva_spread_pct,1)}</td>
+      </tr>`;
+    }
+    mvEl.innerHTML=h+`</tbody></table>`;
+  }
+
+  // ---------- BOTTOM DESTROYERS ----------
+  const bd=d.bottom_5_destroyers||[];
+  const bdEl=document.getElementById("bottom");
+  if(bd.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">EVA Spread</th><th class="num">ROIC</th><th class="num">WACC</th>
+      <th class="num">EVA USD</th><th class="num">EVA Momentum</th><th>Status</th>
+    </tr></thead><tbody>`;
+    for(const r of bd){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="sec">${esc(r.sector||"")}</span></td>
+        <td class="num" style="color:var(--red);font-weight:700">${fmtPP(r.eva_spread_pct,2)}</td>
+        <td class="num">${fmtPct(r.roic_ttm_pct,2)}</td>
+        <td class="num" style="color:var(--mute)">${fmtPct(r.wacc_pct,2)}</td>
+        <td class="num" style="color:var(--red)">${fmtMcap(r.eva_usd)}</td>
+        <td class="num">${fmtPP(r.eva_momentum_pct,2)}</td>
+        <td><span class="pill p-DESTROYER">Destroyer</span></td>
+      </tr>`;
+    }
+    bdEl.innerHTML=h+`</tbody></table>`;
+  }
+
+  // ---------- SECTOR HEATMAP ----------
+  const sb=d.sector_breakdown||{};
+  const secEl=document.getElementById("sectors");
+  const arr=Object.entries(sb).map(([k,v])=>({s:k,n:v.n,pc:v.pct_creators,med:v.median_eva_spread_pct}))
+    .sort((a,b)=>b.med-a.med);
+  if(arr.length){
+    const maxSp=Math.max(...arr.map(x=>Math.abs(x.med||0)));
+    secEl.innerHTML=arr.map(x=>{
+      const pct=Math.min(100,Math.abs(x.med||0)/maxSp*100);
+      const col=x.med>=10?"var(--green)":x.med>=0?"#7be9b4":x.med>=-5?"var(--yellow)":"var(--red)";
+      return `<div class="sectorBar">
+        <div class="sn">${esc(x.s)}<span style="color:var(--dim);font-size:10px"> · n=${x.n}</span></div>
+        <div class="sb"><div class="sf" style="width:${pct.toFixed(0)}%;background:${col}"></div></div>
+        <div class="sv">${fmtPP(x.med,2)}</div>
+        <div class="pc">${fmtPct(x.pc,0)} creators</div>
+      </div>`;
+    }).join("");
+  }
+
+  // ---------- METHODOLOGY ----------
+  const meth=d.methodology||{};
+  document.getElementById("methodology").innerHTML=
+    "<b>Framework.</b> "+esc(meth.framework||"")+"<br>"+
+    "<b>EVA.</b> "+esc(meth.formula||"")+" — capital charge that strips out the opportunity cost of the equity + debt invested in the business. Positive EVA = wealth creation.<br>"+
+    "<b>EVA Spread.</b> "+esc(meth.spread||"")+" — preferred for cross-sectional ranking because it normalizes out company size.<br>"+
+    "<b>EVA Momentum.</b> "+esc(meth.momentum||"")+" — Bennett Stewart argues this captures the rate of value creation better than raw EVA snapshots.<br>"+
+    "<b>WACC.</b> "+esc(meth.wacc||"")+"<br>"+
+    "<b>Super Compounder.</b> "+esc(meth.super_compounder_filter||"")+"<br>"+
+    "<b>Caveat.</b> Insurance-float-heavy businesses (e.g. BRK-B) systematically appear as 'destroyers' because GAAP ROIC under-counts insurance float as productive capital; treat insurer EVA with care.";
+
+  document.getElementById("ts").textContent=
+    "engine: "+esc(d.engine||"eva-spread")+" v"+esc(d.version)+" · "+
+    "universe: "+esc(d.universe||"")+" · "+
+    "generated "+fmtDate(d.generated_at)+" · "+
+    "duration "+(d.duration_seconds||"?")+"s";
+})();
+</script>
+</body>
+</html>
