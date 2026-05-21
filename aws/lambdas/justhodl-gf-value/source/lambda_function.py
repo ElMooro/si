@@ -73,7 +73,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/gf-value.json"
 
@@ -217,7 +217,14 @@ def compute_dcf(income, cashflow, balance, quote, metrics):
 
 
 def compute_evebit(income, balance, quote, metrics):
-    """EV/EBIT multiple fair value per share."""
+    """EV/EBIT multiple fair value per share.
+
+    v1.0.1 fix: build historical EV/EBIT by joining key-metrics
+    (enterpriseValue per period) with income-statement (operatingIncome
+    per period) on year. Previous version looked for 'ebit' inside
+    key-metrics which doesn't exist in FMP's schema -> failed for
+    almost every ticker.
+    """
     try:
         if not isinstance(income, list) or len(income) < 3:
             return None, "no_income"
@@ -225,17 +232,33 @@ def compute_evebit(income, balance, quote, metrics):
         ebit_ttm = income[0].get("operatingIncome") or 0
         if ebit_ttm <= 0:
             return None, "negative_ebit"
-        # Historical EV/EBIT from key-metrics
         if not isinstance(metrics, list) or len(metrics) < 3:
             return None, "no_metrics"
+        # Build year -> EBIT map from income statements
+        ebit_by_year = {}
+        for inc in income:
+            d = (inc.get("date") or inc.get("fiscalYear")
+                 or inc.get("calendarYear"))
+            if not d:
+                continue
+            yr = str(d)[:4]
+            eb = inc.get("operatingIncome") or 0
+            if eb and eb > 0:
+                ebit_by_year[yr] = float(eb)
+        # Build historical EV/EBIT by matching metrics to income on year
         ev_ebits = []
         for m in metrics[:10]:
+            d = (m.get("date") or m.get("fiscalYear")
+                 or m.get("calendarYear"))
+            if not d:
+                continue
+            yr = str(d)[:4]
             ev = m.get("enterpriseValue") or 0
-            ebit_y = (m.get("ebit") or m.get("operatingIncome") or 0)
-            if ev > 0 and ebit_y > 0:
+            ebit_y = ebit_by_year.get(yr)
+            if ev and ev > 0 and ebit_y and ebit_y > 0:
                 ev_ebits.append(ev / ebit_y)
         if len(ev_ebits) < 3:
-            return None, "insufficient_evebit_history"
+            return None, f"insufficient_evebit_history ({len(ev_ebits)})"
         # Drop outliers (>3 sigma)
         if len(ev_ebits) >= 4:
             mu = statistics.mean(ev_ebits)
@@ -385,7 +408,15 @@ def analyze_ticker(symbol):
             dcf_val, evebit_val, graham_val, p52_low, p52_high)
         if not gf_value:
             return None
+        # v1.0.1 sanity: reject extreme ratios (FMP split-adjustment
+        # mismatches produce absurd values like LITE $868 vs GFV $25).
+        if gf_value > 0 and price > 0:
+            ratio = max(price, gf_value) / min(price, gf_value)
+            if ratio > 20:
+                return None
         mos_pct = round((gf_value - price) / gf_value * 100, 1)
+        # v1.0.1 bounds: clip MoS to [-95%, +95%] for display sanity
+        mos_pct = max(-95.0, min(95.0, mos_pct))
         rate = rating(mos_pct)
 
         return {
