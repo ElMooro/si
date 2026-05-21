@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Beneish M-Score · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚩</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--red)}
+.callout strong{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.tk small{display:block;color:var(--dim);font-size:9.5px;font-weight:400;letter-spacing:.3px}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase;white-space:nowrap}
+.f-red{color:var(--red);background:rgba(255,85,119,.15)}
+.f-yellow{color:var(--yellow);background:rgba(255,210,102,.15)}
+.f-green{color:var(--green);background:rgba(38,255,175,.12)}
+.dim{color:var(--dim)}
+.up{color:var(--green)}.dn{color:var(--red)}
+.state-LOW_FRAUD_RISK{color:var(--green)}
+.state-MODERATE_FRAUD_RISK{color:var(--yellow)}
+.state-ELEVATED_FRAUD_RISK{color:var(--red)}
+.method-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.method-card{background:var(--panel);border:1px solid var(--line);padding:12px;border-radius:6px}
+.method-card h4{font-family:var(--mono);font-size:11px;color:var(--cyan);margin:0 0 6px;letter-spacing:1px;text-transform:uppercase}
+.method-card .wt{font-family:var(--mono);font-size:18px;color:var(--green);font-weight:700;margin-bottom:6px}
+.method-card p{color:var(--mute);font-size:11.5px;margin:0;line-height:1.5}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;font-family:var(--mono);letter-spacing:.5px}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>🚩 Beneish M-Score Fraud Detector</h1>
+  <p class="subtitle">Messod Beneish's 8-variable earnings-manipulation composite. Flagged Enron 2 years before collapse. Now a <strong>GuruFocus, Bloomberg, and academic standard</strong> for quality screening. Universe: top-50 S&amp;P 500 by market cap. M &gt; -1.78 = likely manipulator. M &lt; -2.22 = unlikely.</p>
+  <nav class="crumbs"><a href="/">← Home</a><a href="/retail-edges.html">Retail Edges</a><a href="/gf-value.html">GF Value</a><a href="/magic-formula.html">Magic Formula</a><a href="/starmine.html">StarMine</a></nav>
+</header>
+
+<div id="root"><div class="loading">Loading Beneish M-Score data...</div></div>
+
+<footer>
+  <span id="last_updated">—</span> · v<span id="version">—</span> · Universe: <span id="universe_n">—</span> stocks · Sources: FMP /stable/income-statement + balance-sheet-statement + cash-flow-statement · Beneish 1999 FAJ formula · Refresh weekly Sundays 03:00 UTC
+</footer>
+</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/beneish.json';
+
+function verdictFlag(v){
+  if(v==='LIKELY_MANIPULATOR') return '<span class="flag f-red">RED FLAG</span>';
+  if(v==='WATCH_LIST') return '<span class="flag f-yellow">WATCH</span>';
+  if(v==='UNLIKELY_MANIPULATOR') return '<span class="flag f-green">CLEAN</span>';
+  return '<span class="flag dim">—</span>';
+}
+
+function fmtComp(c, key){
+  const v = c?.[key];
+  if(v===null||v===undefined) return '—';
+  return v.toFixed(2);
+}
+
+function render(d){
+  if(!d||!d.ok){
+    document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
+    return;
+  }
+  document.getElementById('last_updated').textContent = d.generated_at;
+  document.getElementById('version').textContent = d.version || '—';
+  document.getElementById('universe_n').textContent = d.n_universe_analyzed || '—';
+
+  const stCls = 'state-' + d.universe_state;
+  const html = `
+    <div class="callout">
+      <strong>UNIVERSE STATE</strong>
+      <span class="mono ${stCls}" style="font-size:20px;font-weight:700">${d.universe_state.replace(/_/g,' ')}</span>
+      &nbsp;·&nbsp; <span class="dn"><strong>${d.n_likely_manipulator}</strong> red flags</span>
+      &nbsp;·&nbsp; <span style="color:var(--yellow)"><strong>${d.n_watch_list}</strong> on watch</span>
+      &nbsp;·&nbsp; <span class="up"><strong>${d.n_unlikely_manipulator}</strong> clean</span>
+      &nbsp;·&nbsp; median M=<span class="mono">${d.median_m_score?.toFixed(2)}</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><h3>Risk State</h3><div class="v ${stCls}">${d.universe_state.replace(/_/g,' ')}</div><div class="vsub">universe</div></div>
+      <div class="kpi"><h3>Red Flags</h3><div class="v dn">${d.n_likely_manipulator}</div><div class="vsub">M &gt; -1.78</div></div>
+      <div class="kpi"><h3>Watch List</h3><div class="v" style="color:var(--yellow)">${d.n_watch_list}</div><div class="vsub">ambiguous</div></div>
+      <div class="kpi"><h3>Clean</h3><div class="v up">${d.n_unlikely_manipulator}</div><div class="vsub">M &lt; -2.22</div></div>
+      <div class="kpi"><h3>Median M</h3><div class="v">${d.median_m_score?.toFixed(2)}</div><div class="vsub">universe</div></div>
+      <div class="kpi"><h3>Worst M</h3><div class="v dn">${d.max_m_score?.toFixed(2)}</div><div class="vsub">${d.red_flags[0]?.ticker || '—'}</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('red')">Red Flags (${d.n_likely_manipulator})</div>
+      <div class="tab" onclick="switchTab('clean')">Cleanest 10</div>
+      <div class="tab" onclick="switchTab('all')">All ${d.n_universe_analyzed} Tickers</div>
+      <div class="tab" onclick="switchTab('sector')">Sector Risk</div>
+      <div class="tab" onclick="switchTab('method')">Methodology</div>
+    </div>
+
+    <div id="tab-red" class="tab-pane active">
+      ${d.red_flags.length === 0 ? '<div class="loading">No red flags detected. Universe is clean.</div>' : `
+      <table>
+        <thead><tr>
+          <th>Ticker</th><th>Sector</th><th>FY</th><th>M-Score</th><th>Verdict</th>
+          <th>DSRI</th><th>GMI</th><th>AQI</th><th>SGI</th>
+          <th>DEPI</th><th>SGAI</th><th>TATA</th><th>LVGI</th>
+        </tr></thead>
+        <tbody>${d.red_flags.map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td class="dim">${t.fiscal_year_t||'—'}</td>
+            <td class="mono dn"><strong>${t.m_score?.toFixed(2)}</strong></td>
+            <td>${verdictFlag(t.verdict)}</td>
+            <td class="mono">${fmtComp(t.components,'dsri')}</td>
+            <td class="mono">${fmtComp(t.components,'gmi')}</td>
+            <td class="mono">${fmtComp(t.components,'aqi')}</td>
+            <td class="mono">${fmtComp(t.components,'sgi')}</td>
+            <td class="mono">${fmtComp(t.components,'depi')}</td>
+            <td class="mono">${fmtComp(t.components,'sgai')}</td>
+            <td class="mono">${fmtComp(t.components,'tata')}</td>
+            <td class="mono">${fmtComp(t.components,'lvgi')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <div id="tab-clean" class="tab-pane">
+      <table>
+        <thead><tr>
+          <th>Ticker</th><th>Sector</th><th>FY</th><th>M-Score</th><th>Verdict</th>
+          <th>DSRI</th><th>GMI</th><th>SGI</th><th>TATA</th>
+        </tr></thead>
+        <tbody>${d.cleanest_10.map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td class="dim">${t.fiscal_year_t||'—'}</td>
+            <td class="mono up"><strong>${t.m_score?.toFixed(2)}</strong></td>
+            <td>${verdictFlag(t.verdict)}</td>
+            <td class="mono">${fmtComp(t.components,'dsri')}</td>
+            <td class="mono">${fmtComp(t.components,'gmi')}</td>
+            <td class="mono">${fmtComp(t.components,'sgi')}</td>
+            <td class="mono">${fmtComp(t.components,'tata')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-all" class="tab-pane">
+      <table>
+        <thead><tr><th>Rank</th><th>Ticker</th><th>Sector</th><th>FY</th><th>M-Score</th><th>Verdict</th></tr></thead>
+        <tbody>${d.all_tickers.map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}</div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td class="dim">${t.fiscal_year_t||'—'}</td>
+            <td class="mono">${t.m_score?.toFixed(2)}</td>
+            <td>${verdictFlag(t.verdict)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-sector" class="tab-pane">
+      ${Object.keys(d.sector_breakdown_red_flags||{}).length === 0 ? '<div class="loading">No sector-level red flags.</div>' : `
+      <table>
+        <thead><tr><th>Sector</th><th>Red Flag Count</th></tr></thead>
+        <tbody>${Object.entries(d.sector_breakdown_red_flags||{}).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
+          <tr><td><strong>${s}</strong></td><td class="mono dn">${n}</td></tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+
+    <div id="tab-method" class="tab-pane">
+      <div class="callout">
+        <strong>EDGE BASIS</strong>
+        ${d.edge_basis||''}
+      </div>
+      <h2>Formula</h2>
+      <p class="mono dim" style="background:var(--panel);padding:12px;border-radius:6px;font-size:11.5px">${d.methodology?.formula||''}</p>
+      <h2>8 Variables (each year-over-year ratio)</h2>
+      <div class="method-grid">
+        ${Object.entries(d.methodology?.components_explained||{}).map(([k,v])=>`
+          <div class="method-card"><h4>${k}</h4><div class="wt">·</div><p>${v}</p></div>`).join('')}
+      </div>
+      <h2>Verdict Bands</h2>
+      <table>
+        <thead><tr><th>Verdict</th><th>M-Score Range</th></tr></thead>
+        <tbody>${Object.entries(d.verdict_bands||{}).map(([k,v])=>`<tr><td>${verdictFlag(k)}</td><td class="mono">${v}</td></tr>`).join('')}</tbody>
+      </table>
+      <h2>Universe State Bands</h2>
+      <table>
+        <thead><tr><th>State</th><th>Threshold</th></tr></thead>
+        <tbody>${Object.entries(d.universe_state_bands||{}).map(([k,v])=>`<tr><td><strong class="state-${k}">${k}</strong></td><td class="mono">${v}</td></tr>`).join('')}</tbody>
+      </table>
+      <h2>Data Sources</h2>
+      <table>
+        <tbody>${Object.entries(d.sources||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="mono">${v}</td></tr>`).join('')}</tbody>
+      </table>
+      <p class="dim" style="margin-top:14px;font-size:11.5px">${d.methodology?.academic_source||''}</p>
+    </div>
+  `;
+  document.getElementById('root').innerHTML = html;
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
+  console.error(e);
+  document.getElementById('root').innerHTML = '<div class="loading">Data load failed: '+e.message+'</div>';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Beneish M-Score (GuruFocus fraud-detection gap-closer): 8-variable composite identifying earnings-manipulation risk. Top-50 SPX, weekly Sundays 03:00 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-earnings-quality", "keys": ["FMP_KEY"]},
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-beneish-weekly",
+    "cron": "cron(0 3 ? * SUN *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Beneish M-Score weekly Sundays 03:00 UTC"
+  }
+}
