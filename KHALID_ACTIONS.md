@@ -74,6 +74,21 @@ If you want to go this route, ping Claude with the provider name and credentials
 
 ---
 
+## 🟢 Low priority — long-standing TODOs
+
+### Canary Grid Phase 3 — Korea/China exports + Swiss unemployment
+
+The `justhodl-canary-grid` Lambda (leading ex-US early-warning engine, 9 FRED signals, 4 sub-grids → 0-100 early_warning_level) has had 3 signals dark since launch because DBnomics series codes need to be found manually:
+- Korea exports
+- China exports
+- Swiss unemployment (the original FRED `LRHUTTTTCHQ156S` series was dead; freshness guard caught it and auto-excluded)
+
+The engine has a freshness guard that excludes >95d stale signals, so this isn't urgent. But filling in those 3 signals would bring the early-warning grid from 9 → 12 signals.
+
+To find replacement DBnomics codes: visit https://db.nomics.world/ and search by country + indicator name. The DBnomics search API times out from our Lambda runner, so this needs manual lookup. Once found, add the codes to the Canary Grid Lambda's `SIGNALS` dict.
+
+---
+
 ## Completed (for audit trail)
 
 _(none yet — file initialized 2026-05-21)_
