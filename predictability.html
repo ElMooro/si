@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Predictability Rank · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🏰</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.tk small{display:block;color:var(--dim);font-size:9.5px;font-weight:400}
+.up{color:var(--green)}.dn{color:var(--red)}.warn{color:var(--orange)}.dim{color:var(--dim)}
+.stars{color:var(--yellow);font-size:13px;letter-spacing:1px}
+.star-1{color:var(--red)}.star-2{color:var(--orange)}.star-3{color:var(--yellow)}
+.star-4{color:var(--cyan)}.star-5{color:var(--green)}
+.b-CHEAP{color:var(--green)}.b-FAIR{color:var(--yellow)}.b-RICH{color:var(--red)}.b-UNKNOWN{color:var(--dim)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase;white-space:nowrap}
+.f-sweet{color:var(--green);background:rgba(38,255,175,.15)}
+.dist-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.dist-cell{background:var(--panel);border:1px solid var(--line);padding:10px;border-radius:4px;text-align:center}
+.dist-cell .n{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green)}
+.dist-cell .lbl{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-top:4px}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;font-family:var(--mono);letter-spacing:.5px}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>🏰 Predictability Rank · GuruFocus Methodology</h1>
+  <p class="subtitle">1-5★ moat rating from 10-year revenue + EPS stability (R² of linear regression). Cross-sects with current valuation to surface the <strong>"Predictable + Cheap" Sweet Spot</strong>: elite-moat businesses at depressed multiples. GuruFocus published research shows 5★ + PE&lt;20 returned <strong>11.4% annualized 2000-2020 vs S&amp;P 500 at 6.2%</strong>.</p>
+  <nav class="crumbs"><a href="/">← Home</a><a href="/gf-value.html">GF Value</a><a href="/starmine.html">StarMine</a><a href="/baggers.html">100x Baggers</a></nav>
+</header>
+
+<div id="root"><div class="loading">Loading Predictability data...</div></div>
+
+<footer>
+  <span id="last_updated">—</span> · v<span id="version">—</span> · Universe: <span id="universe_n">—</span> top-mcap S&amp;P names · 10y income-statement depth · Sources: FMP /stable/income-statement + /stable/quote · Refresh daily 23:50 UTC
+</footer>
+</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/predictability.json';
+
+function starGlyphs(n){
+  if(!n) return '<span class="dim">—</span>';
+  const filled = '★'.repeat(n);
+  const empty = '☆'.repeat(5-n);
+  return `<span class="stars star-${n}">${filled}${empty}</span>`;
+}
+
+function fmtPct(v, signed=false){
+  if(v===null||v===undefined) return '<span class="dim">—</span>';
+  const sign = signed && v>=0 ? '+' : '';
+  return `${sign}${v.toFixed(1)}%`;
+}
+
+function fmtR2(v){
+  if(v===null||v===undefined) return '<span class="dim">—</span>';
+  const cls = v>=0.95?'up':v>=0.80?'warn':'dn';
+  return `<span class="${cls} mono">${v.toFixed(3)}</span>`;
+}
+
+function fmtMcap(v){
+  if(!v) return '—';
+  if(v>=1e12) return (v/1e12).toFixed(2)+'T';
+  if(v>=1e9) return (v/1e9).toFixed(1)+'B';
+  return (v/1e6).toFixed(0)+'M';
+}
+
+function bucketLabel(b){
+  if(!b||b==='UNKNOWN') return '<span class="dim">—</span>';
+  return `<span class="b-${b} mono">${b}</span>`;
+}
+
+function render(d){
+  if(!d||!d.ok){
+    document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
+    return;
+  }
+  document.getElementById('last_updated').textContent = d.generated_at;
+  document.getElementById('version').textContent = d.version || '—';
+  document.getElementById('universe_n').textContent = d.n_analyzed || '—';
+
+  const stateMessages = {
+    'HIGH_MOAT_CONCENTRATION': 'High share of elite predictability — favor concentrated moat portfolios',
+    'BALANCED_PREDICTABILITY': 'Mixed quality — selective stock-picking required',
+    'LOW_MOAT_CONCENTRATION': 'Low predictability dominates — favor breadth over concentration'
+  };
+
+  const html = `
+    <div class="callout">
+      <strong>UNIVERSE STATE</strong>
+      <span class="mono" style="font-size:18px;font-weight:700;color:var(--green)">${d.universe_state.replace(/_/g,' ')}</span>
+      &nbsp;·&nbsp; <span class="mute">${stateMessages[d.universe_state]||''}</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><h3>Sweet Spot</h3><div class="v up">${d.n_sweet_spot||0}</div><div class="vsub">5★ + cheap PE</div></div>
+      <div class="kpi"><h3>Elite Moats (5★)</h3><div class="v" style="color:var(--green)">${d.n_elite_moats||0}</div><div class="vsub">of ${d.n_analyzed||'—'} analyzed</div></div>
+      <div class="kpi"><h3>4★ + 5★</h3><div class="v" style="color:var(--cyan)">${(d.star_distribution?.['5_star']||0)+(d.star_distribution?.['4_star']||0)}</div><div class="vsub">predictable names</div></div>
+      <div class="kpi"><h3>1★ + 2★</h3><div class="v dn">${(d.star_distribution?.['1_star']||0)+(d.star_distribution?.['2_star']||0)}</div><div class="vsub">cyclical/lumpy</div></div>
+      <div class="kpi"><h3>Cheap (PE&lt;20)</h3><div class="v up">${d.valuation_distribution?.CHEAP||0}</div><div class="vsub">value opportunities</div></div>
+      <div class="kpi"><h3>Rich (PE≥30)</h3><div class="v dn">${d.valuation_distribution?.RICH||0}</div><div class="vsub">premium-priced</div></div>
+    </div>
+
+    <h2>Predictability Distribution</h2>
+    <div class="dist-bar">
+      ${[5,4,3,2,1].map(s=>`
+        <div class="dist-cell">
+          <div class="stars star-${s}">${'★'.repeat(s)}${'☆'.repeat(5-s)}</div>
+          <div class="n">${d.star_distribution?.[s+'_star']||0}</div>
+          <div class="lbl">${s===5?'elite moat':s===4?'strong':s===3?'moderate':s===2?'some':'cyclical'}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('sweet')">Sweet Spot (5★ + Cheap)</div>
+      <div class="tab" onclick="switchTab('elite')">All Elite Moats (5★)</div>
+      <div class="tab" onclick="switchTab('pred')">Top 15 Most Predictable</div>
+      <div class="tab" onclick="switchTab('least')">Least Predictable (Cyclical)</div>
+      <div class="tab" onclick="switchTab('all')">All Tickers</div>
+      <div class="tab" onclick="switchTab('sector')">Sector Quality</div>
+      <div class="tab" onclick="switchTab('method')">Methodology</div>
+    </div>
+
+    <div id="tab-sweet" class="tab-pane active">
+      ${d.sweet_spot_picks?.length ? `
+      <p class="dim" style="margin:8px 0">The GuruFocus high-conviction signal: elite predictability (5★) trading below 20x PE. Historical alpha: ~5% annualized vs S&P 500.</p>
+      <table>
+        <thead><tr><th>Ticker</th><th>Sector</th><th>Stars</th><th>PE TTM</th><th>Price</th><th>Rev R²</th><th>EPS R²</th><th>Rev CAGR</th><th>EPS CAGR</th><th>Years</th><th>Mcap</th></tr></thead>
+        <tbody>${d.sweet_spot_picks.map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${starGlyphs(t.stars)}</td>
+            <td class="mono up">${(t.pe_ttm||0).toFixed(1)}</td>
+            <td class="mono">$${(t.price||0).toFixed(2)}</td>
+            <td>${fmtR2(t.rev_r2)}</td>
+            <td>${fmtR2(t.eps_r2)}</td>
+            <td class="mono">${fmtPct(t.rev_cagr_pct, true)}</td>
+            <td class="mono">${fmtPct(t.eps_cagr_pct, true)}</td>
+            <td class="dim">${t.n_years||'—'}</td>
+            <td class="mono dim">${fmtMcap(t.market_cap_usd)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>` : '<p class="dim" style="padding:16px">No 5★ stocks currently trading below 20x PE — the elite-moat universe is fully priced. Watch for pullbacks in QCOM, MRK, BAC, and other historically predictable names.</p>'}
+    </div>
+
+    <div id="tab-elite" class="tab-pane">
+      <table>
+        <thead><tr><th>Ticker</th><th>Sector</th><th>Stars</th><th>Valuation</th><th>PE</th><th>Rev R²</th><th>EPS R²</th><th>Rev CAGR</th><th>EPS CAGR</th><th>Rev CoV</th><th>EPS CoV</th><th>Mcap</th></tr></thead>
+        <tbody>${(d.elite_moats||[]).map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${starGlyphs(t.stars)}</td>
+            <td>${bucketLabel(t.valuation)}</td>
+            <td class="mono">${(t.pe_ttm||0).toFixed(1)}</td>
+            <td>${fmtR2(t.rev_r2)}</td>
+            <td>${fmtR2(t.eps_r2)}</td>
+            <td class="mono">${fmtPct(t.rev_cagr_pct, true)}</td>
+            <td class="mono">${fmtPct(t.eps_cagr_pct, true)}</td>
+            <td class="mono dim">${(t.rev_cov||0).toFixed(2)}</td>
+            <td class="mono dim">${(t.eps_cov||0).toFixed(2)}</td>
+            <td class="mono dim">${fmtMcap(t.market_cap_usd)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-pred" class="tab-pane">
+      <table>
+        <thead><tr><th>Rank</th><th>Ticker</th><th>Sector</th><th>Stars</th><th>Composite R²</th><th>Rev R²</th><th>EPS R²</th><th>Rev CAGR</th><th>EPS CAGR</th><th>PE</th><th>Valuation</th></tr></thead>
+        <tbody>${(d.most_predictable_top_15||[]).map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${starGlyphs(t.stars)}</td>
+            <td class="mono up">${(t.composite_r2||0).toFixed(3)}</td>
+            <td>${fmtR2(t.rev_r2)}</td>
+            <td>${fmtR2(t.eps_r2)}</td>
+            <td class="mono">${fmtPct(t.rev_cagr_pct, true)}</td>
+            <td class="mono">${fmtPct(t.eps_cagr_pct, true)}</td>
+            <td class="mono">${(t.pe_ttm||0).toFixed(1)}</td>
+            <td>${bucketLabel(t.valuation)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-least" class="tab-pane">
+      <p class="dim" style="margin:8px 0">Cyclical or lumpy historical earnings — these names typically deserve discounted PE multiples regardless of headline growth rates.</p>
+      <table>
+        <thead><tr><th>Ticker</th><th>Sector</th><th>Stars</th><th>Rev R²</th><th>EPS R²</th><th>Rev CoV</th><th>EPS CoV</th><th>PE</th><th>Valuation</th></tr></thead>
+        <tbody>${(d.least_predictable||[]).map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${starGlyphs(t.stars)}</td>
+            <td>${fmtR2(t.rev_r2)}</td>
+            <td>${fmtR2(t.eps_r2)}</td>
+            <td class="mono">${(t.rev_cov||0).toFixed(2)}</td>
+            <td class="mono">${(t.eps_cov||0).toFixed(2)}</td>
+            <td class="mono">${(t.pe_ttm||0).toFixed(1)}</td>
+            <td>${bucketLabel(t.valuation)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-all" class="tab-pane">
+      <table>
+        <thead><tr><th>Ticker</th><th>Sector</th><th>Stars</th><th>Rev R²</th><th>EPS R²</th><th>Rev CAGR</th><th>EPS CAGR</th><th>PE</th><th>Valuation</th><th>Years</th></tr></thead>
+        <tbody>${(d.all_tickers||[]).sort((a,b)=>(b.stars||0)-(a.stars||0)).map(t=>`
+          <tr>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${t.ok?starGlyphs(t.stars):'<span class="dn mono" title="'+(t.error||'')+'">err</span>'}</td>
+            <td>${fmtR2(t.rev_r2)}</td>
+            <td>${fmtR2(t.eps_r2)}</td>
+            <td class="mono">${fmtPct(t.rev_cagr_pct, true)}</td>
+            <td class="mono">${fmtPct(t.eps_cagr_pct, true)}</td>
+            <td class="mono">${t.pe_ttm?(t.pe_ttm).toFixed(1):'—'}</td>
+            <td>${bucketLabel(t.valuation)}</td>
+            <td class="dim">${t.n_years||'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-sector" class="tab-pane">
+      <table>
+        <thead><tr><th>Sector</th><th>N</th><th>Avg Stars</th><th>N 5★</th><th>5★ Rate</th></tr></thead>
+        <tbody>${Object.entries(d.sector_breakdown||{}).sort((a,b)=>b[1].avg_stars-a[1].avg_stars).map(([sec,o])=>`
+          <tr>
+            <td><strong>${sec}</strong></td>
+            <td class="mono">${o.n}</td>
+            <td class="mono">${o.avg_stars.toFixed(2)}</td>
+            <td class="mono up">${o.n_5star}</td>
+            <td class="mono">${(100*o.n_5star/o.n).toFixed(0)}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-method" class="tab-pane">
+      <div class="callout">
+        <strong>EDGE BASIS</strong>
+        ${d.edge_basis||''}
+      </div>
+      <h2>Star Rating Thresholds</h2>
+      <table>
+        <tbody>
+          ${Object.entries(d.methodology?.star_thresholds||{}).map(([k,v])=>`<tr><td class="stars star-${k[0]}">${'★'.repeat(parseInt(k[0]))}${'☆'.repeat(5-parseInt(k[0]))}</td><td class="mono">${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      <h2>Valuation Buckets</h2>
+      <table>
+        <tbody>
+          ${Object.entries(d.methodology?.valuation_buckets||{}).map(([k,v])=>`<tr><td>${bucketLabel(k)}</td><td class="mono">${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      <h2>Universe-State Meanings</h2>
+      <table>
+        <tbody>
+          ${Object.entries(d.universe_state_meaning||{}).map(([k,v])=>`<tr><td><strong>${k.replace(/_/g,' ')}</strong></td><td class="mono">${v}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('root').innerHTML = html;
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
+  console.error(e);
+  document.getElementById('root').innerHTML = '<div class="loading">Data load failed: '+e.message+'</div>';
+});
+</script>
+</body>
+</html>

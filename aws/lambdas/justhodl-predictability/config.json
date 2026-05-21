@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "GuruFocus Predictability Rank: 1-5 star moat rating from 10y revenue + EPS R^2 stability + valuation overlay. Sweet-spot detection for elite moats at cheap valuations. Daily 23:50 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-starmine", "keys": ["FMP_KEY"]},
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-predictability-daily",
+    "cron": "cron(50 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Predictability Rank daily 23:50 UTC"
+  }
+}
