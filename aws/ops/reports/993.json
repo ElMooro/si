@@ -1,0 +1,74 @@
+{
+  "ops": 993,
+  "started_at": "2026-05-21T00:37:25.027610+00:00",
+  "donor": "justhodl-cross-asset-rv",
+  "donor_env_keys_present": [
+    "FMP_KEY",
+    "FRED_KEY",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "env_keys_used": [
+    "FMP_KEY",
+    "FRED_KEY"
+  ],
+  "deploy": {
+    "ok": true,
+    "state": "Active",
+    "last_status": "Successful"
+  },
+  "invoke": {
+    "ok": true,
+    "probes": {
+      "env_keys": {
+        "FRED": true,
+        "FMP": true
+      },
+      "FRED_CBOEEQUITYPCRATIO": {
+        "ok": false,
+        "error": "HTTP Error 400: Bad Request"
+      },
+      "FRED_PUTCALL": {
+        "ok": false,
+        "error": "HTTP Error 400: Bad Request"
+      },
+      "FRED_VIXCLS_sanity": {
+        "ok": true,
+        "n_values": 49,
+        "sample": [
+          18.06,
+          17.82,
+          18.43,
+          17.26,
+          17.87
+        ],
+        "status": 200,
+        "latest_date": "2026-05-19"
+      },
+      "FMP_synthetic_pc": [
+        {
+          "ep": "options-chain?symbol=SPY&apikey=wwVpi37S",
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "ep": "options/chain?symbol=SPY&apikey=wwVpi37S",
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "ep": "historical/options-chain?symbol=SPY&apik",
+          "error": "HTTP Error 404: Not Found"
+        },
+        {
+          "ep": "options-historical-data?symbol=SPY&apike",
+          "error": "HTTP Error 404: Not Found"
+        }
+      ]
+    }
+  },
+  "FRED_works": false,
+  "FRED_sanity_works": true,
+  "FMP_synthetic_works": false,
+  "FMP_synthetic_winners": [],
+  "delete_probe_ok": true,
+  "ended_at": "2026-05-21T00:37:30.224158+00:00"
+}
