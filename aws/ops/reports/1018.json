@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-05-21T17:32:49.616902+00:00",
+  "probe_deployed": true,
+  "probe_result": {
+    "POST_latest_2026": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"f0d3de4d-ae37-44ef-a066-8f1b3cac226d\",\"message\":\"Unable to parse request body.\"}"
+    },
+    "POST_AAPL_2026": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"0cadd5b4-5f24-4890-a495-95c7ffe030c0\",\"message\":\"Unable to parse request body.\"}"
+    },
+    "POST_latest_2025plus": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"7e7a3d4f-af63-4ba8-bf5e-d01afcb8cea9\",\"message\":\"Unable to parse request body.\"}"
+    },
+    "POST_MSFT_2025plus": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"ef23c4f6-9db3-4c7b-8cec-d27661c6d0e0\",\"message\":\"Unable to parse request body.\"}"
+    },
+    "POST_max_settlement": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"93d82691-729f-4216-83a2-a8f178e7a109\",\"message\":\"Unable to parse request body.\"}"
+    }
+  },
+  "function_error": null,
+  "verdict": {
+    "endpoint_works_anonymously": false,
+    "max_settlement_date_seen": null,
+    "is_fresh_2024_plus": false,
+    "is_fresh_2025_plus": false,
+    "aapl_returns_data": false,
+    "aapl_settlement_dates": [],
+    "msft_returns_data": false,
+    "msft_settlement_dates": []
+  },
+  "recommendation": "Endpoint not usable \u2014 back to paid path",
+  "ended_at": "2026-05-21T17:32:55.064367+00:00"
+}
