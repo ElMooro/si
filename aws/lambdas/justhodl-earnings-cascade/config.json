@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earnings Cascade Detector (10th engine). Multi-quarter accelerating PEAD streak (>=3 beats + acceleration) in 4-5 star quality moats. TITAN_CASCADE >=80 = NVDA-2022/AAPL-2017/MSFT-2014 pattern. Daily 14:15 UTC after PEAD.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-earnings-cascade-daily",
+    "cron": "cron(15 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Earnings Cascade daily 14:15 UTC after PEAD detector refresh"
+  }
+}
