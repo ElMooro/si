@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 30,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Correlation-Break Trade Router. 6 cross-asset correlation regimes (BOND_ROUT, DOLLAR_DEBASEMENT, STAGFLATION, RISK_PARITY_UNWIND, DEFLATION_FEAR, REFLATION_CARRY) mapped to stock-level trade recipes. Every 2h US hours.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-corr-break-trades-2h",
+    "cron": "cron(15 0/2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Correlation-Break Trade Router every 2h"
+  }
+}
