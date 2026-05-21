@@ -1,0 +1,363 @@
+{
+  "started_at": "2026-05-21T14:21:11.153643+00:00",
+  "feeds": [
+    {
+      "fn": "justhodl-finra-short",
+      "key": "data/finra-short.json",
+      "role": "Raw FINRA daily short volume (T+1, ~11.5k tickers)",
+      "fresh": true,
+      "max_age_hours": 36,
+      "s3": {
+        "exists": true,
+        "size_bytes": 265163,
+        "last_modified": "2026-05-21T01:00:04+00:00",
+        "age_hours": 13.4,
+        "etag": "ce56223d6eab"
+      },
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "code_size_bytes": 8599,
+        "last_modified": "2026-05-13T11:25:59.000+0000",
+        "runtime": "python3.12",
+        "timeout_s": 300,
+        "memory_mb": 1024,
+        "env_keys": [
+          "POLY_KEY",
+          "TELEGRAM_CHAT_ID",
+          "TELEGRAM_TOKEN"
+        ]
+      },
+      "schedule": {
+        "error": "Parameter validation failed:\nInvalid length for parameter NamePrefix, value: 0, valid min length: 1"
+      },
+      "peek": {
+        "top_keys": [
+          "generated_at",
+          "generated_at_unix",
+          "version",
+          "data_date",
+          "elapsed_seconds",
+          "config",
+          "market_composite",
+          "squeeze_candidates",
+          "top_svr",
+          "top_zscore",
+          "sectors",
+          "tickers"
+        ],
+        "version": "1.1.0",
+        "as_of": "2026-05-21T01:00:03.281294+00:00",
+        "state": null,
+        "signal_strength": null
+      }
+    },
+    {
+      "fn": "justhodl-short-interest",
+      "key": "data/short-interest.json",
+      "role": "FINRA SI snapshots + Polygon SI (bi-monthly settlement)",
+      "fresh": true,
+      "max_age_hours": 72,
+      "s3": {
+        "exists": true,
+        "size_bytes": 58482,
+        "last_modified": "2026-05-21T12:03:43+00:00",
+        "age_hours": 2.3,
+        "etag": "3c78e9ebdef5"
+      },
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "code_size_bytes": 4777,
+        "last_modified": "2026-05-04T00:13:17.000+0000",
+        "runtime": "python3.12",
+        "timeout_s": 600,
+        "memory_mb": 512,
+        "env_keys": [
+          "POLYGON_KEY"
+        ]
+      },
+      "schedule": {
+        "error": "Parameter validation failed:\nInvalid length for parameter NamePrefix, value: 0, valid min length: 1"
+      },
+      "peek": {
+        "top_keys": [
+          "version",
+          "generated_at",
+          "watchlist_size",
+          "n_tickers_with_data",
+          "n_tickers_finra",
+          "n_tickers_polygon",
+          "by_ticker",
+          "top_crowded_shorts",
+          "top_squeeze_risk",
+          "top_high_dtc",
+          "top_covering",
+          "duration_s",
+          "data_sources",
+          "signal_definitions"
+        ],
+        "version": "1.0",
+        "as_of": "2026-05-21T12:03:42.643804+00:00",
+        "state": null,
+        "signal_strength": null
+      }
+    },
+    {
+      "fn": "justhodl-short-pressure",
+      "key": "data/short-pressure.json",
+      "role": "Daily short-volume ratio vs 20d baseline (signal-board wired)",
+      "fresh": true,
+      "max_age_hours": 36,
+      "s3": {
+        "exists": true,
+        "size_bytes": 5412,
+        "last_modified": "2026-05-21T12:30:34+00:00",
+        "age_hours": 1.8,
+        "etag": "96759de7b651"
+      },
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "code_size_bytes": 2613,
+        "last_modified": "2026-05-17T00:14:07.524+0000",
+        "runtime": "python3.12",
+        "timeout_s": 300,
+        "memory_mb": 512,
+        "env_keys": [
+          "POLY_KEY"
+        ]
+      },
+      "schedule": {
+        "error": "Parameter validation failed:\nInvalid length for parameter NamePrefix, value: 0, valid min length: 1"
+      },
+      "peek": {
+        "top_keys": [
+          "schema_version",
+          "method",
+          "generated_at",
+          "elapsed_s",
+          "universe_source",
+          "n_covered",
+          "n_failed",
+          "n_pressure_building",
+          "n_shorts_covering",
+          "names",
+          "note"
+        ],
+        "version": null,
+        "as_of": "2026-05-21T12:30:33.524061+00:00",
+        "state": null,
+        "signal_strength": null
+      }
+    },
+    {
+      "fn": "justhodl-squeeze-pretrigger",
+      "key": "data/squeeze-pretrigger.json",
+      "role": "Mid/large 5-condition pre-trigger (FLAGSHIP)",
+      "fresh": true,
+      "max_age_hours": 30,
+      "s3": {
+        "exists": true,
+        "size_bytes": 2759,
+        "last_modified": "2026-05-20T23:30:27+00:00",
+        "age_hours": 14.8,
+        "etag": "ecc565bb6cdd"
+      },
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "code_size_bytes": 7154,
+        "last_modified": "2026-05-20T18:10:32.000+0000",
+        "runtime": "python3.12",
+        "timeout_s": 540,
+        "memory_mb": 768,
+        "env_keys": [
+          "CMC_KEY",
+          "S3_BUCKET"
+        ]
+      },
+      "schedule": {
+        "api": "scheduler",
+        "name": "justhodl-squeeze-pretrigger-daily",
+        "state": "ENABLED",
+        "schedule": null,
+        "tz": null
+      },
+      "peek": {
+        "top_keys": [
+          "engine",
+          "version",
+          "as_of",
+          "state",
+          "previous_state",
+          "state_description",
+          "signal_strength",
+          "summary",
+          "current_readings",
+          "imminent_setups",
+          "pretrigger_setups",
+          "early_setups",
+          "trigger_conditions",
+          "forward_expectations",
+          "recommended_trade",
+          "historical_episodes",
+          "why_now_explainer",
+          "methodology",
+          "sources",
+          "schedule"
+        ],
+        "version": "1.0",
+        "as_of": "2026-05-20T23:30:26.646499Z",
+        "state": "QUIET",
+        "signal_strength": 0,
+        "squeeze_summary": {
+          "n_imminent": 0,
+          "n_pretrigger": 0,
+          "n_early": 0,
+          "n_total": 0,
+          "n_evaluated": 0,
+          "feeds_available": {
+            "finra": true,
+            "short_interest": true,
+            "catalyst": true
+          }
+        },
+        "top_5_tickers": []
+      }
+    },
+    {
+      "fn": "justhodl-microcap-float-squeeze",
+      "key": "data/microcap-float-squeeze.json",
+      "role": "Microcap float-driven squeeze candidates",
+      "fresh": true,
+      "max_age_hours": 30,
+      "s3": {
+        "exists": true,
+        "size_bytes": 138444,
+        "last_modified": "2026-05-20T22:00:46+00:00",
+        "age_hours": 16.3,
+        "etag": "783fcd7c29be"
+      },
+      "lambda": {
+        "exists": true,
+        "state": "Active",
+        "last_update_status": "Successful",
+        "code_size_bytes": 5385,
+        "last_modified": "2026-05-06T12:03:56.000+0000",
+        "runtime": "python3.12",
+        "timeout_s": 600,
+        "memory_mb": 2048,
+        "env_keys": [
+          "FMP_KEY",
+          "MAX_TICKERS",
+          "N_WORKERS",
+          "S3_BUCKET",
+          "TIMEOUT_BUDGET_S"
+        ]
+      },
+      "schedule": {
+        "error": "Parameter validation failed:\nInvalid length for parameter NamePrefix, value: 0, valid min length: 1"
+      },
+      "peek": {
+        "top_keys": [
+          "schema_version",
+          "method",
+          "generated_at",
+          "duration_s",
+          "stats",
+          "summary",
+          "all_qualifying"
+        ],
+        "version": null,
+        "as_of": "2026-05-20T22:00:45+00:00",
+        "state": null,
+        "signal_strength": null,
+        "squeeze_summary": {
+          "n_imminent": null,
+          "n_pretrigger": null,
+          "n_early": null,
+          "n_total": null,
+          "n_evaluated": null,
+          "feeds_available": null
+        },
+        "top_5_tickers": []
+      }
+    }
+  ],
+  "signal_board": {
+    "signal_board_engines": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "squeeze_pretrigger_wired": false,
+    "short_pressure_wired": false,
+    "last_modified": "2026-05-21T12:15:47.136529+00:00"
+  },
+  "scorecard": {
+    "all_5_lambdas_exist": true,
+    "n_feeds_fresh": 5,
+    "min_3_feeds_fresh": true,
+    "pretrigger_feed_fresh": true,
+    "pretrigger_has_setups": true,
+    "go_build_squeeze_html": true,
+    "squeeze_pretrigger_wired_to_signal_board": false
+  },
+  "ended_at": "2026-05-21T14:21:14.519618+00:00"
+}
