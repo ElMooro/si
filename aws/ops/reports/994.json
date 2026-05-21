@@ -1,0 +1,212 @@
+{
+  "ops": 994,
+  "started_at": "2026-05-21T00:42:05.544268+00:00",
+  "donor": "justhodl-cross-asset-rv",
+  "env_keys_used": [
+    "FRED_KEY"
+  ],
+  "deploy": {
+    "ok": true,
+    "state": "Active",
+    "last_status": "Successful"
+  },
+  "working_series": {
+    "UMCSENT": {
+      "ok": true,
+      "series": "UMCSENT",
+      "n": 20,
+      "latest_date": "2026-03-01",
+      "latest_value": "53.3",
+      "sample_dates": [
+        "2026-03-01",
+        "2026-02-01",
+        "2026-01-01",
+        "2025-12-01",
+        "2025-11-01",
+        "2025-10-01",
+        "2025-09-01",
+        "2025-08-01",
+        "2025-07-01",
+        "2025-06-01"
+      ],
+      "values_recent": [
+        53.3,
+        56.6,
+        56.4,
+        52.9,
+        51.0
+      ]
+    },
+    "MICH": {
+      "ok": true,
+      "series": "MICH",
+      "n": 20,
+      "latest_date": "2026-03-01",
+      "latest_value": "3.8",
+      "sample_dates": [
+        "2026-03-01",
+        "2026-02-01",
+        "2026-01-01",
+        "2025-12-01",
+        "2025-11-01",
+        "2025-10-01",
+        "2025-09-01",
+        "2025-08-01",
+        "2025-07-01",
+        "2025-06-01"
+      ],
+      "values_recent": [
+        3.8,
+        3.4,
+        4.0,
+        4.2,
+        4.5
+      ]
+    },
+    "VIXCLS": {
+      "ok": true,
+      "series": "VIXCLS",
+      "n": 20,
+      "latest_date": "2026-05-19",
+      "latest_value": "18.06",
+      "sample_dates": [
+        "2026-05-19",
+        "2026-05-18",
+        "2026-05-15",
+        "2026-05-14",
+        "2026-05-13",
+        "2026-05-12",
+        "2026-05-11",
+        "2026-05-08",
+        "2026-05-07",
+        "2026-05-06"
+      ],
+      "values_recent": [
+        18.06,
+        17.82,
+        18.43,
+        17.26,
+        17.87
+      ]
+    },
+    "VXNCLS": {
+      "ok": true,
+      "series": "VXNCLS",
+      "n": 20,
+      "latest_date": "2026-05-19",
+      "latest_value": "24.09",
+      "sample_dates": [
+        "2026-05-19",
+        "2026-05-18",
+        "2026-05-15",
+        "2026-05-14",
+        "2026-05-13",
+        "2026-05-12",
+        "2026-05-11",
+        "2026-05-08",
+        "2026-05-07",
+        "2026-05-06"
+      ],
+      "values_recent": [
+        24.09,
+        24.21,
+        25.33,
+        24.08,
+        24.59
+      ]
+    },
+    "VXOCLS": {
+      "ok": true,
+      "series": "VXOCLS",
+      "n": 19,
+      "latest_date": "2021-09-23",
+      "latest_value": "17.87",
+      "sample_dates": [
+        "2021-09-23",
+        "2021-09-22",
+        "2021-09-21",
+        "2021-09-20",
+        "2021-09-17",
+        "2021-09-16",
+        "2021-09-15",
+        "2021-09-14",
+        "2021-09-13",
+        "2021-09-10"
+      ],
+      "values_recent": [
+        17.87,
+        20.02,
+        23.53,
+        23.81,
+        19.19
+      ]
+    },
+    "USEPUINDXD": {
+      "ok": true,
+      "series": "USEPUINDXD",
+      "n": 20,
+      "latest_date": "2026-05-19",
+      "latest_value": "439.64000",
+      "sample_dates": [
+        "2026-05-19",
+        "2026-05-18",
+        "2026-05-17",
+        "2026-05-16",
+        "2026-05-15",
+        "2026-05-14",
+        "2026-05-13",
+        "2026-05-12",
+        "2026-05-11",
+        "2026-05-10"
+      ],
+      "values_recent": [
+        439.64,
+        315.59,
+        476.63,
+        384.59,
+        385.3
+      ]
+    },
+    "STLFSI4": {
+      "ok": true,
+      "series": "STLFSI4",
+      "n": 20,
+      "latest_date": "2026-05-15",
+      "latest_value": "-0.7404",
+      "sample_dates": [
+        "2026-05-15",
+        "2026-05-08",
+        "2026-05-01",
+        "2026-04-24",
+        "2026-04-17",
+        "2026-04-10",
+        "2026-04-03",
+        "2026-03-27",
+        "2026-03-20",
+        "2026-03-13"
+      ],
+      "values_recent": [
+        -0.7404,
+        -0.7619,
+        -0.6703,
+        -0.6773,
+        -0.7559
+      ]
+    }
+  },
+  "dead_series": {
+    "AAIIBULL": "HTTP Error 400: Bad Request",
+    "AAIIBEAR": "HTTP Error 400: Bad Request",
+    "AAIIBULLBEARSPREAD": "HTTP Error 400: Bad Request",
+    "AAIINEU": "HTTP Error 400: Bad Request",
+    "NAAIMNUMBER": "HTTP Error 400: Bad Request",
+    "EPUNYTODAY": "HTTP Error 400: Bad Request",
+    "CESI": "HTTP Error 400: Bad Request",
+    "NFIB": "HTTP Error 400: Bad Request",
+    "CCICONFTOT": "HTTP Error 400: Bad Request"
+  },
+  "n_working": 7,
+  "n_dead": 9,
+  "delete_probe_ok": true,
+  "ended_at": "2026-05-21T00:42:14.085060+00:00"
+}
