@@ -48,7 +48,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/bond-vol.json"
 FRED_KEY = os.environ.get("FRED_KEY", "")
@@ -203,7 +203,8 @@ def lambda_handler(event, context):
     per_channel = []
     z_values = []
     for ch in CHANNELS:
-        series = fred_obs(ch["fred"], days=400)
+        # 600 calendar days = ~420 trading days; need 30 (window) + 252 (history) = 282 minimum
+        series = fred_obs(ch["fred"], days=600)
         if not series or len(series) < REALIZED_WINDOW + 30:
             per_channel.append({
                 "id": ch["id"], "fred_series": ch["fred"], "name": ch["name"],
