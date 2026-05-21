@@ -1,0 +1,182 @@
+{
+  "started_at": "2026-05-21T12:55:10.780054+00:00",
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T12:55:09.000+0000",
+    "waited_sec": 0.2
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 64.8
+  },
+  "invoke_summary": {
+    "ok": true,
+    "version": "1.0.2",
+    "regime": "NEUTRAL_REVISIONS",
+    "n_analyzed": 50,
+    "n_scored": 50,
+    "median_composite_z": -0.35,
+    "top_3": [
+      {
+        "t": "NFLX",
+        "score": 99.9
+      },
+      {
+        "t": "TXN",
+        "score": 99.7
+      },
+      {
+        "t": "ORCL",
+        "score": 98.3
+      }
+    ],
+    "bottom_3": [
+      {
+        "t": "ADBE",
+        "score": 0.1
+      },
+      {
+        "t": "QCOM",
+        "score": 3.4
+      },
+      {
+        "t": "LLY",
+        "score": 9.2
+      }
+    ]
+  },
+  "s3": {
+    "version": "1.0.2",
+    "generated_at": "2026-05-21T12:55:11.538030+00:00",
+    "universe_regime": "NEUTRAL_REVISIONS",
+    "universe_source_tier": "static_top50_no_prices",
+    "universe_median_composite_z": -0.35,
+    "n_universe_analyzed": 50,
+    "n_scored": 50,
+    "median_rrm_raw": 0.0,
+    "median_ptd_pct": null,
+    "median_esp_hit_pct": null,
+    "sector_breakdown_top_25": {
+      "Communication Services": 6,
+      "Technology": 9,
+      "Basic Materials": 1,
+      "Healthcare": 3,
+      "Consumer Cyclical": 3,
+      "Energy": 2,
+      "Financial Services": 1
+    },
+    "top_5_score": [
+      {
+        "t": "NFLX",
+        "score": 99.9,
+        "sec": "Communication Services",
+        "z_rrm": 3.0,
+        "z_ptd": null,
+        "z_esp": null,
+        "n_up_90d": 3,
+        "n_down_90d": 0,
+        "ptd_pct": null,
+        "esp_hit_pct": null
+      },
+      {
+        "t": "TXN",
+        "score": 99.7,
+        "sec": "Technology",
+        "z_rrm": 2.79,
+        "z_ptd": null,
+        "z_esp": null,
+        "n_up_90d": 4,
+        "n_down_90d": 0,
+        "ptd_pct": null,
+        "esp_hit_pct": null
+      },
+      {
+        "t": "ORCL",
+        "score": 98.3,
+        "sec": "Technology",
+        "z_rrm": 2.11,
+        "z_ptd": null,
+        "z_esp": null,
+        "n_up_90d": 2,
+        "n_down_90d": 0,
+        "ptd_pct": null,
+        "esp_hit_pct": null
+      },
+      {
+        "t": "IBM",
+        "score": 94.7,
+        "sec": "Technology",
+        "z_rrm": 1.62,
+        "z_ptd": null,
+        "z_esp": null,
+        "n_up_90d": 2,
+        "n_down_90d": 0,
+        "ptd_pct": null,
+        "esp_hit_pct": null
+      },
+      {
+        "t": "AMD",
+        "score": 90.7,
+        "sec": "Technology",
+        "z_rrm": 1.32,
+        "z_ptd": null,
+        "z_esp": null,
+        "n_up_90d": 4,
+        "n_down_90d": 2,
+        "ptd_pct": null,
+        "esp_hit_pct": null
+      }
+    ],
+    "bottom_5_score": [
+      {
+        "t": "ADBE",
+        "score": 0.1,
+        "sec": "Technology",
+        "n_up_90d": 0,
+        "n_down_90d": 4
+      },
+      {
+        "t": "QCOM",
+        "score": 3.4,
+        "sec": "Technology",
+        "n_up_90d": 3,
+        "n_down_90d": 4
+      },
+      {
+        "t": "LLY",
+        "score": 9.2,
+        "sec": "Healthcare",
+        "n_up_90d": 0,
+        "n_down_90d": 1
+      },
+      {
+        "t": "AVGO",
+        "score": 17.6,
+        "sec": "Technology",
+        "n_up_90d": 0,
+        "n_down_90d": 1
+      },
+      {
+        "t": "CMCSA",
+        "score": 36.3,
+        "sec": "Communication Services",
+        "n_up_90d": 0,
+        "n_down_90d": 0
+      }
+    ]
+  },
+  "scorecard": {
+    "version_1_0_2": true,
+    "universe_regime_real": true,
+    "n_universe_min_30": true,
+    "n_scored_min_20": true,
+    "top_25_present": true,
+    "bottom_25_present": true,
+    "median_z_numeric": true,
+    "universe_source_static_top50": true,
+    "invoke_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T12:56:16.062757+00:00"
+}
