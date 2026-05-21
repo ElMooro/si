@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GF Value Composite · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>💎</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase;white-space:nowrap}
+.deep{color:var(--green);background:rgba(38,255,175,.18)}
+.undv{color:var(--cyan);background:rgba(0,212,255,.15)}
+.fair{color:var(--dim);background:rgba(111,123,145,.12)}
+.modo{color:var(--orange);background:rgba(255,122,24,.12)}
+.sigo{color:var(--red);background:rgba(255,85,119,.15)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.empty{text-align:center;padding:48px 20px;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:1px;line-height:2}
+.loading{text-align:center;padding:60px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right;margin-top:6px}
+.regime-tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:4px}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;font-size:12.5px;color:var(--mute);margin-top:16px}
+.method strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px}
+.method ul{margin:8px 0 4px 18px;padding:0}.method li{margin:4px 0}
+@media(max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>💎 GF Value Composite — Multi-Lens Fair Value Engine</h1>
+    <p class="subtitle">GuruFocus-style 3-lens fair value across the S&amp;P 500: <span class="mono">DCF (40%)</span> + <span class="mono">EV/EBIT median multiple (35%)</span> + <span class="mono">Graham Number (25%)</span>. Composite winsorized by 5-year price range. Margin-of-safety ratings: DEEP_VALUE / MODESTLY_UNDERVALUED / FAIR / MODESTLY_OVERVALUED / SIGNIFICANTLY_OVERVALUED. Damodaran 2002 + Greenblatt 2010 + Graham 1949.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/baggers.html">baggers</a>
+      <a href="/deep-value.html">deep-value</a>
+      <a href="/fundamentals.html">fundamentals</a>
+      <a href="/screener/">screener</a>
+      <a href="/13f.html">13F</a>
+      <a href="/brief.html">brief</a>
+    </nav>
+  </header>
+
+  <section class="kpis" id="kpis">
+    <div class="kpi"><h3>Universe regime</h3><div class="v mono" id="k_regime" style="font-size:14px">—</div><div class="vsub" id="k_regime_sub">market median MoS</div></div>
+    <div class="kpi"><h3>Deep value</h3><div class="v" id="k_deep" style="color:var(--green)">—</div><div class="vsub">MoS ≥ +50%</div></div>
+    <div class="kpi"><h3>Undervalued</h3><div class="v" id="k_undv" style="color:var(--cyan)">—</div><div class="vsub">MoS +20…+50%</div></div>
+    <div class="kpi"><h3>Fair</h3><div class="v" id="k_fair" style="color:var(--dim)">—</div><div class="vsub">MoS −10…+20%</div></div>
+    <div class="kpi"><h3>Modestly over</h3><div class="v" id="k_modo" style="color:var(--orange)">—</div><div class="vsub">MoS −30…−10%</div></div>
+    <div class="kpi"><h3>Significantly over</h3><div class="v" id="k_sigo" style="color:var(--red)">—</div><div class="vsub">MoS ≤ −30%</div></div>
+  </section>
+
+  <div class="callout" id="topcall"><strong>Deepest value pick</strong><span id="topcall_txt">loading…</span></div>
+
+  <div class="tabs">
+    <div class="tab active" data-t="deep">Deepest Value (Top 25)</div>
+    <div class="tab" data-t="over">Most Overvalued (Top 25)</div>
+    <div class="tab" data-t="all">Full Universe</div>
+    <div class="tab" data-t="method">Methodology</div>
+  </div>
+
+  <div class="tab-pane active" id="pane-deep">
+    <div id="deep_body"><div class="loading">LOADING DEEPEST VALUE…</div></div>
+    <p class="timestamp" id="deep_ts"></p>
+  </div>
+
+  <div class="tab-pane" id="pane-over">
+    <div id="over_body"><div class="loading">LOADING OVERVALUED…</div></div>
+    <p class="timestamp" id="over_ts"></p>
+  </div>
+
+  <div class="tab-pane" id="pane-all">
+    <div id="all_body"><div class="loading">LOADING FULL UNIVERSE…</div></div>
+    <p class="timestamp" id="all_ts"></p>
+  </div>
+
+  <div class="tab-pane" id="pane-method">
+    <div class="method" id="method_body">
+      <strong>3-Lens Composite Fair Value</strong>
+      <p>The GuruFocus approach (and the institutional consensus going back to Graham 1949 and Damodaran 2002) is that no single valuation method works across all business types. Cyclicals break P/E. Capital-intensive businesses break free-cash-flow growth assumptions. Negative-EPS firms break Graham. So we blend three independent lenses:</p>
+      <ul>
+        <li><strong style="color:var(--green)">DCF Fair Value (40%)</strong> — 10-year projected free-cash-flow stream discounted at 9% WACC + terminal value at 15× the year-10 FCF. Growth rate is the 5-year FCF CAGR, clipped to 3–15% to prevent runaway projections. Net debt subtracted.</li>
+        <li><strong style="color:var(--cyan)">EV/EBIT Multiple (35%)</strong> — Apply the company&rsquo;s own 10-year median EV/EBIT multiple (outliers >3σ pruned) to TTM EBIT. Capped at 8×–30× range. Bridge from enterprise to equity via cash/debt/minority.</li>
+        <li><strong style="color:var(--purple)">Graham Number (25%)</strong> — √(22.5 × EPS × BVPS). Defensive floor — only valid when both EPS and book value per share are positive. Conservative baseline that flags over-extension.</li>
+      </ul>
+      <p>The composite is the weighted average of valid lenses (invalid lenses redistribute weight to the others), then winsorized to the 5-year price range [0.7×low, 1.5×high] — Buffett&rsquo;s observation that intrinsic value should not move 30%+ in a year unless something fundamental broke.</p>
+      <p><strong style="color:var(--yellow)">Margin of Safety</strong> = (GF Value − Current Price) ÷ GF Value × 100. Ratings: <span class="flag deep">DEEP_VALUE</span> ≥+50% · <span class="flag undv">MODESTLY_UNDERVALUED</span> +20…+50% · <span class="flag fair">FAIR</span> −10…+20% · <span class="flag modo">MODESTLY_OVERVALUED</span> −30…−10% · <span class="flag sigo">SIGNIFICANTLY_OVERVALUED</span> ≤−30%.</p>
+      <p style="margin-top:14px;color:var(--dim);font-size:11px">Sources: FMP /stable/quote, /income-statement, /cash-flow-statement, /balance-sheet-statement, /key-metrics, /sp500-constituent. Refreshed daily 22:00 UTC post-close.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const S3_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const J=(k)=>fetch(`${S3_BASE}/data/${k}?_=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
+const usd=(v)=>v==null?"—":"$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:2});
+const pct=(v,d=1)=>v==null?"—":(v>0?"+":"")+Number(v).toFixed(d)+"%";
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const RATCLS={DEEP_VALUE:"deep",MODESTLY_UNDERVALUED:"undv",FAIR:"fair",MODESTLY_OVERVALUED:"modo",SIGNIFICANTLY_OVERVALUED:"sigo"};
+const REGCLS={MARKET_DEEP_VALUE:"deep",MARKET_UNDERVALUED:"undv",MARKET_FAIR:"fair",MARKET_MODESTLY_OVERVALUED:"modo",MARKET_SIGNIFICANTLY_OVERVALUED:"sigo"};
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  document.getElementById("pane-"+t.dataset.t).classList.add("active");
+});
+
+function rowHTML(r){
+  const cls=RATCLS[r.rating]||"fair";
+  const mosClass=r.margin_of_safety_pct>=0?"pos":"neg";
+  const lenses=(r.lenses_used||[]).join(",");
+  return `<tr>
+    <td><span class="tk">${esc(r.ticker)}</span></td>
+    <td>${usd(r.price)}</td>
+    <td><span class="mono">${usd(r.gf_value)}</span></td>
+    <td><span class="mono ${mosClass}">${pct(r.margin_of_safety_pct,1)}</span></td>
+    <td><span class="flag ${cls}">${(r.rating||"").replace(/_/g," ")}</span></td>
+    <td class="mono">${usd(r.dcf_fair_value)}</td>
+    <td class="mono">${usd(r.evebit_fair_value)}</td>
+    <td class="mono">${usd(r.graham_number)}</td>
+    <td class="mono" style="color:var(--dim);font-size:10px">${esc(lenses)} (${r.n_lenses})</td>
+  </tr>`;
+}
+
+function tableHTML(rows){
+  if(!rows||!rows.length){return `<div class="empty">No results.</div>`;}
+  const head=`<table><thead><tr>
+    <th>Ticker</th><th>Price</th><th>GF Value</th><th>MoS</th><th>Rating</th>
+    <th>DCF</th><th>EV/EBIT</th><th>Graham</th><th>Lenses</th>
+  </tr></thead><tbody>`;
+  return head+rows.map(rowHTML).join("")+"</tbody></table>";
+}
+
+(async()=>{
+  const d=await J("gf-value.json");
+  if(!d){
+    document.getElementById("deep_body").innerHTML=`<div class="empty">DATA UNAVAILABLE.<br>Run scheduled at 22:00 UTC.</div>`;
+    return;
+  }
+  document.getElementById("k_regime").innerHTML=`<span class="regime-tag ${REGCLS[d.universe_state]||'fair'}" style="background:rgba(0,0,0,.35)">${(d.universe_state||'').replace('MARKET_','')}</span>`;
+  document.getElementById("k_regime_sub").textContent=`median MoS ${pct(d.universe_median_mos_pct,1)} (n=${d.n_valid||0})`;
+  document.getElementById("k_deep").textContent=d.n_deep_value||0;
+  document.getElementById("k_undv").textContent=d.n_undervalued||0;
+  document.getElementById("k_fair").textContent=d.n_fair||0;
+  document.getElementById("k_modo").textContent=d.n_modestly_overvalued||0;
+  document.getElementById("k_sigo").textContent=d.n_significantly_overvalued||0;
+
+  const top=(d.deepest_value||[])[0];
+  if(top){
+    document.getElementById("topcall_txt").innerHTML=
+      `<strong style="color:var(--txt);font-family:var(--mono);font-size:14px">${esc(top.ticker)}</strong> @ <span class="mono">${usd(top.price)}</span> · GF Value <span class="mono">${usd(top.gf_value)}</span> · Margin of safety <span class="mono pos">${pct(top.margin_of_safety_pct,1)}</span> · <span class="flag ${RATCLS[top.rating]||'fair'}">${(top.rating||"").replace(/_/g," ")}</span>`;
+  }
+
+  document.getElementById("deep_body").innerHTML=tableHTML(d.deepest_value||[]);
+  document.getElementById("over_body").innerHTML=tableHTML(d.most_overvalued||[]);
+  document.getElementById("all_body").innerHTML=tableHTML(d.all_tickers||[]);
+  const ts=new Date(d.generated_at).toLocaleString();
+  document.getElementById("deep_ts").textContent=`Last refresh: ${ts}`;
+  document.getElementById("over_ts").textContent=`Last refresh: ${ts}`;
+  document.getElementById("all_ts").textContent=`Last refresh: ${ts}`;
+})();
+</script>
+</body>
+</html>
