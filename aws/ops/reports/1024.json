@@ -1,0 +1,517 @@
+{
+  "started_at": "2026-05-21T23:29:05.819937+00:00",
+  "engines": [
+    {
+      "engine_num": 1,
+      "lambda": "justhodl-sequence-alpha-detector",
+      "s3_key": "data/sequence-alpha.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T22:59:52.957+0000",
+        "code_size": 7875,
+        "runtime": "python3.12",
+        "memory_mb": 512,
+        "timeout_s": 60
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-sequence-alpha-detector-daily",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 6610,
+        "last_modified": "2026-05-21T23:29:24+00:00",
+        "age_seconds": 1,
+        "etag": "\"28a4c9b2d138b4370e0a2cb7d1b93636\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "engine",
+          "version",
+          "generated_at",
+          "regime",
+          "regime_description",
+          "n_active_sequences",
+          "state_counts",
+          "n_high_conviction",
+          "top_high_conviction",
+          "step_1_fresh_watchlist",
+          "step_2_confirmed_watchlist",
+          "step_3_completed_validated",
+          "all_sequences",
+          "feeds_available",
+          "methodology",
+          "academic_basis",
+          "duration_seconds"
+        ],
+        "n_items": 17,
+        "schema_version": null,
+        "as_of": null,
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": [
+        "schema_version",
+        "as_of"
+      ]
+    },
+    {
+      "engine_num": 2,
+      "lambda": "justhodl-quality-on-sale",
+      "s3_key": "data/quality-on-sale.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:02:19.501+0000",
+        "code_size": 6765,
+        "runtime": "python3.12",
+        "memory_mb": 512,
+        "timeout_s": 120
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-quality-on-sale-daily",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 4114,
+        "last_modified": "2026-05-21T23:29:42+00:00",
+        "age_seconds": 1,
+        "etag": "\"e59b4e4affe1e987b3aeaa2a32b1e01a\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "engine",
+          "version",
+          "generated_at",
+          "regime",
+          "regime_description",
+          "n_qualified_5_of_5",
+          "n_near_qualified_4_of_5",
+          "universe_size",
+          "thresholds",
+          "qualified_5_of_5",
+          "near_qualified_4_of_5",
+          "all_evaluated",
+          "feeds_available",
+          "methodology",
+          "academic_basis",
+          "duration_seconds"
+        ],
+        "n_items": 16,
+        "schema_version": null,
+        "as_of": null,
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": [
+        "schema_version",
+        "as_of"
+      ]
+    },
+    {
+      "engine_num": 3,
+      "lambda": "justhodl-forced-selling-bounce",
+      "s3_key": "data/forced-selling-bounce.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:05:02.110+0000",
+        "code_size": 6208,
+        "runtime": "python3.12",
+        "memory_mb": 256,
+        "timeout_s": 60
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-forced-selling-bounce-30min",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": "Unhandled",
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": false
+      }
+    },
+    {
+      "engine_num": 4,
+      "lambda": "justhodl-regime-conditional-router",
+      "s3_key": "data/regime-conditional-router.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:10:42.487+0000",
+        "code_size": 6995,
+        "runtime": "python3.12",
+        "memory_mb": 512,
+        "timeout_s": 60
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-regime-conditional-router-2h",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 3416,
+        "last_modified": "2026-05-21T23:30:20+00:00",
+        "age_seconds": 2,
+        "etag": "\"dcf82e2582a2799cc957ac71db5f7755\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "engine",
+          "version",
+          "generated_at",
+          "primary_framework",
+          "primary_framework_score",
+          "primary_framework_active",
+          "primary_regime",
+          "primary_thesis",
+          "primary_sleeve",
+          "secondary_framework",
+          "secondary_framework_score",
+          "secondary_sleeve",
+          "all_framework_scores",
+          "evidence_map",
+          "feeds_available",
+          "framework_universe",
+          "methodology",
+          "academic_basis",
+          "duration_seconds"
+        ],
+        "n_items": 19,
+        "schema_version": null,
+        "as_of": null,
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": [
+        "schema_version",
+        "as_of"
+      ]
+    },
+    {
+      "engine_num": 5,
+      "lambda": "justhodl-ma-target-predictor",
+      "s3_key": "data/ma-target-predictor.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:13:33.503+0000",
+        "code_size": 7968,
+        "runtime": "python3.12",
+        "memory_mb": 512,
+        "timeout_s": 300
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-ma-target-predictor-weekly",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 60818,
+        "last_modified": "2026-05-21T23:31:38+00:00",
+        "age_seconds": 2,
+        "etag": "\"904d914f2ca4394560fece228a99b5ca\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "engine",
+          "version",
+          "generated_at",
+          "state",
+          "universe_size",
+          "n_evaluated",
+          "n_high_conviction",
+          "n_watch",
+          "n_weak",
+          "high_conviction",
+          "watch",
+          "weak",
+          "all_evaluated",
+          "methodology",
+          "academic_basis",
+          "duration_seconds"
+        ],
+        "n_items": 16,
+        "schema_version": null,
+        "as_of": null,
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": [
+        "schema_version",
+        "as_of"
+      ]
+    },
+    {
+      "engine_num": 6,
+      "lambda": "justhodl-consensus-bottom",
+      "s3_key": "data/consensus-bottom.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:16:25.102+0000",
+        "code_size": 4876,
+        "runtime": "python3.12",
+        "memory_mb": 256,
+        "timeout_s": 60
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-consensus-bottom-weekly",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 1891,
+        "last_modified": "2026-05-21T23:31:59+00:00",
+        "age_seconds": 1,
+        "etag": "\"96d4b40c3f4767d31cd9cf1001b3467e\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "engine",
+          "version",
+          "generated_at",
+          "state",
+          "state_description",
+          "n_qualified",
+          "n_near_qualified_2_of_3",
+          "n_bullish_divergence_total",
+          "n_pred_5star_universe",
+          "qualified",
+          "near_qualified",
+          "feeds_available",
+          "methodology",
+          "academic_basis",
+          "duration_seconds"
+        ],
+        "n_items": 15,
+        "schema_version": null,
+        "as_of": null,
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": [
+        "schema_version",
+        "as_of"
+      ]
+    },
+    {
+      "engine_num": 7,
+      "lambda": "justhodl-corr-break-trade-router",
+      "s3_key": "data/corr-break-trade-router.json",
+      "lambda_status": {
+        "exists": false
+      },
+      "schedules": [],
+      "s3_check": {
+        "present": false
+      }
+    },
+    {
+      "engine_num": 8,
+      "lambda": "justhodl-powell-pivot",
+      "s3_key": "data/powell-pivot.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:26:11.885+0000",
+        "code_size": 6579,
+        "runtime": "python3.12",
+        "memory_mb": 256,
+        "timeout_s": 60
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-powell-pivot-4h",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 1018,
+        "last_modified": "2026-05-21T23:32:35+00:00",
+        "age_seconds": 1,
+        "etag": "\"7a5ec5582826c5e4343c976fbc039d89\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "schema_version",
+          "method",
+          "as_of",
+          "current_state",
+          "score_0_100",
+          "explainer",
+          "latest_powell_delta",
+          "latest_powell_classification",
+          "latest_powell_speech",
+          "governor_pivot_consensus",
+          "factor_rotation_recommendation",
+          "recent_pivots_30d",
+          "n_speeches_analyzed",
+          "n_recent_pivots_30d",
+          "upstream_as_of",
+          "upstream_n_speeches_30d",
+          "duration_s"
+        ],
+        "n_items": 17,
+        "schema_version": "1.0.0",
+        "as_of": "2026-05-21T23:32:34.107965+00:00",
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": []
+    },
+    {
+      "engine_num": 9,
+      "lambda": "justhodl-earnings-tone-velocity",
+      "s3_key": "data/earnings-tone-velocity.json",
+      "lambda_status": {
+        "exists": true,
+        "state": "Active",
+        "last_modified": "2026-05-21T23:28:05.263+0000",
+        "code_size": 5425,
+        "runtime": "python3.12",
+        "memory_mb": 512,
+        "timeout_s": 90
+      },
+      "schedules": [
+        {
+          "api": "scheduler",
+          "name": "justhodl-earnings-tone-velocity-daily",
+          "expr": null,
+          "state": "ENABLED"
+        }
+      ],
+      "fresh_invoke": {
+        "ok": true,
+        "status": 200,
+        "function_error": null,
+        "duration_ms": null
+      },
+      "s3_check": {
+        "present": true,
+        "size_bytes": 733,
+        "last_modified": "2026-05-21T23:32:55+00:00",
+        "age_seconds": 1,
+        "etag": "\"574cb72c5cbff428c07382a483293748\""
+      },
+      "s3_parse": {
+        "parsed": true,
+        "type": "dict",
+        "top_keys": [
+          "schema_version",
+          "method",
+          "as_of",
+          "summary",
+          "top_positive_velocity",
+          "top_negative_velocity",
+          "guidance_red_alerts",
+          "guidance_green_alerts",
+          "per_ticker_velocity_full",
+          "upstream_as_of",
+          "upstream_n_candidates",
+          "duration_s"
+        ],
+        "n_items": 12,
+        "schema_version": "1.0.0",
+        "as_of": "2026-05-21T23:32:54.420226+00:00",
+        "has_error_field": false,
+        "error_msg": null
+      },
+      "missing_expected_keys": []
+    }
+  ],
+  "scorecard": {
+    "total_engines": 9,
+    "lambda_deployed": "8/9",
+    "lambda_scheduled": "8/9",
+    "fresh_invoke_ok": "7/9",
+    "s3_output_present": "7/9",
+    "s3_fresh_under_5min": "7/9",
+    "s3_parseable_json": "7/9",
+    "schema_keys_correct": "2/9",
+    "ALL_PASS": false
+  },
+  "duration_seconds": 230.9,
+  "ended_at": "2026-05-21T23:32:56.673884+00:00"
+}
