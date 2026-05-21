@@ -1,0 +1,257 @@
+{
+  "started_at": "2026-05-21T13:38:15.268607+00:00",
+  "predictability": {
+    "lambda_ready": {
+      "ok": true,
+      "last_modified": "2026-05-21T13:31:52.206+0000",
+      "waited_sec": 0.2
+    },
+    "invoke": {
+      "ok": true,
+      "function_error": null,
+      "elapsed_sec": 54.9
+    },
+    "invoke_summary": {
+      "ok": true,
+      "version": "1.0.0",
+      "universe_state": "LOW_MOAT_CONCENTRATION",
+      "n_analyzed": 50,
+      "n_sweet_spot": 0,
+      "n_elite_moats": 7,
+      "star_distribution": {
+        "5_star": 7,
+        "4_star": 6,
+        "3_star": 5,
+        "2_star": 25,
+        "1_star": 7,
+        "unrated": 0
+      },
+      "valuation_distribution": {
+        "CHEAP": 0,
+        "FAIR": 0,
+        "RICH": 0,
+        "UNKNOWN": 50
+      }
+    },
+    "s3": {
+      "version": "1.0.0",
+      "generated_at": "2026-05-21T13:38:16.007760+00:00",
+      "universe_state": "LOW_MOAT_CONCENTRATION",
+      "n_analyzed": 50,
+      "n_sweet_spot": 0,
+      "n_elite_moats": 7,
+      "star_distribution": {
+        "5_star": 7,
+        "4_star": 6,
+        "3_star": 5,
+        "2_star": 25,
+        "1_star": 7,
+        "unrated": 0
+      },
+      "valuation_distribution": {
+        "CHEAP": 0,
+        "FAIR": 0,
+        "RICH": 0,
+        "UNKNOWN": 50
+      },
+      "top_3_most_predictable": [
+        {
+          "t": "COST",
+          "stars": 5,
+          "comp_r2": 0.9793,
+          "val": "UNKNOWN",
+          "pe": null
+        },
+        {
+          "t": "MSFT",
+          "stars": 5,
+          "comp_r2": 0.9639,
+          "val": "UNKNOWN",
+          "pe": null
+        },
+        {
+          "t": "ADBE",
+          "stars": 5,
+          "comp_r2": 0.9617,
+          "val": "UNKNOWN",
+          "pe": null
+        }
+      ],
+      "elite_5star_sample": [
+        {
+          "t": "ADBE",
+          "rev_r2": 0.9972,
+          "eps_r2": 0.9261,
+          "val": "UNKNOWN"
+        },
+        {
+          "t": "NFLX",
+          "rev_r2": 0.9907,
+          "eps_r2": 0.9008,
+          "val": "UNKNOWN"
+        },
+        {
+          "t": "GOOGL",
+          "rev_r2": 0.9813,
+          "eps_r2": 0.8827,
+          "val": "UNKNOWN"
+        }
+      ],
+      "sweet_spot_sample": [],
+      "sector_breakdown": {
+        "Technology": {
+          "n": 14,
+          "avg_stars": 2.86,
+          "n_5star": 3
+        },
+        "Communication Services": {
+          "n": 7,
+          "avg_stars": 3.57,
+          "n_5star": 3
+        },
+        "Consumer Cyclical": {
+          "n": 4,
+          "avg_stars": 2.75,
+          "n_5star": 0
+        },
+        "Financial Services": {
+          "n": 6,
+          "avg_stars": 2.5,
+          "n_5star": 0
+        },
+        "Healthcare": {
+          "n": 10,
+          "avg_stars": 2.0,
+          "n_5star": 0
+        },
+        "Energy": {
+          "n": 2,
+          "avg_stars": 1.0,
+          "n_5star": 0
+        },
+        "Consumer Defensive": {
+          "n": 5,
+          "avg_stars": 2.8,
+          "n_5star": 1
+        },
+        "Basic Materials": {
+          "n": 1,
+          "avg_stars": 2.0,
+          "n_5star": 0
+        },
+        "Industrials": {
+          "n": 1,
+          "avg_stars": 2.0,
+          "n_5star": 0
+        }
+      }
+    },
+    "scorecard": {
+      "version_1_0_0": true,
+      "universe_state_real": true,
+      "n_analyzed_min_30": true,
+      "star_distribution_populated": true,
+      "valuation_distribution_populated": false,
+      "elite_or_pred_present": true,
+      "all_tickers_have_attempt": true,
+      "invoke_ok": true,
+      "all_pass": false
+    }
+  },
+  "smart_beta": {
+    "lambda_ready": {
+      "ok": true,
+      "last_modified": "2026-05-21T13:37:12.970+0000",
+      "waited_sec": 0.1
+    },
+    "invoke": {
+      "ok": true,
+      "function_error": null,
+      "elapsed_sec": 66.6
+    },
+    "invoke_summary": {
+      "ok": true,
+      "version": "1.0.0",
+      "factor_regime": "BALANCED_MULTI_FACTOR",
+      "leading_factor": "momentum",
+      "factor_medians": {
+        "value": null,
+        "quality": null,
+        "momentum": 50.0,
+        "low_vol": 50.0
+      },
+      "n_valid": 0,
+      "n_diversified": 0,
+      "top_3": []
+    },
+    "s3": {
+      "version": "1.0.0",
+      "generated_at": "2026-05-21T13:39:11.100326+00:00",
+      "factor_regime": "BALANCED_MULTI_FACTOR",
+      "leading_factor": "momentum",
+      "lagging_factor": "momentum",
+      "factor_medians": {
+        "value": null,
+        "quality": null,
+        "momentum": 50.0,
+        "low_vol": 50.0
+      },
+      "factor_spread_points": 0,
+      "n_analyzed": 50,
+      "n_valid": 0,
+      "n_diversified_leaders": 0,
+      "top_3_composite": [],
+      "bottom_3_composite": [],
+      "factor_leader_samples": {
+        "value": [],
+        "quality": [],
+        "momentum": [
+          {
+            "t": "AMD",
+            "pct": 99.0
+          },
+          {
+            "t": "GOOGL",
+            "pct": 97.0
+          },
+          {
+            "t": "GOOG",
+            "pct": 95.0
+          }
+        ],
+        "low_vol": [
+          {
+            "t": "BRK-B",
+            "pct": 99.0
+          },
+          {
+            "t": "KO",
+            "pct": 97.0
+          },
+          {
+            "t": "MCD",
+            "pct": 95.0
+          }
+        ]
+      },
+      "sector_breakdown": {}
+    },
+    "scorecard": {
+      "version_1_0_0": true,
+      "factor_regime_real": true,
+      "leading_factor_set": true,
+      "all_4_factor_medians_present": false,
+      "n_valid_min_25": false,
+      "top_25_populated": false,
+      "top_3_have_composite": true,
+      "invoke_ok": true,
+      "all_pass": false
+    }
+  },
+  "scorecard_summary": {
+    "predictability_all_pass": false,
+    "smart_beta_all_pass": false,
+    "both_pass": false
+  },
+  "ended_at": "2026-05-21T13:40:17.386967+00:00"
+}
