@@ -1,0 +1,381 @@
+{
+  "started_at": "2026-05-21T14:30:31.565038+00:00",
+  "expected_version": "1.0.0",
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T14:29:41.545+0000",
+    "memory_mb": 1024,
+    "timeout_s": 600,
+    "env_keys": [
+      "FMP_KEY",
+      "FRED_KEY",
+      "S3_BUCKET"
+    ],
+    "waited_sec": 0.2
+  },
+  "env_check": {
+    "has_fmp_key": true,
+    "has_fred_key": true,
+    "has_s3_bucket": true
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 130.8,
+    "error": null
+  },
+  "invoke_summary": {
+    "ok": true,
+    "version": "1.0.0",
+    "universe_state": "MIXED",
+    "n_valid": 46,
+    "n_value_creators": 32,
+    "n_value_destroyers": 14,
+    "n_super_compounders": 10,
+    "wacc_inputs": {
+      "risk_free_10y_pct": 4.67,
+      "equity_risk_premium_pct": 5.5,
+      "ig_credit_spread_pct": 0.95,
+      "source_rf": "FRED DGS10",
+      "source_ig_spread": "FRED BAMLC0A4CBBB",
+      "source_erp": "Damodaran 2026 implied ERP (hardcoded)"
+    },
+    "universe_medians": {
+      "eva_spread_pct": 5.96,
+      "roic_pct": 13.47,
+      "wacc_pct": 9.05,
+      "eva_momentum_pct": 1.11
+    },
+    "top_3_eva_spread": [
+      {
+        "t": "NVDA",
+        "spread": 45.985,
+        "roic": 62.994,
+        "wacc": 17.009
+      },
+      {
+        "t": "MA",
+        "spread": 43.114,
+        "roic": 51.853,
+        "wacc": 8.739
+      },
+      {
+        "t": "AAPL",
+        "spread": 39.11,
+        "roic": 49.574,
+        "wacc": 10.464
+      }
+    ],
+    "super_compounders": [
+      "AAPL",
+      "MSFT",
+      "NVDA",
+      "LLY",
+      "V",
+      "MA",
+      "NFLX",
+      "ADBE",
+      "PM",
+      "QCOM"
+    ]
+  },
+  "s3": {
+    "version": "1.0.0",
+    "generated_at": "2026-05-21T14:32:42.116217+00:00",
+    "universe_state": "MIXED",
+    "n_analyzed": 50,
+    "n_valid": 46,
+    "n_value_creators": 32,
+    "n_value_destroyers": 14,
+    "n_super_compounders": 10,
+    "wacc_inputs": {
+      "risk_free_10y_pct": 4.67,
+      "equity_risk_premium_pct": 5.5,
+      "ig_credit_spread_pct": 0.95,
+      "source_rf": "FRED DGS10",
+      "source_ig_spread": "FRED BAMLC0A4CBBB",
+      "source_erp": "Damodaran 2026 implied ERP (hardcoded)"
+    },
+    "universe_medians": {
+      "eva_spread_pct": 5.96,
+      "roic_pct": 13.47,
+      "wacc_pct": 9.05,
+      "eva_momentum_pct": 1.11
+    },
+    "top_5_eva_spread": [
+      {
+        "t": "NVDA",
+        "sector": "Technology",
+        "spread": 45.985,
+        "roic": 62.994,
+        "wacc": 17.009,
+        "mom": 38.55,
+        "super": true
+      },
+      {
+        "t": "MA",
+        "sector": "Financial Services",
+        "spread": 43.114,
+        "roic": 51.853,
+        "wacc": 8.739,
+        "mom": 16.98,
+        "super": true
+      },
+      {
+        "t": "AAPL",
+        "sector": "Technology",
+        "spread": 39.11,
+        "roic": 49.574,
+        "wacc": 10.464,
+        "mom": 30.23,
+        "super": true
+      },
+      {
+        "t": "ADBE",
+        "sector": "Technology",
+        "spread": 24.958,
+        "roic": 37.396,
+        "wacc": 12.438,
+        "mom": 10.16,
+        "super": true
+      },
+      {
+        "t": "LLY",
+        "sector": "Healthcare",
+        "spread": 24.846,
+        "roic": 32.058,
+        "wacc": 7.212,
+        "mom": 23.64,
+        "super": true
+      }
+    ],
+    "top_5_eva_momentum": [
+      {
+        "t": "NVDA",
+        "mom": 38.55,
+        "spread": 45.985,
+        "roic": 62.994
+      },
+      {
+        "t": "AAPL",
+        "mom": 30.23,
+        "spread": 39.11,
+        "roic": 49.574
+      },
+      {
+        "t": "LLY",
+        "mom": 23.64,
+        "spread": 24.846,
+        "roic": 32.058
+      },
+      {
+        "t": "MA",
+        "mom": 16.98,
+        "spread": 43.114,
+        "roic": 51.853
+      },
+      {
+        "t": "ABBV",
+        "mom": 10.4,
+        "spread": 4.364,
+        "roic": 10.29
+      }
+    ],
+    "top_5_mva": [
+      {
+        "t": "NVDA",
+        "mva_b": 5164.28,
+        "mva_x": 36.98,
+        "spread": 45.985
+      },
+      {
+        "t": "AAPL",
+        "mva_b": 4359.65,
+        "mva_x": 54.87,
+        "spread": 39.11
+      },
+      {
+        "t": "GOOGL",
+        "mva_b": 4212.23,
+        "mva_x": 10.03,
+        "spread": 7.65
+      },
+      {
+        "t": "GOOG",
+        "mva_b": 4169.65,
+        "mva_x": 9.94,
+        "spread": 7.714
+      },
+      {
+        "t": "MSFT",
+        "mva_b": 2616.16,
+        "mva_x": 6.39,
+        "spread": 10.681
+      }
+    ],
+    "bottom_5_destroyers": [
+      {
+        "t": "AMD",
+        "sector": "Technology",
+        "spread": -11.644,
+        "roic": 6.22,
+        "wacc": 17.864
+      },
+      {
+        "t": "TSLA",
+        "sector": "Consumer Cyclical",
+        "spread": -11.319,
+        "roic": 3.212,
+        "wacc": 14.531
+      },
+      {
+        "t": "CVX",
+        "sector": "Energy",
+        "spread": -3.738,
+        "roic": 3.314,
+        "wacc": 7.052
+      },
+      {
+        "t": "ORCL",
+        "sector": "Technology",
+        "spread": -3.615,
+        "roic": 8.024,
+        "wacc": 11.639
+      },
+      {
+        "t": "BRK-B",
+        "sector": "Financial Services",
+        "spread": -3.565,
+        "roic": 4.25,
+        "wacc": 7.815
+      }
+    ],
+    "super_compounders": [
+      {
+        "t": "AAPL",
+        "spread": 39.11,
+        "roic": 49.574,
+        "mom": 30.23
+      },
+      {
+        "t": "MSFT",
+        "spread": 10.681,
+        "roic": 21.314,
+        "mom": 1.77
+      },
+      {
+        "t": "NVDA",
+        "spread": 45.985,
+        "roic": 62.994,
+        "mom": 38.55
+      },
+      {
+        "t": "LLY",
+        "spread": 24.846,
+        "roic": 32.058,
+        "mom": 23.64
+      },
+      {
+        "t": "V",
+        "spread": 23.822,
+        "roic": 32.727,
+        "mom": 0.97
+      },
+      {
+        "t": "MA",
+        "spread": 43.114,
+        "roic": 51.853,
+        "mom": 16.98
+      },
+      {
+        "t": "NFLX",
+        "spread": 10.001,
+        "roic": 23.07,
+        "mom": 6.16
+      },
+      {
+        "t": "ADBE",
+        "spread": 24.958,
+        "roic": 37.396,
+        "mom": 10.16
+      },
+      {
+        "t": "PM",
+        "spread": 17.773,
+        "roic": 24.293,
+        "mom": 3.12
+      },
+      {
+        "t": "QCOM",
+        "spread": 7.578,
+        "roic": 20.116,
+        "mom": 4.79
+      }
+    ],
+    "sector_summary": {
+      "Technology": {
+        "n": 14,
+        "pct_creators": 78.6,
+        "med_spread": 5.96
+      },
+      "Communication Services": {
+        "n": 7,
+        "pct_creators": 71.4,
+        "med_spread": 7.65
+      },
+      "Consumer Cyclical": {
+        "n": 4,
+        "pct_creators": 50.0,
+        "med_spread": 3.56
+      },
+      "Financial Services": {
+        "n": 3,
+        "pct_creators": 66.7,
+        "med_spread": 23.82
+      },
+      "Healthcare": {
+        "n": 8,
+        "pct_creators": 62.5,
+        "med_spread": 3.14
+      },
+      "Consumer Defensive": {
+        "n": 6,
+        "pct_creators": 100.0,
+        "med_spread": 8.13
+      },
+      "Energy": {
+        "n": 2,
+        "pct_creators": 0.0,
+        "med_spread": -1.93
+      },
+      "Basic Materials": {
+        "n": 1,
+        "pct_creators": 100.0,
+        "med_spread": 1.89
+      },
+      "Industrials": {
+        "n": 1,
+        "pct_creators": 0.0,
+        "med_spread": -0.34
+      }
+    }
+  },
+  "scorecard": {
+    "version_1_0_0": true,
+    "universe_state_real": true,
+    "n_analyzed_50": true,
+    "n_valid_min_35": true,
+    "wacc_rf_present": true,
+    "wacc_erp_present": true,
+    "wacc_ig_spread_present": true,
+    "top_10_eva_spread_populated": true,
+    "top_1_has_roic_wacc_spread": true,
+    "top_10_eva_momentum_populated": true,
+    "bottom_5_present": true,
+    "sector_breakdown_min_3": true,
+    "median_spread_present": true,
+    "invoke_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T14:32:42.853302+00:00"
+}
