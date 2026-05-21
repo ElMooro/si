@@ -1,0 +1,467 @@
+{
+  "started_at": "2026-05-21T16:25:29.431586+00:00",
+  "pead_stack": {
+    "name": "PEAD",
+    "n_total": 3,
+    "feeds": [
+      {
+        "fn": "justhodl-earnings-pead",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 4485,
+        "last_modified": "2026-05-06T13:57:55.000+0000",
+        "s3": {
+          "found_key": "data/earnings-pead.json",
+          "exists": true,
+          "size_bytes": 585304,
+          "last_modified": "2026-05-21T08:00:28+00:00",
+          "age_hours": 8.4
+        },
+        "fresh": true,
+        "max_age_hours": 28,
+        "peek": {
+          "top_keys": [
+            "schema_version",
+            "method",
+            "generated_at",
+            "duration_s",
+            "stats",
+            "summary",
+            "all_qualifying"
+          ],
+          "version": null,
+          "generated_at": "2026-05-21T08:00:27+00:00",
+          "n_items": null
+        }
+      },
+      {
+        "fn": "justhodl-pead-detector",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 19808,
+        "last_modified": "2026-05-06T13:53:53.000+0000",
+        "s3": {
+          "found_key": "data/pead-signals.json",
+          "exists": true,
+          "size_bytes": 587135,
+          "last_modified": "2026-05-21T08:00:26+00:00",
+          "age_hours": 8.4
+        },
+        "fresh": true,
+        "max_age_hours": 28,
+        "peek": {
+          "top_keys": [
+            "schema_version",
+            "method",
+            "generated_at",
+            "duration_s",
+            "stats",
+            "summary",
+            "all_qualifying"
+          ],
+          "version": null,
+          "generated_at": "2026-05-21T08:00:25+00:00",
+          "n_items": null
+        }
+      },
+      {
+        "fn": "justhodl-post-earnings-mean-rev",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 5949,
+        "last_modified": "2026-05-20T23:09:38.864+0000",
+        "s3": {
+          "found_key": "data/post-earnings-mean-rev.json",
+          "exists": true,
+          "size_bytes": 1103,
+          "last_modified": "2026-05-21T00:00:45+00:00",
+          "age_hours": 16.4
+        },
+        "fresh": true,
+        "max_age_hours": 48,
+        "peek": {
+          "top_keys": [
+            "engine",
+            "version",
+            "as_of",
+            "state",
+            "signal_strength",
+            "n_setups",
+            "n_high_conviction",
+            "n_long_setups",
+            "n_short_setups",
+            "universe_size",
+            "top_setups",
+            "all_setups",
+            "methodology",
+            "sources",
+            "why_now",
+            "run_seconds"
+          ],
+          "version": "1.0.0",
+          "generated_at": "2026-05-21T00:00:44Z",
+          "n_items": null
+        }
+      }
+    ],
+    "n_lambdas_ok": 3,
+    "n_feeds_fresh": 3
+  },
+  "thirteen_f_stack": {
+    "name": "13F",
+    "n_total": 5,
+    "feeds": [
+      {
+        "fn": "justhodl-sec-13f",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 3307,
+        "last_modified": "2026-05-03T17:17:52.000+0000",
+        "s3": {
+          "exists": false,
+          "tried_keys": [
+            "data/sec-13f.json",
+            "data/13f-filings.json",
+            "data/13f.json"
+          ]
+        },
+        "fresh": false,
+        "max_age_hours": 168,
+        "peek": {}
+      },
+      {
+        "fn": "justhodl-13f-positions",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 11854,
+        "last_modified": "2026-05-15T10:21:48.000+0000",
+        "s3": {
+          "found_key": "data/13f-positions.json",
+          "exists": true,
+          "size_bytes": 14840780,
+          "last_modified": "2026-05-21T10:51:23+00:00",
+          "age_hours": 5.6
+        },
+        "fresh": true,
+        "max_age_hours": 168,
+        "peek": {
+          "top_keys": [
+            "generated_at",
+            "as_of_quarter",
+            "funds_total",
+            "funds_parsed",
+            "funds_failed",
+            "fund_errors",
+            "by_fund",
+            "aggregate_by_ticker",
+            "most_bought",
+            "most_sold",
+            "consensus_holds",
+            "rare_picks",
+            "fetch_duration_s"
+          ],
+          "version": null,
+          "generated_at": "2026-05-21T10:51:21+00:00",
+          "n_items": null
+        }
+      },
+      {
+        "fn": "justhodl-13f-price-divergence",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 5163,
+        "last_modified": "2026-05-20T22:11:43.000+0000",
+        "s3": {
+          "found_key": "data/13f-price-divergence.json",
+          "exists": true,
+          "size_bytes": 1256,
+          "last_modified": "2026-05-20T22:12:37+00:00",
+          "age_hours": 18.2
+        },
+        "fresh": true,
+        "max_age_hours": 168,
+        "peek": {
+          "top_keys": [
+            "engine",
+            "version",
+            "as_of",
+            "state",
+            "signal_strength",
+            "n_divergences",
+            "n_bullish",
+            "n_bearish",
+            "n_high_conviction",
+            "feeders",
+            "top_bullish",
+            "top_bearish",
+            "all_divergences",
+            "methodology",
+            "sources",
+            "why_now",
+            "run_seconds"
+          ],
+          "version": "1.0.0",
+          "generated_at": "2026-05-20T22:12:36Z",
+          "n_items": null
+        }
+      },
+      {
+        "fn": "justhodl-activist-13d",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 8577,
+        "last_modified": "2026-05-20T14:06:38.000+0000",
+        "s3": {
+          "found_key": "data/activist-13d.json",
+          "exists": true,
+          "size_bytes": 3745,
+          "last_modified": "2026-05-20T14:06:59+00:00",
+          "age_hours": 26.3
+        },
+        "fresh": true,
+        "max_age_hours": 36,
+        "peek": {
+          "top_keys": [
+            "engine",
+            "version",
+            "as_of",
+            "state",
+            "signal_strength",
+            "summary",
+            "current_readings",
+            "trigger_conditions",
+            "forward_expectations",
+            "top_setups",
+            "all_setups",
+            "recommended_trade",
+            "why_now_explainer",
+            "academic_basis",
+            "methodology",
+            "sources",
+            "schedule",
+            "run_duration_seconds"
+          ],
+          "version": "1.0",
+          "generated_at": "2026-05-20T14:06:58.627930Z",
+          "n_items": null
+        }
+      },
+      {
+        "fn": "justhodl-activist-filings-scanner",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 24836,
+        "last_modified": "2026-05-06T10:35:12.000+0000",
+        "s3": {
+          "found_key": "data/activist-filings.json",
+          "exists": true,
+          "size_bytes": 1439,
+          "last_modified": "2026-05-21T12:00:41+00:00",
+          "age_hours": 4.4
+        },
+        "fresh": true,
+        "max_age_hours": 36,
+        "peek": {
+          "top_keys": [
+            "schema_version",
+            "method",
+            "generated_at",
+            "duration_s",
+            "stats",
+            "summary",
+            "all_filings"
+          ],
+          "version": null,
+          "generated_at": "2026-05-21T12:00:40+00:00",
+          "n_items": null
+        }
+      }
+    ],
+    "n_lambdas_ok": 5,
+    "n_feeds_fresh": 4
+  },
+  "diagnostic_stack": {
+    "name": "Squeeze diagnostic",
+    "n_total": 1,
+    "feeds": [
+      {
+        "fn": "justhodl-squeeze-pretrigger",
+        "lambda_exists": true,
+        "lambda_state": "Active",
+        "code_size": 7154,
+        "last_modified": "2026-05-20T18:10:32.000+0000",
+        "s3": {
+          "found_key": "data/squeeze-pretrigger.json",
+          "exists": true,
+          "size_bytes": 2759,
+          "last_modified": "2026-05-20T23:30:27+00:00",
+          "age_hours": 16.9
+        },
+        "fresh": true,
+        "max_age_hours": 30,
+        "peek": {
+          "top_keys": [
+            "engine",
+            "version",
+            "as_of",
+            "state",
+            "previous_state",
+            "state_description",
+            "signal_strength",
+            "summary",
+            "current_readings",
+            "imminent_setups",
+            "pretrigger_setups",
+            "early_setups",
+            "trigger_conditions",
+            "forward_expectations",
+            "recommended_trade",
+            "historical_episodes",
+            "why_now_explainer",
+            "methodology",
+            "sources",
+            "schedule"
+          ],
+          "version": "1.0",
+          "generated_at": "2026-05-20T23:30:26.646499Z",
+          "n_items": null
+        },
+        "diagnostic": {
+          "target_key": "data/squeeze-pretrigger.json",
+          "state": "QUIET",
+          "n_evaluated": 0,
+          "feeds_available": {
+            "finra": true,
+            "short_interest": true,
+            "catalyst": true
+          },
+          "why_now": "### Short Squeeze Pre-Trigger -- regime: QUIET\n\nNo qualifying squeeze setups today.\n\n5-condition scoring: SI/float >18%, days-to-cover >6, short utilization >80",
+          "upstream_feeds": {
+            "finra": {
+              "ok": true,
+              "n_squeeze_candidates": 14,
+              "first_3_candidates": [
+                {
+                  "symbol": "RVTY",
+                  "name": "Revvity",
+                  "sector": "Health Care",
+                  "svr_pct": 54.64,
+                  "z_score": -8.59,
+                  "momentum_pct": 0.26,
+                  "days_to_cover": 5.31,
+                  "squeeze_score": 55,
+                  "squeeze_flags": [
+                    "HIGH_DAYS_TO_COVER",
+                    "CLIMAX_SHORTING",
+                    "PRICE_STRENGTH"
+                  ],
+                  "price_strength": {
+                    "last_close": 94.8,
+                    "ma20": 92.45,
+                    "above_ma20": true,
+                    "pct_vs_ma20": 2.54,
+                    "ret_5d": -1.64,
+                    "ret_20d": 8.78
+                  },
+                  "short_volume": 297030.105564,
+                  "total_volume": 543565.050891
+                },
+                {
+                  "symbol": "IFF",
+                  "name": "International Flavors & Fragrances",
+                  "sector": "Materials",
+                  "svr_pct": 88.9,
+                  "z_score": 2.49,
+                  "momentum_pct": 2.32,
+                  "days_to_cover": 4.06,
+                  "squeeze_score": 50,
+                  "squeeze_flags": [
+                    "SVR_HEAVY_ABNORMAL",
+                    "PRICE_STRENGTH"
+                  ],
+                  "price_strength": {
+                    "last_close": 74.43,
+                    "ma20": 74.04,
+                    "above_ma20": true,
+                    "pct_vs_ma20": 0.52,
+                    "ret_5d": -2.18,
+                    "ret_20d": 4.92
+                  },
+                  "short_volume": 950017.154384,
+                  "total_volume": 1068665.067866
+                },
+                {
+                  "symbol": "PGR",
+                  "name": "Progressive Corporation",
+                  "sector": "Financials",
+                  "svr_pct": 76.21,
+                  "z_score": 2.09,
+                  "momentum_pct": 2.4,
+                  "days_to_cover": 3.49,
+                  "squeeze_score": 50,
+                  "squeeze_flags": [
+                    "SVR_HEAVY_ABNORMAL",
+                    "PRICE_STRENGTH"
+                  ],
+                  "price_strength": {
+                    "last_close": 202.6,
+                    "ma20": 199.67,
+                    "above_ma20": true,
+                    "pct_vs_ma20": 1.47,
+                    "ret_5d": 2.91,
+                    "ret_20d": -1.33
+                  },
+                  "short_volume": 894804.134782,
+                  "total_volume": 1174083.545658
+                }
+              ],
+              "n_top_zscore": 30,
+              "first_3_top_zscore": [
+                "COIN",
+                "BSX",
+                "HAS"
+              ]
+            },
+            "short_interest": {
+              "ok": true,
+              "n_top_crowded": 15,
+              "first_3_crowded": [
+                "BBBY",
+                "DLTR",
+                "CME"
+              ],
+              "n_top_squeeze_risk": 10,
+              "first_3_risk": [
+                "LIN",
+                "NOW",
+                "TM"
+              ]
+            },
+            "catalyst_calendar": {
+              "ok": true,
+              "n_upcoming": 0,
+              "first_3": []
+            }
+          },
+          "likely_root_cause": [
+            "Need deeper code inspection \u2014 feeds present, candidates listed, yet pre-trigger evaluates 0"
+          ]
+        }
+      }
+    ],
+    "n_lambdas_ok": 1,
+    "n_feeds_fresh": 1
+  },
+  "scorecard": {
+    "pead_n_lambdas_total": 3,
+    "pead_n_lambdas_ok": 3,
+    "pead_n_feeds_fresh": 3,
+    "pead_all_fresh": true,
+    "13f_n_lambdas_total": 5,
+    "13f_n_lambdas_ok": 5,
+    "13f_n_feeds_fresh": 4,
+    "13f_all_fresh": false,
+    "squeeze_pretrigger_root_cause_identified": true
+  },
+  "ended_at": "2026-05-21T16:25:35.610574+00:00"
+}
