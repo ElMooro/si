@@ -47,7 +47,7 @@ from datetime import datetime, timezone, timedelta
 import boto3
 
 # ---------- Constants ----------
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/starmine.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -103,13 +103,122 @@ def http_json(url, retries=2):
     return {"_error": last_err}
 
 
-# ---------- FMP wrappers ----------
-def fmp_sp500():
+# ---------- Universe acquisition (3-tier resilient fallback) ----------
+# Static top-50 S&P 500 by market cap as of 2025-2026 (last-resort fallback)
+STATIC_TOP50_SPX = [
+    {"symbol": "AAPL", "sector": "Technology"},
+    {"symbol": "MSFT", "sector": "Technology"},
+    {"symbol": "NVDA", "sector": "Technology"},
+    {"symbol": "GOOGL", "sector": "Communication Services"},
+    {"symbol": "GOOG", "sector": "Communication Services"},
+    {"symbol": "AMZN", "sector": "Consumer Cyclical"},
+    {"symbol": "META", "sector": "Communication Services"},
+    {"symbol": "TSLA", "sector": "Consumer Cyclical"},
+    {"symbol": "BRK-B", "sector": "Financial Services"},
+    {"symbol": "JPM", "sector": "Financial Services"},
+    {"symbol": "LLY", "sector": "Healthcare"},
+    {"symbol": "V", "sector": "Financial Services"},
+    {"symbol": "XOM", "sector": "Energy"},
+    {"symbol": "UNH", "sector": "Healthcare"},
+    {"symbol": "JNJ", "sector": "Healthcare"},
+    {"symbol": "MA", "sector": "Financial Services"},
+    {"symbol": "WMT", "sector": "Consumer Defensive"},
+    {"symbol": "PG", "sector": "Consumer Defensive"},
+    {"symbol": "AVGO", "sector": "Technology"},
+    {"symbol": "HD", "sector": "Consumer Cyclical"},
+    {"symbol": "ORCL", "sector": "Technology"},
+    {"symbol": "MRK", "sector": "Healthcare"},
+    {"symbol": "COST", "sector": "Consumer Defensive"},
+    {"symbol": "ABBV", "sector": "Healthcare"},
+    {"symbol": "BAC", "sector": "Financial Services"},
+    {"symbol": "CVX", "sector": "Energy"},
+    {"symbol": "ADBE", "sector": "Technology"},
+    {"symbol": "KO", "sector": "Consumer Defensive"},
+    {"symbol": "CRM", "sector": "Technology"},
+    {"symbol": "PEP", "sector": "Consumer Defensive"},
+    {"symbol": "AMD", "sector": "Technology"},
+    {"symbol": "ACN", "sector": "Technology"},
+    {"symbol": "TMO", "sector": "Healthcare"},
+    {"symbol": "MCD", "sector": "Consumer Cyclical"},
+    {"symbol": "CSCO", "sector": "Technology"},
+    {"symbol": "WFC", "sector": "Financial Services"},
+    {"symbol": "ABT", "sector": "Healthcare"},
+    {"symbol": "LIN", "sector": "Basic Materials"},
+    {"symbol": "DHR", "sector": "Healthcare"},
+    {"symbol": "DIS", "sector": "Communication Services"},
+    {"symbol": "TXN", "sector": "Technology"},
+    {"symbol": "NFLX", "sector": "Communication Services"},
+    {"symbol": "GE", "sector": "Industrials"},
+    {"symbol": "IBM", "sector": "Technology"},
+    {"symbol": "INTU", "sector": "Technology"},
+    {"symbol": "AMGN", "sector": "Healthcare"},
+    {"symbol": "VZ", "sector": "Communication Services"},
+    {"symbol": "PFE", "sector": "Healthcare"},
+    {"symbol": "QCOM", "sector": "Technology"},
+    {"symbol": "CMCSA", "sector": "Communication Services"},
+]
+
+
+def fmp_sp500_with_retry(max_retries=5):
+    """Tier 1: FMP /stable/sp500-constituent with exponential backoff on 429."""
     url = f"{FMP_BASE}/sp500-constituent?apikey={FMP_KEY}"
-    d = http_json(url)
-    if isinstance(d, list):
-        return d
-    return []
+    backoffs = [5, 15, 30, 60, 90]
+    for attempt in range(max_retries):
+        d = http_json(url)
+        if isinstance(d, list) and d:
+            return d, "fmp_sp500_constituent"
+        # Check if it's a 429 specifically
+        if isinstance(d, dict) and d.get("_code") == 429 and attempt < max_retries - 1:
+            time.sleep(backoffs[attempt])
+            continue
+        # Any other error or final retry exhausted
+        break
+    return None, None
+
+
+def s3_screener_fallback():
+    """Tier 2: read SP500 universe from existing justhodl-stock-screener S3 cache."""
+    try:
+        s3 = boto3.client("s3")
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="screener/data.json")
+        data = json.loads(obj["Body"].read().decode("utf-8"))
+        # Screener data structure may vary - try common keys
+        tickers = (data.get("tickers") or data.get("stocks") or
+                   data.get("data") or data.get("results") or [])
+        if not isinstance(tickers, list) or not tickers:
+            return None, None
+        # Normalize to {symbol, sector} shape
+        normalized = []
+        for t in tickers:
+            if isinstance(t, dict):
+                sym = (t.get("symbol") or t.get("ticker") or
+                       t.get("Symbol") or "")
+                sec = (t.get("sector") or t.get("Sector") or "")
+                if sym:
+                    normalized.append({"symbol": sym, "sector": sec})
+            elif isinstance(t, str):
+                normalized.append({"symbol": t, "sector": ""})
+        return (normalized[:500] if normalized else None,
+                "s3_screener_fallback")
+    except Exception:
+        return None, None
+
+
+def acquire_sp500_universe():
+    """3-tier resilient fetch: FMP -> S3 screener cache -> static top-50."""
+    # Tier 1: FMP with retry
+    sp, source = fmp_sp500_with_retry()
+    if sp and len(sp) >= 50:
+        return sp, source
+    # Tier 2: S3 screener cache
+    sp, source = s3_screener_fallback()
+    if sp and len(sp) >= 30:
+        return sp, source
+    # Tier 3: static hardcoded top-50
+    return list(STATIC_TOP50_SPX), "static_top50_hardcoded"
+
+
+# ---------- FMP wrappers ----------
 
 
 def fmp_quote_batch(symbols):
@@ -381,13 +490,14 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": "FMP_KEY not set"})}
 
-    # 1. Get S&P 500 constituents
-    sp = fmp_sp500()
-    log.append(f"sp500_constituents: {len(sp)}")
+    # 1. Get S&P 500 constituents via 3-tier resilient fallback
+    sp, universe_source = acquire_sp500_universe()
+    log.append(f"sp500_constituents: {len(sp) if sp else 0} via {universe_source}")
     if not sp:
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False,
-                                    "error": "sp500 fetch failed"})}
+                                    "error": "all 3 universe tiers failed",
+                                    "log": log})}
     symbols_all = [s.get("symbol") for s in sp if s.get("symbol")]
     sectors = {s.get("symbol"): s.get("sector") for s in sp}
 
@@ -465,6 +575,7 @@ def lambda_handler(event, context):
         "universe_regime": regime,
         "universe_median_composite_z": (round(median_z, 2)
                                          if median_z is not None else None),
+        "universe_source_tier": universe_source,
         "n_universe_analyzed": len(per_ticker),
         "n_scored": len(scored),
         "median_rrm_raw": (round(statistics.median(rrm_vals), 2)
