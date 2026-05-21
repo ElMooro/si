@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Squeeze Cockpit · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🎯</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:22px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 8px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:30px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+h2 .sub{font-size:10.5px;color:var(--dim);font-family:var(--mono);letter-spacing:1px;text-transform:none}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1080px;line-height:1.65}
+nav.crumbs{margin-top:12px;display:flex;flex-wrap:wrap;gap:14px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);padding-bottom:2px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.regime{display:grid;grid-template-columns:auto 1fr;gap:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px}
+.regime .stateBox{font-family:var(--mono);text-align:center;padding:10px 18px;border-radius:6px;border:1px solid var(--line);min-width:200px}
+.regime .stateBox .label{font-size:10px;letter-spacing:1.4px;color:var(--dim);text-transform:uppercase}
+.regime .stateBox .name{font-size:22px;font-weight:700;margin:4px 0;letter-spacing:1.2px}
+.regime .stateBox .strength{font-size:11px;color:var(--mute);font-family:var(--mono)}
+.regime .desc{font-size:13px;color:var(--txt);line-height:1.6}
+.regime .desc .meta{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px;letter-spacing:.5px;text-transform:uppercase}
+.st-IMMINENT{color:var(--red);border-color:var(--red)!important;background:#ff557715}
+.st-PRE_TRIGGER{color:var(--orange);border-color:var(--orange)!important;background:#ff7a1815}
+.st-EARLY{color:var(--yellow);border-color:var(--yellow)!important;background:#ffd26615}
+.st-QUIET{color:var(--mute);border-color:var(--line)!important}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:14px 16px}
+.card h3{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+.card .big{font-family:var(--mono);font-size:26px;font-weight:700;margin:2px 0;color:var(--txt)}
+.card .sub{font-size:10.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);letter-spacing:.4px}
+.card.red .big{color:var(--red)}.card.orange .big{color:var(--orange)}
+.card.yellow .big{color:var(--yellow)}.card.green .big{color:var(--green)}.card.cyan .big{color:var(--cyan)}
+
+.cardw{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:4px 12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:880px){.two{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.regime{grid-template-columns:1fr}}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:10px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px;position:sticky;top:0;background:var(--panel)}
+td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55);vertical-align:middle}
+tr:hover td{background:var(--panel2)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tk{font-weight:700;color:var(--txt)}
+.tk .nm{color:var(--dim);font-weight:400;font-size:10px;margin-left:5px}
+
+.pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px;font-family:var(--mono);text-transform:uppercase}
+.p-IMMINENT{background:#ff557725;color:var(--red)}
+.p-PRE_TRIGGER{background:#ff7a1825;color:var(--orange)}
+.p-EARLY{background:#ffd26625;color:var(--yellow)}
+.p-PRESSURE\ BUILDING{background:#ff557722;color:var(--red)}
+.p-SHORTS\ COVERING{background:#26ffaf22;color:var(--green)}
+.p-NORMAL{background:#1c2433;color:var(--dim)}
+
+.cflags{display:inline-flex;gap:2px}
+.cflag{display:inline-block;width:13px;height:13px;border-radius:2px;font-size:9px;line-height:13px;text-align:center;font-weight:700;font-family:var(--mono);background:#1c2433;color:var(--dim)}
+.cflag.on{background:var(--green);color:#0a0e14}
+
+.loading{text-align:center;padding:44px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.empty{padding:30px 16px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1080px}
+.note b{color:var(--mute)}
+.legend{margin-top:8px;display:flex;flex-wrap:wrap;gap:14px;font-size:10.5px;color:var(--dim);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase}
+.legend span b{color:var(--mute)}
+
+.sectorBar{display:flex;align-items:center;gap:10px;margin:5px 0;font-family:var(--mono);font-size:11px}
+.sectorBar .sn{width:140px;color:var(--mute)}
+.sectorBar .sb{flex:1;height:9px;background:#1c2433;border-radius:2px;overflow:hidden}
+.sectorBar .sf{height:100%;background:var(--red)}
+.sectorBar .sv{width:46px;text-align:right;color:var(--dim);font-size:10.5px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎯 SQUEEZE COCKPIT</h1>
+    <p class="subtitle">Unified short-squeeze intelligence across five engines. <b>Pre-trigger</b> (mid/large cap, 5-condition score: SI/float &gt;18%, days-to-cover &gt;6, short utilization &gt;80%, FINRA z-score &gt;0.5, catalyst within 30d) sits at the top — the institutional setup map. Beneath: <b>crowded shorts</b> and <b>covering</b> from FINRA bi-monthly SI; <b>live tape pressure</b> from Polygon daily short-volume normalized to 20-day baseline; <b>FINRA market composite</b> across ~11.5k tickers; and <b>microcap float squeezes</b> for the small-cap leaderboard. Squeezes are catalysts for explosive returns when crowded positioning meets a fundamental jolt — and they cut the other way when the thesis breaks.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/signal-board.html">signal board</a>
+      <a href="/short-pressure.html">short pressure</a>
+      <a href="/master-ranker.html">master ranker</a>
+      <a href="/baggers.html">baggers</a>
+      <a href="/risk-desk.html">risk desk</a>
+    </nav>
+  </header>
+
+  <!-- REGIME BANNER -->
+  <div id="regime" class="regime"><div class="loading" style="grid-column:1/-1">LOADING REGIME…</div></div>
+
+  <!-- 4 KPIs -->
+  <div class="grid4" id="kpis"><div class="loading" style="grid-column:1/-1">LOADING KPIS…</div></div>
+
+  <!-- IMMINENT + PRE-TRIGGER LEADERBOARDS -->
+  <h2>SETUP LEADERBOARDS <span class="sub">5-condition score · mcap $1B–$50B · rejects names already +30% in 20d (no chasing)</span></h2>
+  <div class="cardw" style="padding:8px 14px"><div id="boardSetups"><div class="loading">…</div></div></div>
+  <div class="legend">
+    <span><b>C1</b> SI&gt;18% of float</span>
+    <span><b>C2</b> Days-to-cover &gt;6</span>
+    <span><b>C3</b> FINRA utilization &gt;80%</span>
+    <span><b>C4</b> Short-vol z-score &gt;+0.5</span>
+    <span><b>C5</b> Catalyst within 30d</span>
+  </div>
+
+  <!-- TWO COLUMN: CROWDED SHORTS / SHORTS COVERING -->
+  <div class="two" style="margin-top:18px">
+    <div>
+      <h2 style="margin-top:0">TOP CROWDED SHORTS <span class="sub">FINRA bi-monthly</span></h2>
+      <div class="cardw"><div id="crowded"><div class="loading">…</div></div></div>
+    </div>
+    <div>
+      <h2 style="margin-top:0">SQUEEZE-RISK NAMES <span class="sub">high SI + price rising + covering</span></h2>
+      <div class="cardw"><div id="squrisk"><div class="loading">…</div></div></div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN: DTC / COVERING -->
+  <div class="two" style="margin-top:18px">
+    <div>
+      <h2 style="margin-top:0">HIGH DAYS-TO-COVER <span class="sub">capital trapped short</span></h2>
+      <div class="cardw"><div id="highdtc"><div class="loading">…</div></div></div>
+    </div>
+    <div>
+      <h2 style="margin-top:0">SHORTS COVERING <span class="sub">positioning unwinding</span></h2>
+      <div class="cardw"><div id="covering"><div class="loading">…</div></div></div>
+    </div>
+  </div>
+
+  <!-- LIVE TAPE: SHORT PRESSURE -->
+  <h2>LIVE TAPE PRESSURE <span class="sub">today's short-volume z-score vs 20-day baseline · Polygon</span></h2>
+  <div class="cardw"><div id="tape"><div class="loading">…</div></div></div>
+
+  <!-- MICROCAP LEADERBOARD -->
+  <h2>MICROCAP FLOAT SQUEEZES <span class="sub">smaller cap, smaller float, larger gap risk</span></h2>
+  <div class="cardw"><div id="microcap"><div class="loading">…</div></div></div>
+
+  <!-- SECTOR HEAT -->
+  <h2>SECTOR SHORT-VOLUME RATIO <span class="sub">FINRA daily, ~11.5k tickers</span></h2>
+  <div class="cardw" style="padding:14px 18px"><div id="sectors"><div class="loading">…</div></div></div>
+
+  <p class="note" id="why"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+
+<script>
+const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const fmtPct=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p)+"%";
+const fmtNum=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p);
+const fmtUSD=x=>x==null||isNaN(x)?"—":x>=1e9?"$"+(x/1e9).toFixed(2)+"B":x>=1e6?"$"+(x/1e6).toFixed(1)+"M":x>=1e3?"$"+(x/1e3).toFixed(1)+"K":"$"+(+x).toFixed(2);
+const fmtMcap=x=>!x||isNaN(x)?"—":x>=1e9?"$"+(x/1e9).toFixed(1)+"B":x>=1e6?"$"+(x/1e6).toFixed(0)+"M":"$"+x;
+const fmtDate=s=>!s?"—":(""+s).replace("T"," ").replace(/\.\d+Z?$/,"").slice(0,16)+"Z";
+const fmtZ=z=>z==null||isNaN(z)?"—":(z>=0?"+":"")+(+z).toFixed(2);
+const cflag=(on,n)=>`<span class="cflag ${on?'on':''}" title="${n}">${on?'✓':'·'}</span>`;
+const stClean=s=>(s||"").replace(/\s+/g,'_');
+
+(async()=>{
+  const [pre,si,sp,fr,mc]=await Promise.all([
+    J("squeeze-pretrigger.json"), J("short-interest.json"),
+    J("short-pressure.json"), J("finra-short.json"),
+    J("microcap-float-squeeze.json")
+  ]);
+
+  // ---------- REGIME BANNER (from squeeze-pretrigger) ----------
+  const regEl=document.getElementById("regime");
+  if(pre){
+    const cls=stClean(pre.state);
+    regEl.innerHTML=`
+      <div class="stateBox st-${cls}">
+        <div class="label">Squeeze Regime</div>
+        <div class="name">${esc(pre.state||"—")}</div>
+        <div class="strength">SIGNAL ${pre.signal_strength||0}/100</div>
+      </div>
+      <div class="desc">
+        ${esc(pre.state_description||"")}
+        <div class="meta">As of ${fmtDate(pre.as_of)} · Engine v${esc(pre.version||"?")} · Prev state: ${esc(pre.previous_state||"—")}</div>
+      </div>`;
+  } else {
+    regEl.innerHTML=`<div class="empty" style="grid-column:1/-1">Squeeze pre-trigger feed unavailable.</div>`;
+  }
+
+  // ---------- 4 KPIs ----------
+  const k=[];
+  if(pre){
+    const s=pre.summary||{};
+    k.push(["Imminent (5/5)",s.n_imminent_5of5||0,"all 5 conditions firing","red"]);
+    k.push(["Pre-Trigger (4/5)",s.n_pretrigger_4of5||0,"4 of 5 conditions","orange"]);
+    k.push(["Early (3/5)",s.n_early_3of5||0,"3 of 5 conditions","yellow"]);
+    k.push(["Evaluated",s.n_candidates_evaluated||0,"universe scanned today","cyan"]);
+  } else if(si){
+    const n=Object.keys(si.by_ticker||{}).length;
+    k.push(["Crowded Shorts",(si.top_crowded_shorts||[]).length,"tracked","red"]);
+    k.push(["High DTC",(si.top_high_dtc||[]).length,"tracked","orange"]);
+    k.push(["Squeeze Risk",(si.top_squeeze_risk||[]).length,"tracked","yellow"]);
+    k.push(["Names With Data",n,"FINRA + Polygon","cyan"]);
+  }
+  document.getElementById("kpis").innerHTML=k.length?
+    k.map(([t,v,s,c])=>`<div class="card ${c}"><h3>${esc(t)}</h3><div class="big">${v}</div><div class="sub">${esc(s)}</div></div>`).join("")
+    :`<div class="card" style="grid-column:1/-1"><div class="empty">No KPI feeds available.</div></div>`;
+
+  // ---------- SETUP LEADERBOARDS (Imminent + Pre-trigger + Early merged) ----------
+  const boardEl=document.getElementById("boardSetups");
+  const allSetups=[].concat(pre?.imminent_setups||[],pre?.pretrigger_setups||[],pre?.early_setups||[]).slice(0,30);
+  if(allSetups.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th>Sector</th><th class="num">Mcap</th>
+      <th class="num">Price</th><th class="num">20d Δ</th>
+      <th class="num">SI%</th><th class="num">DTC</th><th class="num">Util%</th><th class="num">Z</th>
+      <th>Conditions</th><th class="num">Score</th><th>Setup</th>
+    </tr></thead><tbody>`;
+    for(const r of allSetups){
+      const c=r.conditions||{};
+      const sc=r.score_components||{};
+      const flags=[
+        cflag(c["si_float_>18pct"],"SI/float >18%"),
+        cflag(c["dtc_>6"],"Days-to-cover >6"),
+        cflag(c["util_>80pct"],"FINRA util >80%"),
+        cflag(c["z_score_>0.5"],"Z-score >+0.5"),
+        cflag(c["catalyst_30d"],"Catalyst 30d"),
+      ].join("");
+      const runup=r.recent_runup_20d_pct;
+      const rcol=runup>=20?"var(--red)":runup>=10?"var(--orange)":runup<0?"var(--green)":"var(--mute)";
+      const strength=r.signal_strength||0;
+      const sbcol=strength>=80?"var(--red)":strength>=60?"var(--orange)":"var(--yellow)";
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}<span class="nm">${esc(r.name||"")}</span></td>
+        <td style="color:var(--dim)">${esc(r.sector||"")}</td>
+        <td class="num">${fmtMcap(r.mcap_usd)}</td>
+        <td class="num">${fmtUSD(r.price_usd)}</td>
+        <td class="num" style="color:${rcol}">${runup>0?"+":""}${fmtPct(runup,1)}</td>
+        <td class="num">${fmtPct(sc.si_pct_float,1)}</td>
+        <td class="num">${fmtNum(sc.days_to_cover,1)}</td>
+        <td class="num">${fmtPct(sc.short_utilization,0)}</td>
+        <td class="num">${fmtZ(sc.z_score)}</td>
+        <td><div class="cflags">${flags}</div></td>
+        <td class="num" style="color:${sbcol};font-weight:700">${strength}</td>
+        <td><span class="pill p-${r.setup_quality}">${esc(r.setup_quality||"")}</span></td>
+      </tr>`;
+    }
+    boardEl.innerHTML=h+`</tbody></table>`;
+  } else {
+    boardEl.innerHTML=`<div class="empty">
+      <b style="color:var(--mute)">No setups today.</b><br>
+      Pre-trigger engine evaluated ${pre?.summary?.n_candidates_evaluated||0} candidates and found 0 with 3+/5 conditions. <br>
+      Squeeze regimes cluster; this is a normal QUIET window between waves. <br>
+      Check the leaderboards below for early positioning.
+    </div>`;
+  }
+
+  // ---------- CROWDED SHORTS ----------
+  const renderSiTable=(rows,el,cols)=>{
+    if(!rows||!rows.length){el.innerHTML=`<div class="empty">no data</div>`;return;}
+    let h=`<table><thead><tr><th>Ticker</th>`+cols.map(c=>`<th class="num">${c[0]}</th>`).join("")+`</tr></thead><tbody>`;
+    for(const r of rows.slice(0,15)){
+      h+=`<tr><td class="tk">${esc(r.ticker)}</td>`+cols.map(c=>`<td class="num" ${c[2]?`style="color:${c[2](r)};font-weight:700"`:""}>${c[1](r)}</td>`).join("")+`</tr>`;
+    }
+    el.innerHTML=h+`</tbody></table>`;
+  };
+  renderSiTable(si?.top_crowded_shorts,document.getElementById("crowded"),[
+    ["SI/Float",r=>fmtPct(r.si_pct_float,1),r=>r.si_pct_float>=30?"var(--red)":r.si_pct_float>=20?"var(--orange)":"var(--txt)"],
+    ["DTC",r=>fmtNum(r.days_to_cover,1)],
+    ["Short Vol Trend",r=>fmtZ(r.short_volume_trend)],
+  ]);
+  renderSiTable(si?.top_squeeze_risk,document.getElementById("squrisk"),[
+    ["SI/Float",r=>fmtPct(r.si_pct_float,1),r=>r.si_pct_float>=20?"var(--red)":"var(--txt)"],
+    ["DTC",r=>fmtNum(r.days_to_cover,1)],
+    ["Risk Score",r=>fmtNum(r.squeeze_score||r.risk_score,1),r=>"var(--orange)"],
+  ]);
+  renderSiTable(si?.top_high_dtc,document.getElementById("highdtc"),[
+    ["DTC",r=>fmtNum(r.days_to_cover,1),r=>r.days_to_cover>=10?"var(--red)":r.days_to_cover>=6?"var(--orange)":"var(--txt)"],
+    ["SI/Float",r=>fmtPct(r.si_pct_float,1)],
+  ]);
+  renderSiTable(si?.top_covering,document.getElementById("covering"),[
+    ["SI/Float",r=>fmtPct(r.si_pct_float,1)],
+    ["DTC",r=>fmtNum(r.days_to_cover,1)],
+    ["Trend",r=>fmtZ(r.short_volume_trend),r=>"var(--green)"],
+  ]);
+
+  // ---------- LIVE TAPE (short-pressure) ----------
+  const tapeEl=document.getElementById("tape");
+  const tape=sp?.names||[];
+  if(tape.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">Short Ratio</th><th class="num">5D Avg</th>
+      <th class="num">20D Base</th><th class="num">Δ vs Base</th><th class="num">Z-Score</th>
+      <th>State</th></tr></thead><tbody>`;
+    for(const r of tape){
+      const zc=r.z_score==null?"var(--dim)":r.z_score>=1?"var(--red)":r.z_score<=-1?"var(--green)":"var(--mute)";
+      const state=r.state||"NORMAL";
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker)}</td>
+        <td class="num" style="color:var(--txt);font-weight:700">${r.short_ratio_latest}%</td>
+        <td class="num">${r.short_ratio_5d}%</td>
+        <td class="num" style="color:var(--dim)">${r.baseline_20d}%</td>
+        <td class="num">${r.delta_vs_baseline>0?"+":""}${r.delta_vs_baseline}</td>
+        <td class="num" style="color:${zc};font-weight:700">${fmtZ(r.z_score)}</td>
+        <td><span class="pill p-${stClean(state)}">${esc(state)}</span></td>
+      </tr>`;
+    }
+    tapeEl.innerHTML=h+`</tbody></table>`;
+  } else {
+    tapeEl.innerHTML=`<div class="empty">Short-pressure tape unavailable.</div>`;
+  }
+
+  // ---------- MICROCAP ----------
+  const mcEl=document.getElementById("microcap");
+  const mcRows=mc?.all_qualifying||mc?.summary?.top||[];
+  if(mcRows.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">Price</th><th class="num">Mcap</th>
+      <th class="num">Float</th><th class="num">SI%</th><th class="num">DTC</th><th class="num">Score</th>
+    </tr></thead><tbody>`;
+    for(const r of mcRows.slice(0,15)){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker||r.symbol)}</td>
+        <td class="num">${fmtUSD(r.price)}</td>
+        <td class="num">${fmtMcap(r.market_cap||r.mcap_usd)}</td>
+        <td class="num">${fmtMcap(r.float||r.free_float)}</td>
+        <td class="num" style="color:${(r.short_pct_float||r.si_pct_float||0)>=20?'var(--red)':'var(--txt)'}">${fmtPct(r.short_pct_float||r.si_pct_float,1)}</td>
+        <td class="num">${fmtNum(r.days_to_cover,1)}</td>
+        <td class="num" style="color:var(--orange);font-weight:700">${fmtNum(r.squeeze_score||r.composite_score,1)}</td>
+      </tr>`;
+    }
+    mcEl.innerHTML=h+`</tbody></table>`;
+  } else {
+    mcEl.innerHTML=`<div class="empty">No qualifying microcap squeeze candidates today.</div>`;
+  }
+
+  // ---------- SECTOR HEAT ----------
+  const secEl=document.getElementById("sectors");
+  const secs=fr?.sectors||{};
+  const arr=Object.entries(secs).map(([k,v])=>({s:k,r:(typeof v==='object'?v.svr||v.short_volume_ratio||v.avg_svr:v)||0}))
+    .filter(x=>x.r>0).sort((a,b)=>b.r-a.r).slice(0,12);
+  if(arr.length){
+    const mx=Math.max(...arr.map(x=>x.r));
+    secEl.innerHTML=arr.map(x=>{
+      const pct=Math.min(100,x.r/mx*100);
+      return `<div class="sectorBar"><div class="sn">${esc(x.s)}</div><div class="sb"><div class="sf" style="width:${pct.toFixed(1)}%;background:${x.r>=55?'var(--red)':x.r>=45?'var(--orange)':'var(--mute)'}"></div></div><div class="sv">${fmtPct(x.r,1)}</div></div>`;
+    }).join("");
+  } else if(fr?.market_composite){
+    const mcp=fr.market_composite;
+    secEl.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-family:var(--mono);font-size:12px">
+      <div><div style="color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase">Market SVR</div><div style="font-size:20px;font-weight:700">${fmtPct(mcp.short_volume_ratio||mcp.market_svr,1)}</div></div>
+      <div><div style="color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase">Tickers Tracked</div><div style="font-size:20px;font-weight:700">${(fr.tickers&&Object.keys(fr.tickers).length)||(mcp.n_tickers||"—")}</div></div>
+      <div><div style="color:var(--dim);font-size:10px;letter-spacing:1px;text-transform:uppercase">Squeeze Candidates</div><div style="font-size:20px;font-weight:700;color:var(--orange)">${(fr.squeeze_candidates||[]).length||"—"}</div></div>
+    </div>`;
+  } else {
+    secEl.innerHTML=`<div class="empty">FINRA daily composite unavailable.</div>`;
+  }
+
+  // ---------- WHY-NOW + TIMESTAMP ----------
+  document.getElementById("why").innerHTML=pre?.why_now_explainer?
+    "<b>What this is.</b> "+esc(pre.why_now_explainer).replace(/\n\n/g,"<br><br>").replace(/^### .+\n+/g,"").replace(/\n/g," ")+
+    "<br><br><b>Sources:</b> "+(pre.sources||[]).map(esc).join(" · ")
+    :"";
+  const stamps=[];
+  if(pre) stamps.push("pre-trigger "+fmtDate(pre.as_of));
+  if(si) stamps.push("short-interest "+fmtDate(si.generated_at));
+  if(sp) stamps.push("tape "+fmtDate(sp.generated_at));
+  if(fr) stamps.push("finra "+fmtDate(fr.generated_at));
+  if(mc) stamps.push("microcap "+fmtDate(mc.generated_at));
+  document.getElementById("ts").textContent="engine: 5-feed squeeze cockpit · "+stamps.join(" · ");
+})();
+</script>
+</body>
+</html>
