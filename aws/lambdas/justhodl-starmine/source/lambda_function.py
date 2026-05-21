@@ -47,7 +47,7 @@ from datetime import datetime, timezone, timedelta
 import boto3
 
 # ---------- Constants ----------
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/starmine.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -55,7 +55,7 @@ FMP_KEY = os.environ.get("FMP_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-UNIVERSE_TOP_N = 150  # top S&P by mcap (balance coverage vs FMP rate-limit)
+UNIVERSE_TOP_N = 50   # top-50 SP by mcap; single batched FMP quote call fits URL
 FMP_SLEEP_SEC = 0.4   # ~300 req/min, well under FMP 750/min Starter cap
 HTTP_TIMEOUT = 20
 
@@ -222,19 +222,50 @@ def acquire_sp500_universe():
 
 
 def fmp_quote_batch(symbols):
-    """Batch quote (FMP /stable/quote accepts comma-separated)."""
-    chunks = [symbols[i:i+50] for i in range(0, len(symbols), 50)]
+    """Single batched quote call (up to 50 symbols fits comfortably in URL)."""
+    if not symbols:
+        return []
+    url = f"{FMP_BASE}/quote?symbol={','.join(symbols)}&apikey={FMP_KEY}"
+    d = http_json(url, retries=3)
+    if isinstance(d, list):
+        return d
+    return []
+
+
+def acquire_universe_with_prices(target_n=UNIVERSE_TOP_N):
+    """Single-call resilient universe acquisition.
+
+    Uses STATIC_TOP50_SPX as the mcap-ranked baseline (deterministic, no
+    sp500-constituent + 10x quote-batch calls that triple-tax FMP rate limit).
+    Fetches current prices in ONE batched quote call. If FMP fails, returns
+    entries with price=None (PTD lens will be null but RRM + ESP still work).
+    """
+    universe = list(STATIC_TOP50_SPX)[:target_n]
+    syms = [u["symbol"] for u in universe]
+    quotes = fmp_quote_batch(syms)
+    price_map = {}
+    mcap_map = {}
+    for q in quotes:
+        sym = q.get("symbol")
+        if sym:
+            price_map[sym] = q.get("price")
+            mcap_map[sym] = q.get("marketCap")
     out = []
-    for ch in chunks:
-        url = f"{FMP_BASE}/quote?symbol={','.join(ch)}&apikey={FMP_KEY}"
-        d = http_json(url)
-        if isinstance(d, list):
-            out.extend(d)
-        time.sleep(FMP_SLEEP_SEC)
-    return out
+    for u in universe:
+        sym = u["symbol"]
+        out.append({
+            "symbol": sym,
+            "sector": u.get("sector", ""),
+            "price": price_map.get(sym),
+            "market_cap_usd": mcap_map.get(sym),
+        })
+    n_priced = sum(1 for u in out if u["price"])
+    source = (f"static_top{target_n}_live_prices" if n_priced > 0
+              else f"static_top{target_n}_no_prices")
+    return out, source, n_priced
 
 
-def fmp_grades(symbol):
+# ---------- FMP wrappers ----------
     url = (f"{FMP_BASE}/grades?symbol={symbol}&limit=60&apikey={FMP_KEY}")
     d = http_json(url)
     return d if isinstance(d, list) else []
@@ -248,6 +279,12 @@ def fmp_pt_consensus(symbol):
     if isinstance(d, dict) and "_error" not in d:
         return d
     return {}
+
+
+def fmp_grades(symbol):
+    url = f"{FMP_BASE}/grades?symbol={symbol}&limit=60&apikey={FMP_KEY}"
+    d = http_json(url)
+    return d if isinstance(d, list) else []
 
 
 def fmp_earnings_surprises(symbol):
@@ -490,42 +527,32 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": "FMP_KEY not set"})}
 
-    # 1. Get S&P 500 constituents via 3-tier resilient fallback
-    sp, universe_source = acquire_sp500_universe()
-    log.append(f"sp500_constituents: {len(sp) if sp else 0} via {universe_source}")
-    if not sp:
+    # 1. Acquire universe + current prices in ONE batched FMP call (was 11)
+    universe, universe_source, n_priced = acquire_universe_with_prices()
+    log.append(f"universe: {len(universe)} tickers, {n_priced} priced, "
+               f"source={universe_source}")
+    if not universe:
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False,
-                                    "error": "all 3 universe tiers failed",
+                                    "error": "universe acquisition failed",
                                     "log": log})}
-    symbols_all = [s.get("symbol") for s in sp if s.get("symbol")]
-    sectors = {s.get("symbol"): s.get("sector") for s in sp}
 
-    # 2. Rank by market cap (need quotes)
-    quotes = fmp_quote_batch(symbols_all)
-    log.append(f"quotes_returned: {len(quotes)}")
-    by_mcap = sorted(
-        [q for q in quotes if q.get("marketCap")],
-        key=lambda q: q.get("marketCap", 0), reverse=True)
-    top_universe = by_mcap[:UNIVERSE_TOP_N]
-    log.append(f"top_universe_n: {len(top_universe)}")
-
-    # 3. Per-ticker analyst skill factors
+    # 2. Per-ticker analyst skill factors
     per_ticker = []
-    for i, q in enumerate(top_universe):
-        sym = q.get("symbol")
-        px = q.get("price")
-        if not sym or not px:
+    for i, u in enumerate(universe):
+        sym = u["symbol"]
+        px = u.get("price")
+        if not sym:
             continue
         try:
-            row = analyze_ticker(sym, float(px))
-            row["sector"] = sectors.get(sym, "")
-            row["market_cap_usd"] = q.get("marketCap")
+            row = analyze_ticker(sym, px)
+            row["sector"] = u.get("sector", "")
+            row["market_cap_usd"] = u.get("market_cap_usd")
             per_ticker.append(row)
         except Exception as e:
             log.append(f"analyze_err {sym}: {str(e)[:80]}")
-        if i % 25 == 24:
-            log.append(f"progress: {i+1}/{len(top_universe)}")
+        if i % 10 == 9:
+            log.append(f"progress: {i+1}/{len(universe)}")
 
     log.append(f"per_ticker_completed: {len(per_ticker)}")
 
