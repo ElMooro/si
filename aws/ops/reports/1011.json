@@ -1,0 +1,358 @@
+{
+  "started_at": "2026-05-21T16:33:57.399445+00:00",
+  "expected_new_engines": [
+    "gfvalue",
+    "magic",
+    "starmine",
+    "predict",
+    "smartbeta",
+    "eva",
+    "smart13f"
+  ],
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T16:33:00.000+0000",
+    "code_size": 5901,
+    "memory_mb": 320,
+    "timeout_s": 120,
+    "waited_sec": 0.2
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 5.0
+  },
+  "invoke_summary": {
+    "ok": true,
+    "n_total": 164,
+    "titans": 15,
+    "high": 35
+  },
+  "s3": {
+    "schema_version": "1.0",
+    "generated_at": "2026-05-21T16:33:58.311076+00:00",
+    "elapsed_s": 4.1,
+    "n_total": 164,
+    "n_titans": 15,
+    "n_high_conviction": 35,
+    "coverage_total_engines": 20,
+    "new_engines_coverage": {
+      "gfvalue": {
+        "present": true,
+        "label": "GuruFocus Value",
+        "family": "VALUE",
+        "status": "25 qualified",
+        "n": 25
+      },
+      "magic": {
+        "present": true,
+        "label": "Magic Formula",
+        "family": "VALUE",
+        "status": "30 qualified",
+        "n": 30
+      },
+      "starmine": {
+        "present": true,
+        "label": "StarMine Analyst Conviction",
+        "family": "EARNINGS",
+        "status": "25 qualified",
+        "n": 25
+      },
+      "predict": {
+        "present": true,
+        "label": "GuruFocus Predictability",
+        "family": "QUALITY",
+        "status": "15 qualified",
+        "n": 15
+      },
+      "smartbeta": {
+        "present": true,
+        "label": "MSCI Smart Beta Composite",
+        "family": "QUALITY",
+        "status": "25 qualified",
+        "n": 25
+      },
+      "eva": {
+        "present": true,
+        "label": "Stern Stewart EVA Spread",
+        "family": "QUALITY",
+        "status": "10 qualified",
+        "n": 10
+      },
+      "smart13f": {
+        "present": true,
+        "label": "13F Smart-Money Consensus",
+        "family": "SMART_MONEY",
+        "status": "5 qualified",
+        "n": 5
+      }
+    },
+    "n_pro_pack_v3_confluences_2plus": 22,
+    "top_10_pro_pack_v3_confluences": [
+      {
+        "symbol": "AAPL",
+        "n_new_engines_hit": 5,
+        "engines_hit_total": 7,
+        "families_hit": 5,
+        "tier": "CONVICTION TITAN",
+        "score": 93.2,
+        "new_engines_signaling": [
+          "Stern Stewart EVA Spread",
+          "StarMine Analyst Conviction",
+          "MSCI Smart Beta Composite",
+          "GuruFocus Predictability",
+          "13F Smart-Money Consensus"
+        ]
+      },
+      {
+        "symbol": "ADBE",
+        "n_new_engines_hit": 4,
+        "engines_hit_total": 6,
+        "families_hit": 4,
+        "tier": "CONVICTION TITAN",
+        "score": 80.9,
+        "new_engines_signaling": [
+          "GuruFocus Predictability",
+          "Magic Formula",
+          "Stern Stewart EVA Spread",
+          "GuruFocus Value"
+        ]
+      },
+      {
+        "symbol": "MSFT",
+        "n_new_engines_hit": 4,
+        "engines_hit_total": 6,
+        "families_hit": 4,
+        "tier": "CONVICTION TITAN",
+        "score": 77.9,
+        "new_engines_signaling": [
+          "GuruFocus Predictability",
+          "MSCI Smart Beta Composite",
+          "StarMine Analyst Conviction",
+          "Stern Stewart EVA Spread"
+        ]
+      },
+      {
+        "symbol": "GOOGL",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 8,
+        "families_hit": 4,
+        "tier": "CONVICTION TITAN",
+        "score": 84.8,
+        "new_engines_signaling": [
+          "MSCI Smart Beta Composite",
+          "GuruFocus Predictability",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "GOOG",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 8,
+        "families_hit": 4,
+        "tier": "CONVICTION TITAN",
+        "score": 84.2,
+        "new_engines_signaling": [
+          "MSCI Smart Beta Composite",
+          "GuruFocus Predictability",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "NVDA",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 7,
+        "families_hit": 3,
+        "tier": "HIGH CONVICTION",
+        "score": 73.3,
+        "new_engines_signaling": [
+          "Stern Stewart EVA Spread",
+          "MSCI Smart Beta Composite",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "META",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 5,
+        "families_hit": 4,
+        "tier": "CONVICTION TITAN",
+        "score": 70.8,
+        "new_engines_signaling": [
+          "GuruFocus Predictability",
+          "MSCI Smart Beta Composite",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "MCD",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 4,
+        "families_hit": 3,
+        "tier": "HIGH CONVICTION",
+        "score": 60.4,
+        "new_engines_signaling": [
+          "MSCI Smart Beta Composite",
+          "StarMine Analyst Conviction",
+          "Stern Stewart EVA Spread"
+        ]
+      },
+      {
+        "symbol": "VZ",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 3,
+        "families_hit": 3,
+        "tier": "HIGH CONVICTION",
+        "score": 57.0,
+        "new_engines_signaling": [
+          "13F Smart-Money Consensus",
+          "MSCI Smart Beta Composite",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "V",
+        "n_new_engines_hit": 3,
+        "engines_hit_total": 4,
+        "families_hit": 2,
+        "tier": "CONFIRMED",
+        "score": 50.5,
+        "new_engines_signaling": [
+          "GuruFocus Predictability",
+          "Stern Stewart EVA Spread",
+          "MSCI Smart Beta Composite"
+        ]
+      }
+    ],
+    "top_5_stack": [
+      {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "tier": "CONVICTION TITAN",
+        "score": 93.2,
+        "engines_hit": 7,
+        "families": [
+          "Earnings momentum",
+          "Growth",
+          "Price momentum",
+          "Fundamental quality",
+          "Insider / smart money"
+        ],
+        "engines": [
+          "Stern Stewart EVA Spread",
+          "StarMine Analyst Conviction",
+          "MSCI Smart Beta Composite",
+          "Revenue Acceleration",
+          "Momentum Breakout",
+          "GuruFocus Predictability",
+          "13F Smart-Money Consensus"
+        ]
+      },
+      {
+        "symbol": "INTU",
+        "name": "Intuit Inc.",
+        "tier": "CONVICTION TITAN",
+        "score": 86.8,
+        "engines_hit": 5,
+        "families": [
+          "Capital allocation",
+          "Earnings momentum",
+          "Dividend growth",
+          "Fundamental quality",
+          "Value"
+        ],
+        "engines": [
+          "Dividend-Growth Compounder",
+          "Asymmetric Scorer",
+          "StarMine Analyst Conviction",
+          "Capital-Return Cannibal",
+          "GuruFocus Predictability"
+        ]
+      },
+      {
+        "symbol": "CRM",
+        "name": "Salesforce, Inc.",
+        "tier": "CONVICTION TITAN",
+        "score": 85.3,
+        "engines_hit": 5,
+        "families": [
+          "Capital allocation",
+          "Earnings momentum",
+          "Fundamental quality",
+          "Sector rotation",
+          "Value"
+        ],
+        "engines": [
+          "PEAD Signals",
+          "Capital-Return Cannibal",
+          "Fundamentals X-Ray",
+          "Beta-Laggard Catch-Up",
+          "GuruFocus Value"
+        ]
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet Inc.",
+        "tier": "CONVICTION TITAN",
+        "score": 84.8,
+        "engines_hit": 8,
+        "families": [
+          "Earnings momentum",
+          "Growth",
+          "Price momentum",
+          "Fundamental quality"
+        ],
+        "engines": [
+          "Earnings PEAD",
+          "Revenue Acceleration",
+          "PEAD Signals",
+          "MSCI Smart Beta Composite",
+          "Fundamentals X-Ray",
+          "GuruFocus Predictability",
+          "Momentum Breakout",
+          "StarMine Analyst Conviction"
+        ]
+      },
+      {
+        "symbol": "GOOG",
+        "name": "Alphabet Inc.",
+        "tier": "CONVICTION TITAN",
+        "score": 84.2,
+        "engines_hit": 8,
+        "families": [
+          "Earnings momentum",
+          "Growth",
+          "Price momentum",
+          "Fundamental quality"
+        ],
+        "engines": [
+          "Earnings PEAD",
+          "PEAD Signals",
+          "Revenue Acceleration",
+          "MSCI Smart Beta Composite",
+          "Fundamentals X-Ray",
+          "GuruFocus Predictability",
+          "Momentum Breakout",
+          "StarMine Analyst Conviction"
+        ]
+      }
+    ]
+  },
+  "scorecard": {
+    "invoke_ok": true,
+    "coverage_has_20_engines": true,
+    "all_7_new_engines_present": true,
+    "all_7_new_engines_have_qualifiers": true,
+    "gfvalue_qualified": true,
+    "magic_qualified": true,
+    "starmine_qualified": true,
+    "predict_qualified": true,
+    "smartbeta_qualified": true,
+    "eva_qualified": true,
+    "smart13f_qualified": true,
+    "pro_pack_v3_confluences_present": true,
+    "stack_populated": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T16:34:02.825078+00:00"
+}
