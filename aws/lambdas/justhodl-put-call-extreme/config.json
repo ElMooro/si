@@ -4,8 +4,11 @@
   "timeout": 180,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "CBOE P/C ratio extreme sentiment. 5d-EMA z-score vs 252d + persistence. BEARISH_EXTREME (panic z>=+2.5, LONG SPY/QQQ) or BULLISH_EXTREME (greed z<=-2.5, SHORT). FRED+Yahoo fallback. Garcia 2013, Pan-Poteshman 2006. ~62%/+4-7%/5-15d. Daily 21:15 UTC.",
-  "inherit_env": true,
+  "description": "Sentiment Extreme Composite (rebuilt 2026-05-21 v2.0.0). 5-source FRED z-score: VIXCLS+VXNCLS+USEPUINDXD+STLFSI4+UMCSENT. PANIC_RICH long SPY/QQQ/IWM, EUPHORIA_RICH short. Baker-Wurgler 2006. ~58-62%/+4-7%/4-8wk. Daily 21:15 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-cross-asset-rv", "keys": ["FRED_KEY"]},
+    {"from_function": "justhodl-vol-surface", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
+  ],
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"
   },
@@ -14,6 +17,6 @@
     "cron": "cron(15 21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "CBOE put-call extreme sentiment detector daily 21:15 UTC"
+    "description": "Sentiment Extreme Composite daily 21:15 UTC"
   }
 }

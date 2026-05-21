@@ -577,15 +577,23 @@ def n_buyback_yield_ranking(d):
 
 
 def n_put_call_extreme(d):
-    """BEARISH_EXTREME = +2 (panic, contrarian LONG signal);
-    BULLISH_EXTREME = -2 (greed, contrarian SHORT signal)."""
+    """Sentiment Extreme Composite (rebuilt v2.0.0 2026-05-21).
+    SENTIMENT_PANIC = +2 (capitulation, contrarian LONG signal);
+    SENTIMENT_EUPHORIA = -2 (complacency, contrarian SHORT signal).
+    Legacy state names BEARISH_EXTREME/BULLISH_EXTREME kept as aliases
+    for backward compatibility with any historical readers."""
     state = (d.get("state") or "").upper()
-    m = {"BEARISH_EXTREME_RICH": 2, "BEARISH_EXTREME_ACTIVE": 1,
-         "BULLISH_EXTREME_RICH": -2, "BULLISH_EXTREME_ACTIVE": -1,
-         "NEUTRAL": 0, "DATA_UNAVAILABLE": 0}
-    metrics = d.get("current_metrics") or {}
-    z = metrics.get("pc_5d_ema_zscore_252d")
-    return m.get(state, 0), f"PC-extreme {state or 'n/a'} (z={z})"
+    m = {
+        # v2.0 names (Sentiment Extreme Composite)
+        "SENTIMENT_PANIC_RICH": 2, "SENTIMENT_PANIC_ACTIVE": 1,
+        "SENTIMENT_EUPHORIA_RICH": -2, "SENTIMENT_EUPHORIA_ACTIVE": -1,
+        # v1.0 legacy aliases (CBOE P/C, dead but kept for safety)
+        "BEARISH_EXTREME_RICH": 2, "BEARISH_EXTREME_ACTIVE": 1,
+        "BULLISH_EXTREME_RICH": -2, "BULLISH_EXTREME_ACTIVE": -1,
+        "NEUTRAL": 0, "DATA_UNAVAILABLE": 0,
+    }
+    cz = d.get("composite_z")
+    return m.get(state, 0), f"SentExtreme {state or 'n/a'} (z={cz})"
 
 
 def n_cta_trend_exhaust(d):
@@ -682,7 +690,7 @@ FEEDS = [
     # === Tier-5 Retail Edges Cluster (6 engines, 2026-05-20) ===
     ("Gold-Equity Rotation",      "macro",            "data/gold-equity-rotation.json",      n_gold_equity_rotation),
     ("Buyback Yield Ranking",     "smart money",      "data/buyback-yield-ranking.json",     n_buyback_yield_ranking),
-    ("Put-Call Extreme",          "volatility",       "data/put-call-extreme.json",          n_put_call_extreme),
+    ("Sentiment Extreme",         "sentiment",        "data/put-call-extreme.json",          n_put_call_extreme),
     ("CTA Trend Exhaust",         "positioning",      "data/cta-trend-exhaust.json",         n_cta_trend_exhaust),
     ("NDX-SPX Spread",            "equity tactical",  "data/ndx-spx-spread.json",            n_ndx_spx_spread),
     ("Earnings Quality",          "equity valuation", "data/earnings-quality.json",          n_earnings_quality),
