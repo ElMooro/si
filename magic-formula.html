@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Magic Formula · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🪄</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1100px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase}
+.abun{color:var(--green);background:rgba(38,255,175,.2)}.good{color:var(--cyan);background:rgba(0,212,255,.15)}.modo{color:var(--yellow);background:rgba(255,210,102,.15)}.scarce{color:var(--red);background:rgba(255,85,119,.15)}
+.empty{text-align:center;padding:48px 20px;color:var(--dim);font-family:var(--mono);font-size:11px}
+.loading{text-align:center;padding:60px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-align:right;margin-top:6px}
+.method{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;font-size:12.5px;color:var(--mute);margin-top:16px}
+.method strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px}
+.sector-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px}
+.sb{background:var(--panel);border:1px solid var(--line);padding:10px 12px;border-radius:4px;font-family:var(--mono);font-size:11px}
+.sb b{color:var(--green);font-size:14px;display:block}
+@media(max-width:920px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🪄 Greenblatt Magic Formula Screener</h1>
+    <p class="subtitle">GuruFocus signature feature from Joel Greenblatt's <i>"The Little Book That Beats the Market"</i> (2010). Rank S&amp;P 500 (ex-Financials/Utilities/REITs) by combined <span class="mono">Earnings Yield (EBIT/EV)</span> + <span class="mono">ROIC (EBIT/Invested Capital)</span>. Lowest combined rank = best business at best price. Greenblatt 30.8% CAGR 1988-2004 backtest.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/intelligence/">intelligence</a>
+      <a href="/gf-value.html">GF Value</a>
+      <a href="/ipo-pipeline.html">IPO Pipeline</a>
+      <a href="/baggers.html">Baggers</a>
+      <a href="/deep-value.html">deep-value</a>
+      <a href="/brief.html">brief</a>
+    </nav>
+  </header>
+  <section class="kpis">
+    <div class="kpi"><h3>Regime</h3><div class="v mono" id="k_regime" style="font-size:13px">—</div><div class="vsub">opportunity density</div></div>
+    <div class="kpi"><h3>Eligible</h3><div class="v" id="k_n">—</div><div class="vsub">SP500 ex-fin/utl/RE</div></div>
+    <div class="kpi"><h3>Top-10 EY</h3><div class="v pos" id="k_top10ey">—</div><div class="vsub">earnings yield</div></div>
+    <div class="kpi"><h3>Top-10 ROIC</h3><div class="v pos" id="k_top10roic">—</div><div class="vsub">return on capital</div></div>
+    <div class="kpi"><h3>Median EY</h3><div class="v" id="k_medey" style="color:var(--cyan)">—</div><div class="vsub">universe-wide</div></div>
+  </section>
+  <div class="callout"><strong>Magic Formula #1 pick</strong><span id="top_txt">loading…</span></div>
+  <div class="tabs">
+    <div class="tab active" data-t="top">Top 30 Picks</div>
+    <div class="tab" data-t="sector">Sector Breakdown</div>
+    <div class="tab" data-t="bottom">Bottom 30 (Worst)</div>
+    <div class="tab" data-t="all">Full Universe</div>
+    <div class="tab" data-t="method">Methodology</div>
+  </div>
+  <div class="tab-pane active" id="pane-top">
+    <div id="top_body"><div class="loading">LOADING MAGIC FORMULA TOP 30…</div></div>
+    <p class="timestamp" id="top_ts"></p>
+  </div>
+  <div class="tab-pane" id="pane-sector">
+    <div id="sector_body"><div class="loading">LOADING SECTOR BREAKDOWN…</div></div>
+  </div>
+  <div class="tab-pane" id="pane-bottom">
+    <div id="bottom_body"><div class="loading">LOADING BOTTOM 30…</div></div>
+  </div>
+  <div class="tab-pane" id="pane-all">
+    <div id="all_body"><div class="loading">LOADING FULL UNIVERSE…</div></div>
+  </div>
+  <div class="tab-pane" id="pane-method">
+    <div class="method">
+      <strong>Magic Formula Methodology (Greenblatt 2010)</strong>
+      <p>For each eligible S&amp;P 500 company:</p>
+      <ul style="margin:6px 0 10px 18px">
+        <li><b style="color:var(--green)">Earnings Yield</b> = EBIT / Enterprise Value (higher = cheaper)</li>
+        <li><b style="color:var(--cyan)">ROIC</b> = EBIT / (Total Equity + Total Debt − Cash) (higher = better business)</li>
+      </ul>
+      <p>Each ticker gets two ordinal ranks. The Magic Formula combined rank = rank_EY + rank_ROIC, sorted ascending — lower combined rank means the company is simultaneously the cheapest AND the highest-quality. Top 30 = the portfolio.</p>
+      <p><strong style="color:var(--orange)">Sector exclusions (Greenblatt's filter):</strong> Financials, Utilities, REITs, Real Estate. Their balance-sheet structure breaks the EBIT/Invested-Capital formulation.</p>
+      <p><strong style="color:var(--yellow)">Opportunity regimes</strong>: <span class="flag abun">ABUNDANT</span> top-10 EY ≥15% &amp; ROIC ≥30% · <span class="flag good">GOOD</span> EY ≥10% &amp; ROIC ≥20% · <span class="flag modo">MODERATE</span> EY ≥7% · <span class="flag scarce">SCARCE</span> below all.</p>
+      <p>Edge basis: Greenblatt (2010) reported 30.8% CAGR over 1988-2004 in backtest vs S&amp;P 500's 9.5% CAGR. Academic replications (Gray &amp; Carlisle 2013, <i>"Quantitative Value"</i>) confirm 4-8% alpha out-of-sample. The 2-factor structure is robust to data-mining critique — both factors have independent economic rationale (cheap × good).</p>
+    </div>
+  </div>
+</div>
+<script>
+const S3_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const J=(k)=>fetch(`${S3_BASE}/data/${k}?_=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
+const pct=(v,d=1)=>v==null?"—":(v>0?"+":"")+Number(v).toFixed(d)+"%";
+const usd=(v)=>v==null?"—":"$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:2});
+const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+const REGCLS={ABUNDANT_OPPORTUNITY:"abun",GOOD_OPPORTUNITY:"good",MODERATE_OPPORTUNITY:"modo",SCARCE_OPPORTUNITY:"scarce"};
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  document.getElementById("pane-"+t.dataset.t).classList.add("active");
+});
+function row(r){
+  return `<tr><td><span class="tk">${esc(r.ticker)}</span></td>
+    <td style="color:var(--dim)">${esc(r.sector||"")}</td>
+    <td class="mono">${usd(r.price)}</td>
+    <td class="mono pos">${r.earnings_yield_pct!=null?r.earnings_yield_pct.toFixed(1)+"%":"—"}</td>
+    <td class="mono pos">${r.roic_pct!=null?r.roic_pct.toFixed(1)+"%":"—"}</td>
+    <td class="mono">${r.evebit!=null?r.evebit.toFixed(1)+"x":"—"}</td>
+    <td class="mono" style="color:var(--dim)">${r.rank_earnings_yield}</td>
+    <td class="mono" style="color:var(--dim)">${r.rank_roic}</td>
+    <td class="mono"><b>${r.magic_rank}</b></td>
+    <td class="mono" style="color:var(--dim);font-size:10px">${r.market_cap_usd?"$"+(r.market_cap_usd/1e9).toFixed(1)+"B":"—"}</td></tr>`;
+}
+function tableHTML(rows){
+  if(!rows||!rows.length)return `<div class="empty">No results.</div>`;
+  return `<table><thead><tr>
+    <th>Ticker</th><th>Sector</th><th>Price</th>
+    <th>EY%</th><th>ROIC%</th><th>EV/EBIT</th>
+    <th>Rk-EY</th><th>Rk-ROIC</th><th>Magic-Rk</th><th>Mkt Cap</th>
+  </tr></thead><tbody>${rows.map(row).join("")}</tbody></table>`;
+}
+(async()=>{
+  const d=await J("magic-formula.json");
+  if(!d){
+    document.getElementById("top_body").innerHTML=`<div class="empty">DATA UNAVAILABLE — Run scheduled at 22:45 UTC.</div>`;
+    return;
+  }
+  document.getElementById("k_regime").innerHTML=`<span class="flag ${REGCLS[d.regime]||'modo'}">${(d.regime||'').replace('_OPPORTUNITY','')}</span>`;
+  document.getElementById("k_n").textContent=d.n_universe_eligible||0;
+  document.getElementById("k_top10ey").textContent=d.top_10_avg_earnings_yield_pct!=null?d.top_10_avg_earnings_yield_pct.toFixed(1)+"%":"—";
+  document.getElementById("k_top10roic").textContent=d.top_10_avg_roic_pct!=null?d.top_10_avg_roic_pct.toFixed(1)+"%":"—";
+  document.getElementById("k_medey").textContent=d.median_earnings_yield_pct!=null?d.median_earnings_yield_pct.toFixed(1)+"%":"—";
+  const top=(d.top_30||[])[0];
+  if(top){
+    document.getElementById("top_txt").innerHTML=`<strong style="color:var(--txt);font-family:var(--mono);font-size:14px">${esc(top.ticker)}</strong> (${esc(top.sector||"")}) @ <span class="mono">${usd(top.price)}</span> · EY <span class="mono pos">${top.earnings_yield_pct.toFixed(1)}%</span> · ROIC <span class="mono pos">${top.roic_pct.toFixed(1)}%</span> · EV/EBIT <span class="mono">${top.evebit.toFixed(1)}x</span>`;
+  }
+  document.getElementById("top_body").innerHTML=tableHTML(d.top_30||[]);
+  document.getElementById("bottom_body").innerHTML=tableHTML(d.bottom_30||[]);
+  document.getElementById("all_body").innerHTML=tableHTML(d.all_eligible||[]);
+  // Sector breakdown
+  const sb=d.sector_breakdown_top_30||{};
+  const sbHTML=Object.entries(sb).sort((a,b)=>b[1]-a[1]).map(([s,n])=>
+    `<div class="sb"><b>${n}</b>${esc(s)}</div>`).join("");
+  document.getElementById("sector_body").innerHTML=
+    `<div class="sector-bars">${sbHTML||"<div class=\"empty\">No data</div>"}</div>`;
+  const ts=new Date(d.generated_at).toLocaleString();
+  document.getElementById("top_ts").textContent=`Last refresh: ${ts}`;
+})();
+</script>
+</body>
+</html>
