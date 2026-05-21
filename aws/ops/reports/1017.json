@@ -1,0 +1,139 @@
+{
+  "started_at": "2026-05-21T17:29:06.363586+00:00",
+  "probe_deployed": true,
+  "probe_result": {
+    "POST_otcMarket_equityShortInterestStandardized": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"315bc92c-f227-4f23-8cca-2c25ceb7a4f0\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortintereststandardized\",\"sortFields\":[\"-settlementDate\"]}}"
+    },
+    "POST_equityMarket_equityShortInterestStandardized": {
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized",
+      "body_first_600b": "{ \"statusCode\" : 401, \"statusDescription\" : \"Failed to authenticate, check your authentication token\", \"message\": \"Unauthorized\", \"requestId\" : \"6318a90e-a4a0-473c-bbfe-b980982d7b4d\", \"resource\" : \"/data/group/{group}/name/{name}\" }"
+    },
+    "POST_otc_equityShortInterestStandardized": {
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized",
+      "body_first_600b": "{ \"statusCode\" : 401, \"statusDescription\" : \"Failed to authenticate, check your authentication token\", \"message\": \"Unauthorized\", \"requestId\" : \"a782e5ec-31a9-44d7-910e-3bd8dea3b1ed\", \"resource\" : \"/data/group/{group}/name/{name}\" }"
+    },
+    "POST_otcMarket_equityShortInterest": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"ae3b4c24-9318-4707-95e5-a80810047b54\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"equityshortinterest\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortinterest\",\"sortFields\":[\"-settlementDate\"]}}"
+    },
+    "POST_otcMarket_consolidatedShortInterest": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"9c0cfd03-9970-47a0-9766-48cf15baee42\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"consolidatedshortinterest\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"consolidatedshortinterest\",\"sortFields\":[\"-settlementDate\"]}}"
+    },
+    "POST_equityMarket_shortInterest": {
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized",
+      "body_first_600b": "{ \"statusCode\" : 401, \"statusDescription\" : \"Failed to authenticate, check your authentication token\", \"message\": \"Unauthorized\", \"requestId\" : \"04000ef4-272f-4e35-8b57-26c90d05be85\", \"resource\" : \"/data/group/{group}/name/{name}\" }"
+    },
+    "POST_otcMarket_equityShortInterestStandardized_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"49ab28f8-4419-4521-954c-ef9de645b947\",\"message\":\"The following fields are not available in this dataset: [issueSymbolIdentifier]\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"issueSymbolIdentifier\",\"compareType\":\"EQUAL\",\"fieldValue\":\"AAPL\"}],\"dataVersion\":1,\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortintereststandardized\",\"sortFields\":[\"-settlementDate\"]}}"
+    },
+    "GET_otcMarket_equityShortInterestStandardized_text": {
+      "status": 200,
+      "content_type": "text/plain",
+      "record_total_header": "1959990",
+      "n_bytes": 601,
+      "is_json": false,
+      "n_items": null,
+      "first_record": null,
+      "sample_first_1000b": "accountingDate,securitiesInformationProcessorSymbolIdentifier,issueName,issuerServicesGroupExchangeCode,marketClassCode,currentShortPositionQuantity,previousShortPositionQuantity,changePercent,changePreviousNumber,stockSplitFlag,averageDailyVolumeQuantity,daysToCoverQuantity,revisionFlag,settlementDate\n20201231,AAALF,Aareal Bank AG AKT,S,OTC,17408,14722,18.24,2686,,0,999.99,,2020-12-31\n20201231,AABB,Asia Broadband Inc Common Stoc,S,OTC,839207,20000,4096.04,819207,,66130284,1.00,,2020-12-31\n20201231,AACAF,AAC Technologies Holdings Inc,S,OTC,20218661,19782873,2.20,435788,,1333,999.99,,2020-12-31\n"
+    },
+    "GET_otcMarket_equityShortInterestStandardized_json": {
+      "status": 200,
+      "content_type": "application/json",
+      "record_total_header": "1959990",
+      "n_bytes": 1350,
+      "is_json": true,
+      "n_items": 3,
+      "first_record": {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 14722,
+        "accountingDate": 20201231,
+        "averageDailyVolumeQuantity": 0,
+        "issueName": "Aareal Bank AG AKT",
+        "currentShortPositionQuantity": 17408,
+        "changePreviousNumber": 2686,
+        "settlementDate": "2020-12-31",
+        "marketClassCode": "OTC",
+        "daysToCoverQuantity": 999.99,
+        "issuerServicesGroupExchangeCode": "S",
+        "revisionFlag": null,
+        "changePercent": 18.24,
+        "securitiesInformationProcessorSymbolIdentifier": "AAALF"
+      },
+      "sample_first_1000b": null
+    },
+    "GET_metadata_datasets": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_600b": "{ \"statusCode\" : 404, \"statusDescription\" : \"Resource Not Found\", \"message\": \"Invalid resource. Check path or other request details.\", \"requestId\" : \"a6d7f004-b437-414f-8479-4b8154e145bf\"}"
+    }
+  },
+  "function_error": null,
+  "winners": [
+    {
+      "endpoint": "GET_otcMarket_equityShortInterestStandardized_json",
+      "n_items": 3,
+      "settlement_date": "2020-12-31",
+      "symbol": null,
+      "is_2024_plus": false,
+      "fields": [
+        "stockSplitFlag",
+        "previousShortPositionQuantity",
+        "accountingDate",
+        "averageDailyVolumeQuantity",
+        "issueName",
+        "currentShortPositionQuantity",
+        "changePreviousNumber",
+        "settlementDate",
+        "marketClassCode",
+        "daysToCoverQuantity",
+        "issuerServicesGroupExchangeCode",
+        "revisionFlag",
+        "changePercent",
+        "securitiesInformationProcessorSymbolIdentifier"
+      ]
+    },
+    {
+      "endpoint": "GET_otcMarket_equityShortInterestStandardized_text",
+      "n_items": 0,
+      "settlement_date": null,
+      "symbol": null,
+      "is_2024_plus": false,
+      "fields": []
+    }
+  ],
+  "best": {
+    "endpoint": "GET_otcMarket_equityShortInterestStandardized_json",
+    "n_items": 3,
+    "settlement_date": "2020-12-31",
+    "symbol": null,
+    "is_2024_plus": false,
+    "fields": [
+      "stockSplitFlag",
+      "previousShortPositionQuantity",
+      "accountingDate",
+      "averageDailyVolumeQuantity",
+      "issueName",
+      "currentShortPositionQuantity",
+      "changePreviousNumber",
+      "settlementDate",
+      "marketClassCode",
+      "daysToCoverQuantity",
+      "issuerServicesGroupExchangeCode",
+      "revisionFlag",
+      "changePercent",
+      "securitiesInformationProcessorSymbolIdentifier"
+    ]
+  },
+  "ended_at": "2026-05-21T17:29:12.486102+00:00"
+}
