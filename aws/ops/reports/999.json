@@ -1,0 +1,288 @@
+{
+  "ops": 999,
+  "feature_pack": "Pro Pack v3",
+  "started_at": "2026-05-21T12:08:54.616461+00:00",
+  "gf_value": {
+    "ci_wait": {
+      "ok": false,
+      "error": "timeout",
+      "last_seen": "2026-05-21T12:07:50+00:00",
+      "waited_sec": 546
+    },
+    "error": "ci deploy failed"
+  },
+  "ipo_pipeline": {
+    "ci_wait": {
+      "ok": true,
+      "last_modified": "2026-05-21T12:18:01.353504+00:00",
+      "waited_sec": 0
+    },
+    "invoke": {
+      "ok": true,
+      "elapsed_sec": 2.5,
+      "body": {
+        "ok": true,
+        "regime": "IPO_BOOM",
+        "n_upcoming": 11,
+        "n_recent_with_perf": 2,
+        "avg_return_pct": 72.3
+      }
+    },
+    "invoke_summary": {
+      "ok": true,
+      "elapsed_sec": 2.5,
+      "regime": "IPO_BOOM",
+      "n_upcoming": 11,
+      "n_recent_with_perf": 2,
+      "avg_return_pct": 72.3
+    },
+    "s3": {
+      "ok": true,
+      "version": "1.0.0",
+      "regime": "IPO_BOOM",
+      "n_upcoming_60d": 11,
+      "n_recent_90d_with_perf": 2,
+      "perf_summary": {
+        "avg_return_pct": 72.3,
+        "median_return_pct": 132.0,
+        "n_above_offering": 2,
+        "n_below_offering": 0,
+        "best_performer": {
+          "symbol": "BCACU",
+          "company": "Brookline Capital Acquisition Corp.",
+          "ipo_date": "2026-03-18",
+          "exchange": "NASDAQ",
+          "offer_price": 10.0,
+          "current_price": 23.2,
+          "return_pct_since_ipo": 132.0,
+          "market_cap_usd": 0,
+          "shares_offered": 10000000
+        },
+        "worst_performer": {
+          "symbol": "LCLN",
+          "company": "Lincoln International, Inc.",
+          "ipo_date": "2026-05-20",
+          "exchange": "NYSE",
+          "offer_price": 20.0,
+          "current_price": 22.52,
+          "return_pct_since_ipo": 12.6,
+          "market_cap_usd": 712908907,
+          "shares_offered": 21049988
+        }
+      },
+      "upcoming_sample": [
+        {
+          "symbol": "FBYDP",
+          "company": "Falcon's Beyond Global, Inc. 8% Series A Preferred Stock",
+          "date": "2026-05-21",
+          "exchange": "NASDAQ",
+          "price_low": null,
+          "price_high": null,
+          "price_mid": null,
+          "shares_offered": null,
+          "raw_price_range": null
+        },
+        {
+          "symbol": "GIEQ",
+          "company": "Goldman Sachs Data Enhanced International Equity ETF",
+          "date": "2026-05-21",
+          "exchange": "NASDAQ",
+          "price_low": null,
+          "price_high": null,
+          "price_mid": null,
+          "shares_offered": null,
+          "raw_price_range": null
+        },
+        {
+          "symbol": "EMSC",
+          "company": "Sophus Capital Emerging Market Small Cap ETF",
+          "date": "2026-05-21",
+          "exchange": "NASDAQ",
+          "price_low": null,
+          "price_high": null,
+          "price_mid": null,
+          "shares_offered": null,
+          "raw_price_range": null
+        }
+      ],
+      "recent_sample": [
+        {
+          "symbol": "BCACU",
+          "company": "Brookline Capital Acquisition Corp.",
+          "ipo_date": "2026-03-18",
+          "exchange": "NASDAQ",
+          "offer_price": 10.0,
+          "current_price": 23.2,
+          "return_pct_since_ipo": 132.0,
+          "market_cap_usd": 0,
+          "shares_offered": 10000000
+        },
+        {
+          "symbol": "LCLN",
+          "company": "Lincoln International, Inc.",
+          "ipo_date": "2026-05-20",
+          "exchange": "NYSE",
+          "offer_price": 20.0,
+          "current_price": 22.52,
+          "return_pct_since_ipo": 12.6,
+          "market_cap_usd": 712908907,
+          "shares_offered": 21049988
+        }
+      ],
+      "methodology_present": true,
+      "edge_basis_present": true
+    },
+    "page": {
+      "ok": true,
+      "status": 200,
+      "size": 12246,
+      "contains": {
+        "IPO Pipeline": true,
+        "ipo-pipeline.json": true,
+        "IPO_BOOM": true,
+        "Bloomberg": true
+      },
+      "all_contains_ok": true
+    }
+  },
+  "magic_formula": {
+    "ci_wait": {
+      "ok": true,
+      "last_modified": "2026-05-21T12:18:04.446541+00:00",
+      "waited_sec": 0
+    },
+    "invoke": {
+      "ok": true,
+      "elapsed_sec": 7.0,
+      "body": {
+        "ok": true,
+        "regime": "MODERATE_OPPORTUNITY",
+        "n_eligible": 345,
+        "top_30_top_pick": "DECK",
+        "median_ey_pct": 4.7,
+        "median_roic_pct": 17.7
+      }
+    },
+    "invoke_summary": {
+      "ok": true,
+      "elapsed_sec": 7.0,
+      "regime": "MODERATE_OPPORTUNITY",
+      "n_eligible": 345,
+      "top_30_top_pick": "DECK",
+      "median_ey_pct": 4.7,
+      "median_roic_pct": 17.7
+    },
+    "s3": {
+      "ok": true,
+      "version": "1.0.0",
+      "regime": "MODERATE_OPPORTUNITY",
+      "n_universe_eligible": 345,
+      "median_ey_pct": 4.7,
+      "median_roic_pct": 17.7,
+      "top10_avg_ey": 9.97,
+      "top10_avg_roic": 124.25,
+      "top_30_n": 30,
+      "bottom_30_n": 30,
+      "sector_breakdown_top_30": {
+        "Consumer Cyclical": 7,
+        "Consumer Defensive": 2,
+        "Technology": 7,
+        "Healthcare": 5,
+        "Basic Materials": 3,
+        "Industrials": 5,
+        "Energy": 1
+      },
+      "top_30_sample": [
+        {
+          "ticker": "DECK",
+          "sector": "Consumer Cyclical",
+          "industry": "Apparel - Footwear & Accessories",
+          "price": 98.24,
+          "market_cap_usd": 13945168000,
+          "ebit_ttm": 1179092000,
+          "enterprise_value": 12332955000,
+          "earnings_yield": 0.0956,
+          "earnings_yield_pct": 9.6,
+          "evebit": 10.5,
+          "roic": 1.3089,
+          "roic_pct": 130.9,
+          "invested_capital_usd": 900800000,
+          "rank_earnings_yield": 25,
+          "rank_roic": 6,
+          "magic_rank": 31
+        },
+        {
+          "ticker": "MO",
+          "sector": "Consumer Defensive",
+          "industry": "Tobacco",
+          "price": 73.33,
+          "market_cap_usd": 122453124263,
+          "ebit_ttm": 15063000000,
+          "enterprise_value": 143681124263,
+          "earnings_yield": 0.1048,
+          "earnings_yield_pct": 10.5,
+          "evebit": 9.5,
+          "roic": 0.8498,
+          "roic_pct": 85.0,
+          "invested_capital_usd": 17726000000,
+          "rank_earnings_yield": 16,
+          "rank_roic": 15,
+          "magic_rank": 31
+        },
+        {
+          "ticker": "EXPE",
+          "sector": "Consumer Cyclical",
+          "industry": "Travel Services",
+          "price": 217.59,
+          "market_cap_usd": 24913837410,
+          "ebit_ttm": 2163000000,
+          "enterprise_value": 24286837410,
+          "earnings_yield": 0.0891,
+          "earnings_yield_pct": 8.9,
+          "evebit": 11.2,
+          "roic": 3.2922,
+          "roic_pct": 329.2,
+          "invested_capital_usd": 657000000,
+          "rank_earnings_yield": 34,
+          "rank_roic": 1,
+          "magic_rank": 35
+        }
+      ],
+      "methodology_present": true
+    },
+    "page": {
+      "ok": true,
+      "status": 200,
+      "size": 12854,
+      "contains": {
+        "Magic Formula": true,
+        "magic-formula.json": true,
+        "ABUNDANT_OPPORTUNITY": true,
+        "Greenblatt": true
+      },
+      "all_contains_ok": true
+    }
+  },
+  "scorecard": {
+    "gfv_ci_ok": false,
+    "gfv_invoke_ok": false,
+    "gfv_s3_ok": false,
+    "gfv_v1_0_1": false,
+    "gfv_evebit_min_60pct": false,
+    "gfv_no_mos_out_of_bounds": false,
+    "gfv_page_ok": false,
+    "ipo_ci_ok": true,
+    "ipo_invoke_ok": true,
+    "ipo_s3_ok": true,
+    "ipo_regime_real": true,
+    "ipo_page_ok": true,
+    "mf_ci_ok": true,
+    "mf_invoke_ok": true,
+    "mf_s3_ok": true,
+    "mf_n_eligible_min_200": true,
+    "mf_top_30_present": true,
+    "mf_page_ok": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-21T12:18:12.152097+00:00"
+}
