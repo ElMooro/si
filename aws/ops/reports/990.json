@@ -1,0 +1,262 @@
+{
+  "ops": 990,
+  "started_at": "2026-05-21T00:09:16Z",
+  "donor": "justhodl-earnings-pead",
+  "baseline_env_keys": [
+    "FMP_KEY",
+    "FRED_KEY",
+    "ALPHA_VANTAGE_KEY",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHAT_ID",
+    "TELEGRAM_TOKEN"
+  ],
+  "engines_expected": [
+    "justhodl-gold-equity-rotation",
+    "justhodl-buyback-yield-ranking",
+    "justhodl-put-call-extreme",
+    "justhodl-cta-trend-exhaust",
+    "justhodl-ndx-spx-spread",
+    "justhodl-earnings-quality"
+  ],
+  "ci_wait": {
+    "ok": true,
+    "missing": [],
+    "elapsed_s": 1.0
+  },
+  "donor_env_keys_present": [
+    "FMP_KEY"
+  ],
+  "env_patches": {
+    "justhodl-gold-equity-rotation": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    },
+    "justhodl-buyback-yield-ranking": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    },
+    "justhodl-put-call-extreme": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    },
+    "justhodl-cta-trend-exhaust": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    },
+    "justhodl-ndx-spx-spread": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    },
+    "justhodl-earnings-quality": {
+      "ok": true,
+      "keys_added": [
+        "FMP_KEY"
+      ],
+      "settled": {
+        "ok": true,
+        "state": "Active",
+        "last_status": "Successful"
+      }
+    }
+  },
+  "engines": {
+    "justhodl-gold-equity-rotation": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": true,
+        "size": 1354,
+        "last_modified": "2026-05-21T00:12:41+00:00",
+        "engine": "gold-equity-rotation",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-21T00:12:40Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-buyback-yield-ranking": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"BUYBACK_RICH\", \"n_ranked\": 104}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": true,
+        "size": 63432,
+        "last_modified": "2026-05-21T00:12:47+00:00",
+        "engine": "buyback-yield-ranking",
+        "state": "BUYBACK_RICH",
+        "signal_strength": 0.85,
+        "as_of": "2026-05-21T00:12:46Z",
+        "n_picks": 20,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-put-call-extreme": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"DATA_UNAVAILABLE\"}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": false,
+        "size": 569,
+        "last_modified": "2026-05-21T00:12:58+00:00",
+        "engine": "put-call-extreme",
+        "state": "DATA_UNAVAILABLE",
+        "signal_strength": 0.0,
+        "as_of": "2026-05-21T00:12:57Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-cta-trend-exhaust": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": true,
+        "size": 1432,
+        "last_modified": "2026-05-21T00:13:05+00:00",
+        "engine": "cta-trend-exhaust",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-21T00:13:04Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-ndx-spx-spread": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"NEUTRAL\", \"n_tickets\": 0}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": true,
+        "size": 1391,
+        "last_modified": "2026-05-21T00:13:10+00:00",
+        "engine": "ndx-spx-spread",
+        "state": "NEUTRAL",
+        "signal_strength": 0.2,
+        "as_of": "2026-05-21T00:13:09Z",
+        "n_picks": 0,
+        "error_in_payload": null
+      }
+    },
+    "justhodl-earnings-quality": {
+      "invoke": {
+        "ok": true,
+        "outer_status": 200,
+        "inner_status": 200,
+        "function_error": null,
+        "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"state\": \"HIGH_QUALITY_RICH\", \"n_ranked\": 120}'}"
+      },
+      "s3": {
+        "ok": true,
+        "real_state": true,
+        "size": 68879,
+        "last_modified": "2026-05-21T00:13:17+00:00",
+        "engine": "earnings-quality",
+        "state": "HIGH_QUALITY_RICH",
+        "signal_strength": 0.65,
+        "as_of": "2026-05-21T00:13:16Z",
+        "n_picks": 11,
+        "error_in_payload": null
+      }
+    }
+  },
+  "signal_board_invoke": {
+    "ok": true,
+    "outer_status": 200,
+    "inner_status": 200,
+    "function_error": null,
+    "body_preview": "{'statusCode': 200, 'body': '{\"ok\": true, \"composite_posture\": \"NEUTRAL / MIXED\", \"composite_signal\": 0.13, \"n_live\": 54, \"n_stale\": 0}'}"
+  },
+  "signal_board": {
+    "ok": true,
+    "n_engines": 54,
+    "n_live": 54,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.13,
+    "expects_54": true,
+    "all_54_live": true
+  },
+  "page": {
+    "ok": true,
+    "status": 200,
+    "size": 48705,
+    "markers_found": 33,
+    "expected": 33,
+    "missing": []
+  },
+  "scorecard": {
+    "ci_wait_ok": true,
+    "n_engines_total": 6,
+    "n_invoke_ok": 6,
+    "n_s3_ok": 6,
+    "n_real_state": 5,
+    "signal_board_54_54_ok": true,
+    "page_33_markers_ok": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-21T00:13:28Z",
+  "telegram_sent": false
+}
