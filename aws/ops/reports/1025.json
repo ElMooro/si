@@ -1,0 +1,52 @@
+{
+  "started_at": "2026-05-21T23:36:44.660965+00:00",
+  "engine_7_recheck": {
+    "lambda": "justhodl-correlation-break-trade-router",
+    "expected_s3": "data/correlation-break-trades.json",
+    "function": {
+      "exists": true,
+      "state": "Active",
+      "last_modified": "2026-05-21T23:19:27.679+0000",
+      "code_size": 6515,
+      "memory_mb": 256,
+      "timeout_s": 30
+    },
+    "invoke": {
+      "status_code": 200,
+      "function_error": null,
+      "payload": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"primary_regime\\\": \\\"NORMAL\\\", \\\"primary_score\\\": 0, \\\"secondary_regime\\\": null, \\\"long_universe\\\": [], \\\"short_universe\\\": []}\"}",
+      "log_tail": "START RequestId: 29c90aa2-f939-42f6-a5ad-58024383c6e1 Version: $LATEST\n[corr-break-trades] start v1.0.0\n[fetch] data/bond-regime.json failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[corr-break-trades] primary=NORMAL score=0 secondary=None\nEND RequestId: 29c90aa2-f939-42f6-a5ad-58024383c6e1\nREPORT RequestId: 29c90aa2-f939-42f6-a5ad-58024383c6e1\tDuration: 546.87 ms\tBilled Duration: 1099 ms\tMemory Size: 256 MB\tMax Memory Used: 94 MB\tInit Duration: 551.55 ms\t\n"
+    },
+    "s3_check": {
+      "present": true,
+      "size_bytes": 2547,
+      "age_seconds": 1
+    }
+  },
+  "engine_3_debug": {
+    "lambda": "justhodl-forced-selling-bounce",
+    "function": {
+      "exists": true,
+      "state": "Active",
+      "last_modified": "2026-05-21T23:05:02.110+0000",
+      "code_size": 6208,
+      "memory_mb": 256,
+      "timeout_s": 60
+    },
+    "invoke": {
+      "status_code": 200,
+      "function_error": "Unhandled",
+      "payload": "{\"errorMessage\": \"'<' not supported between instances of 'dict' and 'int'\", \"errorType\": \"TypeError\", \"requestId\": \"9ed33715-bcf8-41ef-ae40-6844d5171ae9\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 319, in lambda_handler\\n    c3_fired, c3_detail = evaluate_c3_breadth_collapse()\\n\", \"  File \\\"/var/task/lambda_function.py\\\", line 224, in evaluate_c3_breadth_collapse\\n    or (mcclellan is not None and mcclellan < MCCLELLAN_MAX)\\n\"]}",
+      "log_tail": "START RequestId: 9ed33715-bcf8-41ef-ae40-6844d5171ae9 Version: $LATEST\n[forced-selling] start v1.0.0\n[fetch] data/sentiment-extreme-composite.json failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[ERROR] TypeError: '<' not supported between instances of 'dict' and 'int'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 319, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0c3_fired, c3_detail = evaluate_c3_breadth_collapse()\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 224, in evaluate_c3_breadth_collapse\n\u00a0\u00a0\u00a0\u00a0or (mcclellan is not None and mcclellan < MCCLELLAN_MAX)\nEND RequestId: 9ed33715-bcf8-41ef-ae40-6844d5171ae9\nREPORT RequestId: 9ed33715-bcf8-41ef-ae40-6844d5171ae9\tDuration: 524.59 ms\tBilled Duration: 1114 ms\tMemory Size: 256 MB\tMax Memory Used: 93 MB\tInit Duration: 589.22 ms\t\n"
+    }
+  },
+  "scorecard": {
+    "engine_7_lambda_exists": true,
+    "engine_7_invoke_clean": true,
+    "engine_7_s3_present": true,
+    "engine_3_lambda_exists": true,
+    "engine_3_invoke_clean": false
+  },
+  "duration_seconds": 5.1,
+  "ended_at": "2026-05-21T23:36:49.778995+00:00"
+}
