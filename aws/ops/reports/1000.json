@@ -1,0 +1,214 @@
+{
+  "started_at": "2026-05-21T12:22:28.540453+00:00",
+  "gf_value_v101": {
+    "started_at": "2026-05-21T12:22:28.540471+00:00",
+    "invoke": {
+      "ok": true,
+      "function_error": null
+    },
+    "invoke_summary": {
+      "ok": true,
+      "version": null,
+      "n_valid": 488,
+      "n_total": null,
+      "universe_state": "MARKET_SIGNIFICANTLY_OVERVALUED",
+      "median_mos_pct": -21.9
+    },
+    "s3": {
+      "ok": false,
+      "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "fmp_probes": {
+    "analyst-estimates?symbol=AAPL&limit=4": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "earnings?symbol=AAPL&limit=8": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "grades?symbol=AAPL&limit=20": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "grades-consensus?symbol=AAPL": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "price-target-consensus?symbol=AAPL": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "price-target-latest-news?page=0&limit=5": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "analyst-stock-recommendations?symbol=AAPL": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "earnings-surprises?symbol=AAPL": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "quote?symbol=%5EMOVE": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "quote?symbol=%5EVIX": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "quote?symbol=%5EVXN": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    },
+    "quote?symbol=%5ETNX": {
+      "ok": false,
+      "status": 429,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\n  \"Error Message\": \"Limit Reach . Please upgrade your plan or visit our documentation for more details at https://site.financialmodelingprep.com/\"\n}",
+      "sample_preview": null
+    }
+  },
+  "polygon_probes": {
+    "error": "POLYGON_KEY not set"
+  },
+  "fred_probes": {
+    "DGS10": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 1055,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'DGS10', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': 'Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis', 'observation_start': '1962-01-02', 'observation_end': '2026-05-19', 'frequency': 'Daily', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': '"
+    },
+    "DGS2": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 1076,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'DGS2', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': 'Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis', 'observation_start': '1976-06-01', 'observation_end': '2026-05-19', 'frequency': 'Daily', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NS"
+    },
+    "T10Y2Y": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 1125,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'T10Y2Y', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': '10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity', 'observation_start': '1976-06-01', 'observation_end': '2026-05-20', 'frequency': 'Daily', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NSA', 'last_updated': '20"
+    },
+    "BAMLH0A0HYM2": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 7038,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'BAMLH0A0HYM2', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': 'ICE BofA US High Yield Index Option-Adjusted Spread', 'observation_start': '2023-05-22', 'observation_end': '2026-05-19', 'frequency': 'Daily, Close', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NSA', 'last_updated': '2026-05-20 1"
+    },
+    "BAMLC0A4CBBB": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 4851,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'BAMLC0A4CBBB', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': 'ICE BofA BBB US Corporate Index Option-Adjusted Spread', 'observation_start': '2023-05-22', 'observation_end': '2026-05-19', 'frequency': 'Daily, Close', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NSA', 'last_updated': '2026-05-2"
+    },
+    "AAA10Y": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 1753,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'AAA10Y', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': \"Moody's Seasoned Aaa Corporate Bond Yield Relative to Yield on 10-Year Treasury Constant Maturity\", 'observation_start': '1983-01-03', 'observation_end': '2026-05-19', 'frequency': 'Daily', 'frequency_short': 'D', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NS"
+    },
+    "MORTGAGE30US": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 1632,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-14', 'realtime_end': '2026-05-14', 'seriess': [{'id': 'MORTGAGE30US', 'realtime_start': '2026-05-14', 'realtime_end': '2026-05-14', 'title': '30-Year Fixed Rate Mortgage Average in the United States', 'observation_start': '1971-04-02', 'observation_end': '2026-05-14', 'frequency': 'Weekly, Ending Thursday', 'frequency_short': 'W', 'units': 'Percent', 'units_short': '%', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NSA', 'last_updated"
+    },
+    "ICE_BAML_MOVE": {
+      "ok": false,
+      "status": 400,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\"error_code\":400,\"error_message\":\"Bad Request.  Invalid value for variable series_id.  Series IDs should be 25 or less alphanumeric characters.\"}",
+      "sample_preview": null
+    },
+    "BOGZ1FL072051001": {
+      "ok": false,
+      "status": 400,
+      "body_kind": null,
+      "body_size": null,
+      "error": "{\"error_code\":400,\"error_message\":\"Bad Request.  The series does not exist.\"}",
+      "sample_preview": null
+    },
+    "DCOILWTICO": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 654,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'seriess': [{'id': 'DCOILWTICO', 'realtime_start': '2026-05-20', 'realtime_end': '2026-05-20', 'title': 'Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma', 'observation_start': '1986-01-02', 'observation_end': '2026-05-18', 'frequency': 'Daily', 'frequency_short': 'D', 'units': 'Dollars per Barrel', 'units_short': '$ per Barrel', 'seasonal_adjustment': 'Not Seasonally Adjusted', 'seasonal_adjustment_short': 'NSA', "
+    },
+    "WALCL": {
+      "ok": true,
+      "status": 200,
+      "body_kind": "dict",
+      "body_size": 841,
+      "error": null,
+      "sample_preview": "{'realtime_start': '2026-05-14', 'realtime_end': '2026-05-14', 'seriess': [{'id': 'WALCL', 'realtime_start': '2026-05-14', 'realtime_end': '2026-05-14', 'title': 'Assets: Total Assets: Total Assets (Less Eliminations from Consolidation): Wednesday Level', 'observation_start': '2002-12-18', 'observation_end': '2026-05-13', 'frequency': 'Weekly, As of Wednesday', 'frequency_short': 'W', 'units': 'Millions of U.S. Dollars', 'units_short': 'Mil. of U.S. $', 'seasonal_adjustment': 'Not Seasonally Adj"
+    }
+  },
+  "ended_at": "2026-05-21T12:23:04.985437+00:00"
+}
