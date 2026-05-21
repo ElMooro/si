@@ -1,0 +1,256 @@
+{
+  "started_at": "2026-05-21T19:55:01.205532+00:00",
+  "probe_result": {
+    "latest_5_any": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"af52cfad-ea34-48fe-aa77-e3512257399e\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/jso"
+    },
+    "AAPL_latest_5": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"e121b080-60bf-4fa2-8420-4cdc35a0f0e2\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"unknownQueryParams\":{\"securitiesinformationprocessorsymbolidentifier\":\"aapl\"},\"async\":false,\"offset\":0,\"dataVersi"
+    },
+    "MSFT_latest_5": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"0c2174ae-cdf2-4d8f-84ca-d3f33d81d8b2\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"unknownQueryParams\":{\"securitiesinformationprocessorsymbolidentifier\":\"msft\"},\"async\":false,\"offset\":0,\"dataVersi"
+    },
+    "NVDA_latest_3": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"5321c37b-0b23-4efe-98ed-1652deca2a97\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"unknownQueryParams\":{\"securitiesinformationprocessorsymbolidentifier\":\"nvda\"},\"async\":false,\"offset\":0,\"dataVersi"
+    },
+    "any_settled_2026": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"9b7169ec-3142-4ce9-a700-bf3873252d51\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"unknownQueryParams\":{\"settlementdate\":\"2026-05-15\"},\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"equit"
+    },
+    "may_2026_window": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"6a42e806-6be0-441f-a557-fcb49d07a677\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"unknownQueryParams\":{\"daterangefilters\":\"[{\\\"fieldname\\\": \\\"settlementdate\\\", \\\"startdate\\\": \\\"2026-05-01\\\", \\\"en"
+    },
+    "distinct_market_classes_via_AAPL": {
+      "status": 200,
+      "total_records": null,
+      "page_records": null,
+      "n_returned": 20,
+      "first_record": {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 14722,
+        "accountingDate": 20201231,
+        "averageDailyVolumeQuantity": 0,
+        "issueName": "Aareal Bank AG AKT",
+        "currentShortPositionQuantity": 17408,
+        "changePreviousNumber": 2686,
+        "settlementDate": "2020-12-31",
+        "marketClassCode": "OTC",
+        "daysToCoverQuantity": 999.99,
+        "issuerServicesGroupExchangeCode": "S",
+        "revisionFlag": null,
+        "changePercent": 18.24,
+        "securitiesInformationProcessorSymbolIdentifier": "AAALF"
+      },
+      "last_record": {
+        "stockSplitFlag": null,
+        "previousShortPositionQuantity": 1000,
+        "accountingDate": 20201231,
+        "averageDailyVolumeQuantity": 6335,
+        "issueName": "AAP, Inc. Common Stock",
+        "currentShortPositionQuantity": 6270,
+        "changePreviousNumber": 5270,
+        "settlementDate": "2020-12-31",
+        "marketClassCode": "OTC",
+        "daysToCoverQuantity": 1,
+        "issuerServicesGroupExchangeCode": "S",
+        "revisionFlag": null,
+        "changePercent": 527,
+        "securitiesInformationProcessorSymbolIdentifier": "AAPJ"
+      },
+      "all_records_brief": [
+        {
+          "sym": "AAALF",
+          "settle": "2020-12-31",
+          "si": 17408,
+          "dtc": 999.99,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AABB",
+          "settle": "2020-12-31",
+          "si": 839207,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AACAF",
+          "settle": "2020-12-31",
+          "si": 20218661,
+          "dtc": 999.99,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AACAY",
+          "settle": "2020-12-31",
+          "si": 15802,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AACMZ",
+          "settle": "2020-12-31",
+          "si": 4965,
+          "dtc": 999.99,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AACTF",
+          "settle": "2020-12-31",
+          "si": 8908,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAEEF",
+          "settle": "2020-12-31",
+          "si": 1000,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAGC",
+          "settle": "2020-12-31",
+          "si": 14745,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAGFF",
+          "settle": "2020-12-31",
+          "si": 33314,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAGH",
+          "settle": "2020-12-31",
+          "si": 10,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAGIY",
+          "settle": "2020-12-31",
+          "si": 285875,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAHIF",
+          "settle": "2020-12-31",
+          "si": 7826,
+          "dtc": 999.99,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAIGF",
+          "settle": "2020-12-31",
+          "si": 2557213,
+          "dtc": 60.62,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAIRF",
+          "settle": "2020-12-31",
+          "si": 1007,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AALBF",
+          "settle": "2020-12-31",
+          "si": 12003,
+          "dtc": 22.56,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAMAF",
+          "settle": "2020-12-31",
+          "si": 6260,
+          "dtc": 14.2,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAMMF",
+          "settle": "2020-12-31",
+          "si": 6435,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAMTF",
+          "settle": "2020-12-31",
+          "si": 600,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AANNF",
+          "settle": "2020-12-31",
+          "si": 5752336,
+          "dtc": 999.99,
+          "mkt": "OTC",
+          "exch": "S"
+        },
+        {
+          "sym": "AAPJ",
+          "settle": "2020-12-31",
+          "si": 6270,
+          "dtc": 1,
+          "mkt": "OTC",
+          "exch": "S"
+        }
+      ]
+    }
+  },
+  "function_error": null,
+  "summary": {
+    "AAPL_n_returned": 0,
+    "AAPL_latest_settlement": null,
+    "AAPL_latest_si": null,
+    "AAPL_latest_dtc": null,
+    "AAPL_market_class": null,
+    "MSFT_n_returned": 0,
+    "MSFT_latest_settlement": null,
+    "overall_latest_settlement_any_ticker": null,
+    "overall_latest_top_5_tickers": []
+  },
+  "scorecard": {
+    "AAPL_data_present": false,
+    "AAPL_settlement_in_2024_plus": false,
+    "MSFT_data_present": false,
+    "MSFT_settlement_in_2024_plus": false,
+    "overall_dataset_has_2026": false,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-21T19:55:06.670636+00:00"
+}
