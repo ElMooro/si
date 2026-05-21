@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Regime-Conditional Portfolio Router. Maps Crisis KB framework elevation -> specific sleeve (longs/shorts/hedges/sizing) per Bridgewater All-Weather + Pozsar collateral chain logic. 8 frameworks. Every 2h US hours.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-regime-conditional-router-2h",
+    "cron": "cron(0 0/2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Regime-Conditional Router every 2h"
+  }
+}
