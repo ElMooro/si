@@ -554,6 +554,75 @@ def n_dxy_equity_divergence(d):
     return m.get(state, 0), f"DXY-eq {state or 'n/a'} (z={z})"
 
 
+# === Tier-5 Retail Edges Cluster (6 engines, 2026-05-20) ===
+
+def n_gold_equity_rotation(d):
+    """GOLD_BREAKOUT = -1 (equity bearish, gold dominant);
+    EQUITY_DOMINANT = +2 (risk-on, equity wins)."""
+    state = (d.get("state") or "").upper()
+    m = {"GOLD_BREAKOUT_RICH": -1, "GOLD_BREAKOUT_ACTIVE": 0,
+         "EQUITY_DOMINANT_RICH": 2, "EQUITY_DOMINANT_ACTIVE": 1, "NEUTRAL": 0}
+    metrics = d.get("current_metrics") or {}
+    z = metrics.get("ratio_zscore_252d")
+    return m.get(state, 0), f"Gold-eq {state or 'n/a'} (SPY/GLD z={z})"
+
+
+def n_buyback_yield_ranking(d):
+    """BUYBACK_RICH = +1 (n_strong >= 15 high quality buyback names available
+    = positive equity quality regime). Not a directional macro signal."""
+    state = (d.get("state") or "").upper()
+    m = {"BUYBACK_RICH": 1, "ACTIVE": 1, "NORMAL": 0, "QUIET": 0}
+    n_strong = d.get("n_strong")
+    return m.get(state, 0), f"Buyback-yield {state or 'n/a'} (n_strong={n_strong})"
+
+
+def n_put_call_extreme(d):
+    """BEARISH_EXTREME = +2 (panic, contrarian LONG signal);
+    BULLISH_EXTREME = -2 (greed, contrarian SHORT signal)."""
+    state = (d.get("state") or "").upper()
+    m = {"BEARISH_EXTREME_RICH": 2, "BEARISH_EXTREME_ACTIVE": 1,
+         "BULLISH_EXTREME_RICH": -2, "BULLISH_EXTREME_ACTIVE": -1,
+         "NEUTRAL": 0, "DATA_UNAVAILABLE": 0}
+    metrics = d.get("current_metrics") or {}
+    z = metrics.get("pc_5d_ema_zscore_252d")
+    return m.get(state, 0), f"PC-extreme {state or 'n/a'} (z={z})"
+
+
+def n_cta_trend_exhaust(d):
+    """CTA_MAX_LONG = -2 (unwind risk, bearish);
+    CTA_MAX_SHORT = +2 (forced cover rally, bullish)."""
+    state = (d.get("state") or "").upper()
+    m = {"CTA_MAX_LONG_RICH": -2, "CTA_MAX_LONG_ACTIVE": -1,
+         "CTA_MAX_SHORT_RICH": 2, "CTA_MAX_SHORT_ACTIVE": 1, "NEUTRAL": 0}
+    metrics = d.get("current_metrics") or {}
+    p = metrics.get("avg_lev_pctile_156w")
+    return m.get(state, 0), f"CTA-exhaust {state or 'n/a'} (pctile={p})"
+
+
+def n_ndx_spx_spread(d):
+    """NDX_EXTREME_LEAD = 0 (pair trade, balanced);
+    SPX_EXTREME_LEAD = 0 (pair trade, balanced).
+    Both are info-only since they're paired long/short."""
+    state = (d.get("state") or "").upper()
+    m = {"NDX_EXTREME_LEAD_RICH": 0, "NDX_LEAD_ACTIVE": 0,
+         "SPX_EXTREME_LEAD_RICH": 0, "SPX_LEAD_ACTIVE": 0, "NEUTRAL": 0}
+    metrics = d.get("current_metrics") or {}
+    z = metrics.get("ratio_zscore_252d")
+    return m.get(state, 0), f"NDX-SPX {state or 'n/a'} (QQQ/SPY z={z})"
+
+
+def n_earnings_quality(d):
+    """HIGH_QUALITY = +1 (equity quality regime favorable);
+    LOW_QUALITY = -1 (manipulation/dilution risk elevated);
+    BOTH_TAILS = 0 (mixed, dispersion)."""
+    state = (d.get("state") or "").upper()
+    m = {"HIGH_QUALITY_RICH": 1, "LOW_QUALITY_RICH": -1,
+         "BOTH_TAILS_RICH": 0, "ACTIVE": 0, "QUIET": 0}
+    n_high = d.get("n_high_quality")
+    n_low = d.get("n_low_quality")
+    return m.get(state, 0), f"Earn-Q {state or 'n/a'} (H={n_high} L={n_low})"
+
+
 # (engine, category, s3_key, normaliser)
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
@@ -610,6 +679,13 @@ FEEDS = [
     ("Breadth Divergence",        "macro",            "data/breadth-divergence.json",        n_breadth_divergence),
     ("SKEW Tail-Hedging",         "volatility",       "data/skew-tail-hedging.json",         n_skew_tail_hedging),
     ("DXY-Equity Divergence",     "macro",            "data/dxy-equity-divergence.json",     n_dxy_equity_divergence),
+    # === Tier-5 Retail Edges Cluster (6 engines, 2026-05-20) ===
+    ("Gold-Equity Rotation",      "macro",            "data/gold-equity-rotation.json",      n_gold_equity_rotation),
+    ("Buyback Yield Ranking",     "smart money",      "data/buyback-yield-ranking.json",     n_buyback_yield_ranking),
+    ("Put-Call Extreme",          "volatility",       "data/put-call-extreme.json",          n_put_call_extreme),
+    ("CTA Trend Exhaust",         "positioning",      "data/cta-trend-exhaust.json",         n_cta_trend_exhaust),
+    ("NDX-SPX Spread",            "equity tactical",  "data/ndx-spx-spread.json",            n_ndx_spx_spread),
+    ("Earnings Quality",          "equity valuation", "data/earnings-quality.json",          n_earnings_quality),
 ]
 
 

@@ -147,7 +147,7 @@ h1 .icon{margin-right:8px}
 <div class="best-trades">
   <h2>Today's Best Retail Trades<span class="updated" id="best-updated">--</span></h2>
   <div class="best-grid" id="best-grid">
-    <div class="loading">Loading top setups from all 27 engines...</div>
+    <div class="loading">Loading top setups from all 33 engines...</div>
   </div>
 </div>
 
@@ -279,6 +279,31 @@ const ENGINES = [
     title:'DXY-Equity Divergence (with EM confirm)', icon:'💵',
     desc:'Dollar (UUP/DXY) vs SPY + EEM confirmation. DOLLAR_STRESS_RICH (eurodollar stress: long UUP / SH / GLD / XLP) or DOLLAR_TAILWIND_RICH (risk-on weak USD: long EEM / UDN / COPX / FCG). Frankel-Saiki 2002, Bruno-Shin 2015. ~60% / +4% / 3-6 wks.',
     render: renderGeneric, category:'macro' },
+  // === Tier-5 Retail Edges (6 engines, 2026-05-20) ===
+  { key:'gold-equity-rotation', s3:'data/gold-equity-rotation.json',
+    title:'Gold-Equity Rotation Regime', icon:'🥇',
+    desc:'SPY/GLD ratio z-score 252d + 20d momentum + MA50/MA200 + 5d persistence + GDX/SLV + DXY overlay. GOLD_BREAKOUT_RICH (long GLD/GDX/SLV, hedge SH) or EQUITY_DOMINANT_RICH (long SPY/QQQ, trim gold). Erb-Harvey 2013, Baur-Lucey 2010. ~60% / +5-8% / 8-16 wks.',
+    render: renderGeneric, category:'macro' },
+  { key:'buyback-yield-ranking', s3:'data/buyback-yield-ranking.json',
+    title:'Buyback Yield Ranking (Pontiff-Woodgate)', icon:'💸',
+    desc:'TTM buyback yield decile screener. 5-factor: gross+net yield, FCF coverage>=1x, P/E<30, 4-qtr consistency, $2B+ mcap. Top 20 equal-weighted = LONG portfolio quarterly rebalance. Pontiff-Woodgate 2008 (top decile +4-6%/yr), Boudoukh-Michaely-Roberts 2007.',
+    render: renderGeneric, category:'smart money' },
+  { key:'put-call-extreme', s3:'data/put-call-extreme.json',
+    title:'CBOE Put-Call Extreme Sentiment', icon:'🎭',
+    desc:'5d-EMA CBOE P/C ratio z-score vs 252d + persistence + VIX9D confirm. BEARISH_EXTREME_RICH (z>=+2.5 panic, contrarian LONG SPY/QQQ) or BULLISH_EXTREME_RICH (z<=-2.5 greed, contrarian SHORT). FRED+Yahoo fallback. Garcia 2013. ~62% / +4-7% / 5-15 days.',
+    render: renderGeneric, category:'volatility' },
+  { key:'cta-trend-exhaust', s3:'data/cta-trend-exhaust.json',
+    title:'CTA Trend Exhaustion (Equity Futures)', icon:'🌀',
+    desc:'CFTC TFF Lev Fund net positioning in ES+NQ+RTY+YM, 156w percentile + z-score + 4w change. CTA_MAX_LONG_RICH (unwind, long SH/PSQ/RWM) or CTA_MAX_SHORT_RICH (cover rally, long SPY/QQQ/IWM). Moskowitz-Ooi-Pedersen 2012, Hutchinson-OBrien 2014. ~58% / 3-7% / 2-4 wks.',
+    render: renderGeneric, category:'positioning' },
+  { key:'ndx-spx-spread', s3:'data/ndx-spx-spread.json',
+    title:'NDX-SPX Spread (QQQ/SPY Mean-Rev)', icon:'⚖️',
+    desc:'QQQ/SPY ratio 252d z-score + 5d persistence + IWM confirmation + XLK/XLF + top-5 NDX concentration. NDX_EXTREME_LEAD_RICH (tech overextended, fade with IWM/SPY long, QQQ short) or SPX_EXTREME_LEAD_RICH (tech oversold, long QQQ/XLK, SPY short). Fama-French 1992. ~58% / 3-5% / 4-8 wks.',
+    render: renderGeneric, category:'equity tactical' },
+  { key:'earnings-quality', s3:'data/earnings-quality.json',
+    title:'Earnings Quality (Sloan + Beneish)', icon:'🔬',
+    desc:'4-factor quality: Sloan accruals (NI-OCF)/Assets + OCF/NI cash conversion + Beneish DSRI+GMI + YoY accrual change. $2B+ mcap. Top 20 = LONG portfolio (quarterly rebalance, 12+mo hold), bottom 10 = AVOID/SHORT. Sloan 1996 (+10%/yr hedge), Beneish 1999.',
+    render: renderGeneric, category:'equity valuation' },
 ];
 
 const fmtN = n => n == null ? '-' : (typeof n === 'number' ? n.toLocaleString('en-US', {maximumFractionDigits:2}) : n);
