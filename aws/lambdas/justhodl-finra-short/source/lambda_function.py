@@ -138,18 +138,20 @@ def get_sp500_universe():
     except Exception as e:
         print(f"  github sp500 fetch err: {str(e)[:120]} — trying FMP")
 
-    # ── Source 2: FMP (fallback if user upgrades tier) ──
+    # ── Source 2: FMP /stable/ (fallback if user upgrades tier) ──
+    # MIGRATED 2026-05-21: was /api/v3/sp500_constituent (dead since 2025-08-31
+    # — FMP retired legacy /api/v3 + /api/v4 routes; only /stable/ works now).
     if FMP_KEY:
-        fmp_url = f"https://financialmodelingprep.com/api/v3/sp500_constituent?apikey={FMP_KEY}"
+        fmp_url = f"https://financialmodelingprep.com/stable/sp500-constituent?apikey={FMP_KEY}"
         try:
             req = urllib.request.Request(fmp_url, headers={"User-Agent": "JustHodl-FINRA/1.0"})
             with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
                 data = json.loads(r.read().decode("utf-8"))
             out = [(d["symbol"], d.get("sector"), d.get("name")) for d in data if d.get("symbol")]
-            print(f"  loaded {len(out)} S&P 500 names from FMP")
+            print(f"  loaded {len(out)} S&P 500 names from FMP /stable/")
             return out
         except Exception as e:
-            print(f"  fmp sp500 fetch err: {str(e)[:120]}")
+            print(f"  fmp /stable/ sp500 fetch err: {str(e)[:120]}")
     return []
 
 

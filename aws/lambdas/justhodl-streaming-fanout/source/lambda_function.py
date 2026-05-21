@@ -289,10 +289,13 @@ def lambda_handler(event, context):
             action["status"] = "broadcast"
             action["broadcast_result"] = res
 
-            # update sidecar
+            # update sidecar with broadcast-state snapshot
             try:
                 _write_json(sidecar_key, {
                     "as_of": _now(),
+                    "last_polled_at": _now(),
+                    "last_broadcast_at": _now(),
+                    "broadcast": True,
                     "summary": curr_summary,
                     "last_broadcast_reason": reason,
                 })
@@ -300,6 +303,26 @@ def lambda_handler(event, context):
                 action["sidecar_write_err"] = str(e)[:200]
         else:
             action["status"] = "no-op"
+            # OBSERVABILITY FIX 2026-05-21: refresh sidecar even on no-op so
+            # ops audits can distinguish "engine is calm" (recent
+            # last_polled_at, broadcast=False) from "fanout stopped polling"
+            # (stale last_polled_at). Previously sidecar only updated on
+            # broadcast, making 5 of 7 sidecars appear 33h+ stale despite
+            # the upstream Lambda running every minute.
+            try:
+                existing = _read_json(sidecar_key) or {}
+                _write_json(sidecar_key, {
+                    "as_of": _now(),
+                    "last_polled_at": _now(),
+                    "last_broadcast_at": existing.get("last_broadcast_at"),
+                    "broadcast": False,
+                    "summary": curr_summary,
+                    "no_op_reason": reason,
+                    "last_broadcast_reason":
+                        existing.get("last_broadcast_reason"),
+                })
+            except Exception as e:
+                action["sidecar_write_err"] = str(e)[:200]
 
         actions.append(action)
 
