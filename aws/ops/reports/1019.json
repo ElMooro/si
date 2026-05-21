@@ -1,0 +1,43 @@
+{
+  "started_at": "2026-05-21T17:36:14.675551+00:00",
+  "probe_result": {
+    "dateRange_2026": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"2d042fdc-ed10-49f7-af98-58adcddbfd42\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"dateRangeFilters\":[{\"fieldName\":\"settlementDate\",\"endDate\":\"2026-12-31\",\"startDate\":\"2026-01-01\"}],\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/json\",\"limit\":10,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortintereststandardized\",\"s"
+    },
+    "compare_GREATER": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"1a1738e8-09d2-4a09-96c3-af4b1e22f65d\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"settlementDate\",\"compareType\":\"GREATER\",\"fieldValue\":\"2026-01-01\"}],\"dataVersion\":1,\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/json\",\"limit\":10,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortintereststandardized\",\"s"
+    },
+    "dateRange_2025plus_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"09d7f2dd-c5ac-42aa-a95b-0a09e0bcfb76\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"securitiesInformationProcessorSymbolIdentifier\",\"compareType\":\"EQUAL\",\"fieldValue\":\"AAPL\"}],\"dataVersion\":1,\"dateRangeFilters\":[{\"fieldName\":\"settlementDate\",\"endDate\":\"2026-12-31\",\"startDate\":\"2025-01-01\"}],\"datasetName\":\"equityshortintereststandardized\",\""
+    },
+    "dateRange_2025plus_MSFT": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"c6a86e96-29ed-4c63-844d-074ad5e6dd9a\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"securitiesInformationProcessorSymbolIdentifier\",\"compareType\":\"EQUAL\",\"fieldValue\":\"MSFT\"}],\"dataVersion\":1,\"dateRangeFilters\":[{\"fieldName\":\"settlementDate\",\"endDate\":\"2026-12-31\",\"startDate\":\"2025-01-01\"}],\"datasetName\":\"equityshortintereststandardized\",\""
+    },
+    "dateRange_2020plus_latest": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_600b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"8abb4a16-c5b8-43eb-9c45-dc039dd59d2b\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"dateRangeFilters\":[{\"fieldName\":\"settlementDate\",\"endDate\":\"2026-12-31\",\"startDate\":\"2020-01-01\"}],\"datasetName\":\"equityshortintereststandardized\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortintereststandardized\",\"so"
+    }
+  },
+  "function_error": null,
+  "verdict": {
+    "endpoint_works_with_dateRange": false,
+    "max_settlement_date_seen": null,
+    "is_fresh_2025_plus": false,
+    "is_fresh_2026_plus": false,
+    "aapl_n_records": 0,
+    "aapl_latest_settlement": null,
+    "msft_n_records": 0,
+    "msft_latest_settlement": null
+  },
+  "recommendation": "Endpoint still rejecting \u2014 need to study FINRA docs further",
+  "ended_at": "2026-05-21T17:36:20.153969+00:00"
+}
