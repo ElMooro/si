@@ -1,0 +1,129 @@
+{
+  "started_at": "2026-05-21T22:53:51.249509+00:00",
+  "insider_clusters": {
+    "top_level": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "lookback_days",
+      "duration_s",
+      "stats",
+      "thresholds",
+      "clusters"
+    ],
+    "clusters__n": 48,
+    "clusters__first_2": [
+      {
+        "ticker": "AEBI",
+        "company": "Aebi Schmidt Holding AG",
+        "cik": "0002048519",
+        "n_insiders": 5,
+        "n_transactions": 5,
+        "total_shares": 21500,
+        "total_value": 247315.0,
+        "avg_price": 11.5,
+        "first_buy": "2026-05-15",
+        "last_buy": "2026-05-19",
+        "highest_role": "Pres Vehicle Soln & CEO NA",
+        "has_ceo": true,
+        "has_cfo": true,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": "list",
+        "transactions": "list",
+        "score": 87.5,
+        "signal_type": "smart_money_dual",
+        "fundamentals": "dict",
+        "rationale": "CEO + CFO + 1 director(s) bought $247k of AEBI over 4d at $11.50 avg \u2014 stock 65% off 52w high"
+      },
+      {
+        "ticker": "KRMD",
+        "company": "KORU Medical Systems, Inc.",
+        "cik": "0000704440",
+        "n_insiders": 2,
+        "n_transactions": 2,
+        "total_shares": 6191,
+        "total_value": 1438043.5,
+        "avg_price": 232.28,
+        "first_buy": "2026-05-15",
+        "last_buy": "2026-05-18",
+        "highest_role": "Director, Chief Executive Officer",
+        "has_ceo": true,
+        "has_cfo": false,
+        "has_chairman": false,
+        "has_director": true,
+        "insiders": "list",
+        "transactions": "list",
+        "score": 81.8,
+        "signal_type": "ceo_conviction",
+        "fundamentals": "dict",
+        "rationale": "CEO (+1 other) bought $1.44M of KRMD over 3d at $232.28 avg \u2014 stock 38% off 52w high"
+      }
+    ]
+  },
+  "insider_aggregate": {
+    "top_level": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "elapsed_s",
+      "n_transactions",
+      "data_coverage_days",
+      "windows",
+      "regime",
+      "regime_read",
+      "headline_ratio_30d_dollar",
+      "notable_cluster_buys",
+      "methodology"
+    ]
+  },
+  "activist_13d": {
+    "top_level": [
+      "engine",
+      "version",
+      "as_of",
+      "state",
+      "signal_strength",
+      "summary",
+      "current_readings",
+      "trigger_conditions",
+      "forward_expectations",
+      "top_setups",
+      "all_setups",
+      "recommended_trade",
+      "why_now_explainer",
+      "academic_basis",
+      "methodology",
+      "sources",
+      "schedule",
+      "run_duration_seconds"
+    ],
+    "top_setups__n": 0,
+    "top_setups__first_2": [],
+    "all_setups__n": 0,
+    "all_setups__first_2": []
+  },
+  "pead_signals": {
+    "top_level": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "summary",
+      "all_qualifying"
+    ]
+  },
+  "earnings_pead": {
+    "top_level": [
+      "schema_version",
+      "method",
+      "generated_at",
+      "duration_s",
+      "stats",
+      "summary",
+      "all_qualifying"
+    ]
+  },
+  "ended_at": "2026-05-21T22:53:52.150630+00:00"
+}
