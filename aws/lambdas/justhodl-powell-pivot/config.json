@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Powell-Pivot Language Engine. Computes delta-vs-prior speech sentiment (Powell + 6 senior FOMC governors) + factor rotation map (HAWKISH_PIVOT/DOVISH_PIVOT/NO_PIVOT). Hu/Pan/Wang 2022. Every 4h US hours.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-powell-pivot-4h",
+    "cron": "cron(0 12,16,20 ? * MON-FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Powell-Pivot Language Engine every 4h during US market hours weekdays"
+  }
+}
