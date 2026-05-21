@@ -79,6 +79,42 @@ SPECS = [
     ("divgrow", "Dividend-Growth Compounder", "data/dividend-growth.json",
      ["compounders"], "symbol", "compounder_score", "INCOME",
      "compounds a reliably growing, well-covered dividend", None),
+    # ─── Pro Pack v3 institutional methodologies (added 2026-05-21) ─────
+    # Each is a published institutional framework (Graham/Greenblatt/Refinitiv
+    # /GuruFocus/MSCI/Stern Stewart) re-implemented from primary methodology.
+    ("gfvalue", "GuruFocus Value", "data/gf-value.json",
+     ["deepest_value"], "ticker", "margin_of_safety_pct", "VALUE",
+     "trades at a meaningful margin of safety to multi-method intrinsic "
+     "value (DCF + EV/EBIT + Graham)", 30),
+    ("magic", "Magic Formula", "data/magic-formula.json",
+     ["top_30"], "ticker", None, "VALUE",
+     "screens cheap on the Greenblatt Magic Formula (high earnings yield "
+     "+ high ROIC)", 30),
+    ("starmine", "StarMine Analyst Conviction",
+     "data/starmine.json", ["top_25_conviction"], "ticker",
+     "starmine_score", "EARNINGS",
+     "carries top-quartile analyst conviction on the Refinitiv StarMine "
+     "framework (rating revisions + price-target drift + earnings "
+     "surprise persistence)", 25),
+    ("predict", "GuruFocus Predictability", "data/predictability.json",
+     ["most_predictable_top_15"], "ticker", "composite_r2", "QUALITY",
+     "has elite 10-year revenue and EPS predictability (top-decile "
+     "regression R^2 on revenue and EPS growth — moat marker)", 15),
+    ("smartbeta", "MSCI Smart Beta Composite",
+     "data/smart-beta.json", ["top_25_diversified"], "ticker",
+     "composite", "QUALITY",
+     "scores top-quartile on the multi-factor smart-beta composite "
+     "(value + quality + momentum + low-vol)", 25),
+    ("eva", "Stern Stewart EVA Spread", "data/eva-spread.json",
+     ["top_10_eva_spread"], "ticker", "eva_spread_pct", "QUALITY",
+     "earns substantially above its cost of capital (Stern Stewart EVA "
+     "Spread = ROIC - WACC; Bennett Stewart 2002 EVA Momentum positive)",
+     10),
+    ("smart13f", "13F Smart-Money Consensus",
+     "data/13f-positions.json", ["most_bought"], "ticker",
+     "n_funds_buying", "SMART_MONEY",
+     "tracked smart-money 13F filers are net adding shares this "
+     "quarter (consensus institutional accumulation)", 25),
 ]
 
 FAMILY_LABEL = {
