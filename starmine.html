@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StarMine Analyst Skill · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⭐</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.mono{font-family:var(--mono)}
+.container{max-width:1700px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--green)}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--green);border-bottom-color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.kpi h3{font-size:9.5px;color:var(--dim);margin-bottom:8px;letter-spacing:1.2px}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700}
+.kpi .vsub{font-size:9.5px;color:var(--dim);margin-top:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px}
+.callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--green)}
+.callout strong{color:var(--green);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover{color:var(--txt)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid var(--line);background:var(--panel)}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tk{font-weight:700;font-size:13px;color:var(--txt)}
+.tk small{display:block;color:var(--dim);font-size:9.5px;font-weight:400;letter-spacing:.3px}
+.score-bar{display:inline-block;height:5px;border-radius:3px;background:var(--line);width:74px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.score-fill{display:block;height:100%;background:var(--green)}
+.flag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 7px;border-radius:3px;background:rgba(0,0,0,.3);text-transform:uppercase;white-space:nowrap}
+.up{color:var(--green)}.dn{color:var(--red)}.dim{color:var(--dim)}
+.regime-bullish{color:var(--green)}
+.regime-neutral{color:var(--yellow)}
+.regime-bearish{color:var(--red)}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.method-card{background:var(--panel);border:1px solid var(--line);padding:14px;border-radius:6px}
+.method-card h4{font-family:var(--mono);font-size:11px;color:var(--cyan);margin:0 0 8px;letter-spacing:1px;text-transform:uppercase}
+.method-card .wt{font-family:var(--mono);font-size:22px;color:var(--green);font-weight:700;margin-bottom:8px}
+.method-card p{color:var(--mute);font-size:12px;margin:0;line-height:1.55}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;font-family:var(--mono);letter-spacing:.5px}
+.loading{text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <h1>⭐ StarMine Analyst Skill Ranking</h1>
+  <p class="subtitle">Refinitiv-style composite of <strong>Rating Revision Momentum</strong> (firm-tier weighted), <strong>Price Target Drift</strong> (sell-side conviction trajectory), and <strong>Earnings Surprise Persistence</strong>. Ranks the top-150 S&amp;P 500 stocks by aggregate analyst conviction with regime-aware universe classification.</p>
+  <nav class="crumbs"><a href="/">← Home</a><a href="/retail-edges.html">Retail Edges</a><a href="/baggers.html">100x Baggers</a><a href="/gf-value.html">GF Value</a></nav>
+</header>
+
+<div id="root"><div class="loading">Loading StarMine data...</div></div>
+
+<footer>
+  <span id="last_updated">—</span> · v<span id="version">—</span> · Universe: <span id="universe_n">—</span> stocks · Sources: FMP /stable/grades + /stable/price-target-consensus + /stable/earnings-surprises · Refinitiv StarMine intent replicated with FMP analyst data
+</footer>
+</div>
+
+<script>
+const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/starmine.json';
+
+function regimeClass(r){
+  if(!r) return 'dim';
+  if(r.includes('BULLISH')) return 'regime-bullish';
+  if(r.includes('BEARISH')) return 'regime-bearish';
+  return 'regime-neutral';
+}
+
+function fmtZ(z){
+  if(z===null||z===undefined) return '<span class="dim">—</span>';
+  const cls = z>=0 ? 'up' : 'dn';
+  const sign = z>=0 ? '+' : '';
+  return `<span class="${cls}">${sign}${z.toFixed(2)}</span>`;
+}
+
+function fmtPct(v, signed=false){
+  if(v===null||v===undefined) return '<span class="dim">—</span>';
+  const sign = signed && v>=0 ? '+' : '';
+  return `${sign}${v.toFixed(1)}%`;
+}
+
+function fmtMcap(v){
+  if(!v) return '—';
+  if(v>=1e12) return (v/1e12).toFixed(2)+'T';
+  if(v>=1e9) return (v/1e9).toFixed(1)+'B';
+  if(v>=1e6) return (v/1e6).toFixed(0)+'M';
+  return v.toFixed(0);
+}
+
+function scoreBar(score){
+  if(!score) return '—';
+  const w = Math.max(0, Math.min(100, score));
+  return `<span class="mono">${score.toFixed(1)}</span><span class="score-bar"><span class="score-fill" style="width:${w}%"></span></span>`;
+}
+
+function render(d){
+  if(!d||!d.ok){
+    document.getElementById('root').innerHTML = '<div class="loading">Data load failed.</div>';
+    return;
+  }
+  document.getElementById('last_updated').textContent = d.generated_at;
+  document.getElementById('version').textContent = d.version || '—';
+  document.getElementById('universe_n').textContent = d.n_universe_analyzed || '—';
+
+  const regCls = regimeClass(d.universe_regime);
+  const html = `
+    <div class="callout">
+      <strong>UNIVERSE STATE</strong>
+      <span class="mono ${regCls}" style="font-size:20px;font-weight:700">${d.universe_regime}</span>
+      &nbsp;·&nbsp; median composite z: <span class="mono">${(d.universe_median_composite_z||0).toFixed(2)}</span>
+      &nbsp;·&nbsp; <span class="mute">${d.n_scored}/${d.n_universe_analyzed} scored</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><h3>Regime</h3><div class="v ${regCls}">${d.universe_regime.replace('_',' ')}</div><div class="vsub">aggregate</div></div>
+      <div class="kpi"><h3>Median RRM</h3><div class="v">${(d.median_rrm_raw||0).toFixed(2)}</div><div class="vsub">weighted net</div></div>
+      <div class="kpi"><h3>Median PT Drift</h3><div class="v">${fmtPct(d.median_ptd_pct, true)}</div><div class="vsub">px → consensus</div></div>
+      <div class="kpi"><h3>Median Hit Rate</h3><div class="v">${(d.median_esp_hit_pct||0).toFixed(0)}%</div><div class="vsub">last 8 q</div></div>
+      <div class="kpi"><h3>Top Conviction</h3><div class="v" style="color:var(--cyan)">${d.top_25_conviction[0]?.ticker || '—'}</div><div class="vsub">score ${(d.top_25_conviction[0]?.starmine_score||0).toFixed(1)}</div></div>
+      <div class="kpi"><h3>Bottom Conviction</h3><div class="v" style="color:var(--red)">${d.bottom_25_conviction[0]?.ticker || '—'}</div><div class="vsub">score ${(d.bottom_25_conviction[0]?.starmine_score||0).toFixed(1)}</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('top')">Top 25 Conviction</div>
+      <div class="tab" onclick="switchTab('bottom')">Bottom 25 Conviction</div>
+      <div class="tab" onclick="switchTab('sector')">Sector Breakdown</div>
+      <div class="tab" onclick="switchTab('method')">Methodology</div>
+    </div>
+
+    <div id="tab-top" class="tab-pane active">
+      <table>
+        <thead><tr>
+          <th>Rank</th><th>Ticker</th><th>Sector</th><th>Score</th><th>z RRM</th><th>Upgrades / Downs (90d)</th><th>Tier A</th><th>PT Drift</th><th>PT Cons</th><th># Anal</th><th>z PTD</th><th>EPS Beat %</th><th>Mag</th><th>z ESP</th><th>Price</th><th>Mcap</th>
+        </tr></thead>
+        <tbody>${d.top_25_conviction.map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${scoreBar(t.starmine_score)}</td>
+            <td>${fmtZ(t.z_rrm)}</td>
+            <td><span class="up">${t.n_upgrades_90d||0}</span> / <span class="dn">${t.n_downgrades_90d||0}</span></td>
+            <td><span class="flag t100">${t.n_tier_a_actions||0}</span></td>
+            <td class="mono">${fmtPct(t.ptd_pct, true)}</td>
+            <td class="mono">$${(t.pt_consensus||0).toFixed(2)}</td>
+            <td class="dim">${t.n_pt_analysts||'—'}</td>
+            <td>${fmtZ(t.z_ptd)}</td>
+            <td class="mono">${(t.esp_hit_pct||0).toFixed(0)}%</td>
+            <td class="mono dim">${fmtPct(t.esp_avg_magnitude_pct, true)}</td>
+            <td>${fmtZ(t.z_esp)}</td>
+            <td class="mono">$${(t.price||0).toFixed(2)}</td>
+            <td class="mono dim">${fmtMcap(t.market_cap_usd)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-bottom" class="tab-pane">
+      <table>
+        <thead><tr>
+          <th>Rank</th><th>Ticker</th><th>Sector</th><th>Score</th><th>z RRM</th><th>Up/Down (90d)</th><th>PT Drift</th><th>PT Cons</th><th>EPS Beat %</th><th>Price</th><th>Mcap</th>
+        </tr></thead>
+        <tbody>${d.bottom_25_conviction.map((t,i)=>`
+          <tr>
+            <td class="dim">${i+1}</td>
+            <td><div class="tk">${t.ticker}<small>${t.sector||''}</small></div></td>
+            <td class="dim">${t.sector||'—'}</td>
+            <td>${scoreBar(t.starmine_score)}</td>
+            <td>${fmtZ(t.z_rrm)}</td>
+            <td><span class="up">${t.n_upgrades_90d||0}</span> / <span class="dn">${t.n_downgrades_90d||0}</span></td>
+            <td class="mono">${fmtPct(t.ptd_pct, true)}</td>
+            <td class="mono">$${(t.pt_consensus||0).toFixed(2)}</td>
+            <td class="mono">${(t.esp_hit_pct||0).toFixed(0)}%</td>
+            <td class="mono">$${(t.price||0).toFixed(2)}</td>
+            <td class="mono dim">${fmtMcap(t.market_cap_usd)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-sector" class="tab-pane">
+      <table>
+        <thead><tr><th>Sector</th><th>Top-25 Count</th><th>% of Top-25</th></tr></thead>
+        <tbody>${Object.entries(d.sector_breakdown_top_25||{}).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
+          <tr>
+            <td><strong>${s}</strong></td>
+            <td class="mono">${n}</td>
+            <td class="mono">${(100*n/25).toFixed(0)}%</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-method" class="tab-pane">
+      <div class="callout">
+        <strong>EDGE BASIS</strong>
+        ${d.edge_basis||''}
+      </div>
+      <div class="method-grid">
+        <div class="method-card">
+          <h4>Rating Revision Momentum</h4>
+          <div class="wt">50%</div>
+          <p>${d.methodology?.factors?.rrm||''}</p>
+        </div>
+        <div class="method-card">
+          <h4>Price Target Drift</h4>
+          <div class="wt">25%</div>
+          <p>${d.methodology?.factors?.ptd||''}</p>
+        </div>
+        <div class="method-card">
+          <h4>Earnings Surprise Persistence</h4>
+          <div class="wt">25%</div>
+          <p>${d.methodology?.factors?.esp||''}</p>
+        </div>
+      </div>
+      <h2>Universe Regime Bands</h2>
+      <table>
+        <thead><tr><th>Regime</th><th>Threshold</th></tr></thead>
+        <tbody>${Object.entries(d.methodology?.regime_bands||{}).map(([k,v])=>`<tr><td><strong class="${regimeClass(k)}">${k}</strong></td><td class="mono">${v}</td></tr>`).join('')}</tbody>
+      </table>
+      <h2>Data Sources</h2>
+      <table>
+        <thead><tr><th>Component</th><th>Endpoint</th></tr></thead>
+        <tbody>${Object.entries(d.sources||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="mono">${v}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('root').innerHTML = html;
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
+  console.error(e);
+  document.getElementById('root').innerHTML = '<div class="loading">Data load failed: '+e.message+'</div>';
+});
+</script>
+</body>
+</html>
