@@ -117,25 +117,65 @@ def fmp_price_runup(symbol):
 
 
 def extract_finra_metrics(data):
-    """Returns {ticker: {short_util, days_to_cover, si_pct, ...}}."""
+    """Returns {ticker: {short_util, days_to_cover, si_pct, ...}}.
+
+    finra-short.json schema (per ops 1012 probe):
+      - tickers: dict keyed by symbol (501 entries) with per-ticker metrics
+      - squeeze_candidates: rich list (14 items) with svr_pct, z_score,
+        days_to_cover, squeeze_score, squeeze_flags, price_strength
+      - top_zscore: list with symbol + z_score + si_pct
+    """
     if not isinstance(data, dict):
         return {}
     out = {}
-    tickers = data.get("tickers") or []
-    for t in tickers:
+    tickers = data.get("tickers") or {}
+    # Handle dict form (real schema) AND legacy list form
+    if isinstance(tickers, dict):
+        ticker_iter = tickers.items()
+    elif isinstance(tickers, list):
+        ticker_iter = [((t.get("symbol") or "").upper(), t)
+                        for t in tickers if isinstance(t, dict)]
+    else:
+        ticker_iter = []
+    for sym, t in ticker_iter:
         if not isinstance(t, dict):
             continue
-        sym = (t.get("symbol") or "").upper()
+        sym = (sym or t.get("symbol") or "").upper()
         if not sym:
             continue
         out[sym] = {
-            "short_utilization": t.get("util") or t.get("utilization") or t.get("short_utilization") or 0,
+            "short_utilization": t.get("util") or t.get("utilization")
+                or t.get("short_utilization") or 0,
             "days_to_cover": t.get("days_to_cover") or t.get("dtc") or 0,
-            "short_pct_float": t.get("si_pct_float") or t.get("si_pct") or t.get("short_pct") or 0,
+            "short_pct_float": t.get("si_pct_float") or t.get("si_pct")
+                or t.get("short_pct") or 0,
             "z_score": t.get("z_score") or 0,
             "svr_pct": t.get("svr_pct") or 0,
         }
-    # Also incorporate top_zscore if present
+    # squeeze_candidates - rich pre-screened list with momentum + z + dtc
+    for c in (data.get("squeeze_candidates") or []):
+        if not isinstance(c, dict):
+            continue
+        sym = (c.get("symbol") or c.get("ticker") or "").upper()
+        if not sym:
+            continue
+        # Merge / upsert (prefer richer squeeze_candidates fields where present)
+        entry = out.get(sym, {})
+        entry.update({
+            "short_utilization": c.get("short_utilization")
+                or entry.get("short_utilization") or 0,
+            "days_to_cover": c.get("days_to_cover")
+                or entry.get("days_to_cover") or 0,
+            "short_pct_float": entry.get("short_pct_float") or 0,
+            "z_score": c.get("z_score") if c.get("z_score") is not None
+                else entry.get("z_score", 0),
+            "svr_pct": c.get("svr_pct") or entry.get("svr_pct") or 0,
+            "squeeze_score": c.get("squeeze_score") or 0,
+            "squeeze_flags": c.get("squeeze_flags") or [],
+            "momentum_pct": c.get("momentum_pct") or 0,
+        })
+        out[sym] = entry
+    # top_zscore as additional fallback (legacy support)
     top_z = data.get("top_zscore") or []
     for t in top_z:
         if not isinstance(t, dict):
@@ -154,20 +194,72 @@ def extract_finra_metrics(data):
 
 
 def extract_short_interest(data):
+    """short-interest.json schema (per ops 1012 probe):
+      - by_ticker: dict (157 entries) keyed by symbol with
+        latest_short_pct, days_to_cover, trend_pct, recent_5d_avg,
+        prior_9d_avg, si_change_pct, short_interest, settlement_date,
+        signal, score
+      - top_crowded_shorts, top_squeeze_risk, top_high_dtc, top_covering:
+        ranked lists with same shape as by_ticker values
+
+    NOTE on field semantics: 'latest_short_pct' in the upstream engine
+    appears to be the short-volume-to-total-volume ratio (not pure
+    SI/free_float). Used here as the best available SI proxy; downstream
+    threshold (c1 = >18%) interprets it accordingly. Stale-data caveat:
+    ops 1012 found settlement_date stuck at 2017-12-29 across all tickers
+    — separate upstream bug in justhodl-short-interest Lambda.
+    """
     if not isinstance(data, dict):
         return {}
     out = {}
-    rows = (data.get("rows") or data.get("tickers") or data.get("data") or [])
-    for r in rows:
-        if not isinstance(r, dict):
-            continue
-        sym = (r.get("symbol") or r.get("ticker") or "").upper()
-        if not sym:
-            continue
-        out[sym] = {
-            "si_pct_float": r.get("si_pct_float") or r.get("short_pct") or r.get("short_pct_float") or 0,
-            "days_to_cover": r.get("days_to_cover") or 0,
-        }
+    bt = data.get("by_ticker") or {}
+    if isinstance(bt, dict):
+        for sym, row in bt.items():
+            if not isinstance(row, dict):
+                continue
+            sym = (sym or row.get("ticker") or "").upper()
+            if not sym:
+                continue
+            out[sym] = {
+                "si_pct_float": row.get("latest_short_pct")
+                    or row.get("si_pct_float")
+                    or row.get("short_pct")
+                    or row.get("short_pct_float") or 0,
+                "days_to_cover": row.get("days_to_cover") or 0,
+                "signal": row.get("signal"),
+                "score": row.get("score"),
+                "trend_pct": row.get("trend_pct") or 0,
+                "settlement_date": row.get("settlement_date"),
+            }
+    # Top-ranked lists as additional sources (idempotent upsert)
+    for list_key in ("top_crowded_shorts", "top_squeeze_risk",
+                      "top_high_dtc", "top_covering"):
+        for r in (data.get(list_key) or []):
+            if not isinstance(r, dict):
+                continue
+            sym = (r.get("ticker") or r.get("symbol") or "").upper()
+            if not sym:
+                continue
+            existing = out.get(sym, {})
+            if not existing.get("si_pct_float"):
+                existing["si_pct_float"] = (r.get("latest_short_pct")
+                    or r.get("si_pct_float") or r.get("short_pct") or 0)
+            if not existing.get("days_to_cover"):
+                existing["days_to_cover"] = r.get("days_to_cover") or 0
+            out[sym] = existing
+    # Legacy fallbacks (rows/tickers/data) for any older deployment
+    for legacy_key in ("rows", "data"):
+        for r in (data.get(legacy_key) or []):
+            if not isinstance(r, dict):
+                continue
+            sym = (r.get("symbol") or r.get("ticker") or "").upper()
+            if not sym or sym in out:
+                continue
+            out[sym] = {
+                "si_pct_float": r.get("si_pct_float") or r.get("short_pct")
+                    or r.get("short_pct_float") or 0,
+                "days_to_cover": r.get("days_to_cover") or 0,
+            }
     return out
 
 
@@ -410,7 +502,7 @@ def lambda_handler(event, context):
 
         output = {
             "engine": "squeeze-pretrigger",
-            "version": "1.0",
+            "version": "1.1",
             "as_of": dt.datetime.utcnow().isoformat() + "Z",
             "state": state,
             "previous_state": prev_state,
