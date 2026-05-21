@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 256,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Quality-Filtered Consensus Bottom. AND-gate of bullish 13F divergence + Predictability 5-star + (EVA Super OR Smart Beta Quality top decile). Polen/Wedgewood/Akre/GMO Quality Funds style. Weekly Tue 07 UTC.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-consensus-bottom-weekly",
+    "cron": "cron(0 7 ? * TUE *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Consensus Bottom weekly Tue 07 UTC after divergence refresh at Tue 06 UTC"
+  }
+}
