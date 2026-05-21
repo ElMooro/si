@@ -1,0 +1,105 @@
+{
+  "started_at": "2026-05-21T23:21:14.501810+00:00",
+  "probe_result": {
+    "fed-speak": {
+      "status": 200,
+      "n_bytes": 7581,
+      "parsed": true,
+      "type": "dict",
+      "top_keys": [
+        "schema_version",
+        "method",
+        "as_of",
+        "n_speeches_30d",
+        "n_new_classified_this_run",
+        "aggregate",
+        "by_speaker",
+        "timeline",
+        "latest_hawkish",
+        "latest_dovish",
+        "latest_neutral",
+        "duration_s"
+      ],
+      "n_items": 9,
+      "first_record": null,
+      "sample": null
+    },
+    "earnings-sentiment": {
+      "status": 200,
+      "n_bytes": 499623,
+      "parsed": true,
+      "type": "dict",
+      "top_keys": [
+        "generated_at",
+        "elapsed_seconds",
+        "n_new_this_run",
+        "n_candidates",
+        "summary",
+        "transcripts"
+      ],
+      "n_items": null,
+      "first_record": null,
+      "sample": null
+    },
+    "earnings-sentiment_alt1": {
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "earnings-nlp": {
+      "status": 200,
+      "n_bytes": 24943,
+      "parsed": true,
+      "type": "dict",
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "model",
+        "source",
+        "elapsed_seconds",
+        "universe",
+        "n_tickers",
+        "n_with_data",
+        "n_with_err",
+        "by_ticker",
+        "ranked",
+        "market_summary",
+        "regime_changed_from_prior"
+      ],
+      "n_items": null,
+      "first_record": null,
+      "sample": null
+    },
+    "starmine": {
+      "status": 200,
+      "n_bytes": 18061,
+      "parsed": true,
+      "type": "dict",
+      "top_keys": [
+        "ok",
+        "version",
+        "generated_at",
+        "universe_regime",
+        "universe_median_composite_z",
+        "universe_source_tier",
+        "n_universe_analyzed",
+        "n_scored",
+        "median_rrm_raw",
+        "median_ptd_pct",
+        "median_esp_hit_pct",
+        "sector_breakdown_top_25",
+        "top_25_conviction",
+        "bottom_25_conviction",
+        "methodology",
+        "sources",
+        "edge_basis",
+        "log_summary"
+      ],
+      "n_items": null,
+      "first_record": null,
+      "sample": null
+    }
+  },
+  "function_error": null,
+  "ended_at": "2026-05-21T23:21:19.694249+00:00"
+}
