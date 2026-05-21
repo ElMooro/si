@@ -1,0 +1,135 @@
+{
+  "started_at": "2026-05-21T03:45:45.186816+00:00",
+  "pivot_commit_time": "2026-05-21T00:49:56+00:00",
+  "engine_state": {
+    "ok": true,
+    "last_modified": "2026-05-21T00:50:20.000+0000",
+    "last_modified_iso": "2026-05-21T00:50:20+00:00",
+    "post_pivot": true,
+    "state": "Active",
+    "last_update_status": "Successful",
+    "description_first_200c": "CBOE P/C ratio extreme sentiment. 5d-EMA z-score vs 252d + persistence. BEARISH_EXTREME (panic z>=+2.5, LONG SPY/QQQ) or BULLISH_EXTREME (greed z<=-2.5, SHORT). FRED+Yahoo fallback. Garcia 2013, Pan-P"
+  },
+  "board_state": {
+    "ok": true,
+    "last_modified": "2026-05-21T00:50:37.000+0000",
+    "last_modified_iso": "2026-05-21T00:50:37+00:00",
+    "post_pivot": true,
+    "state": "Active",
+    "last_update_status": "Successful",
+    "description_first_200c": "Unified signal board across 42 engines (Tier-3 integrated)"
+  },
+  "engine_invoke": {
+    "ok": true,
+    "function_error": null,
+    "outer_status_code": 200,
+    "inner_status_code": 200,
+    "payload_keys": [
+      "statusCode",
+      "body"
+    ],
+    "body": {
+      "ok": true,
+      "state": "NEUTRAL",
+      "composite_z": 0.224,
+      "n_valid": 5,
+      "strength": 0.2
+    }
+  },
+  "s3_output": {
+    "ok": true,
+    "size_bytes": 3109,
+    "last_modified": "2026-05-21T03:45:48+00:00",
+    "state": "NEUTRAL",
+    "version": "2.0.0",
+    "composite_z": 0.224,
+    "dispersion": 0.78,
+    "divergence_flag": false,
+    "n_valid_signals": 5,
+    "n_total_signals": 5,
+    "generated_at": "2026-05-21T03:45:46.526445+00:00",
+    "why_now_first_300": "Composite stress z=+0.22 in neutral band. No actionable extreme. Monitor.",
+    "signals_summary": [
+      {
+        "id": "VIXCLS",
+        "ok": true,
+        "z_stress": -0.042,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0,
+        "weight": null
+      },
+      {
+        "id": "VXNCLS",
+        "ok": true,
+        "z_stress": 0.606,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0,
+        "weight": null
+      },
+      {
+        "id": "USEPUINDXD",
+        "ok": true,
+        "z_stress": 0.599,
+        "latest_date": "2026-05-19",
+        "freshness_mult": 1.0,
+        "weight": null
+      },
+      {
+        "id": "STLFSI4",
+        "ok": true,
+        "z_stress": -0.736,
+        "latest_date": "2026-05-15",
+        "freshness_mult": 1.0,
+        "weight": null
+      },
+      {
+        "id": "UMCSENT",
+        "ok": true,
+        "z_stress": 1.336,
+        "latest_date": "2026-03-01",
+        "freshness_mult": 0.4,
+        "weight": null
+      }
+    ],
+    "actions_n": 0,
+    "edge_basis_first_200": "Baker-Wurgler 2006 (JF, multi-source sentiment index), Stambaugh-Yu-Zhang 2012 (JFE, sentiment + anomalies), Garcia 2013, Brown-Cliff 2004. ~58-62% hit / +4-7% / 4-8wk."
+  },
+  "signal_board": {
+    "ok": true,
+    "function_error": null,
+    "inner_status_code": 200,
+    "n_engines": null,
+    "n_live": 54,
+    "n_stale": 0,
+    "composite_posture": "NEUTRAL / MIXED",
+    "composite_signal": 0.11
+  },
+  "page": {
+    "ok": true,
+    "size_bytes": 48837,
+    "markers_found": 0,
+    "unique_markers": 0,
+    "sentiment_title_present": true,
+    "old_title_absent": true,
+    "sentiment_category_present": true
+  },
+  "scorecard": {
+    "engine_lambda_post_pivot": true,
+    "engine_lambda_active": true,
+    "board_lambda_post_pivot": true,
+    "board_lambda_active": true,
+    "engine_invoke_no_error": true,
+    "engine_state_real": true,
+    "engine_state_value": "NEUTRAL",
+    "engine_composite_z_numeric": true,
+    "engine_min_valid_signals": false,
+    "s3_state_matches_invoke": true,
+    "signal_board_n54": false,
+    "signal_board_all_live": false,
+    "page_33_markers": false,
+    "page_new_title": true,
+    "page_old_title_gone": true,
+    "all_pass": false
+  },
+  "ended_at": "2026-05-21T03:45:51.767429+00:00"
+}
