@@ -1,0 +1,65 @@
+{
+  "started_at": "2026-05-21T17:10:33.414745+00:00",
+  "probe_deployed": true,
+  "probe_result": {
+    "finra_otcMarket_EquityShortInterest_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_500b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"c3a4f3ee-386f-4eb1-98a7-442e4cda3b71\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"issueSymbolIdentifier\",\"compareType\":\"EQUAL\",\"fieldValue\":\"AAPL\"}],\"dataVersion\":1,\"datasetName\":\"equityshortinterest\",\"format\":\"application/json\",\"limit\":5,"
+    },
+    "finra_equityMarket_EquityShortInterest_AAPL": {
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized",
+      "body_first_500b": "{ \"statusCode\" : 401, \"statusDescription\" : \"Failed to authenticate, check your authentication token\", \"message\": \"Unauthorized\", \"requestId\" : \"bb679ae5-5596-46ef-b194-715739b346e9\", \"resource\" : \"/data/group/{group}/name/{name}\" }"
+    },
+    "finra_otcMarket_regShoDaily_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_500b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"9e8fcf23-2bc8-46f1-adef-a239d4ad3405\",\"message\":\"The following fields are not available in this dataset: [-settlementDate]\",\"dataRequest\":{\"async\":false,\"offset\":0,\"compareFilters\":[{\"fieldName\":\"issueSymbolIdentifier\",\"compareType\":\"EQUAL\",\"fieldValue\":\"AAPL\"}],\"dataVersion\":1,\"datasetName\":\"regshodaily\",\"format\":\"application/json\",\"limit\":5,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"regshodaily\",\"sortFields\":[\"-settlement"
+    },
+    "finra_metadata_otcMarket": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_500b": "{ \"statusCode\" : 404, \"statusDescription\" : \"Resource Not Found\", \"message\": \"Invalid resource. Check path or other request details.\", \"requestId\" : \"6814a973-95c3-4a65-bde4-3e5de92f70e9\"}"
+    },
+    "finra_metadata_groups": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found",
+      "body_first_500b": "{ \"statusCode\" : 404, \"statusDescription\" : \"Resource Not Found\", \"message\": \"Invalid resource. Check path or other request details.\", \"requestId\" : \"618598bb-c67e-4830-8322-e7c2fe4e1356\"}"
+    },
+    "finra_otcMarket_latest_any": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request",
+      "body_first_500b": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"33ac7d85-42d3-44d2-99d6-f1e0a6cd48eb\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: settlementDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"datasetName\":\"equityshortinterest\",\"format\":\"application/json\",\"limit\":3,\"datasetGroup\":\"otcmarket\",\"versionedDatasetName\":\"equityshortinterest\",\"sortFields\":[\"-settlementD"
+    }
+  },
+  "function_error": null,
+  "findings": {
+    "finra_otcMarket_EquityShortInterest_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request"
+    },
+    "finra_equityMarket_EquityShortInterest_AAPL": {
+      "status": 401,
+      "error": "HTTP Error 401: Unauthorized"
+    },
+    "finra_otcMarket_regShoDaily_AAPL": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request"
+    },
+    "finra_metadata_otcMarket": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    "finra_metadata_groups": {
+      "status": 404,
+      "error": "HTTP Error 404: Not Found"
+    },
+    "finra_otcMarket_latest_any": {
+      "status": 400,
+      "error": "HTTP Error 400: Bad Request"
+    }
+  },
+  "winner": null,
+  "ended_at": "2026-05-21T17:10:38.383922+00:00"
+}
