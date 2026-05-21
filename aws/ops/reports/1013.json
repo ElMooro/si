@@ -1,0 +1,54 @@
+{
+  "started_at": "2026-05-21T16:48:10.148586+00:00",
+  "expected_version": "1.1",
+  "lambda_ready": {
+    "ok": true,
+    "last_modified": "2026-05-21T16:47:30.000+0000",
+    "code_size": 8314,
+    "waited_sec": 0.1
+  },
+  "invoke": {
+    "ok": true,
+    "function_error": null,
+    "elapsed_sec": 3.9,
+    "error": null
+  },
+  "invoke_summary": {
+    "ok": true,
+    "state": "QUIET",
+    "n_imminent": 0,
+    "n_pretrigger": 0,
+    "n_total": 0,
+    "duration_s": 3.5
+  },
+  "s3": {
+    "version": "1.1",
+    "as_of": "2026-05-21T16:48:14.165452Z",
+    "state": "QUIET",
+    "signal_strength": 0,
+    "n_evaluated": 81,
+    "n_imminent": 0,
+    "n_pretrigger": 0,
+    "n_early": 0,
+    "n_total": 0,
+    "feeds_available": {
+      "finra": true,
+      "short_interest": true,
+      "catalyst": true
+    },
+    "top_5_tickers": [],
+    "first_imminent": null,
+    "first_pretrigger": null,
+    "first_early": null
+  },
+  "scorecard": {
+    "version_1_1": true,
+    "feeds_all_available": true,
+    "n_evaluated_min_5": true,
+    "n_evaluated_min_1": true,
+    "state_real": true,
+    "invoke_ok": true,
+    "all_pass": true
+  },
+  "ended_at": "2026-05-21T16:48:14.514167+00:00"
+}
