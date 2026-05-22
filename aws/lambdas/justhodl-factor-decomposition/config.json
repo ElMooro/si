@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Factor Decomposition (R10). FF5+MOM 6-factor OLS regression per ticker over 60mo: alpha (annualized + t-stat) + factor loadings + R-squared. Ken French data cached monthly. Weekly Sundays 06 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-starmine", "keys": ["FMP_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-factor-decomposition-weekly",
+    "cron": "cron(0 6 ? * SUN *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Factor Decomposition weekly Sundays 06 UTC"
+  }
+}
