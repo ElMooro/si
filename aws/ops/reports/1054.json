@@ -1,82 +1,228 @@
 {
-  "started_at": "2026-05-22T11:55:29.742512+00:00",
-  "results": {
-    "justhodl-portfolio-catalysts": {
-      "last_modified": "2026-05-22T11:41:51.000+0000",
-      "code_sha": "FnRKxjPrWiRm",
-      "marker_count": 1,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-vrp": {
-      "last_modified": "2026-05-22T11:43:46.000+0000",
-      "code_sha": "dXRfnpayztNU",
-      "marker_count": 2,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-options-flow": {
-      "last_modified": "2026-05-22T11:41:33.000+0000",
-      "code_sha": "pW6OhViDU5tP",
-      "marker_count": 1,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-global-stress": {
-      "last_modified": "2026-05-22T11:39:43.000+0000",
-      "code_sha": "jYb/cw2zX/qO",
-      "marker_count": 3,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-financial-secretary": {
-      "last_modified": "2026-05-22T11:38:55.000+0000",
-      "code_sha": "WqELC7UHs7m/",
-      "marker_count": 1,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-daily-report-v3": {
-      "last_modified": "2026-05-22T11:37:11.000+0000",
-      "code_sha": "GCVDGEi+kShS",
-      "marker_count": 3,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-feedback": {
-      "last_modified": "2026-05-22T11:38:38.000+0000",
-      "code_sha": "Lj6kdOsQlmrk",
-      "marker_count": 1,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-dollar-radar": {
-      "last_modified": "2026-05-22T11:37:50.000+0000",
-      "code_sha": "thOjTmVarHRE",
-      "marker_count": 1,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-hedge-pnl": {
-      "last_modified": "2026-05-22T11:40:10.000+0000",
-      "code_sha": "fU6OFuNaZQvl",
-      "marker_count": 2,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true
-    },
-    "justhodl-fleet-error-monitor": {
-      "last_modified": "2026-05-22T11:39:26.000+0000",
-      "code_sha": "XmRg7RSQLK/+",
-      "marker_count": 0,
-      "has_emf_namespace": true,
-      "has_s3_put_failure_metric": true,
-      "has_silent_alerts_pass": true,
-      "has_helper_function": true
-    }
-  },
+  "started_at": "2026-05-22T12:32:31.088606+00:00",
   "summary": {
-    "lambdas_checked": 10,
-    "patched_correctly": 9,
-    "fleet_monitor_extended": true
+    "lambdas_deployed": 8,
+    "lambdas_missing": 0,
+    "eb_rules_active": 8,
+    "eb_rules_missing": 0,
+    "dlq_attached": 0,
+    "xray_enabled": 0
+  },
+  "lambdas": [
+    {
+      "idea": "#2",
+      "fn_name": "justhodl-signal-halflife",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:10:15.868+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 6 ? * MON *)"
+      },
+      "s3_output": {
+        "exists": true,
+        "size": 38809,
+        "last_modified": "2026-05-22 12:15:26+00:00"
+      }
+    },
+    {
+      "idea": "#1",
+      "fn_name": "justhodl-premortem-engine",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:17:59.941+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "ANTHROPIC_KEY",
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID",
+          "TOP_N"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 14 ? * MON-FRI *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#4",
+      "fn_name": "justhodl-behavior-mirror",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:20:19.139+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 13 ? * SUN *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#5",
+      "fn_name": "justhodl-failure-library",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:22:06.273+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "FMP_KEY",
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 15 ? * MON-FRI *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#3",
+      "fn_name": "justhodl-causality-scanner",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:23:46.269+0000",
+        "memory": 2048,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 21 ? * SUN *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#7",
+      "fn_name": "justhodl-convexity-scorer",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:25:13.503+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "FMP_KEY",
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 14 ? * MON-FRI *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#6",
+      "fn_name": "justhodl-chart-vision",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:26:53.249+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "ANTHROPIC_KEY",
+          "FMP_KEY",
+          "POLYGON_KEY",
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID",
+          "TOP_N"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 16 ? * MON-FRI *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    },
+    {
+      "idea": "#8",
+      "fn_name": "justhodl-meta-improver",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-05-22T12:31:50.910+0000",
+        "memory": 1024,
+        "timeout": 600,
+        "dlq_attached": false,
+        "xray": false,
+        "env_keys": [
+          "ANTHROPIC_KEY",
+          "S3_BUCKET",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_CHAT_ID"
+        ]
+      },
+      "eb_rule": {
+        "state": "ENABLED",
+        "cron": "cron(0 22 ? * SUN *)"
+      },
+      "s3_output": {
+        "exists": false,
+        "note": "not_yet_invoked"
+      }
+    }
+  ],
+  "ddb_alert_actions": {
+    "exists": true,
+    "status": "ACTIVE",
+    "billing": "PAY_PER_REQUEST"
   }
 }
