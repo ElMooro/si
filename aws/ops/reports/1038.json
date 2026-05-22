@@ -1,0 +1,104 @@
+{
+  "started_at": "2026-05-22T10:18:11.058332+00:00",
+  "actions": [
+    {
+      "type": "delete_rule",
+      "rule": "macro-api-daily-update",
+      "before_state": "DISABLED",
+      "removed_target_ids": [
+        "1"
+      ],
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_rule",
+      "rule": "DailyMacroReportRule",
+      "before_state": "DISABLED",
+      "removed_target_ids": [
+        "1"
+      ],
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-cdn-diag-temp",
+      "before": {
+        "last_modified": "2026-05-06T15:28:55.973+0000",
+        "code_sha": "agDnLuwXGsRa",
+        "runtime": "python3.12"
+      },
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-tmp-433",
+      "before": {
+        "last_modified": "2026-05-11T15:49:36.574+0000",
+        "code_sha": "+MKevf8cl+3/",
+        "runtime": "python3.12"
+      },
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-tmp-454",
+      "before": {
+        "last_modified": "2026-05-11T22:47:14.472+0000",
+        "code_sha": "inkyvhBIicix",
+        "runtime": "python3.12"
+      },
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-tmp-458",
+      "before": {
+        "last_modified": "2026-05-11T23:36:00.885+0000",
+        "code_sha": "U2fVnLvdbhWi",
+        "runtime": "python3.12"
+      },
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-tmp-force-refresh",
+      "before": {
+        "last_modified": "2026-05-11T10:59:02.594+0000",
+        "code_sha": "HBrtRdrZH0U5",
+        "runtime": "python3.12"
+      },
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "macro-report-api",
+      "before": {
+        "last_modified": "2026-04-25T10:24:48.000+0000",
+        "code_sha": "QjyFruUMdbHp",
+        "runtime": "python3.9"
+      },
+      "url_deleted": true,
+      "result": "DELETED"
+    },
+    {
+      "type": "delete_lambda",
+      "lambda": "justhodl-daily-macro-report",
+      "before": {
+        "last_modified": "2026-04-25T10:25:39.000+0000",
+        "code_sha": "hHHsqzwnH56K",
+        "runtime": "python3.11"
+      },
+      "result": "DELETED"
+    }
+  ],
+  "nobrainer_invoke": {
+    "error": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-nobrainer-rationale/invocations\""
+  },
+  "summary": {
+    "lambdas_deleted": 7,
+    "rules_deleted": 2,
+    "lambdas_not_found": 0,
+    "rules_not_found": 0,
+    "nobrainer_healthy": false
+  }
+}
