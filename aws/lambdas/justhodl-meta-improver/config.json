@@ -1,0 +1,31 @@
+{
+  "function_name": "justhodl-meta-improver",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #8 — Self-Modifying Engine Layer. Reads signal-halflife, picks worst-decaying engine, Claude proposes patch, opens GitHub PR for Khalid review. Never auto-merges.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "inherit_env": [
+    {
+      "from_function": "justhodl-nobrainer-rationale",
+      "keys": ["ANTHROPIC_KEY", "ANTHROPIC_API_KEY"]
+    },
+    {
+      "from_function": "justhodl-dex-scanner",
+      "keys": ["GITHUB_TOKEN", "GH_TOKEN"]
+    }
+  ],
+  "schedule": {
+    "rule_name": "meta-improver-weekly",
+    "cron": "cron(0 22 ? * SUN *)",
+    "description": "Weekly Sunday 22 UTC — propose ONE patch to the worst-decaying engine (cooldown 30d per engine)"
+  }
+}
