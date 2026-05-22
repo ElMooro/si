@@ -1,174 +1,145 @@
 {
-  "started_at": "2026-05-22T14:04:19.569688+00:00",
-  "sections": {
-    "observability_html": {
-      "http_code": 200,
-      "size": 19938,
-      "markers": {
-        "title": true,
-        "audit_scorecard": true,
-        "exp_table": true,
-        "fleet_status_id": true,
-        "stale_outputs": true
+  "started_at": "2026-05-22T14:05:25.813738+00:00",
+  "lambdas": {
+    "justhodl-premortem-engine": {
+      "expected_key": "data/kill-theses.json",
+      "s3": {
+        "exists": true,
+        "size": 87316,
+        "last_modified": "2026-05-22T14:01:37+00:00",
+        "age_h": 0.1
       },
-      "all_present": true
+      "code_OUT_KEY": "data/kill-theses.json",
+      "constants_data": [
+        "OUT_KEY",
+        "HIST_KEY",
+        "BEST_IDEAS_KEY"
+      ],
+      "keys_used": [
+        "HIST_KEY",
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 2
     },
-    "fleet_monitor": {
-      "age_h": 0.02,
-      "version": "1.0.0",
-      "generated_at": "2026-05-22T14:03:21.730176+00:00",
-      "n_tracked": 403,
-      "n_stale_or_alerts": 0,
-      "elapsed_s": 17.97
+    "justhodl-behavior-mirror": {
+      "expected_key": "data/khalid-behavior-mirror.json",
+      "s3": {
+        "exists": false,
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      },
+      "code_OUT_KEY": "data/behavior-mirror.json",
+      "constants_data": [
+        "OUT_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "HIST_KEY",
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 0
     },
-    "freshness_monitor": {
-      "age_h": 0.17,
-      "version": "1.1.0",
-      "generated_at": "2026-05-22T13:54:08.700498+00:00",
-      "n_tracked": 24,
-      "n_stale_or_alerts": 0,
-      "elapsed_s": 4.49
+    "justhodl-failure-library": {
+      "expected_key": "data/failure-library.json",
+      "s3": {
+        "exists": false,
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      },
+      "code_OUT_KEY": "data/pre-disaster-watchlist.json",
+      "constants_data": [
+        "OUT_KEY",
+        "LIBRARY_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 1
     },
-    "freshness_manifest": {
-      "age_h": 0.17,
-      "n_excludes": 7,
-      "n_overrides": 5,
-      "overrides_keys": [
-        "data/report.json",
-        "data/options-flow.json",
-        "data/factor-decomposition.json",
-        "data/cftc-deep-view.json",
-        "data/13f-price-divergence.json"
-      ]
+    "justhodl-causality-scanner": {
+      "expected_key": "data/causality-scanner.json",
+      "s3": {
+        "exists": false,
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+      },
+      "code_OUT_KEY": "data/causality-discoveries.json",
+      "constants_data": [
+        "OUT_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 3
     },
-    "justhodl-fleet-error-monitor_1h": {
-      "invocations": 25,
-      "errors": 0
+    "justhodl-convexity-scorer": {
+      "expected_key": "data/convexity-scores.json",
+      "s3": {
+        "exists": true,
+        "size": 25646,
+        "last_modified": "2026-05-22T14:00:31+00:00",
+        "age_h": 0.1
+      },
+      "code_OUT_KEY": "data/convexity-scores.json",
+      "constants_data": [
+        "OUT_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 1
     },
-    "justhodl-fleet-freshness-monitor_1h": {
-      "invocations": 10,
-      "errors": 5
+    "justhodl-chart-vision": {
+      "expected_key": "data/chart-vision.json",
+      "s3": {
+        "exists": true,
+        "size": 1398,
+        "last_modified": "2026-05-22T13:40:12+00:00",
+        "age_h": 0.4
+      },
+      "code_OUT_KEY": "data/chart-vision.json",
+      "constants_data": [
+        "OUT_KEY"
+      ],
+      "keys_used": [
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 3
     },
-    "exp_status": [
-      {
-        "idea": "#1",
-        "lambda": "justhodl-premortem-engine",
-        "invocations_24h": 2,
-        "rules": [
-          {
-            "name": "premortem-engine-daily",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
+    "justhodl-meta-improver": {
+      "expected_key": "data/meta-improver.json",
+      "s3": {
+        "exists": false,
+        "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
       },
-      {
-        "idea": "#2",
-        "lambda": "justhodl-signal-halflife",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "signal-halflife-weekly",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
+      "code_OUT_KEY": null,
+      "constants_data": [
+        "STATE_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "STATE_KEY"
+      ],
+      "early_returns_before_put": "no_put_in_handler"
+    },
+    "justhodl-signal-halflife": {
+      "expected_key": "data/signal-halflife.json",
+      "s3": {
+        "exists": true,
+        "size": 38809,
+        "last_modified": "2026-05-22T12:15:26+00:00",
+        "age_h": 1.8
       },
-      {
-        "idea": "#3",
-        "lambda": "justhodl-causality-scanner",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "causality-scanner-weekly",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      },
-      {
-        "idea": "#4",
-        "lambda": "justhodl-behavior-mirror",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "behavior-mirror-weekly",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      },
-      {
-        "idea": "#5",
-        "lambda": "justhodl-failure-library",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "failure-library-daily",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      },
-      {
-        "idea": "#6",
-        "lambda": "justhodl-chart-vision",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "chart-vision-daily",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      },
-      {
-        "idea": "#7",
-        "lambda": "justhodl-convexity-scorer",
-        "invocations_24h": 2,
-        "rules": [
-          {
-            "name": "convexity-scorer-daily",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      },
-      {
-        "idea": "#8",
-        "lambda": "justhodl-meta-improver",
-        "invocations_24h": 1,
-        "rules": [
-          {
-            "name": "meta-improver-weekly",
-            "state": "ENABLED"
-          }
-        ],
-        "dlq": true,
-        "xray": true
-      }
-    ]
-  },
-  "scorecard": {
-    "observability_dashboard_live": true,
-    "fleet_monitor_state_age_h": 0.02,
-    "fleet_monitor_alerts": 0,
-    "freshness_monitor_state_age_h": 0.17,
-    "freshness_monitor_stale": 0,
-    "manifest_overrides": 5,
-    "manifest_excludes": 7,
-    "fleet_error_monitor_invocations_1h": 25,
-    "fleet_freshness_monitor_invocations_1h": 10,
-    "exp_lambdas_total": 8,
-    "exp_lambdas_with_dlq_and_xray": 8,
-    "exp_lambdas_with_schedule": 8,
-    "exp_lambdas_invoked_24h": 8
+      "code_OUT_KEY": "data/signal-halflife.json",
+      "constants_data": [
+        "OUT_KEY",
+        "HIST_KEY"
+      ],
+      "keys_used": [
+        "HIST_KEY",
+        "OUT_KEY"
+      ],
+      "early_returns_before_put": 1
+    }
   }
 }
