@@ -163,7 +163,11 @@ def build_macro_catalysts(calendar):
 def build_position_catalysts(positions, watchlist, earnings_tracker, pead, whisper):
     """For each symbol in book/watch, gather all upcoming catalysts."""
     all_symbols = set(positions.keys()) | set(watchlist.keys())
-    if not all_symbols: return [], {}
+    # Empty-position-and-watchlist guard: must still return a dict with
+    # all expected bucket keys, else lambda_handler line 426 raises
+    # KeyError 'T-0' on len(earnings_buckets["T-0"]).  (audit 2026-05-22)
+    if not all_symbols:
+        return [], {"T-0": [], "T-1": [], "T-3": [], "T-7": [], "later": []}
 
     # Index upcoming earnings by symbol
     upcoming_earnings_by_sym = {}
