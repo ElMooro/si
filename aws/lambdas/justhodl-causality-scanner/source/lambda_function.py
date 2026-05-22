@@ -361,6 +361,27 @@ def lambda_handler(event, context):
     logger.info(f"series with ≥{MIN_OBS} obs: {len(series_map)}")
 
     if len(series_map) < 5:
+        # Heartbeat output so freshness monitor sees the Lambda ran successfully
+        heartbeat = {
+            "ok": True,
+            "status": "no_action",
+            "reason": "insufficient_history_for_causality_discovery",
+            "n_series_loaded": len(series_map),
+            "min_series_needed": 5,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "elapsed": round((datetime.now(timezone.utc) - started).total_seconds(), 2),
+            "discoveries": [],
+        }
+        try:
+            s3.put_object(
+                Bucket=BUCKET, Key=OUT_KEY,
+                Body=json.dumps(heartbeat, default=str, indent=2).encode(),
+                ContentType="application/json",
+                CacheControl="max-age=300, public",
+            )
+            logger.info(f"wrote heartbeat to {OUT_KEY} (insufficient history)")
+        except Exception as e:
+            logger.error(f"heartbeat_write_failed: {e}")
         return {"statusCode": 200, "body": json.dumps({
             "ok": True,
             "n_series_loaded": len(series_map),

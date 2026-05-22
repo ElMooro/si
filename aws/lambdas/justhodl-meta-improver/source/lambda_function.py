@@ -458,6 +458,13 @@ def lambda_handler(event, context):
     # 1. Pick worst-decaying engine
     target = pick_target_engine(state)
     if not target:
+        # Heartbeat so freshness monitor sees the Lambda ran
+        state["last_run"] = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "status": "no_action",
+            "reason": "no_decaying_engines_outside_cooldown",
+        }
+        save_state(state)
         return {"statusCode": 200,
                 "body": json.dumps({"ok": True, "no_action": "no_decaying_engines_outside_cooldown"})}
     target_engine = target["engine"]
