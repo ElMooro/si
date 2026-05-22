@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 3008,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earnings Transcript Indexer (R2a). Builds TF-IDF index from S3 transcripts/ prefix. Chunks (800c, 150c overlap), 50k vocab, log-normalized TF + smooth IDF. Output data/transcripts-index.json. Daily 03 UTC.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-transcript-indexer-daily",
+    "cron": "cron(0 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Transcript indexer daily 03 UTC low-traffic"
+  }
+}
