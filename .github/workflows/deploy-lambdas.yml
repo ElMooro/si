@@ -263,13 +263,27 @@ jobs:
                 --description "$fn_desc" \
                 --region "${{ secrets.AWS_REGION }}" \
                 --environment "file://$tmp/env.json" \
+                --tracing-config Mode=Active \
+                --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
                 --output text > /dev/null
 
               aws lambda wait function-active-v2 \
                 --function-name "$fn" \
                 --region "${{ secrets.AWS_REGION }}"
-              echo "✅ Created new Lambda $fn"
+              echo "✅ Created new Lambda $fn (with X-Ray + DLQ from creation)"
             fi
+
+            # ── Defense-in-depth: ensure X-Ray + DLQ on existing Lambdas too ──
+            # No-ops on Lambdas that already have these; covers any drift.
+            aws lambda update-function-configuration \
+              --function-name "$fn" \
+              --tracing-config Mode=Active \
+              --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
+              --region "${{ secrets.AWS_REGION }}" \
+              --output text > /dev/null 2>&1 || true
+            aws lambda wait function-updated \
+              --function-name "$fn" \
+              --region "${{ secrets.AWS_REGION }}" 2>/dev/null || true
 
             # ── EventBridge schedule (if config.json has .schedule) ──
             if [ -f "$dir/config.json" ] && jq -e '.schedule' "$dir/config.json" >/dev/null 2>&1; then
