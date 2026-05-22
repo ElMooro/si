@@ -1,0 +1,69 @@
+{
+  "started_at": "2026-05-22T10:01:27.790723+00:00",
+  "checks": {
+    "rule_autonomous-ai-schedule": {
+      "state": "DISABLED",
+      "verdict": "\u2705 DISABLED"
+    },
+    "rule_justhodl-8am": {
+      "state": "DISABLED",
+      "verdict": "\u2705 DISABLED"
+    },
+    "lambda_justhodl-forced-selling-bounce": {
+      "lambda": "justhodl-forced-selling-bounce",
+      "code_sha": "BPQYTpbLcH/d",
+      "last_modified": "2026-05-22T09:57:17.000+0000",
+      "deployed_code_size": 19865,
+      "patterns_found": {
+        "def to_number": true,
+        "dict-wrapped indicators": true
+      },
+      "has_redeploy_marker": true,
+      "verdict": "\u2705 FIX DEPLOYED",
+      "invoke_status": 200,
+      "invoke_function_error": "none",
+      "invoke_response_head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"state\\\": \\\"QUIET\\\", \\\"signal_strength\\\": 10, \\\"n_conditions_fired\\\": 0, \\\"conditions_fired\\\": {\\\"c1_vix_spike\\\": false, \\\"c2_putcall_extreme\\\": false, \\\"c3_breadth_collapse\\\": false, \\\"c4_gamma_unwind\\\": false, \\\"c5_capitulation_p",
+      "log_tail_has_bug": false,
+      "log_tail_last_400": "h] data/opex-gamma-pin.json failed: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\n[forced-selling] state=QUIET n_fired=0/5\nEND RequestId: 811144a3-c993-4b53-ae00-8aef9b398503\nREPORT RequestId: 811144a3-c993-4b53-ae00-8aef9b398503\tDuration: 700.08 ms\tBilled Duration: 1265 ms\tMemory Size: 256 MB\tMax Memory Used: 93 MB\tInit Duration: 564.09 ms\t\n",
+      "cw_inv_last_1h": 0,
+      "cw_err_last_1h": 0
+    },
+    "lambda_justhodl-portfolio-catalysts": {
+      "lambda": "justhodl-portfolio-catalysts",
+      "code_sha": "Aa8N4UG89c29",
+      "last_modified": "2026-05-22T09:57:46.000+0000",
+      "deployed_code_size": 18662,
+      "patterns_found": {
+        "earnings_buckets = {\"T-0\": []": true
+      },
+      "has_redeploy_marker": true,
+      "verdict": "\u2705 FIX DEPLOYED",
+      "invoke_status": 200,
+      "invoke_function_error": "Unhandled",
+      "invoke_response_head": "{\"errorMessage\": \"'T-0'\", \"errorType\": \"KeyError\", \"requestId\": \"5cafcc0d-8832-4d4e-967a-db3a710abbf8\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 426, in lambda_handler\\n    \\\"earnings_this_week\\\": len(earnings_buckets[\\\"T-0\\\"]) +\\n\"]}",
+      "log_tail_has_bug": true,
+      "log_tail_last_400": "R] KeyError: 'T-0'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 426, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0\"earnings_this_week\": len(earnings_buckets[\"T-0\"]) +\nEND RequestId: 5cafcc0d-8832-4d4e-967a-db3a710abbf8\nREPORT RequestId: 5cafcc0d-8832-4d4e-967a-db3a710abbf8\tDuration: 589.01 ms\tBilled Duration: 1189 ms\tMemory Size: 512 MB\tMax Memory Used: 105 MB\tInit Duration: 599.17 ms\t\n",
+      "cw_inv_last_1h": 0,
+      "cw_err_last_1h": 0
+    },
+    "lambda_justhodl-nobrainer-rationale": {
+      "lambda": "justhodl-nobrainer-rationale",
+      "code_sha": "rUiqEGeiiZvO",
+      "last_modified": "2026-05-22T09:57:28.000+0000",
+      "deployed_code_size": 29927,
+      "patterns_found": {
+        "or 0:.0f}": true,
+        "or 0:.2f}": false
+      },
+      "has_redeploy_marker": true,
+      "verdict": "\u26a0\ufe0f FIX MISSING OR MARKER ABSENT",
+      "cw_inv_last_1h": 0,
+      "cw_err_last_1h": 0
+    }
+  },
+  "summary": {
+    "rules_disabled": 2,
+    "lambdas_fixed": 2,
+    "lambdas_with_redeploy_marker": 3
+  }
+}
