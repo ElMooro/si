@@ -1,25 +1,35 @@
 {
-  "started_at": "2026-05-22T11:08:56.491298+00:00",
-  "steps": [
-    {
-      "step": "create_fn",
-      "result": "OK"
-    },
-    {
-      "step": "put_rule",
-      "result": "OK"
-    },
-    {
-      "step": "add_perm",
-      "result": "OK"
-    },
-    {
-      "step": "put_target",
-      "result": "OK"
-    }
+  "started_at": "2026-05-22T13:19:04.695396+00:00",
+  "size_bytes": 505,
+  "top_level_keys": [
+    "rules",
+    "exclude_prefixes",
+    "admin_only_keys",
+    "key_overrides"
   ],
-  "test_invoke": {
-    "error": "An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending"
-  },
-  "completed_at": "2026-05-22T11:08:57.571084+00:00"
+  "full": {
+    "rules": [
+      {
+        "prefix": "data/",
+        "default_max_age_h": 26.0
+      }
+    ],
+    "exclude_prefixes": [
+      "data/archive/",
+      "data/_archive/",
+      "data/snapshots/",
+      "data/secretary-history/",
+      "data/calibration-history/"
+    ],
+    "admin_only_keys": [
+      "data/khalid-config.json",
+      "data/ka-config.json"
+    ],
+    "key_overrides": {
+      "data/report.json": 2.0,
+      "data/options-flow.json": 0.2,
+      "data/factor-decomposition.json": 192.0,
+      "data/cftc-deep-view.json": 192.0
+    }
+  }
 }
