@@ -1,0 +1,29 @@
+{
+  "started_at": "2026-05-22T09:57:37.196023+00:00",
+  "actions": [
+    {
+      "rule": "autonomous-ai-schedule",
+      "lambda": "autonomous-ai-processor",
+      "before": {
+        "state": "ENABLED",
+        "expression": "rate(5 minutes)",
+        "description": null
+      },
+      "failed_invocations_7d": 2016,
+      "after_state": "DISABLED",
+      "result": "DISABLED"
+    },
+    {
+      "rule": "justhodl-8am",
+      "lambda": "justhodl-email-reports",
+      "before": {
+        "state": "ENABLED",
+        "expression": "cron(0 13 * * ? *)",
+        "description": null
+      },
+      "failed_invocations_7d": 7,
+      "after_state": "DISABLED",
+      "result": "DISABLED"
+    }
+  ]
+}
