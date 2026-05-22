@@ -1,0 +1,414 @@
+{
+  "carry_surface": {
+    "top_keys": [
+      "version",
+      "generated_at",
+      "elapsed_s",
+      "n_assets",
+      "financing_rate_pct",
+      "by_class",
+      "all_assets",
+      "cross_asset_top",
+      "cross_asset_bottom",
+      "risk_adjusted_leaders",
+      "regime_summary",
+      "methodology"
+    ],
+    "regime_summary": {
+      "equity": {
+        "n": 56,
+        "mean_carry_pct": -2.87,
+        "median_carry_pct": -3.62,
+        "dispersion_pct": 1.38,
+        "max": 3.02,
+        "min": -3.62
+      },
+      "fx": {
+        "n": 10,
+        "mean_carry_pct": 0.58,
+        "median_carry_pct": 0.09,
+        "dispersion_pct": 3.55,
+        "max": 8.34,
+        "min": -3.66
+      },
+      "fixed_income": {
+        "n": 7,
+        "mean_carry_pct": 1.22,
+        "median_carry_pct": 0.95,
+        "dispersion_pct": 1.1,
+        "max": 3.38,
+        "min": 0.06
+      },
+      "commodity": {
+        "n": 7,
+        "mean_carry_pct": -4.77,
+        "median_carry_pct": -3.0,
+        "dispersion_pct": 33.91,
+        "max": 51.48,
+        "min": -65.0
+      }
+    },
+    "financing_rate_pct": 3.62,
+    "n_assets": 80,
+    "by_class_keys": [
+      "equity",
+      "fx",
+      "fixed_income",
+      "commodity",
+      "crypto"
+    ],
+    "by_class_sample": {
+      "equity": {
+        "keys": "not_dict",
+        "sample_asset": null
+      },
+      "fx": {
+        "keys": "not_dict",
+        "sample_asset": null
+      },
+      "fixed_income": {
+        "keys": "not_dict",
+        "sample_asset": null
+      },
+      "commodity": {
+        "keys": "not_dict",
+        "sample_asset": null
+      },
+      "crypto": {
+        "keys": "not_dict",
+        "sample_asset": null
+      }
+    },
+    "cross_asset_top_first3": [
+      {
+        "symbol": "USO",
+        "asset_class": "commodity",
+        "structural_carry_pct": -8.0,
+        "spot_etf_basis_pct": 140.69,
+        "carry_pct": 51.48,
+        "realized_vol_pct": 70.95,
+        "carry_per_vol": 0.726,
+        "price": 140.92,
+        "carry_pct_z": 1.66,
+        "carry_per_vol_z": 1.72,
+        "global_rank": 1,
+        "global_percentile": 100.0,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "BRLUSD",
+        "asset_class": "fx",
+        "long_currency": "BRL",
+        "short_currency": "USD",
+        "long_rate_pct": 11.96,
+        "short_rate_pct": 3.62,
+        "carry_pct": 8.34,
+        "realized_vol_pct": null,
+        "carry_pct_z": 2.19,
+        "global_rank": 2,
+        "global_percentile": 98.7,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "MXNUSD",
+        "asset_class": "fx",
+        "long_currency": "MXN",
+        "short_currency": "USD",
+        "long_rate_pct": 7.06,
+        "short_rate_pct": 3.62,
+        "carry_pct": 3.44,
+        "realized_vol_pct": null,
+        "carry_pct_z": 0.81,
+        "global_rank": 3,
+        "global_percentile": 97.5,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      }
+    ],
+    "cross_asset_bottom_first3": [
+      {
+        "symbol": "VXX",
+        "asset_class": "commodity",
+        "structural_carry_pct": -65.0,
+        "spot_etf_basis_pct": null,
+        "carry_pct": -65.0,
+        "realized_vol_pct": 67.66,
+        "carry_per_vol": -0.961,
+        "price": 26.42,
+        "carry_pct_z": -1.78,
+        "carry_per_vol_z": -1.65,
+        "global_rank": 80,
+        "global_percentile": 0.0,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "UNG",
+        "asset_class": "commodity",
+        "structural_carry_pct": -25.0,
+        "spot_etf_basis_pct": 5.29,
+        "carry_pct": -12.88,
+        "realized_vol_pct": 42.66,
+        "carry_per_vol": -0.302,
+        "price": 10.94,
+        "carry_pct_z": -0.24,
+        "carry_per_vol_z": -0.34,
+        "global_rank": 79,
+        "global_percentile": 1.3,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "CHFUSD",
+        "asset_class": "fx",
+        "long_currency": "CHF",
+        "short_currency": "USD",
+        "long_rate_pct": -0.04,
+        "short_rate_pct": 3.62,
+        "carry_pct": -3.66,
+        "realized_vol_pct": null,
+        "carry_pct_z": -1.19,
+        "global_rank": 78,
+        "global_percentile": 2.5,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      }
+    ],
+    "risk_adjusted_leaders_first3": [
+      {
+        "symbol": "USO",
+        "asset_class": "commodity",
+        "structural_carry_pct": -8.0,
+        "spot_etf_basis_pct": 140.69,
+        "carry_pct": 51.48,
+        "realized_vol_pct": 70.95,
+        "carry_per_vol": 0.726,
+        "price": 140.92,
+        "carry_pct_z": 1.66,
+        "carry_per_vol_z": 1.72,
+        "global_rank": 1,
+        "global_percentile": 100.0,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "PFE",
+        "asset_class": "equity",
+        "div_yield_pct": 6.641,
+        "buyback_yield_pct": 0.0,
+        "financing_pct": 3.62,
+        "carry_pct": 3.021,
+        "realized_vol_pct": 22.27,
+        "carry_per_vol": 0.136,
+        "price": 25.9,
+        "carry_pct_z": 4.28,
+        "carry_per_vol_z": 2.99,
+        "global_rank": 6,
+        "global_percentile": 93.7,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      },
+      {
+        "symbol": "PEP",
+        "asset_class": "equity",
+        "div_yield_pct": 3.779,
+        "buyback_yield_pct": 0.0,
+        "financing_pct": 3.62,
+        "carry_pct": 0.159,
+        "realized_vol_pct": 21.63,
+        "carry_per_vol": 0.007,
+        "price": 150.57,
+        "carry_pct_z": 2.2,
+        "carry_per_vol_z": 1.64,
+        "global_rank": 13,
+        "global_percentile": 84.8,
+        "carry_change_7d_pct": null,
+        "carry_change_30d_pct": null
+      }
+    ]
+  },
+  "engine_contribution": {
+    "top_keys": [
+      "version",
+      "generated_at",
+      "elapsed_s",
+      "lookback_days",
+      "position_size_bps",
+      "outcome_windows",
+      "n_engines_evaluated",
+      "n_signals_in_window",
+      "n_signals_resolved",
+      "total_portfolio_pnl_bps",
+      "alpha_engine_share_pct",
+      "leader",
+      "laggard",
+      "engines",
+      "verdict_counts",
+      "methodology"
+    ],
+    "sample_engine": [
+      {
+        "engine": "khalid_index",
+        "n_signals_total": 299,
+        "n_signals_resolved": 392,
+        "resolve_rate_pct": 131.1,
+        "total_marginal_pnl_bps": 30945.41,
+        "per_window": {
+          "day_7": {
+            "n_resolved": 242,
+            "total_pnl_bps": 5435.54,
+            "mean_pnl_bps": 22.461,
+            "hit_rate_pct": 33.5,
+            "sharpe_annualized": 7.93
+          },
+          "day_30": {
+            "n_resolved": 150,
+            "total_pnl_bps": 25509.87,
+            "mean_pnl_bps": 170.066,
+            "hit_rate_pct": 36.7,
+            "sharpe_annualized": 11.26
+          }
+        },
+        "verdict": "ALPHA"
+      },
+      {
+        "engine": "ml_risk",
+        "n_signals_total": 299,
+        "n_signals_resolved": 392,
+        "resolve_rate_pct": 131.1,
+        "total_marginal_pnl_bps": 30945.41,
+        "per_window": {
+          "day_7": {
+            "n_resolved": 242,
+            "total_pnl_bps": 5435.54,
+            "mean_pnl_bps": 22.461,
+            "hit_rate_pct": 33.5,
+            "sharpe_annualized": 7.93
+          },
+          "day_30": {
+            "n_resolved": 150,
+            "total_pnl_bps": 25509.87,
+            "mean_pnl_bps": 170.066,
+            "hit_rate_pct": 36.7,
+            "sharpe_annualized": 11.26
+          }
+        },
+        "verdict": "ALPHA"
+      }
+    ],
+    "leader": {
+      "engine": "khalid_index",
+      "n_signals_total": 299,
+      "n_signals_resolved": 392,
+      "resolve_rate_pct": 131.1,
+      "total_marginal_pnl_bps": 30945.41,
+      "per_window": {
+        "day_7": {
+          "n_resolved": 242,
+          "total_pnl_bps": 5435.54,
+          "mean_pnl_bps": 22.461,
+          "hit_rate_pct": 33.5,
+          "sharpe_annualized": 7.93
+        },
+        "day_30": {
+          "n_resolved": 150,
+          "total_pnl_bps": 25509.87,
+          "mean_pnl_bps": 170.066,
+          "hit_rate_pct": 36.7,
+          "sharpe_annualized": 11.26
+        }
+      },
+      "verdict": "ALPHA"
+    },
+    "laggard": {
+      "engine": "momentum_gld",
+      "n_signals_total": 154,
+      "n_signals_resolved": 124,
+      "resolve_rate_pct": 80.5,
+      "total_marginal_pnl_bps": -6133.5,
+      "per_window": {
+        "day_7": {
+          "n_resolved": 124,
+          "total_pnl_bps": -6133.5,
+          "mean_pnl_bps": -49.464,
+          "hit_rate_pct": 9.7,
+          "sharpe_annualized": -7.28
+        }
+      },
+      "verdict": "TOXIC"
+    },
+    "verdict_counts": {
+      "ALPHA": 20,
+      "POSITIVE": 0,
+      "NEUTRAL": 2,
+      "DRAG": 1,
+      "TOXIC": 3,
+      "INSUFFICIENT_DATA": 37
+    }
+  },
+  "cross_asset_confirm": {
+    "top_keys": [
+      "version",
+      "generated_at",
+      "elapsed_s",
+      "regime",
+      "composite_score",
+      "components",
+      "signal_overlays",
+      "overlay_summary",
+      "methodology"
+    ],
+    "regime_state": null,
+    "components": {
+      "bonds": {
+        "state": "NEUTRAL",
+        "ust10_current_pct": 4.57,
+        "ust10_1d_bps": 0.0,
+        "ust10_5d_bps": 10.0,
+        "ust2s10s_bps": 49.0,
+        "ust2s10s_5d_change_bps": 2.0
+      },
+      "fx": {
+        "state": "DOLLAR_BID_RISK_OFF",
+        "dxy_current": 119.28,
+        "dxy_1d_change": 0.61,
+        "dxy_5d_change": 1.24
+      },
+      "credit": {
+        "state": "NEUTRAL",
+        "hy_oas_pct": 2.78,
+        "hy_oas_1d_bps": -2.0,
+        "hy_oas_5d_bps": 2.0,
+        "hy_oas_20d_bps": -8.0
+      },
+      "vol": {
+        "state": "VOL_NORMAL",
+        "vix_current": 16.76,
+        "vix_1d_change": -0.68,
+        "vix_5d_change": -0.5
+      }
+    },
+    "sample_overlay": [
+      {
+        "engine": "PM Decision",
+        "direction": "NEUTRAL",
+        "cross_asset_confirmed": true,
+        "confirmation_score": 0,
+        "veto_reasons": [],
+        "raw_signal_state": -1,
+        "raw_score": null
+      },
+      {
+        "engine": "Cross-Asset RV",
+        "direction": "NEUTRAL",
+        "cross_asset_confirmed": true,
+        "confirmation_score": 0,
+        "veto_reasons": [],
+        "raw_signal_state": 0,
+        "raw_score": null
+      }
+    ]
+  }
+}
