@@ -1,151 +1,72 @@
 {
-  "started_at": "2026-05-22T11:00:21.525100+00:00",
-  "steps": [
-    {
-      "step": "role_policy_MacroFinancialIntelligenceRole",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '5a64f8d8-509c-44d6-b74d-54013a814623', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:25 G"
-    },
-    {
-      "step": "role_policy_aiapi-market-analyzer-role-04o8b4dk",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': 'a9b95532-217f-4300-8dbe-0cfd1147cf16', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:25 G"
-    },
-    {
-      "step": "role_policy_bls-api-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '73d05f6f-05f2-41cf-b355-0d2fa3ed93de', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:25 G"
-    },
-    {
-      "step": "role_policy_chatgpt-agent-self-modify",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '36ff868d-90bd-465e-be66-e191b2834294', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_daily-liquidity-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '073d5fc4-cdf9-4d17-9a13-9b56f02a33c3', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_economyapi-lambda-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '9343a4e3-3774-4fe9-bbb2-c77e14deeaab', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_lambda-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '7982eba4-80da-4651-bbb3-e373c46dbdb1', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_ofr-lambda-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '3a8c7108-8078-4189-b99a-57b04f2323b5', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_openbb-lambda-role",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': 'dc5f9d09-a802-43a2-a7b8-0f2912ce830c', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "role_policy_scrapeMacroData-role-9pweui52",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '60ac750d-78a0-4278-8689-b94d718087c5', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:26 G"
-    },
-    {
-      "step": "iam_fleet_monitor",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '7825b255-e931-4a5b-bee0-19aadfc454db', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:51 G"
-    },
-    {
-      "step": "create_fleet_monitor",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': 'b16ef8b8-8dcb-4ba9-a7e0-f62eb9c486c1', 'HTTPStatusCode': 201, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:52 G"
-    },
-    {
-      "step": "put_rule",
-      "result": "OK",
-      "detail": "{'RuleArn': 'arn:aws:events:us-east-1:857687956942:rule/justhodl-fleet-error-monitor-5min', 'ResponseMetadata': {'RequestId': '6136109d-ad95-4eb9-b581"
-    },
-    {
-      "step": "add_eb_invoke_perm",
-      "result": "OK",
-      "detail": "{'ResponseMetadata': {'RequestId': '251eed30-4fbf-4f49-b368-fe543d8852ec', 'HTTPStatusCode': 201, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 11:00:52 G"
-    },
-    {
-      "step": "put_target",
-      "result": "OK",
-      "detail": "{'FailedEntryCount': 0, 'FailedEntries': [], 'ResponseMetadata': {'RequestId': 'a419a5f3-ccc9-4c87-9516-08fa3f84ab99', 'HTTPStatusCode': 200, 'HTTPHea"
-    }
-  ],
-  "dlq_retry_results": [
-    {
-      "lambda": "ofrapi",
-      "role": "ofr-lambda-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "ecb-data-daily-updater",
-      "role": "openbb-lambda-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "economyapi",
-      "role": "economyapi-lambda-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "aiapi-market-analyzer",
-      "role": "aiapi-market-analyzer-role-04o8b4dk",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "scrapeMacroData",
-      "role": "scrapeMacroData-role-9pweui52",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "daily-liquidity-report",
-      "role": "daily-liquidity-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "bls-employment-api-v2",
-      "role": "bls-api-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "fedliquidityapi",
-      "role": "lambda-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "fmp-stock-picks-agent",
-      "role": "economyapi-lambda-role",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "macro-financial-intelligence",
-      "role": "MacroFinancialIntelligenceRole",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "chatgpt-agent-api",
-      "role": "chatgpt-agent-self-modify",
-      "result": "UPDATED"
-    },
-    {
-      "lambda": "openbb-system2-api",
-      "role": "openbb-lambda-role",
-      "result": "UPDATED"
-    }
-  ],
-  "final": {
-    "n_lambdas": 393,
-    "n_with_dlq": 393,
-    "pct_dlq": 100.0,
-    "n_with_xray": 393,
-    "pct_xray": 100.0,
-    "fleet_monitor_deployed": true
+  "started_at": "2026-05-22T13:06:27.193385+00:00",
+  "lambda": {
+    "exists": true,
+    "last_modified": "2026-05-22T13:02:47.000+0000",
+    "memory": 512,
+    "timeout": 180,
+    "dlq": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+    "xray": "Active",
+    "env_keys": [
+      "DEDUPE_WINDOW_MINUTES",
+      "DLQ_DEPTH_THRESHOLD",
+      "DLQ_NAME",
+      "ERROR_RATE_THRESHOLD",
+      "LOOKBACK_MINUTES",
+      "MIN_INVOCATIONS",
+      "S3_BUCKET",
+      "SNS_ARN",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_CHAT_ID"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
   },
-  "completed_at": "2026-05-22T11:00:56.270753+00:00"
+  "eb_rule": {
+    "state": "ENABLED",
+    "expression": "rate(5 minutes)"
+  },
+  "eb_targets": [
+    {
+      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor"
+    }
+  ],
+  "role_policy_attached": true,
+  "invoke": {
+    "status": 200,
+    "function_error": "none",
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"n_scanned\\\": 403, \\\"n_alerts\\\": 0, \\\"suppressed\\\": 0, \\\"elapsed_s\\\": 18.84}\"}"
+  },
+  "s3_state": {
+    "n_lambdas_scanned": 403,
+    "n_alerts_raised": 0,
+    "dlq_status": {
+      "error": "An error occurred (AWS.SimpleQueueService.NonExistentQueue) when calling the GetQueueUrl operation: The specified queue does not exist or you do not have access to it."
+    },
+    "elapsed_s": 18.79,
+    "thresholds": {
+      "error_rate_pct": 5.0,
+      "min_invocations": 5,
+      "lookback_minutes": 15,
+      "dlq_depth": 1,
+      "dedupe_minutes": 60
+    },
+    "alerts": []
+  },
+  "recent_logs": [
+    "[WARNING]\t2026-05-22T13:01:23.270Z\t51d9bc5c-edad-47e0-a69c-efe9ad903962\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "[WARNING]\t2026-05-22T13:01:29.369Z\t51d9bc5c-edad-47e0-a69c-efe9ad903962\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "[WARNING]\t2026-05-22T13:01:29.402Z\t51d9bc5c-edad-47e0-a69c-efe9ad903962\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "END RequestId: 51d9bc5c-edad-47e0-a69c-efe9ad903962",
+    "REPORT RequestId: 51d9bc5c-edad-47e0-a69c-efe9ad903962\tDuration: 22300.33 ms\tBilled Duration: 22301 ms\tMemory Size: 512 MB\tMax Memory Used: 106 MB\t\nXRAY TraceId: 1-6a105392-7db958c93a79324b61a6235f\tSe",
+    "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244",
+    "START RequestId: 1d108144-4ebc-4a53-9ba8-17576a160db9 Version: $LATEST",
+    "[fleet-monitor] v1.0.0 run_id=20260522_130304 starting",
+    "[fleet-monitor] scanning 403 Lambdas",
+    "[WARNING]\t2026-05-22T13:03:10.032Z\t1d108144-4ebc-4a53-9ba8-17576a160db9\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "[WARNING]\t2026-05-22T13:03:23.378Z\t1d108144-4ebc-4a53-9ba8-17576a160db9\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "[WARNING]\t2026-05-22T13:03:23.380Z\t1d108144-4ebc-4a53-9ba8-17576a160db9\tConnection pool is full, discarding connection: monitoring.us-east-1.amazonaws.com. Connection pool size: 10",
+    "[fleet-monitor] done \u2014 0 alerts, 0 suppressed, 19.0s",
+    "END RequestId: 1d108144-4ebc-4a53-9ba8-17576a160db9",
+    "REPORT RequestId: 1d108144-4ebc-4a53-9ba8-17576a160db9\tDuration: 19050.59 ms\tBilled Duration: 19610 ms\tMemory Size: 512 MB\tMax Memory Used: 116 MB\tInit Duration: 558.54 ms\t\nXRAY TraceId: 1-6a105407-63"
+  ]
 }
