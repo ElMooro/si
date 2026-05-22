@@ -1,40 +1,58 @@
 {
-  "started_at": "2026-05-22T22:43:31.513637+00:00",
-  "engines": {
-    "justhodl-carry-surface": {
-      "name": "justhodl-carry-surface",
-      "expected_output": "data/carry-surface.json",
-      "lambda_exists": false,
-      "s3_exists": false,
-      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+  "started_at": "2026-05-22T22:47:40.617985+00:00",
+  "justhodl-carry-surface": {
+    "exists": false,
+    "error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-carry-surface"
+  },
+  "justhodl-engine-contribution": {
+    "exists": false,
+    "error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-contribution"
+  },
+  "justhodl-earnings-nlp": {
+    "exists": true,
+    "memory": 512,
+    "timeout": 600,
+    "description": "Earnings call NLP via FMP + Claude Haiku \u2014 tone, guidance, QoQ shifts",
+    "env_keys": [
+      "ANTHROPIC_API_KEY",
+      "FMP_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "last_modified": "2026-05-22T10:55:31.000+0000",
+    "code_size": 22366,
+    "code_lines": 578,
+    "out_key": null,
+    "imports": [
+      "import io,",
+      "from datetime import datetime,",
+      "from concurrent.futures import ThreadPoolExecutor,",
+      "import boto3"
+    ],
+    "functions": [
+      "http_get_json",
+      "s3_get_json",
+      "s3_put_json",
+      "get_latest_transcript_meta",
+      "fetch_transcript_content",
+      "anthropic_score_transcript",
+      "analyze_ticker",
+      "get_prior_quarter_tone",
+      "classify_tone_shift",
+      "market_summary",
+      "get_chat_id",
+      "send_telegram",
+      "lambda_handler"
+    ],
+    "lambda_handler": "def lambda_handler(event, context):\n    started = time.time()\n    print(f\"=== earnings-nlp v{VERSION} \u00b7 {datetime.now(timezone.utc).isoformat()} ===\")\n    print(f\"  universe: {len(UNIVERSE)} tickers\")\n    print(f\"  ANTHROPIC_API_KEY present: {bool(ANTHROPIC_API_KEY)}\")\n\n    # Load prior state for regime comparison\n    prior = s3_get_json(OUTPUT_KEY) or {}\n    prior_regime = (prior.get(\"market_summary\") or {}).get(\"regime\")\n\n    # \u2500\u2500\u2500 Parallel ticker analysis \u2500\u2500\u2500\n    results = []\n    with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as ex:\n        futures = {ex.submit(analyze_ticker, t): t for t in UNIVERSE}\n        for f in as_completed(futures):\n            r = f.result()\n            tkr = r.get(\"ticker\")\n            if r.get(\"err\"):\n                print(f\"  \u2717 {tkr}: {r['err']}\")\n            else:\n                tone = r.get(\"management_tone\")\n                cached = \"[cache]\" if r.get(\"from_cache\") else \"[new]\"\n                print(f\"  \u2713 {tkr} {r.get('period')} {cached} tone={tone} guidance={r.get('guidance_direction')}\")\n            results.append(r)\n\n    # \u2500\u2500\u2500 Compute QoQ tone shifts \u2500\u2500\u2500\n    by_ticker = {}\n    for r in results:\n        if not r.get(\"management_tone\") and r.get(\"management_tone\") != 0:\n            by_ticker[r[\"ticker\"]] = {\"err\": r.get(\"err\"), \"period\": r.get(\"period\")}\n            continue\n        prior_tone, prior_period = get_prior_quarter_tone(r[\"ticker\"], r[\"period\"])\n        shift = (r[\"management_tone\"] - prior_tone) if prior_tone is not None else None\n        entry = {k: v for k, v in r.items() if not k.startswith(\"_\") and k != \"started_at\"}\n        entry[\"prior_quarter_tone\"] = prior_tone\n        entry[\"prior_quarter_period\"] = prior_period\n        entry[\"tone_shift_pp\"] = shift\n        entry[\"shift_classification\"] = classify_tone_shift(shift)\n        by_ticker[r[\"ticker\"]] = entry\n\n    # \u2500\u2500\u2500 Ranked tone shifts \u2500\u2500\u2500\n    has_shift = [(k, v) for k, v in by_ticker.items()\n                  if v.get(\"tone_shift_pp\") is not None]\n    improvers = sorted(has_shift, key=lambda x: -x[1][\"tone_shift_pp\"])[:10]\n    deteriorators = sorted(has_shift, key=lambda x: x[1][\"tone_shift_pp\"])[:10]\n\n    ranked = {\n        \"biggest_improvers\": [\n            {\"ticker\": k, \"tone_shift_pp\": v[\"tone_shift_pp\"],\n              \"current_tone\": v.get(\"management_tone\"),\n              \"prior_tone\": v.get(\"prior_quarter_tone\"),\n              \"guidance\": v.get(\"guidance_direction\"),\n              \"summary\": v.get(\"summary\", \"\")[:140]}\n            for k, v",
+    "cw_7d": {
+      "invocations": 5,
+      "errors": 0
     },
-    "justhodl-engine-contribution": {
-      "name": "justhodl-engine-contribution",
-      "expected_output": "data/engine-contributions.json",
-      "lambda_exists": false,
-      "s3_exists": false,
-      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
-    },
-    "justhodl-cross-asset-confirm": {
-      "name": "justhodl-cross-asset-confirm",
-      "expected_output": "data/cross-asset-confirm.json",
-      "lambda_exists": false,
-      "s3_exists": false,
-      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
-    },
-    "justhodl-earnings-linguistic": {
-      "name": "justhodl-earnings-linguistic",
-      "expected_output": "data/earnings-linguistic.json",
-      "lambda_exists": false,
-      "s3_exists": false,
-      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
-    },
-    "justhodl-engine-robustness": {
-      "name": "justhodl-engine-robustness",
-      "expected_output": "data/engine-robustness.json",
-      "lambda_exists": false,
-      "s3_exists": false,
-      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    "live_invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.1.0\\\", \\\"n_tickers\\\": 30, \\\"n_with_data\\\": 29, \\\"n_with_err\\\": 1, \\\"regime\\\": \\\"EARNINGS_STRENGTH\\\", \\\"median_tone\\\": 72, \\\"n_improvers\\\": 3, \\\"n_deteriorators\\\": 1, \\\"alert_sent\\\": true, \\\"elapsed_seconds\\\": 2.1}\"}"
     }
   }
 }
