@@ -1,39 +1,55 @@
 {
-  "started_at": "2026-05-22T11:05:18.667035+00:00",
-  "fleet_monitor_invoke": {
-    "status": 200,
-    "function_error": "none",
-    "payload": {
-      "checked_at": "2026-05-22T11:05:18.893216+00:00",
-      "lookback_min": 15,
-      "lambdas_scanned": 393,
-      "lambdas_alerting": 0,
-      "alerts": [],
-      "threshold_pct": 5.0
+  "started_at": "2026-05-22T13:15:11.800481+00:00",
+  "justhodl-fleet-error-monitor": {
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-22T13:02:47.000+0000",
+      "dlq": true,
+      "xray": true,
+      "memory": 512,
+      "timeout": 180
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "rate(5 minutes)"
     }
   },
-  "eb_rule": {
-    "state": "ENABLED",
-    "expression": "rate(5 minutes)",
-    "arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-fleet-error-monitor-5min"
+  "justhodl-fleet-freshness-monitor": {
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-22T13:11:54.000+0000",
+      "dlq": true,
+      "xray": true,
+      "memory": 512,
+      "timeout": 300
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "rate(30 minutes)"
+    }
   },
-  "eb_targets": [
-    "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor"
-  ],
-  "dlq_state": {
-    "visible_messages": "1",
-    "in_flight": "0",
-    "created_ts": "1779447312",
-    "queue_url": "https://sqs.us-east-1.amazonaws.com/857687956942/justhodl-dlq-default"
+  "freshness_bootstrap": {
+    "status": 200,
+    "function_error": "Unhandled",
+    "response": "{\"errorMessage\": \"'list' object has no attribute 'get'\", \"errorType\": \"AttributeError\", \"requestId\": \"78306f82-3e60-4a46-8bf9-acfcaf175439\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 217, in lambda_handler\\n    result = check_key(key, meta.get('max_age_h', DEFAULT_MAX_AGE_H))\\n\"]}"
   },
-  "sns_subscriptions": [],
-  "foundation_state": {
-    "n_lambdas": 393,
-    "pct_dlq": 100.0,
-    "pct_xray": 100.0,
-    "n_alarms": 26,
-    "fleet_monitor_running": true,
-    "fleet_monitor_cadence": "rate(5 minutes)"
+  "manifest": {
+    "size": 505,
+    "last_modified": "2026-05-22T11:09:10+00:00",
+    "n_keys": 4,
+    "sample": [
+      "rules",
+      "exclude_prefixes",
+      "admin_only_keys",
+      "key_overrides"
+    ]
   },
-  "completed_at": "2026-05-22T11:05:38.162098+00:00"
+  "freshness_run2": {
+    "status": 200,
+    "function_error": "Unhandled",
+    "response": "{\"errorMessage\": \"'list' object has no attribute 'get'\", \"errorType\": \"AttributeError\", \"requestId\": \"25bc0dfd-24a8-4e60-95f3-ee061e2dc10c\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 217, in lambda_handler\\n    result = check_key(key, meta.get('max_age_h', DEFAULT_MAX_AGE_H))\\n\"]}"
+  },
+  "s3_state": {
+    "error": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+  }
 }
