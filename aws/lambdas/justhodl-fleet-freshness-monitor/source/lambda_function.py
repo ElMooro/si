@@ -7,30 +7,32 @@ Detects silent failures the fleet-error-monitor can't see:
   - S3 freshness drift (CDN cache hits, partition writes to wrong key)
   - Provider API silent degradation (FRED returns 0 rows but no error)
 
-How it works:
-  1. Maintain a manifest at data/_freshness-manifest.json mapping
-     S3 keys → expected max age (hours)
-  2. Every 30 min, check each key's LastModified vs now
-  3. If age > expected_max_age * 1.5, alert
-  4. If key missing entirely (404), alert critical
+Uses the EXISTING manifest schema at data/_freshness-manifest.json:
+{
+  "rules": [{"prefix": "data/", "default_max_age_h": 26.0}],
+  "exclude_prefixes": ["data/archive/", "data/_archive/", ...],
+  "admin_only_keys": ["data/khalid-config.json", ...],
+  "key_overrides": {"data/options-flow.json": 0.2, ...}
+}
 
-Manifest format:
-  {
-    "data/foo.json": {"max_age_h": 24, "lambda": "justhodl-foo-engine",
-                       "category": "macro"},
-    ...
-  }
+Logic:
+  - Walk every rule's prefix via list_objects_v2
+  - Skip excluded prefixes + admin_only_keys
+  - Lookup max_age_h from key_overrides first, else rule's default
+  - head_object + compare LastModified
+  - Alert if age > max_age_h * ALERT_RATIO
 
-Manifest is bootstrapped from existing /data/ S3 keys + Lambda schedules,
-then auto-maintained: any Lambda that successfully writes a key gets
-its expected-max-age set from the schedule interval.
+Output:
+  data/_freshness-monitor.json with last run state
+  Telegram + SNS alerts (deduped 4h per key)
 """
-import os, json, time, urllib.request, urllib.parse, traceback
+import os, json, time, urllib.request, urllib.parse
 import boto3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from botocore.exceptions import ClientError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -38,8 +40,9 @@ SNS_ARN = os.environ.get('SNS_ARN', f'arn:aws:sns:{REGION}:{ACCOUNT}:justhodl-fl
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
 DEDUPE_HOURS = int(os.environ.get('DEDUPE_HOURS', '4'))
-DEFAULT_MAX_AGE_H = float(os.environ.get('DEFAULT_MAX_AGE_H', '26'))  # daily + 2h buffer
-ALERT_RATIO = float(os.environ.get('ALERT_RATIO', '1.5'))  # alert at 1.5x max_age
+DEFAULT_MAX_AGE_H = float(os.environ.get('DEFAULT_MAX_AGE_H', '26'))
+ALERT_RATIO = float(os.environ.get('ALERT_RATIO', '1.5'))
+MAX_KEYS_PER_RULE = int(os.environ.get('MAX_KEYS_PER_RULE', '10000'))
 
 s3 = boto3.client('s3', region_name=REGION)
 sns = boto3.client('sns', region_name=REGION)
@@ -57,8 +60,8 @@ def send_telegram(msg):
             'disable_web_page_preview': 'true',
         }).encode()
         req = urllib.request.Request(url, data=data, method='POST')
-        resp = urllib.request.urlopen(req, timeout=10)
-        return resp.status == 200
+        urllib.request.urlopen(req, timeout=10)
+        return True
     except Exception as e:
         print(f"[telegram] failed: {e}")
         return False
@@ -74,89 +77,89 @@ def publish_sns(subject, msg):
 
 
 def load_manifest():
-    """Load the freshness manifest from S3."""
+    """Load the rules-based manifest from S3. Returns None if missing."""
     try:
         obj = s3.get_object(Bucket=BUCKET, Key='data/_freshness-manifest.json')
         return json.loads(obj['Body'].read().decode())
     except ClientError as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
+        if e.response['Error']['Code'] in ('NoSuchKey', '404'):
             return None
         raise
 
 
-def bootstrap_manifest():
-    """First-time manifest creation: scan data/ prefix, infer ages."""
-    print("[bootstrap] no manifest — scanning data/ prefix...")
-    manifest = {}
-    paginator = s3.get_paginator('list_objects_v2')
-    
-    # Skip helpers and history
-    skip_prefixes = ['data/history/', 'data/snapshots/', 'data/_', 'data/imports/']
-    
-    for page in paginator.paginate(Bucket=BUCKET, Prefix='data/'):
-        for obj in page.get('Contents', []):
-            key = obj['Key']
-            # Skip directory markers and certain prefixes
-            if key.endswith('/') or any(key.startswith(p) for p in skip_prefixes):
-                continue
-            # Only JSON outputs
-            if not key.endswith('.json'):
-                continue
-            # Infer category for grouping
-            category = 'core'
-            if '/options/' in key: category = 'options'
-            elif '/macro' in key or '/fed' in key or '/treasury' in key: category = 'macro'
-            elif '/crypto' in key: category = 'crypto'
-            elif '/screener/' in key: category = 'screener'
-            elif '/predictability' in key: category = 'fundamentals'
-            
-            manifest[key] = {
-                'max_age_h': DEFAULT_MAX_AGE_H,
-                'category': category,
-                'bootstrapped_at': datetime.now(timezone.utc).isoformat(),
-                'last_seen_size': obj.get('Size', 0),
-            }
-    
-    print(f"[bootstrap] {len(manifest)} keys added to manifest")
-    
-    # Save manifest
-    s3.put_object(
-        Bucket=BUCKET,
-        Key='data/_freshness-manifest.json',
-        Body=json.dumps(manifest, default=str, indent=2).encode(),
-        ContentType='application/json',
-        CacheControl='no-store',
+def is_excluded(key, manifest):
+    """Check if a key should be skipped (excluded prefix or admin-only)."""
+    excl_prefixes = manifest.get('exclude_prefixes', []) or []
+    if any(key.startswith(p) for p in excl_prefixes):
+        return True
+    admin_only = set(manifest.get('admin_only_keys', []) or [])
+    if key in admin_only:
+        return True
+    # Skip the monitor's own state files (would never go stale by themselves)
+    self_keys = (
+        'data/_freshness-manifest.json',
+        'data/_freshness-monitor.json',
+        'data/_freshness-alert-history.json',
+        'data/_fleet-monitor.json',
+        'data/_fleet-monitor-alert-history.json',
     )
-    return manifest
+    if key in self_keys:
+        return True
+    return False
 
 
-def check_key(key, expected_max_age_h, alert_ratio=ALERT_RATIO):
-    """Check one S3 key's freshness."""
-    try:
-        head = s3.head_object(Bucket=BUCKET, Key=key)
-        last_modified = head['LastModified']
-        age_h = (datetime.now(timezone.utc) - last_modified).total_seconds() / 3600
-        alert_threshold = expected_max_age_h * alert_ratio
-        
-        if age_h > alert_threshold:
-            return {
-                'key': key,
-                'status': 'STALE',
-                'age_h': round(age_h, 1),
-                'expected_max_h': expected_max_age_h,
-                'last_modified': last_modified.isoformat(),
-                'size': head['ContentLength'],
-            }
-        return {'key': key, 'status': 'FRESH', 'age_h': round(age_h, 1)}
-    except ClientError as e:
-        if e.response['Error']['Code'] == '404':
-            return {
-                'key': key,
-                'status': 'MISSING',
-                'age_h': None,
-                'expected_max_h': expected_max_age_h,
-            }
-        return {'key': key, 'status': 'ERROR', 'error': str(e)[:200]}
+def resolve_max_age(key, rule, manifest):
+    """Lookup the max-age threshold for a key. Override > rule default."""
+    overrides = manifest.get('key_overrides', {}) or {}
+    if key in overrides:
+        try:
+            return float(overrides[key])
+        except Exception:
+            pass
+    return float(rule.get('default_max_age_h', DEFAULT_MAX_AGE_H))
+
+
+def list_keys_under_rule(rule):
+    """Enumerate all keys under a rule's prefix (cap at MAX_KEYS_PER_RULE)."""
+    prefix = rule.get('prefix', 'data/')
+    keys = []
+    paginator = s3.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
+        for obj in page.get('Contents', []):
+            keys.append(obj)
+            if len(keys) >= MAX_KEYS_PER_RULE:
+                return keys
+    return keys
+
+
+def evaluate_key(obj, rule, manifest):
+    """Evaluate one S3 object's freshness."""
+    key = obj['Key']
+    if is_excluded(key, manifest):
+        return None
+    # Skip directory markers / non-JSON outputs
+    if key.endswith('/'):
+        return None
+    if not key.endswith('.json'):
+        return None
+    
+    max_age_h = resolve_max_age(key, rule, manifest)
+    last_modified = obj['LastModified']
+    age_h = (datetime.now(timezone.utc) - last_modified).total_seconds() / 3600
+    alert_threshold = max_age_h * ALERT_RATIO
+    
+    result = {
+        'key': key,
+        'max_age_h': max_age_h,
+        'age_h': round(age_h, 2),
+        'last_modified': last_modified.isoformat(),
+        'size': obj.get('Size', 0),
+    }
+    if age_h > alert_threshold:
+        result['status'] = 'STALE'
+    else:
+        result['status'] = 'FRESH'
+    return result
 
 
 def load_alert_history():
@@ -193,90 +196,79 @@ def lambda_handler(event=None, context=None):
     run_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     print(f"[freshness-monitor] v{VERSION} run_id={run_id}")
     
-    # 1. Load or bootstrap manifest
     manifest = load_manifest()
     if manifest is None:
-        manifest = bootstrap_manifest()
-        # First run — return without alerting (everything is "stale" relative to no baseline)
-        return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'bootstrapped': True,
-                'n_keys_tracked': len(manifest),
-                'elapsed_s': round(time.time() - started, 2),
-            }),
-        }
+        print("[freshness-monitor] manifest missing — cannot run")
+        return {'statusCode': 500, 'body': json.dumps({'error': 'manifest missing'})}
     
-    # 2. Check each key
-    print(f"[freshness-monitor] checking {len(manifest)} keys...")
-    results = {'STALE': [], 'MISSING': [], 'FRESH': [], 'ERROR': []}
+    rules = manifest.get('rules', []) or []
+    if not rules:
+        return {'statusCode': 500, 'body': json.dumps({'error': 'no rules in manifest'})}
+    print(f"[freshness-monitor] {len(rules)} rule(s) in manifest")
     
-    # We check serially because head_object is fast (~5ms each)
-    # For 1000 keys that's 5 seconds — fine within 30-min interval
-    for key, meta in manifest.items():
-        result = check_key(key, meta.get('max_age_h', DEFAULT_MAX_AGE_H))
-        status = result.get('status', 'ERROR')
-        if status in results:
-            result['category'] = meta.get('category', 'unknown')
-            results[status].append(result)
+    # Walk each rule
+    all_results = []
+    for rule in rules:
+        objs = list_keys_under_rule(rule)
+        print(f"[freshness-monitor] rule prefix={rule.get('prefix')} → {len(objs)} objects")
+        for obj in objs:
+            r = evaluate_key(obj, rule, manifest)
+            if r is not None:
+                all_results.append(r)
     
-    print(f"[freshness-monitor] STALE={len(results['STALE'])}  MISSING={len(results['MISSING'])}  FRESH={len(results['FRESH'])}  ERROR={len(results['ERROR'])}")
+    stale = [r for r in all_results if r.get('status') == 'STALE']
+    fresh = [r for r in all_results if r.get('status') == 'FRESH']
+    print(f"[freshness-monitor] tracked={len(all_results)}  stale={len(stale)}  fresh={len(fresh)}")
     
-    # 3. Dedupe alerts
-    alert_history = load_alert_history()
-    new_stale = [r for r in results['STALE'] if should_alert(r['key'], alert_history)]
-    new_missing = [r for r in results['MISSING'] if should_alert(r['key'], alert_history)]
+    # Dedupe alerts
+    history = load_alert_history()
+    new_alerts = [r for r in stale if should_alert(r['key'], history)]
+    suppressed = len(stale) - len(new_alerts)
     
-    # 4. Send digest
+    # Send digest
     sent_telegram = False
     sent_sns = False
-    if new_stale or new_missing:
-        lines = [f"🕰️ *FRESHNESS MONITOR* — {len(new_stale)+len(new_missing)} new staleness alert(s)"]
-        
-        if new_missing:
-            lines.append(f"\n*🔴 MISSING ({len(new_missing)})*")
-            for r in new_missing[:8]:
-                lines.append(f"• `{r['key']}` (expected ≤{r['expected_max_h']}h)")
-        
-        if new_stale:
-            # Sort by age descending
-            new_stale.sort(key=lambda r: r.get('age_h', 0), reverse=True)
-            lines.append(f"\n*🟡 STALE ({len(new_stale)})*")
-            for r in new_stale[:8]:
-                lines.append(f"• `{r['key']}` — {r['age_h']}h old (expected ≤{r['expected_max_h']}h)")
-            if len(new_stale) > 8:
-                lines.append(f"_(+{len(new_stale)-8} more, see data/_freshness-monitor.json)_")
-        
-        suppressed = (len(results['STALE']) + len(results['MISSING'])) - (len(new_stale) + len(new_missing))
+    if new_alerts:
+        new_alerts.sort(key=lambda r: r['age_h'] / r['max_age_h'], reverse=True)
+        lines = [f"🕰️ *FRESHNESS MONITOR* — {len(new_alerts)} new stale key(s)"]
+        for r in new_alerts[:12]:
+            ratio = r['age_h'] / r['max_age_h']
+            severity = "🔴" if ratio > 3 else "🟡"
+            lines.append(f"{severity} `{r['key']}`")
+            lines.append(f"     {r['age_h']}h old (max {r['max_age_h']}h, ratio {ratio:.1f}×)")
+        if len(new_alerts) > 12:
+            lines.append(f"\n_+{len(new_alerts)-12} more, see data/_freshness-monitor.json_")
         if suppressed:
-            lines.append(f"\n_({suppressed} additional suppressed by {DEDUPE_HOURS}h dedupe)_")
-        
+            lines.append(f"\n_({suppressed} suppressed by {DEDUPE_HOURS}h dedupe)_")
         digest = "\n".join(lines)
         sent_telegram = send_telegram(digest)
-        sent_sns = publish_sns(f"Freshness alert: {len(new_stale)+len(new_missing)} stale", digest)
+        sent_sns = publish_sns(f"Freshness: {len(new_alerts)} stale", digest)
         
-        # Update dedupe history
         now_iso = datetime.now(timezone.utc).isoformat()
-        for r in new_stale + new_missing:
-            alert_history[r['key']] = now_iso
-        save_alert_history(alert_history)
+        for r in new_alerts:
+            history[r['key']] = now_iso
+        save_alert_history(history)
     
-    # 5. Write run state
+    # Run state
+    # Sort stale by ratio (most-stale first) for the dashboard
+    stale_sorted = sorted(stale, key=lambda r: r['age_h'] / r['max_age_h'], reverse=True)
     state = {
         'version': VERSION,
         'run_id': run_id,
         'generated_at': datetime.now(timezone.utc).isoformat(),
-        'n_keys_tracked': len(manifest),
-        'counts': {k: len(v) for k, v in results.items()},
-        'alerts_raised': len(new_stale) + len(new_missing),
-        'stale': results['STALE'][:30],  # top 30 for dashboard
-        'missing': results['MISSING'],
+        'n_keys_tracked': len(all_results),
+        'n_stale': len(stale),
+        'n_fresh': len(fresh),
+        'n_alerts_raised': len(new_alerts),
+        'n_alerts_suppressed': suppressed,
+        'stale_top_50': stale_sorted[:50],
         'elapsed_s': round(time.time() - started, 2),
         'thresholds': {
             'default_max_age_h': DEFAULT_MAX_AGE_H,
             'alert_ratio': ALERT_RATIO,
             'dedupe_hours': DEDUPE_HOURS,
         },
+        'manifest_rules': rules,
         'telegram_sent': sent_telegram,
         'sns_sent': sent_sns,
     }
@@ -288,15 +280,15 @@ def lambda_handler(event=None, context=None):
         CacheControl='max-age=60, public',
     )
     
-    print(f"[freshness-monitor] done — {len(new_stale)} stale, {len(new_missing)} missing, {round(time.time()-started,1)}s")
+    print(f"[freshness-monitor] done — {len(new_alerts)} alerts, {suppressed} suppressed, {round(time.time()-started,1)}s")
     return {
         'statusCode': 200,
         'body': json.dumps({
-            'n_tracked': len(manifest),
-            'stale': len(results['STALE']),
-            'missing': len(results['MISSING']),
-            'fresh': len(results['FRESH']),
-            'alerts': len(new_stale) + len(new_missing),
+            'n_tracked': len(all_results),
+            'stale': len(stale),
+            'fresh': len(fresh),
+            'alerts': len(new_alerts),
+            'suppressed': suppressed,
             'elapsed_s': round(time.time() - started, 2),
         }),
     }
