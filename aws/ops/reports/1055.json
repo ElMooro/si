@@ -1,0 +1,51 @@
+{
+  "started_at": "2026-05-22T11:53:49.601194+00:00",
+  "steps": [
+    {
+      "step": "cleanup_stale_notif",
+      "result": "OK",
+      "detail": "nothing to clean"
+    },
+    {
+      "step": "enable_eventbridge",
+      "result": "OK",
+      "detail": "EventBridge mode enabled"
+    },
+    {
+      "step": "create_rule",
+      "result": "OK",
+      "detail": "arn:aws:events:us-east-1:857687956942:rule/justhodl-signal-registry-s3-events"
+    },
+    {
+      "step": "add_target",
+      "result": "OK",
+      "detail": "target added"
+    },
+    {
+      "step": "lambda_eb_perm",
+      "result": "OK",
+      "detail": "permission added"
+    },
+    {
+      "step": "remove_s3_perm",
+      "result": "OK",
+      "detail": "removed"
+    },
+    {
+      "step": "update_lambda_code",
+      "result": "OK",
+      "detail": "code updated"
+    },
+    {
+      "step": "live_verify_eb",
+      "result": "OK",
+      "detail": "1 record(s) found, latest_etag=c835227e3ebb1cfd16008f5e8dfc850d"
+    }
+  ],
+  "completed_at": "2026-05-22T11:54:15.909766+00:00",
+  "summary": {
+    "all_ok": true,
+    "n_steps": 8,
+    "n_ok": 8
+  }
+}
