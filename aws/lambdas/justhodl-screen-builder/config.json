@@ -1,0 +1,27 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Custom Screen Builder (R4). Programmable filter engine over consolidated 60+ metric universe (10 upstream engines). Actions: build_universe (daily 14 UTC), query, save_screen, load_screen, list_screens. Greenblatt/Buffett/Burry/custom.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "function_url": {
+    "AuthType": "NONE",
+    "Cors": {
+      "AllowOrigins": ["*"],
+      "AllowMethods": ["POST", "GET", "OPTIONS"],
+      "AllowHeaders": ["Content-Type"]
+    }
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-screen-builder-universe-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Screen Builder universe build daily 14 UTC",
+    "input": "{\"action\": \"build_universe\"}"
+  }
+}
