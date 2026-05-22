@@ -1,0 +1,442 @@
+{
+  "started_at": "2026-05-22T09:20:42.778037+00:00",
+  "Q1_portfolio_catalysts": {
+    "log_group": "/aws/lambda/justhodl-portfolio-catalysts",
+    "n_recent_streams": 20,
+    "streams_recent": [
+      {
+        "name": "2026/05/21/[$LATEST]ee5a9319e4ee43ea854b8fc890f5d951",
+        "last_event": "2026-05-21T23:03:33.237000+00:00",
+        "stored_bytes": 0
+      }
+    ],
+    "sample_event_messages": [
+      {
+        "ts": "2026-05-21T23:00:38.444000+00:00",
+        "msg": "INIT_START Runtime Version: python:3.12.mainlinev2.v7\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.111000+00:00",
+        "msg": "START RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66 Version: $LATEST\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.111000+00:00",
+        "msg": "=== PORTFOLIO CATALYSTS v1.0.0 \u00b7 2026-05-21T23:00:39.111700+00:00 ===\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.564000+00:00",
+        "msg": "cal events: 15\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.564000+00:00",
+        "msg": "upcoming earnings: 13\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.617000+00:00",
+        "msg": "DDB: 0 positions + 0 watchlist\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.678000+00:00",
+        "msg": "[ERROR] KeyError: 'T-0'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 426, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0\"earnings_this_week\": len(earnings_buckets[\"T-0\"]) +"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.681000+00:00",
+        "msg": "END RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\n"
+      },
+      {
+        "ts": "2026-05-21T23:00:39.681000+00:00",
+        "msg": "REPORT RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\tDuration: 569.45 ms\tBilled Duration: 1233 ms\tMemory Size: 512 MB\tMax Memory Used: 105 MB\tInit Duration: 662.89 ms\t\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:40.946000+00:00",
+        "msg": "START RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66 Version: $LATEST\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:40.947000+00:00",
+        "msg": "=== PORTFOLIO CATALYSTS v1.0.0 \u00b7 2026-05-21T23:01:40.947604+00:00 ===\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.403000+00:00",
+        "msg": "cal events: 15\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.403000+00:00",
+        "msg": "upcoming earnings: 13\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.412000+00:00",
+        "msg": "DDB: 0 positions + 0 watchlist\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.485000+00:00",
+        "msg": "[ERROR] KeyError: 'T-0'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 426, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0\"earnings_this_week\": len(earnings_buckets[\"T-0\"]) +"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.487000+00:00",
+        "msg": "END RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\n"
+      },
+      {
+        "ts": "2026-05-21T23:01:41.487000+00:00",
+        "msg": "REPORT RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\tDuration: 540.59 ms\tBilled Duration: 541 ms\tMemory Size: 512 MB\tMax Memory Used: 107 MB\t\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:32.730000+00:00",
+        "msg": "START RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66 Version: $LATEST\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:32.730000+00:00",
+        "msg": "=== PORTFOLIO CATALYSTS v1.0.0 \u00b7 2026-05-21T23:03:32.730746+00:00 ===\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.120000+00:00",
+        "msg": "cal events: 15\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.120000+00:00",
+        "msg": "upcoming earnings: 13\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.179000+00:00",
+        "msg": "DDB: 0 positions + 0 watchlist\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.235000+00:00",
+        "msg": "[ERROR] KeyError: 'T-0'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 426, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0\"earnings_this_week\": len(earnings_buckets[\"T-0\"]) +"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.237000+00:00",
+        "msg": "END RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\n"
+      },
+      {
+        "ts": "2026-05-21T23:03:33.237000+00:00",
+        "msg": "REPORT RequestId: 07ff8434-2ec8-481d-983e-22c3d7496f66\tDuration: 506.97 ms\tBilled Duration: 507 ms\tMemory Size: 512 MB\tMax Memory Used: 108 MB\t\n"
+      }
+    ],
+    "line_counts": {
+      "REPORT": 3,
+      "Init Duration": 1,
+      "ERROR_or_Exception": 3,
+      "Task_timed_out": 0,
+      "total_in_sample": 25
+    },
+    "billed_duration_ms": {
+      "min": 507,
+      "max": 1233,
+      "median": 541,
+      "count": 3
+    },
+    "daily_inv_vs_err": {
+      "2026-05-15": {
+        "inv": 3,
+        "err": 0
+      },
+      "2026-05-16": {
+        "inv": 5,
+        "err": 3
+      },
+      "2026-05-17": {
+        "inv": 5,
+        "err": 3
+      },
+      "2026-05-18": {
+        "inv": 7,
+        "err": 6
+      },
+      "2026-05-19": {
+        "inv": 9,
+        "err": 9
+      },
+      "2026-05-20": {
+        "inv": 7,
+        "err": 6
+      },
+      "2026-05-21": {
+        "inv": 7,
+        "err": 6
+      }
+    }
+  },
+  "Q2_r_series_schedule_history": {
+    "justhodl-sec-filing-diff": {
+      "lambda_last_modified": "2026-05-22T01:05:33.852+0000",
+      "schedules": [
+        {
+          "name": "justhodl-sec-filing-diff-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 12 * * ? *)",
+          "creation_date": "2026-05-22T01:05:38.820000+00:00",
+          "last_modification_date": "2026-05-22T01:05:38.820000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-transcript-indexer": {
+      "lambda_last_modified": "2026-05-22T01:08:05.710+0000",
+      "schedules": [
+        {
+          "name": "justhodl-transcript-indexer-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 3 * * ? *)",
+          "creation_date": "2026-05-22T01:08:08.942000+00:00",
+          "last_modification_date": "2026-05-22T01:08:08.942000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-transcript-query": {
+      "lambda_last_modified": "2026-05-22T01:08:11.078+0000",
+      "schedules": []
+    },
+    "justhodl-peer-comparison": {
+      "lambda_last_modified": "2026-05-22T01:10:32.120+0000",
+      "schedules": [
+        {
+          "name": "justhodl-peer-comparison-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 13 * * ? *)",
+          "creation_date": "2026-05-22T01:10:38.162000+00:00",
+          "last_modification_date": "2026-05-22T01:10:38.162000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-screen-builder": {
+      "lambda_last_modified": "2026-05-22T01:12:40.904+0000",
+      "schedules": [
+        {
+          "name": "justhodl-screen-builder-universe-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 14 * * ? *)",
+          "creation_date": "2026-05-22T01:12:44.915000+00:00",
+          "last_modification_date": "2026-05-22T01:12:44.915000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-fedwatch-rate-probability": {
+      "lambda_last_modified": "2026-05-22T01:17:40.785+0000",
+      "schedules": [
+        {
+          "name": "justhodl-fedwatch-rate-probability-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 23 * * ? *)",
+          "creation_date": "2026-05-22T01:17:46.022000+00:00",
+          "last_modification_date": "2026-05-22T01:17:46.022000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-supply-chain-linkage": {
+      "lambda_last_modified": "2026-05-22T01:19:33.398+0000",
+      "schedules": [
+        {
+          "name": "justhodl-supply-chain-linkage-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 15 * * ? *)",
+          "creation_date": "2026-05-22T01:19:38.452000+00:00",
+          "last_modification_date": "2026-05-22T01:19:38.452000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-cftc-deep-view": {
+      "lambda_last_modified": "2026-05-22T01:22:18.161+0000",
+      "schedules": [
+        {
+          "name": "justhodl-cftc-deep-view-fri",
+          "state": "ENABLED",
+          "expression": "cron(0 22 ? * FRI *)",
+          "creation_date": "2026-05-22T01:22:23.388000+00:00",
+          "last_modification_date": "2026-05-22T01:22:23.388000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-fx-decomposition": {
+      "lambda_last_modified": "2026-05-22T01:24:17.458+0000",
+      "schedules": [
+        {
+          "name": "justhodl-fx-decomposition-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 22 * * ? *)",
+          "creation_date": "2026-05-22T01:24:21.508000+00:00",
+          "last_modification_date": "2026-05-22T01:24:21.508000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    },
+    "justhodl-factor-decomposition": {
+      "lambda_last_modified": "2026-05-22T01:26:31.175+0000",
+      "schedules": [
+        {
+          "name": "justhodl-factor-decomposition-weekly",
+          "state": "ENABLED",
+          "expression": "cron(0 6 ? * SUN *)",
+          "creation_date": "2026-05-22T01:26:36.870000+00:00",
+          "last_modification_date": "2026-05-22T01:26:36.870000+00:00",
+          "role_arn_present": true
+        }
+      ]
+    }
+  },
+  "Q3_zombie_rule_states": {
+    "macro-report-api": {
+      "eb_rules": [
+        {
+          "name": "macro-api-daily-update",
+          "state": "DISABLED",
+          "schedule": "cron(0 13 * * ? *)",
+          "event_pattern": null
+        }
+      ],
+      "scheduler_v2": [],
+      "function_last_modified": "2026-04-25T10:24:48.000+0000"
+    },
+    "autonomous-ai-processor": {
+      "eb_rules": [
+        {
+          "name": "autonomous-ai-schedule",
+          "state": "ENABLED",
+          "schedule": "rate(5 minutes)",
+          "event_pattern": null
+        }
+      ],
+      "scheduler_v2": [],
+      "function_last_modified": "2026-04-27T16:47:30.000+0000"
+    },
+    "justhodl-email-reports": {
+      "eb_rules": [
+        {
+          "name": "justhodl-8am",
+          "state": "ENABLED",
+          "schedule": "cron(0 13 * * ? *)",
+          "event_pattern": null
+        }
+      ],
+      "scheduler_v2": [],
+      "function_last_modified": "2026-04-26T12:18:03.000+0000"
+    },
+    "justhodl-daily-macro-report": {
+      "eb_rules": [
+        {
+          "name": "DailyMacroReportRule",
+          "state": "DISABLED",
+          "schedule": "cron(0 12 * * ? *)",
+          "event_pattern": null
+        }
+      ],
+      "scheduler_v2": [],
+      "function_last_modified": "2026-04-25T10:25:39.000+0000"
+    }
+  },
+  "Q4_khalid_config": {
+    "last_modified": "2026-02-27T06:44:20+00:00",
+    "age_h": 2018.6,
+    "size": 19557,
+    "etag": "\"c2124a567234c0159c711cffda97f8e3\"",
+    "metadata": {},
+    "ka_config_last_modified": "2026-04-26T13:58:04+00:00",
+    "ka_config_age_h": 619.4,
+    "justhodl-ka-metrics": {
+      "last_modified": "2026-05-06T20:47:55.000+0000",
+      "eb_rules": [
+        {
+          "name": "justhodl-khalid-metrics-refresh",
+          "state": "ENABLED",
+          "schedule": "cron(0 11 * * ? *)"
+        }
+      ],
+      "scheduler_v2": [],
+      "invocations_30d": 40
+    },
+    "justhodl-khalid-metrics": {
+      "last_modified": "2026-04-25T10:27:46.000+0000",
+      "eb_rules": [
+        {
+          "name": "justhodl-khalid-metrics-refresh",
+          "state": "ENABLED",
+          "schedule": "cron(0 11 * * ? *)"
+        }
+      ],
+      "scheduler_v2": [],
+      "invocations_30d": 56
+    }
+  },
+  "Q5_race_winner": {
+    "key": "data/report.json",
+    "last_modified": "2026-05-22T06:15:54+00:00",
+    "age_h": 3.1,
+    "size": 1829548,
+    "versions": [
+      {
+        "version": "Cor.i9qX1s.ef1YkWT1K_vpxwA0ABlXe",
+        "last_modified": "2026-05-22T06:15:54+00:00",
+        "size": 1829548
+      },
+      {
+        "version": "6TyBpbUJyHWpXhalVyHP64x49mm6tpdb",
+        "last_modified": "2026-05-21T23:05:00+00:00",
+        "size": 1825709
+      },
+      {
+        "version": "zFW0.7e6lKjNke.nDgig4zEmxjBuOAgx",
+        "last_modified": "2026-05-21T13:04:42+00:00",
+        "size": 1823752
+      },
+      {
+        "version": "LMGFb1Sb0__gHwXOOoiUsocPKvUvIHz7",
+        "last_modified": "2026-05-21T06:15:54+00:00",
+        "size": 1828309
+      },
+      {
+        "version": "dJApDSAiAq_255yIOk8NdonBdAtEPGHz",
+        "last_modified": "2026-05-20T23:04:33+00:00",
+        "size": 1824490
+      }
+    ],
+    "first_2k_chars": "{\"version\": \"V10\", \"generated_at\": \"2026-05-21T23:04:47.561080Z\", \"fetch_time_seconds\": 242.4, \"cftc_positioning\": {\"positioning_score\": 31.0, \"risk_appetite\": 30.0, \"smart_money\": \"DISTRIBUTING\", \"crisis_score\": 20, \"crisis_level\": \"LOW\", \"extreme_count\": 8, \"reversal_count\": 3, \"sector_positioning\": {\"equity_index\": {\"bullish\": 2, \"bearish\": 2, \"total\": 4, \"bias\": \"NEUTRAL\"}, \"volatility\": {\"bullish\": 0, \"bearish\": 1, \"total\": 1, \"bias\": \"BEARISH\"}, \"treasury\": {\"bullish\": 4, \"bearish\": 0, \"total\": 4, \"bias\": \"BULLISH\"}, \"currency\": {\"bullish\": 2, \"bearish\": 4, \"total\": 6, \"bias\": \"BEARISH\"}, \"energy\": {\"bullish\": 3, \"bearish\": 1, \"total\": 4, \"bias\": \"BULLISH\"}, \"metals\": {\"bullish\": 2, \"bearish\": 2, \"total\": 4, \"bias\": \"NEUTRAL\"}, \"agriculture\": {\"bullish\": 6, \"bearish\": 0, \"total\": 6, \"bias\": \"BULLISH\"}}, \"summary\": \"Market Positioning: 31.0/100 | Risk Appetite: 30.0/100 | Smart Money: DISTRIBUTING | Crisis: 20/100 (LOW) | Extremes: 8/29 | Reversals: 3\"}, \"khalid_index\": {\"score\": 32, \"regime\": \"BEAR\", \"signals\": [[\"DXY\", -12, \"119.3\"], [\"HY Spread\", 5, \"2.80%\"], [\"NFCI\", 5, \"-0.52\"], [\"Unemployment\", -8, \"4.3%\"], [\"Net Liq\", 3, \"$5.91T\"], [\"SPY Trend\", 5, \"$743\"], [\"LCE Regime\", -3, \"WATCH (18.1/100)\"], [\"Global Cycle\", -5, \"GLOBAL_PEAKING (avg CLI 109.01)\"], [\"Leading Markets\", -8, \"TOP_WARNING (breadth 47.4%)\"]], \"ts\": \"2026-05-21T23:04:47.249291\", \"lce_state\": \"WATCH\", \"lce_composite\": 18.1, \"tenor_state\": \"CALM\", \"gbc_global_phase\": \"GLOBAL_PEAKING\", \"gbc_avg_cli\": 109.01, \"leading_markets_signal\": \"TOP_WARNING\"}, \"risk_dashboard\": {\"credit\": 68, \"liquidity\": 23, \"market\": 55, \"recession\": 50, \"systemic\": 70, \"inflation\": 85, \"composite\": 53, \"lce_overlay\": {\"regime\": \"WATCH\", \"composite\": 18.1, \"category_signals\": {\"balance_sheet\": \"WATCH\", \"liquidity_facilities\": \"WATCH\", \"credit_spreads\": \"WATCH\", \"corporate_yields\": \"NORMAL\", \"lending_standards\": \"NORMAL\"}, \"penalty_liquidity\": 12, \"penalty_credit\": 12, \"penalty_recession\": 0}, \"gbc_overlay\": {\"global_p",
+    "last_invocation_justhodl-bloomberg-v8": {
+      "hour": "2026-05-22T08:20:00+00:00",
+      "invocations": 1
+    },
+    "last_invocation_justhodl-daily-report-v3": {
+      "hour": "2026-05-21T22:20:00+00:00",
+      "invocations": 1
+    }
+  },
+  "Q6_scheduler_invoke_permission": {
+    "justhodl-sec-filing-diff": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-transcript-indexer": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-transcript-query": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-peer-comparison": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-screen-builder": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-fedwatch-rate-probability": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-supply-chain-linkage": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-cftc-deep-view": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-fx-decomposition": {
+      "error": "no_resource_based_policy_at_all"
+    },
+    "justhodl-factor-decomposition": {
+      "error": "no_resource_based_policy_at_all"
+    }
+  },
+  "Q7_code_drift": {
+    "note": "skipped \u2014 requires repo-side comparison (TODO: add to CI)"
+  }
+}
