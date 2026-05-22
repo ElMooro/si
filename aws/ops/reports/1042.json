@@ -1,0 +1,134 @@
+{
+  "started_at": "2026-05-22T10:39:33.938422+00:00",
+  "identity": {
+    "arn": "arn:aws:iam::857687956942:user/github-actions-justhodl",
+    "account": "857687956942"
+  },
+  "attached_managed_policies": [
+    "JustHodlWssBootstrap",
+    "AmazonSSMFullAccess",
+    "CloudWatchReadOnlyAccess",
+    "IAMFullAccess",
+    "CloudWatchLogsFullAccess",
+    "AmazonDynamoDBReadOnlyAccess",
+    "AmazonS3FullAccess",
+    "AmazonEventBridgeFullAccess",
+    "AWSLambda_FullAccess",
+    "AmazonEventBridgeReadOnlyAccess"
+  ],
+  "inline_policies": [
+    "CostExplorerRead",
+    "DynamoDBContinuousBackups",
+    "DynamoDBManageTables",
+    "justhodl-ddb-create-and-manage",
+    "outcomes-updateitem"
+  ],
+  "inline_policy_docs": {
+    "CostExplorerRead": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "CostExplorerRead",
+          "Effect": "Allow",
+          "Action": [
+            "ce:GetCostAndUsage",
+            "ce:GetCostForecast",
+            "ce:GetDimensionValues",
+            "ce:GetReservationCoverage",
+            "ce:GetReservationUtilization",
+            "ce:GetUsageReport"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "DynamoDBContinuousBackups": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "DynamoDBContinuousBackups",
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:UpdateContinuousBackups",
+            "dynamodb:DescribeContinuousBackups",
+            "dynamodb:RestoreTableToPointInTime",
+            "dynamodb:RestoreTableFromBackup",
+            "dynamodb:CreateBackup",
+            "dynamodb:DescribeBackup",
+            "dynamodb:DeleteBackup",
+            "dynamodb:ListBackups"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "DynamoDBManageTables": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "DynamoDBManageTables",
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:DeleteTable",
+            "dynamodb:DescribeTable",
+            "dynamodb:ListTables",
+            "dynamodb:UpdateTable"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "justhodl-ddb-create-and-manage": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:CreateTable",
+            "dynamodb:DescribeTable",
+            "dynamodb:UpdateTable",
+            "dynamodb:DeleteTable",
+            "dynamodb:ListTables",
+            "dynamodb:TagResource",
+            "dynamodb:UntagResource",
+            "dynamodb:UpdateTimeToLive",
+            "dynamodb:DescribeTimeToLive",
+            "dynamodb:DescribeContinuousBackups",
+            "dynamodb:UpdateContinuousBackups",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:BatchGetItem",
+            "dynamodb:BatchWriteItem"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "outcomes-updateitem": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "OutcomesUpdateItem",
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:UpdateItem",
+            "dynamodb:Scan",
+            "dynamodb:GetItem"
+          ],
+          "Resource": "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-outcomes"
+        }
+      ]
+    }
+  },
+  "queue_list_error": "An error occurred (AccessDenied) when calling the ListQueues operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:listqueues on resource: arn:aws:s",
+  "existing_justhodl_topics": [],
+  "permission_checks": {
+    "sqs_create_queue": "DENIED: An error occurred (AccessDenied) when calling the CreateQueue operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:createqueue on resource: arn:aws",
+    "sns_create_topic": "DENIED: An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: a",
+    "lambda_get_function_configuration": "ALLOWED"
+  }
+}
