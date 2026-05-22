@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-fleet-freshness-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "AUDIT P2 — detect silent S3 write failures via S3 LastModified drift (catches the 35-Lambda silent-except pattern)",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "SNS_ARN": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
+    "DEFAULT_MAX_AGE_H": "26",
+    "ALERT_RATIO": "1.5",
+    "DEDUPE_HOURS": "4",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "fleet-freshness-monitor-30min",
+    "cron": "rate(30 minutes)",
+    "description": "AUDIT P2 — detect stale/missing S3 outputs that indicate silent Lambda failures"
+  }
+}
