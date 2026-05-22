@@ -1,0 +1,52 @@
+{
+  "started_at": "2026-05-22T10:33:27.130611+00:00",
+  "queue_policy_error": "An error occurred (AWS.SimpleQueueService.NonExistentQueue) when calling the GetQueueUrl operation: The specified queue does not exist.",
+  "execution_roles_in_use": {
+    "lambda-execution-role": 379,
+    "openbb-lambda-role": 2,
+    "economyapi-lambda-role": 2,
+    "ofr-lambda-role": 1,
+    "aiapi-market-analyzer-role-04o8b4dk": 1,
+    "liquidity-agent-role-v2": 1,
+    "scrapeMacroData-role-9pweui52": 1,
+    "daily-liquidity-role": 1,
+    "bls-api-role": 1,
+    "lambda-role": 1,
+    "MacroFinancialIntelligenceRole": 1,
+    "chatgpt-agent-self-modify": 1
+  },
+  "n_unique_roles": 12,
+  "sns_error": "An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts because no identity-based policy allows the ",
+  "sweep_results": {
+    "updated_full": 0,
+    "xray_only": 388,
+    "already_configured": 0,
+    "errors": 4,
+    "error_samples": [
+      {
+        "lambda": "ultimate-multi-agent",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error Code: AWS.SimpleQueueService.NonExistentQueue. SQ"
+      },
+      {
+        "lambda": "global-liquidity-agent-v2",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error Code: AWS.SimpleQueueService.NonExistentQueue. SQ"
+      },
+      {
+        "lambda": "treasury-api",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error Code: AWS.SimpleQueueService.NonExistentQueue. SQ"
+      },
+      {
+        "lambda": "alphavantage-technical-analysis",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error Code: AWS.SimpleQueueService.NonExistentQueue. SQ"
+      }
+    ]
+  },
+  "final": {
+    "n_lambdas": 392,
+    "n_with_dlq": 0,
+    "pct_dlq": 0.0,
+    "n_with_xray": 392,
+    "pct_xray": 100.0
+  },
+  "completed_at": "2026-05-22T10:34:57.280589+00:00"
+}
