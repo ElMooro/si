@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-05-22T10:08:03.076288+00:00",
+  "portfolio_catalysts": {
+    "status": 200,
+    "function_error": "none",
+    "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"n_position_catalysts\\\": 0, \\\"n_macro_catalysts\\\": 11, \\\"alerts_sent\\\": 0, \\\"next_position_event_days\\\": null, \\\"elapsed_seconds\\\": 0.61}\"}",
+    "log_has_KeyError": false,
+    "log_tail_400": "ATALYSTS v1.0.0 \u00b7 2026-05-22T10:08:04.248832+00:00 ===\ncal events: 11\nupcoming earnings: 13\nDDB: 0 positions + 0 watchlist\n\u2713 catalysts.json written \u00b7 0 symbols + 11 macro events\nEND RequestId: e2946036-9cd1-4bbe-8ad4-f649bd1533c7\nREPORT RequestId: e2946036-9cd1-4bbe-8ad4-f649bd1533c7\tDuration: 612.07 ms\tBilled Duration: 1307 ms\tMemory Size: 512 MB\tMax Memory Used: 105 MB\tInit Duration: 694.80 ms\t\n"
+  },
+  "forced_selling_bounce": {
+    "status": 200,
+    "function_error": "none",
+    "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"state\\\": \\\"QUIET\\\", \\\"signal_strength\\\": 10, \\\"n_conditions_fired\\\": 0, \\\"conditions_fired\\\": {\\\"c1_vix_spike\\\": false, \\\"c2_putcall_extreme\\\": false, \\\"c3_breadth_collapse\\\": false, \\\"c4_gamma_unwind\\\": false, \\\"c5_capitulation_posture\\\": false}, \\\"trade_label\\\": \\\"HOLD_NORMAL\\\"}\"}",
+    "log_has_TypeError": false
+  },
+  "rule_autonomous-ai-schedule_state": "DISABLED",
+  "rule_justhodl-8am_state": "DISABLED",
+  "summary": {
+    "portfolio_catalysts_fixed": true,
+    "forced_selling_bounce_clean": true,
+    "rules_still_disabled": true
+  }
+}
