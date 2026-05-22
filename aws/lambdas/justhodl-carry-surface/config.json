@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-carry-surface",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "UNIVERSAL CARRY SURFACE — institutional cross-asset carry engine. Answers: 'which asset is the market paying me most to hold, right now?' across equity / FX / FI / commodity / crypto. Z-scored within class, ranked cross-asset, with carry-momentum vs 7D/30D snapshots and risk-adjusted (Sharpe-of-carry) leaders.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/carry-surface.json",
+    "HIST_PREFIX": "data/carry-surface/history/",
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "carry-surface-4h",
+    "cron": "rate(4 hours)",
+    "description": "Carry surface refresh every 4 hours — cross-asset carry ranks + momentum"
+  }
+}

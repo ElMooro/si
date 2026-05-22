@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carry Surface · JustHodl.AI</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --panel: #0f1525;
+      --panel-2: #161e35;
+      --border: #1f2a44;
+      --text: #e6e9ef;
+      --muted: #8090a8;
+      --muted-2: #5a6b88;
+      --green: #44d886;
+      --green-soft: rgba(68, 216, 134, 0.12);
+      --amber: #ffb454;
+      --amber-soft: rgba(255, 180, 84, 0.12);
+      --red: #ff5470;
+      --red-soft: rgba(255, 84, 112, 0.12);
+      --blue: #4fc3f7;
+      --purple: #ba68c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, var(--panel) 0%, transparent 100%);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .header h1 .brand { color: var(--muted); font-weight: 400; }
+    .updated { font-size: 11px; color: var(--muted); }
+    .container {
+      padding: 20px 24px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .summary-card .label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .summary-card .value {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .summary-card .sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .panel-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    th, td {
+      padding: 8px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      background: var(--panel-2);
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+    tbody tr:hover { background: var(--panel-2); }
+    .sym {
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 12px;
+    }
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+    .neu { color: var(--muted); }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 500;
+    }
+    .tag.equity { background: rgba(79, 195, 247, 0.18); color: var(--blue); }
+    .tag.fx { background: rgba(186, 104, 200, 0.18); color: var(--purple); }
+    .tag.fixed_income { background: rgba(255, 180, 84, 0.18); color: var(--amber); }
+    .tag.commodity { background: rgba(255, 184, 0, 0.18); color: #ffd454; }
+    .tag.crypto { background: rgba(247, 147, 26, 0.18); color: #ff9b3a; }
+    .regime-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 80px;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .regime-bar-track {
+      height: 6px;
+      background: var(--panel-2);
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+    .regime-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green) 0%, var(--green) 100%);
+      border-radius: 3px;
+    }
+    .regime-bar-fill.neg {
+      background: linear-gradient(90deg, var(--red) 0%, var(--red) 100%);
+    }
+    .delta {
+      font-size: 10px;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+    .delta.pos { color: var(--green); }
+    .delta.neg { color: var(--red); }
+    .methodology {
+      padding: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .methodology h3 {
+      color: var(--text);
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .methodology ul {
+      margin: 0 0 12px;
+      padding-left: 16px;
+    }
+    .methodology li { margin-bottom: 2px; }
+    .methodology code {
+      background: var(--panel-2);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: 'SF Mono', monospace;
+      color: var(--text);
+    }
+    .loading {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--muted);
+    }
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .heat-cell {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span class="brand">JustHodl.AI ›</span> Carry Surface</h1>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/signal-board.html">Signal Board</a>
+      <a href="/observability.html">Observability</a>
+      <span class="updated" id="updated">loading…</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="content" class="loading">Loading carry surface…</div>
+  </div>
+
+  <script>
+    const DATA_URL = `https://justhodl-dashboard-live.s3.amazonaws.com/data/carry-surface.json?_=${Date.now()}`;
+
+    function fmt(n, digits=2, signed=false) {
+      if (n == null || isNaN(n)) return '—';
+      const v = Number(n);
+      const s = (signed && v > 0 ? '+' : '') + v.toFixed(digits);
+      return s;
+    }
+    function cls(n) {
+      if (n == null || isNaN(n)) return 'neu';
+      return n > 0 ? 'pos' : n < 0 ? 'neg' : 'neu';
+    }
+    function heatColor(z) {
+      if (z == null) return '';
+      const t = Math.min(Math.max(z / 2, -1), 1);
+      if (t > 0) {
+        const intensity = Math.round(t * 30 + 8);
+        return `background: rgba(68, 216, 134, 0.${intensity});`;
+      } else {
+        const intensity = Math.round(-t * 30 + 8);
+        return `background: rgba(255, 84, 112, 0.${intensity});`;
+      }
+    }
+
+    function renderTopBottom(items, title, accent) {
+      const rows = items.map(a => `
+        <tr>
+          <td><span class="sym">${a.symbol}</span> <span class="tag ${a.asset_class}">${a.asset_class}</span></td>
+          <td class="${cls(a.carry_pct)}" style="${heatColor(a.carry_pct_z)}">${fmt(a.carry_pct, 2, true)}%</td>
+          <td>${fmt(a.carry_pct_z, 2, true)}</td>
+          <td class="${cls(a.carry_change_7d_pct)}">${fmt(a.carry_change_7d_pct, 2, true)}</td>
+          <td class="${cls(a.carry_per_vol)}">${fmt(a.carry_per_vol, 2)}</td>
+        </tr>
+      `).join('');
+      return `
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">${title}</div>
+            <div class="panel-sub">${items.length} assets</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Carry %/yr</th>
+                <th>Z (class)</th>
+                <th>Δ 7D</th>
+                <th>Carry/Vol</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderRegime(regime) {
+      const classes = Object.keys(regime);
+      const rows = classes.map(cls => {
+        const r = regime[cls];
+        const widthPct = Math.min(Math.abs(r.median_carry_pct) * 6, 100);
+        const sign = r.median_carry_pct >= 0 ? '' : 'neg';
+        return `
+          <div class="regime-row">
+            <div><span class="tag ${cls}">${cls.replace('_', ' ')}</span></div>
+            <div>
+              <div class="regime-bar-track">
+                <div class="regime-bar-fill ${sign}" style="width: ${widthPct}%"></div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:3px">
+                median ${fmt(r.median_carry_pct, 2, true)}% · disp ${fmt(r.dispersion_pct, 2)} · range ${fmt(r.min, 1, true)} → ${fmt(r.max, 1, true)}
+              </div>
+            </div>
+            <div style="text-align:right;color:var(--muted);font-size:11px">${r.n} assets</div>
+          </div>
+        `;
+      }).join('');
+      return `
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Regime Fingerprint</div>
+            <div class="panel-sub">cross-asset median carry by class</div>
+          </div>
+          ${rows}
+        </div>
+      `;
+    }
+
+    function renderRiskAdj(items) {
+      const rows = items.map(a => `
+        <tr>
+          <td><span class="sym">${a.symbol}</span> <span class="tag ${a.asset_class}">${a.asset_class}</span></td>
+          <td class="${cls(a.carry_pct)}">${fmt(a.carry_pct, 2, true)}%</td>
+          <td>${fmt(a.realized_vol_pct, 1)}%</td>
+          <td class="${cls(a.carry_per_vol)}" style="font-weight:600">${fmt(a.carry_per_vol, 2)}</td>
+        </tr>
+      `).join('');
+      return `
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Risk-Adjusted Carry Leaders</div>
+            <div class="panel-sub">carry ÷ realized vol (Sharpe-of-carry)</div>
+          </div>
+          <table>
+            <thead><tr><th>Asset</th><th>Carry %/yr</th><th>Vol %</th><th>Sharpe</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderAll(payload) {
+      document.getElementById('updated').textContent = `updated ${payload.generated_at.slice(0,16).replace('T',' ')} UTC`;
+      
+      const totalAssets = payload.n_assets || 0;
+      const topCarry = payload.cross_asset_top?.[0];
+      const bottomCarry = payload.cross_asset_bottom?.[0];
+      const eqRegime = payload.regime_summary?.equity?.median_carry_pct;
+      const fxRegime = payload.regime_summary?.fx?.median_carry_pct;
+      const fiRegime = payload.regime_summary?.fixed_income?.median_carry_pct;
+      
+      const summary = `
+        <div class="summary-bar">
+          <div class="summary-card">
+            <div class="label">Top Carry</div>
+            <div class="value pos">${topCarry ? topCarry.symbol : '—'}</div>
+            <div class="sub">${topCarry ? fmt(topCarry.carry_pct, 2, true) + '%/yr · ' + topCarry.asset_class : ''}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Bottom Carry</div>
+            <div class="value neg">${bottomCarry ? bottomCarry.symbol : '—'}</div>
+            <div class="sub">${bottomCarry ? fmt(bottomCarry.carry_pct, 2, true) + '%/yr · ' + bottomCarry.asset_class : ''}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Equity Class Median</div>
+            <div class="value ${cls(eqRegime)}">${fmt(eqRegime, 2, true)}%</div>
+            <div class="sub">div + buyback − financing</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">FX Class Median</div>
+            <div class="value ${cls(fxRegime)}">${fmt(fxRegime, 2, true)}%</div>
+            <div class="sub">rate differential vs USD</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">UST Class Median</div>
+            <div class="value ${cls(fiRegime)}">${fmt(fiRegime, 2, true)}%</div>
+            <div class="sub">yield − financing</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Universe</div>
+            <div class="value">${totalAssets}</div>
+            <div class="sub">across 5 classes</div>
+          </div>
+        </div>
+      `;
+      
+      const top10 = payload.cross_asset_top || [];
+      const bottom10 = payload.cross_asset_bottom || [];
+      const riskAdj = payload.risk_adjusted_leaders || [];
+      const regime = payload.regime_summary || {};
+      
+      const methodology = `
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Methodology</div>
+            <div class="panel-sub">v${payload.version} · refresh 4h</div>
+          </div>
+          <div class="methodology">
+            <h3>Carry definitions</h3>
+            <ul>
+              <li><strong>Equity</strong>: <code>div_yield_TTM + buyback_yield_TTM − financing</code> (Fed funds effective)</li>
+              <li><strong>FX</strong>: <code>3M_interbank_rate(X) − 3M_interbank_rate(USD)</code> via FRED IR3TIB01 series</li>
+              <li><strong>Fixed income</strong>: <code>yield_to_maturity − financing</code> for USTs + IG/HY effective yields</li>
+              <li><strong>Commodity</strong>: <code>-roll_yield</code>, blend of structural estimate + 30D ETF-spot basis</li>
+              <li><strong>Crypto</strong>: <code>-perpetual_funding_annualized</code> from Binance public API (long perspective)</li>
+            </ul>
+            <h3>Synthesis</h3>
+            <ul>
+              <li><strong>Z-score</strong>: within-class normalization handles base-rate differences (UST 4% ≠ EM 7% before normalization)</li>
+              <li><strong>Carry/Vol</strong>: divide carry by realized annualized volatility = "Sharpe-of-carry"</li>
+              <li><strong>Carry momentum</strong>: Δ vs 7D and 30D snapshots — rising carry = expanding opportunity</li>
+              <li><strong>Cross-asset rank</strong>: global percentile across all asset classes simultaneously</li>
+            </ul>
+            <h3>Academic basis</h3>
+            <ul>
+              <li>Koijen, Moskowitz, Pedersen, Vrugt (2018) — "Carry"</li>
+              <li>Asness, Moskowitz, Pedersen (2013) — "Value and Momentum Everywhere"</li>
+              <li>AQR Style Premia framework (Carry + Value + Momentum + Defensive)</li>
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('content').innerHTML = summary +
+        renderRegime(regime) +
+        `<div class="two-col">${renderTopBottom(top10, "🟢 Top Carry (long pays best)")}${renderTopBottom(bottom10, "🔴 Bottom Carry (short pays best)")}</div>` +
+        renderRiskAdj(riskAdj) +
+        methodology;
+    }
+
+    fetch(DATA_URL)
+      .then(r => r.json())
+      .then(renderAll)
+      .catch(e => {
+        document.getElementById('content').innerHTML = `
+          <div class="loading">
+            <p>Carry surface unavailable.</p>
+            <p style="font-size:11px;margin-top:8px">${e.message}</p>
+            <p style="font-size:11px;margin-top:16px">This Lambda runs every 4 hours. First invocation may be in progress.</p>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>
