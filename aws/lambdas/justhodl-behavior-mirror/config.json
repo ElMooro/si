@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-behavior-mirror",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #4 — Behavior Mirror. Compares system signals to actual portfolio actions to find personal edge + blind spots + sizing leaks.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "behavior-mirror-weekly",
+    "cron": "cron(0 13 ? * SUN *)",
+    "description": "Weekly Sunday 13 UTC — analyse Khalid's portfolio actions vs system signals"
+  }
+}
