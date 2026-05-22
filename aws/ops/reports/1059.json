@@ -1,201 +1,63 @@
 {
-  "started_at": "2026-05-22T22:26:54.795646+00:00",
-  "xccy-basis-agent": {
-    "memory": 256,
-    "timeout": 30,
-    "description": "",
-    "env_keys": [
-      "FRED_API_KEY"
-    ],
-    "last_modified": "2026-05-22T10:55:39.000+0000",
-    "code_size": 7732,
-    "code_head": "import json\nimport urllib.request\nimport urllib.parse\nfrom datetime import datetime\nfrom decimal import Decimal\n\ndef lambda_handler(event, context):\n    \"\"\"Main handler for Cross-Currency Basis Agent\"\"\"\n    \n    fred_key = \"2f057499936072679d8843d7fce99989\"\n    \n    # FRED doesn't have direct cross-currency basis, but we can use related indicators\n    indicators = {\n        'DXY': 'DTWEXBGS',  # Dollar Index\n        'EURUSD': 'DEXUSEU',  # EUR/USD exchange rate\n        'JPYUSD': 'DEXJPUS',  # JPY/USD exchange rate\n        'GBPUSD': 'DEXUSUK',  # GBP/USD exchange rate\n        'TED_SPREAD': 'TEDRATE',  # Dollar funding stress proxy\n        'LIBOR_3M': 'USD3MTD156N',  # 3-Month LIBOR\n        'TREASURY_3M': 'DGS3MO'  # 3-Month Treasury\n    }\n    \n    data = {}\n    \n    for name, series_id in indicators.items():\n        try:\n            # Build FRED URL\n            base_url = \"https://api.stlouisfed.org/fred/series/observations\"\n            params = {\n                'series_id': series_id,\n                'api_key': fred_key,\n                'file_type': 'json',\n                'limit': '90',\n                'sort_order': 'desc'\n            }\n            \n            url = f\"{base_url}?{urllib.parse.urlencode(params)}\"\n            \n            # Make request\n            with urllib.request.urlopen(url) as response:\n                result = json.loads(response.read())\n            \n            if 'observations' in result and result['observations']:\n                obs = result['observations']\n                \n                current = float(obs[0]['value']) if obs[0]['value'] != '.' else None\n                \n                if current is not None:\n                    # Calculate changes\n                    changes = {}\n                    \n                    if len(obs) > 7 and obs[7]['value'] != '.':\n                        changes['1W'] = current - float(obs[7]['value'])\n                    \n                    if len(obs) > 30 and obs[30]['value'] != '.':\n                        changes['1M'] = current - float(obs[30]['value'])\n                    \n                    if len(obs) > 90 and obs[90]['value'] != '.':\n                        changes['3M'] = current - float(obs[90]['value'])\n                    \n                    data[name] = {\n                        'current': current,\n                        'date': obs[0]['date'],\n                        'changes': changes\n                    }\n                    \n        except Exception as e:\n            print(f\"Error fetching {name}: {str(e)}\")\n    \n    # Calculate synthetic dollar funding stress\n    funding_stress = calculate_dollar_funding_stress(data)\n    \n    response_body = {\n        'timestamp': datetime.now().isoformat(),\n        'currency_indicators': data,\n        'dollar_funding_stress': funding_stress,\n        'analysis': generate_currency_analysis(data, funding_stress),\n        'recommendations': generate_currency_recommendations(data, funding_stress)\n    }\n    ",
-    "s3_keys_referenced": []
-  },
-  "justhodl-cb-injection": {
-    "memory": 256,
-    "timeout": 90,
-    "description": "Central Bank Capital-Injection & Carry Engine \u2014 per-CB injection stance (balance-sheet trajectory + policy-rate direction) for ECB/BOJ/Fed/SNB, net global liquidity impulse, and carry-trade funding + unwind-risk synthesis. Output data/cb-injection.json.",
-    "env_keys": [
-      "FRED_API_KEY"
-    ],
-    "last_modified": "2026-05-22T10:55:36.000+0000",
-    "code_size": 16074,
-    "code_head": "\"\"\"\njusthodl-cb-injection \u2014 Global Central Bank Capital-Injection & Carry Engine.\n\nThe platform already tracks the *level* of global liquidity (global-liquidity\nsums the Fed/ECB/BOJ balance sheets). This engine tracks the thing that\nactually moves markets: the *flow* \u2014 who is injecting capital and who is\ndraining it right now, and what that does to the eurodollar system and the\ncarry trade.\n\nFor each major central bank relevant to offshore-USD funding it builds an\nINJECTION STANCE \u2014 balance-sheet trajectory (expanding vs QT) combined with\npolicy-rate direction (cutting = injecting, hiking = draining):\n\n  ECB   Eurosystem balance sheet + deposit facility rate. The euro leg of\n        the eurodollar system; ECB QT vs the old APP/TLTRO/PEPP injections.\n  BOJ   Bank of Japan balance sheet + policy rate. THE carry-trade funding\n        central bank \u2014 its post-2024 normalisation is the carry story.\n  Fed   Balance sheet + funds rate \u2014 the QT pace draining global USD.\n  SNB   Swiss policy rate + the franc \u2014 the second carry funding currency.\n\nIt then synthesises:\n  - NET GLOBAL INJECTION IMPULSE \u2014 are central banks collectively adding or\n    withdrawing liquidity.\n  - CARRY FUNDING CONDITIONS \u2014 JPY and CHF are the funding legs; cheap, weak\n    funding currencies with dovish central banks fuel the carry trade.\n  - CARRY-UNWIND RISK \u2014 a 0-100 score. Leveraged carry unwinds violently when\n    a funding currency strengthens sharply or its central bank turns hawkish\n    (the August 2024 yen-carry unwind is the reference event).\n\nOUTPUT: data/cb-injection.json   SCHEDULE: daily\nBuilt on real FRED data (the official mirror of ECB/BOJ/Fed statistics) \u2014\nnot investment advice.\n\"\"\"\nimport json\nimport os\nimport time\nimport urllib.request\nfrom datetime import datetime, timedelta, timezone\n\nimport boto3\n\ns3 = boto3.client(\"s3\")\nS3_BUCKET = \"justhodl-dashboard-live\"\nOUT_KEY = \"data/cb-injection.json\"\nFRED_KEY = os.environ.get(\"FRED_API_KEY\", \"2f057499936072679d8843d7fce99989\")\n\n# FRED carries the official ECB / BOJ / Fed statistics\nSERIES = {\n    \"ECB_BS\":   \"ECBASSETSW\",        # ECB total assets, weekly, EUR mn\n    \"ECB_RATE\": \"ECBDFR\",            # ECB deposit facility rate, %\n    \"BOJ_BS\":   \"JPNASSETS\",         # BOJ total assets\n    \"BOJ_RATE\": \"IR3TIB01JPM156N\",   # Japan 3M interbank \u2014 BOJ policy proxy\n    \"FED_BS\":   \"WALCL\",             # Fed total assets, USD mn\n    \"FED_RATE\": \"DFEDTARU\",          # Fed funds target rate, upper bound\n    \"SNB_RATE\": \"IR3TIB01CHM156N\",   # Swiss 3M interbank \u2014 SNB policy proxy\n    \"JPY\":      \"DEXJPUS\",           # yen per USD (up = weak yen)\n    \"CHF\":      \"DEXSZUS\",           # franc per USD (up = weak franc)\n    \"EUR\":      \"DEXUSEU\",           # USD per euro (up = strong euro)\n}\n\n\ndef fred(series_id, limit=800):\n    url = (\"https://api.stlouisfed.org/fred/series/observations\"\n           f\"?series_id={series_id}&api_key={FRED_KEY}&file_type=json\"\n           f\"&sort_order=desc&limit={limit}\")\n    last_err, d = None, None\n    for attempt in range(3):\n        try:\n            req = urllib.request.Request(\n                url, headers={\"User-Agent\": \"justhodl-cb-injection/1.0\"})\n            with urllib.request.urlopen(req, timeout=25) as r:\n                d = json.loads(r.read())\n            break\n        except Exception as e:\n            last_err = e\n            if attempt < 2:\n                time.sleep(1.0 * (attempt + 1))\n    if d is None:\n        raise last_err or RuntimeError(f\"FRED fetch failed: {series_id}\")\n    out = []",
-    "s3_keys_referenced": [
-      "\"data/ecb-detail.json\"",
-      "\"data/cb-injection.json\"",
-      "\"data/cb-injection/snapshots/{now.date().isoformat()}.json\"",
-      "\"data/global-liquidity.json\"",
-      "\"data/china-liquidity.json\""
+  "started_at": "2026-05-22T22:44:22.081424+00:00",
+  "carry_surface_4h_rule": {
+    "state": "ENABLED",
+    "expression": "rate(4 hours)",
+    "targets": [
+      {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-carry-surface",
+        "id": "target1"
+      }
     ]
   },
-  "yen_carry_json": {
-    "size": 3990,
-    "top_level_keys": [
-      "schema_version",
-      "method",
-      "generated_at",
-      "elapsed_s",
-      "ok",
-      "headline",
-      "carry_regime",
-      "boj_injection_score",
-      "boj_stance_label",
-      "unwind_risk_score",
-      "unwind_risk_label",
-      "unwind_risk_components",
-      "carry_attractiveness",
-      "boj_funding_leg",
-      "carry_width",
-      "fx_detonator",
-      "jgb_long_end",
-      "positioning",
-      "triggers",
-      "eurodollar_read",
-      "decisive_call",
-      "cross_reference",
-      "sources",
-      "errors"
-    ],
-    "last_modified": "2026-05-22T12:00:23+00:00",
-    "sample": {
-      "schema_version": "1.0",
-      "method": "yen_carry_and_boj_liquidity",
-      "generated_at": "2026-05-22T12:00:22.717419+00:00",
-      "elapsed_s": "8.33",
-      "ok": "True",
-      "headline": "YEN CARRY: NEUTRAL. Unwind risk 40/100 (MODERATE); USD/JPY 159, vol 10% (calm); BOJ draining.",
-      "carry_regime": "NEUTRAL",
-      "boj_injection_score": "-2",
-      "boj_stance_label": "DRAINING",
-      "unwind_risk_score": "40.0",
-      "unwind_risk_label": "MODERATE",
-      "unwind_risk_components": "<dict with 5 items>",
-      "carry_attractiveness": "MODERATE",
-      "boj_funding_leg": "<dict with 8 items>",
-      "carry_width": "<dict with 8 items>",
-      "fx_detonator": "<dict with 9 items>",
-      "jgb_long_end": "<dict with 5 items>",
-      "positioning": "<dict with 11 items>",
-      "triggers": "<list with 4 items>",
-      "eurodollar_read": "The BOJ is the carry funding central bank. With the balance sheet contracting and the policy rate hiking, the yen funding leg of the global carry / eurodollar system is getting more expensive \u2014 a stru",
-      "decisive_call": "DECISIVE: no clean carry signal. The differential still pays, but watch the BOJ path and USD/JPY realised vol for the turn.",
-      "cross_reference": "<dict with 2 items>",
-      "sources": "<list with 2 items>",
-      "errors": "<list with 0 items>"
-    }
+  "engine_contribution_rule": {
+    "state": "ENABLED",
+    "expression": "cron(0 2 ? * SUN *)",
+    "targets": [
+      {
+        "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-contribution",
+        "id": "target1"
+      }
+    ]
   },
-  "related_s3_keys": [
-    {
-      "key": "data/buyback-yield-ranking.json",
-      "size": 63432,
-      "lm": "2026-05-21T00:12:47+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-04.json",
-      "size": 4699,
-      "lm": "2026-05-04T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-05.json",
-      "size": 5715,
-      "lm": "2026-05-05T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-06.json",
-      "size": 5720,
-      "lm": "2026-05-06T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-07.json",
-      "size": 5730,
-      "lm": "2026-05-07T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-08.json",
-      "size": 5743,
-      "lm": "2026-05-08T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-09.json",
-      "size": 5712,
-      "lm": "2026-05-09T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-10.json",
-      "size": 1170,
-      "lm": "2026-05-10T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-11.json",
-      "size": 5710,
-      "lm": "2026-05-11T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-12.json",
-      "size": 5724,
-      "lm": "2026-05-12T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-13.json",
-      "size": 5727,
-      "lm": "2026-05-13T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-14.json",
-      "size": 4970,
-      "lm": "2026-05-14T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-15.json",
-      "size": 5733,
-      "lm": "2026-05-15T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-16.json",
-      "size": 4607,
-      "lm": "2026-05-16T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-17.json",
-      "size": 5714,
-      "lm": "2026-05-17T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-18.json",
-      "size": 5714,
-      "lm": "2026-05-18T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-19.json",
-      "size": 5888,
-      "lm": "2026-05-19T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-20.json",
-      "size": 5888,
-      "lm": "2026-05-20T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-21.json",
-      "size": 5887,
-      "lm": "2026-05-21T17:00:19+00:00"
-    },
-    {
-      "key": "data/snapshots/data_yield-curve-2026-05-22.json",
-      "size": 5907,
-      "lm": "2026-05-22T17:00:19+00:00"
-    },
+  "yen_carry": {
+    "description": "Yen Carry Trade & BOJ Liquidity Engine - fuses the BOJ funding leg, US-Japan carry width, USD/JPY vol detonator, JGB long-end stress and CFTC positioning into a carry regime + 0-100 unwind-risk score. Output data/yen-carry.json.",
+    "memory": 256,
+    "timeout": 90,
+    "env_keys": [
+      "FRED_API_KEY"
+    ],
+    "last_modified": "2026-05-22T10:55:48.000+0000",
+    "code_head": "\"\"\"\njusthodl-yen-carry \u2014 Yen Carry Trade & Bank of Japan Liquidity Engine.\n\ncb-injection scores the BOJ at the balance-sheet-total level \u2014 one summary\nline. But the yen carry trade is THE carry trade, and a global-macro desk\ndoes not watch \"is the BOJ balance sheet bigger.\" The carry is picking up\npennies in front of a steamroller; what matters is five things, and this\nengine fuses all of them:\n\n  1. FUNDING LEG   \u2014 BOJ balance-sheet trajectory + the short rate. The cost\n                     of borrowing yen. A hiking BOJ raises the funding cost.\n  2. CARRY WIDTH   \u2014 the US-Japan rate differential (front-end and 10y). Wide\n                     differential = the carry pays = leverage builds.\n  3. THE DETONATOR \u2014 USD/JPY level, appreciation momentum and realised vol.\n                     A sharp yen rally is what forces a leveraged unwind\n                     (the August 2024 unwind is the reference event).\n  4. CROWDEDNESS   \u2014 CFTC non-commercial JPY positioning. A large net short\n                     yen = the carry is crowded = more fuel for a squeeze.\n  5. JGB STRESS    \u2014 the 10y JGB yield. A sharp rise pressures the BOJ and\n                     drives Japanese repatriation \u2014 yen-positive, carry-bad.\n\nOUTPUT: a yen-carry REGIME (carry-on -> carry-unwind), a 0-100 UNWIND-RISK\nscore with explicit triggers, a carry-attractiveness read, a -2..+2 BOJ\ninjection score and a eurodollar read.\n\nOUTPUT KEY: data/yen-carry.json   SCHEDULE: daily 12:00 UTC\nReal data only \u2014 FRED (the of"
+  },
+  "earnings_nlp": {
+    "description": "Earnings call NLP via FMP + Claude Haiku \u2014 tone, guidance, QoQ shifts",
+    "memory": 512,
+    "timeout": 600,
+    "env_keys": [
+      "ANTHROPIC_API_KEY",
+      "FMP_KEY",
+      "TELEGRAM_CHAT_ID",
+      "TELEGRAM_TOKEN"
+    ],
+    "last_modified": "2026-05-22T10:55:31.000+0000",
+    "code_head": "\"\"\"\njusthodl-earnings-nlp \u2014 Earnings Call Transcript NLP Engine\n\nWHAT IS THIS?\n=============\nBloomberg Terminal includes proprietary earnings-call NLP scoring that costs\n~$24k/yr. This builds the same primitive from public data:\n\n  1. Fetch latest earnings transcripts from FMP Premium\n  2. Score management tone via Claude Haiku (tone, guidance, confidence)\n  3. Compute quarter-over-quarter tone shift (the alpha signal)\n  4. Surface ranked list of biggest positive/negative tone changes\n\nThe \"edge\" in earnings NLP isn't the absolute tone \u2014 it's the SHIFT in\nlanguage. When a CFO who said \"strong demand\" last quarter starts saying\n\"choppy execution\" this quarter, that's the signal.\n\nDATA FLOW\n=========\n  FMP /v3/earning_call_transcript/{ticker}?quarter=N&year=Y\n    \u2192 raw transcript JSON cached in S3 transcripts/{ticker}_{Y}Q{N}.json\n  Anthropic Haiku /v1/messages\n    \u2192 tone score + guidance + themes JSON\n  S3 sidecar data/earnings-nlp.json\n    \u2192 current per-ticker scores + ranked tone shifts + market summary\n\nUNIVERSE\n========\nTop 30 names by market cap (S&P 500 leaders + watchlist priority).\nPer Lambda run, only NEW transcripts (cached lookups skip Anthropic call).\n\nSCHEDULE\n========\ncron(0 14 ? * MON-FRI *) \u2014 daily 14:00 UTC.\n  US earnings season covers AMC (afternoon) + BMO (morning) releases.\n  Most transcripts publish T+1 day after the call.\n\nOUTPUT\n======\ndata/earnings-nlp.json:\n{\n  \"generated_at\": ...,\n  \"n_tickers_analyzed\": 30,\n  \"n_with_transcripts\": 28,\n  \"n_with_recen",
+    "out_key": null
+  },
+  "buyback_yield_ranking": {
+    "description": "TTM buyback yield ranking. 5-factor quality: gross+net yield, FCF coverage>=1x, P/E<30, 4-qtr consistency. $2B+ mcap gate. Top 20 equal-weighted portfolio quarterly rebalance. Pontiff-Woodgate 2008 (+4-6%/yr top decile). Weekly Mon 13:00 UTC.",
+    "env_keys": [
+      "CMC_KEY",
+      "FMP_KEY",
+      "S3_BUCKET"
+    ],
+    "last_modified": "2026-05-22T10:55:44.000+0000"
+  },
+  "s3_carry_keys": [
     {
       "key": "data/yen-carry.json",
       "size": 3990,
-      "lm": "2026-05-22T12:00:23+00:00"
-    },
-    {
-      "key": "data/yield-curve.json",
-      "size": 5906,
-      "lm": "2026-05-22T18:19:50+00:00"
+      "last_modified": "2026-05-22T12:00:23+00:00"
     }
   ]
 }
