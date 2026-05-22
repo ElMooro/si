@@ -1,0 +1,40 @@
+{
+  "started_at": "2026-05-22T22:43:31.513637+00:00",
+  "engines": {
+    "justhodl-carry-surface": {
+      "name": "justhodl-carry-surface",
+      "expected_output": "data/carry-surface.json",
+      "lambda_exists": false,
+      "s3_exists": false,
+      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "justhodl-engine-contribution": {
+      "name": "justhodl-engine-contribution",
+      "expected_output": "data/engine-contributions.json",
+      "lambda_exists": false,
+      "s3_exists": false,
+      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "justhodl-cross-asset-confirm": {
+      "name": "justhodl-cross-asset-confirm",
+      "expected_output": "data/cross-asset-confirm.json",
+      "lambda_exists": false,
+      "s3_exists": false,
+      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "justhodl-earnings-linguistic": {
+      "name": "justhodl-earnings-linguistic",
+      "expected_output": "data/earnings-linguistic.json",
+      "lambda_exists": false,
+      "s3_exists": false,
+      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "justhodl-engine-robustness": {
+      "name": "justhodl-engine-robustness",
+      "expected_output": "data/engine-robustness.json",
+      "lambda_exists": false,
+      "s3_exists": false,
+      "s3_err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  }
+}
