@@ -1,0 +1,592 @@
+{
+  "started_at": "2026-05-22T09:10:08.688449+00:00",
+  "r_series": {
+    "justhodl-sec-filing-diff": {
+      "name": "justhodl-sec-filing-diff",
+      "exists": true,
+      "last_modified": "2026-05-22T01:05:33.852+0000",
+      "runtime": "python3.12",
+      "code_sha": "UnA9B14uxE8W",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-sec-filing-diff-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 12 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-transcript-indexer": {
+      "name": "justhodl-transcript-indexer",
+      "exists": true,
+      "last_modified": "2026-05-22T01:08:05.710+0000",
+      "runtime": "python3.12",
+      "code_sha": "/dTWSc5XOmdb",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-transcript-indexer-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 3 * * ? *)"
+        }
+      ],
+      "log_group_exists": true,
+      "log_group_created": "2026-05-22T03:00:40.982000+00:00",
+      "log_group_stored_bytes": 0,
+      "latest_log_stream": {
+        "name": "2026/05/22/[$LATEST]88f5a08d135b46668e14605206322cb6",
+        "last_event": "2026-05-22T03:00:43.312000+00:00",
+        "days_ago": 0.3
+      },
+      "invocations_30d": 1,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00"
+    },
+    "justhodl-transcript-query": {
+      "name": "justhodl-transcript-query",
+      "exists": true,
+      "last_modified": "2026-05-22T01:08:11.078+0000",
+      "runtime": "python3.12",
+      "code_sha": "aFBwGt5QDqJc",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-peer-comparison": {
+      "name": "justhodl-peer-comparison",
+      "exists": true,
+      "last_modified": "2026-05-22T01:10:32.120+0000",
+      "runtime": "python3.12",
+      "code_sha": "lyLlyu6XLIVp",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-peer-comparison-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 13 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-screen-builder": {
+      "name": "justhodl-screen-builder",
+      "exists": true,
+      "last_modified": "2026-05-22T01:12:40.904+0000",
+      "runtime": "python3.12",
+      "code_sha": "aLTB3JhEJSpq",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-screen-builder-universe-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 14 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-fedwatch-rate-probability": {
+      "name": "justhodl-fedwatch-rate-probability",
+      "exists": true,
+      "last_modified": "2026-05-22T01:17:40.785+0000",
+      "runtime": "python3.12",
+      "code_sha": "w46H41IXfUi4",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-fedwatch-rate-probability-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 23 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-supply-chain-linkage": {
+      "name": "justhodl-supply-chain-linkage",
+      "exists": true,
+      "last_modified": "2026-05-22T01:19:33.398+0000",
+      "runtime": "python3.12",
+      "code_sha": "6SEONlPfvGeF",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-supply-chain-linkage-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 15 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-cftc-deep-view": {
+      "name": "justhodl-cftc-deep-view",
+      "exists": true,
+      "last_modified": "2026-05-22T01:22:18.161+0000",
+      "runtime": "python3.12",
+      "code_sha": "zDbYe1Q1RUZE",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-cftc-deep-view-fri",
+          "state": "ENABLED",
+          "expression": "cron(0 22 ? * FRI *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-fx-decomposition": {
+      "name": "justhodl-fx-decomposition",
+      "exists": true,
+      "last_modified": "2026-05-22T01:24:17.458+0000",
+      "runtime": "python3.12",
+      "code_sha": "8sa3sHP/cmQc",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-fx-decomposition-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 22 * * ? *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-factor-decomposition": {
+      "name": "justhodl-factor-decomposition",
+      "exists": true,
+      "last_modified": "2026-05-22T01:26:31.175+0000",
+      "runtime": "python3.12",
+      "code_sha": "XK8FYdYfStNI",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-factor-decomposition-weekly",
+          "state": "ENABLED",
+          "expression": "cron(0 6 ? * SUN *)"
+        }
+      ],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    }
+  },
+  "other_flagged": {
+    "macro-report-api": {
+      "name": "macro-report-api",
+      "exists": true,
+      "last_modified": "2026-04-25T10:24:48.000+0000",
+      "runtime": "python3.9",
+      "code_sha": "QjyFruUMdbHp",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": "https://eezt4oyhbd5ce6mffvk4iu4jaa0cstzo.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "invokers_from_policy": "unknown",
+      "eventbridge_rules_targeting": [
+        {
+          "name": "macro-api-daily-update",
+          "schedule": "cron(0 13 * * ? *)",
+          "state": "DISABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2025-09-18T21:02:21.954000+00:00",
+      "log_group_stored_bytes": 0,
+      "latest_log_stream": {
+        "name": "2025/09/23/[$LATEST]3ce4b340a0164a5ba12ef85479c29363",
+        "last_event": "2025-09-23T13:00:33.660000+00:00",
+        "days_ago": 240.8
+      },
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "autonomous-ai-processor": {
+      "name": "autonomous-ai-processor",
+      "exists": true,
+      "last_modified": "2026-04-27T16:47:30.000+0000",
+      "runtime": "python3.11",
+      "code_sha": "5na49AzaI3TB",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": "https://twmolphhtndcgrz3ktth7cgyiy0uobaa.lambda-url.us-east-1.on.aws/",
+      "event_source_mappings": [],
+      "invokers_from_policy": "unknown",
+      "eventbridge_rules_targeting": [
+        {
+          "name": "autonomous-ai-schedule",
+          "schedule": "rate(5 minutes)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2025-09-30T16:22:21.317000+00:00",
+      "log_group_stored_bytes": 0,
+      "latest_log_stream": {
+        "name": "2025/10/07/[$LATEST]b5c975a67bf44320bdaff4c776c2391a",
+        "last_event": "2025-10-07T23:39:15.290000+00:00",
+        "days_ago": 226.4
+      },
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-email-reports": {
+      "name": "justhodl-email-reports",
+      "exists": true,
+      "last_modified": "2026-04-26T12:18:03.000+0000",
+      "runtime": "python3.12",
+      "code_sha": "kaJz0tiTAro5",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "justhodl-8am",
+          "schedule": "cron(0 13 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2025-09-24T02:02:04.928000+00:00",
+      "log_group_stored_bytes": 0,
+      "latest_log_stream": {
+        "name": "2025/09/24/[$LATEST]0d6c0c281f4344839f09b47c372204f8",
+        "last_event": "2025-09-24T22:38:11.782000+00:00",
+        "days_ago": 239.4
+      },
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    },
+    "justhodl-daily-macro-report": {
+      "name": "justhodl-daily-macro-report",
+      "exists": true,
+      "last_modified": "2026-04-25T10:25:39.000+0000",
+      "runtime": "python3.11",
+      "code_sha": "hHHsqzwnH56K",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "DailyMacroReportRule",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "DISABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": false,
+      "latest_log_stream": "no_log_group",
+      "invocations_30d": 0,
+      "last_invocation_date": null
+    }
+  },
+  "high_error": {
+    "justhodl-portfolio-catalysts": {
+      "name": "justhodl-portfolio-catalysts",
+      "exists": true,
+      "last_modified": "2026-05-12T23:15:24.864+0000",
+      "runtime": "python3.12",
+      "code_sha": "GvVzbT7nG4oh",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [
+        "events",
+        "events.amazonaws.com"
+      ],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "justhodl-portfolio-catalysts-3x-daily",
+          "schedule": "cron(0 11,17,23 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2026-05-12T23:19:48.295000+00:00",
+      "log_group_stored_bytes": 34789,
+      "latest_log_stream": {
+        "name": "2026/05/21/[$LATEST]ee5a9319e4ee43ea854b8fc890f5d951",
+        "last_event": "2026-05-21T23:03:33.237000+00:00",
+        "days_ago": 0.4
+      },
+      "invocations_30d": 54,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00",
+      "recent_error_lines": []
+    },
+    "justhodl-forced-selling-bounce": {
+      "name": "justhodl-forced-selling-bounce",
+      "exists": true,
+      "last_modified": "2026-05-21T23:40:10.000+0000",
+      "runtime": "python3.12",
+      "code_sha": "gI0gkiXhGfwb",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [],
+      "eventbridge_rules_targeting": [],
+      "scheduler_v2_schedules": [
+        {
+          "name": "justhodl-forced-selling-bounce-30min",
+          "state": "ENABLED",
+          "expression": "cron(0/30 13-21 ? * MON-FRI *)"
+        }
+      ],
+      "log_group_exists": true,
+      "log_group_created": "2026-05-21T23:30:06.035000+00:00",
+      "log_group_stored_bytes": 0,
+      "latest_log_stream": {
+        "name": "2026/05/22/[$LATEST]44d2f878a9604cec9fe8badbdf5b535e",
+        "last_event": "2026-05-22T00:08:21.922000+00:00",
+        "days_ago": 0.4
+      },
+      "invocations_30d": 5,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00",
+      "recent_error_lines": [
+        {
+          "ts": "2026-05-21T23:30:00.806000+00:00",
+          "msg": "[ERROR] TypeError: '<' not supported between instances of 'dict' and 'int'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 319, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0c3_fired, c3_detail = evaluate_c3_breadth_collapse()\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 224, in evaluate_c3_br"
+        },
+        {
+          "ts": "2026-05-21T23:36:49.765000+00:00",
+          "msg": "[ERROR] TypeError: '<' not supported between instances of 'dict' and 'int'\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 319, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0c3_fired, c3_detail = evaluate_c3_breadth_collapse()\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 224, in evaluate_c3_br"
+        }
+      ]
+    },
+    "justhodl-watchlist-debate": {
+      "name": "justhodl-watchlist-debate",
+      "exists": true,
+      "last_modified": "2026-05-13T23:54:22.000+0000",
+      "runtime": "python3.12",
+      "code_sha": "gRvkpQoabWYl",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [
+        "events",
+        "events.amazonaws.com"
+      ],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "justhodl-watchlist-debate-nightly",
+          "schedule": "cron(0 3 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2026-04-26T03:00:37.389000+00:00",
+      "log_group_stored_bytes": 55926,
+      "latest_log_stream": {
+        "name": "2026/05/22/[$LATEST]f04e9c4e20ee49caa60686cbf81d4058",
+        "last_event": "2026-05-22T03:48:36.560000+00:00",
+        "days_ago": 0.2
+      },
+      "invocations_30d": 32,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00",
+      "recent_error_lines": [
+        {
+          "ts": "2026-05-17T03:00:29.806000+00:00",
+          "msg": "[BATCH-SUBMIT] HTTP Error 400: Bad Request\n"
+        }
+      ]
+    },
+    "justhodl-email-reports-v2": {
+      "name": "justhodl-email-reports-v2",
+      "exists": true,
+      "last_modified": "2026-05-17T10:29:30.000+0000",
+      "runtime": "python3.11",
+      "code_sha": "OrnqKzlOhpeS",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [
+        "events",
+        "events.amazonaws.com"
+      ],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "DailyEmailReportsV2",
+          "schedule": "cron(0 12 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2025-09-24T22:55:41.016000+00:00",
+      "log_group_stored_bytes": 29455,
+      "latest_log_stream": {
+        "name": "2026/05/21/[$LATEST]b9abe5946dce4c579268d2e02ea17d37",
+        "last_event": "2026-05-21T12:01:23.065000+00:00",
+        "days_ago": 0.9
+      },
+      "invocations_30d": 64,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00",
+      "recent_error_lines": [
+        {
+          "ts": "2026-05-15T12:01:42.860000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lamb"
+        },
+        {
+          "ts": "2026-05-15T12:03:10.750000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lamb"
+        },
+        {
+          "ts": "2026-05-15T12:05:53.675000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lamb"
+        },
+        {
+          "ts": "2026-05-16T12:01:35.030000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lamb"
+        },
+        {
+          "ts": "2026-05-16T12:03:01.309000+00:00",
+          "msg": "[ERROR] MessageRejected: An error occurred (MessageRejected) when calling the SendEmail operation: Email address is not verified. The following identities failed the check in region US-EAST-1: PLACEHOLDER2@example.com, PLACEHOLDER@example.com\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lamb"
+        }
+      ]
+    },
+    "justhodl-nobrainer-rationale": {
+      "name": "justhodl-nobrainer-rationale",
+      "exists": true,
+      "last_modified": "2026-05-17T10:29:54.000+0000",
+      "runtime": "python3.12",
+      "code_sha": "xb7C9J01z8M/",
+      "dlq_arn": null,
+      "async_on_failure": null,
+      "function_url": null,
+      "event_source_mappings": [],
+      "invokers_from_policy": [
+        "events",
+        "events.amazonaws.com"
+      ],
+      "eventbridge_rules_targeting": [
+        {
+          "name": "justhodl-nobrainer-rationale-daily",
+          "schedule": "cron(45 13 * * ? *)",
+          "state": "ENABLED"
+        }
+      ],
+      "scheduler_v2_schedules": [],
+      "log_group_exists": true,
+      "log_group_created": "2026-05-05T14:54:00.453000+00:00",
+      "log_group_stored_bytes": 321058,
+      "latest_log_stream": {
+        "name": "2026/05/21/[$LATEST]fd370ba79b7642319bcd9e3279c8f576",
+        "last_event": "2026-05-21T13:47:23.473000+00:00",
+        "days_ago": 0.8
+      },
+      "invocations_30d": 99,
+      "last_invocation_date": "2026-05-21T09:10:00+00:00",
+      "recent_error_lines": [
+        {
+          "ts": "2026-05-15T13:47:25.986000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in "
+        },
+        {
+          "ts": "2026-05-15T13:50:59.125000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in "
+        },
+        {
+          "ts": "2026-05-15T13:55:30.383000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in "
+        },
+        {
+          "ts": "2026-05-16T13:45:03.222000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in "
+        },
+        {
+          "ts": "2026-05-16T13:46:03.633000+00:00",
+          "msg": "[ERROR] TypeError: unsupported format string passed to NoneType.__format__\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 701, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0digest = build_telegram_digest(theses, len(leader), len(mu_grade))\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 376, in "
+        }
+      ]
+    }
+  },
+  "dlq_recheck": {
+    "n_lambdas_total": 399,
+    "n_with_dlq": 0,
+    "async_dest_sample_30": []
+  },
+  "completed_at": "2026-05-22T09:10:48.620172+00:00"
+}
