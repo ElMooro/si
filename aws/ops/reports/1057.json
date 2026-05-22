@@ -1,0 +1,266 @@
+{
+  "started_at": "2026-05-22T22:14:30.210883+00:00",
+  "n_lambdas": 403,
+  "n_s3_keys": 24668,
+  "candidates": {
+    "regime_switcher": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "regime-conditional",
+          "lambda": "justhodl-regime-conditional-router"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "regime-conditional",
+          "s3_key": "data/regime-conditional-router.json"
+        }
+      ]
+    },
+    "pnl_attribution": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "pnl-attribution",
+          "lambda": "justhodl-pnl-attribution"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "pnl-attribution",
+          "s3_key": "data/pnl-attribution.json"
+        }
+      ]
+    },
+    "implied_probability": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "implied-prob",
+          "lambda": "justhodl-implied-prob"
+        },
+        {
+          "kw": "vol-surface",
+          "lambda": "justhodl-vol-surface"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "implied-prob",
+          "s3_key": "data/implied-prob.json"
+        },
+        {
+          "kw": "vol-surface",
+          "s3_key": "data/vol-surface-history.json"
+        },
+        {
+          "kw": "vol-surface",
+          "s3_key": "data/vol-surface.json"
+        }
+      ]
+    },
+    "counterfactual_backtest": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "decision_journal_rlhf": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "trade-log",
+          "lambda": "justhodl-trade-logger"
+        }
+      ],
+      "s3_hits": []
+    },
+    "dealer_gamma": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "gex",
+          "lambda": "justhodl-dealer-gex"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "gex",
+          "s3_key": "data/dealer-gex-history.json"
+        },
+        {
+          "kw": "gex",
+          "s3_key": "data/dealer-gex.json"
+        }
+      ]
+    },
+    "cross_asset_confirm": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "capacity_sizing": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "capacity",
+          "lambda": "justhodl-liquidity-capacity"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "capacity",
+          "s3_key": "data/liquidity-capacity.json"
+        }
+      ]
+    },
+    "news_novelty": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "earnings_linguistic": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "adversarial_robustness": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "synthetic_assets": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "carry_surface": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "hedge_effectiveness": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "behavioral_bias_intervention": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "sector_rotation_leadlag": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "sector-rotation",
+          "lambda": "justhodl-sector-rotation"
+        },
+        {
+          "kw": "rotation-engine",
+          "lambda": "justhodl-theme-rotation-engine"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "sector-rotation",
+          "s3_key": "data/sector-rotation.json"
+        }
+      ]
+    },
+    "smart_money_crowding": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    },
+    "macro_surprise_index": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "macro-surprise",
+          "lambda": "justhodl-macro-surprise"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "macro-surprise",
+          "s3_key": "data/macro-surprise.json"
+        },
+        {
+          "kw": "macro-surprise",
+          "s3_key": "data/snapshots/data_macro-surprise-2026-05-04.json"
+        },
+        {
+          "kw": "macro-surprise",
+          "s3_key": "data/snapshots/data_macro-surprise-2026-05-05.json"
+        },
+        {
+          "kw": "macro-surprise",
+          "s3_key": "data/snapshots/data_macro-surprise-2026-05-06.json"
+        },
+        {
+          "kw": "macro-surprise",
+          "s3_key": "data/snapshots/data_macro-surprise-2026-05-07.json"
+        }
+      ]
+    },
+    "vrp_tracker": {
+      "verdict": "EXISTS",
+      "lambda_hits": [
+        {
+          "kw": "vrp",
+          "lambda": "justhodl-vrp"
+        },
+        {
+          "kw": "rv-iv",
+          "lambda": "justhodl-rv-iv-scanner"
+        }
+      ],
+      "s3_hits": [
+        {
+          "kw": "vrp",
+          "s3_key": "data/vrp-history.json"
+        },
+        {
+          "kw": "vrp",
+          "s3_key": "data/vrp.json"
+        },
+        {
+          "kw": "rv-iv",
+          "s3_key": "data/rv-iv-scanner.json"
+        }
+      ]
+    },
+    "stop_loss_optimizer": {
+      "verdict": "NOT_FOUND",
+      "lambda_hits": [],
+      "s3_hits": []
+    }
+  },
+  "summary": {
+    "truly_novel": [
+      "counterfactual_backtest",
+      "cross_asset_confirm",
+      "news_novelty",
+      "earnings_linguistic",
+      "adversarial_robustness",
+      "synthetic_assets",
+      "carry_surface",
+      "hedge_effectiveness",
+      "behavioral_bias_intervention",
+      "smart_money_crowding",
+      "stop_loss_optimizer"
+    ],
+    "already_built_or_partial": [
+      "regime_switcher",
+      "pnl_attribution",
+      "implied_probability",
+      "decision_journal_rlhf",
+      "dealer_gamma",
+      "capacity_sizing",
+      "sector_rotation_leadlag",
+      "macro_surprise_index",
+      "vrp_tracker"
+    ]
+  }
+}
