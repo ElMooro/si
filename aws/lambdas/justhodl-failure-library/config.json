@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-failure-library",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #5 — Pre-Disaster Pattern Library. Scans current universe for failure-precursor markers (Altman/Piotroski/Beneish/insider/cash flow divergence) and flags names with 4+ markers in danger zone.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "failure-library-daily",
+    "cron": "cron(0 15 ? * MON-FRI *)",
+    "description": "Weekdays 15 UTC — daily pre-disaster watchlist scan"
+  }
+}
