@@ -1,0 +1,26 @@
+{
+  "function_name": "justhodl-premortem-engine",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #1 — Adversarial Pre-Mortem Engine. For each top-conviction idea, Claude as red-team PM generates 5 kill-conditions + monitor specs.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260",
+    "TOP_N": "15"
+  },
+  "inherit_env": {
+    "from_function": "justhodl-nobrainer-rationale",
+    "keys": ["ANTHROPIC_KEY", "ANTHROPIC_API_KEY"]
+  },
+  "schedule": {
+    "rule_name": "premortem-engine-daily",
+    "cron": "cron(0 14 ? * MON-FRI *)",
+    "description": "Weekdays 14 UTC — generate kill theses for top-conviction ideas (after best-ideas runs at 13 UTC)"
+  }
+}

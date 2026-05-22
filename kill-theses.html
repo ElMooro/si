@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kill Theses — Adversarial Pre-Mortem</title>
+  <style>
+    body { font-family: 'JetBrains Mono', 'Courier New', monospace; background:#0a0e14; color:#e8e8e8; max-width:1400px; margin:0 auto; padding:20px; line-height:1.5; }
+    h1 { color:#ef4444; font-size:1.5em; border-bottom:2px solid #1e293b; padding-bottom:12px; }
+    h2 { color:#fbbf24; margin-top:32px; font-size:1.15em; }
+    .meta { color:#64748b; font-size:0.9em; margin-bottom:24px; }
+    .nav { color:#94a3b8; margin-bottom:16px; }
+    .nav a { color:#4ade80; text-decoration:none; margin-right:16px; }
+    .nav a:hover { text-decoration:underline; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:24px; }
+    .stat-card { background:#131820; border:1px solid #1e293b; border-radius:4px; padding:14px; }
+    .stat-label { color:#64748b; font-size:0.8em; text-transform:uppercase; }
+    .stat-value { color:#fff; font-size:1.6em; font-weight:bold; margin-top:4px; }
+    .thesis { background:#131820; border:1px solid #1e293b; border-left:4px solid #ef4444; border-radius:4px; padding:18px; margin-bottom:18px; }
+    .thesis.broken { border-left-color:#dc2626; background:#1f0a0a; }
+    .thesis h3 { color:#ef4444; font-size:1.05em; margin:0 0 6px 0; }
+    .thesis .tier { display:inline-block; padding:1px 8px; border-radius:3px; background:#7f1d1d; color:#fca5a5; font-size:0.78em; margin-left:6px; }
+    .thesis .summary { color:#fbbf24; font-style:italic; margin:8px 0 14px 0; padding:8px 12px; background:#0a0e14; border-radius:3px; font-size:0.92em; }
+    .conditions { display:grid; grid-template-columns:1fr; gap:8px; }
+    .condition { padding:10px; background:#0a0e14; border-left:3px solid #475569; border-radius:3px; font-size:0.88em; }
+    .condition.sev-5 { border-left-color:#ef4444; }
+    .condition.sev-4 { border-left-color:#f97316; }
+    .condition.sev-3 { border-left-color:#eab308; }
+    .condition.sev-2 { border-left-color:#3b82f6; }
+    .condition.sev-1 { border-left-color:#94a3b8; }
+    .cond-header { color:#fff; font-weight:bold; margin-bottom:4px; }
+    .cond-meta { color:#94a3b8; font-size:0.82em; }
+    .cond-meta span { margin-right:14px; }
+    .cond-threshold { color:#fbbf24; }
+    .cond-source { color:#94a3b8; }
+    .horizon { color:#94a3b8; font-size:0.85em; margin-top:10px; }
+    .horizon b { color:#fbbf24; }
+    .err { color:#ef4444; background:#1f0a0a; padding:8px; border-radius:3px; font-size:0.85em; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/">← Home</a>
+    <a href="/best-ideas.html">Best Ideas</a>
+    <a href="/nobrainers.html">Nobrainers</a>
+    <a href="/signal-halflife.html">Signal Half-Life</a>
+  </nav>
+  <h1>🎯 Adversarial Pre-Mortem — Kill Theses</h1>
+  <div class="meta" id="meta">Loading…</div>
+
+  <div style="background:#131820;padding:14px;border-radius:4px;font-size:0.9em;line-height:1.6;color:#94a3b8;margin-bottom:24px;">
+    <strong style="color:#ef4444;">The premise:</strong> Every kill thesis below assumes the trade has <em>already lost 50%</em> twelve months from now. The conditions are what would have to be true for that to happen. The premortem tracker (separate Lambda) monitors these conditions and alerts when any break.<br><br>
+    Inspired by Kahneman/Klein research — structured pre-mortems cut decision errors by ~30%.
+  </div>
+
+  <div class="grid" id="summary"></div>
+
+  <h2>Kill Theses (most fragile first)</h2>
+  <div id="theses"></div>
+
+  <script>
+    const FEED = "https://justhodl-dashboard-live.s3.amazonaws.com/data/kill-theses.json";
+
+    function sevClass(s) { return "sev-" + (s || 3); }
+    function maxSev(t) { return Math.max(...(t.kill_conditions || []).map(c => c.severity || 0), 0); }
+
+    async function load() {
+      try {
+        const r = await fetch(FEED + "?cb=" + Date.now());
+        const d = await r.json();
+        document.getElementById("meta").textContent =
+          `Generated: ${d.generated_at} · ${d.summary.n_theses_ok} theses · ${d.summary.n_active_conditions} active conditions · model: ${d.model_used}`;
+
+        document.getElementById("summary").innerHTML = `
+          <div class="stat-card"><div class="stat-label">Targets analysed</div><div class="stat-value">${d.n_targets}</div></div>
+          <div class="stat-card"><div class="stat-label">Theses generated</div><div class="stat-value">${d.summary.n_theses_ok}</div></div>
+          <div class="stat-card"><div class="stat-label">Active conditions</div><div class="stat-value">${d.summary.n_active_conditions}</div></div>
+          <div class="stat-card"><div class="stat-label">Failed</div><div class="stat-value" style="color:${d.summary.n_failed > 0 ? '#ef4444' : '#94a3b8'}">${d.summary.n_failed}</div></div>
+        `;
+
+        const theses = [...(d.theses || [])].sort((a, b) => maxSev(b) - maxSev(a));
+        document.getElementById("theses").innerHTML = theses.map(t => {
+          if (t.error) {
+            return `<div class="thesis"><h3>${t.symbol}</h3><div class="err">Pre-mortem generation failed: ${t.error}</div></div>`;
+          }
+          const conditions = (t.kill_conditions || []).map(c => `
+            <div class="condition ${sevClass(c.severity)}">
+              <div class="cond-header">#${c.id} (sev ${c.severity}/5): ${c.description}</div>
+              <div class="cond-meta">
+                <span>📊 Watch: <b>${c.monitor_metric}</b></span>
+                <span class="cond-threshold">⚠️ Break: ${c.break_threshold}</span>
+              </div>
+              <div class="cond-meta">
+                <span class="cond-source">📡 Source: ${c.data_source}</span>
+                <span>⏱ Cadence: ${c.check_cadence}</span>
+              </div>
+            </div>
+          `).join("");
+
+          return `
+            <div class="thesis ${t.status === 'BROKEN' ? 'broken' : ''}">
+              <h3>${t.symbol} — ${t.name} <span class="tier">${t.conviction_tier}</span></h3>
+              <div class="summary">${t.thesis_summary || ''}</div>
+              <div class="conditions">${conditions}</div>
+              <div class="horizon">
+                Earliest break: <b>${t.earliest_break_signal || '—'}</b> · Warning horizon: <b>${t.early_warning_horizon || '—'}</b>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (e) {
+        document.getElementById("meta").textContent = `Error loading: ${e.message}`;
+      }
+    }
+    load();
+  </script>
+</body>
+</html>
