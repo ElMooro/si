@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 120,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FX Decomposition (R9). DXY 6-component move attribution (EUR 57.6/JPY 13.6/GBP 11.9/CAD 9.1/SEK 4.2/CHF 3.6) across 1d/5d/20d/60d/YTD + carry-pair tracker (USDJPY/EURCHF/USDMXN). Daily 22 UTC after FX close.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fx-decomposition-daily",
+    "cron": "cron(0 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "FX Decomposition daily 22 UTC after London/NY close"
+  }
+}
