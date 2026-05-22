@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Peer Comparison Engine (R3). Damodaran-grade comparable analysis: 21 metrics across valuation/profit/growth/balance-sheet/market, z-scored vs peer median, quartile classification, narrative. Daily 13 UTC + on-demand mode.",
+  "inherit_env": [
+    {"from_function": "justhodl-starmine", "keys": ["FMP_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-peer-comparison-daily",
+    "cron": "cron(0 13 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Peer Comparison daily 13 UTC after fundamentals refresh"
+  }
+}
