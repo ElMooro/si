@@ -463,3 +463,4 @@ def lambda_handler(event, context):
         "next_position_event_days": payload["summary"]["next_position_event_days"],
         "elapsed_seconds": round(time.time() - started, 2),
     })}
+# audit-P0-redeploy: 2026-05-22T09:56:37Z — force redeploy to land already-committed fix

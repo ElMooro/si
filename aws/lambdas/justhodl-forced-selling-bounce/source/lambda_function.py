@@ -514,3 +514,4 @@ def lambda_handler(event=None, context=None):
 
 if __name__ == "__main__":
     print(json.dumps(lambda_handler(), indent=2))
+# audit-P0-redeploy: 2026-05-22T09:56:37Z — force redeploy to land already-committed fix
