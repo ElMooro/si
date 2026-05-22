@@ -1,0 +1,592 @@
+{
+  "ops_id": 1027,
+  "started_at": "2026-05-21T23:59:32.464870+00:00",
+  "ended_at": "2026-05-22T00:05:14.133609+00:00",
+  "scorecard": {
+    "total_engines": 10,
+    "n_pass": 9,
+    "n_fail": 1,
+    "all_pass": false,
+    "pass_by_engine": {
+      "#1_justhodl-sequence-alpha-detector": true,
+      "#2_justhodl-quality-on-sale": true,
+      "#3_justhodl-forced-selling-bounce": true,
+      "#4_justhodl-regime-conditional-router": true,
+      "#5_justhodl-ma-target-predictor": true,
+      "#6_justhodl-consensus-bottom": true,
+      "#7_justhodl-correlation-break-trade-router": true,
+      "#8_justhodl-fed-pivot-factor-router": true,
+      "#9_justhodl-earnings-tone-velocity": false,
+      "#10_justhodl-earnings-cascade": true
+    },
+    "fresh_by_engine": {
+      "#1_justhodl-sequence-alpha-detector": true,
+      "#2_justhodl-quality-on-sale": true,
+      "#3_justhodl-forced-selling-bounce": true,
+      "#4_justhodl-regime-conditional-router": true,
+      "#5_justhodl-ma-target-predictor": true,
+      "#6_justhodl-consensus-bottom": true,
+      "#7_justhodl-correlation-break-trade-router": true,
+      "#8_justhodl-fed-pivot-factor-router": true,
+      "#9_justhodl-earnings-tone-velocity": true,
+      "#10_justhodl-earnings-cascade": true
+    },
+    "schema_ok_by_engine": {
+      "#1_justhodl-sequence-alpha-detector": true,
+      "#2_justhodl-quality-on-sale": true,
+      "#3_justhodl-forced-selling-bounce": true,
+      "#4_justhodl-regime-conditional-router": true,
+      "#5_justhodl-ma-target-predictor": true,
+      "#6_justhodl-consensus-bottom": true,
+      "#7_justhodl-correlation-break-trade-router": true,
+      "#8_justhodl-fed-pivot-factor-router": true,
+      "#9_justhodl-earnings-tone-velocity": false,
+      "#10_justhodl-earnings-cascade": true
+    }
+  },
+  "results": [
+    {
+      "n": 1,
+      "name": "Sequence Alpha Detector",
+      "lambda": "justhodl-sequence-alpha-detector",
+      "s3_key": "data/sequence-alpha.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 7875,
+        "last_modified": "2026-05-21T22:59:52.957+0000",
+        "memory_mb": 512,
+        "timeout_s": 60,
+        "description_len": 236
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.22,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "regime": "DISTRIBUTION_BROAD",
+          "n_active_sequences": 3,
+          "n_high_conviction": 0,
+          "state_counts": {
+            "STEP_1_FRESH": 3
+          },
+          "top_3_high_conviction": []
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 26,
+        "size_bytes": 6610,
+        "fields_check": {
+          "engine": true,
+          "version": true,
+          "regime": true,
+          "n_active_sequences": true,
+          "state_counts": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 2,
+      "name": "Quality-on-Sale Detector",
+      "lambda": "justhodl-quality-on-sale",
+      "s3_key": "data/quality-on-sale.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6765,
+        "last_modified": "2026-05-21T23:02:19.501+0000",
+        "memory_mb": 512,
+        "timeout_s": 120,
+        "description_len": 227
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.15,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "regime": "DRY",
+          "n_qualified": 0,
+          "n_near_qualified": 1,
+          "qualified_tickers": [],
+          "near_qualified_tickers": [
+            "ADBE"
+          ]
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 26,
+        "size_bytes": 4114,
+        "fields_check": {
+          "engine": true,
+          "regime": true,
+          "n_qualified_5_of_5": true,
+          "thresholds": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 3,
+      "name": "Forced-Selling Bounce",
+      "lambda": "justhodl-forced-selling-bounce",
+      "s3_key": "data/forced-selling-bounce.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6787,
+        "last_modified": "2026-05-21T23:40:10.000+0000",
+        "memory_mb": 256,
+        "timeout_s": 60,
+        "description_len": 242
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.44,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "state": "QUIET",
+          "signal_strength": 10,
+          "n_conditions_fired": 0,
+          "conditions_fired": {
+            "c1_vix_spike": false,
+            "c2_putcall_extreme": false,
+            "c3_breadth_collapse": false,
+            "c4_gamma_unwind": false,
+            "c5_capitulation_posture": false
+          },
+          "trade_label": "HOLD_NORMAL"
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 2,
+        "size_bytes": 2672,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "signal_strength": true,
+          "n_conditions_fired": true,
+          "conditions_fired": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 4,
+      "name": "Regime-Conditional Router",
+      "lambda": "justhodl-regime-conditional-router",
+      "s3_key": "data/regime-conditional-router.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6995,
+        "last_modified": "2026-05-21T23:10:42.487+0000",
+        "memory_mb": 512,
+        "timeout_s": 60,
+        "description_len": 213
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.21,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "primary_framework": "PERMANENT_PORTFOLIO",
+          "primary_score": 80,
+          "regime": "BALANCED_UNCERTAIN",
+          "long_universe": [
+            "VTI",
+            "TLT",
+            "GLD",
+            "BIL"
+          ],
+          "short_universe": [],
+          "hedge_universe": []
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 4,
+        "size_bytes": 3416,
+        "fields_check": {
+          "engine": true,
+          "primary_framework": true,
+          "primary_regime": true,
+          "primary_sleeve": true,
+          "all_framework_scores": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 5,
+      "name": "M&A Target Predictor",
+      "lambda": "justhodl-ma-target-predictor",
+      "s3_key": "data/ma-target-predictor.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 7968,
+        "last_modified": "2026-05-21T23:13:33.503+0000",
+        "memory_mb": 512,
+        "timeout_s": 300,
+        "description_len": 218
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 306.27,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "state": "QUIET",
+          "n_high_conviction": 0,
+          "n_watch": 0,
+          "top_5_targets": [
+            {
+              "t": "JNJ",
+              "score": 43.0,
+              "band": "WEAK"
+            },
+            {
+              "t": "MRK",
+              "score": 40.9,
+              "band": "WEAK"
+            },
+            {
+              "t": "CSCO",
+              "score": 40.6,
+              "band": "WEAK"
+            },
+            {
+              "t": "ACN",
+              "score": 40.4,
+              "band": "WEAK"
+            },
+            {
+              "t": "CMCSA",
+              "score": 39.1,
+              "band": "NO_SIGNAL"
+            }
+          ]
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 192,
+        "size_bytes": 65462,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_high_conviction": true,
+          "all_evaluated": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 6,
+      "name": "Quality-Filtered Consensus Bottom",
+      "lambda": "justhodl-consensus-bottom",
+      "s3_key": "data/consensus-bottom.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 4876,
+        "last_modified": "2026-05-21T23:16:25.102+0000",
+        "memory_mb": 256,
+        "timeout_s": 60,
+        "description_len": 206
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.27,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "state": "NO_CONSENSUS_BOTTOM",
+          "n_qualified": 0,
+          "qualified_tickers": [],
+          "near_qualified_tickers": []
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 192,
+        "size_bytes": 1891,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_qualified": true,
+          "qualified": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 7,
+      "name": "Correlation-Break Trade Router",
+      "lambda": "justhodl-correlation-break-trade-router",
+      "s3_key": "data/correlation-break-trades.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6515,
+        "last_modified": "2026-05-21T23:19:27.679+0000",
+        "memory_mb": 256,
+        "timeout_s": 30,
+        "description_len": 218
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.45,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "primary_regime": "NORMAL",
+          "primary_score": 0,
+          "secondary_regime": null,
+          "long_universe": [],
+          "short_universe": []
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 4,
+        "size_bytes": 2547,
+        "fields_check": {
+          "engine": true,
+          "primary_regime": true,
+          "primary_recipe": true,
+          "all_regime_scores": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 8,
+      "name": "Fed Pivot Factor Router",
+      "lambda": "justhodl-fed-pivot-factor-router",
+      "s3_key": "data/fed-pivot-factor-trades.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 4688,
+        "last_modified": "2026-05-21T23:21:28.386+0000",
+        "memory_mb": 256,
+        "timeout_s": 30,
+        "description_len": 228
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.25,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "pivot_regime": "HAWKISH_DRIFT",
+          "signal_stale": false,
+          "long_universe": [
+            "IWD",
+            "XLF"
+          ],
+          "short_universe": [
+            "QQQ"
+          ],
+          "horizon_days": 10
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 2,
+        "size_bytes": 2753,
+        "fields_check": {
+          "engine": true,
+          "current_pivot_regime": true,
+          "current_recipe": true,
+          "all_recipes": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 9,
+      "name": "Earnings Tone Velocity (parallel session)",
+      "lambda": "justhodl-earnings-tone-velocity",
+      "s3_key": "data/earnings-tone-velocity.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 5425,
+        "last_modified": "2026-05-21T23:28:05.263+0000",
+        "memory_mb": 512,
+        "timeout_s": 90,
+        "description_len": 208
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.41,
+        "body_summary": {
+          "schema_version": "1.0.0",
+          "method": "YoY same-quarter tone velocity + guidance transition classification",
+          "as_of": "2026-05-22T00:05:08.388658+00:00",
+          "summary": {
+            "n_transcripts_input": 390,
+            "n_tickers_total": 0,
+            "n_tickers_eligible": 0,
+            "n_positive_velocity": 0,
+            "n_negative_velocity": 0,
+            "n_guidance_red_alert": 0,
+            "n_guidance_green_alert": 0,
+            "min_quarters_required": 2,
+            "high_positive_velocity_threshold": 25,
+            "high_negative_velocity_threshold": -25,
+            "yoy_days_tolerance": 45
+          },
+          "top_positive_velocity": [],
+          "top_negative_velocity": [],
+          "guidance_red_alerts": [],
+          "guidance_green_alerts": [],
+          "per_ticker_velocity_full": {},
+          "upstream_as_of": "2026-05-21T10:01:37.328271+00:00",
+          "upstream_n_candidates": 30,
+          "duration_s": 0.22
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 26,
+        "size_bytes": 733,
+        "fields_check": {
+          "engine": false,
+          "version": false,
+          "generated_at": false
+        },
+        "all_fields_present": false
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": false,
+      "overall_pass": false
+    },
+    {
+      "n": 10,
+      "name": "Earnings Cascade (bonus compounder detector)",
+      "lambda": "justhodl-earnings-cascade",
+      "s3_key": "data/earnings-cascade.json",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 5767,
+        "last_modified": "2026-05-21T23:58:38.587+0000",
+        "memory_mb": 256,
+        "timeout_s": 60,
+        "description_len": 221
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.22,
+        "body_summary": {
+          "ok": true,
+          "version": "1.0.0",
+          "state": "TITAN_MARKET",
+          "n_titans": 2,
+          "n_strong": 3,
+          "n_emerging": 0,
+          "titan_tickers": [
+            "GOOGL",
+            "GOOG"
+          ],
+          "strong_tickers": [
+            "MA",
+            "V",
+            "INTU"
+          ]
+        }
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "freshness_threshold_h": 26,
+        "size_bytes": 16014,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_titans": true,
+          "n_strong": true,
+          "n_emerging": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    }
+  ]
+}
