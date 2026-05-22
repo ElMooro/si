@@ -1,0 +1,499 @@
+{
+  "started_at": "2026-05-22T09:31:09.579966+00:00",
+  "TYPE_A_invocation_chain_broken": [
+    {
+      "lambda": "autonomous-ai-processor",
+      "severity": "CRITICAL",
+      "expected_7d": 2016,
+      "actual_7d": 0,
+      "ratio": 0.0,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "autonomous-ai-schedule",
+          "expr": "rate(5 minutes)",
+          "expected_7d": 2016
+        }
+      ],
+      "last_invocation_day": null
+    },
+    {
+      "lambda": "justhodl-email-reports",
+      "severity": "CRITICAL",
+      "expected_7d": 7,
+      "actual_7d": 0,
+      "ratio": 0.0,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "justhodl-8am",
+          "expr": "cron(0 13 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": null
+    },
+    {
+      "lambda": "justhodl-streaming-fanout",
+      "severity": "HIGH",
+      "expected_7d": 2400,
+      "actual_7d": 961,
+      "ratio": 0.4,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-streaming-fanout-1min",
+          "expr": "cron(* 13-20 ? * MON-FRI *)",
+          "expected_7d": 2400
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "enhanced-repo-agent",
+      "severity": "HIGH",
+      "expected_7d": 672,
+      "actual_7d": 66,
+      "ratio": 0.1,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "repo-metrics-15min",
+          "expr": "rate(15 minutes)",
+          "expected_7d": 672
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "xccy-basis-agent",
+      "severity": "HIGH",
+      "expected_7d": 336,
+      "actual_7d": 66,
+      "ratio": 0.2,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "xccy-basis-30min",
+          "expr": "rate(30 minutes)",
+          "expected_7d": 336
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "alphavantage-market-agent",
+      "severity": "HIGH",
+      "expected_7d": 180,
+      "actual_7d": 48,
+      "ratio": 0.27,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "alphavantage-market-update",
+          "expr": "cron(*/15 13-21 ? * MON-FRI *)",
+          "expected_7d": 180
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-crypto-etf-arb",
+      "severity": "HIGH",
+      "expected_7d": 90,
+      "actual_7d": 28,
+      "ratio": 0.31,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-crypto-etf-arb-30min",
+          "expr": "cron(0,30 13-21 ? * MON-FRI *)",
+          "expected_7d": 90
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-crypto-opportunities",
+      "severity": "HIGH",
+      "expected_7d": 84,
+      "actual_7d": 24,
+      "ratio": 0.29,
+      "triggers": [
+        {
+          "kind": "EB",
+          "rule": "crypto-opportunities-4h",
+          "expr": "cron(0 0,4,8,12,16,20 ? * * *)",
+          "expected_7d": 42
+        },
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-crypto-opportunities-4h",
+          "expr": "rate(4 hours)",
+          "expected_7d": 42
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-master-allocator",
+      "severity": "HIGH",
+      "expected_7d": 56,
+      "actual_7d": 18,
+      "ratio": 0.32,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-master-allocator-3h",
+          "expr": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
+          "expected_7d": 56
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-vol-radar",
+      "severity": "HIGH",
+      "expected_7d": 28,
+      "actual_7d": 13,
+      "ratio": 0.46,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-vol-radar-6h",
+          "expr": "cron(0 0,6,12,18 * * ? *)",
+          "expected_7d": 28
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-multi-tf-convergence",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-multi-tf-convergence-daily",
+          "expr": "cron(0 0 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-52wk-quality-breakout",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-52wk-quality-breakout-daily",
+          "expr": "cron(0 22 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-failed-pattern-reversal",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-failed-pattern-reversal-daily",
+          "expr": "cron(30 22 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-cef-discount",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-cef-discount-daily",
+          "expr": "cron(30 22 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-earnings-iv-crush",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-earnings-iv-crush-daily",
+          "expr": "cron(0 22 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-rating-change-cluster",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-rating-change-cluster-daily",
+          "expr": "cron(30 23 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-precatalyst-vol-expansion",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-precatalyst-vol-expansion-daily",
+          "expr": "cron(30 21 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-stealth-accumulation",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-stealth-accumulation-daily",
+          "expr": "cron(0 23 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-lockup-expiration",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-lockup-expiration-daily",
+          "expr": "cron(0 22 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    },
+    {
+      "lambda": "justhodl-catalyst-skew-premove",
+      "severity": "HIGH",
+      "expected_7d": 7,
+      "actual_7d": 3,
+      "ratio": 0.43,
+      "triggers": [
+        {
+          "kind": "SV2",
+          "schedule": "justhodl-catalyst-skew-premove-daily",
+          "expr": "cron(30 0 * * ? *)",
+          "expected_7d": 7
+        }
+      ],
+      "last_invocation_day": "2026-05-21"
+    }
+  ],
+  "TYPE_B_silent_s3_write_failures": [],
+  "TYPE_C_silent_errors": [
+    {
+      "lambda": "justhodl-portfolio-catalysts",
+      "errors_7d": 33,
+      "invocations_7d": 43,
+      "error_rate": 76.7
+    },
+    {
+      "lambda": "news-sentiment-agent",
+      "errors_7d": 9,
+      "invocations_7d": 26,
+      "error_rate": 34.6
+    },
+    {
+      "lambda": "justhodl-watchlist-debate",
+      "errors_7d": 7,
+      "invocations_7d": 12,
+      "error_rate": 58.3
+    },
+    {
+      "lambda": "justhodl-email-reports-v2",
+      "errors_7d": 6,
+      "invocations_7d": 12,
+      "error_rate": 50.0
+    },
+    {
+      "lambda": "justhodl-nobrainer-rationale",
+      "errors_7d": 6,
+      "invocations_7d": 13,
+      "error_rate": 46.2
+    },
+    {
+      "lambda": "justhodl-khalid-adaptive",
+      "errors_7d": 4,
+      "invocations_7d": 172,
+      "error_rate": 2.3
+    },
+    {
+      "lambda": "justhodl-morning-intelligence",
+      "errors_7d": 3,
+      "invocations_7d": 11,
+      "error_rate": 27.3
+    },
+    {
+      "lambda": "fedliquidityapi",
+      "errors_7d": 3,
+      "invocations_7d": 66,
+      "error_rate": 4.5
+    },
+    {
+      "lambda": "justhodl-activity-nowcast",
+      "errors_7d": 3,
+      "invocations_7d": 9,
+      "error_rate": 33.3
+    },
+    {
+      "lambda": "manufacturing-global-agent",
+      "errors_7d": 3,
+      "invocations_7d": 24,
+      "error_rate": 12.5
+    },
+    {
+      "lambda": "justhodl-credit-stress",
+      "errors_7d": 2,
+      "invocations_7d": 7,
+      "error_rate": 28.6
+    },
+    {
+      "lambda": "justhodl-forced-selling-bounce",
+      "errors_7d": 2,
+      "invocations_7d": 5,
+      "error_rate": 40.0
+    },
+    {
+      "lambda": "justhodl-global-stress",
+      "errors_7d": 1,
+      "invocations_7d": 34,
+      "error_rate": 2.9
+    },
+    {
+      "lambda": "justhodl-fx-intelligence",
+      "errors_7d": 1,
+      "invocations_7d": 6,
+      "error_rate": 16.7
+    },
+    {
+      "lambda": "justhodl-canary-grid",
+      "errors_7d": 1,
+      "invocations_7d": 43,
+      "error_rate": 2.3
+    },
+    {
+      "lambda": "justhodl-analyst-consensus",
+      "errors_7d": 1,
+      "invocations_7d": 15,
+      "error_rate": 6.7
+    },
+    {
+      "lambda": "justhodl-financial-secretary",
+      "errors_7d": 1,
+      "invocations_7d": 43,
+      "error_rate": 2.3
+    }
+  ],
+  "TYPE_D_asymmetric_race_writers": [
+    {
+      "key": "data/report.json",
+      "file_last_modified": "2026-05-22T06:15:54+00:00",
+      "file_age_h": 3.3,
+      "writers": [
+        {
+          "lambda": "justhodl-bloomberg-v8",
+          "invocations_7d": 721,
+          "errors_7d": 0,
+          "last_invocation_day": "2026-05-21"
+        },
+        {
+          "lambda": "justhodl-daily-report-v3",
+          "invocations_7d": 613,
+          "errors_7d": 0,
+          "last_invocation_day": "2026-05-21"
+        }
+      ]
+    }
+  ],
+  "TYPE_E_truly_orphan": [
+    {
+      "lambda": "justhodl-cdn-diag-temp",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-06T15:28:55.973+0000"
+    },
+    {
+      "lambda": "justhodl-tmp-433",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-11T15:49:36.574+0000"
+    },
+    {
+      "lambda": "justhodl-tmp-454",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-11T22:47:14.472+0000"
+    },
+    {
+      "lambda": "justhodl-tmp-458",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-11T23:36:00.885+0000"
+    },
+    {
+      "lambda": "justhodl-tmp-force-refresh",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-11T10:59:02.594+0000"
+    },
+    {
+      "lambda": "justhodl-transcript-query",
+      "invocations_7d": 0,
+      "last_modified": "2026-05-22T01:08:11.078+0000"
+    }
+  ],
+  "summary": {
+    "n_lambdas": 399,
+    "TYPE_A_invocation_breaks_critical": 2,
+    "TYPE_A_invocation_breaks_high": 18,
+    "TYPE_B_silent_s3_write_critical": 0,
+    "TYPE_B_silent_s3_write_high": 0,
+    "TYPE_C_silent_errors": 17,
+    "TYPE_D_race_winners": 1,
+    "TYPE_E_orphan_lambdas": 6
+  }
+}
