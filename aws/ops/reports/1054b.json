@@ -1,0 +1,59 @@
+{
+  "started_at": "2026-05-22T14:07:55.382302+00:00",
+  "lambdas": {
+    "justhodl-premortem-engine": {
+      "key": "data/kill-theses.json",
+      "exists": true,
+      "size": 87316,
+      "last_modified": "2026-05-22T14:01:37+00:00",
+      "age_h": 0.11
+    },
+    "justhodl-behavior-mirror": {
+      "key": "data/behavior-mirror.json",
+      "exists": true,
+      "size": 823,
+      "last_modified": "2026-05-22T13:39:47+00:00",
+      "age_h": 0.47
+    },
+    "justhodl-failure-library": {
+      "key": "data/pre-disaster-watchlist.json",
+      "exists": true,
+      "size": 1177,
+      "last_modified": "2026-05-22T13:39:51+00:00",
+      "age_h": 0.47
+    },
+    "justhodl-causality-scanner": {
+      "key": "data/causality-discoveries.json",
+      "exists": false,
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "justhodl-convexity-scorer": {
+      "key": "data/convexity-scores.json",
+      "exists": true,
+      "size": 25646,
+      "last_modified": "2026-05-22T14:00:31+00:00",
+      "age_h": 0.12
+    },
+    "justhodl-chart-vision": {
+      "key": "data/chart-vision.json",
+      "exists": true,
+      "size": 1398,
+      "last_modified": "2026-05-22T13:40:12+00:00",
+      "age_h": 0.46
+    },
+    "justhodl-signal-halflife": {
+      "key": "data/signal-halflife.json",
+      "exists": true,
+      "size": 38809,
+      "last_modified": "2026-05-22T12:15:26+00:00",
+      "age_h": 1.88
+    },
+    "justhodl-meta-improver": {
+      "key": "data/meta-improver-state.json",
+      "exists": false,
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  },
+  "meta_improver_state_key": "data/meta-improver-state.json",
+  "causality_insufficient_handling": ": {len(series_map)}\")\n\n    if len(series_map) < 5:\n        return {\"statusCode\": 200, \"body\": json.dumps({\n            \"ok\": True,\n            \"n_series_loaded\": len(series_map),\n            \"note\": \"insufficient_history_for_causality_discovery\",\n            \"elapsed\": round((datetime.now(timezone.utc) - started).total_seconds(), 2),\n        })}\n\n    # 3. Run pair-wise Granger \u2014 capped at MAX_PAIRS\n    series_names ="
+}
