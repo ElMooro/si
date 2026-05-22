@@ -1,0 +1,21 @@
+{
+  "function_name": "justhodl-causality-scanner",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 2048,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #3 — Auto-Causality Discovery. Granger causality across all platform time series in S3. Surfaces top 50 lead-lag pairs Khalid hasn't hand-coded as engines yet.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "causality-scanner-weekly",
+    "cron": "cron(0 21 ? * SUN *)",
+    "description": "Weekly Sunday 21 UTC — computationally heaviest run (pair-wise Granger across all time series)"
+  }
+}
