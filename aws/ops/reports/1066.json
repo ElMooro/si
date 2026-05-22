@@ -1,0 +1,21 @@
+{
+  "started_at": "2026-05-22T23:32:41.584390+00:00",
+  "before": {
+    "n_overrides": 13,
+    "has_carry_surface": false,
+    "has_engine_contrib": false,
+    "has_cross_asset": false,
+    "has_engine_robust": false
+  },
+  "after": {
+    "n_overrides": 18,
+    "added_keys": [
+      "data/carry-surface.json",
+      "data/engine-contributions.json",
+      "data/cross-asset-confirm.json",
+      "data/engine-robustness.json",
+      "data/earnings-nlp.json"
+    ]
+  },
+  "freshness_monitor_invoke": "{\"statusCode\": 200, \"body\": \"{\\\"n_tracked\\\": 24, \\\"stale\\\": 0, \\\"fresh\\\": 24, \\\"alerts\\\": 0, \\\"suppressed\\\": 0, \\\"elapsed_s\\\": 5.36}\"}"
+}
