@@ -1,28 +1,46 @@
 {
-  "started_at": "2026-05-22T10:50:50.732974+00:00",
+  "started_at": "2026-05-22T12:50:46.914592+00:00",
   "steps": [
     {
       "step": "put_inline_policy",
-      "result": "ERROR",
-      "error": "An error occurred (LimitExceeded) when calling the PutUserPolicy operation: Maximum policy size of 2048 bytes exceeded for user github-actions-justhodl"
+      "result": "OK",
+      "detail": "{'ResponseMetadata': {'RequestId': '6415e6e0-c7e8-4951-8413-d5e2736ec94c', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Fri, 22 May 2026 12:50:47 GMT', 'x-amzn-requestid': '6415e6e0-c7e8-4951-8413-"
     },
     {
       "step": "create_dlq",
-      "result": "ERROR",
-      "error": "An error occurred (AccessDenied) when calling the CreateQueue operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:createqueue on resource: arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default because no identity-based policy allows the sqs:createqueue action"
+      "result": "OK",
+      "detail": "https://sqs.us-east-1.amazonaws.com/857687956942/justhodl-dlq-default"
+    },
+    {
+      "step": "set_queue_policy",
+      "result": "OK",
+      "detail": "{'ResponseMetadata': {'RequestId': '6e1a9b30-9ac4-5aa3-a524-f9bac944e13e', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': '6e1a9b30-9ac4-5aa3-a524-f9bac944e13e', 'date': 'Fri, 22 May 2026 "
     },
     {
       "step": "create_sns",
-      "result": "ERROR",
-      "error": "An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts because no identity-based policy allows the SNS:CreateTopic action"
+      "result": "OK",
+      "detail": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts"
+    },
+    {
+      "step": "test_send",
+      "result": "OK",
+      "detail": "850766f8-42c9-4a1a-a7d4-fa7c5fb8318b"
     }
   ],
-  "final": {
-    "n_lambdas": 392,
-    "n_with_dlq": 0,
-    "pct_dlq": 0.0,
-    "n_with_xray": 392,
-    "pct_xray": 100.0
+  "dlq_sweep": {
+    "updated": 9,
+    "already_had": 394,
+    "errors": 0,
+    "error_samples": []
   },
-  "completed_at": "2026-05-22T10:51:25.490209+00:00"
+  "final": {
+    "n_lambdas": 403,
+    "n_with_dlq": 403,
+    "pct_dlq": 100.0,
+    "n_with_xray": 395,
+    "pct_xray": 98.0,
+    "dlq_arn": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+    "sns_arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts"
+  },
+  "completed_at": "2026-05-22T12:51:31.519558+00:00"
 }
