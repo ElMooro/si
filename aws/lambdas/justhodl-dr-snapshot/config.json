@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-dr-snapshot",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 900,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily DR snapshot: all 400+ Lambda code+config + EB rules + DDB schemas + IAM roles to backup/<date>/ in us-west-2 DR bucket. Survives single-region outage / bad deletes.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "DR_BUCKET": "justhodl-dashboard-live-dr",
+    "MAX_WORKERS": "15",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "dr-snapshot-daily",
+    "cron": "cron(0 6 * * ? *)",
+    "description": "Daily 06 UTC — complete platform DR snapshot"
+  }
+}

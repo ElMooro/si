@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-cost-anomaly",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily AWS + Anthropic cost anomaly detector. Cost Explorer + CloudWatch + Claude usage estimate. Anomalies = AWS daily total >25% off 7d MA OR per-Lambda invocations >3× baseline. Telegram only on anomalies.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "ANOMALY_THRESHOLD_PCT": "25",
+    "LAMBDA_INV_MULT": "3.0",
+    "MONTHLY_BUDGET_USD": "300",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "cost-anomaly-daily",
+    "cron": "cron(0 9 * * ? *)",
+    "description": "Daily 09 UTC — AWS + Anthropic cost anomaly check"
+  }
+}
