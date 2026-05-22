@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-convexity-scorer",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #7 — Convexity-Aware Allocator. Per-position positive/negative gamma scoring. Taleb barbell systematized as allocator multiplier.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "convexity-scorer-daily",
+    "cron": "cron(0 14 ? * MON-FRI *)",
+    "description": "Weekdays 14 UTC — score every candidate's gamma exposure"
+  }
+}
