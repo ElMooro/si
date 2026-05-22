@@ -1,67 +1,491 @@
 {
-  "started_at": "2026-05-22T11:46:03.351284+00:00",
-  "custom_namespace_metrics": [],
-  "n_custom_metrics": 0,
-  "live_invokes": {
-    "justhodl-portfolio-catalysts": {
-      "status": 200,
-      "function_error": "none",
-      "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"n_position_catalysts\\\": 0, \\\"n_macro_catalysts\\\": 11, \\\"alerts_sent\\\": 0, \\\"next_position_event_days\\\": null, \\\"elapsed_seconds\\\": 0.62}\"}"
-    },
-    "justhodl-daily-report-v3": {
-      "error": "An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded."
-    },
-    "justhodl-vrp": {
-      "status": 200,
-      "function_error": "none",
-      "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"NORMAL\\\", \\\"vrp_30d\\\": 6.34, \\\"vrp_30d_percentile_1y\\\": 52.4, \\\"vix\\\": 16.76, \\\"rv_21d\\\": 10.42, \\\"expost_vrp_mean\\\": 3.96}\"}"
+  "started_at": "2026-05-22T12:05:15.369833+00:00",
+  "justhodl-signals": {
+    "attrs": [
+      "signal_id:S"
+    ],
+    "keys": [
+      "signal_id:HASH"
+    ],
+    "item_count_approx": 19114,
+    "size_bytes_approx": 11103774,
+    "gsi": [],
+    "sample_items": [
+      {
+        "metadata": {
+          "mcap_to_rev": {
+            "N": "0.41"
+          },
+          "flag": {
+            "S": "MARGINAL"
+          },
+          "net_cash_pct": {
+            "N": "0.193"
+          },
+          "rev_yield": {
+            "N": "2.425"
+          }
+        },
+        "logged_at": "1778537171",
+        "signal_id": "deepvalue_ELV_1778537171",
+        "horizon_days_primary": "180",
+        "check_windows": [
+          {
+            "N": "180"
+          },
+          {
+            "N": "360"
+          }
+        ],
+        "ticker": "ELV",
+        "direction": "UP",
+        "source": "deep_value",
+        "conviction": "0.654",
+        "ts_iso": "2026-05-11T22:06:11+00:00",
+        "baseline_price": "378.07"
+      },
+      {
+        "benchmark": true,
+        "signal_type": "crisis_index_nfci",
+        "metadata": {
+          "pct_rank": {
+            "N": "41.6"
+          },
+          "is_stressed": {
+            "BOOL": false
+          },
+          "latest": {
+            "N": "-0.518"
+          }
+        },
+        "logged_at": "2026-05-04T15:10:31.309303+00:00",
+        "check_windows": [
+          {
+            "S": "14"
+          },
+          {
+            "S": "30"
+          }
+        ],
+        "horizon_days_primary": "30",
+        "predicted_direction": "NEUTRAL",
+        "regime_at_log": "NEUTRAL",
+        "status": "partial",
+        "ttl": "1809443431",
+        "predicted_magnitude_pct": true,
+        "supporting_signals": true,
+        "last_checked": "2026-05-18T22:30:03.192683+00:00",
+        "logged_epoch": "1777907431",
+        "signal_value": "NORMAL",
+        "confidence": "0.45",
+        "baseline_benchmark_price": true,
+        "outcomes": {
+          "day_14": {
+            "M": {
+              "price_at_check": {
+                "N": "738.65"
+              },
+              "actual_direction": {
+                "S": "UP"
+              },
+              "return_pct": {
+                "N": "2.48068"
+              },
+              "checked_at": {
+                "S": "2026-05-18T22:30:03.192683+00:00"
+              },
+              "correct": {
+                "BOOL": false
+              },
+              "price_at_signal": {
+                "N": "720.77"
+              }
+            }
+          }
+        },
+        "baseline_price": "720.77",
+        "check_timestamps": {
+          "day_14": {
+            "S": "2026-05-18T15:10:31.309303+00:00"
+          },
+          "day_30": {
+            "S": "2026-06-03T15:10:31.309303+00:00"
+          }
+        },
+        "khalid_score_at_log": "48",
+        "predicted_target_price": true,
+        "ka_score_at_log": "48",
+        "rationale": "NFCI latest=-0.518 pct_rank=41.6 \u2192 NORMAL",
+        "signal_id": "06c69359-b82a-4d2c-8589-68ac2e775968",
+        "accuracy_scores": {},
+        "measure_against": "SPY",
+        "schema_version": "2"
+      },
+      {
+        "benchmark": "SPY",
+        "signal_type": "screener_top_pick",
+        "metadata": {
+          "rank": {
+            "N": "3"
+          },
+          "piotroski": {
+            "N": "1"
+          }
+        },
+        "logged_at": "2026-04-12T21:10:14.163979+00:00",
+        "check_windows": [
+          {
+            "S": "30"
+          },
+          {
+            "S": "60"
+          },
+          {
+            "S": "90"
+          }
+        ],
+        "predicted_direction": "OUTPERFORM",
+        "status": "partial",
+        "check_timestamps": {
+          "day_90": {
+            "S": "2026-07-11T21:10:14.163979+00:00"
+          },
+          "day_60": {
+            "S": "2026-06-11T21:10:14.163979+00:00"
+          },
+          "day_30": {
+            "S": "2026-05-12T21:10:14.163979+00:00"
+          }
+        },
+        "ttl": "1807564214",
+        "signal_id": "8bad03d7-21c2-49ef-ad1e-b13485fa7f72",
+        "last_checked": "2026-05-12T22:30:03.090690+00:00",
+        "logged_epoch": "1776028214",
+        "signal_value": "TOP_10",
+        "confidence": "0.111111",
+        "baseline_benchmark_price": "679.46",
+        "outcomes": {
+          "day_30": {
+            "M": {
+              "benchmark_price": {
+                "N": "738.18"
+              },
+              "asset_price": {
+                "N": "129.38"
+              },
+              "checked_at": {
+                "S": "2026-05-12T22:30:03.090690+00:00"
+              },
+              "correct": {
+                "BOOL": false
+              },
+              "excess_return": {
+                "N": "-8.027801"
+              }
+            }
+          }
+        },
+        "accuracy_scores": {},
+        "measure_against": "SATS",
+        "backfilled_benchmark_at": "2026-05-04T21:18:32.341866+00:00",
+        "baseline_price": "128.59"
+      },
+      {
+        "signal_type": "etf_rotation",
+        "metadata": {},
+        "logged_at": "2026-05-18T00:30:49.806672+00:00",
+        "check_windows": [
+          {
+            "S": "3"
+          },
+          {
+            "S": "14"
+          },
+          {
+            "S": "21"
+          }
+        ],
+        "horizon_days_primary": "21",
+        "predicted_direction": "UP",
+        "status": "partial",
+        "check_timestamps": {
+          "day_14": {
+            "S": "2026-06-01T00:30:49.806672+00:00"
+          },
+          "day_21": {
+            "S": "2026-06-08T00:30:49.806672+00:00"
+          },
+          "day_3": {
+            "S": "2026-05-21T00:30:49.806672+00:00"
+          }
+        },
+        "ttl": "1810600249",
+        "source": "wave-signal-logger-v3",
+        "predicted_magnitude_pct": true,
+        "predicted_target_price": true,
+        "rationale": "VOLATILITY rotation in (5d:-0.94%)",
+        "signal_id": "f781f8ca-b1ad-4cc7-bf41-dc7c8270b59e",
+        "last_checked": "2026-05-21T22:30:03.011559+00:00",
+        "logged_epoch": "1779064249",
+        "signal_value": "ROTATION_IN",
+        "confidence": "0.45",
+        "outcomes": {
+          "day_3": {
+            "M": {
+              "price_at_check": {
+                "N": "32.65"
+              },
+              "actual_direction": {
+                "S": "DOWN"
+              },
+              "return_pct": {
+                "N": "-8.696868"
+              },
+              "checked_at": {
+                "S": "2026-05-21T22:30:03.011559+00:00"
+              },
+              "correct": {
+                "BOOL": false
+              },
+              "price_at_signal": {
+                "N": "35.76"
+              }
+            }
+          }
+        },
+        "accuracy_scores": {},
+        "measure_against": "UVXY",
+        "schema_version": "2",
+        "baseline_price": "35.76"
+      },
+      {
+        "metadata": {
+          "has_cfo": {
+            "BOOL": false
+          },
+          "total_value": {
+            "N": "283825"
+          },
+          "n_insiders": {
+            "N": "2"
+          },
+          "signal_type": {
+            "S": "exec_pair"
+          },
+          "has_ceo": {
+            "BOOL": true
+          }
+        },
+        "logged_at": "1779120371",
+        "signal_id": "insider_GSHD_1779120371",
+        "horizon_days_primary": "90",
+        "check_windows": [
+          {
+            "N": "90"
+          },
+          {
+            "N": "180"
+          }
+        ],
+        "ticker": "GSHD",
+        "direction": "UP",
+        "source": "insider_cluster",
+        "conviction": "0.755",
+        "ts_iso": "2026-05-18T16:06:11+00:00",
+        "baseline_price": "37.1"
+      }
+    ],
+    "actual_count": 11000,
+    "distinct_engines": {
+      "eps_velocity": 2273,
+      "compound": 1473,
+      "wave-signal-logger-v3": 789,
+      "smart_money": 417,
+      "insider_cluster": 266,
+      "deep_value": 108,
+      "wave-signal-logger-v2": 27,
+      "wave-signal-logger-v1": 14
     }
   },
-  "fleet_error_monitor": {
-    "code_sha": "XmRg7RSQLK/+",
-    "last_modified": "2026-05-22T11:39:26.000+0000",
-    "code_size": 2034,
-    "has_silent_alerts": true,
-    "has_s3_put_failure": true,
-    "has_get_silent_failure_count": true
-  },
-  "patched_lambdas": {
-    "justhodl-portfolio-catalysts": {
-      "last_modified": "2026-05-22T11:41:51.000+0000",
-      "code_sha": "FnRKxjPrWiRm",
-      "has_audit_marker": true,
-      "has_emf_metric": true
-    },
-    "justhodl-vrp": {
-      "last_modified": "2026-05-22T11:43:46.000+0000",
-      "code_sha": "dXRfnpayztNU",
-      "has_audit_marker": true,
-      "has_emf_metric": true
-    },
-    "justhodl-options-flow": {
-      "last_modified": "2026-05-22T11:41:33.000+0000",
-      "code_sha": "pW6OhViDU5tP",
-      "has_audit_marker": true,
-      "has_emf_metric": true
-    },
-    "justhodl-global-stress": {
-      "last_modified": "2026-05-22T11:39:43.000+0000",
-      "code_sha": "jYb/cw2zX/qO",
-      "has_audit_marker": true,
-      "has_emf_metric": true
-    },
-    "justhodl-financial-secretary": {
-      "last_modified": "2026-05-22T11:38:55.000+0000",
-      "code_sha": "WqELC7UHs7m/",
-      "has_audit_marker": true,
-      "has_emf_metric": true
-    }
-  },
-  "summary": {
-    "custom_metric_namespace_exists": true,
-    "fleet_monitor_has_silent_check": true,
-    "patched_lambdas_with_marker": 5,
-    "patched_lambdas_with_emf": 5,
-    "live_invokes_clean": 2
+  "justhodl-outcomes": {
+    "attrs": [
+      "outcome_id:S"
+    ],
+    "keys": [
+      "outcome_id:HASH"
+    ],
+    "item_count_approx": 13057,
+    "size_bytes_approx": 5762220,
+    "gsi": [],
+    "sample_items": [
+      {
+        "checked_at": "2026-05-18T22:30:03.192683+00:00",
+        "signal_type": "correlation_break",
+        "logged_at": "2026-05-15T12:30:50.584829+00:00",
+        "signal_id": "03819e5e-032a-4c93-bc9b-c6c768d43a44",
+        "predicted_dir": "DOWN",
+        "signal_value": "SPY_SHY_d+0.47",
+        "correct": true,
+        "outcome_id": "03819e5e-032a-4c93-bc9b-c6c768d43a44_day_3",
+        "ttl": "1810679403",
+        "window_key": "day_3",
+        "outcome": {
+          "price_at_check": {
+            "N": "738.65"
+          },
+          "actual_direction": {
+            "S": "DOWN"
+          },
+          "return_pct": {
+            "N": "-1.272438"
+          },
+          "checked_at": {
+            "S": "2026-05-18T22:30:03.192683+00:00"
+          },
+          "correct": {
+            "BOOL": true
+          },
+          "price_at_signal": {
+            "N": "748.17"
+          }
+        }
+      },
+      {
+        "checked_at": "2026-05-13T22:30:02.943973+00:00",
+        "signal_type": "edge_regime",
+        "logged_at": "2026-04-29T09:10:14.182303+00:00",
+        "signal_id": "265354d0-29b2-4d97-b56d-c5a673d947ae",
+        "predicted_dir": "DOWN",
+        "signal_value": "BEAR",
+        "correct": false,
+        "outcome_id": "265354d0-29b2-4d97-b56d-c5a673d947ae_day_14",
+        "ttl": "1810247402",
+        "window_key": "day_14",
+        "outcome": {
+          "price_at_check": {
+            "N": "742.31"
+          },
+          "actual_direction": {
+            "S": "UP"
+          },
+          "return_pct": {
+            "N": "4.302435"
+          },
+          "checked_at": {
+            "S": "2026-05-13T22:30:02.943973+00:00"
+          },
+          "correct": {
+            "BOOL": false
+          },
+          "price_at_signal": {
+            "N": "711.69"
+          }
+        }
+      },
+      {
+        "checked_at": "2026-04-24T23:17:41.907006+00:00",
+        "is_legacy": true,
+        "signal_type": "momentum_tlt",
+        "logged_at": "2026-03-20T21:10:13.805378+00:00",
+        "correct": true,
+        "outcome_id": "fdfa64fe-acef-44f9-809b-be177bbd27e8_day_1",
+        "ttl": "1779742032",
+        "predicted_dir": "DOWN",
+        "signal_id": "fdfa64fe-acef-44f9-809b-be177bbd27e8",
+        "legacy_reason": "pre_baseline_fix_2026_04_24",
+        "signal_value": "-1.71%",
+        "outcome": {
+          "price_at_check": {
+            "N": "86.71"
+          },
+          "actual_direction": {
+            "S": "UNKNOWN"
+          },
+          "return_pct": {
+            "N": "0"
+          },
+          "checked_at": {
+            "S": "2026-04-24T23:17:41.907006+00:00"
+          },
+          "correct": {
+            "NULL": true
+          },
+          "price_at_signal": {
+            "N": "0"
+          }
+        },
+        "window_key": "day_1"
+      },
+      {
+        "checked_at": "2026-04-24T23:17:41.907006+00:00",
+        "is_legacy": true,
+        "signal_type": "khalid_index",
+        "logged_at": "2026-03-22T09:10:13.390116+00:00",
+        "correct": true,
+        "outcome_id": "c2447ef6-3f05-43ee-9ebc-3dc49ad425ab_day_14",
+        "ttl": "1779742032",
+        "predicted_dir": "NEUTRAL",
+        "signal_id": "c2447ef6-3f05-43ee-9ebc-3dc49ad425ab",
+        "legacy_reason": "pre_baseline_fix_2026_04_24",
+        "signal_value": "MODERATE",
+        "outcome": {
+          "price_at_check": {
+            "N": "713.94"
+          },
+          "actual_direction": {
+            "S": "UNKNOWN"
+          },
+          "return_pct": {
+            "N": "0"
+          },
+          "checked_at": {
+            "S": "2026-04-24T23:17:41.907006+00:00"
+          },
+          "correct": {
+            "NULL": true
+          },
+          "price_at_signal": {
+            "N": "0"
+          }
+        },
+        "window_key": "day_14"
+      },
+      {
+        "checked_at": "2026-04-24T23:10:19.571920+00:00",
+        "is_legacy": true,
+        "signal_type": "crypto_fear_greed",
+        "logged_at": "2026-04-19T03:10:13.721712+00:00",
+        "correct": true,
+        "outcome_id": "035715a5-ba9e-44ad-8ebd-aa9ab0d6e6b9_day_3",
+        "ttl": "1779742032",
+        "predicted_dir": "UP",
+        "signal_id": "035715a5-ba9e-44ad-8ebd-aa9ab0d6e6b9",
+        "legacy_reason": "pre_baseline_fix_2026_04_24",
+        "signal_value": "FEAR",
+        "outcome": {
+          "price_at_check": {
+            "N": "77397.8"
+          },
+          "actual_direction": {
+            "S": "UNKNOWN"
+          },
+          "return_pct": {
+            "N": "0"
+          },
+          "checked_at": {
+            "S": "2026-04-24T23:10:19.571920+00:00"
+          },
+          "correct": {
+            "NULL": true
+          },
+          "price_at_signal": {
+            "N": "0"
+          }
+        },
+        "window_key": "day_3"
+      }
+    ],
+    "actual_count": 11000,
+    "distinct_engines": {}
   }
 }
