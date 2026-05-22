@@ -1,31 +1,65 @@
 {
-  "started_at": "2026-05-22T12:15:21.581637+00:00",
-  "lambda": {
-    "exists": true,
-    "last_modified": "2026-05-22T12:10:15.868+0000",
-    "runtime": "python3.12",
-    "memory": 1024,
-    "timeout": 600,
-    "dlq": "",
-    "xray": "PassThrough",
-    "env_vars": [
-      "S3_BUCKET",
-      "TELEGRAM_BOT_TOKEN",
-      "TELEGRAM_CHAT_ID"
-    ]
+  "started_at": "2026-05-22T13:54:03.292131+00:00",
+  "before": {
+    "exclude_prefixes": [
+      "data/archive/",
+      "data/_archive/",
+      "data/snapshots/",
+      "data/secretary-history/",
+      "data/calibration-history/"
+    ],
+    "admin_only_keys": [
+      "data/khalid-config.json",
+      "data/ka-config.json"
+    ],
+    "key_overrides": {
+      "data/report.json": 2.0,
+      "data/options-flow.json": 0.2,
+      "data/factor-decomposition.json": 192.0,
+      "data/cftc-deep-view.json": 192.0
+    }
   },
-  "eb_rule": {
-    "state": "ENABLED",
-    "expression": "cron(0 6 ? * MON *)"
+  "after": {
+    "exclude_prefixes": [
+      "data/_archive/",
+      "data/activity-nowcast/snapshots/",
+      "data/archive/",
+      "data/calibration-history/",
+      "data/history/",
+      "data/secretary-history/",
+      "data/snapshots/"
+    ],
+    "admin_only_keys": [
+      "data/khalid-config.json",
+      "data/ka-config.json"
+    ],
+    "key_overrides": {
+      "data/report.json": 2.0,
+      "data/options-flow.json": 0.2,
+      "data/factor-decomposition.json": 192.0,
+      "data/cftc-deep-view.json": 192.0,
+      "data/13f-price-divergence.json": 192.0
+    }
   },
-  "invoke": {
+  "changes": {
+    "exclude_added": [
+      "data/activity-nowcast/snapshots/",
+      "data/history/"
+    ],
+    "key_overrides_added": {
+      "data/13f-price-divergence.json": 192.0
+    }
+  },
+  "post_tune_invoke": {
     "status": 200,
     "function_error": "none",
-    "response_head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_engines\\\": 43, \\\"n_outcomes\\\": 13057, \\\"summary\\\": {\\\"n_engines\\\": 43, \\\"n_fresh\\\": 8, \\\"n_decaying_or_dead\\\": 0, \\\"n_strengthening\\\": 0, \\\"n_marginal\\\": 35}, \\\"elapsed\\\": 3.15}\"}"
+    "response": "{\"statusCode\": 200, \"body\": \"{\\\"n_tracked\\\": 24, \\\"stale\\\": 0, \\\"fresh\\\": 24, \\\"alerts\\\": 0, \\\"suppressed\\\": 0, \\\"elapsed_s\\\": 4.52}\"}"
   },
-  "s3_output": {
-    "exists": true,
-    "size": 38809,
-    "last_modified": "2026-05-22 12:15:26+00:00"
+  "post_tune_state": {
+    "n_keys_tracked": 24,
+    "n_stale": 0,
+    "n_fresh": 24,
+    "n_alerts_raised": 0,
+    "top_stale": []
   }
 }
