@@ -1,0 +1,42 @@
+{
+  "started_at": "2026-05-22T11:46:27.980737+00:00",
+  "steps": [
+    {
+      "step": "ddb_table",
+      "result": "OK",
+      "detail": "CREATED"
+    },
+    {
+      "step": "iam_policy",
+      "result": "OK",
+      "detail": "attached"
+    },
+    {
+      "step": "deploy_lambda",
+      "result": "OK",
+      "detail": "CREATED"
+    },
+    {
+      "step": "lambda_invoke_perm",
+      "result": "OK",
+      "detail": "added"
+    },
+    {
+      "step": "s3_events",
+      "result": "ERROR",
+      "error": "An error occurred (InvalidArgument) when calling the PutBucketNotificationConfiguration operation: Configuration is ambiguously defined. Cannot have overlapping suffixes in two rules if the prefixes are overlapping for the same event type."
+    },
+    {
+      "step": "live_verify",
+      "result": "OK",
+      "detail": "0 record(s) ingested"
+    }
+  ],
+  "completed_at": "2026-05-22T11:47:13.464424+00:00",
+  "summary": {
+    "all_steps_ok": false,
+    "n_steps": 6,
+    "n_ok": 5,
+    "n_err": 1
+  }
+}
