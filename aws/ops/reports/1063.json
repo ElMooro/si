@@ -1,0 +1,45 @@
+{
+  "started_at": "2026-05-22T23:20:13.794174+00:00",
+  "justhodl-carry-surface": {
+    "fn_name": "justhodl-carry-surface",
+    "fetched": {
+      "source_bytes": 35637,
+      "zip_size": 10093
+    },
+    "action": "created",
+    "eb_target_wired": true,
+    "eb_permission_added": true,
+    "invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_assets\\\": 80, \\\"top1\\\": \\\"USO\\\", \\\"top1_carry_pct\\\": 51.48, \\\"bottom1\\\": \\\"VXX\\\", \\\"bottom1_carry_pct\\\": -65.0, \\\"telegram_sent\\\": false, \\\"elapsed_s\\\": 15.67}\"}"
+    },
+    "s3_output": {
+      "exists": true,
+      "size": 87699,
+      "age_h": 0.001,
+      "last_modified": "2026-05-22T23:20:39+00:00"
+    }
+  },
+  "justhodl-engine-contribution": {
+    "fn_name": "justhodl-engine-contribution",
+    "fetched": {
+      "source_bytes": 15890,
+      "zip_size": 5345
+    },
+    "action": "created",
+    "eb_target_wired": true,
+    "eb_permission_added": true,
+    "invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"n_engines\\\": 63, \\\"total_pnl_bps\\\": 214775.2, \\\"leader\\\": \\\"khalid_index\\\", \\\"laggard\\\": \\\"momentum_gld\\\", \\\"verdict_counts\\\": {\\\"ALPHA\\\": 20, \\\"POSITIVE\\\": 0, \\\"NEUTRAL\\\": 2, \\\"DRAG\\\": 1, \\\"TOXIC\\\": 3, \\\"INSUFFICIENT_DATA\\\": 37}, \\\"telegram_sent\\\": true, \\\"elapsed_s\\\": 13.85}\"}"
+    },
+    "s3_output": {
+      "exists": true,
+      "size": 22766,
+      "age_h": 0.001,
+      "last_modified": "2026-05-22T23:21:05+00:00"
+    }
+  }
+}
