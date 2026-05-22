@@ -1,0 +1,74 @@
+{
+  "started_at": "2026-05-22T10:27:15.516236+00:00",
+  "probe": {
+    "dlq": {
+      "exists": false
+    },
+    "sns": {
+      "exists": false
+    },
+    "n_lambdas": 392,
+    "n_with_dlq": 0,
+    "n_with_xray": 4
+  },
+  "rerun": {
+    "dlq_error": "An error occurred (AccessDenied) when calling the CreateQueue operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:createqueue on resource: arn:aws",
+    "iam_policy": "ATTACHED",
+    "sns_error": "An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: a",
+    "lambda_config": {
+      "updated": 0,
+      "already_configured": 0,
+      "errors": 392,
+      "error_samples": [
+        {
+          "lambda": "justhodl-merger-arb",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-data-collector",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-leading-markets",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-vix-backwardation-trigger",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-stablecoin-flow",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-asymmetric-scorer",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "ofrapi",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "openbb-websocket-broadcast",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-pnl-attribution",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        },
+        {
+          "lambda": "justhodl-esi",
+          "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: Error occurred while SendMessage. SQS Error"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "n_lambdas": 392,
+    "n_with_dlq": 0,
+    "n_with_xray": 4,
+    "pct_dlq": 0.0,
+    "pct_xray": 1.0
+  },
+  "completed_at": "2026-05-22T10:27:51.544213+00:00"
+}
