@@ -1,0 +1,10 @@
+{
+  "started_at": "2026-05-22T23:54:40.991162+00:00",
+  "dr_bucket": "CREATED",
+  "dr_versioning": "ENABLED",
+  "iam_role": "CREATE_ERR: An error occurred (ValidationError) when calling the CreateRole operation: 1 validation error detected: Value at 'description' failed to satisfy constraint: Member must satisfy regular expression patt",
+  "iam_policy": "ERR: An error occurred (NoSuchEntity) when calling the PutRolePolicy operation: The role with name justhodl-s3-replication-role cannot be found.",
+  "replication_config": "APPLIED",
+  "final_check": "ERR: An error occurred (ReplicationConfigurationNotFoundError) when calling the GetBucketReplication operation: The replication configuration was not found",
+  "dr_lifecycle": "APPLIED"
+}
