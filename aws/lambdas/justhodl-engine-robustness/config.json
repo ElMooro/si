@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-engine-robustness",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ENGINE HEALTH CT-SCAN — empirical rank stability across historical snapshots. Classifies each engine ROBUST/STABLE/VOLATILE/FRAGILE/CHAOTIC. Feeds meta-improver: low stability + decaying half-life = retire candidate.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "SNAPSHOTS_PER_ENGINE": "30",
+    "MIN_SNAPSHOTS": "10",
+    "TOP_N_FOR_RANK": "20",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "engine-robustness-weekly",
+    "cron": "cron(0 4 ? * TUE *)",
+    "description": "Weekly Tuesday 04:00 UTC — engine rank stability CT-scan"
+  }
+}

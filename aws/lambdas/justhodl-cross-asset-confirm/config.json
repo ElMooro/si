@@ -1,0 +1,24 @@
+{
+  "function_name": "justhodl-cross-asset-confirm",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "CROSS-ASSET CONFIRMATION FILTER — meta-layer that vetoes signals fighting market structure. Aggregates bonds + DXY + HY OAS + VIX into regime state, overlays on signal-board.json with confirm/veto per engine.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/cross-asset-confirm.json",
+    "SIGNAL_BOARD_KEY": "data/signal-board.json",
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "cross-asset-confirm-3h",
+    "cron": "rate(3 hours)",
+    "description": "CACF refresh every 3 hours (matches signal-board cadence)"
+  }
+}
