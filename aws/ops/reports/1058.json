@@ -1,0 +1,100 @@
+{
+  "started_at": "2026-05-22T22:23:46.379039+00:00",
+  "n_lambdas": 403,
+  "n_s3_keys": 24668,
+  "carry_surface": {
+    "verdict": "EXISTS",
+    "lambda_hits": [
+      {
+        "kw": "backwardation",
+        "name": "justhodl-vix-backwardation-trigger",
+        "desc": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN based on VIX9D/VI",
+        "last_modified": "2026-05-22T10:55:25.000+0000"
+      },
+      {
+        "kw": "backwardation",
+        "name": "justhodl-vix9d-vix-inversion",
+        "desc": "Front-end VIX stress detector. Full backwardation VIX9D>VIX>VIX3M + persistence>=3d + spread z>=+1.5 + VVIX confirms. SV",
+        "last_modified": "2026-05-22T10:55:29.000+0000"
+      },
+      {
+        "kw": "carry",
+        "name": "justhodl-cb-injection",
+        "desc": "Central Bank Capital-Injection & Carry Engine \u2014 per-CB injection stance (balance-sheet trajectory + policy-rate directio",
+        "last_modified": "2026-05-22T10:55:36.000+0000"
+      },
+      {
+        "kw": "carry",
+        "name": "justhodl-correlation-break-trade-router",
+        "desc": "Correlation-Break Trade Router. 6 cross-asset correlation regimes (BOND_ROUT, DOLLAR_DEBASEMENT, STAGFLATION, RISK_PARIT",
+        "last_modified": "2026-05-22T10:55:36.000+0000"
+      },
+      {
+        "kw": "carry",
+        "name": "justhodl-fx-decomposition",
+        "desc": "FX Decomposition (R9). DXY 6-component move attribution (EUR 57.6/JPY 13.6/GBP 11.9/CAD 9.1/SEK 4.2/CHF 3.6) across 1d/5",
+        "last_modified": "2026-05-22T10:55:38.000+0000"
+      },
+      {
+        "kw": "xccy",
+        "name": "xccy-basis-agent",
+        "desc": "",
+        "last_modified": "2026-05-22T10:55:39.000+0000"
+      },
+      {
+        "kw": "carry",
+        "name": "justhodl-boj-detail",
+        "desc": "BOJ Liquidity & Yen-Carry Detail Engine - tracks the Bank of Japan balance sheet, post-NIRP rate path, 10Y JGB, US-JP di",
+        "last_modified": "2026-05-22T10:55:42.000+0000"
+      },
+      {
+        "kw": "carry",
+        "name": "justhodl-merger-arb-risk",
+        "desc": "Merger-Arb Book Risk Monitor - joins the firm book's Merger-Arb sleeve to the Spread Desk's per-deal record and models d",
+        "last_modified": "2026-05-22T10:55:42.000+0000"
+      }
+    ],
+    "s3_hits": [
+      {
+        "kw": "carry",
+        "key": "data/yen-carry.json",
+        "size": 3990
+      }
+    ]
+  },
+  "engine_contribution": {
+    "verdict": "NOVEL",
+    "lambda_hits": [],
+    "s3_hits": []
+  },
+  "cross_asset_confirm": {
+    "verdict": "NOVEL",
+    "lambda_hits": [],
+    "s3_hits": []
+  },
+  "earnings_linguistic": {
+    "verdict": "NOVEL",
+    "lambda_hits": [],
+    "s3_hits": []
+  },
+  "engine_robustness": {
+    "verdict": "NOVEL",
+    "lambda_hits": [],
+    "s3_hits": []
+  },
+  "repo_lambda_dirs_n": 414,
+  "repo_lambda_dirs_carry": [
+    "justhodl-yen-carry"
+  ],
+  "summary": {
+    "novel": [
+      "engine_contribution",
+      "cross_asset_confirm",
+      "earnings_linguistic",
+      "engine_robustness"
+    ],
+    "exists": [
+      "carry_surface"
+    ]
+  }
+}
