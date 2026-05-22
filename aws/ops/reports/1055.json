@@ -1,51 +1,57 @@
 {
-  "started_at": "2026-05-22T11:53:49.601194+00:00",
-  "steps": [
-    {
-      "step": "cleanup_stale_notif",
-      "result": "OK",
-      "detail": "nothing to clean"
-    },
-    {
-      "step": "enable_eventbridge",
-      "result": "OK",
-      "detail": "EventBridge mode enabled"
-    },
-    {
-      "step": "create_rule",
-      "result": "OK",
-      "detail": "arn:aws:events:us-east-1:857687956942:rule/justhodl-signal-registry-s3-events"
-    },
-    {
-      "step": "add_target",
-      "result": "OK",
-      "detail": "target added"
-    },
-    {
-      "step": "lambda_eb_perm",
-      "result": "OK",
-      "detail": "permission added"
-    },
-    {
-      "step": "remove_s3_perm",
-      "result": "OK",
-      "detail": "removed"
-    },
-    {
-      "step": "update_lambda_code",
-      "result": "OK",
-      "detail": "code updated"
-    },
-    {
-      "step": "live_verify_eb",
-      "result": "OK",
-      "detail": "1 record(s) found, latest_etag=c835227e3ebb1cfd16008f5e8dfc850d"
+  "started_at": "2026-05-22T14:11:38.701738+00:00",
+  "manifest": {
+    "before_n_overrides": 5,
+    "after_n_overrides": 13,
+    "added": {
+      "data/kill-theses.json": 36.0,
+      "data/behavior-mirror.json": 200.0,
+      "data/pre-disaster-watchlist.json": 36.0,
+      "data/causality-discoveries.json": 200.0,
+      "data/convexity-scores.json": 36.0,
+      "data/chart-vision.json": 36.0,
+      "data/meta-improver-state.json": 200.0,
+      "data/signal-halflife.json": 200.0
     }
-  ],
-  "completed_at": "2026-05-22T11:54:15.909766+00:00",
-  "summary": {
-    "all_ok": true,
-    "n_steps": 8,
-    "n_ok": 8
-  }
+  },
+  "patched_invokes": {
+    "justhodl-causality-scanner": {
+      "last_modified": "2026-05-22T14:11:36.000+0000",
+      "status": 200,
+      "function_error": "none",
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_series_loaded\\\": 0, \\\"note\\\": \\\"insufficient_history_for_causality_discovery\\\", \\\"elapsed\\\": 8.26}\"}"
+    },
+    "justhodl-meta-improver": {
+      "last_modified": "2026-05-22T12:56:53.000+0000",
+      "status": 200,
+      "function_error": "none",
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"no_action\\\": \\\"no_decaying_engines_outside_cooldown\\\"}\"}"
+    }
+  },
+  "heartbeats": {
+    "data/causality-discoveries.json": {
+      "exists": true,
+      "size": 245,
+      "last_modified": "2026-05-22T14:11:49+00:00",
+      "age_h": 0.0
+    },
+    "data/meta-improver-state.json": {
+      "exists": false,
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  },
+  "freshness_final_invoke": "{\"statusCode\": 200, \"body\": \"{\\\"n_tracked\\\": 24, \\\"stale\\\": 0, \\\"fresh\\\": 24, \\\"alerts\\\": 0, \\\"suppressed\\\": 0, \\\"elapsed_s\\\": 3.98}\"}",
+  "freshness_final_state": {
+    "n_keys_tracked": 24,
+    "counts": null,
+    "alerts_raised": null
+  },
+  "final_scorecard": {
+    "n_lambdas": 403,
+    "pct_dlq": 100.0,
+    "pct_xray": 100.0,
+    "fleet_error_monitor_live": true,
+    "fleet_freshness_monitor_live": true
+  },
+  "completed_at": "2026-05-22T14:11:57.885992+00:00"
 }
