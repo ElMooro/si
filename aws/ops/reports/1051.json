@@ -1,46 +1,67 @@
 {
-  "started_at": "2026-05-22T11:41:54.568758+00:00",
-  "justhodl-fleet-error-monitor": {
-    "exists": true,
+  "started_at": "2026-05-22T11:46:03.351284+00:00",
+  "custom_namespace_metrics": [],
+  "n_custom_metrics": 0,
+  "live_invokes": {
+    "justhodl-portfolio-catalysts": {
+      "status": 200,
+      "function_error": "none",
+      "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"n_position_catalysts\\\": 0, \\\"n_macro_catalysts\\\": 11, \\\"alerts_sent\\\": 0, \\\"next_position_event_days\\\": null, \\\"elapsed_seconds\\\": 0.62}\"}"
+    },
+    "justhodl-daily-report-v3": {
+      "error": "An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 4): Rate Exceeded."
+    },
+    "justhodl-vrp": {
+      "status": 200,
+      "function_error": "none",
+      "response_head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"NORMAL\\\", \\\"vrp_30d\\\": 6.34, \\\"vrp_30d_percentile_1y\\\": 52.4, \\\"vix\\\": 16.76, \\\"rv_21d\\\": 10.42, \\\"expost_vrp_mean\\\": 3.96}\"}"
+    }
+  },
+  "fleet_error_monitor": {
+    "code_sha": "XmRg7RSQLK/+",
     "last_modified": "2026-05-22T11:39:26.000+0000",
-    "invocations_2h": 10,
-    "errors_2h": 0,
-    "dlq": true,
-    "xray": true
+    "code_size": 2034,
+    "has_silent_alerts": true,
+    "has_s3_put_failure": true,
+    "has_get_silent_failure_count": true
   },
-  "justhodl-fleet-freshness-monitor": {
-    "exists": true,
-    "last_modified": "2026-05-22T11:25:39.000+0000",
-    "invocations_2h": 3,
-    "errors_2h": 0,
-    "dlq": true,
-    "xray": true
+  "patched_lambdas": {
+    "justhodl-portfolio-catalysts": {
+      "last_modified": "2026-05-22T11:41:51.000+0000",
+      "code_sha": "FnRKxjPrWiRm",
+      "has_audit_marker": true,
+      "has_emf_metric": true
+    },
+    "justhodl-vrp": {
+      "last_modified": "2026-05-22T11:43:46.000+0000",
+      "code_sha": "dXRfnpayztNU",
+      "has_audit_marker": true,
+      "has_emf_metric": true
+    },
+    "justhodl-options-flow": {
+      "last_modified": "2026-05-22T11:41:33.000+0000",
+      "code_sha": "pW6OhViDU5tP",
+      "has_audit_marker": true,
+      "has_emf_metric": true
+    },
+    "justhodl-global-stress": {
+      "last_modified": "2026-05-22T11:39:43.000+0000",
+      "code_sha": "jYb/cw2zX/qO",
+      "has_audit_marker": true,
+      "has_emf_metric": true
+    },
+    "justhodl-financial-secretary": {
+      "last_modified": "2026-05-22T11:38:55.000+0000",
+      "code_sha": "WqELC7UHs7m/",
+      "has_audit_marker": true,
+      "has_emf_metric": true
+    }
   },
-  "dlq": {
-    "url": "https://sqs.us-east-1.amazonaws.com/857687956942/justhodl-dlq-default",
-    "messages_available": 1,
-    "messages_in_flight": 0
-  },
-  "sns": {
-    "arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
-    "n_subscriptions": 1,
-    "subscriptions": [
-      {
-        "endpoint": "raafouis@gmail.com",
-        "protocol": "email",
-        "confirmed": false
-      }
-    ]
-  },
-  "coverage": {
-    "n_lambdas": 394,
-    "dlq": "394/394 (100.0%)",
-    "xray": "394/394 (100.0%)"
-  },
-  "freshness_manifest": {
-    "present": true,
-    "last_modified": "2026-05-22T11:09:10+00:00",
-    "size": 505,
-    "age_h": 0.5
+  "summary": {
+    "custom_metric_namespace_exists": true,
+    "fleet_monitor_has_silent_check": true,
+    "patched_lambdas_with_marker": 5,
+    "patched_lambdas_with_emf": 5,
+    "live_invokes_clean": 2
   }
 }
