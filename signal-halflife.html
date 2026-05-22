@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Half-Life — JustHodl.AI</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      background: #0a0e14;
+      color: #e8e8e8;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    h1 { color: #4ade80; font-size: 1.5em; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+    h2 { color: #fbbf24; margin-top: 32px; font-size: 1.15em; }
+    .meta { color: #64748b; font-size: 0.9em; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #131820; border: 1px solid #1e293b; border-radius: 4px; padding: 14px; }
+    .stat-label { color: #64748b; font-size: 0.8em; text-transform: uppercase; }
+    .stat-value { color: #fff; font-size: 1.6em; font-weight: bold; margin-top: 4px; }
+    .stat-value.fresh { color: #4ade80; }
+    .stat-value.decaying { color: #ef4444; }
+    .stat-value.strengthening { color: #38bdf8; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-bottom: 24px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #1e293b; }
+    th { color: #94a3b8; text-transform: uppercase; font-size: 0.75em; font-weight: normal; }
+    tr:hover { background: #131820; }
+    .engine-name { color: #4ade80; font-weight: bold; }
+    .pos { color: #4ade80; }
+    .neg { color: #ef4444; }
+    .neutral { color: #94a3b8; }
+    .pill { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.78em; }
+    .pill.fresh { background: #14532d; color: #4ade80; }
+    .pill.strengthening { background: #1e3a8a; color: #93c5fd; }
+    .pill.decaying { background: #7f1d1d; color: #fca5a5; }
+    .pill.decayed { background: #7f1d1d; color: #fff; }
+    .pill.marginal { background: #374151; color: #d1d5db; }
+    .pill.no_edge { background: #374151; color: #6b7280; }
+    .curve-cell { font-family: monospace; font-size: 0.8em; color: #94a3b8; }
+    .nav { color: #94a3b8; margin-bottom: 16px; }
+    .nav a { color: #4ade80; text-decoration: none; margin-right: 16px; }
+    .nav a:hover { text-decoration: underline; }
+    .empty { color: #64748b; font-style: italic; padding: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/">← Home</a>
+    <a href="/signal-board.html">Signal Board</a>
+    <a href="/retail-edges.html">Retail Edges</a>
+    <a href="/risk-desk.html">Risk Desk</a>
+    <a href="/calibration-fleet.html">Calibration Fleet</a>
+  </nav>
+  <h1>📊 Signal Half-Life — Per-Engine Edge Decay</h1>
+  <div class="meta" id="meta">Loading…</div>
+
+  <div class="grid" id="summary"></div>
+
+  <h2>🔥 Strongest Edge</h2>
+  <table id="strongest-table">
+    <thead><tr>
+      <th>Engine</th><th>Peak Edge</th><th>Peak Horizon</th><th>Half-Life</th>
+      <th>Status</th><th>90d Trend</th><th>n</th><th>Allocator Weight</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>⚠️ Decaying / Getting Arbed Away</h2>
+  <table id="decaying-table">
+    <thead><tr>
+      <th>Engine</th><th>Peak Edge</th><th>90d Trend</th><th>Status</th><th>n</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>🚀 Strengthening (Edge Growing)</h2>
+  <table id="strengthening-table">
+    <thead><tr>
+      <th>Engine</th><th>Peak Edge</th><th>90d Trend</th><th>n</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>⏳ Longest Persistence (Edge Holds at Long Horizons)</h2>
+  <table id="persistent-table">
+    <thead><tr>
+      <th>Engine</th><th>Max Persistent Horizon</th><th>Peak Edge</th><th>n</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>All Engines — Full Decay Curves</h2>
+  <table id="all-engines">
+    <thead><tr>
+      <th>Engine</th><th>Decay Curve (hit_rate @ horizon_days)</th>
+      <th>Peak Edge</th><th>Half-Life</th><th>Status</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Methodology</h2>
+  <div style="background:#131820;padding:14px;border-radius:4px;font-size:0.9em;line-height:1.6;color:#94a3b8;">
+    <strong>Half-life</strong> = smallest horizon (in days) at which the signal's edge (hit_rate − 0.5) drops below 50% of its peak edge.<br>
+    <strong>Edge status</strong>: <span class="pill fresh">FRESH</span> stable, <span class="pill strengthening">STRENGTHENING</span> Δ90d &gt; +10%, <span class="pill decaying">DECAYING</span> Δ90d &lt; −10%, <span class="pill decayed">DECAYED</span> decaying AND peak edge &lt; 2%, <span class="pill marginal">MARGINAL</span> peak edge &lt; 2%.<br>
+    <strong>Recommended allocator weight</strong>: clamped to [0,1], scaled at 5× peak_edge.<br>
+    Data refreshed weekly Monday 06 UTC.
+  </div>
+
+  <script>
+    const FEED = "https://justhodl-dashboard-live.s3.amazonaws.com/data/signal-halflife.json";
+
+    function pillFor(s) { return `<span class="pill ${s.toLowerCase()}">${s}</span>`; }
+    function pct(v, d=1) { return v == null ? "—" : (v * 100).toFixed(d) + "%"; }
+    function num(v, d=2) { return v == null ? "—" : v.toFixed(d); }
+    function trendCss(v) { return v == null ? "neutral" : (v > 0 ? "pos" : v < 0 ? "neg" : "neutral"); }
+
+    function renderCurve(curve) {
+      if (!curve || !curve.length) return "—";
+      return curve.map(c => {
+        const hr = (c.hit_rate * 100).toFixed(0);
+        const cls = c.hit_rate > 0.55 ? "pos" : c.hit_rate < 0.45 ? "neg" : "neutral";
+        return `<span class="${cls}">${c.horizon_days}d:${hr}%</span>`;
+      }).join(" → ");
+    }
+
+    function fillTable(id, rows, renderRow) {
+      const tb = document.querySelector(`#${id} tbody`);
+      if (!rows || !rows.length) {
+        tb.innerHTML = `<tr><td colspan="9" class="empty">No engines in this bucket yet</td></tr>`;
+        return;
+      }
+      tb.innerHTML = rows.map(renderRow).join("");
+    }
+
+    async function load() {
+      try {
+        const r = await fetch(FEED + "?cb=" + Date.now());
+        const d = await r.json();
+        const meta = `Computed: ${d.computed_at} · Outcomes scanned: ${d.n_outcomes_scanned.toLocaleString()} · Elapsed: ${d.elapsed_seconds}s`;
+        document.getElementById("meta").textContent = meta;
+
+        const s = d.summary;
+        document.getElementById("summary").innerHTML = `
+          <div class="stat-card"><div class="stat-label">Engines analysed</div><div class="stat-value">${s.n_engines}</div></div>
+          <div class="stat-card"><div class="stat-label">Fresh edge</div><div class="stat-value fresh">${s.n_fresh}</div></div>
+          <div class="stat-card"><div class="stat-label">Decaying/Dead</div><div class="stat-value decaying">${s.n_decaying_or_dead}</div></div>
+          <div class="stat-card"><div class="stat-label">Strengthening</div><div class="stat-value strengthening">${s.n_strengthening}</div></div>
+          <div class="stat-card"><div class="stat-label">Marginal/No edge</div><div class="stat-value">${s.n_marginal}</div></div>
+        `;
+
+        const r1 = d.rankings.strongest_edge;
+        fillTable("strongest-table", r1, e => `<tr>
+          <td class="engine-name">${e.engine}</td>
+          <td class="pos">${pct(e.peak_edge)}</td>
+          <td>${e.peak_horizon_days}d</td>
+          <td>${e.half_life_days ? e.half_life_days + "d" : "long"}</td>
+          <td>${pillFor(e.edge_status)}</td>
+          <td class="${trendCss(e.decay_trend_90d)}">${pct(e.decay_trend_90d)}</td>
+          <td>${e.n_signals}</td>
+          <td>${num(e.recommended_allocator_weight)}</td>
+        </tr>`);
+
+        fillTable("decaying-table", d.rankings.decaying_or_dead, e => `<tr>
+          <td class="engine-name">${e.engine}</td>
+          <td>${pct(e.peak_edge)}</td>
+          <td class="neg">${pct(e.decay_trend_90d)}</td>
+          <td>${pillFor(e.edge_status)}</td>
+          <td>${e.n_signals}</td>
+        </tr>`);
+
+        fillTable("strengthening-table", d.rankings.strengthening, e => `<tr>
+          <td class="engine-name">${e.engine}</td>
+          <td class="pos">${pct(e.peak_edge)}</td>
+          <td class="pos">${pct(e.decay_trend_90d)}</td>
+          <td>${e.n_signals}</td>
+        </tr>`);
+
+        fillTable("persistent-table", d.rankings.longest_persistence, e => `<tr>
+          <td class="engine-name">${e.engine}</td>
+          <td>${e.max_persistent_horizon_days}d</td>
+          <td class="pos">${pct(e.peak_edge)}</td>
+          <td>${e.n_signals}</td>
+        </tr>`);
+
+        // All engines table
+        const allRows = Object.entries(d.engines).map(([name, e]) => ({
+          engine: name, ...e
+        })).sort((a, b) => b.peak_edge - a.peak_edge);
+
+        document.querySelector("#all-engines tbody").innerHTML = allRows.map(e => `<tr>
+          <td class="engine-name">${e.engine}</td>
+          <td class="curve-cell">${renderCurve(e.decay_curve)}</td>
+          <td class="${e.peak_edge > 0 ? 'pos' : 'neutral'}">${pct(e.peak_edge)}</td>
+          <td>${e.half_life_days ? e.half_life_days + "d" : "long"}</td>
+          <td>${pillFor(e.edge_status)}</td>
+        </tr>`).join("");
+      } catch (e) {
+        document.getElementById("meta").textContent = `Error loading: ${e.message}`;
+      }
+    }
+    load();
+  </script>
+</body>
+</html>
