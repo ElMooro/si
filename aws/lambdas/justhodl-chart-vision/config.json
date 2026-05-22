@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-chart-vision",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Exponential Idea #6 (v1) — Anti-AI Chart Pattern Vision. Claude analyses 180d price series + key stats for top-N convictions, identifies dominant chart pattern + completion + entry/stop/target.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260",
+    "TOP_N": "10"
+  },
+  "inherit_env": {
+    "from_function": "justhodl-nobrainer-rationale",
+    "keys": ["ANTHROPIC_KEY", "ANTHROPIC_API_KEY"]
+  },
+  "schedule": {
+    "rule_name": "chart-vision-daily",
+    "cron": "cron(0 16 ? * MON-FRI *)",
+    "description": "Weekdays 16 UTC — pattern recognition on top-conviction names"
+  }
+}
