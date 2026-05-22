@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "SEC Filing Diff Engine. Extracts + diffs Item 1A Risk Factors YoY per 10-K via SEC EDGAR + Claude Haiku NLP. NEW risk factors flagged with severity 0-100 + category + forward implication. Cohen-Malloy-Nguyen 2020. Daily 12 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-ai-chat", "keys": ["ANTHROPIC_API_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-sec-filing-diff-daily",
+    "cron": "cron(0 12 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "SEC Filing Diff daily 12 UTC after sec-10kq refresh"
+  }
+}
