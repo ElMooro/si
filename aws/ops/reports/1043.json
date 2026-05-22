@@ -1,0 +1,36 @@
+{
+  "started_at": "2026-05-22T10:42:10.215250+00:00",
+  "steps": [
+    {
+      "step": "attach_sqs",
+      "result": "ERROR",
+      "error": "An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10"
+    },
+    {
+      "step": "attach_sns",
+      "result": "ERROR",
+      "error": "An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10"
+    },
+    {
+      "step": "create_dlq",
+      "result": "ERROR",
+      "error": "An error occurred (AccessDenied) when calling the CreateQueue operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:createqueue on resource: arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default because no identity-based policy allows the sqs:cre"
+    },
+    {
+      "step": "create_sns",
+      "result": "ERROR",
+      "error": "An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts because no identity-based policy allows the "
+    }
+  ],
+  "dlq_sweep": {
+    "skipped": "no queue URL"
+  },
+  "final": {
+    "n_lambdas": 392,
+    "n_with_dlq": 0,
+    "pct_dlq": 0.0,
+    "n_with_xray": 392,
+    "pct_xray": 100.0
+  },
+  "completed_at": "2026-05-22T10:42:36.444188+00:00"
+}
