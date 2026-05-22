@@ -1,0 +1,149 @@
+{
+  "started_at": "2026-05-22T11:50:35.550087+00:00",
+  "existing_full": {
+    "LambdaFunctionConfigurations": [
+      {
+        "Id": "ws-broadcast-00-report.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/report.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-01-macro-nowcast.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/macro-nowcast.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-02-compound-signals.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/compound-signals.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-03-cross-asset-regime.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/cross-asset-regime.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-04-options-flow.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/options-flow.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-05-eurodollar-stress.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/eurodollar-stress.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-06-nobrainers.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/nobrainers.json"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Id": "ws-broadcast-07-narrative-density.json",
+        "LambdaFunctionArn": "arn:aws:lambda:us-east-1:857687956942:function:openbb-websocket-broadcast",
+        "Events": [
+          "s3:ObjectCreated:*"
+        ],
+        "Filter": {
+          "Key": {
+            "FilterRules": [
+              {
+                "Name": "Prefix",
+                "Value": "data/narrative-density.json"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "collision": {
+    "their_id": "ws-broadcast-00-report.json",
+    "their_lambda": "openbb-websocket-broadcast",
+    "their_prefix": "data/report.json",
+    "their_suffix": null
+  }
+}
