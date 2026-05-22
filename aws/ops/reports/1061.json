@@ -1,0 +1,91 @@
+{
+  "started_at": "2026-05-22T23:02:19.460407+00:00",
+  "justhodl-carry-surface": {
+    "label": "#1 Carry Surface",
+    "lambda": {
+      "exists": false,
+      "error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-carry-surface"
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "rate(4 hours)"
+    }
+  },
+  "justhodl-engine-contribution": {
+    "label": "#2 Engine Contribution",
+    "lambda": {
+      "exists": false,
+      "error": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-contribution"
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "cron(0 2 ? * SUN *)"
+    }
+  },
+  "justhodl-cross-asset-confirm": {
+    "label": "#3 Cross-Asset Confirm",
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-22T22:58:05.000+0000",
+      "memory": 512,
+      "timeout": 300,
+      "dlq": true,
+      "xray": true
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "rate(3 hours)"
+    },
+    "invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"regime\\\": \\\"RISK_OFF\\\", \\\"composite_score\\\": -1, \\\"n_overlays\\\": 54, \\\"n_vetoed\\\": 0, \\\"elapsed_s\\\": 0.72}\"}"
+    },
+    "s3_output": {
+      "exists": true,
+      "size": 13729,
+      "age_h": -0.0,
+      "last_modified": "2026-05-22T23:02:21+00:00"
+    }
+  },
+  "justhodl-earnings-nlp": {
+    "label": "#4 Earnings Linguistic (pre-existing)",
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-22T10:55:31.000+0000",
+      "memory": 512,
+      "timeout": 600,
+      "dlq": true,
+      "xray": true
+    },
+    "invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.1.0\\\", \\\"n_tickers\\\": 30, \\\"n_with_data\\\": 29, \\\"n_with_err\\\": 1, \\\"regime\\\": \\\"EARNINGS_STRENGTH\\\", \\\"median_tone\\\": 72, \\\"n_improvers\\\": 3, \\\"n_deteriorators\\\": 1, \\\"alert_sent\\\": true, \\\"elapsed_seconds\\\": 3.0}\"}"
+    }
+  },
+  "justhodl-engine-robustness": {
+    "label": "#5 Engine Robustness",
+    "lambda": {
+      "exists": true,
+      "last_modified": "2026-05-22T22:58:21.000+0000",
+      "memory": 1024,
+      "timeout": 600,
+      "dlq": true,
+      "xray": true
+    },
+    "eb_rule": {
+      "state": "ENABLED",
+      "cron": "cron(0 4 ? * TUE *)"
+    },
+    "invoke": {
+      "status": 200,
+      "fn_error": "none",
+      "response": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"no_action\\\": \\\"no_engines_with_sufficient_history\\\", \\\"min_snapshots_required\\\": 10}\"}"
+    },
+    "s3_output": {
+      "exists": false,
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  }
+}
