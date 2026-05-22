@@ -1,0 +1,28 @@
+{
+  "started_at": "2026-05-22T10:50:50.732974+00:00",
+  "steps": [
+    {
+      "step": "put_inline_policy",
+      "result": "ERROR",
+      "error": "An error occurred (LimitExceeded) when calling the PutUserPolicy operation: Maximum policy size of 2048 bytes exceeded for user github-actions-justhodl"
+    },
+    {
+      "step": "create_dlq",
+      "result": "ERROR",
+      "error": "An error occurred (AccessDenied) when calling the CreateQueue operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: sqs:createqueue on resource: arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default because no identity-based policy allows the sqs:createqueue action"
+    },
+    {
+      "step": "create_sns",
+      "result": "ERROR",
+      "error": "An error occurred (AuthorizationError) when calling the CreateTopic operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: SNS:CreateTopic on resource: arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts because no identity-based policy allows the SNS:CreateTopic action"
+    }
+  ],
+  "final": {
+    "n_lambdas": 392,
+    "n_with_dlq": 0,
+    "pct_dlq": 0.0,
+    "n_with_xray": 392,
+    "pct_xray": 100.0
+  },
+  "completed_at": "2026-05-22T10:51:25.490209+00:00"
+}
