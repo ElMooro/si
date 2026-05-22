@@ -1,0 +1,74 @@
+{
+  "started_at": "2026-05-22T10:54:41.998549+00:00",
+  "steps": [
+    {
+      "step": "detach_AmazonEventBridgeReadOnlyAccess",
+      "result": "OK"
+    },
+    {
+      "step": "detach_AmazonDynamoDBReadOnlyAccess",
+      "result": "OK"
+    },
+    {
+      "step": "attach_AmazonSQSFullAccess",
+      "result": "OK"
+    },
+    {
+      "step": "attach_AmazonSNSFullAccess",
+      "result": "OK"
+    },
+    {
+      "step": "create_dlq",
+      "result": "OK"
+    },
+    {
+      "step": "set_queue_policy",
+      "result": "OK"
+    },
+    {
+      "step": "create_sns",
+      "result": "OK"
+    },
+    {
+      "step": "test_send",
+      "result": "OK"
+    }
+  ],
+  "sns_arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
+  "dlq_test_message_id": "be1f0bdc-5aba-4fb7-9678-2e4d568b08cf",
+  "dlq_sweep": {
+    "updated": 380,
+    "already_had": 0,
+    "errors": 12,
+    "error_samples": [
+      {
+        "lambda": "ofrapi",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: The provided execution role does not have permissions to call SendMessage on SQS"
+      },
+      {
+        "lambda": "ecb-data-daily-updater",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: The provided execution role does not have permissions to call SendMessage on SQS"
+      },
+      {
+        "lambda": "economyapi",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: The provided execution role does not have permissions to call SendMessage on SQS"
+      },
+      {
+        "lambda": "aiapi-market-analyzer",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: The provided execution role does not have permissions to call SendMessage on SQS"
+      },
+      {
+        "lambda": "scrapeMacroData",
+        "msg": "ERROR: An error occurred (InvalidParameterValueException) when calling the UpdateFunctionConfiguration operation: The provided execution role does not have permissions to call SendMessage on SQS"
+      }
+    ]
+  },
+  "final": {
+    "n_lambdas": 392,
+    "n_with_dlq": 380,
+    "pct_dlq": 96.9,
+    "n_with_xray": 392,
+    "pct_xray": 100.0
+  },
+  "completed_at": "2026-05-22T10:55:55.021277+00:00"
+}
