@@ -1,0 +1,63 @@
+{
+  "started_at": "2026-05-22T11:13:02.830438+00:00",
+  "monitors": {
+    "justhodl-fleet-error-monitor": {
+      "runtime": "python3.12",
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-22T11:00:51.627+0000",
+      "code_size": 3918,
+      "dlq": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+      "xray": "Active",
+      "env_vars": [
+        "ERROR_RATE_THRESHOLD",
+        "LOOKBACK_MINUTES",
+        "MIN_INVOCATIONS",
+        "SNS_ARN",
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "code_download_url": "https://prod-04-2014-tasks.s3.us-east-1.amazonaws.com/snapshots/857687956942/justhodl-fleet-error-mo...",
+      "invocations_1h": 4,
+      "errors_1h": 0,
+      "source_files": {
+        "lambda_function.py": "import json, os, boto3, urllib.request\nfrom datetime import datetime, timezone, timedelta\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\n\nREGION = \"us-east-1\"\nSNS_ARN = os.environ[\"SNS_ARN\"]\nTELEGRAM_BOT_TOKEN = os.environ.get(\"TELEGRAM_BOT_TOKEN\", \"\")\nTELEGRAM_CHAT_ID = os.environ.get(\"TELEGRAM_CHAT_ID\", \"\")\nERROR_RATE_THRESHOLD = float(os.environ.get(\"ERROR_RATE_THRESHOLD\", \"5.0\"))  # %\nMIN_INVOCATIONS = int(os.environ.get(\"MIN_INVOCATIONS\", \"5\"))  # ignore noise\nLOOKBACK_MINUTES = int(os.environ.get(\"LOOKBACK_MINUTES\", \"15\"))\n\nlam = boto3.client(\"lambda\", region_name=REGION)\ncw = boto3.client(\"cloudwatch\", region_name=REGION)\nsns = boto3.client(\"sns\", region_name=REGION)\n\n\ndef get_metrics(name, start, end):\n    out = {\"name\": name}\n    for metric in [\"Invocations\", \"Errors\"]:\n        try:\n            r = cw.get_metric_statistics(\n                Namespace=\"AWS/Lambda\", MetricName=metric,\n                Dimensions=[{\"Name\": \"FunctionName\", \"Value\": name}],\n                StartTime=start, EndTime=end, Period=900, Statistics=[\"Sum\"],\n            )\n            out[metric.lower()] = int(sum(p[\"Sum\"] for p in r[\"Datapoints\"]))\n        except Exception:\n            out[metric.lower()] = 0\n    return out\n\n\ndef lambda_handler(event, context):\n    now = datetime.now(timezone.utc)\n    start = now - timedelta(minutes=LOOKBACK_MINUTES)\n\n    funcs = []\n    paginator = lam.get_paginator(\"list_functions\")\n    for page in paginator.paginate():\n        funcs.extend(page[\"Functions\"])\n\n    metrics = []\n    with ThreadPoolExecutor(max_workers=12) as ex:\n        futures = [ex.submit(get_metrics, fn[\"FunctionName\"], start, now) for fn in funcs]\n        for fut in as_completed(futures):\n            metrics.append(fut.result())\n\n    alerts = []\n    for m in metrics:\n        inv = m.get(\"invocations\", 0)\n        err = m.get(\"errors\", 0)\n        if inv >= MIN_INVOCATIONS and err > 0:\n            rate = err / inv * 100\n            if rate >= ERROR_RATE_THRESHOLD:\n                alerts.append({\n                    \"lambda\": m[\"name\"], \"inv\": inv, \"err\": err, \"rate\": round(rate, 1)\n                })\n\n    alerts.sort(key=lambda x: -x[\"rate\"])\n\n    summary = {\n        \"checked_at\": now.isoformat(),\n        \"lookback_min\": LOOKBACK_MINUTES,\n        \"lambdas_scanned\": len(metrics),\n        \"lambdas_alerting\": len(alerts),\n        \"alerts\": alerts[:30],\n        \"threshold_pct\": ERROR_RATE_THRESHOLD,\n    }\n\n    if alerts:\n        lines = [f\"\\u26a0\\ufe0f *JustHodl Fleet Alert*\",\n                 f\"_{len(alerts)} Lambdas erroring above {ERROR_RATE_THRESHOLD}% over {LOOKBACK_MINUTES} min_\",\n                 \"\"]\n        for a in alerts[:10]:\n            lines.append(f\"\\u2022 `{a['lambda']}`: {a['err']}/{a['inv']} = {a['rate']}%\")\n        if len(alerts) > 10:\n            lines.append(f\"...and {len(alerts) - 10} more\")\n        msg = \"\\n\".join(lines)\n\n        # SNS publish\n        try:\n            sns.publish(TopicArn=SNS_ARN, Subject=f\"Fleet alert: {len(alerts)} Lambdas erroring\",\n                        Message=msg)\n        except Exception as e:\n            summary[\"sns_error\"] = str(e)[:200]\n\n        # Telegram direct\n        if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:\n            try:\n                url = f\"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage\"\n                data = json.dumps({\n                    \"chat_id\": TELEGRAM_CHAT_ID,\n                    \"text\": msg,\n                    \"parse_mode\": \"Markdown\",\n                }).encode()\n                req = urllib.request.Request(url, data=data, headers={\"Content-Type\": \"application/json\"})\n                urllib.request.urlopen(req, timeout=10)\n            except Exception as e:\n                summary[\"telegram_error\"] = str(e)[:200]\n\n    return summary\n"
+      },
+      "source_files_full_count": 1
+    },
+    "justhodl-fleet-freshness-monitor": {
+      "runtime": "python3.12",
+      "memory": 512,
+      "timeout": 300,
+      "last_modified": "2026-05-22T11:08:56.818+0000",
+      "code_size": 5082,
+      "dlq": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default",
+      "xray": "Active",
+      "env_vars": [
+        "BUCKET",
+        "DEFAULT_MAX_AGE_H",
+        "SNS_ARN",
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ],
+      "code_download_url": "https://prod-04-2014-tasks.s3.us-east-1.amazonaws.com/snapshots/857687956942/justhodl-fleet-freshnes...",
+      "invocations_1h": 1,
+      "errors_1h": 0,
+      "source_files": {
+        "lambda_function.py": "\nimport json, os, boto3, urllib.request, re\nfrom datetime import datetime, timezone\n\nREGION = \"us-east-1\"\nBUCKET = os.environ.get(\"BUCKET\", \"justhodl-dashboard-live\")\nSNS_ARN = os.environ[\"SNS_ARN\"]\nTELEGRAM_BOT_TOKEN = os.environ.get(\"TELEGRAM_BOT_TOKEN\", \"\")\nTELEGRAM_CHAT_ID = os.environ.get(\"TELEGRAM_CHAT_ID\", \"\")\nDEFAULT_MAX_AGE_H = float(os.environ.get(\"DEFAULT_MAX_AGE_H\", \"26\"))\nMANIFEST_KEY = \"data/_freshness-manifest.json\"\n\ns3 = boto3.client(\"s3\", region_name=REGION)\nsns = boto3.client(\"sns\", region_name=REGION)\n\n# Default manifest with known schedule cadences for critical feeds.\n# Override these by uploading data/_freshness-manifest.json.\nDEFAULT_MANIFEST = {\n    \"rules\": [\n        {\"prefix\": \"data/\", \"default_max_age_h\": 26.0},\n    ],\n    \"exclude_prefixes\": [\n        \"data/archive/\", \"data/_archive/\", \"data/snapshots/\",\n        \"data/secretary-history/\", \"data/calibration-history/\",\n    ],\n    \"admin_only_keys\": [\n        \"data/khalid-config.json\", \"data/ka-config.json\",\n    ],\n    \"key_overrides\": {\n        # Hourly\n        \"data/report.json\": 2.0,\n        # Every 5 min\n        \"data/options-flow.json\": 0.2,\n        # Weekly (Sunday)\n        \"data/factor-decomposition.json\": 192.0,\n        \"data/cftc-deep-view.json\": 192.0,\n    },\n}\n\n\ndef load_manifest():\n    try:\n        obj = s3.get_object(Bucket=BUCKET, Key=MANIFEST_KEY)\n        return json.loads(obj[\"Body\"].read())\n    except s3.exceptions.NoSuchKey:\n        # Create default\n        s3.put_object(\n            Bucket=BUCKET, Key=MANIFEST_KEY,\n            Body=json.dumps(DEFAULT_MANIFEST, indent=2).encode(),\n            ContentType=\"application/json\",\n        )\n        return DEFAULT_MANIFEST\n    except Exception as e:\n        print(f\"manifest load failed: {e}\")\n        return DEFAULT_MANIFEST\n\n\ndef lambda_handler(event, context):\n    now = datetime.now(timezone.utc)\n    manifest = load_manifest()\n    \n    exclude = manifest.get(\"exclude_prefixes\", [])\n    admin_only = set(manifest.get(\"admin_only_keys\", []))\n    overrides = manifest.get(\"key_overrides\", {})\n    default_max = float(manifest.get(\"rules\", [{}])[0].get(\"default_max_age_h\", DEFAULT_MAX_AGE_H))\n    \n    stale = []\n    scanned = 0\n    paginator = s3.get_paginator(\"list_objects_v2\")\n    for page in paginator.paginate(Bucket=BUCKET, Prefix=\"data/\"):\n        for obj in page.get(\"Contents\", []):\n            key = obj[\"Key\"]\n            scanned += 1\n            if any(key.startswith(p) for p in exclude):\n                continue\n            if key in admin_only:\n                continue\n            age_h = (now - obj[\"LastModified\"]).total_seconds() / 3600\n            threshold = overrides.get(key, default_max)\n            if age_h > threshold:\n                stale.append({\n                    \"key\": key, \"age_h\": round(age_h, 1),\n                    \"threshold_h\": threshold,\n                    \"ratio\": round(age_h / threshold, 2),\n                    \"size\": obj[\"Size\"],\n                })\n    \n    stale.sort(key=lambda x: -x[\"ratio\"])\n    \n    # Critical = >3x threshold\n    critical = [s for s in stale if s[\"ratio\"] >= 3.0]\n    \n    summary = {\n        \"checked_at\": now.isoformat(),\n        \"n_keys_scanned\": scanned,\n        \"n_stale_total\": len(stale),\n        \"n_critical\": len(critical),\n        \"stale_top_20\": stale[:20],\n        \"thresholds_used\": {\"default_h\": default_max, \"n_overrides\": len(overrides)},\n    }\n    \n    # Alert if 5+ critical\n    if len(critical) >= 5:\n        lines = [f\"\\u26a0\\ufe0f *JustHodl Freshness Alert*\",\n                 f\"_{len(critical)} keys staler than 3x expected_\", \"\"]\n        for s in critical[:10]:\n            lines.append(f\"\\u2022 `{s['key']}`: {s['age_h']}h (threshold {s['threshold_h']}h, {s['ratio']}x)\")\n        if len(critical) > 10:\n            lines.append(f\"...and {len(critical)-10} more\")\n        msg = \"\\n\".join(lines)\n        \n        try:\n            sns.publish(TopicArn=SNS_ARN, Subject=f\"Freshness alert: {len(critical)} stale keys\",\n                        Message=msg)\n        except Exception as e:\n            summary[\"sns_error\"] = str(e)[:200]\n        \n        if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:\n            try:\n                url = f\"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage\"\n                data = json.dumps({\"chat_id\": TELEGRAM_CHAT_ID, \"text\": msg, \"parse_mode\": \"Markdown\"}).encode()\n                req = urllib.request.Request(url, data=data, headers={\"Content-Type\": \"application/json\"})\n                urllib.request.urlopen(req, timeout=10)\n            except Exception as e:\n                summary[\"telegram_error\"] = str(e)[:200]\n    \n    # Save summary to S3 for the alarms.html or fleet-status page\n    s3.put_object(\n        Bucket=BUCKET,\n        Key=\"data/_freshness-status.json\",\n        Body=json.dumps(summary, default=str, indent=2).encode(),\n        ContentType=\"application/json\",\n        CacheControl=\"max-age=60\",\n    )\n    return summary\n"
+      },
+      "source_files_full_count": 1
+    }
+  },
+  "sns_topic": {
+    "arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
+    "subscriptions_confirmed": "0",
+    "subscriptions_pending": "0",
+    "display_name": ""
+  },
+  "sns_subscriptions": [],
+  "email_subscription": {
+    "arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts:6e4eeda6-0c96-4872-aad1-043f2ca1892c",
+    "note": "Pending confirmation \u2014 Khalid must click verification email from AWS Notifications"
+  }
+}
