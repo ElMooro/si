@@ -1,0 +1,355 @@
+{
+  "ops_id": 1028,
+  "started_at": "2026-05-22T00:08:13.425397+00:00",
+  "ended_at": "2026-05-22T00:11:48.632166+00:00",
+  "scorecard": {
+    "total_engines": 10,
+    "n_pass": 10,
+    "n_fail": 0,
+    "all_pass": true,
+    "pass_by_engine": {
+      "#1_justhodl-sequence-alpha-detector": true,
+      "#2_justhodl-quality-on-sale": true,
+      "#3_justhodl-forced-selling-bounce": true,
+      "#4_justhodl-regime-conditional-router": true,
+      "#5_justhodl-ma-target-predictor": true,
+      "#6_justhodl-consensus-bottom": true,
+      "#7_justhodl-correlation-break-trade-router": true,
+      "#8_justhodl-fed-pivot-factor-router": true,
+      "#9_justhodl-earnings-tone-velocity": true,
+      "#10_justhodl-earnings-cascade": true
+    }
+  },
+  "results": [
+    {
+      "n": 1,
+      "lambda": "justhodl-sequence-alpha-detector",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 7875,
+        "last_modified": "2026-05-21T22:59:52.957+0000",
+        "memory_mb": 512
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.36
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 6610,
+        "fields_check": {
+          "engine": true,
+          "version": true,
+          "regime": true,
+          "n_active_sequences": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 2,
+      "lambda": "justhodl-quality-on-sale",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6765,
+        "last_modified": "2026-05-21T23:02:19.501+0000",
+        "memory_mb": 512
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.15
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 4114,
+        "fields_check": {
+          "engine": true,
+          "regime": true,
+          "n_qualified_5_of_5": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 3,
+      "lambda": "justhodl-forced-selling-bounce",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6787,
+        "last_modified": "2026-05-21T23:40:10.000+0000",
+        "memory_mb": 256
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.31
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 2672,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "signal_strength": true,
+          "n_conditions_fired": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 4,
+      "lambda": "justhodl-regime-conditional-router",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6995,
+        "last_modified": "2026-05-21T23:10:42.487+0000",
+        "memory_mb": 512
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.49
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 3416,
+        "fields_check": {
+          "engine": true,
+          "primary_framework": true,
+          "primary_sleeve": true,
+          "all_framework_scores": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 5,
+      "lambda": "justhodl-ma-target-predictor",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 7968,
+        "last_modified": "2026-05-21T23:13:33.503+0000",
+        "memory_mb": 512
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 181.69
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 65462,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_high_conviction": true,
+          "all_evaluated": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 6,
+      "lambda": "justhodl-consensus-bottom",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 4876,
+        "last_modified": "2026-05-21T23:16:25.102+0000",
+        "memory_mb": 256
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.49
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 1891,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_qualified": true,
+          "qualified": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 7,
+      "lambda": "justhodl-correlation-break-trade-router",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 6515,
+        "last_modified": "2026-05-21T23:19:27.679+0000",
+        "memory_mb": 256
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.31
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 2547,
+        "fields_check": {
+          "engine": true,
+          "primary_regime": true,
+          "primary_recipe": true,
+          "all_regime_scores": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 8,
+      "lambda": "justhodl-fed-pivot-factor-router",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 4688,
+        "last_modified": "2026-05-21T23:21:28.386+0000",
+        "memory_mb": 256
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.07
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 2753,
+        "fields_check": {
+          "engine": true,
+          "current_pivot_regime": true,
+          "current_recipe": true,
+          "all_recipes": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 9,
+      "lambda": "justhodl-earnings-tone-velocity",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 5425,
+        "last_modified": "2026-05-21T23:28:05.263+0000",
+        "memory_mb": 512
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.06
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 733,
+        "fields_check": {
+          "schema_version": true,
+          "method": true,
+          "as_of": true,
+          "summary": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    },
+    {
+      "n": 10,
+      "lambda": "justhodl-earnings-cascade",
+      "lambda_meta": {
+        "runtime": "python3.12",
+        "code_size": 5767,
+        "last_modified": "2026-05-21T23:58:38.587+0000",
+        "memory_mb": 256
+      },
+      "invoke_result": {
+        "invoked": true,
+        "status_code": 200,
+        "function_error": null,
+        "elapsed_s": 1.28
+      },
+      "s3_check": {
+        "exists": true,
+        "age_h": 0.0,
+        "is_fresh": true,
+        "size_bytes": 16014,
+        "fields_check": {
+          "engine": true,
+          "state": true,
+          "n_titans": true,
+          "n_strong": true,
+          "n_emerging": true
+        },
+        "all_fields_present": true
+      },
+      "pass_lambda": true,
+      "pass_invoke": true,
+      "pass_s3": true,
+      "overall_pass": true
+    }
+  ]
+}
