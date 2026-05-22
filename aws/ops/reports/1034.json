@@ -1,0 +1,127 @@
+{
+  "started_at": "2026-05-22T09:42:03.907796+00:00",
+  "per_key": {
+    "data/khalid-config.json": {
+      "kind": "admin-only (dual-write)",
+      "last_modified": "2026-02-27T06:44:20+00:00",
+      "age_h": 2018.96,
+      "size": 19557
+    },
+    "data/khalid-metrics.json": {
+      "kind": "scheduled (potential overwrite)",
+      "last_modified": "2026-05-21T11:01:34+00:00",
+      "age_h": 22.67,
+      "size": 12419
+    },
+    "data/khalid-analysis.json": {
+      "kind": "scheduled (potential overwrite)",
+      "last_modified": "2026-05-21T11:02:41+00:00",
+      "age_h": 22.66,
+      "size": 11758
+    },
+    "data/ka-config.json": {
+      "kind": "admin-only (dual-write)",
+      "last_modified": "2026-04-26T13:58:04+00:00",
+      "age_h": 619.73,
+      "size": 19557
+    },
+    "data/report.json": {
+      "kind": "scheduled (race winner)",
+      "last_modified": "2026-05-22T06:15:54+00:00",
+      "age_h": 3.44,
+      "size": 1829548
+    }
+  },
+  "per_lambda": {
+    "justhodl-khalid-metrics": {
+      "data/khalid-config.json": {
+        "kind": "admin-only",
+        "last_modified": "2026-02-27T06:44:20+00:00",
+        "age_h": 2018.96,
+        "size": 19557
+      },
+      "data/khalid-metrics.json": {
+        "kind": "scheduled",
+        "last_modified": "2026-05-21T11:01:34+00:00",
+        "age_h": 22.67,
+        "size": 12419
+      },
+      "data/khalid-analysis.json": {
+        "kind": "scheduled (needs AI success)",
+        "last_modified": "2026-05-21T11:02:41+00:00",
+        "age_h": 22.66,
+        "size": 11758
+      },
+      "last_invocation": {
+        "hour": "2026-05-21T10:42:00+00:00",
+        "invocations_that_hour": 1,
+        "hours_ago": 23.0
+      },
+      "invocations_7d": 7,
+      "errors_7d": 0
+    },
+    "justhodl-ka-metrics": {
+      "data/khalid-config.json": {
+        "kind": "admin-only (dual-write)",
+        "last_modified": "2026-02-27T06:44:20+00:00",
+        "age_h": 2018.96,
+        "size": 19557
+      },
+      "data/ka-config.json": {
+        "kind": "admin-only (dual-write)",
+        "last_modified": "2026-04-26T13:58:04+00:00",
+        "age_h": 619.73,
+        "size": 19557
+      },
+      "data/khalid-metrics.json": {
+        "kind": "scheduled (potential overwrite)",
+        "last_modified": "2026-05-21T11:01:34+00:00",
+        "age_h": 22.67,
+        "size": 12419
+      },
+      "data/khalid-analysis.json": {
+        "kind": "scheduled (potential overwrite)",
+        "last_modified": "2026-05-21T11:02:41+00:00",
+        "age_h": 22.66,
+        "size": 11758
+      },
+      "last_invocation": {
+        "hour": "2026-05-21T10:42:00+00:00",
+        "invocations_that_hour": 1,
+        "hours_ago": 23.0
+      },
+      "invocations_7d": 7,
+      "errors_7d": 0
+    },
+    "justhodl-bloomberg-v8": {
+      "data/report.json": {
+        "kind": "scheduled",
+        "last_modified": "2026-05-22T06:15:54+00:00",
+        "age_h": 3.44,
+        "size": 1829548
+      },
+      "last_invocation": {
+        "hour": "2026-05-22T08:42:00+00:00",
+        "invocations_that_hour": 1,
+        "hours_ago": 1.0
+      },
+      "invocations_7d": 719,
+      "errors_7d": 0
+    },
+    "justhodl-daily-report-v3": {
+      "data/report.json": {
+        "kind": "scheduled (race winner)",
+        "last_modified": "2026-05-22T06:15:54+00:00",
+        "age_h": 3.44,
+        "size": 1829548
+      },
+      "last_invocation": {
+        "hour": "2026-05-21T22:42:00+00:00",
+        "invocations_that_hour": 1,
+        "hours_ago": 11.0
+      },
+      "invocations_7d": 611,
+      "errors_7d": 0
+    }
+  }
+}
