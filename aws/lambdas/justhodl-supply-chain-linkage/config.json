@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Supply Chain Linkage (R6). Customer + supplier graph + geographic concentration per ticker. FMP /stable/supply-chain + geo segments. Geo risk tiers 0-5, single-source flags, degree centrality. Daily 15 UTC.",
+  "inherit_env": [
+    {"from_function": "justhodl-starmine", "keys": ["FMP_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-supply-chain-linkage-daily",
+    "cron": "cron(0 15 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Supply Chain Linkage daily 15 UTC"
+  }
+}
