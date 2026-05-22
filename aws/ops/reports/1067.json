@@ -1,0 +1,146 @@
+{
+  "started_at": "2026-05-22T23:42:25.320691+00:00",
+  "n_lambdas": 407,
+  "n_s3_keys": 27081,
+  "n_eb_rules": 293,
+  "n_ddb_tables": 18,
+  "ddb_tables": [
+    "WebSocketConnections",
+    "ai-assistant-tasks",
+    "fed-liquidity-cache",
+    "justhodl-alert-actions",
+    "justhodl-api-keys",
+    "justhodl-api-rate",
+    "justhodl-backtest",
+    "justhodl-feedback",
+    "justhodl-history",
+    "justhodl-outcomes",
+    "justhodl-portfolio",
+    "justhodl-push-subscriptions",
+    "justhodl-signal-registry",
+    "justhodl-signals",
+    "justhodl-trades",
+    "liquidity-metrics-v2",
+    "openbb-historical-data",
+    "openbb-trading-signals"
+  ],
+  "ddb_pitr_status": {
+    "WebSocketConnections": "DISABLED",
+    "ai-assistant-tasks": "ENABLED",
+    "fed-liquidity-cache": "ENABLED",
+    "justhodl-alert-actions": "DISABLED",
+    "justhodl-api-keys": "ENABLED",
+    "justhodl-api-rate": "DISABLED",
+    "justhodl-backtest": "DISABLED",
+    "justhodl-feedback": "DISABLED",
+    "justhodl-history": "DISABLED",
+    "justhodl-outcomes": "ENABLED",
+    "justhodl-portfolio": "DISABLED",
+    "justhodl-push-subscriptions": "DISABLED",
+    "justhodl-signal-registry": "DISABLED",
+    "justhodl-signals": "ENABLED",
+    "justhodl-trades": "DISABLED",
+    "liquidity-metrics-v2": "ENABLED",
+    "openbb-historical-data": "ENABLED",
+    "openbb-trading-signals": "ENABLED"
+  },
+  "bucket_crr": {
+    "configured": false,
+    "error": "An error occurred (ReplicationConfigurationNotFoundError) when calling the GetBucketReplication oper"
+  },
+  "bucket_versioning": "Enabled",
+  "portfolio_state": {
+    "justhodl-portfolio": {
+      "item_count": 1,
+      "size_bytes": 152
+    },
+    "justhodl-signals": {
+      "item_count": 19341,
+      "size_bytes": 11205005
+    },
+    "justhodl-outcomes": {
+      "item_count": 13057,
+      "size_bytes": 5762220
+    },
+    "justhodl-alert-actions": {
+      "item_count": 0,
+      "size_bytes": 0
+    }
+  },
+  "candidates": {
+    "1_disaster_recovery": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "2_cost_anomaly": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "3_macro_calendar": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "4_fed_nlp": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "5_black_swan_stress": {
+      "verdict": "PARTIAL",
+      "lambda_hits": [],
+      "s3_hits": [
+        "data/stress-scenarios.json"
+      ],
+      "rule_hits": []
+    },
+    "6_news_wire": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "7_trade_journal_active": {
+      "verdict": "FULL_IMPL_EXISTS",
+      "lambda_hits": [
+        "justhodl-trade-journal"
+      ],
+      "s3_hits": [
+        "data/trade-journal.json"
+      ],
+      "rule_hits": []
+    },
+    "8_capital_markets_cal": {
+      "verdict": "PARTIAL",
+      "lambda_hits": [
+        "justhodl-spinoff-desk"
+      ],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "9_concentration_liquidity": {
+      "verdict": "BUILD",
+      "lambda_hits": [],
+      "s3_hits": [],
+      "rule_hits": []
+    },
+    "10_whisper_numbers": {
+      "verdict": "FULL_IMPL_EXISTS",
+      "lambda_hits": [
+        "justhodl-earnings-whisper"
+      ],
+      "s3_hits": [
+        "data/earnings-whisper.json"
+      ],
+      "rule_hits": [
+        "earnings-whisper-daily"
+      ]
+    }
+  }
+}
