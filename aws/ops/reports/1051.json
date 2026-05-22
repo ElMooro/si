@@ -1,0 +1,46 @@
+{
+  "started_at": "2026-05-22T11:41:54.568758+00:00",
+  "justhodl-fleet-error-monitor": {
+    "exists": true,
+    "last_modified": "2026-05-22T11:39:26.000+0000",
+    "invocations_2h": 10,
+    "errors_2h": 0,
+    "dlq": true,
+    "xray": true
+  },
+  "justhodl-fleet-freshness-monitor": {
+    "exists": true,
+    "last_modified": "2026-05-22T11:25:39.000+0000",
+    "invocations_2h": 3,
+    "errors_2h": 0,
+    "dlq": true,
+    "xray": true
+  },
+  "dlq": {
+    "url": "https://sqs.us-east-1.amazonaws.com/857687956942/justhodl-dlq-default",
+    "messages_available": 1,
+    "messages_in_flight": 0
+  },
+  "sns": {
+    "arn": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
+    "n_subscriptions": 1,
+    "subscriptions": [
+      {
+        "endpoint": "raafouis@gmail.com",
+        "protocol": "email",
+        "confirmed": false
+      }
+    ]
+  },
+  "coverage": {
+    "n_lambdas": 394,
+    "dlq": "394/394 (100.0%)",
+    "xray": "394/394 (100.0%)"
+  },
+  "freshness_manifest": {
+    "present": true,
+    "last_modified": "2026-05-22T11:09:10+00:00",
+    "size": 505,
+    "age_h": 0.5
+  }
+}
