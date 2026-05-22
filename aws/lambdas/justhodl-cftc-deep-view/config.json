@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "CFTC Deep View (R7). 5-layer COT analytics on top of cftc-all-cache: z-scores 1y+3y, position deltas, smart/dumb divergence, contrarian setups. Fridays 22 UTC after CFTC release. Outputs cftc-deep-view.json + cot-extremes.json.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-cftc-deep-view-fri",
+    "cron": "cron(0 22 ? * FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "CFTC Deep View Fri 22 UTC after CFTC data release"
+  }
+}
