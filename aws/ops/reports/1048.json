@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-05-22T11:08:56.491298+00:00",
+  "steps": [
+    {
+      "step": "create_fn",
+      "result": "OK"
+    },
+    {
+      "step": "put_rule",
+      "result": "OK"
+    },
+    {
+      "step": "add_perm",
+      "result": "OK"
+    },
+    {
+      "step": "put_target",
+      "result": "OK"
+    }
+  ],
+  "test_invoke": {
+    "error": "An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending"
+  },
+  "completed_at": "2026-05-22T11:08:57.571084+00:00"
+}
