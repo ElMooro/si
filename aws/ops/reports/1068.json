@@ -1,0 +1,78 @@
+{
+  "started_at": "2026-05-22T23:47:06.410538+00:00",
+  "phase1a_pitr_actions": {
+    "justhodl-portfolio": "ENABLED_NOW",
+    "justhodl-trades": "ENABLED_NOW",
+    "justhodl-alert-actions": "ENABLED_NOW",
+    "justhodl-backtest": "ENABLED_NOW",
+    "justhodl-feedback": "ENABLED_NOW",
+    "justhodl-history": "ENABLED_NOW",
+    "justhodl-push-subscriptions": "ENABLED_NOW",
+    "justhodl-api-rate": "ENABLED_NOW",
+    "justhodl-signal-registry": "ENABLED_NOW",
+    "WebSocketConnections": "ENABLED_NOW"
+  },
+  "phase1b_partials": {
+    "stress-scenarios.json": {
+      "exists": true,
+      "size": 16603,
+      "age_h": 0.4,
+      "top_keys": [
+        "schema_version",
+        "generated_at",
+        "method",
+        "n_scenarios",
+        "top_scenario",
+        "scenarios",
+        "asset_impact",
+        "input_sidecar_freshness",
+        "duration_s"
+      ],
+      "sample": "{\n  \"schema_version\": \"1.0\",\n  \"generated_at\": \"2026-05-22T23:25:20.036880+00:00\",\n  \"method\": \"stress_scenarios_v1\",\n  \"n_scenarios\": 5,\n  \"top_scenario\": {\n    \"key\": \"GOLDILOCKS\",\n    \"name\": \"Goldilocks Continuation\",\n    \"probability_pct\": 30.0\n  },\n  \"scenarios\": [\n    {\n      \"key\": \"GOLDILOCKS\",\n      \"name\": \"Goldilocks Continuation\",\n      \"narrative\": \"Disinflation + soft landing. Rates ease, credit stays tight, equities grind higher. Best for growth + duration; worst for cash + commodity bears.\",\n      \"probability\": 0.3,\n      \"probability_pct\": 30.0,\n      \"n_probes_matched\": 2,\n      \"n_probes_total\": 5,\n      \"probes\": [\n        {\n          \"sidecar\": \"khalid_index\",\n          \"path\": \"score\",\n          \"test\": \"gte 60\",\n          \"actual\": 43.0,\n          \"matched\": false,\n          \"weight\": 0.3\n        },\n        {\n          \"sidecar\": \"credit_stress\",\n          \"path\": \"summary.hy_oas_bps\",\n          \"test\": \"lte 350\",\n          \"actual\": null,\n          \"matched\": false,\n          \"weight\": 0.25\n        },\n        {\n          \"sidecar\": \"regime_composite\",\n          \"path\": \"composite_score\",\n          \"test\": \"gte 30\",\n          \"actual\": 52.2,\n          \"matched\": true,\n          \"weight\": 0.2\n        },\n        {\n          \"sidecar\": \"report\",\n          \"path\": \"vix.value\",\n          \"test\": \"lte 22\",\n          \"actual\": null,\n          \"matched\": false,\n          \"weight\": 0.15\n        },\n        {\n          \"sidecar\": \"eurodollar_stress\",\n          \""
+    },
+    "spinoff-desk": {
+      "description": "Spin-Off and Special-Situations Desk - sources Form 10-12B spin-off registrations from SEC EDGAR, prices and screens them on FMP, scores the post-separation forced-selling and analyst-neglect edge, writes data/spinoff-desk.json.",
+      "env_keys": [
+        "FMP_KEY"
+      ],
+      "memory": 1024,
+      "last_modified": "2026-05-22T10:55:26.000+0000",
+      "code_head": "\"\"\"\njusthodl-spinoff-desk - The Spin-Off & Special-Situations Desk\n\nThe documented edge (Greenblatt, \"You Can Be a Stock Market Genius\"; and a\ndeep academic literature on post-spin-off drift): newly spun-off companies\nare systematically mispriced for 12-24 months because\n\n  1. index funds and institutions RECEIVE shares of a company that does not\n     fit their mandate and dump them indiscriminately - forced, price-\n     insensitive selling that overshoots fair value;\n  2. the SpinCo launches with little or no sell-side analyst coverage - an\n     information vacuum;\n  3. management is handed fresh equity incentives and, tellingly, often buys.\n\nThe richest sub-edge is the ORPHAN: a small SpinCo carved out of a large\nparent - too small to matter to the parent's holders, so it gets dumped\nhardest and covered least.\n\nPipeline per run:\n  1. Pull the most recent Form 10-12B registrations from SEC EDGAR full-text\n     search (EFTS). Form 10-12B is the canonical spin-off registration form\n     (registration of a class of securities under Exchange Act 12(b)).\n  2. Parse ticker + CIK + filing date straight out of EFTS display_names.\n  3. Resolve each on FMP /stable/quote:\n       - quotes wit",
+      "code_lines": 637,
+      "out_key": "data/spinoff-desk.json"
+    }
+  },
+  "phase1c_s3_posture": {
+    "versioning": "Enabled",
+    "mfa_delete": "Disabled",
+    "lifecycle_rules": [
+      {
+        "id": "archive-to-glacier-deep-after-90d",
+        "status": "Enabled",
+        "prefix": "archive/"
+      },
+      {
+        "id": "expire-old-versions-after-30d",
+        "status": "Enabled",
+        "prefix": "all"
+      },
+      {
+        "id": "expire-screener-snapshots-30d",
+        "status": "Enabled",
+        "prefix": "screener/snapshots/"
+      }
+    ],
+    "ddb_pitr_after": {
+      "justhodl-portfolio": "ENABLED",
+      "justhodl-trades": "ENABLED",
+      "justhodl-alert-actions": "ENABLED",
+      "justhodl-backtest": "ENABLED",
+      "justhodl-feedback": "ENABLED",
+      "justhodl-history": "ENABLED",
+      "justhodl-push-subscriptions": "ENABLED",
+      "justhodl-api-rate": "ENABLED",
+      "justhodl-signal-registry": "ENABLED",
+      "WebSocketConnections": "ENABLED"
+    }
+  }
+}
