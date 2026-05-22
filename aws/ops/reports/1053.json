@@ -1,22 +1,174 @@
 {
-  "started_at": "2026-05-22T12:18:27.018216+00:00",
-  "table_status": "CREATED",
-  "table": {
-    "arn": "arn:aws:dynamodb:us-east-1:857687956942:table/justhodl-alert-actions",
-    "status": "ACTIVE",
-    "attrs": [
-      "action_ts:S",
-      "alert_id:S",
-      "engine:S",
-      "logged_at:S"
-    ],
-    "keys": [
-      "alert_id:HASH",
-      "action_ts:RANGE"
-    ],
-    "gsi": [
-      "engine-time-idx"
-    ],
-    "billing": "PAY_PER_REQUEST"
+  "started_at": "2026-05-22T14:04:19.569688+00:00",
+  "sections": {
+    "observability_html": {
+      "http_code": 200,
+      "size": 19938,
+      "markers": {
+        "title": true,
+        "audit_scorecard": true,
+        "exp_table": true,
+        "fleet_status_id": true,
+        "stale_outputs": true
+      },
+      "all_present": true
+    },
+    "fleet_monitor": {
+      "age_h": 0.02,
+      "version": "1.0.0",
+      "generated_at": "2026-05-22T14:03:21.730176+00:00",
+      "n_tracked": 403,
+      "n_stale_or_alerts": 0,
+      "elapsed_s": 17.97
+    },
+    "freshness_monitor": {
+      "age_h": 0.17,
+      "version": "1.1.0",
+      "generated_at": "2026-05-22T13:54:08.700498+00:00",
+      "n_tracked": 24,
+      "n_stale_or_alerts": 0,
+      "elapsed_s": 4.49
+    },
+    "freshness_manifest": {
+      "age_h": 0.17,
+      "n_excludes": 7,
+      "n_overrides": 5,
+      "overrides_keys": [
+        "data/report.json",
+        "data/options-flow.json",
+        "data/factor-decomposition.json",
+        "data/cftc-deep-view.json",
+        "data/13f-price-divergence.json"
+      ]
+    },
+    "justhodl-fleet-error-monitor_1h": {
+      "invocations": 25,
+      "errors": 0
+    },
+    "justhodl-fleet-freshness-monitor_1h": {
+      "invocations": 10,
+      "errors": 5
+    },
+    "exp_status": [
+      {
+        "idea": "#1",
+        "lambda": "justhodl-premortem-engine",
+        "invocations_24h": 2,
+        "rules": [
+          {
+            "name": "premortem-engine-daily",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#2",
+        "lambda": "justhodl-signal-halflife",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "signal-halflife-weekly",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#3",
+        "lambda": "justhodl-causality-scanner",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "causality-scanner-weekly",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#4",
+        "lambda": "justhodl-behavior-mirror",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "behavior-mirror-weekly",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#5",
+        "lambda": "justhodl-failure-library",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "failure-library-daily",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#6",
+        "lambda": "justhodl-chart-vision",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "chart-vision-daily",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#7",
+        "lambda": "justhodl-convexity-scorer",
+        "invocations_24h": 2,
+        "rules": [
+          {
+            "name": "convexity-scorer-daily",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      },
+      {
+        "idea": "#8",
+        "lambda": "justhodl-meta-improver",
+        "invocations_24h": 1,
+        "rules": [
+          {
+            "name": "meta-improver-weekly",
+            "state": "ENABLED"
+          }
+        ],
+        "dlq": true,
+        "xray": true
+      }
+    ]
+  },
+  "scorecard": {
+    "observability_dashboard_live": true,
+    "fleet_monitor_state_age_h": 0.02,
+    "fleet_monitor_alerts": 0,
+    "freshness_monitor_state_age_h": 0.17,
+    "freshness_monitor_stale": 0,
+    "manifest_overrides": 5,
+    "manifest_excludes": 7,
+    "fleet_error_monitor_invocations_1h": 25,
+    "fleet_freshness_monitor_invocations_1h": 10,
+    "exp_lambdas_total": 8,
+    "exp_lambdas_with_dlq_and_xray": 8,
+    "exp_lambdas_with_schedule": 8,
+    "exp_lambdas_invoked_24h": 8
   }
 }
