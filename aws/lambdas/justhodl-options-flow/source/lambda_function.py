@@ -4645,6 +4645,8 @@ def lambda_handler(event, context):
                 CacheControl="no-cache")
             print("flow S3 saved")
         except Exception as _e:
+            # audit P2.5: emit EMF metric for silent put_object failure
+            print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
             print("flow S3 err:", str(_e))
         return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps(payload, default=str)}
 

@@ -732,6 +732,8 @@ def lambda_handler(event, context):
             ContentType="application/json", CacheControl="public, max-age=900")
         print(f"  ✓ calibration-latest.json written")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"  put latest err: {e}")
 
     history = load_s3_json(HISTORY_KEY) or {"history": []}
@@ -751,6 +753,8 @@ def lambda_handler(event, context):
             ContentType="application/json", CacheControl="public, max-age=900")
         print(f"  ✓ calibration-history.json appended ({len(history['history'])} weeks)")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"  put history err: {e}")
 
     # Weights sidecar for alpha-score consumption
@@ -771,6 +775,8 @@ def lambda_handler(event, context):
             ContentType="application/json", CacheControl="public, max-age=300")
         print(f"  ✓ alpha-weights.json written (auto_apply={weights_sidecar['auto_apply_calibrations']})")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"  put weights err: {e}")
 
     chat_id = get_chat_id()

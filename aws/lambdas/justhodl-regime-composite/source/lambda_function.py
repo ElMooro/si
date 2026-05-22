@@ -520,6 +520,8 @@ def save_history(history):
         S3.put_object(Bucket=BUCKET, Key=HISTORY_KEY, Body=body,
                        ContentType="application/json")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"[regime-composite] history save err: {e}")
 
 

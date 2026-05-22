@@ -172,6 +172,8 @@ def save_history(history):
             ContentType="application/json", CacheControl="public, max-age=600")
         return True
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"  history save err: {e}")
         return False
 

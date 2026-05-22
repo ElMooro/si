@@ -30,6 +30,19 @@ def get_metrics(name, start, end):
     return out
 
 
+
+def get_silent_failure_count(name, start, end):
+    """Sum of JustHodl/Reliability/S3PutFailure for this Lambda."""
+    try:
+        r = cw.get_metric_statistics(
+            Namespace="JustHodl/Reliability", MetricName="S3PutFailure",
+            Dimensions=[{"Name": "Lambda", "Value": name}],
+            StartTime=start, EndTime=end, Period=900, Statistics=["Sum"],
+        )
+        return int(sum(p["Sum"] for p in r["Datapoints"]))
+    except Exception:
+        return 0
+
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     start = now - timedelta(minutes=LOOKBACK_MINUTES)
@@ -56,6 +69,16 @@ def lambda_handler(event, context):
                     "lambda": m["name"], "inv": inv, "err": err, "rate": round(rate, 1)
                 })
 
+    # Pass 2: detect silent put_object failures (P2.5 EMF metric)
+    silent_alerts = []
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        futures = {ex.submit(get_silent_failure_count, fn["FunctionName"], start, now): fn["FunctionName"] for fn in funcs}
+        for fut in as_completed(futures):
+            n = fut.result()
+            if n > 0:
+                silent_alerts.append({"lambda": futures[fut], "silent_put_failures": n})
+    silent_alerts.sort(key=lambda x: -x["silent_put_failures"])
+
     alerts.sort(key=lambda x: -x["rate"])
 
     summary = {
@@ -64,10 +87,12 @@ def lambda_handler(event, context):
         "lambdas_scanned": len(metrics),
         "lambdas_alerting": len(alerts),
         "alerts": alerts[:30],
+        "silent_put_failures_count": len(silent_alerts),
+        "silent_put_failures": silent_alerts[:30],
         "threshold_pct": ERROR_RATE_THRESHOLD,
     }
 
-    if alerts:
+    if alerts or silent_alerts:
         lines = [f"\u26a0\ufe0f *JustHodl Fleet Alert*",
                  f"_{len(alerts)} Lambdas erroring above {ERROR_RATE_THRESHOLD}% over {LOOKBACK_MINUTES} min_",
                  ""]
@@ -75,11 +100,20 @@ def lambda_handler(event, context):
             lines.append(f"\u2022 `{a['lambda']}`: {a['err']}/{a['inv']} = {a['rate']}%")
         if len(alerts) > 10:
             lines.append(f"...and {len(alerts) - 10} more")
+
+        if silent_alerts:
+            lines.append("")
+            lines.append(f"*Silent put_object failures* ({len(silent_alerts)} Lambdas)")
+            for sa in silent_alerts[:10]:
+                lines.append(f"\u2022 `{sa['lambda']}`: {sa['silent_put_failures']} failures")
+            if len(silent_alerts) > 10:
+                lines.append(f"...and {len(silent_alerts) - 10} more")
+
         msg = "\n".join(lines)
 
         # SNS publish
         try:
-            sns.publish(TopicArn=SNS_ARN, Subject=f"Fleet alert: {len(alerts)} Lambdas erroring",
+            sns.publish(TopicArn=SNS_ARN, Subject=f"Fleet alert: {len(alerts)} erroring, {len(silent_alerts)} silent",
                         Message=msg)
         except Exception as e:
             summary["sns_error"] = str(e)[:200]

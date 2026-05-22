@@ -559,6 +559,8 @@ def lambda_handler(event, context):
             CacheControl="public, max-age=1800")
         print(f"  ✓ sizing.json written")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"  put_object err: {e}")
         return {"statusCode": 500, "body": json.dumps({"err": str(e)})}
 

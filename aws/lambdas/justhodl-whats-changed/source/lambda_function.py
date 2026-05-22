@@ -69,6 +69,8 @@ def write_snapshot(filename, data, date_str):
             ContentType="application/json",
         )
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"snapshot write fail {snap_key}: {e}")
 
 

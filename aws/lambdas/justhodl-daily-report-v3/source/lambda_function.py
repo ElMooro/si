@@ -320,6 +320,8 @@ def _save_fred_cache(cache_data):
             ContentType="application/json", CacheControl="max-age=1800",
         )
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"[FRED-CACHE] save err (non-fatal): {e}")
 
 def _cache_entry_is_fresh_today(entry):
@@ -763,6 +765,8 @@ def save_ath_data(ath):
                       ContentType='application/json', CacheControl='max-age=60')
         print(f"[ATH] Saved ATH data for {len(ath)} tickers")
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"[ATH] Error saving: {e}")
 
 def fetch_true_ath(ticker):
@@ -2115,5 +2119,7 @@ def lambda_handler(event, context):
         print(f"[V10] DONE {elapsed}s: {json.dumps(summary)}")
         return {'statusCode':200,'body':json.dumps(summary)}
     except Exception as e:
+        # audit P2.5: emit EMF metric for silent put_object failure
+        print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
         print(f"[V10] Error: {e}")
         return {'statusCode':500,'body':json.dumps({'error':str(e)})}

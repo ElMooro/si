@@ -216,6 +216,8 @@ def lambda_handler(event,context):
         try:
             s3_client.put_object(Bucket=BUCKET,Key="investor-analysis/"+ticker+".json",Body=json.dumps(result).encode("utf-8"),ContentType="application/json",CacheControl="max-age=3600")
         except Exception as e:
+            # audit P2.5: emit EMF metric for silent put_object failure
+            print(__import__('json').dumps({"_aws":{"Timestamp":int(__import__('time').time()*1000),"CloudWatchMetrics":[{"Namespace":"JustHodl/Reliability","Dimensions":[["Lambda"]],"Metrics":[{"Name":"S3PutFailure","Unit":"Count"}]}]},"Lambda":__import__('os').environ.get("AWS_LAMBDA_FUNCTION_NAME","?"),"S3PutFailure":1,"error":str(e)[:200] if 'e' in dir() else "unknown"}))
             print("S3 error: "+str(e))
         print("[InvestorAgents] "+ticker+" done in "+str(result["elapsed"])+"s - "+consensus["signal"])
         return{"statusCode":200,"headers":{**cors,"Content-Type":"application/json"},"body":json.dumps(result)}
