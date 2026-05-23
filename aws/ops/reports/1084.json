@@ -1,0 +1,230 @@
+{
+  "started_at": "2026-05-23T10:01:08.852993+00:00",
+  "before_sha": "lQdAupy9foYn",
+  "before_modified": "2026-05-23T09:56:30.000+0000",
+  "zip_kb": 9.7,
+  "update_status": "InProgress",
+  "after_sha": "e3w8GdCZ6eTM",
+  "after_modified": "2026-05-23T10:01:09.000+0000",
+  "sha_changed": true,
+  "invoke_status": 200,
+  "fn_err": null,
+  "log_tail": "START RequestId: 977b9925-4996-4213-8b2a-392ccf730bdb Version: $LATEST\n[forward-returns] v1.0.0 starting\n[forward-returns] fetching market data ...\n[forward-returns] fetched: quotes=15/15 profiles=15/15 hist=15/15\n[forward-returns] wrote data/forward-returns.json in 1.3s\nEND RequestId: 977b9925-4996-4213-8b2a-392ccf730bdb\nREPORT RequestId: 977b9925-4996-4213-8b2a-392ccf730bdb\tDuration: 1425.61 ms\tBilled Duration: 2032 ms\tMemory Size: 1024 MB\tMax Memory Used: 104 MB\tInit Duration: 605.39 ms\t\nXRAY TraceId: 1-6a117ae8-3fdd42cc6c7d956463bc202d\tSegmentId: e58dba7d97e634ea\tSampled: true\t\n",
+  "assets": {
+    "SPY": {
+      "fwd_er": 7.39,
+      "trailing_dy": 0.99,
+      "buyback": 2.0,
+      "nominal_g": 4.4,
+      "pctile": 54,
+      "verdict": "FAIR",
+      "ten_k": 20400
+    },
+    "QQQ": {
+      "fwd_er": 8.29,
+      "trailing_dy": 0.39,
+      "buyback": 2.5,
+      "nominal_g": 5.4,
+      "pctile": 55,
+      "verdict": "FAIR",
+      "ten_k": 22176
+    },
+    "IWM": {
+      "fwd_er": 6.79,
+      "trailing_dy": 0.89,
+      "buyback": 1.0,
+      "nominal_g": 4.9,
+      "pctile": 36,
+      "verdict": "POOR",
+      "ten_k": 19289
+    },
+    "EFA": {
+      "fwd_er": 7.82,
+      "trailing_dy": 3.12,
+      "buyback": 0.8,
+      "nominal_g": 3.9,
+      "pctile": 54,
+      "verdict": "FAIR",
+      "ten_k": 21232
+    },
+    "EEM": {
+      "fwd_er": 8.14,
+      "trailing_dy": 1.84,
+      "buyback": 0.4,
+      "nominal_g": 5.9,
+      "pctile": 46,
+      "verdict": "FAIR",
+      "ten_k": 21871
+    },
+    "IEF": {
+      "fwd_er": 4.57,
+      "trailing_dy": 3.9,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 45,
+      "verdict": "FAIR",
+      "ten_k": 15634
+    },
+    "TLT": {
+      "fwd_er": 5.1,
+      "trailing_dy": 4.6,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 45,
+      "verdict": "FAIR",
+      "ten_k": 16445
+    },
+    "TIP": {
+      "fwd_er": 4.58,
+      "trailing_dy": 2.83,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 52,
+      "verdict": "FAIR",
+      "ten_k": 15649
+    },
+    "LQD": {
+      "fwd_er": 5.01,
+      "trailing_dy": 4.56,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 40,
+      "verdict": "FAIR",
+      "ten_k": 16304
+    },
+    "HYG": {
+      "fwd_er": 4.5,
+      "trailing_dy": 5.86,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 10,
+      "verdict": "AVOID",
+      "ten_k": 15530
+    },
+    "VNQ": {
+      "fwd_er": 7.0,
+      "trailing_dy": 3.6,
+      "buyback": 0.0,
+      "nominal_g": 3.4,
+      "pctile": 39,
+      "verdict": "POOR",
+      "ten_k": 19672
+    },
+    "GLD": {
+      "fwd_er": 3.9,
+      "trailing_dy": null,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 66,
+      "verdict": "GOOD",
+      "ten_k": 14661
+    },
+    "DBC": {
+      "fwd_er": 2.4,
+      "trailing_dy": 2.44,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 39,
+      "verdict": "POOR",
+      "ten_k": 12677
+    },
+    "BIL": {
+      "fwd_er": 3.68,
+      "trailing_dy": 3.9,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 66,
+      "verdict": "GOOD",
+      "ten_k": 14353
+    },
+    "BTC": {
+      "fwd_er": 15.0,
+      "trailing_dy": null,
+      "buyback": null,
+      "nominal_g": null,
+      "pctile": 50,
+      "verdict": "FAIR",
+      "ten_k": 40456
+    }
+  },
+  "headlines": [
+    "Best opportunities right now: GLD (3.9%), BIL (3.68%), QQQ (8.29%)",
+    "Historically poor entry points: HYG (4.5%), IWM (6.79%), DBC (2.4%)"
+  ],
+  "portfolios": {
+    "all_cash": {
+      "er": 3.68,
+      "ten_k": 14353
+    },
+    "60_40": {
+      "er": 6.26,
+      "ten_k": 18353
+    },
+    "all_weather": {
+      "er": 5.42,
+      "ten_k": 16952
+    },
+    "all_stocks": {
+      "er": 7.39,
+      "ten_k": 20400
+    },
+    "diversified_global": {
+      "er": 6.39,
+      "ten_k": 18578
+    }
+  },
+  "rankings": {
+    "by_forward_er": [
+      "BTC",
+      "QQQ",
+      "EEM",
+      "EFA",
+      "SPY",
+      "VNQ",
+      "IWM",
+      "TLT",
+      "LQD",
+      "TIP",
+      "IEF",
+      "HYG",
+      "GLD",
+      "BIL",
+      "DBC"
+    ],
+    "by_sharpe": [
+      "BTC",
+      "EFA",
+      "EEM",
+      "SPY",
+      "QQQ",
+      "TIP",
+      "VNQ",
+      "LQD",
+      "IWM",
+      "IEF",
+      "TLT",
+      "HYG",
+      "GLD",
+      "BIL",
+      "DBC"
+    ],
+    "by_opportunity_percentile": [
+      "GLD",
+      "BIL",
+      "QQQ",
+      "SPY",
+      "EFA",
+      "TIP",
+      "BTC",
+      "EEM",
+      "IEF",
+      "TLT",
+      "LQD",
+      "VNQ",
+      "DBC",
+      "IWM",
+      "HYG"
+    ]
+  },
+  "finished_at": "2026-05-23T10:01:17.989028+00:00"
+}
