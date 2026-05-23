@@ -1,0 +1,24 @@
+{
+  "started_at": "2026-05-23T10:29:49.401242+00:00",
+  "fn": "justhodl-wealth-plan",
+  "create": "CREATED",
+  "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-wealth-plan",
+  "url_err": "An error occurred (ValidationException) when calling the CreateFunctionUrlConfig operation: 1 validation error detected: Value '[GET, POST, OPTIONS]' at 'cors.allowMethods' failed to satisfy constraint: Member must satisfy constraint: [Member must have length less than or equal to 6, Member must hav",
+  "public_permission": "ADDED",
+  "invoke_status": 200,
+  "fn_err": null,
+  "log_tail": "START RequestId: f591423d-d6bf-43f8-aa32-1d6f1f3858f2 Version: $LATEST\n[wealth-plan] v1.0.0 inputs={'current_nav': 100000, 'age': 35, 'retire_age': 65, 'annual_savings': 24000, 'annual_spending': 80000, 'end_age': 95, 'inflation': 0.025, 'risk_profile': 'moderate', 'n_sims': 10000}\nEND RequestId: f591423d-d6bf-43f8-aa32-1d6f1f3858f2\nREPORT RequestId: f591423d-d6bf-43f8-aa32-1d6f1f3858f2\tDuration: 12203.82 ms\tBilled Duration: 12725 ms\tMemory Size: 1024 MB\tMax Memory Used: 118 MB\tInit Duration: 520.21 ms\t\n",
+  "verify": {
+    "version": "1.0.0",
+    "prob_success": 0.4219,
+    "terminal_p50": -1539383,
+    "verdict_status": "OFF_TRACK",
+    "verdict_msg": "You're off track. Only a 42% chance of success at current pace. Required: $60,571/yr (+$3,048/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+    "allocation_E_r": 6.39,
+    "allocation_vol": 12.33,
+    "n_assets_in_book": 7,
+    "compass_age_hours": 0.48103659138888893,
+    "elapsed": 12.11
+  },
+  "finished_at": "2026-05-23T10:30:06.486494+00:00"
+}
