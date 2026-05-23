@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Capital Compass — JustHodl.AI</title>
+<meta name="description" content="Where does $10k pay you the most over 10 years? Live forward expected returns across stocks, bonds, real estate, gold, crypto — vs 30y history." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e14;
+  --panel: #11161f;
+  --panel-2: #161c27;
+  --border: #1f2937;
+  --border-light: #2d3748;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent: #f59e0b;
+  --best: #10b981;
+  --good: #22d3ee;
+  --fair: #fbbf24;
+  --poor: #f97316;
+  --avoid: #ef4444;
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 80% 110%, rgba(34, 211, 238, 0.04), transparent);
+  min-height: 100vh;
+}
+.container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* ── Header ────────────────────────────────────────────── */
+.masthead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: 18px; margin-bottom: 30px;
+  border-bottom: 1px solid var(--border);
+}
+.masthead-left h1 {
+  font-family: var(--display);
+  font-size: 38px; font-weight: 600; letter-spacing: -0.02em;
+  color: var(--text);
+  font-feature-settings: 'ss01';
+}
+.masthead-left h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.masthead-left .subtitle {
+  font-family: var(--body); font-size: 14px; color: var(--text-muted);
+  margin-top: 6px; max-width: 600px;
+}
+.masthead-right { text-align: right; }
+.masthead-right .timestamp { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+.masthead-right .horizon {
+  display: inline-block; padding: 4px 12px; margin-top: 6px;
+  background: var(--panel); border: 1px solid var(--border-light);
+  border-radius: 4px; font-family: var(--mono); font-size: 11px;
+  color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* ── Pull-quote / headline ─────────────────────────────── */
+.pullquote {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(34, 211, 238, 0.04));
+  border-left: 3px solid var(--accent);
+  padding: 22px 28px; margin-bottom: 32px; border-radius: 0 8px 8px 0;
+}
+.pullquote-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 8px;
+}
+.pullquote-body {
+  font-family: var(--display); font-size: 22px; line-height: 1.4;
+  font-weight: 400; color: var(--text); font-style: italic;
+}
+.pullquote-body strong { color: var(--accent); font-style: normal; font-weight: 600; }
+
+/* ── Section labels ────────────────────────────────────── */
+.section-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin: 36px 0 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.section-label .hint { color: var(--text-dim); text-transform: none; letter-spacing: 0; font-size: 12px; }
+
+/* ── Headlines grid ────────────────────────────────────── */
+.headlines {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px; margin-bottom: 24px;
+}
+.headline {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px; font-size: 13px;
+  color: var(--text-muted);
+}
+.headline strong { color: var(--text); }
+
+/* ── Asset cards grid ──────────────────────────────────── */
+.assets-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px; position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: var(--border-light); }
+.card-verdict-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 8px 8px 0 0;
+}
+.card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.card-header .ticker {
+  font-family: var(--mono); font-size: 20px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.04em;
+}
+.card-header .name {
+  font-size: 12px; color: var(--text-muted); margin-top: 2px;
+  max-width: 280px; line-height: 1.35;
+}
+.card-header .verdict-pill {
+  display: inline-block; padding: 4px 10px; border-radius: 4px;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+.headline-num {
+  font-family: var(--display); font-size: 42px; font-weight: 600;
+  line-height: 1; color: var(--text); margin: 16px 0 4px;
+  font-feature-settings: 'tnum';
+}
+.headline-num small { font-family: var(--body); font-size: 18px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.headline-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 14px;
+}
+
+/* Percentile bar */
+.pctile-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 12px; }
+.pctile-bar {
+  flex: 1; height: 6px; background: var(--panel-2); border-radius: 3px;
+  position: relative; overflow: hidden;
+}
+.pctile-bar-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, var(--avoid), var(--poor) 25%, var(--fair) 50%, var(--good) 75%, var(--best));
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.pctile-marker {
+  position: absolute; top: -3px; width: 2px; height: 12px;
+  background: var(--text); box-shadow: 0 0 0 1px var(--bg);
+}
+.pctile-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+.verdict-text {
+  font-size: 13px; color: var(--text-muted); margin-bottom: 14px;
+  font-style: italic; padding-left: 10px; border-left: 2px solid var(--border);
+}
+
+/* $10k card */
+.tenk {
+  background: var(--panel-2); border-radius: 6px;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.tenk-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.tenk-central {
+  font-family: var(--display); font-size: 26px; font-weight: 600;
+  color: var(--accent); line-height: 1;
+}
+.tenk-band {
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 4px;
+}
+.tenk-band span { color: var(--text-muted); }
+
+/* Risk stats */
+.risk-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--border); border-radius: 6px; overflow: hidden;
+  margin-bottom: 14px;
+}
+.risk-stat {
+  background: var(--panel-2); padding: 10px 12px;
+  text-align: center;
+}
+.risk-stat-value {
+  font-family: var(--mono); font-size: 16px; font-weight: 600;
+  color: var(--text); line-height: 1;
+}
+.risk-stat-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--text-dim); text-transform: uppercase; margin-top: 4px;
+}
+
+.explainer {
+  font-size: 12px; color: var(--text-muted); line-height: 1.55;
+  padding-top: 12px; border-top: 1px dashed var(--border);
+}
+
+/* ── Comparison table ─────────────────────────────────── */
+.comparison-wrap {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px; overflow-x: auto;
+}
+table.compare {
+  width: 100%; min-width: 900px; border-collapse: collapse;
+  font-size: 13px;
+}
+table.compare thead th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--text-muted); text-transform: uppercase; font-weight: 500;
+  padding: 12px 14px; text-align: right; border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+table.compare thead th:first-child,
+table.compare thead th:nth-child(2) { text-align: left; }
+table.compare tbody td {
+  padding: 14px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 13px; text-align: right;
+  color: var(--text);
+}
+table.compare tbody td:first-child { color: var(--text); font-weight: 600; }
+table.compare tbody td:nth-child(2) { text-align: left; font-family: var(--body); font-size: 12px; color: var(--text-muted); }
+table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
+.verdict-cell {
+  display: inline-block; padding: 3px 9px; border-radius: 4px;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ── Benchmark portfolios ──────────────────────────────── */
+.portfolios {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+.portfolio-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px;
+}
+.portfolio-name {
+  font-family: var(--display); font-size: 17px; font-weight: 600;
+  color: var(--text); margin-bottom: 4px;
+}
+.portfolio-er {
+  font-family: var(--mono); font-size: 24px; color: var(--accent);
+  margin: 10px 0 4px;
+}
+.portfolio-er small { font-family: var(--body); font-size: 13px; color: var(--text-muted); margin-left: 6px; }
+.portfolio-tenk {
+  font-family: var(--mono); font-size: 13px; color: var(--text);
+}
+.portfolio-tenk span { color: var(--text-muted); }
+.portfolio-desc {
+  font-size: 12px; color: var(--text-muted); margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+.portfolio-weights {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px;
+}
+.weight-pill {
+  font-family: var(--mono); font-size: 10px; padding: 3px 7px;
+  background: var(--panel-2); border-radius: 3px; color: var(--text-muted);
+}
+.weight-pill strong { color: var(--text); }
+
+/* ── Method / footer ──────────────────────────────────── */
+.method-note {
+  margin-top: 36px; padding: 22px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.7;
+}
+.method-note h3 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; color: var(--text); margin-bottom: 14px; text-transform: uppercase; }
+.method-note ul { padding-left: 18px; }
+.method-note li { margin-bottom: 6px; }
+.disclaimer { margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-dim); font-style: italic; }
+
+/* loading state */
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 400px; color: var(--text-muted); font-family: var(--mono); font-size: 13px;
+}
+.loading::before { content: '●'; color: var(--accent); margin-right: 8px; animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+@media (max-width: 720px) {
+  .masthead { flex-direction: column; gap: 12px; }
+  .masthead-left h1 { font-size: 28px; }
+  .container { padding: 20px 14px 60px; }
+  .pullquote-body { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="masthead">
+  <div class="masthead-left">
+    <h1>The <em>Capital</em> Compass</h1>
+    <div class="subtitle">Where does $10,000 pay you the most over 10 years? Forward expected returns across every asset retail can own — measured against 30 years of history.</div>
+  </div>
+  <div class="masthead-right">
+    <div class="timestamp" id="timestamp">Loading…</div>
+    <div class="horizon">10-Year Horizon</div>
+  </div>
+</div>
+
+<div id="root"><div class="loading">Loading live data…</div></div>
+
+</div>
+
+<script>
+const ENDPOINT = "https://justhodl-dashboard-live.s3.amazonaws.com/data/forward-returns.json";
+
+const fmtPct = (v) => v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
+const fmtMoney = (v) => v == null ? "—" : "$" + Math.round(v).toLocaleString();
+const fmtMoneyK = (v) => v == null ? "—" : "$" + (v >= 1000 ? (v / 1000).toFixed(1) + "k" : v.toFixed(0));
+
+function render(data) {
+  const root = document.getElementById("root");
+  const ts = document.getElementById("timestamp");
+  ts.textContent = "Refreshed: " + new Date(data.generated_at).toLocaleString();
+
+  const assets = data.assets || {};
+  const rankedByOpp = (data.rankings?.by_opportunity_percentile || []).map(t => assets[t]).filter(Boolean);
+  const rankedByER = (data.rankings?.by_forward_er || []).map(t => assets[t]).filter(Boolean);
+  const headlines = data.headlines || [];
+  const portfolios = data.benchmark_portfolios || {};
+
+  // PULL QUOTE
+  let pullQuoteHTML = "";
+  if (rankedByOpp.length) {
+    const best = rankedByOpp[0];
+    const worst = rankedByOpp[rankedByOpp.length - 1];
+    pullQuoteHTML = `
+      <div class="pullquote">
+        <div class="pullquote-label">Today's Verdict</div>
+        <div class="pullquote-body">
+          The best forward opportunity right now is <strong>${best.ticker}</strong>
+          paying <strong>${fmtPct(best.forward_er_10y_pct)}</strong> annually
+          (${best.current_vs_history_percentile}th percentile vs 30y).
+          Avoid <strong>${worst.ticker}</strong> at <strong>${fmtPct(worst.forward_er_10y_pct)}</strong>
+          — historically bottom ${100 - worst.current_vs_history_percentile}% entry.
+        </div>
+      </div>`;
+  }
+
+  // HEADLINES
+  let headlinesHTML = "";
+  if (headlines.length) {
+    headlinesHTML = `
+      <div class="section-label">Headlines <span class="hint">cross-asset summary</span></div>
+      <div class="headlines">
+        ${headlines.map(h => `<div class="headline">${h}</div>`).join("")}
+      </div>`;
+  }
+
+  // ASSET CARDS — ranked by opportunity percentile (best first)
+  const cardsHTML = `
+    <div class="section-label">All Assets, Ranked by Opportunity <span class="hint">click anywhere for details</span></div>
+    <div class="assets-grid">
+      ${rankedByOpp.map(a => assetCard(a)).join("")}
+    </div>`;
+
+  // COMPARISON TABLE
+  const tableHTML = `
+    <div class="section-label">Side-by-Side Comparison <span class="hint">scroll for more</span></div>
+    <div class="comparison-wrap">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>What it is</th>
+            <th>Fwd ER (10y)</th>
+            <th>30y Median</th>
+            <th>%ile vs history</th>
+            <th>Vol</th>
+            <th>Worst 12mo</th>
+            <th>P(loss 10y)</th>
+            <th>Sharpe</th>
+            <th>$10k → 10y</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rankedByOpp.map(a => `
+            <tr>
+              <td>${a.ticker}</td>
+              <td>${a.name}</td>
+              <td>${fmtPct(a.forward_er_10y_pct)}</td>
+              <td style="color:var(--text-muted)">${fmtPct(a.history_30y.er_median_pct)}</td>
+              <td>${a.current_vs_history_percentile}%</td>
+              <td>${a.risk.vol_pct_annualized?.toFixed(1) ?? "—"}%</td>
+              <td style="color:${a.risk.worst_12mo_drawdown_pct < -20 ? 'var(--avoid)' : 'var(--text-muted)'}">${a.risk.worst_12mo_drawdown_pct?.toFixed(0) ?? "—"}%</td>
+              <td>${a.risk.prob_negative_10y_pct?.toFixed(0) ?? "—"}%</td>
+              <td>${a.risk.sharpe_vs_cash ?? "—"}</td>
+              <td>${fmtMoneyK(a.ten_k_in_10yr_usd.central)}</td>
+              <td><span class="verdict-cell" style="background:${a.verdict_color}22;color:${a.verdict_color}">${a.verdict}</span></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+
+  // BENCHMARK PORTFOLIOS
+  const portCards = Object.entries(portfolios).map(([k, p]) => `
+    <div class="portfolio-card">
+      <div class="portfolio-name">${p.label}</div>
+      <div class="portfolio-er">${fmtPct(p.forward_er_pct)}<small>expected / yr</small></div>
+      <div class="portfolio-tenk">$10k → <strong style="color:var(--accent)">${fmtMoney(p.ten_k_10yr)}</strong> <span>in 10 years</span></div>
+      <div class="portfolio-weights">
+        ${Object.entries(p.weights).map(([s, w]) => `<div class="weight-pill"><strong>${s}</strong> ${(w*100).toFixed(0)}%</div>`).join("")}
+      </div>
+      <div class="portfolio-desc">${p.description}</div>
+    </div>
+  `).join("");
+  const portfoliosHTML = `
+    <div class="section-label">Benchmark Portfolios <span class="hint">classic strategies, forward expected</span></div>
+    <div class="portfolios">${portCards}</div>`;
+
+  // METHOD
+  const methodHTML = `
+    <div class="method-note">
+      <h3>Method &amp; Sources</h3>
+      <ul>
+        <li><strong>Stocks (SPY/QQQ/IWM/EFA/EEM):</strong> ${data.methodology.stocks_er}</li>
+        <li><strong>Treasuries (IEF/TLT):</strong> ${data.methodology.bonds_er}</li>
+        <li><strong>TIPS (TIP):</strong> ${data.methodology.tips_er}</li>
+        <li><strong>Corporate credit (LQD/HYG):</strong> ${data.methodology.credit_er}</li>
+        <li><strong>REITs (VNQ):</strong> ${data.methodology.reit_er}</li>
+        <li><strong>Gold (GLD):</strong> ${data.methodology.gold_er}</li>
+        <li><strong>Commodities (DBC):</strong> ${data.methodology.commodities_er}</li>
+        <li><strong>Bitcoin (BTC):</strong> ${data.methodology.btc_er}</li>
+        <li><strong>Percentile:</strong> ${data.methodology.percentile}</li>
+        <li><strong>Sources:</strong> ${data.methodology.sources}</li>
+      </ul>
+      <div class="disclaimer">${data.disclaimer}</div>
+    </div>`;
+
+  root.innerHTML = pullQuoteHTML + headlinesHTML + cardsHTML + tableHTML + portfoliosHTML + methodHTML;
+}
+
+function assetCard(a) {
+  return `
+    <div class="card">
+      <div class="card-verdict-bar" style="background:${a.verdict_color}"></div>
+      <div class="card-header">
+        <div>
+          <div class="ticker">${a.ticker}</div>
+          <div class="name">${a.name}</div>
+        </div>
+        <span class="verdict-pill" style="background:${a.verdict_color}22;color:${a.verdict_color}">${a.verdict}</span>
+      </div>
+
+      <div class="headline-label">Forward Expected Return (annual, 10y)</div>
+      <div class="headline-num" style="color:${a.verdict_color}">${fmtPct(a.forward_er_10y_pct)}</div>
+
+      <div class="pctile-row">
+        <div class="pctile-text">Bottom</div>
+        <div class="pctile-bar">
+          <div class="pctile-bar-fill" style="width:${a.current_vs_history_percentile}%"></div>
+          <div class="pctile-marker" style="left:${a.current_vs_history_percentile}%"></div>
+        </div>
+        <div class="pctile-text">${a.current_vs_history_percentile}th %ile</div>
+      </div>
+
+      <div class="verdict-text">${a.verdict_text}</div>
+
+      <div class="tenk">
+        <div class="tenk-label">If you invest $10,000 today</div>
+        <div class="tenk-central">${fmtMoney(a.ten_k_in_10yr_usd.central)}</div>
+        <div class="tenk-band">
+          <span>10y bear case:</span> ${fmtMoney(a.ten_k_in_10yr_usd.p10_bear)}
+          &nbsp;·&nbsp;
+          <span>bull case:</span> ${fmtMoney(a.ten_k_in_10yr_usd.p90_bull)}
+        </div>
+      </div>
+
+      <div class="risk-stats">
+        <div class="risk-stat">
+          <div class="risk-stat-value">${a.risk.vol_pct_annualized?.toFixed(0) ?? "—"}%</div>
+          <div class="risk-stat-label">Annual vol</div>
+        </div>
+        <div class="risk-stat">
+          <div class="risk-stat-value" style="color:${a.risk.worst_12mo_drawdown_pct < -20 ? 'var(--avoid)' : 'var(--text)'}">${a.risk.worst_12mo_drawdown_pct?.toFixed(0) ?? "—"}%</div>
+          <div class="risk-stat-label">Worst 12mo</div>
+        </div>
+        <div class="risk-stat">
+          <div class="risk-stat-value">${a.risk.sharpe_vs_cash ?? "—"}</div>
+          <div class="risk-stat-label">Sharpe vs cash</div>
+        </div>
+      </div>
+
+      <div class="explainer">${a.explainer_retail}</div>
+    </div>`;
+}
+
+fetch(ENDPOINT, { cache: "no-cache" })
+  .then(r => r.json())
+  .then(render)
+  .catch(e => {
+    document.getElementById("root").innerHTML =
+      `<div class="loading" style="color:var(--avoid)">Data temporarily unavailable: ${e.message}</div>`;
+  });
+</script>
+</body>
+</html>
