@@ -1,0 +1,97 @@
+{
+  "started_at": "2026-05-23T00:16:23.542674+00:00",
+  "results": [
+    {
+      "fn": "justhodl-dr-snapshot",
+      "initial_state": "Active",
+      "code_sha": "04S60kMkOM57",
+      "last_modified": "2026-05-23T00:12:56.000+0000",
+      "mem": 1024,
+      "timeout": 900,
+      "env_update": "ALREADY_MATCHES",
+      "permission": "ADDED",
+      "schedule": "dr-snapshot-daily cron(0 6 * * ? *)",
+      "invoke_status": "SKIPPED (will run on schedule)",
+      "status": "OK"
+    },
+    {
+      "fn": "justhodl-cost-anomaly",
+      "initial_state": "Active",
+      "code_sha": "EN0P9ytMy58D",
+      "last_modified": "2026-05-23T00:12:57.000+0000",
+      "mem": 512,
+      "timeout": 300,
+      "env_update": "ALREADY_MATCHES",
+      "permission": "ADDED",
+      "schedule": "cost-anomaly-daily cron(0 9 * * ? *)",
+      "invoke_status": "SKIPPED (will run on schedule)",
+      "status": "OK"
+    },
+    {
+      "fn": "justhodl-macro-calendar",
+      "initial_state": "Active",
+      "code_sha": "xJxeRWi/GV/z",
+      "last_modified": "2026-05-23T00:12:57.000+0000",
+      "mem": 512,
+      "timeout": 300,
+      "env_update": "ALREADY_MATCHES",
+      "permission": "ADDED",
+      "schedule": "macro-calendar-daily cron(0 11 * * ? *)",
+      "invoke_status": 200,
+      "invoke_err": null,
+      "log_tail": "START RequestId: f7393c74-32d2-402d-a8d7-7bd76f2c5496 Version: $LATEST\n[macro-calendar] v1.0.0 starting\n[macro-calendar] done \u00b7 42 events \u00b7 T-1: 0 \u00b7 7d: 2\nEND RequestId: f7393c74-32d2-402d-a8d7-7bd76f2c5496\nREPORT RequestId: f7393c74-32d2-402d-a8d7-7bd76f2c5496\tDuration: 420.82 ms\tBilled Duration: 942 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\tInit Duration: 520.51 ms\t\nXRAY TraceId: 1-6a10f1d9-439120b438764ca11884e00e\tSegmentId: 5c6855e361057af2\tSampled: true\t\n",
+      "status": "OK"
+    },
+    {
+      "fn": "justhodl-fed-nlp",
+      "initial_state": "Active",
+      "code_sha": "6P8NRV5oMQ8D",
+      "last_modified": "2026-05-23T00:12:58.000+0000",
+      "mem": 512,
+      "timeout": 600,
+      "env_update": "UPDATED (5 vars)",
+      "permission": "ADDED",
+      "schedule": "fed-nlp-6h rate(6 hours)",
+      "invoke_status": 200,
+      "invoke_err": null,
+      "log_tail": "START RequestId: 2d7da0a8-935b-47f6-a965-18e8301873c3 Version: $LATEST\n[fed-nlp] 5 new docs to score\n[fed-nlp] done \u00b7 new=5 \u00b7 drift=STABLE \u00b7 elapsed=8.7s\nEND RequestId: 2d7da0a8-935b-47f6-a965-18e8301873c3\nREPORT RequestId: 2d7da0a8-935b-47f6-a965-18e8301873c3\tDuration: 8793.18 ms\tBilled Duration: 9318 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\tInit Duration: 523.99 ms\t\nXRAY TraceId: 1-6a10f1df-3423f613326e66da295514e0\tSegmentId: 4145ae6922feba3a\tSampled: true\t\n",
+      "status": "OK"
+    },
+    {
+      "fn": "justhodl-news-wire",
+      "initial_state": "Active",
+      "code_sha": "AXKLcvLHqTx9",
+      "last_modified": "2026-05-23T00:12:59.000+0000",
+      "mem": 512,
+      "timeout": 300,
+      "env_update": "UPDATED (7 vars)",
+      "permission": "ADDED",
+      "schedule": "news-wire-15m rate(15 minutes)",
+      "invoke_status": 200,
+      "invoke_err": null,
+      "log_tail": "START RequestId: 0a95a1b8-f36a-4864-b17e-7d91062a5737 Version: $LATEST\n[fmp general-news] HTTP Error 404: Not Found\n[news-wire] 0 new headlines\n[news-wire] done \u00b7 new=0 \u00b7 top24h=10 \u00b7 high-impact=0 \u00b7 elapsed=0.5s\nEND RequestId: 0a95a1b8-f36a-4864-b17e-7d91062a5737\nREPORT RequestId: 0a95a1b8-f36a-4864-b17e-7d91062a5737\tDuration: 516.72 ms\tBilled Duration: 1063 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\tInit Duration: 545.59 ms\t\nXRAY TraceId: 1-6a10f1ed-068136f97682c6b24189c94c\tSegmentId: 5f7dc082f58815fe\tSampled: true\t\n",
+      "status": "OK"
+    },
+    {
+      "fn": "justhodl-concentration-liquidity",
+      "initial_state": "Active",
+      "code_sha": "P7ogE42Q4Uma",
+      "last_modified": "2026-05-23T00:13:00.000+0000",
+      "mem": 512,
+      "timeout": 300,
+      "env_update": "ALREADY_MATCHES",
+      "permission": "ADDED",
+      "schedule": "concentration-liquidity-daily cron(0 14 * * ? *)",
+      "invoke_status": 200,
+      "invoke_err": null,
+      "log_tail": "START RequestId: ae184593-7056-41b1-b13e-c7756bb309a1 Version: $LATEST\n[concentration-liquidity] v1.0.0 starting\n[portfolio] read err: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.\nEND RequestId: ae184593-7056-41b1-b13e-c7756bb309a1\nREPORT RequestId: ae184593-7056-41b1-b13e-c7756bb309a1\tDuration: 397.06 ms\tBilled Duration: 1009 ms\tMemory Size: 512 MB\tMax Memory Used: 93 MB\tInit Duration: 611.30 ms\t\nXRAY TraceId: 1-6a10f1ef-3fa481fc4eb44cf334e7556e\tSegmentId: d4e7543a234d55a2\tSampled: true\t\n",
+      "status": "OK"
+    }
+  ],
+  "anthropic_harvest": "OK",
+  "finished_at": "2026-05-23T00:16:49.274148+00:00",
+  "summary": {
+    "ok": 6,
+    "err": 0
+  }
+}
