@@ -1,0 +1,87 @@
+{
+  "started_at": "2026-05-23T09:41:04.559829+00:00",
+  "fn": "justhodl-forward-returns",
+  "initial_state": "EXISTS",
+  "initial_code_sha": "YX0xaoFGR5h0",
+  "config_sync": "ALREADY_MATCHES",
+  "permission": "ADDED",
+  "schedule": "forward-returns-weekly cron(0 3 ? * SUN *)",
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: ca6b1418-0c16-4b6c-a6d2-50277d2008c4 Version: $LATEST\n[forward-returns] v1.0.0 starting\n[forward-returns] fetching market data ...\n[forward-returns] fetched: quotes=15/15 ratios=1/15 hist=15/15\n[forward-returns] wrote data/forward-returns.json in 0.9s\nEND RequestId: ca6b1418-0c16-4b6c-a6d2-50277d2008c4\nREPORT RequestId: ca6b1418-0c16-4b6c-a6d2-50277d2008c4\tDuration: 1272.53 ms\tBilled Duration: 1716 ms\tMemory Size: 1024 MB\tMax Memory Used: 104 MB\tInit Duration: 443.19 ms\t\nXRAY TraceId: 1-6a117631-0b6e4a157800a5761a72973c\tSegmentId: c00ca98ef9dcdee0\tSampled: true\t\n",
+  "s3_output": {
+    "size_bytes": 23928,
+    "last_modified": "2026-05-23T09:41:08+00:00",
+    "n_assets": 15,
+    "horizon_years": 10,
+    "headlines": [
+      "Best opportunities right now: GLD (3.9%), BIL (3.68%), EFA (8.0%)",
+      "Historically poor entry points: HYG (4.5%), DBC (2.4%), LQD (5.01%)"
+    ],
+    "top_3_opportunities": [
+      "GLD",
+      "BIL",
+      "EFA"
+    ],
+    "top_3_by_er": [
+      "BTC",
+      "EEM",
+      "IWM"
+    ],
+    "portfolios": {
+      "all_cash": {
+        "er": 3.68,
+        "ten_k": 14353
+      },
+      "60_40": {
+        "er": 6.03,
+        "ten_k": 17959
+      },
+      "all_weather": {
+        "er": 5.3,
+        "ten_k": 16760
+      },
+      "all_stocks": {
+        "er": 7.0,
+        "ten_k": 19672
+      },
+      "diversified_global": {
+        "er": 6.49,
+        "ten_k": 18754
+      }
+    },
+    "asset_samples": {
+      "SPY": {
+        "fwd_er": 7.0,
+        "percentile": 50,
+        "verdict": "FAIR",
+        "ten_k_central": 19672
+      },
+      "IEF": {
+        "fwd_er": 4.57,
+        "percentile": 45,
+        "verdict": "FAIR",
+        "ten_k_central": 15634
+      },
+      "GLD": {
+        "fwd_er": 3.9,
+        "percentile": 66,
+        "verdict": "GOOD",
+        "ten_k_central": 14661
+      },
+      "VNQ": {
+        "fwd_er": 8.0,
+        "percentile": 50,
+        "verdict": "FAIR",
+        "ten_k_central": 21589
+      },
+      "BTC": {
+        "fwd_er": 15.0,
+        "percentile": 50,
+        "verdict": "FAIR",
+        "ten_k_central": 40456
+      }
+    }
+  },
+  "finished_at": "2026-05-23T09:41:10.839862+00:00"
+}
