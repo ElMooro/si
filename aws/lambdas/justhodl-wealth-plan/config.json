@@ -15,8 +15,8 @@
     "auth_type": "NONE",
     "cors": {
       "AllowOrigins": ["*"],
-      "AllowMethods": ["GET", "POST", "OPTIONS"],
-      "AllowHeaders": ["*"],
+      "AllowMethods": ["*"],
+      "AllowHeaders": ["content-type"],
       "MaxAge": 300
     }
   }

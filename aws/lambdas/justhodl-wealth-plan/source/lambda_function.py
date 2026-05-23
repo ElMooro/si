@@ -250,13 +250,17 @@ def monte_carlo(
 
         # Decumulation phase
         for yr in range(n_ret):
+            total_yr = n_acc + yr
+            # Spending grows with inflation throughout decumulation
+            spend_yr = annual_spending * (1 + inflation) ** total_yr
+            if bankrupt:
+                # Stay at zero — once you run out, you're out
+                path.append(0)
+                continue
             log_r = rng.gauss(mu - sigma**2 / 2, sigma)
             r = math.exp(log_r) - 1
-            # Spending grows with inflation throughout decumulation
-            total_yr = n_acc + yr
-            spend_yr = annual_spending * (1 + inflation) ** total_yr
             W = W * (1 + r) - spend_yr
-            if W <= 0 and not bankrupt:
+            if W <= 0:
                 bankrupt = True
                 bankrupt_at = current_age + total_yr + 1
                 W = 0
@@ -335,7 +339,7 @@ def required_savings_bisection(
     initial_nav, current_savings, annual_spending,
     current_age, retire_age, end_age,
     E_p_pct, sigma_p_pct, inflation,
-    target_prob=0.90, sub_sims=1500, max_iter=12,
+    target_prob=0.90, sub_sims=1000, max_iter=10,
 ):
     """
     Bisection: find the annual_savings such that prob_success ≥ target_prob.
@@ -568,7 +572,7 @@ def lambda_handler(event=None, context=None):
         scen_mc = monte_carlo(
             scen_inputs["current_nav"], scen_inputs["annual_savings"], scen_inputs["annual_spending"],
             scen_inputs["age"], scen_inputs["retire_age"], scen_inputs["end_age"],
-            E_p, sigma_p, scen_inputs["inflation"], n_sims=1500, seed=42,
+            E_p, sigma_p, scen_inputs["inflation"], n_sims=1000, seed=42,
         )
         sensitivities[label] = {
             "prob_success": scen_mc["prob_success"],
@@ -577,8 +581,7 @@ def lambda_handler(event=None, context=None):
             "modification": mod,
         }
 
-    # 8. Benchmark portfolio comparison: show what conservative/moderate/aggressive
-    # would each look like for this exact saver
+    # 8. Benchmark portfolio comparison
     benchmarks = {}
     for prof_key in ["conservative", "moderate", "aggressive"]:
         if prof_key == inputs["risk_profile"]:
@@ -588,7 +591,7 @@ def lambda_handler(event=None, context=None):
         bench_mc = monte_carlo(
             inputs["current_nav"], inputs["annual_savings"], inputs["annual_spending"],
             inputs["age"], inputs["retire_age"], inputs["end_age"],
-            bE, bS, inputs["inflation"], n_sims=2000, seed=42,
+            bE, bS, inputs["inflation"], n_sims=1200, seed=42,
         )
         benchmarks[prof_key] = {
             "label": bp["label"],
