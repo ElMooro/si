@@ -1,0 +1,121 @@
+{
+  "started_at": "2026-05-23T00:23:21.382017+00:00",
+  "files": [
+    {
+      "key": "portfolio/signal-portfolio-state.json",
+      "size": 34097,
+      "top_keys": [
+        "version",
+        "generated_at",
+        "as_of_date",
+        "first_seen",
+        "last_run_date",
+        "initial_nav",
+        "current_nav",
+        "current_nav_pct_chg",
+        "unrealized_pnl_dollars",
+        "open_positions",
+        "recently_closed",
+        "all_closed_positions",
+        "stats",
+        "duration_s"
+      ],
+      "sample": "{\"version\": \"1.0\", \"generated_at\": \"2026-05-22T22:30:04.082428+00:00\", \"as_of_date\": \"2026-05-22\", \"first_seen\": \"2026-05-04\", \"last_run_date\": \"2026-05-22\", \"initial_nav\": 100000.0, \"current_nav\": 102053.73, \"current_nav_pct_chg\": 2.05, \"unrealized_pnl_dollars\": 5514.11, \"open_positions\": [{\"signal_id\": \"21c39b973b20c6d2\", \"source\": \"short_squeeze\", \"ticker\": \"LIN\", \"direction\": \"LONG\", \"signal_type\": \"squeeze_risk\", \"rationale\": \"Squeeze risk: dtc=12.7, falling short vol\", \"score\": 80, \"entry_date\": \"2026-05-04\", \"entry_price\": 507.92, \"stop_price\": 487.6032, \"target_price\": 546.014, \"qty\": 49, \"notional_at_entry\": 24888.08, \"max_hold_days\": 21, \"status\": \"OPEN\", \"current_price\": 514.51, \"current_pnl_pct\": 1.297, \"current_pnl_dollars\": 322.91, \"high_water_mark_price\": 514.51, \"low_water_mark_price\": 493.16, \"exit_date\": null, \"exit_price\": null, \"exit_reason\": null, \"realized_pnl_pct\": null, \"realized_pnl_dollars\": null, \"days_held\": 18}, {\"signal_id\": \"887964274f425224\", \"source\": \"short_squeeze\", \"ticker\": \"ABBV\", \"direction\": \"LONG\", \"signal_type\": \"squeeze_risk\", \"rationale\": \"Squeeze risk: dtc=5.3, falling short vol\", \"score\": 80, \"entry_date\": \"2026-05-04\", \"entry_price\": 206.6, \"stop_price\": 198.336, \"target_price\": 222.095, \"qty\": 121, \"notional_at_entry\": 24998.6, \"max_hold_days\": 21, \"status\": \"OPEN\", \"current_price\": 214.5, \"current_pnl_pct\": 3.824, \"current_pnl_dollars\": 955.9, \"high_water_mark_price\": 214.5, \"low_water_mark_price\": 201.55, \"exit_date\": null, \"e"
+    },
+    {
+      "key": "portfolio/sizing.json",
+      "size": 978,
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "version",
+        "elapsed_seconds",
+        "method",
+        "kelly_fraction",
+        "max_single_position_pct",
+        "max_sector_pct",
+        "expected_alpha_returns_map",
+        "confidence_factor_map",
+        "regime_multiplier_map",
+        "summary",
+        "positions",
+        "entry_candidates",
+        "alerts_sent",
+        "alerts_skipped_dedupe"
+      ],
+      "sample": "{\"generated_at\": \"2026-05-22T23:45:12.587237+00:00\", \"generated_at_unix\": 1779493512, \"version\": \"1.0.0\", \"elapsed_seconds\": 0.37, \"method\": \"regime-adjusted quarter-Kelly with confluence-conviction multiplier\", \"kelly_fraction\": 0.25, \"max_single_position_pct\": 8.0, \"max_sector_pct\": 30.0, \"expected_alpha_returns_map\": {\"alpha_90+\": 12.0, \"alpha_80_90\": 8.0, \"alpha_70_80\": 5.0, \"alpha_60_70\": 3.0, \"alpha_50_60\": 1.5, \"alpha_below_50\": -1.0}, \"confidence_factor_map\": {\"TIER_S\": 1.2, \"TIER_A\": 1.0, \"TIER_B\": 0.7, \"none\": 0.5}, \"regime_multiplier_map\": {\"GOLDILOCKS_0_20\": 1.0, \"NORMAL_20_40\": 0.85, \"ELEVATED_40_60\": 0.65, \"HIGH_STRESS_60_80\": 0.4, \"CRISIS_80_100\": 0.2}, \"summary\": {\"nav\": 100000.0, \"current_invested_pct\": 0, \"kelly_invested_pct\": 0, \"kelly_cash_pct\": 100, \"kelly_cash_dollars\": 100000.0, \"actionable_count\": 0, \"entry_candidates_count\": 0, \"regime\": \"ELEVATED\", \"macro_stress_score\": 43.0, \"regime_multiplier\": 0.65, \"drawdown_multiplier\": 1.0}, \"positions\": [], \"entry_candidates\": [], \"alerts_sent\": 0, \"alerts_skipped_dedupe\": 0}"
+    },
+    {
+      "key": "portfolio/snapshot.json",
+      "size": 492,
+      "top_keys": [
+        "generated_at",
+        "generated_at_unix",
+        "elapsed_seconds",
+        "portfolio_summary",
+        "positions",
+        "watchlist",
+        "sector_concentration",
+        "watchlist_sync",
+        "counts"
+      ],
+      "sample": "{\"generated_at\": \"2026-05-22T23:40:06.566155+00:00\", \"generated_at_unix\": 1779493206, \"elapsed_seconds\": 0.51, \"portfolio_summary\": {\"n_positions\": 0, \"total_market_value\": 0.0, \"total_cost_basis\": 0.0, \"total_pnl_dollars\": 0.0, \"total_pnl_pct\": null, \"stops_hit_count\": 0, \"stops_hit\": []}, \"positions\": [], \"watchlist\": [], \"sector_concentration\": [], \"watchlist_sync\": {\"added_S\": [], \"added_A\": [], \"removed_S\": [], \"removed_A\": []}, \"counts\": {\"positions\": 0, \"watchlist\": 0, \"auto_watch_S\": 0, \"auto_watch_A\": 0, \"manual_watch\": 0}}"
+    },
+    {
+      "key": "portfolio/state.json",
+      "size": 396,
+      "top_keys": [
+        "v",
+        "as_of",
+        "starting_value_usd",
+        "allocations",
+        "baseline_prices",
+        "managed_by",
+        "_note"
+      ],
+      "sample": "{\"v\": \"1.0\", \"as_of\": \"2026-04-25\", \"starting_value_usd\": 100000, \"allocations\": {\"SPY\": 0.6, \"TLT\": 0.2, \"GLD\": 0.1, \"CASH\": 0.1}, \"baseline_prices\": {\"SPY\": 713.94, \"TLT\": 86.71, \"GLD\": 433.25}, \"managed_by\": \"loop2_pnl_tracker_v1\", \"_note\": \"Hypothetical $100k starting portfolio. Edit allocations to match your real allocation if desired. baseline_prices auto-captured on first tracker run.\"}"
+    },
+    {
+      "key": "data/firm-book.json",
+      "size": 74983,
+      "top_keys": [
+        "schema_version",
+        "engine",
+        "generated_at",
+        "build_seconds",
+        "headline",
+        "firm",
+        "equity_book",
+        "macro_book",
+        "sector_exposure",
+        "conviction_overlap",
+        "desk_conflicts",
+        "desk_contributions",
+        "how_to_read",
+        "methodology",
+        "disclaimer"
+      ],
+      "sample": "{\"schema_version\": \"1.0\", \"engine\": \"justhodl-firm-book\", \"generated_at\": \"2026-05-22T01:00:34.124086+00:00\", \"build_seconds\": 0.67, \"headline\": \"Firm book: 258 net equity names, 82% gross / +22% net (52% long vs 30% short), top-10 = 26% of gross. 2 cross-desk conviction overlaps, 0 desk conflicts. Macro sleeve 21 positions, +18% net.\", \"firm\": {\"gross_exposure_pct\": 99.99, \"net_exposure_pct\": 39.26, \"equity_gross_pct\": 82.23, \"equity_net_pct\": 21.58, \"equity_long_pct\": 51.91, \"equity_short_pct\": -30.32, \"long_short_ratio\": 1.71, \"macro_gross_pct\": 17.76, \"macro_net_pct\": 17.68, \"n_equity_names\": 258, \"n_longs\": 164, \"n_shorts\": 94, \"n_macro_positions\": 21, \"top10_concentration_pct\": 26.4, \"biggest_long\": {\"symbol\": \"PEN\", \"net_pct\": 3.692}, \"biggest_short\": {\"symbol\": \"SATS\", \"net_pct\": -0.7028}}, \"equity_book\": [{\"symbol\": \"PEN\", \"name\": \"Penumbra, Inc.\", \"sector\": \"Special Situations\", \"price\": 327.89, \"side\": \"LONG\", \"net_pct\": 3.692, \"gross_pct\": 3.692, \"n_desks\": 1, \"desks\": {\"Merger-Arb Desk\": 3.692}, \"desk_conflict\": false}, {\"symbol\": \"TRVR\", \"name\": \"Two Rivers Financial Group, Inc.\", \"sector\": \"Special Situations\", \"price\": 50.21, \"side\": \"LONG\", \"net_pct\": 3.692, \"gross_pct\": 3.692, \"n_desks\": 1, \"desks\": {\"Merger-Arb Desk\": 3.692}, \"desk_conflict\": false}, {\"symbol\": \"AMWD\", \"name\": \"American Woodmark Corporation\", \"sector\": \"Special Situations\", \"price\": 38.43, \"side\": \"LONG\", \"net_pct\": 3.692, \"gross_pct\": 3.692, \"n_desks\": 1, \"desks\": {\"Merger-Arb Desk\": 3.692"
+    },
+    {
+      "key": "data/firm-stress.json",
+      "size": 56772,
+      "top_keys": [
+        "schema",
+        "engine",
+        "generated_at",
+        "build_seconds",
+        "firm_book_asof",
+        "posture",
+        "headline",
+        "loss_limits",
+        "summary",
+        "scenarios",
+        "reverse_stress",
+        "method",
+        "disclaimer"
+      ],
+      "sample": "{\"schema\": \"1.0\", \"engine\": \"justhodl-firm-stress\", \"generated_at\": \"2026-05-22T03:00:40.814773+00:00\", \"build_seconds\": 0.5, \"firm_book_asof\": \"2026-05-22T01:00:34.124086+00:00\", \"posture\": \"GREEN\", \"headline\": \"Worst modelled scenario: 2020 COVID Crash at -5.8% of book. 14 of 15 scenarios lose money. Firm stress posture GREEN (soft limit -12%, hard -20%).\", \"loss_limits\": {\"soft_pct\": -12.0, \"hard_pct\": -20.0}, \"summary\": {\"n_names_modelled\": 258, \"n_direct_loadings\": 173, \"n_sector_proxy\": 85, \"n_book_fallback\": 0, \"firm_gross_pct\": 99.99, \"firm_net_pct\": 39.26, \"annual_vol_pct\": 7.46, \"var_99_1d_pct\": 1.09, \"worst_scenario\": \"2020 COVID Crash (Feb-Mar 2020)\", \"worst_loss_pct\": -5.79, \"median_scenario_pnl_pct\": -1.79, \"n_scenarios\": 15, \"n_losing_scenarios\": 14}, \"scenarios\": [{\"scenario\": \"2020 COVID Crash (Feb-Mar 2020)\", \"type\": \"historical\", \"shock\": {\"MKT\": -0.34, \"SIZE\": -0.12, \"VALUE\": -0.1, \"MOM\": 0.04, \"QUALITY\": 0.05, \"LOWVOL\": 0.07}, \"book_pnl_pct\": -5.79, \"desk_pnl\": [{\"desk\": \"Merger-Arb Desk\", \"pnl_pct\": -6.021}, {\"desk\": \"Best Ideas\", \"pnl_pct\": -3.747}, {\"desk\": \"Spin-Off Desk\", \"pnl_pct\": -3.066}, {\"desk\": \"Pairs Desk\", \"pnl_pct\": -0.0}, {\"desk\": \"Index-Recon Desk\", \"pnl_pct\": 0.679}, {\"desk\": \"Risk Radar\", \"pnl_pct\": 6.363}], \"sector_pnl\": [{\"sector\": \"Special Situations\", \"pnl_pct\": -6.066}, {\"sector\": \"Healthcare\", \"pnl_pct\": -1.55}, {\"sector\": \"Energy\", \"pnl_pct\": -1.237}, {\"sector\": \"Industrials\", \"pnl_pct\": -1.126}, {\"sector\": \"Technology\", \"pnl_pct\""
+    }
+  ]
+}
