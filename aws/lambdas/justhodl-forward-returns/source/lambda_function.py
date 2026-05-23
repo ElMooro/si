@@ -159,19 +159,43 @@ def fmp_quote(symbol):
         return {}
 
 
-def fmp_ratios(symbol):
-    """Get TTM ratios — for earnings yield (1/PE), dividend yield, etc."""
+def fmp_profile(symbol):
+    """Get FMP /stable/profile — works for ETFs AND stocks (unlike ratios-ttm).
+    Returns price + lastDividend (4-quarter trailing $/share) from which we
+    compute dividend yield = lastDividend / price.
+    """
     if not FMP_KEY:
         return {}
     try:
-        url = f"https://financialmodelingprep.com/stable/ratios-ttm?symbol={symbol}&apikey={FMP_KEY}"
+        url = f"https://financialmodelingprep.com/stable/profile?symbol={symbol}&apikey={FMP_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/ForwardReturns"})
         with urllib.request.urlopen(req, timeout=10) as r:
             data = json.loads(r.read())
             return data[0] if isinstance(data, list) and data else {}
     except Exception as e:
-        print(f"[FMP ratios {symbol}] {e}")
+        print(f"[FMP profile {symbol}] {e}")
         return {}
+
+
+# Modern buyback-yield estimates (institutional consensus, e.g. Goldman/Vanguard CMA).
+# Used in Bogle's "Sources of Return" model: ER = DY + buyback_yield + g
+# Updated for current market structure where US large-caps return more via
+# buybacks than dividends.
+BUYBACK_YIELD = {
+    "SPY": 2.0,    # SP500 sustained ~2% buyback yield since 2010
+    "QQQ": 2.5,    # Tech does heavier buybacks (AAPL/GOOG/META alone)
+    "IWM": 1.0,    # Small caps less active in buybacks
+    "EFA": 0.8,    # International developed lower
+    "EEM": 0.4,    # EM lower still
+    "VNQ": 0.0,    # REITs distribute via dividends, not buybacks (90% rule)
+}
+
+# Real growth assumption per region (long-run, consensus Vanguard/JPM CMAs)
+REAL_GROWTH = {
+    "SPY": 2.0, "QQQ": 3.0, "IWM": 2.5,
+    "EFA": 1.5, "EEM": 3.5,
+    "VNQ": 1.0,  # REIT AFFO real growth modest
+}
 
 
 def fmp_history(symbol, days=2520):
@@ -238,65 +262,61 @@ def compute_forward_returns():
     # Fetch FMP data in parallel
     print("[forward-returns] fetching market data ...")
     quotes = {}
-    ratios = {}
+    profiles = {}
     histories = {}
 
     def grab_all(symbol):
         q = fmp_quote(symbol)
-        r = fmp_ratios(symbol)
+        p = fmp_profile(symbol)
         h = fmp_history(symbol, days=2600)
-        return symbol, q, r, h
+        return symbol, q, p, h
 
     with ThreadPoolExecutor(max_workers=8) as ex:
         futures = [ex.submit(grab_all, a) for a in ASSETS]
         for f in as_completed(futures):
             try:
-                sym, q, r, h = f.result()
+                sym, q, p, h = f.result()
                 quotes[sym] = q
-                ratios[sym] = r
+                profiles[sym] = p
                 histories[sym] = h
             except Exception as e:
                 print(f"[grab err] {e}")
 
-    print(f"[forward-returns] fetched: quotes={sum(1 for v in quotes.values() if v)}/{len(ASSETS)} ratios={sum(1 for v in ratios.values() if v)}/{len(ASSETS)} hist={sum(1 for v in histories.values() if v)}/{len(ASSETS)}")
+    print(f"[forward-returns] fetched: quotes={sum(1 for v in quotes.values() if v)}/{len(ASSETS)} profiles={sum(1 for v in profiles.values() if v)}/{len(ASSETS)} hist={sum(1 for v in histories.values() if v)}/{len(ASSETS)}")
 
     # Per-asset forward ER model
     assets_out = {}
     for sym in ASSETS:
         hist = HISTORICAL[sym]
         q = quotes.get(sym, {})
-        r = ratios.get(sym, {})
+        p = profiles.get(sym, {})
         h = histories.get(sym, [])
 
-        price = float(q.get("price") or 0)
-        pe_ttm = float(r.get("peRatioTTM") or r.get("priceToEarningsRatioTTM") or 0)
-        div_yield = float(r.get("dividendYieldTTM") or r.get("dividendYielTTM") or 0)
-        if div_yield > 1:  # FMP sometimes returns as percent already
-            div_yield = div_yield / 100
-        earnings_yield = (1.0 / pe_ttm * 100) if pe_ttm > 0 else None
+        # Compute trailing dividend yield from profile (works for all ETFs).
+        price = float(p.get("price") or q.get("price") or 0)
+        last_div = float(p.get("lastDividend") or 0)
+        div_yield_pct = (last_div / price * 100) if price > 0 and last_div > 0 else 0.0
+
+        # Bogle's "Sources of Return" decomposition:
+        #   ER = dividend_yield + buyback_yield + nominal_earnings_growth
+        # where nominal_growth = real_growth + breakeven_inflation
+        # Reference: Bogle "Common Sense on Mutual Funds" (1999, ch. 1)
+        # Same framework used by Vanguard CMAs, GMO 7-year forecasts.
+        breakeven = macro["breakeven10"] or 2.3
+        buyback = BUYBACK_YIELD.get(sym, 0.0)
+        real_g = REAL_GROWTH.get(sym, 2.0)
+        nominal_g = real_g + breakeven
 
         # ── Per-asset ER models ─────────────────────────────────────────
-        if sym in ("SPY", "QQQ", "IWM"):
-            # Stocks: earnings_yield + real_growth - inflation_drag
-            # Damodaran simplified: ER ≈ E/P + 0.5 * (real_growth) + breakeven_inflation
-            # We use: ER = E/P + real_growth_lr (compensates for missing growth term in static E/P)
-            if earnings_yield:
-                er = earnings_yield + real_gdp_growth_lr
+        if sym in ("SPY", "QQQ", "IWM", "EFA", "EEM"):
+            # Equities: Bogle's Sources of Return model
+            #   shareholder_yield (dividends + buybacks) + nominal earnings growth
+            # Falls back to historical median if dividend data missing.
+            if div_yield_pct > 0:
+                er = div_yield_pct + buyback + nominal_g
             else:
                 er = hist["er_median_30y"]
-            er = max(0.0, min(20.0, er))
-
-        elif sym == "EFA":
-            # International developed — assume EFA earnings yield ≈ 7% (cheaper), use ratios if available
-            if earnings_yield:
-                er = earnings_yield + 1.5  # lower real growth than US
-            else:
-                er = 8.0  # historical baseline
-        elif sym == "EEM":
-            if earnings_yield:
-                er = earnings_yield + 3.0  # higher real growth
-            else:
-                er = 9.0
+            er = max(0.5, min(20.0, er))
         elif sym in ("IEF", "TLT"):
             # Bonds: forward return ≈ YTM (essentially exact for held-to-maturity)
             er = macro["y10"] if sym == "IEF" else macro["y30"]
@@ -308,23 +328,22 @@ def compute_forward_returns():
         elif sym == "HYG":
             er = macro["hy_yield"] - 2.5  # HY default loss ~250bp
         elif sym == "VNQ":
-            # REITs: dividend yield + AFFO growth (assume long-run 2.5% nominal AFFO growth)
-            if div_yield > 0:
-                er = (div_yield * 100) + 2.5
+            # REITs: dividend yield (now live from profile) + AFFO real growth + inflation
+            if div_yield_pct > 0:
+                er = div_yield_pct + real_g + breakeven  # AFFO real growth ~1% + inflation
             else:
-                er = 8.0
+                er = hist["er_median_30y"]
         elif sym == "GLD":
-            # Erb-Harvey: gold real return mean-reverts to ~1.5%. Nominal = 1.5% + breakeven inflation.
-            er = 1.5 + macro["breakeven10"]
+            # Erb-Harvey: gold real return mean-reverts to ~1.5%. Nominal = 1.5% + breakeven.
+            er = 1.5 + breakeven
         elif sym == "DBC":
             # Commodities: 0% real long-run + breakeven inflation
-            er = 0.0 + macro["breakeven10"]
+            er = 0.0 + breakeven
         elif sym == "BIL":
             # Cash: 3M T-bill yield
             er = macro["y3m"]
         elif sym == "BTC":
-            # Realized 10y CAGR is wildly volatile; use a conservative forward of 15%
-            # with massive uncertainty (already encoded in er_p10/p90)
+            # Conservative forward of 15% with massive uncertainty (in p10/p90)
             er = 15.0
         else:
             er = hist["er_median_30y"]
@@ -401,9 +420,9 @@ def compute_forward_returns():
             "ticker": sym,
             "name": hist["name"],
             "current_price": price or None,
-            "current_pe_ttm": round(pe_ttm, 1) if pe_ttm else None,
-            "earnings_yield_pct": round(earnings_yield, 2) if earnings_yield else None,
-            "dividend_yield_pct": round(div_yield * 100, 2) if div_yield else None,
+            "trailing_dividend_yield_pct": round(div_yield_pct, 2) if div_yield_pct else None,
+            "buyback_yield_assumption_pct": buyback if sym in BUYBACK_YIELD else None,
+            "nominal_growth_assumption_pct": round(nominal_g, 2) if sym in REAL_GROWTH else None,
             "forward_er_10y_pct": er,
             "history_30y": {
                 "realized_cagr_pct": hist["nominal_30y"],
@@ -514,16 +533,16 @@ def compute_forward_returns():
         "benchmark_portfolios": portfolios,
         "headlines": headline_lines,
         "methodology": {
-            "stocks_er": "Earnings yield (1/P/E_TTM) + long-run real GDP growth assumption (2%). Damodaran/Bogle/Asness consensus model.",
+            "stocks_er": "Bogle's Sources of Return: dividend_yield + buyback_yield + nominal_earnings_growth (real_growth + breakeven_inflation). Same framework as Vanguard CMAs and GMO 7-year forecasts. Trailing dividend yield from FMP /stable/profile (lastDividend / price); buyback yield from institutional consensus (SPY=2%, QQQ=2.5%, IWM=1%, EFA=0.8%, EEM=0.4%); real growth per region (SPY=2%, QQQ=3%, IWM=2.5%, EFA=1.5%, EEM=3.5%); breakeven inflation from FRED T10YIE.",
             "bonds_er": "Current YTM (essentially exact for held to maturity).",
             "tips_er": "Real yield + 10-year breakeven inflation.",
             "credit_er": "Effective yield minus expected default loss (20bp IG, 250bp HY).",
-            "reit_er": "Dividend yield + long-run AFFO growth (2.5%).",
+            "reit_er": "Trailing dividend yield + AFFO real growth (1%) + breakeven inflation.",
             "gold_er": "Erb-Harvey 'Golden Constant': 1.5% real + breakeven inflation.",
             "commodities_er": "0% real long-run + breakeven inflation.",
             "btc_er": "Conservative forward estimate (15%) — wide uncertainty band reflects extreme realized vol.",
             "percentile": "Position of current ER within 30y historical distribution of forward ERs for that asset class.",
-            "sources": "FRED (DGS10, DGS30, DFII10, T10YIE, BAMLH0A0HYM2EY, BAMLC0A0CMEY, DGS3MO); FMP (quote, ratios-ttm, historical-price-eod).",
+            "sources": "FRED (DGS10, DGS30, DFII10, T10YIE, BAMLH0A0HYM2EY, BAMLC0A0CMEY, DGS3MO); FMP (quote, profile, historical-price-eod). Note: FMP /stable/ratios-ttm is stocks-only — switched to /stable/profile + Bogle decomposition for ETF coverage.",
         },
         "disclaimer": "Forward expected returns are estimates based on academic models. Realized 10-year returns may differ materially. Past performance does not guarantee future results. This is research, not investment advice.",
     }
