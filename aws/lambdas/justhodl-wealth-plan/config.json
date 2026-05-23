@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-wealth-plan",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Personal Wealth Compass: Monte Carlo retirement engine. Inputs current_nav+age+retire_age+annual_savings+annual_spending+risk_profile (conservative/moderate/aggressive/lifecycle). 10000-sim lognormal MC using live Capital Compass forward ERs + Markowitz w'Σw + 30y consensus correlation matrix. Outputs prob_success, trajectory percentiles, sequence-of-returns risk, required savings (bisection), inflation-deflated terminal NAV, sensitivities, benchmark comparison, plain-English verdict.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowOrigins": ["*"],
+      "AllowMethods": ["GET", "POST", "OPTIONS"],
+      "AllowHeaders": ["*"],
+      "MaxAge": 300
+    }
+  }
+}

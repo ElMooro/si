@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Wealth Plan — JustHodl.AI</title>
+<meta name="description" content="The Monte Carlo retirement planner. Will you make it? See your probability of success, year-by-year wealth trajectory, and how each lever moves the needle." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e14;
+  --panel: #11161f;
+  --panel-2: #161c27;
+  --border: #1f2937;
+  --border-light: #2d3748;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent: #f59e0b;
+  --good: #22d3ee;
+  --best: #10b981;
+  --warn: #fbbf24;
+  --bad: #f97316;
+  --avoid: #ef4444;
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,158,11,0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 10% 110%, rgba(16,185,129,0.04), transparent);
+}
+.container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* Masthead */
+.masthead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: 18px; margin-bottom: 30px; border-bottom: 1px solid var(--border);
+}
+.masthead-left h1 {
+  font-family: var(--display);
+  font-size: 38px; font-weight: 600; letter-spacing: -0.02em;
+  font-feature-settings: 'ss01';
+}
+.masthead-left h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.masthead-left .subtitle {
+  font-size: 14px; color: var(--text-muted); margin-top: 6px; max-width: 640px;
+}
+.masthead-right { text-align: right; }
+.masthead-right .timestamp { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+.masthead-right .horizon {
+  display: inline-block; padding: 4px 12px; margin-top: 6px;
+  background: var(--panel); border: 1px solid var(--border-light);
+  border-radius: 4px; font-family: var(--mono); font-size: 11px;
+  color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* Main layout */
+.layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+@media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+/* Inputs sidebar */
+.sidebar {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px; height: fit-content; position: sticky; top: 20px;
+}
+.sidebar h2 {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 18px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.input-row { margin-bottom: 18px; }
+.input-row label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+}
+.input-row label .val {
+  font-family: var(--mono); font-size: 14px; color: var(--text); font-weight: 600;
+}
+.input-row input[type="range"] {
+  width: 100%; appearance: none; height: 4px; background: var(--panel-2);
+  border-radius: 2px; outline: none;
+}
+.input-row input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 16px; height: 16px; background: var(--accent);
+  border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+}
+.input-row input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; background: var(--accent); border-radius: 50%;
+  cursor: pointer; border: 0;
+}
+.input-row input[type="number"] {
+  width: 100%; background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 10px; color: var(--text);
+  font-family: var(--mono); font-size: 14px;
+}
+.input-row input:focus { outline: none; border-color: var(--accent); }
+
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.profile-btn {
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: 9px 8px; border-radius: 5px; font-family: var(--body); font-size: 11px;
+  font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.profile-btn:hover { border-color: var(--border-light); color: var(--text); }
+.profile-btn.active {
+  border-color: var(--accent); color: var(--accent); background: rgba(245,158,11,0.08);
+}
+
+.run-btn {
+  width: 100%; background: var(--accent); color: #0a0e14;
+  border: none; padding: 14px; border-radius: 6px;
+  font-family: var(--body); font-size: 14px; font-weight: 700;
+  letter-spacing: 0.03em; cursor: pointer; margin-top: 14px;
+  transition: opacity 0.15s;
+}
+.run-btn:hover { opacity: 0.9; }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Results */
+.results { display: flex; flex-direction: column; gap: 20px; }
+.empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 400px; color: var(--text-muted); font-family: var(--mono); font-size: 13px;
+}
+
+.verdict-panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent); border-radius: 8px; padding: 22px 26px;
+}
+.verdict-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.prob-dial {
+  width: 110px; height: 110px; position: relative; flex-shrink: 0;
+}
+.prob-text {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.prob-text .num {
+  font-family: var(--display); font-size: 32px; font-weight: 600;
+  line-height: 1; font-feature-settings: 'tnum';
+}
+.prob-text .lbl {
+  font-family: var(--mono); font-size: 9px; color: var(--text-muted);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px;
+}
+.verdict-body { flex: 1; min-width: 280px; }
+.verdict-status {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.verdict-headline {
+  font-family: var(--display); font-size: 19px; font-weight: 400;
+  line-height: 1.45; color: var(--text); font-style: italic;
+}
+
+/* KPI strip */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden;
+}
+.kpi {
+  background: var(--panel); padding: 16px 18px;
+}
+.kpi-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.kpi-value {
+  font-family: var(--display); font-size: 23px; font-weight: 600;
+  color: var(--text); line-height: 1; font-feature-settings: 'tnum';
+}
+.kpi-value small { font-family: var(--body); font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+.kpi-sub {
+  font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 4px;
+}
+
+/* Chart panel */
+.chart-panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px;
+}
+.chart-title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.chart-title .hint { font-family: var(--body); font-size: 12px; color: var(--text-dim); text-transform: none; letter-spacing: 0; }
+.chart-svg {
+  width: 100%; height: 360px; display: block;
+}
+.legend { display: flex; gap: 18px; font-size: 11px; color: var(--text-muted); margin-top: 12px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 14px; height: 4px; border-radius: 2px; }
+
+/* Allocation panel */
+.alloc-panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px;
+}
+.alloc-header {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;
+}
+.alloc-name {
+  font-family: var(--display); font-size: 16px; font-weight: 600;
+}
+.alloc-stats {
+  font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+}
+.alloc-stats strong { color: var(--accent); }
+.alloc-bar {
+  display: flex; width: 100%; height: 22px; border-radius: 4px; overflow: hidden;
+  margin-bottom: 10px;
+}
+.alloc-seg {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(0,0,0,0.7); white-space: nowrap;
+}
+.alloc-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
+.alloc-item {
+  background: var(--panel-2); padding: 8px 10px; border-radius: 4px;
+  font-family: var(--mono); font-size: 11px; display: flex; justify-content: space-between;
+}
+.alloc-item .sym { color: var(--text); font-weight: 600; }
+.alloc-item .pct { color: var(--text-muted); }
+.alloc-explainer {
+  font-size: 12px; color: var(--text-muted); margin-top: 12px;
+  padding-top: 12px; border-top: 1px dashed var(--border); line-height: 1.55;
+}
+
+/* Sensitivity & Benchmarks grids */
+.section-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin: 8px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.section-label .hint { color: var(--text-dim); text-transform: none; letter-spacing: 0; font-size: 12px; }
+.lever-grid, .bench-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;
+}
+.lever, .bench {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px;
+}
+.lever-name, .bench-name {
+  font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.lever-prob, .bench-prob {
+  font-family: var(--display); font-size: 24px; font-weight: 600;
+  font-feature-settings: 'tnum';
+}
+.lever-delta {
+  font-family: var(--mono); font-size: 12px; margin-top: 4px;
+}
+.lever-delta.up { color: var(--best); }
+.lever-delta.down { color: var(--avoid); }
+.lever-detail, .bench-detail {
+  font-size: 12px; color: var(--text-muted); margin-top: 6px;
+}
+
+/* Method */
+.method-note {
+  margin-top: 12px; padding: 22px; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.7;
+}
+.method-note h3 {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text); margin-bottom: 12px; text-transform: uppercase;
+}
+.disclaimer { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-dim); font-style: italic; }
+
+.loading-pulse {
+  display: inline-block; animation: pulse 1.4s infinite; color: var(--accent);
+}
+@keyframes pulse { 0%, 100% { opacity: 0.3 } 50% { opacity: 1 } }
+
+@media (max-width: 720px) {
+  .masthead { flex-direction: column; gap: 10px; }
+  .masthead-left h1 { font-size: 26px; }
+  .sidebar { position: static; }
+  .container { padding: 18px 12px 60px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="masthead">
+  <div class="masthead-left">
+    <h1>The <em>Wealth</em> Plan</h1>
+    <div class="subtitle">10,000 Monte-Carlo simulations from today through age 95. Will you make it? Move the sliders to see how each lever changes your probability of success.</div>
+  </div>
+  <div class="masthead-right">
+    <div class="timestamp" id="timestamp">—</div>
+    <div class="horizon">Live forward returns</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Your Inputs</h2>
+
+    <div class="input-row">
+      <label>Current age <span class="val" id="age-val">35</span></label>
+      <input id="age" type="range" min="22" max="75" value="35" />
+    </div>
+
+    <div class="input-row">
+      <label>Target retirement age <span class="val" id="retire-val">65</span></label>
+      <input id="retire_age" type="range" min="45" max="80" value="65" />
+    </div>
+
+    <div class="input-row">
+      <label>Current net worth ($)</label>
+      <input id="current_nav" type="number" value="100000" step="5000" min="0" />
+    </div>
+
+    <div class="input-row">
+      <label>Annual savings ($/yr)</label>
+      <input id="annual_savings" type="number" value="24000" step="1000" min="0" />
+    </div>
+
+    <div class="input-row">
+      <label>Target retirement spending ($/yr, today's $)</label>
+      <input id="annual_spending" type="number" value="80000" step="5000" min="0" />
+    </div>
+
+    <div class="input-row">
+      <label>Risk profile</label>
+      <div class="profile-grid">
+        <button class="profile-btn" data-profile="conservative">Conservative</button>
+        <button class="profile-btn active" data-profile="moderate">Moderate</button>
+        <button class="profile-btn" data-profile="aggressive">Aggressive</button>
+        <button class="profile-btn" data-profile="lifecycle">Lifecycle</button>
+      </div>
+    </div>
+
+    <button class="run-btn" id="run">Calculate plan</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="empty">Set your inputs on the left and click <strong style="color:var(--accent);margin:0 6px">Calculate plan</strong> to run the simulation.</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const LAMBDA_URL = "__LAMBDA_URL__"; // gets replaced post-deploy
+
+// Slider live-updates
+const ageEl = document.getElementById("age");
+const retireEl = document.getElementById("retire_age");
+ageEl.oninput = () => document.getElementById("age-val").textContent = ageEl.value;
+retireEl.oninput = () => document.getElementById("retire-val").textContent = retireEl.value;
+
+// Profile picker
+let currentProfile = "moderate";
+document.querySelectorAll(".profile-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".profile-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentProfile = btn.dataset.profile;
+  });
+});
+
+const fmtMoney = v => v == null ? "—" : v >= 1e6 ? "$" + (v/1e6).toFixed(2) + "M" : "$" + Math.round(v).toLocaleString();
+const fmtMoneyK = v => v == null ? "—" : v >= 1e6 ? "$" + (v/1e6).toFixed(1) + "M" : "$" + Math.round(v/1000) + "k";
+const fmtPct = v => v == null ? "—" : Math.round(v * 100) + "%";
+
+document.getElementById("run").addEventListener("click", run);
+
+async function run() {
+  const btn = document.getElementById("run");
+  btn.disabled = true; btn.textContent = "Running 10,000 sims…";
+  document.getElementById("results").innerHTML = '<div class="empty"><span class="loading-pulse">●</span> &nbsp; Running Monte Carlo across forward returns + correlation matrix…</div>';
+
+  const params = new URLSearchParams({
+    age: ageEl.value,
+    retire_age: retireEl.value,
+    current_nav: document.getElementById("current_nav").value || 100000,
+    annual_savings: document.getElementById("annual_savings").value || 24000,
+    annual_spending: document.getElementById("annual_spending").value || 80000,
+    risk_profile: currentProfile,
+  });
+
+  try {
+    const resp = await fetch(LAMBDA_URL + "?" + params.toString(), { method: "GET" });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Server error");
+    render(data);
+  } catch (err) {
+    document.getElementById("results").innerHTML = `<div class="empty" style="color:var(--avoid)">Error: ${err.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Recalculate";
+  }
+}
+
+function render(data) {
+  document.getElementById("timestamp").textContent =
+    "Compass live as of " + new Date(data.compass_generated_at).toLocaleDateString();
+
+  const mc = data.monte_carlo;
+  const ipts = data.inputs;
+  const alloc = data.allocation;
+  const verdict = data.verdict;
+  const real = data.in_todays_dollars;
+  const opt = data.savings_optimization || {};
+
+  // Verdict + probability dial
+  const probPct = Math.round(mc.prob_success * 100);
+  const verdictHTML = `
+    <div class="verdict-panel" style="border-left-color:${verdict.color}">
+      <div class="verdict-row">
+        <div class="prob-dial">
+          ${probDialSVG(mc.prob_success, verdict.color)}
+          <div class="prob-text">
+            <div class="num" style="color:${verdict.color}">${probPct}%</div>
+            <div class="lbl">Success</div>
+          </div>
+        </div>
+        <div class="verdict-body">
+          <div class="verdict-status" style="color:${verdict.color}">${verdict.status.replace("_"," ")}</div>
+          <div class="verdict-headline">${verdict.message}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // KPI strip
+  const kpiHTML = `
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Median NAV at ${ipts.retire_age}</div>
+        <div class="kpi-value">${fmtMoneyK(mc.trajectory_p50[mc.n_years_accumulation])}</div>
+        <div class="kpi-sub">at retirement start</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Terminal NAV (median)</div>
+        <div class="kpi-value" style="color:var(--accent)">${fmtMoneyK(mc.terminal_nav_p50)}</div>
+        <div class="kpi-sub">at age ${ipts.end_age} (nominal)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Terminal in today's $$</div>
+        <div class="kpi-value">${fmtMoneyK(real.p50_today_dollars)}</div>
+        <div class="kpi-sub">after ${Math.round(((1+ipts.inflation)**(ipts.end_age-ipts.age) - 1)*100)}% cumulative inflation</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Bear case (P10)</div>
+        <div class="kpi-value">${fmtMoneyK(mc.terminal_nav_p10)}</div>
+        <div class="kpi-sub">worst 10% scenarios</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Spending at retirement</div>
+        <div class="kpi-value">${fmtMoneyK(real.spending_at_retirement_nominal)}</div>
+        <div class="kpi-sub">/yr, nominal (${fmtMoneyK(real.spending_today_dollars)}/yr in today's $)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Portfolio Sharpe</div>
+        <div class="kpi-value">${(alloc.expected_return_pct / alloc.volatility_pct).toFixed(2)}</div>
+        <div class="kpi-sub">${alloc.expected_return_pct}% / ${alloc.volatility_pct}% vol</div>
+      </div>
+    </div>`;
+
+  // Trajectory fan chart
+  const chartHTML = `
+    <div class="chart-panel">
+      <div class="chart-title">
+        <span>Wealth trajectory</span>
+        <span class="hint">10,000 simulations · accumulation phase shaded amber, retirement shaded red</span>
+      </div>
+      ${trajectorySVG(mc, ipts)}
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>P50 — median outcome</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b66"></div>P25–P75 likely range</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b22"></div>P10–P90 wide range</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--avoid)"></div>Sequence-of-returns risk: worst 10% retiring into a crash</div>
+      </div>
+    </div>`;
+
+  // Allocation
+  const colors = {SPY:"#22d3ee", QQQ:"#0ea5e9", EFA:"#10b981", EEM:"#84cc16", VNQ:"#a855f7", IEF:"#f59e0b", TLT:"#f97316", GLD:"#fbbf24", BIL:"#94a3b8", BTC:"#ef4444"};
+  const allocSegs = Object.entries(alloc.weights).map(([s,w]) =>
+    `<div class="alloc-seg" style="width:${w*100}%;background:${colors[s]||'#64748b'}">${w>0.05?s:""}</div>`
+  ).join("");
+  const allocItems = Object.entries(alloc.weights).map(([s,w]) =>
+    `<div class="alloc-item"><span class="sym">${s}</span><span class="pct">${(w*100).toFixed(0)}%</span></div>`
+  ).join("");
+  const allocHTML = `
+    <div class="alloc-panel">
+      <div class="alloc-header">
+        <div class="alloc-name">${alloc.profile_label}</div>
+        <div class="alloc-stats">E[r] <strong>${alloc.expected_return_pct}%</strong> &nbsp;·&nbsp; vol ${alloc.volatility_pct}% &nbsp;·&nbsp; real ${alloc.real_expected_return_pct}%</div>
+      </div>
+      <div class="alloc-bar">${allocSegs}</div>
+      <div class="alloc-list">${allocItems}</div>
+      <div class="alloc-explainer">${alloc.profile_explainer}</div>
+    </div>`;
+
+  // Sensitivities (levers)
+  const sensitivities = data.sensitivities || {};
+  const leverNames = {
+    "retire_5_yrs_later": "Retire 5 years later",
+    "save_20pct_more": "Save 20% more per year",
+    "spend_20pct_less": "Spend 20% less in retirement",
+  };
+  const levers = Object.entries(sensitivities).map(([k, s]) => {
+    const cls = s.delta_pp_success > 0 ? "up" : "down";
+    const sign = s.delta_pp_success > 0 ? "+" : "";
+    return `
+      <div class="lever">
+        <div class="lever-name">${leverNames[k] || k}</div>
+        <div class="lever-prob" style="color:${s.delta_pp_success > 5 ? 'var(--best)' : s.delta_pp_success > 0 ? 'var(--good)' : 'var(--text)'}">${fmtPct(s.prob_success)}</div>
+        <div class="lever-delta ${cls}">${sign}${s.delta_pp_success}pp success</div>
+        <div class="lever-detail">Median terminal: ${fmtMoneyK(s.terminal_nav_p50)}</div>
+      </div>`;
+  }).join("");
+  if (opt.feasible) {
+    const monthly = Math.round((opt.required_annual_savings - ipts.annual_savings) / 12);
+    levers_appendix = `
+      <div class="lever">
+        <div class="lever-name" style="color:var(--accent)">Required for 90% confidence</div>
+        <div class="lever-prob" style="color:var(--accent)">${fmtMoney(opt.required_annual_savings)}/yr</div>
+        <div class="lever-delta up">+${fmtMoney(monthly)}/mo more</div>
+        <div class="lever-detail">vs your current ${fmtMoney(ipts.annual_savings)}/yr</div>
+      </div>`;
+  } else {
+    levers_appendix = "";
+  }
+  const sensHTML = `
+    <div>
+      <div class="section-label">Pulling each lever <span class="hint">how each change moves your probability</span></div>
+      <div class="lever-grid">${levers}${levers_appendix}</div>
+    </div>`;
+
+  // Benchmarks
+  const benchmarks = data.benchmarks || {};
+  const benchCards = Object.entries(benchmarks).map(([k, b]) => `
+    <div class="bench">
+      <div class="bench-name">${b.label}</div>
+      <div class="bench-prob">${fmtPct(b.prob_success)}</div>
+      <div class="bench-detail">E[r] ${b.expected_return}% / vol ${b.vol}%</div>
+      <div class="bench-detail">Median terminal: ${fmtMoneyK(b.terminal_nav_p50)}</div>
+    </div>`).join("");
+  const benchHTML = benchCards ? `
+    <div>
+      <div class="section-label">Alternative risk profiles <span class="hint">same saver, different allocation</span></div>
+      <div class="bench-grid">${benchCards}</div>
+    </div>` : "";
+
+  // Method
+  const methodHTML = `
+    <div class="method-note">
+      <h3>Methodology</h3>
+      <div>${data.methodology}</div>
+      <div class="disclaimer">This is a research projection, not investment advice. Real outcomes will differ from any model. Forward expected returns are estimates that can be wrong by several percentage points. Higher savings rates and lower spending targets always increase your probability of success; the model only quantifies by how much.</div>
+    </div>`;
+
+  document.getElementById("results").innerHTML =
+    verdictHTML + kpiHTML + chartHTML + allocHTML + sensHTML + benchHTML + methodHTML;
+}
+
+function probDialSVG(p, color) {
+  const r = 48;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - p);
+  return `
+    <svg viewBox="0 0 110 110" style="position:absolute;inset:0">
+      <circle cx="55" cy="55" r="${r}" fill="none" stroke="${color}22" stroke-width="6"/>
+      <circle cx="55" cy="55" r="${r}" fill="none" stroke="${color}" stroke-width="6"
+              stroke-dasharray="${c}" stroke-dashoffset="${offset}"
+              transform="rotate(-90 55 55)" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function trajectorySVG(mc, ipts) {
+  const W = 1200, H = 360, PAD = {l: 70, r: 30, t: 24, b: 40};
+  const years = mc.trajectory_p50.length;
+  const allValues = [...mc.trajectory_p90, ...mc.trajectory_p10];
+  const maxY = Math.max(...allValues) * 1.08;
+  const minY = 0;
+
+  const x = i => PAD.l + (i / (years - 1)) * (W - PAD.l - PAD.r);
+  const y = v => PAD.t + (H - PAD.t - PAD.b) * (1 - (v - minY) / (maxY - minY));
+
+  const path = arr => arr.map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`).join(" ");
+  const band = (lo, hi) => `M ${x(0)} ${y(lo[0])} ` +
+    lo.map((v, i) => `L ${x(i)} ${y(v)}`).join(" ") +
+    " L " + hi.slice().reverse().map((v, i) => `${x(years - 1 - i)} ${y(v)}`).join(" L ") +
+    " Z";
+
+  const accumEnd = mc.n_years_accumulation;
+  const retireX = x(accumEnd);
+
+  // Y-axis labels
+  const yTicks = [];
+  for (let i = 0; i <= 4; i++) {
+    const v = minY + (maxY - minY) * (i / 4);
+    yTicks.push(`<line x1="${PAD.l}" y1="${y(v)}" x2="${W - PAD.r}" y2="${y(v)}" stroke="#1f2937" stroke-width="0.5" stroke-dasharray="2,3"/>
+                 <text x="${PAD.l - 8}" y="${y(v) + 4}" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#64748b">${v >= 1e6 ? "$" + (v/1e6).toFixed(1) + "M" : "$" + Math.round(v/1000) + "k"}</text>`);
+  }
+  // X-axis age labels
+  const xTicks = [];
+  for (let i = 0; i < years; i += 5) {
+    xTicks.push(`<text x="${x(i)}" y="${H - PAD.b + 18}" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#64748b">${ipts.age + i}</text>`);
+  }
+
+  // SoR (sequence-of-returns) sub-path
+  let sorPath = "";
+  if (mc.sor_p50 && mc.sor_p50.length) {
+    sorPath = `<path d="${path(mc.sor_p50)}" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-dasharray="4,3" opacity="0.85"/>`;
+  }
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" class="chart-svg">
+      <!-- Retirement zone shading -->
+      <rect x="${PAD.l}" y="${PAD.t}" width="${retireX - PAD.l}" height="${H - PAD.t - PAD.b}" fill="#f59e0b" opacity="0.04"/>
+      <rect x="${retireX}" y="${PAD.t}" width="${W - PAD.r - retireX}" height="${H - PAD.t - PAD.b}" fill="#ef4444" opacity="0.04"/>
+      <line x1="${retireX}" y1="${PAD.t}" x2="${retireX}" y2="${H - PAD.b}" stroke="#f97316" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="${retireX}" y="${PAD.t - 8}" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#f97316">Retire @ ${ipts.retire_age}</text>
+
+      ${yTicks.join("")}
+      ${xTicks.join("")}
+
+      <!-- P10-P90 band -->
+      <path d="${band(mc.trajectory_p10, mc.trajectory_p90)}" fill="#f59e0b" opacity="0.10"/>
+      <!-- P25-P75 band -->
+      <path d="${band(mc.trajectory_p25, mc.trajectory_p75)}" fill="#f59e0b" opacity="0.20"/>
+      <!-- P50 median line -->
+      <path d="${path(mc.trajectory_p50)}" stroke="#f59e0b" stroke-width="2.2" fill="none"/>
+
+      <!-- Sequence-of-returns risk line -->
+      ${sorPath}
+
+      <!-- Axes -->
+      <line x1="${PAD.l}" y1="${H - PAD.b}" x2="${W - PAD.r}" y2="${H - PAD.b}" stroke="#2d3748" stroke-width="1"/>
+      <line x1="${PAD.l}" y1="${PAD.t}" x2="${PAD.l}" y2="${H - PAD.b}" stroke="#2d3748" stroke-width="1"/>
+    </svg>`;
+}
+
+let levers_appendix = "";
+// Auto-run on load
+window.addEventListener("DOMContentLoaded", () => setTimeout(run, 300));
+</script>
+</body>
+</html>
