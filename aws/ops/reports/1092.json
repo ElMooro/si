@@ -1,0 +1,33 @@
+{
+  "tax_plan_lambda": {
+    "exists": true,
+    "code_sha": "Gjj4gIAjiUKO",
+    "last_modified": "2026-05-23T15:09:09.000+0000",
+    "memory": 512,
+    "timeout": 30,
+    "state": "Active",
+    "env_keys": [
+      "S3_BUCKET"
+    ]
+  },
+  "tax_plan_function_url": "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws/",
+  "tax_plan_schedule": null,
+  "wealth_plan_schedule": null,
+  "manifest": {
+    "total_overrides": 26,
+    "has_wealth_plan": true,
+    "has_tax_plan": false,
+    "has_forward_returns": true
+  },
+  "data/tax-plan-snapshot.json": {
+    "err": "An error occurred (404) when calling the HeadObject operation: Not Found"
+  },
+  "data/wealth-plan-snapshot.json": {
+    "size_kb": 11.1,
+    "last_modified": "2026-05-23T10:46:50+00:00"
+  },
+  "data/forward-returns.json": {
+    "size_kb": 24.3,
+    "last_modified": "2026-05-23T10:01:15+00:00"
+  }
+}
