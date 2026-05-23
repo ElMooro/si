@@ -1,0 +1,52 @@
+{
+  "started_at": "2026-05-23T15:19:58.947136+00:00",
+  "steps": [
+    {
+      "step": "get_tax_plan_url",
+      "status": "OK",
+      "url": "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws/"
+    },
+    {
+      "step": "tax_plan_schedule",
+      "status": "ERR",
+      "error": "An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed."
+    },
+    {
+      "step": "wealth_plan_schedule",
+      "status": "ERR",
+      "error": "An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed."
+    },
+    {
+      "step": "freshness_manifest",
+      "status": "OK",
+      "total_overrides": 27
+    },
+    {
+      "step": "html_patch",
+      "status": "OK",
+      "patched": true,
+      "url": "https://a2orhvvfva3kh5r6jx5soijcbm0uecuw.lambda-url.us-east-1.on.aws/"
+    },
+    {
+      "step": "invoke_tax_plan",
+      "status": "OK",
+      "invoke_status": 200,
+      "fn_err": null,
+      "snapshot_size_kb": 22.1,
+      "n_positions": 15,
+      "n_after_tax_assets": 15,
+      "n_tlh_candidates": 1,
+      "n_actions": 2,
+      "summary": "Tax-aware analysis: 2 action items. Top priority: TAX-LOSS HARVESTING. Estimated annual tax cost on dividends: $0.",
+      "elapsed": 0.18,
+      "log_tail": "START RequestId: faacf2cf-046c-42dd-801b-e8b2805d084f Version: $LATEST\n[tax-plan] v1.0.0 inputs={'federal_bracket': 24.0, 'state_rate': 5.0, 'agi': 200000.0, 'filing_status': 'single', 'taxable_pct': 0.6, 'ira_pct': 0.3, 'roth_pct': 0.1, 'carryforward': 0.0, 'min_harvest_loss': 500.0}\n[tax-plan] done \u00b7 15 positions \u00b7 1 TLH candidates \u00b7 2 actions \u00b7 elapsed=0.18s\nEND RequestId: faacf2cf-046c-42dd-801b-e8b2805d084f\nREPORT RequestId: faacf2cf-046c-42dd-801b-e8b2805d084f\tDuration: 240.21 ms\tBilled Duration: 763 ms\tMemory Size: 512 MB\tMax Memory Used: 93 MB\tInit Duration: 521.79 ms\t\n"
+    },
+    {
+      "step": "kick_monitor",
+      "status": "OK",
+      "kicked": true
+    }
+  ],
+  "overall": "2 errors",
+  "finished_at": "2026-05-23T15:20:04.933087+00:00"
+}
