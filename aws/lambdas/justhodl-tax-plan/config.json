@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-tax-plan",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 30,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Tax-Aware Portfolio Engine. Per-position LT/ST classification + tax-if-sold-today. After-tax forward returns (taxable/IRA/Roth) per Capital Compass asset. Tax-loss harvest candidates with substitute ETF suggestions. Asset location optimizer (taxable/tax-deferred/Roth). Annual tax bill estimate (federal+state+NIIT). 2026 brackets + LTCG 0/15/20 + NIIT 3.8%. Function URL public. Daily 11:45 UTC snapshot.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "function_url": {
+    "auth_type": "NONE",
+    "cors": {
+      "AllowOrigins": ["*"],
+      "AllowMethods": ["GET", "POST"],
+      "AllowHeaders": ["content-type"],
+      "MaxAge": 300
+    }
+  },
+  "schedule": {
+    "rule_name": "tax-plan-daily",
+    "cron": "cron(45 11 ? * * *)",
+    "description": "Daily 11:45 UTC — refresh default-profile tax plan snapshot"
+  }
+}

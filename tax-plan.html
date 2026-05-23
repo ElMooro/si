@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Tax Plan — JustHodl.AI</title>
+<meta name="description" content="After-tax wealth: tax-loss harvesting candidates, asset location optimizer, and after-tax forward returns. The 1-3%/yr alpha most retail leaves on the table." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0e14;
+  --panel: #11161f;
+  --panel-2: #161c27;
+  --border: #1f2937;
+  --border-light: #2d3748;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent: #f59e0b;          /* tax gold */
+  --best: #10b981;
+  --good: #22d3ee;
+  --fair: #fbbf24;
+  --poor: #f97316;
+  --avoid: #ef4444;
+  --display: 'Fraunces', Georgia, serif;
+  --body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 158, 11, 0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 80% 110%, rgba(16, 185, 129, 0.04), transparent);
+  min-height: 100vh;
+}
+.container { max-width: 1480px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* Masthead */
+.masthead {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: 18px; margin-bottom: 30px;
+  border-bottom: 1px solid var(--border);
+}
+.masthead-left h1 {
+  font-family: var(--display);
+  font-size: 38px; font-weight: 600; letter-spacing: -0.02em;
+  color: var(--text);
+}
+.masthead-left h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.masthead-left .subtitle {
+  font-family: var(--body); font-size: 14px; color: var(--text-muted);
+  margin-top: 6px; max-width: 600px;
+}
+.masthead-right { text-align: right; }
+.masthead-right .timestamp { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+.masthead-right .nav-links { margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.masthead-right .nav-links a {
+  display: inline-block; padding: 5px 12px;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); text-decoration: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* Layout */
+.layout {
+  display: grid; grid-template-columns: 280px 1fr; gap: 24px;
+}
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.sidebar {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; height: fit-content;
+  position: sticky; top: 20px;
+}
+.sidebar h2 {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.field { margin-bottom: 18px; }
+.field label {
+  display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;
+}
+.field .value {
+  font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent);
+  margin-bottom: 4px;
+}
+.field input[type="range"] {
+  width: 100%; -webkit-appearance: none; appearance: none;
+  height: 4px; background: var(--border-light); border-radius: 2px; outline: none;
+}
+.field input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: var(--accent); border-radius: 50%; cursor: pointer;
+}
+.field input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none;
+}
+.field select {
+  width: 100%; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border-light); border-radius: 4px; padding: 6px 8px;
+  font-family: var(--mono); font-size: 12px;
+}
+
+/* Main */
+.main { min-width: 0; }
+
+.section-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin: 24px 0 12px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.section-label:first-child { margin-top: 0; }
+.section-label .hint { color: var(--text-dim); text-transform: none; letter-spacing: 0; font-size: 12px; }
+
+/* Verdict */
+.verdict {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(16, 185, 129, 0.04));
+  border-left: 3px solid var(--accent);
+  padding: 22px 28px; margin-bottom: 24px; border-radius: 0 8px 8px 0;
+}
+.verdict-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 8px;
+}
+.verdict-body {
+  font-family: var(--display); font-size: 19px; line-height: 1.45;
+  font-weight: 400; color: var(--text); font-style: italic;
+}
+
+/* Action items */
+.actions { display: flex; flex-direction: column; gap: 10px; }
+.action {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px 18px; position: relative;
+}
+.action.HIGH    { border-left: 3px solid var(--avoid); }
+.action.MEDIUM  { border-left: 3px solid var(--fair); }
+.action.INFO    { border-left: 3px solid var(--good); }
+.action .meta {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.action .pri {
+  padding: 2px 8px; border-radius: 3px;
+  background: var(--panel-2);
+}
+.action.HIGH .pri { color: var(--avoid); background: rgba(239,68,68,0.1); }
+.action.MEDIUM .pri { color: var(--fair); background: rgba(251,191,36,0.1); }
+.action.INFO .pri { color: var(--good); background: rgba(34,211,238,0.1); }
+.action .cat { color: var(--text-muted); }
+.action .headline { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.action .detail { font-size: 13px; color: var(--text-muted); }
+
+/* Stat row */
+.stat-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px;
+  background: var(--border); border-radius: 8px; overflow: hidden;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--panel); padding: 14px 16px; text-align: center;
+}
+.stat-value {
+  font-family: var(--mono); font-size: 22px; font-weight: 600;
+  color: var(--text); line-height: 1;
+}
+.stat-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-muted); text-transform: uppercase; margin-top: 4px;
+}
+
+/* Tables */
+.table-wrap {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px; overflow-x: auto;
+}
+table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13px; }
+thead th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  color: var(--text-muted); text-transform: uppercase; font-weight: 500;
+  padding: 12px 14px; text-align: right; border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+thead th:first-child, thead th.left { text-align: left; }
+tbody td {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 13px; text-align: right; color: var(--text);
+}
+tbody td:first-child, tbody td.left { text-align: left; font-weight: 600; }
+tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
+.gain  { color: var(--best); }
+.loss  { color: var(--avoid); }
+.pill {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.pill.LT { background: rgba(16,185,129,0.12); color: var(--best); }
+.pill.ST { background: rgba(251,191,36,0.12); color: var(--fair); }
+.pill.EFF { background: rgba(16,185,129,0.12); color: var(--best); }
+.pill.MOD { background: rgba(251,191,36,0.12); color: var(--fair); }
+.pill.INE { background: rgba(239,68,68,0.12); color: var(--avoid); }
+
+/* TLH cards */
+.tlh-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;
+}
+.tlh-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 16px 18px; border-left: 3px solid var(--best);
+}
+.tlh-ticker { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+.tlh-loss { color: var(--avoid); font-family: var(--mono); font-size: 15px; margin: 4px 0; }
+.tlh-savings { color: var(--best); font-family: var(--mono); font-size: 16px; font-weight: 600; }
+.tlh-subs { margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+.tlh-rationale { margin-top: 10px; font-size: 12px; color: var(--text-muted); padding-top: 10px; border-top: 1px dashed var(--border); }
+
+/* Loading / empty */
+.empty {
+  background: var(--panel); border: 1px dashed var(--border);
+  border-radius: 8px; padding: 30px; text-align: center;
+  color: var(--text-dim); font-family: var(--mono); font-size: 13px;
+}
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 200px; color: var(--text-muted); font-family: var(--mono); font-size: 13px;
+}
+.loading::before { content: '●'; color: var(--accent); margin-right: 8px; animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+.method-note {
+  margin-top: 36px; padding: 22px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.7;
+}
+.method-note h3 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; color: var(--text); margin-bottom: 14px; text-transform: uppercase; }
+.method-note ul { padding-left: 18px; }
+.method-note li { margin-bottom: 6px; }
+.disclaimer { margin-top: 20px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-dim); font-style: italic; }
+
+@media (max-width: 720px) {
+  .masthead { flex-direction: column; gap: 12px; }
+  .masthead-left h1 { font-size: 28px; }
+  .container { padding: 20px 14px 60px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="masthead">
+  <div class="masthead-left">
+    <h1>The <em>Tax</em> Plan</h1>
+    <div class="subtitle">After-tax wealth: tax-loss harvesting, asset-location optimization, after-tax forward returns. The 1–3%/yr edge most retail leaves on the table.</div>
+  </div>
+  <div class="masthead-right">
+    <div class="timestamp" id="timestamp">Loading…</div>
+    <div class="nav-links">
+      <a href="/compass.html">← Compass</a>
+      <a href="/wealth-plan.html">← Wealth Plan</a>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Your Tax Profile</h2>
+
+    <div class="field">
+      <label>Federal Bracket</label>
+      <div class="value" id="v-fed">24%</div>
+      <select id="i-fed">
+        <option value="12">12%</option>
+        <option value="22">22%</option>
+        <option value="24" selected>24%</option>
+        <option value="32">32%</option>
+        <option value="35">35%</option>
+        <option value="37">37%</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>State Income Tax</label>
+      <div class="value" id="v-state">5%</div>
+      <input type="range" id="i-state" min="0" max="13" value="5" step="0.5" />
+    </div>
+
+    <div class="field">
+      <label>AGI (for NIIT trigger)</label>
+      <div class="value" id="v-agi">$200,000</div>
+      <input type="range" id="i-agi" min="50000" max="1000000" value="200000" step="10000" />
+    </div>
+
+    <div class="field">
+      <label>Filing Status</label>
+      <select id="i-filing">
+        <option value="single" selected>Single</option>
+        <option value="mfj">Married Filing Jointly</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>% in Taxable Account</label>
+      <div class="value" id="v-tax">60%</div>
+      <input type="range" id="i-tax" min="0" max="100" value="60" step="5" />
+    </div>
+
+    <div class="field">
+      <label>% in IRA / 401(k)</label>
+      <div class="value" id="v-ira">30%</div>
+      <input type="range" id="i-ira" min="0" max="100" value="30" step="5" />
+    </div>
+
+    <div class="field">
+      <label>% in Roth</label>
+      <div class="value" id="v-roth">10%</div>
+      <input type="range" id="i-roth" min="0" max="100" value="10" step="5" />
+    </div>
+
+    <div class="field">
+      <label>Cap-Loss Carryforward</label>
+      <div class="value" id="v-cf">$0</div>
+      <input type="range" id="i-cf" min="0" max="50000" value="0" step="500" />
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="root">
+    <div class="loading">Computing tax plan…</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const ENDPOINT = "REPLACE_WITH_FUNCTION_URL";  // patched post-deploy
+
+const fmtPct = (v) => v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2) + "%";
+const fmtMoney = (v) => v == null ? "—" : (v < 0 ? "-$" : "$") + Math.abs(Math.round(v)).toLocaleString();
+const fmtSign = (v) => v == null ? "—" : (v >= 0 ? "+" : "−") + "$" + Math.abs(Math.round(v)).toLocaleString();
+
+let debounce = null;
+function bind(id, fn) {
+  document.getElementById(id).addEventListener("input", () => {
+    clearTimeout(debounce);
+    fn();
+    debounce = setTimeout(refresh, 400);
+  });
+}
+
+function syncDisplay() {
+  document.getElementById("v-fed").textContent = document.getElementById("i-fed").value + "%";
+  document.getElementById("v-state").textContent = parseFloat(document.getElementById("i-state").value).toFixed(1) + "%";
+  document.getElementById("v-agi").textContent = "$" + parseInt(document.getElementById("i-agi").value).toLocaleString();
+  document.getElementById("v-tax").textContent = document.getElementById("i-tax").value + "%";
+  document.getElementById("v-ira").textContent = document.getElementById("i-ira").value + "%";
+  document.getElementById("v-roth").textContent = document.getElementById("i-roth").value + "%";
+  document.getElementById("v-cf").textContent = "$" + parseInt(document.getElementById("i-cf").value).toLocaleString();
+}
+
+["i-fed", "i-state", "i-agi", "i-filing", "i-tax", "i-ira", "i-roth", "i-cf"].forEach(id => bind(id, syncDisplay));
+
+async function refresh() {
+  syncDisplay();
+  const root = document.getElementById("root");
+  root.innerHTML = '<div class="loading">Recomputing tax plan…</div>';
+
+  const params = new URLSearchParams({
+    federal_bracket: document.getElementById("i-fed").value,
+    state_rate: document.getElementById("i-state").value,
+    agi: document.getElementById("i-agi").value,
+    filing_status: document.getElementById("i-filing").value,
+    taxable_pct: (parseFloat(document.getElementById("i-tax").value) / 100).toString(),
+    ira_pct: (parseFloat(document.getElementById("i-ira").value) / 100).toString(),
+    roth_pct: (parseFloat(document.getElementById("i-roth").value) / 100).toString(),
+    carryforward: document.getElementById("i-cf").value,
+  });
+
+  try {
+    const resp = await fetch(ENDPOINT + "?" + params.toString(), { method: "GET" });
+    const data = await resp.json();
+    render(data);
+  } catch (e) {
+    root.innerHTML = `<div class="loading" style="color:var(--avoid)">Error: ${e.message}</div>`;
+  }
+}
+
+function render(data) {
+  const root = document.getElementById("root");
+  const ts = document.getElementById("timestamp");
+  ts.textContent = "Generated: " + new Date(data.generated_at).toLocaleString();
+
+  const positions = (data.portfolio_tax_view?.positions || []);
+  const atRows = data.after_tax_forward_returns || [];
+  const tlh = data.tax_loss_harvest_candidates || [];
+  const verdict = data.verdict || {};
+  const tax_est = data.annual_tax_bill_estimate || {};
+  const rates = data.effective_rates || {};
+  const ploc = data.asset_location || {};
+
+  let html = "";
+
+  // VERDICT
+  html += `
+    <div class="verdict">
+      <div class="verdict-label">Today's Tax Verdict</div>
+      <div class="verdict-body">${verdict.summary_line || "—"}</div>
+    </div>`;
+
+  // EFFECTIVE RATES
+  html += `<div class="section-label">Your Effective Rates <span class="hint">stacked: federal + state + NIIT</span></div>`;
+  html += `
+    <div class="stat-row">
+      <div class="stat"><div class="stat-value">${rates.ordinary_plus_niit_pct}%</div><div class="stat-label">Ordinary (income / bonds / REIT)</div></div>
+      <div class="stat"><div class="stat-value">${rates.ltcg_plus_niit_pct}%</div><div class="stat-label">LT capital gains + NIIT</div></div>
+      <div class="stat"><div class="stat-value">${tax_est.niit_active ? "ACTIVE" : "—"}</div><div class="stat-label">NIIT 3.8% surtax</div></div>
+      <div class="stat"><div class="stat-value">${fmtMoney(tax_est.total_federal_tax_usd)}</div><div class="stat-label">Annual est. federal tax</div></div>
+    </div>`;
+
+  // ACTION ITEMS
+  if ((verdict.action_items || []).length) {
+    html += `<div class="section-label">Action Items <span class="hint">prioritized — high → info</span></div>`;
+    html += `<div class="actions">`;
+    verdict.action_items.forEach(a => {
+      html += `
+        <div class="action ${a.priority}">
+          <div class="meta"><span class="pri">${a.priority}</span><span class="cat">${a.category}</span></div>
+          <div class="headline">${a.headline}</div>
+          <div class="detail">${a.detail}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // POSITION TAX VIEW
+  if (positions.length) {
+    html += `<div class="section-label">Per-Position Tax View <span class="hint">cost basis, holding period, tax-if-sold-today</span></div>`;
+    html += `<div class="table-wrap"><table>`;
+    html += `<thead><tr>
+      <th class="left">Ticker</th><th class="left">Class</th>
+      <th>Qty</th><th>Cost Basis</th><th>Mkt Value</th>
+      <th>Unreal P/L</th><th>P/L %</th><th>Days Held</th><th>Days→LT</th><th>Tax if Sold</th>
+    </tr></thead><tbody>`;
+    positions.forEach(p => {
+      const cls = p.classification.includes("LOSS") ? "loss" : (p.classification.startsWith("LT") ? "gain" : "");
+      const pill = p.is_long_term ? "LT" : "ST";
+      html += `<tr>
+        <td>${p.ticker}</td>
+        <td class="left"><span class="pill ${pill}">${pill}</span></td>
+        <td>${p.qty}</td>
+        <td>${fmtMoney(p.cost_basis)}</td>
+        <td>${fmtMoney(p.market_value)}</td>
+        <td class="${cls}">${fmtSign(p.unrealized_pl)}</td>
+        <td class="${cls}">${fmtPct(p.unrealized_pl_pct)}</td>
+        <td>${p.days_held}</td>
+        <td>${p.is_long_term ? "—" : p.days_to_lt}</td>
+        <td>${fmtMoney(p.tax_if_sold_today)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  } else {
+    html += `<div class="section-label">Per-Position Tax View</div>`;
+    html += `<div class="empty">No open positions detected in the signal portfolio book. (Open new positions, then refresh.)</div>`;
+  }
+
+  // TLH CANDIDATES
+  if (tlh.length) {
+    html += `<div class="section-label">Tax-Loss Harvest Candidates <span class="hint">${tlh.length} positions in loss</span></div>`;
+    html += `<div class="tlh-grid">`;
+    tlh.forEach(c => {
+      html += `
+        <div class="tlh-card">
+          <div class="tlh-ticker">${c.ticker}</div>
+          <div class="tlh-loss">${fmtSign(-c.harvestable_loss)} unrealized loss</div>
+          <div class="tlh-savings">→ Save ${fmtMoney(c.estimated_tax_savings)} in taxes</div>
+          <div class="tlh-subs">Rotate into: ${c.substitute_etfs && c.substitute_etfs.length ? c.substitute_etfs.join(" / ") : "similar asset"}</div>
+          <div class="tlh-rationale">${c.rationale}</div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // AFTER-TAX FORWARD RETURNS
+  if (atRows.length) {
+    html += `<div class="section-label">After-Tax Forward Returns <span class="hint">live from Capital Compass + your tax profile</span></div>`;
+    html += `<div class="table-wrap"><table>`;
+    html += `<thead><tr>
+      <th class="left">Asset</th>
+      <th>Pre-tax ER</th><th>Taxable ER</th><th>IRA/401(k) ER</th><th>Roth ER</th>
+      <th>Annual Tax Drag</th><th>Efficiency</th><th class="left">Ideal Account</th>
+    </tr></thead><tbody>`;
+    atRows.forEach(r => {
+      const eff = r.tax_efficiency_verdict === "EFFICIENT" ? "EFF" : (r.tax_efficiency_verdict === "MODERATE" ? "MOD" : "INE");
+      html += `<tr>
+        <td>${r.ticker}</td>
+        <td>${fmtPct(r.forward_er_pretax_pct)}</td>
+        <td class="${r.after_tax_er_taxable_pct < r.forward_er_pretax_pct - 0.5 ? 'loss' : ''}">${fmtPct(r.after_tax_er_taxable_pct)}</td>
+        <td class="gain">${fmtPct(r.after_tax_er_tax_deferred_pct)}</td>
+        <td class="gain">${fmtPct(r.after_tax_er_roth_pct)}</td>
+        <td class="${r.annual_tax_drag_pct > 0.5 ? 'loss' : ''}">${r.annual_tax_drag_pct.toFixed(2)}%</td>
+        <td><span class="pill ${eff}">${eff}</span></td>
+        <td class="left" style="color:var(--text-muted);font-size:11px">${r.ideal_account}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  // ASSET LOCATION
+  if (ploc && ploc.suggested_moves && ploc.suggested_moves.length) {
+    html += `<div class="section-label">Asset Location Optimizer <span class="hint">est. annual savings: ${ploc.total_estimated_annual_savings_bps} bp</span></div>`;
+    html += `<div class="actions">`;
+    ploc.suggested_moves.forEach(m => {
+      html += `
+        <div class="action MEDIUM">
+          <div class="meta"><span class="pri">MOVE</span><span class="cat">${m.ticker}: ${m.current_account} → ${m.move_to}</span></div>
+          <div class="detail">${m.rationale} <strong>Saves ${m.annual_tax_savings_per_position_dollar.toFixed(2)}% of position value per year.</strong></div>
+        </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ANNUAL TAX BILL
+  html += `<div class="section-label">Annual Tax Bill Estimate <span class="hint">based on current holdings + dividend yields</span></div>`;
+  html += `
+    <div class="stat-row">
+      <div class="stat"><div class="stat-value">${fmtMoney(tax_est.annual_dividend_income_projection_usd)}</div><div class="stat-label">Annual dividends</div></div>
+      <div class="stat"><div class="stat-value">${fmtMoney(tax_est.tax_on_qualified_dividends_usd)}</div><div class="stat-label">Tax on qualified div</div></div>
+      <div class="stat"><div class="stat-value">${fmtMoney(tax_est.tax_on_ordinary_dividends_usd)}</div><div class="stat-label">Tax on ordinary div</div></div>
+      <div class="stat"><div class="stat-value">${fmtMoney(tax_est.carryforward_remaining_usd)}</div><div class="stat-label">Loss carryforward</div></div>
+    </div>`;
+
+  // METHOD
+  html += `
+    <div class="method-note">
+      <h3>Method &amp; Sources</h3>
+      <ul>
+        <li><strong>Ordinary income:</strong> ${data.methodology.ordinary_income}</li>
+        <li><strong>Long-term capital gains:</strong> ${data.methodology.ltcg}</li>
+        <li><strong>Qualified dividends:</strong> ${data.methodology.qualified_dividends}</li>
+        <li><strong>Asset classification:</strong> ${data.methodology.asset_classification}</li>
+        <li><strong>TLH substitutes:</strong> ${data.methodology.tlh_substitutes}</li>
+        <li><strong>Wash-sale monitoring:</strong> ${data.methodology.wash_sale}</li>
+      </ul>
+      <div class="disclaimer">${data.disclaimer}</div>
+    </div>`;
+
+  root.innerHTML = html;
+}
+
+syncDisplay();
+refresh();
+</script>
+</body>
+</html>
