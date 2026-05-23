@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-concentration-liquidity",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily position concentration, sector/factor exposure, liquidity risk (days-to-exit at 20% ADV via FMP volume). Alerts on >10% NAV position, >30% NAV sector, >5d liquidity, factor imbalance.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "POSITION_CONCENTRATION_PCT": "10",
+    "SECTOR_CONCENTRATION_PCT": "30",
+    "LIQUIDITY_DAYS_THRESHOLD": "5",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "concentration-liquidity-daily",
+    "cron": "cron(0 14 * * ? *)",
+    "description": "Daily 14 UTC — position concentration, sector/factor, liquidity"
+  }
+}

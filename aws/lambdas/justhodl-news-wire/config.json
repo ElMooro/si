@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-news-wire",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Real-time news wire: NewsAPI + FMP general/financial. Hash-dedupe, Claude batch classifies (tickers/themes/sentiment/urgency), per-headline impact-on-your-portfolio scoring. Top 10 24h surfaced + Telegram on urgency>=4 & impact>=6.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "NEWSAPI_KEY": "17d36cdd13c44e139853b3a6876cf940",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "ANTHROPIC_API_KEY": "PLACEHOLDER_REPLACE_VIA_AWS_CONSOLE_OR_OPS",
+    "MAX_NEW_TO_SCORE": "20",
+    "TELEGRAM_BOT_TOKEN": "8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs",
+    "TELEGRAM_CHAT_ID": "8678089260"
+  },
+  "schedule": {
+    "rule_name": "news-wire-15m",
+    "cron": "rate(15 minutes)",
+    "description": "Every 15m — high-velocity news with portfolio impact scoring"
+  }
+}
