@@ -1,0 +1,36 @@
+{
+  "top_keys": [
+    "schema",
+    "engine",
+    "generated_at",
+    "build_seconds",
+    "firm_book_asof",
+    "posture",
+    "headline",
+    "loss_limits",
+    "summary",
+    "scenarios",
+    "reverse_stress",
+    "method",
+    "disclaimer"
+  ],
+  "n_scenarios": 15,
+  "scenario_sample": [
+    {
+      "name": null,
+      "type": "historical",
+      "pnl": null
+    },
+    {
+      "name": null,
+      "type": "historical",
+      "pnl": null
+    },
+    {
+      "name": null,
+      "type": "hypothetical",
+      "pnl": null
+    }
+  ],
+  "sample": "{\n  \"schema\": \"1.0\",\n  \"engine\": \"justhodl-firm-stress\",\n  \"generated_at\": \"2026-05-22T03:00:40.814773+00:00\",\n  \"build_seconds\": 0.5,\n  \"firm_book_asof\": \"2026-05-22T01:00:34.124086+00:00\",\n  \"posture\": \"GREEN\",\n  \"headline\": \"Worst modelled scenario: 2020 COVID Crash at -5.8% of book. 14 of 15 scenarios lose money. Firm stress posture GREEN (soft limit -12%, hard -20%).\",\n  \"loss_limits\": {\n    \"soft_pct\": -12.0,\n    \"hard_pct\": -20.0\n  },\n  \"summary\": {\n    \"n_names_modelled\": 258,\n    \"n_direct_loadings\": 173,\n    \"n_sector_proxy\": 85,\n    \"n_book_fallback\": 0,\n    \"firm_gross_pct\": 99.99,\n    \"firm_net_pct\": 39.26,\n    \"annual_vol_pct\": 7.46,\n    \"var_99_1d_pct\": 1.09,\n    \"worst_scenario\": \"2020 COVID Crash (Feb-Mar 2020)\",\n    \"worst_loss_pct\": -5.79,\n    \"median_scenario_pnl_pct\": -1.79,\n    \"n_scenarios\": 15,\n    \"n_losing_scenarios\": 14\n  },\n  \"scenarios\": [\n    {\n      \"scenario\": \"2020 COVID Crash (Feb-Mar 2020)\",\n      \"type\": \"historical\",\n      \"shock\": {\n        \"MKT\": -0.34,\n        \"SIZE\": -0.12,\n        \"VALUE\": -0.1,\n        \"MOM\": 0.04,\n        \"QUALITY\": 0.05,\n        \"LOWVOL\": 0.07\n      },\n      \"book_pnl_pct\": -5.79,\n      \"desk_pnl\": [\n        {\n          \"desk\": \"Merger-Arb Desk\",\n          \"pnl_pct\": -6.021\n        },\n        {\n          \"desk\": \"Best Ideas\",\n          \"pnl_pct\": -3.747\n        },\n        {\n          \"desk\": \"Spin-Off Desk\",\n          \"pnl_pct\": -3.066\n        },\n        {\n          \"desk\": \"Pairs Desk\",\n          \"pnl_pct\": -0.0\n        },\n        {\n          \"desk\": \"Index-Recon Desk\",\n          \"pnl_pct\": 0.679\n        },\n        {\n          \"desk\": \"Risk Radar\",\n          \"pnl_pct\": 6.363\n        }\n      ],\n      \"sector_pnl\": [\n        {\n          \"sector\": \"Special Situations\",\n          \"pnl_pct\": -6.066\n        },\n        {\n          \"sector\": \"Healthcare\",\n          \"pnl_pct\": -1.55\n        },\n        {\n          \"sector\": \"Energy\",\n          \"pnl_pct\": -1.237\n        },\n        {\n          \"sector\": \"Industrials\",\n          \"pnl_pct\": -1.126\n        },\n        {\n          \"sector\": \"Technology\",\n          \"pnl_pct\": -0.52\n        },\n        {\n          \"sector\": \"Basic Materials\",\n          \"pnl_pct\": -0.359\n        },\n        {\n          \"sector\": \"Unknown\",\n          \"pnl_pct\": -0.281\n        },\n        {\n          \"sector\": \"Real Estate\",\n          \"pnl_pct\": 0.433\n        },\n        {\n          \"sector\": \"Utilities\",\n          \"pnl_pct\": 0.635\n        },\n        {\n          \"sector\": \"Communication"
+}
