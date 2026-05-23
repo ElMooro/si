@@ -1,0 +1,265 @@
+{
+  "started_at": "2026-05-23T10:40:28.309934+00:00",
+  "scenarios": {
+    "default_typical_american": {
+      "inputs": {
+        "age": "35",
+        "retire_age": "65",
+        "current_nav": "100000",
+        "annual_savings": "24000",
+        "annual_spending": "80000",
+        "risk_profile": "moderate"
+      },
+      "prob_success_pct": 42,
+      "terminal_p50": 0,
+      "terminal_p10": 0,
+      "terminal_p90": 18457353,
+      "today_dollars_p50": 0,
+      "n_bankrupt": 5821,
+      "verdict": "OFF_TRACK",
+      "verdict_msg": "You're off track. Only a 42% chance of success at current pace. Required: $62,988/yr (+$3,249/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+      "portfolio_E_r": 6.39,
+      "portfolio_vol": 12.33,
+      "real_E_r": 3.99,
+      "profile_label": "Moderate \u2014 classic balanced 60/40",
+      "required_savings": 62988,
+      "elapsed_s": 5.56,
+      "sensitivities": {
+        "retire_5_yrs_later": {
+          "prob": 67,
+          "delta": 24.8,
+          "terminal_p50": 3691512
+        },
+        "save_20pct_more": {
+          "prob": 54,
+          "delta": 12.2,
+          "terminal_p50": 1003041
+        },
+        "spend_20pct_less": {
+          "prob": 57,
+          "delta": 15.5,
+          "terminal_p50": 1604952
+        }
+      },
+      "benchmarks": {
+        "conservative": {
+          "prob": 18,
+          "terminal_p50": 0
+        },
+        "aggressive": {
+          "prob": 46,
+          "terminal_p50": 0
+        }
+      }
+    },
+    "disciplined_saver_moderate": {
+      "inputs": {
+        "age": "35",
+        "retire_age": "65",
+        "current_nav": "200000",
+        "annual_savings": "50000",
+        "annual_spending": "70000",
+        "risk_profile": "moderate"
+      },
+      "prob_success_pct": 90,
+      "terminal_p50": 15645279,
+      "terminal_p10": 0,
+      "terminal_p90": 67133860,
+      "today_dollars_p50": 3555915,
+      "n_bankrupt": 1029,
+      "verdict": "ON_TRACK",
+      "verdict_msg": "You're on track. 90% probability of success at current pace. Median NAV at age 65: $6,074,900. Terminal NAV at 95: median $15,645,279, bear-case (p10) $0.",
+      "portfolio_E_r": 6.39,
+      "portfolio_vol": 12.33,
+      "real_E_r": 3.99,
+      "profile_label": "Moderate \u2014 classic balanced 60/40",
+      "required_savings": 49219,
+      "elapsed_s": 5.62,
+      "sensitivities": {
+        "retire_5_yrs_later": {
+          "prob": 96,
+          "delta": 6.4,
+          "terminal_p50": 23306125
+        },
+        "save_20pct_more": {
+          "prob": 94,
+          "delta": 4.6,
+          "terminal_p50": 21464267
+        },
+        "spend_20pct_less": {
+          "prob": 95,
+          "delta": 5.2,
+          "terminal_p50": 19028468
+        }
+      },
+      "benchmarks": {
+        "conservative": {
+          "prob": 96,
+          "terminal_p50": 10468548
+        },
+        "aggressive": {
+          "prob": 84,
+          "terminal_p50": 17476533
+        }
+      }
+    },
+    "lifecycle_45_yo": {
+      "inputs": {
+        "age": "45",
+        "retire_age": "65",
+        "current_nav": "400000",
+        "annual_savings": "35000",
+        "annual_spending": "85000",
+        "risk_profile": "lifecycle"
+      },
+      "prob_success_pct": 51,
+      "terminal_p50": 239466,
+      "terminal_p10": 0,
+      "terminal_p90": 18687250,
+      "today_dollars_p50": 69671,
+      "n_bankrupt": 4876,
+      "verdict": "OFF_TRACK",
+      "verdict_msg": "You're off track. Only a 51% chance of success at current pace. Required: $89,648/yr (+$4,554/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+      "portfolio_E_r": 6.45,
+      "portfolio_vol": 12.1,
+      "real_E_r": 4.05,
+      "profile_label": "Lifecycle \u2014 equity glides down as you approach retirement",
+      "required_savings": 89648,
+      "elapsed_s": 4.81,
+      "sensitivities": {
+        "retire_5_yrs_later": {
+          "prob": 75,
+          "delta": 23.7,
+          "terminal_p50": 5115475
+        },
+        "save_20pct_more": {
+          "prob": 60,
+          "delta": 8.9,
+          "terminal_p50": 2038941
+        },
+        "spend_20pct_less": {
+          "prob": 69,
+          "delta": 17.9,
+          "terminal_p50": 3320781
+        }
+      },
+      "benchmarks": {
+        "conservative": {
+          "prob": 33,
+          "terminal_p50": 0
+        },
+        "moderate": {
+          "prob": 53,
+          "terminal_p50": 617623
+        },
+        "aggressive": {
+          "prob": 52,
+          "terminal_p50": 550752
+        }
+      }
+    },
+    "aggressive_young": {
+      "inputs": {
+        "age": "28",
+        "retire_age": "60",
+        "current_nav": "50000",
+        "annual_savings": "30000",
+        "annual_spending": "75000",
+        "risk_profile": "aggressive"
+      },
+      "prob_success_pct": 53,
+      "terminal_p50": 1564728,
+      "terminal_p10": 0,
+      "terminal_p90": 79489450,
+      "today_dollars_p50": 299185,
+      "n_bankrupt": 4687,
+      "verdict": "OFF_TRACK",
+      "verdict_msg": "You're off track. Only a 53% chance of success at current pace. Required: $86,426/yr (+$4,702/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+      "portfolio_E_r": 7.25,
+      "portfolio_vol": 17.3,
+      "real_E_r": 4.85,
+      "profile_label": "Aggressive \u2014 long-horizon growth-maximizing",
+      "required_savings": 86426,
+      "elapsed_s": 6.39,
+      "sensitivities": {
+        "retire_5_yrs_later": {
+          "prob": 67,
+          "delta": 13.9,
+          "terminal_p50": 10157811
+        },
+        "save_20pct_more": {
+          "prob": 61,
+          "delta": 7.6,
+          "terminal_p50": 6100753
+        },
+        "spend_20pct_less": {
+          "prob": 62,
+          "delta": 9.4,
+          "terminal_p50": 5952177
+        }
+      },
+      "benchmarks": {
+        "conservative": {
+          "prob": 35,
+          "terminal_p50": 0
+        },
+        "moderate": {
+          "prob": 54,
+          "terminal_p50": 1188637
+        }
+      }
+    },
+    "conservative_pre_retiree": {
+      "inputs": {
+        "age": "55",
+        "retire_age": "65",
+        "current_nav": "1200000",
+        "annual_savings": "40000",
+        "annual_spending": "90000",
+        "risk_profile": "conservative"
+      },
+      "prob_success_pct": 57,
+      "terminal_p50": 522996,
+      "terminal_p10": 0,
+      "terminal_p90": 5848919,
+      "today_dollars_p50": 194780,
+      "n_bankrupt": 4298,
+      "verdict": "OFF_TRACK",
+      "verdict_msg": "You're off track. Only a 57% chance of success at current pace. Required: $100,195/yr (+$5,016/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+      "portfolio_E_r": 5.24,
+      "portfolio_vol": 6.74,
+      "real_E_r": 2.84,
+      "profile_label": "Conservative \u2014 preserve capital, modest growth",
+      "required_savings": 100195,
+      "elapsed_s": 3.77,
+      "sensitivities": {
+        "retire_5_yrs_later": {
+          "prob": 90,
+          "delta": 33.3,
+          "terminal_p50": 3888169
+        },
+        "save_20pct_more": {
+          "prob": 63,
+          "delta": 6.0,
+          "terminal_p50": 886050
+        },
+        "spend_20pct_less": {
+          "prob": 84,
+          "delta": 26.6,
+          "terminal_p50": 2753880
+        }
+      },
+      "benchmarks": {
+        "moderate": {
+          "prob": 63,
+          "terminal_p50": 2204660
+        },
+        "aggressive": {
+          "prob": 59,
+          "terminal_p50": 2226680
+        }
+      }
+    }
+  },
+  "finished_at": "2026-05-23T10:40:55.698990+00:00"
+}
