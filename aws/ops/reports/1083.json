@@ -1,0 +1,241 @@
+{
+  "started_at": "2026-05-23T09:56:23.748791+00:00",
+  "code_sha": "YX0xaoFGR5h0",
+  "last_modified": "2026-05-23T09:41:03.000+0000",
+  "invoke_status": 200,
+  "fn_err": null,
+  "log_tail": "START RequestId: d8ed4ae5-a83f-4bd6-82a7-4a7302f94a2d Version: $LATEST\n[forward-returns] v1.0.0 starting\n[forward-returns] fetching market data ...\n[forward-returns] fetched: quotes=15/15 ratios=1/15 hist=15/15\n[forward-returns] wrote data/forward-returns.json in 1.0s\nEND RequestId: d8ed4ae5-a83f-4bd6-82a7-4a7302f94a2d\nREPORT RequestId: d8ed4ae5-a83f-4bd6-82a7-4a7302f94a2d\tDuration: 1136.36 ms\tBilled Duration: 1676 ms\tMemory Size: 1024 MB\tMax Memory Used: 103 MB\tInit Duration: 539.57 ms\t\nXRAY TraceId: 1-6a1179c8-6abb65401b43b57012075ce2\tSegmentId: 8b1dc93e96cea37c\tSampled: true\t\n",
+  "s3_size": 23928,
+  "asset_detail": {
+    "SPY": {
+      "fwd_er": 7.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 50,
+      "verdict": "FAIR",
+      "ten_k_central": 19672,
+      "price": 745.64
+    },
+    "QQQ": {
+      "fwd_er": 7.8,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 50,
+      "verdict": "FAIR",
+      "ten_k_central": 21193,
+      "price": 717.54
+    },
+    "IWM": {
+      "fwd_er": 8.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 50,
+      "verdict": "FAIR",
+      "ten_k_central": 21589,
+      "price": 285.12
+    },
+    "EFA": {
+      "fwd_er": 8.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 56,
+      "verdict": "FAIR",
+      "ten_k_central": 21589,
+      "price": 103.98
+    },
+    "EEM": {
+      "fwd_er": 9.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 54,
+      "verdict": "FAIR",
+      "ten_k_central": 23674,
+      "price": 65.88
+    },
+    "IEF": {
+      "fwd_er": 4.57,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 45,
+      "verdict": "FAIR",
+      "ten_k_central": 15634,
+      "price": 93.88
+    },
+    "TLT": {
+      "fwd_er": 5.1,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 45,
+      "verdict": "FAIR",
+      "ten_k_central": 16445,
+      "price": 84.68
+    },
+    "TIP": {
+      "fwd_er": 4.58,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 52,
+      "verdict": "FAIR",
+      "ten_k_central": 15649,
+      "price": 110.38
+    },
+    "LQD": {
+      "fwd_er": 5.01,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 40,
+      "verdict": "FAIR",
+      "ten_k_central": 16304,
+      "price": 108.37
+    },
+    "HYG": {
+      "fwd_er": 4.5,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 10,
+      "verdict": "AVOID",
+      "ten_k_central": 15530,
+      "price": 79.91
+    },
+    "VNQ": {
+      "fwd_er": 8.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 50,
+      "verdict": "FAIR",
+      "ten_k_central": 21589,
+      "price": 96.77
+    },
+    "GLD": {
+      "fwd_er": 3.9,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 66,
+      "verdict": "GOOD",
+      "ten_k_central": 14661,
+      "price": 413.82
+    },
+    "DBC": {
+      "fwd_er": 2.4,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 39,
+      "verdict": "POOR",
+      "ten_k_central": 12677,
+      "price": 30.54
+    },
+    "BIL": {
+      "fwd_er": 3.68,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 66,
+      "verdict": "GOOD",
+      "ten_k_central": 14353,
+      "price": 91.59
+    },
+    "BTC": {
+      "fwd_er": 15.0,
+      "trailing_div_yield": null,
+      "buyback_assumption": null,
+      "growth_assumption": null,
+      "percentile": 50,
+      "verdict": "FAIR",
+      "ten_k_central": 40456,
+      "price": 33.53
+    }
+  },
+  "headlines": [
+    "Best opportunities right now: GLD (3.9%), BIL (3.68%), EFA (8.0%)",
+    "Historically poor entry points: HYG (4.5%), DBC (2.4%), LQD (5.01%)"
+  ],
+  "rankings": {
+    "by_forward_er": [
+      "BTC",
+      "EEM",
+      "IWM",
+      "EFA",
+      "VNQ",
+      "QQQ",
+      "SPY",
+      "TLT",
+      "LQD",
+      "TIP",
+      "IEF",
+      "HYG",
+      "GLD",
+      "BIL",
+      "DBC"
+    ],
+    "by_sharpe": [
+      "EEM",
+      "EFA",
+      "BTC",
+      "VNQ",
+      "SPY",
+      "QQQ",
+      "IWM",
+      "TIP",
+      "LQD",
+      "IEF",
+      "TLT",
+      "HYG",
+      "GLD",
+      "BIL",
+      "DBC"
+    ],
+    "by_opportunity_percentile": [
+      "GLD",
+      "BIL",
+      "EFA",
+      "EEM",
+      "TIP",
+      "SPY",
+      "QQQ",
+      "IWM",
+      "VNQ",
+      "BTC",
+      "IEF",
+      "TLT",
+      "LQD",
+      "DBC",
+      "HYG"
+    ]
+  },
+  "portfolios": {
+    "all_cash": {
+      "er": 3.68,
+      "ten_k": 14353
+    },
+    "60_40": {
+      "er": 6.03,
+      "ten_k": 17959
+    },
+    "all_weather": {
+      "er": 5.3,
+      "ten_k": 16760
+    },
+    "all_stocks": {
+      "er": 7.0,
+      "ten_k": 19672
+    },
+    "diversified_global": {
+      "er": 6.49,
+      "ten_k": 18754
+    }
+  },
+  "finished_at": "2026-05-23T09:56:29.385770+00:00"
+}
