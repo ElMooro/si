@@ -1,0 +1,52 @@
+{
+  "started_at": "2026-05-23T00:31:58.883454+00:00",
+  "results": [
+    {
+      "fn": "justhodl-concentration-liquidity",
+      "output_key": "data/concentration-liquidity.json",
+      "status_code": 200,
+      "function_error": null,
+      "log_tail": "START RequestId: cf165566-bd0a-4efb-980d-15a24aedcb60 Version: $LATEST\n[concentration-liquidity] v1.0.0 starting\n[portfolio] loaded 279 from data/firm-book.json (eq=258, macro=21)\n[concentration-liquidity] done \u00b7 n=279 \u00b7 alerts=2 \u00b7 elapsed=4.5s\nEND RequestId: cf165566-bd0a-4efb-980d-15a24aedcb60\nREPORT RequestId: cf165566-bd0a-4efb-980d-15a24aedcb60\tDuration: 4934.85 ms\tBilled Duration: 5489 ms\tMemory Size: 512 MB\tMax Memory Used: 107 MB\tInit Duration: 554.03 ms\t\nXRAY TraceId: 1-6a10f57f-43b453000c9e70a90111d576\tSegmentId: 6d160ec54a2cd700\tSampled: true\t\n",
+      "s3_size": 77661,
+      "s3_last_modified": "2026-05-23T00:32:05+00:00",
+      "top_keys": [
+        "version",
+        "generated_at",
+        "n_positions",
+        "total_nav",
+        "positions",
+        "sector_exposure_pct",
+        "factor_exposure_pct",
+        "alerts",
+        "thresholds",
+        "elapsed_s"
+      ],
+      "generated_at": "2026-05-23T00:32:04.466348+00:00",
+      "n_positions": 279,
+      "total_nav": 979151.0,
+      "sample": "{\"version\": \"1.0.0\", \"generated_at\": \"2026-05-23T00:32:04.466348+00:00\", \"n_positions\": 279, \"total_nav\": 979151.0, \"positions\": [{\"symbol\": \"PEN\", \"market_value\": 36920.0, \"pct_of_nav\": 3.77, \"shares\": 112.6, \"price\": 327.89, \"sector\": \"Special Situations\", \"factor\": \"mixed\", \"adv_30d\": 478786, \"days_to_exit_20pct_adv\": 0.0}, {\"symbol\": \"TRVR\", \"market_value\": 36920.0, \"pct_of_nav\": 3.77, \"shares\": 735.31, \"price\": 50.21, \"sector\": \"Special Situations\", \"factor\": \"mixed\", \"adv_30d\": 745, \"days_to_exit_20pct_adv\": 4.93}, {\"symbol\": \"AMWD\", \"market_value\": 36920.0, \"pct_of_nav\": 3.77, \"shares\": 960.71, \"price\": 38.43, \"sector\": \"Special Situations\", \"factor\": \"mixed\", \"adv_30d\": 241881, \"days_to_exit_20pct_adv\": 0.02}, {\"symbol\": \"DBA\", \"market_value\": 33532.0, \"pct_of_nav\": 3.42, \"shares\": 0, \"price\": null, \"sector\": \"Unknown\", \"factor\": \"unknown\", \"adv_30d\": 1693842, \"days_to_exit_20pct_adv\": null}, {\"symbol\": \"CVGW\", \"market_value\": 32940.0, \"pct_of_nav\": 3.36, \"shares\": 1244.9, \"price\": 26.46, \"sector\": \"Special Situations\", \"factor\": \"mixed\", \"adv_30d\": 325892, \"days_to_exit_20pct_adv\": 0.02}, {\"symbol\": \"SPY\", \"market_value\": 25086.0, \"pct_of_nav\": 2.56, \"shares\": 0, \"price\": "
+    },
+    {
+      "fn": "justhodl-news-wire",
+      "output_key": "data/news-wire.json",
+      "status_code": 200,
+      "function_error": null,
+      "log_tail": "START RequestId: dc7961d3-5230-4a6f-a98d-7dc4b14bed7f Version: $LATEST\n[news-wire] 20 new headlines\n[anthropic batch] HTTP Error 401: Unauthorized\n[news-wire] done \u00b7 new=20 \u00b7 top24h=10 \u00b7 high-impact=0 \u00b7 elapsed=0.7s\nEND RequestId: dc7961d3-5230-4a6f-a98d-7dc4b14bed7f\nREPORT RequestId: dc7961d3-5230-4a6f-a98d-7dc4b14bed7f\tDuration: 834.26 ms\tBilled Duration: 1546 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\tInit Duration: 711.42 ms\t\nXRAY TraceId: 1-6a10f588-0cbdec706c029a5578044e00\tSegmentId: 4688f024c43ce801\tSampled: true\t\n",
+      "s3_size": 33633,
+      "s3_last_modified": "2026-05-23T00:32:10+00:00",
+      "top_keys": [
+        "version",
+        "generated_at",
+        "n_new_this_run",
+        "n_scored_total",
+        "portfolio_tickers_tracked",
+        "top_10_24h_by_impact",
+        "recent_30",
+        "elapsed_s"
+      ],
+      "generated_at": "2026-05-23T00:32:09.841279+00:00",
+      "sample": "{\"version\": \"1.0.0\", \"generated_at\": \"2026-05-23T00:32:09.841279+00:00\", \"n_new_this_run\": 20, \"n_scored_total\": 40, \"portfolio_tickers_tracked\": 0, \"top_10_24h_by_impact\": [{\"source\": \"newsapi\", \"title\": \"Private credit defaults hit record high as interest rates soar - CNBC\", \"description\": \"Funds are scrambling to restructure, and they're marking down asset values.\", \"url\": \"https://www.cnbc.com/2026/05/21/private-credit-defaults-hit-record-high-as-interest-rates-soar.html\", \"published_at\": \"2026-05-21T16:12:24Z\", \"origin\": \"CNBC\", \"hash\": \"726fa6267acec871\", \"classification\": {\"i\": 8, \"tickers\": [], \"themes\": [\"banking\", \"recession_risk\", \"inflation\"], \"sentiment\": -2, \"urgency\": 4, \"summary\": \"Private credit defaults reach record highs as interest rates surge higher.\"}, \"scored_at\": \"2026-05-23T00:11:26.520784+00:00\", \"portfolio_impact_score\": -8.0}, {\"source\": \"newsapi\", \"title\": \"Mortgage rates climb to highest level in 9 months - CNN\", \"description\": \"Turmoil in the bond market, fueled by the war with Iran, is sending US mortgage rates higher and threatening to make buying a home even more expensive.\", \"url\": \"https://www.cnn.com/2026/05/21/economy/mortgage-rates\", \"publishe"
+    }
+  ],
+  "finished_at": "2026-05-23T00:32:12.983620+00:00"
+}
