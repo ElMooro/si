@@ -1,38 +1,54 @@
 {
-  "started_at": "2026-05-23T00:11:02.281451+00:00",
-  "anthropic_key_sourced_from": "justhodl-ai-chat",
-  "results": {
-    "justhodl-macro-calendar": {
-      "action": "CREATED",
-      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-macro-calendar",
-      "schedule": "macro-calendar-daily \u2192 cron(0 11 * * ? *)",
-      "state": "Active",
-      "last_update_status": "Successful",
-      "code_size": 10464
+  "started_at": "2026-05-23T00:12:55.806193+00:00",
+  "anthropic_harvest": "OK",
+  "anthropic_key_found": true,
+  "deployments": [
+    {
+      "name": "justhodl-dr-snapshot",
+      "zip_kb": 4.4,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-dr-snapshot",
+      "trace": "^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-dr-snapshot\n"
     },
-    "justhodl-fed-nlp": {
-      "action": "CREATED",
-      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fed-nlp",
-      "schedule": "fed-nlp-6h \u2192 rate(6 hours)",
-      "state": "Active",
-      "last_update_status": "InProgress",
-      "code_size": 3628
+    {
+      "name": "justhodl-cost-anomaly",
+      "zip_kb": 5.0,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-cost-anomaly",
+      "trace": "^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-cost-anomaly\n"
     },
-    "justhodl-news-wire": {
-      "action": "CREATED",
-      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-news-wire",
-      "schedule": "news-wire-15m \u2192 rate(15 minutes)",
-      "state": "Active",
-      "last_update_status": "Successful",
-      "code_size": 10710
+    {
+      "name": "justhodl-macro-calendar",
+      "zip_kb": 3.6,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-macro-calendar",
+      "trace": "^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-macro-calendar\n"
     },
-    "justhodl-concentration-liquidity": {
-      "action": "UPDATED",
-      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-concentration-liquidity",
-      "schedule": "concentration-liquidity-daily \u2192 cron(0 14 * * ? *)",
-      "state": "Active",
-      "last_update_status": "InProgress",
-      "code_size": 13892
+    {
+      "name": "justhodl-fed-nlp",
+      "zip_kb": 3.5,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-fed-nlp",
+      "trace": "^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-fed-nlp\n"
+    },
+    {
+      "name": "justhodl-news-wire",
+      "zip_kb": 3.8,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-news-wire",
+      "trace": "^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-news-wire\n"
+    },
+    {
+      "name": "justhodl-concentration-liquidity",
+      "zip_kb": 4.2,
+      "status": "ERR",
+      "error": "An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-concentration-liquidity",
+      "trace": "  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-concentration-liquidity\n"
     }
+  ],
+  "finished_at": "2026-05-23T00:13:00.394928+00:00",
+  "summary": {
+    "ok": 0,
+    "err": 6
   }
 }
