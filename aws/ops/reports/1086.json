@@ -1,0 +1,35 @@
+{
+  "started_at": "2026-05-23T10:35:12.794343+00:00",
+  "fn": "justhodl-wealth-plan",
+  "before_sha": "v2PF1TznzXnD",
+  "after_sha": "0In+L4LZWHlJ",
+  "sha_changed": true,
+  "function_url": "https://tgo66l3w3s2trxoizqowfwvo240wclyw.lambda-url.us-east-1.on.aws/",
+  "url_state": "CREATED",
+  "public_permission": "EXISTS",
+  "invoke_status": 200,
+  "fn_err": null,
+  "log_tail": "START RequestId: a343e3be-978f-4809-84ef-1f213ca45125 Version: $LATEST\n[wealth-plan] v1.0.0 inputs={'current_nav': 100000, 'age': 35, 'retire_age': 65, 'annual_savings': 24000, 'annual_spending': 80000, 'end_age': 95, 'inflation': 0.025, 'risk_profile': 'moderate', 'n_sims': 10000}\nEND RequestId: a343e3be-978f-4809-84ef-1f213ca45125\nREPORT RequestId: a343e3be-978f-4809-84ef-1f213ca45125\tDuration: 7894.12 ms\tBilled Duration: 8413 ms\tMemory Size: 1024 MB\tMax Memory Used: 116 MB\tInit Duration: 518.17 ms\t\nXRAY TraceId: 1-6a1182e7-02dffd071f0fbc8a62bbc295\tSegmentId: 66b2a8e13e5045bf\tSampled: true\t\n",
+  "verify": {
+    "prob_success": 0.4179,
+    "terminal_nav_p10": 0,
+    "terminal_nav_p50": 0,
+    "terminal_nav_p90": 18457353,
+    "terminal_p50_positive": true,
+    "n_bankrupt": 5821,
+    "n_sims": 10000,
+    "verdict_status": "OFF_TRACK",
+    "verdict_msg": "You're off track. Only a 42% chance of success at current pace. Required: $62,988/yr (+$3,249/mo). Alternatively delay retirement by 3-5 years or reduce target spending by 15-25%.",
+    "expected_return_pct": 6.39,
+    "volatility_pct": 12.33,
+    "elapsed": 7.78,
+    "today_dollars_p50": 0,
+    "sensitivities_keys": [
+      "retire_5_yrs_later",
+      "save_20pct_more",
+      "spend_20pct_less"
+    ]
+  },
+  "html_patched": true,
+  "finished_at": "2026-05-23T10:35:28.698641+00:00"
+}
