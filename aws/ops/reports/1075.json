@@ -1,0 +1,183 @@
+{
+  "started_at": "2026-05-23T00:21:03.878533+00:00",
+  "portfolio_keys": [
+    {
+      "key": "portfolio/catalyst-alert-history.json",
+      "size": 2,
+      "last_modified": "2026-05-22T23:00:40+00:00"
+    },
+    {
+      "key": "portfolio/catalysts.json",
+      "size": 2829,
+      "last_modified": "2026-05-22T23:00:40+00:00"
+    },
+    {
+      "key": "portfolio/nobrainer-tracker-state.json",
+      "size": 16091,
+      "last_modified": "2026-05-22T23:56:35+00:00"
+    },
+    {
+      "key": "portfolio/pnl-daily.json",
+      "size": 1516,
+      "last_modified": "2026-05-22T22:00:05+00:00"
+    },
+    {
+      "key": "portfolio/pnl-history.json",
+      "size": 7977,
+      "last_modified": "2026-05-22T22:00:06+00:00"
+    },
+    {
+      "key": "portfolio/position-monitor-state.json",
+      "size": 860,
+      "last_modified": "2026-05-23T00:15:01+00:00"
+    },
+    {
+      "key": "portfolio/risk-alert-history.json",
+      "size": 49,
+      "last_modified": "2026-05-12T22:57:18+00:00"
+    },
+    {
+      "key": "portfolio/risk.json",
+      "size": 164,
+      "last_modified": "2026-05-22T23:43:16+00:00"
+    },
+    {
+      "key": "portfolio/signal-portfolio-history.json",
+      "size": 4064,
+      "last_modified": "2026-05-22T22:30:05+00:00"
+    },
+    {
+      "key": "portfolio/signal-portfolio-state.json",
+      "size": 34097,
+      "last_modified": "2026-05-22T22:30:05+00:00"
+    },
+    {
+      "key": "portfolio/sizer-v2.json",
+      "size": 11558,
+      "last_modified": "2026-05-22T14:00:09+00:00"
+    },
+    {
+      "key": "portfolio/sizing-alert-history.json",
+      "size": 2,
+      "last_modified": "2026-05-22T23:45:13+00:00"
+    },
+    {
+      "key": "portfolio/sizing.json",
+      "size": 978,
+      "last_modified": "2026-05-22T23:45:13+00:00"
+    },
+    {
+      "key": "portfolio/snapshot.json",
+      "size": 492,
+      "last_modified": "2026-05-22T23:40:07+00:00"
+    },
+    {
+      "key": "portfolio/state.json",
+      "size": 396,
+      "last_modified": "2026-04-25T12:27:28+00:00"
+    },
+    {
+      "key": "portfolio/watchlist.json",
+      "size": 343,
+      "last_modified": "2026-04-25T12:32:55+00:00"
+    }
+  ],
+  "fmp_news_tests": [
+    {
+      "endpoint": "/stable/news/general-latest",
+      "status": 200,
+      "count": 3,
+      "sample_keys": [
+        "symbol",
+        "publishedDate",
+        "publisher",
+        "title",
+        "image",
+        "site",
+        "text",
+        "url"
+      ],
+      "first_500": "[\n  {\n    \"symbol\": null,\n    \"publishedDate\": \"2026-05-22 19:55:00\",\n    \"publisher\": \"Barrons\",\n    \"title\": \"Review & Preview: On the Bright Side\",\n    \"image\": \"https://images.financialmodelingprep.com/news/review-preview-on-the-bright-side-20260522.jpg\",\n    \"site\": \"barrons.com\",\n    \"text\": \"The S&P 500 was up for an eighth straight week, while the Dow closed at a record. Holiday Highs. It was a relatively quiet Friday ahead of the unofficial start to summer. Investors are still riding th"
+    },
+    {
+      "endpoint": "/stable/news/stock-latest",
+      "status": 200,
+      "count": 3,
+      "sample_keys": [
+        "symbol",
+        "publishedDate",
+        "publisher",
+        "title",
+        "image",
+        "site",
+        "text",
+        "url"
+      ],
+      "first_500": "[\n  {\n    \"symbol\": \"QLTY\",\n    \"publishedDate\": \"2026-05-22 20:03:26\",\n    \"publisher\": \"Seeking Alpha\",\n    \"title\": \"QLTY: High Quality Does Not Guarantee Outperformance, Hold Rating Maintained\",\n    \"image\": \"https://images.financialmodelingprep.com/news/qlty-high-quality-does-not-guarantee-outperformance-hold-rating-20260522.jpg\",\n    \"site\": \"seekingalpha.com\",\n    \"text\": \"GMO U.S. Quality ETF employs an active, quality-centered strategy that brings together fundamental and quantitative m"
+    },
+    {
+      "endpoint": "/stable/news/press-releases-latest",
+      "status": 200,
+      "count": 3,
+      "sample_keys": [
+        "symbol",
+        "publishedDate",
+        "publisher",
+        "title",
+        "image",
+        "site",
+        "text",
+        "url"
+      ],
+      "first_500": "[\n  {\n    \"symbol\": \"BLDS\",\n    \"publishedDate\": \"2026-05-22 20:00:00\",\n    \"publisher\": \"Newsfile Corp\",\n    \"title\": \"Badlands Announces Effective Date of Share Consolidation\",\n    \"image\": \"https://images.financialmodelingprep.com/news/badlands-announces-effective-date-of-share-consolidation-20260522.jpg\",\n    \"site\": \"newsfilecorp.com\",\n    \"text\": \"Vancouver, British Columbia--(Newsfile Corp. - May 22, 2026) - Badlands Resources Inc. (TSXV: BLDS) (FSE: B7Q) (\\\"Badlands\\\" or the \\\"Company\\\")"
+    },
+    {
+      "endpoint": "/stable/news/forex-latest",
+      "status": 200,
+      "count": 3,
+      "sample_keys": [
+        "symbol",
+        "publishedDate",
+        "publisher",
+        "title",
+        "image",
+        "site",
+        "text",
+        "url"
+      ],
+      "first_500": "[\n  {\n    \"symbol\": \"AUDUSD\",\n    \"publishedDate\": \"2026-05-22 16:07:38\",\n    \"publisher\": \"FX Street\",\n    \"title\": \"AUD/USD Price Forecast: Stuck between key SMAs, RSI turns bearish\",\n    \"image\": \"https://images.financialmodelingprep.com/news/audusd-price-forecast-stuck-between-key-smas-rsi-turns-20260522.jpg\",\n    \"site\": \"fxstreet.com\",\n    \"text\": \"AUD/USD Price Forecast: Stuck between key SMAs, RSI turns bearish\",\n    \"url\": \"https://www.fxstreet.com/news/aud-usd-price-forecast-stuck-betw"
+    },
+    {
+      "endpoint": "/stable/fmp-articles",
+      "status": 200,
+      "count": 3,
+      "sample_keys": [
+        "title",
+        "date",
+        "content",
+        "tickers",
+        "image",
+        "link",
+        "author",
+        "site"
+      ],
+      "first_500": "[\n  {\n    \"title\": \"Denali Therapeutics (NASDAQ: DNLI) Stock Analysis: Navigating Setbacks and Seizing Growth Opportunities\",\n    \"date\": \"2026-05-22 21:14:26\",\n    \"content\": \"<ul>\\n    <li>Despite a recent setback with a Parkinson's disease drug, <a href=\\\"https://site.financialmodelingprep.com/financial-summary/DNLI\\\">Denali Therapeutics Inc. (NASDAQ: DNLI)</a> has a significant <strong>$35.00</strong> price target from Morgan Stanley, implying substantial <strong>87.77%</strong> potential up"
+    },
+    {
+      "endpoint": "/stable/general-news",
+      "status": 404,
+      "err": "HTTP Error 404: Not Found"
+    },
+    {
+      "endpoint": "/stable/stock-news",
+      "status": 404,
+      "err": "HTTP Error 404: Not Found"
+    },
+    {
+      "endpoint": "/api/v3/general_news",
+      "status": 403,
+      "err": "HTTP Error 403: Forbidden"
+    }
+  ],
+  "finished_at": "2026-05-23T00:21:05.351307+00:00"
+}
