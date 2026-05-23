@@ -66,17 +66,26 @@ def fetch_newsapi():
 
 
 def fetch_fmp_news():
+    """Pull from FMP /stable/news/* endpoints. Verified working per ops 1075:
+    - /stable/news/general-latest → macro/economic news
+    - /stable/news/stock-latest → single-stock news with symbol tags
+    - /stable/news/press-releases-latest → corporate press releases
+    """
     if not FMP_KEY:
         return []
     items = []
-    for endpoint, src_tag in [('general-news', 'fmp-general'),
-                               ('fmp-articles', 'fmp-articles')]:
+    for endpoint, src_tag in [
+        ('news/general-latest', 'fmp-general'),
+        ('news/stock-latest', 'fmp-stock'),
+        ('news/press-releases-latest', 'fmp-pr'),
+    ]:
         try:
-            url = f"https://financialmodelingprep.com/stable/{endpoint}?page=0&size=40&apikey={FMP_KEY}"
+            url = f"https://financialmodelingprep.com/stable/{endpoint}?page=0&limit=40&apikey={FMP_KEY}"
             data = http_get_json(url, timeout=10)
             if not isinstance(data, list):
                 continue
             for a in data:
+                symbol = a.get('symbol')
                 items.append({
                     'source': src_tag,
                     'title': a.get('title', '') or a.get('headline', ''),
@@ -85,6 +94,7 @@ def fetch_fmp_news():
                     'published_at': a.get('publishedDate') or a.get('date'),
                     'origin': a.get('site') or a.get('publisher') or 'FMP',
                     'sentiment_raw': a.get('sentiment'),
+                    'fmp_symbol_hint': symbol,
                 })
         except Exception as e:
             print(f"[fmp {endpoint}] {e}")

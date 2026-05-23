@@ -141,13 +141,94 @@ def fetch_adv_for_symbol(symbol):
 
 
 def load_portfolio():
+    """Load positions from the institutional firm book first, then fall back
+    to signal portfolio, then to legacy data/portfolio.json.
+
+    Firm book schema: data/firm-book.json → equity_book[] with
+      {symbol, name, sector, price, side LONG/SHORT, net_pct, gross_pct, ...}
+    plus firm.net_exposure_pct giving total NAV %.
+
+    Signal portfolio: portfolio/signal-portfolio-state.json → open_positions[] with
+      {ticker, direction, qty, current_price, notional_at_entry, current_pnl_dollars, ...}
+      plus current_nav.
+
+    Returns: list of {symbol, market_value, shares, price, side, sector?}
+    """
+    # 1. Try firm book (institutional, 258 names with sector + net_pct)
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key='data/firm-book.json')
+        raw = json.loads(obj['Body'].read())
+        eq = raw.get('equity_book', []) or []
+        macro = raw.get('macro_book', []) or []
+        firm = raw.get('firm', {}) or {}
+        # nav assumed at notional = $100k baseline for percentage book;
+        # firm-book is percent-of-NAV based, so scale to nominal $100k for $-math
+        # downstream uses market_value comparisons / sums for NAV%, so this is consistent.
+        nav_base = 1_000_000  # arbitrary scaling; only ratios matter
+        out = []
+        for p in (eq + macro):
+            if not isinstance(p, dict):
+                continue
+            sym = (p.get('symbol') or '').upper()
+            if not sym:
+                continue
+            net_pct = float(p.get('net_pct') or p.get('gross_pct') or 0)
+            if net_pct == 0:
+                continue
+            mv = abs(net_pct) / 100.0 * nav_base
+            price = float(p.get('price') or 0)
+            shares = mv / price if price > 0 else 0
+            out.append({
+                'symbol': sym, 'market_value': mv,
+                'shares': shares, 'price': price,
+                'side': p.get('side') or ('LONG' if net_pct > 0 else 'SHORT'),
+                'sector_hint': p.get('sector'),
+                'source': 'firm-book',
+            })
+        if out:
+            print(f"[portfolio] loaded {len(out)} from data/firm-book.json (eq={len(eq)}, macro={len(macro)})")
+            return out
+    except Exception as e:
+        print(f"[portfolio] firm-book read err: {e}")
+
+    # 2. Try signal portfolio state
+    try:
+        obj = s3.get_object(Bucket=BUCKET, Key='portfolio/signal-portfolio-state.json')
+        raw = json.loads(obj['Body'].read())
+        positions = raw.get('open_positions', []) or []
+        nav = float(raw.get('current_nav') or raw.get('initial_nav') or 100_000)
+        out = []
+        for p in positions:
+            if not isinstance(p, dict):
+                continue
+            sym = (p.get('ticker') or p.get('symbol') or '').upper()
+            if not sym:
+                continue
+            qty = float(p.get('qty') or 0)
+            cur_price = float(p.get('current_price') or p.get('entry_price') or 0)
+            mv = abs(qty * cur_price)
+            if mv == 0:
+                continue
+            out.append({
+                'symbol': sym, 'market_value': mv,
+                'shares': qty, 'price': cur_price,
+                'side': p.get('direction') or 'LONG',
+                'source': 'signal-portfolio',
+            })
+        if out:
+            print(f"[portfolio] loaded {len(out)} from portfolio/signal-portfolio-state.json (NAV=${nav:,.0f})")
+            return out
+    except Exception as e:
+        print(f"[portfolio] signal-portfolio read err: {e}")
+
+    # 3. Legacy fallback
     try:
         obj = s3.get_object(Bucket=BUCKET, Key='data/portfolio.json')
         raw = json.loads(obj['Body'].read())
     except Exception as e:
         print(f"[portfolio] read err: {e}")
         return None
-    
+
     positions = raw if isinstance(raw, list) else raw.get('positions', [])
     out = []
     for p in positions:
@@ -161,12 +242,12 @@ def load_portfolio():
         price = float(p.get('price') or p.get('last_price') or 0)
         if mv == 0:
             continue
-        # Estimate shares if missing
         if shares == 0 and price > 0:
             shares = mv / price
         out.append({
             'symbol': sym, 'market_value': mv,
             'shares': shares, 'price': price,
+            'source': 'legacy-portfolio',
         })
     return out
 
@@ -205,7 +286,14 @@ def lambda_handler(event=None, context=None):
     
     for p in positions:
         sym = p['symbol']
-        sector, factor = SECTOR_MAP.get(sym, ('Unknown', 'unknown'))
+        # Prefer firm-book sector hint (institutional GICS-style classification)
+        sector_hint = p.get('sector_hint')
+        if sector_hint:
+            sector = sector_hint
+            # Factor hint still from SECTOR_MAP fallback to "mixed"
+            _, factor = SECTOR_MAP.get(sym, (None, 'mixed'))
+        else:
+            sector, factor = SECTOR_MAP.get(sym, ('Unknown', 'unknown'))
         pct_nav = p['market_value'] / total_nav * 100 if total_nav else 0
         adv = adv_map.get(sym)
         days_to_exit = None
