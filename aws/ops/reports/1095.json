@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-05-24T13:57:43.643395+00:00",
+  "deletions": [
+    {
+      "rule": "autonomous-ai-schedule",
+      "targets_removed": 1,
+      "status": "DELETED"
+    },
+    {
+      "rule": "justhodl-8am",
+      "targets_removed": 1,
+      "status": "DELETED"
+    },
+    {
+      "rule": "news-sentiment-update",
+      "targets_removed": 1,
+      "status": "DELETED"
+    }
+  ],
+  "creations": [
+    {
+      "rule": "tax-plan-daily",
+      "permission": "ADDED",
+      "status": "CREATED",
+      "cron": "cron(45 11 ? * * *)"
+    },
+    {
+      "rule": "wealth-plan-daily-warmup",
+      "permission": "ADDED",
+      "status": "CREATED",
+      "cron": "cron(30 11 ? * * *)"
+    }
+  ],
+  "verify": {
+    "tax-plan-daily": {
+      "state": "ENABLED",
+      "schedule": "cron(45 11 ? * * *)"
+    },
+    "wealth-plan-daily-warmup": {
+      "state": "ENABLED",
+      "schedule": "cron(30 11 ? * * *)"
+    }
+  },
+  "test_invokes": {
+    "justhodl-tax-plan": {
+      "status": 202
+    },
+    "justhodl-wealth-plan": {
+      "status": 202
+    }
+  },
+  "final_rule_count": 299,
+  "headroom_vs_300": 1,
+  "finished_at": "2026-05-24T13:57:46.831196+00:00"
+}
