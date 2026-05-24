@@ -1,0 +1,5458 @@
+{
+  "generated_at": "2026-05-24T13:51:05.398510+00:00",
+  "elapsed_seconds": 13.3,
+  "summary": {
+    "total_rules": 300,
+    "by_category": {
+      "HEALTHY": 293,
+      "DISABLED": 3,
+      "HIGH_FREQ": 3,
+      "STALE_7D": 1
+    },
+    "by_state": {
+      "ENABLED": 297,
+      "DISABLED": 3
+    },
+    "deletion_candidates": {
+      "DEAD": 0,
+      "DISABLED": 3,
+      "STALE_30D": 0
+    },
+    "review_candidates": {
+      "STALE_7D": 1,
+      "HIGH_FREQ": 3
+    },
+    "healthy": 293,
+    "safe_delete_total": 3,
+    "estimated_slots_reclaimable": 3,
+    "headroom_after_cleanup": 3
+  },
+  "deletion_candidates_top_50": [
+    {
+      "name": "autonomous-ai-schedule",
+      "state": "DISABLED",
+      "schedule": "rate(5 minutes)",
+      "event_pattern": false,
+      "description": "",
+      "targets": [
+        "autonomous-ai-processor"
+      ],
+      "last_invocation": {
+        "last_invocation_date": null,
+        "days_since": 31,
+        "invocations_30d": 0,
+        "active_days_30d": 0
+      },
+      "category": "DISABLED",
+      "reason": "Rule is disabled \u2014 delete to reclaim slot",
+      "delete_priority": 2
+    },
+    {
+      "name": "justhodl-8am",
+      "state": "DISABLED",
+      "schedule": "cron(0 13 * * ? *)",
+      "event_pattern": false,
+      "description": "",
+      "targets": [
+        "justhodl-email-reports"
+      ],
+      "last_invocation": {
+        "last_invocation_date": null,
+        "days_since": 31,
+        "invocations_30d": 0,
+        "active_days_30d": 0
+      },
+      "category": "DISABLED",
+      "reason": "Rule is disabled \u2014 delete to reclaim slot",
+      "delete_priority": 2
+    },
+    {
+      "name": "news-sentiment-update",
+      "state": "DISABLED",
+      "schedule": "rate(30 minutes)",
+      "event_pattern": false,
+      "description": "Update news sentiment every 30 minutes",
+      "targets": [
+        "news-sentiment-agent"
+      ],
+      "last_invocation": {
+        "last_invocation_date": "2026-05-23",
+        "days_since": 1,
+        "invocations_30d": 308,
+        "active_days_30d": 30
+      },
+      "category": "DISABLED",
+      "reason": "Rule is disabled \u2014 delete to reclaim slot",
+      "delete_priority": 2
+    }
+  ],
+  "all_rules_by_category": {
+    "HEALTHY": [
+      {
+        "name": "aiapi-hourly-collection",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Collect market data every hour",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "aiapi-daily-training",
+        "state": "ENABLED",
+        "schedule": "cron(0 2 * * ? *)",
+        "event_pattern": false,
+        "description": "Train models daily at 2 AM UTC",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "DailyEmailReportsV2",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-email-reports-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 66,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "behavior-mirror-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly Sunday 13 UTC \u2014 analyse Khalid's portfolio actions vs system signals",
+        "targets": [
+          "justhodl-behavior-mirror"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "activity-nowcast-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Real-Time Activity Nowcast \u2014 daily 12:30 UTC",
+        "targets": [
+          "justhodl-activity-nowcast"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 12,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "best-ideas-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Best Ideas cross-engine confluence - daily 14:45 UTC",
+        "targets": [
+          "justhodl-best-ideas",
+          "justhodl-best-ideas"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "activist-13d-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily 14 UTC weekdays \u2014 activist 13D scanner",
+        "targets": [
+          "justhodl-activist-13d"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 4,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "analyst-consensus-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 11 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Analyst Consensus engine refresh",
+        "targets": [
+          "justhodl-analyst-consensus",
+          "justhodl-analyst-consensus"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 18,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "beta-laggard-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Beta-laggard catch-up mapper - daily 13:30 UTC",
+        "targets": [
+          "justhodl-beta-laggard",
+          "justhodl-beta-laggard"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bagger-engine-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 ? * SUN *)",
+        "event_pattern": false,
+        "description": "100x Bagger Engine full universe rescore \u2014 weekly Sunday noon UTC",
+        "targets": [
+          "justhodl-bagger-engine",
+          "justhodl-bagger-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 11,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bank-stress-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 15 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Bank funding stress daily refresh",
+        "targets": [
+          "justhodl-bank-stress"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 7,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "capitulation-3h",
+        "state": "ENABLED",
+        "schedule": "cron(45 */3 * * ? *)",
+        "event_pattern": false,
+        "description": "Capitulation engine \u2014 every 3 hours",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "aiapi-market-data-collection",
+        "state": "ENABLED",
+        "schedule": "rate(15 minutes)",
+        "event_pattern": false,
+        "description": "Collect real-time market data",
+        "targets": [
+          "aiapi-market-analyzer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3950,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "aiapi-daily-analysis",
+        "state": "ENABLED",
+        "schedule": "cron(0 7 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily pattern analysis",
+        "targets": [
+          "aiapi-market-analyzer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3950,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "aiapi-hourly-predictions",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Generate market predictions",
+        "targets": [
+          "aiapi-market-analyzer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3950,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "aiapi-weekly-training",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly model training",
+        "targets": [
+          "aiapi-market-analyzer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3950,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "MLPredictorDaily",
+        "state": "ENABLED",
+        "schedule": "cron(15 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "MLPredictor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 30,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bloomberg-terminal-refresh",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-bloomberg-v8"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 6772,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "DailyMacroScraper",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Run scrapeMacroData Lambda daily at 12:00 UTC",
+        "targets": [
+          "scrapeMacroData"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 27,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "alphavantage-market-update",
+        "state": "ENABLED",
+        "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Update market data every 15 minutes during market hours",
+        "targets": [
+          "alphavantage-market-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 620,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "boj-detail-daily",
+        "state": "ENABLED",
+        "schedule": "cron(20 11 * * ? *)",
+        "event_pattern": false,
+        "description": "BOJ Liquidity & Yen-Carry Detail Engine \u2014 daily 11:20 UTC",
+        "targets": [
+          "justhodl-boj-detail",
+          "justhodl-boj-detail"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bls-friday-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * FRI *)",
+        "event_pattern": false,
+        "description": "Friday BLS data update - 6 PM EST",
+        "targets": [
+          "bls-employment-api-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 14,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bls-tuesday-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * TUE *)",
+        "event_pattern": false,
+        "description": "Tuesday BLS data update - 6 PM EST",
+        "targets": [
+          "bls-employment-api-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 14,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "DailyLiquidityReportRule",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "global-liquidity-agent-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 314,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bond-trace-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Bond TRACE proxy refresh",
+        "targets": [
+          "justhodl-bond-trace",
+          "justhodl-bond-trace"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 12,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bls-daily-update",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Update BLS data daily",
+        "targets": [
+          "bls-labor-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 309,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "carry-surface-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Carry surface refresh every 4 hours \u2014 cross-asset carry ranks + momentum",
+        "targets": [
+          "justhodl-carry-surface"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 10,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "bond-indices-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Update bond indices every hour",
+        "targets": [
+          "bond-indices-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 655,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "capital-return-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Co-hosted on the capital-return-daily rule (shared multi-target rule) - daily 13:45 UTC. Account is at the EventBridge 3",
+        "targets": [
+          "justhodl-capital-return"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 10,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "chart-vision-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Weekdays 16 UTC \u2014 pattern recognition on top-conviction names",
+        "targets": [
+          "justhodl-chart-vision"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "canary-grid-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 */6 * * ? *)",
+        "event_pattern": false,
+        "description": "Global Early-Warning Grid \u2014 every 6 hours (keeps fast funding/FX signals current)",
+        "targets": [
+          "justhodl-canary-grid",
+          "justhodl-canary-grid"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 61,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "causality-scanner-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 21 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly Sunday 21 UTC \u2014 computationally heaviest run (pair-wise Granger across all time series)",
+        "targets": [
+          "justhodl-causality-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cb-injection-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "CB Capital-Injection & Carry Engine \u2014 daily 13:00 UTC",
+        "targets": [
+          "justhodl-cb-injection"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 9,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cds-proxy-daily",
+        "state": "ENABLED",
+        "schedule": "cron(40 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-cds-proxy"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 38,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cds-monitor-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Global Credit Default & Stress Monitor \u2014 daily 13:00 UTC",
+        "targets": [
+          "justhodl-cds-monitor",
+          "justhodl-cds-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 19,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cds-proxy-tri-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13,17,21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "CDS Proxy refresh",
+        "targets": [
+          "justhodl-cds-proxy"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 38,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "catalyst-calendar-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Schedule for justhodl-catalyst-calendar",
+        "targets": [
+          "justhodl-catalyst-calendar"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 420,
+          "active_days_30d": 17
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "coffee-can-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Coffee-Can Tracker daily refresh \u2014 thesis health + drawdown context",
+        "targets": [
+          "justhodl-coffee-can"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "convexity-scorer-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Weekdays 14 UTC \u2014 score every candidate's gamma exposure",
+        "targets": [
+          "justhodl-convexity-scorer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "construction-housing-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 ? * * *)",
+        "event_pattern": false,
+        "description": "Housing & Construction Cycle engine \u2014 daily 11:00 UTC",
+        "targets": [
+          "justhodl-construction-housing"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 9,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "concentration-liquidity-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 14 UTC \u2014 position concentration, sector/factor, liquidity",
+        "targets": [
+          "justhodl-concentration-liquidity",
+          "justhodl-concentration-liquidity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 4,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "china-liquidity-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "China liquidity + credit impulse daily refresh",
+        "targets": [
+          "justhodl-china-liquidity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "consumer-pulse-daily",
+        "state": "ENABLED",
+        "schedule": "cron(40 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Consumer & Labour Pulse \u2014 daily 12:40 UTC",
+        "targets": [
+          "justhodl-consumer-pulse"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 8,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "economyapi-weekly-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON *)",
+        "event_pattern": false,
+        "description": "Weekly update for EconomyAPI data - every Monday 9 AM EST",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "conviction-engine-3h",
+        "state": "ENABLED",
+        "schedule": "cron(45 */3 * * ? *)",
+        "event_pattern": false,
+        "description": "Full-System Conviction Engine \u2014 every 3 hours",
+        "targets": [
+          "justhodl-conviction-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 57,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cftc-cot-weekly-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 18 ? * FRI *)",
+        "event_pattern": false,
+        "description": "Weekly CFTC COT refresh",
+        "targets": [
+          "cftc-futures-positioning-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 7012,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cost-anomaly-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 09 UTC \u2014 AWS + Anthropic cost anomaly check",
+        "targets": [
+          "justhodl-cost-anomaly",
+          "justhodl-cost-anomaly"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 4,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cross-asset-rv-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Cross-Asset RV engine \u2014 daily after US close",
+        "targets": [
+          "justhodl-cross-asset-rv"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 8,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "cross-asset-confirm-3h",
+        "state": "ENABLED",
+        "schedule": "rate(3 hours)",
+        "event_pattern": false,
+        "description": "CACF refresh every 3 hours (matches signal-board cadence)",
+        "targets": [
+          "justhodl-cross-asset-confirm"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 14,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fed-liquidity-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 ? * TUE,SAT *)",
+        "event_pattern": false,
+        "description": "Update Fed liquidity data cache",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "dr-snapshot-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 06 UTC \u2014 complete platform DR snapshot",
+        "targets": [
+          "justhodl-dr-snapshot",
+          "justhodl-dr-snapshot"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 4,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "crisis-composite-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(15 * * * ? *)",
+        "event_pattern": false,
+        "description": "Master Crisis Composite hourly refresh",
+        "targets": [
+          "justhodl-crisis-composite"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 194,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "crypto-narratives-6h",
+        "state": "ENABLED",
+        "schedule": "cron(0 */6 * * ? *)",
+        "event_pattern": false,
+        "description": "Crypto narrative rotation \u2014 every 6 hours",
+        "targets": [
+          "justhodl-crypto-narratives"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "crypto-opportunities-4h",
+        "state": "ENABLED",
+        "schedule": "cron(0 0,4,8,12,16,20 ? * * *)",
+        "event_pattern": false,
+        "description": "Crypto retail-opportunity scan every 4 hours (vol surge / social velocity / stable inflows / convergence)",
+        "targets": [
+          "justhodl-crypto-opportunities"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 50,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "earnings-whisper-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 8 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily pre-earnings whisper at 3:15 AM ET",
+        "targets": [
+          "justhodl-earnings-whisper"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 18,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ecb-detail-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 * * ? *)",
+        "event_pattern": false,
+        "description": "ECB Liquidity Detail Engine \u2014 daily 11:00 UTC",
+        "targets": [
+          "justhodl-ecb-detail"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 9,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "engine-robustness-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 4 ? * TUE *)",
+        "event_pattern": false,
+        "description": "Weekly Tuesday 04:00 UTC \u2014 engine rank stability CT-scan",
+        "targets": [
+          "justhodl-engine-robustness"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 1,
+          "active_days_30d": 1
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "engine-contribution-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 2 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Engine contribution counterfactual \u2014 weekly Sunday 02 UTC",
+        "targets": [
+          "justhodl-engine-contribution"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "divergence-v2-2hourly",
+        "state": "ENABLED",
+        "schedule": "rate(2 hours)",
+        "event_pattern": false,
+        "description": "Run divergence-engine-v2 every 2 hours",
+        "targets": [
+          "justhodl-divergence-engine-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 210,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "failure-library-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 15 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Weekdays 15 UTC \u2014 daily pre-disaster watchlist scan",
+        "targets": [
+          "justhodl-failure-library"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "euro-fragmentation-daily",
+        "state": "ENABLED",
+        "schedule": "cron(20 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Euro-Area Sovereign Fragmentation Engine \u2014 daily 12:20 UTC",
+        "targets": [
+          "justhodl-euro-fragmentation",
+          "justhodl-euro-fragmentation"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "esi-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Economic Surprise Index refresh",
+        "targets": [
+          "justhodl-esi"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 9,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ecb-daily-update-rule",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily ECB systemic risk data update at 6 AM UTC",
+        "targets": [
+          "ecb-data-daily-updater"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 32,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "divergence-interpreter-4hourly",
+        "state": "ENABLED",
+        "schedule": "cron(30 0/4 * * ? *)",
+        "event_pattern": false,
+        "description": "Run divergence-interpreter every 4 hours (30 past)",
+        "targets": [
+          "justhodl-divergence-interpreter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 105,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "daily-liquidity-7am",
+        "state": "ENABLED",
+        "schedule": "cron(45 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily at 7:45 AM ET",
+        "targets": [
+          "daily-liquidity-report"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fed-nlp-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Every 6h \u2014 Fed communications hawkish/dovish drift tracker",
+        "targets": [
+          "justhodl-fed-nlp",
+          "justhodl-fed-nlp"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fleet-monitor-3h",
+        "state": "ENABLED",
+        "schedule": "cron(20 */3 * * ? *)",
+        "event_pattern": false,
+        "description": "Full-Fleet Observability \u2014 every 3 hours",
+        "targets": [
+          "justhodl-fleet-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 58,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ice-bofa-update-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 ? * MON,WED,FRI *)",
+        "event_pattern": false,
+        "description": "Update ICE BofA data Mon/Wed/Fri at 9 AM UTC",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fed-speak-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 11 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily Fed speak sentiment classifier (6:15 AM ET)",
+        "targets": [
+          "justhodl-fed-speak"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 18,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ecb-weekly-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 ? * MON *)",
+        "event_pattern": false,
+        "description": "Weekly ECB data update - Every Monday 6 AM UTC",
+        "targets": [
+          "ecb-auto-updater"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-17",
+          "days_since": 7,
+          "invocations_30d": 4,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fleet-freshness-monitor-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "AUDIT P2 \u2014 detect stale/missing S3 outputs that indicate silent Lambda failures",
+        "targets": [
+          "justhodl-fleet-freshness-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 212,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "forward-returns-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 3 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly Sun 03 UTC \u2014 forward 10y expected return recompute (inputs change slowly)",
+        "targets": [
+          "justhodl-forward-returns",
+          "justhodl-forward-returns"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 5,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "global-liquidity-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Global Liquidity Index daily refresh",
+        "targets": [
+          "justhodl-global-liquidity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 7,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fedliquidityapi-auto-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON,WED,FRI *)",
+        "event_pattern": false,
+        "description": "Auto-update Fed Liquidity API 3x per week",
+        "targets": [
+          "fedliquidityapi"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 509,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "insider-aggregate-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Aggregate Insider Ratio daily refresh after Form 4 flow",
+        "targets": [
+          "justhodl-insider-aggregate"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fx-intelligence-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 * * ? *)",
+        "event_pattern": false,
+        "description": "FX Intelligence Engine \u2014 daily 13:30 UTC after FRED FX update",
+        "targets": [
+          "justhodl-fx-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 9,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fundamentals-engine-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "FMP Fundamentals X-Ray \u2014 daily 13:00 UTC, before master-ranker / pm-decision refresh",
+        "targets": [
+          "justhodl-fundamentals-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "global-macro-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Daily global macro per-country aggregator",
+        "targets": [
+          "justhodl-global-macro"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 20,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "hiring-velocity-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Hiring & Expansion Velocity weekly rescore \u2014 Sunday",
+        "targets": [
+          "justhodl-hiring-velocity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fmp-movers-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(0 14,16,18,20 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "fmp-stock-picks-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 132,
+          "active_days_30d": 25
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "fmp-stock-picks-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily FMP stock picks refresh weekdays at 12PM UTC / 8AM ET",
+        "targets": [
+          "fmp-stock-picks-agent",
+          "fmp-stock-picks-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 132,
+          "active_days_30d": 25
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "implied-prob-4hourly",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Schedule for justhodl-implied-prob",
+        "targets": [
+          "justhodl-implied-prob"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 107,
+          "active_days_30d": 17
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-analyst-consensus-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(45 11 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-analyst-consensus"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 18,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-13f-positions-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-13f-positions",
+        "targets": [
+          "justhodl-13f-positions"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 93,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-aaii-sentiment-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-aaii-sentiment",
+        "targets": [
+          "justhodl-aaii-sentiment"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 30,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ice-bofa-3x-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 ? * 1,3,5 *)",
+        "event_pattern": false,
+        "description": "Update ICE BofA data Monday, Wednesday, Friday at 9 AM UTC",
+        "targets": [
+          "fred-ice-bofa-api"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 636,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-ab-test-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily trigger for justhodl-ab-test",
+        "targets": [
+          "justhodl-ab-test"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alert-router-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Real-time threshold scanner \u2014 sends Telegram on extreme readings",
+        "targets": [
+          "justhodl-alert-router"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 963,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-activist-filings-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-activist-filings-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 43,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alpha-calibrator-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly Sunday 09:00 UTC = 5am ET \u2014 after Saturday's trade-evaluator daily run (30d outcomes freshest)",
+        "targets": [
+          "justhodl-alpha-calibrator",
+          "justhodl-alpha-calibrator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 4,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alpha-confluence-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(12 * * * ? *)",
+        "event_pattern": false,
+        "description": "Hourly at :12 \u2014 5 min after alpha-score (:07) so latest data is read",
+        "targets": [
+          "justhodl-alpha-confluence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 288,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-activist-filings-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-activist-filings-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 43,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alpha-alerts-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(20 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :20 - 8 min after confluence Lambda (:12)",
+        "targets": [
+          "justhodl-alpha-alerts"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 288,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-ai-brief-4h",
+        "state": "ENABLED",
+        "schedule": "cron(5 0,4,8,12,16,20 ? * * *)",
+        "event_pattern": false,
+        "description": "AI brief synthesis \u2014 runs every 4h",
+        "targets": [
+          "justhodl-ai-brief"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 130,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alpha-daily-brief",
+        "state": "ENABLED",
+        "schedule": "cron(30 11 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily at 11:30 UTC (7:30 AM ET pre-market)",
+        "targets": [
+          "justhodl-alpha-daily-brief"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 14,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-alpha-score-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(7 * * * ? *)",
+        "event_pattern": false,
+        "description": "Hourly at :07 \u2014 lands after sentiment/smart-money/screener refreshes (which all run at :00 or :15)",
+        "targets": [
+          "justhodl-alpha-score"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 295,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-anomaly-detector-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(33 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :33 - after alpha-confluence (:12) and alpha-alerts (:20)",
+        "targets": [
+          "justhodl-anomaly-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 284,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-allocator-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Refresh cross-asset allocator every 6 hours",
+        "targets": [
+          "justhodl-allocator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 205,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-allocator-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-allocator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 205,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-catalyst-calendar-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 10:00 UTC = ~6am ET (pre-market, before any catalyst-portfolios run)",
+        "targets": [
+          "justhodl-catalyst-calendar"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 420,
+          "active_days_30d": 17
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-cds-proxy-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(0 13,17,21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-cds-proxy"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 38,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-auction-grader-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(45 * ? * * *)",
+        "event_pattern": false,
+        "description": "Auction Grader hourly",
+        "targets": [
+          "justhodl-auction-grader"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 227,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-auction-grader-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "justhodl-auction-grader cron",
+        "targets": [
+          "justhodl-auction-grader"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 227,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-asymmetric-hunter-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily Layer 4 asymmetric-hunter run after L1/L2/L3 complete",
+        "targets": [
+          "justhodl-asymmetric-hunter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 23,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-asymmetric-scorer-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Phase 2B \u2014 daily asymmetric equity scorer post-divergence-scan",
+        "targets": [
+          "justhodl-asymmetric-scorer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 23,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-backtest-harness-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-backtest-harness",
+        "targets": [
+          "justhodl-backtest-harness"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 28,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-auction-crisis-backstop",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Backstop refresh for weekends + off-hours (every 4 hours).",
+        "targets": [
+          "justhodl-auction-crisis-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 886,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-auction-crisis-active",
+        "state": "ENABLED",
+        "schedule": "cron(0/15 14-22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Mon-Fri 14:00-22:00 UTC every 15min. Covers Treasury auction publication window (bills ~15:30 UTC, notes ~17:00 UTC, res",
+        "targets": [
+          "justhodl-auction-crisis-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 886,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-backtest-engine-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Recompute calibrated alpha replay every 6h after calibrator runs",
+        "targets": [
+          "justhodl-backtest-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 93,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-calibrator-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 ? * SUN *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-calibrator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 16,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-cb-stance-6h",
+        "state": "ENABLED",
+        "schedule": "cron(0 0/6 ? * * *)",
+        "event_pattern": false,
+        "description": "CB Stance refresh every 6h",
+        "targets": [
+          "justhodl-cb-stance"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 45,
+          "active_days_30d": 11
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-commodity-curves-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily commodity curves refresh at 21:00 UTC",
+        "targets": [
+          "justhodl-commodity-curves"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 10,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-calibration-snapshot-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Refresh calibration snapshot every 30 min",
+        "targets": [
+          "justhodl-calibration-snapshot"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 964,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-calibration-snapshotter-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly calibration snapshot \u2014 runs Sundays 12:00 UTC after the calibrator updates SSM at 09:00",
+        "targets": [
+          "justhodl-calibration-snapshotter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 8,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-bond-regime-detector-4h",
+        "state": "ENABLED",
+        "schedule": "cron(0 */4 * * ? *)",
+        "event_pattern": false,
+        "description": "Phase 1A \u2014 Bond regime detector every 4h",
+        "targets": [
+          "justhodl-bond-regime-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 175,
+          "active_days_30d": 29
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-credit-stress-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 20 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily credit stress refresh at 20:00 UTC",
+        "targets": [
+          "justhodl-credit-stress"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 11,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-calls-backtest-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 14:15 UTC \u2014 replay decisive-call ledger as SPY-exposure backtest.",
+        "targets": [
+          "justhodl-calls-backtest"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 20,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-cot-tracker-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * FRI *)",
+        "event_pattern": false,
+        "description": "CFTC publishes COT data Fridays at 3:30PM ET (~7:30PM UTC). Run at 22:00 UTC to catch latest.",
+        "targets": [
+          "justhodl-cot-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 7,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-compound-aggregator-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-compound-aggregator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 459,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-correlation-breaks-refresh",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Phase 9.5 \u2014 daily refresh of correlation-break detector",
+        "targets": [
+          "justhodl-correlation-breaks"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 32,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-correlation-surface-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 15 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily trigger for justhodl-correlation-surface",
+        "targets": [
+          "justhodl-correlation-surface"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-crisis-kb-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily Crisis KB rebuild",
+        "targets": [
+          "justhodl-crisis-knowledge-base"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 22,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-crypto-funding-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(15 * ? * * *)",
+        "event_pattern": false,
+        "description": "Crypto funding rates every hour at :15",
+        "targets": [
+          "justhodl-crypto-funding"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 266,
+          "active_days_30d": 11
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-cot-extremes-scanner-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 19 ? * FRI *)",
+        "event_pattern": false,
+        "description": "Phase 2A \u2014 Friday 19:00 UTC after CFTC weekly COT publish",
+        "targets": [
+          "justhodl-cot-extremes-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-debate-engine-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 12:15 UTC = 8:15am ET \u2014 after alpha-score (:07), confluence (:12), morning brief context settled",
+        "targets": [
+          "justhodl-debate-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 13,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-earnings-nlp-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily earnings transcript NLP scoring",
+        "targets": [
+          "justhodl-earnings-nlp"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 11,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-dealer-gex-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(7 13-21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Hourly :07 during US market hours (9:07 AM - 5:07 PM ET) Mon-Fri \u2014 gamma matters most when market is open",
+        "targets": [
+          "justhodl-dealer-gex",
+          "justhodl-dealer-gex"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 152,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-cross-asset-regime-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-cross-asset-regime"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 20,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-crypto-enricher-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 6 * * ? *)",
+        "event_pattern": false,
+        "description": "Enrich report.json with DeFi TVL, funding rates, ETH gas, market intelligence",
+        "targets": [
+          "justhodl-crypto-enricher"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 30,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-dix-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily DIX/GEX fetch + regime classification",
+        "targets": [
+          "justhodl-dix"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 9,
+          "active_days_30d": 9
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-crisis-plumbing-refresh",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Refresh crisis-plumbing.json every 6h",
+        "targets": [
+          "justhodl-crisis-plumbing"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 119,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-earnings-sentiment-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily at 10:00 UTC \u2014 most US earnings calls publish day-after",
+        "targets": [
+          "justhodl-earnings-sentiment"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 34,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-divergence-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Phase 1B \u2014 daily cross-asset divergence scan post-EU-close",
+        "targets": [
+          "justhodl-divergence-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 22,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-crypto-intel-schedule",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-crypto-intel"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2544,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-earnings-pead-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-earnings-pead"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 20,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-fleet-freshness-monitor-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Scan all data/ S3 keys for staleness vs expected schedule",
+        "targets": [
+          "justhodl-fleet-freshness-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 212,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-dex-scanner-15min",
+        "state": "ENABLED",
+        "schedule": "rate(15 minutes)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-dex-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2882,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-deep-value-screener-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 9 * * ? *)",
+        "event_pattern": false,
+        "description": "justhodl-deep-value-screener \u2014 daily 09:00 UTC",
+        "targets": [
+          "justhodl-deep-value-screener"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 26,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-edge-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-edge-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 130,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-gbc-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily run of synthetic CLI engine \u2014 current state + history",
+        "targets": [
+          "justhodl-global-business-cycle"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 26,
+          "active_days_30d": 14
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-eps-revision-velocity-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 9 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-eps-revision-velocity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 22,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-earnings-tracker-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Earnings tracker \u2014 every 6h",
+        "targets": [
+          "justhodl-earnings-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 85,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-finra-short-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 1 ? * TUE-SAT *)",
+        "event_pattern": false,
+        "description": "Daily 1:00 AM UTC (8:00 PM ET prior day) Tue-Sat \u2014 covers Mon-Fri trading days; FINRA publishes T+1 at ~7:45 PM ET",
+        "targets": [
+          "justhodl-finra-short",
+          "justhodl-finra-short"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 19,
+          "active_days_30d": 9
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-exchange-flows-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-exchange-flows",
+        "targets": [
+          "justhodl-exchange-flows"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 109,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-etf-flows-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "6h trigger for justhodl-etf-flows",
+        "targets": [
+          "justhodl-etf-flows"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 84,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-global-markets-3h",
+        "state": "ENABLED",
+        "schedule": "cron(15 0/3 ? * * *)",
+        "event_pattern": false,
+        "description": "Global markets refresh every 3 hours",
+        "targets": [
+          "justhodl-global-markets"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 85,
+          "active_days_30d": 11
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-eurodollar-stress-1h",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "USD/Eurodollar funding stress monitor \u2014 pulls FRED hourly, scores 8 signals",
+        "targets": [
+          "justhodl-eurodollar-stress"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 480,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-event-study-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily trigger for justhodl-event-study",
+        "targets": [
+          "justhodl-event-study"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 29,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-gdelt-sentiment-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-gdelt-sentiment",
+        "targets": [
+          "justhodl-gdelt-sentiment"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1289,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-forensic-screen-12h",
+        "state": "ENABLED",
+        "schedule": "rate(12 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-forensic-screen every 12 hours",
+        "targets": [
+          "justhodl-forensic-screen"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 38,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-khalid-adaptive-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(20 * ? * * *)",
+        "event_pattern": false,
+        "description": "Adaptive Khalid Index hourly",
+        "targets": [
+          "justhodl-khalid-adaptive"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 224,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-history-snapshotter-5m",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-history-snapshotter every 5 minutes",
+        "targets": [
+          "justhodl-history-snapshotter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 3456,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-insider-cluster-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily SEC Form 4 insider cluster scan at 14:30 UTC",
+        "targets": [
+          "justhodl-insider-cluster-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 37,
+          "active_days_30d": 16
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-khalid-metrics-refresh",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily refresh of khalid-config.json metrics \u2014 created 2026-04-27 by ops 246",
+        "targets": [
+          "justhodl-khalid-metrics",
+          "justhodl-ka-metrics"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 56,
+          "active_days_30d": 29
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-health-monitor-15min",
+        "state": "ENABLED",
+        "schedule": "cron(0/15 * * * ? *)",
+        "event_pattern": false,
+        "description": "System health monitor \u2014 runs every 15 minutes",
+        "targets": [
+          "justhodl-health-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2849,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-hourly-collection",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-data-collector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 683,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-insider-trades-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Run justhodl-insider-trades every 30 min",
+        "targets": [
+          "justhodl-insider-trades"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1293,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-intel-daily",
+        "state": "ENABLED",
+        "schedule": "cron(10 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Intelligence daily 7:10AM ET",
+        "targets": [
+          "justhodl-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 288,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-intel-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(5 12-23 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Intelligence hourly market hours",
+        "targets": [
+          "justhodl-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 288,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-historical-analogs-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily trigger for justhodl-historical-analogs",
+        "targets": [
+          "justhodl-historical-analogs"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 22,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-ma-tracker-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Refresh M&A latest deals hourly",
+        "targets": [
+          "justhodl-ma-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 312,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-margin-lending-weekday-16",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Margin debt weekday after-close pull",
+        "targets": [
+          "justhodl-margin-lending"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 9,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-macro-nowcast-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Compute composite macro nowcast every 6h",
+        "targets": [
+          "justhodl-macro-nowcast"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 367,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-liquidity-flow-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-liquidity-flow",
+        "targets": [
+          "justhodl-liquidity-flow"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 28,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-labor-leading-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-labor-leading",
+        "targets": [
+          "justhodl-labor-leading"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 28,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-liquidity-agent-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-liquidity-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 30,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-nobrainer-rationale-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily Layer 5 nobrainer-rationale, 15min after Layer 4",
+        "targets": [
+          "justhodl-nobrainer-rationale"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 107,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-microcap-float-squeeze-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-microcap-float-squeeze"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-news-velocity-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(0 * ? * * *)",
+        "event_pattern": false,
+        "description": "Hourly GDELT news velocity refresh",
+        "targets": [
+          "justhodl-news-velocity"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 285,
+          "active_days_30d": 11
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-momentum-breakout-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-momentum-breakout"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 20,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-ml-predictions-schedule",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-ml-predictions"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 180,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-momentum-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Universe momentum scanner \u2014 daily 12:30 UTC weekdays",
+        "targets": [
+          "justhodl-momentum-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 16,
+          "active_days_30d": 14
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-oecd-cli-weekly",
+        "state": "ENABLED",
+        "schedule": "rate(7 days)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-oecd-cli",
+        "targets": [
+          "justhodl-oecd-cli"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-18",
+          "days_since": 6,
+          "invocations_30d": 6,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-macro-surprise-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "6h trigger for justhodl-macro-surprise",
+        "targets": [
+          "justhodl-macro-surprise"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 82,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-morning-brief-tg-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 7AM ET trigger for justhodl-morning-brief-tg",
+        "targets": [
+          "justhodl-morning-brief-tg"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 25,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-narrative-density-tracker-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-narrative-density-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-nyfed-dealer-survey-weekly",
+        "state": "ENABLED",
+        "schedule": "rate(7 days)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-nyfed-dealer-survey",
+        "targets": [
+          "justhodl-nyfed-dealer-survey"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-18",
+          "days_since": 6,
+          "invocations_30d": 5,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-options-flow-scanner-2xdaily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14,18 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Options flow scanner 2x daily on market days",
+        "targets": [
+          "justhodl-options-flow-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 34,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-options-flow-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 21 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-options-flow-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 34,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-nobrainer-tracker-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Hourly Layer 6 nobrainer-tracker \u2014 logs to DDB justhodl-signals",
+        "targets": [
+          "justhodl-nobrainer-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 459,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-onchain-ratios-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-onchain-ratios",
+        "targets": [
+          "justhodl-onchain-ratios"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 108,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-options-gamma-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-options-gamma",
+        "targets": [
+          "justhodl-options-gamma"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1291,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-outcome-checker-monthly",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 1 * ? *)",
+        "event_pattern": false,
+        "description": "Check predictions on 1st of each month",
+        "targets": [
+          "justhodl-outcome-checker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 26
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-outcome-checker-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 ? * SUN *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-outcome-checker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 26
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-outcome-checker-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Check predictions end of US trading day (weekdays only)",
+        "targets": [
+          "justhodl-outcome-checker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 26
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-pead-detector-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-pead-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-morning-brief-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-morning-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 68,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-political-trades-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Political trades daily",
+        "targets": [
+          "justhodl-political-trades"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 8,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-portfolio-sizer-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(45 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :45 - 2 min after portfolio-risk (:43) so risk metrics fresh",
+        "targets": [
+          "justhodl-portfolio-sizer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 284,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-portfolio-catalysts-3x-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 11,17,23 * * ? *)",
+        "event_pattern": false,
+        "description": "Three runs daily 11/17/23 UTC = ~7am/1pm/7pm ET (pre-market, mid-day, post-close)",
+        "targets": [
+          "justhodl-portfolio-catalysts"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 66,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-portfolio-risk-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(43 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :43 - 3 min after portfolio-snapshot (:40) so snapshot is fresh",
+        "targets": [
+          "justhodl-portfolio-risk"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 282,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-regime-composite-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(15 * ? * * *)",
+        "event_pattern": false,
+        "description": "justhodl-regime-composite hourly",
+        "targets": [
+          "justhodl-regime-composite"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 241,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-portfolio-snapshot-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(40 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :40 - after confluence (:12), alerts (:20), anomaly (:33), price/data settles",
+        "targets": [
+          "justhodl-portfolio-snapshot"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 282,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-redflag-alerter-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-redflag-alerter",
+        "targets": [
+          "justhodl-redflag-alerter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1281,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-price-redundancy-15min",
+        "state": "ENABLED",
+        "schedule": "rate(15 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-price-redundancy",
+        "targets": [
+          "justhodl-price-redundancy"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 2575,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-repo-30min",
+        "state": "ENABLED",
+        "schedule": "cron(0/30 13-23 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Repo monitor 30min market hours",
+        "targets": [
+          "justhodl-repo-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 491,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-pnl-tracker-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 * * ? *)",
+        "event_pattern": false,
+        "description": "Loop 2 \u2014 daily hypothetical PnL snapshot at 22:00 UTC",
+        "targets": [
+          "justhodl-pnl-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 33,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-repo-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Repo daily 7AM ET",
+        "targets": [
+          "justhodl-repo-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 491,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-repo-lending-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Repo + lending daily",
+        "targets": [
+          "justhodl-repo-lending"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 7,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-position-sizer-v2-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Compute horizon-aware Kelly recommendations for open positions + setups",
+        "targets": [
+          "justhodl-position-sizer-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-prompt-iterator-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Loop 3 \u2014 weekly prompt iteration after calibrator (which runs at 09:00 UTC Sun)",
+        "targets": [
+          "justhodl-prompt-iterator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 7,
+          "active_days_30d": 5
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-reversal-radar-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(30 * ? * * *)",
+        "event_pattern": false,
+        "description": "justhodl-reversal-radar cron",
+        "targets": [
+          "justhodl-reversal-radar"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 221,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-retail-sentiment-30min",
+        "state": "ENABLED",
+        "schedule": "cron(0,30 * ? * * *)",
+        "event_pattern": false,
+        "description": "Retail sentiment refresh every 30 min",
+        "targets": [
+          "justhodl-retail-sentiment"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 510,
+          "active_days_30d": 11
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sec-10kq-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-sec-10kq",
+        "targets": [
+          "justhodl-sec-10kq"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 162,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-pre-pump-detector-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-pre-pump-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-regime-anomaly-refresh",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Daily HMM refit + anomaly scan",
+        "targets": [
+          "justhodl-regime-anomaly"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 31,
+          "active_days_30d": 28
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sec-13f-daily",
+        "state": "ENABLED",
+        "schedule": "rate(1 day)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-sec-13f",
+        "targets": [
+          "justhodl-sec-13f"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 29,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-revenue-acceleration-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 9 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-revenue-acceleration"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 23,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-reports-builder-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Hourly: rebuild reports/scorecard.json",
+        "targets": [
+          "justhodl-reports-builder"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 716,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sec-8k-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-sec-8k",
+        "targets": [
+          "justhodl-sec-8k"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1288,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sector-rotation-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-sector-rotation"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 621,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sector-rotation-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(38 * * * ? *)",
+        "event_pattern": false,
+        "description": "Hourly :38 sector-rotation run",
+        "targets": [
+          "justhodl-sector-rotation",
+          "justhodl-sector-rotation"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 621,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-risk-sizer-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Phase 3 \u2014 daily risk sizing after Phase 2B at 13:30 UTC",
+        "targets": [
+          "justhodl-risk-sizer"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 31,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-signal-registry-s3-events",
+        "state": "ENABLED",
+        "schedule": null,
+        "event_pattern": true,
+        "description": "Route S3 data/*.json PutObject events to signal-registry-ingest",
+        "targets": [
+          "justhodl-signal-registry-ingest"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 10242,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-smart-money-holdings-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 14:30 UTC \u2014 30 min after smart-money-tracker",
+        "targets": [
+          "justhodl-smart-money-holdings"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 19,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-signal-logger-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-signal-logger"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 128,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-stress-scenarios-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(25 * ? * * *)",
+        "event_pattern": false,
+        "description": "Stress scenarios hourly",
+        "targets": [
+          "justhodl-stress-scenarios"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 219,
+          "active_days_30d": 10
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-position-monitor-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Watch open paper positions for stop/target events + decisive-call changes",
+        "targets": [
+          "justhodl-position-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 944,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sentiment-daily",
+        "state": "ENABLED",
+        "schedule": "cron(15 0/6 * * ? *)",
+        "event_pattern": false,
+        "description": "JustHodl AI News Sentiment v2 \u2014 every 6h at :15 UTC (FMP backend, fresh signal 4x/day)",
+        "targets": [
+          "justhodl-news-sentiment"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 99,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-sector-earnings-diffusion-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-sector-earnings-diffusion"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 25,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-smart-money-cluster-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 16 * * ? *)",
+        "event_pattern": false,
+        "description": "justhodl-smart-money-cluster \u2014 16:00 UTC daily (post-close)",
+        "targets": [
+          "justhodl-smart-money-cluster"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 19,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-signal-portfolio-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 22 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 22:30 UTC mark-to-market + signal harvest for justhodl-signal-portfolio",
+        "targets": [
+          "justhodl-signal-portfolio"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-trade-evaluator-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 23 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 23:00 UTC = 7pm ET \u2014 after market close + Polygon prices fully settled",
+        "targets": [
+          "justhodl-trade-evaluator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 12,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-short-interest-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "6h trigger for justhodl-short-interest",
+        "targets": [
+          "justhodl-short-interest"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 87,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-system-signal-logger-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-system-signal-logger"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 76,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-supply-inflection-scanner-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 7 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily run of supply-inflection-scanner at 07:00 UTC",
+        "targets": [
+          "justhodl-supply-inflection-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-theme-detector-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily theme lifecycle detection from thematic ETFs",
+        "targets": [
+          "justhodl-theme-detector"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 22,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-stock-screener-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-stock-screener"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 242,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-theme-rotation-engine-daily",
+        "state": "ENABLED",
+        "schedule": "cron(45 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-theme-rotation-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-smart-money-tracker-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily at 14:00 UTC \u2014 refresh top filers' activity",
+        "targets": [
+          "justhodl-smart-money-tracker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-trade-logger-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(50 * * * ? *)",
+        "event_pattern": false,
+        "description": "Every hour at :50 \u2014 after debate (12:15 daily), confluence, alpha, regime, options-flow all updated",
+        "targets": [
+          "justhodl-trade-logger"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 278,
+          "active_days_30d": 12
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-telegram-alerts",
+        "state": "ENABLED",
+        "schedule": "rate(2 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-telegram-bot"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 362,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-theme-tier-classifier-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily run of justhodl-theme-tier-classifier",
+        "targets": [
+          "justhodl-theme-tier-classifier"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "khalid-daily-report",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily Khalid Report at 8 AM ET",
+        "targets": [
+          "global-liquidity-agent-v2"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 314,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-universe-builder-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-universe-builder"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 117,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-v9-morning",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "V9 morning update 8AM ET",
+        "targets": [
+          "justhodl-daily-report-v3"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6649,
+          "active_days_30d": 29
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-v9-evening",
+        "state": "ENABLED",
+        "schedule": "cron(0 23 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "V9 evening update 6PM ET",
+        "targets": [
+          "justhodl-daily-report-v3"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6649,
+          "active_days_30d": 29
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "multi-agent-economic-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "multi-agent-market-15min",
+        "state": "ENABLED",
+        "schedule": "cron(*/15 13-21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-vix-curve-30min",
+        "state": "ENABLED",
+        "schedule": "cron(0,30 13-21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "VIX term structure refresh every 30min during US market hours",
+        "targets": [
+          "justhodl-vix-curve"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 307,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "macro-calendar-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily 11 UTC \u2014 macro events calendar with portfolio sensitivity",
+        "targets": [
+          "justhodl-macro-calendar",
+          "justhodl-macro-calendar"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 5,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-vix-curve-4h",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Trigger justhodl-vix-curve",
+        "targets": [
+          "justhodl-vix-curve"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 307,
+          "active_days_30d": 27
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-volatility-squeeze-hunter-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 11 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-volatility-squeeze-hunter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 22,
+          "active_days_30d": 19
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "leading-markets-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Leading Markets canary tracker \u2014 daily after US close",
+        "targets": [
+          "justhodl-leading-markets"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 7,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "multi-agent-orchestrator-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(*/5 9-16 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "arn:aws:states:us-east-1:857687956942:stateMachine:multi-agent-orchestrator"
+        ],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "lce-every-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Every 6h liquidity & credit engine refresh (FRED daily/H.4.1 weekly)",
+        "targets": [
+          "justhodl-liquidity-credit-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 62,
+          "active_days_30d": 15
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "nyfed-data-update-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(0 8 ? * MON,THU *)",
+        "event_pattern": false,
+        "description": "Update NY Fed data twice weekly - Monday and Thursday 8 AM UTC",
+        "targets": [],
+        "last_invocation": {},
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-whats-changed-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 17 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily trigger for justhodl-whats-changed",
+        "targets": [
+          "justhodl-whats-changed"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 21,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "liquidity-profile-fri",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * FRI *)",
+        "event_pattern": false,
+        "description": "Per-security liquidity profile refresh",
+        "targets": [
+          "justhodl-liquidity-profile"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 3,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-watchlist-debate-nightly",
+        "state": "ENABLED",
+        "schedule": "cron(0 3 * * ? *)",
+        "event_pattern": false,
+        "description": "Loop 4 \u2014 nightly multi-agent debate at 03:00 UTC",
+        "targets": [
+          "justhodl-watchlist-debate"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 34,
+          "active_days_30d": 29
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "liquidity-pulse-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Liquidity pulse refresh every 6 hours (FRED publishes weekly Wednesday + daily credit spreads)",
+        "targets": [
+          "justhodl-liquidity-pulse"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 57,
+          "active_days_30d": 15
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "market-internals-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(15 21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Market Internals breadth dashboard refresh",
+        "targets": [
+          "justhodl-market-internals"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "meta-improver-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly Sunday 22 UTC \u2014 propose ONE patch to the worst-decaying engine (cooldown 30d per engine)",
+        "targets": [
+          "justhodl-meta-improver"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 3,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-yield-curve-6h",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "6h trigger for justhodl-yield-curve",
+        "targets": [
+          "justhodl-yield-curve"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 82,
+          "active_days_30d": 21
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "mean-reversion-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 13 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Mean-reversion price engine \u2014 weekdays 13:30 UTC, after the screener refresh",
+        "targets": [
+          "justhodl-mean-reversion"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 7,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "master-ranker-hourly",
+        "state": "ENABLED",
+        "schedule": "cron(5 * * * ? *)",
+        "event_pattern": false,
+        "description": "Master signal ranker \u2014 runs hourly at :05 (after compound-aggregator)",
+        "targets": [
+          "justhodl-master-ranker"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 414,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "macro-financial-daily-execution",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "macro-financial-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 338,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "opportunity-calibrator-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(30 15 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Opportunity calibrator \u2014 weekly Sunday 15:30 UTC, after the track-record engine",
+        "targets": [
+          "justhodl-opportunity-calibrator",
+          "justhodl-opportunity-calibrator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-17",
+          "days_since": 7,
+          "invocations_30d": 3,
+          "active_days_30d": 1
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "opportunity-screener-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Boom Board opportunity synthesis - daily 14:00 UTC",
+        "targets": [
+          "justhodl-opportunity-screener",
+          "justhodl-opportunity-screener"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 16,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "pairs-scanner-6hourly",
+        "state": "ENABLED",
+        "schedule": "rate(6 hours)",
+        "event_pattern": false,
+        "description": "Pairs-scanner every 6h \u2014 36 curated pairs, Z-scores + half-life",
+        "targets": [
+          "justhodl-pairs-scanner"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 71,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "premortem-engine-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Weekdays 14 UTC \u2014 generate kill theses for top-conviction ideas (after best-ideas runs at 13 UTC)",
+        "targets": [
+          "justhodl-premortem-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "news-wire-15m",
+        "state": "ENABLED",
+        "schedule": "rate(15 minutes)",
+        "event_pattern": false,
+        "description": "Every 15m \u2014 high-velocity news with portfolio impact scoring",
+        "targets": [
+          "justhodl-news-wire",
+          "justhodl-news-wire"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 303,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "opportunity-engine-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Retail Opportunity engine \u2014 daily 14:00 UTC, after screener/fundamentals/mean-reversion refresh",
+        "targets": [
+          "justhodl-opportunity-engine"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 17,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "sector-heatmap-30m",
+        "state": "ENABLED",
+        "schedule": "cron(*/30 13-21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Sector Heatmap refresh every 30 min during US market hours",
+        "targets": [
+          "justhodl-sector-heatmap"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 93,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ofr-weekly-report",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 ? * MON *)",
+        "event_pattern": false,
+        "description": "Weekly OFR stats report on Mondays",
+        "targets": [
+          "ofrapi"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 45,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "ofr-daily-collection",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 * * ? *)",
+        "event_pattern": false,
+        "description": "Daily OFR data collection at 9 AM EST",
+        "targets": [
+          "ofrapi"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 45,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "pm-decision-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "PM Decision Layer \u2014 daily 14:00 UTC after master-ranker, allocator and portfolio-risk refresh",
+        "targets": [
+          "justhodl-pm-decision"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 8,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "justhodl-wave-signal-logger-6h",
+        "state": "ENABLED",
+        "schedule": "cron(30 0,6,12,18 ? * * *)",
+        "event_pattern": false,
+        "description": "Wave 1+2 signal logger \u2014 6h offset from main signal-logger",
+        "targets": [
+          "justhodl-wave-signal-logger"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 90,
+          "active_days_30d": 20
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "seasonality-monday",
+        "state": "ENABLED",
+        "schedule": "cron(0 11 ? * MON *)",
+        "event_pattern": false,
+        "description": "Seasonality patterns refresh",
+        "targets": [
+          "justhodl-seasonality"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-17",
+          "days_since": 7,
+          "invocations_30d": 3,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "sellside-views-mwf",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * MON,WED,FRI *)",
+        "event_pattern": false,
+        "description": "Sell-side strategist views refresh",
+        "targets": [
+          "justhodl-sellside-views"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 4,
+          "active_days_30d": 4
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "plumbing-agg-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Schedule for justhodl-plumbing-aggregator",
+        "targets": [
+          "justhodl-plumbing-aggregator"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 408,
+          "active_days_30d": 17
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "short-pressure-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 12 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily Short-Volume Pressure \u2014 weekdays 12:30 UTC",
+        "targets": [
+          "justhodl-short-pressure"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 6,
+          "active_days_30d": 6
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "permanent-market-schedule",
+        "state": "ENABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "permanent-market-intelligence"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 30,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "signal-board-3h",
+        "state": "ENABLED",
+        "schedule": "cron(15 */3 * * ? *)",
+        "event_pattern": false,
+        "description": "Unified Signal Board \u2014 every 3 hours",
+        "targets": [
+          "justhodl-signal-board"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 75,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "signal-halflife-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 6 ? * MON *)",
+        "event_pattern": false,
+        "description": "Weekly Monday 06 UTC \u2014 compute signal decay curves and half-lives",
+        "targets": [
+          "justhodl-signal-halflife"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 1,
+          "active_days_30d": 1
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "repo-metrics-15min",
+        "state": "ENABLED",
+        "schedule": "rate(15 minutes)",
+        "event_pattern": false,
+        "description": "Update repo metrics every 15 minutes",
+        "targets": [
+          "enhanced-repo-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 507,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "secretary-4h-scan",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-financial-secretary"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 185,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "sector-tilt-4hourly",
+        "state": "ENABLED",
+        "schedule": "cron(45 0/4 * * ? *)",
+        "event_pattern": false,
+        "description": "Run sector-tilt every 4h, 45min past (after sector-rotation refresh)",
+        "targets": [
+          "justhodl-sector-tilt"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 104,
+          "active_days_30d": 18
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "snb-detail-daily",
+        "state": "ENABLED",
+        "schedule": "cron(40 11 * * ? *)",
+        "event_pattern": false,
+        "description": "SNB Liquidity & Franc Detail Engine \u2014 daily 11:40 UTC",
+        "targets": [
+          "justhodl-snb-detail",
+          "justhodl-snb-detail"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 16,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "tenor-signals-backstop",
+        "state": "ENABLED",
+        "schedule": "rate(4 hours)",
+        "event_pattern": false,
+        "description": "Backstop: every 4 hours off-hours",
+        "targets": [
+          "justhodl-tenor-signal-interpreter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 458,
+          "active_days_30d": 16
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "tenor-signals-active",
+        "state": "ENABLED",
+        "schedule": "cron(0/15 14-22 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Active-hours: every 15min Mon-Fri 14-22 UTC",
+        "targets": [
+          "justhodl-tenor-signal-interpreter"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 458,
+          "active_days_30d": 16
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "systemic-stress-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "ECB Systemic & Sovereign Stress Engine \u2014 daily 12:00 UTC",
+        "targets": [
+          "justhodl-systemic-stress",
+          "justhodl-systemic-stress"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 15,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "tic-flows-thu",
+        "state": "ENABLED",
+        "schedule": "cron(0 22 ? * THU *)",
+        "event_pattern": false,
+        "description": "TIC Flows refresh",
+        "targets": [
+          "justhodl-tic-flows"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-21",
+          "days_since": 3,
+          "invocations_30d": 2,
+          "active_days_30d": 2
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "track-record-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 15 * * ? *)",
+        "event_pattern": false,
+        "description": "Track Record engine \u2014 daily 15:00 UTC, one hour after the opportunity engine logs its snapshot",
+        "targets": [
+          "justhodl-track-record"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 8,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "stress-loadings-weekly",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 ? * SUN *)",
+        "event_pattern": false,
+        "description": "Weekly factor-loadings recompute for justhodl-stress-simulator",
+        "targets": [
+          "justhodl-stress-loadings"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-17",
+          "days_since": 7,
+          "invocations_30d": 3,
+          "active_days_30d": 3
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "signal-scorecard-daily",
+        "state": "ENABLED",
+        "schedule": "cron(30 10 * * ? *)",
+        "event_pattern": false,
+        "description": "Signal Scorecard \u2014 daily grading + deprecation enforcement",
+        "targets": [
+          "justhodl-signal-scorecard"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 13,
+          "active_days_30d": 8
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "yen-carry-daily",
+        "state": "ENABLED",
+        "schedule": "cron(0 12 * * ? *)",
+        "event_pattern": false,
+        "description": "Yen Carry & BOJ Liquidity Engine - daily 12:00 UTC",
+        "targets": [
+          "justhodl-yen-carry",
+          "justhodl-yen-carry"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 16,
+          "active_days_30d": 7
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "tape-reader-eod",
+        "state": "ENABLED",
+        "schedule": "cron(30 21 ? * MON-FRI *)",
+        "event_pattern": false,
+        "description": "Daily EOD equity tape reader (5:30 PM ET, weekdays)",
+        "targets": [
+          "justhodl-tape-reader"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-22",
+          "days_since": 2,
+          "invocations_30d": 16,
+          "active_days_30d": 13
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "treasury-thursday-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 ? * THU *)",
+        "event_pattern": false,
+        "description": "Thursday Treasury update",
+        "targets": [
+          "treasury-auto-updater"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-20",
+          "days_since": 4,
+          "invocations_30d": 9,
+          "active_days_30d": 9
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "treasury-monday-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 ? * MON *)",
+        "event_pattern": false,
+        "description": "Monday Treasury update",
+        "targets": [
+          "treasury-auto-updater"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-20",
+          "days_since": 4,
+          "invocations_30d": 9,
+          "active_days_30d": 9
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "treasury-auto-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 10 ? * MON,THU *)",
+        "event_pattern": false,
+        "description": "Treasury API auto-update twice weekly",
+        "targets": [
+          "treasury-api"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 579,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "vol-regime-hourly",
+        "state": "ENABLED",
+        "schedule": "rate(1 hour)",
+        "event_pattern": false,
+        "description": "Schedule for justhodl-vol-regime",
+        "targets": [
+          "justhodl-vol-regime"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 413,
+          "active_days_30d": 17
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      },
+      {
+        "name": "xccy-basis-30min",
+        "state": "ENABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Update cross-currency basis every 30 minutes",
+        "targets": [
+          "xccy-basis-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 509,
+          "active_days_30d": 30
+        },
+        "category": "HEALTHY",
+        "reason": "Regular invocations within last 7 days"
+      }
+    ],
+    "DISABLED": [
+      {
+        "name": "autonomous-ai-schedule",
+        "state": "DISABLED",
+        "schedule": "rate(5 minutes)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "autonomous-ai-processor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": null,
+          "days_since": 31,
+          "invocations_30d": 0,
+          "active_days_30d": 0
+        },
+        "category": "DISABLED",
+        "reason": "Rule is disabled \u2014 delete to reclaim slot"
+      },
+      {
+        "name": "justhodl-8am",
+        "state": "DISABLED",
+        "schedule": "cron(0 13 * * ? *)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-email-reports"
+        ],
+        "last_invocation": {
+          "last_invocation_date": null,
+          "days_since": 31,
+          "invocations_30d": 0,
+          "active_days_30d": 0
+        },
+        "category": "DISABLED",
+        "reason": "Rule is disabled \u2014 delete to reclaim slot"
+      },
+      {
+        "name": "news-sentiment-update",
+        "state": "DISABLED",
+        "schedule": "rate(30 minutes)",
+        "event_pattern": false,
+        "description": "Update news sentiment every 30 minutes",
+        "targets": [
+          "news-sentiment-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 308,
+          "active_days_30d": 30
+        },
+        "category": "DISABLED",
+        "reason": "Rule is disabled \u2014 delete to reclaim slot"
+      }
+    ],
+    "HIGH_FREQ": [
+      {
+        "name": "fleet-error-monitor-5min",
+        "state": "ENABLED",
+        "schedule": "rate(5 minutes)",
+        "event_pattern": false,
+        "description": "AUDIT P2 \u2014 scan fleet error rates + DLQ depth every 5 minutes",
+        "targets": [
+          "justhodl-fleet-error-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1199,
+          "active_days_30d": 3
+        },
+        "category": "HIGH_FREQ",
+        "reason": "Runs rate(5 minutes) \u2014 consider cadence relaxation (memory: ops 748-749 saved ~27k inv/mo by doing this)"
+      },
+      {
+        "name": "justhodl-fleet-error-monitor-5min",
+        "state": "ENABLED",
+        "schedule": "rate(5 minutes)",
+        "event_pattern": false,
+        "description": "Scan all Lambdas for elevated error rates and alert",
+        "targets": [
+          "justhodl-fleet-error-monitor"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 1199,
+          "active_days_30d": 3
+        },
+        "category": "HIGH_FREQ",
+        "reason": "Runs rate(5 minutes) \u2014 consider cadence relaxation (memory: ops 748-749 saved ~27k inv/mo by doing this)"
+      },
+      {
+        "name": "justhodl-flow-refresh",
+        "state": "ENABLED",
+        "schedule": "rate(5 minutes)",
+        "event_pattern": false,
+        "description": "",
+        "targets": [
+          "justhodl-options-flow"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-23",
+          "days_since": 1,
+          "invocations_30d": 8671,
+          "active_days_30d": 30
+        },
+        "category": "HIGH_FREQ",
+        "reason": "Runs rate(5 minutes) \u2014 consider cadence relaxation (memory: ops 748-749 saved ~27k inv/mo by doing this)"
+      }
+    ],
+    "STALE_7D": [
+      {
+        "name": "valuations-monthly-update",
+        "state": "ENABLED",
+        "schedule": "cron(0 14 1 * ? *)",
+        "event_pattern": false,
+        "description": "Monthly valuations update 1st of month 9AM ET",
+        "targets": [
+          "justhodl-valuations-agent"
+        ],
+        "last_invocation": {
+          "last_invocation_date": "2026-05-01",
+          "days_since": 23,
+          "invocations_30d": 1,
+          "active_days_30d": 1
+        },
+        "category": "STALE_7D",
+        "reason": "No invocations in last 7 days (23 since last)"
+      }
+    ]
+  }
+}
