@@ -1,0 +1,810 @@
+{
+  "generated_at": "2026-05-26T07:45:57.993333+00:00",
+  "total_lambdas": 416,
+  "delta_vs_catalog_baseline": 83,
+  "catalog_baseline_date": "2026-05-21",
+  "total_eb_rules": 298,
+  "lambdas_with_schedule": 263,
+  "lambdas_no_schedule": 153,
+  "category_density": [
+    {
+      "category": "Other / Misc",
+      "count": 195
+    },
+    {
+      "category": "Risk / Hedge / Portfolio",
+      "count": 28
+    },
+    {
+      "category": "Macro / Fed / Liquidity",
+      "count": 18
+    },
+    {
+      "category": "Options / Flow / Vol",
+      "count": 16
+    },
+    {
+      "category": "Crisis / Stress",
+      "count": 12
+    },
+    {
+      "category": "13F / Activist / SEC",
+      "count": 12
+    },
+    {
+      "category": "Earnings / PEAD",
+      "count": 12
+    },
+    {
+      "category": "Sentiment / Composite",
+      "count": 10
+    },
+    {
+      "category": "Learning / Calibration",
+      "count": 10
+    },
+    {
+      "category": "Crypto",
+      "count": 9
+    },
+    {
+      "category": "Insider / Smart Money",
+      "count": 9
+    },
+    {
+      "category": "Pro Pack v3",
+      "count": 8
+    },
+    {
+      "category": "Bonds / Credit / Rates",
+      "count": 8
+    },
+    {
+      "category": "Reports / Comm",
+      "count": 8
+    },
+    {
+      "category": "Screener / Watchlist",
+      "count": 8
+    },
+    {
+      "category": "Data infra",
+      "count": 7
+    },
+    {
+      "category": "Squeeze stack",
+      "count": 6
+    },
+    {
+      "category": "AI / Agent",
+      "count": 6
+    },
+    {
+      "category": "Flows / Capital",
+      "count": 6
+    },
+    {
+      "category": "Sector / Theme",
+      "count": 5
+    },
+    {
+      "category": "Wave 3 Tier-1",
+      "count": 4
+    },
+    {
+      "category": "Infrastructure / DR / Monitoring",
+      "count": 4
+    },
+    {
+      "category": "Catalyst / Calendar",
+      "count": 3
+    },
+    {
+      "category": "Bagger pack",
+      "count": 3
+    },
+    {
+      "category": "CFTC / COT",
+      "count": 3
+    },
+    {
+      "category": "Personal Wealth Triangle",
+      "count": 3
+    },
+    {
+      "category": "Operational",
+      "count": 3
+    }
+  ],
+  "category_inventory": {
+    "Other / Misc": [
+      "MLPredictor",
+      "aiapi-market-analyzer",
+      "alphavantage-market-agent",
+      "alphavantage-technical-analysis",
+      "autonomous-ai-processor",
+      "bea-economic-agent",
+      "benzinga-news-agent",
+      "bls-employment-api-v2",
+      "bls-labor-agent",
+      "bond-indices-agent",
+      "census-economic-agent",
+      "cftc-futures-positioning-agent",
+      "chatgpt-agent-api",
+      "coinmarketcap-agent",
+      "daily-liquidity-report",
+      "dollar-strength-agent",
+      "ecb-auto-updater",
+      "ecb-data-daily-updater",
+      "economyapi",
+      "eia-energy-agent",
+      "enhanced-repo-agent",
+      "fedliquidityapi",
+      "fmp-fundamentals-agent",
+      "fmp-stock-picks-agent",
+      "fred-ice-bofa-api",
+      "global-liquidity-agent-v2",
+      "google-trends-agent",
+      "justhodl-52wk-quality-breakout",
+      "justhodl-ab-test",
+      "justhodl-activity-nowcast",
+      "justhodl-alert-router",
+      "justhodl-alpha-alerts",
+      "justhodl-alpha-calibrator",
+      "justhodl-alpha-confluence",
+      "justhodl-alpha-score",
+      "justhodl-anomaly-detector",
+      "justhodl-bagger-engine",
+      "justhodl-behavior-mirror",
+      "justhodl-beta-laggard",
+      "justhodl-bloomberg-v8",
+      "justhodl-breadth-divergence",
+      "justhodl-breadth-thrust",
+      "justhodl-buyback-scanner",
+      "justhodl-calls-backtest",
+      "justhodl-canary-grid",
+      "justhodl-capital-return",
+      "justhodl-carry-surface",
+      "justhodl-causality-scanner",
+      "justhodl-cds-proxy",
+      "justhodl-cef-discount",
+      "justhodl-chart-data",
+      "justhodl-chart-patterns",
+      "justhodl-chart-vision",
+      "justhodl-consensus-bottom",
+      "justhodl-construction-housing",
+      "justhodl-consumer-pulse",
+      "justhodl-convexity-scorer",
+      "justhodl-conviction-engine",
+      "justhodl-correlation-break-trade-router",
+      "justhodl-correlation-breaks",
+      "justhodl-correlation-surface",
+      "justhodl-cross-asset-confirm",
+      "justhodl-cross-asset-regime",
+      "justhodl-cross-asset-rv",
+      "justhodl-cta-trend-exhaust",
+      "justhodl-data-collector",
+      "justhodl-desk-returns",
+      "justhodl-divcut-warning",
+      "justhodl-divergence-engine-v2",
+      "justhodl-divergence-interpreter",
+      "justhodl-divergence-scanner",
+      "justhodl-dividend-growth",
+      "justhodl-dollar-radar",
+      "justhodl-dxy-equity-divergence",
+      "justhodl-edge-engine",
+      "justhodl-engine-contribution",
+      "justhodl-engine-robustness",
+      "justhodl-esi",
+      "justhodl-euro-fragmentation",
+      "justhodl-event-study",
+      "justhodl-factor-decomposition",
+      "justhodl-failed-pattern-reversal",
+      "justhodl-failure-library",
+      "justhodl-fed-pivot-factor-router",
+      "justhodl-fedwatch-rate-probability",
+      "justhodl-feedback",
+      "justhodl-firm-book",
+      "justhodl-fleet-monitor",
+      "justhodl-forced-selling-bounce",
+      "justhodl-forensic-screen",
+      "justhodl-fundamentals-engine",
+      "justhodl-fx-decomposition",
+      "justhodl-fx-intelligence",
+      "justhodl-gap-fill-confirm",
+      "justhodl-global-business-cycle",
+      "justhodl-global-macro",
+      "justhodl-global-markets",
+      "justhodl-gsi-calibrator",
+      "justhodl-gsi-horizons",
+      "justhodl-historical-analogs",
+      "justhodl-implied-prob",
+      "justhodl-index-recon",
+      "justhodl-intelligence",
+      "justhodl-ka-metrics",
+      "justhodl-khalid-adaptive",
+      "justhodl-khalid-metrics",
+      "justhodl-labor-leading",
+      "justhodl-leading-markets",
+      "justhodl-live-pulse",
+      "justhodl-lockup-expiration",
+      "justhodl-ma-target-predictor",
+      "justhodl-ma-tracker",
+      "justhodl-market-extremes",
+      "justhodl-market-internals",
+      "justhodl-mean-reversion",
+      "justhodl-meta-improver",
+      "justhodl-metals-miners",
+      "justhodl-ml-predictions",
+      "justhodl-momentum-breakout",
+      "justhodl-momentum-scanner",
+      "justhodl-multi-tf-convergence",
+      "justhodl-narrative-density-tracker",
+      "justhodl-ndx-spx-spread",
+      "justhodl-news-velocity",
+      "justhodl-nobrainer-rationale",
+      "justhodl-nobrainer-tracker",
+      "justhodl-oecd-cli",
+      "justhodl-opportunity-calibrator",
+      "justhodl-opportunity-engine",
+      "justhodl-pairs-arb",
+      "justhodl-pairs-scanner",
+      "justhodl-peer-comparison",
+      "justhodl-plumbing-aggregator",
+      "justhodl-pnl-attribution",
+      "justhodl-pnl-tracker",
+      "justhodl-political-trades",
+      "justhodl-powell-pivot",
+      "justhodl-pre-pump-detector",
+      "justhodl-premortem-engine",
+      "justhodl-price-redundancy",
+      "justhodl-put-call-extreme",
+      "justhodl-quality-on-sale",
+      "justhodl-redflag-alerter",
+      "justhodl-regime-anomaly",
+      "justhodl-regime-conditional-router",
+      "justhodl-reit-nav-discount",
+      "justhodl-reports-builder",
+      "justhodl-revenue-acceleration",
+      "justhodl-reversal-radar",
+      "justhodl-russell-recon-frontrun",
+      "justhodl-rv-iv-scanner",
+      "justhodl-screen-builder",
+      "justhodl-seasonality",
+      "justhodl-sellside-views",
+      "justhodl-sequence-alpha-detector",
+      "justhodl-signal-halflife",
+      "justhodl-signal-registry-ingest",
+      "justhodl-signal-scorecard",
+      "justhodl-spac-floor-warrant",
+      "justhodl-stealth-accumulation",
+      "justhodl-streaming-fanout",
+      "justhodl-supply-chain-linkage",
+      "justhodl-supply-inflection-scanner",
+      "justhodl-system-signal-logger",
+      "justhodl-tenor-signal-interpreter",
+      "justhodl-trade-evaluator",
+      "justhodl-trade-journal",
+      "justhodl-trade-logger",
+      "justhodl-transcript-indexer",
+      "justhodl-transcript-query",
+      "justhodl-treasury-proxy",
+      "justhodl-trend-engine",
+      "justhodl-universe-builder",
+      "justhodl-vix9d-vix-inversion",
+      "justhodl-vrp",
+      "justhodl-wave-signal-logger",
+      "justhodl-whats-changed",
+      "justhodl-yen-carry",
+      "macro-financial-intelligence",
+      "manufacturing-global-agent",
+      "multi-agent-orchestrator",
+      "nasdaq-datalink-agent",
+      "news-sentiment-agent",
+      "ofrapi",
+      "openbb-system2-api",
+      "openbb-websocket-broadcast",
+      "openbb-websocket-handler",
+      "permanent-market-intelligence",
+      "scrapeMacroData",
+      "securities-banking-agent",
+      "treasury-api",
+      "treasury-auto-updater",
+      "ultimate-multi-agent",
+      "volatility-monitor-agent",
+      "xccy-basis-agent"
+    ],
+    "Crypto": [
+      "justhodl-crypto-enricher",
+      "justhodl-crypto-etf-arb",
+      "justhodl-crypto-funding",
+      "justhodl-crypto-intel",
+      "justhodl-crypto-narratives",
+      "justhodl-crypto-opportunities",
+      "justhodl-dex-scanner",
+      "justhodl-onchain-ratios",
+      "justhodl-stablecoin-flow"
+    ],
+    "Risk / Hedge / Portfolio": [
+      "justhodl-allocator",
+      "justhodl-cro-digest",
+      "justhodl-cro-escalation",
+      "justhodl-desk-allocator",
+      "justhodl-factor-risk",
+      "justhodl-firm-risk-board",
+      "justhodl-hedge-planner",
+      "justhodl-hedge-pnl",
+      "justhodl-macro-nowcast",
+      "justhodl-macro-surprise",
+      "justhodl-master-allocator",
+      "justhodl-merger-arb",
+      "justhodl-merger-arb-risk",
+      "justhodl-pm-decision",
+      "justhodl-portfolio-admin",
+      "justhodl-portfolio-catalysts",
+      "justhodl-portfolio-risk",
+      "justhodl-portfolio-sizer",
+      "justhodl-portfolio-snapshot",
+      "justhodl-position-monitor",
+      "justhodl-position-sizer-v2",
+      "justhodl-retail-sentiment",
+      "justhodl-risk-monitor",
+      "justhodl-risk-radar",
+      "justhodl-risk-sizer",
+      "justhodl-signal-portfolio",
+      "justhodl-skew-tail-hedging",
+      "justhodl-tail-hedge"
+    ],
+    "Catalyst / Calendar": [
+      "justhodl-catalyst-calendar",
+      "justhodl-econ-calendar",
+      "justhodl-spinoff-desk"
+    ],
+    "Pro Pack v3": [
+      "justhodl-beneish",
+      "justhodl-eva-spread",
+      "justhodl-gf-value",
+      "justhodl-ipo-pipeline",
+      "justhodl-magic-formula",
+      "justhodl-predictability",
+      "justhodl-smart-beta",
+      "justhodl-starmine"
+    ],
+    "Bagger pack": [
+      "justhodl-coffee-can",
+      "justhodl-hiring-velocity",
+      "justhodl-insider-aggregate"
+    ],
+    "Macro / Fed / Liquidity": [
+      "justhodl-auction-crisis-detector",
+      "justhodl-auction-grader",
+      "justhodl-boj-detail",
+      "justhodl-cb-injection",
+      "justhodl-cb-stance",
+      "justhodl-china-liquidity",
+      "justhodl-ecb-detail",
+      "justhodl-ecb-proxy",
+      "justhodl-fed-speak",
+      "justhodl-global-liquidity",
+      "justhodl-liquidity-agent",
+      "justhodl-liquidity-capacity",
+      "justhodl-liquidity-credit-engine",
+      "justhodl-liquidity-flow",
+      "justhodl-liquidity-profile",
+      "justhodl-liquidity-pulse",
+      "justhodl-nyfed-dealer-survey",
+      "justhodl-snb-detail"
+    ],
+    "Bonds / Credit / Rates": [
+      "justhodl-bond-regime-detector",
+      "justhodl-bond-trace",
+      "justhodl-bond-vol",
+      "justhodl-buyback-yield-ranking",
+      "justhodl-commodity-curves",
+      "justhodl-credit-equity-divergence",
+      "justhodl-credit-stress",
+      "justhodl-yield-curve"
+    ],
+    "Options / Flow / Vol": [
+      "justhodl-catalyst-skew-premove",
+      "justhodl-dealer-gex",
+      "justhodl-dix",
+      "justhodl-opex-calendar",
+      "justhodl-options-flow",
+      "justhodl-options-flow-scanner",
+      "justhodl-options-gamma",
+      "justhodl-precatalyst-vol-expansion",
+      "justhodl-tape-reader",
+      "justhodl-vix-backwardation-trigger",
+      "justhodl-vix-curve",
+      "justhodl-vol-radar",
+      "justhodl-vol-regime",
+      "justhodl-vol-surface",
+      "justhodl-vol-target-unwind",
+      "justhodl-vvix-vov-regime"
+    ],
+    "Sector / Theme": [
+      "justhodl-gold-equity-rotation",
+      "justhodl-sympathetic-momentum",
+      "justhodl-theme-detector",
+      "justhodl-theme-rotation-engine",
+      "justhodl-theme-tier-classifier"
+    ],
+    "Squeeze stack": [
+      "justhodl-finra-short",
+      "justhodl-microcap-float-squeeze",
+      "justhodl-short-interest",
+      "justhodl-short-pressure",
+      "justhodl-squeeze-pretrigger",
+      "justhodl-volatility-squeeze-hunter"
+    ],
+    "Crisis / Stress": [
+      "justhodl-bank-stress",
+      "justhodl-cds-monitor",
+      "justhodl-crisis-composite",
+      "justhodl-crisis-knowledge-base",
+      "justhodl-crisis-plumbing",
+      "justhodl-eurodollar-stress",
+      "justhodl-firm-stress",
+      "justhodl-global-stress",
+      "justhodl-stress-loadings",
+      "justhodl-stress-scenarios",
+      "justhodl-stress-simulator",
+      "justhodl-systemic-stress"
+    ],
+    "Sentiment / Composite": [
+      "justhodl-aaii-sentiment",
+      "justhodl-asymmetric-hunter",
+      "justhodl-asymmetric-scorer",
+      "justhodl-best-ideas",
+      "justhodl-compound-aggregator",
+      "justhodl-gdelt-sentiment",
+      "justhodl-master-ranker",
+      "justhodl-news-sentiment",
+      "justhodl-regime-composite",
+      "justhodl-signal-board"
+    ],
+    "AI / Agent": [
+      "justhodl-ai-chat",
+      "justhodl-charts-agent",
+      "justhodl-debate-engine",
+      "justhodl-investor-agents",
+      "justhodl-ultimate-orchestrator",
+      "justhodl-valuations-agent"
+    ],
+    "CFTC / COT": [
+      "justhodl-cftc-deep-view",
+      "justhodl-cot-extremes-scanner",
+      "justhodl-cot-tracker"
+    ],
+    "Reports / Comm": [
+      "justhodl-ai-brief",
+      "justhodl-alpha-daily-brief",
+      "justhodl-daily-report-v3",
+      "justhodl-email-reports",
+      "justhodl-email-reports-v2",
+      "justhodl-morning-brief-tg",
+      "justhodl-morning-intelligence",
+      "justhodl-telegram-bot"
+    ],
+    "Screener / Watchlist": [
+      "justhodl-deep-value-screener",
+      "justhodl-opportunity-screener",
+      "justhodl-screener-alerts",
+      "justhodl-stock-ai-research",
+      "justhodl-stock-analyzer",
+      "justhodl-stock-screener",
+      "justhodl-watchlist",
+      "justhodl-watchlist-debate"
+    ],
+    "Learning / Calibration": [
+      "justhodl-backtest-engine",
+      "justhodl-backtest-harness",
+      "justhodl-calibration-fleet",
+      "justhodl-calibration-snapshot",
+      "justhodl-calibrator",
+      "justhodl-outcome-checker",
+      "justhodl-prompt-iterator",
+      "justhodl-signal-logger",
+      "justhodl-signal-orthogonality",
+      "justhodl-track-record"
+    ],
+    "13F / Activist / SEC": [
+      "justhodl-13f-positions",
+      "justhodl-13f-price-divergence",
+      "justhodl-activist-13d",
+      "justhodl-activist-filings-scanner",
+      "justhodl-sec-10kq",
+      "justhodl-sec-13f",
+      "justhodl-sec-8k",
+      "justhodl-sec-filing-diff",
+      "justhodl-sector-earnings-diffusion",
+      "justhodl-sector-heatmap",
+      "justhodl-sector-rotation",
+      "justhodl-sector-tilt"
+    ],
+    "Wave 3 Tier-1": [
+      "justhodl-concentration-liquidity",
+      "justhodl-fed-nlp",
+      "justhodl-macro-calendar",
+      "justhodl-news-wire"
+    ],
+    "Personal Wealth Triangle": [
+      "justhodl-forward-returns",
+      "justhodl-tax-plan",
+      "justhodl-wealth-plan"
+    ],
+    "Earnings / PEAD": [
+      "justhodl-earnings-cascade",
+      "justhodl-earnings-iv-crush",
+      "justhodl-earnings-nlp",
+      "justhodl-earnings-pead",
+      "justhodl-earnings-quality",
+      "justhodl-earnings-sentiment",
+      "justhodl-earnings-tone-velocity",
+      "justhodl-earnings-tracker",
+      "justhodl-earnings-whisper",
+      "justhodl-eps-revision-velocity",
+      "justhodl-pead-detector",
+      "justhodl-post-earnings-mean-rev"
+    ],
+    "Insider / Smart Money": [
+      "justhodl-insider-buyback-confluence",
+      "justhodl-insider-buys-enriched",
+      "justhodl-insider-cluster-scanner",
+      "justhodl-insider-sell-cluster",
+      "justhodl-insider-trades",
+      "justhodl-rating-change-cluster",
+      "justhodl-smart-money-cluster",
+      "justhodl-smart-money-holdings",
+      "justhodl-smart-money-tracker"
+    ],
+    "Flows / Capital": [
+      "justhodl-etf-flows",
+      "justhodl-exchange-flows",
+      "justhodl-margin-lending",
+      "justhodl-repo-lending",
+      "justhodl-repo-monitor",
+      "justhodl-tic-flows"
+    ],
+    "Data infra": [
+      "justhodl-analyst-consensus",
+      "justhodl-calibration-snapshotter",
+      "justhodl-financial-secretary",
+      "justhodl-fred-proxy",
+      "justhodl-health-monitor",
+      "justhodl-history-api",
+      "justhodl-history-snapshotter"
+    ],
+    "Operational": [
+      "justhodl-api-keys-admin",
+      "justhodl-public-api-demo",
+      "justhodl-push-api"
+    ],
+    "Infrastructure / DR / Monitoring": [
+      "justhodl-cost-anomaly",
+      "justhodl-dr-snapshot",
+      "justhodl-fleet-error-monitor",
+      "justhodl-fleet-freshness-monitor"
+    ]
+  },
+  "orphan_candidates": [
+    {
+      "name": "economyapi",
+      "invocations_30d": 0,
+      "desc": "",
+      "last_modified": "2026-05-22T11:00:47.000+0000"
+    },
+    {
+      "name": "autonomous-ai-processor",
+      "invocations_30d": 0,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:35.000+0000"
+    },
+    {
+      "name": "justhodl-transcript-query",
+      "invocations_30d": 0,
+      "desc": "Transcript Query Handler (R2b). On-demand TF-IDF ranked search over data/transcripts-index.json. POS",
+      "last_modified": "2026-05-22T10:55:35.000+0000"
+    },
+    {
+      "name": "ultimate-multi-agent",
+      "invocations_30d": 0,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:36.000+0000"
+    },
+    {
+      "name": "multi-agent-orchestrator",
+      "invocations_30d": 0,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:40.000+0000"
+    },
+    {
+      "name": "justhodl-email-reports",
+      "invocations_30d": 0,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:41.000+0000"
+    },
+    {
+      "name": "justhodl-stablecoin-flow",
+      "invocations_30d": 1,
+      "desc": "Stablecoin mint/flow tracker (Edge #7). Aggregates 15+ USD stables via DefiLlama; classifies regime;",
+      "last_modified": "2026-05-22T10:55:26.000+0000"
+    },
+    {
+      "name": "justhodl-cta-trend-exhaust",
+      "invocations_30d": 1,
+      "desc": "CTA / Lev Fund trend exhaustion in equity index futures (ES+NQ+RTY+YM). CFTC TFF 156w pctile + z-sco",
+      "last_modified": "2026-05-22T10:55:33.000+0000"
+    },
+    {
+      "name": "justhodl-earnings-quality",
+      "invocations_30d": 1,
+      "desc": "Earnings quality scanner via Sloan accruals + Beneish proxies. 4-factor: accruals %assets, OCF/NI ca",
+      "last_modified": "2026-05-22T10:55:34.000+0000"
+    },
+    {
+      "name": "justhodl-rv-iv-scanner",
+      "invocations_30d": 1,
+      "desc": "RV-IV Variance Risk Premium + Implied Dispersion scanner (Edge #10). FRED single-name VIX vs FMP OHL",
+      "last_modified": "2026-05-22T10:55:35.000+0000"
+    },
+    {
+      "name": "justhodl-factor-decomposition",
+      "invocations_30d": 1,
+      "desc": "Factor Decomposition (R10). FF5+MOM 6-factor OLS regression per ticker over 60mo: alpha (annualized ",
+      "last_modified": "2026-05-22T10:55:40.000+0000"
+    },
+    {
+      "name": "justhodl-vix-backwardation-trigger",
+      "invocations_30d": 2,
+      "desc": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDO",
+      "last_modified": "2026-05-22T10:55:25.000+0000"
+    },
+    {
+      "name": "justhodl-divcut-warning",
+      "invocations_30d": 2,
+      "desc": "tier2-retail-edges/divcut-warning",
+      "last_modified": "2026-05-22T10:55:28.000+0000"
+    },
+    {
+      "name": "eia-energy-agent",
+      "invocations_30d": 2,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:31.000+0000"
+    },
+    {
+      "name": "justhodl-reit-nav-discount",
+      "invocations_30d": 2,
+      "desc": "tier2-retail-edges/reit-nav-discount",
+      "last_modified": "2026-05-22T10:55:32.000+0000"
+    },
+    {
+      "name": "justhodl-breadth-thrust",
+      "invocations_30d": 2,
+      "desc": "Zweig Breadth Thrust + Whaley January Barometer + Coppock Curve. 11-of-11 historical 12m positive re",
+      "last_modified": "2026-05-22T10:55:33.000+0000"
+    },
+    {
+      "name": "justhodl-beneish",
+      "invocations_30d": 2,
+      "desc": "Beneish M-Score (GuruFocus fraud-detection gap-closer): 8-variable composite identifying earnings-ma",
+      "last_modified": "2026-05-22T10:55:35.000+0000"
+    },
+    {
+      "name": "justhodl-buyback-scanner",
+      "invocations_30d": 2,
+      "desc": "Buyback authorization + drift scanner (Edge #6). Pulls SEC 8-K repurchase filings, ranks by tranche ",
+      "last_modified": "2026-05-22T10:55:40.000+0000"
+    },
+    {
+      "name": "benzinga-news-agent",
+      "invocations_30d": 2,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:41.000+0000"
+    },
+    {
+      "name": "justhodl-buyback-yield-ranking",
+      "invocations_30d": 2,
+      "desc": "TTM buyback yield ranking. 5-factor quality: gross+net yield, FCF coverage>=1x, P/E<30, 4-qtr consis",
+      "last_modified": "2026-05-22T10:55:44.000+0000"
+    },
+    {
+      "name": "justhodl-stock-ai-research",
+      "invocations_30d": 2,
+      "desc": "AI research summaries for stock analyzer \u2014 company desc, bull/bear cases, scenario-based price targe",
+      "last_modified": "2026-05-22T10:55:44.000+0000"
+    },
+    {
+      "name": "justhodl-spac-floor-warrant",
+      "invocations_30d": 2,
+      "desc": "tier2-retail-edges/spac-floor-warrant",
+      "last_modified": "2026-05-22T10:55:44.000+0000"
+    },
+    {
+      "name": "justhodl-opex-calendar",
+      "invocations_30d": 2,
+      "desc": "OPEX/0DTE gamma pinning calendar (Edge #8). Classifies trading day into OPEX regime (PRE/OPEX/POST/Q",
+      "last_modified": "2026-05-22T10:55:47.000+0000"
+    },
+    {
+      "name": "fmp-fundamentals-agent",
+      "invocations_30d": 3,
+      "desc": "",
+      "last_modified": "2026-05-22T10:55:30.000+0000"
+    },
+    {
+      "name": "justhodl-cftc-deep-view",
+      "invocations_30d": 3,
+      "desc": "CFTC Deep View (R7). 5-layer COT analytics on top of cftc-all-cache: z-scores 1y+3y, position deltas",
+      "last_modified": "2026-05-22T10:55:33.000+0000"
+    },
+    {
+      "name": "justhodl-insider-buys-enriched",
+      "invocations_30d": 3,
+      "desc": "Institutional enrichment of insider-cluster-scanner output. Per-cluster expected forward returns (1m",
+      "last_modified": "2026-05-22T10:55:33.000+0000"
+    },
+    {
+      "name": "justhodl-history-api",
+      "invocations_30d": 3,
+      "desc": "Read-only API for justhodl-history DDB. Function URL exposes /index, /snapshot, /latest, /timestamps",
+      "last_modified": "2026-05-22T10:55:37.000+0000"
+    },
+    {
+      "name": "justhodl-gsi-horizons",
+      "invocations_30d": 3,
+      "desc": "Multi-Horizon GSI calibrator -- fits IC + weights at 5/21/63/252-day forward horizons on the same di",
+      "last_modified": "2026-05-22T10:55:43.000+0000"
+    },
+    {
+      "name": "justhodl-signal-orthogonality",
+      "invocations_30d": 3,
+      "desc": "Signal Orthogonality -- pairwise correlation + cluster audit across the fleet history. Identifies re",
+      "last_modified": "2026-05-22T10:55:49.000+0000"
+    },
+    {
+      "name": "justhodl-russell-recon-frontrun",
+      "invocations_30d": 4,
+      "desc": "Russell index reconstitution front-runner (Edge #5). Predicts FTSE Russell R1000/2000/3000 adds/dele",
+      "last_modified": "2026-05-22T10:55:32.000+0000"
+    },
+    {
+      "name": "justhodl-supply-chain-linkage",
+      "invocations_30d": 4,
+      "desc": "Supply Chain Linkage (R6). Customer + supplier graph + geographic concentration per ticker. FMP /sta",
+      "last_modified": "2026-05-22T10:55:32.000+0000"
+    },
+    {
+      "name": "justhodl-fx-decomposition",
+      "invocations_30d": 4,
+      "desc": "FX Decomposition (R9). DXY 6-component move attribution (EUR 57.6/JPY 13.6/GBP 11.9/CAD 9.1/SEK 4.2/",
+      "last_modified": "2026-05-22T10:55:38.000+0000"
+    },
+    {
+      "name": "justhodl-sec-filing-diff",
+      "invocations_30d": 4,
+      "desc": "SEC Filing Diff Engine. Extracts + diffs Item 1A Risk Factors YoY per 10-K via SEC EDGAR + Claude Ha",
+      "last_modified": "2026-05-22T11:43:09.000+0000"
+    },
+    {
+      "name": "justhodl-peer-comparison",
+      "invocations_30d": 4,
+      "desc": "Peer Comparison Engine (R3). Damodaran-grade comparable analysis: 21 metrics across valuation/profit",
+      "last_modified": "2026-05-22T10:55:41.000+0000"
+    },
+    {
+      "name": "justhodl-screen-builder",
+      "invocations_30d": 4,
+      "desc": "Custom Screen Builder (R4). Programmable filter engine over consolidated 60+ metric universe (10 ups",
+      "last_modified": "2026-05-22T10:55:48.000+0000"
+    },
+    {
+      "name": "justhodl-vol-surface",
+      "invocations_30d": 4,
+      "desc": "Vol Surface \u2014 Yahoo Finance IV chains + BS delta. Term + RR25 + BF25 + risk-neutral PDF for SPY/QQQ/",
+      "last_modified": "2026-05-22T10:55:51.000+0000"
+    }
+  ],
+  "orphan_count": 36
+}
