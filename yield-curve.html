@@ -145,73 +145,71 @@ function dirStyle(d){
           NEUTRAL:"background:rgba(168,179,199,.10);color:var(--mute)"}[d]||"";
 }
 
-function interpret(d){
+function interpret(d,ref){
   const regime=(d.regime||"").toUpperCase();
   const inv=d.any_inversion||(d.inversion_flags&&Object.values(d.inversion_flags).some(Boolean));
   const slope=(d.decomposition&&d.decomposition.slope_2s10s_bps!=null)?d.decomposition.slope_2s10s_bps:(d.spreads_bps&&d.spreads_bps["2s10s"]);
   const M={
-    BULL_STEEPENER:{
-      lead:"Front-end yields are falling faster than the long end — the market is pricing Fed rate cuts, usually because growth is slowing. Classic late-cycle / early-easing setup. Risk assets get an initial liquidity tailwind, but if cuts are arriving because a recession is starting, that tailwind reverses hard.",
-      eq:["MIXED","Cut hopes support multiples short-term, but a steepening driven by recession fear eventually hits earnings. Long-duration growth/tech benefits most from a falling front-end."],
-      credit:["CAUTION","IG resilient, but high-yield spreads are the canary — if the steepening is recessionary, HY widens first. Watch HY OAS."],
-      crypto:["BULLISH","High beta to easing expectations and liquidity. Tends to rally on rate-cut pricing — until recession actually bites."],
-      gold:["BULLISH","Falling real rates plus eventual easing is the ideal gold backdrop."],
-      usd:["BEARISH","Rate-differential compression as the Fed turns dovish pressures the dollar."],
-      dur:["BULLISH","Bonds rally as the market front-runs cuts; front-end duration outperforms."]
-    },
-    BEAR_STEEPENER:{
-      lead:"Long-end yields are rising faster than the front — the market is pricing higher growth, higher inflation, or more Treasury supply / term premium. This is the most dangerous regime for long-duration risk assets: the discount rate rises without the Fed cutting.",
-      eq:["CAUTION","Rising long yields compress valuations, hitting long-duration growth/tech hardest. Value, cyclicals, energy and financials relatively favored."],
-      credit:["CAUTION","Disorderly long-end selloffs can drag credit; spreads widen if the moves are violent (cf. 2022)."],
-      crypto:["BEARISH","Rising real yields raise the opportunity cost of holding non-yielding assets; tends to pressure crypto."],
-      gold:["MIXED","The inflation narrative is supportive, but rising real yields are a direct headwind — net depends on which dominates."],
-      usd:["MIXED","Higher US yields can support USD, but if driven by fiscal / term-premium fear it can coincide with dollar weakness."],
-      dur:["BEARISH","The textbook bond bear market — long duration sells off."]
-    },
-    BULL_FLATTENER:{
-      lead:"Short-end yields are falling faster than the long end — recovery / risk-on dynamics where the market is comfortable the Fed is done tightening. Generally the friendliest curve regime for risk assets.",
-      eq:["BULLISH","Stable long rates plus an easing front-end is supportive of multiples across the board."],
-      credit:["BULLISH","Spreads tend to tighten as recession fears recede."],
-      crypto:["BULLISH","Risk-on liquidity backdrop favors high-beta assets."],
-      gold:["MIXED","Less directional — depends on the real-rate path."],
-      usd:["BEARISH","A softer front-end pressures the dollar modestly."],
-      dur:["BULLISH","Front-end duration supported."]
-    },
-    BEAR_FLATTENER:{
-      lead:"Short-end yields are rising faster than the long end — the Fed is hiking (or expected to). Financial conditions are tightening. Historically the toughest regime for risk assets as liquidity is drained.",
-      eq:["BEARISH","Multiple compression as the discount rate rises and liquidity tightens. Long-duration growth most exposed."],
-      credit:["BEARISH","Tightening drains liquidity; spreads bias wider, refinancing risk rises."],
-      crypto:["BEARISH","The most rate-sensitive risk asset; tightening cycles have produced the worst crypto drawdowns."],
-      gold:["BEARISH","Rising real rates are gold's primary headwind."],
-      usd:["BULLISH","A hawkish Fed plus rate differentials support the dollar."],
-      dur:["BEARISH","Front-end sells off; the curve flattens."]
-    },
-    INVERTED:{
-      lead:"The 2s10s curve is inverted — short rates above long rates. Historically the single most reliable recession lead indicator, with a 12–18 month lag. Inversion itself is NOT an immediate sell signal (markets often rally into it); the danger comes on RE-STEEPENING, when the recession actually arrives.",
-      eq:["CAUTION","Late-cycle. Equities can keep rising during inversion, but risk/reward deteriorates. The dangerous moment is the bull-steepening that follows."],
-      credit:["CAUTION","Spreads are typically still tight at inversion but most vulnerable to the eventual turn. Monitor HY closely."],
-      crypto:["CAUTION","Risk-on can persist, but position for elevated tail risk as the cycle matures."],
-      gold:["BULLISH","Supported as the market anticipates the eventual pivot to cuts."],
-      usd:["MIXED","Often firm late-cycle on safe-haven and rate-differential flows."],
-      dur:["BULLISH","Eventual normalization and cuts favor bonds; long duration is a recession hedge."]
-    }
+    BULL_STEEPENER:{lead:"Front-end yields falling faster than the long end — the market is pricing Fed cuts, usually because growth is slowing. Late-cycle / early-easing.",
+      eq:["MIXED","Cut hopes support multiples, but a recession-driven steepening eventually hits earnings."],credit:["CAUTION","HY spreads are the canary if the steepening is recessionary."],crypto:["BULLISH","High beta to easing expectations and liquidity."],gold:["BULLISH","Falling real rates plus eventual easing is the ideal gold backdrop."],usd:["BEARISH","Dovish Fed compresses rate differentials."],dur:["BULLISH","Bonds rally as the market front-runs cuts."]},
+    BEAR_STEEPENER:{lead:"Long-end yields rising faster than the front — pricing higher growth, inflation, or Treasury supply / term premium. The most dangerous regime for long-duration risk.",
+      eq:["CAUTION","Rising long yields compress valuations; growth/tech hit hardest."],credit:["CAUTION","Disorderly long-end selloffs drag credit."],crypto:["BEARISH","Rising real yields raise the opportunity cost of non-yielding assets."],gold:["MIXED","Inflation supportive but rising real yields a headwind."],usd:["MIXED","Higher yields can support USD unless fiscal-fear-driven."],dur:["BEARISH","The textbook bond bear market."]},
+    BULL_FLATTENER:{lead:"Short-end yields falling faster than the long end — recovery / risk-on where the market is comfortable the Fed is done tightening. The friendliest curve regime for risk — in isolation.",
+      eq:["BULLISH","Stable long rates plus an easing front-end supports multiples."],credit:["BULLISH","Spreads tend to tighten as recession fears recede."],crypto:["BULLISH","Risk-on liquidity backdrop favors high-beta assets."],gold:["MIXED","Less directional — depends on the real-rate path."],usd:["BEARISH","A softer front-end pressures the dollar modestly."],dur:["BULLISH","Front-end duration supported."]},
+    BEAR_FLATTENER:{lead:"Short-end yields rising faster than the long end — the Fed is hiking, conditions tightening. Historically the toughest regime for risk.",
+      eq:["BEARISH","Multiple compression as the discount rate rises and liquidity tightens."],credit:["BEARISH","Tightening drains liquidity; spreads bias wider."],crypto:["BEARISH","The most rate-sensitive risk asset; tightening = worst drawdowns."],gold:["BEARISH","Rising real rates are gold's primary headwind."],usd:["BULLISH","Hawkish Fed plus rate differentials support the dollar."],dur:["BEARISH","Front-end sells off; curve flattens."]},
+    INVERTED:{lead:"Inverted — short rates above long. The most reliable recession lead (12–18mo). The danger is the RE-STEEPENING, not the inversion itself.",
+      eq:["CAUTION","Late-cycle. Equities can keep rising but risk/reward deteriorates."],credit:["CAUTION","Spreads still tight at inversion but most vulnerable to the turn."],crypto:["CAUTION","Risk-on can persist; position for elevated tail risk."],gold:["BULLISH","Supported as the market anticipates the pivot to cuts."],usd:["MIXED","Often firm late-cycle on safe-haven flows."],dur:["BULLISH","Eventual cuts favor bonds; long duration is a recession hedge."]}
   };
-  let m=M[regime];
-  if(!m){m=(slope!=null&&slope<0)?M.INVERTED:M.BULL_FLATTENER;}
-  let leadExtra=inv&&regime!=="INVERTED"?" <b style='color:var(--orange)'>Note: at least one key spread is currently inverted — treat all reads with added late-cycle caution.</b>":"";
-  const rows=[
-    ["US Equities (SPX/NDX)","eq"],["Credit (HY / IG)","credit"],["Crypto (BTC/ETH)","crypto"],
-    ["Gold","gold"],["US Dollar (DXY)","usd"],["Duration / Bonds","dur"]
-  ];
+  let m=M[regime]||((slope!=null&&slope<0)?M.INVERTED:M.BULL_FLATTENER);
+
+  // ── DATA-DRIVEN MODIFIERS — keep matrix consistent with cross-checks ──
+  const I=(ref&&ref.indicators)||{};
+  const real=I.DFII10, ten=I.DGS10, curve=I.T10Y2Y, be=I.T10YIE;
+  const DS={BULLISH:2,MIXED:0.5,NEUTRAL:0,CAUTION:-1,BEARISH:-2};
+  const toDir=s=>s>=1.5?"BULLISH":s>=0.4?"MIXED":s>-0.4?"NEUTRAL":s>-1.5?"CAUTION":"BEARISH";
+  const mods={eq:0,credit:0,crypto:0,gold:0,usd:0,dur:0};
+  const adj={};
+  let crossNotes=[];
+
+  if(real&&real.percentile!=null&&real.percentile>=75){
+    mods.eq-=1.5;adj.eq=`real 10Y yield at the ${real.percentile}th pctile (${real.current}%) is restrictive — a valuation headwind the curve signal ignores`;
+    mods.credit-=1;adj.credit=`restrictive real rates raise refinancing/default risk as the cycle ages`;
+    mods.crypto-=2;adj.crypto=`real yields at the ${real.percentile}th pctile are a direct headwind — crypto is the most rate-sensitive risk asset`;
+    mods.gold-=1.5;adj.gold=`high real yields (${real.current}%) are gold's primary headwind, overriding the regime read`;
+    mods.usd+=1.5;adj.usd=`high real yields support the dollar, offsetting the curve's bearish-USD signal`;
+    mods.dur+=0.5;adj.dur=`the ${real.percentile}th-pctile real yield makes the income/entry genuinely attractive`;
+    crossNotes.push(`real 10Y yields are <b>restrictive</b> (${real.percentile}th pctile)`);
+  }else if(real&&real.percentile!=null&&real.percentile<=25){
+    mods.eq+=1;mods.crypto+=1.5;mods.gold+=1.5;mods.usd-=1;
+    crossNotes.push(`real yields are accommodative (${real.percentile}th pctile) — a tailwind for risk`);
+  }
+  const topish=(curve&&curve.nearest_episode&&/TOP/.test(curve.nearest_episode.type||""))||(ten&&ten.nearest_episode&&/TOP/.test(ten.nearest_episode.type||""));
+  if(topish){
+    mods.eq-=0.5;mods.credit-=0.5;mods.crypto-=0.5;
+    crossNotes.push(`yields sit at <b>market-top</b> historical analogs (late-cycle)`);
+  }
+  if(be&&be.percentile!=null&&be.percentile>=75){
+    mods.dur-=0.5;crossNotes.push(`breakevens elevated (${be.percentile}th pctile) keep the Fed cautious`);
+  }
+
+  const rows=[["US Equities (SPX/NDX)","eq"],["Credit (HY / IG)","credit"],["Crypto (BTC/ETH)","crypto"],["Gold","gold"],["US Dollar (DXY)","usd"],["Duration / Bonds","dur"]];
+  let leadExtra="";
+  if(crossNotes.length)leadExtra=` <b style="color:var(--orange)">Cross-checks adjust these from the raw regime template:</b> ${crossNotes.join("; ")} — so the reads below are not the textbook "${esc(regime)}" call.`;
+  else if(inv&&regime!=="INVERTED")leadExtra=" <b style='color:var(--orange)'>Note: a key spread is inverted — added late-cycle caution.</b>";
+
   return `
     <div class="impact">
       <div class="head">⚡ Regime → Risk-Asset Read · ${esc(regime||"—")}</div>
       <div class="lead">${m.lead}${leadExtra}</div>
       <div class="assets">
-        ${rows.map(function(row){var nm=row[0],k=row[1];var dir=m[k][0],why=m[k][1];return `
+        ${rows.map(function(row){var nm=row[0],k=row[1];var base=m[k][0],why=m[k][1];
+          var score=(DS[base]!=null?DS[base]:0)+(mods[k]||0);var dir=toDir(score);
+          var note=(dir!==base&&adj[k])?` <span style="color:var(--orange)">Adjusted: ${adj[k]}.</span>`:(adj[k]?` <span style="color:var(--dim)">${adj[k]}.</span>`:"");
+          return `
           <div class="asset">
             <div class="top"><span class="nm">${nm}</span><span class="dir" style="${dirStyle(dir)}">${dir}</span></div>
-            <div class="why">${why}</div>
+            <div class="why">${why}${note}</div>
           </div>`;}).join("")}
       </div>
     </div>`;
@@ -384,10 +382,11 @@ function synthesize(d,ref){
   const nom=extractYields(d.nominal_yields),real=extractYields(d.real_yields);
   document.getElementById("chart").innerHTML=drawCurve(nom,real);
   document.getElementById("metrics").innerHTML=(cards(d.spreads_bps,"bps")+cards(d.decomposition,""))||`<div class="loading">no metric detail</div>`;
-  document.getElementById("impact").innerHTML=interpret(d);
-  // historical context — benchmark curve-relevant indicators vs episodes
+  // historical context — fetch FIRST so both the matrix and synthesis can use it
   let ref=null;
   try{const er=await fetch(EP_URL+"?t="+Date.now());if(er.ok){ref=await er.json();renderHistCtx(ref,["T10Y2Y","T10Y3M","DGS10","DFII10","T10YIE"]);}else{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}}catch{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}
+  // data-driven market & risk-asset matrix (now consistent with cross-checks)
+  document.getElementById("impact").innerHTML=interpret(d,ref);
   // bottom line synthesis (needs both curve regime + historical ref)
   const bl=synthesize(d,ref);
   if(bl)document.getElementById("bottomline").innerHTML=`<div class="bottomline"><div class="bl-lab">⚡ Bottom Line</div><div class="bl-txt">${bl}</div></div>`;
