@@ -8,7 +8,7 @@
    ────────────────────────────────────────────────────────────────────── */
 (function (w) {
   "use strict";
-  var EP_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/episode-reference.json";
+  var EP_URL = "https://justhodl-data-proxy.raafouis.workers.dev/episode-reference.json";
   var _cache = null, _inflight = null;
 
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); };
