@@ -252,5 +252,9 @@ fetch(S3+"?t="+Date.now()).then(r=>r.json()).then(render).catch(e=>{
   document.getElementById("root").innerHTML='<div class="loading">FEED UNAVAILABLE &mdash; '+esc(e.message||e)+'</div>';
 });
 </script>
+
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
+<script src="/interp-kit.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
 </body>
 </html>
