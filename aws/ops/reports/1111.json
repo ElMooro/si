@@ -1,0 +1,29 @@
+{
+  "started": "2026-05-28T20:34:58.679772+00:00",
+  "deploy": "SYNCED",
+  "manifest": "ADDED to daily-eve (now 34 jobs)",
+  "invoke_status": 200,
+  "invoke_body": {
+    "feeds": 24695,
+    "duration_s": 18.36,
+    "with_writers": 52,
+    "with_cadence": 19,
+    "schemas_inferred": 32,
+    "stale_gt_7d": 24180
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: ef25aeb9-7284-43fc-bcc9-24c544925b28 Version: $LATEST\n[feed-catalog] starting\n[feed-catalog] 24871 keys under data/\n[feed-catalog] OK \u2014 24695 feeds, 18.36s\nEND RequestId: ef25aeb9-7284-43fc-bcc9-24c544925b28\nREPORT RequestId: ef25aeb9-7284-43fc-bcc9-24c544925b28\tDuration: 18780.32 ms\tBilled Duration: 19374 ms\tMemory Size: 1024 MB\tMax Memory Used: 152 MB\tInit Duration: 593.05 ms\t\nXRAY TraceId: 1-6a18a6fb-1234da185e1f42e076a3f512\tSegmentId: b614bbbc7b16ca2d\tSampled: true\t\n",
+  "catalog": {
+    "exists": true,
+    "size_kb": 7144.2,
+    "last_modified": "2026-05-28T20:35:27+00:00"
+  },
+  "catalog_summary": {
+    "total_feeds": 24695,
+    "with_writers": 52,
+    "with_cadence": 19,
+    "schemas_inferred": 32,
+    "stale_gt_7d": 24180
+  },
+  "finished": "2026-05-28T20:35:30.476393+00:00"
+}
