@@ -1,0 +1,11 @@
+name = "justhodl-data-proxy"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+
+# Publish to <worker>.raafouis.workers.dev — same pattern as siblings.
+workers_dev = true
+
+[observability]
+enabled = true
+
+# No secrets required — read-only proxy to a public S3 bucket.
