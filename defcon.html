@@ -243,5 +243,27 @@ function gaugeColor(score){return score>=80?"var(--red)":score>=60?"var(--orange
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
+
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<script src="/interp-kit.js"></script>
+<script>
+(async function(){
+  var DATA_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/crisis-composite.json";
+  var REGIME_PATHS=["regime", "status"];
+  var BASE={"EASING": {"lead": "Financial conditions are easing \u2014 central banks cutting, liquidity expanding, the friendly regime for risk assets.", "eq": ["BULLISH", "Easing supports multiples."], "credit": ["BULLISH", "Spreads tighten."], "crypto": ["BULLISH", "Most rate-sensitive \u2014 biggest beneficiary."], "gold": ["BULLISH", "Falling real rates."], "usd": ["BEARISH", "Rate-differential compression."], "dur": ["BULLISH", "Bonds rally."]}, "TIGHTENING": {"lead": "Financial conditions are tightening \u2014 central banks hiking, liquidity draining, the toughest regime for risk assets.", "eq": ["BEARISH", "Tightening compresses multiples."], "credit": ["BEARISH", "Spreads widen; refinancing risk rises."], "crypto": ["BEARISH", "Most rate-sensitive \u2014 worst drawdowns."], "gold": ["BEARISH", "Rising real rates are the primary headwind."], "usd": ["BULLISH", "Hawkish CB + rate differentials."], "dur": ["BEARISH", "Front-end sells off."]}, "NEUTRAL": {"lead": "Conditions are neutral \u2014 no clear easing or tightening impulse.", "eq": ["NEUTRAL", "Balanced."], "credit": ["NEUTRAL", "Range-bound."], "crypto": ["NEUTRAL", "No regime edge."], "gold": ["NEUTRAL", "Balanced."], "usd": ["NEUTRAL", "No FX trend."], "dur": ["NEUTRAL", "Range."]}};
+  var TITLE="Conditions → Risk-Asset Read";
+  var PRIMARY="BAMLH0A0HYM2";
+  var ref=null;try{ref=await JHKit.loadRef();}catch{}
+  var d=null;try{var r=await fetch(DATA_URL+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
+  if(!d){document.getElementById("jh-mtx").innerHTML="<div style=\"text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px\">data unavailable</div>";return;}
+  var regime="";
+  for(var i=0;i<REGIME_PATHS.length;i++){var v=d[REGIME_PATHS[i]];if(v!=null&&v!==""){regime=String(v).toUpperCase();break;}}
+  if(!regime||!BASE[regime]){var keys=Object.keys(BASE);regime=keys.find(function(k){return Object.keys(d).some(function(dk){return String(d[dk]).toUpperCase()===k;});})||keys[0];}
+  var pind=ref&&ref.indicators&&ref.indicators[PRIMARY]||{};var ne=pind.nearest_episode||{};
+  var baseR=BASE[regime]||BASE[Object.keys(BASE)[0]];
+  JHKit.renderBottomLine("jh-bl",{ref:ref,primary:PRIMARY,regimeRead:"Current regime is <b>"+regime+"</b>: "+(baseR.lead||""),net:""});
+  JHKit.renderAssetMatrix("jh-mtx",{regime:regime,baseMatrix:BASE,ref:ref,title:TITLE});
+})();
+</script>
 </body>
 </html>

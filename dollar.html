@@ -240,5 +240,27 @@ window.addEventListener("resize",()=>{charts.forEach(c=>{try{c.resize();}catch(e
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['DTWEXBGS','DEXUSEU']);});</script>
+
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<script src="/interp-kit.js"></script>
+<script>
+(async function(){
+  var DATA_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/dollar-radar.json";
+  var REGIME_PATHS=["regime", "status"];
+  var BASE={"STRONG_RISING": {"lead": "The dollar is in a strong-and-rising regime \u2014 the textbook global tightening signal. A rising USD raises the cost of dollar-denominated debt worldwide, drains EM liquidity and pressures commodities. Almost always a headwind for risk assets.", "eq": ["BEARISH", "Strong USD is associated with peak risk-off cycles."], "credit": ["BEARISH", "Tightens global financial conditions."], "crypto": ["BEARISH", "Strong USD historically pressures crypto."], "gold": ["BEARISH", "Direct inverse \u2014 strong dollar caps gold."], "usd": ["BULLISH", "Momentum + carry favor the dollar."], "dur": ["MIXED", "Yield differentials cut both ways."]}, "RISING": {"lead": "Dollar is rising \u2014 modest tightening backdrop.", "eq": ["CAUTION", "Headwind for multinationals + EM exposure."], "credit": ["CAUTION", "Tighter dollar liquidity."], "crypto": ["CAUTION", "Slight headwind."], "gold": ["BEARISH", "Inverse to USD."], "usd": ["BULLISH", "Trend supports."], "dur": ["NEUTRAL", "Mixed signals."]}, "STRONG_FALLING": {"lead": "The dollar is in a strong-and-falling regime \u2014 global liquidity expanding. EM and commodities tend to outperform; almost always supportive of risk assets and gold.", "eq": ["BULLISH", "Weak USD eases global financial conditions."], "credit": ["BULLISH", "Easier dollar funding tightens spreads."], "crypto": ["BULLISH", "Best macro backdrop \u2014 liquidity expansion."], "gold": ["BULLISH", "Direct inverse \u2014 falling dollar lifts gold."], "usd": ["BEARISH", "Trend against the dollar."], "dur": ["MIXED", "Depends on whether driven by rates or growth."]}, "FALLING": {"lead": "Dollar is falling \u2014 easing backdrop.", "eq": ["BULLISH", "Tailwind."], "credit": ["BULLISH", "Easier funding."], "crypto": ["BULLISH", "Liquidity tailwind."], "gold": ["BULLISH", "Inverse boost."], "usd": ["BEARISH", "Trend."], "dur": ["NEUTRAL", "Mixed."]}, "RANGING": {"lead": "Dollar is range-bound \u2014 no directional FX signal driving cross-asset flows.", "eq": ["NEUTRAL", "No FX edge."], "credit": ["NEUTRAL", "No FX edge."], "crypto": ["NEUTRAL", "No FX edge."], "gold": ["NEUTRAL", "No FX edge."], "usd": ["NEUTRAL", "Range."], "dur": ["NEUTRAL", "No edge."]}};
+  var TITLE="Dollar Regime → Risk-Asset Read";
+  var PRIMARY="DTWEXBGS";
+  var ref=null;try{ref=await JHKit.loadRef();}catch{}
+  var d=null;try{var r=await fetch(DATA_URL+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
+  if(!d){document.getElementById("jh-mtx").innerHTML="<div style=\"text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px\">data unavailable</div>";return;}
+  var regime="";
+  for(var i=0;i<REGIME_PATHS.length;i++){var v=d[REGIME_PATHS[i]];if(v!=null&&v!==""){regime=String(v).toUpperCase();break;}}
+  if(!regime||!BASE[regime]){var keys=Object.keys(BASE);regime=keys.find(function(k){return Object.keys(d).some(function(dk){return String(d[dk]).toUpperCase()===k;});})||keys[0];}
+  var pind=ref&&ref.indicators&&ref.indicators[PRIMARY]||{};var ne=pind.nearest_episode||{};
+  var baseR=BASE[regime]||BASE[Object.keys(BASE)[0]];
+  JHKit.renderBottomLine("jh-bl",{ref:ref,primary:PRIMARY,regimeRead:"Current regime is <b>"+regime+"</b>: "+(baseR.lead||""),net:""});
+  JHKit.renderAssetMatrix("jh-mtx",{regime:regime,baseMatrix:BASE,ref:ref,title:TITLE});
+})();
+</script>
 </body>
 </html>

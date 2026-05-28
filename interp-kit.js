@@ -125,5 +125,98 @@
     pctColor: pctColor,
     epTypeColor: epTypeColor
   };
+
+  /* ── Reusable Asset Matrix (regime → SPX/credit/crypto/gold/USD/duration) ── */
+  var DS = { BULLISH: 2, MIXED: 0.5, NEUTRAL: 0, CAUTION: -1, BEARISH: -2 };
+  function toDir(s) { return s >= 1.5 ? "BULLISH" : s >= 0.4 ? "MIXED" : s > -0.4 ? "NEUTRAL" : s > -1.5 ? "CAUTION" : "BEARISH"; }
+  function dirStyle(d) {
+    return { BULLISH: "background:rgba(38,255,175,.12);color:#26ffaf",
+             BEARISH: "background:rgba(255,85,119,.12);color:#ff5577",
+             CAUTION: "background:rgba(255,122,24,.12);color:#ff7a18",
+             MIXED:   "background:rgba(255,210,102,.12);color:#ffd266",
+             NEUTRAL: "background:rgba(168,179,199,.10);color:#a8b3c7" }[d] || "";
+  }
+  function computeMods(ref) {
+    var mods = { eq:0, credit:0, crypto:0, gold:0, usd:0, dur:0 };
+    var notes = [], adj = {};
+    var I = (ref && ref.indicators) || {};
+    var real = I.DFII10, ten = I.DGS10, curve = I.T10Y2Y, be = I.T10YIE;
+    if (real && real.percentile != null && real.percentile >= 75) {
+      mods.eq -= 1.5; adj.eq = "real 10Y yield at the " + real.percentile + "th pctile (" + real.current + "%) is restrictive — a valuation headwind";
+      mods.credit -= 1; adj.credit = "restrictive real rates raise refinancing/default risk as the cycle ages";
+      mods.crypto -= 2; adj.crypto = "real yields at the " + real.percentile + "th pctile are a direct headwind — crypto is the most rate-sensitive risk asset";
+      mods.gold -= 1.5; adj.gold = "high real yields (" + real.current + "%) are gold's primary headwind";
+      mods.usd += 1.5; adj.usd = "high real yields support the dollar";
+      mods.dur += 0.5; adj.dur = "the " + real.percentile + "th-pctile real yield makes the income/entry attractive";
+      notes.push("real 10Y yields are <b>restrictive</b> (" + real.percentile + "th pctile)");
+    } else if (real && real.percentile != null && real.percentile <= 25) {
+      mods.eq += 1; mods.crypto += 1.5; mods.gold += 1.5; mods.usd -= 1;
+      notes.push("real yields are accommodative (" + real.percentile + "th pctile) — a tailwind for risk");
+    }
+    var topish = (curve && curve.nearest_episode && /TOP/.test(curve.nearest_episode.type || "")) ||
+                 (ten && ten.nearest_episode && /TOP/.test(ten.nearest_episode.type || ""));
+    if (topish) {
+      mods.eq -= 0.5; mods.credit -= 0.5; mods.crypto -= 0.5;
+      notes.push("yields sit at <b>market-top</b> historical analogs (late-cycle)");
+    }
+    if (be && be.percentile != null && be.percentile >= 75) {
+      mods.dur -= 0.5; notes.push("breakevens elevated (" + be.percentile + "th pctile) keep the Fed cautious");
+    }
+    return { mods: mods, notes: notes, adj: adj };
+  }
+  function renderAssetMatrix(elId, opts) {
+    injectCSS();
+    var el = document.getElementById(elId); if (!el) return;
+    var regime = (opts.regime || "").toUpperCase();
+    var base = opts.baseMatrix && (opts.baseMatrix[regime] || opts.baseMatrix[Object.keys(opts.baseMatrix)[0]]) || null;
+    if (!base) { el.innerHTML = '<div class="jhk-load">no regime mapping available</div>'; return; }
+    var mods = computeMods(opts.ref);
+    var rows = [["US Equities (SPX/NDX)","eq"],["Credit (HY / IG)","credit"],["Crypto (BTC/ETH)","crypto"],
+                ["Gold","gold"],["US Dollar (DXY)","usd"],["Duration / Bonds","dur"]];
+    var leadExtra = "";
+    if (mods.notes.length) leadExtra = ' <b style="color:#ff7a18">Cross-checks adjust these from the raw regime template:</b> ' + mods.notes.join("; ") + " — so the reads below are not the textbook \"" + regime + "\" call.";
+    var html = '<div style="background:#0f131a;border:1px solid #1c2433;border-left:4px solid #a78bfa;border-radius:8px;padding:18px 20px">' +
+      '<div style="font-family:ui-monospace,monospace;font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:4px">⚡ ' + esc(opts.title || ("Regime → Risk-Asset Read · " + regime)) + '</div>' +
+      '<div style="color:#a8b3c7;font-size:12.5px;line-height:1.6;margin-bottom:14px">' + (base.lead || "") + leadExtra + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">' +
+      rows.map(function (r) {
+        var nm = r[0], k = r[1]; var b = base[k] || ["NEUTRAL", ""];
+        var score = (DS[b[0]] != null ? DS[b[0]] : 0) + (mods.mods[k] || 0);
+        var dir = toDir(score);
+        var note = (dir !== b[0] && mods.adj[k]) ? ' <span style="color:#ff7a18">Adjusted: ' + mods.adj[k] + '.</span>'
+                 : (mods.adj[k] ? ' <span style="color:#6f7b91">' + mods.adj[k] + '.</span>' : '');
+        return '<div style="background:#11161f;border:1px solid #1c2433;border-radius:7px;padding:12px 14px">' +
+               '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">' +
+               '<span style="font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:#e6eaf2">' + nm + '</span>' +
+               '<span style="font-family:ui-monospace,monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;' + dirStyle(dir) + '">' + dir + '</span></div>' +
+               '<div style="color:#a8b3c7;font-size:11.5px;line-height:1.5">' + (b[1] || "") + note + '</div></div>';
+      }).join("") + '</div></div>';
+    el.innerHTML = html;
+  }
+
+  /* ── Reusable Bottom Line synthesis ── */
+  function renderBottomLine(elId, opts) {
+    injectCSS();
+    var el = document.getElementById(elId); if (!el) return;
+    var ref = opts.ref || {}; var I = ref.indicators || {};
+    var pind = I[opts.primary] || {};
+    var ne = pind.nearest_episode || {};
+    var parts = [];
+    if (pind.current != null) {
+      var tword = /TOP/.test(ne.type || "") ? "a market TOP" : /BOTTOM/.test(ne.type || "") ? "a market BOTTOM" : "a CRISIS";
+      parts.push((opts.primaryLabel || pind.label || opts.primary) + " is at <b>" + pind.current + (pind.unit || "") + "</b> (" + pind.percentile + "th pctile), closest to <b>" + esc(ne.name || "—") + "</b> — " + tword + ".");
+    }
+    if (opts.regimeRead) parts.push(opts.regimeRead);
+    var mods = computeMods(ref);
+    if (mods.notes.length) parts.push("Cross-checks: " + mods.notes.join("; ") + ".");
+    if (opts.net) parts.push(opts.net);
+    el.innerHTML = '<div style="background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(167,139,250,.05));border:1px solid rgba(0,212,255,.22);border-left:4px solid #00d4ff;border-radius:8px;padding:16px 20px;margin-bottom:16px">' +
+      '<div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#00d4ff;margin-bottom:6px">⚡ Bottom Line</div>' +
+      '<div style="font-size:14.5px;line-height:1.6;color:#e6eaf2">' + parts.join(" ") + '</div></div>';
+  }
+
+  JHKit.renderAssetMatrix = renderAssetMatrix;
+  JHKit.renderBottomLine = renderBottomLine;
+  JHKit.computeMods = computeMods;
   w.JHKit = JHKit;
 })(window);
