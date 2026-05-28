@@ -31,10 +31,34 @@
   .kpi .v{font-size: 22px !important}
 }
 </style><!-- auto-wrapped-table-2026-05-06 -->
+
+<style id="console-skin">
+/* ─── Console-theme skin (auto-applied for visual consistency) ─── */
+body{background:#0a0e14 !important;color:#e6eaf2 !important;font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif !important}
+.tb{background:#0f131a !important;border-bottom:1px solid #1c2433 !important}
+.tb a{color:#a8b3c7 !important}
+.tb a:hover{color:#00d4ff !important;background:rgba(0,212,255,.10) !important}
+.logo,h1{background:linear-gradient(135deg,#00d4ff,#a78bfa) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important}
+.sub{color:#a8b3c7 !important}
+.cat,.sec{color:#00d4ff !important;background:rgba(0,212,255,.06) !important;border-left-color:#00d4ff !important}
+.cd,.bu,.dv{background:#0f131a !important;border-color:#1c2433 !important}
+.cd:hover{border-color:#00d4ff !important;box-shadow:0 0 0 1px rgba(0,212,255,.2) !important}
+.cn,.cp,.nt,.dl{color:#6f7b91 !important}
+.cv,.nm,.bh{color:#e6eaf2 !important}
+.pok{background:rgba(38,255,175,.14) !important;color:#26ffaf !important}
+.pt{background:rgba(0,212,255,.14) !important;color:#00d4ff !important}
+.up{color:#26ffaf !important;background:rgba(38,255,175,.12) !important}
+.dn{color:#ff5577 !important;background:rgba(255,85,119,.12) !important}
+.ld{color:#00d4ff !important}
+</style>
 </head><body><div class="tb"><span class="logo">💹 FMP Fundamentals</span><div><a href="index.html" style="color:#a855f7">← Terminal</a><a href="eia.html">EIA</a><a href="nasdaq-datalink.html">NASDAQ</a><a href="benzinga.html">Benzinga</a><a href="fred.html">FRED</a><a href="ecb.html">ECB</a></div></div><div class="ct"><h1>💹 FMP Fundamentals & Institutional Intelligence</h1><p class="sub">Sectors, movers, ratings, SEC filings, insider trading</p><div class="sb" id="sb"><div class="pill pt">Loading...</div></div><div id="out"><div class="ld">Fetching FMP data...</div></div></div><script>const U='https://nwjtcrf4xwkc6n5r6u3vw7ub6m0wgpiv.lambda-url.us-east-1.on.aws/';function p(v){if(!v)return'-';const n=Number(v);return(n>0?'+':'')+n.toFixed(2)+'%'}function cl(v){return Number(v)>0?'up':'dn'}function bg(r){if(!r)return'';const s=r.toLowerCase();if(s.includes('buy')||s.includes('strong'))return'<span class="bg bu">'+r+'</span>';if(s.includes('sell'))return'<span class="bg bd">'+r+'</span>';return'<span class="bg bh">'+r+'</span>'}async function go(){try{const r=await fetch(U);const d=await r.json();document.getElementById('sb').innerHTML='<div class="pill pok">Active</div><div class="pill pt">'+new Date(d.ts).toLocaleString()+'</div>';let h='';if(d.sector_performance&&d.sector_performance.length){h+='<div class="sec">📊 Sector Performance</div><div class="g4">';d.sector_performance.forEach(s=>{h+='<div class="cd"><div style="font-weight:600;margin-bottom:4px;font-size:13px">'+s.sector+'</div><div class="'+cl(s.changesPercentage)+'" style="font-size:20px;font-weight:700">'+p(s.changesPercentage)+'</div></div>'});h+='</div>'}['gainers','losers','actives'].forEach(t=>{const l=d.movers&&d.movers[t];if(l&&l.length){const ic={gainers:'🚀 Top Gainers',losers:'📉 Top Losers',actives:'🔥 Most Active'};h+='<div class="sec">'+ic[t]+'</div><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
 <table><tr><th>Symbol</th><th>Name</th><th>Price</th><th>Change%</th></tr>';l.slice(0,10).forEach(s=>{h+='<tr><td style="font-weight:700;color:#a855f7">'+s.symbol+'</td><td>'+((s.name||'').substring(0,30))+'</td><td>$'+(Number(s.price)||0).toFixed(2)+'</td><td class="'+cl(s.changesPercentage)+'">'+p(s.changesPercentage)+'</td></tr>'});h+='</table>
 </div>'}});if(d.ratings&&Object.keys(d.ratings).length){h+='<div class="sec">⭐ Analyst Ratings</div><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
 <table><tr><th>Symbol</th><th>Rating</th><th>Score</th><th>Rec</th></tr>';for(const[s,r]of Object.entries(d.ratings)){h+='<tr><td style="font-weight:700;color:#a855f7">'+s+'</td><td>'+bg(r.rating||'')+'</td><td>'+(r.ratingScore||'-')+'</td><td>'+(r.ratingRecommendation||'-')+'</td></tr>'}h+='</table>
 </div>'}if(d.insider_trading&&d.insider_trading.length){h+='<div class="sec">🕵️ Insider Trading</div><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
 <table><tr><th>Date</th><th>Symbol</th><th>Owner</th><th>Shares</th><th>Price</th></tr>';d.insider_trading.slice(0,15).forEach(t=>{h+='<tr><td>'+(t.transactionDate||'')+'</td><td style="font-weight:700;color:#a855f7">'+(t.symbol||'')+'</td><td>'+((t.reportingName||'').substring(0,25))+'</td><td>'+(Number(t.securitiesTransacted||0).toLocaleString())+'</td><td>$'+(Number(t.price||0).toFixed(2))+'</td></tr>'});h+='</table>
-</div>'}document.getElementById('out').innerHTML=h||'No data yet';}catch(e){document.getElementById('out').innerHTML='<div style="text-align:center;padding:40px;color:#ef4444">'+e.message+'</div>';setTimeout(go,30000)}}go();setInterval(go,300000);</script></body></html>
+</div>'}document.getElementById('out').innerHTML=h||'No data yet';}catch(e){document.getElementById('out').innerHTML='<div style="text-align:center;padding:40px;color:#ef4444">'+e.message+'</div>';setTimeout(go,30000)}}go();setInterval(go,300000);</script>
+<div style="max-width:1600px;margin:0 auto;padding:0 20px 30px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">⚡ What This Means for Markets</h2><div style="background:#0f131a;border:1px solid #1c2433;border-left:4px solid #a78bfa;border-radius:8px;padding:16px 20px;color:#a8b3c7;font-size:13px;line-height:1.65">Sector performance and market breadth reveal <b>what is actually leading</b>. Defensives out front (utilities, staples, healthcare) signals risk-off rotation; cyclicals, financials and tech leading signals risk-on. Read this together with the <b>curve regime and credit spreads</b> below — leadership that contradicts the macro regime (e.g. cyclicals ripping into an inverting curve) is often a late-cycle head-fake.</div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
+<script src="/interp-kit.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','BAMLH0A0HYM2']);});</script>
+</body></html>
