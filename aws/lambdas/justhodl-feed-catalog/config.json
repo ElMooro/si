@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-feed-catalog",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
+  "environment_keys": [],
+  "description": "Arch #5 — Feed Catalog + JSON Schemas. Generates data/feed-catalog.json daily: every feed with size, last-modified, inferred JSON schema, writer Lambdas, cadences, stale-days. Scheduled daily-eve via the scheduler manifest."
+}
