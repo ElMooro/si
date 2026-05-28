@@ -1,0 +1,48 @@
+{
+  "started": "2026-05-28T16:04:20.832293+00:00",
+  "create": "CREATED",
+  "schedule": "CREATED+PERM",
+  "invoke_status": 200,
+  "fn_err": null,
+  "log_tail": "pisode-ref] start 2026-05-28T16:04:26.120227+00:00\n[episode-ref] BAMLC0A0CM       cur=0.74 pct=2.2 nearest=None\n[episode-ref] BAMLH0A0HYM2     cur=2.71 pct=7.8 nearest=None\n[episode-ref] DTWEXBGS         cur=119.2868 pct=81.4 nearest=SVB / Regional Banks\n[episode-ref] T10YIE           cur=2.39 pct=79.5 nearest=GFC Peak\n[episode-ref] DFII10           cur=2.1 pct=86.6 nearest=GFC Bottom\n[episode-ref] STLFSI4          cur=-0.7611 pct=10.2 nearest=Everything Bubble\n[episode-ref] NFCI             cur=-0.51 pct=52.4 nearest=Everything Bubble\n[episode-ref] BAMLH0A0HYM2EY   cur=6.88 pct=30.2 nearest=None\n[episode-ref] VIXCLS           cur=16.29 pct=41.2 nearest=GFC Peak\n[episode-ref] T10Y3M           cur=0.8 pct=33.1 nearest=COVID Crash\n[episode-ref] DGS2             cur=4.01 pct=58.3 nearest=GFC Peak\n[episode-ref] T10Y2Y           cur=0.48 pct=36.0 nearest=COVID Crash\n[episode-ref] DGS10            cur=4.5 pct=59.0 nearest=GFC Peak\n[episode-ref] DEXUSEU          cur=1.1603 pct=47.3 nearest=China Devaluation\n[episode-ref] DTB3             cur=3.6 pct=58.9 nearest=2022 Bear Bottom\n[episode-ref] DFF              cur=3.62 pct=56.8 nearest=2022 Bear Bottom\n[episode-ref] wrote s3://justhodl-dashboard-live/data/episode-reference.json \u2014 10,966b \u00b7 16 indicators \u00b7 52.54s\nEND RequestId: b76664f9-7b84-4917-b6f2-ca1961d67329\nREPORT RequestId: b76664f9-7b84-4917-b6f2-ca1961d67329\tDuration: 52705.89 ms\tBilled Duration: 53192 ms\tMemory Size: 512 MB\tMax Memory Used: 130 MB\tInit Duration: 486.08 ms\t\n",
+  "verify": {
+    "size_kb": 10.7,
+    "n_indicators": 16,
+    "n_episodes": 13,
+    "sample_2s10s": {
+      "label": "2s10s Curve Slope",
+      "unit": "%",
+      "current": 0.48,
+      "current_date": "2026-05-27",
+      "percentile": 36.0,
+      "min": -1.08,
+      "max": 2.91,
+      "median": 0.86,
+      "at_episodes": {
+        "top_2000": -0.44,
+        "bottom_2002": 1.89,
+        "top_2007": 0.52,
+        "crisis_2008": 1.69,
+        "bottom_2009": 1.93,
+        "crisis_2011": 1.56,
+        "crisis_2015": 1.42,
+        "bottom_2016": 0.99,
+        "crisis_2018": 0.19,
+        "crisis_2020": 0.48,
+        "top_2021": 0.85,
+        "bottom_2022": -0.37,
+        "crisis_2023": -0.9
+      },
+      "nearest_episode": {
+        "id": "crisis_2020",
+        "name": "COVID Crash",
+        "type": "BOTTOM",
+        "value": 0.48,
+        "distance": 0.0
+      },
+      "history_start": "1990-01-02",
+      "n_obs": 9106
+    }
+  },
+  "finished": "2026-05-28T16:05:22.133568+00:00"
+}
