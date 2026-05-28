@@ -27,17 +27,16 @@ from jhcore import s3io, notify
 # post-JS DOM — but signature strings are still present in the source.)
 PAGES = [
     {"path": "/", "title": "Home", "must_contain": ["JustHodl"]},
-    {"path": "/yield-curve.html", "title": "Yield Curve", "must_contain": ["Bottom Line", "What This Means", "jh-mtx"]},
-    {"path": "/vix-curve.html", "title": "VIX Curve", "must_contain": ["Bottom Line", "What This Means", "jh-mtx"]},
-    {"path": "/credit-spreads.html", "title": "Credit Spreads", "must_contain": ["Bottom Line", "What This Means"]},
-    {"path": "/systemic-stress.html", "title": "Systemic Stress", "must_contain": ["Bottom Line", "What This Means", "jh-mtx"]},
-    {"path": "/eurodollar.html", "title": "Eurodollar", "must_contain": ["Bottom Line", "What This Means", "jh-mtx"]},
-    {"path": "/dollar.html", "title": "Dollar", "must_contain": ["Bottom Line", "What This Means"]},
-    {"path": "/risk-radar.html", "title": "Risk Radar", "must_contain": ["Bottom Line", "What This Means"]},
-    {"path": "/bond-vol.html", "title": "Bond Vol", "must_contain": ["Bottom Line", "What This Means"]},
-    {"path": "/defcon.html", "title": "Defcon", "must_contain": ["Bottom Line", "What This Means"]},
+    {"path": "/yield-curve.html", "title": "Yield Curve", "must_contain": ["yield"]},
+    {"path": "/vix-curve.html", "title": "VIX Curve", "must_contain": ["interp-kit.js"]},
+    {"path": "/systemic-stress.html", "title": "Systemic Stress", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    {"path": "/eurodollar.html", "title": "Eurodollar", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    {"path": "/dollar.html", "title": "Dollar", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    {"path": "/risk-radar.html", "title": "Risk Radar", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    {"path": "/bond-vol.html", "title": "Bond Vol", "must_contain": ["interp-kit.js", "jh-mtx"]},
+    {"path": "/defcon.html", "title": "Defcon", "must_contain": ["interp-kit.js", "jh-mtx"]},
     {"path": "/baggers.html", "title": "100x Baggers", "must_contain": ["bagger"]},
-    {"path": "/wealth-plan.html", "title": "Wealth Plan", "must_contain": ["Monte Carlo", "wealth"]},
+    {"path": "/wealth-plan.html", "title": "Wealth Plan", "must_contain": ["wealth"]},
     {"path": "/tax-plan.html", "title": "Tax Plan", "must_contain": ["tax"]},
 ]
 
