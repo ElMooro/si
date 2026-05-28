@@ -44,6 +44,13 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
 .note{color:var(--dim);font-size:11.5px;line-height:1.7;margin-top:14px;max-width:1000px}
 .note b{color:var(--mute)}
+.histrow{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px 18px;margin-bottom:12px}
+.histrow .hh{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.histrow .hl{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--txt)}
+.histrow .hc{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.histrow .hnear{font-family:var(--mono);font-size:11px;margin-top:9px;color:var(--mute)}
+.histrow .hnear b{color:var(--txt)}
+.pctbadge{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -67,6 +74,9 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <h2>Curve Decomposition &amp; Spreads</h2>
   <div class="grid" id="metrics"><div class="loading">…</div></div>
+
+  <h2>Historical Context — Crises, Tops &amp; Bottoms</h2>
+  <div id="histctx"><div class="loading">BENCHMARKING vs HISTORY…</div></div>
 
   <h2>What This Means for Markets &amp; Risk Assets</h2>
   <div id="impact"><div class="loading">INTERPRETING…</div></div>
@@ -204,6 +214,56 @@ function cards(obj,unit){
     `<div class="kv"><div class="k">${esc(k.replace(/_/g,' '))}</div><div class="v">${fmt(v)}${unit&&typeof v==="number"?`<span style="font-size:11px;color:var(--dim)"> ${unit}</span>`:""}</div></div>`).join("");
 }
 
+/* ── HISTORICAL CONTEXT — number line vs episodes ── */
+const EP_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/episode-reference.json";
+function epColor(type){return /TOP/.test(type)?"var(--red)":/BOTTOM/.test(type)?"var(--green)":"var(--orange)";}
+function pctColor(p){if(p==null)return"var(--mute)";if(p>=80)return"var(--red)";if(p>=60)return"var(--orange)";if(p>=40)return"var(--yellow)";if(p>=20)return"var(--cyan)";return"var(--green)";}
+
+function drawScale(ind,episodes){
+  const W=1080,H=92,padL=20,padR=20,axisY=54;
+  const vals=[ind.min,ind.max,ind.current,...Object.values(ind.at_episodes||{})].filter(v=>v!=null);
+  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.06||0.1;lo-=pad;hi+=pad;
+  const sx=v=>padL+((v-lo)/(hi-lo))*(W-padL-padR);
+  const epMap={};(episodes||[]).forEach(e=>epMap[e.id]=e);
+  // axis
+  let svg=`<line x1="${padL}" y1="${axisY}" x2="${W-padR}" y2="${axisY}" stroke="var(--line)" stroke-width="2"/>`;
+  svg+=`<text x="${padL}" y="${axisY+20}" fill="var(--dim)" font-size="10" font-family="monospace">${lo.toFixed(2)}</text>`;
+  svg+=`<text x="${W-padR}" y="${axisY+20}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="end">${hi.toFixed(2)}</text>`;
+  // episode ticks (alternate label height to reduce overlap)
+  const eps=Object.entries(ind.at_episodes||{}).map(([id,v])=>({id,v,meta:epMap[id]||{}})).sort((a,b)=>a.v-b.v);
+  eps.forEach((e,i)=>{const x=sx(e.v);const c=epColor(e.meta.type||"");const up=i%2===0;const ly=up?axisY-10:axisY+34;const lyTick=up?axisY-8:axisY+8;
+    svg+=`<line x1="${x}" y1="${up?axisY-6:axisY+6}" x2="${x}" y2="${axisY}" stroke="${c}" stroke-width="2"/>`;
+    svg+=`<circle cx="${x}" cy="${axisY}" r="3" fill="${c}"/>`;
+    svg+=`<text x="${x}" y="${ly}" fill="${c}" font-size="8.5" font-family="monospace" text-anchor="middle">${esc((e.meta.name||e.id).slice(0,14))}</text>`;
+  });
+  // current marker
+  const cx=sx(ind.current);
+  svg+=`<line x1="${cx}" y1="${axisY-22}" x2="${cx}" y2="${axisY+22}" stroke="var(--txt)" stroke-width="2.5"/>`;
+  svg+=`<polygon points="${cx-5},${axisY-22} ${cx+5},${axisY-22} ${cx},${axisY-14}" fill="var(--txt)"/>`;
+  svg+=`<text x="${cx}" y="${axisY-26}" fill="var(--txt)" font-size="10" font-weight="700" font-family="monospace" text-anchor="middle">NOW ${ind.current}</text>`;
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${svg}</svg>`;
+}
+
+function renderHistCtx(ref,ids){
+  const el=document.getElementById("histctx");
+  if(!ref||!ref.indicators){el.innerHTML=`<div class="loading">historical reference unavailable</div>`;return;}
+  let html="";
+  ids.forEach(id=>{
+    const ind=ref.indicators[id];if(!ind)return;
+    const ne=ind.nearest_episode||{};
+    html+=`
+      <div class="histrow">
+        <div class="hh">
+          <span class="hl">${esc(ind.label)}</span>
+          <span class="hc">now <b style="color:var(--txt)">${ind.current}${ind.unit||""}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:${pctColor(ind.percentile)}">${ind.percentile}th pctile</span> of ${(ind.history_start||"").slice(0,4)}–now</span>
+        </div>
+        ${drawScale(ind,ref.episodes)}
+        <div class="hnear">Closest historical analog: <b style="color:${epColor(ne.type||"")}">${esc(ne.name||"—")}</b> (${esc(ne.type||"")}, was ${ne.value}${ind.unit||""}). <span style="color:var(--dim)">Red = market top · Green = bottom · Orange = crisis.</span></div>
+      </div>`;
+  });
+  el.innerHTML=html||`<div class="loading">no matching indicators</div>`;
+}
+
 (async()=>{
   let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
   if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;["chart","metrics","impact","signals"].forEach(i=>document.getElementById(i).innerHTML="");return;}
@@ -224,6 +284,8 @@ function cards(obj,unit){
   document.getElementById("chart").innerHTML=drawCurve(nom,real);
   document.getElementById("metrics").innerHTML=(cards(d.spreads_bps,"bps")+cards(d.decomposition,""))||`<div class="loading">no metric detail</div>`;
   document.getElementById("impact").innerHTML=interpret(d);
+  // historical context — benchmark curve-relevant indicators vs episodes
+  try{const er=await fetch(EP_URL+"?t="+Date.now());if(er.ok){const ref=await er.json();renderHistCtx(ref,["T10Y2Y","T10Y3M","DGS10","DFII10","T10YIE"]);}else{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}}catch{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}
   const sigs=d.signals||[];
   document.getElementById("signals").innerHTML=sigs.length
     ? sigs.map(s=>`<div class="sig">${esc(typeof s==="object"?(s.text||s.message||s.signal||JSON.stringify(s)):s)}</div>`).join("")
