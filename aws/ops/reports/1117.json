@@ -1,0 +1,7 @@
+{
+  "started": "2026-05-28T21:04:13.809965+00:00",
+  "policy": "CREATED",
+  "fatal_err": "An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/1117_managed_policy_and_create_sm.py\", line 69, in main\n    iam.attach_user_policy(UserName=USER, PolicyArn=policy_arn)\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.LimitExceededException: An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10\n",
+  "finished": "2026-05-28T21:04:14.066552+00:00"
+}
