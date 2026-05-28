@@ -1,0 +1,230 @@
+{
+  "started": "2026-05-28T19:47:07.635672+00:00",
+  "cadences": [
+    {
+      "tick": "daily-morn",
+      "n_targets": 94,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 94,
+        "err": 0,
+        "expected": 94,
+        "verified": true,
+        "errors": [],
+        "log_tail": "d3-b577-a363a9e7c7c9 Version: $LATEST\n[scheduler] tick=daily-morn ok=94 err=0 5.23s\nEND RequestId: f0282da0-d160-4ed3-b577-a363a9e7c7c9\nREPORT RequestId: f0282da0-d160-4ed3-b577-a363a9e7c7c9\tDuration: 5228.37 ms\tBilled Duration: 5759 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\tInit Duration: 530.47 ms\t\nXRAY TraceId: 1-6a189bc7-2cd193255bfa778e0bf228cc\tSegmentId: 733ede38e9a3382c\tSampled: true\t\n"
+      },
+      "deleted_count": 105
+    },
+    {
+      "tick": "daily-eve",
+      "n_targets": 33,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 33,
+        "err": 0,
+        "expected": 33,
+        "verified": true,
+        "errors": [],
+        "log_tail": "equestId: f6962cb6-14e7-4369-9152-311ca3f265b5 Version: $LATEST\n[scheduler] tick=daily-eve ok=33 err=0 1.71s\nEND RequestId: f6962cb6-14e7-4369-9152-311ca3f265b5\nREPORT RequestId: f6962cb6-14e7-4369-9152-311ca3f265b5\tDuration: 1713.74 ms\tBilled Duration: 1714 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bda-75189f501a570baf42dbfd55\tSegmentId: 039e51ef6cfa645b\tSampled: true\t\n"
+      },
+      "delete_errs": [
+        {
+          "rule": "justhodl-v9-evening",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-v9-evening doe"
+        },
+        {
+          "rule": "justhodl-v9-morning",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-v9-morning doe"
+        }
+      ],
+      "deleted_count": 36
+    },
+    {
+      "tick": "hourly",
+      "n_targets": 29,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 29,
+        "err": 0,
+        "expected": 29,
+        "verified": true,
+        "errors": [],
+        "log_tail": "T RequestId: c53188ab-b9ab-4007-908b-f18f18078a99 Version: $LATEST\n[scheduler] tick=hourly ok=29 err=0 1.69s\nEND RequestId: c53188ab-b9ab-4007-908b-f18f18078a99\nREPORT RequestId: c53188ab-b9ab-4007-908b-f18f18078a99\tDuration: 1692.10 ms\tBilled Duration: 1693 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189be2-489f1bf959c415360c6ab08f\tSegmentId: f885bb4624cf022e\tSampled: true\t\n"
+      },
+      "delete_errs": [
+        {
+          "rule": "catalyst-calendar-hourly",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule catalyst-calendar-hourl"
+        },
+        {
+          "rule": "justhodl-catalyst-calendar-daily",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-catalyst-calen"
+        }
+      ],
+      "deleted_count": 33
+    },
+    {
+      "tick": "weekly-sun",
+      "n_targets": 15,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 15,
+        "err": 0,
+        "expected": 15,
+        "verified": true,
+        "errors": [],
+        "log_tail": "RequestId: 8970e6ce-3974-462f-9069-92223b2a11a5 Version: $LATEST\n[scheduler] tick=weekly-sun ok=15 err=0 0.93s\nEND RequestId: 8970e6ce-3974-462f-9069-92223b2a11a5\nREPORT RequestId: 8970e6ce-3974-462f-9069-92223b2a11a5\tDuration: 932.91 ms\tBilled Duration: 933 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bea-3d5b4f0f086640b54db69688\tSegmentId: c937508f5fcb90da\tSampled: true\t\n"
+      },
+      "delete_errs": [
+        {
+          "rule": "aiapi-daily-analysis",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-daily-analysis do"
+        },
+        {
+          "rule": "aiapi-hourly-predictions",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-hourly-prediction"
+        },
+        {
+          "rule": "aiapi-market-data-collection",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-market-data-colle"
+        },
+        {
+          "rule": "aiapi-weekly-training",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-weekly-training d"
+        },
+        {
+          "rule": "justhodl-outcome-checker-daily",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        },
+        {
+          "rule": "justhodl-outcome-checker-monthly",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        },
+        {
+          "rule": "justhodl-outcome-checker-weekly",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        }
+      ],
+      "deleted_count": 13
+    },
+    {
+      "tick": "4hourly",
+      "n_targets": 14,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 14,
+        "err": 0,
+        "expected": 14,
+        "verified": true,
+        "errors": [],
+        "log_tail": "RT RequestId: 05d4b213-7fe8-44d1-8bc1-b6243b36c1d8 Version: $LATEST\n[scheduler] tick=4hourly ok=14 err=0 0.76s\nEND RequestId: 05d4b213-7fe8-44d1-8bc1-b6243b36c1d8\nREPORT RequestId: 05d4b213-7fe8-44d1-8bc1-b6243b36c1d8\tDuration: 760.97 ms\tBilled Duration: 761 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bef-0056fcb42a2ef6ff3a65e94d\tSegmentId: 91413b82f53c52b4\tSampled: true\t\n"
+      },
+      "deleted_count": 18
+    },
+    {
+      "tick": "30min",
+      "n_targets": 12,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 12,
+        "err": 0,
+        "expected": 12,
+        "verified": true,
+        "errors": [],
+        "log_tail": "TART RequestId: 530793bd-478d-4f0e-b3dc-c7dfa9569cb7 Version: $LATEST\n[scheduler] tick=30min ok=12 err=0 0.62s\nEND RequestId: 530793bd-478d-4f0e-b3dc-c7dfa9569cb7\nREPORT RequestId: 530793bd-478d-4f0e-b3dc-c7dfa9569cb7\tDuration: 621.65 ms\tBilled Duration: 622 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bf4-350bdb9f1dfd50d95e4cd1e7\tSegmentId: 011042b1afd63e32\tSampled: true\t\n"
+      },
+      "deleted_count": 13
+    },
+    {
+      "tick": "15min",
+      "n_targets": 6,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 6,
+        "err": 0,
+        "expected": 6,
+        "verified": true,
+        "errors": [],
+        "log_tail": "START RequestId: 05cab002-41db-4d82-bb20-3d248ee4267b Version: $LATEST\n[scheduler] tick=15min ok=6 err=0 0.4s\nEND RequestId: 05cab002-41db-4d82-bb20-3d248ee4267b\nREPORT RequestId: 05cab002-41db-4d82-bb20-3d248ee4267b\tDuration: 406.58 ms\tBilled Duration: 407 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bf8-2b90d5dd4b3772790d02c1d5\tSegmentId: 740fc5743aebdf4d\tSampled: true\t\n"
+      },
+      "delete_errs": [
+        {
+          "rule": "aiapi-daily-analysis",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-daily-analysis do"
+        },
+        {
+          "rule": "aiapi-hourly-predictions",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-hourly-prediction"
+        },
+        {
+          "rule": "aiapi-market-data-collection",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-market-data-colle"
+        },
+        {
+          "rule": "aiapi-weekly-training",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule aiapi-weekly-training d"
+        }
+      ],
+      "deleted_count": 5
+    },
+    {
+      "tick": "5min",
+      "n_targets": 2,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 2,
+        "err": 0,
+        "expected": 2,
+        "verified": true,
+        "errors": [],
+        "log_tail": "START RequestId: dd3b9535-481a-4629-a5c4-ed10b1c422c0 Version: $LATEST\n[scheduler] tick=5min ok=2 err=0 0.11s\nEND RequestId: dd3b9535-481a-4629-a5c4-ed10b1c422c0\nREPORT RequestId: dd3b9535-481a-4629-a5c4-ed10b1c422c0\tDuration: 115.85 ms\tBilled Duration: 116 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bfc-38efce3f29ea41f619bea0d8\tSegmentId: eab0f9c224d94bf7\tSampled: true\t\n"
+      },
+      "deleted_count": 2
+    },
+    {
+      "tick": "monthly",
+      "n_targets": 2,
+      "manifest": "UPDATED",
+      "rule": "CREATED_OR_UPDATED",
+      "verify": {
+        "ok": 2,
+        "err": 0,
+        "expected": 2,
+        "verified": true,
+        "errors": [],
+        "log_tail": "ART RequestId: 51f7aca6-12f3-4d2a-b0e2-6170b0c47a93 Version: $LATEST\n[scheduler] tick=monthly ok=2 err=0 0.13s\nEND RequestId: 51f7aca6-12f3-4d2a-b0e2-6170b0c47a93\nREPORT RequestId: 51f7aca6-12f3-4d2a-b0e2-6170b0c47a93\tDuration: 131.21 ms\tBilled Duration: 132 ms\tMemory Size: 512 MB\tMax Memory Used: 115 MB\t\nXRAY TraceId: 1-6a189bff-2d6ba4692dbd47230defa71f\tSegmentId: 608b4a855806520b\tSampled: true\t\n"
+      },
+      "delete_errs": [
+        {
+          "rule": "justhodl-outcome-checker-daily",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        },
+        {
+          "rule": "justhodl-outcome-checker-monthly",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        },
+        {
+          "rule": "justhodl-outcome-checker-weekly",
+          "err": "An error occurred (ResourceNotFoundException) when calling the ListTargetsByRule operation: Rule justhodl-outcome-checke"
+        }
+      ],
+      "deleted_count": 1
+    }
+  ],
+  "summary": {
+    "initial_rule_count": 299,
+    "final_rule_count": 82,
+    "ticks_created": 9,
+    "individual_rules_deleted": 226,
+    "net_slots_freed": 217
+  },
+  "finished": "2026-05-28T19:48:16.048171+00:00"
+}
