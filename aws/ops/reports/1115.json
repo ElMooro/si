@@ -1,0 +1,26 @@
+{
+  "started": "2026-05-28T20:53:36.738342+00:00",
+  "sfn_role": "arn:aws:iam::857687956942:role/jhk-step-fn-exec-role",
+  "eb_role": "arn:aws:iam::857687956942:role/jhk-eb-to-sfn-role",
+  "sfn_err": "An error occurred (AccessDeniedException) when calling the CreateStateMachine operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: states:CreateStateMachine on resource: arn:aws:states:us-east-1:857687956942:stateMachine:jhk-portfolio-orchestration because no identity-based policy allows the states:CreateStateMachine action",
+  "sfn_traceback": "96, in deploy_step_functions\n    r = sfn.create_state_machine(name=SM_NAME, definition=json.dumps(definition),\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (AccessDeniedException) when calling the CreateStateMachine operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: states:CreateStateMachine on resource: arn:aws:states:us-east-1:857687956942:stateMachine:jhk-portfolio-orchestration because no identity-based policy allows the states:CreateStateMachine action\n",
+  "synth_redeploy": "OK",
+  "synth_invoke_body": {
+    "all_ok": true,
+    "page_ok": 12,
+    "pages_total": 12,
+    "feed_ok": 4,
+    "feeds_total": 4,
+    "avg_ttfb_ms": 225,
+    "duration_s": 0.77
+  },
+  "synth_log_tail": "START RequestId: eb749aa7-2eb7-452b-953e-c2754271e9e2 Version: $LATEST\n[synthetic] checking 12 pages + 4 feeds\n[synthetic] OK pages 12/12 feeds 4/4 0.77s\nEND RequestId: eb749aa7-2eb7-452b-953e-c2754271e9e2\nREPORT RequestId: eb749aa7-2eb7-452b-953e-c2754271e9e2\tDuration: 985.56 ms\tBilled Duration: 1631 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 644.98 ms\t\nXRAY TraceId: 1-6a18ab5b-48889470414ef5aa5ab2c89e\tSegmentId: b05931072e23dbec\tSampled: true\t\n",
+  "synth_summary": {
+    "all_ok": true,
+    "page_ok": 12,
+    "pages_total": 12,
+    "feed_ok": 4,
+    "feeds_total": 4
+  },
+  "finished": "2026-05-28T20:53:51.903803+00:00"
+}
