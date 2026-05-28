@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eurodollar &amp; Dollar Funding Stress · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>💵</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1180px;margin:0 auto;padding:24px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
+nav.crumbs{margin-top:10px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.elq{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px;margin-bottom:14px}
+.elq .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+.elq .num{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1.05;margin:4px 0}
+.elq .reg{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px}
+.elq .rd{color:var(--mute);font-size:12.5px;margin-top:9px;line-height:1.6}
+.gauge{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red));position:relative;margin:14px 0 4px}
+.gauge .mk{position:absolute;top:-5px;width:3px;height:21px;background:var(--txt);border-radius:2px;box-shadow:0 0 7px rgba(0,0,0,.9)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:14px}
+.cell{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:7px;padding:12px}
+.cell .cc{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--txt)}
+.cell .pct{font-family:var(--mono);font-size:21px;font-weight:700;margin:5px 0 1px}
+.cell .pl{font-family:var(--mono);font-size:8.5px;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
+.cell .val{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
+.cell .dt{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:4px}
+.cell .desc{font-size:10.5px;color:var(--dim);margin-top:7px;line-height:1.45}
+.panel{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:16px;margin-bottom:12px}
+.panel .t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.panel .r{color:var(--mute);font-size:12.5px;margin-top:7px;line-height:1.6}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:5px;border:1px solid var(--line)}
+.loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
+.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
+.err{color:var(--red);font-family:var(--mono);font-size:12px;padding:20px;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>💵 Eurodollar &amp; Dollar Funding Stress</h1>
+    <p class="subtitle">The <b>eurodollar system</b> is the offshore market for US dollars — the plumbing that funds global trade and leverage outside US borders. When dollars get scarce offshore, the whole system seizes: EM currencies dump, credit spreads blow out, and risk assets fall together. This composite scores <b>8 FRED-sourced funding-stress signals</b> on a 0–100 scale (percentile-ranked over 5 years), refreshed hourly. Higher = more dollar-funding stress. The 30Y-below-10Y inversion is the Hugh Hendry "catastrophe trigger."</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/systemic-stress.html">systemic stress</a>
+      <a href="/cb-injection.html">cb injection</a>
+      <a href="/ecb-detail.html">ecb detail</a>
+      <a href="/yen-carry.html">yen carry</a>
+      <a href="/dollar.html">dollar radar</a>
+    </nav>
+  </header>
+
+  <div id="hero"><div class="loading">LOADING DOLLAR FUNDING STRESS…</div></div>
+
+  <h2>The 8 Funding-Stress Signals</h2>
+  <div class="grid" id="sigGrid"></div>
+
+  <div id="context"></div>
+
+  <p class="note" id="note"></p>
+  <p class="timestamp" id="ts"></p>
+</div>
+
+<script>
+const S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const J = (k) => fetch(S3 + k + "?_=" + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
+const num = (v, d = 1) => v == null ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+function scoreColor(s) {
+  if (s == null) return "var(--dim)";
+  if (s >= 85) return "var(--red)";
+  if (s >= 70) return "var(--orange)";
+  if (s >= 50) return "var(--yellow)";
+  if (s >= 30) return "var(--cyan)";
+  return "var(--green)";
+}
+function sevColor(sev) {
+  sev = (sev || "").toUpperCase();
+  if (/CRITICAL|CRISIS/.test(sev)) return "var(--red)";
+  if (/ELEVATED|STRESS/.test(sev)) return "var(--orange)";
+  if (/MODERATE|WATCH/.test(sev)) return "var(--yellow)";
+  if (/CALM|LOW|NORMAL/.test(sev)) return "var(--green)";
+  return "var(--cyan)";
+}
+
+function renderHero(d) {
+  const el = document.getElementById("hero");
+  const c = d.composite_score;
+  const col = scoreColor(c);
+  const pos = Math.max(0, Math.min(100, c == null ? 0 : c));
+  el.innerHTML = `
+    <div class="elq" style="border-left-color:${col}">
+      <div class="lab">Composite Dollar-Funding Stress</div>
+      <div class="num" style="color:${col}">${num(c)}<span style="font-size:18px;color:var(--dim)"> / 100</span></div>
+      <div class="reg" style="color:${sevColor(d.severity)}">${(d.severity || "—")} · ${(d.regime || "")}</div>
+      <div class="gauge"><div class="mk" style="left:calc(${pos}% - 1.5px)"></div></div>
+      <div class="gscale"><span>0 CALM</span><span>30</span><span>50 MODERATE</span><span>70 ELEVATED</span><span>85 CRITICAL</span><span>100</span></div>
+      <div class="rd">${d.n_signals_used}/${d.n_signals_total} signals live. Composite is the mean of all available signal scores, each percentile-ranked over a 5-year rolling window. ${d.n_failures > 0 ? `<span style="color:var(--orange)">${d.n_failures} signal(s) temporarily unavailable.</span>` : ""}</div>
+    </div>`;
+}
+
+function renderSignals(d) {
+  const grid = document.getElementById("sigGrid");
+  if (!d.signals || !d.signals.length) {
+    grid.innerHTML = `<div class="err">No signal data available</div>`;
+    return;
+  }
+  // Sort by score descending (most stressed first)
+  const sorted = [...d.signals].sort((a, b) => (b.score_0_100 || 0) - (a.score_0_100 || 0));
+  grid.innerHTML = sorted.map(s => {
+    const col = scoreColor(s.score_0_100);
+    return `
+      <div class="cell" style="border-top-color:${col}">
+        <div class="cc">${s.label}</div>
+        <div class="pct" style="color:${col}">${num(s.score_0_100)}</div>
+        <div class="pl">stress score · ${s.fred_series}</div>
+        <div class="val">value: ${num(s.value, 2)}</div>
+        <div class="dt">as of ${s.as_of || "—"}</div>
+        <div class="desc">${s.description || ""}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderContext(d) {
+  const el = document.getElementById("context");
+  let html = "";
+  if (d.hot_signals && d.hot_signals.length) {
+    html += `
+      <div class="panel" style="border-left-color:var(--red)">
+        <div class="t" style="color:var(--red)">⚠ Hot Signals (≥70 — active stress)</div>
+        <div class="pills">${d.hot_signals.map(s => `<span class="pill" style="border-color:var(--orange);color:var(--orange)">${s.label}: ${num(s.score)}</span>`).join("")}</div>
+        <div class="r">These funding indicators are in the top tertile of their 5-year stress range right now. Multiple hot signals firing together is the classic eurodollar-squeeze precondition.</div>
+      </div>`;
+  }
+  if (d.cold_signals && d.cold_signals.length) {
+    html += `
+      <div class="panel" style="border-left-color:var(--green)">
+        <div class="t" style="color:var(--green)">✓ Calm Signals (≤30 — abundant liquidity)</div>
+        <div class="pills">${d.cold_signals.map(s => `<span class="pill" style="border-color:var(--green);color:var(--green)">${s.label}: ${num(s.score)}</span>`).join("")}</div>
+        <div class="r">These indicators show dollars are flowing freely — a buffer against systemic seize-up.</div>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
+(async function () {
+  const d = await J("eurodollar-stress.json");
+  if (!d) {
+    document.getElementById("hero").innerHTML = `<div class="err">Could not load eurodollar-stress.json — the hourly engine may not have run yet. Check back shortly.</div>`;
+    return;
+  }
+  renderHero(d);
+  renderSignals(d);
+  renderContext(d);
+  document.getElementById("note").innerHTML = `<b>Why this matters:</b> Most dollars exist <i>outside</i> the US banking system — banks, corporates, and governments worldwide borrow and lend USD they can't print. When that offshore funding tightens (strong dollar, widening credit spreads, repo dysfunction, collapsing bill yields from flight-to-safety), it acts like a margin call on the entire world. This is the mechanism behind 1997 Asia, 2008, and March 2020. Signals are percentile-ranked over 5 years; composite ≥70 = elevated risk of a broad de-risking event. <b>Source:</b> FRED (St. Louis Fed FSI, ICE BofA OAS, VIX, broad dollar index, T-bills, 10Y vol, SOFR–Fed Funds). Not investment advice.`;
+  document.getElementById("ts").textContent = "Updated " + (d.as_of ? new Date(d.as_of).toLocaleString() : "—") + " · refreshes hourly";
+})();
+</script>
+</body>
+</html>
