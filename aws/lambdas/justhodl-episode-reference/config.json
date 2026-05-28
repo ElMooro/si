@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-episode-reference",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Historical Episode Benchmark Engine. For 16 key FRED indicators (curve slopes, VIX, credit OAS, yields, real yields, breakeven, dollar, stress indices), computes value at 13 canonical market tops/bottoms/crises + current value + full-history percentile + nearest-episode analog. Shared 'you are here vs history' layer. Daily 10:00 UTC.",
+  "env": { "FRED_KEY": "2f057499936072679d8843d7fce99989" },
+  "schedule": { "rule_name": "episode-reference-daily", "cron": "cron(0 10 ? * * *)", "description": "Daily 10:00 UTC episode reference refresh" }
+}
