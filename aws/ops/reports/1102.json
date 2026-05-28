@@ -1,0 +1,145 @@
+{
+  "generated_at": "2026-05-28T15:31:19.480823+00:00",
+  "homepage": [
+    {
+      "url": "https://justhodl.ai/",
+      "status": 200,
+      "ttfb_s": 0.092,
+      "total_s": 0.102,
+      "size_kb": 119.9,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    {
+      "url": "https://justhodl.ai/",
+      "status": 200,
+      "ttfb_s": 0.041,
+      "total_s": 0.051,
+      "size_kb": 119.9,
+      "server": "GitHub.com",
+      "cache": "HIT",
+      "via": "1.1 varnish"
+    },
+    {
+      "url": "https://justhodl.ai/",
+      "status": 200,
+      "ttfb_s": 0.045,
+      "total_s": 0.055,
+      "size_kb": 119.9,
+      "server": "GitHub.com",
+      "cache": "HIT",
+      "via": "1.1 varnish"
+    }
+  ],
+  "homepage_index": {
+    "url": "https://justhodl.ai/index.html",
+    "status": 200,
+    "ttfb_s": 0.065,
+    "total_s": 0.075,
+    "size_kb": 119.9,
+    "server": "GitHub.com",
+    "cache": "MISS",
+    "via": "1.1 varnish"
+  },
+  "pages": {
+    "compass": {
+      "url": "https://justhodl.ai/compass.html",
+      "status": 200,
+      "ttfb_s": 0.053,
+      "total_s": 0.054,
+      "size_kb": 21.2,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    "tax_plan": {
+      "url": "https://justhodl.ai/tax-plan.html",
+      "status": 200,
+      "ttfb_s": 0.207,
+      "total_s": 0.208,
+      "size_kb": 23.4,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    "charts": {
+      "url": "https://justhodl.ai/charts.html",
+      "status": 200,
+      "ttfb_s": 0.049,
+      "total_s": 0.066,
+      "size_kb": 240.5,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    }
+  },
+  "wss": {
+    "host": "q7vco36knh.execute-api.us-east-1.amazonaws.com",
+    "port": 443,
+    "tls_connect_s": 0.1,
+    "reachable": true
+  },
+  "scripts": {
+    "wss_client": {
+      "url": "https://justhodl.ai/wss-client.js",
+      "status": 200,
+      "ttfb_s": 0.205,
+      "total_s": 0.206,
+      "size_kb": 8.3,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    "tenor": {
+      "url": "https://justhodl.ai/tenor-signals.js",
+      "status": 200,
+      "ttfb_s": 0.045,
+      "total_s": 0.045,
+      "size_kb": 8.1,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    "liq_credit": {
+      "url": "https://justhodl.ai/liquidity-credit.js",
+      "status": 200,
+      "ttfb_s": 0.039,
+      "total_s": 0.039,
+      "size_kb": 12.4,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    },
+    "liq_pulse": {
+      "url": "https://justhodl.ai/liquidity-pulse.js",
+      "status": 200,
+      "ttfb_s": 0.055,
+      "total_s": 0.055,
+      "size_kb": 13.9,
+      "server": "GitHub.com",
+      "cache": "MISS",
+      "via": "1.1 varnish"
+    }
+  },
+  "signal_board_root": {
+    "url": "https://justhodl-dashboard-live.s3.amazonaws.com/signal-board.json",
+    "err": "HTTP Error 403: Forbidden"
+  },
+  "signal_board_data": {
+    "url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/signal-board.json",
+    "status": 200,
+    "ttfb_s": 0.112,
+    "total_s": 0.112,
+    "size_kb": 11.5,
+    "server": "AmazonS3",
+    "cache": "",
+    "via": ""
+  },
+  "homepage_avg_total_s": 0.069,
+  "diagnosis": [
+    "Homepage serve is FAST: avg 0.07s. Slowness is client-side (scripts/data/WSS), not serve.",
+    "WSS endpoint reachable in 0.1s.",
+    "CONFIRMED: signal-board.json is at data/ but index.html loads it from root \u2192 flagship card 404s. One-line fix."
+  ]
+}
