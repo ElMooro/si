@@ -1,15 +1,19 @@
-"""ops 1110 — redeploy market-interpreter (with cross-indicator fallback) + verify all 7."""
-import io, json, os, time, zipfile, base64
+"""ops 1110 — redeploy market-interpreter (with cross-indicator fallback) + verify all 7.
+Retry: better error handling for visibility into the failure mode."""
+import io, json, os, time, traceback, zipfile, base64
 from datetime import datetime, timezone
 import boto3
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
 REGION = "us-east-1"
 REPO_ROOT = os.environ.get("REPO_ROOT", os.getcwd())
 FN = "justhodl-market-interpreter"
 BUCKET = "justhodl-dashboard-live"
 
-lam = boto3.client("lambda", region_name=REGION)
+# Bump read timeout so 40-50s Lambda runs don't time out the invoke
+_cfg = Config(connect_timeout=10, read_timeout=240, retries={"max_attempts": 2})
+lam = boto3.client("lambda", region_name=REGION, config=_cfg)
 s3 = boto3.client("s3", region_name=REGION)
 
 
@@ -39,52 +43,58 @@ def wait_active(t=120):
 
 def main():
     rpt = {"started": datetime.now(timezone.utc).isoformat()}
-
-    src_dir = os.path.join(REPO_ROOT, "aws/lambdas", FN, "source")
-    wait_active()
-    lam.update_function_code(FunctionName=FN, ZipFile=zip_src(src_dir), Publish=False)
-    wait_active()
-    rpt["redeploy"] = "OK"
-
-    # Inspect episode-reference to log what indicator IDs exist (for visibility)
     try:
-        ref = json.loads(s3.get_object(Bucket=BUCKET, Key="data/episode-reference.json")["Body"].read())
-        rpt["episode_ref_indicators"] = sorted(list((ref.get("indicators") or {}).keys()))
-    except Exception as e:
-        rpt["episode_ref_err"] = str(e)[:200]
+        src_dir = os.path.join(REPO_ROOT, "aws/lambdas", FN, "source")
+        wait_active()
+        lam.update_function_code(FunctionName=FN, ZipFile=zip_src(src_dir), Publish=False)
+        wait_active()
+        rpt["redeploy"] = "OK"
 
-    # Invoke
-    inv = lam.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=b"{}", LogType="Tail")
-    body_raw = inv["Payload"].read()
-    body = json.loads(body_raw or b"{}")
-    if isinstance(body, dict) and "body" in body:
-        try: body = json.loads(body["body"])
-        except Exception: pass
-    rpt["invoke_status"] = inv["StatusCode"]
-    rpt["invoke_body"] = body
-    rpt["invoke_fn_err"] = inv.get("FunctionError")
-    rpt["log_tail"] = base64.b64decode(inv.get("LogResult","")).decode("utf-8","replace")[-1800:]
-
-    # Verify each
-    time.sleep(3)
-    contexts = ["yield-curve","vix-curve","credit-spreads","dollar","eurodollar","systemic-stress","real-rates"]
-    out = {}
-    for cid in contexts:
+        # Inspect episode-reference to log what indicator IDs exist (for visibility)
         try:
-            h = s3.head_object(Bucket=BUCKET, Key=f"data/interpretations/{cid}.json")
-            out[cid] = {"exists": True, "size_kb": round(h["ContentLength"]/1024,1),
-                        "last_modified": h["LastModified"].isoformat()}
-        except ClientError:
-            out[cid] = {"exists": False}
-    rpt["outputs"] = out
-    rpt["outputs_ok"] = sum(1 for v in out.values() if v.get("exists"))
-    rpt["outputs_expected"] = len(contexts)
+            ref = json.loads(s3.get_object(Bucket=BUCKET, Key="data/episode-reference.json")["Body"].read())
+            rpt["episode_ref_indicators"] = sorted(list((ref.get("indicators") or {}).keys()))
+        except Exception as e:
+            rpt["episode_ref_err"] = str(e)[:200]
+
+        # Invoke
+        inv = lam.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=b"{}", LogType="Tail")
+        body_raw = inv["Payload"].read()
+        body = json.loads(body_raw or b"{}")
+        if isinstance(body, dict) and "body" in body:
+            try: body = json.loads(body["body"])
+            except Exception: pass
+        rpt["invoke_status"] = inv["StatusCode"]
+        rpt["invoke_body"] = body
+        rpt["invoke_fn_err"] = inv.get("FunctionError")
+        rpt["log_tail"] = base64.b64decode(inv.get("LogResult","")).decode("utf-8","replace")[-1800:]
+
+        # Verify each
+        time.sleep(3)
+        contexts = ["yield-curve","vix-curve","credit-spreads","dollar","eurodollar","systemic-stress","real-rates"]
+        out = {}
+        for cid in contexts:
+            try:
+                h = s3.head_object(Bucket=BUCKET, Key=f"data/interpretations/{cid}.json")
+                out[cid] = {"exists": True, "size_kb": round(h["ContentLength"]/1024,1),
+                            "last_modified": h["LastModified"].isoformat()}
+            except ClientError:
+                out[cid] = {"exists": False}
+        rpt["outputs"] = out
+        rpt["outputs_ok"] = sum(1 for v in out.values() if v.get("exists"))
+        rpt["outputs_expected"] = len(contexts)
+    except Exception as e:
+        rpt["fatal_err"] = str(e)[:500]
+        rpt["traceback"] = traceback.format_exc()[-1500:]
 
     rpt["finished"] = datetime.now(timezone.utc).isoformat()
     p = os.path.join(REPO_ROOT, "aws/ops/reports/1110.json")
     os.makedirs(os.path.dirname(p), exist_ok=True)
     json.dump(rpt, open(p,"w"), indent=2, default=str)
-    print(json.dumps({k:v for k,v in rpt.items() if k not in ("log_tail","episode_ref_indicators")}, indent=2, default=str)[:2000])
+    print(json.dumps({k:v for k,v in rpt.items() if k not in ("log_tail","episode_ref_indicators","traceback")}, indent=2, default=str)[:2000])
+    if rpt.get("fatal_err"):
+        print("TRACEBACK:")
+        print(rpt.get("traceback", ""))
 
 
 if __name__ == "__main__":
