@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-scheduler",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "EventBridge schedule fanout router. Replaces 1-rule-per-Lambda. Reads s3://justhodl-dashboard-live/config/schedule-manifest.json and invokes Lambdas registered for the incoming tick. Frees ~290 EB slots."
+}
