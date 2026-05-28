@@ -162,9 +162,21 @@ def build_prompt(ctx, ref, regime, primary, kb_chunks):
 
 def interpret_one(ctx, ref):
     """Run the full interpret pipeline for one context. Returns the result dict."""
-    primary = ref.get("indicators", {}).get(ctx["primary_indicator"]) or {}
+    inds = ref.get("indicators", {})
+    primary_id = ctx["primary_indicator"]
+    primary = inds.get(primary_id) or {}
+
+    # Fallback: if configured primary isn't in episode-reference, promote the first
+    # cross-indicator that IS present. Keeps every context productive even if the
+    # reference doesn't carry the textbook primary (e.g. STLFSI4, DTWEXBGS).
     if not primary:
-        return {"context": ctx["id"], "err": f"primary indicator {ctx['primary_indicator']} not in episode-reference"}
+        for sid in ctx.get("cross_indicators", []):
+            if inds.get(sid):
+                primary_id = sid
+                primary = inds[sid]
+                break
+    if not primary:
+        return {"context": ctx["id"], "err": f"no usable primary in episode-reference for {ctx['id']}"}
 
     # Regime (best-effort)
     regime = ""
@@ -188,7 +200,7 @@ def interpret_one(ctx, ref):
     result["context"] = ctx["id"]
     result["label"] = ctx["label"]
     result["regime"] = regime
-    result["primary_indicator"] = ctx["primary_indicator"]
+    result["primary_indicator"] = primary_id
     result["primary_current"] = primary.get("current")
     result["primary_percentile"] = primary.get("percentile")
     result["primary_nearest"] = primary.get("nearest_episode")
