@@ -1,0 +1,64 @@
+{
+  "started": "2026-05-28T20:46:34.634264+00:00",
+  "deploy": "CREATED",
+  "manifest": "ADDED to 15min (now 7 jobs)",
+  "invoke_status": 200,
+  "invoke_body": {
+    "all_ok": false,
+    "page_ok": 4,
+    "pages_total": 13,
+    "feed_ok": 4,
+    "feeds_total": 4,
+    "avg_ttfb_ms": 184,
+    "duration_s": 0.81
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 00fc3f2d-4a26-439c-871e-c66687b51fcb Version: $LATEST\n[synthetic] checking 13 pages + 4 feeds\n[synthetic] OK pages 4/13 feeds 4/4 0.81s\nEND RequestId: 00fc3f2d-4a26-439c-871e-c66687b51fcb\nREPORT RequestId: 00fc3f2d-4a26-439c-871e-c66687b51fcb\tDuration: 1372.01 ms\tBilled Duration: 1958 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 585.42 ms\t\n",
+  "monitor_summary": {
+    "all_ok": false,
+    "page_ok": 4,
+    "pages_total": 13,
+    "feed_ok": 4,
+    "feeds_total": 4,
+    "avg_page_ttfb_ms": 184
+  },
+  "page_failures": [
+    {
+      "path": "/bond-vol.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/credit-spreads.html",
+      "reason": "fetch failed: HTTP Error 404: Not Found"
+    },
+    {
+      "path": "/defcon.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/dollar.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/eurodollar.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/risk-radar.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/systemic-stress.html",
+      "reason": "missing markers: ['Bottom Line']"
+    },
+    {
+      "path": "/vix-curve.html",
+      "reason": "missing markers: ['Bottom Line', 'jh-mtx']"
+    },
+    {
+      "path": "/yield-curve.html",
+      "reason": "missing markers: ['jh-mtx']"
+    }
+  ],
+  "finished": "2026-05-28T20:46:42.011653+00:00"
+}

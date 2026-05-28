@@ -1,0 +1,91 @@
+{
+  "started": "2026-05-28T20:46:42.333058+00:00",
+  "deploy": "SYNCED",
+  "manifest": "ADDED to daily-eve (now 35 jobs)",
+  "invoke_status": 200,
+  "invoke_body": {
+    "feeds_total": 422,
+    "orphan_lambdas": 6,
+    "orphan_feeds": 10,
+    "duration_s": 9.13
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 8475fdbd-e940-4125-92bd-53833b7989dc Version: $LATEST\n[dep-graph] starting\n[dep-graph] 378 Lambdas to analyze\n[dep-graph] 208 pages to scan\n[dep-graph] OK \u2014 422 feeds, 6 orphans, 9.13s\nEND RequestId: 8475fdbd-e940-4125-92bd-53833b7989dc\nREPORT RequestId: 8475fdbd-e940-4125-92bd-53833b7989dc\tDuration: 9131.58 ms\tBilled Duration: 9688 ms\tMemory Size: 1024 MB\tMax Memory Used: 120 MB\tInit Duration: 555.95 ms\t\nXRAY TraceId: 1-6a18a9ba-74c73b0c1895f3021da1a13f\tSegmentId: ce3a6c6f8d0f5d0d\tSampled: true\t\n",
+  "graph_stats": {
+    "lambdas_analyzed": 378,
+    "lambdas_with_io": 329,
+    "pages_analyzed": 208,
+    "feeds_total": 422,
+    "orphan_lambdas": 6,
+    "orphan_feeds": 10
+  },
+  "top_consumed_3": [
+    {
+      "feed": "data/eurodollar-stress.json",
+      "n_consumers": 25,
+      "pages": [
+        "eurodollar.html"
+      ],
+      "lambdas": [
+        "justhodl-ai-brief",
+        "justhodl-wave-signal-logger",
+        "justhodl-ecb-detail",
+        "justhodl-global-stress",
+        "justhodl-repo-lending",
+        "justhodl-allocator",
+        "justhodl-calibration-fleet",
+        "justhodl-plumbing-aggregator",
+        "justhodl-history-snapshotter",
+        "justhodl-tail-hedge"
+      ]
+    },
+    {
+      "feed": "data/report.json",
+      "n_consumers": 24,
+      "pages": [
+        "ath.html",
+        "bonds.html",
+        "read.html",
+        "today.html"
+      ],
+      "lambdas": [
+        "justhodl-crypto-enricher",
+        "justhodl-divergence-scanner",
+        "justhodl-stock-analyzer",
+        "justhodl-ai-chat",
+        "justhodl-stress-simulator",
+        "justhodl-crypto-intel",
+        "justhodl-ab-test",
+        "justhodl-investor-agents",
+        "justhodl-history-snapshotter",
+        "justhodl-khalid-adaptive"
+      ]
+    },
+    {
+      "feed": "data/universe.json",
+      "n_consumers": 17,
+      "pages": [],
+      "lambdas": [
+        "justhodl-volatility-squeeze-hunter",
+        "justhodl-universe-builder",
+        "justhodl-momentum-breakout",
+        "justhodl-microcap-float-squeeze",
+        "justhodl-eps-revision-velocity",
+        "justhodl-hiring-velocity",
+        "justhodl-history-snapshotter",
+        "justhodl-deep-value-screener",
+        "justhodl-bagger-engine",
+        "justhodl-options-flow-scanner"
+      ]
+    }
+  ],
+  "orphan_lambdas_sample": [
+    "justhodl-dep-graph",
+    "justhodl-dr-snapshot",
+    "justhodl-feed-catalog",
+    "justhodl-global-business-cycle",
+    "justhodl-market-interpreter",
+    "justhodl-synthetic-monitor"
+  ],
+  "finished": "2026-05-28T20:47:02.692588+00:00"
+}
