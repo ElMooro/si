@@ -225,56 +225,50 @@ function cards(obj,unit){
 
 /* ── HISTORICAL CONTEXT — number line vs episodes ── */
 const EP_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/episode-reference.json";
-function epColor(type){return /TOP/.test(type)?"var(--red)":/BOTTOM/.test(type)?"var(--green)":"var(--orange)";}
-function pctColor(p){if(p==null)return"var(--mute)";if(p>=80)return"var(--red)";if(p>=60)return"var(--orange)";if(p>=40)return"var(--yellow)";if(p>=20)return"var(--cyan)";return"var(--green)";}
+function epTypeColor(type){return /TOP/.test(type)?"var(--red)":/BOTTOM/.test(type)?"var(--green)":"var(--orange)";}
 
-function drawScale(ind,episodes){
-  const W=1080,H=92,padL=20,padR=20,axisY=54;
-  const vals=[ind.min,ind.max,ind.current,...Object.values(ind.at_episodes||{})].filter(v=>v!=null);
-  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.06||0.1;lo-=pad;hi+=pad;
-  const sx=v=>padL+((v-lo)/(hi-lo))*(W-padL-padR);
+function episodeRank(ind,episodes){
+  // Build sorted list of episodes by value (desc) with NOW inserted at its rank.
   const epMap={};(episodes||[]).forEach(e=>epMap[e.id]=e);
-  // axis
-  let svg=`<line x1="${padL}" y1="${axisY}" x2="${W-padR}" y2="${axisY}" stroke="var(--line)" stroke-width="2"/>`;
-  svg+=`<text x="${padL}" y="${axisY+20}" fill="var(--dim)" font-size="10" font-family="monospace">${lo.toFixed(2)}</text>`;
-  svg+=`<text x="${W-padR}" y="${axisY+20}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="end">${hi.toFixed(2)}</text>`;
-  // episode ticks (alternate label height to reduce overlap)
-  const eps=Object.entries(ind.at_episodes||{}).map(([id,v])=>({id,v,meta:epMap[id]||{}})).sort((a,b)=>a.v-b.v);
-  eps.forEach((e,i)=>{const x=sx(e.v);const c=epColor(e.meta.type||"");const up=i%2===0;const ly=up?axisY-10:axisY+34;const lyTick=up?axisY-8:axisY+8;
-    svg+=`<line x1="${x}" y1="${up?axisY-6:axisY+6}" x2="${x}" y2="${axisY}" stroke="${c}" stroke-width="2"/>`;
-    svg+=`<circle cx="${x}" cy="${axisY}" r="3" fill="${c}"/>`;
-    svg+=`<text x="${x}" y="${ly}" fill="${c}" font-size="8.5" font-family="monospace" text-anchor="middle">${esc((e.meta.name||e.id).slice(0,14))}</text>`;
-  });
-  // current marker
-  const cx=sx(ind.current);
-  svg+=`<line x1="${cx}" y1="${axisY-22}" x2="${cx}" y2="${axisY+22}" stroke="var(--txt)" stroke-width="2.5"/>`;
-  svg+=`<polygon points="${cx-5},${axisY-22} ${cx+5},${axisY-22} ${cx},${axisY-14}" fill="var(--txt)"/>`;
-  svg+=`<text x="${cx}" y="${axisY-26}" fill="var(--txt)" font-size="10" font-weight="700" font-family="monospace" text-anchor="middle">NOW ${ind.current}</text>`;
-  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${svg}</svg>`;
+  const rows=Object.entries(ind.at_episodes||{}).map(([id,v])=>({v,name:(epMap[id]||{}).name||id,type:(epMap[id]||{}).type||"",isNow:false}));
+  rows.push({v:ind.current,name:"YOU ARE HERE",type:"NOW",isNow:true});
+  rows.sort((a,b)=>b.v-a.v);
+  const u=ind.unit||"";
+  return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:0;font-family:var(--mono);font-size:11px;margin-top:8px;border:1px solid var(--line);border-radius:6px;overflow:hidden">
+    ${rows.map(r=>{
+      const c=r.isNow?"var(--cyan)":epTypeColor(r.type);
+      const bg=r.isNow?"background:rgba(0,212,255,.10)":"";
+      const badge=r.isNow?"NOW":(r.type||"").replace("BOTTOM","BTM").replace("CRISIS","CRI").replace("TOP","TOP");
+      return `<div style="padding:6px 11px;${bg};color:${r.isNow?'var(--cyan)':'var(--mute)'};font-weight:${r.isNow?'700':'400'}">${r.isNow?'► ':''}${esc(r.name)}</div>
+        <div style="padding:6px 8px;${bg};text-align:right"><span style="color:${c};font-size:9px;font-weight:700;letter-spacing:.5px">${badge}</span></div>
+        <div style="padding:6px 11px 6px 8px;${bg};text-align:right;color:${r.isNow?'var(--cyan)':'var(--txt)'};font-weight:${r.isNow?'700':'400'}">${r.v}${u}</div>`;
+    }).join("")}
+  </div>`;
 }
+
+function pctColor(p){if(p==null)return"var(--mute)";if(p>=80)return"var(--red)";if(p>=60)return"var(--orange)";if(p>=40)return"var(--yellow)";if(p>=20)return"var(--cyan)";return"var(--green)";}
 
 function renderHistCtx(ref,ids){
   const el=document.getElementById("histctx");
   if(!ref||!ref.indicators){el.innerHTML=`<div class="loading">historical reference unavailable</div>`;return;}
   let html="";
-  // Primary indicator gets a full time-series chart
   const primary=ids[0];
   const pind=ref.indicators[primary];
   if(pind&&pind.monthly_history&&pind.monthly_history.length){
     html+=`<div class="tschart"><div class="tt">${esc(pind.label)} · 1990–today</div><div class="tl">Recession bands shaded · ●tops ●bottoms ●crises · the full journey through every cycle</div>${drawHistorySeries(pind,ref.recessions,ref.episodes)}</div>`;
   }
-  // All indicators get the compact episode number-line
   ids.forEach(id=>{
     const ind=ref.indicators[id];if(!ind)return;
     const ne=ind.nearest_episode||{};
+    const tword=/TOP/.test(ne.type||"")?"a market top":/BOTTOM/.test(ne.type||"")?"a market bottom":"a crisis";
     html+=`
       <div class="histrow">
         <div class="hh">
           <span class="hl">${esc(ind.label)}</span>
-          <span class="hc">now <b style="color:var(--txt)">${ind.current}${ind.unit||""}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:${pctColor(ind.percentile)}">${ind.percentile}th pctile</span> of ${(ind.history_start||"").slice(0,4)}–now</span>
+          <span class="hc">now <b style="color:var(--txt)">${ind.current}${ind.unit||""}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:${pctColor(ind.percentile)}">${ind.percentile}th pctile</span></span>
         </div>
-        ${drawScale(ind,ref.episodes)}
-        <div class="hnear">Closest historical analog: <b style="color:${epColor(ne.type||"")}">${esc(ne.name||"—")}</b> (${esc(ne.type||"")}, was ${ne.value}${ind.unit||""}). <span style="color:var(--dim)">Red = market top · Green = bottom · Orange = crisis.</span></div>
+        <div class="hnear" style="margin-top:2px">Closest analog: <b style="color:${epTypeColor(ne.type||"")}">${esc(ne.name||"—")}</b> — ${tword} (was ${ne.value}${ind.unit||""}).</div>
+        ${episodeRank(ind,ref.episodes)}
       </div>`;
   });
   el.innerHTML=html||`<div class="loading">no matching indicators</div>`;
@@ -317,21 +311,57 @@ function drawHistorySeries(ind,recessions,episodes){
 
 function synthesize(d,ref){
   const regime=(d.regime||"").toUpperCase();
-  const c=ref&&ref.indicators&&ref.indicators.T10Y2Y;
+  const I=(ref&&ref.indicators)||{};
+  const curve=I.T10Y2Y, real=I.DFII10, ten=I.DGS10, be=I.T10YIE;
   let parts=[];
-  if(c){
-    const ne=c.nearest_episode||{};
-    parts.push(`The 2s10s curve sits at <b>${c.current}%</b> — the <b>${c.percentile}th percentile</b> of its entire ${(c.history_start||"").slice(0,4)}–today range.`);
-    if(ne.name){const tword=/TOP/.test(ne.type)?"a market TOP":/BOTTOM/.test(ne.type)?"a market BOTTOM":"a CRISIS";parts.push(`Its closest historical analog is <b>${ne.name}</b> — ${tword}.`);}
+
+  // 1. Curve position
+  if(curve){
+    const ne=curve.nearest_episode||{};
+    const tword=/TOP/.test(ne.type||"")?"a market TOP":/BOTTOM/.test(ne.type||"")?"a market BOTTOM":"a CRISIS";
+    parts.push(`The 2s10s curve is at <b>${curve.current}%</b> (${curve.percentile}th percentile), closest to <b>${esc(ne.name||"—")}</b> — ${tword}.`);
   }
-  const reg={
-    BULL_STEEPENER:"Front-end falling faster than the long end = the market pricing Fed cuts. Risk assets get a liquidity tailwind now, but if cuts come because a recession is starting, that reverses hard. <b>Late-cycle.</b>",
-    BEAR_STEEPENER:"Long end rising faster = growth/inflation/supply fear. The most dangerous regime for long-duration risk assets — discount rates rise without Fed help. <b>Pressure on growth/tech.</b>",
-    BULL_FLATTENER:"Short end falling faster = recovery / risk-on with the Fed done tightening. <b>The friendliest regime for risk assets.</b>",
-    BEAR_FLATTENER:"Short end rising faster = the Fed hiking, conditions tightening. <b>Historically the toughest regime for risk assets.</b>",
-    INVERTED:"Inverted — the most reliable recession lead indicator (12–18mo lag). The danger isn't the inversion itself but the re-steepening that follows. <b>Late-cycle caution.</b>"
+
+  // 2. Regime base read
+  const regRead={
+    BULL_STEEPENER:"front-end falling = Fed cuts being priced (late-cycle)",
+    BEAR_STEEPENER:"long-end rising = growth/inflation/supply fear (headwind for long-duration)",
+    BULL_FLATTENER:"short-end falling with Fed done = the friendliest curve regime for risk",
+    BEAR_FLATTENER:"short-end rising = Fed hiking, conditions tightening (toughest for risk)",
+    INVERTED:"inverted = recession lead signal; danger is the re-steepening, not the inversion"
   }[regime]||"";
-  if(reg)parts.push("Regime is <b>"+esc(regime)+"</b>: "+reg);
+
+  // 3. Real-yield restrictiveness (the key cross-check the old version missed)
+  let divergences=[];
+  let restrictive=false, accommodative=false;
+  if(real&&real.percentile!=null){
+    if(real.percentile>=75){restrictive=true;divergences.push(`real 10Y yield at the <b>${real.percentile}th percentile</b> (${real.current}%) is genuinely <b>restrictive</b> — a direct headwind for equities, crypto and gold regardless of curve shape`);}
+    else if(real.percentile<=25){accommodative=true;divergences.push(`real 10Y yield at the <b>${real.percentile}th percentile</b> is accommodative — a tailwind for risk`);}
+  }
+  // 4. 10Y nominal analog
+  if(ten&&ten.nearest_episode&&/TOP/.test(ten.nearest_episode.type||"")){
+    divergences.push(`the 10Y nominal yield sits at its <b>${esc(ten.nearest_episode.name)}</b> (market-top) analog`);
+  }
+  // 5. Breakeven / inflation expectations
+  if(be&&be.percentile!=null&&be.percentile>=70){
+    divergences.push(`inflation breakevens are elevated (${be.percentile}th pctile), keeping the Fed cautious`);
+  }
+
+  // 6. Net call — reconcile regime optimism vs restrictive real rates
+  let net="";
+  const friendly=/BULL_FLATTENER|BULL_STEEPENER/.test(regime);
+  if(friendly&&restrictive){
+    net=`<b style="color:var(--orange)">NET: mixed / late-cycle.</b> The curve reads risk-on (${regRead}), <b>but that's contradicted by restrictive real rates and top-like yield levels.</b> Treat the friendly curve signal with caution — this is a late-cycle configuration, not a clean green light.`;
+  }else if(friendly&&accommodative){
+    net=`<b style="color:var(--green)">NET: constructive.</b> Curve (${regRead}) and accommodative real rates both point the same way — a genuine risk-on backdrop.`;
+  }else if(/BEAR_FLATTENER|INVERTED/.test(regime)){
+    net=`<b style="color:var(--red)">NET: defensive.</b> ${regRead.charAt(0).toUpperCase()+regRead.slice(1)}${restrictive?", reinforced by restrictive real rates":""}. Risk/reward skews to caution.`;
+  }else if(regime){
+    net=`<b>NET:</b> ${regRead}.`;
+  }
+
+  if(divergences.length)parts.push(`Cross-checks: ${divergences.join("; ")}.`);
+  if(net)parts.push(net);
   return parts.join(" ");
 }
 
