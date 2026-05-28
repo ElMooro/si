@@ -1,0 +1,68 @@
+{
+  "started": "2026-05-28T21:09:05.510644+00:00",
+  "group": "CREATED",
+  "group_attach": "OK",
+  "user_in_group": "ADDED",
+  "sm": "CREATED",
+  "sm_arn": "arn:aws:states:us-east-1:857687956942:stateMachine:jhk-portfolio-orchestration",
+  "eb_rule": "jhk-tick-hourly-orchestrate",
+  "smoke_arn": "arn:aws:states:us-east-1:857687956942:execution:jhk-portfolio-orchestration:smoke-1780002562",
+  "smoke_status": "SUCCEEDED",
+  "smoke_output": {
+    "snapshot": {
+      "ExecutedVersion": "$LATEST",
+      "Payload": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 0, \"n_watchlist\": 0, \"total_market_value\": 0.0, \"total_pnl_dollars\": 0.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.42}"
+      },
+      "SdkHttpMetadata": {
+        "AllHttpHeaders": {
+          "X-Amz-Executed-Version": [
+            "$LATEST"
+          ],
+          "x-amzn-Remapped-Content-Length": [
+            "0"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "x-amzn-RequestId": [
+            "d6851605-25d4-4bc2-9fba-fbc1c516cb83"
+          ],
+          "Content-Length": [
+            "198"
+          ],
+          "Date": [
+            "Thu, 28 May 2026 21:09:23 GMT"
+          ],
+          "X-Amzn-Trace-Id": [
+            "Root=1-6a18af02-09c22b0a4dc7f5b528663ed9;Sampled=1;Lineage=1:0f6eb9fa:0"
+          ],
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "HttpHeaders": {
+          "Connection": "keep-alive",
+          "Content-Length": "198",
+          "Content-Type": "application/json",
+          "Date": "Thu, 28 May 2026 21:09:23 GMT",
+          "X-Amz-Executed-Version": "$LATEST",
+          "x-amzn-Remapped-Content-Length": "0",
+          "x-amzn-RequestId": "d6851605-25d4-4bc2-9fba-fbc1c516cb83",
+          "X-Amzn-Trace-Id": "Root=1-6a18af02-09c22b0a4dc7f5b528663ed9;Sampled=1;Lineage=1:0f6eb9fa:0"
+        },
+        "HttpStatusCode": 200
+      },
+      "SdkResponseMetadata": {
+        "RequestId": "d6851605-25d4-4bc2-9fba-fbc1c516cb83"
+      },
+      "StatusCode": 200
+    },
+    "error": {
+      "Error": "Lambda.ResourceNotFoundException",
+      "Cause": "Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-recommendation:$LATEST (Service: AWSLambda; Status Code: 404; Error Code: ResourceNotFoundException; Request ID: 38e628dc-a0e1-4cd7-9381-2f76d0bedb9a; Proxy: null)"
+    }
+  },
+  "finished": "2026-05-28T21:09:27.458848+00:00"
+}
