@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-05-28T15:44:57.007139+00:00",
+  "data": {
+    "exists": true,
+    "size_kb": 2.6,
+    "last_modified": "2026-05-28T14:48:39+00:00",
+    "age_hours": 0.9,
+    "composite_score": 32.95,
+    "severity": "CALM",
+    "regime": "CALM",
+    "n_signals_used": 8,
+    "n_signals_total": 8,
+    "signal_labels": [
+      "St Louis Fed FSI",
+      "HY Credit OAS",
+      "IG Credit OAS",
+      "VIX (Equity Vol)",
+      "Broad Dollar Index",
+      "3M T-Bill Yield (Inv)",
+      "10Y Yield Realized Vol",
+      "SOFR \u2013 Fed Funds Spread"
+    ]
+  },
+  "lambda": {
+    "exists": true,
+    "state": "Active",
+    "last_modified": "2026-05-22T10:55:49.000+0000"
+  },
+  "schedules": [
+    "justhodl-eurodollar-stress-1h"
+  ]
+}
