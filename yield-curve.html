@@ -12,7 +12,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,san
 .container{max-width:1180px;margin:0 auto;padding:24px}
 header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
 h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:22px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
 nav.crumbs{margin-top:10px}
 nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
@@ -21,62 +21,214 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
 .hero .rg{font-family:var(--mono);font-size:26px;font-weight:700;margin:5px 0 2px;color:var(--cyan)}
 .hero .desc{color:var(--mute);font-size:12.5px;margin-top:7px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.flags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.flags span{font-family:var(--mono);font-size:10.5px;padding:4px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
 .kv{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px 15px}
 .kv .k{font-family:var(--mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
 .kv .v{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:4px}
-.flags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-.flags span{font-family:var(--mono);font-size:10.5px;padding:4px 10px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.chart-wrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+.chart-legend{display:flex;gap:16px;font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-bottom:8px}
+.chart-legend i{display:inline-block;width:14px;height:0;vertical-align:middle;margin-right:5px}
 .sig{font-family:var(--mono);font-size:11.5px;color:var(--mute);padding:7px 12px;border-left:2px solid var(--line);margin-bottom:5px;background:var(--panel)}
+.impact{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-left-color:var(--purple);border-radius:8px;padding:18px 20px;margin-bottom:14px}
+.impact .head{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--purple);margin-bottom:4px}
+.impact .lead{color:var(--mute);font-size:12.5px;line-height:1.6;margin-bottom:14px}
+.assets{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.asset{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:12px 14px}
+.asset .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.asset .nm{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.4px}
+.asset .dir{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:4px;text-transform:uppercase}
+.asset .why{color:var(--mute);font-size:11.5px;line-height:1.5}
 .loading{text-align:center;padding:46px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
 .timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+.note{color:var(--dim);font-size:11.5px;line-height:1.7;margin-top:14px;max-width:1000px}
+.note b{color:var(--mute)}
 </style>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>📈 Yield Curve</h1>
-    <p class="subtitle">The US Treasury curve as a macro instrument — nominal and real yields across tenors, key spreads, inversion flags, a term-premium proxy and inflation expectations, fused into a curve regime. The curve leads the cycle; this reads where it sits.</p>
-    <nav class="crumbs"><a href="/index.html">desk</a><a href="/signal-board.html">signal board</a><a href="/liquidity.html">liquidity</a></nav>
+    <p class="subtitle">The US Treasury curve as a macro instrument — nominal and real yields across tenors, key spreads, inversion flags, a term-premium proxy and inflation expectations, fused into a curve regime. The curve leads the cycle; this reads where it sits <b>and what it means for your risk assets</b>.</p>
+    <nav class="crumbs"><a href="/index.html">desk</a><a href="/signal-board.html">signal board</a><a href="/liquidity.html">liquidity</a><a href="/eurodollar.html">eurodollar</a></nav>
   </header>
+
   <div id="hero"><div class="loading">LOADING CURVE…</div></div>
-  <h2>Spreads &amp; Yields</h2>
+
+  <h2>The Curve</h2>
+  <div class="chart-wrap">
+    <div class="chart-legend">
+      <span><i style="border-top:2px solid var(--cyan)"></i>Nominal yield</span>
+      <span><i style="border-top:2px dashed var(--purple)"></i>Real yield (TIPS)</span>
+    </div>
+    <div id="chart"><div class="loading">…</div></div>
+  </div>
+
+  <h2>Curve Decomposition &amp; Spreads</h2>
   <div class="grid" id="metrics"><div class="loading">…</div></div>
-  <h2>Signals</h2>
+
+  <h2>What This Means for Markets &amp; Risk Assets</h2>
+  <div id="impact"><div class="loading">INTERPRETING…</div></div>
+
+  <h2>Active Signals</h2>
   <div id="signals"><div class="loading">…</div></div>
+
+  <p class="note" id="eduNote"></p>
   <p class="timestamp" id="ts"></p>
 </div>
+
 <script>
 const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/yield-curve.json";
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const fmt=v=>typeof v==="number"?(Math.abs(v)>=100?v.toFixed(0):v.toFixed(2)):esc(v);
+const TENOR_ORDER=["1M","3M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"];
+const TENOR_X={"1M":0,"3M":3,"6M":6,"1Y":12,"2Y":24,"3Y":36,"5Y":60,"7Y":84,"10Y":120,"20Y":240,"30Y":360};
+
+function extractYields(obj){
+  if(!obj)return[];
+  const pts=[];
+  for(const t of TENOR_ORDER){
+    let v=obj[t];
+    if(v&&typeof v==="object")v=v.value;
+    if(typeof v==="number"&&TENOR_X[t]!=null)pts.push({tenor:t,x:TENOR_X[t],y:v});
+  }
+  return pts;
+}
+
+function drawCurve(nominalPts,realPts){
+  const W=1080,H=300,pad={l:46,r:20,t:16,b:34};
+  const all=[...nominalPts,...realPts].map(p=>p.y).filter(v=>v!=null);
+  if(!all.length)return`<div class="loading">no curve data</div>`;
+  let ymin=Math.min(...all),ymax=Math.max(...all);
+  const padY=(ymax-ymin)*0.15||0.5;ymin-=padY;ymax+=padY;
+  const xmax=360;
+  const sx=x=>pad.l+(x/xmax)*(W-pad.l-pad.r);
+  const sy=y=>pad.t+(1-(y-ymin)/(ymax-ymin))*(H-pad.t-pad.b);
+  const path=pts=>pts.length?pts.map((p,i)=>(i?"L":"M")+sx(p.x).toFixed(1)+" "+sy(p.y).toFixed(1)).join(" "):"";
+  let grid="";
+  for(let i=0;i<=4;i++){const yv=ymin+(ymax-ymin)*i/4;const yy=sy(yv);grid+=`<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${pad.l-6}" y="${yy+3}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="end">${yv.toFixed(1)}%</text>`;}
+  let xlab="";nominalPts.forEach(p=>{xlab+=`<text x="${sx(p.x)}" y="${H-pad.b+18}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="middle">${p.tenor}</text>`;});
+  let dots=nominalPts.map(p=>`<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="3.2" fill="var(--cyan)"/><text x="${sx(p.x)}" y="${sy(p.y)-9}" fill="var(--cyan)" font-size="9.5" font-family="monospace" text-anchor="middle">${p.y.toFixed(2)}</text>`).join("");
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+    ${grid}${xlab}
+    <path d="${path(realPts)}" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="5 4" opacity="0.85"/>
+    <path d="${path(nominalPts)}" fill="none" stroke="var(--cyan)" stroke-width="2.4"/>
+    ${dots}
+  </svg>`;
+}
+
+function dirStyle(d){
+  return {BULLISH:"background:rgba(38,255,175,.12);color:var(--green)",
+          BEARISH:"background:rgba(255,85,119,.12);color:var(--red)",
+          CAUTION:"background:rgba(255,122,24,.12);color:var(--orange)",
+          MIXED:"background:rgba(255,210,102,.12);color:var(--yellow)",
+          NEUTRAL:"background:rgba(168,179,199,.10);color:var(--mute)"}[d]||"";
+}
+
+function interpret(d){
+  const regime=(d.regime||"").toUpperCase();
+  const inv=d.any_inversion||(d.inversion_flags&&Object.values(d.inversion_flags).some(Boolean));
+  const slope=(d.decomposition&&d.decomposition.slope_2s10s_bps!=null)?d.decomposition.slope_2s10s_bps:(d.spreads_bps&&d.spreads_bps["2s10s"]);
+  const M={
+    BULL_STEEPENER:{
+      lead:"Front-end yields are falling faster than the long end — the market is pricing Fed rate cuts, usually because growth is slowing. Classic late-cycle / early-easing setup. Risk assets get an initial liquidity tailwind, but if cuts are arriving because a recession is starting, that tailwind reverses hard.",
+      eq:["MIXED","Cut hopes support multiples short-term, but a steepening driven by recession fear eventually hits earnings. Long-duration growth/tech benefits most from a falling front-end."],
+      credit:["CAUTION","IG resilient, but high-yield spreads are the canary — if the steepening is recessionary, HY widens first. Watch HY OAS."],
+      crypto:["BULLISH","High beta to easing expectations and liquidity. Tends to rally on rate-cut pricing — until recession actually bites."],
+      gold:["BULLISH","Falling real rates plus eventual easing is the ideal gold backdrop."],
+      usd:["BEARISH","Rate-differential compression as the Fed turns dovish pressures the dollar."],
+      dur:["BULLISH","Bonds rally as the market front-runs cuts; front-end duration outperforms."]
+    },
+    BEAR_STEEPENER:{
+      lead:"Long-end yields are rising faster than the front — the market is pricing higher growth, higher inflation, or more Treasury supply / term premium. This is the most dangerous regime for long-duration risk assets: the discount rate rises without the Fed cutting.",
+      eq:["CAUTION","Rising long yields compress valuations, hitting long-duration growth/tech hardest. Value, cyclicals, energy and financials relatively favored."],
+      credit:["CAUTION","Disorderly long-end selloffs can drag credit; spreads widen if the moves are violent (cf. 2022)."],
+      crypto:["BEARISH","Rising real yields raise the opportunity cost of holding non-yielding assets; tends to pressure crypto."],
+      gold:["MIXED","The inflation narrative is supportive, but rising real yields are a direct headwind — net depends on which dominates."],
+      usd:["MIXED","Higher US yields can support USD, but if driven by fiscal / term-premium fear it can coincide with dollar weakness."],
+      dur:["BEARISH","The textbook bond bear market — long duration sells off."]
+    },
+    BULL_FLATTENER:{
+      lead:"Short-end yields are falling faster than the long end — recovery / risk-on dynamics where the market is comfortable the Fed is done tightening. Generally the friendliest curve regime for risk assets.",
+      eq:["BULLISH","Stable long rates plus an easing front-end is supportive of multiples across the board."],
+      credit:["BULLISH","Spreads tend to tighten as recession fears recede."],
+      crypto:["BULLISH","Risk-on liquidity backdrop favors high-beta assets."],
+      gold:["MIXED","Less directional — depends on the real-rate path."],
+      usd:["BEARISH","A softer front-end pressures the dollar modestly."],
+      dur:["BULLISH","Front-end duration supported."]
+    },
+    BEAR_FLATTENER:{
+      lead:"Short-end yields are rising faster than the long end — the Fed is hiking (or expected to). Financial conditions are tightening. Historically the toughest regime for risk assets as liquidity is drained.",
+      eq:["BEARISH","Multiple compression as the discount rate rises and liquidity tightens. Long-duration growth most exposed."],
+      credit:["BEARISH","Tightening drains liquidity; spreads bias wider, refinancing risk rises."],
+      crypto:["BEARISH","The most rate-sensitive risk asset; tightening cycles have produced the worst crypto drawdowns."],
+      gold:["BEARISH","Rising real rates are gold's primary headwind."],
+      usd:["BULLISH","A hawkish Fed plus rate differentials support the dollar."],
+      dur:["BEARISH","Front-end sells off; the curve flattens."]
+    },
+    INVERTED:{
+      lead:"The 2s10s curve is inverted — short rates above long rates. Historically the single most reliable recession lead indicator, with a 12–18 month lag. Inversion itself is NOT an immediate sell signal (markets often rally into it); the danger comes on RE-STEEPENING, when the recession actually arrives.",
+      eq:["CAUTION","Late-cycle. Equities can keep rising during inversion, but risk/reward deteriorates. The dangerous moment is the bull-steepening that follows."],
+      credit:["CAUTION","Spreads are typically still tight at inversion but most vulnerable to the eventual turn. Monitor HY closely."],
+      crypto:["CAUTION","Risk-on can persist, but position for elevated tail risk as the cycle matures."],
+      gold:["BULLISH","Supported as the market anticipates the eventual pivot to cuts."],
+      usd:["MIXED","Often firm late-cycle on safe-haven and rate-differential flows."],
+      dur:["BULLISH","Eventual normalization and cuts favor bonds; long duration is a recession hedge."]
+    }
+  };
+  let m=M[regime];
+  if(!m){m=(slope!=null&&slope<0)?M.INVERTED:M.BULL_FLATTENER;}
+  let leadExtra=inv&&regime!=="INVERTED"?" <b style='color:var(--orange)'>Note: at least one key spread is currently inverted — treat all reads with added late-cycle caution.</b>":"";
+  const rows=[
+    ["US Equities (SPX/NDX)","eq"],["Credit (HY / IG)","credit"],["Crypto (BTC/ETH)","crypto"],
+    ["Gold","gold"],["US Dollar (DXY)","usd"],["Duration / Bonds","dur"]
+  ];
+  return `
+    <div class="impact">
+      <div class="head">⚡ Regime → Risk-Asset Read · ${esc(regime||"—")}</div>
+      <div class="lead">${m.lead}${leadExtra}</div>
+      <div class="assets">
+        ${rows.map(function(row){var nm=row[0],k=row[1];var dir=m[k][0],why=m[k][1];return `
+          <div class="asset">
+            <div class="top"><span class="nm">${nm}</span><span class="dir" style="${dirStyle(dir)}">${dir}</span></div>
+            <div class="why">${why}</div>
+          </div>`;}).join("")}
+      </div>
+    </div>`;
+}
+
 function cards(obj,unit){
   if(!obj||typeof obj!=="object")return"";
   return Object.entries(obj).filter(([k,v])=>typeof v==="number"||typeof v==="string").map(([k,v])=>
     `<div class="kv"><div class="k">${esc(k.replace(/_/g,' '))}</div><div class="v">${fmt(v)}${unit&&typeof v==="number"?`<span style="font-size:11px;color:var(--dim)"> ${unit}</span>`:""}</div></div>`).join("");
 }
+
 (async()=>{
   let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
-  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;document.getElementById("metrics").innerHTML="";document.getElementById("signals").innerHTML="";return;}
-  const inv=d.any_inversion;
+  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;["chart","metrics","impact","signals"].forEach(i=>document.getElementById(i).innerHTML="");return;}
+  const inv=d.any_inversion||(d.inversion_flags&&Object.values(d.inversion_flags).some(Boolean));
   document.getElementById("hero").innerHTML=`
     <div class="hero" style="border-left-color:${inv?'var(--red)':'var(--cyan)'}">
       <div class="lab">Curve Regime</div>
-      <div class="rg">${esc(d.regime||"—")}</div>
+      <div class="rg" style="color:${inv?'var(--red)':'var(--cyan)'}">${esc(d.regime||"—")}</div>
       <div class="desc">${esc(d.regime_description||"")}</div>
       <div class="flags">
         ${inv!=null?`<span>inversion: <b style="color:${inv?'var(--red)':'var(--green)'}">${inv?'YES':'none'}</b></span>`:""}
+        ${(d.decomposition&&d.decomposition.slope_2s10s_bps!=null)?`<span>2s10s slope ${fmt(d.decomposition.slope_2s10s_bps)} bps</span>`:""}
         ${d.term_premium_proxy_bps!=null?`<span>term premium ≈ ${fmt(d.term_premium_proxy_bps)} bps</span>`:""}
-        ${d.n_signals!=null?`<span>${d.n_signals} signals</span>`:""}
         ${d.as_of_date?`<span>as of ${esc(d.as_of_date)}</span>`:""}
       </div>
     </div>`;
-  let m=cards(d.spreads_bps,"bps")+cards(d.nominal_yields,"%")+cards(d.real_yields,"%")+cards(d.inflation_expectations,"%");
-  document.getElementById("metrics").innerHTML=m||`<div class="loading">no metric detail</div>`;
+  const nom=extractYields(d.nominal_yields),real=extractYields(d.real_yields);
+  document.getElementById("chart").innerHTML=drawCurve(nom,real);
+  document.getElementById("metrics").innerHTML=(cards(d.spreads_bps,"bps")+cards(d.decomposition,""))||`<div class="loading">no metric detail</div>`;
+  document.getElementById("impact").innerHTML=interpret(d);
   const sigs=d.signals||[];
   document.getElementById("signals").innerHTML=sigs.length
     ? sigs.map(s=>`<div class="sig">${esc(typeof s==="object"?(s.text||s.message||s.signal||JSON.stringify(s)):s)}</div>`).join("")
     : `<div class="loading">no active signals</div>`;
+  document.getElementById("eduNote").innerHTML=`<b>How to read this:</b> The yield curve plots Treasury yields from 1-month to 30-year. Its <b>shape</b> encodes the market's collective bet on growth, inflation and Fed policy. A normal upward slope = healthy expansion. <b>Inversion</b> (short rates above long) has preceded every US recession since 1955, typically by 12–18 months. The four regimes (bull/bear × steepener/flattener) tell you not just <i>where</i> rates are but <i>why</i> they're moving — which is what determines the read for equities, credit, crypto, gold and the dollar above. <b>Source:</b> FRED (US Treasury constant-maturity + TIPS). Not investment advice.`;
   document.getElementById("ts").textContent="engine: justhodl-yield-curve · generated "+(d.generated_at||"?");
 })();
 </script>
