@@ -1,0 +1,6 @@
+{
+  "started": "2026-05-28T20:59:36.589011+00:00",
+  "fatal_err": "An error occurred (LimitExceeded) when calling the PutUserPolicy operation: Maximum policy size of 2048 bytes exceeded for user github-actions-justhodl",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/1116_grant_sfn_perms_and_create.py\", line 50, in main\n    iam.put_user_policy(UserName=USER, PolicyName=\"StepFunctionsForJhk\",\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.LimitExceededException: An error occurred (LimitExceeded) when calling the PutUserPolicy operation: Maximum policy size of 2048 bytes exceeded for user github-actions-justhodl\n",
+  "finished": "2026-05-28T20:59:36.691148+00:00"
+}
