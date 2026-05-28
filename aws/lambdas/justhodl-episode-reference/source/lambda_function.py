@@ -131,6 +131,23 @@ def value_at(hist, target_date, window_days=10):
     return best if best_dist <= window_days else (best if best_dist <= 35 else None)
 
 
+# NBER US recession periods (for chart shading)
+RECESSIONS = [
+    {"start": "1990-07", "end": "1991-03", "name": "Early-90s"},
+    {"start": "2001-03", "end": "2001-11", "name": "Dotcom"},
+    {"start": "2007-12", "end": "2009-06", "name": "GFC"},
+    {"start": "2020-02", "end": "2020-04", "name": "COVID"},
+]
+
+
+def monthly_downsample(hist):
+    """Reduce daily history to last-observation-per-month: [[YYYY-MM, value], ...]."""
+    by_month = {}
+    for ds, v in hist:
+        by_month[ds[:7]] = v  # sorted asc → last obs of month wins
+    return [[ym, round(v, 4)] for ym, v in sorted(by_month.items())]
+
+
 def percentile_rank(value, series):
     if value is None or not series:
         return None
@@ -176,6 +193,7 @@ def process_indicator(spec):
         "nearest_episode": nearest,
         "history_start": hist[0][0],
         "n_obs": len(values),
+        "monthly_history": monthly_downsample(hist),
     }
 
 
@@ -199,6 +217,7 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - started, 2),
         "description": "Each indicator's value at canonical market tops, bottoms, and crises, plus current value + full-history percentile. The 'you are here vs history' reference layer.",
         "episodes": EPISODES,
+        "recessions": RECESSIONS,
         "indicators": indicators,
         "n_indicators": len(indicators),
     }
