@@ -1,0 +1,62 @@
+{
+  "started": "2026-05-28T20:29:10.008847+00:00",
+  "redeploy": "OK",
+  "episode_ref_indicators": [
+    "BAMLC0A0CM",
+    "BAMLH0A0HYM2",
+    "DFII10",
+    "DGS10",
+    "DGS2",
+    "T10Y2Y",
+    "T10Y3M",
+    "VIXCLS"
+  ],
+  "invoke_status": 200,
+  "invoke_body": {
+    "n_ok": 7,
+    "n_err": 0,
+    "duration_s": 64.51
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: a125a5f3-e30b-4df7-86e7-7e60ad32db11 Version: $LATEST\n[interpreter] start contexts=7\n[interpreter] yield-curve: OK (6 assets)\n[interpreter] vix-curve: OK (7 assets)\n[interpreter] credit-spreads: OK (7 assets)\n[interpreter] dollar: OK (6 assets)\n[interpreter] eurodollar: OK (6 assets)\n[interpreter] systemic-stress: OK (7 assets)\n[interpreter] real-rates: OK (6 assets)\nEND RequestId: a125a5f3-e30b-4df7-86e7-7e60ad32db11\nREPORT RequestId: a125a5f3-e30b-4df7-86e7-7e60ad32db11\tDuration: 64549.80 ms\tBilled Duration: 65127 ms\tMemory Size: 1024 MB\tMax Memory Used: 97 MB\tInit Duration: 576.80 ms\t\nXRAY TraceId: 1-6a18a599-61ed88932755783f75a4e77f\tSegmentId: 307f82e537aff26c\tSampled: true\t\n",
+  "outputs": {
+    "yield-curve": {
+      "exists": true,
+      "size_kb": 3.4,
+      "last_modified": "2026-05-28T20:29:25+00:00"
+    },
+    "vix-curve": {
+      "exists": true,
+      "size_kb": 2.9,
+      "last_modified": "2026-05-28T20:29:36+00:00"
+    },
+    "credit-spreads": {
+      "exists": true,
+      "size_kb": 2.7,
+      "last_modified": "2026-05-28T20:29:44+00:00"
+    },
+    "dollar": {
+      "exists": true,
+      "size_kb": 2.5,
+      "last_modified": "2026-05-28T20:29:51+00:00"
+    },
+    "eurodollar": {
+      "exists": true,
+      "size_kb": 2.7,
+      "last_modified": "2026-05-28T20:30:00+00:00"
+    },
+    "systemic-stress": {
+      "exists": true,
+      "size_kb": 3.1,
+      "last_modified": "2026-05-28T20:30:10+00:00"
+    },
+    "real-rates": {
+      "exists": true,
+      "size_kb": 3.3,
+      "last_modified": "2026-05-28T20:30:19+00:00"
+    }
+  },
+  "outputs_ok": 7,
+  "outputs_expected": 7,
+  "finished": "2026-05-28T20:30:22.543802+00:00"
+}
