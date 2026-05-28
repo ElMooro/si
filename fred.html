@@ -140,5 +140,12 @@ function updateClock(){var n=new Date();document.getElementById('clock').textCon
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeChart();});
 init();
 </script>
+
+<div class="container" style="padding-top:0">
+  <h2>Historical Context — vs Crises, Tops &amp; Bottoms</h2>
+  <div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div>
+</div>
+<script src="/interp-kit.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','VIXCLS','BAMLH0A0HYM2','DGS10','DFII10','DTWEXBGS']);});</script>
 </body>
 </html>

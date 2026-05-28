@@ -46,4 +46,11 @@ async function refreshWatchlist(){const c=document.getElementById('watchlist-con
 function updateTicker(pairs){if(!pairs.length)return;const items=pairs.slice(0,20).map(p=>{const chg=parseFloat(p.priceChange?.h24),color=chg>0?'var(--green)':chg<0?'var(--red)':'var(--text-secondary)';return'<div class="ticker-item"><span style="color:var(--text-primary);font-weight:600">'+(p.baseToken?.symbol||'?')+'</span><span style="color:var(--text-secondary)">'+fmtP(p.priceUsd)+'</span><span style="color:'+color+';font-weight:600">'+(isNaN(chg)?'─':(chg>=0?'+':'')+chg.toFixed(2)+'%')+'</span></div>'}).join('');document.getElementById('ticker-tape').innerHTML=items+items}
 function updateTS(){const n=new Date();document.getElementById('last-update').textContent='UPDATED '+n.toLocaleTimeString();document.getElementById('status-time').textContent=n.toLocaleTimeString()}
 (async function init(){loadHotRunners();setInterval(()=>{if(document.querySelector('.tab-content.active')?.id==='tab-hot-runners')loadHotRunners();updateTS()},60000);try{const r=await fetch(AI_LAMBDA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'ping'})});document.getElementById('ai-status-dot').className=r.ok?'status-dot ok':'status-dot warn'}catch(e){document.getElementById('ai-status-dot').className='status-dot warn'}})();
-</script></body></html>
+</script>
+<div class="container" style="padding-top:0">
+  <h2>Historical Context — vs Crises, Tops &amp; Bottoms</h2>
+  <div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div>
+</div>
+<script src="/interp-kit.js"></script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','DFII10']);});</script>
+</body></html>
