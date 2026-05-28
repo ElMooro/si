@@ -1,0 +1,134 @@
+{
+  "generated_at": "2026-05-28T15:26:36.842225+00:00",
+  "files": {
+    "intel": {
+      "key": "intelligence-report.json",
+      "size_kb": 5.3,
+      "size_mb": 0.01,
+      "last_modified": "2026-05-28T15:05:43+00:00",
+      "content_type": "application/json",
+      "cache_control": "max-age=120",
+      "fetch_seconds": 0.21,
+      "fetch_ok": true
+    },
+    "edge": {
+      "key": "edge-data.json",
+      "size_kb": 2.0,
+      "size_mb": 0.0,
+      "last_modified": "2026-05-06T21:39:09+00:00",
+      "content_type": "application/json",
+      "cache_control": "no-cache",
+      "fetch_seconds": 0.212,
+      "fetch_ok": true
+    },
+    "liq": {
+      "key": "liquidity-data.json",
+      "size_kb": 10.2,
+      "size_mb": 0.01,
+      "last_modified": "2026-05-28T12:30:54+00:00",
+      "content_type": "application/json",
+      "cache_control": "no-cache, max-age=0",
+      "fetch_seconds": 0.188,
+      "fetch_ok": true
+    },
+    "flow": {
+      "key": "flow-data.json",
+      "size_kb": 30.9,
+      "size_mb": 0.03,
+      "last_modified": "2026-05-06T21:38:58+00:00",
+      "content_type": "application/json",
+      "cache_control": "no-cache",
+      "fetch_seconds": 0.271,
+      "fetch_ok": true
+    },
+    "crypto": {
+      "key": "crypto-intel.json",
+      "size_kb": 48.9,
+      "size_mb": 0.05,
+      "last_modified": "2026-05-28T15:15:05+00:00",
+      "content_type": "application/json",
+      "cache_control": "max-age=60",
+      "fetch_seconds": 0.256,
+      "fetch_ok": true
+    },
+    "regime": {
+      "key": "regime/current.json",
+      "size_kb": 1.4,
+      "size_mb": 0.0,
+      "last_modified": "2026-05-28T12:00:37+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=900",
+      "fetch_seconds": 0.258,
+      "fetch_ok": true
+    },
+    "div": {
+      "key": "divergence/current.json",
+      "size_kb": 6.1,
+      "size_mb": 0.01,
+      "last_modified": "2026-05-28T13:00:38+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=900",
+      "fetch_seconds": 0.176,
+      "fetch_ok": true
+    },
+    "cot": {
+      "key": "cot/extremes/current.json",
+      "size_kb": 8.1,
+      "size_mb": 0.01,
+      "last_modified": "2026-05-22T19:00:46+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=900",
+      "fetch_seconds": 0.221,
+      "fetch_ok": true
+    },
+    "risk": {
+      "key": "risk/recommendations.json",
+      "size_kb": 16.0,
+      "size_mb": 0.02,
+      "last_modified": "2026-05-28T13:45:25+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=900",
+      "fetch_seconds": 0.243,
+      "fetch_ok": true
+    },
+    "setups": {
+      "key": "opportunities/asymmetric-equity.json",
+      "size_kb": 28.1,
+      "size_mb": 0.03,
+      "last_modified": "2026-05-28T13:30:15+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=900",
+      "fetch_seconds": 0.265,
+      "fetch_ok": true
+    },
+    "pnl": {
+      "key": "portfolio/pnl-daily.json",
+      "size_kb": 1.5,
+      "size_mb": 0.0,
+      "last_modified": "2026-05-27T22:00:05+00:00",
+      "content_type": "application/json",
+      "cache_control": "public, max-age=300",
+      "fetch_seconds": 0.245,
+      "fetch_ok": true
+    },
+    "signalBoard": {
+      "key": "signal-board.json",
+      "head_err": "An error occurred (404) when calling the HeadObject operation: Not Found",
+      "MISSING": true,
+      "fetch_err": "HTTP Error 403: Forbidden",
+      "fetch_ok": false
+    }
+  },
+  "total_size_mb": 0.15,
+  "total_size_kb": 158.6,
+  "big_files_over_500kb": [],
+  "slow_or_missing": [
+    [
+      "signal-board.json",
+      "MISSING/404"
+    ]
+  ],
+  "diagnosis": [
+    "1 file(s) slow/missing: [('signal-board.json', 'MISSING/404')]"
+  ]
+}
