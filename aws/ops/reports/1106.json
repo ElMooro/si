@@ -1,0 +1,56 @@
+{
+  "started": "2026-05-28T19:39:41.117733+00:00",
+  "phase_A": {
+    "deploy": "CODE_SYNCED",
+    "perm": "ADDED",
+    "manifest": "SEEDED"
+  },
+  "phase_B": {
+    "total_rules": 299,
+    "by_cadence": {
+      "daily-morn": 100,
+      "daily-07utc": 2,
+      "daily-eve": 35,
+      "hourly": 31,
+      "15min": 6,
+      "weekly-sun": 15,
+      "unmapped": 19,
+      "daily-15utc": 4,
+      "every_6h": 24,
+      "every_3h": 6,
+      "4hourly": 14,
+      "daily-18utc": 1,
+      "daily-16utc": 6,
+      "every_2h": 2,
+      "daily-06utc": 7,
+      "daily-08utc": 6,
+      "30min": 13,
+      "daily-19utc": 1,
+      "5min": 2,
+      "every_12h": 1,
+      "monthly": 2,
+      "event-driven": 1,
+      "daily-17utc": 1
+    },
+    "safe_delete_disabled": [],
+    "plan_path": "data/schedule-migration-plan.json",
+    "plan_summary": {
+      "tick_counts": {
+        "15min": 6,
+        "hourly": 29,
+        "daily-morn": 94,
+        "4hourly": 14,
+        "5min": 2,
+        "1min": 0,
+        "daily-eve": 33,
+        "weekly-sun": 15,
+        "monthly": 2,
+        "30min": 12
+      },
+      "unmapped_count": 75,
+      "current": 299,
+      "after_full_migration": 11
+    }
+  },
+  "finished": "2026-05-28T19:40:17.082782+00:00"
+}
