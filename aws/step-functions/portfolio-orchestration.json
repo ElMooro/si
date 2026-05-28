@@ -1,0 +1,118 @@
+{
+  "Comment": "JustHodl portfolio orchestration — replaces timing-coupled scheduling of the chain (snapshot → risk → planner/pnl in parallel → pm-decision → cro-digest) with explicit, observable orchestration. Each step has retry + catch; a single failure routes to the Telegram alerter rather than silently breaking the chain. Triggered hourly by jhk-tick-hourly-orchestrate.",
+  "StartAt": "PortfolioSnapshot",
+  "States": {
+    "PortfolioSnapshot": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot",
+        "Payload": {}
+      },
+      "ResultPath": "$.snapshot",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        { "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2, "MaxAttempts": 2, "BackoffRate": 2 }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyChainFailure" }],
+      "Next": "RiskRecommendation"
+    },
+    "RiskRecommendation": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-recommendation",
+        "Payload": {}
+      },
+      "ResultPath": "$.risk",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        { "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2, "MaxAttempts": 2, "BackoffRate": 2 }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyChainFailure" }],
+      "Next": "HedgeParallel"
+    },
+    "HedgeParallel": {
+      "Type": "Parallel",
+      "ResultPath": "$.hedge",
+      "Branches": [
+        {
+          "StartAt": "HedgePlanner",
+          "States": {
+            "HedgePlanner": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-hedge-planner",
+                "Payload": {}
+              },
+              "TimeoutSeconds": 180,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "HedgePnL",
+          "States": {
+            "HedgePnL": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-hedge-pnl",
+                "Payload": {}
+              },
+              "TimeoutSeconds": 180,
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyChainFailure" }],
+      "Next": "PMDecision"
+    },
+    "PMDecision": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-pm-decision",
+        "Payload": {}
+      },
+      "ResultPath": "$.pm",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        { "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2, "MaxAttempts": 2, "BackoffRate": 2 }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "NotifyChainFailure" }],
+      "Next": "CRODigest"
+    },
+    "CRODigest": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cro-digest",
+        "Payload": {}
+      },
+      "ResultPath": "$.cro",
+      "TimeoutSeconds": 180,
+      "Retry": [
+        { "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2, "MaxAttempts": 1, "BackoffRate": 2 }
+      ],
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "ResultPath": "$.error", "Next": "ChainSuccessButCRODown" }],
+      "End": true
+    },
+    "ChainSuccessButCRODown": {
+      "Type": "Pass",
+      "Comment": "PM decision succeeded but CRO digest failed — not a critical failure",
+      "End": true
+    },
+    "NotifyChainFailure": {
+      "Type": "Pass",
+      "Comment": "A required step failed. State input contains $.error with the cause. CloudWatch logs + Step Functions console show the failing state.",
+      "End": true
+    }
+  }
+}

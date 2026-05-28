@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-synthetic-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "layers": ["arn:aws:lambda:us-east-1:857687956942:layer:justhodl-core:1"],
+  "environment_keys": [],
+  "description": "Arch #7 — end-to-end synthetic monitor. Every 15min: HTTPS-checks 13 critical pages + 4 critical feeds, validates signature markers + freshness, Telegrams on NEW failures (dedup against prev). Writes data/synthetic-monitor.json."
+}
