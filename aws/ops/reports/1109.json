@@ -1,0 +1,50 @@
+{
+  "started": "2026-05-28T20:10:24.880440+00:00",
+  "steps": {
+    "env_pull": "OK \u2014 pulled key from justhodl-ai-chat (108 chars)",
+    "deploy": "CREATED",
+    "manifest": "ADDED to hourly (now 30 jobs)",
+    "invoke_status": 200,
+    "invoke_body": {
+      "n_ok": 4,
+      "n_err": 3,
+      "duration_s": 38.94
+    },
+    "invoke_fn_err": null,
+    "log_tail": "START RequestId: 1b23d16a-f80f-4c3d-9af7-90f740a4a65c Version: $LATEST\n[interpreter] start contexts=7\n[interpreter] yield-curve: OK (6 assets)\n[interpreter] vix-curve: OK (7 assets)\n[interpreter] credit-spreads: OK (7 assets)\n[interpreter] dollar: ERR primary indicator DTWEXBGS not in episode-reference\n[interpreter] eurodollar: ERR primary indicator STLFSI4 not in episode-reference\n[interpreter] systemic-stress: ERR primary indicator STLFSI4 not in episode-reference\n[interpreter] real-rates: OK (6 assets)\nEND RequestId: 1b23d16a-f80f-4c3d-9af7-90f740a4a65c\nREPORT RequestId: 1b23d16a-f80f-4c3d-9af7-90f740a4a65c\tDuration: 38989.36 ms\tBilled Duration: 39514 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 524.24 ms\t\n"
+  },
+  "outputs": {
+    "yield-curve": {
+      "exists": true,
+      "size_kb": 3.3,
+      "last_modified": "2026-05-28T20:10:41+00:00"
+    },
+    "vix-curve": {
+      "exists": true,
+      "size_kb": 2.9,
+      "last_modified": "2026-05-28T20:10:51+00:00"
+    },
+    "credit-spreads": {
+      "exists": true,
+      "size_kb": 2.9,
+      "last_modified": "2026-05-28T20:11:00+00:00"
+    },
+    "dollar": {
+      "exists": false
+    },
+    "eurodollar": {
+      "exists": false
+    },
+    "systemic-stress": {
+      "exists": false
+    },
+    "real-rates": {
+      "exists": true,
+      "size_kb": 3.0,
+      "last_modified": "2026-05-28T20:11:09+00:00"
+    }
+  },
+  "outputs_ok": 4,
+  "outputs_expected": 7,
+  "finished": "2026-05-28T20:11:12.408001+00:00"
+}
