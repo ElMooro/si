@@ -1,0 +1,882 @@
+{
+  "started": "2026-05-30T21:05:54.152533+00:00",
+  "feeds": {
+    "baggers": {
+      "key": "data/bagger-engine.json",
+      "top_keys": [
+        "candidates_in_range",
+        "elapsed_s",
+        "generated_at",
+        "method",
+        "methodology",
+        "n_errors",
+        "n_scored",
+        "pillar_weights",
+        "schema_version",
+        "tier_counts",
+        "tiers",
+        "top_100",
+        "universe_size"
+      ],
+      "lists_found": [
+        {
+          "path": "top_100",
+          "len": 100,
+          "first_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ],
+          "first_item_sample": "{\"symbol\": \"PPIH\", \"name\": \"Perma-Pipe International Holdings, Inc.\", \"sector\": \"Industrials\", \"industry\": \"Construction\", \"cap_bucket\": \"micro\", \"market_cap\": 257873301, \"price\": 31.745, \"bagger_score\": 89.7, \"raw_score\": 89.7, \"survives\": true, \"survival_note\": \"healthy balance sheet (D/E 0.5, cur"
+        },
+        {
+          "path": "tiers.potential_100x",
+          "len": 30,
+          "first_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ],
+          "first_item_sample": "{\"symbol\": \"ADMA\", \"name\": \"ADMA Biologics, Inc.\", \"sector\": \"Healthcare\", \"industry\": \"Biotechnology\", \"cap_bucket\": \"small\", \"market_cap\": 1844913080, \"price\": 7.96, \"bagger_score\": 83.4, \"raw_score\": 83.4, \"survives\": true, \"survival_note\": \"net cash position \\u2014 fortress balance sheet\", \"pill"
+        },
+        {
+          "path": "tiers.potential_25x",
+          "len": 30,
+          "first_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ],
+          "first_item_sample": "{\"symbol\": \"PPIH\", \"name\": \"Perma-Pipe International Holdings, Inc.\", \"sector\": \"Industrials\", \"industry\": \"Construction\", \"cap_bucket\": \"micro\", \"market_cap\": 257873301, \"price\": 31.745, \"bagger_score\": 89.7, \"raw_score\": 89.7, \"survives\": true, \"survival_note\": \"healthy balance sheet (D/E 0.5, cur"
+        },
+        {
+          "path": "tiers.potential_10x",
+          "len": 30,
+          "first_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ],
+          "first_item_sample": "{\"symbol\": \"SMID\", \"name\": \"Smith-Midland Corporation\", \"sector\": \"Basic Materials\", \"industry\": \"Construction Materials\", \"cap_bucket\": \"micro\", \"market_cap\": 172887529, \"price\": 32.58, \"bagger_score\": 85.4, \"raw_score\": 85.4, \"survives\": true, \"survival_note\": \"net cash position \\u2014 fortress ba"
+        },
+        {
+          "path": "tiers.steady_compounders",
+          "len": 30,
+          "first_item_keys": [
+            "bagger_score",
+            "cap_bucket",
+            "industry",
+            "key_stats",
+            "market_cap",
+            "name",
+            "pillars",
+            "price",
+            "rank",
+            "raw_score",
+            "sector",
+            "survival_note",
+            "survives",
+            "symbol",
+            "thesis",
+            "twin_engine"
+          ],
+          "first_item_sample": "{\"symbol\": \"KINS\", \"name\": \"Kingstone Companies, Inc.\", \"sector\": \"Financial Services\", \"industry\": \"Insurance - Property & Casualty\", \"cap_bucket\": \"micro\", \"market_cap\": 222414104, \"price\": 15.355, \"bagger_score\": 82.6, \"raw_score\": 82.6, \"survives\": true, \"survival_note\": \"net cash position \\u201"
+        }
+      ],
+      "best_ticker_list_path": "top_100",
+      "best_ticker_list_len": 100,
+      "best_ticker_list_keys": [
+        "bagger_score",
+        "cap_bucket",
+        "industry",
+        "key_stats",
+        "market_cap",
+        "name",
+        "pillars",
+        "price",
+        "rank",
+        "raw_score",
+        "sector",
+        "survival_note",
+        "survives",
+        "symbol",
+        "thesis",
+        "twin_engine"
+      ],
+      "best_ticker_first_sample": "{\"symbol\": \"PPIH\", \"name\": \"Perma-Pipe International Holdings, Inc.\", \"sector\": \"Industrials\", \"industry\": \"Construction\", \"cap_bucket\": \"micro\", \"market_cap\": 257873301, \"price\": 31.745, \"bagger_score\": 89.7, \"raw_score\": 89.7, \"survives\": true, \"survival_note\": \"healthy balance sheet (D/E 0.5, cur"
+    },
+    "eps-velocity": {
+      "key": "data/eps-revision-velocity.json",
+      "top_keys": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "lists_found": [
+        {
+          "path": "summary.top_25_overall",
+          "len": 25,
+          "first_item_keys": [
+            "company",
+            "flag",
+            "fwd_rev_growth_pct",
+            "fy2_lift_pct",
+            "n_estimates",
+            "score",
+            "sector",
+            "symbol",
+            "upgrade_pct"
+          ],
+          "first_item_sample": "{\"symbol\": \"AMD\", \"company\": \"Advanced Micro Devices, Inc.\", \"score\": 86.5, \"flag\": \"HIGH_VELOCITY_TIER_B\", \"fy2_lift_pct\": 76.1, \"fwd_rev_growth_pct\": 53.0, \"upgrade_pct\": 0.1, \"n_estimates\": 30, \"sector\": \"\"}"
+        },
+        {
+          "path": "summary.tier_b_symbols",
+          "len": 35,
+          "first_item_keys": "str",
+          "first_item_sample": "AMD"
+        },
+        {
+          "path": "all_qualifying",
+          "len": 86,
+          "first_item_keys": [
+            "company",
+            "estimates",
+            "flag",
+            "fundamentals",
+            "ratings_breadth",
+            "rationale",
+            "score",
+            "status",
+            "symbol"
+          ],
+          "first_item_sample": "{\"symbol\": \"AMD\", \"company\": \"Advanced Micro Devices, Inc.\", \"score\": 86.5, \"flag\": \"HIGH_VELOCITY_TIER_B\", \"status\": \"ok\", \"fundamentals\": {\"price\": 516.1, \"market_cap\": 841552660000, \"sector\": \"\", \"industry\": \"\", \"pct_from_52w_high\": -2.1}, \"estimates\": {\"fy1_year\": \"2026\", \"fy1_eps_avg\": 7.44303,"
+        }
+      ],
+      "best_ticker_list_path": "all_qualifying",
+      "best_ticker_list_len": 86,
+      "best_ticker_list_keys": [
+        "company",
+        "estimates",
+        "flag",
+        "fundamentals",
+        "ratings_breadth",
+        "rationale",
+        "score",
+        "status",
+        "symbol"
+      ],
+      "best_ticker_first_sample": "{\"symbol\": \"AMD\", \"company\": \"Advanced Micro Devices, Inc.\", \"score\": 86.5, \"flag\": \"HIGH_VELOCITY_TIER_B\", \"status\": \"ok\", \"fundamentals\": {\"price\": 516.1, \"market_cap\": 841552660000, \"sector\": \"\", \"industry\": \"\", \"pct_from_52w_high\": -2.1}, \"estimates\": {\"fy1_year\": \"2026\", \"fy1_eps_avg\": 7.44303,"
+    },
+    "insider-clusters": {
+      "key": "data/insider-clusters.json",
+      "top_keys": [
+        "clusters",
+        "duration_s",
+        "generated_at",
+        "lookback_days",
+        "method",
+        "schema_version",
+        "stats",
+        "thresholds"
+      ],
+      "lists_found": [
+        {
+          "path": "clusters",
+          "len": 34,
+          "first_item_keys": [
+            "avg_price",
+            "cik",
+            "company",
+            "first_buy",
+            "fundamentals",
+            "has_ceo",
+            "has_cfo",
+            "has_chairman",
+            "has_director",
+            "highest_role",
+            "insiders",
+            "last_buy",
+            "n_insiders",
+            "n_transactions",
+            "rationale",
+            "score",
+            "signal_type",
+            "ticker",
+            "total_shares",
+            "total_value",
+            "transactions"
+          ],
+          "first_item_sample": "{\"ticker\": \"SLMT\", \"company\": \"Brera Holdings PLC\", \"cik\": \"0001939965\", \"n_insiders\": 2, \"n_transactions\": 2, \"total_shares\": 2298000, \"total_value\": 11421060.0, \"avg_price\": 4.97, \"first_buy\": \"2026-05-21\", \"last_buy\": \"2026-05-21\", \"highest_role\": \"Director, Chief Executive Officer, 10% Owner\", \""
+        }
+      ],
+      "best_ticker_list_path": "clusters",
+      "best_ticker_list_len": 34,
+      "best_ticker_list_keys": [
+        "avg_price",
+        "cik",
+        "company",
+        "first_buy",
+        "fundamentals",
+        "has_ceo",
+        "has_cfo",
+        "has_chairman",
+        "has_director",
+        "highest_role",
+        "insiders",
+        "last_buy",
+        "n_insiders",
+        "n_transactions",
+        "rationale",
+        "score",
+        "signal_type",
+        "ticker",
+        "total_shares",
+        "total_value",
+        "transactions"
+      ],
+      "best_ticker_first_sample": "{\"ticker\": \"SLMT\", \"company\": \"Brera Holdings PLC\", \"cik\": \"0001939965\", \"n_insiders\": 2, \"n_transactions\": 2, \"total_shares\": 2298000, \"total_value\": 11421060.0, \"avg_price\": 4.97, \"first_buy\": \"2026-05-21\", \"last_buy\": \"2026-05-21\", \"highest_role\": \"Director, Chief Executive Officer, 10% Owner\", \""
+    },
+    "smart-money": {
+      "key": "data/smart-money-clusters.json",
+      "top_keys": [
+        "as_of_quarter",
+        "clusters",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats"
+      ],
+      "lists_found": [
+        {
+          "path": "clusters",
+          "len": 83,
+          "first_item_keys": [
+            "components",
+            "flag",
+            "fund_actions",
+            "fundamentals",
+            "legend_buyers",
+            "n_buyers",
+            "n_funds_holding",
+            "n_new",
+            "n_sellers",
+            "name",
+            "pct_from_52w_high",
+            "quant_buyers",
+            "rationale",
+            "score",
+            "signal_types",
+            "ticker",
+            "total_value"
+          ],
+          "first_item_sample": "{\"ticker\": \"PEP\", \"name\": \"PepsiCo\", \"score\": 81.7, \"flag\": \"STRONG_CONVICTION\", \"signal_types\": [\"NEW_INITIATION_CLUSTER\", \"LEGEND_FUND_BUY\"], \"n_funds_holding\": 14, \"n_buyers\": 10, \"n_sellers\": 2, \"n_new\": 2, \"legend_buyers\": [\"DURATION\", \"DURATION\"], \"quant_buyers\": [\"RENAISSANCE\", \"AQR\", \"TWO_SI"
+        }
+      ],
+      "best_ticker_list_path": "clusters",
+      "best_ticker_list_len": 83,
+      "best_ticker_list_keys": [
+        "components",
+        "flag",
+        "fund_actions",
+        "fundamentals",
+        "legend_buyers",
+        "n_buyers",
+        "n_funds_holding",
+        "n_new",
+        "n_sellers",
+        "name",
+        "pct_from_52w_high",
+        "quant_buyers",
+        "rationale",
+        "score",
+        "signal_types",
+        "ticker",
+        "total_value"
+      ],
+      "best_ticker_first_sample": "{\"ticker\": \"PEP\", \"name\": \"PepsiCo\", \"score\": 81.7, \"flag\": \"STRONG_CONVICTION\", \"signal_types\": [\"NEW_INITIATION_CLUSTER\", \"LEGEND_FUND_BUY\"], \"n_funds_holding\": 14, \"n_buyers\": 10, \"n_sellers\": 2, \"n_new\": 2, \"legend_buyers\": [\"DURATION\", \"DURATION\"], \"quant_buyers\": [\"RENAISSANCE\", \"AQR\", \"TWO_SI"
+    },
+    "activist-13d": {
+      "key": "data/activist-13d.json",
+      "top_keys": [
+        "academic_basis",
+        "all_setups",
+        "as_of",
+        "current_readings",
+        "engine",
+        "forward_expectations",
+        "methodology",
+        "recommended_trade",
+        "run_duration_seconds",
+        "schedule",
+        "signal_strength",
+        "sources",
+        "state",
+        "summary",
+        "top_setups",
+        "trigger_conditions",
+        "version",
+        "why_now_explainer"
+      ],
+      "lists_found": [
+        {
+          "path": "trigger_conditions",
+          "len": 4,
+          "first_item_keys": [
+            "current",
+            "name",
+            "satisfied",
+            "threshold",
+            "weight"
+          ],
+          "first_item_sample": "{\"name\": \"Any tier-A activist filed in past 5 days\", \"current\": 0, \"threshold\": 1, \"satisfied\": false, \"weight\": 0.4}"
+        },
+        {
+          "path": "academic_basis",
+          "len": 3,
+          "first_item_keys": "str",
+          "first_item_sample": "Brav, Jiang, Partnoy, Thomas (2008): Hedge Fund Activism, Corporate Governance, and Firm Performance"
+        },
+        {
+          "path": "sources",
+          "len": 4,
+          "first_item_keys": "str",
+          "first_item_sample": "SEC EDGAR per-filer submissions API (data.sec.gov)"
+        }
+      ],
+      "best_ticker_list_path": null,
+      "best_ticker_list_len": null,
+      "best_ticker_list_keys": null,
+      "best_ticker_first_sample": null
+    },
+    "deep-value": {
+      "key": "data/deep-value.json",
+      "top_keys": [
+        "all_qualifying",
+        "duration_s",
+        "generated_at",
+        "method",
+        "schema_version",
+        "stats",
+        "summary"
+      ],
+      "lists_found": [
+        {
+          "path": "summary.top_25_overall",
+          "len": 1,
+          "first_item_keys": [
+            "company",
+            "flag",
+            "mcap_to_rev",
+            "net_cash_pct",
+            "pct_from_52w_high",
+            "rev_yield",
+            "score",
+            "sector",
+            "symbol"
+          ],
+          "first_item_sample": "{\"symbol\": \"ELV\", \"company\": \"Elevance Health Inc.\", \"score\": 64.7, \"flag\": \"MARGINAL\", \"net_cash_pct\": 0.186, \"rev_yield\": 2.332, \"mcap_to_rev\": 0.43, \"pct_from_52w_high\": -3.6, \"sector\": \"\"}"
+        },
+        {
+          "path": "summary.top_25_excluded_financials",
+          "len": 15,
+          "first_item_keys": [
+            "flag",
+            "score",
+            "sector",
+            "symbol"
+          ],
+          "first_item_sample": "{\"symbol\": \"PGR\", \"score\": 19.5, \"flag\": \"FINANCIAL_BOOK_EXCLUDED\", \"sector\": \"Financial Services\"}"
+        },
+        {
+          "path": "summary.contrarian_top",
+          "len": 2,
+          "first_item_keys": "str",
+          "first_item_sample": "PGR"
+        },
+        {
+          "path": "all_qualifying",
+          "len": 16,
+          "first_item_keys": [
+            "company",
+            "flag",
+            "fundamentals",
+            "rationale",
+            "score",
+            "status",
+            "symbol"
+          ],
+          "first_item_sample": "{\"symbol\": \"ELV\", \"company\": \"Elevance Health Inc.\", \"score\": 64.7, \"flag\": \"MARGINAL\", \"status\": \"ok\", \"fundamentals\": {\"market_cap\": 85386076192, \"price\": 393.19, \"year_high\": 408, \"pct_from_52w_high\": -3.6, \"cash\": 35562000000, \"long_investments\": 12123000000, \"total_debt\": 31842000000, \"net_cash"
+        }
+      ],
+      "best_ticker_list_path": "all_qualifying",
+      "best_ticker_list_len": 16,
+      "best_ticker_list_keys": [
+        "company",
+        "flag",
+        "fundamentals",
+        "rationale",
+        "score",
+        "status",
+        "symbol"
+      ],
+      "best_ticker_first_sample": "{\"symbol\": \"ELV\", \"company\": \"Elevance Health Inc.\", \"score\": 64.7, \"flag\": \"MARGINAL\", \"status\": \"ok\", \"fundamentals\": {\"market_cap\": 85386076192, \"price\": 393.19, \"year_high\": 408, \"pct_from_52w_high\": -3.6, \"cash\": 35562000000, \"long_investments\": 12123000000, \"total_debt\": 31842000000, \"net_cash"
+    },
+    "momentum": {
+      "key": "data/momentum-scanner.json",
+      "top_keys": [
+        "by_sector",
+        "duration_s",
+        "generated_at",
+        "rankings",
+        "summary",
+        "version"
+      ],
+      "lists_found": [
+        {
+          "path": "rankings.composite_top_50",
+          "len": 50,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"SNDK\", \"name\": \"Sandisk Corporation\", \"sector\": \"Technology\", \"industry\": \"Hardware, Equipment & Parts\", \"last_close\": 1694.98, \"ret_1m\": 59.27, \"ret_3m\": 166.77, \"ret_6m\": 668.7, \"ret_12m\": 4293.42, \"mom_12_1\": 2658.45, \"vol_60d\": 93.93, \"vol_adj_mom_3m\": 1.775, \"max_drawdown_252d\": -31"
+        },
+        {
+          "path": "rankings.mom_12_1_top_20",
+          "len": 20,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"SNDK\", \"name\": \"Sandisk Corporation\", \"sector\": \"Technology\", \"industry\": \"Hardware, Equipment & Parts\", \"last_close\": 1694.98, \"ret_1m\": 59.27, \"ret_3m\": 166.77, \"ret_6m\": 668.7, \"ret_12m\": 4293.42, \"mom_12_1\": 2658.45, \"vol_60d\": 93.93, \"vol_adj_mom_3m\": 1.775, \"max_drawdown_252d\": -31"
+        },
+        {
+          "path": "rankings.accelerating_top_20",
+          "len": 20,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"DDOG\", \"name\": \"Datadog, Inc.\", \"sector\": \"Technology\", \"industry\": \"Software - Application\", \"last_close\": 247.35, \"ret_1m\": 84.62, \"ret_3m\": 120.93, \"ret_6m\": 55.58, \"ret_12m\": 112.68, \"mom_12_1\": 15.2, \"vol_60d\": 73.53, \"vol_adj_mom_3m\": 1.645, \"max_drawdown_252d\": -48.62, \"pct_below_"
+        },
+        {
+          "path": "rankings.vol_adjusted_top_20",
+          "len": 20,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"AMD\", \"name\": \"Advanced Micro Devices, Inc.\", \"sector\": \"Technology\", \"industry\": \"Semiconductors\", \"last_close\": 516.1, \"ret_1m\": 53.1, \"ret_3m\": 157.78, \"ret_6m\": 150.38, \"ret_12m\": 357.29, \"mom_12_1\": 198.7, \"vol_60d\": 69.71, \"vol_adj_mom_3m\": 2.264, \"max_drawdown_252d\": -27.76, \"pct_"
+        },
+        {
+          "path": "rankings.near_52w_high_top_20",
+          "len": 20,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"MS\", \"name\": \"Morgan Stanley\", \"sector\": \"Financial Services\", \"industry\": \"Financial - Capital Markets\", \"last_close\": 208, \"ret_1m\": 11.18, \"ret_3m\": 24.92, \"ret_6m\": 25.73, \"ret_12m\": 63.12, \"mom_12_1\": 46.72, \"vol_60d\": 26.35, \"vol_adj_mom_3m\": 0.945, \"max_drawdown_252d\": -19.28, \"pc"
+        },
+        {
+          "path": "rankings.bottom_50_composite",
+          "len": 50,
+          "first_item_keys": [
+            "acceleration",
+            "composite_score",
+            "industry",
+            "last_close",
+            "max_drawdown_252d",
+            "mom_12_1",
+            "name",
+            "pct_above_252d_low",
+            "pct_below_252d_high",
+            "ret_12m",
+            "ret_1m",
+            "ret_3m",
+            "ret_6m",
+            "sector",
+            "ticker",
+            "vol_60d",
+            "vol_adj_mom_3m"
+          ],
+          "first_item_sample": "{\"ticker\": \"ROL\", \"name\": \"Rollins, Inc.\", \"sector\": \"Consumer Cyclical\", \"industry\": \"Personal Products & Services\", \"last_close\": 47.6, \"ret_1m\": -13.97, \"ret_3m\": -21.83, \"ret_6m\": -22.25, \"ret_12m\": -16.11, \"mom_12_1\": -2.49, \"vol_60d\": 22.57, \"vol_adj_mom_3m\": -0.967, \"max_drawdown_252d\": -27.4"
+        },
+        {
+          "path": "by_sector.Energy.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"APA\", \"score\": 89.24, \"ret_3m\": 19.95}"
+        },
+        {
+          "path": "by_sector.Energy.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"WMB\", \"score\": 52.97, \"ret_3m\": -4.46}"
+        },
+        {
+          "path": "by_sector.Technology.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"SNDK\", \"score\": 99.4, \"ret_3m\": 166.77}"
+        },
+        {
+          "path": "by_sector.Technology.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"INTU\", \"score\": 11.52, \"ret_3m\": -18.95}"
+        },
+        {
+          "path": "by_sector.Basic Materials.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"NUE\", \"score\": 95.52, \"ret_3m\": 41.34}"
+        },
+        {
+          "path": "by_sector.Basic Materials.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"PPG\", \"score\": 35.36, \"ret_3m\": -8.35}"
+        },
+        {
+          "path": "by_sector.Financial Services.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"STT\", \"score\": 88.58, \"ret_3m\": 21.01}"
+        },
+        {
+          "path": "by_sector.Financial Services.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"WTW\", \"score\": 18.36, \"ret_3m\": -18.19}"
+        },
+        {
+          "path": "by_sector.Real Estate.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"HST\", \"score\": 84.15, \"ret_3m\": 17.3}"
+        },
+        {
+          "path": "by_sector.Real Estate.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"CBRE\", \"score\": 32.19, \"ret_3m\": -15.32}"
+        },
+        {
+          "path": "by_sector.Industrials.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"FIX\", \"score\": 93.46, \"ret_3m\": 27.9}"
+        },
+        {
+          "path": "by_sector.Industrials.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"BLDR\", \"score\": 10.61, \"ret_3m\": -26.88}"
+        },
+        {
+          "path": "by_sector.Utilities.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"GEV\", \"score\": 84.56, \"ret_3m\": 10.84}"
+        },
+        {
+          "path": "by_sector.Utilities.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"PEG\", \"score\": 33.1, \"ret_3m\": -8.62}"
+        },
+        {
+          "path": "by_sector.Communication Services.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"GOOGL\", \"score\": 91.9, \"ret_3m\": 22.0}"
+        },
+        {
+          "path": "by_sector.Communication Services.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"NFLX\", \"score\": 19.47, \"ret_3m\": -10.62}"
+        },
+        {
+          "path": "by_sector.Consumer Cyclical.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"EBAY\", \"score\": 85.21, \"ret_3m\": 20.26}"
+        },
+        {
+          "path": "by_sector.Consumer Cyclical.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"IP\", \"score\": 11.97, \"ret_3m\": -23.15}"
+        },
+        {
+          "path": "by_sector.Healthcare.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"WST\", \"score\": 86.87, \"ret_3m\": 26.92}"
+        },
+        {
+          "path": "by_sector.Healthcare.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"COO\", \"score\": 7.29, \"ret_3m\": -26.84}"
+        },
+        {
+          "path": "by_sector.Consumer Defensive.top_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"ADM\", \"score\": 85.46, \"ret_3m\": 15.56}"
+        },
+        {
+          "path": "by_sector.Consumer Defensive.bottom_5",
+          "len": 5,
+          "first_item_keys": [
+            "ret_3m",
+            "score",
+            "ticker"
+          ],
+          "first_item_sample": "{\"ticker\": \"CLX\", \"score\": 6.74, \"ret_3m\": -29.21}"
+        }
+      ],
+      "best_ticker_list_path": "rankings.composite_top_50",
+      "best_ticker_list_len": 50,
+      "best_ticker_list_keys": [
+        "acceleration",
+        "composite_score",
+        "industry",
+        "last_close",
+        "max_drawdown_252d",
+        "mom_12_1",
+        "name",
+        "pct_above_252d_low",
+        "pct_below_252d_high",
+        "ret_12m",
+        "ret_1m",
+        "ret_3m",
+        "ret_6m",
+        "sector",
+        "ticker",
+        "vol_60d",
+        "vol_adj_mom_3m"
+      ],
+      "best_ticker_first_sample": "{\"ticker\": \"SNDK\", \"name\": \"Sandisk Corporation\", \"sector\": \"Technology\", \"industry\": \"Hardware, Equipment & Parts\", \"last_close\": 1694.98, \"ret_1m\": 59.27, \"ret_3m\": 166.77, \"ret_6m\": 668.7, \"ret_12m\": 4293.42, \"mom_12_1\": 2658.45, \"vol_60d\": 93.93, \"vol_adj_mom_3m\": 1.775, \"max_drawdown_252d\": -31"
+    }
+  },
+  "finished": "2026-05-30T21:05:55.261828+00:00"
+}
