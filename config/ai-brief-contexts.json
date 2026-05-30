@@ -229,6 +229,229 @@
         {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
       ],
       "prompt_intro": "You are analysing the AGGREGATE SYSTEMIC stress level — the cross-pillar synthesis (rates + vol + FX + credit + funding all combined). When MULTIPLE pillars are stressed simultaneously, that's the cascade-risk pattern (1998 LTCM, 2008 GFC week of Lehman, March 2020). Focus on: (1) how many pillars are stressed and how badly?, (2) is the system absorbing or amplifying shocks?, (3) is this early-warning, mid-crisis, or post-Fed-intervention healing?"
+    },
+
+    "bond-vol-decisive-call": {
+      "title": "Bond Vol (MOVE Composite) — Decisive Call",
+      "output_key": "bond-vol-decisive-call",
+      "primary_feed": "data/bond-vol.json",
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json",
+        "credit":      "data/credit-spreads.json",
+        "eurodollar":  "data/eurodollar-stress.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "credit": "regime",
+        "eurodollar": "severity"
+      },
+      "kb_keywords": [
+        "MOVE index", "bond volatility", "rates vol", "swaption vol",
+        "2008 rates vol", "2020 March rates vol", "2022 UK gilt crisis",
+        "2023 March SVB rates vol", "duration risk", "convexity hedging",
+        "MBS gamma", "Treasury basis trade"
+      ],
+      "episode_indicators_to_show": ["DGS10", "DGS2", "T10Y2Y", "VIXCLS", "DFII10"],
+      "system_addendum": "You are specifically a SENIOR RATES VOLATILITY TRADER. You think about MOVE-vs-VIX divergence (when rates vol leads equity vol, that's pre-credit-stress), MBS convexity hedging flows, swaption skew, the 1y1y vs 1y10y vol surface. You cite March 2020 (MOVE 163), Sep 2022 UK gilt (MOVE 158), March 2023 SVB (MOVE 198) explicitly.",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "Duration / Long Bonds",  "ticker": "TLT"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+      ],
+      "prompt_intro": "You are analysing the bond/rates volatility regime via the synthetic MOVE composite. Rates vol is often UPSTREAM of equity vol — when MOVE elevates while VIX stays calm, that's a divergence signal (MBS hedging stress, Treasury basis-trade unwind risk, dealer balance-sheet strain). Focus on: (1) is rates vol elevated, normal, or compressed?, (2) is MOVE leading VIX (early-stress) or lagging (post-stress)?, (3) which historical rates-vol episode rhymes — March 2020, Sep 2022 UK gilts, March 2023 SVB, or normal?"
+    },
+
+    "risk-radar-decisive-call": {
+      "title": "Risk Radar — Decisive Call",
+      "output_key": "risk-radar-decisive-call",
+      "primary_feed": "data/risk-radar.json",
+      "cross_feeds": {
+        "yield_curve":      "data/yield-curve.json",
+        "vix":              "data/vix-curve.json",
+        "dollar":           "data/dollar-radar.json",
+        "eurodollar":       "data/eurodollar-stress.json",
+        "systemic_stress":  "data/systemic-stress.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "dollar": "regime",
+        "eurodollar": "severity",
+        "systemic_stress": "regime"
+      },
+      "kb_keywords": [
+        "risk parity", "tail risk", "drawdown", "fat tails",
+        "Mandelbrot", "Taleb black swan", "Sharpe ratio inversion",
+        "regime change", "correlation breakdown", "factor crowding"
+      ],
+      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2", "DTWEXBGS", "DGS10"],
+      "system_addendum": "You are specifically a SENIOR MULTI-ASSET RISK STRATEGIST. You think in terms of tail risk, correlation breakdowns, factor crowding, drawdown asymmetry, and which periods showed sudden risk-regime shifts (Aug 2007 quant melt, Feb 2018 vol regime change, Sep 2019 repo stress, March 2020, March 2023 SVB).",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
+        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+      ],
+      "prompt_intro": "You are analysing the multi-asset risk landscape — what's flashing on the radar across rates, vol, FX, credit, equity factors. Focus on: (1) which indicators are flashing red right now and how persistent are they?, (2) are correlations behaving normally or breaking down (regime-change signal)?, (3) which historical risk-regime-shift episode rhymes (Aug 2007 quant melt, Feb 2018 vol regime, March 2020, March 2023 SVB)?"
+    },
+
+    "compass-decisive-call": {
+      "title": "Capital Compass (15-Asset Forward Returns) — Decisive Call",
+      "output_key": "compass-decisive-call",
+      "primary_feed": "data/forward-returns.json",
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json",
+        "dollar":      "data/dollar-radar.json",
+        "credit":      "data/credit-spreads.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "dollar": "regime",
+        "credit": "regime"
+      },
+      "kb_keywords": [
+        "asset allocation", "forward returns", "expected returns",
+        "GMO 7-year forecast", "Bridgewater all-weather",
+        "Ray Dalio holy grail", "60/40 portfolio", "risk parity",
+        "valuation mean reversion", "cycle-adjusted earnings"
+      ],
+      "episode_indicators_to_show": ["DGS10", "T10Y2Y", "VIXCLS", "BAMLH0A0HYM2", "DTWEXBGS"],
+      "system_addendum": "You are specifically a SENIOR CROSS-ASSET ALLOCATION STRATEGIST in the GMO / Bridgewater tradition. You think about 6-24 month forward returns, valuation mean-reversion, regime-aware allocation tilts, and what the asset-mix shape implies about the broader macro cycle.",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+      ],
+      "prompt_intro": "You are analysing the Capital Compass — the 15-asset forward-return model that scores each major asset class by expected risk-adjusted return over the next 6-18 months. Focus on: (1) which assets are showing the strongest forward-return signal and why?, (2) is the cross-asset shape consistent with a single macro story or contradictory?, (3) which historical allocation regime does this match (late-1990s tech-led, 2000s commodity supercycle, 2010s low-vol carry, 2022 hike-shock, etc.)?"
+    },
+
+    "defcon-decisive-call": {
+      "title": "DEFCON (Master Crisis Composite) — Decisive Call",
+      "output_key": "defcon-decisive-call",
+      "primary_feed": "data/crisis-composite.json",
+      "cross_feeds": {
+        "capitulation":     "data/capitulation.json",
+        "china_liquidity":  "data/china-liquidity.json",
+        "bank_stress":      "data/bank-stress.json",
+        "leading_markets":  "data/leading-markets.json",
+        "yield_curve":      "data/yield-curve.json",
+        "vix":              "data/vix-curve.json"
+      },
+      "cross_regime_fields": {
+        "capitulation": "regime",
+        "china_liquidity": "regime",
+        "bank_stress": "regime",
+        "leading_markets": "regime",
+        "yield_curve": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "crisis composite", "DEFCON", "early warning system",
+        "Aug 2007 quant melt", "2008 GFC progression", "March 2020 COVID",
+        "Sep-Oct 2022 forced selling", "March 2023 SVB",
+        "capitulation signals", "China liquidity", "bank stress"
+      ],
+      "episode_indicators_to_show": ["VIXCLS", "T10Y2Y", "BAMLH0A0HYM2", "DTWEXBGS", "DGS10"],
+      "system_addendum": "You are specifically the HEAD OF MACRO at a multi-strat fund running a master crisis-composite — the synthesis of capitulation signals, China liquidity, bank stress, leading-market breakdowns. You name the DEFCON level explicitly (DEFCON 5 = peace, DEFCON 1 = active crisis) and you justify the level with the underlying pillar reads.",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"},
+        {"asset": "Duration / Long Bonds",  "ticker": "TLT"}
+      ],
+      "prompt_intro": "You are analysing the master crisis composite — the DEFCON-style synthesis of capitulation, China liquidity, bank stress, leading-market signals, plus rates/vol cross-context. Focus on: (1) what's the current DEFCON level (5=peace, 4=watch, 3=elevated, 2=high alert, 1=active crisis) and which pillar is driving it?, (2) is the crisis progression early/mid/late stage?, (3) which historical crisis sequence rhymes (Aug 2007 → Mar 2008, Sep-Oct 2022, Mar 2023 SVB)?"
+    },
+
+    "retail-edges-decisive-call": {
+      "title": "Retail Edges (5-Tier Signal Synthesis) — Decisive Call",
+      "output_key": "retail-edges-decisive-call",
+      "primary_feed": "data/signal-board.json",
+      "cross_feeds": {
+        "vix":         "data/vix-curve.json",
+        "yield_curve": "data/yield-curve.json",
+        "dollar":      "data/dollar-radar.json",
+        "credit":      "data/credit-spreads.json"
+      },
+      "cross_regime_fields": {
+        "vix": "composite_regime",
+        "yield_curve": "regime",
+        "dollar": "regime",
+        "credit": "regime"
+      },
+      "kb_keywords": [
+        "retail flow", "options skew", "gamma exposure", "0DTE",
+        "MEME stocks", "Reddit WSB", "retail capitulation",
+        "earnings IV crush", "stealth accumulation", "squeeze setup",
+        "sentiment extreme", "Baker Wurgler sentiment"
+      ],
+      "episode_indicators_to_show": ["VIXCLS", "BAMLH0A0HYM2", "T10Y2Y", "DGS10"],
+      "system_addendum": "You are specifically a SENIOR FLOW + POSITIONING STRATEGIST. You think about retail flow, options skew, gamma exposure, dealer positioning, sentiment extremes (Baker-Wurgler, AAII bull-bear). You synthesize the 5-tier signal stack (sentiment / flow / positioning / vol / regime) into one positioning call.",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+      ],
+      "prompt_intro": "You are analysing the aggregate signal board across the 5 retail-edge tiers (sentiment extremes / flow / positioning / vol regime / cross-asset confirmation). The primary data has the live composite signals firing across the platform. Focus on: (1) which tier is producing the strongest signal right now and is it confirmed across tiers?, (2) is retail positioning at an extreme (contrarian setup) or aligned (trend confirmation)?, (3) which historical retail-positioning episode rhymes (Jan 2021 GME meme top, Nov 2021 crypto top, June 2022 capitulation, May 2023 AI mania, Dec 2024 rally exhaustion)?"
+    },
+
+    "auction-decisive-call": {
+      "title": "Treasury Auction Tape — Decisive Call",
+      "output_key": "auction-decisive-call",
+      "primary_feed": "data/auction-crisis.json",
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "dollar":      "data/dollar-radar.json",
+        "eurodollar":  "data/eurodollar-stress.json",
+        "credit":      "data/credit-spreads.json",
+        "vix":         "data/vix-curve.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "dollar": "regime",
+        "eurodollar": "severity",
+        "credit": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "Treasury auction", "bid-to-cover", "indirect bidders", "primary dealer",
+        "auction tail", "1979 Volcker", "2008 funding stress",
+        "2020 COVID auctions", "Hugh Hendry", "issuance",
+        "Reserve Bank Wednesday", "WALCL", "TGA"
+      ],
+      "episode_indicators_to_show": ["T10Y2Y", "DGS10", "DFII10", "VIXCLS", "BAMLH0A0HYM2"],
+      "system_addendum": "You are specifically a SENIOR RATES STRATEGIST analysing the Treasury auction tape. You cite BTC ratios, Indirect %, AAH (primary dealer take), tails in bps. You compare to specific historical auction episodes (2024-Q1 healthy, 2020-03 COVID auctions, 2008-09 GFC funding stress, 1979 Volcker shock).",
+      "assets_to_predict": [
+        {"asset": "US Equities (SPX/NDX)", "ticker": "SPX"},
+        {"asset": "Bitcoin (BTC)",          "ticker": "BTC"},
+        {"asset": "Ethereum (ETH)",         "ticker": "ETH"},
+        {"asset": "Crypto Total Market",    "ticker": "TOTAL"},
+        {"asset": "High-Yield Credit",      "ticker": "HYG"},
+        {"asset": "Gold",                   "ticker": "GLD"},
+        {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
+      ],
+      "prompt_intro": "You are analysing the US Treasury auction tape. Primary data has composite_score (0=calm, 100=crisis), regime, 6 crisis-pattern indicators (zero-rate floor, BTC extreme, indirect drought, AAH dependency, tail blowout, ratio inversion), recent auctions with their stats, and upcoming auctions. Focus on: (1) what's the auction tape signalling about institutional demand vs dealer absorption?, (2) is this consistent or divergent vs broader macro regime?, (3) what's the next critical auction and what would clean/dirty look like?"
     }
 
   }

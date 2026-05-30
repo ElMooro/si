@@ -59,6 +59,7 @@ footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);color:v
 .callout{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--cyan)}
 .callout strong{color:var(--cyan);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px}
 </style>
+<script src="/ai-brief-kit.js"></script>
 </head>
 <body>
 <div class="container">
@@ -191,7 +192,8 @@ fetch(DATA_URL).then(r=>r.json()).then(render).catch(e=>{
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','DGS10']);});</script>
 
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><div id="ai-decisive-call"></div><div id="jh-bl"></div><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">What This Means for Markets &amp; Risk Assets</h2><div id="jh-mtx"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">INTERPRETING…</div></div></div>
+<script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","bond-vol-decisive-call");</script>
 <script src="/interp-kit.js"></script>
 <script>
 (async function(){
