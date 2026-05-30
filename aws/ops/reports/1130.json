@@ -1,0 +1,97 @@
+{
+  "started": "2026-05-30T20:38:42.533431+00:00",
+  "registry_uploaded": {
+    "n_contexts": 13,
+    "contexts": [
+      "auction-decisive-call",
+      "bond-vol-decisive-call",
+      "bonds-decisive-call",
+      "compass-decisive-call",
+      "defcon-decisive-call",
+      "dollar-decisive-call",
+      "eurodollar-decisive-call",
+      "lce-decisive-call",
+      "retail-edges-decisive-call",
+      "risk-radar-decisive-call",
+      "systemic-stress-decisive-call",
+      "vix-curve-decisive-call",
+      "yield-curve-decisive-call"
+    ]
+  },
+  "new_context_present": true,
+  "invoke_status": 200,
+  "invoke_fn_err": null,
+  "invoke_body": {
+    "duration_s": 44.4,
+    "n_contexts": 1,
+    "n_ok": 1,
+    "results": [
+      {
+        "context_id": "bonds-decisive-call",
+        "title": "Bonds & Yield Curve (Duration Desk) \u2014 Decisive Call",
+        "output_key": "data/bonds-decisive-call.json",
+        "status": "OK",
+        "regime": "RISK_OFF",
+        "confidence": "MEDIUM",
+        "one_liner": "Duration cheap at 2.06% real yield, but global cycle peaking + tenor firing = sell rallies, not buy dips.",
+        "n_predictions": 7,
+        "n_trades": 5,
+        "n_tripwires": 5,
+        "duration_s": 44.26
+      }
+    ]
+  },
+  "log_tail": "START RequestId: 00400b1d-2117-42d4-924e-5a4bdebb9ce0 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['bonds-decisive-call']\n[ai-brief-router] bonds-decisive-call: OK 44.26s Duration cheap at 2.06% real yield, but global cycle peaking + tenor firing = sell rallies\n[ai-brief-router] done: 1/1 OK in 44.4s\nEND RequestId: 00400b1d-2117-42d4-924e-5a4bdebb9ce0\nREPORT RequestId: 00400b1d-2117-42d4-924e-5a4bdebb9ce0\tDuration: 44405.10 ms\tBilled Duration: 44968 ms\tMemory Size: 1024 MB\tMax Memory Used: 132 MB\tInit Duration: 562.72 ms\t\nXRAY TraceId: 1-6a1b4ad3-343d6cfe5a2dc623046b6dec\tSegmentId: d4f92c2563643ed1\tSampled: true\t\n",
+  "brief": {
+    "regime": "RISK_OFF",
+    "confidence": "MEDIUM",
+    "one_liner": "Duration cheap at 2.06% real yield, but global cycle peaking + tenor firing = sell rallies, not buy dips.",
+    "thesis": "The 10Y real yield sits at 2.06% (85.1th percentile vs history), suggesting duration is structurally cheap\u2014a signal that normally anchors a bull case. However, this is a DIVERGENCE trap. The Khalid Index scores 24 (CRISIS regime), with tenor signal firing at 48.0, global cycle peaking (CLI 109.3), and leading markets flashing TOP_WARNING (breadth 42.1%). Smart money is DISTRIBUTING (CFTC 31/100 positioning). The 2s10s curve at 0.46% (34.9th pctile, COVID-crash-like flatness) combined with 10Y breakeven at 2.39% (79.5th pctile, GFC-peak-like) suggests the market is pricing neither growth nor inflation relief\u2014a dangerous middle ground. Auctions remain CALM and HY spreads tight at 2.72% (8.8th pctile), masking credit stress. This rhymes with late 2007 (before the GFC unwind): real yields looked cheap, but the cycle was rolling over. Duration is a value trap until the tenor signal clears or leading breadth stabilizes above 50%.",
+    "n_predictions": 7,
+    "n_trades": 5,
+    "n_tripwires": 5,
+    "age_sec": 1.6,
+    "fresh": true,
+    "tlt_pred": {
+      "dir": "DOWNSIDE",
+      "range_low_pct": -8,
+      "range_high_pct": 2,
+      "horizon_wk": 12,
+      "prob": 62,
+      "analog": "2007 Q3-Q4 (pre-GFC unwind)",
+      "analog_outcome": "Real yields fell to 1.5%, curve flattened, but cycle peaked. TLT rallied 4% in 4 weeks, then fell 12% over next 8 weeks as equities rolled over.",
+      "upside_trigger": "10Y yield breaks 4.10% on risk-off; SPY falls >5%; breadth collapses <35%.",
+      "downside_pct": -12,
+      "reasoning": "Real yield 2.06% (85th pctile) is cheap, but tenor firing + cycle peaking = duration rally is tactical, not structural. Sell rallies."
+    },
+    "sample_trades": [
+      {
+        "setup": "Sell TLT rallies into 10Y yield 4.20%; duration too cheap to hold.",
+        "instrument": "TLT",
+        "level": "Short TLT at 92.50 (equiv. 10Y ~4.20%); cover at 94.50 or stop 91.50",
+        "thesis_link": "Real yield 2.06% is value trap; tenor firing + breadth collapse = duration rally fades.",
+        "risk_reward": "1:2.5"
+      },
+      {
+        "setup": "Buy IEF (belly) on dips to 99.50; carry + roll-down offset duration risk.",
+        "instrument": "IEF",
+        "level": "Long IEF at 99.50 (7-10yr sweet spot); target 101.00 over 8 weeks",
+        "thesis_link": "Belly curve offers 4.3% yield with lower DV01 than long-end. Barbell vs TLT.",
+        "risk_reward": "1:1.8"
+      }
+    ],
+    "sample_tripwires": [
+      {
+        "condition": "10Y yield breaks below 4.10% (intraday close)",
+        "severity": "MEDIUM",
+        "action": "Cover TLT short; reassess if tenor signal clears or breadth stabilizes >50%."
+      },
+      {
+        "condition": "HY OAS widens to 350bps (from 272bps)",
+        "severity": "HIGH",
+        "action": "Exit all credit longs; rotate to duration. Systemic stress signal."
+      }
+    ]
+  },
+  "finished": "2026-05-30T20:39:30.563221+00:00"
+}
