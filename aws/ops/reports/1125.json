@@ -1,0 +1,26 @@
+{
+  "started": "2026-05-30T19:39:18.567006+00:00",
+  "redeploy": "OK",
+  "invoke_status": 200,
+  "invoke_body": {
+    "err": "claude returned no parseable JSON",
+    "elapsed": 30.46
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 450a336c-6b47-486c-a661-8fa7c38afee1 Version: $LATEST\n[auction-interp] starting\n[auction-interp] prompt 6786 chars, kb_chunks=0, cross=4\n[jhcore.claude] err: The read operation timed out\nEND RequestId: 450a336c-6b47-486c-a661-8fa7c38afee1\nREPORT RequestId: 450a336c-6b47-486c-a661-8fa7c38afee1\tDuration: 30460.89 ms\tBilled Duration: 31017 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 555.90 ms\t\n",
+  "brief_summary": {
+    "version": "1.0",
+    "regime": "NEUTRAL",
+    "confidence": "MEDIUM",
+    "one_liner": "Auction tape screams indirect strength (64\u201379%) but macro regime is schizophrenic; hold duration, fade equities into weakness.",
+    "n_evidence": 5,
+    "n_analogs": 2,
+    "n_cross_asset": 6,
+    "n_trades": 4,
+    "n_tripwires": 5,
+    "n_predictions": 0,
+    "n_next_auctions": 1
+  },
+  "predictions": [],
+  "finished": "2026-05-30T19:39:54.722633+00:00"
+}
