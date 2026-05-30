@@ -852,6 +852,207 @@
         {"asset": "US Dollar (DXY)",        "ticker": "DXY"}
       ],
       "prompt_intro": "You are analysing the US Treasury auction tape. Primary data has composite_score (0=calm, 100=crisis), regime, 6 crisis-pattern indicators (zero-rate floor, BTC extreme, indirect drought, AAH dependency, tail blowout, ratio inversion), recent auctions with their stats, and upcoming auctions. Focus on: (1) what's the auction tape signalling about institutional demand vs dealer absorption?, (2) is this consistent or divergent vs broader macro regime?, (3) what's the next critical auction and what would clean/dirty look like?"
+    },
+
+    "baggers-names": {
+      "brief_type": "names",
+      "title": "🚀 100x Bagger Candidates — AI Briefs",
+      "output_key": "baggers-names",
+      "primary_feed": "data/bagger-engine.json",
+      "primary_tickers_field": "top",
+      "primary_score_field": "bagger_score",
+      "score_label": "Bagger Score",
+      "top_n": 15,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "liquidity":   "liquidity-data.json",
+        "vix":         "data/vix-curve.json",
+        "regime":      "data/regime-anomaly.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "100 bagger", "Christopher Mayer multibagger", "Peter Lynch tenbagger",
+        "Phil Fisher growth", "asymmetric payoff", "small cap compounder",
+        "coffee can investing", "Nick Sleep", "AMD turnaround",
+        "NVDA AI compute", "ENPH solar", "AEHR semiconductor cycle"
+      ],
+      "system_addendum": "You are specifically a high-conviction small-cap / multibagger analyst in the Christopher Mayer / Peter Lynch / Nick Sleep tradition. You hunt for 7-pillar quality (hiring velocity, insider behaviour, fundamentals quality, coffee-can stickiness, R&D intensity, ROIC trajectory, market expansion). You name SPECIFIC prior multibaggers as analogs (AMD 2016 = $2→$28; NVDA 2019-21 = $10→$84; ENPH 2020 = $3→$300; AEHR 2023 = $4→$50; SMCI 2023 = $80→$1100; PLTR 2023-24 = $7→$80).",
+      "prompt_intro": "You are analysing the TOP 100x BAGGER CANDIDATES from the bagger-engine universe of 1,200+ tickers. Each ticker is scored on 7 quality pillars. Pick winners by combining: pillar score × current macro tailwind × asymmetric payoff shape. Most names will have STRONG_FIT to risk-on regimes. POOR_FIT in risk-off (high duration growth gets killed when real yields spike)."
+    },
+
+    "eps-velocity-names": {
+      "brief_type": "names",
+      "title": "EPS Revision Velocity — AI Briefs",
+      "output_key": "eps-velocity-names",
+      "primary_feed": "data/eps-revision-velocity.json",
+      "primary_tickers_field": "top",
+      "primary_score_field": "velocity_score",
+      "score_label": "EPS Velocity Score",
+      "top_n": 12,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "credit":      "data/credit-spreads.json",
+        "vix":         "data/vix-curve.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "credit": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "earnings revision", "EPS upgrade cycle", "sell-side consensus",
+        "earnings momentum", "Joel Greenblatt magic formula",
+        "Druckenmiller earnings inflection", "estimate revision factor",
+        "Wall Street upgrades", "EPS guidance raise"
+      ],
+      "system_addendum": "You are specifically a SELL-SIDE earnings-revision analyst. You think in terms of consensus upgrades, magnitude of revisions, breadth of upgrades, and which prior earnings-revision inflections preceded major moves (NVDA Q1 2023, META Q4 2022, AMD 2017, AAPL Q1 2020). You note when sell-side is still UNDER-estimating vs when consensus has caught up.",
+      "prompt_intro": "You are analysing top names with the strongest current sell-side EPS-revision upgrades. Each ticker has velocity score, magnitude, breadth, consensus direction. Pick highest-conviction setups by combining: revision velocity × magnitude × cross-asset regime fit. Note: revisions cycles can run 6-18 months, so timing matters."
+    },
+
+    "insider-clusters-names": {
+      "brief_type": "names",
+      "title": "Insider Cluster Buys — AI Briefs",
+      "output_key": "insider-clusters-names",
+      "primary_feed": "data/insider-clusters.json",
+      "primary_tickers_field": "clusters",
+      "primary_score_field": "cluster_score",
+      "score_label": "Cluster Score",
+      "top_n": 12,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json",
+        "credit":      "data/credit-spreads.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "credit": "regime"
+      },
+      "kb_keywords": [
+        "insider buying", "CEO buys", "CFO buys", "Form 4",
+        "cluster buys", "Nejat Seyhun insider", "insider conviction",
+        "open market purchases", "10b5-1 plan", "insider information edge",
+        "insider cluster precedes upside"
+      ],
+      "system_addendum": "You are specifically an insider-flow analyst in the Nejat Seyhun tradition. You think: cluster buys > single buys; CEO+CFO together = highest conviction; size relative to insider net worth matters more than absolute dollars; sector-wide insider buying is the loudest macro tell (insider energy buying 2020 Q1, insider regional bank buying May 2023). You cite specific high-conviction insider cluster setups that worked (PSX 2020, NUE 2021, AEHR 2022).",
+      "prompt_intro": "You are analysing top tickers with the strongest current insider cluster buys. Each has number of insiders, dollar volume, % of float, days since last buy. Score by: cluster breadth × dollar size × insider seniority × historical analog hit-rate. CEO+CFO cluster is the rarest and most predictive."
+    },
+
+    "smart-money-names": {
+      "brief_type": "names",
+      "title": "Smart Money 13F Clusters — AI Briefs",
+      "output_key": "smart-money-names",
+      "primary_feed": "data/smart-money-clusters.json",
+      "primary_tickers_field": "clusters",
+      "primary_score_field": "cluster_score",
+      "score_label": "Smart Money Score",
+      "top_n": 12,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json",
+        "regime":      "data/regime-anomaly.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "13F filings", "smart money", "hedge fund holdings",
+        "Buffett 13F", "Druckenmiller 13F", "Berkshire holdings",
+        "Soros 13F", "Tepper Appaloosa", "Burry Scion",
+        "institutional accumulation", "13F cluster buys"
+      ],
+      "system_addendum": "You are specifically a 13F-tracking analyst. You watch the elite cluster — Buffett, Druckenmiller, Tepper, Burry, Soros, Klarman, Ackman, Greenblatt — and you note when 3+ of them concentrate on the same ticker simultaneously (rare, high-signal). You distinguish new positions (highest signal) from add-ons (medium) from trims (negative). You note the 45-day reporting lag.",
+      "prompt_intro": "You are analysing top tickers with strongest current 13F cluster buys from elite managers. Each has number of managers, dollar size, % of fund allocation, new-vs-add pattern. Weight by: manager track record × concentration % × convergence × new-position indicator."
+    },
+
+    "activist-13d-names": {
+      "brief_type": "names",
+      "title": "Activist 13D Filings — AI Briefs",
+      "output_key": "activist-13d-names",
+      "primary_feed": "data/activist-13d.json",
+      "primary_tickers_field": "filings",
+      "primary_score_field": "score",
+      "score_label": "Activist Score",
+      "top_n": 10,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "13D filing", "activist investor", "Carl Icahn",
+        "Bill Ackman Pershing", "Elliott Management", "Starboard Value",
+        "Nelson Peltz Trian", "proxy fight", "board representation",
+        "value unlock", "spin-off", "buyback authorization"
+      ],
+      "system_addendum": "You are specifically an event-driven / activist-tracking analyst. You watch Icahn, Ackman, Elliott, Starboard, Trian, ValueAct, Engaged Capital. You think in terms of value-unlock catalysts (spin-offs, buybacks, board changes, asset sales). You cite specific activist wins (Icahn-AAPL 2013, Elliott-AT&T 2019, Peltz-DIS 2023).",
+      "prompt_intro": "You are analysing top tickers with recent 13D activist filings. Each has activist name, target action (board seat / spin-off / buyback / strategic review), ownership %, days since filing. Higher conviction when: top-tier activist × specific catalyst named × material % stake × short time-since-filing."
+    },
+
+    "deep-value-names": {
+      "brief_type": "names",
+      "title": "Deep Value Setups — AI Briefs",
+      "output_key": "deep-value-names",
+      "primary_feed": "data/deep-value.json",
+      "primary_tickers_field": "top",
+      "primary_score_field": "value_score",
+      "score_label": "Deep Value Score",
+      "top_n": 12,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "credit":      "data/credit-spreads.json",
+        "vix":         "data/vix-curve.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "credit": "regime",
+        "vix": "composite_regime"
+      },
+      "kb_keywords": [
+        "deep value", "Ben Graham", "net-net Graham", "Tobin's Q",
+        "price to book", "Greenblatt magic formula", "value trap",
+        "cigar butt", "Walter Schloss", "Seth Klarman margin of safety",
+        "GMO deep value", "1999 dot-com value crash", "2009 value bottom"
+      ],
+      "system_addendum": "You are specifically a Graham-Klarman deep-value analyst. You think P/B, P/TBV, EV/EBITDA, FCF yield, net-cash positions, asset-backed margin of safety. You distinguish DEEP VALUE (margin of safety, catalyst likely) from VALUE TRAPS (cheap but melting). You cite specific deep-value cycle bottoms (1974, 1982, 2002, 2009, March 2020, October 2022) and specific value-trap warnings (TSM 2015, JCP 2017, GE 2018).",
+      "prompt_intro": "You are analysing top deep-value setups. Each ticker has valuation multiples, balance-sheet quality, FCF/dividend yield, and a value score. Distinguish actionable deep-value (margin of safety + catalyst) from value traps (cheap but rolling). Weight by macro fit — deep value works best in late-recession / early-expansion."
+    },
+
+    "momentum-names": {
+      "brief_type": "names",
+      "title": "Momentum Scanner — AI Briefs",
+      "output_key": "momentum-names",
+      "primary_feed": "data/momentum-scanner.json",
+      "primary_tickers_field": "top",
+      "primary_score_field": "momentum_score",
+      "score_label": "Momentum Score",
+      "top_n": 15,
+      "cross_feeds": {
+        "yield_curve": "data/yield-curve.json",
+        "vix":         "data/vix-curve.json",
+        "credit":      "data/credit-spreads.json"
+      },
+      "cross_regime_fields": {
+        "yield_curve": "regime",
+        "vix": "composite_regime",
+        "credit": "regime"
+      },
+      "kb_keywords": [
+        "momentum factor", "12-1 momentum", "AQR momentum",
+        "Cliff Asness", "trend persistence", "momentum crash",
+        "200 day moving average", "relative strength",
+        "Donchian breakout", "NVDA 2023 momentum",
+        "TSLA 2020 momentum", "SMCI 2023 momentum"
+      ],
+      "system_addendum": "You are specifically a momentum / trend-following analyst (AQR / Asness / William O'Neil tradition). You think 12-1 momentum + 200-DMA + relative strength + breakout patterns. You cite specific high-momentum periods that worked (NVDA 2023, TSLA 2020, SMCI 2023, AAPL 2019) and momentum crashes (Q1 2009, Q1 2016, Q4 2018, Q1 2020).",
+      "prompt_intro": "You are analysing top momentum setups. Each ticker has momentum score, slope, persistence, relative strength, breakout/breakdown signal. Score weighted by: slope strength × persistence × relative strength × macro fit. Momentum crashes after vol regime shifts — flag risk if VIX is regime-changing."
     }
 
   }

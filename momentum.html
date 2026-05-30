@@ -96,6 +96,7 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
 .sector-bar{flex:1;height:8px;background:var(--bg3);border-radius:4px;margin:0 12px;overflow:hidden}
 .sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green))}
 </style>
+<script src="/ai-name-brief-kit.js"></script>
 </head>
 <body>
 
@@ -135,6 +136,8 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
 <main>
   <header class="hero">
     <h1>Momentum</h1>
+<div id="ai-names-mount" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
+<script>if(window.JHAINameBrief)JHAINameBrief.mount("ai-names-mount","momentum-names");</script>
     <p class="lede">Top-decile S&amp;P 500 stocks ranked by composite momentum across 1m/3m/6m/12m windows. Five views: composite, academic 12-1, accelerating, vol-adjusted, near 52-week high.</p>
     <div class="meta">
       <span><b>Source</b> data/momentum-scanner.json · 503 stocks scanned</span>

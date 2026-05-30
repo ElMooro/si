@@ -22,6 +22,7 @@
 .foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}.foot-section{display:flex;flex-direction:column;gap:4px}.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
 .fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
 </style>
+<script src="/ai-name-brief-kit.js"></script>
 </head>
 <body>
 <nav class="topnav">
@@ -44,6 +45,8 @@
   <section class="hero fade-in">
     <span class="hero-eyebrow">Accelerating Consensus Estimates</span>
     <h1 class="hero-title">When the Street's <em>EPS estimates are accelerating</em> upward.</h1>
+<div id="ai-names-mount" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
+<script>if(window.JHAINameBrief)JHAINameBrief.mount("ai-names-mount","eps-velocity-names");</script>
     <p class="hero-blurb">The MU/SNDK pattern in code form. When forward-year EPS estimates rise sharply versus the prior year and revenue growth confirms it, the stock historically outperforms by 12-18% over 6 months (Womack 1996; Givoly-Lakonishok). The system pulls multi-year analyst estimates from FMP and computes the second derivative — is the rate-of-change accelerating?</p>
     <div class="kpi-strip">
       <div class="kpi"><span class="kpi-label">Universe</span><span class="kpi-val" id="kpi-universe">—</span><span class="kpi-sub">stocks scanned</span></div>

@@ -268,10 +268,224 @@ Write the institutional Decisive Call brief in this exact JSON shape:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Per-context worker
+# Per-NAME prompt builder — for top-N ticker briefs (baggers, screeners, etc)
+# ─────────────────────────────────────────────────────────────────────
+BASE_SYSTEM_NAMES = (
+    "You are a senior equity / cross-asset analyst writing brief, decisive per-name "
+    "investment briefs for the firm's portfolio manager. Each brief is 4-6 sentences "
+    "max. You think in terms of catalyst + risk + asymmetric payoff. You ALWAYS "
+    "anchor every thesis to a specific named historical analog (same sector or pattern). "
+    "You cite specific numbers from the input data. You quantify the asymmetric payoff "
+    "shape (e.g. '5-10x over 24-36 months at 15% probability'). You do NOT invent prices "
+    "or fundamentals — only use what's in the input data and reason from current macro "
+    "regime. If the macro regime is hostile to the setup type (e.g. risk-off vs growth "
+    "names), say so via regime_fit=POOR_FIT."
+)
+
+
+def build_names_prompt(ctx_id, cfg, primary_data, cross_data, episode_ref, kb_chunks):
+    """Per-name brief prompt. Extracts top N tickers from primary feed."""
+    # Resolve top-N. Default is top 15, configurable per context.
+    top_n = cfg.get("top_n", 15)
+    tickers_field = cfg.get("primary_tickers_field", "names")
+    score_field = cfg.get("primary_score_field", "score")
+
+    # Try several common shapes — list of dicts, or dict with "names"/"top"/"results"
+    tickers = []
+    if isinstance(primary_data, dict):
+        for k in (tickers_field, "names", "top", "results", "tickers", "candidates", "items"):
+            v = primary_data.get(k)
+            if isinstance(v, list) and v:
+                tickers = v
+                break
+    elif isinstance(primary_data, list):
+        tickers = primary_data
+
+    # Take top N by score field if sortable
+    if tickers and isinstance(tickers[0], dict):
+        try:
+            tickers = sorted(tickers,
+                              key=lambda t: -(float(t.get(score_field) or t.get("score") or 0)),
+                              reverse=False)
+        except Exception:
+            pass
+    tickers = tickers[:top_n]
+
+    # Compact each ticker's data — keep what fits
+    compact = []
+    for t in tickers:
+        if isinstance(t, str):
+            compact.append({"ticker": t})
+            continue
+        # Truncate each ticker record to ~600 chars
+        s = json.dumps(t, default=str)
+        if len(s) > 600:
+            s = s[:600] + "...}"
+            try:
+                t_compact = json.loads(s)
+            except Exception:
+                t_compact = t
+        else:
+            t_compact = t
+        compact.append(t_compact)
+
+    # Cross regime summary
+    cross_lines = []
+    for cid, d in (cross_data or {}).items():
+        if not d:
+            continue
+        field = (cfg.get("cross_regime_fields") or {}).get(cid)
+        regime_val = d.get(field) if field else (d.get("regime") or d.get("severity") or d.get("composite_regime"))
+        if regime_val:
+            cross_lines.append(f"  - {cid}: {regime_val}")
+    cross_block = "\n".join(cross_lines) or "  (no cross-context regimes loaded)"
+
+    kb_block = ""
+    if kb_chunks:
+        kb_block = "\n\nRELEVANT FRAMEWORKS:\n" + "\n\n".join(
+            f"### {c['framework']}\n{c['excerpt'][:700]}" for c in kb_chunks
+        )
+
+    # Universe size estimate
+    n_universe = (primary_data.get("n_total") if isinstance(primary_data, dict) else None) \
+                  or (primary_data.get("universe_size") if isinstance(primary_data, dict) else None) \
+                  or (len(primary_data.get(tickers_field, []) or []) if isinstance(primary_data, dict) else None) \
+                  or len(tickers)
+
+    score_label = cfg.get("score_label", "Score")
+
+    prompt = f"""# {cfg["title"]} — PER-NAME BRIEFS
+
+## CONTEXT
+{cfg["prompt_intro"]}
+
+## CURRENT MACRO REGIME (cross-context)
+{cross_block}
+{kb_block}
+
+## TOP {len(compact)} CANDIDATES FROM THE UNIVERSE (sorted by {score_label})
+{json.dumps(compact, indent=2, default=str)[:5500]}
+
+## TASK
+
+For each of the {len(compact)} tickers above, generate a brief in this JSON shape.
+You MUST cover ALL {len(compact)} tickers in the same order they appear above.
+
+Return EXACTLY this JSON shape:
+{{
+  "regime_note": "<1-line overall macro-context note for this name-universe, ≤140 chars>",
+  "names": [
+    {{
+      "ticker": "<as in input>",
+      "rank": <1-{len(compact)}, position in input>,
+      "primary_score": <the score value from input, or null>,
+      "regime_fit": "<STRONG_FIT | NEUTRAL | POOR_FIT — is current macro a tailwind, neutral, or headwind for this name's setup type>",
+      "one_liner": "<single decisive sentence ≤120 chars naming the specific edge or risk>",
+      "thesis": "<2-3 sentences citing specific numbers from the input data. Explain WHY this name. NO invented prices.>",
+      "catalyst": "<specific upcoming catalyst — earnings, sector rotation, regime confirmation, etc., ≤25 words>",
+      "primary_risk": "<specific failure mode — sector crowding, balance-sheet risk, macro reversal, etc., ≤25 words>",
+      "historical_analog": {{
+        "ticker": "<a real comparable ticker that exhibited the same setup pattern>",
+        "period": "<specific period e.g. 2016-2018>",
+        "what_happened": "<concrete % move and duration, ≤30 words>"
+      }},
+      "confidence": "<HIGH | MEDIUM | LOW>",
+      "asymmetric_estimate": "<e.g. '5-10x over 24-36 months at 15% probability'>"
+    }}
+    // ... {len(compact)} items total, one per input ticker
+  ]
+}}
+
+## RULES
+- Cite specific numbers from the input ticker data. Don't invent fundamentals.
+- Historical analog must be a REAL ticker that traded similarly (e.g. AMD 2016, NVDA 2019,
+  ENPH 2020, PLUG 2020-21, AEHR 2023, SMCI 2023). Cite the % move.
+- regime_fit honesty: if the macro is risk-off and the name is growth, regime_fit=POOR_FIT.
+- confidence=HIGH only when the score is extreme AND macro is aligned.
+- Stay under ~150 words per name. Brief is the point."""
+
+    return prompt
+
+
+def generate_names_brief(ctx_id, cfg, episode_ref):
+    """Per-name brief worker — different schema from per-regime."""
+    t0 = time.time()
+    result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key"),
+              "brief_type": "names"}
+    try:
+        primary = s3io.get_json(cfg["primary_feed"], default={})
+        if not primary:
+            result["status"] = "ERR_NO_PRIMARY"
+            result["err"] = f"{cfg['primary_feed']} empty"
+            return result
+
+        cross_data = {}
+        for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
+            d = s3io.get_json(feed_key, default={})
+            if d:
+                cross_data[cid] = d
+
+        kb_chunks = kb.lookup(cfg.get("kb_keywords") or [], max_chunks=2)
+
+        system = BASE_SYSTEM_NAMES
+        if cfg.get("system_addendum"):
+            system = system + "\n\n" + cfg["system_addendum"]
+
+        prompt = build_names_prompt(ctx_id, cfg, primary, cross_data, episode_ref, kb_chunks)
+        prompt_len = len(prompt)
+
+        brief, err = claude_json(prompt, system=system,
+                                  max_tokens=cfg.get("max_tokens", 8000),
+                                  temperature=cfg.get("temperature", 0.3),
+                                  timeout=cfg.get("timeout", DEFAULT_TIMEOUT))
+        if err or not brief:
+            result["status"] = "ERR_CLAUDE"
+            result["err"] = err or "no parseable JSON"
+            result["prompt_len"] = prompt_len
+            return result
+
+        brief["version"] = "1.0"
+        brief["brief_type"] = "names"
+        brief["generated_at"] = datetime.now(timezone.utc).isoformat()
+        brief["model"] = "claude-haiku-4-5-20251001"
+        brief["context"] = ctx_id
+        brief["title"] = cfg.get("title")
+        brief["input_state"] = {
+            "primary_feed": cfg["primary_feed"],
+            "cross_feeds_loaded": list(cross_data.keys()),
+            "top_n": cfg.get("top_n", 15),
+            "prompt_len_chars": prompt_len,
+        }
+        output_key = f"data/{cfg['output_key']}.json"
+        s3io.put_json(output_key, brief, cache_control="public, max-age=900")
+
+        result.update({
+            "status": "OK",
+            "output_key": output_key,
+            "n_names": len(brief.get("names") or []),
+            "regime_note": brief.get("regime_note"),
+            "duration_s": round(time.time() - t0, 2),
+        })
+    except Exception as e:
+        result["status"] = "ERR_EXC"
+        result["err"] = str(e)[:300]
+        result["traceback"] = traceback.format_exc()[-800:]
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
 def generate_one_brief(ctx_id, cfg, episode_ref):
-    """Generate the brief for a single context. Returns dict with status."""
+    """Generate the brief for a single context. Dispatches by brief_type."""
+    # Per-name briefs use a totally different schema + prompt
+    if cfg.get("brief_type") == "names":
+        return generate_names_brief(ctx_id, cfg, episode_ref)
+    # Default: regime brief (the original Tier-1/2/3 flow)
+    return _generate_regime_brief(ctx_id, cfg, episode_ref)
+
+
+def _generate_regime_brief(ctx_id, cfg, episode_ref):
     t0 = time.time()
     result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key")}
     try:
