@@ -1,0 +1,42 @@
+{
+  "started": "2026-05-30T23:44:12.286798+00:00",
+  "redeploy": "OK",
+  "digest_invoke": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 0.91
+  },
+  "digest_log": "START RequestId: c362de49-fd29-4789-90a6-b43a1bbeae2f Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['alerts-digest']\n[ai-brief-router] alerts-digest: OK 0.76s \n[ai-brief-router] done: 1/1 OK in 0.91s\nEND RequestId: c362de49-fd29-4789-90a6-b43a1bbeae2f\nREPORT RequestId: c362de49-fd29-4789-90a6-b43a1bbeae2f\tDuration: 913.43 ms\tBilled Duration: 1509 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 594.60 ms\t\nXRAY TraceId: 1-6a1b7653-5e9875b867adb3c51c839aa6\tSegmentId: e05f4b86e4384bf7\tSampled: true\t\n",
+  "index_file": {
+    "version": "1.0",
+    "updated_at": "2026-05-30T23:44:21.315088+00:00",
+    "n_entries": 1,
+    "earliest_date": "2026-05-30",
+    "latest_date": "2026-05-30",
+    "activity_breakdown": {
+      "extreme": 0,
+      "active": 0,
+      "quiet": 1
+    },
+    "first_entry": {
+      "date": "2026-05-30",
+      "key": "data/_alerts/digest-2026-05-30.json",
+      "generated_at": "2026-05-30T23:44:21.209933+00:00",
+      "telegram_ok": true,
+      "equity_score": 28,
+      "equity_regime": "NORMAL",
+      "macro_score": 42,
+      "macro_regime": "NORMAL",
+      "n_equity_alerts_today": 0,
+      "n_macro_alerts_today": 0,
+      "activity_level": "QUIET",
+      "message_chars": 785
+    }
+  },
+  "latest_audit": {
+    "date": "2026-05-30",
+    "telegram_ok": true,
+    "message_chars": 785
+  },
+  "finished": "2026-05-30T23:44:23.712015+00:00"
+}
