@@ -1,0 +1,55 @@
+{
+  "started": "2026-05-30T19:22:35.778032+00:00",
+  "env_pull": "OK (key 108 chars)",
+  "deploy": "CREATED",
+  "manifest": "ADDED to 4hourly (now 15 jobs)",
+  "invoke_status": 200,
+  "invoke_body": {
+    "regime": "NEUTRAL",
+    "confidence": "MEDIUM",
+    "one_liner": "Auction tape screams indirect strength (64\u201379%) but macro regime is schizophrenic; hold duration, fade equities into weakness.",
+    "n_evidence": 5,
+    "n_analogs": 2,
+    "n_cross_asset": 6,
+    "n_trades": 4,
+    "n_tripwires": 5,
+    "duration_s": 23.15
+  },
+  "invoke_fn_err": null,
+  "log_tail": "START RequestId: 190377d1-fe42-4320-b5af-8a015c951d2c Version: $LATEST\n[auction-interp] starting\n[auction-interp] prompt 4716 chars, kb_chunks=0, cross=4\n[auction-interp] OK \u2014 regime=NEUTRAL confidence=MEDIUM trades=4 tripwires=5 23.15s\nEND RequestId: 190377d1-fe42-4320-b5af-8a015c951d2c\nREPORT RequestId: 190377d1-fe42-4320-b5af-8a015c951d2c\tDuration: 23151.44 ms\tBilled Duration: 23801 ms\tMemory Size: 1024 MB\tMax Memory Used: 96 MB\tInit Duration: 649.50 ms\t\n",
+  "brief": {
+    "regime": "NEUTRAL",
+    "confidence": "MEDIUM",
+    "one_liner": "Auction tape screams indirect strength (64\u201379%) but macro regime is schizophrenic; hold duration, fade equities into weakness.",
+    "n_evidence": 5,
+    "n_analogs": 2,
+    "n_cross_asset": 6,
+    "n_trades": 4,
+    "n_tripwires": 5,
+    "n_next_auctions": 1,
+    "input_state": {
+      "auction_composite_score": 9.3,
+      "auction_regime": "CALM",
+      "cross_regimes": {
+        "yield_curve": "UNKNOWN",
+        "dollar": "LEAN DUMP",
+        "eurodollar": "CALM",
+        "vix": "STEEP_CONTANGO_GRIND"
+      },
+      "kb_frameworks_used": []
+    },
+    "sample_trade": {
+      "setup": "Long duration into curve inversion; auction tape confirms institutional bid.",
+      "instrument": "TLT calls",
+      "level": "Strike 92.50, expiry Jul 18, 2026",
+      "thesis_link": "Indirect % >66% + curve at 34.9th pctile = 50\u2013100 bps 10Y compression likely.",
+      "risk_reward": "1:2.5"
+    },
+    "sample_tripwire": {
+      "condition": "Composite score >25 for 2 consecutive readings",
+      "severity": "MEDIUM",
+      "action": "Trim duration longs by 50%; reduce TLT call size by half."
+    }
+  },
+  "finished": "2026-05-30T19:23:07.828091+00:00"
+}
