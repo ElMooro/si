@@ -1,0 +1,121 @@
+{
+  "started": "2026-05-30T21:27:21.615961+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 32
+  },
+  "synthesis_invoke": {
+    "fn_err": null,
+    "body": {
+      "duration_s": 32.14,
+      "n_contexts": 1,
+      "n_ok": 1,
+      "results": [
+        {
+          "context_id": "desk-consensus",
+          "title": "JustHodl Master Synthesis \u2014 Today's Desk Consensus",
+          "output_key": "data/desk-consensus.json",
+          "brief_type": "synthesis",
+          "status": "OK",
+          "regime": "RISK_ON",
+          "confidence": "MEDIUM",
+          "n_dissent": 3,
+          "n_asymmetric": 6,
+          "n_convergent_names": 2,
+          "duration_s": 32.0
+        }
+      ]
+    }
+  },
+  "synthesis_log_tail": "START RequestId: 6ec61b5c-4f5d-4db5-841e-4b6ea7a2528a Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['desk-consensus']\n[ai-brief-router] desk-consensus: OK 32.0s \n[ai-brief-router] done: 1/1 OK in 32.14s\nEND RequestId: 6ec61b5c-4f5d-4db5-841e-4b6ea7a2528a\nREPORT RequestId: 6ec61b5c-4f5d-4db5-841e-4b6ea7a2528a\tDuration: 32140.54 ms\tBilled Duration: 32740 ms\tMemory Size: 1024 MB\tMax Memory Used: 98 MB\tInit Duration: 598.61 ms\t\nXRAY TraceId: 1-6a1b563f-5cb1273f593a8b5d7b4dd3d8\tSegmentId: 51b4bdf274b7e27c\tSampled: true\t\n",
+  "synthesis_brief": {
+    "regime": "RISK_ON",
+    "confidence": "MEDIUM",
+    "one_liner": "Expansion intact but late-cycle compression brewing; curve inversion + real yields at crisis extremes signal regime fragility.",
+    "n_supporting": 14,
+    "n_dissent": 3,
+    "n_asymmetric": 6,
+    "n_convergent_names": 2,
+    "sample_asymmetric": [
+      {
+        "asset": "SPX",
+        "n_bullish": 6,
+        "n_bearish": 8,
+        "n_sideways": 9,
+        "consensus_direction": "SPLIT",
+        "best_horizon_weeks": 8,
+        "loudest_bull": "trend-engine: 71% of universe trending, QQQ conviction 88.7% leads broad equity rally; 8-16% upside over 8 weeks.",
+        "loudest_bear": "bond-vol: curve inversion + real yields at GFC-bottom extremes signal latent stress; -8% to -18% downside over 12 weeks.",
+        "trade_implication": "SPX is regime battleground. Fade trend-engine's bullish call on any VIX spike >20 (trend-engine's own tripwire). Long SPX only if HY OAS stays <300bps and 2s10s stays >0bps."
+      },
+      {
+        "asset": "HYG",
+        "n_bullish": 4,
+        "n_bearish": 10,
+        "n_sideways": 3,
+        "consensus_direction": "STRONG_DOWNSIDE",
+        "best_horizon_weeks": 8,
+        "loudest_bull": "yield-curve: term-premium compression not recession; 2-7% upside over 8 weeks at 68% confidence.",
+        "loudest_bear": "divergence: equity-credit divergence at extremes; HY spreads signal complacency while curve inversion warns of lag; -12% to 2% downside over 8 weeks at 72% confidence.",
+        "trade_implication": "SHORT HYG is the consensus trade. 10 desks call downside. Tripwire: HY OAS >320bps triggers cascade. Position size: 3-4% of portfolio given 72% conviction from divergence desk."
+      }
+    ],
+    "today_action": {
+      "primary_trade": "SHORT HYG (via HYG puts, 8-week, 5% OTM) + LONG GLD (via GLD calls, 12-week, 3% OTM). HYG downside consensus from 10 desks (divergence, bond-vol, defcon, retail-edges, auction, compass, lce, risk-radar, macro-data, consumer-pulse). GLD upside from 11 desks. Ratio 2:1 (HYG short : GLD long). Position size: 4% of portfolio given MEDIUM consensus confidence.",
+      "primary_hedge": "LONG TLT (via TLT calls, 8-week, 2% OTM) + SHORT DXY (via UUP puts, 12-week, 2% OTM). TLT bullish from 6 desks (systemic-stress, defcon, auction, crisis, divergence, macro-data). DXY bearish from 10 desks. Hedge ratio 1:1. Position size: 3% of portfolio.",
+      "position_sizing_note": "Total portfolio allocation: 7% to primary trade (HYG short + GLD long), 3% to hedge (TLT long + DXY short). Maintain 10% cash for tripwire response (HY OAS >350bps). Avoid outright SPX longs until curve inversion resolves or HY OAS stabilizes <300bps. Reduce NVDA concentration per fundamentals desk; rotate into PEP (smart-money initiation at 16% discount) and V (three-legend cluster initiation)."
+    },
+    "loudest_tripwire": {
+      "severity": "HIGH",
+      "from_desk": "lce",
+      "condition": "HY OAS widens >350 bps from current 272 bps (78 bps move) in any single week",
+      "action": "IMMEDIATELY: Cover SHORT HYG, reduce SPX longs to 50% of target, LONG TLT 5% of portfolio, raise cash to 10%. This triggers regime flip to RISK_OFF_AGGRESSIVE. Monitor for cascade into equities (SPX -8% to -15% follow-through)."
+    },
+    "n_regime_briefs_loaded": 23,
+    "n_name_briefs_loaded": 6
+  },
+  "portfolio_invoke": {
+    "fn_err": null,
+    "body": {
+      "duration_s": 12.03,
+      "n_contexts": 1,
+      "n_ok": 1,
+      "results": [
+        {
+          "context_id": "portfolio-manager-brief",
+          "title": "Portfolio Manager \u2014 Decisive Call (Personalized)",
+          "output_key": "data/portfolio-manager-brief.json",
+          "brief_type": "portfolio",
+          "status": "OK",
+          "regime_fit": "NEUTRAL",
+          "headline": "Portfolio empty \u2014 immediate regime alignment impossible; build defensively into late-cycle compression.",
+          "n_flags": 1,
+          "duration_s": 11.91
+        }
+      ]
+    }
+  },
+  "portfolio_log_tail": "START RequestId: 41132a26-70f8-4e40-98e0-543e4d179b41 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['portfolio-manager-brief']\n[ai-brief-router] portfolio-manager-brief: OK 11.91s \n[ai-brief-router] done: 1/1 OK in 12.03s\nEND RequestId: 41132a26-70f8-4e40-98e0-543e4d179b41\nREPORT RequestId: 41132a26-70f8-4e40-98e0-543e4d179b41\tDuration: 12029.23 ms\tBilled Duration: 12624 ms\tMemory Size: 1024 MB\tMax Memory Used: 97 MB\tInit Duration: 593.92 ms\t\nXRAY TraceId: 1-6a1b5663-0b8d9a564eeb9ca545995abf\tSegmentId: 8f65f440302f605c\tSampled: true\t\n",
+  "portfolio_brief": {
+    "regime_fit": "NEUTRAL",
+    "headline": "Portfolio empty \u2014 immediate regime alignment impossible; build defensively into late-cycle compression.",
+    "thesis": "Your book is currently a blank slate, which is both a liability and an opportunity. The desk consensus flags late-cycle compression risk (curve inversion, real yields at crisis extremes) despite medium-confidence RISK_ON positioning. HY OAS at 272 bps is the critical tripwire \u2014 a 78 bps widening in ",
+    "biggest_strength": "N/A \u2014 no positions to evaluate.",
+    "biggest_concern": "Cash drag in a RISK_ON regime with VIX in steep contango grind. Every day uninvested costs you carry in a market still biased higher, but you're exposed to whipsaw if HY breaks.",
+    "n_concentration_flags": 1,
+    "n_out_of_regime": 0,
+    "this_weeks_action": {
+      "primary_trade": "Buy 40% of intended equity allocation via SPY + 20% via QQQ; simultaneously buy 3-month VIX call spreads (25/30 strike) as tail hedge against HY OAS break. Size: 2\u20133% of portfolio notional on VIX calls.",
+      "rationale": "Captures RISK_ON momentum while the desk still has medium confidence; VIX contango grind makes calls cheap. HY OAS at 272 bps is one bad data point (earnings miss, Fed hawkishness) away from 350 bps \u2014 your hedge pays 10:1 if it breaks.",
+      "if_can_only_do_one_thing": "Buy SPY 60% of intended equity weight today. Defer HY and hedges until you see HY OAS action or Fed commentary this week."
+    },
+    "input_state": {
+      "risk_loaded": true,
+      "holdings_loaded": false,
+      "history_loaded": false,
+      "n_cross": 5,
+      "prompt_len_chars": 2937
+    }
+  },
+  "finished": "2026-05-30T21:28:18.928260+00:00"
+}
