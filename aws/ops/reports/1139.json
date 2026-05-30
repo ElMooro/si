@@ -1,0 +1,133 @@
+{
+  "started": "2026-05-30T22:25:38.765642+00:00",
+  "redeploy": "OK",
+  "registry": {
+    "n_contexts": 33,
+    "frontrun_n_flow_sources": 39
+  },
+  "invoke_attempt_1": {
+    "fn_err": null,
+    "n_ok": 1,
+    "duration_s": 31.35
+  },
+  "invoke_log_tail": "START RequestId: 21589e84-6f63-456d-94ae-0152a982e528 Version: $LATEST\n[ai-brief-router] running 1 contexts in parallel: ['frontrun-sniffer']\n[ai-brief-router] frontrun-sniffer: OK 31.19s \n[ai-brief-router] done: 1/1 OK in 31.35s\nEND RequestId: 21589e84-6f63-456d-94ae-0152a982e528\nREPORT RequestId: 21589e84-6f63-456d-94ae-0152a982e528\tDuration: 31351.76 ms\tBilled Duration: 31911 ms\tMemory Size: 1024 MB\tMax Memory Used: 161 MB\tInit Duration: 558.29 ms\t\nXRAY TraceId: 1-6a1b63e8-0a8d86231acd4cd85126d113\tSegmentId: 4bc3c232cee4d06c\tSampled: true\t\n",
+  "sniffer_brief": {
+    "anomaly_score": 28,
+    "anomaly_regime": "NORMAL",
+    "headline": "Retail euphoria + smart-money PEP conviction + net liquidity expansion = distribution setup, not breakout.",
+    "thesis": "AAII sentiment at 50% bullish (vs 38% historical) signals retail euphoria \u2014 a classic contrarian sell signal. Simultaneously, smart-money clusters show STRONG_CONVICTION on PEP (DURATION + quant funds buying 16% off 52w high), but this is isolated to defensive consumer staples, not broad-market leadership. Net liquidity has expanded $162B (TGA spending), which historically supports beta, but macro",
+    "n_setups": 2,
+    "n_whales": 3,
+    "n_dealers": 3,
+    "feeds_loaded": 37,
+    "feeds_missing": [
+      "cftc_deep",
+      "credit"
+    ],
+    "age_sec": 2.1,
+    "fresh": true,
+    "n_rates_signals_in_setups": 1,
+    "n_rates_whale_channels": 0,
+    "n_rates_dealer_flow_types": 2,
+    "rates_signals_sample": [
+      {
+        "setup_target": "SPY / Broad Equity Market",
+        "category": "MACRO_NOWCAST",
+        "feed": "macro_nowcast",
+        "signal": "Macro nowcast MUDDLE (normalized score 0) \u2014 no economic tailwind, cycle peaking",
+        "pctile": 62
+      }
+    ],
+    "loudest_anomaly": {
+      "signal": "AAII bullish sentiment at 50% vs 38% historical average",
+      "from_feed": "aaii_sentiment",
+      "value": "50% bullish (12 percentage points above historical mean)",
+      "anomaly_pctile": 78,
+      "interpretation": "Extreme retail euphoria. Historically a contrarian sell signal \u2014 distributions occur when retail is most bullish. High probability of 5-12% drawdown in next 4-8 weeks."
+    },
+    "most_actionable": "SHORT SPY via 3-month put spread (sell 750 / buy 730 puts) on next 2% rally. Ride the retail euphoria distribution + smart-money defensive rotation + bonds desk RISK_OFF. Target: 2-3% premium capture. Stop: SPY closes above 765. Probability 58%, risk-reward 1:2.5.",
+    "setup_samples": [
+      {
+        "rank": 1,
+        "target": "SPY / Broad Equity Market",
+        "direction": "DOWNSIDE",
+        "magnitude": "-5% to -12%",
+        "horizon": "4-8 weeks",
+        "prob": 58,
+        "who": "Retail investors (euphoria distribution), smart-money rotation to defensives (PEP), bonds desk (RISK_OFF medium confidence)",
+        "catalyst": "Macro cycle peak + earnings season disappointment + Fed hawkish hold (no rate cuts priced)",
+        "analog": {
+          "period": "Feb 2018 vol regime unwind",
+          "what_happened": "Retail euphoria + low VIX + smart money rotating to safety triggered 10% equity drawdown in 2 weeks.",
+          "similarity_pct": 72
+        },
+        "smoking_guns": [
+          {
+            "cat": "SENTIMENT",
+            "feed": "aaii_sentiment",
+            "signal": "AAII bullish 50% vs 38% historical \u2014 extreme retail euphoria, classic distribution signal"
+          },
+          {
+            "cat": "13F",
+            "feed": "smart_money_clusters",
+            "signal": "PEP STRONG_CONVICTION (score 81.7) \u2014 DURATION + quant funds buying defensives 16% off 52w high, not growth"
+          },
+          {
+            "cat": "BONDS_DESK",
+            "feed": "bonds_decisive",
+            "signal": "RISK_OFF regime (medium confidence) \u2014 'sell rallies, not buy dips' on duration cheap at 2.06% real yield"
+          },
+          {
+            "cat": "MACRO_NOWCAST",
+            "feed": "macro_nowcast",
+            "signal": "Macro nowcast MUDDLE (normalized score 0) \u2014 no economic tailwind, cycle peaking"
+          },
+          {
+            "cat": "RETAIL_SENTIMENT",
+            "feed": "retail_sentiment",
+            "signal": "Total mentions 2,811 below normal \u2014 retail disengaged from fundamentals, chasing momentum"
+          }
+        ],
+        "ride": "SHORT SPY via 3-month put spread: sell 750 puts / buy 730 puts, 1:1 ratio, target 2-3% premium capture. Size: 5-10% of portfolio. Entry: next 2% rally. Stop: SPY closes above 765 (new highs).",
+        "fade": "If SPY breaks above 765 on volume + VIX stays <15 + earnings beat rate >60%, cover short and flip long. Euphoria can persist 4-6 weeks.",
+        "invalidation": "Macro nowcast flips to EXPANSION (normalized score >30) OR AAII bullish drops below 40% OR bonds desk flips to RISK_ON."
+      },
+      {
+        "rank": 2,
+        "target": "PEP (PepsiCo)",
+        "direction": "UPSIDE",
+        "magnitude": "+8% to +15%",
+        "horizon": "8-12 weeks",
+        "prob": 42,
+        "who": "Smart-money legend funds (DURATION) + quant cluster (RENAISSANCE, AQR, TWO_SIGMA, CITADEL, MILLENNIUM)",
+        "catalyst": "Defensive rotation + dividend yield support (PEP ~2.7% yield) + earnings beat on cost control",
+        "analog": {
+          "period": "Mar 2020 dealer hedging cascade (defensive rotation phase)",
+          "what_happened": "Smart money rotated to dividend-paying staples; PEP-like names rallied 12-18% as equity vol spiked.",
+          "similarity_pct": 58
+        },
+        "smoking_guns": [
+          {
+            "cat": "13F",
+            "feed": "smart_money_clusters",
+            "signal": "PEP NEW_INITIATION_CLUSTER: 10 buyers, 2 sellers, DURATION + 6 quant funds, $3.16B total value, 16% off 52w high"
+          },
+          {
+            "cat": "13F",
+            "feed": "smart_money_clusters",
+            "signal": "PEP buyer_score 30 (clean initiation) + legend_score 14 (DURATION conviction) \u2014 high-quality entry"
+          },
+          {
+            "cat": "CONSENSUS_BOTTOM",
+            "feed": "consensus_bottom",
+            "signal": "PEP not in consensus-bottom (0 qualified names), but smart-money cluster suggests bottom-fishing in defensives"
+          }
+        ],
+        "ride": "LONG PEP 500 shares @ $265 (current ~$265 per smart_money_clusters data), target $305 (15% upside), stop $240 (10% loss). Size: 2-3% of portfolio. Thesis: ride smart-money initiation + dividend suppor",
+        "fade": "If SPY rallies >5% and growth outperforms (QQQ +8%), cover PEP and rotate back to growth. Defensive rotation thesis breaks.",
+        "invalidation": "PEP earnings miss consensus EPS by >5% OR dividend cut announced OR smart_money_clusters shows net selling in next refresh."
+      }
+    ]
+  },
+  "finished": "2026-05-30T22:26:19.070393+00:00"
+}
