@@ -93,7 +93,15 @@ SYSTEM_PROMPT = (
     "tails in bps) and you compare to specific historical episodes (2024-Q1, "
     "2020-03, 2008-09, 1979). When you give a trade idea you name a specific "
     "instrument and a specific level. You never hand-wave. You flag divergences "
-    "between the auction tape and the broader regime explicitly."
+    "between the auction tape and the broader regime explicitly.\n\n"
+    "CRITICAL — HISTORICAL PROJECTION DISCIPLINE: When you forecast risk-asset "
+    "behaviour you ALWAYS anchor to a specific historical analog. You name the "
+    "period, you cite what each asset DID during that analog (% moves over weeks), "
+    "and you project a SIMILAR-SHAPE range — not exact prices. You quantify in "
+    "percentage terms and time horizons (weeks), never invent dollar prices. You "
+    "assign a probability to the projection and a confidence tier. You always give "
+    "BOTH the upside trigger AND the downside scenario for every asset, because "
+    "real PMs need to know what would invalidate the call."
 )
 
 
@@ -249,6 +257,31 @@ Write the institutional Decisive Call brief in this JSON shape (and ONLY this JS
       "clean_signal_means": "<≤25 words>",
       "dirty_signal_means": "<≤25 words>"}}
     // 1-3 items from the upcoming-auctions list above
+  ],
+  "historical_predictions": [
+    // 6-7 items COVERING — in this order — these specific assets:
+    //   1. "US Equities (SPX/NDX)"   ticker SPX
+    //   2. "Bitcoin (BTC)"            ticker BTC
+    //   3. "Ethereum (ETH)"           ticker ETH
+    //   4. "Crypto Total Market"      ticker TOTAL
+    //   5. "High-Yield Credit"        ticker HYG
+    //   6. "Gold"                     ticker GLD
+    //   7. "US Dollar (DXY)"          ticker DXY
+    {{"asset": "<one of the 7 above>",
+      "ticker": "<SPX|BTC|ETH|TOTAL|HYG|GLD|DXY>",
+      "best_analog_period": "<specific period e.g. '2024 Q1-Q2' or '2020-03 COVID' or '2008-09 GFC'>",
+      "analog_outcome_summary": "<what THIS asset did during that analog — concrete % move and weeks, ≤40 words>",
+      "prediction_direction": "<UPSIDE | DOWNSIDE | SIDEWAYS>",
+      "prediction_range_low_pct": <number — e.g. 15 means +15%; for downside use negative numbers>,
+      "prediction_range_high_pct": <number — wider end of the range, same sign convention as low>,
+      "prediction_horizon_weeks": <integer — 4, 8, 12, 16, 24>,
+      "confidence": "<HIGH | MEDIUM | LOW>",
+      "probability_pct": <integer 0-100 — probability the predicted range holds>,
+      "upside_trigger": "<one specific numeric data condition that would confirm UPSIDE, ≤25 words>",
+      "downside_scenario_pct": <number — worst-case % move if downside triggers e.g. -25>,
+      "downside_trigger": "<one specific numeric data condition that would cause downside, ≤25 words>",
+      "key_reasoning": "<why THIS analog applies given current auction-tape + macro state, ≤30 words>"
+    }}
   ]
 }}
 
@@ -258,11 +291,17 @@ Write the institutional Decisive Call brief in this JSON shape (and ONLY this JS
   "consider rotating to defensives". Be specific: "TLT calls above 92, expiry Jul 18".
 - Tripwires MUST have numeric thresholds. "If composite > 30 for 2 consecutive
   readings, trim equity beta by 25%" — not "if conditions worsen".
+- Historical predictions MUST anchor to a SPECIFIC named historical period.
+  Project in % terms over weeks, NEVER invent dollar prices. Probability must
+  reflect honesty about uncertainty — 50-60% is normal for forward views, 80%+
+  is exceptional. For Bitcoin/crypto specifically, lean on cycle analogs
+  (2017-Q4 top, 2019-Q1 bottom, 2020-Q4 launch, 2022-Q2 capitulation, 2023-Q1
+  recovery, 2024-Q1 ATH rally) — name the closest one explicitly.
 - If auction-tape and cross-regimes diverge, flag the divergence explicitly in
   the thesis and explain which to trust and why.
 - confidence=LOW is appropriate when data is sparse or signals conflict — don't
   force HIGH if the evidence isn't there.
-- Stay under ~600 words total content."""
+- Stay under ~900 words total content."""
 
     return prompt
 
@@ -294,7 +333,7 @@ def lambda_handler(event=None, context=None):
 
     brief = claude.complete_json(prompt,
                                   system=SYSTEM_PROMPT,
-                                  max_tokens=3500,
+                                  max_tokens=5500,
                                   temperature=0.25)
 
     if not brief:
@@ -303,7 +342,7 @@ def lambda_handler(event=None, context=None):
                                       "elapsed": round(time.time() - started, 2)})}
 
     # Tag + write
-    brief["version"] = "1.0"
+    brief["version"] = "1.1"
     brief["generated_at"] = datetime.now(timezone.utc).isoformat()
     brief["model"] = "claude-haiku-4-5-20251001"
     brief["context"] = "auctions"
@@ -319,7 +358,8 @@ def lambda_handler(event=None, context=None):
 
     duration = round(time.time() - started, 2)
     print(f"[auction-interp] OK — regime={brief.get('regime')} confidence={brief.get('confidence')} "
-          f"trades={len(brief.get('trade_ideas') or [])} tripwires={len(brief.get('tripwires') or [])} {duration}s")
+          f"trades={len(brief.get('trade_ideas') or [])} tripwires={len(brief.get('tripwires') or [])} "
+          f"predictions={len(brief.get('historical_predictions') or [])} {duration}s")
 
     return {"statusCode": 200, "body": json.dumps({
         "regime": brief.get("regime"),
@@ -330,5 +370,6 @@ def lambda_handler(event=None, context=None):
         "n_cross_asset": len(brief.get("cross_asset") or []),
         "n_trades": len(brief.get("trade_ideas") or []),
         "n_tripwires": len(brief.get("tripwires") or []),
+        "n_predictions": len(brief.get("historical_predictions") or []),
         "duration_s": duration,
     })}
