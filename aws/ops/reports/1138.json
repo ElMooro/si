@@ -1,0 +1,103 @@
+{
+  "started": "2026-05-30T22:00:39.248992+00:00",
+  "runs": [
+    {
+      "idx": 1,
+      "n_ok": 1,
+      "dur": 32.15
+    },
+    {
+      "idx": 2,
+      "n_ok": 0,
+      "retry_n_ok": 1,
+      "dur": 35.6,
+      "retry_dur": 31.63
+    },
+    {
+      "idx": 3,
+      "n_ok": 1,
+      "dur": 34.71
+    },
+    {
+      "idx": 4,
+      "n_ok": 1,
+      "dur": 32.13
+    },
+    {
+      "idx": 5,
+      "n_ok": 1,
+      "dur": 31.66
+    }
+  ],
+  "history_before": {
+    "n_snapshots": 1
+  },
+  "history_after": {
+    "n_snapshots": 6,
+    "snapshots_added": 5,
+    "scores": [
+      42,
+      42,
+      42,
+      42,
+      42,
+      42
+    ],
+    "regimes": [
+      "ELEVATED",
+      "ELEVATED",
+      "ELEVATED",
+      "ELEVATED",
+      "ELEVATED",
+      "ELEVATED"
+    ],
+    "targets": [
+      "AMD",
+      "PEP (PepsiCo)",
+      "PEP",
+      "PEP",
+      "AMZN",
+      "PEP"
+    ],
+    "headlines": [
+      "AMD/LLY options surge + smart money PEP initiation = selective sector rotation, ",
+      "PEP conviction cluster + AMZN/MSFT bullish options flow converging on tech/stapl",
+      "PEP smart-money cluster + AMZN/MSFT bullish options flow converging on tech/stap",
+      "PEP conviction buy cluster + AMZN/MSFT bullish options flow converging; watching",
+      "PEP smart-money cluster + AMZN/MSFT bullish options flow converging on tech/cons",
+      "PEP smart-money cluster + AMZN/MSFT bullish options flow converging on tech/cons"
+    ],
+    "stats_7d": {
+      "n_snapshots_7d": 6,
+      "score_mean": 42.0,
+      "score_min": 42,
+      "score_max": 42,
+      "score_latest": 42,
+      "score_delta_vs_mean_7d": 0.0,
+      "n_extreme_7d": 0,
+      "n_elevated_7d": 6,
+      "n_normal_7d": 0,
+      "max_setups_7d": 3,
+      "most_targeted_assets": [
+        {
+          "asset": "PEP",
+          "n_times": 3
+        },
+        {
+          "asset": "AMD",
+          "n_times": 1
+        },
+        {
+          "asset": "PEP (PepsiCo)",
+          "n_times": 1
+        },
+        {
+          "asset": "AMZN",
+          "n_times": 1
+        }
+      ]
+    },
+    "n_events": 0
+  },
+  "finished": "2026-05-30T22:05:49.497633+00:00"
+}
